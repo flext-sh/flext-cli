@@ -33,47 +33,45 @@ from flext_cli.__version__ import (
     __version_info__,
 )
 
-# Foundation APIs
-from flext_cli.api import FlextCliApi
-from flext_cli.auth import FlextCliAuth
-from flext_cli.client import FlextCliClient
-from flext_cli.configs import FlextCliConfigs
+# CLI Core Components - Reorganized structure following FLEXT standards
 from flext_cli.constants import FlextCliConstants
+
+# CLI provider modules - direct imports (provider pattern simplified)
 from flext_cli.context import FlextCliContext
 from flext_cli.core import FlextCliService
-from flext_cli.debug import FlextCliDebug
 from flext_cli.decorators import FlextCliDecorators
-from flext_cli.domain_services import FlextCliDomainServices
 from flext_cli.exceptions import FlextCliError
-from flext_cli.file_operations import FlextCliFileOperations
-from flext_cli.formatting import FlextCliFormatters
-from flext_cli.interactions import FlextCliInteractions
+from flext_cli.flext_cli import FlextCli
+from flext_cli.flext_cli_api import FlextCliApi
+from flext_cli.flext_cli_auth import FlextCliAuth
+from flext_cli.flext_cli_formatters import FlextCliFormatters
+from flext_cli.flext_cli_main import FlextCliMain
 from flext_cli.logging_setup import FlextCliLoggingSetup
-from flext_cli.main import FlextCliMain
 from flext_cli.models import FlextCliModels
-from flext_cli.protocols import FlextCliProtocols
-from flext_cli.utils import FlextCliUtilities
+from flext_cli.typings import FlextCliTypings
 
+_CLI_PROVIDER_AVAILABLE = True
+
+
+# All available exports
 __all__ = [
+    # CLI Provider availability indicator
+    "_CLI_PROVIDER_AVAILABLE",
+    # CLI Core Components
+    "FlextCli",
+    # CLI Provider APIs
     "FlextCliApi",
     "FlextCliAuth",
-    "FlextCliClient",
-    "FlextCliConfigs",
     "FlextCliConstants",
     "FlextCliContext",
-    "FlextCliDebug",
     "FlextCliDecorators",
-    "FlextCliDomainServices",
     "FlextCliError",
-    "FlextCliFileOperations",
     "FlextCliFormatters",
-    "FlextCliInteractions",
     "FlextCliLoggingSetup",
     "FlextCliMain",
     "FlextCliModels",
-    "FlextCliProtocols",
     "FlextCliService",
-    "FlextCliUtilities",
+    "FlextCliTypings",
     # Version information
     "__author__",
     "__author_email__",

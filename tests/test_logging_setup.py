@@ -7,7 +7,6 @@ import tempfile
 from pathlib import Path
 from unittest.mock import patch
 
-from flext_cli.configs import FlextCliConfigs
 from flext_cli.logging_setup import FlextCliLoggingSetup
 from flext_cli.models import FlextCliModels
 from flext_core import FlextResult
@@ -72,7 +71,7 @@ class TestFlextCliLoggingSetup:
 
     def test_setup_logging_with_config(self) -> None:
         """Test logging setup with custom config."""
-        config = FlextCliConfigs(log_level="DEBUG")
+        config = FlextCliModels.FlextCliConfig(log_level="DEBUG")
         setup = FlextCliLoggingSetup(config)
         result = setup.setup_logging()
 
@@ -84,7 +83,7 @@ class TestFlextCliLoggingSetup:
         with tempfile.NamedTemporaryFile(delete=False) as tmp_file:
             log_path = Path(tmp_file.name)
 
-        config = FlextCliConfigs(log_file=str(log_path))
+        config = FlextCliModels.FlextCliConfig(log_file=str(log_path))
         setup = FlextCliLoggingSetup(config)
         result = setup.setup_logging()
 
@@ -123,7 +122,7 @@ class TestFlextCliLoggingSetup:
     def test_setup_logging_file_error(self) -> None:
         """Test logging setup with file error."""
         # Use invalid path to trigger file error
-        config = FlextCliConfigs(log_file="/invalid/path/log.txt")
+        config = FlextCliModels.FlextCliConfig(log_file="/invalid/path/log.txt")
         setup = FlextCliLoggingSetup(config)
         result = setup.setup_logging()
 

@@ -10,16 +10,16 @@ import tempfile
 import unittest
 from pathlib import Path
 
-from flext_cli.configs import FlextCliConfigs
+from flext_cli.models import FlextCliModels
 from flext_core import FlextResult
 
 
-class TestFlextCliConfigs(unittest.TestCase):
-    """Real functionality tests for FlextCliConfigs unified configuration class."""
+class TestFlextCliConfig(unittest.TestCase):
+    """Real functionality tests for FlextCliModels.FlextCliConfig unified configuration class."""
 
     def test_config_defaults(self) -> None:
-        """Test FlextCliConfigs initialization with default values."""
-        config = FlextCliConfigs()
+        """Test FlextCliModels.FlextCliConfig initialization with default values."""
+        config = FlextCliModels.FlextCliConfig()
 
         # Output configuration defaults
         assert config.output_format == "table"
@@ -55,8 +55,8 @@ class TestFlextCliConfigs(unittest.TestCase):
         assert config.auto_refresh is True
 
     def test_config_custom_values(self) -> None:
-        """Test FlextCliConfigs with custom values."""
-        config = FlextCliConfigs(
+        """Test FlextCliModels.FlextCliConfig with custom values."""
+        config = FlextCliModels.FlextCliConfig(
             output_format="json",
             no_color=True,
             quiet=True,
@@ -77,18 +77,18 @@ class TestFlextCliConfigs(unittest.TestCase):
         assert config.app_name == "custom-project"
 
     def test_config_output_formats(self) -> None:
-        """Test FlextCliConfigs with all valid output formats."""
+        """Test FlextCliModels.FlextCliConfig with all valid output formats."""
         valid_formats = ["table", "json", "yaml", "csv"]
 
         for format_type in valid_formats:
-            config = FlextCliConfigs(output_format=format_type)
+            config = FlextCliModels.FlextCliConfig(output_format=format_type)
             assert config.output_format == format_type
 
     def test_config_directory_setup(self) -> None:
-        """Test FlextCliConfigs directory creation and validation."""
+        """Test FlextCliModels.FlextCliConfig directory creation and validation."""
         with tempfile.TemporaryDirectory() as temp_dir:
             temp_path = Path(temp_dir)
-            config = FlextCliConfigs(
+            config = FlextCliModels.FlextCliConfig(
                 config_dir=temp_path / "config",
                 cache_dir=temp_path / "cache",
                 log_dir=temp_path / "logs",
@@ -107,16 +107,16 @@ class TestFlextCliConfigs(unittest.TestCase):
             assert config.data_dir.exists()
 
     def test_config_validation(self) -> None:
-        """Test FlextCliConfigs business rules validation."""
+        """Test FlextCliModels.FlextCliConfig business rules validation."""
         # Valid configuration should pass validation
-        config = FlextCliConfigs()
+        config = FlextCliModels.FlextCliConfig()
         validation_result = config.validate_business_rules()
         assert isinstance(validation_result, FlextResult)
         assert validation_result.is_success
 
     def test_config_nested_classes(self) -> None:
-        """Test FlextCliConfigs simplified structure."""
-        config = FlextCliConfigs()
+        """Test FlextCliModels.FlextCliConfig simplified structure."""
+        config = FlextCliModels.FlextCliConfig()
 
         # Test that configuration fields are accessible directly
         assert hasattr(config, "profile")
@@ -131,9 +131,9 @@ class TestFlextCliConfigs(unittest.TestCase):
         assert config.output_format == "table"
 
     def test_config_factory_methods(self) -> None:
-        """Test FlextCliConfigs factory methods for different environments."""
+        """Test FlextCliModels.FlextCliConfig factory methods for different environments."""
         # Development configuration
-        dev_result = FlextCliConfigs.create_development_config()
+        dev_result = FlextCliModels.FlextCliConfig.create_development_config()
         assert isinstance(dev_result, FlextResult)
         assert dev_result.is_success
         dev_config = dev_result.value
@@ -141,7 +141,7 @@ class TestFlextCliConfigs(unittest.TestCase):
         assert dev_config.trace is True
 
         # Production configuration
-        prod_result = FlextCliConfigs.create_production_config()
+        prod_result = FlextCliModels.FlextCliConfig.create_production_config()
         assert isinstance(prod_result, FlextResult)
         assert prod_result.is_success
         prod_config = prod_result.value
@@ -149,8 +149,10 @@ class TestFlextCliConfigs(unittest.TestCase):
         assert prod_config.quiet is True
 
     def test_config_serialization(self) -> None:
-        """Test FlextCliConfigs serialization and property access."""
-        config = FlextCliConfigs(output_format="json", debug=True, timeout_seconds=45)
+        """Test FlextCliModels.FlextCliConfig serialization and property access."""
+        config = FlextCliModels.FlextCliConfig(
+            output_format="json", debug=True, timeout_seconds=45
+        )
 
         # Test model serialization
         config_dict = config.model_dump()
@@ -171,7 +173,7 @@ class TestConfigIntegration(unittest.TestCase):
     def test_complete_config_workflow(self) -> None:
         """Test complete configuration creation, setup, and usage workflow."""
         # Create configuration with directories
-        config_result = FlextCliConfigs.create_with_directories(
+        config_result = FlextCliModels.FlextCliConfig.create_with_directories(
             {"debug": True, "output_format": "json", "timeout_seconds": 60},
         )
 
@@ -189,7 +191,7 @@ class TestConfigIntegration(unittest.TestCase):
 
     def test_profile_loading(self) -> None:
         """Test configuration profile loading."""
-        profile_result = FlextCliConfigs.load_from_profile("test-profile")
+        profile_result = FlextCliModels.FlextCliConfig.load_from_profile("test-profile")
         assert isinstance(profile_result, FlextResult)
         assert profile_result.is_success
 
@@ -197,8 +199,8 @@ class TestConfigIntegration(unittest.TestCase):
         assert config.profile == "test-profile"
 
     def test_configuration_providers(self) -> None:
-        """Test FlextCliConfigs simplified configuration management."""
-        config = FlextCliConfigs()
+        """Test FlextCliModels.FlextCliConfig simplified configuration management."""
+        config = FlextCliModels.FlextCliConfig()
 
         # Test that configuration can be updated directly
         config.debug = True
@@ -217,12 +219,12 @@ class TestConfigIntegration(unittest.TestCase):
         assert config.command_timeout > 0
 
 
-class TestFlextCliConfigsAdditionalCoverage(unittest.TestCase):
-    """Additional tests for FlextCliConfigs consolidated from test_config_cli_config.py."""
+class TestFlextCliConfigAdditionalCoverage(unittest.TestCase):
+    """Additional tests for FlextCliModels.FlextCliConfig consolidated from test_config_cli_config.py."""
 
     def test_config_property_paths(self) -> None:
         """Test config path properties."""
-        config = FlextCliConfigs()
+        config = FlextCliModels.FlextCliConfig()
 
         # Test expected path structures
         expected_config_dir = Path.home() / ".flext"
@@ -247,7 +249,7 @@ class TestFlextCliConfigsAdditionalCoverage(unittest.TestCase):
         ]
 
         for url in valid_urls:
-            config = FlextCliConfigs(base_url=url)
+            config = FlextCliModels.FlextCliConfig(base_url=url)
             assert config.api_url == url
 
     def test_config_validation_timeout(self) -> None:
@@ -256,7 +258,7 @@ class TestFlextCliConfigsAdditionalCoverage(unittest.TestCase):
         valid_timeouts = [1, 30, 60, 300]
 
         for timeout in valid_timeouts:
-            config = FlextCliConfigs(command_timeout=timeout)
+            config = FlextCliModels.FlextCliConfig(command_timeout=timeout)
             assert config.command_timeout == timeout
 
     def test_config_validation_max_retries(self) -> None:
@@ -265,7 +267,7 @@ class TestFlextCliConfigsAdditionalCoverage(unittest.TestCase):
         valid_retries = [0, 1, 3, 5, 10]
 
         for retry_count in valid_retries:
-            config = FlextCliConfigs(max_command_retries=retry_count)
+            config = FlextCliModels.FlextCliConfig(max_command_retries=retry_count)
             assert config.retries == retry_count
 
     def test_config_validation_log_level(self) -> None:
@@ -274,12 +276,14 @@ class TestFlextCliConfigsAdditionalCoverage(unittest.TestCase):
         valid_log_levels = ["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"]
 
         for log_level in valid_log_levels:
-            config = FlextCliConfigs(log_level=log_level)
+            config = FlextCliModels.FlextCliConfig(log_level=log_level)
             assert config.log_level == log_level
 
     def test_config_json_serialization(self) -> None:
         """Test config JSON serialization."""
-        config = FlextCliConfigs(profile="test", debug=True, output_format="json")
+        config = FlextCliModels.FlextCliConfig(
+            profile="test", debug=True, output_format="json"
+        )
 
         # Test model_dump (Pydantic v2 method)
         config_dict = config.model_dump()
@@ -290,7 +294,7 @@ class TestFlextCliConfigsAdditionalCoverage(unittest.TestCase):
 
     def test_config_string_representation(self) -> None:
         """Test config string representation."""
-        config = FlextCliConfigs(profile="test", debug=True)
+        config = FlextCliModels.FlextCliConfig(profile="test", debug=True)
 
         str_repr = str(config)
         assert isinstance(str_repr, str)
@@ -298,13 +302,13 @@ class TestFlextCliConfigsAdditionalCoverage(unittest.TestCase):
 
         repr_str = repr(config)
         assert isinstance(repr_str, str)
-        assert "FlextCliConfigs" in repr_str
+        assert "FlextCliModels.FlextCliConfig" in repr_str
 
     def test_config_equality(self) -> None:
         """Test config equality comparison."""
-        config1 = FlextCliConfigs(profile="test", debug=True)
-        config2 = FlextCliConfigs(profile="test", debug=True)
-        config3 = FlextCliConfigs(profile="different", debug=True)
+        config1 = FlextCliModels.FlextCliConfig(profile="test", debug=True)
+        config2 = FlextCliModels.FlextCliConfig(profile="test", debug=True)
+        config3 = FlextCliModels.FlextCliConfig(profile="different", debug=True)
 
         # Same configurations should be equal
         assert config1 == config2
@@ -317,9 +321,9 @@ class TestFlextCliConfigsAdditionalCoverage(unittest.TestCase):
         with tempfile.TemporaryDirectory() as temp_dir:
             _temp_path = Path(temp_dir)
 
-            # FlextCliConfigs doesn't directly accept custom paths in constructor,
+            # FlextCliModels.FlextCliConfig doesn't directly accept custom paths in constructor,
             # but we can test that the default paths are correctly computed
-            config = FlextCliConfigs()
+            config = FlextCliModels.FlextCliConfig()
 
             # Verify paths are Path objects
             assert isinstance(config.config_dir, Path)

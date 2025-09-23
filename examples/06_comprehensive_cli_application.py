@@ -26,8 +26,8 @@ from pathlib import Path
 
 from flext_cli import (
     FlextCliApi,
-    FlextCliConfigs,
     FlextCliMain,
+    FlextCliModels,
     FlextCliService,
 )
 from flext_core import FlextContainer, FlextLogger, FlextResult, FlextTypes
@@ -39,7 +39,7 @@ class ComprehensiveCliApplication:
     def __init__(self) -> None:
         """Initialize comprehensive CLI application."""
         self.logger = FlextLogger(__name__)
-        self.config = FlextCliConfigs()
+        self.config = FlextCliModels.FlextCliConfig()
         self.container = FlextContainer.get_global()
         self.api_client = FlextCliService()
         self.cli_api = FlextCliApi()

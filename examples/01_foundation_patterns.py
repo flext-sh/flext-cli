@@ -28,7 +28,6 @@ from typing import cast
 
 from flext_cli import (
     FlextCliApi,
-    FlextCliConfigs,
     FlextCliFormatters,
     FlextCliModels,
     FlextCliService,
@@ -59,10 +58,12 @@ def _setup_cli_demo(formatter: FlextCliFormatters) -> FlextResult[None]:
     return FlextResult[None].ok(None)
 
 
-def _config_demo(formatter: FlextCliFormatters) -> FlextResult[FlextCliConfigs]:
+def _config_demo(
+    formatter: FlextCliFormatters,
+) -> FlextResult[FlextCliModels.FlextCliConfig]:
     """Demo FlextModels configuration."""
     formatter.print_success("\\n2. 🏗️ FlextModels Configuration System")
-    config = FlextCliConfigs()
+    config = FlextCliModels.FlextCliConfig()
 
     # Use flext-cli table formatting instead of direct Rich
     config_data = {
@@ -78,11 +79,11 @@ def _config_demo(formatter: FlextCliFormatters) -> FlextResult[FlextCliConfigs]:
     if table_result.is_success:
         formatter.console.print(table_result.value)
 
-    return FlextResult[FlextCliConfigs].ok(config)
+    return FlextResult[FlextCliModels.FlextCliConfig].ok(config)
 
 
 def _container_demo(
-    formatter: FlextCliFormatters, config: FlextCliConfigs
+    formatter: FlextCliFormatters, config: FlextCliModels.FlextCliConfig
 ) -> FlextResult[None]:
     """Demo FlextContainer dependency injection."""
     formatter.print_success("\\n3. 🏭 FlextContainer DI Pattern (Advanced)")
@@ -115,7 +116,7 @@ def _container_demo(
 
 
 def _entities_demo(
-    formatter: FlextCliFormatters, config: FlextCliConfigs
+    formatter: FlextCliFormatters, config: FlextCliModels.FlextCliConfig
 ) -> FlextResult[tuple[FlextCliModels.CliCommand, FlextCliModels.CliSession]]:
     """Demo CLI domain entities."""
     formatter.print_success("\\n4. 🎯 CLI Domain Entities (Direct Creation)")
@@ -216,7 +217,7 @@ def _create_sample_command() -> FlextResult[FlextCliModels.CliCommand]:
 
 
 def _create_sample_session(
-    config: FlextCliConfigs,
+    config: FlextCliModels.FlextCliConfig,
 ) -> FlextResult[FlextCliModels.CliSession]:
     """Create a sample CLI session with REAL configuration."""
     try:

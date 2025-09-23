@@ -15,7 +15,7 @@ Main CLI API interface with comprehensive functionality.
 ```python
 from flext_cli import FlextCliApi
 
-class FlextCliApi(FlextDomainService[str]):
+class FlextCliApi(FlextService[str]):
     """Unified CLI API with Python 3.13 patterns."""
 
     def process_command(self, command: str) -> FlextResult[str]:

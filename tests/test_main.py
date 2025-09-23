@@ -11,7 +11,7 @@ import sys
 from pathlib import Path
 
 import flext_cli.__main__
-from flext_cli.main import FlextCliMain
+from flext_cli.flext_cli_main import FlextCliMain
 
 
 class TestMainModule:

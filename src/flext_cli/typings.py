@@ -1,4 +1,7 @@
-"""FLEXT CLI Types - Centralized typings following flext-core patterns.
+"""FLEXT CLI Typings - Single unified class following FLEXT standards.
+
+Provides CLI-specific type definitions using flext-core patterns.
+Single FlextCliTypings class with nested type definitions following FLEXT pattern.
 
 Copyright (c) 2025 FLEXT Team. All rights reserved.
 SPDX-License-Identifier: MIT
@@ -6,129 +9,45 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from datetime import datetime
-from enum import Enum
-from pathlib import Path
-from typing import Literal, Protocol, TypedDict
-from uuid import UUID
+from typing import Any, TypeVar
 
-from pydantic import BaseModel, Field
-
-from flext_cli.constants import FlextCliConstants
-from flext_core import E, F, FlextResult, FlextTypes, P, R, T, U, V
+from flext_core import FlextTypes
 
 
-class FlextCliTypes:
-    """Direct CLI type system using FlextTypes as foundation.
+class FlextCliTypings:
+    """Single unified CLI typings class following FLEXT standards.
 
-    Uses FlextTypes directly without aliases, prioritizing local library types.
-    Unified class containing ALL CLI types including output formats.
+    Contains all type definitions for CLI domain operations.
+    Follows FLEXT pattern: one class per module with nested definitions.
     """
 
-    class Commands:
-        """CLI command types using FlextTypes.Commands directly."""
+    # Type variables for CLI generics
+    T = TypeVar("T")
+    CommandHandler = TypeVar("CommandHandler")
 
-        # Also keep the Literal type for type annotations
-        CliCommandStatus = Literal[
-            "PENDING",
-            "RUNNING",
-            "COMPLETED",
-            "FAILED",
-            "CANCELLED",
-        ]
+    # CLI-specific type aliases extending flext-core using Python 3.13+ type keyword
+    type CliConfigData = FlextTypes.Core.Dict
+    type CliCommandArgs = FlextTypes.Core.Dict
+    type CliCommandResult = FlextTypes.Core.Dict
+    type CliFormatData = FlextTypes.Core.Dict
 
-        # Command state classes
-        class PendingState:
-            """Pending command state."""
+    # CLI output format types
+    type OutputFormatType = str
+    type CliExitCode = int
 
-            status: str = "PENDING"
-            message: str = "Command is pending execution"
+    # CLI command handler types
+    type CommandHandlerFunc = Any  # Will be more specific when protocols are defined
 
-        class RunningState:
-            """Running command state."""
+    # CLI authentication types
+    type AuthTokenData = FlextTypes.Core.Dict
+    type AuthConfigData = FlextTypes.Core.Dict
 
-            status: str = "RUNNING"
-            message: str = "Command is currently running"
+    # CLI debug and logging types
+    type DebugInfoData = FlextTypes.Core.Dict
+    type LoggingConfigData = FlextTypes.Core.Dict
 
-        class CompletedState:
-            """Completed command state."""
-
-            status: str = "COMPLETED"
-            message: str = "Command completed successfully"
-
-        class FailedState:
-            """Failed command state."""
-
-            status: str = "FAILED"
-            message: str = "Command execution failed"
-
-        # CLI command execution context
-        class CliCommandContext(TypedDict):
-            """CLI command execution context."""
-
-            command_id: UUID
-            command_line: str
-            execution_time: datetime
-            timeout_seconds: int
-            retry_count: int
-            correlation_id: str
-
-    # =============================================================================
-    # CLI CONFIGURATION TYPES - Using FlextTypes.Config as foundation
-    # =============================================================================
-
-    class Config:
-        """CLI configuration types leveraging FlextTypes.Config (reduced bloat)."""
-
-        # Use flext-core types where possible
-        CliLogLevel = FlextTypes.Config.LogLevel
-        CliConfigDict = FlextTypes.Config.ConfigDict
-
-        # CLI-specific extensions only
-        CliProfile = str
-        CliOutputFormat = Literal["table", "json", "yaml", "csv"]
-        CliTimeout = int
-        CliConfigPath = Path
-
-        # Profile classes for different environments
-        class DevelopmentProfile:
-            """Development profile configuration."""
-
-            name: str = "development"
-            debug_mode: bool = True
-            log_level: str = "DEBUG"
-
-        class ProductionProfile:
-            """Production profile configuration."""
-
-            name: str = "production"
-            debug_mode: bool = False
-            log_level: str = "INFO"
-
-        class TestingProfile:
-            """Testing profile configuration."""
-
-            name: str = "testing"
-            debug_mode: bool = True
-            log_level: str = "DEBUG"
-
-        # CLI configuration context
-        class CliConfigContext(TypedDict):
-            """CLI configuration context."""
-
-            profile: str
-            output_format: str
-            debug_mode: bool
-            config_path: Path
-            environment: str
-            updated_at: datetime
-
-    # =============================================================================
-    # CLI OUTPUT FORMAT TYPES - Standard output formats
-    # =============================================================================
-
-    class OutputFormat(Enum):
-        """CLI output format enumeration for standard output types."""
+    class OutputFormat:
+        """Output format constants for CLI operations."""
 
         JSON = "json"
         YAML = "yaml"
@@ -136,294 +55,59 @@ class FlextCliTypes:
         TABLE = "table"
         PLAIN = "plain"
 
-    # =============================================================================
-    # CLI AUTHENTICATION TYPES - Using FlextTypes.Auth as foundation
-    # =============================================================================
+        @classmethod
+        def get_all_formats(cls) -> dict[str, str]:
+            """Return all format options."""
+            return {
+                "JSON": cls.JSON,
+                "YAML": cls.YAML,
+                "CSV": cls.CSV,
+                "TABLE": cls.TABLE,
+                "PLAIN": cls.PLAIN,
+            }
+
+    class Commands:
+        """CLI command constants."""
+
+        AUTH = "auth"
+        CONFIG = "config"
+        DEBUG = "debug"
+        FORMAT = "format"
+        EXPORT = "export"
+
+    class Config:
+        """CLI configuration constants."""
+
+        DEFAULT_PROFILE = "default"
+        DEFAULT_OUTPUT_FORMAT = "table"
+        DEFAULT_TIMEOUT = 30
 
     class Auth:
-        """CLI authentication types extending FlextTypes.Auth."""
+        """CLI authentication constants."""
 
-        # CLI-specific auth types - direct definitions
-        CliUsername = str
-        CliPassword = str
-        CliAuthUrl = str
-        CliTokenPath = Path
-        CliAuthStatus = Literal[
-            "authenticated",
-            "unauthenticated",
-            "expired",
-            "invalid",
-        ]
-
-        # CLI authentication context
-        class CliAuthContext(TypedDict):
-            """CLI authentication context."""
-
-            username: str | None
-            auth_url: str
-            token_path: Path
-            refresh_path: Path
-            auth_status: str
-            expires_at: datetime | None
-
-    # =============================================================================
-    # CLI SESSION TYPES - Using FlextTypes.Core as foundation
-    # =============================================================================
+        TOKEN_FILE = "token.json"
+        CONFIG_FILE = "auth.json"
 
     class Session:
-        """CLI session types using standard Python types."""
+        """CLI session constants."""
 
-        # CLI-specific session types - direct definitions
-        CliSessionId = UUID
-        CliUserId = str | None
-        CliSessionDuration = float | None
-        CliCommandsCount = int
-        CliSessionStatus = Literal["active", "ended", "timeout", "error"]
-
-        # CLI session context
-        class CliSessionContext(TypedDict):
-            """CLI session context."""
-
-            session_id: UUID
-            user_id: str | None
-            start_time: datetime
-            end_time: datetime | None
-            duration_seconds: float | None
-            commands_count: int
-            status: str
-
-    # =============================================================================
-    # CLI SERVICE TYPES - Using FlextTypes.Container as foundation
-    # =============================================================================
+        DEFAULT_TIMEOUT = 3600
+        MAX_COMMANDS = 1000
 
     class Services:
-        """CLI service types extending FlextTypes.Container."""
+        """CLI service constants."""
 
-        # CLI-specific service types - direct definitions
-        CliServiceName = str
-        CliProcessorTimeout = int
-        CliServiceMetrics = dict[str, int | float | str | bool]
-        CliCorrelationId = str
-
-        # CLI service context
-        class CliServiceContext(TypedDict):
-            """CLI service context."""
-
-            service_name: str
-            correlation_id: str
-            started_at: datetime
-            timeout_seconds: int
-            retry_count: int
-            metrics: dict[str, int | float | str | bool]
-
-    # =============================================================================
-    # CLI RESULT TYPES - Using FlextResult patterns
-    # =============================================================================
-
-    class Results:
-        """CLI result types using FlextResult patterns."""
-
-        # CLI-specific result types using FlextResult - direct definitions
-        CliCommandResult = "FlextResult[FlextCliTypes.Commands.CliCommandContext]"
-        CliConfigResult = "FlextResult[FlextCliTypes.Config.CliConfigContext]"
-        CliAuthResult = "FlextResult[FlextCliTypes.Auth.CliAuthContext]"
-        CliSessionResult = "FlextResult[FlextCliTypes.Session.CliSessionContext]"
-        CliServiceResult = "FlextResult[FlextCliTypes.Services.CliServiceContext]"
-
-        # Batch result types - direct definitions
-        CliBatchResult = FlextResult[list[dict[str, int | float | str | bool]]]
-
-        # Validation result types - direct definitions
-        CliValidationResult = FlextResult[None]
-
-    # =============================================================================
-    # PLUGIN STATUS TYPES - Nested for unified class pattern
-    # =============================================================================
-
-    # =============================================================================
-    # CLI PROTOCOLS - Type protocols for CLI interfaces
-    # =============================================================================
+        API = "api"
+        FORMATTER = "formatter"
+        AUTH = "auth"
 
     class Protocols:
-        """CLI protocol types for interface definitions."""
+        """CLI protocol constants."""
 
-        class CliProcessor(Protocol):
-            """Protocol for CLI data processors."""
-
-            def process(self, data: object) -> object:
-                """Process CLI data.
-
-                Returns:
-                object: Description of return value.
-
-                """
-                ...
-
-        class CliValidator(Protocol):
-            """Protocol for CLI validators."""
-
-            def validate(self, data: object) -> bool:
-                """Validate CLI data.
-
-                Returns:
-                bool: Description of return value.
-
-                """
-                ...
-
-        class CliFormatter(Protocol):
-            """Protocol for CLI formatters."""
-
-            def format(self, data: object) -> str:
-                """Format CLI data.
-
-                Returns:
-                str: Description of return value.
-
-                """
-                ...
-
-        class CliAuthenticator(Protocol):
-            """Protocol for CLI authenticators."""
-
-            def authenticate(self, credentials: dict[str, str]) -> bool:
-                """Authenticate CLI user.
-
-                Returns:
-                bool: Description of return value.
-
-                """
-                ...
-
-    # =============================================================================
-    # CLI MAIN TYPES - Moved from cli.py for centralization
-    # =============================================================================
-
-    class CliOptions(TypedDict):
-        """CLI options structure from SOURCE OF TRUTH."""
-
-        profile: str
-        output_format: str | None
-        debug: bool
-        quiet: bool
-        log_level: str | None
-
-    class VersionInfo(TypedDict):
-        """Version information structure."""
-
-        cli_version: str
-        core_version: str | None
-        python_version: str
-        platform: str
-
-    class CliContext(TypedDict):
-        """CLI execution context structure."""
-
-        config: object  # FlextCliConfigs but avoid circular import
-        debug_mode: bool
-        quiet_mode: bool
-        profile: str
-        output_format: str
-
-    # =============================================================================
-    # AUTH TYPES - Moved from auth.py
-    # =============================================================================
-
-    class UserData(TypedDict):
-        """User data structure."""
-
-        username: str
-        email: str | None
-        id: str | None
-
-    class AuthStatus(TypedDict):
-        """Authentication status structure."""
-
-        authenticated: bool
-        username: str | None
-        expires_at: str | None
-        token_file: str
-        token_exists: bool
-        refresh_token_file: str
-        refresh_token_exists: bool
-        auto_refresh: bool
-
-    class LoginCredentials(TypedDict):
-        """Login credentials structure."""
-
-        username: str
-        password: str
-
-    class TokenPaths(TypedDict):
-        """Token file paths structure."""
-
-        token_path: Path
-        refresh_token_path: Path
-
-    class TokenData(TypedDict):
-        """Token data structure."""
-
-        access_token: str
-        refresh_token: str | None
-        expires_at: str | None
-
-    # =============================================================================
-    # DEBUG TYPES - Moved from debug.py
-    # =============================================================================
-
-    class SystemMetrics(TypedDict):
-        """System metrics structure."""
-
-        cpu_usage: str | float
-        memory_usage: str | float
-        disk_usage: str | float
-        response_time: str | float
-
-    class PathInfo(TypedDict):
-        """Path information structure."""
-
-        label: str
-        path: Path
-        exists: bool
-
-    class EnvironmentInfo(TypedDict):
-        """Environment variable information structure."""
-
-        variables: dict[str, str]
-        masked_count: int
-        total_count: int
+        HTTP = "http"
+        HTTPS = "https"
 
 
-# Backward compatibility exports for tests
-CommandStatus = FlextCliConstants.Enums.CommandStatus
-PluginStatus = FlextCliConstants.Enums.Plugin
-URL = str  # Simple URL type alias
-URLType = str  # URL type alias
-
-# Minimal exports - only actually used types
 __all__ = [
-    "URL",
-    # Core types
-    "UUID",
-    "BaseModel",
-    # Backward compatibility exports for tests
-    "CommandStatus",
-    # Type variables from flext-core
-    "E",
-    "F",
-    "Field",
-    "FlextCliConstants",
-    # Main CLI types
-    "FlextCliTypes",
-    "FlextTypes",
-    "P",
-    "Path",
-    "PluginStatus",
-    "R",
-    "T",
-    "TypedDict",
-    "U",
-    "URLType",
-    "V",
-    "datetime",
+    "FlextCliTypings",
 ]

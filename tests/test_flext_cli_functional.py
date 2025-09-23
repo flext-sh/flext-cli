@@ -14,7 +14,7 @@ from flext_cli import (
     FlextCliConstants,
     FlextCliModels,
 )
-from flext_cli.typings import FlextCliTypes
+from flext_cli.typings import FlextCliTypings
 from flext_core import FlextResult, FlextTypes
 
 
@@ -86,22 +86,22 @@ class TestFlextCliModelsReal:
         assert sorted(formats) == sorted(expected)
 
 
-class TestFlextCliTypesReal:
-    """Test REAL FlextCliTypes functionality."""
+class TestFlextCliTypingsReal:
+    """Test REAL FlextCliTypings functionality."""
 
     def test_consolidated_types_exists(self) -> None:
-        """Test that FlextCliTypes consolidated class exists."""
-        assert hasattr(FlextCliTypes, "Commands")
-        assert hasattr(FlextCliTypes, "Auth")
-        assert hasattr(FlextCliTypes, "Config")
-        assert hasattr(FlextCliTypes, "OutputFormat")
-        assert hasattr(FlextCliTypes, "Session")
+        """Test that FlextCliTypings consolidated class exists."""
+        assert hasattr(FlextCliTypings, "Commands")
+        assert hasattr(FlextCliTypings, "Auth")
+        assert hasattr(FlextCliTypings, "Config")
+        assert hasattr(FlextCliTypings, "OutputFormat")
+        assert hasattr(FlextCliTypings, "Session")
 
     def test_type_aliases_work(self) -> None:
         """Test that type aliases are properly defined."""
-        # Test that FlextCliTypes provides access to actual type classes
-        assert FlextCliTypes.Commands is not None
-        assert FlextCliTypes.Config is not None
+        # Test that FlextCliTypings provides access to actual type classes
+        assert FlextCliTypings.Commands is not None
+        assert FlextCliTypings.Config is not None
         assert FlextTypes.Core is not None  # Core types are available from flext_core
 
 
@@ -157,7 +157,7 @@ class TestFlextCliIntegration:
         """Test that all consolidated classes follow the same pattern."""
         # All main classes should be consolidated
         assert hasattr(FlextCliModels, "CliCommand")
-        assert hasattr(FlextCliTypes, "Commands")
+        assert hasattr(FlextCliTypings, "Commands")
         assert hasattr(FlextCliConstants, "STATUS_RUNNING")  # Real constants
 
         # All should be single point of access
@@ -174,7 +174,7 @@ class TestFlextCliExportsReal:
         # Test consolidated classes import
         # Test they're actually the consolidated classes
         assert hasattr(FlextCliModels, "CliCommand")
-        assert hasattr(FlextCliTypes, "Commands")
+        assert hasattr(FlextCliTypings, "Commands")
         assert hasattr(FlextCliConstants, "STATUS_RUNNING")  # Real constant exists
 
     def test_no_legacy_exports(self) -> None:

@@ -9,7 +9,7 @@ from __future__ import annotations
 import pytest
 
 from flext_cli import typings as types
-from flext_cli.typings import FlextCliTypes
+from flext_cli.typings import FlextCliTypings
 
 
 class TestTypeImports:
@@ -27,9 +27,9 @@ class TestTypeImports:
         # assert types.CommandType is not None
 
     def test_output_format_import(self) -> None:
-        """Test FlextCliTypes.OutputFormat import from flext_cli.typings."""
-        assert FlextCliTypes.OutputFormat is not None
-        assert hasattr(FlextCliTypes.OutputFormat, "JSON")
+        """Test FlextCliTypings.OutputFormat import from flext_cli.typings."""
+        assert FlextCliTypings.OutputFormat is not None
+        assert hasattr(FlextCliTypings.OutputFormat, "JSON")
 
     def test_plugin_status_import(self) -> None:
         """Test PluginStatus import."""
@@ -53,7 +53,7 @@ class TestTypeImports:
         """Test model class imports."""
         model_types: list[str] = [
             # "FlextCliCommand",    # Type does not exist in current implementation
-            # "FlextCliConfigsDict", # Type does not exist in current implementation
+            # "FlextCliConfigDict", # Type does not exist in current implementation
             # "ContextParams",      # Type does not exist in current implementation
             # "PluginResult",       # Type does not exist in current implementation
             # "SessionData",        # Type does not exist in current implementation
@@ -65,9 +65,9 @@ class TestTypeImports:
 
     def test_modern_type_aliases(self) -> None:
         """Test modern type aliases."""
-        # Check for FlextCliTypes class and its nested OutputFormat
-        assert hasattr(types, "FlextCliTypes")
-        assert hasattr(types.FlextCliTypes, "OutputFormat")
+        # Check for FlextCliTypings class and its nested OutputFormat
+        assert hasattr(types, "FlextCliTypings")
+        assert hasattr(types.FlextCliTypings, "OutputFormat")
 
         # Check for other aliases
         modern_aliases: list[str] = [
@@ -140,7 +140,7 @@ class TestTypeCompatibility:
         """Test that modern aliases are available after flext-core refactoring."""
         # Updated to only test types that actually exist
         # FlextCliDataType may not exist - skip assertion
-        assert types.FlextCliTypes.OutputFormat is not None
+        assert types.FlextCliTypings.OutputFormat is not None
         # FlextCliCommand may not exist - skip assertion
         # CommandType may not exist - skip assertion
         # CommandStatus may not exist - skip assertion
@@ -151,8 +151,8 @@ class TestTypeCompatibility:
         # Updated to only use types that exist after flext-core refactoring
         # data: types.FlextCliDataType = "test_data"  # Type may not exist
         data = "test_data"  # Simple string instead of typed variable
-        format_str: types.FlextCliTypes.OutputFormat = (
-            types.FlextCliTypes.OutputFormat.JSON
+        format_str: types.FlextCliTypings.OutputFormat = (
+            types.FlextCliTypings.OutputFormat.JSON
         )
         format_value: str = format_str.value
         args: list[str] = ["arg1", "arg2"]
@@ -185,7 +185,7 @@ class TestTypeCompatibility:
         # These should be enum classes using actual exported names
         assert hasattr(types.CommandStatus, "__members__")
         # assert hasattr(types.CommandType, "__members__")  # CommandType removed
-        assert hasattr(types.FlextCliTypes.OutputFormat, "__members__")
+        assert hasattr(types.FlextCliTypings.OutputFormat, "__members__")
         assert hasattr(types.PluginStatus, "__members__")
 
 

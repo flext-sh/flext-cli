@@ -12,7 +12,7 @@ from __future__ import annotations
 import pytest
 
 from flext_cli import FlextCliMain as ImportedMain
-from flext_cli.main import FlextCliMain
+from flext_cli.flext_cli_main import FlextCliMain
 
 
 class TestFlextCliMain:
@@ -27,14 +27,15 @@ class TestFlextCliMain:
         """Test FlextCliMain has expected CLI methods."""
         cli = FlextCliMain()
 
-        # Check for key CLI methods from consolidated functionality
+        # Check for actual CLI methods from FlextCliMain implementation
         expected_methods = [
-            "register_command",
-            "register_command_group",
+            "execute",
             "add_command",
-            "create_group",
-            "run",
-            "parse_args",
+            "add_group",
+            "run_cli",
+            "get_click_group",
+            "execute_command",
+            "list_commands",
         ]
 
         for method_name in expected_methods:
@@ -47,8 +48,10 @@ class TestFlextCliMain:
         """Test FlextCliMain initialization with parameters."""
         cli = FlextCliMain(name="test-cli", description="Test CLI application")
         assert cli is not None
-        assert cli.name == "test-cli"
-        assert cli.description == "Test CLI application"
+        # FlextCliMain doesn't expose name/description as properties
+        # but stores them internally in the Click group
+        assert hasattr(cli, "_cli_group")
+        assert cli._cli_group.name == "test-cli"
 
     def test_cli_main_register_command_basic(self) -> None:
         """Test basic command registration."""
@@ -57,47 +60,43 @@ class TestFlextCliMain:
         def test_command() -> str:
             return "test"
 
-        # Should be able to register a command
-        result = cli.register_command("test", test_command)
-        assert result is not None
+        # Should be able to add a command using actual API
+        result = cli.add_command("test", test_command)
+        assert result.is_success
 
-    def test_cli_main_register_command_group_basic(self) -> None:
-        """Test basic command group registration."""
+    def test_cli_main_add_group_basic(self) -> None:
+        """Test basic command group creation using actual API."""
         cli = FlextCliMain()
 
-        commands = {"sub1": lambda: "sub1 result", "sub2": lambda: "sub2 result"}
-
-        # Should be able to register a command group
-        result = cli.register_command_group("group", commands)
-        assert result is not None
+        # Should be able to add a group using actual API
+        result = cli.add_group("group", "Test group")
+        assert result.is_success
 
     def test_cli_main_create_group_basic(self) -> None:
         """Test basic group creation."""
         cli = FlextCliMain()
 
-        # Should be able to create a group
-        group = cli.create_group("mygroup", description="Test group")
+        # Should be able to add a group using actual API
+        result = cli.add_group("mygroup", "Test group")
+        assert result.is_success
+        group = result.value
         assert group is not None
 
-    def test_cli_main_has_nested_helper_classes(self) -> None:
-        """Test FlextCliMain has nested helper classes."""
+    def test_cli_main_has_core_attributes(self) -> None:
+        """Test FlextCliMain has core attributes."""
         cli = FlextCliMain()
 
-        # Check for nested helper classes (from consolidated functionality)
-        expected_helpers = [
-            "_OptionsHelper",
-            "_ContextHelper",
-            "_VersionHelper",
-            "_LoggingHelper",
-            "_AuthCommands",
-            "_ConfigCommands",
-            "_SystemCommands",
+        # Check for core attributes from actual implementation
+        expected_attributes = [
+            "_logger",
+            "_container",
+            "_cli_group",
         ]
 
-        for helper_name in expected_helpers:
-            assert hasattr(cli, helper_name), f"Missing helper class: {helper_name}"
-            helper_class = getattr(cli, helper_name)
-            assert callable(helper_class), f"Helper class not callable: {helper_name}"
+        for attr_name in expected_attributes:
+            assert hasattr(cli, attr_name), f"Missing core attribute: {attr_name}"
+            attr_value = getattr(cli, attr_name)
+            assert attr_value is not None, f"Core attribute is None: {attr_name}"
 
 
 class TestFlextCliMainAdvanced:
@@ -113,12 +112,13 @@ class TestFlextCliMainAdvanced:
             executed.append("test_command")
             return "success"
 
-        cli.register_command("test", test_command)
+        result = cli.add_command("test", test_command)
+        assert result.is_success
 
-        # Should be able to execute the command
+        # Should be able to execute the command using run_cli
         try:
-            result = cli.run(["test"])
-            assert "test_command" in executed or result is not None
+            result = cli.run_cli(["test"])
+            assert "test_command" in executed or result.is_success
         except SystemExit:
             # CLI might exit normally, which is acceptable
             pass
@@ -129,7 +129,7 @@ class TestFlextCliMainAdvanced:
 
         # Should handle help without errors
         try:
-            cli.run(["--help"])
+            cli.run_cli(["--help"])
         except SystemExit:
             # Help command typically exits, which is normal
             pass
@@ -140,50 +140,66 @@ class TestFlextCliMainAdvanced:
 
         # Should handle version without errors
         try:
-            cli.run(["--version"])
+            cli.run_cli(["--version"])
         except SystemExit:
             # Version command typically exits, which is normal
             pass
 
-    def test_cli_main_nested_helpers_functionality(self) -> None:
-        """Test nested helper classes functionality."""
+    def test_cli_main_core_functionality(self) -> None:
+        """Test core FlextCliMain functionality."""
         cli = FlextCliMain()
 
-        # Test OptionsHelper
-        options_helper = cli._OptionsHelper()
-        assert options_helper is not None
+        # Test execute method (required by FlextService)
+        execute_result = cli.execute()
+        assert execute_result.is_success
+        assert "status" in execute_result.value
+        assert execute_result.value["status"] == "operational"
 
-        # Test ContextHelper
-        context_helper = cli._ContextHelper()
-        assert context_helper is not None
+        # Test list_commands
+        commands_result = cli.list_commands()
+        assert commands_result.is_success
+        assert isinstance(commands_result.value, list)
 
-        # Test VersionHelper
-        version_helper = cli._VersionHelper()
-        assert version_helper is not None
-
-    def test_cli_main_auth_commands_integration(self) -> None:
-        """Test AuthCommands integration."""
+    def test_cli_main_command_integration(self) -> None:
+        """Test command integration functionality."""
         cli = FlextCliMain()
 
-        auth_commands = cli._AuthCommands()
-        assert auth_commands is not None
+        # Test adding multiple commands
+        def cmd1() -> str:
+            return "cmd1"
 
-        # Should have auth command methods
-        expected_auth_methods = ["login", "logout", "status"]
-        for method in expected_auth_methods:
-            assert hasattr(auth_commands, method), f"Missing auth method: {method}"
+        def cmd2() -> str:
+            return "cmd2"
 
-    def test_cli_main_config_commands_integration(self) -> None:
-        """Test ConfigCommands integration."""
+        result1 = cli.add_command("cmd1", cmd1, "First command")
+        assert result1.is_success
+
+        result2 = cli.add_command("cmd2", cmd2, "Second command")
+        assert result2.is_success
+
+        # Verify commands are listed
+        commands_result = cli.list_commands()
+        assert commands_result.is_success
+        commands = commands_result.value
+        assert "cmd1" in commands
+        assert "cmd2" in commands
+
+    def test_cli_main_group_integration(self) -> None:
+        """Test group integration functionality."""
         cli = FlextCliMain()
 
-        config_commands = cli._ConfigCommands()
-        assert config_commands is not None
+        # Test adding groups
+        result1 = cli.add_group("config", "Configuration commands")
+        assert result1.is_success
 
-        # Should have config command methods
-        expected_config_methods = ["get", "set", "list", "reset"]
-        for method in expected_config_methods:
-            assert hasattr(config_commands, method), f"Missing config method: {method}"
+        result2 = cli.add_group("auth", "Authentication commands")
+        assert result2.is_success
+
+        # Test accessing the Click group
+        click_group = cli.get_click_group()
+        assert click_group is not None
+        assert "config" in click_group.commands
+        assert "auth" in click_group.commands
 
 
 class TestFlextCliMainIntegration:
@@ -218,14 +234,15 @@ class TestFlextCliMainIntegration:
         # - cli_bus.py (command bus pattern)
         # - cmd.py (command implementations)
 
-        # Check for methods that would come from each old module
-        assert hasattr(cli, "register_command"), "Missing cli.py functionality"
-        assert hasattr(cli, "create_group"), "Missing unified_cli.py functionality"
-        assert hasattr(cli, "run"), "Missing command execution functionality"
+        # Check for methods from actual implementation
+        assert hasattr(cli, "add_command"), "Missing command functionality"
+        assert hasattr(cli, "add_group"), "Missing group functionality"
+        assert hasattr(cli, "run_cli"), "Missing command execution functionality"
+        assert hasattr(cli, "execute"), "Missing FlextService execute functionality"
 
-        # Check for nested classes from consolidated modules
-        assert hasattr(cli, "_AuthCommands"), "Missing cmd.py auth functionality"
-        assert hasattr(cli, "_ConfigCommands"), "Missing cmd.py config functionality"
+        # Check for core implementation attributes
+        assert hasattr(cli, "_cli_group"), "Missing Click group integration"
+        assert hasattr(cli, "_logger"), "Missing logging functionality"
 
 
 class TestFlextCliMainErrorHandling:

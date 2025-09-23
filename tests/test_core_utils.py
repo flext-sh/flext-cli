@@ -10,10 +10,10 @@ import json
 import tempfile
 from pathlib import Path
 
-from flext_cli.configs import FlextCliConfigs
 from flext_cli.constants import FlextCliConstants
 from flext_cli.core import FlextCliService
-from flext_core import FlextDomainService, FlextResult
+from flext_cli.models import FlextCliModels
+from flext_core import FlextResult, FlextService
 
 
 class TestFlextCliService:
@@ -36,21 +36,21 @@ class TestFlextCliService:
         assert health_data["domain"] == "cli"
 
     def test_service_inherits_from_domain_service(self) -> None:
-        """Test service inherits from FlextDomainService."""
+        """Test service inherits from FlextService."""
         service = FlextCliService()
-        assert isinstance(service, FlextDomainService)
+        assert isinstance(service, FlextService)
 
 
-class TestFlextCliConfigs:
+class TestFlextCliConfig:
     """Test configuration functionality."""
 
     def setup__method(self, __method: object, /) -> None:
         """Clean up global configuration before each test."""
-        FlextCliConfigs.clear_global_instance()
+        FlextCliModels.FlextCliConfig.clear_global_instance()
 
     def test_config_creation_with_defaults(self) -> None:
         """Test config creation with default values."""
-        config = FlextCliConfigs()
+        config = FlextCliModels.FlextCliConfig()
 
         # Test default values
         assert config.profile == "default"
@@ -59,7 +59,7 @@ class TestFlextCliConfigs:
 
     def test_config_creation_with_custom_values(self) -> None:
         """Test config creation with custom values."""
-        config = FlextCliConfigs(
+        config = FlextCliModels.FlextCliConfig(
             profile="test",
             debug=True,
             output_format="json",
@@ -71,7 +71,7 @@ class TestFlextCliConfigs:
 
     def test_config_directories_creation(self) -> None:
         """Test directory creation functionality."""
-        config = FlextCliConfigs()
+        config = FlextCliModels.FlextCliConfig()
 
         # Test that directories can be created using modern method
         result = config.ensure_directories()
@@ -81,7 +81,7 @@ class TestFlextCliConfigs:
 
     def test_config_directories_validation(self) -> None:
         """Test directory validation functionality."""
-        config = FlextCliConfigs()
+        config = FlextCliModels.FlextCliConfig()
 
         # Create and validate directories using modern method
         result = config.ensure_directories()
@@ -89,7 +89,7 @@ class TestFlextCliConfigs:
 
     def test_config_settings_with_environment_variables(self) -> None:
         """Test settings loading from environment."""
-        settings = FlextCliConfigs()
+        settings = FlextCliModels.FlextCliConfig()
 
         # Settings should be created successfully
         assert hasattr(settings, "profile")
@@ -100,14 +100,14 @@ class TestFlextCliConfigs:
 
     def test_config_ensure_setup_runs_successfully(self) -> None:
         """Test ensure setup method."""
-        config = FlextCliConfigs()
+        config = FlextCliModels.FlextCliConfig()
         result = config.ensure_setup()
 
         assert isinstance(result, FlextResult)
 
     def test_config_validate_cli_rules(self) -> None:
         """Test CLI rules validation."""
-        config = FlextCliConfigs()
+        config = FlextCliModels.FlextCliConfig()
         result = config.validate_business_rules()
 
         assert isinstance(result, FlextResult)
@@ -115,28 +115,28 @@ class TestFlextCliConfigs:
     def test_config_factory_methods(self) -> None:
         """Test configuration factory methods."""
         # Test development config creation
-        dev_result = FlextCliConfigs.create_development_config()
+        dev_result = FlextCliModels.FlextCliConfig.create_development_config()
         assert isinstance(dev_result, FlextResult)
         assert dev_result.is_success
         dev_config = dev_result.value
-        assert isinstance(dev_config, FlextCliConfigs)
+        assert isinstance(dev_config, FlextCliModels.FlextCliConfig)
         assert dev_config.debug is True
 
         # Test production config creation
-        prod_result = FlextCliConfigs.create_production_config()
+        prod_result = FlextCliModels.FlextCliConfig.create_production_config()
         assert isinstance(prod_result, FlextResult)
         assert prod_result.is_success
         prod_config = prod_result.value
-        assert isinstance(prod_config, FlextCliConfigs)
+        assert isinstance(prod_config, FlextCliModels.FlextCliConfig)
         assert prod_config.debug is False
 
     def test_config_load_from_profile(self) -> None:
         """Test loading configuration from profile."""
-        result = FlextCliConfigs.load_from_profile("development")
+        result = FlextCliModels.FlextCliConfig.load_from_profile("development")
         assert isinstance(result, FlextResult)
         assert result.is_success
         config = result.value
-        assert isinstance(config, FlextCliConfigs)
+        assert isinstance(config, FlextCliModels.FlextCliConfig)
         assert config.profile == "development"
 
     def test_config_with_file_loading(self) -> None:
@@ -160,11 +160,13 @@ class TestFlextCliConfigs:
 
             try:
                 # Test that config can be created with file data
-                result = FlextCliConfigs.create_with_directories(config_data)
+                result = FlextCliModels.FlextCliConfig.create_with_directories(
+                    config_data
+                )
                 assert isinstance(result, FlextResult)
                 assert result.is_success
                 config = result.value
-                assert isinstance(config, FlextCliConfigs)
+                assert isinstance(config, FlextCliModels.FlextCliConfig)
                 assert config.profile == "test_profile"
                 assert config.debug is True
             finally:
@@ -177,7 +179,7 @@ class TestFlextCliConfigs:
         assert hasattr(FlextCliConstants, "LOG_LEVEL_INFO")
 
         # Verify defaults match constants
-        settings = FlextCliConfigs()
+        settings = FlextCliModels.FlextCliConfig()
         assert settings.api_url == FlextCliConstants.FALLBACK_API_URL
         assert settings.log_level == FlextCliConstants.LOG_LEVEL_INFO
 
@@ -187,7 +189,7 @@ class TestConfigIntegration:
 
     def test_config_and_service_integration(self) -> None:
         """Test configuration works with service."""
-        config = FlextCliConfigs(debug=True)
+        config = FlextCliModels.FlextCliConfig(debug=True)
         service = FlextCliService()
 
         # Both should be independent but usable together
@@ -199,7 +201,7 @@ class TestConfigIntegration:
 
     def test_config_file_operations(self) -> None:
         """Test config file-related operations."""
-        config = FlextCliConfigs()
+        config = FlextCliModels.FlextCliConfig()
 
         # Test that file paths are accessible
         assert hasattr(config, "config_dir")
@@ -216,7 +218,7 @@ class TestConfigIntegration:
     def test_config_business_rules_validation(self) -> None:
         """Test configuration business rules validation."""
         # Test valid configuration
-        valid_config = FlextCliConfigs(
+        valid_config = FlextCliModels.FlextCliConfig(
             profile="development",
             output_format="json",
             debug=True,

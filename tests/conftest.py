@@ -17,7 +17,6 @@ import pytest
 from flext_cli import (
     FlextCliApi,
     FlextCliAuth,
-    FlextCliConfigs,
     FlextCliContext,
     FlextCliMain,
 )
@@ -168,7 +167,7 @@ def cli_context(flext_factories: FlextTestsFactories) -> FlextCliContext:
         no_color=True,
     )
 
-    config = FlextCliConfigs(**config_data)
+    config = FlextCliModels.FlextCliConfig(**config_data)
     return FlextCliContext(
         config=config,
         debug=True,
@@ -181,7 +180,7 @@ def cli_context(flext_factories: FlextTestsFactories) -> FlextCliContext:
 
 # Configuration Fixtures
 @pytest.fixture
-def test_config(flext_factories: FlextTestsFactories) -> FlextCliConfigs:
+def test_config(flext_factories: FlextTestsFactories) -> FlextCliModels.FlextCliConfig:
     """Provide test configuration using FlextTestsFactories."""
     config_data = flext_factories.ConfigFactory.create(
         profile="test",
@@ -189,7 +188,7 @@ def test_config(flext_factories: FlextTestsFactories) -> FlextCliConfigs:
         timeout_seconds=30,
         output_format="table",
     )
-    return FlextCliConfigs(**config_data)
+    return FlextCliModels.FlextCliConfig(**config_data)
 
 
 # User and Domain Fixtures
@@ -247,7 +246,7 @@ def real_repositories(_flext_fixtures: FlextTestsFixtures) -> FlextTypes.Core.Di
     return {
         "user_repo": {},  # Placeholder for in-memory repo
         "auth_service": FlextCliAuth(),
-        "config": FlextCliConfigs(profile="test"),
+        "config": FlextCliModels.FlextCliConfig(profile="test"),
     }
 
 

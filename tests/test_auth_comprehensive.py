@@ -103,11 +103,8 @@ class TestAuthCommands:
         flext_matchers: FlextTestsMatchers,
     ) -> None:
         """Test auth command group registration."""
-        register_result = cli_main.register_command_group(
-            "auth",
-            auth_commands,
-            "Authentication commands",
-        )
+        # Use actual API method add_group instead of non-existent register_command_group
+        register_result = cli_main.add_group("auth", "Authentication commands")
         flext_matchers.assert_result_success(register_result)
 
     def test_login_command_functionality(
@@ -221,11 +218,8 @@ class TestAuthIntegration:
     ) -> None:
         """Test complete auth workflow integration."""
         # Step 1: Register auth commands
-        register_result = cli_main.register_command_group(
-            "auth",
-            auth_commands,
-            "Authentication commands",
-        )
+        # Use actual API method add_group instead of non-existent register_command_group
+        register_result = cli_main.add_group("auth", "Authentication commands")
         flext_matchers.assert_result_success(register_result)
 
         # Step 2: Create test user data using FlextTestsDomains

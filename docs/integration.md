@@ -195,9 +195,9 @@ match output_format:
 
 ```python
 from flext_cli import FlextCliMain
-from flext_core import FlextResult, FlextDomainService
+from flext_core import FlextResult, FlextService
 
-class ProjectCommands(FlextDomainService):
+class ProjectCommands(FlextService):
     """Project-specific CLI commands."""
 
     def deploy_project(self, **kwargs) -> FlextResult[None]:
@@ -235,7 +235,7 @@ container = FlextContainer.get_global()
 container.register("project_cli", FlextCliService())
 
 # Use in project services
-class ProjectService(FlextDomainService):
+class ProjectService(FlextService):
     def __init__(self):
         super().__init__()
         self._container = FlextContainer.get_global()

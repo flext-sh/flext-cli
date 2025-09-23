@@ -185,10 +185,10 @@ test: add integration tests for config module
 1. Create command handler:
 
 ```python
-from flext_core import FlextResult, FlextDomainService
+from flext_core import FlextResult, FlextService
 from flext_cli import FlextCliApi
 
-class DataCommands(FlextDomainService):
+class DataCommands(FlextService):
     """Data management commands."""
 
     def handle_export(self, **kwargs) -> FlextResult[None]:

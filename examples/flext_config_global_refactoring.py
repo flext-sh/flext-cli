@@ -19,10 +19,7 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from flext_cli.api import FlextCliApi
-from flext_cli.auth import FlextCliAuth
-from flext_cli.client import FlextCliClient
-from flext_cli.configs import FlextCliConfigs
+from flext_cli import FlextCliApi, FlextCliAuth, FlextCliClient, FlextCliModels
 from flext_core import FlextConfig
 
 
@@ -33,7 +30,7 @@ def demonstrate_global_configuration_refactoring() -> None:
     # 1. Show FlextConfig as SINGLE SOURCE OF TRUTH
     print("1. FlextConfig Singleton (SINGLE SOURCE OF TRUTH):")
     base_config = FlextConfig.get_global_instance()
-    cli_config = FlextCliConfigs.get_global_instance()
+    cli_config = FlextCliModels.FlextCliConfig.get_global_instance()
 
     print(f"   Base Config Environment: {base_config.environment}")
     print(f"   Base Config Debug: {base_config.debug}")
@@ -83,7 +80,7 @@ def demonstrate_global_configuration_refactoring() -> None:
         print(f"     {key}: {value}")
 
     # Apply overrides to FlextConfig singleton
-    result = FlextCliConfigs.apply_cli_overrides(cli_overrides)
+    result = FlextCliModels.FlextCliConfig.apply_cli_overrides(cli_overrides)
     if result.is_failure:
         print(f"   ❌ Failed to apply overrides: {result.error}")
         return
@@ -119,12 +116,14 @@ def demonstrate_global_configuration_refactoring() -> None:
     # 5. Verify consistency across all modules
     print("5. Verifying Configuration Consistency:")
     updated_base_config = FlextConfig.get_global_instance()
-    updated_cli_config = FlextCliConfigs.get_global_instance()
+    updated_cli_config = FlextCliModels.FlextCliConfig.get_global_instance()
 
     print(f"   FlextConfig Debug: {updated_base_config.debug}")
     print(f"   FlextConfig Log Level: {updated_base_config.log_level}")
-    print(f"   FlextCliConfigs API URL: {updated_cli_config.api_url}")
-    print(f"   FlextCliConfigs Command Timeout: {updated_cli_config.command_timeout}s")
+    print(f"   FlextCliModels.FlextCliConfig API URL: {updated_cli_config.api_url}")
+    print(
+        f"   FlextCliModels.FlextCliConfig Command Timeout: {updated_cli_config.command_timeout}s"
+    )
 
     # Verify all modules are using the same configuration
     consistency_checks = [
@@ -212,7 +211,7 @@ def demonstrate_dynamic_configuration_updates() -> None:
         "log_level": "DEBUG",
     }
 
-    result = FlextCliConfigs.apply_cli_overrides(config_changes)
+    result = FlextCliModels.FlextCliConfig.apply_cli_overrides(config_changes)
     if result.is_success:
         print("   ✅ Configuration changes applied to FlextConfig singleton")
     else:
@@ -239,7 +238,7 @@ def demonstrate_dynamic_configuration_updates() -> None:
     print()
 
     # Verify all modules reflect the changes
-    updated_config = FlextCliConfigs.get_global_instance()
+    updated_config = FlextCliModels.FlextCliConfig.get_global_instance()
     print("5. Verification:")
     print(f"   FlextConfig API URL: {updated_config.api_url}")
     print(f"   FlextConfig Project Version: {updated_config.project_version}")
@@ -278,7 +277,7 @@ def demonstrate_cli_parameter_integration() -> None:
         "command_timeout": cli_params["--timeout"],
     }
 
-    result = FlextCliConfigs.apply_cli_overrides(cli_overrides)
+    result = FlextCliModels.FlextCliConfig.apply_cli_overrides(cli_overrides)
     if result.is_success:
         print("   ✅ CLI parameters applied to FlextConfig singleton")
     else:
@@ -298,7 +297,7 @@ def demonstrate_cli_parameter_integration() -> None:
 
     # Show final state
     print("5. Final Configuration State:")
-    final_config = FlextCliConfigs.get_global_instance()
+    final_config = FlextCliModels.FlextCliConfig.get_global_instance()
     print(f"   Debug Mode: {final_config.debug}")
     print(f"   Log Level: {final_config.log_level}")
     print(f"   API URL: {final_config.api_url}")

@@ -4,18 +4,18 @@ Copyright (c) 2025 FLEXT Team. All rights reserved.
 SPDX-License-Identifier: MIT
 """
 
-from flext_cli import FlextCliConfigs
+from flext_cli.models import FlextCliModels
 
 
 def test_imports() -> None:
     """Test that basic imports work."""
-    config = FlextCliConfigs()
+    config = FlextCliModels.FlextCliConfig()
     assert config.project_name == "flext-cli"
 
 
 def test_config_creation() -> None:
     """Test that config creation works."""
-    config = FlextCliConfigs()
+    config = FlextCliModels.FlextCliConfig()
     # Config should be created successfully with valid attributes
     assert hasattr(config, "project_name")
     assert hasattr(config, "config_dir")
