@@ -9,8 +9,9 @@ import os
 from pathlib import Path
 
 import pytest
+from pydantic import ValidationError
 
-from flext_cli import FlextCliModels
+from flext_cli.config import FlextCliConfig
 
 
 class TestFlextConfigIntegration:
@@ -33,7 +34,7 @@ class TestFlextConfigIntegration:
     def test_flext_config_basic_functionality(self) -> None:
         """Test that FlextCliConfig works with actual Pydantic BaseSettings API."""
         # Create CLI config using actual API
-        cli_config = FlextCliModels.FlextCliConfig()
+        cli_config = FlextCliConfig.MainConfig()
 
         # Verify CLI-specific fields are present with defaults
         assert hasattr(cli_config, "profile")
@@ -53,7 +54,7 @@ class TestFlextConfigIntegration:
         os.environ["FLEXT_CLI_DEBUG"] = "true"
 
         # Create config (should read from environment)
-        cli_config = FlextCliModels.FlextCliConfig()
+        cli_config = FlextCliConfig.MainConfig()
 
         # Verify environment variables are loaded
         assert cli_config.profile == "test-profile"
@@ -63,7 +64,7 @@ class TestFlextConfigIntegration:
     def test_flext_config_explicit_values(self) -> None:
         """Test FlextCliConfig with explicit constructor values."""
         # Create config with explicit values
-        cli_config = FlextCliModels.FlextCliConfig(
+        cli_config = FlextCliConfig.MainConfig(
             profile="explicit-profile", output_format="yaml", debug=True
         )
 
@@ -74,20 +75,22 @@ class TestFlextConfigIntegration:
 
     def test_flext_config_methods(self) -> None:
         """Test actual FlextCliConfig methods."""
-        cli_config = FlextCliModels.FlextCliConfig()
+        from flext_cli.constants import FlextCliConstants
 
-        # Test get_config_dir method
-        config_dir = cli_config.get_config_dir()
+        cli_config = FlextCliConfig.MainConfig()
+
+        # Test config_dir field
+        config_dir = cli_config.config_dir
         assert isinstance(config_dir, Path)
 
-        # Test get_config_file method
-        config_file = cli_config.get_config_file()
+        # Test config file path composition
+        config_file = cli_config.config_dir / FlextCliConstants.CliDefaults.CONFIG_FILE
         assert isinstance(config_file, Path)
         assert config_file.suffix in {".json", ".toml"}  # Accept either format
 
     def test_output_format_validation(self) -> None:
         """Test output format validation."""
-        cli_config = FlextCliModels.FlextCliConfig()
+        cli_config = FlextCliConfig.MainConfig()
 
         # Test valid format
         result = cli_config.validate_output_format("json")
@@ -102,12 +105,13 @@ class TestFlextConfigIntegration:
         # Test invalid format
         result = cli_config.validate_output_format("invalid_format")
         assert result.is_failure
+        assert result.error is not None
         assert "not supported" in result.error or "Invalid" in result.error
 
     def test_config_model_validation(self) -> None:
         """Test Pydantic model validation."""
         # Test valid config creation
-        config = FlextCliModels.FlextCliConfig(
+        config = FlextCliConfig.MainConfig(
             profile="test", output_format="json", debug=False
         )
         assert config.profile == "test"
@@ -115,5 +119,5 @@ class TestFlextConfigIntegration:
         assert config.debug_mode is False
 
         # Test that the model validates types properly
-        with pytest.raises((ValueError, TypeError)):
-            FlextCliModels.FlextCliConfig(debug="invalid_boolean")
+        with pytest.raises((ValueError, TypeError, ValidationError)):
+            FlextCliConfig.MainConfig(debug="invalid_boolean")  # type: ignore[arg-type]

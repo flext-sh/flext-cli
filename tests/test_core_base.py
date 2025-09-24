@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import asyncio
 import io
+from typing import cast
 
 import pytest
 
@@ -191,7 +192,7 @@ class TestHandleServiceResult:
 
         nested = result_dict["nested"]
         assert isinstance(nested, dict)
-        deep = nested["deep"]
+        deep = cast("dict[str, object]", nested["deep"])
         assert isinstance(deep, dict)
         if deep["value"] != "found":
             msg = f"Expected {'found'}, got {deep['value']}"

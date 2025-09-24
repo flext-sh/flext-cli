@@ -96,7 +96,9 @@ class FlextCliMain(FlextService[dict[str, object]]):
                 short_help=str(click_options.get("short_help"))
                 if click_options and click_options.get("short_help")
                 else None,
-                options_metavar=str(click_options.get("options_metavar")) if (click_options and click_options.get("options_metavar")) else "",
+                options_metavar=str(click_options.get("options_metavar"))
+                if (click_options and click_options.get("options_metavar"))
+                else "",
                 add_help_option=bool(click_options.get("add_help_option", True))
                 if click_options
                 else True,
@@ -133,8 +135,7 @@ class FlextCliMain(FlextService[dict[str, object]]):
                     "dict[str, click.Command]",
                     click_options.get("commands"),
                 )
-                if click_options
-                and isinstance(click_options.get("commands"), dict)
+                if click_options and isinstance(click_options.get("commands"), dict)
                 else None,
                 invoke_without_command=bool(
                     click_options.get("invoke_without_command", False)
@@ -242,12 +243,12 @@ class FlextCliMain(FlextService[dict[str, object]]):
         description: str = "",
     ) -> FlextResult[None]:
         """Register a group of commands with the CLI.
-        
+
         Args:
             name: Group name
             commands: Dictionary of command definitions
             description: Group description
-            
+
         Returns:
             FlextResult[None]: Success or failure result
 
@@ -259,7 +260,7 @@ class FlextCliMain(FlextService[dict[str, object]]):
                 help=description,
                 context_settings={"help_option_names": ["-h", "--help"]},
             )
-            
+
             # Add commands to the group
             for cmd_name, cmd_def in commands.items():
                 if isinstance(cmd_def, dict) and "handler" in cmd_def:
@@ -269,13 +270,15 @@ class FlextCliMain(FlextService[dict[str, object]]):
                         help=cmd_def.get("description", ""),
                     )
                     group.add_command(command)
-            
+
             # Add the group to the main CLI
             self._cli_group.add_command(group)
             self._logger.info(f"Registered command group: {name}")
             return FlextResult[None].ok(None)
         except Exception as e:
-            return FlextResult[None].fail(f"Failed to register command group '{name}': {e}")
+            return FlextResult[None].fail(
+                f"Failed to register command group '{name}': {e}"
+            )
 
 
 def create_main_cli() -> FlextCliMain:

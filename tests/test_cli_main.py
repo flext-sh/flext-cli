@@ -106,7 +106,7 @@ class TestFlextCliMainAdvanced:
         """Test CLI command execution."""
         cli = FlextCliMain()
 
-        executed = []
+        executed: list[str] = []
 
         def test_command() -> str:
             executed.append("test_command")
@@ -280,4 +280,4 @@ class TestFlextCliMainErrorHandling:
         # Should handle invalid command registration gracefully
         result = cli.add_command("", None)  # Invalid parameters
         assert result.is_failure
-        assert "not callable" in result.error
+        assert "not callable" in str(result.error or "")

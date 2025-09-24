@@ -90,14 +90,14 @@ class TestFlextCliApiIntegration:
         with tempfile.TemporaryDirectory() as temp_dir:
             output_file = Path(temp_dir) / "export.yaml"
 
-            result = self.api.export_data(data, str(output_file), "yaml")
+            result = self.api.export_data(data, output_file, "yaml")
 
             # YAML export may or may not be implemented
             assert isinstance(result, FlextResult)
 
     def test_api_batch_export(self) -> None:
         """Test batch export functionality."""
-        datasets = {
+        datasets: dict[str, object] = {
             "dataset1": {"name": "dataset1", "value": 1},
             "dataset2": {"name": "dataset2", "value": 2},
         }

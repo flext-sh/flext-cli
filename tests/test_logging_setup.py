@@ -13,17 +13,17 @@ import tempfile
 from pathlib import Path
 from unittest.mock import patch
 
+from flext_cli.config import FlextCliConfig
 from flext_cli.logging_setup import FlextCliLoggingSetup
-from flext_cli.models import FlextCliModels
 from flext_core import FlextResult
 
 
 class TestFlextCliLoggingConfig:
-    """Test FlextCliModels.LoggingConfig class."""
+    """Test FlextCliConfig.LoggingConfig class."""
 
     def test_default_config(self) -> None:
         """Test default configuration values."""
-        config = FlextCliModels.LoggingConfig()
+        config = FlextCliConfig.LoggingConfig()
 
         assert config.log_level == "INFO"
         assert (
@@ -35,7 +35,7 @@ class TestFlextCliLoggingConfig:
 
     def test_custom_config(self) -> None:
         """Test custom configuration values."""
-        config = FlextCliModels.LoggingConfig(
+        config = FlextCliConfig.LoggingConfig(
             log_level="DEBUG",
             log_format="%(levelname)s: %(message)s",
             console_output=False,
@@ -50,7 +50,7 @@ class TestFlextCliLoggingConfig:
         with tempfile.NamedTemporaryFile(delete=False) as tmp_file:
             log_path = Path(tmp_file.name)
 
-        config = FlextCliModels.LoggingConfig(log_file=log_path)
+        config = FlextCliConfig.LoggingConfig(log_file=log_path)
         assert config.log_file == log_path
 
         # Cleanup
@@ -73,11 +73,11 @@ class TestFlextCliLoggingSetup:
 
         assert result.is_success
         assert result.value is not None
-        assert isinstance(result.value, FlextCliModels.LoggingConfig)
+        assert isinstance(result.value, FlextCliConfig.LoggingConfig)
 
     def test_setup_logging_with_config(self) -> None:
         """Test logging setup with custom config."""
-        config = FlextCliModels.FlextCliConfig(log_level="DEBUG")
+        config = FlextCliConfig.MainConfig(debug=True)
         setup = FlextCliLoggingSetup(config)
         result = setup.setup_logging()
 
@@ -92,11 +92,11 @@ class TestFlextCliLoggingSetup:
         # Mock the _detect_log_configuration method to return invalid level
         def mock_detect_config(
             _self: FlextCliLoggingSetup,
-        ) -> FlextResult[FlextCliModels.LoggingConfig]:
-            config = FlextCliModels.LoggingConfig()
+        ) -> FlextResult[FlextCliConfig.LoggingConfig]:
+            config = FlextCliConfig.LoggingConfig()
             config.log_level = "INVALID_LEVEL"
             config.log_level_source = "test"
-            return FlextResult[FlextCliModels.LoggingConfig].ok(config)
+            return FlextResult[FlextCliConfig.LoggingConfig].ok(config)
 
         # Mock the method using patch on the class instead of instance
         with patch.object(

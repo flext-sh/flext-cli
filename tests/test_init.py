@@ -19,6 +19,7 @@ from flext_cli import (
     FlextCliFormatters,
     FlextCliModels,
 )
+from flext_cli.config import FlextCliConfig
 from flext_core import FlextResult
 
 
@@ -30,7 +31,7 @@ class TestFlextCliImports:
         # Test that all main classes can be imported and instantiated
         api = FlextCliApi()
         auth = FlextCliAuth()
-        config = FlextCliModels.FlextCliConfig()
+        config = FlextCliConfig.MainConfig()
         formatters = FlextCliFormatters()
 
         assert api is not None
@@ -64,7 +65,6 @@ class TestFlextCliImports:
         classes_to_test = [
             FlextCliApi,
             FlextCliAuth,
-            FlextCliModels.FlextCliConfig,
             FlextCliFormatters,
         ]
 
@@ -75,6 +75,13 @@ class TestFlextCliImports:
             if hasattr(instance, "validate_business_rules"):
                 result = instance.validate_business_rules()
                 assert isinstance(result, FlextResult)
+
+        # Test FlextCliConfig separately since it's a different pattern
+        config_instance = FlextCliConfig.MainConfig()
+        assert config_instance is not None
+        # FlextCliConfig.MainConfig doesn't have validate_business_rules
+        # but it should have other validation methods
+        assert hasattr(config_instance, "validate_configuration")
 
     def test_no_legacy_functions_available(self) -> None:
         """Test that legacy functions are NOT available (compliance check)."""

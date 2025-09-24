@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# mypy: disable-error-code="misc"
 """08 - Ecosystem Integration: flext-* Projects Integration.
 
 This example demonstrates how flext-cli integrates with other FLEXT ecosystem projects:
@@ -26,15 +27,15 @@ from __future__ import annotations
 import json
 from dataclasses import dataclass
 from pathlib import Path
-from typing import override
+from typing import Any, ClassVar, cast, override
 
 import yaml
 
 from flext_cli import (
     FlextCliAuth,
-    FlextCliFormatters,
     FlextCliService,
 )
+from flext_cli.models import FlextCliModels
 from flext_core import FlextConfig, FlextResult
 
 
@@ -60,10 +61,9 @@ class EcosystemSettings(FlextConfig):
     enable_oracle_integration: bool = True
     enable_observability: bool = True
 
-    class Config:
-        """Pydantic model configuration."""
-
-        env_prefix = "FLEXT_ECOSYSTEM_"
+    model_config: ClassVar[dict[str, Any]] = {  # type: ignore[assignment]
+        "env_prefix": "FLEXT_ECOSYSTEM_",
+    }
 
 
 @dataclass
@@ -86,12 +86,14 @@ class EcosystemService(FlextCliService):
         self._settings = EcosystemSettings()
         self._api_client = FlextCliService()
         self._auth_service = FlextCliAuth()
-        self._formatters = FlextCliFormatters()
+        self._formatters = FlextCliModels.CliFormatters()
 
     @override
     def execute(self) -> FlextResult[dict[str, object]]:
         """Execute ecosystem service operation - FlextCliService interface."""
-        return FlextResult[dict[str, object]].ok({"status": "Ecosystem service executed successfully"})
+        return FlextResult[dict[str, object]].ok({
+            "status": "Ecosystem service executed successfully"
+        })
 
     def get_health_status(self) -> FlextResult[dict[str, object]]:
         """Get health status of all FLEXT services."""
@@ -225,10 +227,12 @@ def health() -> None:
         print("=== FLEXT Ecosystem Health ===")
         for service_name, status in health_data.items():
             if isinstance(status, dict):
-                status_dict: dict[str, str] = status
-                print(
-                    f"{service_name}: {status_dict.get('status', 'unknown')} ({status_dict.get('response_time', 'unknown')})"
+                status_dict: dict[str, Any] = cast("dict[str, Any]", status)
+                status_value: str = str(status_dict.get("status", "unknown"))
+                response_time_value: str = str(
+                    status_dict.get("response_time", "unknown")
                 )
+                print(f"{service_name}: {status_value} ({response_time_value})")
     else:
         print(f"Health check failed: {health_result.error}")
 
@@ -245,9 +249,10 @@ def authenticate(username: str, password: str) -> None:
         print(f"Username: {token_data_dict.get('username', 'unknown')}")
         print(f"Token: {token_data_dict.get('token', 'unknown')}")
         print(f"Expires in: {token_data_dict.get('expires_in', 'unknown')} seconds")
-        services: list[object] = token_data_dict.get("services", [])
+        services = token_data_dict.get("services", [])
         if isinstance(services, list):
-                print(f"Services: {', '.join(str(s) for s in services)}")
+            services_list: list[str] = [str(s) for s in services]
+            print(f"Services: {', '.join(services_list)}")
     else:
         print(f"Authentication failed: {auth_result.error}")
 
@@ -260,19 +265,19 @@ def meltano(operation: str, project: str) -> None:
     if meltano_result.is_success:
         result_data = meltano_result.unwrap()
         print("=== Meltano Operation Results ===")
-        if isinstance(result_data, dict):
-            print(f"Project: {result_data.get('project', 'unknown')}")
-            print(f"Operation: {result_data.get('operation', 'unknown')}")
-            print(f"Status: {result_data.get('status', 'unknown')}")
-            if "pipelines" in result_data:
-                print(f"Pipelines: {result_data['pipelines']}")
-            if "tests" in result_data:
-                print(f"Tests: {result_data['tests']}")
-            if "tasks" in result_data:
-                print(f"Tasks: {result_data['tasks']}")
-            if "plugins" in result_data:
-                print(f"Plugins: {result_data['plugins']}")
-            print(f"Duration: {result_data.get('duration', 'unknown')}")
+        result_data_typed: dict[str, Any] = cast("dict[str, Any]", result_data)
+        print(f"Project: {result_data_typed.get('project', 'unknown')}")
+        print(f"Operation: {result_data_typed.get('operation', 'unknown')}")
+        print(f"Status: {result_data_typed.get('status', 'unknown')}")
+        if "pipelines" in result_data_typed:
+            print(f"Pipelines: {result_data_typed['pipelines']}")
+        if "tests" in result_data_typed:
+            print(f"Tests: {result_data_typed['tests']}")
+        if "tasks" in result_data_typed:
+            print(f"Tasks: {result_data_typed['tasks']}")
+        if "plugins" in result_data_typed:
+            print(f"Plugins: {result_data_typed['plugins']}")
+        print(f"Duration: {result_data_typed.get('duration', 'unknown')}")
     else:
         print(f"Meltano operation failed: {meltano_result.error}")
 
@@ -286,32 +291,34 @@ def oracle_query(
 
     if query_result.is_success:
         query_data = query_result.unwrap()
+        query_data_typed: dict[str, Any] = cast("dict[str, Any]", query_data)
         print("=== Oracle Query Results ===")
-        if isinstance(query_data, dict):
-            print(f"Query: {query_data.get('query', 'unknown')}")
-            print(f"Schema: {query_data.get('schema', 'unknown')}")
-            print(f"Rows affected: {query_data.get('rows_affected', 'unknown')}")
-            print(f"Execution time: {query_data.get('execution_time', 'unknown')}")
-            columns = query_data.get("columns", [])
-            if isinstance(columns, list):
-                print(f"Columns: {', '.join(str(c) for c in columns)}")
+        print(f"Query: {query_data_typed.get('query', 'unknown')}")
+        print(f"Schema: {query_data_typed.get('schema', 'unknown')}")
+        print(f"Rows affected: {query_data_typed.get('rows_affected', 'unknown')}")
+        print(f"Execution time: {query_data_typed.get('execution_time', 'unknown')}")
+        columns = query_data_typed.get("columns", [])
+        if isinstance(columns, list):
+            columns_list: list[str] = [str(c) for c in columns]
+            print(f"Columns: {', '.join(columns_list)}")
 
-            sample_data = query_data.get("sample_data", [])
-            if output_format == "table":
-                print("\nSample data:")
-                if isinstance(sample_data, list):
-                    for row in sample_data:
-                        print(f"  {row}")
-            elif output_format == "json":
-                print(json.dumps(sample_data, indent=2))
-            elif output_format == "csv":
-                print("id,name,created_at,status")
-                if isinstance(sample_data, list):
-                    for row in sample_data:
-                        if isinstance(row, dict):
-                            print(
-                                f"{row.get('id', '')},{row.get('name', '')},{row.get('created_at', '')},{row.get('status', '')}"
-                            )
+        sample_data = query_data_typed.get("sample_data", [])
+        if output_format == "table":
+            print("\nSample data:")
+            if isinstance(sample_data, list):
+                for row in sample_data:
+                    print(f"  {row}")
+        elif output_format == "json":
+            print(json.dumps(sample_data, indent=2))
+        elif output_format == "csv":
+            print("id,name,created_at,status")
+            if isinstance(sample_data, list):
+                for row in sample_data:
+                    if isinstance(row, dict):
+                        row_dict: dict[str, Any] = cast("dict[str, Any]", row)
+                        print(
+                            f"{row_dict.get('id', '')},{row_dict.get('name', '')},{row_dict.get('created_at', '')},{row_dict.get('status', '')}"
+                        )
     else:
         print(f"Oracle query failed: {query_result.error}")
 
@@ -325,37 +332,42 @@ def metrics(output_format: str = "table") -> None:
         metrics_data = metrics_result.unwrap()
         print("=== FLEXT Ecosystem Metrics ===")
 
-        if isinstance(metrics_data, dict):
-            if output_format == "table":
-                print("Services:")
-                services = metrics_data.get("services", {})
-                if isinstance(services, dict):
-                    print(f"  Total: {services.get('total', 'unknown')}")
-                    print(f"  Healthy: {services.get('healthy', 'unknown')}")
-                    print(f"  Degraded: {services.get('degraded', 'unknown')}")
-                    print(f"  Down: {services.get('down', 'unknown')}")
+        metrics_data_typed: dict[str, Any] = cast("dict[str, Any]", metrics_data)
+        if output_format == "table":
+            print("Services:")
+            services = metrics_data_typed.get("services", {})
+            if isinstance(services, dict):
+                services_dict: dict[str, Any] = cast("dict[str, Any]", services)
+                print(f"  Total: {services_dict.get('total', 'unknown')}")
+                print(f"  Healthy: {services_dict.get('healthy', 'unknown')}")
+                print(f"  Degraded: {services_dict.get('degraded', 'unknown')}")
+                print(f"  Down: {services_dict.get('down', 'unknown')}")
 
-                print("\nPerformance:")
-                perf = metrics_data.get("performance", {})
-                if isinstance(perf, dict):
-                    print(
-                        f"  Avg Response Time: {perf.get('avg_response_time', 'unknown')}"
-                    )
-                    print(
-                        f"  Requests/min: {perf.get('requests_per_minute', 'unknown')}"
-                    )
-                    print(f"  Error Rate: {perf.get('error_rate', 'unknown')}")
+            print("\nPerformance:")
+            perf = metrics_data_typed.get("performance", {})
+            if isinstance(perf, dict):
+                perf_dict: dict[str, Any] = cast("dict[str, Any]", perf)
+                print(
+                    f"  Avg Response Time: {perf_dict.get('avg_response_time', 'unknown')}"
+                )
+                print(
+                    f"  Requests/min: {perf_dict.get('requests_per_minute', 'unknown')}"
+                )
+                print(f"  Error Rate: {perf_dict.get('error_rate', 'unknown')}")
 
-                print("\nResources:")
-                resources = metrics_data.get("resources", {})
-                if isinstance(resources, dict):
-                    print(f"  CPU Usage: {resources.get('cpu_usage', 'unknown')}")
-                    print(f"  Memory Usage: {resources.get('memory_usage', 'unknown')}")
-                    print(f"  Disk Usage: {resources.get('disk_usage', 'unknown')}")
-            elif output_format == "json":
-                print(json.dumps(metrics_data, indent=2))
-            elif output_format == "yaml":
-                print(yaml.dump(metrics_data, default_flow_style=False))
+            print("\nResources:")
+            resources = metrics_data_typed.get("resources", {})
+            if isinstance(resources, dict):
+                resources_dict: dict[str, Any] = cast("dict[str, Any]", resources)
+                print(f"  CPU Usage: {resources_dict.get('cpu_usage', 'unknown')}")
+                print(
+                    f"  Memory Usage: {resources_dict.get('memory_usage', 'unknown')}"
+                )
+                print(f"  Disk Usage: {resources_dict.get('disk_usage', 'unknown')}")
+        elif output_format == "json":
+            print(json.dumps(metrics_data, indent=2))
+        elif output_format == "yaml":
+            print(yaml.dump(metrics_data, default_flow_style=False))
     else:
         print(f"Metrics retrieval failed: {metrics_result.error}")
 
@@ -367,14 +379,15 @@ def config() -> None:
 
     if config_result.is_success:
         config_data = config_result.unwrap()
+        config_data_typed: dict[str, Any] = cast("dict[str, Any]", config_data)
         print("=== Ecosystem Configuration ===")
-        if isinstance(config_data, dict):
-            print(f"Environment: {config_data.get('environment', 'unknown')}")
-            print(f"Version: {config_data.get('version', 'unknown')}")
-            print("\nSettings:")
-            settings = config_data.get("settings", {})
-            if isinstance(settings, dict):
-                for key, value in settings.items():
-                    print(f"  {key}: {value}")
+        print(f"Environment: {config_data_typed.get('environment', 'unknown')}")
+        print(f"Version: {config_data_typed.get('version', 'unknown')}")
+        print("\nSettings:")
+        settings = config_data_typed.get("settings", {})
+        if isinstance(settings, dict):
+            settings_dict: dict[str, Any] = cast("dict[str, Any]", settings)
+            for key, value in settings_dict.items():
+                print(f"  {key}: {value}")
     else:
         print(f"Configuration retrieval failed: {config_result.error}")

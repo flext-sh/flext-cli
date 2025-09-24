@@ -12,10 +12,10 @@ from __future__ import annotations
 from typing import Protocol
 
 from flext_cli.typings import FlextCliTypings
-from flext_core import FlextResult
+from flext_core import FlextProtocols, FlextResult
 
 
-class FlextCliProtocols:
+class FlextCliProtocols(FlextProtocols):
     """Single unified CLI protocols class following FLEXT standards.
 
     Contains all protocol definitions for CLI domain operations.

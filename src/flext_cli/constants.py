@@ -16,17 +16,16 @@ from typing import Final
 from flext_core import FlextConstants
 
 
-class FlextCliConstants:
+class FlextCliConstants(FlextConstants):
     """CLI constants extending flext-core standardization for CLI domain.
 
     Centralizes all CLI-specific constants, enums, literals, and defaults
     without duplication or wrappers, using direct access patterns.
     """
 
-    class Network:
+    class NetworkDefaults:
         """Network-related constants extending flext-core."""
 
-        # Inherit from flext-core
         DEFAULT_TIMEOUT: Final[int] = FlextConstants.Network.DEFAULT_TIMEOUT
         DEFAULT_API_PORT: Final[int] = FlextConstants.Platform.FLEXT_API_PORT
 
@@ -42,7 +41,7 @@ class FlextCliConstants:
     TOKEN_FILE_NAME: Final[str] = "token.json"
     REFRESH_TOKEN_FILE_NAME: Final[str] = "refresh_token.json"
 
-    class Defaults:
+    class CliDefaults:
         """Default configuration values for CLI operations."""
 
         OUTPUT_FORMAT: Final[str] = "table"
@@ -103,7 +102,7 @@ class FlextCliConstants:
     # HTTP constants for API operations
     class HTTP:
         """HTTP-related constants for CLI API operations."""
-        
+
         GET = "GET"
         POST = "POST"
         PUT = "PUT"
@@ -115,7 +114,7 @@ class FlextCliConstants:
     # Timeout constants
     class TIMEOUTS:
         """Timeout-related constants for CLI operations."""
-        
+
         DEFAULT: Final[int] = 30
         SHORT: Final[int] = 5
         MEDIUM: Final[int] = 30

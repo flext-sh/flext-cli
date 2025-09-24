@@ -27,16 +27,17 @@ from __future__ import annotations
 
 import asyncio
 import time
+from collections.abc import Awaitable
 from datetime import UTC, datetime
 from enum import Enum
-from typing import Protocol, cast, override
+from typing import Any, Protocol, cast, override
 
 from rich.progress import Progress, SpinnerColumn, TaskID, TextColumn
 from rich.table import Table
 
 from flext_cli import (
+    FlextCliConfig,
     FlextCliFormatters,
-    FlextCliModels,
     FlextCliService,
 )
 from flext_core import FlextContainer, FlextLogger, FlextResult, FlextTypes
@@ -99,7 +100,9 @@ class AdvancedCliService(FlextCliService):
     @override
     def execute(self) -> FlextResult[dict[str, object]]:
         """Execute advanced CLI service operations."""
-        return FlextResult[dict[str, object]].ok({"status": "AdvancedCliService operational"})
+        return FlextResult[dict[str, object]].ok({
+            "status": "AdvancedCliService operational"
+        })
 
     # Removed problematic decorators - @cli_enhanced, @cli_measure_time, @cli_retry
     # These decorators cause type inference issues with PyRight
@@ -375,7 +378,7 @@ async def demonstrate_async_service_operations() -> None:
         console=console,
     ) as progress:
         # Create async tasks for concurrent health checks
-        tasks: list[object] = []
+        tasks: list[Awaitable[tuple[str, FlextResult[FlextTypes.Core.Dict]]]] = []
 
         for service_name in services:
             task = progress.add_task(f"Checking {service_name}...", total=100)
@@ -394,7 +397,9 @@ async def demonstrate_async_service_operations() -> None:
             tasks.append(check_service_async(service_name, task))
 
         # Execute all health checks concurrently
-        results = await asyncio.gather(*tasks)
+        results: list[
+            tuple[str, FlextResult[FlextTypes.Core.Dict]]
+        ] = await asyncio.gather(*tasks)
 
     # Display results
     health_table = Table(title="Concurrent Health Check Results")
@@ -404,31 +409,34 @@ async def demonstrate_async_service_operations() -> None:
     health_table.add_column("Details", style="blue")
 
     for service_name, result in results:
-        result = cast(FlextResult[FlextTypes.Core.Dict], result)
-        if result.is_success:
-            data = result.value
-            status = data.get("status", "unknown")
-            response_time = f"{data.get('response_time_ms', 0)}ms"
-            details_dict = data.get("details", {})
-            if isinstance(details_dict, dict):
-                details = f"CPU: {details_dict.get('cpu_usage', 'N/A')}"
-            else:
-                details = "CPU: N/A"
+        # result is already properly typed from gather
+        typed_result: FlextResult[FlextTypes.Core.Dict] = result
+        if typed_result.is_success:
+            data: dict[str, Any] = typed_result.value
+            status: str = data.get("status", "unknown")
+            response_time_success: str = f"{data.get('response_time_ms', 0)}ms"
+            details_dict: dict[str, Any] = data.get("details", {})
+            details_success: str = f"CPU: {details_dict.get('cpu_usage', 'N/A')}"
 
             # Color code status
-            status_str = str(status) if status is not None else "unknown"
-            status_display = {
+            status_str: str = str(status)
+            status_display_success: str = {
                 "healthy": "[green]Healthy[/green]",
                 "degraded": "[yellow]Degraded[/yellow]",
                 "unhealthy": "[red]Unhealthy[/red]",
             }.get(status_str, status_str)
 
+            # Use success variables
+            status_display = status_display_success
+            response_time = response_time_success
+            details = details_success
+
         else:
             status_display = "[red]Error[/red]"
             response_time = "N/A"
             # Define constant for max error display length
-            max_error_length = 50
-            error_msg = result.error or "Unknown error"
+            max_error_length: int = 50
+            error_msg: str = typed_result.error or "Unknown error"
             details = (
                 error_msg[:max_error_length] + "..."
                 if len(error_msg) > max_error_length
@@ -529,24 +537,34 @@ def demonstrate_service_orchestration() -> FlextResult[None]:
         orchestration_table.add_column("Status", style="yellow")
         orchestration_table.add_column("Execution Time", style="blue")
 
-        if isinstance(result_data, dict) and "results" in result_data:
-            results_dict = result_data["results"]
-            if isinstance(results_dict, dict):
-                for service_name, step_result in results_dict.items():
-                    if isinstance(step_result, dict):
-                        orchestration_table.add_row(
-                            service_name,
-                            step_result.get("operation", "unknown"),
-                            step_result.get("status", "unknown"),
-                            f"{step_result.get('execution_time_ms', 0)}ms",
-                        )
+        # Type-safe extraction of results with explicit casting
+        result_data_typed = cast("dict[str, Any]", result_data)
+        if "results" in result_data_typed:
+            results_value = cast("dict[str, Any]", result_data_typed["results"])
+            for service_name_key, step_result_value in results_value.items():
+                if isinstance(step_result_value, dict):
+                    step_result_typed = cast("dict[str, Any]", step_result_value)
+                    # Type-safe extraction with explicit casting
+                    operation_value: str = str(
+                        step_result_typed.get("operation", "unknown")
+                    )
+                    status_value: str = str(step_result_typed.get("status", "unknown"))
+                    execution_time_value: int = int(
+                        str(step_result_typed.get("execution_time_ms", 0))
+                    )
+                    orchestration_table.add_row(
+                        str(service_name_key),
+                        operation_value,
+                        status_value,
+                        f"{execution_time_value}ms",
+                    )
 
         console.print(orchestration_table)
 
         console.print("\n📊 Orchestration Summary:")
-        console.print(f"   Operation: {result_data['operation']}")
-        console.print(f"   Steps Executed: {result_data['steps_executed']}")
-        console.print(f"   Completion Time: {result_data['timestamp']}")
+        console.print(f"   Operation: {result_data.get('operation', 'unknown')}")
+        console.print(f"   Steps Executed: {result_data.get('steps_executed', 0)}")
+        console.print(f"   Completion Time: {result_data.get('timestamp', 'unknown')}")
 
     else:
         console.print(f"❌ Service orchestration failed: {orchestration_result.error}")
@@ -592,7 +610,7 @@ def demonstrate_dependency_injection() -> FlextResult[None]:
     services_to_register = [
         ("console", formatter.console),
         ("logger", FlextLogger("demo")),
-        ("config", FlextCliModels.FlextCliConfig()),
+        ("config", FlextCliConfig.MainConfig()),
         ("api_client", FlextCliService()),
     ]
 

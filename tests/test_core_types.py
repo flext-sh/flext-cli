@@ -53,7 +53,7 @@ class TestFlextCliTypings:
 
     def test_config_classes_exist(self) -> None:
         """Test Config constants exist."""
-        config = FlextCliTypings.Config
+        config = FlextCliTypings.CliConfig
 
         assert hasattr(config, "DEFAULT_PROFILE")
         assert hasattr(config, "DEFAULT_OUTPUT_FORMAT")

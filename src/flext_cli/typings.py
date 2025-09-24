@@ -14,7 +14,7 @@ from typing import TypeVar
 from flext_core import FlextTypes
 
 
-class FlextCliTypings:
+class FlextCliTypings(FlextTypes):
     """Single unified CLI typings class following FLEXT standards.
 
     Contains all type definitions for CLI domain operations.
@@ -75,7 +75,7 @@ class FlextCliTypings:
         FORMAT = "format"
         EXPORT = "export"
 
-    class Config:
+    class CliConfig:
         """CLI configuration constants."""
 
         DEFAULT_PROFILE = "default"
@@ -85,7 +85,7 @@ class FlextCliTypings:
     class Auth:
         """CLI authentication constants."""
 
-        TOKEN_FILENAME = "token.json"  # noqa: S105 - Auth token storage filename, not a password
+        TOKEN_FILENAME = "token.json"  # noqa: S105
         CONFIG_FILENAME = "auth.json"
 
     class Session:

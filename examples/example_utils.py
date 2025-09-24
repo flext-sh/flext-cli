@@ -69,7 +69,7 @@ def handle_command_result(
         console.print(f"[green]✅ {action.title()} successful[/green]")
 
         for field in success_fields:
-            if isinstance(data, dict) and field in data:
+            if field in data:
                 display_name = field.replace("_", " ").title()
                 console.print(f"{display_name}: {data[field]}")
     else:

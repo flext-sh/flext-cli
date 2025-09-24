@@ -15,14 +15,15 @@ from collections.abc import Callable, Sequence
 from pathlib import Path
 from typing import cast
 
+import yaml
 from pydantic import BaseModel, ConfigDict, ValidationError
 from pydantic_settings import SettingsConfigDict
 
 from flext_cli.constants import FlextCliConstants
-from flext_core import FlextContainer, FlextResult
+from flext_core import FlextContainer, FlextResult, FlextUtilities
 
 
-class FlextCliUtilities(BaseModel):
+class FlextCliUtilities(FlextUtilities):
     """Unified utility service for CLI operations using modern Pydantic v2.
 
     Provides centralized utilities without duplicating Pydantic v2 functionality.
@@ -319,6 +320,232 @@ class FlextCliUtilities(BaseModel):
         return FlextCliUtilities.safe_json_stringify(
             result.unwrap() if result.is_success else {"error": result.error},
         )
+
+    # =========================================================================
+    # FILE OPERATIONS - Consolidated file utilities
+    # =========================================================================
+
+    class FileOperations:
+        """Consolidated file operations following flext-core patterns.
+
+        Provides comprehensive file management operations including safe writes,
+        backup operations, JSON handling, and secure file operations with
+        FlextResult error handling throughout.
+        """
+
+        @staticmethod
+        def file_exists(file_path: str | Path) -> bool:
+            """Check if file exists using flext-core utilities.
+
+            Args:
+                file_path: Path to check
+
+            Returns:
+                bool: True if file exists, False otherwise
+
+            """
+
+            def check_file_existence() -> bool:
+                """Check file existence.
+
+                Returns:
+                bool: Description of return value.
+
+                """
+                return Path(file_path).exists()
+
+            # Railway pattern - return False for any failure (invalid path, permission denied, etc.)
+            result = FlextResult[bool].safe_call(check_file_existence)
+            return result.unwrap() if result.is_success else False
+
+        @staticmethod
+        def get_file_size(file_path: str | Path) -> FlextResult[int]:
+            """Get file size in bytes using flext-core utilities.
+
+            ARCHITECTURE COMPLIANCE: This method delegates to flext-core utilities
+            instead of implementing custom file operations.
+
+            Args:
+                file_path: Path to file
+
+            Returns:
+                FlextResult containing file size in bytes
+
+            """
+            # Implement file size operation using standard library
+            try:
+                file_path_obj = Path(file_path)
+                if not file_path_obj.exists():
+                    return FlextResult[int].fail(f"File does not exist: {file_path}")
+
+                file_size = file_path_obj.stat().st_size
+                return FlextResult[int].ok(file_size)
+            except Exception as e:
+                return FlextResult[int].fail(f"Failed to get file size: {e}")
+
+        @staticmethod
+        def save_json_file(
+            file_path: str, data: dict[str, object]
+        ) -> FlextResult[bool]:
+            """Save data to JSON file.
+
+            Args:
+                file_path: Path to save the JSON file
+                data: Data to save as JSON
+
+            Returns:
+                FlextResult[bool]: Success if file was saved, failure otherwise
+
+            """
+            try:
+                file_path_obj = Path(file_path)
+                # Ensure parent directory exists
+                file_path_obj.parent.mkdir(parents=True, exist_ok=True)
+
+                with Path(file_path_obj).open("w", encoding="utf-8") as f:
+                    json.dump(data, f, indent=2, default=str)
+
+                return FlextResult[bool].ok(True)
+            except Exception as e:
+                return FlextResult[bool].fail(f"Failed to save JSON file: {e}")
+
+        @staticmethod
+        def load_json_file(file_path: str) -> FlextResult[dict[str, object]]:
+            """Load data from JSON file.
+
+            Args:
+                file_path: Path to the JSON file
+
+            Returns:
+                FlextResult[dict[str, object]]: Data from file or error
+
+            """
+            try:
+                file_path_obj = Path(file_path)
+                if not file_path_obj.exists():
+                    return FlextResult[dict[str, object]].fail(
+                        f"File does not exist: {file_path}"
+                    )
+
+                with Path(file_path_obj).open("r", encoding="utf-8") as f:
+                    data = json.load(f)
+
+                return FlextResult[dict[str, object]].ok(data)
+            except Exception as e:
+                return FlextResult[dict[str, object]].fail(
+                    f"Failed to load JSON file: {e}"
+                )
+
+    # =========================================================================
+    # FORMATTING SERVICE - Consolidated formatting utilities
+    # =========================================================================
+
+    class Formatting:
+        """Consolidated formatting functionality.
+
+        Consolidates all duplicate formatting implementations across the codebase
+        into a single, centralized service using flext-core utilities.
+        """
+
+        @staticmethod
+        def format_json(data: object) -> FlextResult[str]:
+            """Format data as JSON.
+
+            Args:
+                data: Data to format
+
+            Returns:
+                FlextResult[str]: Formatted JSON string
+
+            """
+            try:
+                return FlextResult[str].ok(json.dumps(data, default=str, indent=2))
+            except Exception as e:
+                return FlextResult[str].fail(f"JSON formatting failed: {e}")
+
+        @staticmethod
+        def format_yaml(data: object) -> FlextResult[str]:
+            """Format data as YAML.
+
+            Args:
+                data: Data to format
+
+            Returns:
+                FlextResult[str]: Formatted YAML string
+
+            """
+            try:
+                return FlextResult[str].ok(yaml.dump(data, default_flow_style=False))
+            except Exception as e:
+                return FlextResult[str].fail(f"YAML formatting failed: {e}")
+
+        @staticmethod
+        def format_csv(data: object) -> FlextResult[str]:
+            """Format data as CSV.
+
+            Args:
+                data: Data to format
+
+            Returns:
+                FlextResult[str]: Formatted CSV string
+
+            """
+            try:
+                import csv
+                from io import StringIO
+
+                if isinstance(data, list) and data and isinstance(data[0], dict):
+                    # List of dictionaries - perfect for CSV
+                    output = StringIO()
+                    fieldnames = list(data[0].keys())
+                    writer = csv.DictWriter(output, fieldnames=fieldnames)
+                    writer.writeheader()
+                    writer.writerows(data)
+                    return FlextResult[str].ok(output.getvalue())
+                if isinstance(data, dict):
+                    # Single dictionary - convert to list format
+                    output = StringIO()
+                    fieldnames = list(data.keys())
+                    writer = csv.DictWriter(output, fieldnames=fieldnames)
+                    writer.writeheader()
+                    writer.writerow(data)
+                    return FlextResult[str].ok(output.getvalue())
+                # Fallback to JSON for other data types
+                return FlextResult[str].ok(json.dumps(data, default=str, indent=2))
+            except Exception as e:
+                return FlextResult[str].fail(f"CSV formatting failed: {e}")
+
+        @staticmethod
+        def format_table(data: object) -> FlextResult[str]:
+            """Format data as table using tabulate.
+
+            Args:
+                data: Data to format
+
+            Returns:
+                FlextResult[str]: Formatted table string
+
+            """
+            try:
+                from tabulate import tabulate
+
+                if isinstance(data, list) and data and isinstance(data[0], dict):
+                    # List of dictionaries - perfect for table
+                    headers = list(data[0].keys())
+                    rows = [[str(row.get(h, "")) for h in headers] for row in data]
+                    return FlextResult[str].ok(
+                        tabulate(rows, headers=headers, tablefmt="grid")
+                    )
+                if isinstance(data, dict):
+                    # Single dictionary - convert to key-value table
+                    rows = [[str(k), str(v)] for k, v in data.items()]
+                    return FlextResult[str].ok(
+                        tabulate(rows, headers=["Key", "Value"], tablefmt="grid")
+                    )
+                # Fallback to JSON for other data types
+                return FlextResult[str].ok(json.dumps(data, default=str, indent=2))
+            except Exception as e:
+                return FlextResult[str].fail(f"Table formatting failed: {e}")
 
 
 __all__ = ["FlextCliUtilities"]

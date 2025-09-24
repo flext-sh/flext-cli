@@ -11,7 +11,7 @@ from __future__ import annotations
 import pytest
 
 from flext_cli.cmd import FlextCliCmd
-from flext_cli.models import FlextCliModels
+from flext_cli.config import FlextCliConfig
 from flext_core import FlextResult
 
 
@@ -113,7 +113,7 @@ class TestFlextCliCmd:
 
         assert isinstance(result, FlextResult)
         assert result.is_success
-        assert "Config edit completed" in result.unwrap()
+        assert "Configuration edit completed successfully" in result.unwrap()
 
     def test_validate_config(self) -> None:
         """Test validate config using internal helper."""
@@ -148,7 +148,7 @@ class TestFlextCliCmdHelpers:
 
     def test_config_validation_helper_success(self) -> None:
         """Test _ConfigValidationHelper with valid config."""
-        config = FlextCliModels.FlextCliConfig()
+        config = FlextCliConfig.MainConfig()
         result = FlextCliCmd._ConfigValidationHelper.validate_config(config)
 
         assert isinstance(result, FlextResult)
@@ -158,7 +158,7 @@ class TestFlextCliCmdHelpers:
     def test_config_validation_helper_error_handling(self) -> None:
         """Test _ConfigValidationHelper error handling."""
         # Create a config that might have validation issues
-        config = FlextCliModels.FlextCliConfig()
+        config = FlextCliConfig.MainConfig()
         result = FlextCliCmd._ConfigValidationHelper.validate_config(config)
 
         assert isinstance(result, FlextResult)
@@ -170,7 +170,7 @@ class TestFlextCliCmdIntegration:
     """Test FlextCliCmd integration with other components."""
 
     def test_cmd_with_configs_integration(self) -> None:
-        """Test FlextCliCmd integration with FlextCliModels.FlextCliConfig."""
+        """Test FlextCliCmd integration with FlextCliConfig."""
         cmd_service = FlextCliCmd()
 
         # Test that cmd service can work with configs

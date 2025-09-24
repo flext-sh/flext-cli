@@ -30,9 +30,9 @@ from examples.example_utils import print_demo_completion
 
 from flext_cli import (
     FlextCliAuth,
+    FlextCliConfig,
     FlextCliDecorators,
     FlextCliFormatters,
-    FlextCliModels,
     FlextCliService,
 )
 from flext_core import FlextResult, FlextTypes
@@ -68,22 +68,21 @@ def demonstrate_basic_authentication() -> FlextResult[None]:
     # Handle FlextResult type
     if hasattr(headers_result, "is_success") and hasattr(headers_result, "value"):
         if getattr(headers_result, "is_success"):
-            headers = getattr(headers_result, "value") or {}
-            if isinstance(headers, dict):
-                headers_dict: dict[str, object] = headers
-                console.print("✅ Authorization headers retrieved")
-                console.print("   Headers structure:")
-                for key, value in headers_dict.items():
-                    # Mask sensitive values
-                    max_display_length = 10
-                    display_value = (
-                        str(value)[:max_display_length] + "..."
-                        if len(str(value)) > max_display_length
-                        else str(value)
-                    )
-                    console.print(f"     {key}: {display_value}")
-            else:
-                console.print("❌ Headers returned in unknown format")
+            headers: dict[str, object] = getattr(headers_result, "value") or {}
+            headers_dict: dict[str, object] = {
+                str(k): str(v) for k, v in headers.items()
+            }
+            console.print("✅ Authorization headers retrieved")
+            console.print("   Headers structure:")
+            for key, value in headers_dict.items():
+                # Mask sensitive values
+                max_display_length = 10
+                display_value = (
+                    str(value)[:max_display_length] + "..."
+                    if len(str(value)) > max_display_length
+                    else str(value)
+                )
+                console.print(f"     {key}: {display_value}")
         else:
             console.print(
                 f"❌ Failed to retrieve headers: {getattr(headers_result, 'error', 'unknown')}"
@@ -114,8 +113,8 @@ def demonstrate_api_authentication() -> FlextResult[None]:
         profile_result = simulate_authenticated_request(api_client, demo_endpoint)
 
         if profile_result.is_success:
-            profile_data = profile_result.value
-            if profile_data and isinstance(profile_data, dict):
+            profile_data: dict[str, object] = profile_result.value
+            if profile_data:
                 console.print("✅ Authenticated API request successful")
                 console.print(f"   User: {profile_data.get('username', 'demo_user')}")
                 console.print(f"   Role: {profile_data.get('role', 'user')}")
@@ -173,12 +172,14 @@ def demonstrate_role_based_access() -> FlextResult[None]:
     ]
 
     # Create permissions table using flext-cli formatter
-    permissions_data = {}
+    permissions_data: dict[str, object] = {}
 
     for role in demo_roles:
         permissions = role["permissions"]
         if isinstance(permissions, list):
-            permissions_str = ", ".join(str(perm) for perm in permissions)
+            # Convert to list of strings for safe iteration
+            perm_strings: list[str] = [str(item) for item in permissions]
+            permissions_str = ", ".join(perm_strings)
             access_level = (
                 "Full"
                 if "delete" in permissions
@@ -254,9 +255,9 @@ def demonstrate_session_management() -> FlextResult[None]:
         # Simulate session refresh
         refresh_result = refresh_session(session_data)
         if refresh_result.is_success:
-            refreshed_session = refresh_result.value
+            refreshed_session: dict[str, object] = refresh_result.value
             console.print("✅ Session refreshed successfully")
-            if refreshed_session and isinstance(refreshed_session, dict):
+            if refreshed_session:
                 expires_at = refreshed_session.get("expires_at")
                 if expires_at and isinstance(expires_at, datetime):
                     console.print(
@@ -277,7 +278,7 @@ def demonstrate_secure_configuration() -> FlextResult[None]:
     console.print("\n[green]7. Secure Configuration Management[/green]")
 
     # Get CLI configuration
-    FlextCliModels.FlextCliConfig()
+    FlextCliConfig.MainConfig()
     console.print("✅ CLI configuration loaded")
 
     # Demonstrate environment variable usage for sensitive data
@@ -291,7 +292,7 @@ def demonstrate_secure_configuration() -> FlextResult[None]:
         ("FLEXT_TIMEOUT", "Request timeout configuration"),
     ]
 
-    env_data = {}
+    env_data: dict[str, object] = {}
     for var_name, purpose in secure_env_vars:
         value = os.environ.get(var_name)
         status = "✅ Set" if value else "⚠️ Not set"

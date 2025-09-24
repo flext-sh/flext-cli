@@ -2,8 +2,8 @@
 
 from pathlib import Path
 
+from flext_cli.config import FlextCliConfig
 from flext_cli.flext_cli_auth import FlextCliAuth
-from flext_cli.models import FlextCliModels
 from flext_core import FlextResult
 
 
@@ -20,17 +20,17 @@ class TestFlextCliAuthRealValidation:
         assert hasattr(auth, "_config")
 
         # Test execute method returns success
-        result: FlextResult[str] = auth.execute()
+        result = auth.execute()
         assert result.is_success
-        assert "FlextCliAuth service operational" in result.value["message"]
+        assert "FlextCliAuth service operational" in str(result.value)
 
     def test_config_retrieval(self) -> None:
         """Test that config is retrieved correctly."""
         auth = FlextCliAuth()
 
         # Test config attribute (it's a private attribute, not a property)
-        config: FlextCliModels.FlextCliConfig = auth._config
-        assert isinstance(config, FlextCliModels.FlextCliConfig)
+        config = auth._config
+        assert isinstance(config, FlextCliConfig.MainConfig)
         assert config.profile == "default"
 
     def test_credentials_validation(self) -> None:
@@ -130,16 +130,16 @@ class TestFlextCliAuthRealValidation:
 
         # Test username/password authentication
         credentials = {"username": "testuser", "password": "testpass"}
-        result = auth.authenticate(credentials)
-        assert result.is_success
-        assert "auth_token_testuser" in result.value
+        result2 = auth.authenticate(credentials)
+        assert result2.is_success
+        assert "auth_token_testuser" in result2.value
 
         # Test invalid credentials
         credentials = {"invalid": "data"}
-        result: FlextResult[str] = auth.authenticate(credentials)
-        assert result.is_failure
-        assert result.error is not None
-        assert "Invalid credentials" in result.error
+        result3: FlextResult[str] = auth.authenticate(credentials)
+        assert result3.is_failure
+        assert result3.error is not None
+        assert "Invalid credentials" in result3.error
 
     def test_logout_flow(self) -> None:
         """Test logout flow using clear_auth_tokens method."""
@@ -159,7 +159,7 @@ class TestFlextCliAuthRealValidation:
     def test_auth_config_model(self) -> None:
         """Test AuthConfig model from FlextCliModels."""
         # Test AuthConfig model creation
-        auth_config = FlextCliModels.AuthConfig(
+        auth_config = FlextCliConfig.AuthConfig(
             api_url="https://api.example.com",
             token_file=Path("/path/to/token"),
             refresh_token_file=Path("/path/to/refresh_token"),
@@ -189,10 +189,10 @@ class TestFlextCliAuthRealValidation:
         assert token_result.is_failure
 
         # Test saving empty token
-        result: FlextResult[None] = auth.save_auth_token("")
-        assert result.is_failure
-        assert result.error is not None
-        assert "Token cannot be empty" in result.error
+        result2: FlextResult[None] = auth.save_auth_token("")
+        assert result2.is_failure
+        assert result2.error is not None
+        assert "Token cannot be empty" in result2.error
 
         # Test authenticate with empty credentials
         auth_result: FlextResult[str] = auth.authenticate({})

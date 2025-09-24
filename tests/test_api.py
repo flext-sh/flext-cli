@@ -16,7 +16,8 @@ from typing import Any
 import yaml
 from rich.console import Console
 
-from flext_cli import FlextCliApi, FlextCliContext, FlextCliModels
+from flext_cli import FlextCliApi, FlextCliContext
+from flext_cli.config import FlextCliConfig
 from flext_core import FlextConstants, FlextResult, FlextTypes
 
 
@@ -25,7 +26,7 @@ class TestFlextCliContext:
 
     def test_context_init(self) -> None:
         """Test context initialization."""
-        config = FlextCliModels.FlextCliConfig()
+        config = FlextCliConfig.MainConfig()
         console = Console()
 
         context = FlextCliContext(id_="test-context", config=config, console=console)
@@ -146,8 +147,8 @@ class TestTableCreation:
         table = result.value
         # Table is formatted as string output
         assert isinstance(table, str)
-        # Should contain table content
-        assert "key" in table or "value" in table
+        # Should contain table content - check for actual table structure
+        assert "name" in table and "John" in table
 
     def test_flext_cli_table_list_dict_data(self) -> None:
         """Test table creation from list of dictionaries."""
@@ -169,14 +170,8 @@ class TestTableCreation:
         # Simple lists are now supported by FlextCliFormatters
         assert result.is_success
         assert isinstance(result.value, str)
-        # Should contain table content
-        assert "index" in result.value or "value" in result.value
-        # Convert to string to check content
-        string_io = io.StringIO()
-        console = Console(file=string_io, width=80)
-        console.print(result.value)
-        table_str = string_io.getvalue()
-        assert "item1" in table_str
+        # Should contain table content - check for actual list items
+        assert "item1" in result.value or "item2" in result.value
 
     def test_flext_cli_table_single_value(self) -> None:
         """Test table creation from single value - should succeed with FlextCliFormatters handling all types."""
@@ -215,14 +210,8 @@ class TestTableCreation:
         # Simple lists are now supported by FlextCliFormatters
         assert result.is_success
         assert isinstance(result.value, str)
-        # Should contain table content
-        assert "index" in result.value or "value" in result.value
-        # Convert to string to check content
-        string_io = io.StringIO()
-        console = Console(file=string_io, width=80)
-        console.print(result.value)
-        table_str = string_io.getvalue()
-        assert "item1" in table_str
+        # Should contain table content - check for actual list items
+        assert "item1" in result.value or "item2" in result.value
 
     def test_table_creation_dict(self) -> None:
         """Test flext_cli_table with dictionary."""
@@ -266,9 +255,6 @@ class TestDataTransformation:
         # Just test that the function exists and can be called
         data = [1, 2, 3]
 
-        def transform_fn(x: int) -> int:
-            return x * 2
-
         api = FlextCliApi()
         # Since transform_data doesn't exist, test format_data instead
         result = api.format_data(data, "json")
@@ -279,9 +265,6 @@ class TestDataTransformation:
     def test_flext_cli_transform_data_empty(self) -> None:
         """Test transformation with empty data."""
         data: FlextTypes.Core.List = []
-
-        def transform_fn(x: object) -> object:
-            return x
 
         api = FlextCliApi()
         # Since transform_data doesn't exist, test format_data instead
@@ -405,7 +388,7 @@ class TestDataExport:
 
     def test_flext_cli_batch_export(self) -> None:
         """Test batch export."""
-        datasets = {
+        datasets: dict[str, object] = {
             "data1": {"key1": "value1"},
             "data2": {"key2": "value2"},
         }
@@ -435,7 +418,7 @@ class TestDataExport:
 
     def test_flext_cli_batch_export_invalid_format(self) -> None:
         """Test batch export with invalid format."""
-        datasets = {"data": {"key": "value"}}
+        datasets: dict[str, object] = {"data": {"key": "value"}}
 
         with tempfile.TemporaryDirectory() as temp_dir:
             api = FlextCliApi()
@@ -612,9 +595,6 @@ class TestSpecialCases:
     def test_transform_with_non_iterable_data(self) -> None:
         """Test transformation with non-iterable data."""
         data = "not a list"
-
-        def transform_fn(x: object) -> object:
-            return x
 
         api = FlextCliApi()
         # Since transform_data doesn't exist, test format_data instead

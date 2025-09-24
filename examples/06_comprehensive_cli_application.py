@@ -23,12 +23,12 @@ from __future__ import annotations
 import sys
 from datetime import UTC, datetime
 from pathlib import Path
-from typing import Any, List
+from typing import Any
 
 from flext_cli import (
     FlextCliApi,
+    FlextCliConfig,
     FlextCliMain,
-    FlextCliModels,
     FlextCliService,
 )
 from flext_core import FlextContainer, FlextLogger, FlextResult, FlextTypes
@@ -40,7 +40,7 @@ class ComprehensiveCliApplication:
     def __init__(self) -> None:
         """Initialize comprehensive CLI application."""
         self.logger = FlextLogger(__name__)
-        self.config = FlextCliModels.FlextCliConfig()
+        self.config = FlextCliConfig.MainConfig()
         self.container = FlextContainer.get_global()
         self.api_client = FlextCliService()
         self.cli_api = FlextCliApi()
@@ -72,7 +72,7 @@ class ComprehensiveCliApplication:
 
             self.cli_api.display_data({
                 "message": "Application initialized successfully",
-                "type": "success"
+                "type": "success",
             })
             return FlextResult[None].ok(None)
 
@@ -81,7 +81,7 @@ class ComprehensiveCliApplication:
 
     def _register_core_services(self) -> None:
         """Register core services in the DI container."""
-        services: List[tuple[str, Any]] = [
+        services: list[tuple[str, Any]] = [
             ("logger", self.logger),
             ("config", self.config),
             ("api_client", self.api_client),
@@ -179,7 +179,7 @@ class ComprehensiveCliApplication:
             arguments=["--profile", "--output"],
         )
 
-        config_commands = {
+        config_commands: dict[str, object] = {
             "show": show_cmd_result.unwrap(),
             "set": set_cmd_result.unwrap(),
         }
@@ -199,7 +199,7 @@ class ComprehensiveCliApplication:
             arguments=[],
         )
 
-        interactive_commands = {"wizard": wizard_cmd_result.unwrap()}
+        interactive_commands: dict[str, object] = {"wizard": wizard_cmd_result.unwrap()}
 
         cli_main.register_command_group(
             name="interactive",
@@ -253,9 +253,7 @@ python = "^3.13"
             "Created At": datetime.now(UTC).strftime("%Y-%m-%d %H:%M:%S UTC"),
         }
 
-        self.cli_api.display_output(
-            data=project_data, format_type="table", title=f"Project: {name}"
-        )
+        self.cli_api.display_data(data=project_data, format_type="table")
 
         return FlextResult[None].ok(None)
 
@@ -282,9 +280,7 @@ python = "^3.13"
             "Analysis Time": datetime.now(UTC).strftime("%Y-%m-%d %H:%M:%S UTC"),
         }
 
-        self.cli_api.display_output(
-            data=status_data, format_type="table", title="Project Analysis"
-        )
+        self.cli_api.display_data(data=status_data, format_type="table")
 
         return FlextResult[None].ok(None)
 
@@ -313,9 +309,7 @@ python = "^3.13"
             "Check Time": datetime.now(UTC).strftime("%H:%M:%S UTC"),
         }
 
-        self.cli_api.display_output(
-            data=health_data, format_type="table", title=f"Service Health: {url}"
-        )
+        self.cli_api.display_data(data=health_data, format_type="table")
 
         return FlextResult[None].ok(None)
 
@@ -329,14 +323,10 @@ python = "^3.13"
             "App Name": self.config.app_name,
         }
 
-        self.cli_api.display_output(
-            data=config_data, format_type="table", title="CLI Configuration"
-        )
+        self.cli_api.display_data(data=config_data, format_type="table")
 
         # Show user preferences
-        self.cli_api.display_output(
-            data=self.user_preferences, format_type="table", title="User Preferences"
-        )
+        self.cli_api.display_data(data=self.user_preferences, format_type="table")
 
         return FlextResult[None].ok(None)
 
@@ -351,7 +341,7 @@ python = "^3.13"
             )
             return FlextResult[None].ok(None)
 
-        changes = []
+        changes: list[str] = []
 
         if profile:
             self.user_preferences["default_profile"] = profile
@@ -384,9 +374,7 @@ python = "^3.13"
             "configured_at": datetime.now(UTC).isoformat(),
         }
 
-        self.cli_api.display_output(
-            data=wizard_config, format_type="table", title="Setup Summary"
-        )
+        self.cli_api.display_data(data=wizard_config, format_type="table")
 
         self.user_preferences.update(wizard_config)
         self.cli_api.display_message(

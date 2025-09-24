@@ -20,6 +20,7 @@ from flext_cli import (
     FlextCliContext,
     FlextCliMain,
 )
+from flext_cli.config import FlextCliConfig
 from flext_cli.models import FlextCliModels
 from flext_core import FlextResult, FlextTypes
 from flext_tests import (
@@ -167,7 +168,7 @@ def cli_context(flext_factories: FlextTestsFactories) -> FlextCliContext:
         no_color=True,
     )
 
-    config = FlextCliModels.FlextCliConfig(
+    config = FlextCliConfig.MainConfig(
         profile=str(config_data.get("profile", "test")),
         output_format=str(config_data.get("output_format", "json")),
         no_color=bool(config_data.get("no_color", True)),
@@ -184,7 +185,7 @@ def cli_context(flext_factories: FlextTestsFactories) -> FlextCliContext:
 
 # Configuration Fixtures
 @pytest.fixture
-def test_config(flext_factories: FlextTestsFactories) -> FlextCliModels.FlextCliConfig:
+def test_config(flext_factories: FlextTestsFactories) -> FlextCliConfig.MainConfig:
     """Provide test configuration using FlextTestsFactories."""
     config_data = flext_factories.ConfigFactory.create(
         profile="test",
@@ -192,7 +193,7 @@ def test_config(flext_factories: FlextTestsFactories) -> FlextCliModels.FlextCli
         timeout_seconds=30,
         output_format="table",
     )
-    return FlextCliModels.FlextCliConfig(
+    return FlextCliConfig.MainConfig(
         profile=str(config_data.get("profile", "test")),
         output_format=str(config_data.get("output_format", "table")),
         no_color=bool(config_data.get("no_color", False)),
@@ -254,7 +255,7 @@ def real_repositories(_flext_fixtures: FlextTestsFixtures) -> FlextTypes.Core.Di
     return {
         "user_repo": {},  # Placeholder for in-memory repo
         "auth_service": FlextCliAuth(),
-        "config": FlextCliModels.FlextCliConfig(profile="test"),
+        "config": FlextCliConfig.MainConfig(profile="test"),
     }
 
 

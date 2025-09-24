@@ -1,7 +1,7 @@
-"""FLEXT CLI Exceptions - Simple exception classes extending flext-core patterns.
+"""FLEXT CLI Exceptions - Single unified class following FLEXT standards.
 
-Provides essential exception handling using flext-core patterns.
-Follows single-responsibility principle with simple, focused exceptions.
+Provides CLI-specific exception handling using flext-core patterns.
+Single FlextCliExceptions class with nested exception subclasses following FLEXT pattern.
 
 Copyright (c) 2025 FLEXT Team. All rights reserved.
 SPDX-License-Identifier: MIT
@@ -9,89 +9,120 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
+from flext_core import FlextExceptions
 
-class FlextCliError(Exception):
-    """Base CLI exception extending standard Exception.
 
-    Simple exception class for CLI error scenarios with error categorization
-    and contextual information support.
+class FlextCliExceptions(FlextExceptions):
+    """Single unified CLI exceptions class following FLEXT standards.
+
+    Contains all exception subclasses for CLI domain operations.
+    Follows FLEXT pattern: one class per module with nested subclasses.
+
+    ARCHITECTURAL COMPLIANCE:
+    - Inherits from FlextExceptions to avoid duplication
+    - Uses centralized exception patterns from FlextExceptions
+    - Implements CLI-specific extensions while reusing core functionality
     """
 
-    def __init__(
-        self,
-        message: str,
-        *,
-        error_code: str = "CLI_ERROR",
-        **context: object,
-    ) -> None:
-        """Initialize CLI exception with message, error code, and context."""
-        super().__init__(message)
-        self.error_code = error_code
-        self.context = context
-        self.message = message
+    class BaseError(FlextExceptions.BaseError):
+        """Base CLI exception extending FlextExceptions.BaseError.
 
-    def __str__(self) -> str:
-        """Return string representation of the exception."""
-        context_str = ""
-        if self.context:
-            context_items = [f"{k}={v}" for k, v in self.context.items()]
-            context_str = f" ({', '.join(context_items)})"
+        Simple exception class for CLI error scenarios with error categorization
+        and contextual information support.
+        """
 
-        return f"[{self.error_code}] {self.message}{context_str}"
+        def __init__(
+            self,
+            message: str,
+            *,
+            error_code: str = "CLI_ERROR",
+            **context: object,
+        ) -> None:
+            """Initialize CLI exception with message, error code, and context."""
+            super().__init__(message, code=error_code, context=context)
 
-    def __repr__(self) -> str:
-        """Return detailed representation for debugging."""
-        return (
-            f"FlextCliError("
-            f"message='{self.message}', "
-            f"error_code='{self.error_code}', "
-            f"context={self.context})"
-        )
+        def __str__(self) -> str:
+            """Return string representation of the exception."""
+            context_str = ""
+            if self.context:
+                context_items = [f"{k}={v}" for k, v in self.context.items()]
+                context_str = f" ({', '.join(context_items)})"
 
-    @classmethod
-    def validation_error(cls, message: str, **context: object) -> FlextCliError:
-        """Create validation error exception."""
-        return cls(message, error_code="VALIDATION_ERROR", **context)
+            return f"[{self.error_code}] {self.message}{context_str}"
 
-    @classmethod
-    def configuration_error(cls, message: str, **context: object) -> FlextCliError:
-        """Create configuration error exception."""
-        return cls(message, error_code="CONFIGURATION_ERROR", **context)
+        def __repr__(self) -> str:
+            """Return detailed representation for debugging."""
+            return (
+                f"FlextCliExceptions.BaseError("
+                f"message='{self.message}', "
+                f"error_code='{self.error_code}', "
+                f"context={self.context})"
+            )
 
-    @classmethod
-    def connection_error(cls, message: str, **context: object) -> FlextCliError:
-        """Create connection error exception."""
-        return cls(message, error_code="CONNECTION_ERROR", **context)
+        def is_error_code(self, error_code: str) -> bool:
+            """Check if exception matches specific error code."""
+            return self.error_code == error_code
 
-    @classmethod
-    def authentication_error(cls, message: str, **context: object) -> FlextCliError:
-        """Create authentication error exception."""
-        return cls(message, error_code="AUTHENTICATION_ERROR", **context)
+        def get_context_value(self, key: str, default: object = None) -> object:
+            """Get context value by key with optional default."""
+            return self.context.get(key, default)
 
-    @classmethod
-    def command_error(cls, message: str, **context: object) -> FlextCliError:
-        """Create command error exception."""
-        return cls(message, error_code="COMMAND_ERROR", **context)
+    class ValidationError(BaseError):
+        """CLI validation error exception."""
 
-    @classmethod
-    def timeout_error(cls, message: str, **context: object) -> FlextCliError:
-        """Create timeout error exception."""
-        return cls(message, error_code="TIMEOUT_ERROR", **context)
+        def __init__(self, message: str, **context: object) -> None:
+            """Initialize validation error with message and context."""
+            super().__init__(message, error_code="VALIDATION_ERROR", **context)
 
-    @classmethod
-    def format_error(cls, message: str, **context: object) -> FlextCliError:
-        """Create format error exception."""
-        return cls(message, error_code="FORMAT_ERROR", **context)
+    class ConfigurationError(BaseError):
+        """CLI configuration error exception."""
 
-    def is_error_code(self, error_code: str) -> bool:
-        """Check if exception matches specific error code."""
-        return self.error_code == error_code
+        def __init__(self, message: str, **context: object) -> None:
+            """Initialize configuration error with message and context."""
+            super().__init__(message, error_code="CONFIGURATION_ERROR", **context)
 
-    def get_context_value(self, key: str, default: object = None) -> object:
-        """Get context value by key with optional default."""
-        return self.context.get(key, default)
+    class CliConnectionError(BaseError):
+        """CLI connection error exception."""
+
+        def __init__(self, message: str, **context: object) -> None:
+            """Initialize connection error with message and context."""
+            super().__init__(message, error_code="CONNECTION_ERROR", **context)
+
+    class AuthenticationError(BaseError):
+        """CLI authentication error exception."""
+
+        def __init__(self, message: str, **context: object) -> None:
+            """Initialize authentication error with message and context."""
+            super().__init__(message, error_code="AUTHENTICATION_ERROR", **context)
+
+    class CommandError(BaseError):
+        """CLI command error exception."""
+
+        def __init__(self, message: str, **context: object) -> None:
+            """Initialize command error with message and context."""
+            super().__init__(message, error_code="COMMAND_ERROR", **context)
+
+    class CliTimeoutError(BaseError):
+        """CLI timeout error exception."""
+
+        def __init__(self, message: str, **context: object) -> None:
+            """Initialize timeout error with message and context."""
+            super().__init__(message, error_code="TIMEOUT_ERROR", **context)
+
+    class FormatError(BaseError):
+        """CLI format error exception."""
+
+        def __init__(self, message: str, **context: object) -> None:
+            """Initialize format error with message and context."""
+            super().__init__(message, error_code="FORMAT_ERROR", **context)
+
+
+# Backward compatibility alias - maintain ABI for tests and ecosystem
+# Direct access: Use FlextCliExceptions.ValidationError(), etc. instead of factory methods
+FlextCliError = FlextCliExceptions.BaseError
 
 
 __all__ = [
-    "FlextCliError",
+    "FlextCliError",  # Backward compatibility
+    "FlextCliExceptions",
 ]

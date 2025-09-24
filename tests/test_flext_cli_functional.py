@@ -11,6 +11,7 @@ from __future__ import annotations
 from datetime import UTC, datetime
 
 from flext_cli import FlextCliConstants, FlextCliModels
+from flext_cli.config import FlextCliConfig
 from flext_core import FlextResult
 
 
@@ -21,9 +22,8 @@ class TestFlextCliModels:
         """Test that real models exist."""
         assert hasattr(FlextCliModels, "CliCommand")
         assert hasattr(FlextCliModels, "CliSession")
-        assert hasattr(FlextCliModels, "FlextCliConfig")
-        assert hasattr(FlextCliModels, "CliOptions")
-        assert hasattr(FlextCliModels, "AuthConfig")
+        assert hasattr(FlextCliModels, "CliFormatters")
+        assert hasattr(FlextCliModels, "FormatOptions")
 
     def test_command_creation(self) -> None:
         """Test real command creation."""
@@ -127,7 +127,7 @@ class TestFlextCliIntegration:
 
     def test_config_with_format_constants(self) -> None:
         """Test config with output format constants."""
-        config = FlextCliModels.FlextCliConfig(
+        config = FlextCliConfig.MainConfig(
             profile="test",
             output_format=FlextCliConstants.OutputFormats.JSON.value,
             debug=True,

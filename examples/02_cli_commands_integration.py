@@ -7,7 +7,7 @@ This example demonstrates proper CLI command integration using flext-cli pattern
 - FlextCliMain command registration system (replaces direct Click usage)
 - FlextCliFormatters for all output (replaces direct Rich usage)
 - FlextResult railway-oriented programming for command error handling
-- FlextCliModels for domain entities with validation
+- FlextCliConfig for domain entities with validation
 - FlextContainer dependency injection for CLI services
 - Proper flext-cli abstraction layer usage
 
@@ -30,6 +30,7 @@ from pathlib import Path
 from typing import cast
 
 from flext_cli import (
+    FlextCliConfig,
     FlextCliFormatters,
     FlextCliModels,
 )
@@ -53,7 +54,7 @@ def _setup_cli_demo(formatter: FlextCliFormatters) -> FlextResult[None]:
 
 
 def _connection_demo(
-    formatter: FlextCliFormatters, _config: FlextCliModels.FlextCliConfig
+    formatter: FlextCliFormatters, _config: FlextCliConfig.MainConfig
 ) -> FlextResult[None]:
     """Demo connection testing using flext-cli patterns."""
     formatter.print_success("\n2. 🌐 Connection Testing Integration")
@@ -126,7 +127,7 @@ def _file_processing_demo(formatter: FlextCliFormatters) -> FlextResult[None]:
 
 
 def _cli_status_demo(
-    formatter: FlextCliFormatters, config: FlextCliModels.FlextCliConfig
+    formatter: FlextCliFormatters, config: FlextCliConfig.MainConfig
 ) -> FlextResult[None]:
     """Demo CLI status display using flext-cli patterns."""
     formatter.print_success("\n4. 📊 CLI Status Integration")
@@ -186,7 +187,7 @@ def _summary_demo(formatter: FlextCliFormatters) -> None:
         "FlextCliMain": "✅ Command registration",
         "FlextCliFormatters": "✅ Output abstraction",
         "FlextResult Pattern": "✅ Error handling",
-        "FlextCliModels": "✅ Domain entities",
+        "FlextCliConfig": "✅ Domain entities",
         "FLEXT Foundation": "✅ Zero Click/Rich imports",
     }
 
@@ -302,7 +303,7 @@ def main() -> None:
             return
 
         # Create config for demos
-        config = FlextCliModels.FlextCliConfig()
+        config = FlextCliConfig.MainConfig()
 
         connection_result = _connection_demo(formatter, config)
         if connection_result.is_failure:

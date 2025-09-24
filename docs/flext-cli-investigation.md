@@ -28,7 +28,8 @@ This investigation analyzes the flext-cli project to understand class inheritanc
 **Lines**: 100  
 **Purpose**: Main package exports and API surface
 
-#### Key Exports:
+#### Key Exports
+
 ```python
 # Core Components
 FlextCli                    # Main CLI class
@@ -45,7 +46,8 @@ FlextCliDecorators        # CLI decorators
 FlextCliDomainService     # Domain service layer
 ```
 
-#### Import Pattern Analysis:
+#### Import Pattern Analysis
+
 - **Direct Imports**: All modules imported directly (no lazy loading)
 - **Version Management**: Complete version metadata imported from `__version__.py`
 - **Provider Pattern**: `_CLI_PROVIDER_AVAILABLE = True` indicates provider availability
@@ -56,14 +58,16 @@ FlextCliDomainService     # Domain service layer
 **Lines**: 20  
 **Purpose**: Module execution entry point
 
-#### Key Connections:
+#### Key Connections
+
 ```python
 def main() -> None:
     cli = create_main_cli()  # From flext_cli_main module
     cli.run_cli()           # Executes CLI interface
 ```
 
-#### Analysis:
+#### Analysis
+
 - **Single Responsibility**: Only handles module execution
 - **Dependency**: Relies on `flext_cli_main.create_main_cli()`
 - **CLI Execution**: Delegates to `FlextCliMain.run_cli()`
@@ -74,13 +78,15 @@ def main() -> None:
 **Lines**: 395  
 **Purpose**: Main CLI service implementation
 
-#### Class Hierarchy:
+#### Class Hierarchy
+
 ```python
 class FlextCliService(FlextService[FlextTypes.Core.Dict]):
     """Essential CLI service using flext-core directly."""
 ```
 
-#### Key Dependencies:
+#### Key Dependencies
+
 ```python
 from flext_core import (
     FlextContainer,    # Dependency injection
@@ -91,14 +97,16 @@ from flext_core import (
 )
 ```
 
-#### Method Analysis:
+#### Method Analysis
 
 **Core Service Methods** (FlextService inheritance):
+
 - `execute()` - Required by FlextService interface
 - `start()` / `stop()` - Service lifecycle management
 - `health_check()` - Service health monitoring
 
 **CLI-Specific Methods**:
+
 - `configure()` - Configuration management
 - `format_data()` - Data formatting (JSON, YAML, CSV, table)
 - `flext_cli_export()` - File export functionality
@@ -106,7 +114,8 @@ from flext_core import (
 - `flext_cli_register_handler()` - Handler registration
 - `flext_cli_execute_handler()` - Handler execution
 
-#### Internal State Management:
+#### Internal State Management
+
 ```python
 self._cli_config: FlextCliModels.FlextCliConfig
 self._handlers: dict[str, HandlerFunction]
@@ -116,7 +125,8 @@ self._commands: dict[str, FlextCliModels.CliCommand]
 self._formatters = FlextCliModels.CliFormatters()
 ```
 
-#### Type Safety Analysis:
+#### Type Safety Analysis
+
 - **Generic Types**: `FlextService[FlextTypes.Core.Dict]`
 - **Type Aliases**: `HandlerData`, `HandlerFunction`
 - **Type Narrowing**: Proper type checking for CSV data formatting
@@ -129,7 +139,7 @@ self._formatters = FlextCliModels.CliFormatters()
 This investigation will continue with detailed analysis of each module, including:
 
 1. **Authentication System** (`flext_cli_auth.py`)
-2. **API Layer** (`flext_cli_api.py`) 
+2. **API Layer** (`flext_cli_api.py`)
 3. **Main CLI Interface** (`flext_cli_main.py`)
 4. **Models and Data Structures** (`models.py`)
 5. **Formatters and Output** (`flext_cli_formatters.py`)
@@ -140,6 +150,7 @@ This investigation will continue with detailed analysis of each module, includin
 10. **Error Handling** (`exceptions.py`)
 
 Each module will be analyzed for:
+
 - Class inheritance patterns
 - Method call relationships
 - Import dependencies
@@ -157,13 +168,15 @@ Each module will be analyzed for:
 **Lines**: 295  
 **Purpose**: Authentication service with token management
 
-#### Class Hierarchy:
+#### Class Hierarchy
+
 ```python
 class FlextCliAuth(FlextService[dict[str, object]]):
     """Authentication service extending FlextService from flext-core."""
 ```
 
-#### Key Dependencies:
+#### Key Dependencies
+
 ```python
 from flext_core import (
     FlextContainer,    # Dependency injection
@@ -174,31 +187,36 @@ from flext_core import (
 )
 ```
 
-#### Architecture Pattern Analysis:
+#### Architecture Pattern Analysis
+
 - **Single Responsibility**: Authentication only, no mixed concerns
 - **Nested Helper Class**: `_AuthHelper` for internal operations
 - **FlextService Inheritance**: Proper extension of base service
 - **Token Management**: Secure file-based token storage
 
-#### Method Analysis:
+#### Method Analysis
 
 **Core Authentication Methods**:
+
 - `authenticate()` - Main authentication entry point
 - `authenticate_user()` - Username/password authentication
 - `login()` - Alias for authenticate_user
 - `validate_credentials()` - Credential validation
 
 **Token Management Methods**:
+
 - `save_auth_token()` - Secure token storage
 - `get_auth_token()` - Token retrieval
 - `clear_auth_tokens()` - Token cleanup
 - `is_authenticated()` - Authentication status check
 
 **Status and Health Methods**:
+
 - `get_auth_status()` - Comprehensive auth status
 - `execute()` - Required FlextService implementation
 
-#### Security Implementation:
+#### Security Implementation
+
 ```python
 # Secure file permissions
 file_path.parent.mkdir(parents=True, exist_ok=True, mode=0o700)
@@ -206,7 +224,8 @@ file_path.write_text(token.strip(), encoding="utf-8")
 file_path.chmod(0o600)
 ```
 
-#### Integration Points:
+#### Integration Points
+
 - **Models**: Uses `FlextCliModels.FlextCliConfig`
 - **Utilities**: Uses `FlextUtilities.Generators.generate_iso_timestamp()`
 - **Container**: Uses `FlextContainer.get_global()`
@@ -221,13 +240,15 @@ file_path.chmod(0o600)
 **Lines**: 394  
 **Purpose**: Main CLI API with Rich integration
 
-#### Class Hierarchy:
+#### Class Hierarchy
+
 ```python
 class FlextCliApi(FlextService[dict[str, object]]):
     """Main CLI API - direct flext-core extension without abstraction layers."""
 ```
 
-#### Key Dependencies:
+#### Key Dependencies
+
 ```python
 from flext_core import (
     FlextContainer,    # Dependency injection
@@ -241,37 +262,44 @@ from rich.console import Console
 from rich.table import Table
 ```
 
-#### Architecture Pattern Analysis:
+#### Architecture Pattern Analysis
+
 - **Direct Rich Integration**: Uses Rich directly, not through abstractions
 - **FlextService Inheritance**: Proper extension of base service
 - **Formatting Pipeline**: Comprehensive data formatting system
 - **Export Functionality**: File export with multiple formats
 
-#### Method Analysis:
+#### Method Analysis
 
 **Data Formatting Methods**:
+
 - `format_data()` - Main formatting entry point
 - `display_data()` - Format and display in one operation
 - `format_output()` - Alias for format_data (backward compatibility)
 - `display_output()` - Alias for display_data (backward compatibility)
 
 **Message Display Methods**:
+
 - `display_message()` - Styled message display with Rich
 
 **Command Management Methods**:
+
 - `create_command()` - Command definition creation
 
 **Export Methods**:
+
 - `export_data()` - Single dataset export
 - `batch_export()` - Multiple dataset export
 
 **Private Formatting Methods**:
+
 - `_format_as_json()` - JSON formatting
 - `_format_as_yaml()` - YAML formatting
 - `_format_as_table()` - Rich table formatting
 - `_format_as_csv()` - CSV formatting
 
-#### Rich Integration Analysis:
+#### Rich Integration Analysis
+
 ```python
 # Direct Rich usage
 self._console = Console()
@@ -279,12 +307,14 @@ table = Table(title=options.title)
 self._console.print(format_result.unwrap())
 ```
 
-#### Type Safety Analysis:
+#### Type Safety Analysis
+
 - **Generic Types**: `FlextService[dict[str, object]]`
 - **Type Narrowing**: Proper casting for CSV data
 - **Safe Calls**: Uses `FlextResult.safe_call()` for operations
 
-#### Integration Points:
+#### Integration Points
+
 - **Models**: Uses `FlextCliModels.FormatOptions`
 - **Utilities**: Uses `FlextUtilities.Conversion.to_table_format()`
 - **Rich**: Direct Rich console and table usage
@@ -299,13 +329,15 @@ self._console.print(format_result.unwrap())
 **Lines**: 297  
 **Purpose**: Main CLI interface with Click integration
 
-#### Class Hierarchy:
+#### Class Hierarchy
+
 ```python
 class FlextCliMain(FlextService[dict[str, object]]):
     """Main CLI class - direct Click integration without abstraction layers."""
 ```
 
-#### Key Dependencies:
+#### Key Dependencies
+
 ```python
 from flext_core import (
     FlextContainer,    # Dependency injection
@@ -317,28 +349,33 @@ from flext_core import (
 import click
 ```
 
-#### Architecture Pattern Analysis:
+#### Architecture Pattern Analysis
+
 - **Direct Click Integration**: Uses Click directly, not through abstractions
 - **FlextService Inheritance**: Proper extension of base service
 - **Command Management**: Comprehensive command and group management
 - **Type Safety**: Proper type aliases for Click options
 
-#### Method Analysis:
+#### Method Analysis
 
 **Command Management Methods**:
+
 - `add_command()` - Add individual commands
 - `add_group()` - Add command groups
 - `register_command_group()` - Register command groups
 
 **CLI Execution Methods**:
+
 - `run_cli()` - Main CLI execution
 - `execute_command()` - Programmatic command execution
 - `list_commands()` - List registered commands
 
 **Access Methods**:
+
 - `get_click_group()` - Direct Click group access
 
-#### Click Integration Analysis:
+#### Click Integration Analysis
+
 ```python
 # Direct Click group creation
 self._cli_group = click.Group(
@@ -357,12 +394,14 @@ command = click.Command(
 )
 ```
 
-#### Type Safety Analysis:
+#### Type Safety Analysis
+
 - **Type Aliases**: `ClickOptions = dict[str, str | bool | int | list[str] | None]`
 - **Type Casting**: Proper casting for Click parameters
 - **Generic Types**: `FlextService[dict[str, object]]`
 
-#### Factory Function:
+#### Factory Function
+
 ```python
 def create_main_cli() -> FlextCliMain:
     """Create the main CLI instance."""
@@ -372,7 +411,8 @@ def create_main_cli() -> FlextCliMain:
     )
 ```
 
-#### Integration Points:
+#### Integration Points
+
 - **Click**: Direct Click framework usage
 - **Core**: Uses FlextService patterns
 - **Entry Point**: Called from `__main__.py`
@@ -387,21 +427,24 @@ def create_main_cli() -> FlextCliMain:
 **Lines**: 461  
 **Purpose**: Unified Pydantic models for CLI operations
 
-#### Class Hierarchy:
+#### Class Hierarchy
+
 ```python
 class FlextCliModels:
     """Single unified CLI models class following FLEXT standards."""
 ```
 
-#### Architecture Pattern Analysis:
+#### Architecture Pattern Analysis
+
 - **Unified Class Pattern**: Single class with nested model subclasses
 - **Pydantic Integration**: All models extend BaseModel
 - **FlextConfig Extension**: Main config extends FlextConfig from flext-core
 - **Business Rule Validation**: Each model has validate_business_rules() method
 
-#### Nested Model Classes:
+#### Nested Model Classes
 
 **Configuration Models**:
+
 - `CliConfig` - Basic CLI configuration
 - `FlextCliConfig` - Main configuration extending FlextConfig
 - `AuthConfig` - Authentication configuration
@@ -409,19 +452,22 @@ class FlextCliModels:
 - `CliOptions` - CLI options configuration
 
 **Command Models**:
+
 - `CliCommand` - Command execution model
 - `CliSession` - Session management model
 - `Pipeline` - Pipeline execution model
 - `PipelineConfig` - Pipeline configuration model
 
 **Utility Models**:
+
 - `DebugInfo` - Debug information model
 - `FormatOptions` - Output formatting options
 - `CliFormatters` - Formatter utilities
 
-#### Key Features Analysis:
+#### Key Features Analysis
 
 **FlextConfig Extension**:
+
 ```python
 class FlextCliConfig(FlextConfig):
     """Main CLI configuration class extending FlextConfig."""
@@ -434,6 +480,7 @@ class FlextCliConfig(FlextConfig):
 ```
 
 **Business Rule Validation**:
+
 ```python
 def validate_business_rules(self) -> FlextResult[None]:
     """Validate configuration business rules."""
@@ -444,6 +491,7 @@ def validate_business_rules(self) -> FlextResult[None]:
 ```
 
 **Command State Management**:
+
 ```python
 def start_execution(self) -> FlextResult[None]:
     """Start command execution."""
@@ -453,7 +501,8 @@ def start_execution(self) -> FlextResult[None]:
     return FlextResult[None].ok(None)
 ```
 
-#### Integration Points:
+#### Integration Points
+
 - **Constants**: Uses `FlextCliConstants` for default values
 - **Core**: Extends `FlextConfig` from flext-core
 - **Validation**: Uses `FlextResult` for error handling
@@ -468,13 +517,15 @@ def start_execution(self) -> FlextResult[None]:
 **Lines**: 497  
 **Purpose**: Rich-based formatting functionality
 
-#### Class Hierarchy:
+#### Class Hierarchy
+
 ```python
 class FlextCliFormatters(FlextService[str]):
     """CLI formatters using direct Rich integration."""
 ```
 
-#### Key Dependencies:
+#### Key Dependencies
+
 ```python
 from flext_core.service import FlextService
 from flext_core import FlextLogger, FlextResult
@@ -485,32 +536,38 @@ from rich.text import Text
 from rich.theme import Theme
 ```
 
-#### Architecture Pattern Analysis:
+#### Architecture Pattern Analysis
+
 - **Direct Rich Integration**: Only module allowed to import Rich directly
 - **FlextService Inheritance**: Proper extension of base service
 - **Comprehensive Formatting**: Table, progress, message formatting
 - **Type Safety**: Proper type annotations and casting
 
-#### Method Analysis:
+#### Method Analysis
 
 **Table Formatting Methods**:
+
 - `create_table()` - Create Rich table from data
 - `table_to_string()` - Convert table to string
 - `format_table()` - Format data as Rich table
 
 **Progress Methods**:
+
 - `create_progress_bar()` - Create Rich progress bar
 
 **Message Display Methods**:
+
 - `print_message()` - Print styled messages
 - `print_error()` - Print error messages (red)
 - `print_success()` - Print success messages (green)
 - `print_warning()` - Print warning messages (yellow)
 
 **Data Formatting Methods**:
-- `format_data()` - Format data by type (table, json, etc.)
 
-#### Rich Integration Analysis:
+- `format_data()` - Format data by type (table, JSON, etc.)
+
+#### Rich Integration Analysis
+
 ```python
 # Direct Rich usage
 self._console = Console()
@@ -519,7 +576,8 @@ progress = Progress()
 task_id = progress.add_task(description, total=total)
 ```
 
-#### Console Output Wrapper:
+#### Console Output Wrapper
+
 ```python
 class _ConsoleOutput:
     """Console output wrapper for compatibility."""
@@ -533,12 +591,14 @@ class _ConsoleOutput:
         )
 ```
 
-#### Type Safety Analysis:
+#### Type Safety Analysis
+
 - **Generic Types**: `FlextService[str]`
 - **Type Casting**: Proper casting for Rich components
 - **Type Narrowing**: StringIO casting for file operations
 
-#### Integration Points:
+#### Integration Points
+
 - **Core**: Uses FlextService patterns
 - **Rich**: Direct Rich framework usage
 - **Logging**: Uses FlextLogger for structured logging
@@ -553,13 +613,15 @@ class _ConsoleOutput:
 **Lines**: 230  
 **Purpose**: Command processing and configuration management
 
-#### Class Hierarchy:
+#### Class Hierarchy
+
 ```python
 class FlextCliCmd(FlextService[dict[str, object]]):
     """CMD service extending FlextService from flext-core."""
 ```
 
-#### Key Dependencies:
+#### Key Dependencies
+
 ```python
 from flext_core import (
     FlextContainer,    # Dependency injection
@@ -569,15 +631,17 @@ from flext_core import (
 )
 ```
 
-#### Architecture Pattern Analysis:
+#### Architecture Pattern Analysis
+
 - **Single Responsibility**: Command processing only
 - **Nested Helper Classes**: Multiple helper classes for different concerns
 - **FlextService Inheritance**: Proper extension of base service
 - **Lazy Loading**: Command bus service with lazy initialization
 
-#### Method Analysis:
+#### Method Analysis
 
 **Configuration Methods**:
+
 - `show_config_paths()` - Display configuration paths
 - `validate_config()` - Validate configuration structure
 - `get_config_info()` - Get configuration information
@@ -587,13 +651,15 @@ from flext_core import (
 - `edit_config()` - Edit configuration
 
 **Service Management Methods**:
+
 - `command_bus_service` - Property for command bus service
 - `get_cmd_instance()` - Get command instance
 - `create_instance()` - Class method to create instance
 
-#### Nested Helper Classes:
+#### Nested Helper Classes
 
 **Configuration Helper**:
+
 ```python
 class _ConfigHelper:
     """Nested helper for configuration operations."""
@@ -614,6 +680,7 @@ class _ConfigHelper:
 ```
 
 **Display Helper**:
+
 ```python
 class _ConfigDisplayHelper:
     """Helper for configuration display operations."""
@@ -624,6 +691,7 @@ class _ConfigDisplayHelper:
 ```
 
 **Modification Helper**:
+
 ```python
 class _ConfigModificationHelper:
     """Helper for configuration modification operations."""
@@ -634,6 +702,7 @@ class _ConfigModificationHelper:
 ```
 
 **Validation Helper**:
+
 ```python
 class _ConfigValidationHelper:
     """Helper for configuration validation operations."""
@@ -643,7 +712,8 @@ class _ConfigValidationHelper:
         """Validate configuration."""
 ```
 
-#### Lazy Loading Pattern:
+#### Lazy Loading Pattern
+
 ```python
 @property
 def command_bus_service(self) -> FlextCliCmd:
@@ -653,7 +723,8 @@ def command_bus_service(self) -> FlextCliCmd:
     return self._command_bus_service
 ```
 
-#### Integration Points:
+#### Integration Points
+
 - **Core**: Uses FlextService patterns
 - **Container**: Uses FlextContainer for dependency injection
 - **Logging**: Uses FlextLogger for structured logging
@@ -669,32 +740,37 @@ def command_bus_service(self) -> FlextCliCmd:
 **Lines**: 393  
 **Purpose**: Command management and execution service
 
-#### Class Hierarchy:
+#### Class Hierarchy
+
 ```python
 class FlextCliCommandService(FlextService[FlextTypes.Core.List]):
     """Unified command service using single responsibility principle."""
 ```
 
-#### Key Dependencies:
+#### Key Dependencies
+
 ```python
 from flext_core import FlextLogger, FlextResult, FlextService, FlextTypes
 from flext_cli.models import FlextCliModels
 ```
 
-#### Architecture Pattern Analysis:
+#### Architecture Pattern Analysis
+
 - **Single Responsibility**: Command management only
 - **Nested Helper Classes**: Validation and builder helpers
 - **FlextService Inheritance**: Proper extension of base service
 - **Command History**: Comprehensive command tracking
 
-#### Method Analysis:
+#### Method Analysis
 
 **Command Management Methods**:
+
 - `create_command()` - Create CLI command with validation
 - `execute_command()` - Execute CLI command with validation
 - `create_command_definition()` - Create command definition for CLI frameworks
 
 **History Management Methods**:
+
 - `get_command_history()` - Get command history
 - `clear_command_history()` - Clear command history
 - `get_command_statistics()` - Get command statistics
@@ -702,11 +778,13 @@ from flext_cli.models import FlextCliModels
 - `get_recent_commands()` - Get recent commands with limit
 
 **Configuration Methods**:
+
 - `configure_command_history()` - Configure command history tracking
 
-#### Nested Helper Classes:
+#### Nested Helper Classes
 
 **Command Validation Helper**:
+
 ```python
 class _CommandValidationHelper:
     """Nested helper for command validation - no loose functions."""
@@ -721,6 +799,7 @@ class _CommandValidationHelper:
 ```
 
 **Command Builder Helper**:
+
 ```python
 class _CommandBuilderHelper:
     """Nested helper for command construction - no loose functions."""
@@ -734,7 +813,8 @@ class _CommandBuilderHelper:
         """Create command with options for CLI frameworks."""
 ```
 
-#### Integration Points:
+#### Integration Points
+
 - **Models**: Uses `FlextCliModels.CliCommand`
 - **Core**: Uses FlextService patterns
 - **Logging**: Uses FlextLogger for structured logging
@@ -749,40 +829,46 @@ class _CommandBuilderHelper:
 **Lines**: 339  
 **Purpose**: Session management and tracking service
 
-#### Class Hierarchy:
+#### Class Hierarchy
+
 ```python
 class FlextCliSessionService(FlextService[dict[str, object]]):
     """Unified session service using single responsibility principle."""
 ```
 
-#### Key Dependencies:
+#### Key Dependencies
+
 ```python
 from flext_core import FlextLogger, FlextResult, FlextService, FlextTypes
 from flext_cli.models import FlextCliModels
 ```
 
-#### Architecture Pattern Analysis:
+#### Architecture Pattern Analysis
+
 - **Single Responsibility**: Session management only
 - **Nested Helper Classes**: Validation and state helpers
 - **FlextService Inheritance**: Proper extension of base service
 - **Session Tracking**: Comprehensive session lifecycle management
 
-#### Method Analysis:
+#### Method Analysis
 
 **Session Management Methods**:
+
 - `create_session()` - Create new CLI session with validation
 - `end_session()` - End CLI session with validation
 - `get_session()` - Get session information
 - `list_active_sessions()` - List all active sessions
 
 **Statistics and Configuration Methods**:
+
 - `get_session_statistics()` - Get session statistics
 - `configure_session_tracking()` - Configure session tracking
 - `clear_all_sessions()` - Clear all active sessions
 
-#### Nested Helper Classes:
+#### Nested Helper Classes
 
 **Session Validation Helper**:
+
 ```python
 class _SessionValidationHelper:
     """Nested helper for session validation - no loose functions."""
@@ -797,6 +883,7 @@ class _SessionValidationHelper:
 ```
 
 **Session State Helper**:
+
 ```python
 class _SessionStateHelper:
     """Nested helper for session state management - no loose functions."""
@@ -810,7 +897,8 @@ class _SessionStateHelper:
         """Calculate session duration in seconds."""
 ```
 
-#### Session Statistics Analysis:
+#### Session Statistics Analysis
+
 ```python
 def get_session_statistics(self) -> FlextResult[FlextTypes.Core.Dict]:
     """Get session statistics - single responsibility."""
@@ -823,7 +911,8 @@ def get_session_statistics(self) -> FlextResult[FlextTypes.Core.Dict]:
     }
 ```
 
-#### Integration Points:
+#### Integration Points
+
 - **Models**: Uses `FlextCliModels.CliSession`
 - **Core**: Uses FlextService patterns
 - **Logging**: Uses FlextLogger for structured logging
@@ -839,28 +928,32 @@ def get_session_statistics(self) -> FlextResult[FlextTypes.Core.Dict]:
 **Lines**: 531  
 **Purpose**: CLI execution context and environment management
 
-#### Class Hierarchy:
+#### Class Hierarchy
+
 ```python
 class FlextCliContext:
     """CLI execution context using composition for flexibility."""
 ```
 
-#### Key Dependencies:
+#### Key Dependencies
+
 ```python
 from flext_core import FlextLogger, FlextResult, FlextTypes
 from flext_cli.constants import FlextCliConstants
 from flext_cli.models import FlextCliModels
 ```
 
-#### Architecture Pattern Analysis:
+#### Architecture Pattern Analysis
+
 - **Composition-Based Design**: Uses composition instead of inheritance
 - **Immutable Context**: Context properties are immutable after creation
 - **Factory Methods**: Multiple factory methods for different use cases
 - **Business Rule Validation**: Comprehensive validation of context state
 
-#### Method Analysis:
+#### Method Analysis
 
 **Core Properties**:
+
 - `id` - Context identifier
 - `config` - CLI configuration
 - `logger` - FlextLogger instance
@@ -871,6 +964,7 @@ from flext_cli.models import FlextCliModels
 - `session_id` - Session identifier
 
 **Mode Properties**:
+
 - `debug` - Debug mode status
 - `quiet` - Quiet mode status
 - `verbose` - Verbose mode status
@@ -879,6 +973,7 @@ from flext_cli.models import FlextCliModels
 - `is_verbose` - Verbose mode check
 
 **Printing Methods**:
+
 - `print_success()` - Print success message
 - `print_error()` - Print error message
 - `print_warning()` - Print warning message
@@ -887,15 +982,18 @@ from flext_cli.models import FlextCliModels
 - `print_debug()` - Print debug message
 
 **Factory Methods**:
+
 - `create()` - Create CLI context with optional parameters
 - `create_execution()` - Create execution context for specific command
 - `create_with_params()` - Create CLI context with parameters
 
 **Immutability Methods**:
+
 - `with_environment()` - Create new context with additional environment variables
 - `with_working_directory()` - Create new context with different working directory
 
-#### Execution Context Dataclass:
+#### Execution Context Dataclass
+
 ```python
 @dataclass
 class ExecutionContext:
@@ -909,7 +1007,8 @@ class ExecutionContext:
     user_id: str | None = None
 ```
 
-#### Business Rule Validation:
+#### Business Rule Validation
+
 ```python
 def validate_business_rules(self) -> FlextResult[None]:
     """Validate CLI context business rules."""
@@ -918,7 +1017,8 @@ def validate_business_rules(self) -> FlextResult[None]:
     return FlextResult[None].ok(None)
 ```
 
-#### Integration Points:
+#### Integration Points
+
 - **Models**: Uses `FlextCliModels.FlextCliConfig`
 - **Constants**: Uses `FlextCliConstants` for default values
 - **Core**: Uses FlextLogger and FlextResult patterns
@@ -933,21 +1033,25 @@ def validate_business_rules(self) -> FlextResult[None]:
 #### ✅ **FLEXT Standards Compliance**
 
 **Unified Class Pattern**:
+
 - All modules follow single class per module pattern
 - Nested helper classes used instead of loose functions
 - No multiple classes per module violations
 
 **FlextService Inheritance**:
+
 - All service classes properly extend `FlextService[T]`
 - Required `execute()` method implemented in all services
 - Proper generic type parameters used
 
 **FlextResult Pattern**:
+
 - All operations return `FlextResult[T]` for error handling
 - No try/except fallback mechanisms
 - Explicit error checking throughout
 
 **Import Strategy**:
+
 - Root-level imports from flext-core
 - No internal imports from flext-core submodules
 - Direct third-party library usage only in designated modules (Rich in formatters)
@@ -955,11 +1059,13 @@ def validate_business_rules(self) -> FlextResult[None]:
 #### ✅ **Domain Separation Compliance**
 
 **CLI Domain**:
+
 - All CLI functionality properly contained within flext-cli
 - Rich integration isolated to `flext_cli_formatters.py`
 - Click integration properly managed in `flext_cli_main.py`
 
 **Core Integration**:
+
 - Proper use of FlextContainer for dependency injection
 - FlextLogger used throughout for structured logging
 - FlextConfig extended properly in models
@@ -967,11 +1073,13 @@ def validate_business_rules(self) -> FlextResult[None]:
 #### ✅ **Type Safety Analysis**
 
 **Generic Types**:
+
 - All services use proper generic type parameters
 - Type aliases defined for complex types
 - Type narrowing used where appropriate
 
 **Type Annotations**:
+
 - Comprehensive type annotations throughout
 - Proper use of `cast()` for type assertions
 - Union types used appropriately
@@ -979,11 +1087,13 @@ def validate_business_rules(self) -> FlextResult[None]:
 #### ✅ **Method Connection Analysis**
 
 **Service Dependencies**:
+
 - Clear service hierarchy with proper inheritance
 - Dependency injection through FlextContainer
 - No circular dependencies detected
 
 **Method Call Patterns**:
+
 - Consistent FlextResult pattern usage
 - Proper error propagation
 - Nested helper classes for complex operations
@@ -1027,6 +1137,7 @@ The investigation reveals a **production-ready CLI foundation** that follows FLE
 #### **1. Mock/Placeholder Implementations**
 
 **File**: `flext_cli_auth.py` - Lines 248-257
+
 ```python
 # For now, this is a placeholder - in real implementation,
 # this would authenticate against an API endpoint
@@ -1041,11 +1152,13 @@ return FlextResult[str].ok(mock_token)
 ```
 
 **Issues**:
+
 - **SECURITY RISK**: Password length exposed in token generation
 - **No Real Authentication**: Uses mock token instead of API integration
 - **Misleading Success**: Returns success without actual authentication
 
 **File**: `cmd.py` - Lines 145-186
+
 ```python
 def set_config_value(self, key: str, value: str) -> FlextResult[bool]:
     """Set configuration value (placeholder implementation)."""
@@ -1079,11 +1192,13 @@ def edit_config(self) -> FlextResult[str]:
 ```
 
 **Issues**:
+
 - **No Persistence**: Configuration changes are not saved
 - **Fake Values**: Returns `f"config_value_for_{key}"` instead of real values
 - **Misleading Success**: Returns "Config edit completed" without doing anything
 
 **File**: `command_service.py` - Lines 169-194
+
 ```python
 try:
     # Execute command (placeholder implementation)
@@ -1112,11 +1227,13 @@ try:
 ```
 
 **Issues**:
+
 - **No Subprocess Execution**: Commands are not actually executed
 - **Fake Output**: Returns `f"Executed: {command_line}"` without running
 - **Status Not Updated**: Command status remains unchanged
 
 **File**: `domain_service.py` - Lines 145-155
+
 ```python
 def add_command_to_session(
     self, session: FlextCliModels.CliSession, _command: FlextCliModels.CliCommand
@@ -1133,6 +1250,7 @@ def add_command_to_session(
 ```
 
 **Issues**:
+
 - **Acknowledges Limitation**: Comments indicate model limitations
 - **No Implementation**: Method does nothing but return same session
 - **Misleading API**: Suggests functionality that doesn't exist
@@ -1140,14 +1258,17 @@ def add_command_to_session(
 #### **2. Logic and Parameter Issues**
 
 **Security Vulnerability**: Password Length Exposure
+
 ```python
 mock_token = f"auth_token_{username}_{len(password)}"
 ```
+
 - **Risk**: Password length exposed in token
 - **Impact**: Information leakage about password strength
 - **Fix**: Use secure token generation without password info
 
 **Incorrect Return Type Pattern**: Nested FlextResult
+
 ```python
 # In decorators.py - Lines 92-96
 if result_typed.is_success:
@@ -1157,11 +1278,13 @@ logger = FlextLogger(__name__)
 logger.error(f"Async FlextResult error: {result.error}")
 return None
 ```
+
 - **Issue**: Returns `None` instead of proper error handling
 - **Impact**: Silent failures instead of explicit error propagation
 - **Fix**: Use proper FlextResult error handling
 
 **Fake Success Returns**: Misleading Return Values
+
 ```python
 # Multiple locations return fake success without actual work
 return FlextResult[str].ok("Config edit completed")
@@ -1172,21 +1295,25 @@ return FlextResult[str].ok(f"Executed: {command_line}")  # Without executing
 #### **3. Impact Assessment**
 
 **Security Impact**: **HIGH**
+
 - Mock authentication exposes password information
 - No real security validation
 - Misleading authentication status
 
 **Functionality Impact**: **CRITICAL**
+
 - Core CLI features not working (config, commands, sessions)
 - Users expect functionality that doesn't exist
 - Production deployment would fail
 
 **Reliability Impact**: **HIGH**
+
 - Misleading success indicators
 - Silent failures in error handling
 - No actual persistence or execution
 
 **Maintainability Impact**: **MEDIUM**
+
 - Placeholder code creates technical debt
 - Comments acknowledge limitations but don't fix them
 - Inconsistent error handling patterns
@@ -1194,7 +1321,9 @@ return FlextResult[str].ok(f"Executed: {command_line}")  # Without executing
 #### **4. Recommended Fixes**
 
 **Priority 1 (Critical)**:
+
 1. **Implement Real Authentication**
+
    ```python
    # Replace mock token with real API integration
    def authenticate(self, credentials: dict[str, object]) -> FlextResult[str]:
@@ -1204,6 +1333,7 @@ return FlextResult[str].ok(f"Executed: {command_line}")  # Without executing
    ```
 
 2. **Add Actual Configuration Persistence**
+
    ```python
    # Replace placeholder with real config management
    def set_config_value(self, key: str, value: str) -> FlextResult[bool]:
@@ -1213,6 +1343,7 @@ return FlextResult[str].ok(f"Executed: {command_line}")  # Without executing
    ```
 
 3. **Implement Real Command Execution**
+
    ```python
    # Replace fake execution with subprocess
    def execute_command(self, command: FlextCliModels.CliCommand) -> FlextResult[str]:
@@ -1222,6 +1353,7 @@ return FlextResult[str].ok(f"Executed: {command_line}")  # Without executing
    ```
 
 4. **Fix Session Management**
+
    ```python
    # Implement actual session command tracking
    def add_command_to_session(self, session, command) -> FlextResult[CliSession]:
@@ -1231,6 +1363,7 @@ return FlextResult[str].ok(f"Executed: {command_line}")  # Without executing
    ```
 
 **Priority 2 (Important)**:
+
 1. **Remove Password Length from Token Generation**
 2. **Fix Nested FlextResult Return Types**
 3. **Replace Fake Success Returns with Real Operations**
@@ -1245,12 +1378,14 @@ return FlextResult[str].ok(f"Executed: {command_line}")  # Without executing
 #### 1. **Data Formatting Duplication**
 
 **Modules with `format_data()` methods**:
+
 - `flext_cli_api.py` - Main API formatting
 - `core.py` - Core service formatting  
 - `flext_cli_formatters.py` - Rich-based formatting
 - `protocols.py` - Protocol interface formatting
 
-**Analysis**: 
+**Analysis**:
+
 - ✅ **Justified**: Each serves different purposes
 - `flext_cli_api.py`: General data formatting with multiple formats
 - `core.py`: Basic formatting for core service operations
@@ -1260,12 +1395,14 @@ return FlextResult[str].ok(f"Executed: {command_line}")  # Without executing
 #### 2. **Command Creation Duplication**
 
 **Modules with `create_command()` methods**:
+
 - `flext_cli_api.py` - Command definition creation
 - `core.py` - Core command creation
 - `domain_service.py` - Domain command creation
 - `command_service.py` - Command service creation
 
 **Analysis**:
+
 - ⚠️ **Potential Duplication**: Multiple command creation patterns
 - `domain_service.py` duplicates functionality from `command_service.py`
 - Both create `FlextCliModels.CliCommand` instances
@@ -1274,11 +1411,13 @@ return FlextResult[str].ok(f"Executed: {command_line}")  # Without executing
 #### 3. **Print/Display Method Duplication**
 
 **Modules with print methods**:
+
 - `flext_cli_formatters.py` - Rich-based printing
 - `context.py` - Context-based printing
 - `interactions.py` - User interaction printing
 
 **Analysis**:
+
 - ✅ **Justified**: Different purposes and implementations
 - `flext_cli_formatters.py`: Rich console output
 - `context.py`: Context-aware logging
@@ -1287,12 +1426,14 @@ return FlextResult[str].ok(f"Executed: {command_line}")  # Without executing
 #### 4. **Configuration Management Duplication**
 
 **Modules with config methods**:
+
 - `core.py` - Core configuration
 - `models.py` - Configuration models
 - `cmd.py` - Command configuration
 - `context.py` - Context configuration
 
 **Analysis**:
+
 - ✅ **Justified**: Different configuration scopes
 - Each module handles configuration at its appropriate level
 - No significant duplication detected
@@ -1300,11 +1441,13 @@ return FlextResult[str].ok(f"Executed: {command_line}")  # Without executing
 #### 5. **Session Management Duplication**
 
 **Modules with session methods**:
+
 - `core.py` - Core session management
 - `session_service.py` - Dedicated session service
 - `domain_service.py` - Domain session operations
 
 **Analysis**:
+
 - ⚠️ **Potential Duplication**: `domain_service.py` duplicates `session_service.py`
 - Both create and manage `FlextCliModels.CliSession` instances
 - **Recommendation**: Remove session methods from `domain_service.py`
@@ -1312,10 +1455,12 @@ return FlextResult[str].ok(f"Executed: {command_line}")  # Without executing
 #### 6. **Export Functionality Duplication**
 
 **Modules with export methods**:
+
 - `flext_cli_api.py` - API export functionality
 - `core.py` - Core export functionality
 
 **Analysis**:
+
 - ⚠️ **Potential Duplication**: Similar export patterns
 - Both handle JSON/YAML/CSV export
 - **Recommendation**: Consolidate into `flext_cli_api.py`
@@ -1327,6 +1472,7 @@ return FlextResult[str].ok(f"Executed: {command_line}")  # Without executing
 **Issue**: `domain_service.py` duplicates command and session functionality from dedicated services
 
 **Duplicated Methods**:
+
 ```python
 # domain_service.py duplicates:
 def create_command() -> FlextResult[FlextCliModels.CliCommand]
@@ -1334,7 +1480,8 @@ def create_session() -> FlextResult[FlextCliModels.CliSession]
 def end_session() -> FlextResult[FlextCliModels.CliSession]
 ```
 
-**Recommendation**: 
+**Recommendation**:
+
 - Remove command/session methods from `domain_service.py`
 - Keep only domain-specific workflow methods
 - Use `command_service.py` and `session_service.py` for dedicated operations
@@ -1344,6 +1491,7 @@ def end_session() -> FlextResult[FlextCliModels.CliSession]
 **Issue**: `core.py` duplicates formatting and export functionality from `flext_cli_api.py`
 
 **Duplicated Methods**:
+
 ```python
 # core.py duplicates:
 def format_data() -> FlextResult[str]
@@ -1351,6 +1499,7 @@ def flext_cli_export() -> FlextResult[None]
 ```
 
 **Recommendation**:
+
 - Remove formatting/export from `core.py`
 - Keep `core.py` focused on core service operations
 - Use `flext_cli_api.py` for all formatting and export needs
@@ -1363,6 +1512,7 @@ def flext_cli_export() -> FlextResult[None]
 **Should Be In**: `flext-core`
 
 **Methods**:
+
 ```python
 def validate_with_pydantic_model() -> FlextResult[BaseModel]
 def validate_data() -> FlextResult[bool]
@@ -1376,6 +1526,7 @@ def validate_data() -> FlextResult[bool]
 **Should Be In**: `flext-core`
 
 **Methods**:
+
 ```python
 def get_base_config_dict() -> ConfigDict
 def get_strict_config_dict() -> ConfigDict
@@ -1390,6 +1541,7 @@ def get_settings_config_dict() -> SettingsConfigDict
 **Should Be In**: `flext-core`
 
 **Methods**:
+
 ```python
 def safe_json_stringify() -> str
 def json_stringify_with_result() -> FlextResult[str]
@@ -1419,11 +1571,13 @@ def json_stringify_with_result() -> FlextResult[str]
 ### 🎯 **Impact Assessment**
 
 **Before Consolidation**:
+
 - 25 modules with some functional overlap
 - Multiple ways to perform similar operations
 - Potential confusion for developers
 
 **After Consolidation**:
+
 - Clear separation of concerns
 - Single responsibility per module
 - Reduced maintenance burden
@@ -1440,6 +1594,7 @@ def json_stringify_with_result() -> FlextResult[str]
 #### **1. Mock/Placeholder Implementations**
 
 **File**: `flext_cli_auth.py` - Lines 248-257
+
 ```python
 def authenticate(self, credentials: dict[str, object]) -> FlextResult[str]:
     """Authenticate user with provided credentials."""
@@ -1457,11 +1612,13 @@ def authenticate(self, credentials: dict[str, object]) -> FlextResult[str]:
 ```
 
 **Issues**:
+
 - ❌ **Mock Token Generation**: Uses `f"auth_token_{username}_{len(password)}"` - insecure and predictable
 - ❌ **No Real Authentication**: No actual API endpoint integration
 - ❌ **Security Risk**: Password length exposed in token
 
 **Fix Required**:
+
 ```python
 # Should implement real authentication:
 def authenticate(self, credentials: dict[str, object]) -> FlextResult[str]:
@@ -1482,6 +1639,7 @@ def authenticate(self, credentials: dict[str, object]) -> FlextResult[str]:
 #### **2. Placeholder Configuration Methods**
 
 **File**: `cmd.py` - Lines 144-186
+
 ```python
 def set_config_value(self, key: str, value: str) -> FlextResult[bool]:
     """Set configuration value (placeholder implementation)."""
@@ -1515,11 +1673,13 @@ def edit_config(self) -> FlextResult[str]:
 ```
 
 **Issues**:
+
 - ❌ **Fake Configuration Values**: Returns `f"config_value_for_{key}"` instead of real values
 - ❌ **No Persistence**: Configuration changes are not saved
 - ❌ **Fake Success**: Returns success without actually performing operations
 
 **Fix Required**:
+
 ```python
 def set_config_value(self, key: str, value: str) -> FlextResult[bool]:
     """Set configuration value."""
@@ -1555,6 +1715,7 @@ def get_config_value(self, key: str) -> FlextResult[dict[str, object]]:
 #### **3. Incomplete Command Execution**
 
 **File**: `command_service.py` - Lines 170-192
+
 ```python
 def execute_command(self, command: object) -> FlextResult[str]:
     """Execute CLI command with validation - single responsibility."""
@@ -1584,11 +1745,13 @@ def execute_command(self, command: object) -> FlextResult[str]:
 ```
 
 **Issues**:
+
 - ❌ **Fake Execution**: Returns `f"Executed: {command_line}"` without actually running command
 - ❌ **Status Not Updated**: Command status remains unchanged
 - ❌ **No Real Process**: No subprocess execution or command handling
 
 **Fix Required**:
+
 ```python
 def execute_command(self, command: object) -> FlextResult[str]:
     """Execute CLI command with validation - single responsibility."""
@@ -1630,6 +1793,7 @@ def execute_command(self, command: object) -> FlextResult[str]:
 #### **4. Incomplete Session Management**
 
 **File**: `domain_service.py` - Lines 144-155
+
 ```python
 def add_command_to_session(
     self, session: FlextCliModels.CliSession, _command: FlextCliModels.CliCommand
@@ -1644,11 +1808,13 @@ def add_command_to_session(
 ```
 
 **Issues**:
+
 - ❌ **No Actual Work**: Method does nothing but return the same session
 - ❌ **Model Limitation**: Acknowledges that `CliSession` doesn't support commands
 - ❌ **Misleading Name**: Method name suggests functionality that doesn't exist
 
 **Fix Required**:
+
 ```python
 def add_command_to_session(
     self, session: FlextCliModels.CliSession, command: FlextCliModels.CliCommand
@@ -1675,16 +1841,19 @@ def add_command_to_session(
 #### **1. Incorrect Variable Usage**
 
 **File**: `flext_cli_auth.py` - Line 250
+
 ```python
 mock_token = f"auth_token_{username}_{len(password)}"
 ```
 
-**Issue**: 
+**Issue**:
+
 - ❌ **Password Length Exposure**: Using `len(password)` in token generation
 - ❌ **Predictable Tokens**: Tokens follow predictable pattern
 - ❌ **Security Risk**: Password information leaked in token
 
 **Fix**:
+
 ```python
 # Use secure token generation
 import secrets
@@ -1694,6 +1863,7 @@ mock_token = f"auth_token_{username}_{secrets.token_hex(16)}"
 #### **2. Incorrect Return Type Logic**
 
 **File**: `domain_service.py` - Lines 29-44
+
 ```python
 def execute(self) -> FlextResult[FlextResult[str]]:
     """Execute domain service operations."""
@@ -1711,10 +1881,12 @@ def execute(self) -> FlextResult[FlextResult[str]]:
 ```
 
 **Issue**:
+
 - ❌ **Nested FlextResult**: Returns `FlextResult[FlextResult[str]]` instead of `FlextResult[str]`
 - ❌ **Incorrect Pattern**: Double-wrapping results
 
 **Fix**:
+
 ```python
 def execute(self) -> FlextResult[str]:
     """Execute domain service operations."""
@@ -1730,18 +1902,21 @@ def execute(self) -> FlextResult[str]:
 
 ### 📊 **Summary of Issues**
 
-#### **Critical Issues (Must Fix)**:
+#### **Critical Issues (Must Fix)**
+
 1. **Mock Authentication** - Security risk with predictable tokens
 2. **Fake Configuration** - No real persistence or retrieval
 3. **Placeholder Command Execution** - No actual command running
 4. **Incomplete Session Management** - Methods that do nothing
 
-#### **Logic Issues (Should Fix)**:
+#### **Logic Issues (Should Fix)**
+
 1. **Password Length Exposure** - Security vulnerability
 2. **Nested FlextResult** - Incorrect return type pattern
 3. **Fake Success Returns** - Misleading return values
 
-#### **Impact Assessment**:
+#### **Impact Assessment**
+
 - **Security**: High risk from mock authentication
 - **Functionality**: Core features not working
 - **Reliability**: Misleading success indicators
@@ -1755,20 +1930,24 @@ def execute(self) -> FlextResult[str]:
 
 **Multiple Implementations Found**:
 
-#### **JSON Formatting** (3 implementations):
+#### **JSON Formatting** (3 implementations)
+
 - `flext_cli_api.py:291-295`: `_format_as_json()` using `json.dumps()`
 - `core.py:146`: Direct `json.dumps()` in `format_data()`
 - `utils.py:294`: `json.dumps()` in utility function
 
-#### **YAML Formatting** (2 implementations):
+#### **YAML Formatting** (2 implementations)
+
 - `flext_cli_api.py:297-301`: `_format_as_yaml()` using `yaml.dump()`
 - `core.py:148`: Direct `yaml.dump()` in `format_data()`
 
-#### **CSV Formatting** (2 implementations):
+#### **CSV Formatting** (2 implementations)
+
 - `flext_cli_api.py:340-350`: `_format_as_csv()` with CSV writer
 - `core.py:149-170`: CSV formatting in `format_data()`
 
-#### **Table Formatting** (2 implementations):
+#### **Table Formatting** (2 implementations)
+
 - `flext_cli_api.py:303-338`: Rich table formatting
 - `flext_cli_formatters.py:396-441`: Rich table formatting
 
@@ -1777,14 +1956,17 @@ def execute(self) -> FlextResult[str]:
 ### **2. Validation Functionality Duplication**
 
 **Business Rules Validation** (9 implementations):
+
 - `models.py`: 8 different `validate_business_rules()` methods
 - `context.py:330`: Additional `validate_business_rules()` method
 
 **Command Validation** (2 implementations):
+
 - `command_service.py:34-46`: Command line validation
 - `models.py`: Command validation in models
 
 **Session Validation** (2 implementations):
+
 - `session_service.py:34-51`: Session ID and user ID validation
 - `models.py`: Session validation in models
 
@@ -1793,6 +1975,7 @@ def execute(self) -> FlextResult[str]:
 ### **3. Configuration Management Duplication**
 
 **Config Access** (3 implementations):
+
 - `cmd.py:145-186`: Placeholder config methods
 - `models.py:298`: `load_configuration()` method
 - `protocols.py:63-72`: Config load/save protocols
@@ -1805,29 +1988,34 @@ def execute(self) -> FlextResult[str]:
 
 ### **1. Should Use flext-core Utilities**
 
-#### **Retry Functionality**:
+#### **Retry Functionality**
+
 - **Current**: Custom retry implementation in `decorators.py:401-450`
 - **Should Use**: `flext-core` retry utilities
 - **Issue**: Overriding flext-core stub instead of using proper implementation
 
-#### **Validation Patterns**:
+#### **Validation Patterns**
+
 - **Current**: Custom validation in multiple modules
 - **Should Use**: `FlextModels` validation patterns
 - **Issue**: Reinventing validation instead of using core patterns
 
-#### **File Operations**:
+#### **File Operations**
+
 - **Current**: Custom file operations in `file_operations.py`
 - **Should Use**: `FlextUtilities.FileOperations`
 - **Issue**: Duplicating file operation patterns
 
 ### **2. Missing flext-core Dependencies**
 
-#### **Configuration Management**:
+#### **Configuration Management**
+
 - **Current**: Custom config handling
 - **Should Use**: `FlextConfig` singleton pattern
 - **Issue**: Not leveraging core configuration system
 
-#### **Logging Setup**:
+#### **Logging Setup**
+
 - **Current**: Custom logging setup
 - **Should Use**: `FlextLogger` configuration
 - **Issue**: Reinventing logging patterns
@@ -1838,23 +2026,27 @@ def execute(self) -> FlextResult[str]:
 
 ### **1. Direct Library Imports (Violations)**
 
-#### **Rich Integration**:
+#### **Rich Integration**
+
 - **File**: `flext_cli_formatters.py`
 - **Imports**: Direct Rich imports (allowed as exception)
 - **Status**: ✅ **COMPLIANT** - Only module allowed to import Rich directly
 
-#### **Standard Library Usage**:
+#### **Standard Library Usage**
+
 - **Files**: Multiple files importing `json`, `csv`, `yaml`, `os`, `sys`
 - **Status**: ✅ **COMPLIANT** - Standard library usage is acceptable
 
 ### **2. Missing External Libraries**
 
-#### **Command Execution**:
+#### **Command Execution**
+
 - **Current**: No subprocess execution
 - **Should Use**: `subprocess` module for command execution
 - **Issue**: Commands not actually executed
 
-#### **Table Formatting**:
+#### **Table Formatting**
+
 - **Current**: Custom Rich table implementation
 - **Should Use**: `tabulate` library (stub exists but not used)
 - **Issue**: Reinventing table formatting
@@ -1865,7 +2057,8 @@ def execute(self) -> FlextResult[str]:
 
 ### **1. Type Stubs**
 
-#### **tabulate Library Stub**:
+#### **tabulate Library Stub**
+
 - **File**: `src/tabulate/__init__.pyi`
 - **Status**: Complete type stub
 - **Issue**: Library not actually used in implementation
@@ -1873,29 +2066,34 @@ def execute(self) -> FlextResult[str]:
 
 ### **2. Mock Implementations**
 
-#### **Authentication Mock**:
+#### **Authentication Mock**
+
 - **File**: `flext_cli_auth.py:248-257`
 - **Status**: Security risk - password length exposure
 - **Fix**: Implement real authentication with secure token generation
 
-#### **Configuration Mock**:
+#### **Configuration Mock**
+
 - **File**: `cmd.py:145-186`
 - **Status**: Fake values, no persistence
 - **Fix**: Implement real configuration persistence
 
-#### **Command Execution Mock**:
+#### **Command Execution Mock**
+
 - **File**: `command_service.py:170-189`
 - **Status**: No actual command execution
 - **Fix**: Implement subprocess execution with output capture
 
 ### **3. Incomplete Implementations**
 
-#### **Session Management**:
+#### **Session Management**
+
 - **File**: `domain_service.py:150-155`
 - **Status**: Acknowledges model limitations but doesn't fix them
 - **Fix**: Add commands list to CliSession model
 
-#### **Retry Implementation**:
+#### **Retry Implementation**
+
 - **File**: `decorators.py:401-450`
 - **Status**: Overrides flext-core stub instead of using proper implementation
 - **Fix**: Use flext-core retry utilities
@@ -1907,6 +2105,7 @@ def execute(self) -> FlextResult[str]:
 ### **Phase 1: Critical Security Fixes (Priority 1)**
 
 #### **1.1 Authentication System**
+
 ```python
 # Current (SECURITY RISK):
 mock_token = f"auth_token_{username}_{len(password)}"
@@ -1928,6 +2127,7 @@ def authenticate_user(self, username: str, password: str) -> FlextResult[str]:
 ```
 
 #### **1.2 Configuration Persistence**
+
 ```python
 # Current (NO PERSISTENCE):
 config_data = {"value": f"config_value_for_{key}"}
@@ -1949,6 +2149,7 @@ def set_config_value(self, key: str, value: str) -> FlextResult[bool]:
 ```
 
 #### **1.3 Command Execution**
+
 ```python
 # Current (NO EXECUTION):
 execution_result = f"Executed: {validated_command.command_line}"
@@ -1987,6 +2188,7 @@ def execute_command(self, command: FlextCliModels.CliCommand) -> FlextResult[str
 ### **Phase 2: Architecture Consolidation (Priority 2)**
 
 #### **2.1 Consolidate Formatting Functions**
+
 ```python
 # Create single formatting service using flext-core patterns
 class FlextCliFormattingService(FlextService[str]):
@@ -2008,6 +2210,7 @@ class FlextCliFormattingService(FlextService[str]):
 ```
 
 #### **2.2 Consolidate Validation Functions**
+
 ```python
 # Use flext-core validation patterns
 class FlextCliValidationService(FlextService[bool]):
@@ -2023,6 +2226,7 @@ class FlextCliValidationService(FlextService[bool]):
 ### **Phase 3: External Library Integration (Priority 3)**
 
 #### **3.1 Use tabulate Library**
+
 ```python
 # Replace custom table formatting with tabulate
 def format_table(self, data: list[dict], headers: list[str] = None) -> FlextResult[str]:
@@ -2040,6 +2244,7 @@ def format_table(self, data: list[dict], headers: list[str] = None) -> FlextResu
 ```
 
 #### **3.2 Use subprocess for Command Execution**
+
 ```python
 # Implement real command execution
 def execute_command(self, command_line: str) -> FlextResult[CommandResult]:
@@ -2068,6 +2273,7 @@ def execute_command(self, command_line: str) -> FlextResult[CommandResult]:
 ### **Phase 4: Model Enhancement (Priority 4)**
 
 #### **4.1 Fix CliSession Model**
+
 ```python
 # Add commands list to CliSession model
 class CliSession(FlextModel):
@@ -2083,6 +2289,7 @@ class CliSession(FlextModel):
 ```
 
 #### **4.2 Implement Real Session Management**
+
 ```python
 def add_command_to_session(
     self, session: FlextCliModels.CliSession, command: FlextCliModels.CliCommand
@@ -2110,31 +2317,36 @@ def add_command_to_session(
 
 ## 📋 **Summary of Required Actions**
 
-### **Immediate Actions (Critical)**:
+### **Immediate Actions (Critical)**
+
 1. **Fix Authentication Security**: Remove password length exposure
 2. **Implement Real Command Execution**: Add subprocess execution
 3. **Add Configuration Persistence**: Implement real config file operations
 4. **Fix Session Management**: Add commands list to CliSession model
 
-### **Short-term Actions (Important)**:
+### **Short-term Actions (Important)**
+
 1. **Consolidate Formatting Functions**: Remove duplicate implementations
 2. **Consolidate Validation Functions**: Use flext-core validation patterns
 3. **Use flext-core Utilities**: Replace custom implementations
 4. **Remove Mock Implementations**: Replace with real functionality
 
-### **Long-term Actions (Enhancement)**:
+### **Long-term Actions (Enhancement)**
+
 1. **Use External Libraries**: Integrate tabulate, subprocess properly
 2. **Enhance Error Handling**: Improve error recovery and logging
 3. **Add Comprehensive Testing**: Test all real implementations
 4. **Documentation Updates**: Update all docstrings and comments
 
-### **Migration Risks**:
+### **Migration Risks**
+
 - **Breaking Changes**: Real implementations may change behavior
 - **Performance Impact**: Real operations may be slower than mocks
 - **Dependency Changes**: May require additional external libraries
 - **Testing Requirements**: Need comprehensive testing for real implementations
 
-### **Success Criteria**:
+### **Success Criteria**
+
 - ✅ No mock/placeholder implementations
 - ✅ All functionality actually works
 - ✅ No duplicate code across modules
@@ -2145,18 +2357,21 @@ def add_command_to_session(
 
 ### 🔧 **Recommended Fixes**
 
-#### **Priority 1 (Critical)**:
+#### **Priority 1 (Critical)**
+
 1. Implement real authentication with secure token generation
 2. Add actual configuration persistence
 3. Implement real command execution with subprocess
 4. Fix session management to actually work
 
-#### **Priority 2 (Important)**:
+#### **Priority 2 (Important)**
+
 1. Remove password length from token generation
 2. Fix nested FlextResult return types
 3. Replace fake success returns with real operations
 
-#### **Priority 3 (Nice to Have)**:
+#### **Priority 3 (Nice to Have)**
+
 1. Add comprehensive error handling
 2. Implement proper logging for all operations
 3. Add validation for all input parameters
