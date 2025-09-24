@@ -14,6 +14,7 @@ from typing import cast
 import pytest
 
 from flext_cli import FlextCliConstants, FlextCliError, FlextCliExceptions
+from flext_cli.exceptions import CommandError
 
 
 class TestFlextCliErrorCodes:
@@ -96,7 +97,7 @@ class TestFlextCliError:
         """Test repr includes all details."""
         error = FlextCliError("Test", user="test")
         repr_str = repr(error)
-        assert "FlextCliExceptions.BaseError" in repr_str
+        assert "FlextCliExceptions._BaseError" in repr_str
         assert "Test" in repr_str
         assert "CLI_ERROR" in repr_str
 
@@ -108,50 +109,50 @@ class TestFlextCliErrorFactoryMethods:
         """Test validation error creation."""
         error = FlextCliExceptions.ValidationError("Validation failed")
         assert "Validation failed" in str(error)
-        assert error.error_code == "VALIDATION_ERROR"
+        assert error.error_code == "CLI_VALIDATION_ERROR"
         assert isinstance(error, FlextCliExceptions.ValidationError)
 
     def test_configuration_error_creation(self) -> None:
         """Test configuration error creation."""
         error = FlextCliExceptions.ConfigurationError("Config error")
         assert "Config error" in str(error)
-        assert error.error_code == "CONFIGURATION_ERROR"
+        assert error.error_code == "CLI_CONFIGURATION_ERROR"
         assert isinstance(error, FlextCliExceptions.ConfigurationError)
 
     def test_connection_error_creation(self) -> None:
         """Test connection error creation."""
-        error = FlextCliExceptions.CliConnectionError("Connection failed")
+        error = FlextCliExceptions._CliConnectionError("Connection failed")
         assert "Connection failed" in str(error)
-        assert error.error_code == "CONNECTION_ERROR"
-        assert isinstance(error, FlextCliExceptions.CliConnectionError)
+        assert error.error_code == "CLI_CONNECTION_ERROR"
+        assert isinstance(error, FlextCliExceptions._CliConnectionError)
 
     def test_authentication_error_creation(self) -> None:
         """Test authentication error creation."""
         error = FlextCliExceptions.AuthenticationError("Auth failed")
         assert "Auth failed" in str(error)
-        assert error.error_code == "AUTHENTICATION_ERROR"
+        assert error.error_code == "CLI_AUTHENTICATION_ERROR"
         assert isinstance(error, FlextCliExceptions.AuthenticationError)
 
     def test_timeout_error_creation(self) -> None:
         """Test timeout error creation."""
-        error = FlextCliExceptions.CliTimeoutError("Operation timed out")
+        error = FlextCliExceptions._CliTimeoutError("Operation timed out")
         assert "Operation timed out" in str(error)
-        assert error.error_code == "TIMEOUT_ERROR"
-        assert isinstance(error, FlextCliExceptions.CliTimeoutError)
+        assert error.error_code == "CLI_TIMEOUT_ERROR"
+        assert isinstance(error, FlextCliExceptions._CliTimeoutError)
 
     def test_command_error_creation(self) -> None:
         """Test command error creation."""
-        error = FlextCliExceptions.CommandError("Command failed")
+        error = FlextCliExceptions._CommandError("Command failed")
         assert "Command failed" in str(error)
         assert error.error_code == "COMMAND_ERROR"
-        assert isinstance(error, FlextCliExceptions.CommandError)
+        assert isinstance(error, FlextCliExceptions._CommandError)
 
     def test_format_error_creation(self) -> None:
         """Test format error creation."""
-        error = FlextCliExceptions.FormatError("Format error")
+        error = FlextCliExceptions._FormatError("Format error")
         assert "Format error" in str(error)
         assert error.error_code == "FORMAT_ERROR"
-        assert isinstance(error, FlextCliExceptions.FormatError)
+        assert isinstance(error, FlextCliExceptions._FormatError)
 
 
 class TestFlextCliErrorWithContext:
@@ -160,7 +161,7 @@ class TestFlextCliErrorWithContext:
     def test_command_error_with_command_context(self) -> None:
         """Test command error with command context."""
         # Use direct class instantiation
-        error: FlextCliError = FlextCliExceptions.CommandError(
+        error: FlextCliError = FlextCliExceptions._CommandError(
             "Command failed",
             command="echo test",
             exit_code=1,
@@ -172,7 +173,7 @@ class TestFlextCliErrorWithContext:
     def test_command_error_with_complex_context(self) -> None:
         """Test command error with additional context."""
         # Use direct class instantiation
-        error: FlextCliError = FlextCliExceptions.CommandError(
+        error: FlextCliError = CommandError(
             "Command failed",
             command="ls -la",
             exit_code=2,
@@ -202,7 +203,7 @@ class TestFlextCliErrorWithContext:
 
     def test_format_error_with_format_context(self) -> None:
         """Test format error with format details."""
-        error: FlextCliError = FlextCliExceptions.FormatError(
+        error: FlextCliError = FlextCliExceptions._FormatError(
             "Format error",
             format_type="json",
             input_data={"key": "value"},
@@ -226,19 +227,19 @@ class TestFlextCliErrorChecking:
 
     def test_is_error_code_validation(self) -> None:
         """Test is_error_code method for validation errors."""
-        error: FlextCliError = FlextCliExceptions.ValidationError("Test")
-        assert error.is_error_code("VALIDATION_ERROR")
+        error: FlextCliError = FlextCliExceptions._CliValidationError("Test")
+        assert error.is_error_code("CLI_VALIDATION_ERROR")
         assert not error.is_error_code("CONNECTION_ERROR")
 
     def test_is_error_code_authentication(self) -> None:
         """Test is_error_code method for authentication errors."""
-        error: FlextCliError = FlextCliExceptions.AuthenticationError("Test")
-        assert error.is_error_code("AUTHENTICATION_ERROR")
+        error: FlextCliError = FlextCliExceptions._CliAuthenticationError("Test")
+        assert error.is_error_code("CLI_AUTHENTICATION_ERROR")
         assert not error.is_error_code("VALIDATION_ERROR")
 
     def test_is_error_code_command(self) -> None:
         """Test is_error_code method for command errors."""
-        error: FlextCliError = FlextCliExceptions.CommandError("Test")
+        error: FlextCliError = FlextCliExceptions._CommandError("Test")
         assert error.is_error_code("COMMAND_ERROR")
         assert not error.is_error_code("TIMEOUT_ERROR")
 
@@ -251,7 +252,7 @@ class TestFlextCliErrorIntegration:
         error_msg = "Test command error"
         # Use direct class instantiation
         with pytest.raises(FlextCliError) as exc_info:
-            raise FlextCliExceptions.CommandError(error_msg, command="test_cmd")
+            raise FlextCliExceptions._CommandError(error_msg, command="test_cmd")
 
         error: FlextCliError = exc_info.value
         assert error.is_error_code("COMMAND_ERROR")
@@ -264,12 +265,12 @@ class TestFlextCliErrorIntegration:
             raise FlextCliExceptions.ValidationError(msg)
 
         error: FlextCliError = exc_info.value
-        assert str(error) == f"[VALIDATION_ERROR] {msg}"
-        assert error.is_error_code("VALIDATION_ERROR")
+        assert str(error) == f"[CLI_VALIDATION_ERROR] {msg}"
+        assert error.is_error_code("CLI_VALIDATION_ERROR")
 
     def test_exception_inheritance(self) -> None:
         """Test that FlextCliError maintains inheritance."""
-        error: FlextCliError = FlextCliExceptions.CliTimeoutError("Test")
+        error: FlextCliError = FlextCliExceptions._CliTimeoutError("Test")
         assert isinstance(error, FlextCliError)
         assert isinstance(error, Exception)
 
@@ -280,7 +281,7 @@ class TestFlextCliErrorIntegration:
             raise ValueError(original_msg)
         except ValueError as original:
             # Use direct class instantiation
-            cli_error: FlextCliError = FlextCliExceptions.CommandError(
+            cli_error: FlextCliError = FlextCliExceptions._CommandError(
                 "Command processing failed",
                 original_error=str(original),
                 command="process_data",

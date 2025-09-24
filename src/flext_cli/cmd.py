@@ -14,7 +14,7 @@ from datetime import UTC, datetime
 from pathlib import Path
 
 from flext_cli.config import FlextCliConfig
-from flext_cli.utils import FlextCliUtilities
+from flext_cli.utilities import FlextCliUtilities
 from flext_core import (
     FlextContainer,
     FlextLogger,
@@ -36,6 +36,13 @@ class FlextCliCmd(FlextService[dict[str, object]]):
         self._logger = FlextLogger(__name__)
         self._container = FlextContainer.get_global()
         self._command_bus_service: FlextCliCmd | None = None
+
+    def execute(self) -> FlextResult[dict[str, object]]:
+        """Execute command service - required by FlextService."""
+        return FlextResult[dict[str, object]].ok({
+            "status": "operational",
+            "service": "FlextCliCmd",
+        })
 
     @property
     def command_bus_service(self) -> FlextCliCmd:
@@ -107,13 +114,6 @@ class FlextCliCmd(FlextService[dict[str, object]]):
                 "config_writable": flext_dir.exists() and os.access(flext_dir, os.W_OK),
                 "timestamp": datetime.now(UTC).isoformat(),
             }
-
-    def execute(self) -> FlextResult[dict[str, object]]:
-        """Execute command service - required by FlextService."""
-        return FlextResult[dict[str, object]].ok({
-            "status": "Command bus integration ready",
-            "message": "Command bus integration ready",
-        })
 
     def show_config_paths(self) -> FlextResult[list[str]]:
         """Show configuration paths."""

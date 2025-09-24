@@ -12,9 +12,8 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 import os
-from typing import Any
 
-from flext_cli import FlextCliConfig
+from flext_cli import FlextCliConfig, FlextCliConstants
 from flext_core import FlextConfig
 
 
@@ -43,7 +42,7 @@ def demonstrate_flext_config_singleton() -> None:
 
     # 3. Simulate CLI parameter overrides
     print("3. Applying CLI Parameter Overrides:")
-    cli_overrides: dict[str, Any] = {
+    cli_overrides: dict[str, object] = {
         "debug": True,
         "profile": "development",
         "log_level": "DEBUG",
@@ -56,9 +55,9 @@ def demonstrate_flext_config_singleton() -> None:
 
     # Apply overrides to CLI config
     cli_config.debug = cli_overrides.get("debug", False)
-    cli_config.profile = cli_overrides.get("profile", "default")
+    cli_config.profile = str(cli_overrides.get("profile", "default"))
     cli_config.log_level = cli_overrides.get("log_level", "INFO")
-    cli_config.output_format = cli_overrides.get("output_format", "table")
+    cli_config.output_format = str(cli_overrides.get("output_format", "table"))
 
     print("   ✅ Overrides applied successfully")
     print()
@@ -141,7 +140,6 @@ def demonstrate_configuration_validation() -> None:
 
     # 3. Show configuration directory
     print("3. Configuration Directory:")
-    from flext_cli.constants import FlextCliConstants
     config_dir = cli_config.config_dir
     config_file = cli_config.config_dir / FlextCliConstants.CliDefaults.CONFIG_FILE
     print(f"   Config Directory: {config_dir}")
@@ -171,7 +169,6 @@ def demonstrate_configuration_loading() -> None:
 
     # 2. Show configuration options
     print("2. Configuration Options:")
-    from flext_cli.constants import FlextCliConstants
     cli_options = FlextCliConfig.CliOptions(
         output_format=cli_config.output_format,
         debug=cli_config.debug,

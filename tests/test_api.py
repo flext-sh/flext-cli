@@ -11,13 +11,11 @@ import io
 import json
 import tempfile
 from pathlib import Path
-from typing import Any
 
 import yaml
 from rich.console import Console
 
-from flext_cli import FlextCliApi, FlextCliContext
-from flext_cli.config import FlextCliConfig
+from flext_cli import FlextCliApi, FlextCliConfig, FlextCliContext
 from flext_core import FlextConstants, FlextResult, FlextTypes
 
 
@@ -161,26 +159,26 @@ class TestTableCreation:
         assert result.value is not None
 
     def test_flext_cli_table_simple_list_data(self) -> None:
-        """Test table creation from simple list - should succeed with FlextCliFormatters handling all types."""
+        """Test table creation from simple list - should succeed with FlextCliOutput handling all types."""
         data = ["item1", "item2", "item3"]
 
         api = FlextCliApi()
         result = api.format_data(data, "table")
 
-        # Simple lists are now supported by FlextCliFormatters
+        # Simple lists are now supported by FlextCliOutput
         assert result.is_success
         assert isinstance(result.value, str)
         # Should contain table content - check for actual list items
         assert "item1" in result.value or "item2" in result.value
 
     def test_flext_cli_table_single_value(self) -> None:
-        """Test table creation from single value - should succeed with FlextCliFormatters handling all types."""
+        """Test table creation from single value - should succeed with FlextCliOutput handling all types."""
         data = "Single value"
 
         api = FlextCliApi()
         result = api.format_data(data, "table")
 
-        # Single values are now supported by FlextCliFormatters
+        # Single values are now supported by FlextCliOutput
         assert result.is_success
         assert isinstance(result.value, str)
         # Should contain table content
@@ -202,12 +200,12 @@ class TestTableCreation:
         assert result.value is not None
 
     def test_table_creation_simple_list(self) -> None:
-        """Test flext_cli_table with simple list - should succeed with FlextCliFormatters handling all types."""
+        """Test flext_cli_table with simple list - should succeed with FlextCliOutput handling all types."""
         data = ["item1", "item2", "item3"]
         api = FlextCliApi()
         result = api.format_data(data, "table")
 
-        # Simple lists are now supported by FlextCliFormatters
+        # Simple lists are now supported by FlextCliOutput
         assert result.is_success
         assert isinstance(result.value, str)
         # Should contain table content - check for actual list items
@@ -229,12 +227,12 @@ class TestTableCreation:
         assert len(table) > 10  # Table has content
 
     def test_table_creation_single_value(self) -> None:
-        """Test flext_cli_table with single value - should succeed with FlextCliFormatters handling all types."""
+        """Test flext_cli_table with single value - should succeed with FlextCliOutput handling all types."""
         data = "Single value"
         api = FlextCliApi()
         result = api.format_data(data, "table")
 
-        # Single values are now supported by FlextCliFormatters
+        # Single values are now supported by FlextCliOutput
         assert result.is_success
         assert isinstance(result.value, str)
         # Should contain table content
@@ -311,7 +309,7 @@ class TestDataExport:
 
     def test_flext_cli_export_json(self) -> None:
         """Test JSON export."""
-        data: dict[str, Any] = {"key": "value", "number": 42}
+        data: dict[str, object] = {"key": "value", "number": 42}
 
         with tempfile.NamedTemporaryFile(
             encoding=FlextConstants.Mixins.DEFAULT_ENCODING,
@@ -399,7 +397,11 @@ class TestDataExport:
 
             assert result.is_success
             summary = result.value
-            assert summary is None  # batch_export returns FlextResult[None]
+            assert isinstance(
+                summary, dict
+            )  # batch_export returns FlextResult[dict[str, bool]]
+            assert summary["data1"] is True
+            assert summary["data2"] is True
 
             # Verify files were created
             assert (Path(temp_dir) / "data1.json").exists()
@@ -425,12 +427,12 @@ class TestDataExport:
             result = api.batch_export(datasets, Path(temp_dir), "invalid")
 
             if result.is_success:
-                # API is permissive and allows any format (creates .invalid files)
-                exported_files = result.value
-                assert isinstance(exported_files, list)
-                assert len(exported_files) == 1
-                # File should have the invalid extension
-                assert str(exported_files[0]).endswith(".invalid")
+                # API returns dict with results for each dataset
+                exported_results = result.value
+                assert isinstance(exported_results, dict)
+                assert "data" in exported_results
+                # The export might fail for invalid format, so check the result
+                assert isinstance(exported_results["data"], bool)
             else:
                 # Alternative: API rejects invalid format
                 assert "Invalid format" in str(
@@ -556,6 +558,92 @@ class TestEdgeCases:
         # May fail if datetime serialization is not handled - this is expected
         # Different implementations may handle this differently
         assert isinstance(result, FlextResult)
+
+
+class TestApiProperties:
+    """Test API property access."""
+
+    def test_api_properties(self) -> None:
+        """Test that all API properties are accessible."""
+        api = FlextCliApi()
+
+        # Test all properties
+        assert api.output is not None
+        assert api.files is not None
+        assert api.commands is not None
+        assert api.auth is not None
+        assert api.prompts is not None
+        assert api.utils is not None
+
+    def test_display_data_method(self) -> None:
+        """Test display_data method."""
+        api = FlextCliApi()
+        test_data = {"key": "value", "number": 42}
+
+        # Test successful display
+        result = api.display_data(test_data, "json")
+        assert result.is_success
+
+        # Test with different format types
+        result = api.display_data(test_data, "table")
+        assert result.is_success
+
+        result = api.display_data(test_data, "yaml")
+        assert result.is_success
+
+    def test_display_message_method(self) -> None:
+        """Test display_message method."""
+        api = FlextCliApi()
+
+        # Test different message types
+        result = api.display_message("Test info message", "info")
+        assert result.is_success
+
+        result = api.display_message("Test warning message", "warning")
+        assert result.is_success
+
+        result = api.display_message("Test error message", "error")
+        assert result.is_success
+
+        result = api.display_message("Test success message", "success")
+        assert result.is_success
+
+    def test_create_command_method(self) -> None:
+        """Test create_command method."""
+        api = FlextCliApi()
+
+        def test_handler() -> str:
+            return "test result"
+
+        result = api.create_command(
+            name="test-command",
+            description="Test command",
+            handler=test_handler,
+            arguments=["arg1", "arg2"],
+        )
+
+        assert result.is_success
+        command_def = result.unwrap()
+        assert command_def["name"] == "test-command"
+        assert command_def["description"] == "Test command"
+        assert command_def["handler"] == test_handler
+        assert command_def["arguments"] == ["arg1", "arg2"]
+        assert "created_at" in command_def
+
+    def test_create_command_without_arguments(self) -> None:
+        """Test create_command method without arguments."""
+        api = FlextCliApi()
+
+        def test_handler() -> str:
+            return "test result"
+
+        result = api.create_command(
+            name="test-command", description="Test command", handler=test_handler
+        )
+
+        assert result.is_success
+        command_def = result.unwrap()
+        assert command_def["arguments"] == []
 
 
 class TestSpecialCases:

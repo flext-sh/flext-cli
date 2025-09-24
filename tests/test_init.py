@@ -15,11 +15,11 @@ import flext_cli
 from flext_cli import (
     FlextCliApi,
     FlextCliAuth,
+    FlextCliConfig,
     FlextCliConstants,
-    FlextCliFormatters,
     FlextCliModels,
+    FlextCliOutput,
 )
-from flext_cli.config import FlextCliConfig
 from flext_core import FlextResult
 
 
@@ -32,7 +32,7 @@ class TestFlextCliImports:
         api = FlextCliApi()
         auth = FlextCliAuth()
         config = FlextCliConfig.MainConfig()
-        formatters = FlextCliFormatters()
+        formatters = FlextCliOutput()
 
         assert api is not None
         assert auth is not None
@@ -65,7 +65,7 @@ class TestFlextCliImports:
         classes_to_test = [
             FlextCliApi,
             FlextCliAuth,
-            FlextCliFormatters,
+            FlextCliOutput,
         ]
 
         for cls in classes_to_test:
@@ -142,13 +142,13 @@ class TestFlextCliApi:
 
     def test_api_service_has_required_methods(self) -> None:
         """Test API service has expected methods."""
-        assert hasattr(self.api_service, "format_output")
-        assert hasattr(self.api_service, "display_output")
+        assert hasattr(self.api_service, "format_data")
+        assert hasattr(self.api_service, "display_data")
 
     def test_api_service_format_output(self) -> None:
-        """Test API service format_output method."""
+        """Test API service format_data method."""
         test_data = {"key": "value", "number": 123}
-        result = self.api_service.format_output(test_data, "json")
+        result = self.api_service.format_data(test_data, "json")
 
         assert isinstance(result, FlextResult)
         if result.is_success:

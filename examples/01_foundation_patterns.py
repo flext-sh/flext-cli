@@ -29,8 +29,8 @@ from typing import cast
 from flext_cli import (
     FlextCliApi,
     FlextCliConfig,
-    FlextCliFormatters,
     FlextCliModels,
+    FlextCliOutput,
     FlextCliService,
 )
 from flext_core import FlextContainer, FlextResult
@@ -45,7 +45,7 @@ def _setup_cli() -> FlextResult[str]:
         return FlextResult[str].fail(f"Setup failed: {e}")
 
 
-def _setup_cli_demo(formatter: FlextCliFormatters) -> FlextResult[None]:
+def _setup_cli_demo(formatter: FlextCliOutput) -> FlextResult[None]:
     """Demo FlextResult pattern setup."""
     formatter.print_success("\\n1. 🔧 FlextResult Railway-Oriented Programming")
     setup_result = _setup_cli()
@@ -60,7 +60,7 @@ def _setup_cli_demo(formatter: FlextCliFormatters) -> FlextResult[None]:
 
 
 def _config_demo(
-    formatter: FlextCliFormatters,
+    formatter: FlextCliOutput,
 ) -> FlextResult[FlextCliConfig.MainConfig]:
     """Demo FlextModels configuration."""
     formatter.print_success("\\n2. 🏗️ FlextModels Configuration System")
@@ -84,7 +84,7 @@ def _config_demo(
 
 
 def _container_demo(
-    formatter: FlextCliFormatters, config: FlextCliConfig.MainConfig
+    formatter: FlextCliOutput, config: FlextCliConfig.MainConfig
 ) -> FlextResult[None]:
     """Demo FlextContainer dependency injection."""
     formatter.print_success("\\n3. 🏭 FlextContainer DI Pattern (Advanced)")
@@ -117,7 +117,7 @@ def _container_demo(
 
 
 def _entities_demo(
-    formatter: FlextCliFormatters, config: FlextCliConfig.MainConfig
+    formatter: FlextCliOutput, config: FlextCliConfig.MainConfig
 ) -> FlextResult[tuple[FlextCliModels.CliCommand, FlextCliModels.CliSession]]:
     """Demo CLI domain entities."""
     formatter.print_success("\\n4. 🎯 CLI Domain Entities (Direct Creation)")
@@ -151,7 +151,7 @@ def _entities_demo(
 
 
 def _validation_demo(
-    formatter: FlextCliFormatters, command: FlextCliModels.CliCommand
+    formatter: FlextCliOutput, command: FlextCliModels.CliCommand
 ) -> FlextResult[None]:
     """Demo validation and lifecycle."""
     formatter.print_success("\\n5. ✅ Validation & Lifecycle (Business Rules)")
@@ -177,7 +177,7 @@ def _validation_demo(
     return FlextResult[None].ok(None)
 
 
-def _summary_demo(formatter: FlextCliFormatters) -> None:
+def _summary_demo(formatter: FlextCliOutput) -> None:
     """Demo summary display."""
     formatter.print_success("\\n📋 Foundation Patterns Summary")
 
@@ -241,7 +241,7 @@ def _create_sample_session(
 
 def main() -> None:
     """Main demonstration function showcasing flext-core extensive integration."""
-    formatter = FlextCliFormatters()
+    formatter = FlextCliOutput()
 
     formatter.print_success("FLEXT CLI Foundation Patterns Demo")
     formatter.print_success("=" * 50)

@@ -17,7 +17,11 @@ from pydantic_settings import SettingsConfigDict
 
 from flext_cli.constants import FlextCliConstants
 from flext_cli.mixins import FlextCliMixins
-from flext_core import FlextConfig, FlextConstants, FlextResult
+from flext_core import (
+    FlextConfig,
+    FlextConstants,
+    FlextResult,
+)
 
 
 class FlextCliConfig(FlextConfig):
@@ -60,12 +64,10 @@ class FlextCliConfig(FlextConfig):
         )
 
         # CLI-specific configuration fields (inherits debug, timeout_seconds from FlextConfig)
-        profile: str = Field(default=FlextCliConstants.CliDefaults.PROFILE)
-        output_format: str = Field(default=FlextCliConstants.CliDefaults.OUTPUT_FORMAT)
+        profile: str = Field(default="default")
+        output_format: str = Field(default="table")
         no_color: bool = Field(default=False)
-        config_dir: Path = Field(
-            default_factory=lambda: FlextCliConstants.CliDefaults.CONFIG_DIR
-        )
+        config_dir: Path = Field(default_factory=lambda: Path("~/.flext").expanduser())
 
         # Test compatibility fields (will be consolidated with FlextConfig inheritance)
         project_name: str = Field(default="flext-cli")
@@ -73,7 +75,7 @@ class FlextCliConfig(FlextConfig):
         @property
         def debug_mode(self) -> bool:
             """Alias for debug field from FlextConfig."""
-            return self.debug
+            return bool(self.debug)
 
         def validate_output_format(self, format_type: str) -> FlextResult[str]:
             """Validate output format using centralized validation."""
@@ -118,9 +120,7 @@ class FlextCliConfig(FlextConfig):
                     "timeout_seconds": self.timeout_seconds,
                     "no_color": self.no_color,
                     "config_dir": str(self.config_dir),
-                    "config_file": str(
-                        self.config_dir / FlextCliConstants.CliDefaults.CONFIG_FILE
-                    ),
+                    "config_file": str(self.config_dir / "config.yaml"),
                 }
                 return FlextResult[dict[str, object]].ok(config_data)
             except Exception as e:
@@ -153,11 +153,11 @@ class FlextCliConfig(FlextConfig):
     class CliOptions(BaseModel):
         """CLI options configuration model extending BaseModel."""
 
-        output_format: str = Field(default=FlextCliConstants.CliDefaults.OUTPUT_FORMAT)
+        output_format: str = Field(default="table")
         verbose: bool = False
         debug: bool = False
         no_color: bool = False
-        max_width: int = FlextCliConstants.CliDefaults.MAX_WIDTH
+        max_width: int = 120
         config_file: Path | None = None
 
     class AuthConfig(_BaseConfig, FlextCliMixins.BusinessRulesMixin):
@@ -165,11 +165,10 @@ class FlextCliConfig(FlextConfig):
 
         api_url: str = Field(default="http://localhost:8000")
         token_file: Path = Field(
-            default_factory=lambda: FlextCliConstants.CliDefaults.CONFIG_DIR / "token"
+            default_factory=lambda: Path("~/.flext").expanduser() / "token"
         )
         refresh_token_file: Path = Field(
-            default_factory=lambda: FlextCliConstants.CliDefaults.CONFIG_DIR
-            / "refresh_token"
+            default_factory=lambda: Path("~/.flext").expanduser() / "refresh_token"
         )
         auto_refresh: bool = Field(default=True)
 
@@ -184,7 +183,7 @@ class FlextCliConfig(FlextConfig):
     class LoggingConfig(_BaseConfig, FlextCliMixins.BusinessRulesMixin):
         """Logging configuration model extending _BaseConfig."""
 
-        log_level: str = Field(default=FlextCliConstants.CliDefaults.LOG_LEVEL)
+        log_level: str = Field(default="INFO")
         log_format: str = Field(
             default="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
         )
@@ -235,7 +234,7 @@ class FlextCliConfig(FlextConfig):
 
             return FlextResult[None].ok(None)
 
-    def validate_configuration(self) -> FlextResult[None]:
+    def validate_configuration(self: object) -> FlextResult[None]:
         """CENTRALIZED configuration validation - delegates to FlextConfig and adds CLI-specific logic.
 
         This method consolidates ALL configuration validation logic that was
@@ -248,13 +247,13 @@ class FlextCliConfig(FlextConfig):
         """
         try:
             # Validate CLI-specific nested configurations
-            auth_result = self.AuthConfig().validate_business_rules()
+            auth_result = FlextCliConfig.AuthConfig().validate_business_rules()
             if not auth_result.is_success:
                 return FlextResult[None].fail(
                     f"Auth config validation failed: {auth_result.error}"
                 )
 
-            logging_result = self.LoggingConfig().validate_business_rules()
+            logging_result = FlextCliConfig.LoggingConfig().validate_business_rules()
             if not logging_result.is_success:
                 return FlextResult[None].fail(
                     f"Logging config validation failed: {logging_result.error}"

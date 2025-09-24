@@ -4,6 +4,8 @@ import subprocess
 import sys
 from pathlib import Path
 
+from flext_cli import main
+
 
 def test_main_module_execution() -> None:
     """Test that __main__.py can be executed as a module."""
@@ -13,7 +15,7 @@ def test_main_module_execution() -> None:
         check=False,
         capture_output=True,
         text=True,
-        cwd=Path(__file__).parent.parent.parent,
+        cwd=Path(__file__).parent.parent,
     )
     # Should not crash, even if it shows help
     assert result.returncode in {0, 2}  # 0 for success, 2 for help shown
@@ -21,6 +23,4 @@ def test_main_module_execution() -> None:
 
 def test_main_function_exists() -> None:
     """Test that main function exists and can be imported."""
-    from flext_cli.__main__ import main
-
     assert callable(main)

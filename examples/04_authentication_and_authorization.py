@@ -31,16 +31,16 @@ from examples.example_utils import print_demo_completion
 from flext_cli import (
     FlextCliAuth,
     FlextCliConfig,
-    FlextCliDecorators,
-    FlextCliFormatters,
+    FlextCliOutput,
     FlextCliService,
+    FlextCliUtilities,
 )
 from flext_core import FlextResult, FlextTypes
 
 
 def demonstrate_basic_authentication() -> FlextResult[None]:
     """Demonstrate basic authentication patterns."""
-    formatter = FlextCliFormatters()
+    formatter = FlextCliOutput()
     console = formatter.console
     console.print("[bold blue]Basic Authentication Patterns[/bold blue]")
 
@@ -96,7 +96,7 @@ def demonstrate_basic_authentication() -> FlextResult[None]:
 
 def demonstrate_api_authentication() -> FlextResult[None]:
     """Demonstrate API client authentication patterns."""
-    formatter = FlextCliFormatters()
+    formatter = FlextCliOutput()
     console = formatter.console
     console.print("\n[green]3. API Client Authentication[/green]")
 
@@ -132,10 +132,10 @@ def demonstrate_api_authentication() -> FlextResult[None]:
     return FlextResult[None].ok(None)
 
 
-@FlextCliDecorators.require_auth()
+@FlextCliUtilities.Decorators.require_auth()
 def demonstrate_protected_operation() -> FlextResult[str]:
     """Demonstrate a protected operation requiring authentication."""
-    formatter = FlextCliFormatters()
+    formatter = FlextCliOutput()
     console = formatter.console
     console.print("\n[green]4. Protected Operations[/green]")
 
@@ -157,7 +157,7 @@ def demonstrate_protected_operation() -> FlextResult[str]:
 
 def demonstrate_role_based_access() -> FlextResult[None]:
     """Demonstrate role-based access control patterns."""
-    formatter = FlextCliFormatters()
+    formatter = FlextCliOutput()
     console = formatter.console
     console.print("\n[green]5. Role-Based Access Control[/green]")
 
@@ -218,7 +218,7 @@ def demonstrate_role_based_access() -> FlextResult[None]:
 
 def demonstrate_session_management() -> FlextResult[None]:
     """Demonstrate session management patterns."""
-    formatter = FlextCliFormatters()
+    formatter = FlextCliOutput()
     console = formatter.console
     console.print("\n[green]6. Session Management[/green]")
 
@@ -273,7 +273,7 @@ def demonstrate_session_management() -> FlextResult[None]:
 
 def demonstrate_secure_configuration() -> FlextResult[None]:
     """Demonstrate secure configuration and credential management."""
-    formatter = FlextCliFormatters()
+    formatter = FlextCliOutput()
     console = formatter.console
     console.print("\n[green]7. Secure Configuration Management[/green]")
 
@@ -451,7 +451,7 @@ def refresh_session(
 
 def main() -> None:
     """Main demonstration function."""
-    formatter = FlextCliFormatters()
+    formatter = FlextCliOutput()
     console = formatter.console
 
     formatter.print_success("04 - Authentication and Authorization Patterns")

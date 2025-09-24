@@ -10,6 +10,7 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
+import importlib.util
 import os
 import sys
 import uuid
@@ -117,8 +118,6 @@ class FlextCliDebug(FlextService[str]):
 
             # Check flext-core availability
             try:
-                import importlib.util
-
                 spec = importlib.util.find_spec("flext_core")
                 if spec is not None:
                     results.append("✓ flext-core dependency available")

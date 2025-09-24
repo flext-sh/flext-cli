@@ -6,12 +6,12 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from flext_cli.flext_cli_main import create_main_cli
+from flext_cli.cli import FlextCli
 
 
 def main() -> None:
     """Main entry point for FLEXT CLI."""
-    cli = create_main_cli()
+    cli = FlextCli()
     cli.run_cli()
 
 

@@ -7,30 +7,22 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 import tempfile
-from collections.abc import Callable, Generator
+from collections.abc import Generator
 from datetime import UTC, datetime
 from pathlib import Path
 from typing import ClassVar
 
 import pytest
 
-from flext_cli import (
-    FlextCliApi,
-    FlextCliAuth,
-    FlextCliContext,
-    FlextCliMain,
-)
+# Import FlextResult directly to avoid circular imports
+# Import individual modules to avoid circular imports
+from flext_cli.api import FlextCliApi
+from flext_cli.auth import FlextCliAuth
+from flext_cli.commands import FlextCliCommands
 from flext_cli.config import FlextCliConfig
+from flext_cli.context import FlextCliContext
 from flext_cli.models import FlextCliModels
-from flext_core import FlextResult, FlextTypes
-from flext_tests import (
-    FlextTestsBuilders,
-    FlextTestsDomains,
-    FlextTestsFactories,
-    FlextTestsFixtures,
-    FlextTestsMatchers,
-    FlextTestsUtilities,
-)
+from tests.test_utils import FlextTestsBuilders, FlextTestsDomains, FlextTestsMatchers
 
 
 # Test Configuration and Constants
@@ -92,7 +84,9 @@ def pytest_configure(config: pytest.Config) -> None:
     config.addinivalue_line("markers", "real: marks tests using real functionality")
 
 
-# FlextTests* Utility Fixtures
+# FlextTests* Utility Fixtures - Commented out due to import issues
+
+
 @pytest.fixture
 def flext_builders() -> FlextTestsBuilders:
     """Provide FlextTestsBuilders for test data creation."""
@@ -100,272 +94,93 @@ def flext_builders() -> FlextTestsBuilders:
 
 
 @pytest.fixture
-def flext_factories() -> FlextTestsFactories:
-    """Provide FlextTestsFactories for realistic test data."""
-    return FlextTestsFactories()
-
-
-@pytest.fixture
-def flext_fixtures() -> FlextTestsFixtures:
-    """Provide FlextTestsFixtures for comprehensive test utilities."""
-    return FlextTestsFixtures()
-
-
-@pytest.fixture
-def flext_matchers() -> FlextTestsMatchers:
-    """Provide FlextTestsMatchers for assertions and validations."""
-    return FlextTestsMatchers()
-
-
-@pytest.fixture
 def flext_domains() -> FlextTestsDomains:
-    """Provide FlextTestsDomains for domain-specific test data."""
+    """Provide FlextTestsDomains for test data creation."""
     return FlextTestsDomains()
 
 
 @pytest.fixture
-def flext_utilities() -> FlextTestsUtilities:
-    """Provide FlextTestsUtilities for advanced test operations."""
-    return FlextTestsUtilities()
+def flext_matchers() -> FlextTestsMatchers:
+    """Provide FlextTestsMatchers for test assertions."""
+    return FlextTestsMatchers()
 
 
-# File System Fixtures
-@pytest.fixture
-def temp_dir() -> Generator[Path]:
-    """Provide temporary directory for tests."""
-    with tempfile.TemporaryDirectory() as temp:
-        yield Path(temp)
-
-
-# CLI Core Fixtures
 @pytest.fixture
 def cli_api() -> FlextCliApi:
-    """Provide FlextCliApi for testing."""
+    """Provide FlextCliApi instance for tests."""
     return FlextCliApi()
 
 
 @pytest.fixture
-def cli_main() -> FlextCliMain:
-    """Provide FlextCliMain for testing."""
-    return FlextCliMain(name="test-cli", description="Test CLI interface")
-
-
-@pytest.fixture
 def cli_auth() -> FlextCliAuth:
-    """Provide FlextCliAuth for testing."""
+    """Provide FlextCliAuth instance for tests."""
     return FlextCliAuth()
 
 
 @pytest.fixture
-def cli_context(flext_factories: FlextTestsFactories) -> FlextCliContext:
-    """Provide real CLI context using FlextTests factories."""
-    # Use FlextTestsFactories to create realistic test config
-    config_data: dict[str, object] = flext_factories.ConfigFactory.create(
-        profile="test",
-        debug=True,
-        output_format="json",
-        timeout_seconds=30,
-        no_color=True,
-    )
+def cli_main() -> FlextCliCommands:
+    """Provide FlextCliCommands instance for tests."""
+    return FlextCliCommands()
 
+
+@pytest.fixture
+def cli_context() -> FlextCliContext:
+    """Provide FlextCliContext instance for tests."""
     config = FlextCliConfig.MainConfig(
-        profile=str(config_data.get("profile", "test")),
-        output_format=str(config_data.get("output_format", "json")),
-        no_color=bool(config_data.get("no_color", True)),
+        profile="test", output_format="json", debug=True, no_color=True
     )
-    return FlextCliContext(
-        config=config,
-        debug=True,
-        verbose=True,
-        quiet=False,
-        user_id="test_user",
-        session_id="test_session",
-    )
+    return FlextCliContext.create(config=config, debug=True, verbose=True)
 
 
-# Configuration Fixtures
-@pytest.fixture
-def test_config(flext_factories: FlextTestsFactories) -> FlextCliConfig.MainConfig:
-    """Provide test configuration using FlextTestsFactories."""
-    config_data = flext_factories.ConfigFactory.create(
-        profile="test",
-        debug=True,
-        timeout_seconds=30,
-        output_format="table",
-    )
-    return FlextCliConfig.MainConfig(
-        profile=str(config_data.get("profile", "test")),
-        output_format=str(config_data.get("output_format", "table")),
-        no_color=bool(config_data.get("no_color", False)),
-    )
-
-
-# User and Domain Fixtures
-@pytest.fixture
-def test_user(flext_domains: FlextTestsDomains) -> FlextTypes.Core.Dict:
-    """Provide test user using FlextTestsDomains."""
-    return flext_domains.create_user(**FlextCliTestData.TEST_USERS["default"])
-
-
-@pytest.fixture
-def REDACTED_LDAP_BIND_PASSWORD_user(flext_domains: FlextTestsDomains) -> FlextTypes.Core.Dict:
-    """Provide REDACTED_LDAP_BIND_PASSWORD user using FlextTestsDomains."""
-    return flext_domains.create_user(**FlextCliTestData.TEST_USERS["REDACTED_LDAP_BIND_PASSWORD"])
-
-
-@pytest.fixture
-def test_user_batch(flext_domains: FlextTestsDomains) -> list[FlextTypes.Core.Dict]:
-    """Provide batch of test users using FlextTestsDomains."""
-    return flext_domains.batch_users(count=5)
-
-
-# FlextResult Fixtures
-@pytest.fixture
-def success_result(flext_builders: FlextTestsBuilders) -> FlextResult[object]:
-    """Provide successful FlextResult using FlextTestsBuilders."""
-    return flext_builders.success_result("test_success")
-
-
-@pytest.fixture
-def failure_result(flext_builders: FlextTestsBuilders) -> FlextResult[object]:
-    """Provide failed FlextResult using FlextTestsBuilders."""
-    return flext_builders.failure_result("test_failure")
-
-
-@pytest.fixture
-def auth_success_result(flext_builders: FlextTestsBuilders) -> FlextResult[object]:
-    """Provide successful auth result using FlextTestsBuilders."""
-    auth_data = {
-        "token": FlextCliTestData.AUTH_TOKENS["valid"],
-        "status": "authenticated",
-    }
-    return flext_builders.success_result(auth_data)
-
-
-@pytest.fixture
-def auth_failure_result(flext_builders: FlextTestsBuilders) -> FlextResult[object]:
-    """Provide failed auth result using FlextTestsBuilders."""
-    return flext_builders.failure_result("Authentication failed")
-
-
-# Repository and Service Fixtures
-@pytest.fixture
-def real_repositories(_flext_fixtures: FlextTestsFixtures) -> FlextTypes.Core.Dict:
-    """Provide collection of real repository implementations using FlextTestsFixtures."""
-    return {
-        "user_repo": {},  # Placeholder for in-memory repo
-        "auth_service": FlextCliAuth(),
-        "config": FlextCliConfig.MainConfig(profile="test"),
-    }
-
-
-# Command and CLI Fixtures
-@pytest.fixture
-def auth_commands() -> dict[str, FlextCliModels.CliCommand]:
-    """Provide auth command definitions."""
-    return {
-        "login": FlextCliModels.CliCommand(
-            name="login",
-            entry_point="auth.login:run",
-            command_line="auth login",
-        ),
-        "logout": FlextCliModels.CliCommand(
-            name="logout",
-            entry_point="auth.logout:run",
-            command_line="auth logout",
-        ),
-        "status": FlextCliModels.CliCommand(
-            name="status",
-            entry_point="auth.status:run",
-            command_line="auth status",
-        ),
-    }
-
-
-@pytest.fixture
-def cli_models() -> type[FlextCliModels]:
-    """Provide FlextCliModels for command creation."""
-    return FlextCliModels
-
-
-# Test Data Fixtures
 @pytest.fixture
 def auth_tokens() -> dict[str, str]:
-    """Provide auth token test data."""
-    return FlextCliTestData.AUTH_TOKENS.copy()
+    """Provide auth tokens for testing."""
+    return {
+        "valid": "test_auth_token_12345",
+        "invalid": "invalid_token",
+        "expired": "expired_token_12345",
+        "special_chars": "token_with_!@#$%^&*()_+-={}[]|\\:;\"'<>,.?/",
+        "long": "x" * 1000,
+        "empty": "",
+        "integration": "integration_test_token_xyz789",
+        "workflow": "workflow_integration_token_123",
+    }
 
 
 @pytest.fixture
 def test_messages() -> dict[str, str]:
-    """Provide test message constants."""
-    return FlextCliTestData.TEST_MESSAGES.copy()
-
-
-# Validation and Assertion Helpers
-@pytest.fixture
-def assert_success(
-    flext_matchers: FlextTestsMatchers,
-) -> Callable[[FlextResult[object], object], None]:
-    """Provide success assertion helper."""
-
-    def _assert_success(
-        result: FlextResult[object],
-        expected_data: object = None,
-    ) -> None:
-        flext_matchers.assert_result_success(result)
-        if expected_data is not None:
-            assert result.value == expected_data
-
-    return _assert_success
+    """Provide test messages for testing."""
+    return {
+        "success": "Operation completed successfully",
+        "error": "An error occurred",
+        "warning": "Warning message",
+        "auth_failure": "Authentication failed",
+        "token_expired": "Token expired",
+        "info": "Information message",
+    }
 
 
 @pytest.fixture
-def assert_failure(
-    flext_matchers: FlextTestsMatchers,
-) -> Callable[[FlextResult[object], str | None], None]:
-    """Provide failure assertion helper."""
-
-    def _assert_failure(
-        result: FlextResult[object],
-        expected_error: str | None = None,
-    ) -> None:
-        flext_matchers.assert_result_failure(result)
-        if expected_error is not None:
-            assert expected_error in str(result.error or "")
-
-    return _assert_failure
-
-
-# Performance and Benchmarking Fixtures
-@pytest.fixture
-def benchmark_fixture(_flext_fixtures: FlextTestsFixtures) -> object:
-    """Provide benchmark fixture for performance tests."""
-    return {}  # Placeholder for benchmark fixture
-
-
-# Clean Test Environment
-@pytest.fixture(autouse=True)
-def clean_auth_environment(cli_auth: FlextCliAuth) -> Generator[None]:
-    """Automatically clean auth environment before each test."""
-    # Clean up before test
-    cli_auth.clear_auth_tokens()
-    yield
-    # Clean up after test
-    cli_auth.clear_auth_tokens()
-
-
-# Legacy compatibility fixtures (DEPRECATED - use FlextTests* directly)
-@pytest.fixture
-def test_flext_result_success(
-    success_result: FlextResult[object],
-) -> FlextResult[object]:
-    """DEPRECATED: Use success_result fixture directly."""
-    return success_result
+def auth_commands() -> dict[str, FlextCliModels.CliCommand]:
+    """Provide auth commands for testing."""
+    return {
+        "login": FlextCliModels.CliCommand(
+            command_line="auth login", name="login", entry_point="auth.login"
+        ),
+        "logout": FlextCliModels.CliCommand(
+            command_line="auth logout", name="logout", entry_point="auth.logout"
+        ),
+        "status": FlextCliModels.CliCommand(
+            command_line="auth status", name="status", entry_point="auth.status"
+        ),
+        "token": FlextCliModels.CliCommand(
+            command_line="auth token", name="token", entry_point="auth.token"
+        ),
+    }
 
 
 @pytest.fixture
-def test_flext_result_failure(
-    failure_result: FlextResult[object],
-) -> FlextResult[object]:
-    """DEPRECATED: Use failure_result fixture directly."""
-    return failure_result
+def temp_dir() -> Generator[Path]:
+    """Provide temporary directory for testing."""
+    with tempfile.TemporaryDirectory() as tmp_dir:
+        yield Path(tmp_dir)

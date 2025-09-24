@@ -10,7 +10,7 @@ import json
 
 from pydantic import BaseModel
 
-from flext_cli.utils import FlextCliUtilities as FlextCliDataProcessing
+from flext_cli import FlextCliUtilities as FlextCliDataProcessing
 from flext_core import FlextResult, FlextTypes
 
 

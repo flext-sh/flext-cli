@@ -60,7 +60,7 @@ class FlextCliProtocols(FlextProtocols):
     class CliConfigProvider(Protocol):
         """Protocol for CLI configuration providers."""
 
-        def load_config(self) -> FlextResult[FlextCliTypings.CliConfigData]:
+        def load_config(self: object) -> FlextResult[FlextCliTypings.CliConfigData]:
             """Load CLI configuration.
 
             Returns:
@@ -115,7 +115,7 @@ class FlextCliProtocols(FlextProtocols):
     class CliDebugProvider(Protocol):
         """Protocol for CLI debug information providers."""
 
-        def get_debug_info(self) -> FlextResult[FlextCliTypings.CliConfigData]:
+        def get_debug_info(self: object) -> FlextResult[FlextCliTypings.CliConfigData]:
             """Get debug information.
 
             Returns:

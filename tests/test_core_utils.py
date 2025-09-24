@@ -8,9 +8,7 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from flext_cli.config import FlextCliConfig
-from flext_cli.constants import FlextCliConstants
-from flext_cli.core import FlextCliService
+from flext_cli import FlextCliConfig, FlextCliConstants, FlextCliService
 from flext_core import FlextResult, FlextService
 
 
@@ -74,7 +72,7 @@ class TestFlextCliConfig:
         config_file = config.config_dir / FlextCliConstants.CliDefaults.CONFIG_FILE
 
         assert config_file is not None
-        assert config_file.name == "flext.toml"
+        assert config_file.name == "config.json"
 
     def test_config_validate_output_format_valid(self) -> None:
         """Test output format validation with valid format."""

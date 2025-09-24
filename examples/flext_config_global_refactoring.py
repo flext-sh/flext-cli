@@ -19,8 +19,6 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from typing import Any
-
 from flext_cli import FlextCliApi, FlextCliAuth, FlextCliConfig
 from flext_core import FlextConfig
 
@@ -57,7 +55,7 @@ def demonstrate_global_configuration_refactoring() -> None:
 
     # 3. Apply CLI parameter overrides
     print("3. Applying CLI Parameter Overrides:")
-    cli_overrides: dict[str, Any] = {
+    cli_overrides: dict[str, object] = {
         "debug_mode": True,
         "log_level": "DEBUG",
         "output_format": "json",
@@ -97,7 +95,7 @@ def demonstrate_global_configuration_refactoring() -> None:
     print("5. CLI API Integration:")
 
     # Create sample data for API demonstration
-    sample_data: dict[str, dict[str, Any]] = {
+    sample_data: dict[str, dict[str, object]] = {
         "config": {
             "environment": base_config.environment,
             "debug": base_config.debug,
@@ -204,7 +202,7 @@ def demonstrate_cli_parameter_integration() -> None:
     print("=== CLI PARAMETER INTEGRATION ===\n")
 
     # Simulate CLI parameters
-    cli_params: dict[str, Any] = {
+    cli_params: dict[str, object] = {
         "debug": True,
         "log_level": "DEBUG",
         "output_format": "table",
@@ -238,7 +236,7 @@ def demonstrate_cli_parameter_integration() -> None:
     print("3. Using Configuration with CLI Parameters:")
 
     cli_api = FlextCliApi()
-    sample_data: dict[str, Any] = {
+    sample_data: dict[str, object] = {
         "cli_params": cli_params,
         "final_config": cli_config.model_dump(),
     }

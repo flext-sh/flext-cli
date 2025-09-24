@@ -85,9 +85,9 @@ flext debug info          # System information
 ### Command Registration
 
 ```python
-from flext_cli import FlextCliMain
+from flext_cli import FlextCliCommands
 
-cli = FlextCliMain(name="my-cli")
+cli = FlextCliCommands(name="my-cli")
 cli.register_command_group(
     name="data",
     commands=data_commands,
@@ -102,9 +102,9 @@ cli.register_command_group(
 ### Output Formatting
 
 ```python
-from flext_cli import FlextCliFormatters
+from flext_cli import FlextCliOutput
 
-formatters = FlextCliFormatters()
+formatters = FlextCliOutput()
 
 # Table formatting
 table_result = formatters.format_as_table(
@@ -206,9 +206,9 @@ class CustomCommandHandler:
 ### Custom Formatter
 
 ```python
-from flext_cli import FlextCliFormatters
+from flext_cli import FlextCliOutput
 
-class CustomFormatters(FlextCliFormatters):
+class CustomFormatters(FlextCliOutput):
     """Extended formatters with custom output."""
 
     def format_as_custom(self, data: dict):

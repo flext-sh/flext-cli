@@ -272,7 +272,7 @@ def command(count, url, input_file, output_dir, new_file):
 @flext_cli.require_auth(roles=["REDACTED_LDAP_BIND_PASSWORD"])
 @flext_cli.validate_config(required_keys=["api_url"])
 @flext_cli.async_command
-@flext_cli.FlextCliDecorators.handle_service_result
+@flext_cli.FlextCliUtilities.Decorators.handle_service_result
 async def advanced_command():
     """Command with full decorator stack."""
     # Implementation using FlextResult patterns

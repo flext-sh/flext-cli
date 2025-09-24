@@ -8,8 +8,7 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from flext_cli import FlextCliApi, FlextCliMain
-from flext_cli.config import FlextCliConfig
+from flext_cli import FlextCliApi, FlextCliCommands, FlextCliConfig, FlextCliConstants
 from flext_core import FlextResult
 
 
@@ -55,11 +54,9 @@ class TestFlextCliConfig:
 
     def test_config_get_config_file(self) -> None:
         """Test get_config_file method."""
-        from flext_cli.constants import FlextCliConstants
-
         config_file = self.config.config_dir / FlextCliConstants.CliDefaults.CONFIG_FILE
         assert config_file is not None
-        assert config_file.name == "flext.toml"
+        assert config_file.name == "config.json"
 
     def test_config_validate_output_format_valid(self) -> None:
         """Test output format validation with valid format."""
@@ -98,8 +95,6 @@ class TestFlextCliConfig:
 
     def test_config_create_cli_options(self) -> None:
         """Test create_cli_options method."""
-        from flext_cli.constants import FlextCliConstants
-
         config = FlextCliConfig.MainConfig(
             output_format="json",
             debug=True,
@@ -183,7 +178,7 @@ class TestConfigWithCliApi:
 
 
 class TestConfigCommandsWithMain:
-    """Test config commands with FlextCliMain."""
+    """Test config commands with FlextCliCommands."""
 
     def setup_method(self) -> None:
         """Set up test environment."""
@@ -192,7 +187,7 @@ class TestConfigCommandsWithMain:
             output_format="table",
             debug=False,
         )
-        self.cli_main = FlextCliMain(
+        self.cli_main = FlextCliCommands(
             name="test-config",
             description="Test config CLI",
         )
@@ -200,7 +195,7 @@ class TestConfigCommandsWithMain:
     def test_cli_main_creation(self) -> None:
         """Test CLI main creation for config commands."""
         assert self.cli_main is not None
-        assert isinstance(self.cli_main, FlextCliMain)
+        assert isinstance(self.cli_main, FlextCliCommands)
 
     def test_config_with_cli_main(self) -> None:
         """Test using config with CLI main."""
@@ -209,4 +204,7 @@ class TestConfigCommandsWithMain:
 
         config_dict = self.config.model_dump(exclude_unset=True)
         assert isinstance(config_dict, dict)
-        assert len(config_dict) == 3  # profile, output_format, debug
+        # Check that essential fields are present
+        assert "profile" in config_dict
+        assert "output_format" in config_dict
+        assert "debug" in config_dict

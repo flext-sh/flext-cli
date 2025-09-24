@@ -30,14 +30,14 @@ import time
 from collections.abc import Awaitable
 from datetime import UTC, datetime
 from enum import Enum
-from typing import Any, Protocol, cast, override
+from typing import Protocol, cast, override
 
 from rich.progress import Progress, SpinnerColumn, TaskID, TextColumn
 from rich.table import Table
 
 from flext_cli import (
     FlextCliConfig,
-    FlextCliFormatters,
+    FlextCliOutput,
     FlextCliService,
 )
 from flext_core import FlextContainer, FlextLogger, FlextResult, FlextTypes
@@ -351,7 +351,7 @@ class AdvancedCliService(FlextCliService):
 # Removed @async_command and @cli_handle_keyboard_interrupt decorators - cause type inference issues
 async def demonstrate_async_service_operations() -> None:
     """Demonstrate asynchronous service operations."""
-    formatter = FlextCliFormatters()
+    formatter = FlextCliOutput()
     console = formatter.console
     console.print("[bold blue]Asynchronous Service Operations[/bold blue]")
 
@@ -412,10 +412,12 @@ async def demonstrate_async_service_operations() -> None:
         # result is already properly typed from gather
         typed_result: FlextResult[FlextTypes.Core.Dict] = result
         if typed_result.is_success:
-            data: dict[str, Any] = typed_result.value
-            status: str = data.get("status", "unknown")
+            data: dict[str, object] = typed_result.value
+            status: str = str(data.get("status", "unknown"))
             response_time_success: str = f"{data.get('response_time_ms', 0)}ms"
-            details_dict: dict[str, Any] = data.get("details", {})
+            details_dict: dict[str, object] = cast(
+                "dict[str, object]", data.get("details", {})
+            )
             details_success: str = f"CPU: {details_dict.get('cpu_usage', 'N/A')}"
 
             # Color code status
@@ -450,7 +452,7 @@ async def demonstrate_async_service_operations() -> None:
 
 def demonstrate_circuit_breaker_pattern() -> FlextResult[None]:
     """Demonstrate circuit breaker pattern for service resilience."""
-    formatter = FlextCliFormatters()
+    formatter = FlextCliOutput()
     console = formatter.console
     console.print("\n[green]Circuit Breaker Pattern Demonstration[/green]")
 
@@ -517,7 +519,7 @@ def demonstrate_circuit_breaker_pattern() -> FlextResult[None]:
 
 def demonstrate_service_orchestration() -> FlextResult[None]:
     """Demonstrate service orchestration patterns."""
-    formatter = FlextCliFormatters()
+    formatter = FlextCliOutput()
     console = formatter.console
     console.print("\n[green]Service Orchestration Demonstration[/green]")
 
@@ -537,13 +539,12 @@ def demonstrate_service_orchestration() -> FlextResult[None]:
         orchestration_table.add_column("Status", style="yellow")
         orchestration_table.add_column("Execution Time", style="blue")
 
-        # Type-safe extraction of results with explicit casting
-        result_data_typed = cast("dict[str, Any]", result_data)
-        if "results" in result_data_typed:
-            results_value = cast("dict[str, Any]", result_data_typed["results"])
+        # Type-safe extraction of results
+        if "results" in result_data:
+            results_value = cast("dict[str, object]", result_data["results"])
             for service_name_key, step_result_value in results_value.items():
                 if isinstance(step_result_value, dict):
-                    step_result_typed = cast("dict[str, Any]", step_result_value)
+                    step_result_typed = cast("dict[str, object]", step_result_value)
                     # Type-safe extraction with explicit casting
                     operation_value: str = str(
                         step_result_typed.get("operation", "unknown")
@@ -574,7 +575,7 @@ def demonstrate_service_orchestration() -> FlextResult[None]:
 
 def demonstrate_dependency_injection() -> FlextResult[None]:
     """Demonstrate dependency injection with CLI container."""
-    formatter = FlextCliFormatters()
+    formatter = FlextCliOutput()
     console = formatter.console
     console.print("\n[green]Dependency Injection with CLI Container[/green]")
 
@@ -684,7 +685,7 @@ def demonstrate_dependency_injection() -> FlextResult[None]:
 
 def main() -> None:
     """Main demonstration function."""
-    formatter = FlextCliFormatters()
+    formatter = FlextCliOutput()
     console = formatter.console
 
     formatter.print_success("05 - Advanced Service Integration Patterns")

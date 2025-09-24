@@ -87,7 +87,7 @@ class ProjectCliService:
 
 # ❌ Avoid - Direct framework imports
 # import click  # Use flext-cli abstractions instead
-# import rich   # Use FlextCliFormatters instead
+# import rich   # Use FlextCliOutput instead
 ```
 
 ---
@@ -200,9 +200,9 @@ class DataCommands(FlextService):
 2. Register with CLI:
 
 ```python
-from flext_cli import FlextCliMain
+from flext_cli import FlextCliCommands
 
-cli = FlextCliMain()
+cli = FlextCliCommands()
 cli.register_command_group(
     name="data",
     commands={"export": data_handler.handle_export},
@@ -223,9 +223,9 @@ def test_data_export_command():
 ### Custom Formatters
 
 ```python
-from flext_cli import FlextCliFormatters
+from flext_cli import FlextCliOutput
 
-class ProjectFormatters(FlextCliFormatters):
+class ProjectFormatters(FlextCliOutput):
     """Project-specific output formatters."""
 
     def format_project_data(self, data: dict) -> FlextResult[str]:

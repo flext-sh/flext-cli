@@ -23,17 +23,17 @@ from flext_core import (
 
 
 class FlextCliAuth(FlextService[dict[str, object]]):
-    """Authentication service extending FlextService from flext-core.
+    """Authentication tools for CLI apps.
 
-    Provides essential authentication functionality using flext-core patterns.
-    Follows single-responsibility principle with nested helpers.
+    Renamed from FlextCliAuth for PEP 8 compliance.
+    Provides authentication functionality using flext-core patterns.
     """
 
     def __init__(
         self, *, config: FlextCliConfig.MainConfig | None = None, **_data: object
     ) -> None:
         """Initialize authentication service with flext-core integration."""
-        super().__init__()
+        super().__init__(**_data)
         self._logger = FlextLogger(__name__)
         self._container = FlextContainer.get_global()
 
@@ -245,8 +245,6 @@ class FlextCliAuth(FlextService[dict[str, object]]):
 
                 # Generate secure authentication token using flext-core utilities
                 # This replaces the insecure password length exposure
-                from flext_core import FlextUtilities
-
                 # Generate secure token with user context but no password information
                 secure_token = FlextUtilities.Generators.generate_short_id(length=32)
                 auth_token = f"auth_token_{username}_{secure_token}"

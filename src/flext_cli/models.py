@@ -10,8 +10,9 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 from datetime import UTC, datetime
+from typing import ClassVar
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, model_validator
 
 from flext_cli.constants import FlextCliConstants
 from flext_cli.mixins import FlextCliMixins
@@ -33,8 +34,8 @@ class FlextCliModels(FlextModels):
     NO inline validation is allowed in service methods.
     """
 
-    # Base classes for common functionality
-    class _BaseEntity(BaseModel, FlextCliMixins.ValidationMixin):
+    # Base classes for common functionality - using flext-core patterns
+    class _BaseEntity(FlextModels.Entity, FlextCliMixins.ValidationMixin):
         """Base entity with common fields for entities with id, timestamps, and status."""
 
         id: str = Field(
@@ -57,7 +58,11 @@ class FlextCliModels(FlextModels):
     class CliCommand(_BaseEntity, FlextCliMixins.BusinessRulesMixin):
         """CLI command model extending _BaseEntity."""
 
-        command: str = Field(min_length=1)
+        model_config: ClassVar[dict[str, bool]] = {
+            "str_strip_whitespace": False
+        }  # Override parent config to preserve whitespace
+
+        command_line: str = Field(default="", min_length=1)
         args: list[str] = Field(default_factory=list)
         exit_code: int | None = None
         output: str = Field(default="")
@@ -65,6 +70,25 @@ class FlextCliModels(FlextModels):
         name: str = Field(default="")
         entry_point: str = Field(default="")
         plugin_version: str = Field(default="1.0.0")
+        # status field inherited from _BaseEntity
+
+        @model_validator(mode="before")
+        @classmethod
+        def validate_command_input(cls, data: dict[str, object]) -> dict[str, object]:
+            """Validate and convert command input."""
+            if isinstance(data, dict):
+                # Handle legacy 'command' parameter
+                if "command" in data and "command_line" not in data:
+                    data["command_line"] = data.pop("command")
+                # Ensure command_line is provided and not empty
+                command_line = data.get("command_line")
+                if not command_line:
+                    error_msg = "Either 'command' or 'command_line' must be provided"
+                    raise ValueError(error_msg)
+                if isinstance(command_line, str) and not command_line.strip():
+                    error_msg = "command_line cannot be empty or whitespace"
+                    raise ValueError(error_msg)
+            return data
 
         def __init__(
             self,
@@ -76,8 +100,9 @@ class FlextCliModels(FlextModels):
             **data: object,
         ) -> None:
             """Initialize with compatibility for command_line and execution_time parameters."""
+            # Handle compatibility parameters by updating data dict
             if command_line is not None:
-                data["command"] = command_line
+                data["command_line"] = command_line
             if execution_time is not None:
                 data["created_at"] = execution_time
             if name is not None:
@@ -86,23 +111,29 @@ class FlextCliModels(FlextModels):
                 data["entry_point"] = entry_point
             if plugin_version is not None:
                 data["plugin_version"] = plugin_version
-            super().__init__(**data)  # type: ignore[arg-type]
+
+            # Ensure command_line is provided for validation
+            if not data.get("command_line") and command_line is not None:
+                data["command_line"] = command_line
+
+            # Call parent with data - Pydantic handles validation and filtering
+            super().__init__(**data)
 
         @property
-        def command_line(self) -> str:
-            """Compatibility property for command_line access."""
-            return self.command
+        def command(self) -> str:
+            """Compatibility property for command access."""
+            return self.command_line
 
         @property
         def execution_time(self) -> datetime:
             """Compatibility property for execution_time access."""
-            return self.created_at
+            return self.created_at or datetime.now(UTC)
 
         def validate_business_rules(self) -> FlextResult[None]:
             """Validate command business rules."""
             # Use mixin validation methods
             command_result = FlextCliMixins.ValidationMixin.validate_not_empty(
-                "Command line", self.command
+                "Command line", self.command_line
             )
             if command_result.is_failure:
                 return command_result
@@ -155,6 +186,8 @@ class FlextCliModels(FlextModels):
         timestamp: datetime = Field(default_factory=lambda: datetime.now(UTC))
         system_info: dict[str, str] = Field(default_factory=dict)
         config_info: dict[str, str] = Field(default_factory=dict)
+        level: str = Field(default="info")
+        message: str = Field(default="")
 
         def validate_business_rules(self) -> FlextResult[None]:
             """Validate debug info business rules."""
@@ -164,6 +197,14 @@ class FlextCliModels(FlextModels):
             )
             if service_result.is_failure:
                 return service_result
+
+            # Validate level
+            valid_levels = ["debug", "info", "warning", "error", "critical"]
+            level_result = FlextCliMixins.ValidationMixin.validate_enum_value(
+                "level", self.level, valid_levels
+            )
+            if level_result.is_failure:
+                return level_result
 
             return FlextResult[None].ok(None)
 
@@ -176,14 +217,12 @@ class FlextCliModels(FlextModels):
         max_width: int | None = None
 
     class CliSession(
-        _BaseValidatedModel,
+        FlextModels.Entity,
         FlextCliMixins.BusinessRulesMixin,
     ):
-        """CLI session model extending _BaseValidatedModel."""
+        """CLI session model extending FlextModels.Entity."""
 
-        id: str = Field(
-            default_factory=lambda: f"session_{datetime.now(UTC).strftime('%Y%m%d_%H%M%S')}"
-        )
+        # id field inherited from FlextModels.Entity
         session_id: str = Field(
             default_factory=lambda: f"session_{datetime.now(UTC).strftime('%Y%m%d_%H%M%S')}"
         )
@@ -211,16 +250,70 @@ class FlextCliModels(FlextModels):
                 data["start_time"] = start_time
             if user_id is not None:
                 data["user_id"] = user_id
-            super().__init__(**data)
+
+            # Extract and convert FlextModels.Entity fields with proper type handling
+            id_value = (
+                str(data.get("id", ""))
+                if data.get("id") is not None
+                else f"session_{datetime.now(UTC).strftime('%Y%m%d_%H%M%S')}"
+            )
+            created_at_value = data.get("created_at")
+            if isinstance(created_at_value, datetime):
+                created_at_final = created_at_value
+            else:
+                created_at_final = datetime.now(UTC)
+
+            updated_at_value = data.get("updated_at")
+            if isinstance(updated_at_value, datetime):
+                updated_at_final = updated_at_value
+            else:
+                updated_at_final = None
+
+            version_value = data.get("version")
+            version_final = version_value if isinstance(version_value, int) else 1
+
+            domain_events_value = data.get("domain_events")
+            if isinstance(domain_events_value, list):
+                domain_events_final = domain_events_value
+            else:
+                domain_events_final = []
+
+            # Call parent with explicit field values for FlextModels.Entity
+            super().__init__(
+                id=id_value,
+                created_at=created_at_final,
+                updated_at=updated_at_final,
+                version=version_final,
+                domain_events=domain_events_final,
+            )
+
+            # Set additional fields after parent initialization
+            for key, value in data.items():
+                if key not in {
+                    "id",
+                    "created_at",
+                    "updated_at",
+                    "version",
+                    "domain_events",
+                }:
+                    setattr(self, key, value)
+
+            # Ensure session_id matches id if not explicitly set
+            if not hasattr(self, "session_id") or not self.session_id:
+                self.session_id = self.id
 
         def validate_business_rules(self) -> FlextResult[None]:
             """Validate session business rules."""
             # Use mixin validation methods
-            id_result = FlextCliMixins.ValidationMixin.validate_not_empty(
-                "Session ID", self.id
+            session_id_result = FlextCliMixins.ValidationMixin.validate_not_empty(
+                "Session ID", self.session_id
             )
-            if id_result.is_failure:
-                return id_result
+            if session_id_result.is_failure:
+                return session_id_result
+
+            # Validate user_id if provided
+            if self.user_id is not None and not self.user_id.strip():
+                return FlextResult[None].fail("User ID cannot be empty")
 
             valid_statuses = ["active", "completed", "terminated"]
             status_result = FlextCliMixins.ValidationMixin.validate_enum_value(
@@ -301,6 +394,14 @@ class FlextCliModels(FlextModels):
             self.status = new_status
             self.update_timestamp()  # Use inherited method
             return FlextResult[None].ok(None)
+
+    class FlextCliConfig(FlextModels.Configuration):
+        """CLI configuration model extending _BaseValidatedModel."""
+
+        profile: str = Field(default="development")
+        debug: bool = Field(default=False)
+        environment: str = Field(default="development")
+        timeout_seconds: int = Field(default=300)
 
     class PipelineConfig(
         _BaseValidatedModel,

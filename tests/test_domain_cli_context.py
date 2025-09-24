@@ -11,8 +11,7 @@ import io
 import pytest
 from rich.console import Console
 
-from flext_cli import FlextCliContext
-from flext_cli.config import FlextCliConfig
+from flext_cli import FlextCliConfig, FlextCliContext
 
 
 class TestCLIContext:

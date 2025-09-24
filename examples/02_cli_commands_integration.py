@@ -4,8 +4,8 @@
 This example demonstrates proper CLI command integration using flext-cli patterns:
 
 🎯 **Key Patterns Demonstrated:**
-- FlextCliMain command registration system (replaces direct Click usage)
-- FlextCliFormatters for all output (replaces direct Rich usage)
+- FlextCliCommands command registration system (replaces direct Click usage)
+- FlextCliOutput for all output (replaces direct Rich usage)
 - FlextResult railway-oriented programming for command error handling
 - FlextCliConfig for domain entities with validation
 - FlextContainer dependency injection for CLI services
@@ -31,13 +31,13 @@ from typing import cast
 
 from flext_cli import (
     FlextCliConfig,
-    FlextCliFormatters,
     FlextCliModels,
+    FlextCliOutput,
 )
 from flext_core import FlextResult
 
 
-def _setup_cli_demo(formatter: FlextCliFormatters) -> FlextResult[None]:
+def _setup_cli_demo(formatter: FlextCliOutput) -> FlextResult[None]:
     """Demo CLI setup using flext-cli foundation."""
     formatter.print_success("\n1. 🔧 FLEXT CLI Command Integration Demo")
 
@@ -49,12 +49,12 @@ def _setup_cli_demo(formatter: FlextCliFormatters) -> FlextResult[None]:
     setup_success = setup_result.value
     formatter.print_success("✅ CLI setup using FLEXT CLI foundation")
     formatter.console.print(f"   Setup result: {setup_success}")
-    formatter.console.print("   Foundation: FlextCliMain + FlextCliApi")
+    formatter.console.print("   Foundation: FlextCliCommands + FlextCliApi")
     return FlextResult[None].ok(None)
 
 
 def _connection_demo(
-    formatter: FlextCliFormatters, _config: FlextCliConfig.MainConfig
+    formatter: FlextCliOutput, _config: FlextCliConfig.MainConfig
 ) -> FlextResult[None]:
     """Demo connection testing using flext-cli patterns."""
     formatter.print_success("\n2. 🌐 Connection Testing Integration")
@@ -93,7 +93,7 @@ def _connection_demo(
     return FlextResult[None].ok(None)
 
 
-def _file_processing_demo(formatter: FlextCliFormatters) -> FlextResult[None]:
+def _file_processing_demo(formatter: FlextCliOutput) -> FlextResult[None]:
     """Demo file processing using flext-cli patterns."""
     formatter.print_success("\n3. 📁 File Processing Integration")
 
@@ -127,7 +127,7 @@ def _file_processing_demo(formatter: FlextCliFormatters) -> FlextResult[None]:
 
 
 def _cli_status_demo(
-    formatter: FlextCliFormatters, config: FlextCliConfig.MainConfig
+    formatter: FlextCliOutput, config: FlextCliConfig.MainConfig
 ) -> FlextResult[None]:
     """Demo CLI status display using flext-cli patterns."""
     formatter.print_success("\n4. 📊 CLI Status Integration")
@@ -150,12 +150,12 @@ def _cli_status_demo(
     return FlextResult[None].ok(None)
 
 
-def _command_registration_demo(formatter: FlextCliFormatters) -> FlextResult[None]:
+def _command_registration_demo(formatter: FlextCliOutput) -> FlextResult[None]:
     """Demo command registration using flext-cli foundation."""
     formatter.print_success("\n5. 🎛️ Command Registration System")
 
     # Create CLI main using flext-cli foundation
-    # cli_main = FlextCliMain()
+    # cli_main = FlextCliCommands()
 
     # Register command groups (simulated)
     commands_data = {
@@ -167,7 +167,7 @@ def _command_registration_demo(formatter: FlextCliFormatters) -> FlextResult[Non
 
     table_result = formatter.format_table(
         data=cast("dict[str, object]", commands_data),
-        title="Registered Commands (FlextCliMain)",
+        title="Registered Commands (FlextCliCommands)",
     )
     if table_result.is_success:
         formatter.console.print(table_result.value)
@@ -178,14 +178,14 @@ def _command_registration_demo(formatter: FlextCliFormatters) -> FlextResult[Non
     return FlextResult[None].ok(None)
 
 
-def _summary_demo(formatter: FlextCliFormatters) -> None:
+def _summary_demo(formatter: FlextCliOutput) -> None:
     """Demo summary display."""
     formatter.print_success("\n📋 CLI Commands Integration Summary")
 
     summary_data = {
         "Component": "Status",
-        "FlextCliMain": "✅ Command registration",
-        "FlextCliFormatters": "✅ Output abstraction",
+        "FlextCliCommands": "✅ Command registration",
+        "FlextCliOutput": "✅ Output abstraction",
         "FlextResult Pattern": "✅ Error handling",
         "FlextCliConfig": "✅ Domain entities",
         "FLEXT Foundation": "✅ Zero Click/Rich imports",
@@ -290,7 +290,7 @@ def _simulate_file_processing(_file_path: Path) -> FlextResult[str]:
 
 def main() -> None:
     """Main demonstration function showcasing CLI commands integration."""
-    formatter = FlextCliFormatters()
+    formatter = FlextCliOutput()
 
     formatter.print_success("FLEXT CLI Commands Integration Demo")
     formatter.print_success("=" * 50)

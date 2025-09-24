@@ -1,6 +1,7 @@
-"""Tests for typings.py - Real API only.
+"""Tests for typings.py and constants.py - Real API only.
 
-Tests FlextCliTypings using actual implemented structure.
+Tests FlextCliTypings type definitions and FlextCliConstants constants.
+After standardization, constants moved from FlextCliTypings to FlextCliConstants.
 
 Copyright (c) 2025 FLEXT Team. All rights reserved.
 SPDX-License-Identifier: MIT
@@ -8,77 +9,80 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from flext_cli import typings
-from flext_cli.typings import FlextCliTypings
+from flext_cli import FlextCliConstants, FlextCliTypings, typings
 
 
 class TestFlextCliTypings:
-    """Test FlextCliTypings unified class."""
+    """Test FlextCliTypings unified class - now only type definitions."""
 
     def test_typings_module_exports_flext_cli_typings(self) -> None:
         """Test that typings module exports FlextCliTypings."""
         assert hasattr(typings, "FlextCliTypings")
         assert typings.FlextCliTypings is FlextCliTypings
 
-    def test_flext_cli_typings_output_format_class(self) -> None:
-        """Test FlextCliTypings.OutputFormat nested class."""
-        assert hasattr(FlextCliTypings, "OutputFormat")
-        assert FlextCliTypings.OutputFormat.JSON == "json"
-        assert FlextCliTypings.OutputFormat.YAML == "yaml"
-        assert FlextCliTypings.OutputFormat.CSV == "csv"
-        assert FlextCliTypings.OutputFormat.TABLE == "table"
-        assert FlextCliTypings.OutputFormat.PLAIN == "plain"
 
-    def test_flext_cli_typings_commands_class(self) -> None:
-        """Test FlextCliTypings.Commands nested class."""
-        assert hasattr(FlextCliTypings, "Commands")
-        assert FlextCliTypings.Commands.AUTH == "auth"
-        assert FlextCliTypings.Commands.CONFIG == "config"
-        assert FlextCliTypings.Commands.DEBUG == "debug"
-        assert FlextCliTypings.Commands.FORMAT == "format"
-        assert FlextCliTypings.Commands.EXPORT == "export"
+class TestFlextCliConstants:
+    """Test FlextCliConstants unified class - all constants."""
 
-    def test_flext_cli_typings_config_class(self) -> None:
-        """Test FlextCliTypings.CliConfig nested class."""
-        assert hasattr(FlextCliTypings, "CliConfig")
-        assert FlextCliTypings.CliConfig.DEFAULT_PROFILE == "default"
-        assert FlextCliTypings.CliConfig.DEFAULT_OUTPUT_FORMAT == "table"
-        assert FlextCliTypings.CliConfig.DEFAULT_TIMEOUT == 30
+    def test_output_formats_enum(self) -> None:
+        """Test FlextCliConstants.OutputFormats enum."""
+        assert hasattr(FlextCliConstants, "OutputFormats")
+        assert FlextCliConstants.OutputFormats.JSON.value == "json"
+        assert FlextCliConstants.OutputFormats.YAML.value == "yaml"
+        assert FlextCliConstants.OutputFormats.CSV.value == "csv"
+        assert FlextCliConstants.OutputFormats.TABLE.value == "table"
+        assert FlextCliConstants.OutputFormats.PLAIN.value == "plain"
 
-    def test_flext_cli_typings_auth_class(self) -> None:
-        """Test FlextCliTypings.Auth nested class."""
-        assert hasattr(FlextCliTypings, "Auth")
-        assert "token.json" in FlextCliTypings.Auth.TOKEN_FILENAME
-        assert FlextCliTypings.Auth.CONFIG_FILENAME == "auth.json"
+    def test_commands_class(self) -> None:
+        """Test FlextCliConstants.Commands nested class."""
+        assert hasattr(FlextCliConstants, "Commands")
+        assert FlextCliConstants.Commands.AUTH == "auth"
+        assert FlextCliConstants.Commands.CONFIG == "config"
+        assert FlextCliConstants.Commands.DEBUG == "debug"
+        assert FlextCliConstants.Commands.FORMAT == "format"
+        assert FlextCliConstants.Commands.EXPORT == "export"
 
-    def test_flext_cli_typings_session_class(self) -> None:
-        """Test FlextCliTypings.Session nested class."""
-        assert hasattr(FlextCliTypings, "Session")
-        assert FlextCliTypings.Session.DEFAULT_TIMEOUT == 3600
-        assert FlextCliTypings.Session.MAX_COMMANDS == 1000
+    def test_cli_defaults_class(self) -> None:
+        """Test FlextCliConstants.CliDefaults nested class."""
+        assert hasattr(FlextCliConstants, "CliDefaults")
+        assert FlextCliConstants.CliDefaults.DEFAULT_PROFILE == "default"
+        assert FlextCliConstants.CliDefaults.DEFAULT_OUTPUT_FORMAT == "table"
+        assert FlextCliConstants.CliDefaults.DEFAULT_TIMEOUT == 30
 
-    def test_flext_cli_typings_services_class(self) -> None:
-        """Test FlextCliTypings.Services nested class."""
-        assert hasattr(FlextCliTypings, "Services")
-        assert FlextCliTypings.Services.API == "api"
-        assert FlextCliTypings.Services.FORMATTER == "formatter"
-        assert FlextCliTypings.Services.AUTH == "auth"
+    def test_auth_class(self) -> None:
+        """Test FlextCliConstants.Auth nested class."""
+        assert hasattr(FlextCliConstants, "Auth")
+        assert "token.json" in FlextCliConstants.Auth.TOKEN_FILENAME
+        assert FlextCliConstants.Auth.CONFIG_FILENAME == "auth.json"
 
-    def test_flext_cli_typings_protocols_class(self) -> None:
-        """Test FlextCliTypings.Protocols nested class."""
-        assert hasattr(FlextCliTypings, "Protocols")
-        assert FlextCliTypings.Protocols.HTTP == "http"
-        assert FlextCliTypings.Protocols.HTTPS == "https"
+    def test_session_class(self) -> None:
+        """Test FlextCliConstants.Session nested class."""
+        assert hasattr(FlextCliConstants, "Session")
+        assert FlextCliConstants.Session.DEFAULT_TIMEOUT == 3600
+        assert FlextCliConstants.Session.MAX_COMMANDS == 1000
 
-    def test_output_format_get_all_formats(self) -> None:
-        """Test OutputFormat.get_all_formats() method."""
-        formats = FlextCliTypings.OutputFormat.get_all_formats()
-        assert isinstance(formats, dict)
-        assert formats["JSON"] == "json"
-        assert formats["YAML"] == "yaml"
-        assert formats["CSV"] == "csv"
-        assert formats["TABLE"] == "table"
-        assert formats["PLAIN"] == "plain"
+    def test_services_class(self) -> None:
+        """Test FlextCliConstants.Services nested class."""
+        assert hasattr(FlextCliConstants, "Services")
+        assert FlextCliConstants.Services.API == "api"
+        assert FlextCliConstants.Services.FORMATTER == "formatter"
+        assert FlextCliConstants.Services.AUTH == "auth"
+
+    def test_protocols_class(self) -> None:
+        """Test FlextCliConstants.Protocols nested class."""
+        assert hasattr(FlextCliConstants, "Protocols")
+        assert FlextCliConstants.Protocols.HTTP == "http"
+        assert FlextCliConstants.Protocols.HTTPS == "https"
+
+    def test_output_formats_list(self) -> None:
+        """Test OUTPUT_FORMATS_LIST constant."""
+        assert hasattr(FlextCliConstants, "OUTPUT_FORMATS_LIST")
+        assert isinstance(FlextCliConstants.OUTPUT_FORMATS_LIST, list)
+        assert "json" in FlextCliConstants.OUTPUT_FORMATS_LIST
+        assert "yaml" in FlextCliConstants.OUTPUT_FORMATS_LIST
+        assert "csv" in FlextCliConstants.OUTPUT_FORMATS_LIST
+        assert "table" in FlextCliConstants.OUTPUT_FORMATS_LIST
+        assert "plain" in FlextCliConstants.OUTPUT_FORMATS_LIST
 
 
 class TestTypingsExports:
@@ -114,27 +118,9 @@ class TestTypingsStructure:
 
     def test_unified_class_pattern(self) -> None:
         """Test follows FLEXT unified class pattern."""
-        # FlextCliTypings is the single unified class
+        # FlextCliTypings is the single unified class for type definitions
         assert hasattr(typings, "FlextCliTypings")
         assert isinstance(FlextCliTypings, type)
-
-        # Has nested classes for organization
-        nested_classes = [
-            "OutputFormat",
-            "Commands",
-            "Config",
-            "Auth",
-            "Session",
-            "Services",
-            "Protocols",
-        ]
-
-        for nested_class in nested_classes:
-            assert hasattr(FlextCliTypings, nested_class), (
-                f"Missing nested class: {nested_class}"
-            )
-            nested = getattr(FlextCliTypings, nested_class)
-            assert isinstance(nested, type), f"{nested_class} is not a class"
 
 
 class TestTypeAliases:

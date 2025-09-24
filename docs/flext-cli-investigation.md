@@ -36,13 +36,13 @@ FlextCli                    # Main CLI class
 FlextCliService            # Core service (FlextService inheritance)
 FlextCliApi               # API layer
 FlextCliAuth              # Authentication system
-FlextCliMain              # Main CLI interface
+FlextCliCommands              # Main CLI interface
 
 # Supporting Components
 FlextCliContext           # Context management
 FlextCliModels            # Data models
-FlextCliFormatters        # Output formatting
-FlextCliDecorators        # CLI decorators
+FlextCliOutput        # Output formatting
+FlextCliUtilities.Decorators        # CLI decorators
 FlextCliDomainService     # Domain service layer
 ```
 
@@ -70,7 +70,7 @@ def main() -> None:
 
 - **Single Responsibility**: Only handles module execution
 - **Dependency**: Relies on `flext_cli_main.create_main_cli()`
-- **CLI Execution**: Delegates to `FlextCliMain.run_cli()`
+- **CLI Execution**: Delegates to `FlextCliCommands.run_cli()`
 
 ### 1.3 Core Service (`core.py`)
 
@@ -332,7 +332,7 @@ self._console.print(format_result.unwrap())
 #### Class Hierarchy
 
 ```python
-class FlextCliMain(FlextService[dict[str, object]]):
+class FlextCliCommands(FlextService[dict[str, object]]):
     """Main CLI class - direct Click integration without abstraction layers."""
 ```
 
@@ -403,10 +403,10 @@ command = click.Command(
 #### Factory Function
 
 ```python
-def create_main_cli() -> FlextCliMain:
+def create_main_cli() -> FlextCliCommands:
     """Create the main CLI instance."""
-    return FlextCliMain(
-        name="flext", 
+    return FlextCliCommands(
+        name="flext",
         description="FLEXT Enterprise Data Integration Platform CLI"
     )
 ```
@@ -471,7 +471,7 @@ class FlextCliModels:
 ```python
 class FlextCliConfig(FlextConfig):
     """Main CLI configuration class extending FlextConfig."""
-    
+
     model_config = SettingsConfigDict(
         env_prefix="FLEXT_CLI_",
         case_sensitive=False,
@@ -520,7 +520,7 @@ def start_execution(self) -> FlextResult[None]:
 #### Class Hierarchy
 
 ```python
-class FlextCliFormatters(FlextService[str]):
+class FlextCliOutput(FlextService[str]):
     """CLI formatters using direct Rich integration."""
 ```
 
@@ -581,7 +581,7 @@ task_id = progress.add_task(description, total=total)
 ```python
 class _ConsoleOutput:
     """Console output wrapper for compatibility."""
-    
+
     def __init__(self, file: IO[str] | None = None, **kwargs: object) -> None:
         # Complex initialization with explicit parameters
         self._console = Console(
@@ -663,7 +663,7 @@ from flext_core import (
 ```python
 class _ConfigHelper:
     """Nested helper for configuration operations."""
-    
+
     @staticmethod
     def get_config_paths() -> list[str]:
         """Get standard configuration paths."""
@@ -684,7 +684,7 @@ class _ConfigHelper:
 ```python
 class _ConfigDisplayHelper:
     """Helper for configuration display operations."""
-    
+
     @staticmethod
     def show_config(logger: FlextLogger) -> FlextResult[None]:
         """Show configuration using logger."""
@@ -695,7 +695,7 @@ class _ConfigDisplayHelper:
 ```python
 class _ConfigModificationHelper:
     """Helper for configuration modification operations."""
-    
+
     @staticmethod
     def edit_config() -> FlextResult[str]:
         """Edit configuration."""
@@ -706,7 +706,7 @@ class _ConfigModificationHelper:
 ```python
 class _ConfigValidationHelper:
     """Helper for configuration validation operations."""
-    
+
     @staticmethod
     def validate_config(config: object) -> FlextResult[None]:
         """Validate configuration."""
@@ -788,11 +788,11 @@ from flext_cli.models import FlextCliModels
 ```python
 class _CommandValidationHelper:
     """Nested helper for command validation - no loose functions."""
-    
+
     @staticmethod
     def validate_command_line(command_line: object) -> FlextResult[str]:
         """Validate command line parameter."""
-    
+
     @staticmethod
     def validate_command_object(command: object) -> FlextResult[FlextCliModels.CliCommand]:
         """Validate command object parameter."""
@@ -803,11 +803,11 @@ class _CommandValidationHelper:
 ```python
 class _CommandBuilderHelper:
     """Nested helper for command construction - no loose functions."""
-    
+
     @staticmethod
     def create_command_metadata(command_line: str) -> FlextCliModels.CliCommand:
         """Create command with proper metadata."""
-    
+
     @staticmethod
     def create_command_with_options(name: str, description: str, handler: object, **options: object) -> dict[str, object]:
         """Create command with options for CLI frameworks."""
@@ -872,11 +872,11 @@ from flext_cli.models import FlextCliModels
 ```python
 class _SessionValidationHelper:
     """Nested helper for session validation - no loose functions."""
-    
+
     @staticmethod
     def validate_session_id(session_id: object) -> FlextResult[str]:
         """Validate session ID parameter."""
-    
+
     @staticmethod
     def validate_user_id(user_id: object) -> FlextResult[str | None]:
         """Validate user ID parameter."""
@@ -887,11 +887,11 @@ class _SessionValidationHelper:
 ```python
 class _SessionStateHelper:
     """Nested helper for session state management - no loose functions."""
-    
+
     @staticmethod
     def create_session_metadata(user_id: str | None) -> FlextCliModels.CliSession:
         """Create session with proper metadata."""
-    
+
     @staticmethod
     def calculate_session_duration(session: FlextCliModels.CliSession) -> float:
         """Calculate session duration in seconds."""
@@ -998,7 +998,7 @@ from flext_cli.models import FlextCliModels
 @dataclass
 class ExecutionContext:
     """Extended context for command execution (lightweight dataclass)."""
-    
+
     command_name: str | None = None
     command_args: FlextTypes.Core.Dict = field(default_factory=dict)
     execution_id: str | None = None
@@ -1203,7 +1203,7 @@ def edit_config(self) -> FlextResult[str]:
 try:
     # Execute command (placeholder implementation)
     execution_result = f"Executed: {validated_command.command_line}"
-    
+
     # Update execution time by creating a new command with updated time
     updated_command = FlextCliModels.CliCommand(
         id=validated_command.id,
@@ -1215,13 +1215,13 @@ try:
         output=validated_command.output,
         error_output=validated_command.error_output,
     )
-    
+
     # Update the command in history if it exists
     for i, cmd in enumerate(self._command_history):
         if cmd.id == validated_command.id:
             self._command_history[i] = updated_command
             break
-    
+
     self._logger.info(f"Executed command: {validated_command.id}")
     return FlextResult[str].ok(execution_result)
 ```
@@ -1380,7 +1380,7 @@ return FlextResult[str].ok(f"Executed: {command_line}")  # Without executing
 **Modules with `format_data()` methods**:
 
 - `flext_cli_api.py` - Main API formatting
-- `core.py` - Core service formatting  
+- `core.py` - Core service formatting
 - `flext_cli_formatters.py` - Rich-based formatting
 - `protocols.py` - Protocol interface formatting
 
@@ -1602,7 +1602,7 @@ def authenticate(self, credentials: dict[str, object]) -> FlextResult[str]:
     if "username" in credentials and "password" in credentials:
         username = str(credentials["username"])
         password = str(credentials["password"])
-        
+
         # For now, this is a placeholder - in real implementation,
         # this would authenticate against an API endpoint
         mock_token = f"auth_token_{username}_{len(password)}"
@@ -1626,7 +1626,7 @@ def authenticate(self, credentials: dict[str, object]) -> FlextResult[str]:
     if "username" in credentials and "password" in credentials:
         username = str(credentials["username"])
         password = str(credentials["password"])
-        
+
         # Real implementation should:
         # 1. Hash password securely
         # 2. Call authentication API
@@ -1723,13 +1723,13 @@ def execute_command(self, command: object) -> FlextResult[str]:
     validation_result = self._CommandValidationHelper.validate_command_object(command)
     if validation_result.is_failure:
         return FlextResult[str].fail(validation_result.error or "Command object validation failed")
-    
+
     validated_command = validation_result.unwrap()
-    
+
     try:
         # Execute command (placeholder implementation)
         execution_result = f"Executed: {validated_command.command_line}"  # ❌ FAKE EXECUTION
-        
+
         # Update execution time by creating a new command with updated time
         updated_command = FlextCliModels.CliCommand(
             id=validated_command.id,
@@ -1758,14 +1758,14 @@ def execute_command(self, command: object) -> FlextResult[str]:
     validation_result = self._CommandValidationHelper.validate_command_object(command)
     if validation_result.is_failure:
         return FlextResult[str].fail(validation_result.error or "Command object validation failed")
-    
+
     validated_command = validation_result.unwrap()
-    
+
     try:
         # Real implementation should:
         # 1. Start command execution
         validated_command.start_execution()
-        
+
         # 2. Execute actual command
         import subprocess
         result = subprocess.run(
@@ -1774,17 +1774,17 @@ def execute_command(self, command: object) -> FlextResult[str]:
             text=True,
             timeout=30
         )
-        
+
         # 3. Update command with real results
         validated_command.complete_execution(
             exit_code=result.returncode,
             output=result.stdout,
             error_output=result.stderr
         )
-        
+
         # 4. Update history
         self._update_command_in_history(validated_command)
-        
+
         return FlextResult[str].ok(f"Command executed with exit code: {result.returncode}")
     except Exception as e:
         return FlextResult[str].fail(f"Command execution failed: {e}")
@@ -1824,13 +1824,13 @@ def add_command_to_session(
         # Real implementation should:
         # 1. Update session command count
         session.commands_executed += 1
-        
+
         # 2. Update session timestamp
         session.updated_at = datetime.now(UTC)
-        
+
         # 3. Store command reference (if model supports it)
         # session.commands.append(command.id)
-        
+
         return FlextResult[FlextCliModels.CliSession].ok(session)
     except Exception as e:
         return FlextResult[FlextCliModels.CliSession].fail(f"Add command to session failed: {e}")
@@ -1871,7 +1871,7 @@ def execute(self) -> FlextResult[FlextResult[str]]:
         health_result = self.health_check()
         if health_result.is_failure:
             return FlextResult[FlextResult[str]].fail(f"Health check failed: {health_result.error}")
-        
+
         # Return success result
         return FlextResult[FlextResult[str]].ok(
             FlextResult[str].ok("Domain service executed successfully")  # ❌ NESTED RESULT
@@ -1894,7 +1894,7 @@ def execute(self) -> FlextResult[str]:
         health_result = self.health_check()
         if health_result.is_failure:
             return FlextResult[str].fail(f"Health check failed: {health_result.error}")
-        
+
         return FlextResult[str].ok("Domain service executed successfully")
     except Exception as e:
         return FlextResult[str].fail(f"Execution failed: {e}")
@@ -2117,7 +2117,7 @@ def authenticate_user(self, username: str, password: str) -> FlextResult[str]:
     auth_result = self._auth_client.authenticate(username, password)
     if auth_result.is_failure:
         return FlextResult[str].fail(f"Authentication failed: {auth_result.error}")
-    
+
     # Generate secure token using flext-core utilities
     secure_token = FlextUtilities.Security.generate_secure_token(
         user_id=auth_result.value.user_id,
@@ -2139,7 +2139,7 @@ def set_config_value(self, key: str, value: str) -> FlextResult[bool]:
     config_result = FlextConfig.set_value(key, value)
     if config_result.is_failure:
         return FlextResult[bool].fail(f"Config save failed: {config_result.error}")
-    
+
     # Persist to file using flext-core file operations
     save_result = FlextUtilities.FileOperations.save_config_file(
         config_path=self._config_path,
@@ -2158,7 +2158,7 @@ execution_result = f"Executed: {validated_command.command_line}"
 def execute_command(self, command: FlextCliModels.CliCommand) -> FlextResult[str]:
     """Execute command with real subprocess execution."""
     import subprocess
-    
+
     try:
         # Execute command with subprocess
         result = subprocess.run(
@@ -2167,7 +2167,7 @@ def execute_command(self, command: FlextCliModels.CliCommand) -> FlextResult[str
             text=True,
             timeout=self._timeout_seconds
         )
-        
+
         # Update command with real results
         updated_command = command.model_copy(update={
             "exit_code": result.returncode,
@@ -2176,9 +2176,9 @@ def execute_command(self, command: FlextCliModels.CliCommand) -> FlextResult[str
             "execution_time": datetime.now(UTC),
             "status": "completed" if result.returncode == 0 else "failed"
         })
-        
+
         return FlextResult[str].ok(f"Command executed with exit code {result.returncode}")
-        
+
     except subprocess.TimeoutExpired:
         return FlextResult[str].fail("Command execution timed out")
     except Exception as e:
@@ -2193,7 +2193,7 @@ def execute_command(self, command: FlextCliModels.CliCommand) -> FlextResult[str
 # Create single formatting service using flext-core patterns
 class FlextCliFormattingService(FlextService[str]):
     """Consolidated formatting service using flext-core utilities."""
-    
+
     def format_data(self, data: object, format_type: str) -> FlextResult[str]:
         """Format data using flext-core utilities."""
         # Use FlextUtilities.Conversion for all formatting
@@ -2215,7 +2215,7 @@ class FlextCliFormattingService(FlextService[str]):
 # Use flext-core validation patterns
 class FlextCliValidationService(FlextService[bool]):
     """Consolidated validation service using flext-core patterns."""
-    
+
     def validate_business_rules(self, data: object) -> FlextResult[bool]:
         """Validate business rules using flext-core models."""
         # Use FlextModels validation
@@ -2250,7 +2250,7 @@ def format_table(self, data: list[dict], headers: list[str] = None) -> FlextResu
 def execute_command(self, command_line: str) -> FlextResult[CommandResult]:
     """Execute command using subprocess."""
     import subprocess
-    
+
     try:
         result = subprocess.run(
             command_line.split(),
@@ -2258,7 +2258,7 @@ def execute_command(self, command_line: str) -> FlextResult[CommandResult]:
             text=True,
             timeout=30
         )
-        
+
         return FlextResult[CommandResult].ok(CommandResult(
             exit_code=result.returncode,
             stdout=result.stdout,
@@ -2278,10 +2278,10 @@ def execute_command(self, command_line: str) -> FlextResult[CommandResult]:
 # Add commands list to CliSession model
 class CliSession(FlextModel):
     """CLI session model with commands tracking."""
-    
+
     # ... existing fields ...
     commands: list[CliCommand] = Field(default_factory=list)
-    
+
     def add_command(self, command: CliCommand) -> FlextResult[None]:
         """Add command to session."""
         self.commands.append(command)
@@ -2302,10 +2302,10 @@ def add_command_to_session(
             return FlextResult[FlextCliModels.CliSession].fail(
                 f"Failed to add command: {add_result.error}"
             )
-        
+
         # Update session timestamp
         session.last_activity = datetime.now(UTC)
-        
+
         return FlextResult[FlextCliModels.CliSession].ok(session)
     except Exception as e:
         return FlextResult[FlextCliModels.CliSession].fail(

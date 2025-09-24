@@ -39,6 +39,8 @@ dependencies = [
     # Local workspace packages are defined under [tool.poetry.dependencies.*]
     "toml (>=0.10.2,<0.11.0)",
     "flext-core @ file:///home/marlonsc/flext/flext-core",
+    "lxml (>=6.0.2,<7.0.0)",
+    "defusedxml (>=0.7.1,<0.8.0)",
 
 ]
 keywords = [
@@ -96,6 +98,7 @@ typings = [
     "types-requests>=2.32.4",
     "types-setuptools>=80.9.0",
     "types-toml>=0.10.8.20240310",
+    "types-pandas>=2.2.0",
 ]
 security = ["bandit>=1.8.0", "pip-audit>=2.7.3"]
 
@@ -147,6 +150,8 @@ email-validator = "^2.3.0"
 [tool.poetry.group.typings.dependencies]
 types-pyyaml = "^6.0.12.20250809"
 types-toml = "^0.10.8.20240310"
+types-lxml = "^2025.8.25"
+types-defusedxml = "^0.7.0.20250822"
 
 [tool.bandit]
 extend = "../.bandit-shared.toml"
@@ -225,12 +230,12 @@ exclude = [
 # Click framework decorators create untyped functions (known limitation)
 # These modules use Click decorators and are CLI infrastructure, not business logic
 [[tool.mypy.overrides]]
-module = ["flext_cli.cli", "flext_cli.auth", "flext_cli.cmd", "flext_cli.debug"]
+module = ["flext_cli.cli", "flext_cli.auth", "flext_cli.cmd", "flext_cli.debug", "flext_cli.config", "flext_cli.exceptions", "flext_cli.constants", "flext_cli.protocols", "flext_cli.mixins", "flext_cli.prompts", "flext_cli.output", "flext_cli.models", "flext_cli.file_tools", "flext_cli.commands", "flext_cli.utilities", "flext_cli.logging_setup", "flext_cli.core", "flext_cli.context", "flext_cli.api", "flext_cli.typings"]
 disable_error_code = ["misc"]
 
 
 [[tool.mypy.overrides]]
-module = ["click", "click.*", "httpx", "httpx.*", "rich", "rich.*"]
+module = ["click", "click.*", "httpx", "httpx.*", "rich", "rich.*", "pyarrow", "pyarrow.*", "pandas", "pandas.*", "flext_core", "flext_core.*"]
 ignore_missing_imports = true
 follow_imports = "skip"
 
@@ -262,6 +267,7 @@ markers = [
     "security: marks tests as security tests",
     "compatibility: marks tests as compatibility tests",
     "asyncio: marks tests as asyncio tests",
+    "auth: marks tests as authentication tests",
 ]
 
 [tool.ruff]
@@ -269,5 +275,40 @@ extend = "../ruff-shared.toml"
 lint.isort.known-first-party = ["flext_cli"]
 lint.ignore = ["S404", "PLC2701"]
 
+[tool.pyright]
+include = ["src/", "tests/"]
+exclude = [
+    "__pycache__/",
+    ".mypy_cache/",
+    ".pytest_cache/",
+    ".ruff_cache/",
+    ".venv/",
+    "build/",
+    "dist/",
+    "node_modules/",
+]
+reportMissingSuperCall = false
+pythonPlatform = "Linux"
+pythonVersion = "3.13"
+typeCheckingMode = "basic"
+venvPath = ".."
+venv = ".venv"
+reportUnknownVariableType = false
+reportUnknownMemberType = false
+reportUnknownArgumentType = false
+reportAttributeAccessIssue = false
+reportArgumentType = false
+
+[[tool.pyright.executionEnvironments]]
+root = "."
+extraPaths = [
+    "src/",
+    "tests/",
+    "../flext-core/src/",
+]
+reportImplicitRelativeImport = false
+reportPrivateUsage = false
+
 [tool.vulture]
 extend = "../.vulture-shared.toml"
+

@@ -1,4 +1,4 @@
-"""Tests for FlextCliMain - Consolidated CLI main class.
+"""Tests for FlextCliCommands - Consolidated CLI main class.
 
 Comprehensive tests for the consolidated CLI functionality that replaced
 cli.py, unified_cli.py, cli_bus.py, and cmd.py modules.
@@ -11,23 +11,22 @@ from __future__ import annotations
 
 import pytest
 
-from flext_cli import FlextCliMain as ImportedMain
-from flext_cli.flext_cli_main import FlextCliMain
+from flext_cli import FlextCliCommands, FlextCliCommands as ImportedMain
 
 
 class TestFlextCliMain:
-    """Test FlextCliMain - consolidated CLI main class."""
+    """Test FlextCliCommands - consolidated CLI main class."""
 
     def test_cli_main_initialization(self) -> None:
-        """Test FlextCliMain can be initialized."""
-        cli = FlextCliMain()
+        """Test FlextCliCommands can be initialized."""
+        cli = FlextCliCommands()
         assert cli is not None
 
     def test_cli_main_has_expected_methods(self) -> None:
-        """Test FlextCliMain has expected CLI methods."""
-        cli = FlextCliMain()
+        """Test FlextCliCommands has expected CLI methods."""
+        cli = FlextCliCommands()
 
-        # Check for actual CLI methods from FlextCliMain implementation
+        # Check for actual CLI methods from FlextCliCommands implementation
         expected_methods = [
             "execute",
             "add_command",
@@ -45,17 +44,17 @@ class TestFlextCliMain:
             )
 
     def test_cli_main_initialization_with_params(self) -> None:
-        """Test FlextCliMain initialization with parameters."""
-        cli = FlextCliMain(name="test-cli", description="Test CLI application")
+        """Test FlextCliCommands initialization with parameters."""
+        cli = FlextCliCommands(name="test-cli", description="Test CLI application")
         assert cli is not None
-        # FlextCliMain doesn't expose name/description as properties
+        # FlextCliCommands doesn't expose name/description as properties
         # but stores them internally in the Click group
         assert hasattr(cli, "_cli_group")
         assert cli._cli_group.name == "test-cli"
 
     def test_cli_main_register_command_basic(self) -> None:
         """Test basic command registration."""
-        cli = FlextCliMain()
+        cli = FlextCliCommands()
 
         def test_command() -> str:
             return "test"
@@ -66,7 +65,7 @@ class TestFlextCliMain:
 
     def test_cli_main_add_group_basic(self) -> None:
         """Test basic command group creation using actual API."""
-        cli = FlextCliMain()
+        cli = FlextCliCommands()
 
         # Should be able to add a group using actual API
         result = cli.add_group("group", "Test group")
@@ -74,7 +73,7 @@ class TestFlextCliMain:
 
     def test_cli_main_create_group_basic(self) -> None:
         """Test basic group creation."""
-        cli = FlextCliMain()
+        cli = FlextCliCommands()
 
         # Should be able to add a group using actual API
         result = cli.add_group("mygroup", "Test group")
@@ -83,8 +82,8 @@ class TestFlextCliMain:
         assert group is not None
 
     def test_cli_main_has_core_attributes(self) -> None:
-        """Test FlextCliMain has core attributes."""
-        cli = FlextCliMain()
+        """Test FlextCliCommands has core attributes."""
+        cli = FlextCliCommands()
 
         # Check for core attributes from actual implementation
         expected_attributes = [
@@ -100,11 +99,11 @@ class TestFlextCliMain:
 
 
 class TestFlextCliMainAdvanced:
-    """Advanced tests for FlextCliMain."""
+    """Advanced tests for FlextCliCommands."""
 
     def test_cli_main_command_execution(self) -> None:
         """Test CLI command execution."""
-        cli = FlextCliMain()
+        cli = FlextCliCommands()
 
         executed: list[str] = []
 
@@ -124,7 +123,7 @@ class TestFlextCliMainAdvanced:
 
     def test_cli_main_handles_help_command(self) -> None:
         """Test CLI handles help command."""
-        cli = FlextCliMain()
+        cli = FlextCliCommands()
 
         # Should handle help without errors
         try:
@@ -135,7 +134,7 @@ class TestFlextCliMainAdvanced:
 
     def test_cli_main_handles_version_command(self) -> None:
         """Test CLI handles version command."""
-        cli = FlextCliMain()
+        cli = FlextCliCommands()
 
         # Should handle version without errors
         try:
@@ -145,8 +144,8 @@ class TestFlextCliMainAdvanced:
             pass
 
     def test_cli_main_core_functionality(self) -> None:
-        """Test core FlextCliMain functionality."""
-        cli = FlextCliMain()
+        """Test core FlextCliCommands functionality."""
+        cli = FlextCliCommands()
 
         # Test execute method (required by FlextService)
         execute_result = cli.execute()
@@ -161,7 +160,7 @@ class TestFlextCliMainAdvanced:
 
     def test_cli_main_command_integration(self) -> None:
         """Test command integration functionality."""
-        cli = FlextCliMain()
+        cli = FlextCliCommands()
 
         # Test adding multiple commands
         def cmd1() -> str:
@@ -185,7 +184,7 @@ class TestFlextCliMainAdvanced:
 
     def test_cli_main_group_integration(self) -> None:
         """Test group integration functionality."""
-        cli = FlextCliMain()
+        cli = FlextCliCommands()
 
         # Test adding groups
         result1 = cli.add_group("config", "Configuration commands")
@@ -197,23 +196,26 @@ class TestFlextCliMainAdvanced:
         # Test accessing the Click group
         click_group = cli.get_click_group()
         assert click_group is not None
-        assert "config" in click_group.commands
-        assert "auth" in click_group.commands
+        # Type assertion to help MyPy understand the object type
+        assert hasattr(click_group, "commands")
+        commands = getattr(click_group, "commands", {})
+        assert "config" in commands
+        assert "auth" in commands
 
 
 class TestFlextCliMainIntegration:
-    """Integration tests for FlextCliMain."""
+    """Integration tests for FlextCliCommands."""
 
     def test_cli_main_can_be_imported_from_main_package(self) -> None:
-        """Test FlextCliMain can be imported from main package."""
+        """Test FlextCliCommands can be imported from main package."""
         cli = ImportedMain()
         assert cli is not None
-        assert isinstance(cli, FlextCliMain)
+        assert isinstance(cli, FlextCliCommands)
 
     def test_cli_main_is_primary_cli_api(self) -> None:
-        """Test FlextCliMain is designated as primary CLI API."""
+        """Test FlextCliCommands is designated as primary CLI API."""
         # Should be importable as the primary CLI class
-        cli = FlextCliMain()
+        cli = FlextCliCommands()
         assert cli is not None
 
         # Should have comprehensive CLI capabilities
@@ -224,8 +226,8 @@ class TestFlextCliMainIntegration:
         assert len(cli_methods) >= 3, "Should have multiple CLI methods"
 
     def test_cli_main_consolidates_old_functionality(self) -> None:
-        """Test FlextCliMain consolidates functionality from old modules."""
-        cli = FlextCliMain()
+        """Test FlextCliCommands consolidates functionality from old modules."""
+        cli = FlextCliCommands()
 
         # Should have consolidated functionality from:
         # - cli.py (main CLI functionality)
@@ -245,11 +247,11 @@ class TestFlextCliMainIntegration:
 
 
 class TestFlextCliMainErrorHandling:
-    """Error handling tests for FlextCliMain."""
+    """Error handling tests for FlextCliCommands."""
 
     def test_cli_main_handles_invalid_commands(self) -> None:
         """Test CLI handles invalid commands gracefully."""
-        cli = FlextCliMain()
+        cli = FlextCliCommands()
 
         # Should handle invalid command without crashing
         try:
@@ -264,7 +266,7 @@ class TestFlextCliMainErrorHandling:
 
     def test_cli_main_handles_empty_args(self) -> None:
         """Test CLI handles empty arguments."""
-        cli = FlextCliMain()
+        cli = FlextCliCommands()
 
         # Should handle empty args (typically shows help)
         try:
@@ -275,7 +277,7 @@ class TestFlextCliMainErrorHandling:
 
     def test_cli_main_handles_malformed_registration(self) -> None:
         """Test CLI handles malformed command registration."""
-        cli = FlextCliMain()
+        cli = FlextCliCommands()
 
         # Should handle invalid command registration gracefully
         result = cli.add_command("", None)  # Invalid parameters

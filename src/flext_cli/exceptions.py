@@ -24,7 +24,7 @@ class FlextCliExceptions(FlextExceptions):
     - Implements CLI-specific extensions while reusing core functionality
     """
 
-    class BaseError(FlextExceptions.BaseError):
+    class _BaseError(FlextExceptions.BaseError):
         """Base CLI exception extending FlextExceptions.BaseError.
 
         Simple exception class for CLI error scenarios with error categorization
@@ -53,63 +53,63 @@ class FlextCliExceptions(FlextExceptions):
         def __repr__(self) -> str:
             """Return detailed representation for debugging."""
             return (
-                f"FlextCliExceptions.BaseError("
+                f"FlextCliExceptions._BaseError("
                 f"message='{self.message}', "
                 f"error_code='{self.error_code}', "
                 f"context={self.context})"
             )
 
-        def is_error_code(self, error_code: str) -> bool:
-            """Check if exception matches specific error code."""
-            return self.error_code == error_code
-
         def get_context_value(self, key: str, default: object = None) -> object:
             """Get context value by key with optional default."""
             return self.context.get(key, default)
 
-    class ValidationError(BaseError):
+        def is_error_code(self, error_code: str) -> bool:
+            """Check if exception matches specific error code."""
+            return str(self.error_code) == error_code
+
+    class _CliValidationError(_BaseError):
         """CLI validation error exception."""
 
         def __init__(self, message: str, **context: object) -> None:
             """Initialize validation error with message and context."""
-            super().__init__(message, error_code="VALIDATION_ERROR", **context)
+            super().__init__(message, error_code="CLI_VALIDATION_ERROR", **context)
 
-    class ConfigurationError(BaseError):
+    class _CliConfigurationError(_BaseError):
         """CLI configuration error exception."""
 
         def __init__(self, message: str, **context: object) -> None:
             """Initialize configuration error with message and context."""
-            super().__init__(message, error_code="CONFIGURATION_ERROR", **context)
+            super().__init__(message, error_code="CLI_CONFIGURATION_ERROR", **context)
 
-    class CliConnectionError(BaseError):
+    class _CliConnectionError(_BaseError):
         """CLI connection error exception."""
 
         def __init__(self, message: str, **context: object) -> None:
             """Initialize connection error with message and context."""
-            super().__init__(message, error_code="CONNECTION_ERROR", **context)
+            super().__init__(message, error_code="CLI_CONNECTION_ERROR", **context)
 
-    class AuthenticationError(BaseError):
+    class _CliAuthenticationError(_BaseError):
         """CLI authentication error exception."""
 
         def __init__(self, message: str, **context: object) -> None:
             """Initialize authentication error with message and context."""
-            super().__init__(message, error_code="AUTHENTICATION_ERROR", **context)
+            super().__init__(message, error_code="CLI_AUTHENTICATION_ERROR", **context)
 
-    class CommandError(BaseError):
+    class _CommandError(_BaseError):
         """CLI command error exception."""
 
         def __init__(self, message: str, **context: object) -> None:
             """Initialize command error with message and context."""
             super().__init__(message, error_code="COMMAND_ERROR", **context)
 
-    class CliTimeoutError(BaseError):
+    class _CliTimeoutError(_BaseError):
         """CLI timeout error exception."""
 
         def __init__(self, message: str, **context: object) -> None:
             """Initialize timeout error with message and context."""
-            super().__init__(message, error_code="TIMEOUT_ERROR", **context)
+            super().__init__(message, error_code="CLI_TIMEOUT_ERROR", **context)
 
-    class FormatError(BaseError):
+    class _FormatError(_BaseError):
         """CLI format error exception."""
 
         def __init__(self, message: str, **context: object) -> None:
@@ -117,12 +117,49 @@ class FlextCliExceptions(FlextExceptions):
             super().__init__(message, error_code="FORMAT_ERROR", **context)
 
 
-# Backward compatibility alias - maintain ABI for tests and ecosystem
-# Direct access: Use FlextCliExceptions.ValidationError(), etc. instead of factory methods
-FlextCliError = FlextCliExceptions.BaseError
+# Public aliases for backward compatibility and ecosystem access
+FlextCliError = FlextCliExceptions._BaseError
+ValidationError = FlextCliExceptions._CliValidationError
+ConfigurationError = FlextCliExceptions._CliConfigurationError
+ConnectionError = FlextCliExceptions._CliConnectionError
+AuthenticationError = FlextCliExceptions._CliAuthenticationError
+CommandError = FlextCliExceptions._CommandError
+TimeoutError = FlextCliExceptions._CliTimeoutError
+FormatError = FlextCliExceptions._FormatError
+
+# Additional aliases for test compatibility
+CliConnectionError = FlextCliExceptions._CliConnectionError
+CliTimeoutError = FlextCliExceptions._CliTimeoutError
+
+# Expose exception classes directly on the main class for easier access
+# Using setattr to avoid pyright issues with dynamic attribute assignment
+setattr(FlextCliExceptions, "CommandError", FlextCliExceptions._CommandError)
+setattr(FlextCliExceptions, "FormatError", FlextCliExceptions._FormatError)
+setattr(
+    FlextCliExceptions, "ConfigurationError", FlextCliExceptions._CliConfigurationError
+)
+setattr(
+    FlextCliExceptions, "CliConnectionError", FlextCliExceptions._CliConnectionError
+)
+setattr(FlextCliExceptions, "CliTimeoutError", FlextCliExceptions._CliTimeoutError)
+setattr(FlextCliExceptions, "ValidationError", FlextCliExceptions._CliValidationError)
+setattr(
+    FlextCliExceptions,
+    "AuthenticationError",
+    FlextCliExceptions._CliAuthenticationError,
+)
 
 
 __all__ = [
+    "AuthenticationError",
+    "CliConnectionError",
+    "CliTimeoutError",
+    "CommandError",
+    "ConfigurationError",
+    "ConnectionError",
     "FlextCliError",  # Backward compatibility
     "FlextCliExceptions",
+    "FormatError",
+    "TimeoutError",
+    "ValidationError",
 ]

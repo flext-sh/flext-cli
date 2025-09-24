@@ -13,17 +13,17 @@ from unittest.mock import patch
 
 import pytest
 
-from flext_cli.decorators import FlextCliDecorators as D
+from flext_cli import FlextCliUtilities
 from flext_core import FlextConstants
 
 # Map class methods to local names for decorator usage in tests
-async_command = D.async_command
-confirm_action = D.confirm_action
-measure_time = D.measure_time
-require_auth = D.require_auth
-retry = D.retry
-validate_config = D.validate_config
-with_spinner = D.with_spinner
+async_command = FlextCliUtilities.Decorators.async_command
+confirm_action = FlextCliUtilities.Decorators.confirm_action
+measure_time = FlextCliUtilities.Decorators.measure_time
+require_auth = FlextCliUtilities.Decorators.require_auth
+retry = FlextCliUtilities.Decorators.retry
+validate_config = FlextCliUtilities.Decorators.validate_config
+with_spinner = FlextCliUtilities.Decorators.with_spinner
 
 # Constants
 EXPECTED_BULK_SIZE = 2
@@ -43,29 +43,12 @@ class TestAsyncCommand:
 
         # Decorator returns object type - test directly without type narrowing
         assert callable(sample_async_function)
-        # Decorator converts async to sync, so it should NOT be a coroutine function
-        assert not asyncio.iscoroutinefunction(sample_async_function)
-        # Test execution (now sync)
-        result = sample_async_function()
+        # Decorator should preserve async nature
+        assert asyncio.iscoroutinefunction(sample_async_function)
+        # Test execution (async)
+        result = asyncio.run(sample_async_function())
 
-        # Handle both cases: if decorator works correctly or if it returns coroutine
-        if asyncio.iscoroutine(result):
-            # If we're in an event loop, we need to handle this differently
-            try:
-                loop = asyncio.get_running_loop()
-                # We're in an event loop, so we can't use asyncio.run
-                # Instead, we'll create a task and wait for it
-                task = loop.create_task(result)
-                actual_result = task.result()
-            except RuntimeError:
-                # No event loop running, safe to use asyncio.run
-                actual_result = asyncio.run(result)
-        else:
-            actual_result = result
-
-        assert actual_result == "async result", (
-            f"Expected 'async result', got {actual_result}"
-        )
+        assert result == "async result", f"Expected 'async result', got {result}"
 
     def test_async_command_with_arguments(self) -> None:
         """Test async command decorator with arguments."""
@@ -101,8 +84,9 @@ class TestAsyncCommand:
         """Test that async command decorator preserves function metadata."""
 
         @async_command
-        def documented_async_function() -> str:
+        async def documented_async_function() -> str:
             """A documented async function."""
+            await asyncio.sleep(0.001)  # Use async feature
             return "result"
 
         # Decorator returns object type - test directly without type narrowing
@@ -242,8 +226,8 @@ class TestMeasureTime:
     def test_measure_time_with_output(self) -> None:
         """Test measure_time decorator with output enabled."""
         with (
-            patch("flext_cli.decorators.time.time") as mock_time,
-            patch("flext_cli.decorators.FlextLogger") as mock_logger_class,
+            patch("flext_cli.utilities.time.time") as mock_time,
+            patch("flext_cli.utilities.FlextLogger") as mock_logger_class,
         ):
             # Start time, End time to get 2.50s elapsed (1002.5 - 1000.0 = 2.5)
             mock_time.side_effect = [1000.0, 1002.5]  # Start time, End time
@@ -263,8 +247,8 @@ class TestMeasureTime:
     def test_measure_time_without_output(self) -> None:
         """Test measure_time decorator with output disabled."""
         with (
-            patch("flext_cli.decorators.time.time") as mock_time,
-            patch("flext_cli.decorators.FlextLogger.info") as mock_logger,
+            patch("flext_cli.utilities.time.time") as mock_time,
+            patch("flext_cli.utilities.FlextLogger.info") as mock_logger,
         ):
             mock_time.side_effect = [1000.0, 1001.0]  # Start and end time
 
@@ -280,8 +264,8 @@ class TestMeasureTime:
 
     def test_measure_time_preserves_function_signature(self) -> None:
         """Test that measure_time preserves function signature."""
-        with patch("flext_cli.decorators.time.time") as mock_time:
-            mock_time.side_effect = [1000.0, 1001.0, 1002.0]
+        with patch("flext_cli.utilities.time.time") as mock_time:
+            mock_time.side_effect = [1000.0, 1001.0, 1002.0, 1003.0, 1004.0]
 
             @measure_time()
             def function_with_args(
@@ -355,7 +339,7 @@ class TestRetry:
 
     def test_retry_delay_between_attempts(self) -> None:
         """Test retry delay between attempts."""
-        with patch("flext_cli.decorators.time.sleep") as mock_sleep:
+        with patch("flext_cli.utilities.time.sleep") as mock_sleep:
             call_count = 0
 
             @retry(max_attempts=3)
@@ -396,7 +380,7 @@ class TestValidateConfig:
 
     def test_validate_config_with_missing_keys(self) -> None:
         """Test validate_config with missing required keys."""
-        with patch("flext_cli.decorators.FlextLogger.error") as mock_logger:
+        with patch("flext_cli.utilities.FlextLogger.error") as mock_logger:
             # Create mock config object missing required attributes
             class MockConfig:
                 api_url = f"http://{FlextConstants.Platform.DEFAULT_HOST}:{FlextConstants.Platform.FLEXT_API_PORT}"
@@ -419,7 +403,7 @@ class TestValidateConfig:
 
     def test_validate_config_no_context(self) -> None:
         """Test validate_config when no config available."""
-        with patch("flext_cli.decorators.FlextLogger.warning") as mock_logger:
+        with patch("flext_cli.utilities.FlextLogger.warning") as mock_logger:
 
             @validate_config(["api_url"])
             def function_requiring_config() -> str:
@@ -444,7 +428,7 @@ class TestWithSpinner:
 
     def test_with_spinner_default_message(self) -> None:
         """Test with_spinner decorator with default message."""
-        with patch("flext_cli.decorators.FlextLogger.info") as mock_logger:
+        with patch("flext_cli.utilities.FlextLogger.info") as mock_logger:
 
             @with_spinner()
             def long_running_task() -> str:
@@ -457,12 +441,12 @@ class TestWithSpinner:
                 raise AssertionError(msg)
             # Verify that logger was called for start and completion
             assert mock_logger.call_count == 2
-            mock_logger.assert_any_call("Starting: Processing...")
-            mock_logger.assert_any_call("Completed: Processing...")
+            mock_logger.assert_any_call("🔄 Processing...")
+            mock_logger.assert_any_call("✅ Processing... completed")
 
     def test_with_spinner_custom_message(self) -> None:
         """Test with_spinner decorator with custom message."""
-        with patch("flext_cli.decorators.FlextLogger.info") as mock_logger:
+        with patch("flext_cli.utilities.FlextLogger.info") as mock_logger:
 
             @with_spinner("Calculating results...")
             def calculation_task() -> str:
@@ -475,12 +459,12 @@ class TestWithSpinner:
                 raise AssertionError(msg)
             # Verify that logger was called for start and completion
             assert mock_logger.call_count == 2
-            mock_logger.assert_any_call("Starting: Calculating results...")
-            mock_logger.assert_any_call("Completed: Calculating results...")
+            mock_logger.assert_any_call("🔄 Calculating results...")
+            mock_logger.assert_any_call("✅ Calculating results... completed")
 
     def test_with_spinner_exception_handling(self) -> None:
         """Test with_spinner decorator with exception handling."""
-        with patch("flext_cli.decorators.FlextLogger.info") as mock_logger:
+        with patch("flext_cli.utilities.FlextLogger.info") as mock_logger:
 
             @with_spinner("Processing...")
             def failing_task() -> str:
@@ -491,7 +475,7 @@ class TestWithSpinner:
                 failing_task()
             # Verify that logger was called for start (completion won't be called due to exception)
             assert mock_logger.call_count == 1
-            mock_logger.assert_called_once_with("Starting: Processing...")
+            mock_logger.assert_called_once_with("🔄 Processing...")
 
 
 class TestDecoratorCombinations:
@@ -501,7 +485,7 @@ class TestDecoratorCombinations:
         """Test combining multiple decorators."""
         with (
             patch("builtins.input") as mock_input,
-            patch("flext_cli.decorators.time.time") as mock_time,
+            patch("flext_cli.utilities.time.time") as mock_time,
         ):
             mock_input.return_value = "y"
             mock_time.side_effect = [1000.0, 1001.0, 1002.0]

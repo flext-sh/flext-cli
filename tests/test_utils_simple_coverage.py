@@ -6,7 +6,7 @@ SPDX-License-Identifier: MIT
 
 from pathlib import Path
 
-from flext_cli.utils import FlextCliUtilities
+from flext_cli import FlextCliUtilities
 
 
 class TestFlextCliUtilitiesSimple:

@@ -5,7 +5,7 @@ This example demonstrates building a complete, real-world CLI application
 using all flext-cli patterns and components:
 
 Key Patterns Demonstrated:
-- Complete CLI application structure with FlextCliMain and FlextCliApi
+- Complete CLI application structure with FlextCliCommands and FlextCliApi
 - Integration of all flext-cli components in a cohesive application
 - Configuration management with profiles and environments
 - Command lifecycle with validation, execution, and reporting
@@ -23,12 +23,11 @@ from __future__ import annotations
 import sys
 from datetime import UTC, datetime
 from pathlib import Path
-from typing import Any
 
 from flext_cli import (
     FlextCliApi,
+    FlextCliCommands,
     FlextCliConfig,
-    FlextCliMain,
     FlextCliService,
 )
 from flext_core import FlextContainer, FlextLogger, FlextResult, FlextTypes
@@ -81,7 +80,7 @@ class ComprehensiveCliApplication:
 
     def _register_core_services(self) -> None:
         """Register core services in the DI container."""
-        services: list[tuple[str, Any]] = [
+        services: list[tuple[str, object]] = [
             ("logger", self.logger),
             ("config", self.config),
             ("api_client", self.api_client),
@@ -101,11 +100,11 @@ class ComprehensiveCliApplication:
             "verbose_logging": False,
         }
 
-    def create_cli_interface(self) -> FlextResult[FlextCliMain]:
+    def create_cli_interface(self) -> FlextResult[FlextCliCommands]:
         """Create the comprehensive CLI interface using flext-cli patterns."""
         try:
             # Initialize CLI main instance
-            cli_main = FlextCliMain(
+            cli_main = FlextCliCommands(
                 name="comprehensive-cli",
                 description="FLEXT-CLI Comprehensive Application Demonstration",
             )
@@ -116,12 +115,14 @@ class ComprehensiveCliApplication:
             self._register_config_commands(cli_main)
             self._register_interactive_commands(cli_main)
 
-            return FlextResult[FlextCliMain].ok(cli_main)
+            return FlextResult[FlextCliCommands].ok(cli_main)
 
         except Exception as e:
-            return FlextResult[FlextCliMain].fail(f"CLI interface creation failed: {e}")
+            return FlextResult[FlextCliCommands].fail(
+                f"CLI interface creation failed: {e}"
+            )
 
-    def _register_project_commands(self, cli_main: FlextCliMain) -> None:
+    def _register_project_commands(self, cli_main: FlextCliCommands) -> None:
         """Register project management commands."""
         create_cmd_result = self.cli_api.create_command(
             name="create",
@@ -147,7 +148,7 @@ class ComprehensiveCliApplication:
             description="Project management commands",
         )
 
-    def _register_service_commands(self, cli_main: FlextCliMain) -> None:
+    def _register_service_commands(self, cli_main: FlextCliCommands) -> None:
         """Register service management commands."""
         health_cmd_result = self.cli_api.create_command(
             name="health",
@@ -164,7 +165,7 @@ class ComprehensiveCliApplication:
             description="Service management commands",
         )
 
-    def _register_config_commands(self, cli_main: FlextCliMain) -> None:
+    def _register_config_commands(self, cli_main: FlextCliCommands) -> None:
         """Register configuration commands."""
         show_cmd_result = self.cli_api.create_command(
             name="show",
@@ -190,7 +191,7 @@ class ComprehensiveCliApplication:
             description="Configuration management commands",
         )
 
-    def _register_interactive_commands(self, cli_main: FlextCliMain) -> None:
+    def _register_interactive_commands(self, cli_main: FlextCliCommands) -> None:
         """Register interactive commands."""
         wizard_cmd_result = self.cli_api.create_command(
             name="wizard",

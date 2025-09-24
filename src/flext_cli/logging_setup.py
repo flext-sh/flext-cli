@@ -50,17 +50,17 @@ class FlextCliLoggingSetup(FlextService[dict[str, object]]):
         self._resolved_config = config or FlextCliConfig.MainConfig()
 
     def execute(self) -> FlextResult[dict[str, object]]:
-        """Execute logging setup - FlextService interface.
-
-        Returns:
-            FlextResult[dict[str, object]]: Description of return value.
-
-        """
-        self._logger.info("Executing logging setup")
-        return FlextResult[dict[str, object]].ok({
-            "status": "completed",
-            "message": "Logging setup executed",
-        })
+        """Execute logging setup - required by FlextService."""
+        result = self.get_current_log_config()
+        if result.is_success:
+            # Convert dict[str, str] to dict[str, object] and add status
+            config_dict: dict[str, object] = dict(result.unwrap())
+            config_dict["status"] = "completed"
+            config_dict["message"] = "Logging setup executed"
+            return FlextResult[dict[str, object]].ok(config_dict)
+        return FlextResult[dict[str, object]].fail(
+            result.error or "Logging setup failed"
+        )
 
     def setup_logging(self) -> FlextResult[FlextCliConfig.LoggingConfig]:
         """Setup logging with automatic source detection.
@@ -243,7 +243,7 @@ class FlextCliLoggingSetup(FlextService[dict[str, object]]):
             return FlextResult[str].fail(f"Log level detection failed: {e}")
 
     @property
-    def is_setup_complete(self) -> bool:
+    def is_setup_complete(self: object) -> bool:
         """Check if logging setup has been completed.
 
         Returns:
@@ -323,7 +323,7 @@ class FlextCliLoggingSetup(FlextService[dict[str, object]]):
             return FlextResult[str].fail(f"Failed to set log verbosity: {e}")
 
     @classmethod
-    def get_current_log_config(cls) -> FlextResult[dict[str, str]]:
+    def get_current_log_config(cls: object) -> FlextResult[dict[str, str]]:
         """Get current logging configuration for all FLEXT projects.
 
         Returns:
@@ -331,11 +331,11 @@ class FlextCliLoggingSetup(FlextService[dict[str, object]]):
 
         """
         try:
-            config = {
+            config: dict[str, str] = {
                 "log_level": os.environ.get("FLEXT_LOG_LEVEL", "INFO"),
                 "log_verbosity": os.environ.get("FLEXT_LOG_VERBOSITY", "detailed"),
                 "cli_log_level": os.environ.get("FLEXT_CLI_LOG_LEVEL", "INFO"),
-                "configured": str(cls._setup_complete),
+                "configured": str(FlextCliLoggingSetup._setup_complete),
             }
             return FlextResult[dict[str, str]].ok(config)
         except Exception as e:

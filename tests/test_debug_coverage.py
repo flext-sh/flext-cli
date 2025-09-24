@@ -3,7 +3,7 @@
 import os
 from unittest.mock import patch
 
-from flext_cli.debug import FlextCliDebug
+from flext_cli import FlextCliDebug
 from flext_core import FlextResult
 
 

@@ -36,17 +36,26 @@ class FlextCliMixins(FlextMixins):
         """
 
         @staticmethod
-        def validate_not_empty(field_name: str, field_value: str) -> FlextResult[None]:
+        def validate_not_empty(
+            field_name: str, field_value: str | float | None
+        ) -> FlextResult[None]:
             """Validate that a field is not empty or whitespace.
 
             Args:
                 field_name: Name of the field for error messages
-                field_value: String value to validate
+                field_value: Value to validate (string, number, or boolean)
 
             Returns:
                 FlextResult[None]: Success or failure result
 
             """
+            # Handle non-string types
+            if not isinstance(field_value, str):
+                if not field_value:  # Falsy values (0, False, None, empty collections)
+                    return FlextResult[None].fail(f"{field_name} cannot be empty")
+                return FlextResult[None].ok(None)
+
+            # Handle string types
             if not field_value or not field_value.strip():
                 return FlextResult[None].fail(f"{field_name} cannot be empty")
             return FlextResult[None].ok(None)

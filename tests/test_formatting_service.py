@@ -1,6 +1,6 @@
-"""Tests for FlextCliFormatters - Real API only.
+"""Tests for FlextCliOutput - Real API only.
 
-Tests FlextCliFormatters using actual implemented methods.
+Tests FlextCliOutput using actual implemented methods.
 
 Copyright (c) 2025 FLEXT Team. All rights reserved.
 SPDX-License-Identifier: MIT
@@ -8,25 +8,25 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from flext_cli.flext_cli_formatters import FlextCliFormatters
+from flext_cli import FlextCliOutput
 
 
 class TestFlextCliFormatters:
-    """Test FlextCliFormatters - real API."""
+    """Test FlextCliOutput - real API."""
 
     def test_formatters_initialization(self) -> None:
-        """Test FlextCliFormatters can be initialized."""
-        service = FlextCliFormatters()
+        """Test FlextCliOutput can be initialized."""
+        service = FlextCliOutput()
         assert service is not None
 
     def test_formatters_has_real_methods(self) -> None:
-        """Test FlextCliFormatters has actual formatting methods."""
-        service = FlextCliFormatters()
+        """Test FlextCliOutput has actual formatting methods."""
+        service = FlextCliOutput()
 
         # Real methods from actual API
         expected_methods = [
             "format_data",
-            "_format_csv_simple",
+            "format_csv",
         ]
 
         for method_name in expected_methods:
@@ -37,7 +37,7 @@ class TestFlextCliFormatters:
 
     def test_format_data_with_dict_list(self) -> None:
         """Test format_data with list of dictionaries."""
-        service = FlextCliFormatters()
+        service = FlextCliOutput()
 
         data: list[dict[str, object]] = [
             {"name": "John", "age": 30},
@@ -50,7 +50,7 @@ class TestFlextCliFormatters:
 
     def test_format_data_json(self) -> None:
         """Test format_data with JSON format."""
-        service = FlextCliFormatters()
+        service = FlextCliOutput()
 
         data: dict[str, object] = {"key": "value", "number": 42}
         result = service.format_data(data, "json")
@@ -62,7 +62,7 @@ class TestFlextCliFormatters:
 
     def test_format_data_yaml(self) -> None:
         """Test format_data with YAML format."""
-        service = FlextCliFormatters()
+        service = FlextCliOutput()
 
         data: dict[str, object] = {"key": "value", "number": 42}
         result = service.format_data(data, "yaml")
@@ -72,7 +72,7 @@ class TestFlextCliFormatters:
 
     def test_format_data_csv(self) -> None:
         """Test format_data with CSV format."""
-        service = FlextCliFormatters()
+        service = FlextCliOutput()
 
         data: list[dict[str, object]] = [
             {"name": "John", "age": 30},
@@ -85,7 +85,7 @@ class TestFlextCliFormatters:
 
     def test_format_data_unsupported_format(self) -> None:
         """Test format_data with unsupported format."""
-        service = FlextCliFormatters()
+        service = FlextCliOutput()
 
         data: dict[str, object] = {"key": "value"}
         result = service.format_data(data, "xml")
@@ -95,14 +95,14 @@ class TestFlextCliFormatters:
 
     def test_format_data_empty_data(self) -> None:
         """Test format_data handles empty data."""
-        service = FlextCliFormatters()
+        service = FlextCliOutput()
 
         result = service.format_data({}, "json")
         assert result.is_success
 
     def test_format_data_complex_data(self) -> None:
         """Test format_data handles complex nested data."""
-        service = FlextCliFormatters()
+        service = FlextCliOutput()
 
         complex_data: dict[str, object] = {
             "users": [
@@ -119,7 +119,7 @@ class TestFlextCliFormatters:
 
     def test_format_data_with_none_data(self) -> None:
         """Test format_data handles None data."""
-        service = FlextCliFormatters()
+        service = FlextCliOutput()
 
         # Test with empty dict instead of None since format_data doesn't accept None
         result = service.format_data({}, "json")
@@ -128,17 +128,17 @@ class TestFlextCliFormatters:
 
 
 class TestFlextCliFormattersIntegration:
-    """Integration tests for FlextCliFormatters."""
+    """Integration tests for FlextCliOutput."""
 
     def test_can_be_imported_from_module(self) -> None:
-        """Test FlextCliFormatters can be imported from module."""
-        service = FlextCliFormatters()
+        """Test FlextCliOutput can be imported from module."""
+        service = FlextCliOutput()
         assert service is not None
-        assert isinstance(service, FlextCliFormatters)
+        assert isinstance(service, FlextCliOutput)
 
     def test_has_comprehensive_formatting_capabilities(self) -> None:
-        """Test FlextCliFormatters has comprehensive formatting capabilities."""
-        service = FlextCliFormatters()
+        """Test FlextCliOutput has comprehensive formatting capabilities."""
+        service = FlextCliOutput()
         assert service is not None
 
         # Check it has multiple formatting methods

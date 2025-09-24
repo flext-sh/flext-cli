@@ -18,7 +18,6 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 import os
-from typing import Any
 
 from flext_cli import FlextCliConfig
 from flext_core import FlextConfig
@@ -66,7 +65,7 @@ def demonstrate_cli_parameter_integration() -> None:
 
     # 2. Apply CLI parameter overrides
     print("2. Applying CLI Parameter Overrides:")
-    cli_overrides: dict[str, Any] = {
+    cli_overrides: dict[str, object] = {
         "debug": True,
         "profile": "development",
         "output_format": "json",

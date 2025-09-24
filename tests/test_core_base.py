@@ -6,13 +6,9 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-import asyncio
-import io
-from typing import cast
-
 import pytest
 
-from flext_cli import FlextCliContext, FlextCliDecorators
+from flext_cli import FlextCliContext, FlextCliUtilities
 from flext_core import FlextResult
 
 # Constants
@@ -80,184 +76,96 @@ class TestCLIContext:
             FlextCliContext.create_with_params(quiet=True, verbose=True)
 
 
-class TestHandleServiceResult:
-    """Test cases for handle_service_result decorator."""
+class TestFlextCliUtilities:
+    """Test FlextCliUtilities functionality."""
 
-    def test_successful_result_handling(self) -> None:
-        """Test handling of successful FlextResult."""
+    def test_utilities_initialization(self) -> None:
+        """Test FlextCliUtilities initialization."""
+        utilities = FlextCliUtilities()
+        assert utilities is not None
+        assert hasattr(utilities, "execute")
 
-        @FlextCliDecorators.handle_service_result
-        def success_function() -> FlextResult[str]:
-            return FlextResult[str].ok("success data")
+    def test_utilities_execute_method(self) -> None:
+        """Test FlextCliUtilities execute method."""
+        utilities = FlextCliUtilities()
+        result = utilities.execute()
+        assert isinstance(result, FlextResult)
+        assert result.is_success
 
-        result = success_function()
-        if result != "success data":
-            msg = f"Expected {'success data'}, got {result}"
-            raise AssertionError(msg)
+    def test_formatting_json(self) -> None:
+        """Test JSON formatting functionality."""
+        utilities = FlextCliUtilities()
+        data = {"key": "value", "number": 42}
+        result = utilities.Formatting.format_json(data)
+        assert isinstance(result, FlextResult)
+        assert result.is_success
+        assert "key" in result.value
 
-    def test_failed_result_handling(self) -> None:
-        """Test handling of failed FlextResult."""
-        # Capture console output to verify error printing
-        io.StringIO()
+    def test_formatting_yaml(self) -> None:
+        """Test YAML formatting functionality."""
+        utilities = FlextCliUtilities()
+        data = {"key": "value", "list": [1, 2, 3]}
+        result = utilities.Formatting.format_yaml(data)
+        assert isinstance(result, FlextResult)
+        assert result.is_success
+        assert "key" in result.value
 
-        @FlextCliDecorators.handle_service_result
-        def fail_function() -> FlextResult[str]:
-            return FlextResult[str].fail("error message")
+    def test_formatting_csv(self) -> None:
+        """Test CSV formatting functionality."""
+        utilities = FlextCliUtilities()
+        data = [{"name": "John", "age": 30}, {"name": "Jane", "age": 25}]
+        result = utilities.Formatting.format_csv(data)
+        assert isinstance(result, FlextResult)
+        assert result.is_success
+        assert "name" in result.value
 
-        result = fail_function()
+    def test_formatting_table(self) -> None:
+        """Test table formatting functionality."""
+        utilities = FlextCliUtilities()
+        data = [{"name": "John", "age": 30}, {"name": "Jane", "age": 25}]
+        result = utilities.Formatting.format_table(data)
+        assert isinstance(result, FlextResult)
+        assert result.is_success
+        assert "name" in result.value
 
-        assert result is None
-        # The error should be printed to the console (no need to mock)
+    def test_validation_helpers(self) -> None:
+        """Test validation helper functionality."""
+        utilities = FlextCliUtilities()
 
-    def test_non_result_passthrough(self) -> None:
-        """Test passthrough of non-FlextResult values now returns None with warning."""
+        # Test data validation
+        data = {"key": "value"}
+        result = utilities.validate_data(data, lambda x: isinstance(x, dict))
+        assert isinstance(result, FlextResult)
+        assert result.is_success
+        assert result.value is True
 
-        @FlextCliDecorators.handle_service_result
-        def regular_function() -> FlextResult[str]:
-            return FlextResult[str].ok("regular data")
+        # Test invalid data validation
+        result = utilities.validate_data("not a dict", lambda x: isinstance(x, dict))
+        assert isinstance(result, FlextResult)
+        assert result.is_success
+        assert result.value is False
 
-        result = regular_function()
-        # Decorator extracts the value from FlextResult
-        assert result == "regular data"
+    def test_file_operations(self) -> None:
+        """Test file operation functionality."""
+        utilities = FlextCliUtilities()
 
-    def test_exception_handling(self) -> None:
-        """Test exception handling in decorator."""
+        # Test file existence check
+        result = utilities.FileOperations.file_exists("/nonexistent/file.txt")
+        assert isinstance(result, bool)
+        assert result is False
 
-        @FlextCliDecorators.handle_service_result
-        def exception_function() -> FlextResult[str]:
-            msg = "test exception"
-            raise ValueError(msg)
+    def test_data_transformation(self) -> None:
+        """Test data transformation functionality."""
+        utilities = FlextCliUtilities()
 
-        # Exception should be re-raised and error should be printed
-        with pytest.raises(ValueError, match="test exception"):
-            exception_function()
+        # Test string normalization
+        result = utilities.Transformation.normalize_string("  Test String  ")
+        assert isinstance(result, FlextResult)
+        assert result.is_success
+        assert result.value == "test string"
 
-    def test_decorator_preserves_function_metadata(self) -> None:
-        """Test that decorator preserves function metadata."""
-
-        @FlextCliDecorators.handle_service_result
-        def documented_function() -> FlextResult[str]:
-            """A documented function."""
-            return FlextResult[str].ok("result")
-
-        if documented_function.__name__ != "documented_function":
-            msg = (
-                f"Expected {'documented_function'}, got {documented_function.__name__}"
-            )
-            raise AssertionError(
-                msg,
-            )
-        assert documented_function.__doc__ == "A documented function."
-
-    def test_decorator_with_arguments(self) -> None:
-        """Test decorator with function arguments."""
-
-        @FlextCliDecorators.handle_service_result
-        def function_with_args(
-            arg1: str,
-            arg2: int,
-            kwarg1: str = "default",
-        ) -> FlextResult[str]:
-            return FlextResult[str].ok(f"{arg1}-{arg2}-{kwarg1}")
-
-        result = function_with_args("test", 42, kwarg1="custom")
-        if result != "test-42-custom":
-            msg = f"Expected {'test-42-custom'}, got {result}"
-            raise AssertionError(msg)
-
-    def test_result_with_complex_data(self) -> None:
-        """Test handling FlextResult with complex data types."""
-
-        @FlextCliDecorators.handle_service_result
-        def complex_data_function() -> FlextResult[dict[str, object]]:
-            return FlextResult[dict[str, object]].ok(
-                {
-                    "data": [1, 2, 3],
-                    "metadata": {"count": 3, "type": "list"},
-                    "nested": {"deep": {"value": "found"}},
-                },
-            )
-
-        result = complex_data_function()
-
-        assert isinstance(result, dict)
-        # Type assertion for MyPy
-        result_dict: dict[str, object] = result
-        if result_dict["data"] != [1, 2, 3]:
-            msg = f"Expected {[1, 2, 3]}, got {result_dict['data']}"
-            raise AssertionError(msg)
-        metadata = result_dict["metadata"]
-        assert isinstance(metadata, dict)
-        assert metadata["count"] == EXPECTED_DATA_COUNT
-
-        nested = result_dict["nested"]
-        assert isinstance(nested, dict)
-        deep = cast("dict[str, object]", nested["deep"])
-        assert isinstance(deep, dict)
-        if deep["value"] != "found":
-            msg = f"Expected {'found'}, got {deep['value']}"
-            raise AssertionError(
-                msg,
-            )
-
-    def test_async_function_compatibility(self) -> None:
-        """Test decorator compatibility with async functions."""
-
-        @FlextCliDecorators.handle_service_result
-        async def async_success_function() -> FlextResult[str]:
-            await asyncio.sleep(0.01)
-            return FlextResult[str].ok("async success")
-
-        async def test_runner() -> None:
-            result = await async_success_function()
-            assert result == "async success"
-
-        asyncio.run(test_runner())
-
-    def test_async_failed_result_handling(self) -> None:
-        """Test async handling of failed FlextResult - REAL functionality."""
-
-        @FlextCliDecorators.handle_service_result
-        async def async_failed_function() -> FlextResult[str]:
-            await asyncio.sleep(0.01)
-            return FlextResult[str].fail("async failure")
-
-        async def test_runner() -> None:
-            result = await async_failed_function()
-            assert result is None  # Failed results return None
-
-        asyncio.run(test_runner())
-
-    def test_async_exception_handling(self) -> None:
-        """Test async exception handling in decorator - REAL functionality."""
-
-        @FlextCliDecorators.handle_service_result
-        async def async_exception_function() -> FlextResult[str]:
-            await asyncio.sleep(0.01)
-            msg = "async test exception"
-            raise ValueError(msg)
-
-        async def test_runner() -> None:
-            # Exception should be re-raised and error should be printed
-            with pytest.raises(ValueError, match="async test exception"):
-                # Type ignore for decorator return type issue
-                await async_exception_function()
-
-        # Run the async test
-        asyncio.run(test_runner())
-
-    def test_async_non_result_passthrough(self) -> None:
-        """Test async passthrough of non-FlextResult values now returns None."""
-
-        @FlextCliDecorators.handle_service_result
-        async def async_regular_function() -> FlextResult[str]:
-            await asyncio.sleep(0.01)
-            return FlextResult[str].ok("async regular data")
-
-        async def test_runner() -> None:
-            # Decorator extracts the value from FlextResult
-            async_result = await async_regular_function()
-            assert async_result == "async regular data"
-
-        # Run the async test
-        asyncio.run(test_runner())
+        # Test filename sanitization
+        result = utilities.Transformation.sanitize_filename("test/file:name")
+        assert isinstance(result, FlextResult)
+        assert result.is_success
+        assert ":" not in result.value

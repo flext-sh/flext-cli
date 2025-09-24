@@ -10,13 +10,10 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 from collections.abc import Callable
-from typing import Any
 
 import pytest
 
-from flext_cli.constants import FlextCliConstants
-from flext_cli.core import FlextCliService
-from flext_cli.models import FlextCliModels
+from flext_cli import FlextCliConstants, FlextCliModels, FlextCliService
 from flext_core import FlextResult
 
 
@@ -55,7 +52,7 @@ class TestFlextCliService:
         # Test empty string
         result = service.create_command("")
         assert result.is_failure
-        assert "Command creation failed" in str(result.error)
+        assert "Command line cannot be empty" in str(result.error)
 
         # Test non-string input
         result = service.create_command("")
@@ -283,7 +280,7 @@ class TestFlextCliService:
         service.configure_command_history(enabled=False)
 
         # Test various operations fail appropriately
-        operations: list[Callable[[], FlextResult[Any]]] = [
+        operations: list[Callable[[], FlextResult[object]]] = [
             service.get_command_history,
             service.clear_command_history,
             service.get_command_statistics,
@@ -292,7 +289,7 @@ class TestFlextCliService:
         ]
 
         for operation in operations:
-            result: FlextResult[Any] = operation()
+            result: FlextResult[object] = operation()
             assert result.is_success
 
 
@@ -311,7 +308,7 @@ class TestFlextCliServiceHelpers:
         # Test invalid command creation
         result = service.create_command("")
         assert result.is_failure
-        assert "Command creation failed" in str(result.error)
+        assert "Command line cannot be empty" in str(result.error)
 
     def test_command_validation_helper_object(self) -> None:
         """Test command object validation."""
@@ -344,7 +341,7 @@ class TestFlextCliServiceHelpers:
             return FlextResult[object].ok("success")
 
         # Test command definition creation directly
-        command_def: dict[str, Any] = {
+        command_def: dict[str, object] = {
             "name": "test",
             "description": "Test command",
             "handler": dummy_handler,
@@ -412,7 +409,7 @@ class TestFlextCliServiceIntegration:
         service = FlextCliService()
 
         # Test various error scenarios don't crash the service
-        error_operations: list[Callable[[], FlextResult[Any]]] = [
+        error_operations: list[Callable[[], FlextResult[object]]] = [
             lambda: service.create_command(""),
             lambda: service.execute_command("invalid string"),
             lambda: service.create_command_definition("", "", None),
