@@ -7,7 +7,7 @@ modifying behavior through the singleton pattern.
 
 This example shows:
 1. FlextConfig as the authoritative configuration source
-2. FlextCliModels.FlextCliConfig extending FlextConfig while maintaining singleton pattern
+2. FlextCliConfig.MainConfig extending FlextConfig while maintaining singleton pattern
 3. CLI parameters modifying behavior through FlextConfig
 4. Automatic synchronization and integration verification
 
@@ -20,7 +20,7 @@ from __future__ import annotations
 import os
 from typing import Any
 
-from flext_cli import FlextCliModels
+from flext_cli import FlextCliConfig
 from flext_core import FlextConfig
 
 
@@ -38,9 +38,9 @@ def demonstrate_single_source_of_truth() -> None:
     print(f"   Timeout: {base_config.timeout_seconds}s")
     print()
 
-    # 2. Show FlextCliModels.FlextCliConfig extending FlextConfig
-    print("2. FlextCliModels.FlextCliConfig Extends FlextConfig:")
-    cli_config = FlextCliModels.FlextCliConfig.create_default()
+    # 2. Show FlextCliConfig.MainConfig extending FlextConfig
+    print("2. FlextCliConfig.MainConfig Extends FlextConfig:")
+    cli_config = FlextCliConfig.MainConfig()
     print(f"   Profile: {cli_config.profile}")
     print(f"   Output Format: {cli_config.output_format}")
     print(f"   Debug Mode: {cli_config.debug_mode}")
@@ -49,9 +49,9 @@ def demonstrate_single_source_of_truth() -> None:
 
     # 3. Verify integration metadata
     print("3. Integration Metadata:")
-    print(f"   Base Config Source: FlextConfig singleton")
-    print(f"   CLI Extensions Applied: true")
-    print(f"   Override Count: 0")
+    print("   Base Config Source: FlextConfig singleton")
+    print("   CLI Extensions Applied: true")
+    print("   Override Count: 0")
     print()
 
 
@@ -78,12 +78,12 @@ def demonstrate_cli_parameter_integration() -> None:
         print(f"     {key}: {value}")
 
     # Apply overrides
-    cli_config = FlextCliModels.FlextCliConfig.create_default()
+    cli_config = FlextCliConfig.MainConfig()
     cli_config.debug = cli_overrides.get("debug", False)
     cli_config.profile = cli_overrides.get("profile", "default")
     cli_config.output_format = cli_overrides.get("output_format", "table")
     cli_config.log_level = cli_overrides.get("log_level", "INFO")
-    
+
     print("   ✅ Overrides applied successfully")
     print()
 
@@ -95,7 +95,7 @@ def demonstrate_cli_parameter_integration() -> None:
     print(f"   Timeout: {updated_base_config.timeout_seconds}s")
     print()
 
-    print("4. Updated FlextCliModels.FlextCliConfig:")
+    print("4. Updated FlextCliConfig.MainConfig:")
     print(f"   Profile: {cli_config.profile}")
     print(f"   Output Format: {cli_config.output_format}")
     print(f"   Debug Mode: {cli_config.debug_mode}")
@@ -103,7 +103,7 @@ def demonstrate_cli_parameter_integration() -> None:
 
     # 4. Show integration status
     print("5. Integration Status:")
-    print(f"   Integration Status: Active")
+    print("   Integration Status: Active")
     print(f"   Override Count: {len(cli_overrides)}")
     print(f"   Last Updated: {cli_config.log_level}")
     print()
@@ -116,18 +116,18 @@ def demonstrate_automatic_synchronization() -> None:
     # 1. Show synchronization process
     print("1. Synchronization Process:")
     print("   ✅ FlextConfig singleton updated")
-    print("   ✅ FlextCliModels.FlextCliConfig synchronized")
+    print("   ✅ FlextCliConfig.MainConfig synchronized")
     print("   ✅ All dependent services notified")
     print()
 
     # 2. Verify synchronization
     print("2. Synchronization Verification:")
     base_config = FlextConfig.get_global_instance()
-    cli_config = FlextCliModels.FlextCliConfig.create_default()
-    
+    cli_config = FlextCliConfig.MainConfig()
+
     print(f"   Base Config Debug: {base_config.debug}")
     print(f"   CLI Config Debug: {cli_config.debug_mode}")
-    print(f"   Synchronization Status: ✅ Verified")
+    print("   Synchronization Status: ✅ Verified")
     print()
 
     # 3. Show dependent service updates
@@ -145,26 +145,26 @@ def demonstrate_integration_verification() -> None:
 
     # 1. Health check
     print("1. Integration Health Check:")
-    base_config = FlextConfig.get_global_instance()
-    cli_config = FlextCliModels.FlextCliConfig.create_default()
-    
-    print(f"   FlextConfig Status: ✅ Healthy")
-    print(f"   FlextCliConfig Status: ✅ Healthy")
-    print(f"   Integration Status: ✅ Active")
+    FlextConfig.get_global_instance()
+    FlextCliConfig.MainConfig()
+
+    print("   FlextConfig Status: ✅ Healthy")
+    print("   FlextCliConfig Status: ✅ Healthy")
+    print("   Integration Status: ✅ Active")
     print()
 
     # 2. Configuration validation
     print("2. Configuration Validation:")
-    print(f"   Base Config Valid: ✅ Valid")
-    print(f"   CLI Config Valid: ✅ Valid")
-    print(f"   Integration Valid: ✅ Valid")
+    print("   Base Config Valid: ✅ Valid")
+    print("   CLI Config Valid: ✅ Valid")
+    print("   Integration Valid: ✅ Valid")
     print()
 
     # 3. Performance metrics
     print("3. Performance Metrics:")
-    print(f"   Configuration Load Time: < 1ms")
-    print(f"   Synchronization Time: < 1ms")
-    print(f"   Memory Usage: Optimized")
+    print("   Configuration Load Time: < 1ms")
+    print("   Synchronization Time: < 1ms")
+    print("   Memory Usage: Optimized")
     print()
 
 
@@ -207,21 +207,21 @@ def main() -> None:
     try:
         demonstrate_single_source_of_truth()
         print()
-        
+
         demonstrate_cli_parameter_integration()
         print()
-        
+
         demonstrate_automatic_synchronization()
         print()
-        
+
         demonstrate_integration_verification()
         print()
-        
+
         demonstrate_environment_integration()
         print()
-        
+
         print("🎉 All demonstrations completed successfully!")
-        
+
     except Exception as e:
         print(f"❌ Error during demonstration: {e}")
         raise

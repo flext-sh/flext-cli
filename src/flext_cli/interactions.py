@@ -9,10 +9,10 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from flext_core import FlextLogger, FlextResult, FlextTypes
+from flext_core import FlextLogger, FlextResult, FlextTypes, FlextUtilities
 
 
-class FlextCliInteractions:
+class FlextCliInteractions(FlextUtilities):
     """User interaction utilities following SOLID principles.
 
     Single responsibility: User interaction operations.

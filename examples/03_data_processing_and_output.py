@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# mypy: disable-error-code="misc"
 """03 - Data Processing and Output with FLEXT CLI Foundation.
 
 This example demonstrates data processing capabilities and output formatting
@@ -31,11 +32,35 @@ import json
 import tempfile
 from pathlib import Path
 from tempfile import NamedTemporaryFile
+from typing import Any, TypedDict, cast
 
 from flext_cli import (
     FlextCliFormatters,
 )
 from flext_core import FlextResult
+
+
+class DatabaseConfig(TypedDict):
+    """Database configuration structure."""
+
+    host: str
+    port: int
+
+
+class ApiConfig(TypedDict):
+    """API configuration structure."""
+
+    host: str
+    port: int
+    debug: bool
+
+
+class ConfigData(TypedDict):
+    """Application configuration structure."""
+
+    database: DatabaseConfig
+    api: ApiConfig
+    logging: dict[str, object]
 
 
 def _demonstrate_data_transformation(
@@ -272,19 +297,33 @@ def _demonstrate_file_operations(formatter: FlextCliFormatters) -> FlextResult[N
     if load_result.is_failure:
         return FlextResult[None].fail(f"File load failed: {load_result.error}")
 
-    loaded_data = load_result.value
+    loaded_data: dict[str, Any] = load_result.value
     formatter.print_success("✅ Configuration loaded successfully")
 
     # Display loaded config using flext-cli formatter
     config_display: dict[str, object] = {}
-    if isinstance(loaded_data, dict):
-        database = loaded_data.get("database", {})
-        api = loaded_data.get("api", {})
-        if isinstance(database, dict) and isinstance(api, dict):
-            config_display["Database Host"] = str(database.get("host", "N/A"))
-            config_display["Database Port"] = str(database.get("port", "N/A"))
-            config_display["API Port"] = str(api.get("port", "N/A"))
-            config_display["Debug Mode"] = str(api.get("debug", False))
+
+    # Extract database config safely - use direct access with type safety
+    if "database" in loaded_data:
+        db_section = loaded_data["database"]
+        if isinstance(db_section, dict):
+            # Safe extraction with proper type handling
+            db_section_dict: dict[str, Any] = cast("dict[str, Any]", db_section)
+            db_host_value = db_section_dict.get("host", "N/A")
+            db_port_value = db_section_dict.get("port", "N/A")
+            config_display["Database Host"] = str(db_host_value)
+            config_display["Database Port"] = str(db_port_value)
+
+    # Extract API config safely - use direct access with type safety
+    if "api" in loaded_data:
+        api_section = loaded_data["api"]
+        if isinstance(api_section, dict):
+            # Safe extraction with proper type handling
+            api_section_dict: dict[str, Any] = cast("dict[str, Any]", api_section)
+            api_port_value = api_section_dict.get("port", "N/A")
+            api_debug_value = api_section_dict.get("debug", False)
+            config_display["API Port"] = str(api_port_value)
+            config_display["Debug Mode"] = str(api_debug_value)
 
     table_result = formatter.format_table(
         data=config_display, title="Loaded Configuration"
@@ -332,7 +371,7 @@ def _demonstrate_data_export(formatter: FlextCliFormatters) -> FlextResult[None]
     formatter.print_success("\n6. 📤 Data Export Functionality")
 
     # Sample report data
-    report_data = [
+    report_data: list[dict[str, object]] = [
         {
             "date": "2025-01-15",
             "service": "api-gateway",
@@ -417,7 +456,7 @@ def _enrich_service_data(
 ) -> FlextResult[list[dict[str, object]]]:
     """Enrich service data with computed fields."""
     try:
-        enriched_services = []
+        enriched_services: list[dict[str, object]] = []
         for service in services:
             # Safe type conversion with validation
             cpu_obj = service.get("cpu", 0)
@@ -511,14 +550,18 @@ def _save_config_to_file(config_data: dict[str, object]) -> FlextResult[Path]:
         return FlextResult[Path].fail(f"Save failed: {e}")
 
 
-def _load_config_from_file(file_path: Path) -> FlextResult[dict[str, object]]:
+def _load_config_from_file(file_path: Path) -> FlextResult[dict[str, Any]]:
     """Load configuration from file."""
     try:
         content = file_path.read_text(encoding="utf-8")
         data = json.loads(content)
-        return FlextResult[dict[str, object]].ok(data)
+        if not isinstance(data, dict):
+            return FlextResult[dict[str, Any]].fail("Loaded data is not a dictionary")
+        # Cast to proper type after isinstance check
+        typed_data: dict[str, Any] = data
+        return FlextResult[dict[str, Any]].ok(typed_data)
     except Exception as e:
-        return FlextResult[dict[str, object]].fail(f"Load failed: {e}")
+        return FlextResult[dict[str, Any]].fail(f"Load failed: {e}")
 
 
 def _process_sample_files() -> FlextResult[list[str]]:
@@ -533,7 +576,7 @@ def _process_sample_files() -> FlextResult[list[str]]:
                 file_path.write_text(f"Sample content for file {i}\nLine 2\nLine 3")
 
             # Process files
-            results = []
+            results: list[str] = []
             for file_path in temp_path.glob("*.txt"):
                 processed = (
                     f"Processed: {file_path.name} ({file_path.stat().st_size} bytes)"

@@ -21,7 +21,7 @@ from __future__ import annotations
 
 from typing import Any
 
-from flext_cli import FlextCliApi, FlextCliAuth, FlextCliModels
+from flext_cli import FlextCliApi, FlextCliAuth, FlextCliConfig
 from flext_core import FlextConfig
 
 
@@ -32,7 +32,7 @@ def demonstrate_global_configuration_refactoring() -> None:
     # 1. Show FlextConfig as SINGLE SOURCE OF TRUTH
     print("1. FlextConfig Singleton (SINGLE SOURCE OF TRUTH):")
     base_config = FlextConfig.get_global_instance()
-    cli_config = FlextCliModels.FlextCliConfig.create_default()
+    cli_config = FlextCliConfig.MainConfig()
 
     print(f"   Base Config Environment: {base_config.environment}")
     print(f"   Base Config Debug: {base_config.debug}")
@@ -79,15 +79,15 @@ def demonstrate_global_configuration_refactoring() -> None:
     print("4. Demonstrating Configuration Usage:")
 
     # Show debug status
-    debug_enabled = cli_config.is_debug_enabled()
+    debug_enabled = cli_config.debug
     print(f"   Debug Enabled: {debug_enabled}")
 
     # Show output format
-    output_format = cli_config.get_output_format()
+    output_format = cli_config.output_format
     print(f"   Output Format: {output_format}")
 
     # Show config directory
-    config_dir = cli_config.get_config_dir()
+    config_dir = cli_config.config_dir
     print(f"   Config Directory: {config_dir}")
 
     print("   ✅ Configuration demonstration complete")
@@ -95,7 +95,7 @@ def demonstrate_global_configuration_refactoring() -> None:
 
     # 5. Show integration with CLI API
     print("5. CLI API Integration:")
-    
+
     # Create sample data for API demonstration
     sample_data: dict[str, dict[str, Any]] = {
         "config": {
@@ -107,7 +107,7 @@ def demonstrate_global_configuration_refactoring() -> None:
             "profile": cli_config.profile,
             "debug_mode": cli_config.debug_mode,
             "output_format": cli_config.output_format,
-        }
+        },
     }
 
     # Format data using CLI API
@@ -159,7 +159,7 @@ def demonstrate_dynamic_configuration_updates() -> None:
 
     # Get current configuration
     base_config = FlextConfig.get_global_instance()
-    cli_config = FlextCliModels.FlextCliConfig.create_default()
+    cli_config = FlextCliConfig.MainConfig()
 
     print("1. Initial Configuration State:")
     print(f"   Base Debug: {base_config.debug}")
@@ -170,7 +170,7 @@ def demonstrate_dynamic_configuration_updates() -> None:
 
     # Simulate dynamic updates
     print("2. Applying Dynamic Updates:")
-    
+
     # Update CLI config
     cli_config.debug = True
     cli_config.output_format = "yaml"
@@ -184,10 +184,10 @@ def demonstrate_dynamic_configuration_updates() -> None:
 
     # Demonstrate API integration with updated config
     print("3. API Integration with Updated Configuration:")
-    
+
     cli_api = FlextCliApi()
     sample_data = {"updated_config": cli_config.model_dump()}
-    
+
     formatted_result = cli_api.format_data(sample_data, cli_config.output_format)
     if formatted_result.is_success:
         print("   ✅ API successfully used updated configuration")
@@ -218,9 +218,9 @@ def demonstrate_cli_parameter_integration() -> None:
 
     # Apply parameters to configuration
     print("2. Applying CLI Parameters to Configuration:")
-    
-    cli_config = FlextCliModels.FlextCliConfig.create_default()
-    
+
+    cli_config = FlextCliConfig.MainConfig()
+
     # Apply CLI overrides
     cli_config.debug = cli_params["debug"]
     cli_config.log_level = cli_params["log_level"]
@@ -236,13 +236,13 @@ def demonstrate_cli_parameter_integration() -> None:
 
     # Demonstrate usage with CLI parameters
     print("3. Using Configuration with CLI Parameters:")
-    
+
     cli_api = FlextCliApi()
     sample_data: dict[str, Any] = {
         "cli_params": cli_params,
         "final_config": cli_config.model_dump(),
     }
-    
+
     formatted_result = cli_api.format_data(sample_data, cli_config.output_format)
     if formatted_result.is_success:
         print("   ✅ Configuration successfully used with CLI parameters")
@@ -263,18 +263,18 @@ def main() -> None:
     try:
         demonstrate_global_configuration_refactoring()
         print()
-        
+
         demonstrate_elimination_of_duplicate_patterns()
         print()
-        
+
         demonstrate_dynamic_configuration_updates()
         print()
-        
+
         demonstrate_cli_parameter_integration()
         print()
-        
+
         print("🎉 All demonstrations completed successfully!")
-        
+
     except Exception as e:
         print(f"❌ Error during demonstration: {e}")
         raise

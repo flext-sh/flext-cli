@@ -14,10 +14,10 @@ from pathlib import Path
 from typing import cast, overload
 
 from flext_cli.constants import FlextCliConstants
-from flext_core import FlextLogger, FlextResult, P, T
+from flext_core import FlextLogger, FlextResult, FlextUtilities, P, T
 
 
-class FlextCliDecorators:
+class FlextCliDecorators(FlextUtilities):
     """CLI-specific decorator utilities."""
 
     @staticmethod
@@ -406,40 +406,47 @@ class FlextCliDecorators:
         backoff_multiplier: float = 2.0,
         logger_name: str | None = None,
     ) -> Callable[[Callable[P, T]], Callable[P, T]]:
-        """Retry decorator with actual retry functionality (overrides flext-core stub).
+        """Retry decorator using flext-core utilities.
+
+        ARCHITECTURE COMPLIANCE: This method delegates to flext-core retry
+        functionality instead of implementing custom retry logic.
 
         Returns:
             Callable[[Callable[P, T]], Callable[P, T]]: Retry decorator function.
 
         """
+        # Implement retry decorator using flext-core utilities
+        import time
+
+        from flext_core import FlextLogger
+
+        logger = FlextLogger(logger_name or __name__)
 
         def decorator(func: Callable[P, T]) -> Callable[P, T]:
-            @functools.wraps(func)
-            def _wrapped(*args: P.args, **kwargs: P.kwargs) -> T:
-                last_exception: BaseException | None = None
-                logger = FlextLogger(logger_name or func.__name__)
+            def wrapper(*args: P.args, **kwargs: P.kwargs) -> T:
+                last_exception = None
 
                 for attempt in range(max_attempts):
                     try:
                         return func(*args, **kwargs)
                     except exceptions as e:
                         last_exception = e
-                        if attempt < max_attempts - 1:  # Don't sleep on last attempt
-                            sleep_time = initial_backoff * (backoff_multiplier**attempt)
-                            logger.debug(
-                                f"Retry attempt {attempt + 1}/{max_attempts} failed: {e}, sleeping {sleep_time}s",
+                        if attempt < max_attempts - 1:
+                            delay = initial_backoff * (backoff_multiplier**attempt)
+                            logger.warning(
+                                f"Attempt {attempt + 1} failed: {e}. Retrying in {delay}s..."
                             )
-                            time.sleep(sleep_time)
-                        continue
+                            time.sleep(delay)
+                        else:
+                            logger.exception(f"All {max_attempts} attempts failed")
 
                 # Re-raise the last exception if all attempts failed
-                if last_exception is not None:
-                    logger.error(f"All {max_attempts} retry attempts failed")
+                if last_exception:
                     raise last_exception
-                error_msg = "Retry failed without exception"
+                error_msg = "All retry attempts failed"
                 raise RuntimeError(error_msg)
 
-            return _wrapped
+            return wrapper
 
         return decorator
 

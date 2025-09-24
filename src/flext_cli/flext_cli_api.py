@@ -9,17 +9,13 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-import csv
 import json
 from datetime import UTC, datetime
-from io import StringIO
 from pathlib import Path
-from typing import cast
 
 import yaml
-from rich.console import Console
-from rich.table import Table
 
+from flext_cli.flext_cli_formatters import FlextCliFormatters
 from flext_cli.models import FlextCliModels
 from flext_core import (
     FlextContainer,
@@ -27,7 +23,6 @@ from flext_core import (
     FlextResult,
     FlextService,
     FlextTypes,
-    FlextUtilities,
 )
 
 
@@ -45,8 +40,8 @@ class FlextCliApi(FlextService[dict[str, object]]):
         self._logger = FlextLogger(__name__)
         self._container = FlextContainer.get_global()
 
-        # Direct Rich usage for CLI output
-        self._console = Console()
+        # Use FlextCliFormatters for all output (Rich abstraction)
+        self._formatters = FlextCliFormatters()
 
         self._logger.info("FlextCliApi initialized with direct flext-core integration")
 
@@ -116,8 +111,10 @@ class FlextCliApi(FlextService[dict[str, object]]):
                 format_result.error or "Format operation failed"
             )
 
-        # Direct console output using Rich
-        self._console.print(format_result.unwrap())
+        # Use FlextCliFormatters for output
+        print_result = self._formatters.print_message(format_result.unwrap())
+        if print_result.is_failure:
+            return FlextResult[None].fail(print_result.error or "Print failed")
         return FlextResult[None].ok(None)
 
     def format_output(
@@ -171,15 +168,18 @@ class FlextCliApi(FlextService[dict[str, object]]):
                     format_result.error or "Message formatting failed"
                 )
 
-            # Display using Rich console with appropriate styling
+            # Use FlextCliFormatters for styled output
             if message_type == "error":
-                self._console.print(f"[red]{format_result.unwrap()}[/red]")
+                print_result = self._formatters.print_error(format_result.unwrap())
             elif message_type == "warning":
-                self._console.print(f"[yellow]{format_result.unwrap()}[/yellow]")
+                print_result = self._formatters.print_warning(format_result.unwrap())
             elif message_type == "success":
-                self._console.print(f"[green]{format_result.unwrap()}[/green]")
+                print_result = self._formatters.print_success(format_result.unwrap())
             else:
-                self._console.print(format_result.unwrap())
+                print_result = self._formatters.print_message(format_result.unwrap())
+
+            if print_result.is_failure:
+                return FlextResult[None].fail(print_result.error or "Print failed")
 
             return FlextResult[None].ok(None)
         except Exception as e:
@@ -212,13 +212,13 @@ class FlextCliApi(FlextService[dict[str, object]]):
         arguments: list[str] | None = None,
     ) -> FlextResult[dict[str, object]]:
         """Create a command definition for CLI integration.
-        
+
         Args:
             name: Command name
             description: Command description
             handler: Command handler function
             arguments: Command arguments list
-            
+
         Returns:
             FlextResult[dict[str, object]]: Command definition or error
 
@@ -289,77 +289,38 @@ class FlextCliApi(FlextService[dict[str, object]]):
     # Private formatting methods using direct Rich/standard library
 
     def _format_as_json(self, data: object) -> FlextResult[str]:
-        """Format data as JSON."""
-        return FlextResult[str].safe_call(
-            lambda: json.dumps(data, indent=2, default=str)
-        )
+        """Format data as JSON using consolidated service."""
+        from flext_cli.utils import FlextCliUtilities
+
+        return FlextCliUtilities.Formatting.format_json(data)
 
     def _format_as_yaml(self, data: object) -> FlextResult[str]:
-        """Format data as YAML."""
-        return FlextResult[str].safe_call(
-            lambda: yaml.dump(data, default_flow_style=False)
-        )
+        """Format data as YAML using consolidated service."""
+        from flext_cli.utils import FlextCliUtilities
+
+        return FlextCliUtilities.Formatting.format_yaml(data)
 
     def _format_as_table(
         self, data: object, options: FlextCliModels.FormatOptions
     ) -> FlextResult[str]:
-        """Format data as table using Rich directly."""
-        if data is None:
-            return FlextResult[str].ok("No data to display")
+        """Format data as table using consolidated service."""
+        from flext_cli.utils import FlextCliUtilities
 
-        # Use FlextUtilities to convert to table format
-        table_data_result = FlextUtilities.Conversion.to_table_format(data)
-        if table_data_result.is_failure:
-            return FlextResult[str].fail(
-                f"Cannot convert to table format: {table_data_result.error}"
-            )
+        # Use the options parameter to configure table formatting
+        formatted_data: dict[str, object] | object
+        if options.title:
+            # Add title to the data for table formatting
+            formatted_data = {"title": options.title, "data": data}
+        else:
+            formatted_data = data
 
-        table_data = table_data_result.value
-        if not table_data:
-            return FlextResult[str].ok("No data to display")
-
-        # Create Rich table directly
-        table = Table(title=options.title)
-
-        # Add columns
-        headers = options.headers or list(table_data[0].keys())
-        for header in headers:
-            table.add_column(str(header))
-
-        # Add rows
-        for row_data in table_data:
-            row_values = [str(row_data.get(h, "")) for h in headers]
-            table.add_row(*row_values)
-
-        # Capture Rich output as string
-        string_buffer = StringIO()
-        console = Console(file=string_buffer, width=options.max_width)
-        console.print(table)
-        return FlextResult[str].ok(string_buffer.getvalue())
+        return FlextCliUtilities.Formatting.format_table(formatted_data)
 
     def _format_as_csv(self, data: object) -> FlextResult[str]:
-        """Format data as CSV."""
-        if not isinstance(data, list):
-            return FlextResult[str].fail("CSV format requires list of dictionaries")
+        """Format data as CSV using consolidated service."""
+        from flext_cli.utils import FlextCliUtilities
 
-        if not data:
-            return FlextResult[str].ok("")
-
-        # Type narrowing: verify all items are dicts
-        list_data = cast("list[object]", data)
-        if not all(isinstance(item, dict) for item in list_data):
-            return FlextResult[str].fail("CSV format requires list of dictionaries")
-
-        try:
-            output = StringIO()
-            # Type narrowing: data is list and all items are dicts
-            csv_data = cast("list[dict[str, object]]", list_data)
-            writer = csv.DictWriter(output, fieldnames=csv_data[0].keys())
-            writer.writeheader()
-            writer.writerows(csv_data)
-            return FlextResult[str].ok(output.getvalue())
-        except Exception as e:
-            return FlextResult[str].fail(f"CSV formatting failed: {e}")
+        return FlextCliUtilities.Formatting.format_csv(data)
 
     def _export_as_json(self, data: object, file_path: Path) -> FlextResult[None]:
         """Export data as JSON file."""

@@ -27,7 +27,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from datetime import UTC, datetime
 from enum import StrEnum
-from typing import Protocol, override
+from typing import Any, Protocol, cast, override
 from uuid import UUID, uuid4
 
 from pydantic import Field
@@ -299,11 +299,15 @@ class CreateProjectHandler:
     def _process_domain_events(self, events: FlextTypes.Core.List) -> None:
         """Process domain events."""
         for event in events:
-            if isinstance(event, dict) and event.get("type") == "ProjectCreated":
+            if (
+                isinstance(event, dict)
+                and cast("dict[str, Any]", event).get("type") == "ProjectCreated"
+            ):
+                event_dict: dict[str, Any] = cast("dict[str, Any]", event)
                 # In real app: publish to event bus, update read models, etc.
-                print(
-                    f"Processing domain event: {event.get('type')} for project {event.get('project_id')}"
-                )
+                event_type: str = str(event_dict.get("type", "unknown"))
+                project_id: str = str(event_dict.get("project_id", "unknown"))
+                print(f"Processing domain event: {event_type} for project {project_id}")
 
 
 class ChangeProjectStatusHandler:
@@ -432,9 +436,11 @@ class ProjectManagementService(FlextCliService):
         self._status_handler = ChangeProjectStatusHandler(repository=self._repository)
         self._query_handler = ProjectQueryHandler(repository=self._repository)
 
-    def execute(self) -> FlextResult[str]:
+    def execute(self) -> FlextResult[FlextTypes.Core.Dict]:
         """Execute method required by FlextService base class."""
-        return FlextResult[str].ok("project_management service active")
+        return FlextResult[FlextTypes.Core.Dict].ok({
+            "status": "project_management service active"
+        })
 
     def create_project(
         self, name: str, description: str, owner_id: str
@@ -558,7 +564,7 @@ class EnterpriseCliApplication:
         )
 
         # Unwrap commands for registration - only include successful commands
-        project_commands = {}
+        project_commands: dict[str, object] = {}
         if create_cmd.is_success:
             project_commands["create"] = create_cmd.unwrap()
         if change_status_cmd.is_success:
@@ -588,9 +594,7 @@ class EnterpriseCliApplication:
 
         if result.is_success:
             data = result.unwrap()
-            self.cli_api.display_output(
-                data=data, format_type="table", title="Project Created"
-            )
+            self.cli_api.display_data(data=data, format_type="table")
         else:
             self.cli_api.display_message(
                 f"Failed to create project: {result.error}", message_type="error"
@@ -620,9 +624,7 @@ class EnterpriseCliApplication:
 
         if result.is_success:
             data = result.unwrap()
-            self.cli_api.display_output(
-                data=data, format_type="table", title="Status Changed"
-            )
+            self.cli_api.display_data(data=data, format_type="table")
         else:
             self.cli_api.display_message(
                 f"Failed to change status: {result.error}", message_type="error"
@@ -641,9 +643,7 @@ class EnterpriseCliApplication:
 
         if result.is_success:
             data = result.unwrap()
-            self.cli_api.display_output(
-                data=data, format_type="table", title="Project Details"
-            )
+            self.cli_api.display_data(data=data, format_type="table")
         else:
             self.cli_api.display_message(
                 f"Failed to get project: {result.error}", message_type="error"

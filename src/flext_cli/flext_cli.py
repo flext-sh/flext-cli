@@ -9,12 +9,12 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
+from flext_cli.config import FlextCliConfig
 from flext_cli.debug import FlextCliDebug
 from flext_cli.flext_cli_api import FlextCliApi
 from flext_cli.flext_cli_auth import FlextCliAuth
 from flext_cli.flext_cli_formatters import FlextCliFormatters
 from flext_cli.flext_cli_main import FlextCliMain
-from flext_cli.models import FlextCliModels
 from flext_core import FlextService
 
 
@@ -32,7 +32,7 @@ class FlextCli(FlextService[dict[str, object]]):
         # Direct access to CLI components
         self.api = FlextCliApi()
         self.auth = FlextCliAuth()
-        self.config = FlextCliModels.FlextCliConfig()
+        self.config = FlextCliConfig.MainConfig()
         self.debug = FlextCliDebug()
         self.formatters = FlextCliFormatters()
         self.main = FlextCliMain()

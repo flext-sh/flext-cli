@@ -138,10 +138,7 @@ class TestFlextCliDataProcessingFunctional:
         # Check structured aggregation result
         assert isinstance(aggregated_data, CombinedDataModel)
         # Type cast to ensure proper type checking
-        typed_data = (
-            aggregated_data if isinstance(aggregated_data, CombinedDataModel) else None
-        )
-        assert typed_data is not None
+        typed_data = aggregated_data
         assert typed_data.id == 1
 
     def test_export_functionality_real_files(self) -> None:

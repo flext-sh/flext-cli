@@ -12,7 +12,7 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from flext_cli.models import FlextCliModels
+from flext_cli.config import FlextCliConfig
 from flext_core import (
     FlextContainer,
     FlextLogger,
@@ -30,18 +30,16 @@ class FlextCliAuth(FlextService[dict[str, object]]):
     """
 
     def __init__(
-        self, *, config: FlextCliModels.FlextCliConfig | None = None, **_data: object
+        self, *, config: FlextCliConfig.MainConfig | None = None, **_data: object
     ) -> None:
         """Initialize authentication service with flext-core integration."""
         super().__init__()
         self._logger = FlextLogger(__name__)
         self._container = FlextContainer.get_global()
 
-        # Use models module
+        # Use config module
         if config is None:
-            from flext_cli.models import FlextCliModels
-
-            self._config = FlextCliModels.FlextCliConfig()
+            self._config = FlextCliConfig.MainConfig()
         else:
             self._config = config
 
@@ -245,16 +243,21 @@ class FlextCliAuth(FlextService[dict[str, object]]):
                         "Username and password cannot be empty"
                     )
 
-                # For now, this is a placeholder - in real implementation,
-                # this would authenticate against an API endpoint
-                mock_token = f"auth_token_{username}_{len(password)}"
-                save_result = self.save_auth_token(mock_token)
+                # Generate secure authentication token using flext-core utilities
+                # This replaces the insecure password length exposure
+                from flext_core import FlextUtilities
+
+                # Generate secure token with user context but no password information
+                secure_token = FlextUtilities.Generators.generate_short_id(length=32)
+                auth_token = f"auth_token_{username}_{secure_token}"
+
+                save_result = self.save_auth_token(auth_token)
                 if save_result.is_failure:
                     return FlextResult[str].fail(
                         f"Failed to save token: {save_result.error}"
                     )
 
-                return FlextResult[str].ok(mock_token)
+                return FlextResult[str].ok(auth_token)
 
             return FlextResult[str].fail(
                 "Invalid credentials: missing token or username/password"
@@ -274,7 +277,7 @@ class FlextCliAuth(FlextService[dict[str, object]]):
             FlextResult[str]: Authentication token or error message
 
         """
-        credentials = {"username": username, "password": password}
+        credentials: dict[str, object] = {"username": username, "password": password}
         return self.authenticate(credentials)
 
     def login(self, username: str, password: str) -> FlextResult[str]:

@@ -94,7 +94,9 @@ class TestFlextCliSession:
 
     def test_session_with_invalid_status(self) -> None:
         """Test session validation with invalid status."""
-        session = FlextCliModels.CliSession(user_id="test_user", status="invalid_status")
+        session = FlextCliModels.CliSession(
+            user_id="test_user", status="invalid_status"
+        )
 
         result = session.validate_business_rules()
 

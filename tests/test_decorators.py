@@ -178,6 +178,7 @@ class TestFlextCliDecorators(unittest.TestCase):
 
         @FlextCliDecorators.handle_service_result
         async def test_func() -> FlextResult[str]:
+            await asyncio.sleep(0)
             return FlextResult[str].ok("async_handled")
 
         # Run the async function
@@ -192,6 +193,7 @@ class TestFlextCliDecorators(unittest.TestCase):
 
         @FlextCliDecorators.handle_service_result
         async def test_func() -> FlextResult[str]:
+            await asyncio.sleep(0)
             return FlextResult[str].fail("async_error")
 
         # Run the async function

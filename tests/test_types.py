@@ -39,11 +39,11 @@ class TestFlextCliTypings:
         assert FlextCliTypings.Commands.EXPORT == "export"
 
     def test_flext_cli_typings_config_class(self) -> None:
-        """Test FlextCliTypings.Config nested class."""
-        assert hasattr(FlextCliTypings, "Config")
-        assert FlextCliTypings.Config.DEFAULT_PROFILE == "default"
-        assert FlextCliTypings.Config.DEFAULT_OUTPUT_FORMAT == "table"
-        assert FlextCliTypings.Config.DEFAULT_TIMEOUT == 30
+        """Test FlextCliTypings.CliConfig nested class."""
+        assert hasattr(FlextCliTypings, "CliConfig")
+        assert FlextCliTypings.CliConfig.DEFAULT_PROFILE == "default"
+        assert FlextCliTypings.CliConfig.DEFAULT_OUTPUT_FORMAT == "table"
+        assert FlextCliTypings.CliConfig.DEFAULT_TIMEOUT == 30
 
     def test_flext_cli_typings_auth_class(self) -> None:
         """Test FlextCliTypings.Auth nested class."""

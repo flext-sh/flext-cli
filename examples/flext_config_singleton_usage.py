@@ -14,7 +14,7 @@ from __future__ import annotations
 import os
 from typing import Any
 
-from flext_cli import FlextCliModels
+from flext_cli import FlextCliConfig
 from flext_core import FlextConfig
 
 
@@ -32,9 +32,9 @@ def demonstrate_flext_config_singleton() -> None:
     print(f"   Timeout: {base_config.timeout_seconds}s")
     print()
 
-    # 2. Show initial FlextCliModels.FlextCliConfig state
-    print("2. Initial FlextCliModels.FlextCliConfig State:")
-    cli_config = FlextCliModels.FlextCliConfig.create_default()
+    # 2. Show initial FlextCliConfig.MainConfig state
+    print("2. Initial FlextCliConfig.MainConfig State:")
+    cli_config = FlextCliConfig.MainConfig()
     print(f"   Profile: {cli_config.profile}")
     print(f"   Output Format: {cli_config.output_format}")
     print(f"   Debug Mode: {cli_config.debug_mode}")
@@ -71,7 +71,7 @@ def demonstrate_flext_config_singleton() -> None:
     print(f"   Timeout: {updated_base_config.timeout_seconds}s")
     print()
 
-    print("5. Updated FlextCliModels.FlextCliConfig:")
+    print("5. Updated FlextCliConfig.MainConfig:")
     print(f"   Profile: {cli_config.profile}")
     print(f"   Output Format: {cli_config.output_format}")
     print(f"   Debug Mode: {cli_config.debug_mode}")
@@ -115,34 +115,35 @@ def demonstrate_configuration_validation() -> None:
 
     # 1. Validate CLI configuration
     print("1. CLI Configuration Validation:")
-    cli_config = FlextCliModels.FlextCliConfig.create_default()
-    
+    cli_config = FlextCliConfig.MainConfig()
+
     # Test output format validation
     validation_result = cli_config.validate_output_format("json")
     if validation_result.is_success:
         print("   ✅ JSON output format valid")
     else:
         print(f"   ❌ JSON output format invalid: {validation_result.error}")
-    
+
     validation_result = cli_config.validate_output_format("invalid_format")
     if validation_result.is_success:
         print("   ✅ Invalid format accepted (unexpected)")
     else:
         print(f"   ✅ Invalid format rejected: {validation_result.error}")
-    
+
     print()
 
     # 2. Show debug status
     print("2. Debug Status Check:")
-    debug_enabled = cli_config.is_debug_enabled()
+    debug_enabled = cli_config.debug
     print(f"   Debug Enabled: {debug_enabled}")
     print(f"   Debug Mode: {cli_config.debug_mode}")
     print()
 
     # 3. Show configuration directory
     print("3. Configuration Directory:")
-    config_dir = cli_config.get_config_dir()
-    config_file = cli_config.get_config_file()
+    from flext_cli.constants import FlextCliConstants
+    config_dir = cli_config.config_dir
+    config_file = cli_config.config_dir / FlextCliConstants.CliDefaults.CONFIG_FILE
     print(f"   Config Directory: {config_dir}")
     print(f"   Config File: {config_file}")
     print()
@@ -154,8 +155,8 @@ def demonstrate_configuration_loading() -> None:
 
     # 1. Load configuration data
     print("1. Loading Configuration Data:")
-    cli_config = FlextCliModels.FlextCliConfig.create_default()
-    
+    cli_config = FlextCliConfig.MainConfig()
+
     load_result = cli_config.load_configuration()
     if load_result.is_success:
         print("   ✅ Configuration loaded successfully")
@@ -165,12 +166,18 @@ def demonstrate_configuration_loading() -> None:
         print(f"   Debug Mode: {config_data.get('debug_mode', 'unknown')}")
     else:
         print(f"   ❌ Configuration load failed: {load_result.error}")
-    
+
     print()
 
     # 2. Show configuration options
     print("2. Configuration Options:")
-    cli_options = cli_config.create_cli_options()
+    from flext_cli.constants import FlextCliConstants
+    cli_options = FlextCliConfig.CliOptions(
+        output_format=cli_config.output_format,
+        debug=cli_config.debug,
+        max_width=FlextCliConstants.CliDefaults.MAX_WIDTH,
+        no_color=cli_config.no_color,
+    )
     print(f"   CLI Options Created: {type(cli_options).__name__}")
     print()
 
@@ -193,18 +200,18 @@ def main() -> None:
     try:
         demonstrate_flext_config_singleton()
         print()
-        
+
         demonstrate_environment_integration()
         print()
-        
+
         demonstrate_configuration_validation()
         print()
-        
+
         demonstrate_configuration_loading()
         print()
-        
+
         print("🎉 All demonstrations completed successfully!")
-        
+
     except Exception as e:
         print(f"❌ Error during demonstration: {e}")
         raise

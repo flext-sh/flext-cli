@@ -11,7 +11,7 @@ from __future__ import annotations
 
 import os
 
-from flext_cli import FlextCliModels
+from flext_cli import FlextCliConfig
 
 
 def main() -> None:
@@ -26,7 +26,7 @@ def main() -> None:
     print("-" * 40)
 
     # Create config with default values
-    config = FlextCliModels.FlextCliConfig()
+    config = FlextCliConfig.MainConfig()
     print(f"Profile: {config.profile}")
     print(f"Debug Mode: {config.debug_mode}")
     print(f"Output Format: {config.output_format}")
@@ -38,8 +38,8 @@ def main() -> None:
     print("-" * 35)
 
     # Create config with explicit values
-    custom_config = FlextCliModels.FlextCliConfig(
-        profile="development", output_format="json", debug_mode=True
+    custom_config = FlextCliConfig.MainConfig(
+        profile="development", output_format="json", debug=True
     )
 
     print(f"Custom Profile: {custom_config.profile}")
@@ -58,7 +58,7 @@ def main() -> None:
     os.environ["FLEXT_CLI_DEBUG_MODE"] = "false"
 
     # Create new config - will automatically load from environment
-    env_config = FlextCliModels.FlextCliConfig()
+    env_config = FlextCliConfig.MainConfig()
 
     print(f"Env Profile: {env_config.profile}")
     print(f"Env Output Format: {env_config.output_format}")
@@ -75,8 +75,8 @@ def main() -> None:
     print("\n🛠️ 4. Configuration Methods")
     print("-" * 30)
 
-    config = FlextCliModels.FlextCliConfig(
-        profile="test", output_format="table", debug_mode=False
+    config = FlextCliConfig.MainConfig(
+        profile="test", output_format="table", debug=False
     )
 
     # Test output format validation
@@ -90,13 +90,13 @@ def main() -> None:
         print(f"❌ Invalid format rejected: {invalid_result.error}")
 
     # Test debug mode check
-    if config.is_debug_enabled():
+    if config.debug:
         print("Debug mode is enabled")
     else:
         print("Debug mode is disabled")
 
     # Test get output format
-    current_format = config.get_output_format()
+    current_format = config.output_format
     print(f"Current output format: {current_format}")
 
     # =========================================================================
@@ -105,14 +105,15 @@ def main() -> None:
     print("\n📁 5. Configuration Paths")
     print("-" * 25)
 
-    config = FlextCliModels.FlextCliConfig()
+    config = FlextCliConfig.MainConfig()
 
     # Get config directory
-    config_dir = config.get_config_dir()
+    config_dir = config.config_dir
     print(f"Config directory: {config_dir}")
 
     # Get config file path
-    config_file = config.get_config_file()
+    from flext_cli.constants import FlextCliConstants
+    config_file = config.config_dir / FlextCliConstants.CliDefaults.CONFIG_FILE
     print(f"Config file: {config_file}")
 
     # =========================================================================
@@ -121,12 +122,18 @@ def main() -> None:
     print("\n⚙️ 6. CLI Options Creation")
     print("-" * 30)
 
-    config = FlextCliModels.FlextCliConfig(
-        profile="staging", output_format="json", debug_mode=True
+    config = FlextCliConfig.MainConfig(
+        profile="staging", output_format="json", debug=True
     )
 
     # Create CLI options from config
-    cli_options = config.create_cli_options()
+    from flext_cli.constants import FlextCliConstants
+    cli_options = FlextCliConfig.CliOptions(
+        output_format=config.output_format,
+        debug=config.debug,
+        max_width=FlextCliConstants.CliDefaults.MAX_WIDTH,
+        no_color=config.no_color,
+    )
     print(f"CLI Options: {cli_options}")
 
     # =========================================================================
@@ -135,7 +142,7 @@ def main() -> None:
     print("\n📂 7. Load Configuration from File")
     print("-" * 35)
 
-    config = FlextCliModels.FlextCliConfig()
+    config = FlextCliConfig.MainConfig()
     load_result = config.load_configuration()
 
     if load_result.is_success:
@@ -151,13 +158,13 @@ def main() -> None:
     print("\n📤 8. Output Format Management")
     print("-" * 30)
 
-    config = FlextCliModels.FlextCliConfig(output_format="table")
-    print(f"Initial format: {config.get_output_format()}")
+    config = FlextCliConfig.MainConfig(output_format="table")
+    print(f"Initial format: {config.output_format}")
 
     # Change output format
     set_result = config.set_output_format("json")
     if set_result.is_success:
-        print(f"✅ Format changed to: {config.get_output_format()}")
+        print(f"✅ Format changed to: {config.output_format}")
 
     # Try invalid format
     invalid_set = config.set_output_format("invalid")

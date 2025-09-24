@@ -28,6 +28,7 @@ from typing import cast
 
 from flext_cli import (
     FlextCliApi,
+    FlextCliConfig,
     FlextCliFormatters,
     FlextCliModels,
     FlextCliService,
@@ -60,13 +61,13 @@ def _setup_cli_demo(formatter: FlextCliFormatters) -> FlextResult[None]:
 
 def _config_demo(
     formatter: FlextCliFormatters,
-) -> FlextResult[FlextCliModels.FlextCliConfig]:
+) -> FlextResult[FlextCliConfig.MainConfig]:
     """Demo FlextModels configuration."""
     formatter.print_success("\\n2. 🏗️ FlextModels Configuration System")
-    config = FlextCliModels.FlextCliConfig()
+    config = FlextCliConfig.MainConfig()
 
     # Use flext-cli table formatting instead of direct Rich
-    config_data = {
+    config_data: dict[str, object] = {
         "Profile": config.profile,
         "Debug": str(config.debug),
         "Output Format": str(config.output_format),
@@ -79,11 +80,11 @@ def _config_demo(
     if table_result.is_success:
         formatter.console.print(table_result.value)
 
-    return FlextResult[FlextCliModels.FlextCliConfig].ok(config)
+    return FlextResult[FlextCliConfig.MainConfig].ok(config)
 
 
 def _container_demo(
-    formatter: FlextCliFormatters, config: FlextCliModels.FlextCliConfig
+    formatter: FlextCliFormatters, config: FlextCliConfig.MainConfig
 ) -> FlextResult[None]:
     """Demo FlextContainer dependency injection."""
     formatter.print_success("\\n3. 🏭 FlextContainer DI Pattern (Advanced)")
@@ -116,7 +117,7 @@ def _container_demo(
 
 
 def _entities_demo(
-    formatter: FlextCliFormatters, config: FlextCliModels.FlextCliConfig
+    formatter: FlextCliFormatters, config: FlextCliConfig.MainConfig
 ) -> FlextResult[tuple[FlextCliModels.CliCommand, FlextCliModels.CliSession]]:
     """Demo CLI domain entities."""
     formatter.print_success("\\n4. 🎯 CLI Domain Entities (Direct Creation)")
@@ -217,7 +218,7 @@ def _create_sample_command() -> FlextResult[FlextCliModels.CliCommand]:
 
 
 def _create_sample_session(
-    config: FlextCliModels.FlextCliConfig,
+    config: FlextCliConfig.MainConfig,
 ) -> FlextResult[FlextCliModels.CliSession]:
     """Create a sample CLI session with REAL configuration."""
     try:

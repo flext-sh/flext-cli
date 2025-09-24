@@ -484,11 +484,57 @@ class FlextCliFormatters(FlextService[str]):
 
                 return FlextResult[str].ok(json.dumps(data, indent=2))
 
+            elif format_type == "yaml":
+                try:
+                    import yaml
+
+                    return FlextResult[str].ok(
+                        yaml.dump(data, default_flow_style=False)
+                    )
+                except ImportError:
+                    return FlextResult[str].fail(
+                        "YAML formatting requires PyYAML package"
+                    )
+
+            elif format_type == "csv":
+                return self._format_csv_simple(data)
+
             else:
                 return FlextResult[str].fail(f"Unsupported format type: {format_type}")
 
         except Exception as e:
             return FlextResult[str].fail(f"Failed to format data: {e}")
+
+    def _format_csv_simple(self, data: object) -> FlextResult[str]:
+        """Format data as CSV (simple implementation)."""
+        try:
+            import csv
+            from io import StringIO
+
+            if not isinstance(data, list):
+                return FlextResult[str].fail("CSV format requires list of dictionaries")
+
+            if not data:
+                return FlextResult[str].ok("")
+
+            # Get headers from first item
+            if not isinstance(data[0], dict):
+                return FlextResult[str].fail("CSV format requires list of dictionaries")
+
+            headers = list(data[0].keys())
+            output = StringIO()
+            writer = csv.writer(output)
+            writer.writerow(headers)
+
+            for item in data:
+                if isinstance(item, dict):
+                    writer.writerow([str(item.get(header, "")) for header in headers])
+                else:
+                    return FlextResult[str].fail("All items must be dictionaries")
+
+            return FlextResult[str].ok(output.getvalue())
+        except Exception as e:
+            return FlextResult[str].fail(f"CSV formatting failed: {e}")
 
 
 __all__ = [

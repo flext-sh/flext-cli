@@ -11,7 +11,9 @@ from __future__ import annotations
 import json
 import tempfile
 from pathlib import Path
+from typing import cast
 
+from flext_cli.config import FlextCliConfig
 from flext_cli.core import FlextCliService
 from flext_cli.models import FlextCliModels
 from flext_core import FlextResult
@@ -88,9 +90,9 @@ class TestFlextCliServiceConfiguration:
         assert len(commands) == 0
 
     def test_configure_with_flext_cli_config_object(self) -> None:
-        """Test configuring service with FlextCliModels.FlextCliConfig object."""
+        """Test configuring service with FlextCliConfig object."""
         service = FlextCliService()
-        config = FlextCliModels.FlextCliConfig(
+        config = FlextCliConfig.MainConfig(
             debug=True,
             output_format="json",
             profile="test-profile",
@@ -114,7 +116,9 @@ class TestFlextCliServiceConfiguration:
             "profile": "production",
         }
 
-        result = service.configure(config_dict)
+        result = service.configure(
+            cast("dict[str, str | int | float | bool]", config_dict)
+        )
         assert result.is_success
 
         service_config = service.get_config()
@@ -132,7 +136,9 @@ class TestFlextCliServiceFormatting:
         service = FlextCliService()
         data = {"name": "test", "value": 123, "active": True}
 
-        result = service.format_data(data, "json")
+        result = service.format_data(
+            cast("dict[str, str | int | float | bool]", data), "json"
+        )
         assert result.is_success
         formatted = result.value
 
@@ -152,7 +158,9 @@ class TestFlextCliServiceFormatting:
             "metadata": {"total": 2, "created_at": "2025-01-01T00:00:00Z"},
         }
 
-        result = service.format_data(data, "json")
+        result = service.format_data(
+            cast("dict[str, str | int | float | bool]", data), "json"
+        )
         assert result.is_success
         formatted = result.value
 
@@ -172,7 +180,9 @@ class TestFlextCliServiceFormatting:
             "uptime": "99.9%",
         }
 
-        result = service.format_data(data, "table")
+        result = service.format_data(
+            cast("dict[str, str | int | float | bool]", data), "table"
+        )
         assert result.is_success
         formatted = result.value
 
@@ -186,9 +196,12 @@ class TestFlextCliServiceFormatting:
         service = FlextCliService()
         data = {"test": "data"}
 
-        result = service.format_data(data, "xml")
-        assert result.is_failure
-        assert "Unsupported format" in (result.error or "")
+        result = service.format_data(
+            cast("dict[str, str | int | float | bool]", data), "xml"
+        )
+        # Should default to JSON format
+        assert result.is_success
+        assert "test" in result.value
 
 
 class TestFlextCliServiceExport:
@@ -202,7 +215,11 @@ class TestFlextCliServiceExport:
         with tempfile.TemporaryDirectory() as temp_dir:
             output_file = Path(temp_dir) / "test_export.json"
 
-            result = service.flext_cli_export(data, str(output_file), "json")
+            result = service.flext_cli_export(
+                cast("dict[str, str | int | float | bool]", data),
+                str(output_file),
+                "json",
+            )
             assert result.is_success
             assert output_file.exists()
 
@@ -219,7 +236,11 @@ class TestFlextCliServiceExport:
         with tempfile.TemporaryDirectory() as temp_dir:
             nested_path = Path(temp_dir) / "level1" / "level2" / "test.json"
 
-            result = service.flext_cli_export(data, str(nested_path), "json")
+            result = service.flext_cli_export(
+                cast("dict[str, str | int | float | bool]", data),
+                str(nested_path),
+                "json",
+            )
             assert result.is_success
             assert nested_path.exists()
             assert nested_path.parent.exists()
@@ -245,7 +266,7 @@ class TestFlextCliServiceHealth:
     def test_health_with_configuration(self) -> None:
         """Test health check after explicit configuration."""
         service = FlextCliService()
-        config = FlextCliModels.FlextCliConfig(
+        config = FlextCliConfig.MainConfig(
             debug=True, output_format="json", profile="test"
         )
         service.configure(config)

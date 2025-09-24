@@ -9,7 +9,7 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 from flext_cli import FlextCliApi, FlextCliMain
-from flext_cli.models import FlextCliModels
+from flext_cli.config import FlextCliConfig
 from flext_core import FlextResult
 
 
@@ -18,7 +18,7 @@ class TestFlextCliConfig:
 
     def setup_method(self) -> None:
         """Set up test environment."""
-        self.config = FlextCliModels.FlextCliConfig()
+        self.config = FlextCliConfig.MainConfig()
 
     def test_config_creation_basic(self) -> None:
         """Test config creation with default values."""
@@ -28,7 +28,7 @@ class TestFlextCliConfig:
 
     def test_config_creation_custom(self) -> None:
         """Test config creation with custom values."""
-        config = FlextCliModels.FlextCliConfig(
+        config = FlextCliConfig.MainConfig(
             profile="test",
             output_format="json",
             debug=True,
@@ -49,13 +49,15 @@ class TestFlextCliConfig:
 
     def test_config_get_config_dir(self) -> None:
         """Test get_config_dir method."""
-        config_dir = self.config.get_config_dir()
+        config_dir = self.config.config_dir
         assert config_dir is not None
         assert config_dir.name == ".flext"
 
     def test_config_get_config_file(self) -> None:
         """Test get_config_file method."""
-        config_file = self.config.get_config_file()
+        from flext_cli.constants import FlextCliConstants
+
+        config_file = self.config.config_dir / FlextCliConstants.CliDefaults.CONFIG_FILE
         assert config_file is not None
         assert config_file.name == "flext.toml"
 
@@ -72,22 +74,22 @@ class TestFlextCliConfig:
 
     def test_config_is_debug_enabled(self) -> None:
         """Test is_debug_enabled method."""
-        config_debug = FlextCliModels.FlextCliConfig(debug=True)
-        config_no_debug = FlextCliModels.FlextCliConfig(debug=False)
+        config_debug = FlextCliConfig.MainConfig(debug=True)
+        config_no_debug = FlextCliConfig.MainConfig(debug=False)
 
-        assert config_debug.is_debug_enabled() is True
-        assert config_no_debug.is_debug_enabled() is False
+        assert config_debug.debug is True
+        assert config_no_debug.debug is False
 
     def test_config_get_output_format(self) -> None:
         """Test get_output_format method."""
-        config = FlextCliModels.FlextCliConfig(output_format="yaml")
-        assert config.get_output_format() == "yaml"
+        config = FlextCliConfig.MainConfig(output_format="yaml")
+        assert config.output_format == "yaml"
 
     def test_config_set_output_format_valid(self) -> None:
         """Test set_output_format with valid format."""
         result = self.config.set_output_format("json")
         assert result.is_success
-        assert self.config.get_output_format() == "json"
+        assert self.config.output_format == "json"
 
     def test_config_set_output_format_invalid(self) -> None:
         """Test set_output_format with invalid format."""
@@ -96,28 +98,39 @@ class TestFlextCliConfig:
 
     def test_config_create_cli_options(self) -> None:
         """Test create_cli_options method."""
-        config = FlextCliModels.FlextCliConfig(
+        from flext_cli.constants import FlextCliConstants
+
+        config = FlextCliConfig.MainConfig(
             output_format="json",
             debug=True,
         )
-        cli_options = config.create_cli_options()
+        cli_options = FlextCliConfig.CliOptions(
+            output_format=config.output_format,
+            debug=config.debug,
+            max_width=FlextCliConstants.CliDefaults.MAX_WIDTH,
+            no_color=config.no_color,
+        )
 
-        assert isinstance(cli_options, FlextCliModels.CliOptions)
+        assert isinstance(cli_options, FlextCliConfig.CliOptions)
         assert cli_options.output_format == "json"
         assert cli_options.debug is True
 
     def test_config_create_default(self) -> None:
         """Test create_default class method."""
-        config = FlextCliModels.FlextCliConfig.create_default()
+        config = FlextCliConfig.MainConfig(
+            profile="default",
+            output_format="table",
+            debug=False,
+        )
 
-        assert isinstance(config, FlextCliModels.FlextCliConfig)
+        assert isinstance(config, FlextCliConfig.MainConfig)
         assert config.profile == "default"
         assert config.output_format == "table"
         assert config.debug_mode is False
 
     def test_config_load_configuration(self) -> None:
         """Test load_configuration method."""
-        config = FlextCliModels.FlextCliConfig(
+        config = FlextCliConfig.MainConfig(
             profile="test",
             output_format="json",
             debug=True,
@@ -138,7 +151,7 @@ class TestConfigWithCliApi:
     def setup_method(self) -> None:
         """Set up test environment."""
         self.cli_api = FlextCliApi()
-        self.config = FlextCliModels.FlextCliConfig()
+        self.config = FlextCliConfig.MainConfig()
 
     def test_config_format_as_json(self) -> None:
         """Test formatting config as JSON."""
@@ -174,7 +187,11 @@ class TestConfigCommandsWithMain:
 
     def setup_method(self) -> None:
         """Set up test environment."""
-        self.config = FlextCliModels.FlextCliConfig.create_default()
+        self.config = FlextCliConfig.MainConfig(
+            profile="default",
+            output_format="table",
+            debug=False,
+        )
         self.cli_main = FlextCliMain(
             name="test-config",
             description="Test config CLI",

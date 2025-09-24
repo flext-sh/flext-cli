@@ -4,11 +4,9 @@ Copyright (c) 2025 FLEXT Team. All rights reserved.
 SPDX-License-Identifier: MIT
 """
 
-import pytest
 from pathlib import Path
 
 from flext_cli.utils import FlextCliUtilities
-from flext_core import FlextResult
 
 
 class TestFlextCliUtilitiesSimple:
@@ -22,8 +20,8 @@ class TestFlextCliUtilitiesSimple:
         """Test utilities initialization."""
         utils = FlextCliUtilities()
         assert utils is not None
-        assert hasattr(utils, '_container')
-        assert hasattr(utils, '_logger')
+        assert hasattr(utils, "_container")
+        assert hasattr(utils, "_logger")
 
     def test_execute(self) -> None:
         """Test execute method."""

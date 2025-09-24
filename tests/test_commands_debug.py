@@ -14,8 +14,8 @@ import sys
 from pathlib import Path
 
 from flext_cli import FlextCliApi, FlextCliMain
+from flext_cli.config import FlextCliConfig
 from flext_cli.flext_cli_formatters import FlextCliFormatters
-from flext_cli.models import FlextCliModels
 from flext_core import FlextResult
 
 
@@ -99,7 +99,7 @@ class TestValidateCommandReal:
 
     def test_validate_command_execution_real(self) -> None:
         """Test validate command execution."""
-        validation_result = {
+        validation_result: dict[str, bool | list[str]] = {
             "config_valid": True,
             "errors": [],
             "warnings": [],
@@ -110,7 +110,7 @@ class TestValidateCommandReal:
 
     def test_validate_config_real(self) -> None:
         """Test configuration validation."""
-        config = FlextCliModels.FlextCliConfig(
+        config = FlextCliConfig.MainConfig(
             profile="test", output_format="json", debug=True
         )
 

@@ -10,6 +10,7 @@ from __future__ import annotations
 
 from datetime import UTC, datetime
 
+from flext_cli.config import FlextCliConfig
 from flext_cli.constants import FlextCliConstants
 from flext_cli.models import FlextCliModels
 from flext_core import FlextResult
@@ -159,11 +160,11 @@ class TestFlextCliModelsCliSession:
 
 
 class TestFlextCliModelsCliConfig:
-    """Test FlextCliModels.CliConfig functionality - real API."""
+    """Test FlextCliConfig functionality - real API."""
 
     def test_cli_config_creation_with_defaults(self) -> None:
         """Test CLI config creation with default values."""
-        config = FlextCliModels.CliConfig()
+        config = FlextCliConfig.MainConfig()
 
         assert config.profile == "default"
         assert config.output_format == "table"
@@ -171,10 +172,10 @@ class TestFlextCliModelsCliConfig:
 
     def test_cli_config_creation_with_custom_values(self) -> None:
         """Test CLI config creation with custom values."""
-        config = FlextCliModels.CliConfig(
+        config = FlextCliConfig.MainConfig(
             profile="development",
             output_format="json",
-            debug_mode=True,
+            debug=True,
         )
 
         assert config.profile == "development"
@@ -183,14 +184,35 @@ class TestFlextCliModelsCliConfig:
 
     def test_cli_config_validate_business_rules(self) -> None:
         """Test validate_business_rules method."""
-        config = FlextCliModels.CliConfig(
+        config = FlextCliConfig.MainConfig(
             profile="test",
             output_format="json",
         )
-        result = config.validate_business_rules()
+        result = config.validate_output_format("json")
 
         assert isinstance(result, FlextResult)
         assert result.is_success
+
+    def test_cli_session_add_command(self) -> None:
+        """Test add_command method."""
+        session = FlextCliModels.CliSession(
+            id="session-003",
+            start_time=datetime.now(UTC),
+        )
+
+        command = FlextCliModels.CliCommand(
+            id="cmd-007",
+            command="test",
+            created_at=datetime.now(UTC),
+        )
+
+        result = session.add_command(command)
+
+        assert isinstance(result, FlextResult)
+        assert result.is_success
+        assert len(session.commands) == 1
+        assert session.commands_executed == 1
+        assert session.commands[0].id == "cmd-007"
 
 
 class TestFlextCliModelsCliOptions:
@@ -198,11 +220,19 @@ class TestFlextCliModelsCliOptions:
 
     def test_cli_options_creation(self) -> None:
         """Test CLI options creation."""
-        options = FlextCliModels.CliOptions(
+        from flext_cli.constants import FlextCliConstants
+
+        config = FlextCliConfig.MainConfig(
             output_format="json",
             debug=True,
-            max_width=120,
             no_color=False,
+        )
+
+        options = FlextCliConfig.CliOptions(
+            output_format=config.output_format,
+            debug=config.debug,
+            max_width=FlextCliConstants.CliDefaults.MAX_WIDTH,
+            no_color=config.no_color,
         )
 
         assert options.output_format == "json"

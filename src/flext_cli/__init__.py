@@ -34,20 +34,21 @@ from flext_cli.__version__ import (
 )
 
 # CLI Core Components - Reorganized structure following FLEXT standards
+from flext_cli.config import FlextCliConfig
 from flext_cli.constants import FlextCliConstants
-
-# CLI provider modules - direct imports (provider pattern simplified)
 from flext_cli.context import FlextCliContext
 from flext_cli.core import FlextCliService
 from flext_cli.decorators import FlextCliDecorators
-from flext_cli.domain_service import FlextCliDomainService
-from flext_cli.exceptions import FlextCliError
+
+# FlextCliDomainService merged into FlextCliService
+from flext_cli.exceptions import FlextCliError, FlextCliExceptions
 from flext_cli.flext_cli import FlextCli
 from flext_cli.flext_cli_api import FlextCliApi
 from flext_cli.flext_cli_auth import FlextCliAuth
 from flext_cli.flext_cli_formatters import FlextCliFormatters
 from flext_cli.flext_cli_main import FlextCliMain
 from flext_cli.logging_setup import FlextCliLoggingSetup
+from flext_cli.mixins import FlextCliMixins
 from flext_cli.models import FlextCliModels
 from flext_cli.typings import FlextCliTypings
 
@@ -63,14 +64,17 @@ __all__ = [
     # CLI Provider APIs
     "FlextCliApi",
     "FlextCliAuth",
+    "FlextCliConfig",
     "FlextCliConstants",
     "FlextCliContext",
     "FlextCliDecorators",
-    "FlextCliDomainService",
+    # "FlextCliDomainService", # Merged into FlextCliService
     "FlextCliError",
+    "FlextCliExceptions",
     "FlextCliFormatters",
     "FlextCliLoggingSetup",
     "FlextCliMain",
+    "FlextCliMixins",
     "FlextCliModels",
     "FlextCliService",
     "FlextCliTypings",
