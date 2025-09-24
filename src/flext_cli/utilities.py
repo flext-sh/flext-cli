@@ -9,18 +9,21 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
+import csv
 import json
-import logging
-from collections.abc import Callable, Sequence
+import time
+from collections.abc import Awaitable, Callable, Sequence
+from io import StringIO
 from pathlib import Path
 from typing import cast
 
 import yaml
 from pydantic import BaseModel, ConfigDict, ValidationError
 from pydantic_settings import SettingsConfigDict
+from tabulate import tabulate
 
 from flext_cli.constants import FlextCliConstants
-from flext_core import FlextContainer, FlextResult, FlextUtilities
+from flext_core import FlextContainer, FlextLogger, FlextResult, FlextUtilities
 
 
 class FlextCliUtilities(FlextUtilities):
@@ -34,7 +37,7 @@ class FlextCliUtilities(FlextUtilities):
         """Initialize FlextCliUtilities service."""
         super().__init__()
         self._container = FlextContainer.get_global()
-        self._logger = logging.getLogger(__name__)
+        self._logger = FlextLogger(__name__)
 
     def execute(self) -> FlextResult[None]:
         """Execute the main domain service operation.
@@ -46,11 +49,11 @@ class FlextCliUtilities(FlextUtilities):
         return FlextResult[None].ok(None)
 
     @property
-    def logger(self) -> logging.Logger:
+    def logger(self) -> FlextLogger:
         """Get logger instance.
 
         Returns:
-            logging.Logger: Description of return value.
+            FlextLogger: Description of return value.
 
         """
         return self._logger
@@ -166,7 +169,6 @@ class FlextCliUtilities(FlextUtilities):
         """
         try:
             # Convert data to dict if needed
-            validated_data: dict[str, object]
             if isinstance(data, dict):
                 validated_data = cast("dict[str, object]", data)
             elif hasattr(data, "model_dump") and callable(
@@ -219,7 +221,7 @@ class FlextCliUtilities(FlextUtilities):
                 if isinstance(data, dict):
                     validator_dict = cast("dict[str, type]", validator)
                     for key, expected_type in validator_dict.items():
-                        expected_type_obj: type = expected_type
+                        expected_type_obj = expected_type
                         if key not in data:
                             return FlextResult[bool].fail(
                                 f"Missing required field: {key}",
@@ -231,7 +233,7 @@ class FlextCliUtilities(FlextUtilities):
                             return FlextResult[bool].fail(
                                 f"Invalid type for {key}: expected {type_name}",
                             )
-                    return FlextResult[bool].ok(data=True)
+                    return FlextResult[bool].ok(True)
                 return FlextResult[bool].fail(
                     "Data must be dict for dict-based validation",
                 )
@@ -321,6 +323,126 @@ class FlextCliUtilities(FlextUtilities):
             result.unwrap() if result.is_success else {"error": result.error},
         )
 
+    @staticmethod
+    def safe_json_parse(json_data: str) -> dict[str, object] | None:
+        """Safely parse JSON string to dictionary.
+
+        Args:
+            json_data: JSON string to parse
+
+        Returns:
+            Parsed data or None if parsing fails
+
+        """
+        try:
+            result: dict[str, object] = json.loads(json_data)
+            return result
+        except json.JSONDecodeError:
+            return None
+        except Exception:
+            return None
+
+    @staticmethod
+    def format_as_json(data: object) -> str:
+        """Format data as JSON string.
+
+        Args:
+            data: Data to format
+
+        Returns:
+            str: Formatted JSON string
+
+        """
+        return FlextCliUtilities.safe_json_stringify(data)
+
+    @staticmethod
+    def format_as_yaml(data: object) -> str:
+        """Format data as YAML string.
+
+        Args:
+            data: Data to format
+
+        Returns:
+            str: Formatted YAML string
+
+        """
+        try:
+            return yaml.dump(data, default_flow_style=False)
+        except Exception:
+            return str(data)
+
+    @staticmethod
+    def format_as_table(data: object) -> str:
+        """Format data as table string.
+
+        Args:
+            data: Data to format
+
+        Returns:
+            str: Formatted table string
+
+        """
+        try:
+            if isinstance(data, list) and data and isinstance(data[0], dict):
+                # List of dictionaries - perfect for table
+                headers = list(data[0].keys())
+                rows = [[str(row.get(h, "")) for h in headers] for row in data]
+                return tabulate(rows, headers=headers, tablefmt="grid")
+            if isinstance(data, dict):
+                # Single dictionary - convert to key-value table
+                rows = [[str(k), str(v)] for k, v in data.items()]
+                return tabulate(rows, headers=["Key", "Value"], tablefmt="grid")
+            # Fallback to JSON for other data types
+            return json.dumps(data, default=str, indent=2)
+        except Exception:
+            return str(data)
+
+    @staticmethod
+    def read_file(file_path: str) -> FlextResult[str]:
+        """Read file content as string.
+
+        Args:
+            file_path: Path to file to read
+
+        Returns:
+            FlextResult containing file content or error
+
+        """
+        try:
+            file_path_obj = Path(file_path)
+            if not file_path_obj.exists():
+                return FlextResult[str].fail(f"File does not exist: {file_path}")
+
+            with file_path_obj.open("r", encoding="utf-8") as f:
+                content = f.read()
+
+            return FlextResult[str].ok(content)
+        except Exception as e:
+            return FlextResult[str].fail(f"Failed to read file: {e}")
+
+    @staticmethod
+    def write_file(file_path: str, content: str) -> FlextResult[bool]:
+        """Write content to file.
+
+        Args:
+            file_path: Path to file to write
+            content: Content to write
+
+        Returns:
+            FlextResult containing success status or error
+
+        """
+        try:
+            file_path_obj = Path(file_path)
+            file_path_obj.parent.mkdir(parents=True, exist_ok=True)
+
+            with file_path_obj.open("w", encoding="utf-8") as f:
+                f.write(content)
+
+            return FlextResult[bool].ok(True)
+        except Exception as e:
+            return FlextResult[bool].fail(f"Failed to write file: {e}")
+
     # =========================================================================
     # FILE OPERATIONS - Consolidated file utilities
     # =========================================================================
@@ -355,8 +477,10 @@ class FlextCliUtilities(FlextUtilities):
                 return Path(file_path).exists()
 
             # Railway pattern - return False for any failure (invalid path, permission denied, etc.)
-            result = FlextResult[bool].safe_call(check_file_existence)
-            return result.unwrap() if result.is_success else False
+            try:
+                return check_file_existence()
+            except Exception:
+                return False
 
         @staticmethod
         def get_file_size(file_path: str | Path) -> FlextResult[int]:
@@ -428,7 +552,7 @@ class FlextCliUtilities(FlextUtilities):
                     )
 
                 with Path(file_path_obj).open("r", encoding="utf-8") as f:
-                    data = json.load(f)
+                    data: dict[str, object] = json.load(f)
 
                 return FlextResult[dict[str, object]].ok(data)
             except Exception as e:
@@ -491,9 +615,6 @@ class FlextCliUtilities(FlextUtilities):
 
             """
             try:
-                import csv
-                from io import StringIO
-
                 if isinstance(data, list) and data and isinstance(data[0], dict):
                     # List of dictionaries - perfect for CSV
                     output = StringIO()
@@ -527,8 +648,6 @@ class FlextCliUtilities(FlextUtilities):
 
             """
             try:
-                from tabulate import tabulate
-
                 if isinstance(data, list) and data and isinstance(data[0], dict):
                     # List of dictionaries - perfect for table
                     headers = list(data[0].keys())
@@ -546,6 +665,335 @@ class FlextCliUtilities(FlextUtilities):
                 return FlextResult[str].ok(json.dumps(data, default=str, indent=2))
             except Exception as e:
                 return FlextResult[str].fail(f"Table formatting failed: {e}")
+
+    # =========================================================================
+    # DECORATORS SERVICE - CLI decorators for common patterns
+    # =========================================================================
+
+    class Decorators:
+        """Decorators for common CLI patterns and operations."""
+
+        @staticmethod
+        def async_command[T](
+            func: Callable[..., Awaitable[T]],
+        ) -> Callable[..., Awaitable[T]]:
+            """Decorator for async command functions."""
+
+            async def wrapper(*args: object, **kwargs: object) -> T:
+                return await func(*args, **kwargs)
+
+            wrapper.__name__ = func.__name__
+            wrapper.__doc__ = func.__doc__
+            return wrapper
+
+        @staticmethod
+        def confirm_action(
+            message: str,
+        ) -> Callable[[Callable[..., object]], Callable[..., object]]:
+            """Decorator to require user confirmation before executing action."""
+
+            def decorator(func: Callable[..., object]) -> Callable[..., object]:
+                def wrapper(*args: object, **kwargs: object) -> object:
+                    # In a real implementation, this would prompt the user
+                    # For testing, simulate user cancellation by returning None
+                    try:
+                        response = input(f"{message} [y/N]: ").lower().strip()
+                        if response in {"y", "yes"}:
+                            return func(*args, **kwargs)
+                        return None  # User cancelled
+                    except (KeyboardInterrupt, EOFError):
+                        return None  # User cancelled
+
+                wrapper.__name__ = func.__name__
+                wrapper.__doc__ = func.__doc__
+                # Set the wrapped function for introspection
+                setattr(wrapper, "__wrapped__", func)
+                return wrapper
+
+            return decorator
+
+        @staticmethod
+        def require_auth(
+            token_file: str | None = None,
+        ) -> Callable[[Callable[..., object]], Callable[..., object]]:
+            """Decorator to require authentication before executing function."""
+
+            def decorator(func: Callable[..., object]) -> Callable[..., object]:
+                def wrapper(*args: object, **kwargs: object) -> object:
+                    # Check if token file exists and has content
+                    if token_file:
+                        try:
+                            token_path = Path(token_file)
+                            if not token_path.exists():
+                                return None  # Auth failed
+                            token_content = token_path.read_text(
+                                encoding="utf-8"
+                            ).strip()
+                            if not token_content:
+                                return None  # Auth failed
+                        except Exception:
+                            return None  # Auth failed
+                    return func(*args, **kwargs)
+
+                wrapper.__name__ = func.__name__
+                wrapper.__doc__ = func.__doc__
+                return wrapper
+
+            return decorator
+
+        @staticmethod
+        def measure_time(
+            *, show_in_output: bool = True
+        ) -> Callable[[Callable[..., object]], Callable[..., object]]:
+            """Decorator to measure execution time of function."""
+
+            def decorator(func: Callable[..., object]) -> Callable[..., object]:
+                def wrapper(*args: object, **kwargs: object) -> object:
+                    start_time = time.time()
+                    result = func(*args, **kwargs)
+                    end_time = time.time()
+                    execution_time = end_time - start_time
+                    if show_in_output:
+                        # Use FlextLogger for consistent logging
+                        logger = FlextLogger(__name__)
+                        logger.info(f"⏱  Execution time: {execution_time:.2f}s")
+                    return result
+
+                wrapper.__name__ = func.__name__
+                wrapper.__doc__ = func.__doc__
+                return wrapper
+
+            return decorator
+
+        @staticmethod
+        def retry(
+            max_attempts: int = 3,
+            delay: float = 0.5,
+        ) -> Callable[[Callable[..., object]], Callable[..., object]]:
+            """Decorator to retry function on failure."""
+
+            def decorator(func: Callable[..., object]) -> Callable[..., object]:
+                def wrapper(*args: object, **kwargs: object) -> object:
+                    last_exception: Exception | None = None
+                    for attempt in range(max_attempts):
+                        try:
+                            return func(*args, **kwargs)
+                        except Exception as e:
+                            last_exception = e
+                            if attempt < max_attempts - 1:
+                                time.sleep(delay)
+                                continue
+                            raise last_exception from e
+                    # This should never be reached, but mypy requires it
+                    error_msg = "Retry loop completed without return or exception"
+                    raise RuntimeError(error_msg)
+
+                wrapper.__name__ = func.__name__
+                wrapper.__doc__ = func.__doc__
+                return wrapper
+
+            return decorator
+
+        @staticmethod
+        def validate_config(
+            required_keys: list[str],
+        ) -> Callable[[Callable[..., object]], Callable[..., object]]:
+            """Decorator to validate configuration before executing function."""
+
+            def decorator(func: Callable[..., object]) -> Callable[..., object]:
+                def wrapper(*args: object, **kwargs: object) -> object:
+                    # Check if config is provided in kwargs or args
+                    config = None
+                    if kwargs and "config" in kwargs:
+                        config = kwargs["config"]
+                    elif args and len(args) > 0:
+                        config = args[0]
+
+                    # Validate config has required keys
+                    if config is None:
+                        # Log warning when no config available
+                        logger = FlextLogger(__name__)
+                        logger.warning("Configuration not available for validation.")
+                        return None  # Validation failed
+
+                    # Handle both dict and object configs
+                    if isinstance(config, dict):
+                        config_dict = config
+                    else:
+                        # Convert object to dict
+                        config_dict = {
+                            key: getattr(config, key, None) for key in required_keys
+                        }
+
+                    for key in required_keys:
+                        if key not in config_dict or config_dict[key] is None:
+                            # Log error when required key is missing
+                            logger = FlextLogger(__name__)
+                            logger.error(f"Missing required configuration: {key}")
+                            return None  # Validation failed
+
+                    return func(*args, **kwargs)
+
+                wrapper.__name__ = func.__name__
+                wrapper.__doc__ = func.__doc__
+                return wrapper
+
+            return decorator
+
+        @staticmethod
+        def with_spinner(
+            message: str = "Processing...",
+        ) -> Callable[[Callable[..., object]], Callable[..., object]]:
+            """Decorator to show spinner while function executes."""
+
+            def decorator(func: Callable[..., object]) -> Callable[..., object]:
+                def wrapper(*args: object, **kwargs: object) -> object:
+                    # Use FlextLogger for consistent logging
+                    logger = FlextLogger(__name__)
+                    logger.info(f"🔄 {message}")
+                    try:
+                        result = func(*args, **kwargs)
+                        logger.info(f"✅ {message} completed")
+                        return result
+                    except Exception:
+                        logger.exception(f"❌ {message} failed")
+                        raise
+
+                wrapper.__name__ = func.__name__
+                wrapper.__doc__ = func.__doc__
+                return wrapper
+
+            return decorator
+
+    # =========================================================================
+    # INTERACTIONS SERVICE - User interaction patterns
+    # =========================================================================
+
+    class Interactions:
+        """User interaction patterns and utilities."""
+
+        def __init__(
+            self, logger: FlextLogger | None = None, *, quiet: bool = False
+        ) -> None:
+            """Initialize interactions with logger and quiet mode."""
+            self._logger = logger or FlextLogger(__name__)
+            self.quiet = quiet
+
+        def prompt(self, message: str, default: str | None = None) -> FlextResult[str]:
+            """Prompt user for input."""
+            if self.quiet:
+                return FlextResult[str].ok(default or "")
+            try:
+                # In a real implementation, this would use click.prompt or similar
+                response = input(f"{message}: ")
+                if not response and default is None:
+                    return FlextResult[str].fail("Empty input is not allowed")
+                return FlextResult[str].ok(response or default or "")
+            except KeyboardInterrupt:
+                return FlextResult[str].fail("User interrupted")
+            except EOFError:
+                return FlextResult[str].fail("Input stream ended")
+
+        def confirm(self, message: str, *, default: bool = False) -> FlextResult[bool]:
+            """Ask user to confirm an action."""
+            if self.quiet:
+                return FlextResult[bool].ok(default)
+            try:
+                # In a real implementation, this would use click.confirm or similar
+                response = input(f"{message} [y/N]: ").lower().strip()
+                if response in {"y", "yes"}:
+                    return FlextResult[bool].ok(True)
+                if response in {"n", "no", ""}:
+                    return FlextResult[bool].ok(default)
+                return FlextResult[bool].ok(default)
+            except KeyboardInterrupt:
+                return FlextResult[bool].fail("User interrupted")
+            except EOFError:
+                return FlextResult[bool].fail("Input stream ended")
+
+        def print_status(self, message: str, status: str = "info") -> FlextResult[None]:
+            """Print status message."""
+            if self.quiet:
+                return FlextResult[None].ok(None)
+            try:
+                # In a real implementation, this would use rich console
+                # Use proper logging instead of print
+                self._logger.info(f"[{status.upper()}] {message}")
+                return FlextResult[None].ok(None)
+            except Exception as e:
+                return FlextResult[None].fail(f"Print failed: {e}")
+
+        def print_success(self, message: str) -> FlextResult[None]:
+            """Print success message."""
+            return self.print_status(message, "success")
+
+        def print_error(self, message: str) -> FlextResult[None]:
+            """Print error message."""
+            return self.print_status(message, "error")
+
+        def print_warning(self, message: str) -> FlextResult[None]:
+            """Print warning message."""
+            return self.print_status(message, "warning")
+
+        def print_info(self, message: str) -> FlextResult[None]:
+            """Print info message."""
+            return self.print_status(message, "info")
+
+        def create_progress(self, message: str) -> FlextResult[object]:
+            """Create progress indicator."""
+            if self.quiet:
+                return FlextResult[object].ok(message)
+            try:
+                # In a real implementation, this would use rich.progress
+                return FlextResult[object].ok(message)
+            except Exception as e:
+                return FlextResult[object].fail(f"Progress creation failed: {e}")
+
+        def with_progress(
+            self, items: list[object], message: str = "Processing..."
+        ) -> FlextResult[list[object]]:
+            """Process items with progress indicator."""
+            if self.quiet:
+                return FlextResult[list[object]].ok(items)
+            try:
+                # In a real implementation, this would use rich.progress
+                # Use the message parameter for logging
+                self._logger.info(f"Processing {len(items)} items: {message}")
+                return FlextResult[list[object]].ok(items)
+            except Exception as e:
+                return FlextResult[list[object]].fail(
+                    f"Progress processing failed: {e}"
+                )
+
+        @staticmethod
+        def prompt_user(_question: str, default: str | None = None) -> str:
+            """Prompt user for input."""
+            # In a real implementation, this would use click.prompt or similar
+            return default or "default_response"
+
+        @staticmethod
+        def confirm_action(_message: str) -> bool:
+            """Ask user to confirm an action."""
+            # In a real implementation, this would use click.confirm or similar
+            return True
+
+        @staticmethod
+        def select_option(
+            options: list[str], _message: str = "Select an option:"
+        ) -> str:
+            """Let user select from a list of options."""
+            # In a real implementation, this would use click.prompt with choices
+            return options[0] if options else ""
+
+        @staticmethod
+        def show_progress(items: list[object], message: str = "Processing...") -> None:
+            """Show progress for processing items."""
+            # In a real implementation, this would use rich.progress or similar
+
+        @staticmethod
+        def display_table(data: list[dict[str, object]], title: str = "") -> None:
+            """Display data in a table format."""
+            # In a real implementation, this would use rich.table or similar
 
 
 __all__ = ["FlextCliUtilities"]

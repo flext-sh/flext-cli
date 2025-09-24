@@ -9,14 +9,13 @@ from __future__ import annotations
 import uuid
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import cast
 
 from flext_cli.config import FlextCliConfig
 from flext_cli.constants import FlextCliConstants
 from flext_core import FlextLogger, FlextResult, FlextService, FlextTypes
 
 
-class FlextCliContext(FlextService[FlextTypes.Core.Dict]):
+class FlextCliContext(FlextService[dict[str, object]]):
     """CLI execution context using composition for flexibility.
 
     Composition-based design containing execution environment, user information,
@@ -78,11 +77,35 @@ class FlextCliContext(FlextService[FlextTypes.Core.Dict]):
         self._user_id = user_id
         self._session_id = session_id
         self._additional_data = kwargs
-        self._configuration = kwargs.copy()
+        self._configuration: dict[str, object] = kwargs.copy()
         self._timeout_seconds = kwargs.get(
             "timeout_seconds",
             FlextCliConstants.NetworkDefaults.DEFAULT_TIMEOUT,
         )
+
+    def execute(self) -> FlextResult[dict[str, object]]:
+        """Execute CLI context - required by FlextService."""
+        return FlextResult[dict[str, object]].ok(self.to_dict())
+
+    def to_dict(self) -> dict[str, object]:
+        """Convert context to dictionary."""
+        return {
+            "context_id": self.id,
+            "config_profile": getattr(self.config, "profile", "default")
+            if self.config
+            else "default",
+            "debug_mode": self._debug,
+            "quiet_mode": self._quiet,
+            "verbose_mode": self._verbose,
+            "working_directory": str(self._working_directory)
+            if self._working_directory
+            else None,
+            "user_id": self._user_id,
+            "session_id": self._session_id,
+            "environment_variables": dict(self._environment_variables),
+            "timeout_seconds": self._timeout_seconds,
+            "additional_data": self._additional_data,
+        }
 
     # Properties for accessing composed state
     @property
@@ -166,11 +189,11 @@ class FlextCliContext(FlextService[FlextTypes.Core.Dict]):
         return self._session_id
 
     @property
-    def configuration(self) -> FlextTypes.Core.Dict:
+    def configuration(self) -> dict[str, object]:
         """Get context-specific configuration.
 
         Returns:
-            FlextTypes.Core.Dict: Description of return value.
+            dict[str, object]: Description of return value.
 
         """
         return self._configuration.copy()
@@ -271,7 +294,7 @@ class FlextCliContext(FlextService[FlextTypes.Core.Dict]):
         """
         if hasattr(self.config, "debug"):
             return bool(getattr(self.config, "debug", False))
-        return bool(self.debug)
+        return bool(self._debug)
 
     @property
     def is_quiet(self) -> bool:
@@ -284,7 +307,7 @@ class FlextCliContext(FlextService[FlextTypes.Core.Dict]):
         # Check if config has quiet mode directly
         if hasattr(self.config, "quiet"):
             return bool(getattr(self.config, "quiet", False))
-        return bool(self.quiet)
+        return bool(self._quiet)
 
     @property
     def is_verbose(self) -> bool:
@@ -297,7 +320,7 @@ class FlextCliContext(FlextService[FlextTypes.Core.Dict]):
         # Check if config has verbose mode directly
         if hasattr(self.config, "verbose"):
             return bool(getattr(self.config, "verbose", False))
-        return bool(self.verbose)
+        return bool(self._verbose)
 
     # Printing helpers expected by tests
     def print_success(self, message: str) -> None:
@@ -340,23 +363,6 @@ class FlextCliContext(FlextService[FlextTypes.Core.Dict]):
         # Direct validation without wrapper
         return FlextResult[None].ok(None)
 
-    def execute(self) -> FlextResult[FlextTypes.Core.Dict]:
-        """Execute the CLI context service."""
-        return FlextResult[FlextTypes.Core.Dict].ok({
-            "context_id": self.id,
-            "config_profile": getattr(self.config, "profile", "default")
-            if self.config
-            else "default",
-            "debug_mode": self._debug,
-            "quiet_mode": self._quiet,
-            "verbose_mode": self._verbose,
-            "working_directory": str(self._working_directory)
-            if self._working_directory
-            else None,
-            "user_id": self._user_id,
-            "session_id": self._session_id,
-        })
-
     # Convenience immutability helpers expected by some tests
     def with_environment(self, **env: str) -> FlextCliContext:
         """Create new context with additional environment variables.
@@ -397,7 +403,7 @@ class FlextCliContext(FlextService[FlextTypes.Core.Dict]):
         """Extended context for command execution (lightweight dataclass)."""
 
         command_name: str | None = None
-        command_args: FlextTypes.Core.Dict = field(
+        command_args: dict[str, object] = field(
             default_factory=dict,
         )
         execution_id: str | None = None
@@ -405,11 +411,11 @@ class FlextCliContext(FlextService[FlextTypes.Core.Dict]):
         session_id: str | None = None
         user_id: str | None = None
 
-        def get_execution_info(self) -> FlextTypes.Core.Dict:
+        def get_execution_info(self) -> dict[str, object]:
             """Get execution information.
 
             Returns:
-            FlextTypes.Core.Dict: Description of return value.
+            dict[str, object]: Description of return value.
 
             """
             return {
@@ -428,7 +434,7 @@ class FlextCliContext(FlextService[FlextTypes.Core.Dict]):
             FlextCliContext: Description of return value.
 
         """
-        config = kwargs.get("config")
+        config_raw = kwargs.get("config")
         logger_param = kwargs.get("logger")
         logger = (
             logger_param
@@ -441,8 +447,8 @@ class FlextCliContext(FlextService[FlextTypes.Core.Dict]):
 
         # Use provided config or create new one
         cli_config = (
-            config
-            if isinstance(config, FlextCliConfig.MainConfig)
+            config_raw
+            if isinstance(config_raw, FlextCliConfig.MainConfig)
             else FlextCliConfig.MainConfig()
         )
 
@@ -476,16 +482,15 @@ class FlextCliContext(FlextService[FlextTypes.Core.Dict]):
         user_id = kwargs.get("user_id")
         kwargs.get("debug", False)
         kwargs.get("verbose", False)
-        command_args_raw = kwargs.get("command_args", {})
+        command_args_raw_obj = kwargs.get("command_args")
+        command_args_raw: dict[str, object] = (
+            command_args_raw_obj if isinstance(command_args_raw_obj, dict) else {}
+        )
         execution_id = kwargs.get("execution_id")
         start_time = kwargs.get("start_time")
 
         # Properly type command_args
-        command_args = (
-            cast("dict[str, object]", command_args_raw)
-            if isinstance(command_args_raw, dict)
-            else {}
-        )
+        command_args: dict[str, object] = command_args_raw
 
         return FlextCliContext.ExecutionContext(
             command_name=command_name,

@@ -338,7 +338,7 @@ format = config.get_output_format()
 import click
 
 # Solution - use flext-cli abstraction
-from flext_cli import FlextCliMain, FlextCliApi
+from flext_cli import FlextCliCommands, FlextCliApi
 ```
 
 ---

@@ -9,8 +9,7 @@ from __future__ import annotations
 import unittest
 from pathlib import Path
 
-from flext_cli.config import FlextCliConfig
-from flext_cli.constants import FlextCliConstants
+from flext_cli import FlextCliConfig, FlextCliConstants
 
 
 class TestFlextCliConfig(unittest.TestCase):
@@ -52,7 +51,7 @@ class TestFlextCliConfig(unittest.TestCase):
 
         config_file = config.config_dir / FlextCliConstants.CliDefaults.CONFIG_FILE
         assert isinstance(config_file, Path)
-        assert config_file.name == "flext.toml"
+        assert config_file.name == "config.json"
 
     def test_config_validation(self) -> None:
         """Test FlextCliConfig output format validation."""

@@ -13,9 +13,7 @@ import platform
 import sys
 from pathlib import Path
 
-from flext_cli import FlextCliApi, FlextCliMain
-from flext_cli.config import FlextCliConfig
-from flext_cli.flext_cli_formatters import FlextCliFormatters
+from flext_cli import FlextCliApi, FlextCliCommands, FlextCliConfig, FlextCliOutput
 from flext_core import FlextResult
 
 
@@ -25,14 +23,28 @@ class TestDebugCommandReal:
     def setup_method(self) -> None:
         """Initialize test class with real components."""
         self.cli_api = FlextCliApi()
-        self.cli_main = FlextCliMain(name="test-debug", description="Test debug CLI")
-        self.formatter = FlextCliFormatters()
+        self.cli_main = FlextCliCommands(
+            name="test-debug", description="Test debug CLI"
+        )
+        self.formatter = FlextCliOutput()
 
     def test_debug_command_registration_real(self) -> None:
         """Test debug command group registration through flext-cli."""
         # Register debug group using actual API
-        register_result = self.cli_main.add_group(
-            "debug", "Debug commands for FLEXT CLI"
+        debug_commands = {
+            "env": {
+                "handler": lambda: None,
+                "description": "Show environment variables",
+            },
+            "validate": {
+                "handler": lambda: None,
+                "description": "Validate configuration",
+            },
+        }
+        # Cast to the expected type for MyPy
+        commands_dict: dict[str, object] = debug_commands
+        register_result = self.cli_main.register_command_group(
+            "debug", commands_dict, "Debug commands for FLEXT CLI"
         )
 
         assert isinstance(register_result, FlextResult)
@@ -63,7 +75,7 @@ class TestEnvCommandReal:
     def setup_method(self) -> None:
         """Setup test method."""
         self.cli_api = FlextCliApi()
-        self.formatter = FlextCliFormatters()
+        self.formatter = FlextCliOutput()
 
     def test_env_variables_real(self) -> None:
         """Test environment variables display."""
@@ -263,7 +275,7 @@ class TestDebugIntegration:
     def setup_method(self) -> None:
         """Setup test method."""
         self.cli_api = FlextCliApi()
-        self.cli_main = FlextCliMain(name="test-debug")
+        self.cli_main = FlextCliCommands(name="test-debug")
 
     def test_debug_error_handling_real(self) -> None:
         """Test debug error handling."""
@@ -280,7 +292,25 @@ class TestDebugIntegration:
     def test_debug_workflow_real(self) -> None:
         """Test complete debug workflow."""
         # Register debug group
-        group_result = self.cli_main.add_group("debug", "Debug commands")
+        debug_commands = {
+            "env": {
+                "handler": lambda: None,
+                "description": "Show environment variables",
+            },
+            "validate": {
+                "handler": lambda: None,
+                "description": "Validate configuration",
+            },
+            "connectivity": {
+                "handler": lambda: None,
+                "description": "Check connectivity",
+            },
+        }
+        # Cast to the expected type for MyPy
+        commands_dict_2: dict[str, object] = debug_commands
+        group_result = self.cli_main.register_command_group(
+            "debug", commands_dict_2, "Debug commands"
+        )
         assert group_result.is_success
 
         # Test debug info formatting

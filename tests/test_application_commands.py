@@ -50,8 +50,10 @@ class TestCLICommand:
         with pytest.raises(ValidationError) as exc_info:
             FlextCliModels.CliCommand(command_line="")
 
-        # Verify the error message (Pydantic validation error)
-        assert "String should have at least 1 character" in str(exc_info.value)
+        # Verify the error message (custom validation error)
+        assert "Either 'command' or 'command_line' must be provided" in str(
+            exc_info.value
+        )
 
 
 class TestCommandStatus:

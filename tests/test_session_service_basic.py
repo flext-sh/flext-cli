@@ -8,14 +8,15 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
+import time
 from collections.abc import Callable
+from datetime import timedelta
 from typing import cast
 from uuid import uuid4
 
 import pytest
 
-from flext_cli.core import FlextCliService
-from flext_cli.models import FlextCliModels
+from flext_cli import FlextCliModels, FlextCliService
 from flext_core import FlextResult
 
 
@@ -144,8 +145,6 @@ class TestFlextCliService:
 
     def test_list_active_sessions(self) -> None:
         """Test listing active sessions."""
-        import time
-
         service = FlextCliService()
 
         # Initially empty
@@ -168,8 +167,6 @@ class TestFlextCliService:
 
     def test_get_session_statistics(self) -> None:
         """Test getting session statistics."""
-        import time
-
         service = FlextCliService()
 
         # Create some sessions with delays to ensure unique IDs
@@ -201,8 +198,6 @@ class TestFlextCliService:
 
     def test_configure_session_tracking(self) -> None:
         """Test configuring session tracking."""
-        import time
-
         service = FlextCliService()
 
         # Create some sessions with delays to ensure unique IDs
@@ -364,8 +359,6 @@ class TestFlextCliServiceHelpers:
 
     def test_session_state_helper_calculate_duration(self) -> None:
         """Test _SessionStateHelper calculate session duration."""
-        from datetime import timedelta
-
         # Create a session with start time
         session = FlextCliService._SessionStateHelper.create_session_metadata("test")
 
@@ -446,8 +439,6 @@ class TestFlextCliServiceIntegration:
 
     def test_session_user_grouping(self) -> None:
         """Test session grouping by user."""
-        import time
-
         service = FlextCliService()
 
         # Create sessions for different users with small delays to ensure unique IDs
@@ -497,8 +488,6 @@ class TestFlextCliServiceIntegration:
 
     def test_private_helper_method(self) -> None:
         """Test private helper method _get_sessions_by_user."""
-        import time
-
         service = FlextCliService()
 
         # Create sessions with small delays to ensure unique IDs

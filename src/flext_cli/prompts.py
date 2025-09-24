@@ -1,22 +1,13 @@
-"""FLEXT CLI Interactions - User interaction utilities following flext-core patterns.
+"""User interaction tools for CLI applications."""
 
-Provides FlextCliInteractions class for user prompts, confirmations, and interactive
-elements with FlextResult error handling and Rich integration.
-
-Copyright (c) 2025 FLEXT Team. All rights reserved.
-SPDX-License-Identifier: MIT
-"""
-
-from __future__ import annotations
-
-from flext_core import FlextLogger, FlextResult, FlextTypes, FlextUtilities
+from flext_core import FlextLogger, FlextResult, FlextService, FlextTypes
 
 
-class FlextCliInteractions(FlextUtilities):
-    """User interaction utilities following SOLID principles.
+class FlextCliPrompts(FlextService[None]):
+    """User interaction tools for CLI applications.
 
-    Single responsibility: User interaction operations.
-    Uses FlextLogger for output with FlextResult error handling.
+    Consolidates user interaction functionality from interactions.py.
+    Provides confirm, prompt, and status printing with FlextResult error handling.
     NO DIRECT RICH IMPORTS - uses flext-core exclusively.
     """
 
@@ -26,18 +17,27 @@ class FlextCliInteractions(FlextUtilities):
         logger: FlextLogger | None = None,
         quiet: bool = False,
     ) -> None:
-        """Initialize interactions manager."""
+        """Initialize prompts manager."""
+        super().__init__()
         self._logger: FlextLogger = logger or FlextLogger(__name__)
-        self.quiet: bool = quiet
+        self._quiet: bool = quiet
+
+    def execute(self: object) -> FlextResult[None]:
+        """Execute the main domain service operation - required by FlextService."""
+        return FlextResult[None].ok(None)
 
     def confirm(self, message: str, *, default: bool = False) -> FlextResult[bool]:
         """Get user confirmation using standard input.
 
+        Args:
+            message: Confirmation message
+            default: Default value if user just presses Enter
+
         Returns:
-            FlextResult[bool]: Description of return value.
+            FlextResult[bool]: User confirmation result
 
         """
-        if self.quiet:
+        if self._quiet:
             return FlextResult[bool].ok(default)
         try:
             prompt_text = f"{message} [y/N]: " if not default else f"{message} [Y/n]: "
@@ -47,9 +47,9 @@ class FlextCliInteractions(FlextUtilities):
                 return FlextResult[bool].ok(default)
 
             if response in {"y", "yes", "1", "true"}:
-                return FlextResult[bool].ok(data=True)
+                return FlextResult[bool].ok(True)
             if response in {"n", "no", "0", "false"}:
-                return FlextResult[bool].ok(data=False)
+                return FlextResult[bool].ok(False)
             self._logger.warning(
                 f"Invalid response '{response}', using default {default}",
             )
@@ -65,12 +65,19 @@ class FlextCliInteractions(FlextUtilities):
     def prompt(self, message: str, *, default: str | None = None) -> FlextResult[str]:
         """Get user text input using standard input.
 
+        Args:
+            message: Prompt message
+            default: Default value if user just presses Enter
+
         Returns:
-            FlextResult[str]: Description of return value.
+            FlextResult[str]: User input or error
 
         """
-        if self.quiet and default is not None:
-            return FlextResult[str].ok(default)
+        if self._quiet:
+            if default is not None:
+                return FlextResult[str].ok(default)
+            return FlextResult[str].fail("Empty input is not allowed")
+
         try:
             prompt_text = (
                 f"{message}: " if default is None else f"{message} [{default}]: "
@@ -95,15 +102,18 @@ class FlextCliInteractions(FlextUtilities):
     def print_status(self, message: str, *, status: str = "info") -> FlextResult[None]:
         """Print status message using FlextLogger.
 
+        Args:
+            message: Status message
+            status: Status level (info, success, warning, error)
+
         Returns:
-            FlextResult[None]: Description of return value.
+            FlextResult[None]: Success or error
 
         """
         try:
-            if self.quiet and status == "info":
+            if self._quiet and status == "info":
                 return FlextResult[None].ok(None)
 
-            # Use match-case for status handling (Python 3.13+)
             match status:
                 case "info":
                     self._logger.info(message)
@@ -123,8 +133,11 @@ class FlextCliInteractions(FlextUtilities):
     def print_success(self, message: str) -> FlextResult[None]:
         """Print success message.
 
+        Args:
+            message: Success message
+
         Returns:
-            FlextResult[None]: Description of return value.
+            FlextResult[None]: Success or error
 
         """
         return self.print_status(message, status="success")
@@ -132,8 +145,11 @@ class FlextCliInteractions(FlextUtilities):
     def print_error(self, message: str) -> FlextResult[None]:
         """Print error message.
 
+        Args:
+            message: Error message
+
         Returns:
-            FlextResult[None]: Description of return value.
+            FlextResult[None]: Success or error
 
         """
         return self.print_status(message, status="error")
@@ -141,8 +157,11 @@ class FlextCliInteractions(FlextUtilities):
     def print_warning(self, message: str) -> FlextResult[None]:
         """Print warning message.
 
+        Args:
+            message: Warning message
+
         Returns:
-            FlextResult[None]: Description of return value.
+            FlextResult[None]: Success or error
 
         """
         return self.print_status(message, status="warning")
@@ -150,8 +169,11 @@ class FlextCliInteractions(FlextUtilities):
     def print_info(self, message: str) -> FlextResult[None]:
         """Print info message.
 
+        Args:
+            message: Info message
+
         Returns:
-            FlextResult[None]: Description of return value.
+            FlextResult[None]: Success or error
 
         """
         return self.print_status(message, status="info")
@@ -159,12 +181,15 @@ class FlextCliInteractions(FlextUtilities):
     def create_progress(self, message: str = "") -> FlextResult[str]:
         """Create simple progress tracking message.
 
+        Args:
+            message: Progress message
+
         Returns:
-            FlextResult[str]: Description of return value.
+            FlextResult[str]: Progress message or error
 
         """
         try:
-            if message and not self.quiet:
+            if message and not self._quiet:
                 self._logger.info(f"Starting: {message}")
             return FlextResult[str].ok(message)
         except Exception as e:
@@ -177,12 +202,16 @@ class FlextCliInteractions(FlextUtilities):
     ) -> FlextResult[FlextTypes.Core.List]:
         """Process items with simple progress tracking.
 
+        Args:
+            items: Items to process
+            message: Progress message
+
         Returns:
-            FlextResult[FlextTypes.Core.List]: Description of return value.
+            FlextResult[FlextTypes.Core.List]: Items or error
 
         """
         try:
-            if message and not self.quiet:
+            if message and not self._quiet:
                 self._logger.info(f"Processing {len(items)} items: {message}")
             return FlextResult[FlextTypes.Core.List].ok(items)
         except Exception as e:
@@ -191,4 +220,4 @@ class FlextCliInteractions(FlextUtilities):
             )
 
 
-__all__ = ["FlextCliInteractions"]
+__all__ = ["FlextCliPrompts"]

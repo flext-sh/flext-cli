@@ -16,7 +16,7 @@ Architecture Layers:
 - Domain: Rich domain models with business logic
 - Application: Use case orchestration and CQRS handlers
 - Infrastructure: External service integration and persistence
-- Commands: CLI interface layer using FlextCliMain and FlextCliApi
+- Commands: CLI interface layer using FlextCliCommands and FlextCliApi
 
 Copyright (c) 2025 FLEXT Team. All rights reserved.
 SPDX-License-Identifier: MIT
@@ -27,14 +27,14 @@ from __future__ import annotations
 from dataclasses import dataclass
 from datetime import UTC, datetime
 from enum import StrEnum
-from typing import Any, Protocol, cast, override
+from typing import Protocol, cast, override
 from uuid import UUID, uuid4
 
 from pydantic import Field
 
 from flext_cli import (
     FlextCliApi,
-    FlextCliMain,
+    FlextCliCommands,
     FlextCliService,
 )
 from flext_core import (
@@ -301,9 +301,9 @@ class CreateProjectHandler:
         for event in events:
             if (
                 isinstance(event, dict)
-                and cast("dict[str, Any]", event).get("type") == "ProjectCreated"
+                and cast("dict[str, object]", event).get("type") == "ProjectCreated"
             ):
-                event_dict: dict[str, Any] = cast("dict[str, Any]", event)
+                event_dict: dict[str, object] = cast("dict[str, object]", event)
                 # In real app: publish to event bus, update read models, etc.
                 event_type: str = str(event_dict.get("type", "unknown"))
                 project_id: str = str(event_dict.get("project_id", "unknown"))
@@ -518,11 +518,11 @@ class EnterpriseCliApplication:
         self.api_client = FlextCliService()
         self.service = ProjectManagementService()
 
-    def create_cli_interface(self) -> FlextResult[FlextCliMain]:
+    def create_cli_interface(self) -> FlextResult[FlextCliCommands]:
         """Create enterprise CLI interface using flext-cli patterns."""
         try:
             # Initialize CLI main instance
-            cli_main = FlextCliMain(
+            cli_main = FlextCliCommands(
                 name="enterprise-cli",
                 description="Enterprise patterns CLI demonstrating Clean Architecture and CQRS",
             )
@@ -530,12 +530,14 @@ class EnterpriseCliApplication:
             # Register command groups
             self._register_project_commands(cli_main)
 
-            return FlextResult[FlextCliMain].ok(cli_main)
+            return FlextResult[FlextCliCommands].ok(cli_main)
 
         except Exception as e:
-            return FlextResult[FlextCliMain].fail(f"CLI interface creation failed: {e}")
+            return FlextResult[FlextCliCommands].fail(
+                f"CLI interface creation failed: {e}"
+            )
 
-    def _register_project_commands(self, cli_main: FlextCliMain) -> None:
+    def _register_project_commands(self, cli_main: FlextCliCommands) -> None:
         """Register project management commands."""
         # Create commands and unwrap FlextResult values
         create_cmd = self.cli_api.create_command(

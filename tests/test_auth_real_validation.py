@@ -2,8 +2,7 @@
 
 from pathlib import Path
 
-from flext_cli.config import FlextCliConfig
-from flext_cli.flext_cli_auth import FlextCliAuth
+from flext_cli import FlextCliAuth, FlextCliConfig
 from flext_core import FlextResult
 
 
@@ -70,6 +69,9 @@ class TestFlextCliAuthRealValidation:
     def test_authentication_status_check(self) -> None:
         """Test authentication status checking."""
         auth = FlextCliAuth()
+
+        # Clear any existing tokens first
+        auth.clear_auth_tokens()
 
         # Test is_authenticated method
         is_auth: bool = auth.is_authenticated()

@@ -7,7 +7,7 @@ using proper flext-cli patterns:
 
 🎯 **Key Patterns Demonstrated:**
 - Data transformation and aggregation using FlextResult patterns
-- Multiple output formats through FlextCliFormatters (replaces direct Rich)
+- Multiple output formats through FlextCliOutput (replaces direct Rich)
 - File operations with type-safe FlextResult error handling
 - Batch processing workflows using flext-cli foundation
 - Data validation and processing with railway-oriented programming
@@ -32,12 +32,12 @@ import json
 import tempfile
 from pathlib import Path
 from tempfile import NamedTemporaryFile
-from typing import Any, TypedDict, cast
+from typing import TypedDict, cast
 
 from flext_cli import (
-    FlextCliFormatters,
+    FlextCliOutput,
 )
-from flext_core import FlextResult
+from flext_core import FlextResult, FlextTypes
 
 
 class DatabaseConfig(TypedDict):
@@ -64,7 +64,7 @@ class ConfigData(TypedDict):
 
 
 def _demonstrate_data_transformation(
-    formatter: FlextCliFormatters,
+    formatter: FlextCliOutput,
 ) -> FlextResult[None]:
     """Demonstrate data transformation using flext-cli patterns."""
     formatter.print_success("\n1. 🔄 Data Transformation with FLEXT CLI")
@@ -145,7 +145,7 @@ def _demonstrate_data_transformation(
     return FlextResult[None].ok(None)
 
 
-def _demonstrate_data_aggregation(formatter: FlextCliFormatters) -> FlextResult[None]:
+def _demonstrate_data_aggregation(formatter: FlextCliOutput) -> FlextResult[None]:
     """Demonstrate data aggregation patterns."""
     formatter.print_success("\n2. 📊 Data Aggregation Patterns")
 
@@ -228,7 +228,7 @@ def _demonstrate_data_aggregation(formatter: FlextCliFormatters) -> FlextResult[
     return FlextResult[None].ok(None)
 
 
-def _demonstrate_output_formatting(formatter: FlextCliFormatters) -> FlextResult[None]:
+def _demonstrate_output_formatting(formatter: FlextCliOutput) -> FlextResult[None]:
     """Demonstrate various output formatting options."""
     formatter.print_success("\n3. 🎨 Output Formatting Patterns")
 
@@ -273,7 +273,7 @@ def _demonstrate_output_formatting(formatter: FlextCliFormatters) -> FlextResult
     return FlextResult[None].ok(None)
 
 
-def _demonstrate_file_operations(formatter: FlextCliFormatters) -> FlextResult[None]:
+def _demonstrate_file_operations(formatter: FlextCliOutput) -> FlextResult[None]:
     """Demonstrate file operations with type-safe paths."""
     formatter.print_success("\n4. 📁 File Operations with Type Safety")
 
@@ -297,7 +297,7 @@ def _demonstrate_file_operations(formatter: FlextCliFormatters) -> FlextResult[N
     if load_result.is_failure:
         return FlextResult[None].fail(f"File load failed: {load_result.error}")
 
-    loaded_data: dict[str, Any] = load_result.value
+    loaded_data: FlextTypes.Core.Dict = load_result.value
     formatter.print_success("✅ Configuration loaded successfully")
 
     # Display loaded config using flext-cli formatter
@@ -308,7 +308,9 @@ def _demonstrate_file_operations(formatter: FlextCliFormatters) -> FlextResult[N
         db_section = loaded_data["database"]
         if isinstance(db_section, dict):
             # Safe extraction with proper type handling
-            db_section_dict: dict[str, Any] = cast("dict[str, Any]", db_section)
+            db_section_dict: FlextTypes.Core.Dict = cast(
+                "FlextTypes.Core.Dict", db_section
+            )
             db_host_value = db_section_dict.get("host", "N/A")
             db_port_value = db_section_dict.get("port", "N/A")
             config_display["Database Host"] = str(db_host_value)
@@ -319,7 +321,9 @@ def _demonstrate_file_operations(formatter: FlextCliFormatters) -> FlextResult[N
         api_section = loaded_data["api"]
         if isinstance(api_section, dict):
             # Safe extraction with proper type handling
-            api_section_dict: dict[str, Any] = cast("dict[str, Any]", api_section)
+            api_section_dict: FlextTypes.Core.Dict = cast(
+                "FlextTypes.Core.Dict", api_section
+            )
             api_port_value = api_section_dict.get("port", "N/A")
             api_debug_value = api_section_dict.get("debug", False)
             config_display["API Port"] = str(api_port_value)
@@ -338,7 +342,7 @@ def _demonstrate_file_operations(formatter: FlextCliFormatters) -> FlextResult[N
     return FlextResult[None].ok(None)
 
 
-def _demonstrate_batch_processing(formatter: FlextCliFormatters) -> FlextResult[None]:
+def _demonstrate_batch_processing(formatter: FlextCliOutput) -> FlextResult[None]:
     """Demonstrate batch processing capabilities."""
     formatter.print_success("\n5. ⚡ Batch Processing Capabilities")
 
@@ -366,7 +370,7 @@ def _demonstrate_batch_processing(formatter: FlextCliFormatters) -> FlextResult[
     return FlextResult[None].ok(None)
 
 
-def _demonstrate_data_export(formatter: FlextCliFormatters) -> FlextResult[None]:
+def _demonstrate_data_export(formatter: FlextCliOutput) -> FlextResult[None]:
     """Demonstrate data export functionality."""
     formatter.print_success("\n6. 📤 Data Export Functionality")
 
@@ -412,7 +416,7 @@ def _demonstrate_data_export(formatter: FlextCliFormatters) -> FlextResult[None]
     return FlextResult[None].ok(None)
 
 
-def _summary_demo(formatter: FlextCliFormatters) -> None:
+def _summary_demo(formatter: FlextCliOutput) -> None:
     """Demo summary display."""
     formatter.print_success("\n📋 Data Processing and Output Summary")
 
@@ -550,18 +554,20 @@ def _save_config_to_file(config_data: dict[str, object]) -> FlextResult[Path]:
         return FlextResult[Path].fail(f"Save failed: {e}")
 
 
-def _load_config_from_file(file_path: Path) -> FlextResult[dict[str, Any]]:
+def _load_config_from_file(file_path: Path) -> FlextResult[FlextTypes.Core.Dict]:
     """Load configuration from file."""
     try:
         content = file_path.read_text(encoding="utf-8")
         data = json.loads(content)
         if not isinstance(data, dict):
-            return FlextResult[dict[str, Any]].fail("Loaded data is not a dictionary")
+            return FlextResult[FlextTypes.Core.Dict].fail(
+                "Loaded data is not a dictionary"
+            )
         # Cast to proper type after isinstance check
-        typed_data: dict[str, Any] = data
-        return FlextResult[dict[str, Any]].ok(typed_data)
+        typed_data: FlextTypes.Core.Dict = data
+        return FlextResult[FlextTypes.Core.Dict].ok(typed_data)
     except Exception as e:
-        return FlextResult[dict[str, Any]].fail(f"Load failed: {e}")
+        return FlextResult[FlextTypes.Core.Dict].fail(f"Load failed: {e}")
 
 
 def _process_sample_files() -> FlextResult[list[str]]:
@@ -620,7 +626,7 @@ def _export_to_csv(data: list[dict[str, object]]) -> FlextResult[str]:
 
 def main() -> None:
     """Main demonstration function showcasing data processing and output."""
-    formatter = FlextCliFormatters()
+    formatter = FlextCliOutput()
 
     formatter.print_success("FLEXT CLI Data Processing and Output Demo")
     formatter.print_success("=" * 50)

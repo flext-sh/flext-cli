@@ -10,7 +10,6 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 from enum import StrEnum
-from pathlib import Path
 from typing import Final
 
 from flext_core import FlextConstants
@@ -23,17 +22,9 @@ class FlextCliConstants(FlextConstants):
     without duplication or wrappers, using direct access patterns.
     """
 
-    class NetworkDefaults:
-        """Network-related constants extending flext-core."""
-
-        DEFAULT_TIMEOUT: Final[int] = FlextConstants.Network.DEFAULT_TIMEOUT
-        DEFAULT_API_PORT: Final[int] = FlextConstants.Platform.FLEXT_API_PORT
-
-    class Files:
-        """File operation constants for CLI operations."""
-
-        default_encoding: Final[str] = "utf-8"
-        default_mode: Final[str] = "r"
+    # Project identification (inherited from BaseProjectConstants)
+    PROJECT_PREFIX: Final[str] = "FLEXT_CLI"
+    PROJECT_NAME: Final[str] = "FLEXT CLI"
 
     # Directory and file names
     FLEXT_DIR_NAME: Final[str] = ".flext"
@@ -41,54 +32,25 @@ class FlextCliConstants(FlextConstants):
     TOKEN_FILE_NAME: Final[str] = "token.json"
     REFRESH_TOKEN_FILE_NAME: Final[str] = "refresh_token.json"
 
-    class CliDefaults:
-        """Default configuration values for CLI operations."""
-
-        OUTPUT_FORMAT: Final[str] = "table"
-        LOG_LEVEL: Final[str] = "INFO"
-        CONFIG_DIR: Final[Path] = Path.home() / ".flext"
-        CONFIG_FILE: Final[str] = "flext.toml"
-        PROFILE: Final[str] = "default"
-        MAX_WIDTH: Final[int] = 120
-        SHOW_HEADERS: Final[bool] = True
-        COLOR_OUTPUT: Final[bool] = True
-
-    class ExitCodes:
-        """CLI exit codes for process management."""
-
-        SUCCESS: Final[int] = 0
-        FAILURE: Final[int] = 1
-        CONFIG_ERROR: Final[int] = 2
-        COMMAND_ERROR: Final[int] = 3
-
-    class OutputFormats(StrEnum):
-        """Available output formats for CLI data display."""
-
-        TABLE = "table"
-        JSON = "json"
-        YAML = "yaml"
-        CSV = "csv"
-        PLAIN = "plain"
-
     class CommandStatus(StrEnum):
-        """CLI command execution status values."""
+        """Command execution status enum."""
 
         PENDING = "pending"
         RUNNING = "running"
         COMPLETED = "completed"
         FAILED = "failed"
 
-    class LogLevels(StrEnum):
-        """Available logging levels for CLI operations."""
+    class OutputFormats(StrEnum):
+        """Output format options for CLI operations."""
 
-        DEBUG = "DEBUG"
-        INFO = "INFO"
-        WARNING = "WARNING"
-        ERROR = "ERROR"
-        CRITICAL = "CRITICAL"
+        JSON = "json"
+        YAML = "yaml"
+        CSV = "csv"
+        TABLE = "table"
+        PLAIN = "plain"
 
     class ErrorCodes(StrEnum):
-        """CLI-specific error codes for categorization."""
+        """CLI error codes."""
 
         CLI_ERROR = "CLI_ERROR"
         VALIDATION_ERROR = "VALIDATION_ERROR"
@@ -99,41 +61,123 @@ class FlextCliConstants(FlextConstants):
         TIMEOUT_ERROR = "TIMEOUT_ERROR"
         FORMAT_ERROR = "FORMAT_ERROR"
 
-    # HTTP constants for API operations
-    class HTTP:
-        """HTTP-related constants for CLI API operations."""
+    class ExitCodes:
+        """CLI exit codes."""
 
-        GET = "GET"
-        POST = "POST"
-        PUT = "PUT"
-        DELETE = "DELETE"
-        PATCH = "PATCH"
-        HEAD = "HEAD"
-        OPTIONS = "OPTIONS"
+        SUCCESS: Final[int] = 0
+        FAILURE: Final[int] = 1
+        CONFIG_ERROR: Final[int] = 2
+        COMMAND_ERROR: Final[int] = 3
+        TIMEOUT_ERROR: Final[int] = 4
+        AUTHENTICATION_ERROR: Final[int] = 5
 
-    # Timeout constants
-    class TIMEOUTS:
-        """Timeout-related constants for CLI operations."""
+    class CliDefaults:
+        """CLI default values."""
 
-        DEFAULT: Final[int] = 30
-        SHORT: Final[int] = 5
-        MEDIUM: Final[int] = 30
-        LONG: Final[int] = 300
-        EXTENDED: Final[int] = 600
+        CONFIG_FILE: Final[str] = "config.json"
+        MAX_WIDTH: Final[int] = 120
+        DEFAULT_PROFILE: Final[str] = "default"
+        DEFAULT_OUTPUT_FORMAT: Final[str] = "table"
+        DEFAULT_TIMEOUT: Final[int] = 30
 
-    # Status constants for backward compatibility
+    class NetworkDefaults:
+        """Network-related defaults for CLI operations."""
+
+        DEFAULT_TIMEOUT: Final[int] = 30
+        CONNECT_TIMEOUT: Final[int] = 10
+        READ_TIMEOUT: Final[int] = 60
+
+    # Constant lists for validation and iteration
+    OUTPUT_FORMATS_LIST: Final[list[str]] = [
+        OutputFormats.JSON.value,
+        OutputFormats.YAML.value,
+        OutputFormats.CSV.value,
+        OutputFormats.TABLE.value,
+        OutputFormats.PLAIN.value,
+    ]
+
+    LOG_LEVELS_LIST: Final[list[str]] = [
+        "DEBUG",
+        "INFO",
+        "WARNING",
+        "ERROR",
+        "CRITICAL",
+    ]
+
+    COMMAND_STATUSES_LIST: Final[list[str]] = [
+        CommandStatus.PENDING.value,
+        CommandStatus.RUNNING.value,
+        CommandStatus.COMPLETED.value,
+        CommandStatus.FAILED.value,
+    ]
+
+    ERROR_CODES_LIST: Final[list[str]] = [
+        ErrorCodes.CLI_ERROR.value,
+        ErrorCodes.VALIDATION_ERROR.value,
+        ErrorCodes.CONFIGURATION_ERROR.value,
+        ErrorCodes.CONNECTION_ERROR.value,
+        ErrorCodes.AUTHENTICATION_ERROR.value,
+        ErrorCodes.COMMAND_ERROR.value,
+        ErrorCodes.TIMEOUT_ERROR.value,
+        ErrorCodes.FORMAT_ERROR.value,
+    ]
+
+    # Legacy constants from application_commands.py
     STATUS_PENDING: Final[str] = CommandStatus.PENDING.value
     STATUS_RUNNING: Final[str] = CommandStatus.RUNNING.value
     STATUS_COMPLETED: Final[str] = CommandStatus.COMPLETED.value
     STATUS_FAILED: Final[str] = CommandStatus.FAILED.value
 
-    # Static lists derived from enums
-    OUTPUT_FORMATS_LIST: Final[list[str]] = [
-        format_type.value for format_type in OutputFormats
-    ]
-    COMMAND_STATUSES_LIST: Final[list[str]] = [status.value for status in CommandStatus]
-    LOG_LEVELS_LIST: Final[list[str]] = [level.value for level in LogLevels]
-    ERROR_CODES_LIST: Final[list[str]] = [code.value for code in ErrorCodes]
+    class Commands:
+        """CLI command name constants."""
+
+        AUTH: Final[str] = "auth"
+        CONFIG: Final[str] = "config"
+        DEBUG: Final[str] = "debug"
+        FORMAT: Final[str] = "format"
+        EXPORT: Final[str] = "export"
+
+    class Auth:
+        """CLI authentication constants."""
+
+        TOKEN_FILENAME: Final[str] = "token.json"
+        CONFIG_FILENAME: Final[str] = "auth.json"
+
+    class Session:
+        """CLI session constants."""
+
+        DEFAULT_TIMEOUT: Final[int] = 3600
+        MAX_COMMANDS: Final[int] = 1000
+
+    class Services:
+        """CLI service name constants."""
+
+        API: Final[str] = "api"
+        FORMATTER: Final[str] = "formatter"
+        AUTH: Final[str] = "auth"
+
+    class Protocols:
+        """CLI protocol constants."""
+
+        HTTP: Final[str] = "http"
+        HTTPS: Final[str] = "https"
+
+    class HTTP:
+        """HTTP-related constants."""
+
+        DEFAULT_TIMEOUT: Final[int] = 30
+        MAX_RETRIES: Final[int] = 3
+        RETRY_DELAY: Final[int] = 1
+        USER_AGENT: Final[str] = "FlextCLI/1.0"
+
+    class TIMEOUTS:
+        """Timeout constants."""
+
+        DEFAULT: Final[int] = 30
+        CONNECTION: Final[int] = 10
+        READ: Final[int] = 30
+        WRITE: Final[int] = 30
+        COMMAND: Final[int] = 300
 
 
 __all__ = [

@@ -9,8 +9,7 @@ import tempfile
 from pathlib import Path
 from unittest.mock import MagicMock, patch
 
-from flext_cli.config import FlextCliConfig
-from flext_cli.logging_setup import FlextCliLoggingSetup
+from flext_cli import FlextCliConfig, FlextCliLoggingSetup
 from flext_core import FlextResult
 
 
@@ -139,7 +138,9 @@ class TestFlextCliLoggingSetupClassMethods:
         assert "Invalid verbosity" in (result.error or "")
 
     @patch("flext_cli.logging_setup.FlextLogger.configure")
-    def test_set_global_log_verbosity_reconfigure(self, mock_configure: MagicMock) -> None:
+    def test_set_global_log_verbosity_reconfigure(
+        self, mock_configure: MagicMock
+    ) -> None:
         """Test set_global_log_verbosity reconfigures if setup complete."""
         FlextCliLoggingSetup._setup_complete = True
         os.environ["FLEXT_LOG_LEVEL"] = "INFO"
@@ -173,8 +174,7 @@ class TestFlextCliLoggingSetupClassMethods:
     def test_configure_project_logging_level(self) -> None:
         """Test configure_project_logging with log level."""
         result = FlextCliLoggingSetup.configure_project_logging(
-            project_name="test-project",
-            log_level="WARNING"
+            project_name="test-project", log_level="WARNING"
         )
         assert result.is_success
         assert "test-project" in result.value
@@ -184,8 +184,7 @@ class TestFlextCliLoggingSetupClassMethods:
     def test_configure_project_logging_verbosity(self) -> None:
         """Test configure_project_logging with verbosity."""
         result = FlextCliLoggingSetup.configure_project_logging(
-            project_name="my-app",
-            verbosity="compact"
+            project_name="my-app", verbosity="compact"
         )
         assert result.is_success
         assert "my-app" in result.value
@@ -195,9 +194,7 @@ class TestFlextCliLoggingSetupClassMethods:
     def test_configure_project_logging_both(self) -> None:
         """Test configure_project_logging with both level and verbosity."""
         result = FlextCliLoggingSetup.configure_project_logging(
-            project_name="full-project",
-            log_level="ERROR",
-            verbosity="full"
+            project_name="full-project", log_level="ERROR", verbosity="full"
         )
         assert result.is_success
         assert "full-project" in result.value
@@ -207,8 +204,7 @@ class TestFlextCliLoggingSetupClassMethods:
     def test_configure_project_logging_invalid_level(self) -> None:
         """Test configure_project_logging with invalid log level."""
         result = FlextCliLoggingSetup.configure_project_logging(
-            project_name="test",
-            log_level="INVALID"
+            project_name="test", log_level="INVALID"
         )
         assert result.is_failure
         assert "Invalid log level" in (result.error or "")
@@ -216,8 +212,7 @@ class TestFlextCliLoggingSetupClassMethods:
     def test_configure_project_logging_invalid_verbosity(self) -> None:
         """Test configure_project_logging with invalid verbosity."""
         result = FlextCliLoggingSetup.configure_project_logging(
-            project_name="test",
-            verbosity="invalid"
+            project_name="test", verbosity="invalid"
         )
         assert result.is_failure
         assert "Invalid verbosity" in (result.error or "")
@@ -231,7 +226,9 @@ class TestFlextCliLoggingSetupClassMethods:
         assert setup.is_setup_complete is True
 
     @patch("flext_cli.logging_setup.FlextLogger.configure")
-    def test_setup_logging_with_log_file_creation(self, _mock_configure: MagicMock) -> None:
+    def test_setup_logging_with_log_file_creation(
+        self, _mock_configure: MagicMock
+    ) -> None:
         """Test setup_logging creates log file directory."""
         with tempfile.TemporaryDirectory() as tmpdir:
             log_file = Path(tmpdir) / "logs" / "test.log"
@@ -246,7 +243,7 @@ class TestFlextCliLoggingSetupClassMethods:
             with patch.object(
                 setup,
                 "_detect_log_configuration",
-                return_value=FlextResult[FlextCliConfig.LoggingConfig].ok(log_config)
+                return_value=FlextResult[FlextCliConfig.LoggingConfig].ok(log_config),
             ):
                 result = setup.setup_logging()
                 assert result.is_success
@@ -267,7 +264,11 @@ class TestFlextCliLoggingSetupClassMethods:
                 result = setup._detect_log_configuration()
                 assert result.is_success
                 assert result.value.log_level in {"CRITICAL", "INFO"}
-                assert result.value.log_level_source in {"env_file", "config_instance", "default"}
+                assert result.value.log_level_source in {
+                    "env_file",
+                    "config_instance",
+                    "default",
+                }
             finally:
                 os.chdir(original_cwd)
 
@@ -285,7 +286,11 @@ class TestFlextCliLoggingSetupClassMethods:
                 result = setup._detect_log_configuration()
                 assert result.is_success
                 assert result.value.log_level in {"ERROR", "INFO"}
-                assert result.value.log_level_source in {"env_file", "config_instance", "default"}
+                assert result.value.log_level_source in {
+                    "env_file",
+                    "config_instance",
+                    "default",
+                }
             finally:
                 os.chdir(original_cwd)
 

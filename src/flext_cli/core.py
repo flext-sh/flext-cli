@@ -11,17 +11,19 @@ from __future__ import annotations
 
 import csv
 import json
+import re
+import subprocess  # nosec B404
 from collections.abc import Callable
 from datetime import UTC, datetime
 from pathlib import Path
-from typing import override
-from uuid import uuid4
+from uuid import UUID, uuid4
 
 import yaml
 
 from flext_cli.config import FlextCliConfig
 from flext_cli.constants import FlextCliConstants
 from flext_cli.models import FlextCliModels
+from flext_cli.utilities import FlextCliUtilities
 from flext_core import (
     FlextContainer,
     FlextLogger,
@@ -77,13 +79,11 @@ class FlextCliService(FlextService[FlextTypes.Core.Dict]):
             """
             if session_id is None:
                 return FlextResult[str].fail("Session ID cannot be None")
-            if not isinstance(session_id, str) or not session_id.strip():
+            if not session_id.strip():
                 return FlextResult[str].fail("Session ID must be a non-empty string")
 
             # Validate UUID format
             try:
-                from uuid import UUID
-
                 UUID(session_id)
                 return FlextResult[str].ok(session_id)
             except ValueError:
@@ -125,8 +125,6 @@ class FlextCliService(FlextService[FlextTypes.Core.Dict]):
                 FlextCliModels.CliSession: Session with metadata
 
             """
-            from uuid import uuid4
-
             session_id = str(uuid4())
             return FlextCliModels.CliSession(
                 session_id=session_id, user_id=user_id, start_time=datetime.now(UTC)
@@ -147,7 +145,6 @@ class FlextCliService(FlextService[FlextTypes.Core.Dict]):
                 return (session.end_time - session.start_time).total_seconds()
             return (session.last_activity - session.start_time).total_seconds()
 
-    @override
     def execute(self) -> FlextResult[FlextTypes.Core.Dict]:
         """Execute CLI service - required by FlextService."""
         self._logger.info("CLI service operational")
@@ -244,8 +241,6 @@ class FlextCliService(FlextService[FlextTypes.Core.Dict]):
 
     def format_data(self, data: HandlerData, format_type: str) -> FlextResult[str]:
         """Format data using consolidated formatting service."""
-        from flext_cli.utils import FlextCliUtilities
-
         # Use the format_type parameter to determine formatting method
         if format_type == "json":
             return FlextCliUtilities.Formatting.format_json(data)
@@ -316,7 +311,29 @@ class FlextCliService(FlextService[FlextTypes.Core.Dict]):
     ) -> FlextResult[FlextCliModels.CliCommand]:
         """Create a new CLI command."""
         try:
-            command = FlextCliModels.CliCommand(command_line=command_line)
+            # Validation
+            if not command_line or not command_line.strip():
+                return FlextResult[FlextCliModels.CliCommand].fail(
+                    "Validation error: Command line cannot be empty"
+                )
+
+            # Check for dangerous patterns
+            dangerous_patterns = [
+                "rm -rf",
+                "sudo rm",
+                "format",
+                "del /",
+                "shutdown",
+                "reboot",
+            ]
+            command_lower = command_line.lower()
+            for pattern in dangerous_patterns:
+                if pattern in command_lower:
+                    return FlextResult[FlextCliModels.CliCommand].fail(
+                        f"Dangerous command pattern detected: {pattern}"
+                    )
+
+            command = FlextCliModels.CliCommand(command_line=command_line.strip())
             self._commands[command.id] = command
             return FlextResult[FlextCliModels.CliCommand].ok(command)
         except Exception as e:
@@ -332,7 +349,7 @@ class FlextCliService(FlextService[FlextTypes.Core.Dict]):
             if user_id is None:
                 user_id = f"user_{uuid4().hex[:8]}"
             session = FlextCliModels.CliSession(user_id=user_id)
-            self._sessions[session.id] = session
+            self._sessions[session.session_id] = session
             return FlextResult[FlextCliModels.CliSession].ok(session)
         except Exception as e:
             return FlextResult[FlextCliModels.CliSession].fail(
@@ -605,9 +622,24 @@ class FlextCliService(FlextService[FlextTypes.Core.Dict]):
                 )
 
             # Execute command with subprocess (safe - no shell=True, command_parts validated)
-            import subprocess  # nosec B404
+            # Additional validation: ensure command_parts contains only safe characters
+            # Allow quotes and common punctuation for echo commands
+            for part in command_parts:
+                # Remove quotes and common safe characters for validation
+                clean_part = (
+                    part.replace("'", "")
+                    .replace('"', "")
+                    .replace("-", "")
+                    .replace("_", "")
+                    .replace(".", "")
+                    .replace("/", "")
+                )
+                if not clean_part.isalnum():
+                    return FlextResult[str].fail(
+                        f"Unsafe command part detected: '{part}'"
+                    )
 
-            result = subprocess.run(  # noqa: S603
+            result = subprocess.run(  # nosec B603  # noqa: S603
                 command_parts,
                 check=False,
                 capture_output=True,
@@ -624,7 +656,9 @@ class FlextCliService(FlextService[FlextTypes.Core.Dict]):
         except Exception as e:
             return FlextResult[str].fail(f"Command execution failed: {e}")
 
-    def get_command_history(self) -> FlextResult[list[FlextCliModels.CliCommand]]:
+    def get_command_history(
+        self,
+    ) -> FlextResult[list[FlextCliModels.CliCommand]]:
         """Get command history."""
         try:
             return FlextResult[list[FlextCliModels.CliCommand]].ok(
@@ -664,8 +698,6 @@ class FlextCliService(FlextService[FlextTypes.Core.Dict]):
     ) -> FlextResult[list[FlextCliModels.CliCommand]]:
         """Find commands by pattern."""
         try:
-            import re
-
             matching_commands = [
                 command
                 for command in self._commands.values()
@@ -698,7 +730,9 @@ class FlextCliService(FlextService[FlextTypes.Core.Dict]):
     # SESSION SERVICE METHODS - Merged from FlextCliSessionService
     # =========================================================================
 
-    def list_active_sessions(self) -> FlextResult[list[FlextCliModels.CliSession]]:
+    def list_active_sessions(
+        self,
+    ) -> FlextResult[list[FlextCliModels.CliSession]]:
         """List all active sessions."""
         try:
             active_sessions = list(self._sessions.values())
@@ -712,7 +746,7 @@ class FlextCliService(FlextService[FlextTypes.Core.Dict]):
         """Get session statistics."""
         try:
             total_sessions = len(self._sessions)
-            session_durations = []
+            session_durations: list[float] = []
             sessions_by_user: dict[str, int] = {}
 
             for session in self._sessions.values():
@@ -809,12 +843,12 @@ class FlextCliService(FlextService[FlextTypes.Core.Dict]):
         """Create a command definition."""
         try:
             # Validation
-            if not name or not isinstance(name, str):
+            if not name.strip():
                 return FlextResult[dict[str, object]].fail(
                     "Command name must be a non-empty string"
                 )
 
-            if not description or not isinstance(description, str):
+            if not description.strip():
                 return FlextResult[dict[str, object]].fail(
                     "Command description must be a non-empty string"
                 )

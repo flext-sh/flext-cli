@@ -93,14 +93,14 @@ class TestCommandLifecycleManagement:
         assert result.is_success or result.is_failure
 
     def test_create_command_strips_whitespace(self) -> None:
-        """Test command creation preserves input."""
+        """Test command creation strips whitespace."""
         command_line = "  echo test  "
         result: FlextResult[FlextCliModels.CliCommand] = self.service.create_command(
             command_line
         )
         assert result.is_success
-        # Command line is stored as-is, not stripped
-        assert result.value.command_line == command_line
+        # Command line should be stripped of leading/trailing whitespace
+        assert result.value.command_line == command_line.strip()
 
     def test_create_command_with_dangerous_patterns(self) -> None:
         """Test command creation with potentially dangerous patterns."""

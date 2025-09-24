@@ -118,7 +118,7 @@
    ```
 
 3. **Fix Method References**
-   - Implement missing `_AuthCommands` class in `FlextCliMain`
+   - Implement missing `_AuthCommands` class in `FlextCliCommands`
    - Add required methods: `login_user()`, `logout_user()`, etc.
 
 ### **Quality Standards**

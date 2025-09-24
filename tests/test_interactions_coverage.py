@@ -1,4 +1,4 @@
-"""Test coverage for FlextCliInteractions module.
+"""Test coverage for FlextCliUtilities.Interactions module.
 
 Copyright (c) 2025 FLEXT Team. All rights reserved.
 SPDX-License-Identifier: MIT
@@ -6,19 +6,19 @@ SPDX-License-Identifier: MIT
 
 from unittest.mock import MagicMock, patch
 
-from flext_cli.interactions import FlextCliInteractions
+from flext_cli import FlextCliUtilities
 
 
 class TestFlextCliInteractions:
-    """Test FlextCliInteractions class."""
+    """Test FlextCliUtilities.Interactions class."""
 
     def setup_method(self) -> None:
         """Set up test environment."""
-        self.interactions = FlextCliInteractions()
+        self.interactions = FlextCliUtilities.Interactions()
 
     def test_interactions_initialization(self) -> None:
         """Test interactions initialization."""
-        interactions = FlextCliInteractions()
+        interactions = FlextCliUtilities.Interactions()
         assert interactions is not None
         assert hasattr(interactions, "_logger")
         assert hasattr(interactions, "quiet")
@@ -27,12 +27,12 @@ class TestFlextCliInteractions:
     def test_interactions_initialization_with_logger(self) -> None:
         """Test interactions initialization with custom logger."""
         mock_logger = MagicMock()
-        interactions = FlextCliInteractions(logger=mock_logger)
+        interactions = FlextCliUtilities.Interactions(logger=mock_logger)
         assert interactions._logger is mock_logger
 
     def test_interactions_initialization_quiet(self) -> None:
         """Test interactions initialization with quiet mode."""
-        interactions = FlextCliInteractions(quiet=True)
+        interactions = FlextCliUtilities.Interactions(quiet=True)
         assert interactions.quiet is True
 
     @patch("builtins.input")
@@ -104,7 +104,7 @@ class TestFlextCliInteractions:
     @patch("builtins.input")
     def test_confirm_quiet_mode(self, mock_input: MagicMock) -> None:
         """Test confirm in quiet mode."""
-        interactions = FlextCliInteractions(quiet=True)
+        interactions = FlextCliUtilities.Interactions(quiet=True)
         result = interactions.confirm("Test message", default=True)
         assert result.is_success
         assert result.value is True
@@ -156,7 +156,7 @@ class TestFlextCliInteractions:
     @patch("builtins.input")
     def test_prompt_quiet_mode(self, mock_input: MagicMock) -> None:
         """Test prompt in quiet mode."""
-        interactions = FlextCliInteractions(quiet=True)
+        interactions = FlextCliUtilities.Interactions(quiet=True)
         result = interactions.prompt("Test message", default="default_value")
         assert result.is_success
         assert result.value == "default_value"
@@ -193,7 +193,7 @@ class TestFlextCliInteractions:
 
     def test_print_status_quiet_mode(self) -> None:
         """Test print status in quiet mode."""
-        interactions = FlextCliInteractions(quiet=True)
+        interactions = FlextCliUtilities.Interactions(quiet=True)
         result = interactions.print_status("Test message", status="info")
         assert result.is_success
 
@@ -231,7 +231,7 @@ class TestFlextCliInteractions:
 
     def test_create_progress_quiet_mode(self) -> None:
         """Test create progress in quiet mode."""
-        interactions = FlextCliInteractions(quiet=True)
+        interactions = FlextCliUtilities.Interactions(quiet=True)
         result = interactions.create_progress("Test progress message")
         assert result.is_success
         assert result.value == "Test progress message"
@@ -252,7 +252,7 @@ class TestFlextCliInteractions:
 
     def test_with_progress_quiet_mode(self) -> None:
         """Test with progress in quiet mode."""
-        interactions = FlextCliInteractions(quiet=True)
+        interactions = FlextCliUtilities.Interactions(quiet=True)
         items: list[object] = [1, 2, 3]
         result = interactions.with_progress(items, "Test progress message")
         assert result.is_success

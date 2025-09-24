@@ -1,4 +1,4 @@
-"""Additional coverage tests for FlextCliFormatters.
+"""Additional coverage tests for FlextCliOutput.
 
 Copyright (c) 2025 FLEXT Team. All rights reserved.
 SPDX-License-Identifier: MIT
@@ -10,15 +10,15 @@ from unittest.mock import patch
 
 from rich.table import Table
 
-from flext_cli.flext_cli_formatters import FlextCliFormatters
+from flext_cli import FlextCliOutput
 
 
 class TestFlextCliFormattersBasic:
-    """Test basic FlextCliFormatters functionality."""
+    """Test basic FlextCliOutput functionality."""
 
     def setup_method(self) -> None:
         """Set up test environment."""
-        self.formatter = FlextCliFormatters()
+        self.formatter = FlextCliOutput()
 
     def test_execute_method(self) -> None:
         """Test execute method returns success."""
@@ -34,10 +34,7 @@ class TestFlextCliFormattersBasic:
 
     def test_create_table_success(self) -> None:
         """Test create_table with valid data."""
-        data = [
-            {"name": "Alice", "age": 30},
-            {"name": "Bob", "age": 25}
-        ]
+        data = [{"name": "Alice", "age": 30}, {"name": "Bob", "age": 25}]
         result = self.formatter.create_table(data)
         assert result.is_success
         assert isinstance(result.value, Table)
@@ -115,7 +112,9 @@ class TestFlextCliFormattersBasic:
 
     def test_create_progress_bar_error(self) -> None:
         """Test create_progress_bar error handling."""
-        with patch("rich.progress.Progress.add_task", side_effect=Exception("Task error")):
+        with patch(
+            "rich.progress.Progress.add_task", side_effect=Exception("Task error")
+        ):
             result = self.formatter.create_progress_bar()
             assert result.is_failure
             assert "Failed to create progress bar" in (result.error or "")
@@ -143,7 +142,9 @@ class TestFlextCliFormattersBasic:
 
     def test_print_message_error(self) -> None:
         """Test print_message error handling."""
-        with patch.object(self.formatter._console, "print", side_effect=Exception("Print failed")):
+        with patch.object(
+            self.formatter._console, "print", side_effect=Exception("Print failed")
+        ):
             result = self.formatter.print_message("Test")
             assert result.is_failure
             assert "Failed to print message" in (result.error or "")
@@ -175,7 +176,7 @@ class TestFlextCliFormattersFormatData:
 
     def setup_method(self) -> None:
         """Set up test environment."""
-        self.formatter = FlextCliFormatters()
+        self.formatter = FlextCliOutput()
 
     def test_format_data_json(self) -> None:
         """Test format_data with JSON format."""
@@ -194,28 +195,26 @@ class TestFlextCliFormattersFormatData:
 
     def test_format_data_csv_list_of_dicts(self) -> None:
         """Test format_data with CSV format and list of dicts."""
-        data = [
-            {"name": "Alice", "age": 30},
-            {"name": "Bob", "age": 25}
-        ]
+        data = [{"name": "Alice", "age": 30}, {"name": "Bob", "age": 25}]
         result = self.formatter.format_data(data, format_type="csv")
         assert result.is_success
         assert isinstance(result.value, str)
         assert "name" in result.value or "Alice" in result.value
 
     def test_format_data_csv_single_dict(self) -> None:
-        """Test format_data with CSV format and single dict fails."""
+        """Test format_data with CSV format and single dict succeeds."""
         data = {"name": "Alice", "age": 30}
         result = self.formatter.format_data(data, format_type="csv")
-        assert result.is_failure
-        assert "CSV format requires list" in (result.error or "")
+        assert result.is_success
+        assert isinstance(result.value, str)
+        assert "name" in result.value
+        assert "Alice" in result.value
+        assert "age" in result.value
+        assert "30" in result.value
 
     def test_format_data_table(self) -> None:
         """Test format_data with table format."""
-        data = [
-            {"name": "Alice", "age": 30},
-            {"name": "Bob", "age": 25}
-        ]
+        data = [{"name": "Alice", "age": 30}, {"name": "Bob", "age": 25}]
         result = self.formatter.format_data(data, format_type="table")
         assert result.is_success
         assert isinstance(result.value, str)
@@ -229,7 +228,9 @@ class TestFlextCliFormattersFormatData:
     def test_format_data_table_with_headers(self) -> None:
         """Test format_data table with custom headers."""
         data = [{"name": "Alice", "age": 30}]
-        result = self.formatter.format_data(data, format_type="table", headers=["Name", "Age"])
+        result = self.formatter.format_data(
+            data, format_type="table", headers=["Name", "Age"]
+        )
         assert result.is_success
 
     def test_format_data_invalid_format(self) -> None:
@@ -257,7 +258,7 @@ class TestFlextCliFormattersDisplay:
 
     def setup_method(self) -> None:
         """Set up test environment."""
-        self.formatter = FlextCliFormatters()
+        self.formatter = FlextCliOutput()
 
     def test_get_console(self) -> None:
         """Test get_console method."""

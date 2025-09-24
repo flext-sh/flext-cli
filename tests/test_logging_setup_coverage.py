@@ -9,8 +9,7 @@ import tempfile
 from pathlib import Path
 from unittest.mock import MagicMock, patch
 
-from flext_cli.config import FlextCliConfig
-from flext_cli.logging_setup import FlextCliLoggingSetup
+from flext_cli import FlextCliConfig, FlextCliLoggingSetup
 
 
 def get_temp_log_file() -> Path:

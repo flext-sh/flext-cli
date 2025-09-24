@@ -149,10 +149,10 @@ response = client.request(
 ### Consistent Output Across Projects
 
 ```python
-from flext_cli import FlextCliFormatters
+from flext_cli import FlextCliOutput
 from flext_core import FlextResult
 
-formatters = FlextCliFormatters()
+formatters = FlextCliOutput()
 
 # Format project data consistently
 def display_project_data(data: dict) -> FlextResult[None]:
@@ -194,7 +194,7 @@ match output_format:
 ### Project-Specific Commands
 
 ```python
-from flext_cli import FlextCliMain
+from flext_cli import FlextCliCommands
 from flext_core import FlextResult, FlextService
 
 class ProjectCommands(FlextService):
@@ -211,7 +211,7 @@ class ProjectCommands(FlextService):
         return FlextResult[dict].ok(status)
 
 # Register with CLI
-cli = FlextCliMain(name="project-cli")
+cli = FlextCliCommands(name="project-cli")
 project_commands = ProjectCommands()
 
 cli.register_command_group(

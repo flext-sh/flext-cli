@@ -10,8 +10,13 @@ from __future__ import annotations
 
 from datetime import UTC, datetime
 
-from flext_cli import FlextCliConstants, FlextCliModels
-from flext_cli.config import FlextCliConfig
+from flext_cli import (
+    FlextCliApi,
+    FlextCliCommands,
+    FlextCliConfig,
+    FlextCliConstants,
+    FlextCliModels,
+)
 from flext_core import FlextResult
 
 
@@ -29,7 +34,7 @@ class TestFlextCliModels:
         """Test real command creation."""
         command = FlextCliModels.CliCommand(
             id="test-123",
-            command="echo hello",
+            command_line="echo hello",
             created_at=datetime.now(UTC),
         )
 
@@ -41,7 +46,7 @@ class TestFlextCliModels:
         """Test real command execution workflow."""
         command = FlextCliModels.CliCommand(
             id="test-cmd",
-            command="test",
+            command_line="test",
             created_at=datetime.now(UTC),
         )
 
@@ -118,7 +123,7 @@ class TestFlextCliIntegration:
         """Test using commands with constants."""
         command = FlextCliModels.CliCommand(
             id="int-test",
-            command="integration test",
+            command_line="integration test",
             status=FlextCliConstants.CommandStatus.PENDING.value,
             created_at=datetime.now(UTC),
         )
@@ -152,10 +157,8 @@ class TestFlextCliExports:
 
     def test_main_imports_available(self) -> None:
         """Test that main imports are available."""
-        from flext_cli import FlextCliApi, FlextCliMain
-
         assert FlextCliApi is not None
-        assert FlextCliMain is not None
+        assert FlextCliCommands is not None
 
     def test_models_import(self) -> None:
         """Test models import."""

@@ -11,7 +11,7 @@ import sys
 from pathlib import Path
 
 import flext_cli.__main__
-from flext_cli.flext_cli_main import FlextCliMain
+from flext_cli import FlextCliCommands
 
 
 class TestMainModule:
@@ -41,9 +41,9 @@ class TestMainModule:
 
     def test_main_module_has_correct_imports(self) -> None:
         """Test that __main__ has correct imports."""
-        # Should have access to FlextCliMain class
-        cli_main = FlextCliMain()
+        # Should have access to FlextCliCommands class
+        cli_main = FlextCliCommands()
         assert cli_main is not None
 
-        # FlextCliMain should be callable/instantiable
-        assert callable(FlextCliMain)
+        # FlextCliCommands should be callable/instantiable
+        assert callable(FlextCliCommands)

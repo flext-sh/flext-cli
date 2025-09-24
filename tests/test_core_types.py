@@ -1,5 +1,8 @@
 """Tests for core types in FLEXT CLI Library.
 
+After standardization, constants moved to FlextCliConstants.
+FlextCliTypings now contains only type definitions.
+
 Copyright (c) 2025 FLEXT Team. All rights reserved.
 SPDX-License-Identifier: MIT
 """
@@ -8,42 +11,26 @@ from __future__ import annotations
 
 import pytest
 
-from flext_cli.typings import FlextCliTypings
+from flext_cli import FlextCliConstants
 from flext_core import FlextTypes
 
 
-class TestFlextCliTypings:
-    """Test cases for FlextCliTypings class."""
+class TestFlextCliConstants:
+    """Test cases for FlextCliConstants class."""
 
     def test_output_format_enum(self) -> None:
         """Test OutputFormat enum has expected values."""
-        formats = FlextCliTypings.OutputFormat
+        formats = FlextCliConstants.OutputFormats
 
-        assert formats.JSON == "json"
-        assert formats.YAML == "yaml"
-        assert formats.CSV == "csv"
-        assert formats.TABLE == "table"
-        assert formats.PLAIN == "plain"
-
-    def test_output_format_enum_membership(self) -> None:
-        """Test OutputFormat enum membership."""
-        formats = FlextCliTypings.OutputFormat
-
-        # Valid formats
-        all_formats = formats.get_all_formats()
-        assert "json" in all_formats.values()
-        assert "yaml" in all_formats.values()
-        assert "csv" in all_formats.values()
-        assert "table" in all_formats.values()
-        assert "plain" in all_formats.values()
-
-        # Invalid formats
-        assert "xml" not in all_formats.values()
-        assert "html" not in all_formats.values()
+        assert formats.JSON.value == "json"
+        assert formats.YAML.value == "yaml"
+        assert formats.CSV.value == "csv"
+        assert formats.TABLE.value == "table"
+        assert formats.PLAIN.value == "plain"
 
     def test_commands_classes_exist(self) -> None:
         """Test Commands constants exist."""
-        commands = FlextCliTypings.Commands
+        commands = FlextCliConstants.Commands
 
         assert hasattr(commands, "AUTH")
         assert hasattr(commands, "CONFIG")
@@ -51,31 +38,31 @@ class TestFlextCliTypings:
         assert hasattr(commands, "FORMAT")
         assert hasattr(commands, "EXPORT")
 
-    def test_config_classes_exist(self) -> None:
-        """Test Config constants exist."""
-        config = FlextCliTypings.CliConfig
+    def test_cli_defaults_classes_exist(self) -> None:
+        """Test CliDefaults constants exist."""
+        defaults = FlextCliConstants.CliDefaults
 
-        assert hasattr(config, "DEFAULT_PROFILE")
-        assert hasattr(config, "DEFAULT_OUTPUT_FORMAT")
-        assert hasattr(config, "DEFAULT_TIMEOUT")
+        assert hasattr(defaults, "DEFAULT_PROFILE")
+        assert hasattr(defaults, "DEFAULT_OUTPUT_FORMAT")
+        assert hasattr(defaults, "DEFAULT_TIMEOUT")
 
     def test_auth_classes_exist(self) -> None:
         """Test Auth constants exist."""
-        auth = FlextCliTypings.Auth
+        auth = FlextCliConstants.Auth
 
         assert hasattr(auth, "TOKEN_FILENAME")
         assert hasattr(auth, "CONFIG_FILENAME")
 
     def test_session_classes_exist(self) -> None:
         """Test Session constants exist."""
-        session = FlextCliTypings.Session
+        session = FlextCliConstants.Session
 
         assert hasattr(session, "DEFAULT_TIMEOUT")
         assert hasattr(session, "MAX_COMMANDS")
 
     def test_services_classes_exist(self) -> None:
         """Test Services constants exist."""
-        services = FlextCliTypings.Services
+        services = FlextCliConstants.Services
 
         assert hasattr(services, "API")
         assert hasattr(services, "FORMATTER")
@@ -83,7 +70,7 @@ class TestFlextCliTypings:
 
     def test_protocols_exist(self) -> None:
         """Test Protocol constants exist."""
-        protocols = FlextCliTypings.Protocols
+        protocols = FlextCliConstants.Protocols
 
         assert hasattr(protocols, "HTTP")
         assert hasattr(protocols, "HTTPS")

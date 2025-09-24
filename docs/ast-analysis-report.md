@@ -42,13 +42,13 @@ The AST analysis was performed using Python's `ast` module to parse and analyze 
 def calculate_complexity_score(node):
     """
     Calculate complexity score based on AST node analysis.
-    
+
     Complexity is measured by:
     - Number of statements in class bodies
     - Number of statements in method bodies
     - Depth of nested structures
     - Number of decorators applied
-    
+
     Returns:
         int: Complexity score for the node
     """
@@ -141,7 +141,7 @@ Architectural Impact:
 
 **Key Findings**:
 
-- **Classes**: 1 (FlextCliDecorators)
+- **Classes**: 1 (FlextCliUtilities.Decorators)
 - **Methods**: 34 (comprehensive decorator system)
 - **External Dependencies**: asyncio, functools, time, collections.abc, pathlib, typing
 - **flext-core Integration**: FlextLogger, FlextResult, P, T
@@ -260,14 +260,14 @@ from flext_core import (
 def authenticate_user(self, username: str, password: str) -> FlextResult[str]:
     """
     Authenticate user with SECURITY VULNERABILITY.
-    
+
     ISSUE: Password length is exposed in token generation
     RISK: Information disclosure vulnerability
     IMPACT: High security risk
-    
+
     Current Implementation (VULNERABLE):
     mock_token = f"auth_token_{username}_{len(password)}"
-    
+
     Required Fix:
     - Use secure token generation
     - Remove password length exposure
@@ -279,7 +279,7 @@ def authenticate_user(self, username: str, password: str) -> FlextResult[str]:
     save_result = self.save_auth_token(mock_token)
     if save_result.is_failure:
         return FlextResult[str].fail(f"Failed to save token: {save_result.error}")
-    
+
     return FlextResult[str].ok(mock_token)
 ```
 
@@ -327,11 +327,11 @@ def format_json(data: object) -> str:
 def set_config_value(self, key: str, value: str) -> FlextResult[bool]:
     """
     Set configuration value (PLACEHOLDER IMPLEMENTATION).
-    
+
     ISSUE: No real persistence
     IMPACT: Configuration changes are not saved
     STATUS: Placeholder implementation
-    
+
     Required Fix:
     - Implement real configuration persistence
     - Use flext-core configuration system
@@ -347,11 +347,11 @@ def set_config_value(self, key: str, value: str) -> FlextResult[bool]:
 def get_config_value(self, key: str) -> FlextResult[dict[str, object]]:
     """
     Get configuration value (PLACEHOLDER IMPLEMENTATION).
-    
+
     ISSUE: Returns fake values
     IMPACT: No real configuration retrieval
     STATUS: Placeholder implementation
-    
+
     Required Fix:
     - Implement real configuration retrieval
     - Use flext-core configuration system
@@ -376,11 +376,11 @@ def get_config_value(self, key: str) -> FlextResult[dict[str, object]]:
 def execute_command(self, command: FlextCliModels.CliCommand) -> FlextResult[str]:
     """
     Execute command (PLACEHOLDER IMPLEMENTATION).
-    
+
     ISSUE: No actual command execution
     IMPACT: Commands are not actually run
     STATUS: Placeholder implementation
-    
+
     Required Fix:
     - Implement real subprocess execution
     - Capture real command output
@@ -389,7 +389,7 @@ def execute_command(self, command: FlextCliModels.CliCommand) -> FlextResult[str
     try:
         # Execute command (placeholder implementation)
         execution_result = f"Executed: {validated_command.command_line}"  # ❌ FAKE EXECUTION
-        
+
         # Update execution time by creating a new command with updated time
         updated_command = FlextCliModels.CliCommand(
             id=validated_command.id,
@@ -401,7 +401,7 @@ def execute_command(self, command: FlextCliModels.CliCommand) -> FlextResult[str
             output=validated_command.output,  # ❌ NO REAL OUTPUT
             error_output=validated_command.error_output,  # ❌ NO REAL ERROR OUTPUT
         )
-        
+
         return FlextResult[str].ok(execution_result)
     except Exception as e:
         return FlextResult[str].fail(f"Command execution failed: {e}")
@@ -475,26 +475,26 @@ High-frequency function calls across modules:
 def example_function() -> FlextResult[str]:
     """
     Example function showing common call patterns.
-    
+
     This demonstrates the typical function call patterns
     found throughout the flext-cli codebase.
     """
     try:
         # Common pattern: FlextLogger usage
         self._logger.info("Starting operation")
-        
+
         # Common pattern: Path operations
         file_path = Path("/some/path")
-        
+
         # Common pattern: Datetime operations
         timestamp = datetime.now(UTC)
-        
+
         # Common pattern: JSON operations
         data = json.dumps({"key": "value"}, indent=2)
-        
+
         # Common pattern: Success return
         return FlextResult[str].ok("Operation completed")
-        
+
     except Exception as e:
         # Common pattern: Error return
         return FlextResult[str].fail(f"Operation failed: {e}")
@@ -524,12 +524,12 @@ This creates a consistent architectural foundation.
 # Example consistent pattern
 class ConsistentService(FlextService[str]):
     """Example of consistent flext-core integration."""
-    
+
     def __init__(self) -> None:
         super().__init__()
         self._container = FlextContainer.get_global()
         self._logger = FlextLogger(__name__)
-    
+
     def execute(self) -> FlextResult[str]:
         """Execute with consistent error handling."""
         try:
@@ -560,13 +560,13 @@ This creates maintenance overhead and inconsistent behavior.
 # Solution: Consolidate into single service
 class ConsolidatedFormattingService(FlextService[str]):
     """Consolidated formatting service."""
-    
+
     def format_json(self, data: object) -> FlextResult[str]:
         """Single JSON formatting implementation."""
         return FlextResult[str].safe_call(
             lambda: json.dumps(data, indent=2, default=str)
         )
-    
+
     def format_yaml(self, data: object) -> FlextResult[str]:
         """Single YAML formatting implementation."""
         return FlextResult[str].safe_call(
@@ -602,7 +602,7 @@ Required Actions:
 def fix_authentication_security():
     """
     Fix authentication security vulnerabilities.
-    
+
     Steps:
     1. Remove mock token generation
     2. Implement real authentication
@@ -611,13 +611,13 @@ def fix_authentication_security():
     """
     # Step 1: Remove vulnerable code
     # mock_token = f"auth_token_{username}_{len(password)}"  # ❌ REMOVE
-    
+
     # Step 2: Implement real authentication
     # auth_result = self._auth_client.authenticate(username, password)
-    
+
     # Step 3: Use secure token generation
     # secure_token = FlextUtilities.Security.generate_secure_token(...)
-    
+
     # Step 4: Add proper error handling
     # return FlextResult[str].ok(secure_token)
 ```
@@ -644,7 +644,7 @@ Required Actions:
 def replace_placeholder_implementations():
     """
     Replace all placeholder implementations with real functionality.
-    
+
     Steps:
     1. Implement configuration persistence
     2. Add real command execution
@@ -654,14 +654,14 @@ def replace_placeholder_implementations():
     # Step 1: Configuration persistence
     # config_result = FlextConfig.set_value(key, value)
     # save_result = FlextUtilities.FileOperations.save_config_file(...)
-    
+
     # Step 2: Command execution
     # result = subprocess.run(command_line.split(), capture_output=True, ...)
-    
+
     # Step 3: Session management
     # session.add_command(command)
     # session.last_activity = datetime.now(UTC)
-    
+
     # Step 4: Remove placeholders
     # Remove all "placeholder implementation" comments
 ```
@@ -691,7 +691,7 @@ Required Actions:
 def consolidate_duplicate_functionality():
     """
     Consolidate all duplicate functionality into single services.
-    
+
     Steps:
     1. Create FlextCliFormattingService
     2. Move all formatting logic to single service
@@ -701,7 +701,7 @@ def consolidate_duplicate_functionality():
     # Step 1: Create consolidated service
     class FlextCliFormattingService(FlextService[str]):
         """Consolidated formatting service."""
-        
+
         def format_data(self, data: object, format_type: str) -> FlextResult[str]:
             """Single formatting method for all formats."""
             if format_type == "json":
@@ -714,7 +714,7 @@ def consolidate_duplicate_functionality():
                 return self._format_table(data)
             else:
                 return FlextResult[str].fail(f"Unsupported format: {format_type}")
-    
+
     # Step 2: Update all modules to use consolidated service
     # Step 3: Remove duplicate implementations
     # Step 4: Test all formatting functionality

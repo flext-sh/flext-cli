@@ -67,7 +67,7 @@ This document consolidates all investigation findings from multiple comprehensiv
 # 1. CONFIG VALIDATIONS (FlextConfig)
 class FlextCliConfig(FlextConfig):
     """Centralized configuration with built-in validation."""
-    
+
     def validate_configuration(self) -> FlextResult[None]:
         """ONLY place for configuration validation."""
         # All config validation logic here
@@ -76,7 +76,7 @@ class FlextCliConfig(FlextConfig):
 # 2. MODEL VALIDATIONS (FlextModels)
 class CliCommand(FlextModel):
     """Centralized model with built-in validation."""
-    
+
     def validate_business_rules(self) -> FlextResult[None]:
         """ONLY place for model validation."""
         # All model validation logic here
@@ -85,21 +85,21 @@ class CliCommand(FlextModel):
 # 3. SERVICE METHODS (NO VALIDATION LOGIC)
 class SomeService(FlextService[str]):
     """Service methods - NO validation logic allowed."""
-    
+
     def process_data(self, data: object) -> FlextResult[str]:
         """Service method - delegates validation to config/models."""
         # ❌ FORBIDDEN: if not data: return FlextResult[str].fail("Invalid")
         # ❌ FORBIDDEN: if len(data) < 1: return FlextResult[str].fail("Too short")
-        
+
         # ✅ CORRECT: Use centralized validation
         config_validation = self._config.validate_configuration()
         if config_validation.is_failure:
             return FlextResult[str].fail(f"Config validation failed: {config_validation.error}")
-        
+
         model_validation = self._model.validate_business_rules()
         if model_validation.is_failure:
             return FlextResult[str].fail(f"Model validation failed: {model_validation.error}")
-        
+
         return FlextResult[str].ok("Success")
 ```
 
@@ -111,13 +111,13 @@ def some_service_method(self, data: object) -> FlextResult[str]:
     """❌ FORBIDDEN - Contains inline validation."""
     if not data:  # ❌ FORBIDDEN
         return FlextResult[str].fail("Data is required")
-    
+
     if len(data) < 1:  # ❌ FORBIDDEN
         return FlextResult[str].fail("Data too short")
-    
+
     if not isinstance(data, dict):  # ❌ FORBIDDEN
         return FlextResult[str].fail("Data must be dict")
-    
+
     return FlextResult[str].ok("Success")
 
 # ❌ FORBIDDEN: Scattered validation across modules
@@ -178,7 +178,7 @@ def authenticate_user(self, username: str, password: str) -> FlextResult[str]:
     auth_result = self._auth_client.authenticate(username, password)
     if auth_result.is_failure:
         return FlextResult[str].fail(f"Authentication failed: {auth_result.error}")
-    
+
     # Generate secure token using flext-core utilities
     secure_token = FlextUtilities.Security.generate_secure_token(
         user_id=auth_result.value.user_id,
@@ -219,7 +219,7 @@ def authenticate_user(self, username: str, password: str) -> FlextResult[str]:
 # 1. Centralize ALL config validation in FlextCliConfig
 class FlextCliConfig(FlextConfig):
     """Centralized configuration with ALL validation logic."""
-    
+
     def validate_configuration(self) -> FlextResult[None]:
         """ONLY place for configuration validation."""
         # Move ALL config validation logic here
@@ -229,7 +229,7 @@ class FlextCliConfig(FlextConfig):
 # 2. Centralize ALL model validation in FlextModels
 class CliCommand(FlextModel):
     """Centralized model with ALL validation logic."""
-    
+
     def validate_business_rules(self) -> FlextResult[None]:
         """ONLY place for model validation."""
         # Move ALL model validation logic here
@@ -239,18 +239,18 @@ class CliCommand(FlextModel):
 # 3. Service methods delegate to centralized validation
 class SomeService(FlextService[str]):
     """Service methods delegate validation to config/models."""
-    
+
     def process_data(self, data: object) -> FlextResult[str]:
         """Service method - NO inline validation allowed."""
         # Delegate to centralized validation
         config_result = self._config.validate_configuration()
         if config_result.is_failure:
             return FlextResult[str].fail(f"Config validation failed: {config_result.error}")
-        
+
         model_result = self._model.validate_business_rules()
         if model_result.is_failure:
             return FlextResult[str].fail(f"Model validation failed: {model_result.error}")
-        
+
         return FlextResult[str].ok("Success")
 ```
 
@@ -308,7 +308,7 @@ class SomeService(FlextService[str]):
 ```python
 class FlextCliFormattingService(FlextService[str]):
     """Consolidated formatting service using flext-core utilities."""
-    
+
     def format_data(self, data: object, format_type: str) -> FlextResult[str]:
         """Single formatting method for all formats."""
         if format_type == "json":
@@ -357,7 +357,7 @@ def set_config_value(self, key: str, value: str) -> FlextResult[bool]:
     config_result = FlextConfig.set_value(key, value)
     if config_result.is_failure:
         return FlextResult[bool].fail(f"Config save failed: {config_result.error}")
-    
+
     # Persist to file using flext-core file operations
     save_result = FlextUtilities.FileOperations.save_config_file(
         config_path=self._config_path,
@@ -391,7 +391,7 @@ def execute_command(self, command: FlextCliModels.CliCommand) -> FlextResult[str
 def execute_command(self, command: FlextCliModels.CliCommand) -> FlextResult[str]:
     """Execute command with real subprocess execution."""
     import subprocess
-    
+
     try:
         # Execute command with subprocess
         result = subprocess.run(
@@ -400,7 +400,7 @@ def execute_command(self, command: FlextCliModels.CliCommand) -> FlextResult[str
             text=True,
             timeout=self._timeout_seconds
         )
-        
+
         # Update command with real results
         updated_command = command.model_copy(update={
             "exit_code": result.returncode,
@@ -409,9 +409,9 @@ def execute_command(self, command: FlextCliModels.CliCommand) -> FlextResult[str
             "execution_time": datetime.now(UTC),
             "status": "completed" if result.returncode == 0 else "failed"
         })
-        
+
         return FlextResult[str].ok(f"Command executed with exit code {result.returncode}")
-        
+
     except subprocess.TimeoutExpired:
         return FlextResult[str].fail("Command execution timed out")
     except Exception as e:
@@ -456,10 +456,10 @@ def add_command_to_session(
             return FlextResult[FlextCliModels.CliSession].fail(
                 f"Failed to add command: {add_result.error}"
             )
-        
+
         # Update session timestamp
         session.last_activity = datetime.now(UTC)
-        
+
         return FlextResult[FlextCliModels.CliSession].ok(session)
     except Exception as e:
         return FlextResult[FlextCliModels.CliSession].fail(
@@ -524,7 +524,7 @@ def validate_business_rules(self) -> FlextResult[None]:
 # 1. Config Validations (FlextConfig)
 class FlextCliConfig(FlextConfig):
     """Centralized configuration with built-in validation."""
-    
+
     def validate_configuration(self) -> FlextResult[None]:
         """Centralized config validation - ONLY place for config validation."""
         return FlextResult[None].ok(None)
@@ -532,7 +532,7 @@ class FlextCliConfig(FlextConfig):
 # 2. Model Validations (FlextModels)
 class CliCommand(FlextModel):
     """Centralized model with built-in validation."""
-    
+
     def validate_business_rules(self) -> FlextResult[None]:
         """Centralized model validation - ONLY place for model validation."""
         return FlextResult[None].ok(None)
@@ -542,12 +542,12 @@ def some_service_method(self, data: object) -> FlextResult[str]:
     """Service method - NO validation logic allowed here."""
     # ❌ FORBIDDEN: if not data: return FlextResult[str].fail("Invalid data")
     # ❌ FORBIDDEN: if len(data) < 1: return FlextResult[str].fail("Too short")
-    
+
     # ✅ CORRECT: Use centralized validation
     validation_result = self._config.validate_configuration()
     if validation_result.is_failure:
         return FlextResult[str].fail(f"Config validation failed: {validation_result.error}")
-    
+
     return FlextResult[str].ok("Success")
 ```
 
@@ -620,7 +620,7 @@ def format_table_with_tabulate(self, data: list[dict], headers: list[str] = None
 def execute_command_with_subprocess(self, command_line: str) -> FlextResult[CommandResult]:
     """Execute command using subprocess."""
     import subprocess
-    
+
     try:
         result = subprocess.run(
             command_line.split(),
@@ -628,7 +628,7 @@ def execute_command_with_subprocess(self, command_line: str) -> FlextResult[Comm
             text=True,
             timeout=30
         )
-        
+
         return FlextResult[CommandResult].ok(CommandResult(
             exit_code=result.returncode,
             stdout=result.stdout,

@@ -10,9 +10,8 @@ from __future__ import annotations
 
 import pytest
 
-from flext_cli.cmd import FlextCliCmd
-from flext_cli.config import FlextCliConfig
-from flext_core import FlextResult
+from flext_cli import FlextCliCmd, FlextCliConfig
+from flext_core import FlextLogger, FlextResult
 
 
 class TestFlextCliCmd:
@@ -31,9 +30,8 @@ class TestFlextCliCmd:
         assert result.is_success
         data = result.unwrap()
         assert isinstance(data, dict)
-        message = data.get("message")
-        assert isinstance(message, str)
-        assert "Command bus integration ready" in message
+        assert data["status"] == "operational"
+        assert data["service"] == "FlextCliCmd"
 
     def test_command_bus_service_property(self) -> None:
         """Test command bus service property with lazy loading."""
@@ -130,8 +128,6 @@ class TestFlextCliCmdHelpers:
 
     def test_config_display_helper(self) -> None:
         """Test _ConfigDisplayHelper functionality."""
-        from flext_core import FlextLogger
-
         logger = FlextLogger(__name__)
         result = FlextCliCmd._ConfigDisplayHelper.show_config(logger)
 

@@ -5,12 +5,14 @@ SPDX-License-Identifier: MIT
 """
 
 import json
-import logging
 import tempfile
 from pathlib import Path
 from unittest.mock import mock_open, patch
 
-from flext_cli.utils import FlextCliUtilities
+from pydantic import BaseModel
+
+from flext_cli import FlextCliUtilities
+from flext_core import FlextLogger, FlextResult
 
 
 def get_temp_file(suffix: str = ".txt") -> str:
@@ -47,7 +49,8 @@ class TestFlextCliUtilities:
     def test_logger_property(self) -> None:
         """Test logger property."""
         logger = self.utils.logger
-        assert isinstance(logger, logging.Logger)
+        # FlextLogger is the correct type, not logging.Logger
+        assert isinstance(logger, FlextLogger)
 
     def test_container_property(self) -> None:
         """Test container property."""
@@ -97,7 +100,6 @@ class TestFlextCliUtilities:
 
     def test_validate_with_pydantic_model(self) -> None:
         """Test validate with pydantic model."""
-        from pydantic import BaseModel
 
         class TestModel(BaseModel):
             name: str
@@ -136,8 +138,6 @@ class TestFlextCliUtilities:
 
     def test_safe_json_stringify_flext_result(self) -> None:
         """Test safe JSON stringify with FlextResult."""
-        from flext_core import FlextResult
-
         test_data: dict[str, object] = {"key": "value", "number": 42}
         flext_result = FlextResult[object].ok(test_data)
         result = FlextCliUtilities.safe_json_stringify_flext_result(flext_result)

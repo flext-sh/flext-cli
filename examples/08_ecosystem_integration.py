@@ -27,16 +27,17 @@ from __future__ import annotations
 import json
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any, ClassVar, cast, override
+from typing import override
 
 import yaml
+from pydantic_settings import SettingsConfigDict
 
 from flext_cli import (
     FlextCliAuth,
+    FlextCliModels,
     FlextCliService,
 )
-from flext_cli.models import FlextCliModels
-from flext_core import FlextConfig, FlextResult
+from flext_core import FlextConfig, FlextResult, FlextTypes
 
 
 class EcosystemSettings(FlextConfig):
@@ -61,9 +62,9 @@ class EcosystemSettings(FlextConfig):
     enable_oracle_integration: bool = True
     enable_observability: bool = True
 
-    model_config: ClassVar[dict[str, Any]] = {  # type: ignore[assignment]
-        "env_prefix": "FLEXT_ECOSYSTEM_",
-    }
+    model_config = SettingsConfigDict(
+        env_prefix="FLEXT_ECOSYSTEM_",
+    )
 
 
 @dataclass
@@ -79,6 +80,8 @@ class ServiceHealth:
 
 class EcosystemService(FlextCliService):
     """Service for FLEXT ecosystem integration."""
+
+    _formatters: FlextCliModels.CliFormatters
 
     def __init__(self) -> None:
         """Initialize ecosystem service."""
@@ -207,14 +210,14 @@ class EcosystemService(FlextCliService):
 
 # CLI Functions - Using flext-cli patterns
 # Note: This example demonstrates ecosystem integration patterns
-# In production, use FlextCliMain for proper CLI implementation
+# In production, use FlextCliCommands for proper CLI implementation
 
 
 def ecosystem_cli() -> None:
     """FLEXT Ecosystem Integration CLI - Example implementation."""
     print("FLEXT Ecosystem Integration CLI")
     print("This example demonstrates ecosystem integration patterns")
-    print("Use FlextCliMain for production CLI implementation")
+    print("Use FlextCliCommands for production CLI implementation")
 
 
 def health() -> None:
@@ -227,7 +230,7 @@ def health() -> None:
         print("=== FLEXT Ecosystem Health ===")
         for service_name, status in health_data.items():
             if isinstance(status, dict):
-                status_dict: dict[str, Any] = cast("dict[str, Any]", status)
+                status_dict: FlextTypes.Core.Dict = status
                 status_value: str = str(status_dict.get("status", "unknown"))
                 response_time_value: str = str(
                     status_dict.get("response_time", "unknown")
@@ -265,7 +268,7 @@ def meltano(operation: str, project: str) -> None:
     if meltano_result.is_success:
         result_data = meltano_result.unwrap()
         print("=== Meltano Operation Results ===")
-        result_data_typed: dict[str, Any] = cast("dict[str, Any]", result_data)
+        result_data_typed: FlextTypes.Core.Dict = result_data
         print(f"Project: {result_data_typed.get('project', 'unknown')}")
         print(f"Operation: {result_data_typed.get('operation', 'unknown')}")
         print(f"Status: {result_data_typed.get('status', 'unknown')}")
@@ -291,7 +294,7 @@ def oracle_query(
 
     if query_result.is_success:
         query_data = query_result.unwrap()
-        query_data_typed: dict[str, Any] = cast("dict[str, Any]", query_data)
+        query_data_typed: FlextTypes.Core.Dict = query_data
         print("=== Oracle Query Results ===")
         print(f"Query: {query_data_typed.get('query', 'unknown')}")
         print(f"Schema: {query_data_typed.get('schema', 'unknown')}")
@@ -315,7 +318,7 @@ def oracle_query(
             if isinstance(sample_data, list):
                 for row in sample_data:
                     if isinstance(row, dict):
-                        row_dict: dict[str, Any] = cast("dict[str, Any]", row)
+                        row_dict: FlextTypes.Core.Dict = row
                         print(
                             f"{row_dict.get('id', '')},{row_dict.get('name', '')},{row_dict.get('created_at', '')},{row_dict.get('status', '')}"
                         )
@@ -332,12 +335,12 @@ def metrics(output_format: str = "table") -> None:
         metrics_data = metrics_result.unwrap()
         print("=== FLEXT Ecosystem Metrics ===")
 
-        metrics_data_typed: dict[str, Any] = cast("dict[str, Any]", metrics_data)
+        metrics_data_typed: FlextTypes.Core.Dict = metrics_data
         if output_format == "table":
             print("Services:")
             services = metrics_data_typed.get("services", {})
             if isinstance(services, dict):
-                services_dict: dict[str, Any] = cast("dict[str, Any]", services)
+                services_dict: FlextTypes.Core.Dict = services
                 print(f"  Total: {services_dict.get('total', 'unknown')}")
                 print(f"  Healthy: {services_dict.get('healthy', 'unknown')}")
                 print(f"  Degraded: {services_dict.get('degraded', 'unknown')}")
@@ -346,7 +349,7 @@ def metrics(output_format: str = "table") -> None:
             print("\nPerformance:")
             perf = metrics_data_typed.get("performance", {})
             if isinstance(perf, dict):
-                perf_dict: dict[str, Any] = cast("dict[str, Any]", perf)
+                perf_dict: FlextTypes.Core.Dict = perf
                 print(
                     f"  Avg Response Time: {perf_dict.get('avg_response_time', 'unknown')}"
                 )
@@ -358,7 +361,7 @@ def metrics(output_format: str = "table") -> None:
             print("\nResources:")
             resources = metrics_data_typed.get("resources", {})
             if isinstance(resources, dict):
-                resources_dict: dict[str, Any] = cast("dict[str, Any]", resources)
+                resources_dict: FlextTypes.Core.Dict = resources
                 print(f"  CPU Usage: {resources_dict.get('cpu_usage', 'unknown')}")
                 print(
                     f"  Memory Usage: {resources_dict.get('memory_usage', 'unknown')}"
@@ -379,14 +382,14 @@ def config() -> None:
 
     if config_result.is_success:
         config_data = config_result.unwrap()
-        config_data_typed: dict[str, Any] = cast("dict[str, Any]", config_data)
+        config_data_typed: FlextTypes.Core.Dict = config_data
         print("=== Ecosystem Configuration ===")
         print(f"Environment: {config_data_typed.get('environment', 'unknown')}")
         print(f"Version: {config_data_typed.get('version', 'unknown')}")
         print("\nSettings:")
         settings = config_data_typed.get("settings", {})
         if isinstance(settings, dict):
-            settings_dict: dict[str, Any] = cast("dict[str, Any]", settings)
+            settings_dict: FlextTypes.Core.Dict = settings
             for key, value in settings_dict.items():
                 print(f"  {key}: {value}")
     else:

@@ -11,7 +11,7 @@ from pathlib import Path
 import pytest
 from pydantic import ValidationError
 
-from flext_cli.config import FlextCliConfig
+from flext_cli import FlextCliConfig, FlextCliConstants
 
 
 class TestFlextConfigIntegration:
@@ -75,8 +75,6 @@ class TestFlextConfigIntegration:
 
     def test_flext_config_methods(self) -> None:
         """Test actual FlextCliConfig methods."""
-        from flext_cli.constants import FlextCliConstants
-
         cli_config = FlextCliConfig.MainConfig()
 
         # Test config_dir field
@@ -120,4 +118,4 @@ class TestFlextConfigIntegration:
 
         # Test that the model validates types properly
         with pytest.raises((ValueError, TypeError, ValidationError)):
-            FlextCliConfig.MainConfig(debug="invalid_boolean")  # type: ignore[arg-type]
+            FlextCliConfig.MainConfig(debug="invalid_boolean")

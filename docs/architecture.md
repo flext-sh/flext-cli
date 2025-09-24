@@ -154,9 +154,9 @@ validation_result = config.validate_business_rules()
 
 ```python
 # Rich framework usage contained to formatters module
-from flext_cli.formatters import FlextCliFormatters
+from flext_cli.formatters import FlextCliOutput
 
-formatter = FlextCliFormatters()
+formatter = FlextCliOutput()
 # Rich integration isolated here, not exposed to CLI consumers
 ```
 

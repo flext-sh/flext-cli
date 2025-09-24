@@ -13,9 +13,7 @@ import tempfile
 from pathlib import Path
 from typing import cast
 
-from flext_cli.config import FlextCliConfig
-from flext_cli.core import FlextCliService
-from flext_cli.models import FlextCliModels
+from flext_cli import FlextCliConfig, FlextCliModels, FlextCliService
 from flext_core import FlextResult
 
 
@@ -405,3 +403,269 @@ class TestFlextCliServiceProperties:
         service.update_configuration()
         assert hasattr(service, "update_configuration")
         assert callable(service.update_configuration)
+
+    def test_get_handlers(self) -> None:
+        """Test get_handlers method."""
+        service = FlextCliService()
+        handlers = service.get_handlers()
+        assert isinstance(handlers, dict)
+
+    def test_get_plugins(self) -> None:
+        """Test get_plugins method."""
+        service = FlextCliService()
+        plugins = service.get_plugins()
+        assert isinstance(plugins, dict)
+
+    def test_get_sessions(self) -> None:
+        """Test get_sessions method."""
+        service = FlextCliService()
+        sessions = service.get_sessions()
+        assert isinstance(sessions, dict)
+
+    def test_get_commands(self) -> None:
+        """Test get_commands method."""
+        service = FlextCliService()
+        commands = service.get_commands()
+        assert isinstance(commands, dict)
+
+    def test_get_formatters(self) -> None:
+        """Test get_formatters method."""
+        service = FlextCliService()
+        formatters = service.get_formatters()
+        assert formatters is not None
+
+    def test_start_command_execution(self) -> None:
+        """Test start_command_execution method."""
+        service = FlextCliService()
+        # Create a command first
+        cmd_result = service.create_command("echo test")
+        assert cmd_result.is_success
+        command = cmd_result.value
+
+        # Start execution
+        result = service.start_command_execution(command)
+        assert result.is_success
+
+    def test_complete_command_execution(self) -> None:
+        """Test complete_command_execution method."""
+        service = FlextCliService()
+        # Create a command first
+        cmd_result = service.create_command("echo test")
+        assert cmd_result.is_success
+        command = cmd_result.value
+
+        # Start execution
+        start_result = service.start_command_execution(command)
+        assert start_result.is_success
+
+        # Complete execution
+        result = service.complete_command_execution(command, 0, "test output")
+        assert result.is_success
+
+    def test_add_command_to_session(self) -> None:
+        """Test add_command_to_session method."""
+        service = FlextCliService()
+        # Create session and command
+        session_result = service.create_session("test_user")
+        assert session_result.is_success
+        session = session_result.value
+
+        cmd_result = service.create_command("echo test")
+        assert cmd_result.is_success
+        command = cmd_result.value
+
+        # Add command to session
+        result = service.add_command_to_session(session, command)
+        assert result.is_success
+
+    def test_end_session(self) -> None:
+        """Test end_session method."""
+        service = FlextCliService()
+        # Create session
+        session_result = service.create_session("test_user")
+        assert session_result.is_success
+        session = session_result.value
+
+        # End session
+        result = service.end_session(session)
+        assert result.is_success
+        assert session.end_time is not None
+
+    def test_get_command_history(self) -> None:
+        """Test get_command_history method."""
+        service = FlextCliService()
+        result = service.get_command_history()
+        assert result.is_success
+        history = result.value
+        assert isinstance(history, list)
+
+    def test_clear_command_history(self) -> None:
+        """Test clear_command_history method."""
+        service = FlextCliService()
+        result = service.clear_command_history()
+        assert result.is_success
+        assert isinstance(result.value, int)
+
+    def test_get_command_statistics(self) -> None:
+        """Test get_command_statistics method."""
+        service = FlextCliService()
+        result = service.get_command_statistics()
+        assert result.is_success
+        stats = result.value
+        assert isinstance(stats, dict)
+
+    def test_find_commands_by_pattern(self) -> None:
+        """Test find_commands_by_pattern method."""
+        service = FlextCliService()
+        # Create some commands
+        service.create_command("echo test1")
+        service.create_command("echo test2")
+        service.create_command("ls -la")
+
+        result = service.find_commands_by_pattern("echo")
+        assert result.is_success
+        commands = result.value
+        assert isinstance(commands, list)
+
+    def test_get_recent_commands(self) -> None:
+        """Test get_recent_commands method."""
+        service = FlextCliService()
+        result = service.get_recent_commands(limit=5)
+        assert result.is_success
+        commands = result.value
+        assert isinstance(commands, list)
+
+    def test_list_active_sessions(self) -> None:
+        """Test list_active_sessions method."""
+        service = FlextCliService()
+        result = service.list_active_sessions()
+        assert result.is_success
+        sessions = result.value
+        assert isinstance(sessions, list)
+
+    def test_get_session_statistics(self) -> None:
+        """Test get_session_statistics method."""
+        service = FlextCliService()
+        result = service.get_session_statistics()
+        assert result.is_success
+        stats = result.value
+        assert isinstance(stats, dict)
+
+    def test_clear_all_sessions(self) -> None:
+        """Test clear_all_sessions method."""
+        service = FlextCliService()
+        result = service.clear_all_sessions()
+        assert result.is_success
+        assert isinstance(result.value, int)
+
+    def test_configure_command_history(self) -> None:
+        """Test configure_command_history method."""
+        service = FlextCliService()
+        result = service.configure_command_history(enabled=True)
+        assert result.is_success
+
+    def test_configure_session_tracking(self) -> None:
+        """Test configure_session_tracking method."""
+        service = FlextCliService()
+        result = service.configure_session_tracking(enabled=True)
+        assert result.is_success
+
+    def test_create_command_definition(self) -> None:
+        """Test create_command_definition method."""
+        service = FlextCliService()
+
+        def test_handler() -> str:
+            return "test output"
+
+        result = service.create_command_definition(
+            name="test_cmd",
+            description="Test command",
+            handler=test_handler,
+            arguments=["arg1", "arg2"],
+            output_format="json",
+        )
+        assert result.is_success
+        cmd_def = result.value
+        assert isinstance(cmd_def, dict)
+        assert cmd_def["name"] == "test_cmd"
+
+    def test_set_config_with_type_conversion(self) -> None:
+        """Test set_config with non-string/non-bool values that need conversion."""
+        service = FlextCliService()
+
+        # Test with non-string profile value
+        config = {
+            "profile": 123,  # int instead of str
+            "output_format": 456,  # int instead of str
+            "debug_mode": "true",  # str instead of bool
+        }
+
+        result = service.configure(config)
+        assert result.is_success
+
+        # Verify the values were converted properly
+        assert service._cli_config.profile == "123"
+        assert service._cli_config.output_format == "456"
+        assert service._cli_config.debug is True
+
+    def test_set_config_with_invalid_config(self) -> None:
+        """Test set_config with invalid configuration that causes exception."""
+        service = FlextCliService()
+
+        # Test with config that will cause an exception during MainConfig creation
+        config = {
+            "profile": None,  # This might cause issues
+            "output_format": None,
+            "debug_mode": None,
+        }
+
+        result = service.configure(config)
+        # The method should handle the conversion gracefully
+        assert result.is_success
+
+    def test_format_data_with_unknown_format(self) -> None:
+        """Test format_data with unknown format type."""
+        service = FlextCliService()
+
+        data = {"key": "value"}
+        result = service.format_data(data, "unknown_format")
+
+        # Should default to JSON formatting
+        assert result.is_success
+        formatted_data = result.value
+        assert isinstance(formatted_data, str)
+        # Should be valid JSON
+        parsed = json.loads(formatted_data)
+        assert parsed == data
+
+    def test_save_data_with_csv_format_and_non_list_data(self) -> None:
+        """Test save_data with CSV format but non-list data."""
+        service = FlextCliService()
+
+        # Create a temporary file
+        with tempfile.NamedTemporaryFile(
+            mode="w", suffix=".csv", delete=False, encoding="utf-8"
+        ) as tmp:
+            temp_path = tmp.name
+
+        try:
+            # Try to save non-list data as CSV
+            data = {"key": "value"}  # dict instead of list
+            result = service.flext_cli_export(data, temp_path, "csv")
+
+            assert result.is_failure
+            assert "CSV format requires list of dictionaries" in result.error
+        finally:
+            Path(temp_path).unlink(missing_ok=True)
+
+    def test_save_data_with_exception_during_write(self) -> None:
+        """Test save_data with exception during file write."""
+        service = FlextCliService()
+
+        # Use an invalid path that will cause an exception
+        invalid_path = "/invalid/path/that/does/not/exist/file.json"
+        data = {"key": "value"}
+
+        result = service.flext_cli_export(data, invalid_path, "json")
+        assert result.is_failure
+        assert "Export failed" in result.error

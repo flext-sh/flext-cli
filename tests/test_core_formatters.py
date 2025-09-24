@@ -8,15 +8,15 @@ from __future__ import annotations
 
 from typing import cast
 
-from flext_cli.flext_cli_formatters import FlextCliFormatters
+from flext_cli import FlextCliOutput
 
 
 class TestTableFormatter:
-    """Test cases for Table formatting using FlextCliFormatters."""
+    """Test cases for Table formatting using FlextCliOutput."""
 
     def test_format_list_of_dicts(self) -> None:
         """Test formatting list of dictionaries as table."""
-        formatter = FlextCliFormatters()
+        formatter = FlextCliOutput()
         data = [
             {"name": "Alice", "age": 30},
             {"name": "Bob", "age": 25},
@@ -28,7 +28,7 @@ class TestTableFormatter:
 
     def test_format_simple_list(self) -> None:
         """Test formatting simple list fails appropriately."""
-        formatter = FlextCliFormatters()
+        formatter = FlextCliOutput()
         data: list[str] = ["item1", "item2", "item3"]
 
         result = formatter.format_data(
@@ -38,7 +38,7 @@ class TestTableFormatter:
 
     def test_format_single_dict(self) -> None:
         """Test formatting single dictionary as table."""
-        formatter = FlextCliFormatters()
+        formatter = FlextCliOutput()
         data = {"name": "Alice", "age": 30}
 
         result = formatter.format_data(
@@ -52,7 +52,7 @@ class TestTableFormatter:
 
     def test_format_unsupported_type(self) -> None:
         """Test formatting unsupported data types fails."""
-        formatter = FlextCliFormatters()
+        formatter = FlextCliOutput()
         data: str = "simple string"
 
         result = formatter.format_data(
@@ -62,11 +62,11 @@ class TestTableFormatter:
 
 
 class TestJSONFormatter:
-    """Test cases for JSON formatting using FlextCliFormatters."""
+    """Test cases for JSON formatting using FlextCliOutput."""
 
     def test_format_dict(self) -> None:
         """Test formatting dictionary as JSON."""
-        formatter = FlextCliFormatters()
+        formatter = FlextCliOutput()
         data = {"name": "Alice", "age": 30}
 
         result = formatter.format_data(
@@ -78,7 +78,7 @@ class TestJSONFormatter:
 
     def test_format_list(self) -> None:
         """Test formatting list as JSON."""
-        formatter = FlextCliFormatters()
+        formatter = FlextCliOutput()
         data: list[dict[str, str]] = [{"name": "Alice"}, {"name": "Bob"}]
 
         result = formatter.format_data(
@@ -94,7 +94,7 @@ class TestUnsupportedFormats:
 
     def test_yaml_format_not_supported(self) -> None:
         """Test that YAML format is not yet supported."""
-        formatter = FlextCliFormatters()
+        formatter = FlextCliOutput()
         data = {"name": "Alice", "age": 30}
 
         result = formatter.format_data(data, format_type="yaml")
@@ -103,23 +103,23 @@ class TestUnsupportedFormats:
 
     def test_csv_format_not_supported(self) -> None:
         """Test that CSV format is not yet supported."""
-        formatter = FlextCliFormatters()
+        formatter = FlextCliOutput()
         data = [{"name": "Alice", "age": 30}]
 
         result = formatter.format_data(data, format_type="csv")
         assert result.is_success
         assert "Alice" in result.value
 
-    def test_plain_format_not_supported(self) -> None:
-        """Test that plain format is not yet supported."""
-        formatter = FlextCliFormatters()
+    def test_plain_format_supported(self) -> None:
+        """Test that plain format is supported."""
+        formatter = FlextCliOutput()
         data: dict[str, str] = {"name": "Alice"}
 
         result = formatter.format_data(
             cast("dict[str, object]", data), format_type="plain"
         )
-        assert result.is_failure
-        assert result.error is not None and "Unsupported format type" in result.error
+        assert result.is_success
+        assert "Alice" in result.unwrap()
 
 
 class TestFormatterFactory:
@@ -127,19 +127,19 @@ class TestFormatterFactory:
 
     def test_create_table_formatter(self) -> None:
         """Test creating table formatter."""
-        formatter = FlextCliFormatters()
+        formatter = FlextCliOutput()
         result = formatter.create_formatter("table")
         assert result.is_success
 
     def test_create_unknown_formatter(self) -> None:
         """Test creating unknown formatter type."""
-        formatter = FlextCliFormatters()
+        formatter = FlextCliOutput()
         result = formatter.create_formatter("unknown")
         assert result.is_failure
 
     def test_supported_formats(self) -> None:
         """Test supported format types."""
-        formatter = FlextCliFormatters()
+        formatter = FlextCliOutput()
 
         for format_type in ["table", "json"]:
             result = formatter.format_data({"test": "data"}, format_type=format_type)
@@ -151,7 +151,7 @@ class TestFormatterIntegration:
 
     def test_format_table_with_headers(self) -> None:
         """Test table formatting with custom headers."""
-        formatter = FlextCliFormatters()
+        formatter = FlextCliOutput()
         data: dict[str, object] = {"name": "Alice", "age": 30}
 
         result = formatter.format_data(
@@ -165,13 +165,13 @@ class TestFormatterIntegration:
 
     def test_console_access(self) -> None:
         """Test console property access."""
-        formatter = FlextCliFormatters()
+        formatter = FlextCliOutput()
         console = formatter.console
         assert console is not None
 
     def test_print_methods(self) -> None:
         """Test print methods."""
-        formatter = FlextCliFormatters()
+        formatter = FlextCliOutput()
 
         formatter.print_success("Success message")
         formatter.print_error("Error message")

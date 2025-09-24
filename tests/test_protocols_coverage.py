@@ -1,7 +1,6 @@
 """Test coverage for protocols.py module."""
 
-from flext_cli.protocols import FlextCliProtocols
-from flext_cli.typings import FlextCliTypings
+from flext_cli import FlextCliProtocols, FlextCliTypings
 from flext_core import FlextResult
 
 

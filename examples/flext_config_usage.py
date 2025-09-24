@@ -11,7 +11,7 @@ from __future__ import annotations
 
 import os
 
-from flext_cli import FlextCliConfig
+from flext_cli import FlextCliConfig, FlextCliConstants
 
 
 def main() -> None:
@@ -112,7 +112,6 @@ def main() -> None:
     print(f"Config directory: {config_dir}")
 
     # Get config file path
-    from flext_cli.constants import FlextCliConstants
     config_file = config.config_dir / FlextCliConstants.CliDefaults.CONFIG_FILE
     print(f"Config file: {config_file}")
 
@@ -127,7 +126,6 @@ def main() -> None:
     )
 
     # Create CLI options from config
-    from flext_cli.constants import FlextCliConstants
     cli_options = FlextCliConfig.CliOptions(
         output_format=config.output_format,
         debug=config.debug,
