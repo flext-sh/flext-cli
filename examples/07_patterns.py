@@ -72,7 +72,7 @@ class ProjectStatus(StrEnum):
     ARCHIVED = "archived"
 
 
-class Project(FlextModels.AggregateRoot):
+class Project(FlextModels.AggregateRoot):  # type: ignore[misc]
     """Project aggregate root with business logic."""
 
     project_id: UUID
@@ -155,13 +155,13 @@ class Project(FlextModels.AggregateRoot):
         return FlextResult[Project].ok(project)
 
 
-class ProjectDomainService(FlextService[FlextTypes.Core.Dict]):
+class ProjectDomainService(FlextService[dict[str, object]]):  # type: ignore[misc]
     """Domain service for cross-project operations."""
 
     @override
-    def execute(self) -> FlextResult[FlextTypes.Core.Dict]:
+    def execute(self) -> FlextResult[dict[str, object]]:
         """Execute method required by FlextService base class."""
-        return FlextResult[FlextTypes.Core.Dict].ok({"service": "project_domain"})
+        return FlextResult[dict[str, object]].ok({"service": "project_domain"})
 
     def can_transfer_ownership(
         self, project: Project, new_owner_id: str

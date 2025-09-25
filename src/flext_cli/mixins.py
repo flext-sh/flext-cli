@@ -9,12 +9,9 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from typing import TypeVar
-
 from flext_cli.constants import FlextCliConstants
+from flext_cli.typings import FlextCliTypes
 from flext_core import FlextMixins, FlextResult
-
-T = TypeVar("T")
 
 
 class FlextCliMixins(FlextMixins):
@@ -240,7 +237,9 @@ class FlextCliMixins(FlextMixins):
             return FlextResult[None].ok(None)
 
         @staticmethod
-        def validate_pipeline_step(step: dict[str, object]) -> FlextResult[None]:
+        def validate_pipeline_step(
+            step: FlextCliTypes.CliDataDict | None,
+        ) -> FlextResult[None]:
             """Validate pipeline step configuration.
 
             Args:
@@ -265,7 +264,8 @@ class FlextCliMixins(FlextMixins):
 
         @staticmethod
         def validate_configuration_consistency(
-            config_data: dict[str, object], required_fields: list[str]
+            config_data: FlextCliTypes.CliDataDict | None,
+            required_fields: list[str],
         ) -> FlextResult[None]:
             """Validate configuration consistency.
 
@@ -278,7 +278,9 @@ class FlextCliMixins(FlextMixins):
 
             """
             missing_fields = [
-                field for field in required_fields if field not in config_data
+                field
+                for field in required_fields
+                if config_data and field not in config_data
             ]
             if missing_fields:
                 return FlextResult[None].fail(

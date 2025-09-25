@@ -10,9 +10,10 @@ from __future__ import annotations
 
 import traceback
 
+from click import BaseCommand
 from click.testing import CliRunner
 
-from flext_cli import FlextCliMain
+from flext_cli import FlextCli
 
 
 def main() -> None:
@@ -20,8 +21,13 @@ def main() -> None:
     runner = CliRunner()
 
     # Create CLI instance and get the Click group
-    cli_main = FlextCliMain()
-    cli_group = cli_main.get_click_group()
+    cli_main = FlextCli()
+    cli_group = cli_main.main.get_click_group()
+
+    # Type assertion for MyPy
+    if not isinstance(cli_group, BaseCommand):
+        error_msg = f"Expected BaseCommand, got {type(cli_group)}"
+        raise TypeError(error_msg)
 
     operations = [
         ["config", "show"],

@@ -10,274 +10,265 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
+import json
+from datetime import UTC, datetime
 from pathlib import Path
 
-from pydantic import BaseModel, Field
-from pydantic_settings import SettingsConfigDict
+import yaml
+from pydantic import (
+    BaseModel,
+    Field,
+    SecretStr,
+    field_validator,
+    model_validator,
+)
 
 from flext_cli.constants import FlextCliConstants
-from flext_cli.mixins import FlextCliMixins
 from flext_core import (
     FlextConfig,
-    FlextConstants,
     FlextResult,
+    FlextService,
 )
 
 
+class LoggingConfig(BaseModel):
+    """Logging configuration model."""
+
+    log_level: str = Field(default="INFO", description="Logging level")
+    log_format: str = Field(
+        default="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
+        description="Log format string",
+    )
+    console_output: bool = Field(default=True, description="Enable console output")
+    log_file: str | None = Field(default=None, description="Log file path")
+    log_level_source: str = Field(default="default", description="Source of log level")
+
+
 class FlextCliConfig(FlextConfig):
-    """Single unified CLI configuration class following FLEXT standards.
+    """Single Pydantic 2 Settings class for flext-cli extending FlextConfig.
 
-    Contains all configuration subclasses for CLI domain operations.
-    Follows FLEXT pattern: one class per module with nested subclasses.
-
-    ARCHITECTURAL COMPLIANCE:
-    - Inherits from FlextConfig to avoid duplication
-    - Uses centralized validation via FlextConfig.Validation
-    - Implements CLI-specific extensions while reusing core functionality
-    CRITICAL ARCHITECTURE: ALL configuration validation is centralized in FlextConfig.
-    NO inline validation is allowed in service methods.
+    Follows standardized pattern:
+    - Extends FlextConfig from flext-core
+    - No nested classes within Config
+    - All defaults from FlextCliConstants
+    - Dependency injection integration with flext-core container
+    - Uses Pydantic 2.11+ features (SecretStr for secrets)
     """
 
-    # =========================================================================
-    # BASE CLASSES - Common functionality for CLI configurations
-    # =========================================================================
+    # CLI-specific configuration fields using FlextCliConstants for defaults
+    profile: str = Field(
+        default=FlextCliConstants.CliDefaults.DEFAULT_PROFILE,
+        description="CLI profile to use for configuration",
+    )
 
-    class _BaseConfig(BaseModel, FlextCliMixins.ValidationMixin):
-        """Base configuration model with common config validation patterns."""
+    output_format: str = Field(
+        default=FlextCliConstants.OutputFormats.TABLE,
+        description="Default output format for CLI commands",
+    )
 
-    # =========================================================================
-    # CLI CONFIGURATION SUBCLASSES
-    # =========================================================================
+    no_color: bool = Field(default=False, description="Disable colored output in CLI")
 
-    class MainConfig(FlextConfig):
-        """Main CLI configuration class extending FlextConfig.
+    config_dir: Path = Field(
+        default_factory=lambda: Path.home() / FlextCliConstants.FLEXT_DIR_NAME,
+        description="Configuration directory path",
+    )
 
-        Provides unified configuration management for the FLEXT CLI ecosystem
-        using Pydantic Settings for environment variable support.
-        Inherits core configuration from FlextConfig and adds CLI-specific fields.
-        """
+    project_name: str = Field(
+        default=FlextCliConstants.PROJECT_NAME,
+        description="Project name for CLI operations",
+    )
 
-        model_config = SettingsConfigDict(
-            env_prefix="FLEXT_CLI_",
-            case_sensitive=False,
-            extra="allow",
-        )
+    # Authentication configuration using SecretStr for sensitive data
+    api_url: str = Field(
+        default=FlextCliConstants.NetworkDefaults.DEFAULT_API_URL,
+        description="API URL for remote operations",
+    )
 
-        # CLI-specific configuration fields (inherits debug, timeout_seconds from FlextConfig)
-        profile: str = Field(default="default")
-        output_format: str = Field(default="table")
-        no_color: bool = Field(default=False)
-        config_dir: Path = Field(default_factory=lambda: Path("~/.flext").expanduser())
+    cli_api_key: SecretStr | None = Field(
+        default=None, description="API key for authentication (sensitive)"
+    )
 
-        # Test compatibility fields (will be consolidated with FlextConfig inheritance)
-        project_name: str = Field(default="flext-cli")
+    token_file: Path = Field(
+        default_factory=lambda: Path.home()
+        / FlextCliConstants.FLEXT_DIR_NAME
+        / FlextCliConstants.TOKEN_FILE_NAME,
+        description="Path to authentication token file",
+    )
 
-        @property
-        def debug_mode(self) -> bool:
-            """Alias for debug field from FlextConfig."""
-            return bool(self.debug)
+    refresh_token_file: Path = Field(
+        default_factory=lambda: Path.home()
+        / FlextCliConstants.FLEXT_DIR_NAME
+        / FlextCliConstants.REFRESH_TOKEN_FILE_NAME,
+        description="Path to refresh token file",
+    )
 
-        def validate_output_format(self, format_type: str) -> FlextResult[str]:
-            """Validate output format using centralized validation."""
-            # Use centralized validation patterns
-            if format_type not in FlextCliConstants.OUTPUT_FORMATS_LIST:
-                return FlextResult[str].fail(
-                    f"Invalid output format: {format_type}. "
-                    f"Valid formats: {', '.join(FlextCliConstants.OUTPUT_FORMATS_LIST)}"
-                )
-            return FlextResult[str].ok(format_type)
+    auto_refresh: bool = Field(
+        default=True, description="Automatically refresh authentication tokens"
+    )
 
-        def set_output_format(self, format_type: str) -> FlextResult[None]:
-            """Set the output format."""
-            validation_result = self.validate_output_format(format_type)
-            if not validation_result.is_success:
-                return FlextResult[None].fail(
-                    validation_result.error or "Output format validation failed"
-                )
+    # CLI behavior configuration
+    verbose: bool = Field(default=False, description="Enable verbose output")
 
-            self.output_format = validation_result.value
-            return FlextResult[None].ok(None)
+    max_width: int = Field(
+        default=FlextCliConstants.CliDefaults.DEFAULT_MAX_WIDTH,
+        ge=40,
+        le=200,
+        description="Maximum width for CLI output",
+    )
 
-        def load_configuration(self) -> FlextResult[dict[str, object]]:
-            """Load configuration data from current settings.
+    config_file: Path | None = Field(
+        default=None, description="Custom configuration file path"
+    )
 
-            Returns:
-                FlextResult[dict[str, object]]: Configuration data or error
+    # Network configuration
+    timeout: int = Field(
+        default=FlextCliConstants.NetworkDefaults.DEFAULT_TIMEOUT,
+        ge=1,
+        le=300,
+        description="Network timeout in seconds",
+    )
 
-            """
-            try:
-                # Use FlextConfig's inherited fields where possible
-                config_data: dict[str, object] = {
-                    "profile": self.profile,
-                    "output_format": self.output_format,
-                    "debug_mode": self.debug,
-                    "debug": self.debug,
-                    "project_name": self.project_name,
-                    "database_url": None,  # Will be populated from FlextConfig inheritance
-                    "cache_enabled": True,  # Will be populated from FlextConfig inheritance
-                    "api_timeout": self.timeout_seconds,
-                    "max_connections": 10,  # Will be populated from FlextConfig inheritance
-                    "timeout_seconds": self.timeout_seconds,
-                    "no_color": self.no_color,
-                    "config_dir": str(self.config_dir),
-                    "config_file": str(self.config_dir / "config.yaml"),
-                }
-                return FlextResult[dict[str, object]].ok(config_data)
-            except Exception as e:
-                return FlextResult[dict[str, object]].fail(
-                    f"Configuration load failed: {e}"
-                )
+    max_retries: int = Field(
+        default=FlextCliConstants.NetworkDefaults.DEFAULT_MAX_RETRIES,
+        ge=0,
+        le=10,
+        description="Maximum number of retry attempts",
+    )
 
-        def validate_configuration(self) -> FlextResult[None]:
-            """Validate configuration settings.
+    # Pydantic 2.11 field validators
+    @field_validator("output_format")
+    @classmethod
+    def validate_output_format(cls, v: str) -> str:
+        """Validate output format is one of the allowed values."""
+        if v not in FlextCliConstants.OUTPUT_FORMATS_LIST:
+            valid_formats = ", ".join(FlextCliConstants.OUTPUT_FORMATS_LIST)
+            msg = f"Invalid output format: {v}. Must be one of: {valid_formats}"
+            raise ValueError(msg)
+        return v
 
-            Returns:
-                FlextResult[None]: Validation result
+    @field_validator("profile")
+    @classmethod
+    def validate_profile(cls, v: str) -> str:
+        """Validate profile name is not empty."""
+        if not v or not v.strip():
+            msg = "Profile name cannot be empty"
+            raise ValueError(msg)
+        return v.strip()
 
-            """
-            try:
-                # Validate output format
-                if self.output_format not in FlextCliConstants.OUTPUT_FORMATS_LIST:
-                    return FlextResult[None].fail(
-                        f"Invalid output format: {self.output_format}"
-                    )
+    @field_validator("api_url")
+    @classmethod
+    def validate_api_url(cls, v: str) -> str:
+        """Validate API URL format."""
+        if not v.startswith(("http://", "https://")):
+            msg = f"Invalid API URL format: {v}. Must start with http:// or https://"
+            raise ValueError(msg)
+        return v
 
-                # Validate profile
-                if not self.profile or not self.profile.strip():
-                    return FlextResult[None].fail("Profile cannot be empty")
-
-                return FlextResult[None].ok(None)
-            except Exception as e:
-                return FlextResult[None].fail(f"Configuration validation failed: {e}")
-
-    class CliOptions(BaseModel):
-        """CLI options configuration model extending BaseModel."""
-
-        output_format: str = Field(default="table")
-        verbose: bool = False
-        debug: bool = False
-        no_color: bool = False
-        max_width: int = 120
-        config_file: Path | None = None
-
-    class AuthConfig(_BaseConfig, FlextCliMixins.BusinessRulesMixin):
-        """Authentication configuration model extending _BaseConfig."""
-
-        api_url: str = Field(default="http://localhost:8000")
-        token_file: Path = Field(
-            default_factory=lambda: Path("~/.flext").expanduser() / "token"
-        )
-        refresh_token_file: Path = Field(
-            default_factory=lambda: Path("~/.flext").expanduser() / "refresh_token"
-        )
-        auto_refresh: bool = Field(default=True)
-
-        def validate_business_rules(self) -> FlextResult[None]:
-            """Validate auth configuration business rules using centralized validation."""
-            # Use simple URL validation for now - can be enhanced with FlextModels.Validation later
-            if not self.api_url.startswith(("http://", "https://")):
-                return FlextResult[None].fail(f"Invalid API URL format: {self.api_url}")
-
-            return FlextResult[None].ok(None)
-
-    class LoggingConfig(_BaseConfig, FlextCliMixins.BusinessRulesMixin):
-        """Logging configuration model extending _BaseConfig."""
-
-        log_level: str = Field(default="INFO")
-        log_format: str = Field(
-            default="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
-        )
-        console_output: bool = Field(default=True)
-        log_file: Path | None = Field(default=None)
-        log_level_source: str = Field(default="default")
-
-        def validate_business_rules(self) -> FlextResult[None]:
-            """Validate logging configuration business rules using centralized validation."""
-            # Use FlextConfig's validation for log level
-            if self.log_level not in FlextConstants.Logging.VALID_LEVELS:
-                return FlextResult[None].fail(
-                    f"Invalid log level: {self.log_level}. "
-                    f"Valid levels: {', '.join(FlextConstants.Logging.VALID_LEVELS)}"
-                )
-
-            return FlextResult[None].ok(None)
-
-    # =========================================================================
-    # CENTRALIZED VALIDATION ARCHITECTURE - Delegates to FlextConfig.Validation
-    # =========================================================================
-
-    class Validation:
-        """CLI-specific validation extending FlextConfig.Validation."""
-
-        @staticmethod
-        def validate_output_format(format_type: str) -> FlextResult[str]:
-            """Validate CLI output format."""
-            if format_type not in FlextCliConstants.OUTPUT_FORMATS_LIST:
-                return FlextResult[str].fail(
-                    f"Invalid output format: {format_type}. "
-                    f"Valid formats: {', '.join(FlextCliConstants.OUTPUT_FORMATS_LIST)}"
-                )
-            return FlextResult[str].ok(format_type)
-
-        @staticmethod
-        def validate_cli_options(options: dict[str, object]) -> FlextResult[None]:
-            """Validate CLI options configuration."""
-            # Use parent validation for common patterns
-            if "output_format" in options:
-                format_result = FlextCliConfig.Validation.validate_output_format(
-                    str(options["output_format"])
-                )
-                if not format_result.is_success:
-                    return FlextResult[None].fail(
-                        format_result.error or "Validation failed"
-                    )
-
-            return FlextResult[None].ok(None)
-
-    def validate_configuration(self: object) -> FlextResult[None]:
-        """CENTRALIZED configuration validation - delegates to FlextConfig and adds CLI-specific logic.
-
-        This method consolidates ALL configuration validation logic that was
-        previously scattered across multiple modules. Uses FlextConfig.Validation
-        for common patterns and adds CLI-specific validation.
-
-        Returns:
-            FlextResult[None]: Success if all configuration is valid, failure otherwise
-
-        """
+    @model_validator(mode="after")
+    def validate_paths(self) -> FlextCliConfig:
+        """Validate that configuration paths are accessible."""
+        # Ensure config directory exists or can be created
         try:
-            # Validate CLI-specific nested configurations
-            auth_result = FlextCliConfig.AuthConfig().validate_business_rules()
-            if not auth_result.is_success:
-                return FlextResult[None].fail(
-                    f"Auth config validation failed: {auth_result.error}"
-                )
+            self.config_dir.mkdir(parents=True, exist_ok=True)
+        except (PermissionError, OSError) as e:
+            msg = f"Cannot access config directory {self.config_dir}: {e}"
+            raise ValueError(msg) from e
 
-            logging_result = FlextCliConfig.LoggingConfig().validate_business_rules()
-            if not logging_result.is_success:
-                return FlextResult[None].fail(
-                    f"Logging config validation failed: {logging_result.error}"
-                )
+        return self
 
-            # Additional CLI-specific validation using centralized patterns
-            # This replaces all scattered validation across the codebase
+    # CLI-specific methods
+    def get_cli_context(self) -> dict[str, object]:
+        """Get CLI context for command execution."""
+        return {
+            "profile": self.profile,
+            "output_format": self.output_format,
+            "no_color": self.no_color,
+            "verbose": self.verbose,
+            "max_width": self.max_width,
+            "api_url": self.api_url,
+            "timeout": self.timeout,
+        }
 
-            return FlextResult[None].ok(None)
-
-        except Exception as e:
-            return FlextResult[None].fail(f"Configuration validation failed: {e}")
+    def get_auth_context(self) -> dict[str, object]:
+        """Get authentication context (without exposing secrets)."""
+        return {
+            "api_url": self.api_url,
+            "token_file": str(self.token_file),
+            "refresh_token_file": str(self.refresh_token_file),
+            "auto_refresh": self.auto_refresh,
+            "api_key_configured": self.cli_api_key is not None,
+        }
 
     @classmethod
-    def create_default(cls) -> FlextCliConfig.MainConfig:
-        """Create default configuration.
+    def create_for_profile(cls, profile: str, **kwargs: object) -> FlextCliConfig:
+        """Create configuration for specific profile."""
+        return cls(profile=profile, **kwargs)
 
-        Returns:
-            FlextCliConfig.MainConfig: Default configuration instance
+    @classmethod
+    def load_from_config_file(cls, config_file: Path) -> FlextResult[FlextCliConfig]:
+        """Load configuration from file with proper error handling."""
+        try:
+            if not config_file.exists():
+                return FlextResult[FlextCliConfig].fail(
+                    f"Configuration file not found: {config_file}"
+                )
 
-        """
-        return cls.MainConfig(profile="default", output_format="table", debug=False)
+            # Load based on file extension
+            if config_file.suffix.lower() == ".json":
+                with config_file.open("r", encoding="utf-8") as f:
+                    data = json.load(f)
+            elif config_file.suffix.lower() in {".yml", ".yaml"}:
+                if yaml is None:
+                    return FlextResult[FlextCliConfig].fail(
+                        "PyYAML not installed. Cannot load YAML configuration."
+                    )
+                with config_file.open("r", encoding="utf-8") as f:
+                    data = yaml.safe_load(f)
+            else:
+                return FlextResult[FlextCliConfig].fail(
+                    f"Unsupported configuration file format: {config_file.suffix}"
+                )
+
+            config = cls(**data)
+            return FlextResult[FlextCliConfig].ok(config)
+
+        except Exception as e:
+            return FlextResult[FlextCliConfig].fail(
+                f"Failed to load configuration from {config_file}: {e}"
+            )
+
+
+class FlextCliConfigService(FlextService):
+    """Service class for FlextCliConfig operations."""
+
+    def __init__(self) -> None:
+        """Initialize config service."""
+        super().__init__()
+        self._config = FlextCliConfig.create()
+
+    def execute(self) -> FlextResult[dict[str, object]]:
+        """Execute config service operation."""
+        return FlextResult[dict[str, object]].ok({
+            "status": "operational",
+            "service": "flext-cli-config",
+            "timestamp": datetime.now(UTC).isoformat(),
+            "version": "2.0.0",
+            "config": self._config.model_dump(),
+        })
+
+    async def execute_async(self) -> FlextResult[dict[str, object]]:
+        """Execute config service operation asynchronously."""
+        return FlextResult[dict[str, object]].ok({
+            "status": "operational",
+            "service": "flext-cli-config",
+            "timestamp": datetime.now(UTC).isoformat(),
+            "version": "2.0.0",
+            "config": self._config.model_dump(),
+        })
 
 
 __all__ = [
     "FlextCliConfig",
+    "FlextCliConfigService",
+    "LoggingConfig",
 ]

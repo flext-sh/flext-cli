@@ -9,12 +9,13 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
+import asyncio
 import logging
 import os
 from pathlib import Path
 from typing import ClassVar
 
-from flext_cli.config import FlextCliConfig
+from flext_cli.config import FlextCliConfig, LoggingConfig
 from flext_core import (
     FlextConstants,
     FlextContainer,
@@ -31,42 +32,27 @@ class FlextCliLoggingSetup(FlextService[dict[str, object]]):
     No loose helper functions - all functionality encapsulated.
     """
 
-    # FlextCliConfig.LoggingConfig class reference for direct access
-    LoggingConfigModel: ClassVar[type[FlextCliConfig.LoggingConfig]] = (
-        FlextCliConfig.LoggingConfig
-    )
+    # LoggingConfig class reference for direct access
+    LoggingConfigModel: ClassVar[type[LoggingConfig]] = LoggingConfig
 
     # Class-level state for singleton behavior
     _loggers: ClassVar[dict[str, logging.Logger]] = {}
     _setup_complete: ClassVar[bool] = False
 
-    def __init__(self, config: FlextCliConfig.MainConfig | None = None) -> None:
+    def __init__(self, config: FlextCliConfig | None = None) -> None:
         """Initialize logging setup using FlextConfig singleton as SINGLE SOURCE OF TRUTH."""
         super().__init__()
         self._container = FlextContainer.get_global()
         self._logger = FlextLogger(__name__)
 
         # Use resolved config without storing as instance attribute (FlextService is frozen)
-        self._resolved_config = config or FlextCliConfig.MainConfig()
+        self._resolved_config = config or FlextCliConfig()
 
-    def execute(self) -> FlextResult[dict[str, object]]:
-        """Execute logging setup - required by FlextService."""
-        result = self.get_current_log_config()
-        if result.is_success:
-            # Convert dict[str, str] to dict[str, object] and add status
-            config_dict: dict[str, object] = dict(result.unwrap())
-            config_dict["status"] = "completed"
-            config_dict["message"] = "Logging setup executed"
-            return FlextResult[dict[str, object]].ok(config_dict)
-        return FlextResult[dict[str, object]].fail(
-            result.error or "Logging setup failed"
-        )
-
-    def setup_logging(self) -> FlextResult[FlextCliConfig.LoggingConfig]:
+    def setup_logging(self) -> FlextResult[LoggingConfig]:
         """Setup logging with automatic source detection.
 
         Returns:
-            FlextResult[FlextCliConfig.LoggingConfig]: Description of return value.
+            FlextResult[LoggingConfig]: Description of return value.
 
         """
         try:
@@ -74,14 +60,12 @@ class FlextCliLoggingSetup(FlextService[dict[str, object]]):
             if FlextCliLoggingSetup._setup_complete:
                 log_config_result = self._detect_log_configuration()
                 if log_config_result.is_success:
-                    return FlextResult[FlextCliConfig.LoggingConfig].ok(
-                        log_config_result.value
-                    )
+                    return FlextResult[LoggingConfig].ok(log_config_result.value)
                 return log_config_result
 
             # Detect log level and its source
             log_config_result = self._detect_log_configuration()
-            if log_config_result.is_failure:
+            if not log_config_result.is_success:
                 return log_config_result
 
             log_config = log_config_result.value
@@ -115,71 +99,58 @@ class FlextCliLoggingSetup(FlextService[dict[str, object]]):
             )
 
             FlextCliLoggingSetup._setup_complete = True
-            return FlextResult[FlextCliConfig.LoggingConfig].ok(log_config)
+            return FlextResult[LoggingConfig].ok(log_config)
         except Exception as e:
-            return FlextResult[FlextCliConfig.LoggingConfig].fail(
-                f"Logging setup failed: {e}"
+            return FlextResult[LoggingConfig].fail(f"Logging setup failed: {e}")
+
+    def _detect_log_configuration(self) -> FlextResult[LoggingConfig]:
+        """Detect log configuration from environment and settings."""
+        try:
+            # Check environment variables first
+            env_level = os.getenv("FLEXT_LOG_LEVEL", "").upper()
+            env_verbosity = os.getenv("FLEXT_LOG_VERBOSITY", "").lower()
+
+            # Check for FLEXT-specific environment variables
+            flext_level = os.getenv("FLEXT_CLI_LOG_LEVEL", "").upper()
+            flext_verbosity = os.getenv("FLEXT_CLI_LOG_VERBOSITY", "").lower()
+
+            # Determine log level
+            if flext_level and flext_level in FlextConstants.Logging.VALID_LEVELS:
+                log_level = flext_level
+                log_level_source = "FLEXT_CLI_LOG_LEVEL"
+            elif env_level and env_level in FlextConstants.Logging.VALID_LEVELS:
+                log_level = env_level
+                log_level_source = "FLEXT_LOG_LEVEL"
+            else:
+                log_level = "INFO"
+                log_level_source = "default"
+
+            # Determine verbosity (currently not used in config but available for future use)
+            verbosity_options = {"debug", "verbose", "quiet", "silent"}
+            if flext_verbosity in verbosity_options:
+                _ = flext_verbosity  # Store for potential future use
+            elif env_verbosity in verbosity_options:
+                _ = env_verbosity  # Store for potential future use
+            else:
+                _ = "normal"  # Default verbosity
+
+            # Create logging configuration
+            log_config = LoggingConfig(
+                log_level=log_level,
+                log_level_source=log_level_source,
+                console_output=True,
             )
 
-    def _detect_log_configuration(
-        self,
-    ) -> FlextResult[FlextCliConfig.LoggingConfig]:
-        """Detect log configuration from multiple sources with precedence.
-
-        Returns:
-            FlextResult[FlextCliConfig.LoggingConfig]: Description of return value.
-
-        """
-        try:
-            log_config = FlextCliConfig.LoggingConfig()
-
-            # Source 1: Check CLI configuration (highest precedence)
-            if (
-                hasattr(self._resolved_config, "log_level")
-                and getattr(self._resolved_config, "log_level", None)
-                != FlextConstants.Logging.INFO
-            ):
-                log_config.log_level = getattr(
-                    self._resolved_config, "log_level", FlextConstants.Logging.INFO
-                )
-                log_config.log_level_source = "config_instance"
-                return FlextResult[FlextCliConfig.LoggingConfig].ok(log_config)
-
-            # Source 2: Check environment variable
-            # Python 3.13+ walrus operator pattern
-            if env_log_level := os.environ.get("FLEXT_CLI_LOG_LEVEL"):
-                log_config.log_level = env_log_level.upper()
-                log_config.log_level_source = "environment_variable"
-                return FlextResult[FlextCliConfig.LoggingConfig].ok(log_config)
-
-            # Source 3: Check .env file - Python 3.13+ walrus operator
-            if (env_file_path := Path.cwd() / ".env").exists():
-                env_content = env_file_path.read_text(
-                    encoding=FlextConstants.Mixins.DEFAULT_ENCODING
-                )
-                for raw_line in env_content.split("\n"):
-                    line = raw_line.strip()
-                    if line.startswith("FLEXT_CLI_LOG_LEVEL="):
-                        env_value = line.split("=", 1)[1].strip().strip("'\"")
-                        if env_value:
-                            log_config.log_level = env_value.upper()
-                            log_config.log_level_source = "env_file"
-                            return FlextResult[FlextCliConfig.LoggingConfig].ok(
-                                log_config
-                            )
-
-            # Source 4: Use default
-            log_config.log_level_source = "default"
-            return FlextResult[FlextCliConfig.LoggingConfig].ok(log_config)
+            return FlextResult[LoggingConfig].ok(log_config)
         except Exception as e:
-            return FlextResult[FlextCliConfig.LoggingConfig].fail(
-                f"Log configuration detection failed: {e}",
+            return FlextResult[LoggingConfig].fail(
+                f"Log configuration detection failed: {e}"
             )
 
     @classmethod
     def setup_for_cli(
         cls,
-        config: FlextCliConfig.MainConfig | None = None,
+        config: FlextCliConfig | None = None,
         log_file: Path | None = None,
     ) -> FlextResult[str]:
         """Setup logging specifically for CLI usage using FlextConfig singleton.
@@ -191,15 +162,16 @@ class FlextCliLoggingSetup(FlextService[dict[str, object]]):
         try:
             # Use FlextConfig singleton if no config provided
             if config is None:
-                config = FlextCliConfig.MainConfig()
+                config = FlextCliConfig()
             setup_instance = cls(config)
 
             # Configure log file if specified
             if log_file:
-                pass  # Handle in setup_logging
+                # Set log file environment variable for FlextLogger configuration
+                os.environ["FLEXT_LOG_FILE"] = str(log_file)
 
             result = setup_instance.setup_logging()
-            if result.is_failure:
+            if not result.is_success:
                 return FlextResult[str].fail(result.error or "Logging setup failed")
 
             log_config = result.value
@@ -215,7 +187,7 @@ class FlextCliLoggingSetup(FlextService[dict[str, object]]):
     @classmethod
     def get_effective_log_level(
         cls,
-        config: FlextCliConfig.MainConfig | None = None,
+        config: FlextCliConfig | None = None,
     ) -> FlextResult[str]:
         """Get the effective log level that would be used using FlextConfig singleton.
 
@@ -226,19 +198,17 @@ class FlextCliLoggingSetup(FlextService[dict[str, object]]):
         try:
             # Use FlextConfig singleton if no config provided
             if config is None:
-                config = FlextCliConfig.MainConfig()
+                config = FlextCliConfig()
             setup_instance = cls(config)
             detection_result = setup_instance._detect_log_configuration()
 
-            if detection_result.is_failure:
+            if not detection_result.is_success:
                 return FlextResult[str].fail(
-                    detection_result.error or "Log level detection failed",
+                    detection_result.error or "Log level detection failed"
                 )
 
             log_config = detection_result.value
-            return FlextResult[str].ok(
-                f"{log_config.log_level} (from {log_config.log_level_source})",
-            )
+            return FlextResult[str].ok(log_config.log_level)
         except Exception as e:
             return FlextResult[str].fail(f"Log level detection failed: {e}")
 
@@ -390,6 +360,69 @@ class FlextCliLoggingSetup(FlextService[dict[str, object]]):
             return FlextResult[str].ok("; ".join(messages))
         except Exception as e:
             return FlextResult[str].fail(f"Failed to configure project logging: {e}")
+
+    def execute(self) -> FlextResult[dict[str, object]]:
+        """Execute the main logging setup operation.
+
+        Returns:
+            FlextResult[dict[str, object]]: Logging setup execution result
+
+        """
+        try:
+            self._logger.info("Executing logging setup service")
+
+            # Perform logging setup
+            setup_result = self.setup_logging()
+            if setup_result.is_failure:
+                return FlextResult[dict[str, object]].fail(setup_result.error)
+
+            # Return setup status
+            status_data: dict[str, object] = {
+                "service": "FlextCliLoggingSetup",
+                "status": "configured",
+                "setup_complete": self.is_setup_complete,
+                "log_level": os.environ.get("FLEXT_LOG_LEVEL", "INFO"),
+                "log_verbosity": os.environ.get("FLEXT_LOG_VERBOSITY", "detailed"),
+            }
+
+            return FlextResult[dict[str, object]].ok(status_data)
+        except Exception as e:
+            return FlextResult[dict[str, object]].fail(
+                f"Logging setup execution failed: {e}"
+            )
+
+    async def execute_async(self) -> FlextResult[dict[str, object]]:
+        """Execute the main logging setup operation asynchronously.
+
+        Returns:
+            FlextResult[dict[str, object]]: Async logging setup execution result
+
+        """
+        try:
+            self._logger.info("Executing logging setup service asynchronously")
+
+            # Perform logging setup asynchronously
+            setup_result = self.setup_logging()
+            if setup_result.is_failure:
+                return FlextResult[dict[str, object]].fail(setup_result.error)
+
+            # Simulate async operation
+            await asyncio.sleep(0.001)
+
+            # Return setup status
+            status_data: dict[str, object] = {
+                "service": "FlextCliLoggingSetup",
+                "status": "configured_async",
+                "setup_complete": self.is_setup_complete,
+                "log_level": os.environ.get("FLEXT_LOG_LEVEL", "INFO"),
+                "log_verbosity": os.environ.get("FLEXT_LOG_VERBOSITY", "detailed"),
+            }
+
+            return FlextResult[dict[str, object]].ok(status_data)
+        except Exception as e:
+            return FlextResult[dict[str, object]].fail(
+                f"Async logging setup execution failed: {e}"
+            )
 
 
 __all__ = [

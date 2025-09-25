@@ -1,0 +1,2 @@
+ INFO Found `/home/marlonsc/flext/flext-cli/pyproject.toml` marking project root, checking root directory with default configuration
+ INFO 46 errors

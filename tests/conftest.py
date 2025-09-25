@@ -1,4 +1,7 @@
-"""Production-ready pytest configuration with FlextTests* utilities.
+"""FLEXT CLI Test Configuration - Comprehensive Test Infrastructure.
+
+Centralized test configuration using flext_tests library with real functionality
+testing, Docker support, and comprehensive fixtures following FLEXT standards.
 
 Copyright (c) 2025 FLEXT Team. All rights reserved.
 SPDX-License-Identifier: MIT
@@ -6,181 +9,441 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
+import asyncio
 import tempfile
-from collections.abc import Generator
-from datetime import UTC, datetime
+from collections.abc import AsyncGenerator, Generator
 from pathlib import Path
-from typing import ClassVar
+from typing import Any
 
 import pytest
+from click.testing import CliRunner
 
-# Import FlextResult directly to avoid circular imports
-# Import individual modules to avoid circular imports
 from flext_cli.api import FlextCliApi
 from flext_cli.auth import FlextCliAuth
+from flext_cli.cmd import FlextCliCmd
 from flext_cli.commands import FlextCliCommands
 from flext_cli.config import FlextCliConfig
+from flext_cli.constants import FlextCliConstants
+from flext_cli.containers import FlextCliContainers
 from flext_cli.context import FlextCliContext
+from flext_cli.core import FlextCliService
+from flext_cli.debug import FlextCliDebug
+from flext_cli.file_tools import FlextCliFileTools
+from flext_cli.handlers import FlextCliHandlers
+from flext_cli.logging_setup import FlextCliLoggingSetup
+from flext_cli.mixins import FlextCliMixins
 from flext_cli.models import FlextCliModels
-from tests.test_utils import FlextTestsBuilders, FlextTestsDomains, FlextTestsMatchers
+from flext_cli.output import FlextCliOutput
+from flext_cli.processors import FlextCliProcessors
+from flext_cli.prompts import FlextCliPrompts
+from flext_cli.protocols import FlextCliProtocols
+from flext_cli.typings import FlextCliTypes
+from flext_cli.utilities import FlextCliUtilities
+from flext_core import FlextContainer
+from flext_tests import (
+    FlextTestDocker,
+    FlextTestsAsyncs,
+    FlextTestsBuilders,
+    FlextTestsFixtures,
+    FlextTestsUtilities,
+)
+
+# ============================================================================
+# CORE FLEXT TEST INFRASTRUCTURE
+# ============================================================================
 
 
-# Test Configuration and Constants
-class FlextCliTestData:
-    """Centralized test data and constants for flext-cli tests."""
-
-    # Auth Test Data
-    AUTH_TOKENS: ClassVar[dict[str, str]] = {
-        "valid": "test_auth_token_12345",
-        "special_chars": "token_with_!@#$%^&*()_+-={}[]|\\:;\"'<>,.?/",
-        "long": "x" * 1000,
-        "empty": "",
-        "integration": "integration_test_token_xyz789",
-        "workflow": "workflow_integration_token_123",
-    }
-
-    # User Test Data
-    TEST_USERS: ClassVar[dict[str, dict[str, object]]] = {
-        "default": {
-            "user_id": "test_user_factory",
-            "name": "Test User",
-            "email": "test@example.com",
-            "age": 25,
-            "is_active": True,
-            "created_at": datetime.fromisoformat("2024-01-01T00:00:00"),
-            "metadata": {"source": "factory"},
-        },
-        "REDACTED_LDAP_BIND_PASSWORD": {
-            "user_id": "REDACTED_LDAP_BIND_PASSWORD_user_id",
-            "name": "Admin User",
-            "email": "REDACTED_LDAP_BIND_PASSWORD@example.com",
-            "age": 35,
-            "is_active": True,
-            "created_at": datetime(2024, 1, 1, 0, 0, 0, tzinfo=UTC),
-            "metadata": {"role": "REDACTED_LDAP_BIND_PASSWORD"},
-        },
-    }
-
-    # Test Messages and Outputs
-    TEST_MESSAGES: ClassVar[dict[str, str]] = {
-        "auth_success": "Successfully authenticated",
-        "auth_failure": "Authentication failed",
-        "token_expired": "Token expired",
-        "logout_success": "Successfully logged out",
-        "not_authenticated": "Not authenticated",
-    }
+@pytest.fixture(scope="session")
+def flext_test_utilities() -> FlextTestsUtilities:
+    """Provide FlextTestsUtilities for test infrastructure."""
+    return FlextTestsUtilities()
 
 
-def pytest_configure(config: pytest.Config) -> None:
-    """Configure pytest with custom markers and settings."""
-    config.addinivalue_line(
-        "markers",
-        "slow: marks tests as slow (deselect with '-m \"not slow\"')",
-    )
-    config.addinivalue_line("markers", "integration: marks tests as integration tests")
-    config.addinivalue_line("markers", "unit: marks tests as unit tests")
-    config.addinivalue_line("markers", "auth: marks tests as auth-related")
-    config.addinivalue_line("markers", "cli: marks tests as CLI-related")
-    config.addinivalue_line("markers", "real: marks tests using real functionality")
-
-
-# FlextTests* Utility Fixtures - Commented out due to import issues
-
-
-@pytest.fixture
-def flext_builders() -> FlextTestsBuilders:
+@pytest.fixture(scope="session")
+def flext_test_builders() -> FlextTestsBuilders:
     """Provide FlextTestsBuilders for test data creation."""
     return FlextTestsBuilders()
 
 
-@pytest.fixture
-def flext_domains() -> FlextTestsDomains:
-    """Provide FlextTestsDomains for test data creation."""
-    return FlextTestsDomains()
+@pytest.fixture(scope="session")
+def flext_test_asyncs() -> FlextTestsAsyncs:
+    """Provide FlextTestsAsyncs for async test support."""
+    return FlextTestsAsyncs()
+
+
+@pytest.fixture(scope="session")
+def flext_test_fixtures() -> FlextTestsFixtures:
+    """Provide FlextTestsFixtures for test fixtures."""
+    return FlextTestsFixtures()
+
+
+@pytest.fixture(scope="session")
+def flext_test_docker() -> FlextTestDocker:
+    """Provide FlextTestDocker for containerized testing."""
+    return FlextTestDocker()
+
+
+# ============================================================================
+# CLI TEST INFRASTRUCTURE
+# ============================================================================
 
 
 @pytest.fixture
-def flext_matchers() -> FlextTestsMatchers:
-    """Provide FlextTestsMatchers for test assertions."""
-    return FlextTestsMatchers()
-
-
-@pytest.fixture
-def cli_api() -> FlextCliApi:
-    """Provide FlextCliApi instance for tests."""
-    return FlextCliApi()
-
-
-@pytest.fixture
-def cli_auth() -> FlextCliAuth:
-    """Provide FlextCliAuth instance for tests."""
-    return FlextCliAuth()
-
-
-@pytest.fixture
-def cli_main() -> FlextCliCommands:
-    """Provide FlextCliCommands instance for tests."""
-    return FlextCliCommands()
-
-
-@pytest.fixture
-def cli_context() -> FlextCliContext:
-    """Provide FlextCliContext instance for tests."""
-    config = FlextCliConfig.MainConfig(
-        profile="test", output_format="json", debug=True, no_color=True
-    )
-    return FlextCliContext.create(config=config, debug=True, verbose=True)
-
-
-@pytest.fixture
-def auth_tokens() -> dict[str, str]:
-    """Provide auth tokens for testing."""
-    return {
-        "valid": "test_auth_token_12345",
-        "invalid": "invalid_token",
-        "expired": "expired_token_12345",
-        "special_chars": "token_with_!@#$%^&*()_+-={}[]|\\:;\"'<>,.?/",
-        "long": "x" * 1000,
-        "empty": "",
-        "integration": "integration_test_token_xyz789",
-        "workflow": "workflow_integration_token_123",
-    }
-
-
-@pytest.fixture
-def test_messages() -> dict[str, str]:
-    """Provide test messages for testing."""
-    return {
-        "success": "Operation completed successfully",
-        "error": "An error occurred",
-        "warning": "Warning message",
-        "auth_failure": "Authentication failed",
-        "token_expired": "Token expired",
-        "info": "Information message",
-    }
-
-
-@pytest.fixture
-def auth_commands() -> dict[str, FlextCliModels.CliCommand]:
-    """Provide auth commands for testing."""
-    return {
-        "login": FlextCliModels.CliCommand(
-            command_line="auth login", name="login", entry_point="auth.login"
-        ),
-        "logout": FlextCliModels.CliCommand(
-            command_line="auth logout", name="logout", entry_point="auth.logout"
-        ),
-        "status": FlextCliModels.CliCommand(
-            command_line="auth status", name="status", entry_point="auth.status"
-        ),
-        "token": FlextCliModels.CliCommand(
-            command_line="auth token", name="token", entry_point="auth.token"
-        ),
-    }
+def cli_runner() -> CliRunner:
+    """Create Click CLI runner for testing."""
+    return CliRunner()
 
 
 @pytest.fixture
 def temp_dir() -> Generator[Path]:
-    """Provide temporary directory for testing."""
+    """Create temporary directory for tests."""
     with tempfile.TemporaryDirectory() as tmp_dir:
         yield Path(tmp_dir)
+
+
+@pytest.fixture
+def temp_file(temp_dir: Path) -> Path:
+    """Create temporary file for tests."""
+    temp_file_path = temp_dir / "test_file.txt"
+    temp_file_path.write_text("test content")
+    return temp_file_path
+
+
+@pytest.fixture
+def temp_json_file(temp_dir: Path) -> Path:
+    """Create temporary JSON file for tests."""
+    import json
+
+    temp_file_path = temp_dir / "test_file.json"
+    test_data = {"key": "value", "number": 42, "list": [1, 2, 3]}
+    temp_file_path.write_text(json.dumps(test_data))
+    return temp_file_path
+
+
+@pytest.fixture
+def temp_yaml_file(temp_dir: Path) -> Path:
+    """Create temporary YAML file for tests."""
+    import yaml
+
+    temp_file_path = temp_dir / "test_file.yaml"
+    test_data = {"key": "value", "number": 42, "list": [1, 2, 3]}
+    temp_file_path.write_text(yaml.dump(test_data))
+    return temp_file_path
+
+
+@pytest.fixture
+def temp_csv_file(temp_dir: Path) -> Path:
+    """Create temporary CSV file for tests."""
+    temp_file_path = temp_dir / "test_file.csv"
+    csv_content = "name,age,city\nJohn,30,New York\nJane,25,London\nBob,35,Paris"
+    temp_file_path.write_text(csv_content)
+    return temp_file_path
+
+
+# ============================================================================
+# FLEXT CLI SERVICE FIXTURES
+# ============================================================================
+
+
+@pytest.fixture
+def flext_cli_api() -> FlextCliApi:
+    """Create FlextCliApi instance for testing."""
+    return FlextCliApi()
+
+
+@pytest.fixture
+def flext_cli_auth() -> FlextCliAuth:
+    """Create FlextCliAuth instance for testing."""
+    return FlextCliAuth()
+
+
+@pytest.fixture
+def flext_cli_cmd() -> FlextCliCmd:
+    """Create FlextCliCmd instance for testing."""
+    return FlextCliCmd()
+
+
+@pytest.fixture
+def flext_cli_commands() -> FlextCliCommands:
+    """Create FlextCliCommands instance for testing."""
+    return FlextCliCommands()
+
+
+@pytest.fixture
+def flext_cli_config() -> FlextCliConfig:
+    """Create FlextCliConfig instance for testing."""
+    return FlextCliConfig()
+
+
+@pytest.fixture
+def flext_cli_constants() -> FlextCliConstants:
+    """Create FlextCliConstants instance for testing."""
+    return FlextCliConstants()
+
+
+@pytest.fixture
+def flext_cli_containers() -> FlextCliContainers:
+    """Create FlextCliContainers instance for testing."""
+    return FlextCliContainers()
+
+
+@pytest.fixture
+def flext_cli_context() -> FlextCliContext:
+    """Create FlextCliContext instance for testing."""
+    return FlextCliContext()
+
+
+@pytest.fixture
+def flext_cli_core() -> FlextCliService:
+    """Create FlextCliService instance for testing."""
+    return FlextCliService()
+
+
+@pytest.fixture
+def flext_cli_debug() -> FlextCliDebug:
+    """Create FlextCliDebug instance for testing."""
+    return FlextCliDebug()
+
+
+@pytest.fixture
+def flext_cli_file_tools() -> FlextCliFileTools:
+    """Create FlextCliFileTools instance for testing."""
+    return FlextCliFileTools()
+
+
+@pytest.fixture
+def flext_cli_handlers() -> FlextCliHandlers:
+    """Create FlextCliHandlers instance for testing."""
+    return FlextCliHandlers()
+
+
+@pytest.fixture
+def flext_cli_logging_setup() -> FlextCliLoggingSetup:
+    """Create FlextCliLoggingSetup instance for testing."""
+    return FlextCliLoggingSetup()
+
+
+@pytest.fixture
+def flext_cli_mixins() -> FlextCliMixins:
+    """Create FlextCliMixins instance for testing."""
+    return FlextCliMixins()
+
+
+@pytest.fixture
+def flext_cli_models() -> FlextCliModels:
+    """Create FlextCliModels instance for testing."""
+    return FlextCliModels()
+
+
+@pytest.fixture
+def flext_cli_output() -> FlextCliOutput:
+    """Create FlextCliOutput instance for testing."""
+    return FlextCliOutput()
+
+
+@pytest.fixture
+def flext_cli_processors() -> FlextCliProcessors:
+    """Create FlextCliProcessors instance for testing."""
+    return FlextCliProcessors()
+
+
+@pytest.fixture
+def flext_cli_prompts() -> FlextCliPrompts:
+    """Create FlextCliPrompts instance for testing."""
+    return FlextCliPrompts()
+
+
+@pytest.fixture
+def flext_cli_protocols() -> FlextCliProtocols:
+    """Create FlextCliProtocols instance for testing."""
+    return FlextCliProtocols()
+
+
+@pytest.fixture
+def flext_cli_types() -> FlextCliTypes:
+    """Create FlextCliTypes instance for testing."""
+    return FlextCliTypes()
+
+
+@pytest.fixture
+def flext_cli_utilities() -> FlextCliUtilities:
+    """Create FlextCliUtilities instance for testing."""
+    return FlextCliUtilities()
+
+
+# ============================================================================
+# ASYNC TEST SUPPORT
+# ============================================================================
+
+
+@pytest.fixture
+def event_loop() -> Generator[asyncio.AbstractEventLoop]:
+    """Create event loop for async tests."""
+    loop = asyncio.new_event_loop()
+    asyncio.set_event_loop(loop)
+    yield loop
+    loop.close()
+
+
+@pytest.fixture
+async def async_flext_cli_api() -> AsyncGenerator[FlextCliApi, None]:
+    """Create async FlextCliApi instance for testing."""
+    api = FlextCliApi()
+    yield api
+
+
+@pytest.fixture
+async def async_flext_cli_core() -> AsyncGenerator[FlextCliService, None]:
+    """Create async FlextCliService instance for testing."""
+    service = FlextCliService()
+    yield service
+
+
+# ============================================================================
+# TEST DATA FIXTURES
+# ============================================================================
+
+
+@pytest.fixture
+def sample_config_data() -> dict[str, Any]:
+    """Provide sample configuration data for tests."""
+    return {
+        "debug": True,
+        "output_format": "table",
+        "no_color": False,
+        "profile": "test",
+        "timeout": 30,
+        "retries": 3,
+        "api_endpoint": "https://api.example.com",
+        "auth_token": "test_token_123",
+    }
+
+
+@pytest.fixture
+def sample_file_data() -> dict[str, Any]:
+    """Provide sample file data for tests."""
+    return {
+        "content": "This is test content for file operations",
+        "metadata": {
+            "created": "2025-01-01T00:00:00Z",
+            "modified": "2025-01-01T00:00:00Z",
+            "size": 42,
+            "type": "text/plain",
+        },
+        "path": "/tmp/test_file.txt",
+    }
+
+
+@pytest.fixture
+def sample_command_data() -> dict[str, Any]:
+    """Provide sample command data for tests."""
+    return {
+        "command": "test_command",
+        "args": ["--verbose", "--output", "json"],
+        "kwargs": {"timeout": 30, "retries": 3},
+        "expected_result": {"status": "success", "data": "test_output"},
+    }
+
+
+# ============================================================================
+# DOCKER TEST SUPPORT
+# ============================================================================
+
+
+@pytest.fixture(scope="session")
+def docker_available() -> bool:
+    """Check if Docker is available for testing."""
+    try:
+        docker_client = FlextTestDocker()
+        return docker_client.is_docker_available()
+    except Exception:
+        return False
+
+
+@pytest.fixture
+def docker_container(
+    docker_available: bool,
+) -> Generator[dict[str, Any] | None]:
+    """Provide Docker container for testing if available."""
+    if not docker_available:
+        pytest.skip("Docker not available")
+        yield None
+        return
+
+    try:
+        docker_client = FlextTestDocker()
+        container_info = docker_client.start_test_container("alpine:latest")
+        yield container_info
+    finally:
+        if docker_available:
+            docker_client = FlextTestDocker()
+            docker_client.stop_test_container("alpine:latest")
+
+
+# ============================================================================
+# UTILITY FIXTURES
+# ============================================================================
+
+
+@pytest.fixture
+def mock_env_vars(monkeypatch: pytest.MonkeyPatch) -> None:
+    """Set up mock environment variables for tests."""
+    monkeypatch.setenv("FLEXT_DEBUG", "true")
+    monkeypatch.setenv("FLEXT_OUTPUT_FORMAT", "json")
+    monkeypatch.setenv("FLEXT_NO_COLOR", "false")
+    monkeypatch.setenv("FLEXT_PROFILE", "test")
+    monkeypatch.setenv("FLEXT_TIMEOUT", "30")
+    monkeypatch.setenv("FLEXT_RETRIES", "3")
+
+
+@pytest.fixture
+def clean_flext_container() -> Generator[None]:
+    """Ensure clean FlextContainer state for tests."""
+    # Store original state
+    original_container = FlextContainer.get_global()
+
+    # Create fresh container
+    fresh_container = FlextContainer()
+    FlextContainer.set_global(fresh_container)
+
+    yield
+
+    # Restore original state
+    FlextContainer.set_global(original_container)
+
+
+# ============================================================================
+# TEST MARKERS AND CONFIGURATION
+# ============================================================================
+
+
+def pytest_configure(config: pytest.Config) -> None:
+    """Configure pytest with custom markers."""
+    config.addinivalue_line("markers", "integration: marks tests as integration tests")
+    config.addinivalue_line("markers", "unit: marks tests as unit tests")
+    config.addinivalue_line("markers", "slow: marks tests as slow running")
+    config.addinivalue_line("markers", "docker: marks tests that require Docker")
+    config.addinivalue_line("markers", "async: marks tests as async tests")
+    config.addinivalue_line(
+        "markers", "real_functionality: marks tests that test real functionality"
+    )
+
+
+def pytest_collection_modifyitems(
+    config: pytest.Config, items: list[pytest.Item]
+) -> None:
+    """Modify test collection to add markers based on test names."""
+    for item in items:
+        # Add markers based on test file names
+        if "integration" in str(item.fspath):
+            item.add_marker(pytest.mark.integration)
+        elif "unit" in str(item.fspath):
+            item.add_marker(pytest.mark.unit)
+
+        # Add markers based on test names
+        if "async" in item.name:
+            item.add_marker(pytest.mark.asyncio)
+        if "docker" in item.name:
+            item.add_marker(pytest.mark.docker)
+        if "slow" in item.name:
+            item.add_marker(pytest.mark.slow)

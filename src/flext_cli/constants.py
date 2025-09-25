@@ -76,6 +76,7 @@ class FlextCliConstants(FlextConstants):
 
         CONFIG_FILE: Final[str] = "config.json"
         MAX_WIDTH: Final[int] = 120
+        DEFAULT_MAX_WIDTH: Final[int] = 120
         DEFAULT_PROFILE: Final[str] = "default"
         DEFAULT_OUTPUT_FORMAT: Final[str] = "table"
         DEFAULT_TIMEOUT: Final[int] = 30
@@ -83,7 +84,9 @@ class FlextCliConstants(FlextConstants):
     class NetworkDefaults:
         """Network-related defaults for CLI operations."""
 
+        DEFAULT_API_URL: Final[str] = "http://localhost:8080/api"
         DEFAULT_TIMEOUT: Final[int] = 30
+        DEFAULT_MAX_RETRIES: Final[int] = 3
         CONNECT_TIMEOUT: Final[int] = 10
         READ_TIMEOUT: Final[int] = 60
 

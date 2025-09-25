@@ -10,6 +10,7 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
+from datetime import UTC, datetime
 from pathlib import Path
 
 from flext_cli.config import FlextCliConfig
@@ -30,7 +31,7 @@ class FlextCliAuth(FlextService[dict[str, object]]):
     """
 
     def __init__(
-        self, *, config: FlextCliConfig.MainConfig | None = None, **_data: object
+        self, *, config: FlextCliConfig | None = None, **_data: object
     ) -> None:
         """Initialize authentication service with flext-core integration."""
         super().__init__(**_data)
@@ -39,7 +40,7 @@ class FlextCliAuth(FlextService[dict[str, object]]):
 
         # Use config module
         if config is None:
-            self._config = FlextCliConfig.MainConfig()
+            self._config = FlextCliConfig()
         else:
             self._config = config
 
@@ -208,7 +209,7 @@ class FlextCliAuth(FlextService[dict[str, object]]):
         return FlextResult[dict[str, object]].ok(dict(status))
 
     def authenticate(self, credentials: dict[str, object]) -> FlextResult[str]:
-        """Authenticate user with provided credentials.
+        """Authenticate user with provided credentials using advanced patterns.
 
         Args:
             credentials: Authentication credentials (username, password, token, etc.)
@@ -217,55 +218,54 @@ class FlextCliAuth(FlextService[dict[str, object]]):
             FlextResult[str]: Authentication token or error message
 
         """
-        try:
-            # Handle token-based authentication
-            if "token" in credentials:
-                token = str(credentials["token"])
-                if not token.strip():
-                    return FlextResult[str].fail("Token cannot be empty")
+        # Railway-oriented authentication with pattern matching
+        if "token" in credentials:
+            return self._authenticate_with_token(credentials)
 
-                # Save the token
-                save_result = self.save_auth_token(token)
-                if save_result.is_failure:
-                    return FlextResult[str].fail(
-                        f"Failed to save token: {save_result.error}"
-                    )
+        if "username" in credentials and "password" in credentials:
+            return self._authenticate_with_credentials(credentials)
 
-                return FlextResult[str].ok(token)
+        return FlextResult[str].fail(
+            "Invalid credentials: missing token or username/password"
+        )
 
-            # Handle username/password authentication (basic implementation)
-            if "username" in credentials and "password" in credentials:
-                username = str(credentials["username"])
-                password = str(credentials["password"])
+    def _authenticate_with_token(
+        self, credentials: dict[str, object]
+    ) -> FlextResult[str]:
+        """Authenticate using token with monadic composition."""
+        token = str(credentials["token"])
+        # Save token using railway composition
+        save_result = self.save_auth_token(token)
+        if save_result.is_failure:
+            return FlextResult[str].fail(f"Failed to save token: {save_result.error}")
 
-                if not username.strip() or not password.strip():
-                    return FlextResult[str].fail(
-                        "Username and password cannot be empty"
-                    )
+        # Validate token is not empty
+        if not token.strip():
+            return FlextResult[str].fail("Token cannot be empty")
 
-                # Generate secure authentication token using flext-core utilities
-                # This replaces the insecure password length exposure
-                # Generate secure token with user context but no password information
-                secure_token = FlextUtilities.Generators.generate_short_id(length=32)
-                auth_token = f"auth_token_{username}_{secure_token}"
+        return FlextResult[str].ok(token)
 
-                save_result = self.save_auth_token(auth_token)
-                if save_result.is_failure:
-                    return FlextResult[str].fail(
-                        f"Failed to save token: {save_result.error}"
-                    )
+    def _authenticate_with_credentials(
+        self, credentials: dict[str, object]
+    ) -> FlextResult[str]:
+        """Authenticate using username/password with advanced composition."""
+        username = str(credentials["username"])
+        password = str(credentials["password"])
 
-                return FlextResult[str].ok(auth_token)
-
-            return FlextResult[str].fail(
-                "Invalid credentials: missing token or username/password"
+        # Advanced validation and token generation pipeline
+        return (
+            self._AuthHelper.validate_credentials(username, password)
+            .map(lambda _: FlextUtilities.Generators.generate_short_id(length=32))
+            .map(lambda token_id: f"auth_token_{username}_{token_id}")
+            .flat_map(
+                lambda auth_token: self.save_auth_token(auth_token).map(
+                    lambda _: auth_token
+                )
             )
-
-        except Exception as e:
-            return FlextResult[str].fail(f"Authentication failed: {e}")
+        )
 
     def authenticate_user(self, username: str, password: str) -> FlextResult[str]:
-        """Authenticate user with username and password - alias for authenticate.
+        """Authenticate user with username and password.
 
         Args:
             username: User's username
@@ -278,18 +278,14 @@ class FlextCliAuth(FlextService[dict[str, object]]):
         credentials: dict[str, object] = {"username": username, "password": password}
         return self.authenticate(credentials)
 
-    def login(self, username: str, password: str) -> FlextResult[str]:
-        """Login user with username and password - alias for authenticate_user.
-
-        Args:
-            username: User's username
-            password: User's password
-
-        Returns:
-            FlextResult[str]: Authentication token or error message
-
-        """
-        return self.authenticate_user(username, password)
+    async def execute_async(self) -> FlextResult[dict[str, object]]:
+        """Execute auth service operation asynchronously."""
+        return FlextResult[dict[str, object]].ok({
+            "status": "operational",
+            "service": "flext-cli-auth",
+            "timestamp": datetime.now(UTC).isoformat(),
+            "version": "2.0.0",
+        })
 
 
 __all__ = ["FlextCliAuth"]
