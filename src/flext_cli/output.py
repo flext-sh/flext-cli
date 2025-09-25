@@ -36,6 +36,10 @@ class FlextCliOutput(FlextService[str]):
         """Execute the main domain service operation - required by FlextService."""
         return FlextResult[str].ok("FlextCliOutput operational")
 
+    async def execute_async(self) -> FlextResult[str]:
+        """Execute the main domain service operation asynchronously."""
+        return FlextResult[str].ok("FlextCliOutput operational")
+
     def format_data(
         self,
         data: object,
@@ -99,7 +103,7 @@ class FlextCliOutput(FlextService[str]):
 
     def create_table(
         self,
-        data: list[dict[str, object]],
+        data: list[dict[str, str | int | float] | None],
         title: str | None = None,
         headers: list[str] | None = None,
     ) -> FlextResult[RichTable]:
@@ -118,7 +122,9 @@ class FlextCliOutput(FlextService[str]):
             return FlextResult[RichTable].fail("No data provided for table")
 
         try:
-            table_headers = headers or list(data[0].keys())
+            table_headers = headers or (
+                list(data[0].keys()) if data[0] is not None else []
+            )
 
             # Create Rich table
             table = RichTable(title=title or "")
@@ -129,6 +135,8 @@ class FlextCliOutput(FlextService[str]):
 
             # Add rows
             for row_data in data:
+                if row_data is None:
+                    continue
                 row_values = [str(row_data.get(h, "")) for h in table_headers]
                 table.add_row(*row_values)
 
@@ -301,7 +309,9 @@ class FlextCliOutput(FlextService[str]):
 
     def format_table(
         self,
-        data: dict[str, object] | list[dict[str, object]],
+        data: dict[str, str | int | float | bool | None]
+        | list[dict[str, str | int | float | bool | None] | None]
+        | None,
         title: str | None = None,
         headers: list[str] | None = None,
     ) -> FlextResult[str]:
@@ -318,19 +328,25 @@ class FlextCliOutput(FlextService[str]):
         """
         try:
             if isinstance(data, dict):
-                table_data: list[dict[str, object]] = [
+                table_data: list[dict[str, str | int | float | bool | None] | None] = [
                     {"Key": k, "Value": str(v)} for k, v in data.items()
                 ]
                 default_headers = ["Key", "Value"]
             else:
-                table_data = data
-                default_headers = list(table_data[0].keys()) if table_data else []
+                table_data = data or []
+                default_headers = (
+                    list(table_data[0].keys())
+                    if table_data and table_data[0] is not None
+                    else []
+                )
 
             columns = headers or default_headers
 
             # Convert data to list of lists for tabulate
             tabulate_data = []
             for row_data in table_data:
+                if row_data is None:
+                    continue
                 row_values = [str(row_data.get(col, "")) for col in columns]
                 tabulate_data.append(row_values)
 
@@ -339,7 +355,7 @@ class FlextCliOutput(FlextService[str]):
 
             # Add title if provided
             if title:
-                table_str = f"{title}\n{table_str}"
+                table_str = f"{title}\n{table_str}\n"
 
             return FlextResult[str].ok(table_str)
 

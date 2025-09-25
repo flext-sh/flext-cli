@@ -11,7 +11,7 @@ from __future__ import annotations
 
 from typing import Protocol
 
-from flext_cli.typings import FlextCliTypings
+from flext_cli.typings import FlextCliTypes
 from flext_core import FlextProtocols, FlextResult
 
 
@@ -26,15 +26,15 @@ class FlextCliProtocols(FlextProtocols):
         """Protocol for CLI command handlers."""
 
         def __call__(
-            self, **kwargs: object
-        ) -> FlextResult[FlextCliTypings.CliCommandResult]:
+            self, **kwargs: FlextCliTypes.CliCommandArgs
+        ) -> FlextResult[FlextCliTypes.CliCommandResult]:
             """Execute CLI command with arguments.
 
             Args:
                 **kwargs: Command arguments
 
             Returns:
-                FlextResult[FlextCliTypings.CliCommandResult]: Command execution result
+                FlextResult[FlextCliTypes.CliCommandResult]: Command execution result
 
             """
             ...
@@ -43,7 +43,9 @@ class FlextCliProtocols(FlextProtocols):
         """Protocol for CLI output formatters."""
 
         def format_data(
-            self, data: FlextCliTypings.CliFormatData, **options: object
+            self,
+            data: FlextCliTypes.CliFormatData,
+            **options: FlextCliTypes.CliConfigData,
         ) -> FlextResult[str]:
             """Format data for CLI output.
 
@@ -60,18 +62,16 @@ class FlextCliProtocols(FlextProtocols):
     class CliConfigProvider(Protocol):
         """Protocol for CLI configuration providers."""
 
-        def load_config(self: object) -> FlextResult[FlextCliTypings.CliConfigData]:
+        def load_config(self: object) -> FlextResult[FlextCliTypes.CliConfigData]:
             """Load CLI configuration.
 
             Returns:
-                FlextResult[FlextCliTypings.CliConfigData]: Configuration data or error
+                FlextResult[FlextCliTypes.CliConfigData]: Configuration data or error
 
             """
             ...
 
-        def save_config(
-            self, config: FlextCliTypings.CliConfigData
-        ) -> FlextResult[None]:
+        def save_config(self, config: FlextCliTypes.CliConfigData) -> FlextResult[None]:
             """Save CLI configuration.
 
             Args:
@@ -87,7 +87,7 @@ class FlextCliProtocols(FlextProtocols):
         """Protocol for CLI authentication providers."""
 
         def authenticate(
-            self, credentials: FlextCliTypings.CliConfigData
+            self, credentials: FlextCliTypes.AuthConfigData
         ) -> FlextResult[str]:
             """Authenticate and return token.
 
@@ -115,11 +115,11 @@ class FlextCliProtocols(FlextProtocols):
     class CliDebugProvider(Protocol):
         """Protocol for CLI debug information providers."""
 
-        def get_debug_info(self: object) -> FlextResult[FlextCliTypings.CliConfigData]:
+        def get_debug_info(self: object) -> FlextResult[FlextCliTypes.DebugInfoData]:
             """Get debug information.
 
             Returns:
-                FlextResult[FlextCliTypings.CliConfigData]: Debug information or error
+                FlextResult[FlextCliTypes.DebugInfoData]: Debug information or error
 
             """
             ...

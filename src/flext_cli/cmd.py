@@ -51,10 +51,6 @@ class FlextCliCmd(FlextService[dict[str, object]]):
             self._command_bus_service = FlextCliCmd()
         return self._command_bus_service
 
-    def get_cmd_instance(self) -> FlextCliCmd:
-        """Get command instance (alias for command_bus_service)."""
-        return self.command_bus_service
-
     @classmethod
     def create_instance(cls) -> FlextCliCmd:
         """Create new instance of FlextCliCmd."""
@@ -127,9 +123,7 @@ class FlextCliCmd(FlextService[dict[str, object]]):
         """Validate configuration structure."""
         try:
             results = self._ConfigHelper.validate_config_structure()
-            if (
-                results
-            ):  # If there are results, log them but still return None for compatibility
+            if results:
                 self._logger.info(f"Config validation results: {results}")
             return FlextResult[None].ok(None)
         except Exception as e:
@@ -154,12 +148,12 @@ class FlextCliCmd(FlextService[dict[str, object]]):
             config_data: dict[str, object] = {key: value}
 
             # Save to file using flext-core file operations
-            config_path = FlextCliConfig.MainConfig().config_dir / "cli_config.json"
+            config_path = FlextCliConfig().config_dir / "cli_config.json"
             save_result = FlextCliUtilities.FileOperations.save_json_file(
                 file_path=str(config_path), data=config_data
             )
 
-            if save_result.is_failure:
+            if not save_result.is_success:
                 return FlextResult[bool].fail(
                     f"Config save failed: {save_result.error}"
                 )
@@ -176,7 +170,7 @@ class FlextCliCmd(FlextService[dict[str, object]]):
             # Use flext-core configuration system for real persistence
 
             # Load configuration from file
-            config_path = FlextCliConfig.MainConfig().config_dir / "cli_config.json"
+            config_path = FlextCliConfig().config_dir / "cli_config.json"
 
             # Check if config file exists
             if not config_path.exists():
@@ -231,7 +225,7 @@ class FlextCliCmd(FlextService[dict[str, object]]):
             # Use flext-core configuration system for real editing
 
             # Get configuration file path
-            config_path = FlextCliConfig.MainConfig().config_dir / "cli_config.json"
+            config_path = FlextCliConfig().config_dir / "cli_config.json"
 
             # Check if config file exists, create if not
             if not config_path.exists():

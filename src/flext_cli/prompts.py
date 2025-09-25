@@ -1,5 +1,7 @@
 """User interaction tools for CLI applications."""
 
+from datetime import UTC, datetime
+
 from flext_core import FlextLogger, FlextResult, FlextService, FlextTypes
 
 
@@ -218,6 +220,15 @@ class FlextCliPrompts(FlextService[None]):
             return FlextResult[FlextTypes.Core.List].fail(
                 f"Progress processing failed: {e}",
             )
+
+    async def execute_async(self) -> FlextResult[dict[str, object]]:
+        """Execute prompts service operation asynchronously."""
+        return FlextResult[dict[str, object]].ok({
+            "status": "operational",
+            "service": "flext-cli-prompts",
+            "timestamp": datetime.now(UTC).isoformat(),
+            "version": "2.0.0",
+        })
 
 
 __all__ = ["FlextCliPrompts"]

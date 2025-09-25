@@ -68,7 +68,7 @@ def demonstrate_global_configuration_refactoring() -> None:
     # Apply overrides to CLI config
     cli_config.debug = cli_overrides["debug_mode"]
     cli_config.log_level = cli_overrides["log_level"]
-    cli_config.output_format = cli_overrides["output_format"]
+    cli_config.output_format = str(cli_overrides["output_format"])
 
     print("   ✅ Overrides applied to CLI config")
     print()
@@ -222,8 +222,8 @@ def demonstrate_cli_parameter_integration() -> None:
     # Apply CLI overrides
     cli_config.debug = cli_params["debug"]
     cli_config.log_level = cli_params["log_level"]
-    cli_config.output_format = cli_params["output_format"]
-    cli_config.profile = cli_params["profile"]
+    cli_config.output_format = str(cli_params["output_format"])
+    cli_config.profile = str(cli_params["profile"])
 
     print("   ✅ CLI parameters applied to configuration")
     print(f"   Final Debug Mode: {cli_config.debug_mode}")

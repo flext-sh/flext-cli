@@ -19,6 +19,7 @@ from pathlib import Path
 
 from flext_core.service import FlextService
 
+from flext_cli.typings import FlextCliTypes
 from flext_core import (
     FlextContainer,
     FlextLogger,
@@ -140,29 +141,69 @@ class FlextCliDebug(FlextService[str]):
         """Execute debug service - required by FlextService."""
         return FlextResult[str].ok("FlextCliDebug service operational")
 
-    def get_system_info(self) -> FlextResult[dict[str, object]]:
+    async def execute_async(self) -> FlextResult[str]:
+        """Execute debug service asynchronously - required by FlextService."""
+        return FlextResult[str].ok("FlextCliDebug service operational")
+
+    def get_system_info(
+        self,
+    ) -> FlextResult[FlextCliTypes.CliDataDict]:
         """Get system information for debugging."""
         try:
             info = self._DebugHelper.get_system_info()
-            return FlextResult[dict[str, object]].ok(info)
+            # Convert to more specific type for better type safety
+            typed_info: FlextCliTypes.CliDataDict = {}
+            for key, value in info.items():
+                if isinstance(value, (str, int, float, bool, type(None))):
+                    typed_info[key] = value
+                else:
+                    typed_info[key] = str(value)
+            return FlextResult[FlextCliTypes.CliDataDict].ok(typed_info)
         except Exception as e:
-            return FlextResult[dict[str, object]].fail(f"System info failed: {e}")
+            return FlextResult[FlextCliTypes.CliDataDict].fail(
+                f"System info failed: {e}"
+            )
 
-    def get_environment_variables(self) -> FlextResult[dict[str, object]]:
+    def get_environment_variables(
+        self,
+    ) -> FlextResult[FlextCliTypes.CliDataDict]:
         """Get environment variables with sensitive data masked."""
         try:
             env_info = self._DebugHelper.get_environment_info()
-            return FlextResult[dict[str, object]].ok(env_info)
+            # Convert to more specific type for better type safety
+            typed_env_info: FlextCliTypes.CliDataDict = {}
+            for key, value in env_info.items():
+                if isinstance(value, (str, int, float, bool, type(None))):
+                    typed_env_info[key] = value
+                else:
+                    typed_env_info[key] = str(value)
+            return FlextResult[FlextCliTypes.CliDataDict].ok(typed_env_info)
         except Exception as e:
-            return FlextResult[dict[str, object]].fail(f"Environment info failed: {e}")
+            return FlextResult[FlextCliTypes.CliDataDict].fail(
+                f"Environment info failed: {e}"
+            )
 
-    def get_system_paths(self) -> FlextResult[list[dict[str, object]]]:
+    def get_system_paths(
+        self,
+    ) -> FlextResult[list[FlextCliTypes.CliDataDict]]:
         """Get system path information."""
         try:
             paths = self._DebugHelper.get_path_info()
-            return FlextResult[list[dict[str, object]]].ok(paths)
+            # Convert to more specific type for better type safety
+            typed_paths: list[FlextCliTypes.CliDataDict] = []
+            for path_dict in paths:
+                typed_path: FlextCliTypes.CliDataDict = {}
+                for key, value in path_dict.items():
+                    if isinstance(value, (str, int, float, bool, type(None))):
+                        typed_path[key] = value
+                    else:
+                        typed_path[key] = str(value)
+                typed_paths.append(typed_path)
+            return FlextResult[list[FlextCliTypes.CliDataDict]].ok(typed_paths)
         except Exception as e:
-            return FlextResult[list[dict[str, object]]].fail(f"Path info failed: {e}")
+            return FlextResult[list[FlextCliTypes.CliDataDict]].fail(
+                f"Path info failed: {e}"
+            )
 
     def validate_environment_setup(self) -> FlextResult[list[str]]:
         """Validate environment setup and dependencies."""

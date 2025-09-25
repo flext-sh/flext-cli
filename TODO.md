@@ -30,7 +30,7 @@
 
 - [x] **Config Operations** - Working perfectly
   - Status: `python -m flext_cli config show` displays full configuration
-  - Verification: FlextCliConfigs integration with FlextConfig singleton working
+  - Verification: FlextCliConfig integration with FlextConfig singleton working
   - Integration: CLI parameters properly override configuration values
 
 ---

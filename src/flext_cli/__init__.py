@@ -20,18 +20,21 @@ from flext_cli.cmd import FlextCliCmd
 from flext_cli.commands import FlextCliCommands
 from flext_cli.config import FlextCliConfig
 from flext_cli.constants import FlextCliConstants
+from flext_cli.containers import FlextCliContainers
 from flext_cli.context import FlextCliContext
 from flext_cli.core import FlextCliService
 from flext_cli.debug import FlextCliDebug
 from flext_cli.exceptions import FlextCliError, FlextCliExceptions
 from flext_cli.file_tools import FlextCliFileTools
+from flext_cli.handlers import FlextCliHandlers
 from flext_cli.logging_setup import FlextCliLoggingSetup
 from flext_cli.mixins import FlextCliMixins
 from flext_cli.models import FlextCliModels
 from flext_cli.output import FlextCliOutput
+from flext_cli.processors import FlextCliProcessors
 from flext_cli.prompts import FlextCliPrompts
 from flext_cli.protocols import FlextCliProtocols
-from flext_cli.typings import FlextCliTypings
+from flext_cli.typings import FlextCliTypes
 from flext_cli.utilities import FlextCliUtilities
 
 __all__ = [
@@ -42,19 +45,22 @@ __all__ = [
     "FlextCliCommands",
     "FlextCliConfig",
     "FlextCliConstants",
+    "FlextCliContainers",
     "FlextCliContext",
     "FlextCliDebug",
     "FlextCliError",
     "FlextCliExceptions",
     "FlextCliFileTools",
+    "FlextCliHandlers",
     "FlextCliLoggingSetup",
     "FlextCliMixins",
     "FlextCliModels",
     "FlextCliOutput",
+    "FlextCliProcessors",
     "FlextCliPrompts",
     "FlextCliProtocols",
     "FlextCliService",
-    "FlextCliTypings",
+    "FlextCliTypes",
     "FlextCliUtilities",
     "__version__",
     "main",

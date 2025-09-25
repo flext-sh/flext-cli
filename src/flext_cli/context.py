@@ -32,7 +32,7 @@ class FlextCliContext(FlextService[dict[str, object]]):
         self,
         *,
         id_: str | None = None,
-        config: FlextCliConfig.MainConfig | None = None,
+        config: FlextCliConfig | None = None,
         logger: FlextLogger | None = None,
         console: object | None = None,
         debug: bool = False,
@@ -66,7 +66,7 @@ class FlextCliContext(FlextService[dict[str, object]]):
 
         # Context state management via composition
         self._id = id_ or str(uuid.uuid4())
-        self._config = config or FlextCliConfig.MainConfig()
+        self._config = config or FlextCliConfig()
         self._logger = logger or FlextLogger(__name__)
         self._console = console
         self._debug = debug
@@ -119,11 +119,11 @@ class FlextCliContext(FlextService[dict[str, object]]):
         return self._id
 
     @property
-    def config(self) -> FlextCliConfig.MainConfig:
+    def config(self) -> FlextCliConfig:
         """Get CLI configuration.
 
         Returns:
-            FlextCliConfig.MainConfig: Description of return value.
+            FlextCliConfig: Description of return value.
 
         """
         return self._config
@@ -143,7 +143,7 @@ class FlextCliContext(FlextService[dict[str, object]]):
         """Get console object.
 
         Returns:
-            object | None: Description of return value.
+            Union[object, None]: Description of return value.
 
         """
         return self._console
@@ -153,7 +153,7 @@ class FlextCliContext(FlextService[dict[str, object]]):
         """Get working directory.
 
         Returns:
-            Path | None: Description of return value.
+            Union[Path, None]: Description of return value.
 
         """
         return self._working_directory
@@ -173,7 +173,7 @@ class FlextCliContext(FlextService[dict[str, object]]):
         """Get user identifier.
 
         Returns:
-            str | None: Description of return value.
+            Union[str, None]: Description of return value.
 
         """
         return self._user_id
@@ -183,7 +183,7 @@ class FlextCliContext(FlextService[dict[str, object]]):
         """Get session identifier.
 
         Returns:
-            str | None: Description of return value.
+            Union[str, None]: Description of return value.
 
         """
         return self._session_id
@@ -447,9 +447,7 @@ class FlextCliContext(FlextService[dict[str, object]]):
 
         # Use provided config or create new one
         cli_config = (
-            config_raw
-            if isinstance(config_raw, FlextCliConfig.MainConfig)
-            else FlextCliConfig.MainConfig()
+            config_raw if isinstance(config_raw, FlextCliConfig) else FlextCliConfig()
         )
 
         # Create context with proper initialization
@@ -535,7 +533,7 @@ class FlextCliContext(FlextService[dict[str, object]]):
             raise ValueError(message)
 
         # Create config with parameters
-        config = FlextCliConfig.MainConfig(
+        config = FlextCliConfig(
             profile=str(profile),
             debug=bool(debug),
             output_format=str(output_format),

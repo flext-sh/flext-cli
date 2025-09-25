@@ -98,7 +98,6 @@ typings = [
     "types-requests>=2.32.4",
     "types-setuptools>=80.9.0",
     "types-toml>=0.10.8.20240310",
-    "types-pandas>=2.2.0",
 ]
 security = ["bandit>=1.8.0", "pip-audit>=2.7.3"]
 
@@ -291,7 +290,7 @@ reportMissingSuperCall = false
 pythonPlatform = "Linux"
 pythonVersion = "3.13"
 typeCheckingMode = "basic"
-venvPath = ".."
+venvPath = "~/flext"
 venv = ".venv"
 reportUnknownVariableType = false
 reportUnknownMemberType = false

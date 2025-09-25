@@ -140,10 +140,10 @@ flext auth login
 
 ```python
 # Debug configuration loading
-from flext_cli import FlextCliConfigs
+from Flext_cli import FlextCliConfig
 from flext_core import FlextResult
 
-config = FlextCliConfigs()
+config = FlextCliConfig()
 result = config.load_project_config()
 
 if result.is_failure:
@@ -311,7 +311,7 @@ flext config reset
 from flext_cli.internal import something
 
 # Solution
-from flext_cli import FlextCliApi, FlextCliConfigs
+from Flext_cli import FlextCliApi, FlextCliConfig
 ```
 
 ### "Configuration not found"
@@ -320,11 +320,11 @@ from flext_cli import FlextCliApi, FlextCliConfigs
 
 ```python
 # Problem
-config = FlextCliConfigs()
+config = FlextCliConfig()
 format = config.output_format  # May not exist
 
 # Solution
-config = FlextCliConfigs()
+config = FlextCliConfig()
 config.load_project_config()
 format = config.get_output_format()
 ```

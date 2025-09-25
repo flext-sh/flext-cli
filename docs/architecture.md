@@ -127,10 +127,10 @@ clear_result = auth.clear_auth_tokens()     # Remove all tokens
 ### Configuration Management
 
 ```python
-from flext_cli import FlextCliConfigs
+from Flext_cli import FlextCliConfig
 
 # Configuration supports profiles and multiple sources
-config = FlextCliConfigs(
+config = FlextCliConfig(
     profile="development",
     debug=True
 )
