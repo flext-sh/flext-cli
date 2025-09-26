@@ -229,7 +229,7 @@ class FlextCliDebug(FlextService[str]):
             connectivity_info = {
                 "status": FlextCliConstants.CONNECTED,
                 "timestamp": datetime.now(UTC).isoformat(),
-                "service": FlextCliDebug,
+                "service": str(FlextCliDebug),
                 "connectivity": FlextCliConstants.OPERATIONAL,
             }
             return FlextResult[dict[str, str]].ok(connectivity_info)

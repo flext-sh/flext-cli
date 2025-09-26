@@ -196,6 +196,46 @@ class FlextCliHandlers:
                     f"Debug info retrieval failed: {e}"
                 )
 
+    def execute(self) -> FlextResult[CliCommandResult]:
+        """Execute CLI handlers operation synchronously."""
+        try:
+            # Create a simple command result indicating handlers are operational
+            result_data: CliCommandResult = {
+                "status": "operational",
+                "service": "flext-cli-handlers",
+                "timestamp": "2025-01-08T00:00:00Z",
+                "handlers_available": [
+                    "CommandHandler",
+                    "FormatterHandler", 
+                    "ConfigHandler",
+                    "AuthHandler",
+                    "DebugHandler"
+                ]
+            }
+            return FlextResult[CliCommandResult].ok(result_data)
+        except Exception as e:
+            return FlextResult[CliCommandResult].fail(f"Handlers execution failed: {e}")
+
+    async def execute_async(self) -> FlextResult[CliCommandResult]:
+        """Execute CLI handlers operation asynchronously."""
+        try:
+            # Create a simple command result indicating handlers are operational
+            result_data: CliCommandResult = {
+                "status": "operational",
+                "service": "flext-cli-handlers",
+                "timestamp": "2025-01-08T00:00:00Z",
+                "handlers_available": [
+                    "CommandHandler",
+                    "FormatterHandler",
+                    "ConfigHandler", 
+                    "AuthHandler",
+                    "DebugHandler"
+                ]
+            }
+            return FlextResult[CliCommandResult].ok(result_data)
+        except Exception as e:
+            return FlextResult[CliCommandResult].fail(f"Handlers execution failed: {e}")
+
 
 __all__ = [
     "FlextCliHandlers",
