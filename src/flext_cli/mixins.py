@@ -10,7 +10,7 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 from flext_cli.constants import FlextCliConstants
-from flext_cli.typings import FlextCliTypes
+from flext_cli.typings import CliDataDict
 from flext_core import FlextMixins, FlextResult
 
 
@@ -238,7 +238,7 @@ class FlextCliMixins(FlextMixins):
 
         @staticmethod
         def validate_pipeline_step(
-            step: FlextCliTypes.CliDataDict | None,
+            step: CliDataDict | None,
         ) -> FlextResult[None]:
             """Validate pipeline step configuration.
 
@@ -264,7 +264,7 @@ class FlextCliMixins(FlextMixins):
 
         @staticmethod
         def validate_configuration_consistency(
-            config_data: FlextCliTypes.CliDataDict | None,
+            config_data: CliDataDict | None,
             required_fields: list[str],
         ) -> FlextResult[None]:
             """Validate configuration consistency.

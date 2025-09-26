@@ -9,6 +9,8 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
+from typing import override
+
 from flext_core import FlextContainer, FlextResult
 
 
@@ -24,6 +26,7 @@ class FlextCliContainers:
     - Implements CLI-specific extensions while reusing core functionality
     """
 
+    @override
     def __init__(self) -> None:
         """Initialize CLI containers with FlextContainer composition."""
         self._container = FlextContainer.get_global()
@@ -31,6 +34,7 @@ class FlextCliContainers:
     class CommandContainer:
         """CLI command container for managing command instances."""
 
+        @override
         def __init__(self) -> None:
             """Initialize command container."""
             self._commands: dict[str, object] = {}
@@ -106,6 +110,7 @@ class FlextCliContainers:
     class HandlerContainer:
         """CLI handler container for managing handler instances."""
 
+        @override
         def __init__(self) -> None:
             """Initialize handler container."""
             self._handlers: dict[str, object] = {}
@@ -163,6 +168,7 @@ class FlextCliContainers:
     class ConfigContainer:
         """CLI configuration container for managing configuration instances."""
 
+        @override
         def __init__(self) -> None:
             """Initialize configuration container."""
             self._configs: dict[str, object] = {}
@@ -199,7 +205,7 @@ class FlextCliContainers:
             try:
                 if name not in self._configs:
                     return FlextResult[object].fail(f"Config '{name}' not found")
-                return FlextResult[object].ok(self._Config[name])
+                return FlextResult[object].ok(self._configs[name])
             except Exception as e:
                 return FlextResult[object].fail(f"Config retrieval failed: {e}")
 
@@ -211,7 +217,7 @@ class FlextCliContainers:
 
             """
             try:
-                return FlextResult[list[str]].ok(list(self._Config.keys()))
+                return FlextResult[list[str]].ok(list(self._configs.keys()))
             except Exception as e:
                 return FlextResult[list[str]].fail(f"Config listing failed: {e}")
 

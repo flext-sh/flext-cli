@@ -9,6 +9,7 @@ from __future__ import annotations
 import uuid
 from dataclasses import dataclass, field
 from pathlib import Path
+from typing import override
 
 from flext_cli.config import FlextCliConfig
 from flext_cli.constants import FlextCliConstants
@@ -28,6 +29,7 @@ class FlextCliContext(FlextService[dict[str, object]]):
       - User ID must be non-empty if provided
     """
 
+    @override
     def __init__(
         self,
         *,
@@ -83,6 +85,7 @@ class FlextCliContext(FlextService[dict[str, object]]):
             FlextCliConstants.NetworkDefaults.DEFAULT_TIMEOUT,
         )
 
+    @override
     def execute(self) -> FlextResult[dict[str, object]]:
         """Execute CLI context - required by FlextService."""
         return FlextResult[dict[str, object]].ok(self.to_dict())
@@ -143,7 +146,7 @@ class FlextCliContext(FlextService[dict[str, object]]):
         """Get console object.
 
         Returns:
-            Union[object, None]: Description of return value.
+            object | None: Description of return value.
 
         """
         return self._console
@@ -153,7 +156,7 @@ class FlextCliContext(FlextService[dict[str, object]]):
         """Get working directory.
 
         Returns:
-            Union[Path, None]: Description of return value.
+            Path | None: Description of return value.
 
         """
         return self._working_directory
@@ -173,7 +176,7 @@ class FlextCliContext(FlextService[dict[str, object]]):
         """Get user identifier.
 
         Returns:
-            Union[str, None]: Description of return value.
+            str | None: Description of return value.
 
         """
         return self._user_id
@@ -183,7 +186,7 @@ class FlextCliContext(FlextService[dict[str, object]]):
         """Get session identifier.
 
         Returns:
-            Union[str, None]: Description of return value.
+            str | None: Description of return value.
 
         """
         return self._session_id

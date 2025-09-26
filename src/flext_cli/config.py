@@ -11,12 +11,13 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 import json
+import threading
 from datetime import UTC, datetime
 from pathlib import Path
+from typing import ClassVar, override
 
 import yaml
 from pydantic import (
-    BaseModel,
     Field,
     SecretStr,
     field_validator,
@@ -24,6 +25,7 @@ from pydantic import (
 )
 
 from flext_cli.constants import FlextCliConstants
+from flext_cli.models import FlextCliModels
 from flext_core import (
     FlextConfig,
     FlextResult,
@@ -31,29 +33,48 @@ from flext_core import (
 )
 
 
-class LoggingConfig(BaseModel):
-    """Logging configuration model."""
-
-    log_level: str = Field(default="INFO", description="Logging level")
-    log_format: str = Field(
-        default="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
-        description="Log format string",
-    )
-    console_output: bool = Field(default=True, description="Enable console output")
-    log_file: str | None = Field(default=None, description="Log file path")
-    log_level_source: str = Field(default="default", description="Source of log level")
-
-
 class FlextCliConfig(FlextConfig):
-    """Single Pydantic 2 Settings class for flext-cli extending FlextConfig.
+    """Single flat Pydantic 2 Settings class for flext-cli extending FlextConfig.
 
     Follows standardized pattern:
     - Extends FlextConfig from flext-core
-    - No nested classes within Config
+    - Flat class structure (no nested classes)
     - All defaults from FlextCliConstants
-    - Dependency injection integration with flext-core container
-    - Uses Pydantic 2.11+ features (SecretStr for secrets)
+    - SecretStr for sensitive data
+    - Singleton pattern with shared dependency injection
     """
+
+    # Singleton pattern attributes
+    _global_instance: ClassVar[FlextCliConfig | None] = None
+    _lock: ClassVar[threading.Lock] = threading.Lock()
+
+    class MainConfig(FlextCliModels.FlextCliConfig):
+        """Main configuration settings for CLI operations extending FlextCliModels.FlextCliConfig."""
+
+        debug: bool = Field(default=False, description="Enable debug mode")
+        debug_mode: bool = Field(default=False, description="Enable debug mode (alias)")
+        app_name: str = Field(default="flext-cli", description="Application name")
+        version: str = Field(default="2.0.0", description="Application version")
+        profile: str = Field(default="default", description="Configuration profile")
+        output_format: str = Field(default="table", description="Default output format")
+        log_level: str = Field(default="INFO", description="Logging level")
+        config_dir: str = Field(
+            default="~/.flext", description="Configuration directory"
+        )
+
+        def validate_output_format(self, value: str) -> FlextResult[str]:
+            """Validate output format and return FlextResult."""
+            valid_formats = ["json", "yaml", "csv", "table", "plain"]
+            if value not in valid_formats:
+                return FlextResult[str].fail(f"Invalid output format: {value}")
+            return FlextResult[str].ok(value)
+
+    class CliOptions:
+        """CLI-specific options and settings."""
+
+        verbose: bool = False
+        quiet: bool = False
+        interactive: bool = True
 
     # CLI-specific configuration fields using FlextCliConstants for defaults
     profile: str = Field(
@@ -135,6 +156,32 @@ class FlextCliConfig(FlextConfig):
         description="Maximum number of retry attempts",
     )
 
+    # Logging configuration - centralized for all FLEXT projects
+    log_level: str = Field(
+        default="INFO",
+        description="Global logging level for FLEXT projects",
+    )
+
+    log_verbosity: str = Field(
+        default="detailed",
+        description="Logging verbosity (compact, detailed, full)",
+    )
+
+    cli_log_level: str = Field(
+        default="INFO",
+        description="CLI-specific logging level",
+    )
+
+    cli_log_verbosity: str = Field(
+        default="detailed",
+        description="CLI-specific logging verbosity",
+    )
+
+    log_file: str | None = Field(
+        default=None,
+        description="Optional log file path for persistent logging",
+    )
+
     # Pydantic 2.11 field validators
     @field_validator("output_format")
     @classmethod
@@ -164,6 +211,28 @@ class FlextCliConfig(FlextConfig):
             raise ValueError(msg)
         return v
 
+    @field_validator("log_level", "cli_log_level")
+    @classmethod
+    def validate_log_level(cls, v: str) -> str:
+        """Validate log level is one of the allowed values."""
+        valid_levels = {"DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"}
+        level_upper = v.upper()
+        if level_upper not in valid_levels:
+            msg = f"Invalid log level: {v}. Must be one of: {', '.join(valid_levels)}"
+            raise ValueError(msg)
+        return level_upper
+
+    @field_validator("log_verbosity", "cli_log_verbosity")
+    @classmethod
+    def validate_log_verbosity(cls, v: str) -> str:
+        """Validate log verbosity is one of the allowed values."""
+        valid_verbosity = {"compact", "detailed", "full"}
+        verbosity_lower = v.lower()
+        if verbosity_lower not in valid_verbosity:
+            msg = f"Invalid log verbosity: {v}. Must be one of: {', '.join(valid_verbosity)}"
+            raise ValueError(msg)
+        return verbosity_lower
+
     @model_validator(mode="after")
     def validate_paths(self) -> FlextCliConfig:
         """Validate that configuration paths are accessible."""
@@ -187,6 +256,10 @@ class FlextCliConfig(FlextConfig):
             "max_width": self.max_width,
             "api_url": self.api_url,
             "timeout": self.timeout,
+            "log_level": self.log_level,
+            "log_verbosity": self.log_verbosity,
+            "cli_log_level": self.cli_log_level,
+            "cli_log_verbosity": self.cli_log_verbosity,
         }
 
     def get_auth_context(self) -> dict[str, object]:
@@ -197,6 +270,16 @@ class FlextCliConfig(FlextConfig):
             "refresh_token_file": str(self.refresh_token_file),
             "auto_refresh": self.auto_refresh,
             "api_key_configured": self.cli_api_key is not None,
+        }
+
+    def get_logging_context(self) -> dict[str, object]:
+        """Get logging context for centralized logging configuration."""
+        return {
+            "log_level": self.log_level,
+            "log_verbosity": self.log_verbosity,
+            "cli_log_level": self.cli_log_level,
+            "cli_log_verbosity": self.cli_log_verbosity,
+            "log_file": str(self.log_file) if self.log_file else None,
         }
 
     @classmethod
@@ -237,19 +320,37 @@ class FlextCliConfig(FlextConfig):
                 f"Failed to load configuration from {config_file}: {e}"
             )
 
+    # Singleton pattern override for proper typing
+    @classmethod
+    def get_global_instance(cls) -> FlextCliConfig:
+        """Get the global singleton instance of FlextCliConfig."""
+        if cls._global_instance is None:
+            with cls._lock:
+                if cls._global_instance is None:
+                    cls._global_instance = cls()
+        return cls._global_instance
+
+    @classmethod
+    def reset_global_instance(cls) -> None:
+        """Reset the global FlextCliConfig instance (mainly for testing)."""
+        cls._global_instance = None
+
 
 class FlextCliConfigService(FlextService):
     """Service class for FlextCliConfig operations."""
 
+    @override
+    @override
     def __init__(self) -> None:
         """Initialize config service."""
         super().__init__()
         self._config = FlextCliConfig.create()
 
+    @override
     def execute(self) -> FlextResult[dict[str, object]]:
         """Execute config service operation."""
         return FlextResult[dict[str, object]].ok({
-            "status": "operational",
+            "status": FlextCliConstants.OPERATIONAL,
             "service": "flext-cli-config",
             "timestamp": datetime.now(UTC).isoformat(),
             "version": "2.0.0",
@@ -259,7 +360,7 @@ class FlextCliConfigService(FlextService):
     async def execute_async(self) -> FlextResult[dict[str, object]]:
         """Execute config service operation asynchronously."""
         return FlextResult[dict[str, object]].ok({
-            "status": "operational",
+            "status": FlextCliConstants.OPERATIONAL,
             "service": "flext-cli-config",
             "timestamp": datetime.now(UTC).isoformat(),
             "version": "2.0.0",
@@ -270,5 +371,4 @@ class FlextCliConfigService(FlextService):
 __all__ = [
     "FlextCliConfig",
     "FlextCliConfigService",
-    "LoggingConfig",
 ]

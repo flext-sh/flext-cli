@@ -12,8 +12,10 @@ from __future__ import annotations
 import os
 from datetime import UTC, datetime
 from pathlib import Path
+from typing import override
 
 from flext_cli.config import FlextCliConfig
+from flext_cli.constants import FlextCliConstants
 from flext_cli.utilities import FlextCliUtilities
 from flext_core import (
     FlextContainer,
@@ -30,6 +32,7 @@ class FlextCliCmd(FlextService[dict[str, object]]):
     Follows single-responsibility principle with nested helpers.
     """
 
+    @override
     def __init__(self) -> None:
         """Initialize command service with flext-core integration."""
         super().__init__()
@@ -37,6 +40,7 @@ class FlextCliCmd(FlextService[dict[str, object]]):
         self._container = FlextContainer.get_global()
         self._command_bus_service: FlextCliCmd | None = None
 
+    @override
     def execute(self) -> FlextResult[dict[str, object]]:
         """Execute command service - required by FlextService."""
         return FlextResult[dict[str, object]].ok({
@@ -231,11 +235,11 @@ class FlextCliCmd(FlextService[dict[str, object]]):
             if not config_path.exists():
                 # Create default configuration
                 default_config = {
-                    "profile": "default",
+                    "profile": FlextCliConstants.DEFAULT,
                     "debug": False,
                     "verbose": False,
                     "quiet": False,
-                    "output_format": "table",
+                    "output_format": FlextCliConstants.TABLE,
                     "timeout": 30,
                 }
 

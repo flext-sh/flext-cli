@@ -1,6 +1,11 @@
 """User interaction tools for CLI applications."""
 
+from __future__ import annotations
+
 from datetime import UTC, datetime
+from typing import override
+
+from rich.console import Console
 
 from flext_core import FlextLogger, FlextResult, FlextService, FlextTypes
 
@@ -13,6 +18,7 @@ class FlextCliPrompts(FlextService[None]):
     NO DIRECT RICH IMPORTS - uses flext-core exclusively.
     """
 
+    @override
     def __init__(
         self,
         *,
@@ -24,6 +30,7 @@ class FlextCliPrompts(FlextService[None]):
         self._logger: FlextLogger = logger or FlextLogger(__name__)
         self._quiet: bool = quiet
 
+    @override
     def execute(self: object) -> FlextResult[None]:
         """Execute the main domain service operation - required by FlextService."""
         return FlextResult[None].ok(None)
@@ -42,7 +49,7 @@ class FlextCliPrompts(FlextService[None]):
         if self._quiet:
             return FlextResult[bool].ok(default)
         try:
-            prompt_text = f"{message} [y/N]: " if not default else f"{message} [Y/n]: "
+            prompt_text = f"{message} [y/N]:" if not default else f"{message} [Y/n]:"
             response = input(prompt_text).strip().lower()
 
             if not response:
@@ -82,7 +89,7 @@ class FlextCliPrompts(FlextService[None]):
 
         try:
             prompt_text = (
-                f"{message}: " if default is None else f"{message} [{default}]: "
+                f"{message}:" if default is None else f"{message} [{default}]:"
             )
 
             if not (value := input(prompt_text).strip()):
@@ -220,6 +227,50 @@ class FlextCliPrompts(FlextService[None]):
             return FlextResult[FlextTypes.Core.List].fail(
                 f"Progress processing failed: {e}",
             )
+
+    def select_from_options(
+        self, options: list[str], message: str = "Select an option:"
+    ) -> FlextResult[str]:
+        """Allow user to select from a list of options.
+
+        Args:
+            options: List of options to choose from
+            message: Prompt message to display
+
+        Returns:
+            FlextResult[str]: Selected option or error
+
+        """
+        try:
+            if not options:
+                return FlextResult[str].fail("No options provided")
+
+            # Display options
+            console = Console()
+            console.print(f"\n{message}")
+            for i, option in enumerate(options, 1):
+                console.print(f"  {i}. {option}")
+
+            # Get user input
+            while True:
+                try:
+                    choice = input("\nEnter your choice (number): ").strip()
+                    choice_index = int(choice) - 1
+
+                    if 0 <= choice_index < len(options):
+                        selected_option = options[choice_index]
+                        return FlextResult[str].ok(selected_option)
+                    console.print(
+                        f"[red]Please enter a number between 1 and {len(options)}[/red]"
+                    )
+
+                except (ValueError, KeyboardInterrupt):
+                    console.print(
+                        "[red]Invalid input. Please enter a valid number.[/red]"
+                    )
+
+        except Exception as e:
+            return FlextResult[str].fail(f"Selection failed: {e}")
 
     async def execute_async(self) -> FlextResult[dict[str, object]]:
         """Execute prompts service operation asynchronously."""

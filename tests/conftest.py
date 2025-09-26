@@ -10,12 +10,14 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 import asyncio
+import json
 import tempfile
-from collections.abc import AsyncGenerator, Generator
+from collections.abc import Generator
 from pathlib import Path
 from typing import Any
 
 import pytest
+import yaml
 from click.testing import CliRunner
 
 from flext_cli.api import FlextCliApi
@@ -112,8 +114,6 @@ def temp_file(temp_dir: Path) -> Path:
 @pytest.fixture
 def temp_json_file(temp_dir: Path) -> Path:
     """Create temporary JSON file for tests."""
-    import json
-
     temp_file_path = temp_dir / "test_file.json"
     test_data = {"key": "value", "number": 42, "list": [1, 2, 3]}
     temp_file_path.write_text(json.dumps(test_data))
@@ -123,8 +123,6 @@ def temp_json_file(temp_dir: Path) -> Path:
 @pytest.fixture
 def temp_yaml_file(temp_dir: Path) -> Path:
     """Create temporary YAML file for tests."""
-    import yaml
-
     temp_file_path = temp_dir / "test_file.yaml"
     test_data = {"key": "value", "number": 42, "list": [1, 2, 3]}
     temp_file_path.write_text(yaml.dump(test_data))
@@ -286,17 +284,15 @@ def event_loop() -> Generator[asyncio.AbstractEventLoop]:
 
 
 @pytest.fixture
-async def async_flext_cli_api() -> AsyncGenerator[FlextCliApi, None]:
-    """Create async FlextCliApi instance for testing."""
-    api = FlextCliApi()
-    yield api
+def async_flext_cli_api() -> FlextCliApi:
+    """Create FlextCliApi instance for testing."""
+    return FlextCliApi()
 
 
 @pytest.fixture
-async def async_flext_cli_core() -> AsyncGenerator[FlextCliService, None]:
-    """Create async FlextCliService instance for testing."""
-    service = FlextCliService()
-    yield service
+def async_flext_cli_core() -> FlextCliService:
+    """Create FlextCliService instance for testing."""
+    return FlextCliService()
 
 
 # ============================================================================
@@ -320,7 +316,7 @@ def sample_config_data() -> dict[str, Any]:
 
 
 @pytest.fixture
-def sample_file_data() -> dict[str, Any]:
+def sample_file_data(temp_dir: Path) -> dict[str, Any]:
     """Provide sample file data for tests."""
     return {
         "content": "This is test content for file operations",
@@ -330,7 +326,7 @@ def sample_file_data() -> dict[str, Any]:
             "size": 42,
             "type": "text/plain",
         },
-        "path": "/tmp/test_file.txt",
+        "path": str(temp_dir / "test_file.txt"),
     }
 
 
@@ -430,7 +426,8 @@ def pytest_configure(config: pytest.Config) -> None:
 
 
 def pytest_collection_modifyitems(
-    config: pytest.Config, items: list[pytest.Item]
+    config: pytest.Config,  # noqa: ARG001
+    items: list[pytest.Item],
 ) -> None:
     """Modify test collection to add markers based on test names."""
     for item in items:
@@ -441,7 +438,11 @@ def pytest_collection_modifyitems(
             item.add_marker(pytest.mark.unit)
 
         # Add markers based on test names
-        if "async" in item.name:
+        if (
+            "async" in item.name
+            and item.function
+            and asyncio.iscoroutinefunction(item.function)
+        ):
             item.add_marker(pytest.mark.asyncio)
         if "docker" in item.name:
             item.add_marker(pytest.mark.docker)

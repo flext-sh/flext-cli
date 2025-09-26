@@ -22,9 +22,9 @@ class FlextCliConstants(FlextConstants):
     without duplication or wrappers, using direct access patterns.
     """
 
-    # Project identification (inherited from BaseProjectConstants)
-    PROJECT_PREFIX: Final[str] = "FLEXT_CLI"
-    PROJECT_NAME: Final[str] = "FLEXT CLI"
+    # Project identification (Final attributes inherited from FlextConstants)
+    # PROJECT_PREFIX inherited from FlextConstants
+    # PROJECT_NAME inherited from FlextConstants
 
     # Directory and file names
     FLEXT_DIR_NAME: Final[str] = ".flext"
@@ -89,6 +89,13 @@ class FlextCliConstants(FlextConstants):
         DEFAULT_MAX_RETRIES: Final[int] = 3
         CONNECT_TIMEOUT: Final[int] = 10
         READ_TIMEOUT: Final[int] = 60
+
+    class PhoneValidation:
+        """Phone number validation constants."""
+
+        MIN_INTERNATIONAL_DIGITS: Final[int] = 10
+        MAX_INTERNATIONAL_DIGITS: Final[int] = 15
+        US_PHONE_DIGITS: Final[int] = 10
 
     # Constant lists for validation and iteration
     OUTPUT_FORMATS_LIST: Final[list[str]] = [
@@ -181,6 +188,47 @@ class FlextCliConstants(FlextConstants):
         READ: Final[int] = 30
         WRITE: Final[int] = 30
         COMMAND: Final[int] = 300
+
+    # Status constants for service operations
+    OPERATIONAL: Final[str] = "operational"
+    AVAILABLE: Final[str] = "available"
+
+    # Service names
+    FLEXT_CLI: Final[str] = "flext-cli"
+
+    # User IDs for testing
+    USER1: Final[str] = "user1"
+    USER2: Final[str] = "user2"
+
+    # Table column names
+    VALUE: Final[str] = "Value"
+
+    # Additional status constants
+    CONNECTED: Final[str] = "connected"
+    HEALTHY: Final[str] = "healthy"
+    TRACE: Final[str] = "trace"
+
+    # Default values
+    DEFAULT: Final[str] = "default"
+    TABLE: Final[str] = "table"
+
+    # Directory labels
+    HOME: Final[str] = "Home"
+    CONFIG: Final[str] = "Config"
+    CACHE: Final[str] = "Cache"
+    LOGS: Final[str] = "Logs"
+
+    # MIME types
+    APPLICATION_JSON: Final[str] = "application/json"
+    APPLICATION_YAML: Final[str] = "application/x-yaml"
+    TEXT_CSV: Final[str] = "text/csv"
+    TEXT_TSV: Final[str] = "text/tab-separated-values"
+
+    # Format names
+    TSV: Final[str] = "tsv"
+
+    # Service names
+    FLEXT_CLI_FILE_TOOLS: Final[str] = "flext-cli-file-tools"
 
 
 __all__ = [

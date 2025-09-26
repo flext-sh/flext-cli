@@ -1,8 +1,11 @@
 """CLI output and formatting tools."""
 
+from __future__ import annotations
+
 import csv
 import json
 from io import StringIO
+from typing import override
 
 import yaml
 from rich.console import Console
@@ -26,12 +29,14 @@ class FlextCliOutput(FlextService[str]):
     This is the ONLY module in FLEXT allowed to import Rich components directly.
     """
 
+    @override
     def __init__(self) -> None:
         """Initialize CLI output with Rich console."""
         super().__init__()
         self._logger = FlextLogger(__name__)
         self._console = Console()
 
+    @override
     def execute(self) -> FlextResult[str]:
         """Execute the main domain service operation - required by FlextService."""
         return FlextResult[str].ok("FlextCliOutput operational")
@@ -248,6 +253,30 @@ class FlextCliOutput(FlextService[str]):
         """
         return self.print_message(f"Warning: {message}", style="bold yellow")
 
+    def display_text(
+        self, text: str, *, style: str = "", highlight: bool = False
+    ) -> FlextResult[None]:
+        """Display text using Rich console.
+
+        Args:
+            text: Text to display
+            style: Optional Rich style
+            highlight: Whether to enable syntax highlighting
+
+        Returns:
+            FlextResult[None]: Success or failure result
+
+        """
+        try:
+            if style:
+                formatted_text = Text(text, style=style)
+                self._console.print(formatted_text, highlight=highlight)
+            else:
+                self._console.print(text, highlight=highlight)
+            return FlextResult[None].ok(None)
+        except Exception as e:
+            return FlextResult[None].fail(f"Failed to display text: {e}")
+
     def format_json(self, data: object) -> FlextResult[str]:
         """Format data as JSON.
 
@@ -309,9 +338,7 @@ class FlextCliOutput(FlextService[str]):
 
     def format_table(
         self,
-        data: dict[str, str | int | float | bool | None]
-        | list[dict[str, str | int | float | bool | None] | None]
-        | None,
+        data: dict[str, object] | list[dict[str, object]] | None,
         title: str | None = None,
         headers: list[str] | None = None,
     ) -> FlextResult[str]:

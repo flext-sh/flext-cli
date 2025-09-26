@@ -11,6 +11,7 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 from datetime import UTC, datetime
+from typing import override
 
 import click  # ONLY module allowed to import Click in entire ecosystem
 
@@ -18,6 +19,7 @@ from flext_cli.api import FlextCliApi
 from flext_cli.auth import FlextCliAuth
 from flext_cli.commands import FlextCliCommands
 from flext_cli.config import FlextCliConfig, FlextCliConfigService
+from flext_cli.constants import FlextCliConstants
 from flext_cli.debug import FlextCliDebug
 from flext_cli.output import FlextCliOutput
 from flext_core import FlextLogger, FlextResult, FlextService, FlextTypes
@@ -30,6 +32,7 @@ class FlextCli(FlextService[FlextTypes.Core.Dict]):
     All CLI functionality is properly abstracted to maintain domain separation.
     """
 
+    @override
     def __init__(self) -> None:
         """Initialize unified CLI abstraction layer."""
         super().__init__()
@@ -76,37 +79,38 @@ class FlextCli(FlextService[FlextTypes.Core.Dict]):
         """Get main component (aliased to commands)."""
         return self._commands
 
+    @override
     def execute(self) -> FlextResult[FlextTypes.Core.Dict]:
         """Execute the main CLI service operation - required by FlextService."""
         return FlextResult[FlextTypes.Core.Dict].ok({
-            "status": "operational",
-            "service": "flext-cli",
+            "status": FlextCliConstants.OPERATIONAL,
+            "service": FlextCliConstants.FLEXT_CLI,
             "timestamp": datetime.now(UTC).isoformat(),
             "version": "2.0.0",
             "components": {
-                "api": "available",
-                "auth": "available",
-                "config": "available",
-                "debug": "available",
-                "formatters": "available",
-                "main": "available",
+                "api": FlextCliConstants.AVAILABLE,
+                "auth": FlextCliConstants.AVAILABLE,
+                "config": FlextCliConstants.AVAILABLE,
+                "debug": FlextCliConstants.AVAILABLE,
+                "formatters": FlextCliConstants.AVAILABLE,
+                "main": FlextCliConstants.AVAILABLE,
             },
         })
 
     async def execute_async(self) -> FlextResult[FlextTypes.Core.Dict]:
         """Execute the main CLI service operation asynchronously - required by FlextService."""
         return FlextResult[FlextTypes.Core.Dict].ok({
-            "status": "operational",
-            "service": "flext-cli",
+            "status": FlextCliConstants.OPERATIONAL,
+            "service": FlextCliConstants.FLEXT_CLI,
             "timestamp": datetime.now(UTC).isoformat(),
             "version": "2.0.0",
             "components": {
-                "api": "available",
-                "auth": "available",
-                "config": "available",
-                "debug": "available",
-                "formatters": "available",
-                "main": "available",
+                "api": FlextCliConstants.AVAILABLE,
+                "auth": FlextCliConstants.AVAILABLE,
+                "config": FlextCliConstants.AVAILABLE,
+                "debug": FlextCliConstants.AVAILABLE,
+                "formatters": FlextCliConstants.AVAILABLE,
+                "main": FlextCliConstants.AVAILABLE,
             },
         })
 

@@ -11,13 +11,12 @@ from __future__ import annotations
 
 import asyncio
 import logging
-import os
 from pathlib import Path
-from typing import ClassVar
+from typing import ClassVar, override
 
-from flext_cli.config import FlextCliConfig, LoggingConfig
+from flext_cli.config import FlextCliConfig
+from flext_cli.models import FlextCliModels
 from flext_core import (
-    FlextConstants,
     FlextContainer,
     FlextLogger,
     FlextResult,
@@ -33,12 +32,15 @@ class FlextCliLoggingSetup(FlextService[dict[str, object]]):
     """
 
     # LoggingConfig class reference for direct access
-    LoggingConfigModel: ClassVar[type[LoggingConfig]] = LoggingConfig
+    LoggingConfigModel: ClassVar[type[FlextCliModels.LoggingConfig]] = (
+        FlextCliModels.LoggingConfig
+    )
 
     # Class-level state for singleton behavior
     _loggers: ClassVar[dict[str, logging.Logger]] = {}
     _setup_complete: ClassVar[bool] = False
 
+    @override
     def __init__(self, config: FlextCliConfig | None = None) -> None:
         """Initialize logging setup using FlextConfig singleton as SINGLE SOURCE OF TRUTH."""
         super().__init__()
@@ -48,11 +50,11 @@ class FlextCliLoggingSetup(FlextService[dict[str, object]]):
         # Use resolved config without storing as instance attribute (FlextService is frozen)
         self._resolved_config = config or FlextCliConfig()
 
-    def setup_logging(self) -> FlextResult[LoggingConfig]:
+    def setup_logging(self) -> FlextResult[FlextCliModels.LoggingConfig]:
         """Setup logging with automatic source detection.
 
         Returns:
-            FlextResult[LoggingConfig]: Description of return value.
+            FlextResult[FlextCliModels.LoggingConfig]: Description of return value.
 
         """
         try:
@@ -60,7 +62,9 @@ class FlextCliLoggingSetup(FlextService[dict[str, object]]):
             if FlextCliLoggingSetup._setup_complete:
                 log_config_result = self._detect_log_configuration()
                 if log_config_result.is_success:
-                    return FlextResult[LoggingConfig].ok(log_config_result.value)
+                    return FlextResult[FlextCliModels.LoggingConfig].ok(
+                        log_config_result.value
+                    )
                 return log_config_result
 
             # Detect log level and its source
@@ -71,7 +75,12 @@ class FlextCliLoggingSetup(FlextService[dict[str, object]]):
             log_config = log_config_result.value
 
             # Configure FlextLogger for entire CLI application with enhanced formatting
-            verbosity = os.environ.get("FLEXT_LOG_VERBOSITY", "detailed")
+            config = FlextCliConfig.get_global_instance()
+            verbosity = (
+                config.cli_log_verbosity
+                if config.cli_log_verbosity != config.log_verbosity
+                else config.log_verbosity
+            )
             FlextLogger.configure(
                 log_level=log_config.log_level,
                 structured_output=True,  # Enable enhanced console renderer
@@ -99,51 +108,37 @@ class FlextCliLoggingSetup(FlextService[dict[str, object]]):
             )
 
             FlextCliLoggingSetup._setup_complete = True
-            return FlextResult[LoggingConfig].ok(log_config)
+            return FlextResult[FlextCliModels.LoggingConfig].ok(log_config)
         except Exception as e:
-            return FlextResult[LoggingConfig].fail(f"Logging setup failed: {e}")
+            return FlextResult[FlextCliModels.LoggingConfig].fail(
+                f"Logging setup failed: {e}"
+            )
 
-    def _detect_log_configuration(self) -> FlextResult[LoggingConfig]:
-        """Detect log configuration from environment and settings."""
+    def _detect_log_configuration(self) -> FlextResult[FlextCliModels.LoggingConfig]:
+        """Detect log configuration from FlextCliConfig singleton."""
         try:
-            # Check environment variables first
-            env_level = os.getenv("FLEXT_LOG_LEVEL", "").upper()
-            env_verbosity = os.getenv("FLEXT_LOG_VERBOSITY", "").lower()
+            # Use FlextCliConfig singleton as single source of truth
+            config = FlextCliConfig.get_global_instance()
 
-            # Check for FLEXT-specific environment variables
-            flext_level = os.getenv("FLEXT_CLI_LOG_LEVEL", "").upper()
-            flext_verbosity = os.getenv("FLEXT_CLI_LOG_VERBOSITY", "").lower()
-
-            # Determine log level
-            if flext_level and flext_level in FlextConstants.Logging.VALID_LEVELS:
-                log_level = flext_level
-                log_level_source = "FLEXT_CLI_LOG_LEVEL"
-            elif env_level and env_level in FlextConstants.Logging.VALID_LEVELS:
-                log_level = env_level
-                log_level_source = "FLEXT_LOG_LEVEL"
+            # Use CLI-specific log level if it differs from global, otherwise use global
+            if config.cli_log_level != config.log_level:
+                log_level = config.cli_log_level
+                log_level_source = "FlextCliConfig.cli_log_level"
             else:
-                log_level = "INFO"
-                log_level_source = "default"
+                log_level = config.log_level
+                log_level_source = "FlextCliConfig.log_level"
 
-            # Determine verbosity (currently not used in config but available for future use)
-            verbosity_options = {"debug", "verbose", "quiet", "silent"}
-            if flext_verbosity in verbosity_options:
-                _ = flext_verbosity  # Store for potential future use
-            elif env_verbosity in verbosity_options:
-                _ = env_verbosity  # Store for potential future use
-            else:
-                _ = "normal"  # Default verbosity
-
-            # Create logging configuration
-            log_config = LoggingConfig(
+            # Create logging configuration using standardized config
+            log_config = FlextCliModels.LoggingConfig(
                 log_level=log_level,
                 log_level_source=log_level_source,
                 console_output=True,
+                log_file=str(config.log_file) if config.log_file else None,
             )
 
-            return FlextResult[LoggingConfig].ok(log_config)
+            return FlextResult[FlextCliModels.LoggingConfig].ok(log_config)
         except Exception as e:
-            return FlextResult[LoggingConfig].fail(
+            return FlextResult[FlextCliModels.LoggingConfig].fail(
                 f"Log configuration detection failed: {e}"
             )
 
@@ -167,8 +162,8 @@ class FlextCliLoggingSetup(FlextService[dict[str, object]]):
 
             # Configure log file if specified
             if log_file:
-                # Set log file environment variable for FlextLogger configuration
-                os.environ["FLEXT_LOG_FILE"] = str(log_file)
+                # Update FlextCliConfig singleton with log file path
+                config.log_file = log_file
 
             result = setup_instance.setup_logging()
             if not result.is_success:
@@ -239,12 +234,13 @@ class FlextCliLoggingSetup(FlextService[dict[str, object]]):
                     f"Invalid log level '{level}'. Valid levels: {', '.join(valid_levels)}"
                 )
 
-            # Set environment variable for cross-project control
-            os.environ["FLEXT_LOG_LEVEL"] = level_upper
+            # Update FlextCliConfig singleton for cross-project control
+            config = FlextCliConfig.get_global_instance()
+            config.log_level = level_upper
 
             # Reconfigure FlextLogger if already configured
             if cls._setup_complete:
-                verbosity = os.environ.get("FLEXT_LOG_VERBOSITY", "detailed")
+                verbosity = config.log_verbosity
                 FlextLogger.configure(
                     log_level=level_upper,
                     structured_output=True,
@@ -274,12 +270,13 @@ class FlextCliLoggingSetup(FlextService[dict[str, object]]):
                     f"Invalid verbosity '{verbosity}'. Valid levels: {', '.join(valid_verbosity)}"
                 )
 
-            # Set environment variable for cross-project control
-            os.environ["FLEXT_LOG_VERBOSITY"] = verbosity_lower
+            # Update FlextCliConfig singleton for cross-project control
+            config = FlextCliConfig.get_global_instance()
+            config.log_verbosity = verbosity_lower
 
             # Reconfigure FlextLogger if already configured
             if cls._setup_complete:
-                current_level = os.environ.get("FLEXT_LOG_LEVEL", "INFO")
+                current_level = config.log_level
                 FlextLogger.configure(
                     log_level=current_level,
                     structured_output=True,
@@ -301,10 +298,12 @@ class FlextCliLoggingSetup(FlextService[dict[str, object]]):
 
         """
         try:
+            cli_config = FlextCliConfig.get_global_instance()
             config: dict[str, str] = {
-                "log_level": os.environ.get("FLEXT_LOG_LEVEL", "INFO"),
-                "log_verbosity": os.environ.get("FLEXT_LOG_VERBOSITY", "detailed"),
-                "cli_log_level": os.environ.get("FLEXT_CLI_LOG_LEVEL", "INFO"),
+                "log_level": cli_config.log_level,
+                "log_verbosity": cli_config.log_verbosity,
+                "cli_log_level": cli_config.cli_log_level,
+                "cli_log_verbosity": cli_config.cli_log_verbosity,
                 "configured": str(FlextCliLoggingSetup._setup_complete),
             }
             return FlextResult[dict[str, str]].ok(config)
@@ -335,9 +334,12 @@ class FlextCliLoggingSetup(FlextService[dict[str, object]]):
                         f"Invalid log level '{log_level}'. Valid levels: {', '.join(valid_levels)}"
                     )
 
-                # Set project-specific environment variable
-                env_var = f"FLEXT_{project_name.upper().replace('-', '_')}_LOG_LEVEL"
-                os.environ[env_var] = level_upper
+                # Update FlextCliConfig singleton for project-specific settings
+                config = FlextCliConfig.get_global_instance()
+                if project_name.lower() == "cli":
+                    config.cli_log_level = level_upper
+                else:
+                    config.log_level = level_upper
                 messages.append(f"Log level for {project_name} set to {level_upper}")
 
             if verbosity:
@@ -348,11 +350,12 @@ class FlextCliLoggingSetup(FlextService[dict[str, object]]):
                         f"Invalid verbosity '{verbosity}'. Valid levels: {', '.join(valid_verbosity)}"
                     )
 
-                # Set project-specific environment variable
-                env_var = (
-                    f"FLEXT_{project_name.upper().replace('-', '_')}_LOG_VERBOSITY"
-                )
-                os.environ[env_var] = verbosity_lower
+                # Update FlextCliConfig singleton for project-specific settings
+                config = FlextCliConfig.get_global_instance()
+                if project_name.lower() == "cli":
+                    config.cli_log_verbosity = verbosity_lower
+                else:
+                    config.log_verbosity = verbosity_lower
                 messages.append(
                     f"Log verbosity for {project_name} set to {verbosity_lower}"
                 )
@@ -361,6 +364,7 @@ class FlextCliLoggingSetup(FlextService[dict[str, object]]):
         except Exception as e:
             return FlextResult[str].fail(f"Failed to configure project logging: {e}")
 
+    @override
     def execute(self) -> FlextResult[dict[str, object]]:
         """Execute the main logging setup operation.
 
@@ -377,12 +381,13 @@ class FlextCliLoggingSetup(FlextService[dict[str, object]]):
                 return FlextResult[dict[str, object]].fail(setup_result.error)
 
             # Return setup status
+            config = FlextCliConfig.get_global_instance()
             status_data: dict[str, object] = {
-                "service": "FlextCliLoggingSetup",
+                "service": FlextCliLoggingSetup,
                 "status": "configured",
                 "setup_complete": self.is_setup_complete,
-                "log_level": os.environ.get("FLEXT_LOG_LEVEL", "INFO"),
-                "log_verbosity": os.environ.get("FLEXT_LOG_VERBOSITY", "detailed"),
+                "log_level": config.log_level,
+                "log_verbosity": config.log_verbosity,
             }
 
             return FlextResult[dict[str, object]].ok(status_data)
@@ -410,12 +415,13 @@ class FlextCliLoggingSetup(FlextService[dict[str, object]]):
             await asyncio.sleep(0.001)
 
             # Return setup status
+            config = FlextCliConfig.get_global_instance()
             status_data: dict[str, object] = {
-                "service": "FlextCliLoggingSetup",
+                "service": FlextCliLoggingSetup,
                 "status": "configured_async",
                 "setup_complete": self.is_setup_complete,
-                "log_level": os.environ.get("FLEXT_LOG_LEVEL", "INFO"),
-                "log_verbosity": os.environ.get("FLEXT_LOG_VERBOSITY", "detailed"),
+                "log_level": config.log_level,
+                "log_verbosity": config.log_verbosity,
             }
 
             return FlextResult[dict[str, object]].ok(status_data)

@@ -37,7 +37,7 @@ from typing import TypedDict, cast
 from flext_cli import (
     FlextCliOutput,
 )
-from flext_core import FlextResult, FlextTypes
+from flext_core import FlextConstants, FlextResult, FlextTypes
 
 
 class DatabaseConfig(TypedDict):
@@ -258,9 +258,9 @@ def _demonstrate_output_formatting(formatter: FlextCliOutput) -> FlextResult[Non
 
     # Services data table
     services_data: dict[str, object] = {
-        "api-gateway": "Port 8080, Healthy",
-        "auth-service": "Port 8081, Healthy",
-        "database": "Port 5432, Unhealthy",
+        "api-gateway": f"Port {FlextConstants.Platform.FLEXT_API_PORT}, Healthy",
+        "auth-service": f"Port {FlextConstants.Platform.FLEXT_API_PORT + 1}, Healthy",
+        "database": f"Port {FlextConstants.Platform.POSTGRES_DEFAULT_PORT}, Unhealthy",
     }
 
     services_table_result = formatter.format_table(
@@ -279,8 +279,16 @@ def _demonstrate_file_operations(formatter: FlextCliOutput) -> FlextResult[None]
 
     # Sample configuration data
     config_data: dict[str, object] = {
-        "database": {"host": "localhost", "port": 5432, "database": "flext_demo"},
-        "api": {"host": "localhost", "port": 8080, "debug": False},
+        "database": {
+            "host": FlextConstants.Platform.DEFAULT_HOST,
+            "port": FlextConstants.Platform.POSTGRES_DEFAULT_PORT,
+            "database": "flext_demo",
+        },
+        "api": {
+            "host": FlextConstants.Platform.DEFAULT_HOST,
+            "port": FlextConstants.Platform.FLEXT_API_PORT,
+            "debug": False,
+        },
         "logging": {"level": "INFO", "file": "/var/log/flext-demo.log"},
     }
 

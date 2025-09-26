@@ -9,6 +9,8 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
+from typing import override
+
 from flext_cli.models import FlextCliModels
 from flext_core import FlextResult
 
@@ -28,6 +30,7 @@ class FlextCliProcessors:
     class CommandProcessor:
         """CLI command processor for processing command operations."""
 
+        @override
         def __init__(self) -> None:
             """Initialize command processor."""
             self._processed_commands: list[FlextCliModels.CliCommand] = []
@@ -97,6 +100,7 @@ class FlextCliProcessors:
     class SessionProcessor:
         """CLI session processor for processing session operations."""
 
+        @override
         def __init__(self) -> None:
             """Initialize session processor."""
             self._processed_sessions: list[FlextCliModels.CliSession] = []
@@ -166,6 +170,7 @@ class FlextCliProcessors:
     class DataProcessor:
         """CLI data processor for processing data operations."""
 
+        @override
         def __init__(self) -> None:
             """Initialize data processor."""
             self._processed_data: list[object] = []

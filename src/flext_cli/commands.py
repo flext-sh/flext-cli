@@ -9,6 +9,11 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
+from typing import override
+
+import requests
+
+from flext_cli.constants import FlextCliConstants
 from flext_core import (
     FlextContainer,
     FlextLogger,
@@ -27,6 +32,7 @@ class FlextCliCommands(FlextService[dict[str, object]]):
     class _CliGroup:
         """Nested helper for CLI group operations."""
 
+        @override
         def __init__(
             self, name: str, description: str, commands: dict[str, object]
         ) -> None:
@@ -35,6 +41,7 @@ class FlextCliCommands(FlextService[dict[str, object]]):
             self.description = description
             self.commands = commands
 
+    @override
     def __init__(
         self, name: str = "flext", description: str = "", **data: object
     ) -> None:
@@ -51,19 +58,20 @@ class FlextCliCommands(FlextService[dict[str, object]]):
             commands={},
         )
 
+    @override
     def execute(self) -> FlextResult[dict[str, object]]:
         """Execute the main domain service operation - required by FlextService."""
         return FlextResult[dict[str, object]].ok({
-            "status": "operational",
-            "service": "flext-cli",
+            "status": FlextCliConstants.OPERATIONAL,
+            "service": FlextCliConstants.FLEXT_CLI,
             "commands": list(self._commands.keys()),
         })
 
     async def execute_async(self) -> FlextResult[dict[str, object]]:
         """Execute the main domain service operation asynchronously."""
         return FlextResult[dict[str, object]].ok({
-            "status": "operational",
-            "service": "flext-cli",
+            "status": FlextCliConstants.OPERATIONAL,
+            "service": FlextCliConstants.FLEXT_CLI,
             "commands": list(self._commands.keys()),
         })
 
@@ -218,6 +226,15 @@ class FlextCliCommands(FlextService[dict[str, object]]):
         except Exception as e:
             return FlextResult[object].fail(f"Command execution failed: {e}")
 
+    def get_commands(self) -> dict[str, object]:
+        """Get all registered commands.
+
+        Returns:
+            dict[str, object]: Dictionary of registered commands
+
+        """
+        return self._commands.copy()
+
     def list_commands(self) -> FlextResult[list[str]]:
         """List all registered commands.
 
@@ -230,6 +247,41 @@ class FlextCliCommands(FlextService[dict[str, object]]):
             return FlextResult[list[str]].ok(command_names)
         except Exception as e:
             return FlextResult[list[str]].fail(f"Failed to list commands: {e}")
+
+    def make_http_request(
+        self,
+        url: str,
+        method: str = "GET",
+        headers: dict[str, str] | None = None,
+        data: str | None = None,
+        timeout: int = 30,
+    ) -> FlextResult[str]:
+        """Make HTTP request.
+
+        Args:
+            url: Request URL
+            method: HTTP method (GET, POST, etc.)
+            headers: Optional request headers
+            data: Optional request data
+            timeout: Request timeout in seconds
+
+        Returns:
+            FlextResult[str]: HTTP response content
+
+        """
+        try:
+            response = requests.request(
+                method=method.upper(),
+                url=url,
+                headers=headers,
+                data=data,
+                timeout=timeout,
+            )
+            response.raise_for_status()
+
+            return FlextResult[str].ok(response.text)
+        except Exception as e:
+            return FlextResult[str].fail(f"HTTP request failed: {e}")
 
     def create_main_cli(self) -> FlextCliCommands:
         """Create the main CLI instance.

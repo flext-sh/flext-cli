@@ -16,10 +16,12 @@ import sys
 import uuid
 from datetime import UTC, datetime
 from pathlib import Path
+from typing import override
 
 from flext_core.service import FlextService
 
-from flext_cli.typings import FlextCliTypes
+from flext_cli.constants import FlextCliConstants
+from flext_cli.typings import CliDataDict, FlextCliTypes
 from flext_core import (
     FlextContainer,
     FlextLogger,
@@ -34,6 +36,7 @@ class FlextCliDebug(FlextService[str]):
     Follows single-responsibility principle with nested helpers.
     """
 
+    @override
     def __init__(self, **_data: object) -> None:
         """Initialize debug service with flext-core integration."""
         super().__init__()
@@ -47,8 +50,8 @@ class FlextCliDebug(FlextService[str]):
         def get_system_info() -> dict[str, object]:
             """Get basic system information."""
             return {
-                "service": "FlextCliDebug",
-                "status": "operational",
+                "service": FlextCliDebug,
+                "status": FlextCliConstants.OPERATIONAL,
                 "timestamp": datetime.now(UTC).isoformat(),
                 "python_version": sys.version,
                 "platform": sys.platform,
@@ -88,19 +91,23 @@ class FlextCliDebug(FlextService[str]):
             flext_dir = home / ".flext"
 
             return [
-                {"label": "Home", "path": str(home), "exists": home.exists()},
                 {
-                    "label": "Config",
+                    "label": FlextCliConstants.HOME,
+                    "path": str(home),
+                    "exists": home.exists(),
+                },
+                {
+                    "label": FlextCliConstants.CONFIG,
                     "path": str(flext_dir),
                     "exists": flext_dir.exists(),
                 },
                 {
-                    "label": "Cache",
+                    "label": FlextCliConstants.CACHE,
                     "path": str(flext_dir / "cache"),
                     "exists": (flext_dir / "cache").exists(),
                 },
                 {
-                    "label": "Logs",
+                    "label": FlextCliConstants.LOGS,
                     "path": str(flext_dir / "logs"),
                     "exists": (flext_dir / "logs").exists(),
                 },
@@ -137,6 +144,7 @@ class FlextCliDebug(FlextService[str]):
 
             return results
 
+    @override
     def execute(self) -> FlextResult[str]:
         """Execute debug service - required by FlextService."""
         return FlextResult[str].ok("FlextCliDebug service operational")
@@ -147,63 +155,65 @@ class FlextCliDebug(FlextService[str]):
 
     def get_system_info(
         self,
-    ) -> FlextResult[FlextCliTypes.CliDataDict]:
+    ) -> FlextResult[CliDataDict]:
         """Get system information for debugging."""
         try:
             info = self._DebugHelper.get_system_info()
             # Convert to more specific type for better type safety
-            typed_info: FlextCliTypes.CliDataDict = {}
+            typed_info: CliDataDict = {}
             for key, value in info.items():
                 if isinstance(value, (str, int, float, bool, type(None))):
                     typed_info[key] = value
                 else:
                     typed_info[key] = str(value)
-            return FlextResult[FlextCliTypes.CliDataDict].ok(typed_info)
+            return FlextResult[FlextCliTypes.Data.CliDataDict].ok(typed_info)
         except Exception as e:
-            return FlextResult[FlextCliTypes.CliDataDict].fail(
+            return FlextResult[FlextCliTypes.Data.CliDataDict].fail(
                 f"System info failed: {e}"
             )
 
     def get_environment_variables(
         self,
-    ) -> FlextResult[FlextCliTypes.CliDataDict]:
+    ) -> FlextResult[CliDataDict]:
         """Get environment variables with sensitive data masked."""
         try:
             env_info = self._DebugHelper.get_environment_info()
             # Convert to more specific type for better type safety
-            typed_env_info: FlextCliTypes.CliDataDict = {}
+            typed_env_info: CliDataDict = {}
             for key, value in env_info.items():
                 if isinstance(value, (str, int, float, bool, type(None))):
                     typed_env_info[key] = value
                 else:
                     typed_env_info[key] = str(value)
-            return FlextResult[FlextCliTypes.CliDataDict].ok(typed_env_info)
+            return FlextResult[FlextCliTypes.Data.CliDataDict].ok(typed_env_info)
         except Exception as e:
-            return FlextResult[FlextCliTypes.CliDataDict].fail(
+            return FlextResult[FlextCliTypes.Data.CliDataDict].fail(
                 f"Environment info failed: {e}"
             )
 
     def get_system_paths(
         self,
-    ) -> FlextResult[list[FlextCliTypes.CliDataDict]]:
+    ) -> FlextResult[list[CliDataDict]]:
         """Get system path information."""
         try:
             paths = self._DebugHelper.get_path_info()
             # Convert to more specific type for better type safety
-            typed_paths: list[FlextCliTypes.CliDataDict] = []
+            typed_paths: list[CliDataDict] = []
             for path_dict in paths:
-                typed_path: FlextCliTypes.CliDataDict = {}
+                typed_path: CliDataDict = {}
                 for key, value in path_dict.items():
                     if isinstance(value, (str, int, float, bool, type(None))):
                         typed_path[key] = value
                     else:
                         typed_path[key] = str(value)
                 typed_paths.append(typed_path)
-            return FlextResult[list[FlextCliTypes.CliDataDict]].ok(typed_paths)
+            return FlextResult[list[CliDataDict]].ok(typed_paths)
         except Exception as e:
-            return FlextResult[list[FlextCliTypes.CliDataDict]].fail(
-                f"Path info failed: {e}"
-            )
+            return FlextResult[list[CliDataDict]].fail(f"Path info failed: {e}")
+
+    def get_path_info(self) -> FlextResult[list[CliDataDict]]:
+        """Get system path information (alias for get_system_paths)."""
+        return self.get_system_paths()
 
     def validate_environment_setup(self) -> FlextResult[list[str]]:
         """Validate environment setup and dependencies."""
@@ -217,10 +227,10 @@ class FlextCliDebug(FlextService[str]):
         """Test basic connectivity and service status."""
         try:
             connectivity_info = {
-                "status": "connected",
+                "status": FlextCliConstants.CONNECTED,
                 "timestamp": datetime.now(UTC).isoformat(),
-                "service": "FlextCliDebug",
-                "connectivity": "operational",
+                "service": FlextCliDebug,
+                "connectivity": FlextCliConstants.OPERATIONAL,
             }
             return FlextResult[dict[str, str]].ok(connectivity_info)
         except Exception as e:
@@ -230,7 +240,7 @@ class FlextCliDebug(FlextService[str]):
         """Execute comprehensive health check."""
         try:
             health_info: dict[str, object] = {
-                "status": "healthy",
+                "status": FlextCliConstants.HEALTHY,
                 "timestamp": datetime.now(UTC).isoformat(),
                 "service": self.__class__.__name__,
                 "check_id": str(uuid.uuid4()),
@@ -244,7 +254,7 @@ class FlextCliDebug(FlextService[str]):
         """Execute trace operation with provided arguments."""
         try:
             trace_info: dict[str, object] = {
-                "operation": "trace",
+                "operation": FlextCliConstants.TRACE,
                 "args": args,
                 "args_count": len(args),
                 "timestamp": datetime.now(UTC).isoformat(),
@@ -267,13 +277,53 @@ class FlextCliDebug(FlextService[str]):
                 "timestamp": datetime.now(UTC).isoformat(),
                 "debug_id": str(uuid.uuid4()),
                 "system_info": self._DebugHelper.get_system_info(),
-                "environment_status": "operational",
-                "connectivity_status": "connected",
+                "environment_status": FlextCliConstants.OPERATIONAL,
+                "connectivity_status": FlextCliConstants.CONNECTED,
             }
             return FlextResult[dict[str, object]].ok(debug_info)
         except Exception as e:
             return FlextResult[dict[str, object]].fail(
                 f"Debug info collection failed: {e}"
+            )
+
+    def get_comprehensive_debug_info(self) -> FlextResult[dict[str, object]]:
+        """Get comprehensive debug information combining all debug methods."""
+        try:
+            comprehensive_info: dict[str, object] = {}
+            
+            # Collect system info
+            system_result = self.get_system_info()
+            if system_result.is_success:
+                comprehensive_info["system"] = system_result.value
+            else:
+                comprehensive_info["system_error"] = system_result.error
+            
+            # Collect environment info
+            env_result = self.get_environment_variables()
+            if env_result.is_success:
+                comprehensive_info["environment"] = env_result.value
+            else:
+                comprehensive_info["environment_error"] = env_result.error
+            
+            # Collect paths info
+            paths_result = self.get_system_paths()
+            if paths_result.is_success:
+                comprehensive_info["paths"] = paths_result.value
+            else:
+                comprehensive_info["paths_error"] = paths_result.error
+            
+            # Collect debug info
+            debug_result = self.get_debug_info()
+            if debug_result.is_success:
+                comprehensive_info["debug"] = debug_result.value
+            else:
+                comprehensive_info["debug_error"] = debug_result.error
+            
+            return FlextResult[dict[str, object]].ok(comprehensive_info)
+            
+        except Exception as e:
+            return FlextResult[dict[str, object]].fail(
+                f"Comprehensive debug info collection failed: {e}"
             )
 
 

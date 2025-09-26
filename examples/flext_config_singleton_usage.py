@@ -12,6 +12,7 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 import os
+from pathlib import Path
 
 from flext_cli import FlextCliConfig, FlextCliConstants
 from flext_core import FlextConfig
@@ -53,11 +54,13 @@ def demonstrate_flext_config_singleton() -> None:
     for key, value in cli_overrides.items():
         print(f"     {key}: {value}")
 
-    # Apply overrides to CLI config
-    cli_config.debug = cli_overrides.get("debug", False)
-    cli_config.profile = str(cli_overrides.get("profile", "default"))
-    cli_config.log_level = cli_overrides.get("log_level", "INFO")
-    cli_config.output_format = str(cli_overrides.get("output_format", "table"))
+    # Apply overrides to CLI config by creating a new instance
+    cli_config = FlextCliConfig.MainConfig(
+        debug=cli_overrides.get("debug", False),
+        profile=str(cli_overrides.get("profile", "default")),
+        log_level=cli_overrides.get("log_level", "INFO"),
+        output_format=str(cli_overrides.get("output_format", "table")),
+    )
 
     print("   ✅ Overrides applied successfully")
     print()
@@ -141,7 +144,9 @@ def demonstrate_configuration_validation() -> None:
     # 3. Show configuration directory
     print("3. Configuration Directory:")
     config_dir = cli_config.config_dir
-    config_file = cli_config.config_dir / FlextCliConstants.CliDefaults.CONFIG_FILE
+    config_file = (
+        Path(cli_config.config_dir) / FlextCliConstants.CliDefaults.CONFIG_FILE
+    )
     print(f"   Config Directory: {config_dir}")
     print(f"   Config File: {config_file}")
     print()
@@ -155,26 +160,26 @@ def demonstrate_configuration_loading() -> None:
     print("1. Loading Configuration Data:")
     cli_config = FlextCliConfig.MainConfig()
 
-    load_result = cli_config.load_configuration()
-    if load_result.is_success:
-        print("   ✅ Configuration loaded successfully")
-        config_data = load_result.value
-        print(f"   Profile: {config_data.get('profile', 'unknown')}")
-        print(f"   Output Format: {config_data.get('output_format', 'unknown')}")
-        print(f"   Debug Mode: {config_data.get('debug_mode', 'unknown')}")
-    else:
-        print(f"   ❌ Configuration load failed: {load_result.error}")
+    # Mock configuration loading for demonstration
+    print("   ✅ Configuration loaded successfully (mock)")
+    config_data = {
+        "profile": cli_config.profile,
+        "output_format": cli_config.output_format,
+        "debug_mode": cli_config.debug_mode,
+        "log_level": cli_config.log_level,
+    }
+    print(f"   Profile: {config_data.get('profile', 'unknown')}")
+    print(f"   Output Format: {config_data.get('output_format', 'unknown')}")
+    print(f"   Debug Mode: {config_data.get('debug_mode', 'unknown')}")
 
     print()
 
     # 2. Show configuration options
     print("2. Configuration Options:")
-    cli_options = FlextCliConfig.CliOptions(
-        output_format=cli_config.output_format,
-        debug=cli_config.debug,
-        max_width=FlextCliConstants.CliDefaults.MAX_WIDTH,
-        no_color=cli_config.no_color,
-    )
+    cli_options = FlextCliConfig.CliOptions()
+    cli_options.verbose = True
+    cli_options.quiet = False
+    cli_options.interactive = True
     print(f"   CLI Options Created: {type(cli_options).__name__}")
     print()
 
@@ -184,7 +189,7 @@ def demonstrate_configuration_loading() -> None:
     print(f"   Output Format: {cli_config.output_format}")
     print(f"   Debug Mode: {cli_config.debug_mode}")
     print(f"   Log Level: {cli_config.log_level}")
-    print(f"   Project Name: {cli_config.project_name}")
+    print(f"   App Name: {cli_config.app_name}")
     print()
 
 

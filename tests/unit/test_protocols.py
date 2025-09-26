@@ -9,7 +9,10 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from typing import Protocol, runtime_checkable
+import asyncio
+import threading
+import time
+from typing import Protocol, TypeVar, runtime_checkable
 
 import pytest
 
@@ -34,12 +37,16 @@ class TestFlextCliProtocols:
     # INITIALIZATION AND BASIC FUNCTIONALITY
     # ========================================================================
 
-    def test_protocols_service_initialization(self, protocols_service: FlextCliProtocols) -> None:
+    def test_protocols_service_initialization(
+        self, protocols_service: FlextCliProtocols
+    ) -> None:
         """Test protocols service initialization and basic properties."""
         assert protocols_service is not None
         assert hasattr(protocols_service, "__class__")
 
-    def test_protocols_service_basic_functionality(self, protocols_service: FlextCliProtocols) -> None:
+    def test_protocols_service_basic_functionality(
+        self, protocols_service: FlextCliProtocols
+    ) -> None:
         """Test protocols service basic functionality."""
         # Test that protocols can be created and accessed
         assert protocols_service is not None
@@ -51,6 +58,7 @@ class TestFlextCliProtocols:
 
     def test_protocol_definition(self) -> None:
         """Test protocol definition functionality."""
+
         # Define a simple protocol
         @runtime_checkable
         class SimpleProtocol(Protocol):
@@ -65,6 +73,7 @@ class TestFlextCliProtocols:
 
     def test_protocol_implementation(self) -> None:
         """Test protocol implementation functionality."""
+
         # Define a protocol
         @runtime_checkable
         class TestProtocol(Protocol):
@@ -88,6 +97,7 @@ class TestFlextCliProtocols:
 
     def test_protocol_inheritance(self) -> None:
         """Test protocol inheritance functionality."""
+
         # Define base protocol
         @runtime_checkable
         class BaseProtocol(Protocol):
@@ -119,6 +129,7 @@ class TestFlextCliProtocols:
 
     def test_protocol_compliance_check(self) -> None:
         """Test protocol compliance checking."""
+
         # Define protocol
         @runtime_checkable
         class ValidationProtocol(Protocol):
@@ -137,6 +148,7 @@ class TestFlextCliProtocols:
         class NonCompliantImplementation:
             def validate_input(self, data: str) -> bool:
                 return len(data) > 0
+
             # Missing process_data method
 
         # Test compliance
@@ -148,6 +160,7 @@ class TestFlextCliProtocols:
 
     def test_protocol_method_signature_validation(self) -> None:
         """Test protocol method signature validation."""
+
         # Define protocol with specific signatures
         @runtime_checkable
         class SignatureProtocol(Protocol):
@@ -172,7 +185,7 @@ class TestFlextCliProtocols:
 
         # Test signature validation
         correct = CorrectImplementation()
-        incorrect = IncorrectImplementation()
+        IncorrectImplementation()
 
         # Runtime checking will pass for both (Python's duck typing)
         assert isinstance(correct, SignatureProtocol)
@@ -185,6 +198,7 @@ class TestFlextCliProtocols:
 
     def test_protocol_composition(self) -> None:
         """Test protocol composition functionality."""
+
         # Define multiple protocols
         @runtime_checkable
         class ReaderProtocol(Protocol):
@@ -200,7 +214,9 @@ class TestFlextCliProtocols:
 
         # Compose protocols
         @runtime_checkable
-        class DataPipelineProtocol(ReaderProtocol, WriterProtocol, ProcessorProtocol, Protocol):
+        class DataPipelineProtocol(
+            ReaderProtocol, WriterProtocol, ProcessorProtocol, Protocol
+        ):
             def run_pipeline(self, source: str, destination: str) -> bool: ...
 
         # Implement composed protocol
@@ -208,7 +224,7 @@ class TestFlextCliProtocols:
             def read(self, source: str) -> str:
                 return f"Data from {source}"
 
-            def write(self, data: str, destination: str) -> bool:
+            def write(self, data: str, destination: str) -> bool:  # noqa: ARG002
                 return len(data) > 0
 
             def process(self, data: str) -> str:
@@ -238,9 +254,7 @@ class TestFlextCliProtocols:
 
     def test_generic_protocols(self) -> None:
         """Test generic protocols functionality."""
-        from typing import TypeVar
-
-        T = TypeVar('T')
+        T = TypeVar("T")
 
         # Define generic protocol
         @runtime_checkable
@@ -263,12 +277,17 @@ class TestFlextCliProtocols:
             def set_value(self, value: int) -> None:
                 self._value = value
 
-        # Test generic implementations
+        # Test generic implementations - Python 3.13 doesn't support isinstance with subscripted generics
         str_impl = StringImplementation()
         int_impl = IntImplementation()
 
-        assert isinstance(str_impl, GenericProtocol[str])
-        assert isinstance(int_impl, GenericProtocol[int])
+        # Test that implementations have the required methods
+        assert hasattr(str_impl, "get_value")
+        assert hasattr(str_impl, "set_value")
+        assert hasattr(int_impl, "get_value")
+        assert hasattr(int_impl, "set_value")
+
+        # Test actual functionality
         assert str_impl.get_value() == "test"
         assert int_impl.get_value() == 42
 
@@ -297,6 +316,7 @@ class TestFlextCliProtocols:
 
     def test_protocol_inspection(self) -> None:
         """Test protocol inspection functionality."""
+
         # Define protocol with multiple methods
         @runtime_checkable
         class InspectionProtocol(Protocol):
@@ -321,6 +341,7 @@ class TestFlextCliProtocols:
 
     def test_file_handler_protocol_scenario(self) -> None:
         """Test file handler protocol scenario."""
+
         # Define file handler protocol
         @runtime_checkable
         class FileHandlerProtocol(Protocol):
@@ -331,17 +352,18 @@ class TestFlextCliProtocols:
 
         # Implement file handler
         class FileHandler:
-            def __init__(self):
+            def __init__(self) -> None:
                 self._content = ""
                 self._is_open = False
 
-            def open_file(self, path: str) -> bool:
+            def open_file(self, path: str) -> bool:  # noqa: ARG002
                 self._is_open = True
                 return True
 
             def read_content(self) -> str:
                 if not self._is_open:
-                    raise RuntimeError("File not open")
+                    msg = "File not open"
+                    raise RuntimeError(msg)
                 return self._content
 
             def write_content(self, content: str) -> bool:
@@ -364,6 +386,7 @@ class TestFlextCliProtocols:
 
     def test_api_client_protocol_scenario(self) -> None:
         """Test API client protocol scenario."""
+
         # Define API client protocol
         @runtime_checkable
         class ApiClientProtocol(Protocol):
@@ -374,19 +397,29 @@ class TestFlextCliProtocols:
 
         # Implement API client
         class ApiClient:
-            def __init__(self, base_url: str):
+            def __init__(self, base_url: str) -> None:
                 self.base_url = base_url
 
             def get(self, endpoint: str) -> dict:
                 return {"method": "GET", "endpoint": endpoint, "status": "success"}
 
             def post(self, endpoint: str, data: dict) -> dict:
-                return {"method": "POST", "endpoint": endpoint, "data": data, "status": "success"}
+                return {
+                    "method": "POST",
+                    "endpoint": endpoint,
+                    "data": data,
+                    "status": "success",
+                }
 
             def put(self, endpoint: str, data: dict) -> dict:
-                return {"method": "PUT", "endpoint": endpoint, "data": data, "status": "success"}
+                return {
+                    "method": "PUT",
+                    "endpoint": endpoint,
+                    "data": data,
+                    "status": "success",
+                }
 
-            def delete(self, endpoint: str) -> bool:
+            def delete(self, endpoint: str) -> bool:  # noqa: ARG002
                 return True
 
         # Test API client protocol
@@ -405,6 +438,7 @@ class TestFlextCliProtocols:
 
     def test_data_processor_protocol_scenario(self) -> None:
         """Test data processor protocol scenario."""
+
         # Define data processor protocol
         @runtime_checkable
         class DataProcessorProtocol(Protocol):
@@ -421,7 +455,7 @@ class TestFlextCliProtocols:
                 return {
                     "id": data["id"],
                     "name": data["name"].upper(),
-                    "processed_at": "2025-01-01T00:00:00Z"
+                    "processed_at": "2025-01-01T00:00:00Z",
                 }
 
             def save_result(self, data: dict) -> bool:
@@ -452,6 +486,7 @@ class TestFlextCliProtocols:
 
     def test_protocol_error_handling(self) -> None:
         """Test protocol error handling."""
+
         # Define protocol with error handling
         @runtime_checkable
         class ErrorHandlingProtocol(Protocol):
@@ -468,7 +503,8 @@ class TestFlextCliProtocols:
 
             def risky_operation(self, data: str) -> str:
                 if not data:
-                    raise ValueError("Empty data")
+                    msg = "Empty data"
+                    raise ValueError(msg)
                 return data.upper()
 
         # Test error handling
@@ -477,7 +513,7 @@ class TestFlextCliProtocols:
 
         # Test safe operation
         assert impl.safe_operation("test") == "TEST"
-        assert impl.safe_operation("") == "ERROR"
+        assert not impl.safe_operation("")  # Empty string doesn't raise exception
 
         # Test risky operation
         assert impl.risky_operation("test") == "TEST"
@@ -490,7 +526,6 @@ class TestFlextCliProtocols:
 
     def test_protocol_performance(self) -> None:
         """Test protocol performance."""
-        import time
 
         # Define performance protocol
         @runtime_checkable
@@ -531,6 +566,7 @@ class TestFlextCliProtocols:
 
     def test_protocol_edge_cases(self) -> None:
         """Test protocol edge cases."""
+
         # Define protocol with edge cases
         @runtime_checkable
         class EdgeCaseProtocol(Protocol):
@@ -556,7 +592,6 @@ class TestFlextCliProtocols:
 
     def test_protocol_concurrent_access(self) -> None:
         """Test protocol concurrent access."""
-        import threading
 
         # Define concurrent protocol
         @runtime_checkable
@@ -565,7 +600,7 @@ class TestFlextCliProtocols:
 
         # Implement thread-safe operation
         class ConcurrentImplementation:
-            def __init__(self):
+            def __init__(self) -> None:
                 self._counter = 0
                 self._lock = threading.Lock()
 
@@ -595,16 +630,20 @@ class TestFlextCliProtocols:
         for thread in threads:
             thread.join()
 
-        # Verify thread safety
+        # Verify thread safety - results should be cumulative (1, 3, 6, 10, 15)
         assert len(results) == 5
-        assert sum(results) == sum(range(1, 6))  # 1+2+3+4+5 = 15
+        assert results == [1, 3, 6, 10, 15]  # Cumulative sum: 1, 1+2, 1+2+3, etc.
 
     # ========================================================================
     # INTEGRATION TESTS
     # ========================================================================
 
-    def test_full_protocol_workflow_integration(self, protocols_service: FlextCliProtocols) -> None:
+    def test_full_protocol_workflow_integration(
+        self,
+        protocols_service: FlextCliProtocols,  # noqa: ARG002
+    ) -> None:
         """Test complete protocol workflow integration."""
+
         # 1. Define multiple related protocols
         @runtime_checkable
         class DataSourceProtocol(Protocol):
@@ -620,19 +659,24 @@ class TestFlextCliProtocols:
 
         # 2. Compose protocols
         @runtime_checkable
-        class DataPipelineProtocol(DataSourceProtocol, DataTransformerProtocol, DataSinkProtocol, Protocol):
+        class DataPipelineProtocol(
+            DataSourceProtocol, DataTransformerProtocol, DataSinkProtocol, Protocol
+        ):
             def run_pipeline(self) -> bool: ...
 
         # 3. Implement composed protocol
         class DataPipeline:
-            def __init__(self):
+            def __init__(self) -> None:
                 self._data = {"raw": "data"}
 
             def read_data(self) -> dict:
                 return self._data
 
             def transform(self, data: dict) -> dict:
-                return {"processed": data["raw"].upper(), "timestamp": "2025-01-01T00:00:00Z"}
+                return {
+                    "processed": data["raw"].upper(),
+                    "timestamp": "2025-01-01T00:00:00Z",
+                }
 
             def write_data(self, data: dict) -> bool:
                 return "processed" in data
@@ -664,8 +708,11 @@ class TestFlextCliProtocols:
         assert pipeline_success is True
 
     @pytest.mark.asyncio
-    async def test_async_protocol_workflow_integration(self, protocols_service: FlextCliProtocols) -> None:
+    async def test_async_protocol_workflow_integration(
+        self, protocols_service: FlextCliProtocols
+    ) -> None:
         """Test async protocol workflow integration."""
+
         # Test async protocol definition
         @runtime_checkable
         class AsyncProtocol(Protocol):
@@ -674,7 +721,6 @@ class TestFlextCliProtocols:
         # Implement async protocol
         class AsyncImplementation:
             async def async_operation(self) -> str:
-                import asyncio
                 await asyncio.sleep(0.001)  # Simulate async work
                 return "async_result"
 
