@@ -17,6 +17,7 @@ import subprocess  # nosec B404
 from collections.abc import Callable
 from datetime import UTC, datetime
 from pathlib import Path
+from typing import cast, override
 from uuid import UUID, uuid4
 
 import yaml
@@ -51,6 +52,7 @@ class FlextCliService(FlextService[FlextTypes.Core.Dict]):
     monadic composition for better error handling and code clarity.
     """
 
+    @override
     def __init__(self) -> None:
         """Initialize CLI service with flext-core dependencies."""
         super().__init__()
@@ -61,12 +63,11 @@ class FlextCliService(FlextService[FlextTypes.Core.Dict]):
         self._handlers: dict[str, HandlerFunction] = {}
         self._plugins: dict[str, FlextCliModels.CliCommand] = {}
         self._sessions: dict[str, FlextCliModels.CliSession] = {}
-        self._commands: dict[str, FlextCliModels.CliCommand] = {}
+        self._commands: FlextCliCommands = FlextCliCommands()
         self._formatters = FlextCliModels.CliFormatters()
 
         # Initialize service dependencies
         self._files = FlextCliFileTools()
-        self._commands = FlextCliCommands()
         self._utils = FlextCliUtilities()
 
         # Initialize advanced components
@@ -78,6 +79,7 @@ class FlextCliService(FlextService[FlextTypes.Core.Dict]):
     class _AdvancedValidationHelper:
         """Advanced validation helper with railway-oriented programming patterns."""
 
+        @override
         def __init__(self) -> None:
             """Initialize validation helper."""
             self._logger = FlextLogger(f"{__name__}._ValidationHelper")
@@ -139,7 +141,7 @@ class FlextCliService(FlextService[FlextTypes.Core.Dict]):
                 data: Command data to validate
 
             Returns:
-                Union[FlextResult[dict[str, Union[str, int], float] | bool]]: Validated command data
+                FlextResult[dict[str | str | int | float | bool]]: Validated command data
 
             """
             if not isinstance(data, dict):
@@ -157,6 +159,7 @@ class FlextCliService(FlextService[FlextTypes.Core.Dict]):
     class _AdvancedStateHelper:
         """Advanced state helper with railway-oriented programming patterns."""
 
+        @override
         def __init__(self) -> None:
             """Initialize state helper."""
             self._logger = FlextLogger(f"{__name__}._StateHelper")
@@ -244,6 +247,7 @@ class FlextCliService(FlextService[FlextTypes.Core.Dict]):
     class _AdvancedCommandProcessor:
         """Advanced command processor with railway-oriented programming patterns."""
 
+        @override
         def __init__(self) -> None:
             """Initialize command processor."""
             self._logger = FlextLogger(f"{__name__}._CommandProcessor")
@@ -263,11 +267,11 @@ class FlextCliService(FlextService[FlextTypes.Core.Dict]):
             """
             try:
                 # Add command processing logic here
-                processed_data = data.copy()
+                processed_data = dict(data) if isinstance(data, dict) else {}
                 processed_data["command"] = command
                 processed_data["processed_at"] = datetime.now(UTC).isoformat()
 
-                return FlextResult[HandlerData].ok(processed_data)
+                return FlextResult[HandlerData].ok(cast("HandlerData", processed_data))
             except Exception as e:
                 return FlextResult[HandlerData].fail(f"Failed to process command: {e}")
 
@@ -290,6 +294,7 @@ class FlextCliService(FlextService[FlextTypes.Core.Dict]):
     class _AdvancedSessionManager:
         """Advanced session manager with railway-oriented programming patterns."""
 
+        @override
         def __init__(self) -> None:
             """Initialize session manager."""
             self._logger = FlextLogger(f"{__name__}._SessionManager")
@@ -453,7 +458,7 @@ class FlextCliService(FlextService[FlextTypes.Core.Dict]):
 
     def get_commands(self) -> dict[str, FlextCliModels.CliCommand]:
         """Get registered commands."""
-        return self._commands.copy()
+        return cast("dict[str, FlextCliModels.CliCommand]", self._commands.get_commands())
 
     def get_formatters(self) -> FlextCliModels.CliFormatters:
         """Get formatters instance."""
@@ -493,7 +498,9 @@ class FlextCliService(FlextService[FlextTypes.Core.Dict]):
                         "CSV format requires list of dictionaries"
                     )
                 # Type narrowing: at this point we know data is list[dict]
-                csv_data = data  # data is already Union[list[dict[str, Union[str, int], float] | bool]]
+                csv_data = (
+                    data  # data is already list[dict[str | str | int | float | bool]]
+                )
                 if not csv_data:
                     return FlextResult[None].fail("No valid dictionary data found")
                 with path.open("w", encoding="utf-8", newline="") as f:
@@ -520,7 +527,7 @@ class FlextCliService(FlextService[FlextTypes.Core.Dict]):
             "handlers": len(self._handlers),
             "plugins": len(self._plugins),
             "sessions": len(self._sessions),
-            "commands": len(self._commands),
+            "commands": len(self._commands.get_commands()),
         }
         return FlextResult[dict[str, str | int | bool]].ok(health_data)
 
@@ -552,8 +559,14 @@ class FlextCliService(FlextService[FlextTypes.Core.Dict]):
                     )
 
             command = FlextCliModels.CliCommand(command_line=command_line.strip())
-            self._commands[command.id] = command
-            return FlextResult[FlextCliModels.CliCommand].ok(command)
+            register_result = self._commands.register_command(
+                name=command.id,
+                handler=command,
+                description=command.command_line
+            )
+            if register_result.is_success:
+                return FlextResult[FlextCliModels.CliCommand].ok(command)
+            return FlextResult[FlextCliModels.CliCommand].fail(register_result.error or "Command registration failed")
         except Exception as e:
             return FlextResult[FlextCliModels.CliCommand].fail(
                 f"Command creation failed: {e}"
@@ -647,8 +660,14 @@ class FlextCliService(FlextService[FlextTypes.Core.Dict]):
         try:
             command = FlextCliModels.CliCommand(command=command_line)
             command.id = name
-            self._commands[name] = command
-            return FlextResult[FlextCliModels.CliCommand].ok(command)
+            register_result = self._commands.register_command(
+                name=name,
+                handler=command,
+                description=command_line
+            )
+            if register_result.is_success:
+                return FlextResult[FlextCliModels.CliCommand].ok(command)
+            return FlextResult[FlextCliModels.CliCommand].fail(register_result.error or "Command registration failed")
         except Exception as e:
             return FlextResult[FlextCliModels.CliCommand].fail(
                 f"Command creation failed: {e}"
@@ -696,7 +715,7 @@ class FlextCliService(FlextService[FlextTypes.Core.Dict]):
             "handlers": len(self._handlers),
             "plugins": len(self._plugins),
             "sessions": len(self._sessions),
-            "commands": len(self._commands),
+            "commands": len(self._commands._commands),
         }
 
     # =========================================================================
@@ -832,7 +851,7 @@ class FlextCliService(FlextService[FlextTypes.Core.Dict]):
             )
 
             if dispatch_result.is_success:
-                return FlextResult[HandlerData].ok(dispatch_result.value)
+                return FlextResult[HandlerData].ok(cast("HandlerData", dispatch_result.value))
             return FlextResult[HandlerData].fail(
                 f"Dispatcher execution failed: {dispatch_result.error}"
             )
@@ -882,7 +901,8 @@ class FlextCliService(FlextService[FlextTypes.Core.Dict]):
                         f"Unsafe command part detected: '{part}'"
                     )
 
-            result = subprocess.run(  # nosec B603  # noqa: S603
+            # Command parts are validated above for safety
+            result = subprocess.run(  # noqa: S603
                 command_parts,
                 check=False,
                 capture_output=True,
@@ -905,7 +925,7 @@ class FlextCliService(FlextService[FlextTypes.Core.Dict]):
         """Get command history."""
         try:
             return FlextResult[list[FlextCliModels.CliCommand]].ok(
-                list(self._commands.values())
+                list(self._commands._commands.values())
             )
         except Exception as e:
             return FlextResult[list[FlextCliModels.CliCommand]].fail(
@@ -915,8 +935,8 @@ class FlextCliService(FlextService[FlextTypes.Core.Dict]):
     def clear_command_history(self) -> FlextResult[int]:
         """Clear command history."""
         try:
-            count = len(self._commands)
-            self._commands.clear()
+            count = len(self._commands._commands)
+            self._commands._commands.clear()
             return FlextResult[int].ok(count)
         except Exception as e:
             return FlextResult[int].fail(f"Failed to clear command history: {e}")
@@ -1122,6 +1142,7 @@ class FlextCliService(FlextService[FlextTypes.Core.Dict]):
                 f"Failed to create command definition: {e}"
             )
 
+    @override
     def execute(self) -> FlextResult[FlextTypes.Core.Dict]:
         """Execute the main CLI service operation.
 
@@ -1242,7 +1263,7 @@ class FlextCliService(FlextService[FlextTypes.Core.Dict]):
 
         """
         health_data = {
-            **data,
+            **dict(data),
             "health": "ok",
             "timestamp": datetime.now(UTC).isoformat(),
         }
@@ -1281,17 +1302,28 @@ class FlextCliService(FlextService[FlextTypes.Core.Dict]):
         """List files in directory."""
         return self._files.list_directory(directory_path)
 
-    def execute_command(self, command: str, args: list[str] | None = None, timeout: int = 30) -> FlextResult[str]:
+    def execute_command(
+        self, command: str, args: list[str] | None = None, timeout: int = 30
+    ) -> FlextResult[str]:
         """Execute shell command."""
-        if args:
-            full_command = f"{command} {' '.join(args)}"
-        else:
-            full_command = command
+        full_command = f"{command} {' '.join(args)}" if args else command
         return self._commands.execute_command(full_command, timeout)
 
-    def make_http_request(self, method: str, url: str, data: dict[str, object] | None = None, timeout: int = 10) -> FlextResult[str]:
+    def make_http_request(
+        self,
+        method: str,
+        url: str,
+        data: dict[str, object] | None = None,
+        timeout: int = 10,
+    ) -> FlextResult[str]:
         """Make HTTP request."""
-        return self._commands.make_http_request(url, method, None, str(data) if data else None)
+        # Note: timeout parameter is for future use when HTTP client supports it
+        self._logger.debug(
+            f"Making HTTP {method} request to {url} with timeout {timeout}s"
+        )
+        return self._commands.make_http_request(
+            url, method, None, str(data) if data else None
+        )
 
     def parse_json_data(self, json_data: str) -> FlextResult[dict[str, object]]:
         """Parse JSON data."""
@@ -1337,11 +1369,15 @@ class FlextCliService(FlextService[FlextTypes.Core.Dict]):
         """Generate UUID string."""
         return self._utils.generate_uuid()
 
-    def format_timestamp(self, timestamp: float, format_str: str = "%Y-%m-%d %H:%M:%S") -> FlextResult[str]:
+    def format_timestamp(
+        self, timestamp: float, format_str: str = "%Y-%m-%d %H:%M:%S"
+    ) -> FlextResult[str]:
         """Format timestamp to string."""
         return self._utils.format_timestamp(timestamp, format_str)
 
-    def save_configuration(self, config_path: str, config: dict[str, object]) -> FlextResult[bool]:
+    def save_configuration(
+        self, config_path: str, config: dict[str, object]
+    ) -> FlextResult[bool]:
         """Save configuration to file."""
         return self._files.save_json_file(config_path, config)
 

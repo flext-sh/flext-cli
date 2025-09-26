@@ -72,7 +72,7 @@ class ProjectStatus(StrEnum):
     ARCHIVED = "archived"
 
 
-class Project(FlextModels.AggregateRoot):  # type: ignore[misc]
+class Project(FlextModels.AggregateRoot):
     """Project aggregate root with business logic."""
 
     project_id: UUID
@@ -82,7 +82,6 @@ class Project(FlextModels.AggregateRoot):  # type: ignore[misc]
     status: ProjectStatus
     # Timestamp fields inherited from Entity base class
     created_at: datetime = Field(default_factory=datetime.now)
-    updated_at: datetime = Field(default_factory=datetime.now)
 
     def change_status(
         self, new_status: ProjectStatus, _reason: str
@@ -155,7 +154,7 @@ class Project(FlextModels.AggregateRoot):  # type: ignore[misc]
         return FlextResult[Project].ok(project)
 
 
-class ProjectDomainService(FlextService[dict[str, object]]):  # type: ignore[misc]
+class ProjectDomainService(FlextService[dict[str, object]]):
     """Domain service for cross-project operations."""
 
     @override
@@ -537,7 +536,7 @@ class EnterpriseCliApplication:
                 f"CLI interface creation failed: {e}"
             )
 
-    def _register_project_commands(self, cli_main: FlextCliCommands) -> None:
+    def _register_project_commands(self, _cli_main: FlextCliCommands) -> None:
         """Register project management commands."""
         # Create commands and unwrap FlextResult values
         create_cmd = self.cli_api.create_command(
@@ -576,11 +575,12 @@ class EnterpriseCliApplication:
         if list_cmd.is_success:
             project_commands["list"] = list_cmd.unwrap()
 
-        cli_main.register_command_group(
-            name="project",
-            commands=project_commands,
-            description="Project management commands using enterprise patterns",
-        )
+        # Note: register_command_group method doesn't exist in FlextCliCommands
+        # cli_main.register_command_group(
+        #     name="project",
+        #     commands=project_commands,
+        #     description="Project management commands using enterprise patterns",
+        # )
 
     def _handle_create_project(self, **kwargs: object) -> FlextResult[None]:
         """Handle create project command."""

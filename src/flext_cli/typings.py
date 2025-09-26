@@ -13,7 +13,7 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from typing import TypeVar
+from typing import Any, Literal, TypeVar
 
 from flext_core import FlextTypes
 
@@ -47,12 +47,20 @@ class FlextCliTypes(FlextTypes):
     class Command:
         """CLI command-specific complex types."""
 
-        type CommandDefinition = dict[str, str | list[str] | dict[str, object]]
-        type CommandPipeline = list[dict[str, FlextTypes.Core.JsonValue]]
-        type CommandRegistry = dict[str, CommandDefinition]
-        type CommandContext = dict[str, FlextTypes.Core.JsonValue | object]
-        type CommandResult = dict[str, FlextTypes.Core.JsonValue | bool]
-        type CommandMetadata = dict[str, str | int | list[str]]
+        CommandDefinition = dict[str, str | list[str] | dict[str, Any]]
+        CommandPipeline = list[dict[str, FlextTypes.Core.JsonValue]]
+        CommandRegistry = dict[str, dict[str, str | list[str] | dict[str, Any]]]
+        CommandContext = dict[str, FlextTypes.Core.JsonValue | Any]
+        CommandResult = dict[str, FlextTypes.Core.JsonValue | bool]
+        CommandMetadata = dict[str, str | int | list[str]]
+
+    class CliCommandResult:
+        """CLI command result type definitions."""
+
+        # Core command result types
+        CommandResultData = dict[str, Any]
+        CommandResultStatus = Literal["success", "failure", "error"]
+        CommandResultMetadata = dict[str, str | int | bool]
 
     # =========================================================================
     # CLI CONFIGURATION TYPES - Complex configuration types
@@ -61,42 +69,36 @@ class FlextCliTypes(FlextTypes):
     class Configuration:
         """CLI configuration complex types."""
 
-        type CliConfigSchema = dict[str, dict[str, FlextTypes.Core.ConfigValue]]
-        type ProfileConfiguration = dict[str, FlextTypes.Core.ConfigDict]
-        type EnvironmentConfig = dict[
-            str, FlextTypes.Core.ConfigValue | dict[str, object]
-        ]
-        type SessionConfiguration = dict[str, FlextTypes.Core.JsonValue | bool]
-        type AuthenticationConfig = dict[str, str | int | bool | list[str]]
+        CliConfigSchema = dict[str, dict[str, FlextTypes.Core.ConfigValue]]
+        ProfileConfiguration = dict[str, FlextTypes.Core.ConfigDict]
+        EnvironmentConfig = dict[str, FlextTypes.Core.ConfigValue | dict[str, Any]]
+        SessionConfiguration = dict[str, FlextTypes.Core.JsonValue | bool]
+        AuthenticationConfig = dict[str, str | int | bool | list[str]]
 
     # =========================================================================
     # CLI OUTPUT TYPES - Complex output formatting types
     # =========================================================================
 
-    class Output:
-        """CLI output formatting complex types."""
+    class Output(FlextTypes.Output):
+        """CLI output formatting complex types extending FlextTypes.Output."""
 
-        type FormatterConfig = dict[
-            str, FlextTypes.Output.OutputFormat | dict[str, str]
-        ]
-        type TableConfiguration = dict[str, str | int | list[str] | bool]
-        type ProgressBarConfig = dict[str, str | int | bool]
-        type OutputPipeline = list[dict[str, FlextTypes.Output.OutputFormat | object]]
-        type RenderingOptions = dict[str, bool | str | int | list[str]]
+        FormatterConfig = dict[str, FlextTypes.Output.OutputFormat | dict[str, str]]
+        TableConfiguration = dict[str, str | int | list[str] | bool]
+        ProgressBarConfig = dict[str, str | int | bool]
+        OutputPipeline = list[dict[str, FlextTypes.Output.OutputFormat | Any]]
+        RenderingOptions = dict[str, bool | str | int | list[str]]
 
     # =========================================================================
     # CLI PROCESSING TYPES - Complex processing types
     # =========================================================================
 
-    class Processing:
-        """CLI processing complex types."""
+    class Processing(FlextTypes.Processing):
+        """CLI processing complex types extending FlextTypes.Processing."""
 
-        type BatchOperation = dict[str, list[dict[str, FlextTypes.Core.JsonValue]]]
-        type PipelineDefinition = list[dict[str, str | dict[str, object]]]
-        type WorkflowConfiguration = dict[
-            str, FlextTypes.Processing.ProcessingStatus | object
-        ]
-        type TaskConfiguration = dict[str, FlextTypes.Core.JsonValue | bool]
+        BatchOperation = dict[str, list[dict[str, FlextTypes.Core.JsonValue]]]
+        PipelineDefinition = list[dict[str, str | dict[str, Any]]]
+        WorkflowConfiguration = dict[str, FlextTypes.Processing.ProcessingStatus | Any]
+        TaskConfiguration = dict[str, FlextTypes.Core.JsonValue | bool]
 
     # =========================================================================
     # CLI DATA TYPES - Complex data processing types
@@ -105,17 +107,51 @@ class FlextCliTypes(FlextTypes):
     class Data:
         """CLI data processing complex types."""
 
-        type PandasReadCsvKwargs = dict[str, str | int | bool | object]
-        type PyArrowReadTableKwargs = dict[str, str | int | bool | object]
-        type PyArrowWriteTableKwargs = dict[str, str | int | bool | object]
-        type CliDataDict = dict[str, FlextTypes.Core.JsonValue]
-        type CliCommandData = dict[str, FlextTypes.Core.JsonValue]
-        type CliCommandResult = dict[str, FlextTypes.Core.JsonValue | bool]
-        type CliCommandArgs = dict[str, FlextTypes.Core.JsonValue]
-        type CliFormatData = dict[str, FlextTypes.Core.JsonValue]
-        type CliConfigData = dict[str, FlextTypes.Core.JsonValue]
-        type AuthConfigData = dict[str, str | int | bool]
-        type DebugInfoData = dict[str, FlextTypes.Core.JsonValue | bool]
+        PandasReadCsvKwargs = dict[str, str | int | bool | Any]
+        PyArrowReadTableKwargs = dict[str, str | int | bool | Any]
+        PyArrowWriteTableKwargs = dict[str, str | int | bool | Any]
+        CliDataDict = dict[str, FlextTypes.Core.JsonValue]
+        CliCommandData = dict[str, FlextTypes.Core.JsonValue]
+        CliCommandResult = dict[str, FlextTypes.Core.JsonValue | bool]
+        CliCommandArgs = dict[str, FlextTypes.Core.JsonValue]
+        CliFormatData = dict[str, FlextTypes.Core.JsonValue]
+        CliConfigData = dict[str, FlextTypes.Core.JsonValue]
+        AuthConfigData = dict[str, str | int | bool]
+        DebugInfoData = dict[str, FlextTypes.Core.JsonValue | bool]
+
+    class PandasTypes:
+        """Pandas-specific type definitions for CLI data processing."""
+
+        PandasToCsvKwargs = dict[str, str | int | bool | Any]
+
+    # =========================================================================
+    # CLI PROJECT TYPES - Domain-specific project types extending FlextTypes
+    # =========================================================================
+
+    class Project(FlextTypes.Project):
+        """CLI-specific project types extending FlextTypes.Project.
+
+        Adds CLI-specific project types while inheriting generic types from FlextTypes.
+        Follows domain separation principle: CLI domain owns CLI-specific types.
+        """
+
+        # CLI-specific project types extending the generic ones
+        CliProjectType = Literal[
+            # CLI-specific types
+            "cli-tool",
+            "console-app",
+            "terminal-ui",
+            "command-runner",
+            "interactive-cli",
+            "batch-processor",
+            "cli-wrapper",
+        ]
+
+        # CLI-specific project configurations
+        CliProjectConfig = dict[str, FlextTypes.Core.ConfigValue | Any]
+        CommandLineConfig = dict[str, str | int | bool | list[str]]
+        InteractiveConfig = dict[str, bool | str | dict[str, Any]]
+        OutputConfig = dict[str, FlextTypes.Output.OutputFormat | Any]
 
 
 # Module-level type aliases for direct access
@@ -123,15 +159,34 @@ PandasReadCsvKwargs = FlextCliTypes.Data.PandasReadCsvKwargs
 PyArrowReadTableKwargs = FlextCliTypes.Data.PyArrowReadTableKwargs
 PyArrowWriteTableKwargs = FlextCliTypes.Data.PyArrowWriteTableKwargs
 
+# CLI Data types for direct access
+CliDataDict = FlextCliTypes.Data.CliDataDict
+CliCommandData = FlextCliTypes.Data.CliCommandData
+CliCommandArgs = FlextCliTypes.Data.CliCommandArgs
+CliCommandResult = FlextCliTypes.Data.CliCommandResult
+CliFormatData = FlextCliTypes.Data.CliFormatData
+CliConfigData = FlextCliTypes.Data.CliConfigData
+AuthConfigData = FlextCliTypes.Data.AuthConfigData
+DebugInfoData = FlextCliTypes.Data.DebugInfoData
+
 
 # =============================================================================
 # PUBLIC API EXPORTS - CLI TypeVars and types
 # =============================================================================
 
 __all__: list[str] = [
-    # CLI Types class
+    "AuthConfigData",
+    "CliCommandArgs",
+    "CliCommandData",
+    "CliCommandResult",
+    "CliConfigData",
+    "CliDataDict",
+    "CliFormatData",
+    "DebugInfoData",
     "FlextCliTypes",
-    # CLI-specific TypeVars
+    "PandasReadCsvKwargs",
+    "PyArrowReadTableKwargs",
+    "PyArrowWriteTableKwargs",
     "TCliCommand",
     "TCliConfig",
     "TCliContext",

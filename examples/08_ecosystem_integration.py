@@ -37,15 +37,15 @@ from flext_cli import (
     FlextCliModels,
     FlextCliService,
 )
-from flext_core import FlextConfig, FlextResult, FlextTypes
+from flext_core import FlextConfig, FlextConstants, FlextResult, FlextTypes
 
 
 class EcosystemSettings(FlextConfig):
     """Configuration for FLEXT ecosystem integration."""
 
     # FLEXT Service endpoints
-    flext_api_url: str = "http://localhost:8081"
-    flexcore_url: str = "http://localhost:8080"
+    flext_api_url: str = f"http://{FlextConstants.Platform.DEFAULT_HOST}:{FlextConstants.Platform.FLEXT_API_PORT + 1}"
+    flexcore_url: str = f"http://{FlextConstants.Platform.DEFAULT_HOST}:{FlextConstants.Platform.FLEXT_API_PORT}"
 
     # Service-specific settings
     meltano_project_root: Path = Path("./meltano_projects")

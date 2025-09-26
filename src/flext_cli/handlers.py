@@ -10,8 +10,16 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 from collections.abc import Callable
+from typing import override
 
-from flext_cli.typings import FlextCliTypes
+from flext_cli.typings import (
+    AuthConfigData,
+    CliCommandArgs,
+    CliCommandResult,
+    CliConfigData,
+    CliFormatData,
+    DebugInfoData,
+)
 from flext_core import FlextResult
 
 
@@ -30,23 +38,22 @@ class FlextCliHandlers:
     class CommandHandler:
         """CLI command handler implementation."""
 
+        @override
         def __init__(
             self,
-            handler_func: Callable[..., FlextResult[FlextCliTypes.CliCommandResult]],
+            handler_func: Callable[..., FlextResult[CliCommandResult]],
         ) -> None:
             """Initialize command handler with handler function."""
             self._handler_func = handler_func
 
-        def __call__(
-            self, **kwargs: FlextCliTypes.CliCommandArgs
-        ) -> FlextResult[FlextCliTypes.CliCommandResult]:
+        def __call__(self, **kwargs: CliCommandArgs) -> FlextResult[CliCommandResult]:
             """Execute CLI command with arguments.
 
             Args:
                 **kwargs: Command arguments
 
             Returns:
-                FlextResult[FlextCliTypes.CliCommandResult]: Command execution result
+                FlextResult[CliCommandResult]: Command execution result
 
             """
             try:
@@ -54,25 +61,24 @@ class FlextCliHandlers:
                 if isinstance(result, FlextResult):
                     # Cast to proper return type since we know the handler returns the correct type
                     return result
-                return FlextResult[FlextCliTypes.CliCommandResult].ok(result)
+                return FlextResult[CliCommandResult].ok(result)
             except Exception as e:
-                return FlextResult[FlextCliTypes.CliCommandResult].fail(
+                return FlextResult[CliCommandResult].fail(
                     f"Command execution failed: {e}"
                 )
 
     class FormatterHandler:
         """CLI formatter handler implementation."""
 
-        def __init__(
-            self, formatter_func: Callable[[FlextCliTypes.CliFormatData], str]
-        ) -> None:
+        @override
+        def __init__(self, formatter_func: Callable[[CliFormatData], str]) -> None:
             """Initialize formatter handler with formatter function."""
             self._formatter_func = formatter_func
 
         def format_data(
             self,
-            data: FlextCliTypes.CliFormatData,
-            **options: FlextCliTypes.CliConfigData,
+            data: CliFormatData,
+            **options: CliConfigData,
         ) -> FlextResult[str]:
             """Format data for CLI output.
 
@@ -93,25 +99,24 @@ class FlextCliHandlers:
     class ConfigHandler:
         """CLI configuration handler implementation."""
 
-        def __init__(self, config_data: FlextCliTypes.CliConfigData) -> None:
+        @override
+        def __init__(self, config_data: CliConfigData) -> None:
             """Initialize config handler with configuration data."""
             self._config_data = config_data
 
-        def load_config(self) -> FlextResult[FlextCliTypes.CliConfigData]:
+        def load_config(self) -> FlextResult[CliConfigData]:
             """Load CLI configuration.
 
             Returns:
-                FlextResult[FlextCliTypes.CliConfigData]: Configuration data or error
+                FlextResult[CliConfigData]: Configuration data or error
 
             """
             try:
-                return FlextResult[FlextCliTypes.CliConfigData].ok(self._config_data)
+                return FlextResult[CliConfigData].ok(self._config_data)
             except Exception as e:
-                return FlextResult[FlextCliTypes.CliConfigData].fail(
-                    f"Config load failed: {e}"
-                )
+                return FlextResult[CliConfigData].fail(f"Config load failed: {e}")
 
-        def save_config(self, config: FlextCliTypes.CliConfigData) -> FlextResult[None]:
+        def save_config(self, config: CliConfigData) -> FlextResult[None]:
             """Save CLI configuration.
 
             Args:
@@ -130,15 +135,12 @@ class FlextCliHandlers:
     class AuthHandler:
         """CLI authentication handler implementation."""
 
-        def __init__(
-            self, auth_func: Callable[[FlextCliTypes.AuthConfigData], str]
-        ) -> None:
+        @override
+        def __init__(self, auth_func: Callable[[AuthConfigData], str]) -> None:
             """Initialize auth handler with authentication function."""
             self._auth_func = auth_func
 
-        def authenticate(
-            self, credentials: FlextCliTypes.AuthConfigData
-        ) -> FlextResult[str]:
+        def authenticate(self, credentials: AuthConfigData) -> FlextResult[str]:
             """Authenticate and return token.
 
             Args:
@@ -175,21 +177,22 @@ class FlextCliHandlers:
     class DebugHandler:
         """CLI debug handler implementation."""
 
-        def __init__(self, debug_data: FlextCliTypes.DebugInfoData) -> None:
+        @override
+        def __init__(self, debug_data: DebugInfoData) -> None:
             """Initialize debug handler with debug data."""
             self._debug_data = debug_data
 
-        def get_debug_info(self) -> FlextResult[FlextCliTypes.DebugInfoData]:
+        def get_debug_info(self) -> FlextResult[DebugInfoData]:
             """Get debug information.
 
             Returns:
-                FlextResult[FlextCliTypes.DebugInfoData]: Debug information or error
+                FlextResult[DebugInfoData]: Debug information or error
 
             """
             try:
-                return FlextResult[FlextCliTypes.DebugInfoData].ok(self._debug_data)
+                return FlextResult[DebugInfoData].ok(self._debug_data)
             except Exception as e:
-                return FlextResult[FlextCliTypes.DebugInfoData].fail(
+                return FlextResult[DebugInfoData].fail(
                     f"Debug info retrieval failed: {e}"
                 )
 

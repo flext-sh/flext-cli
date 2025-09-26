@@ -34,7 +34,7 @@ from flext_cli import (
     FlextCliModels,
     FlextCliOutput,
 )
-from flext_core import FlextResult
+from flext_core import FlextConstants, FlextResult
 
 
 def _setup_cli_demo(formatter: FlextCliOutput) -> FlextResult[None]:
@@ -216,7 +216,7 @@ def _create_connection_command(
     try:
         command = FlextCliModels.CliCommand(
             command_line=f"curl --connect-timeout {timeout} --retry {retries} {url}",
-            execution_time=datetime.now(tz=UTC),
+            execution_time=datetime.now(tz=UTC).isoformat(),
         )
 
         return FlextResult[FlextCliModels.CliCommand].ok(command)
@@ -249,8 +249,10 @@ def _execute_connection_test(command: FlextCliModels.CliCommand) -> FlextResult[
 
         # Simulate execution result
         command_line = command.command_line or ""
-        if "localhost" in command_line:
-            result_msg = "Connection successful to localhost"
+        if FlextConstants.Platform.DEFAULT_HOST in command_line:
+            result_msg = (
+                f"Connection successful to {FlextConstants.Platform.DEFAULT_HOST}"
+            )
         else:
             result_msg = "Connection test completed successfully"
 

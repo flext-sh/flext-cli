@@ -76,12 +76,13 @@ def demonstrate_cli_parameter_integration() -> None:
     for key, value in cli_overrides.items():
         print(f"     {key}: {value}")
 
-    # Apply overrides
-    cli_config = FlextCliConfig.MainConfig()
-    cli_config.debug = bool(cli_overrides.get("debug"))
-    cli_config.profile = str(cli_overrides.get("profile", "default"))
-    cli_config.output_format = str(cli_overrides.get("output_format", "table"))
-    cli_config.log_level = str(cli_overrides.get("log_level", "INFO"))
+    # Apply overrides by creating a new instance
+    cli_config = FlextCliConfig.MainConfig(
+        debug=bool(cli_overrides.get("debug")),
+        profile=str(cli_overrides.get("profile", "default")),
+        output_format=str(cli_overrides.get("output_format", "table")),
+        log_level=str(cli_overrides.get("log_level", "INFO")),
+    )
 
     print("   ✅ Overrides applied successfully")
     print()

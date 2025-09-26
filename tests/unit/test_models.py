@@ -11,6 +11,10 @@ from __future__ import annotations
 
 import asyncio
 import json
+import operator
+import re
+import threading
+import time
 
 import pytest
 
@@ -35,12 +39,16 @@ class TestFlextCliModels:
     # INITIALIZATION AND BASIC FUNCTIONALITY
     # ========================================================================
 
-    def test_models_service_initialization(self, models_service: FlextCliModels) -> None:
+    def test_models_service_initialization(
+        self, models_service: FlextCliModels
+    ) -> None:
         """Test models service initialization and basic properties."""
         assert models_service is not None
         assert hasattr(models_service, "__class__")
 
-    def test_models_service_basic_functionality(self, models_service: FlextCliModels) -> None:
+    def test_models_service_basic_functionality(
+        self, models_service: FlextCliModels
+    ) -> None:
         """Test models service basic functionality."""
         # Test that models can be created and accessed
         assert models_service is not None
@@ -53,12 +61,6 @@ class TestFlextCliModels:
     def test_validate_data_model(self, models_service: FlextCliModels) -> None:
         """Test data model validation functionality."""
         # Test with valid data
-        valid_data = {
-            "name": "test",
-            "value": 42,
-            "active": True,
-            "items": [1, 2, 3]
-        }
 
         # Since FlextCliModels is a basic class, we test its existence and basic structure
         assert models_service is not None
@@ -71,10 +73,7 @@ class TestFlextCliModels:
             "id": 1,
             "name": "Test Model",
             "description": "A test model for validation",
-            "metadata": {
-                "created_at": "2025-01-01T00:00:00Z",
-                "version": "1.0.0"
-            }
+            "metadata": {"created_at": "2025-01-01T00:00:00Z", "version": "1.0.0"},
         }
 
         # Verify the models service can handle data
@@ -83,28 +82,28 @@ class TestFlextCliModels:
         assert "id" in test_data
         assert "name" in test_data
 
-    def test_serialize_data_model(self, models_service: FlextCliModels) -> None:
+    def test_serialize_data_model(self) -> None:
         """Test data model serialization functionality."""
         test_data = {
             "id": 1,
             "name": "Test Model",
             "value": 42.5,
             "active": True,
-            "tags": ["test", "model", "validation"]
+            "tags": ["test", "model", "validation"],
         }
 
         # Test JSON serialization
         json_string = json.dumps(test_data)
         assert isinstance(json_string, str)
-        
+
         # Verify it can be parsed back
         parsed_data = json.loads(json_string)
         assert parsed_data == test_data
 
-    def test_deserialize_data_model(self, models_service: FlextCliModels) -> None:
+    def test_deserialize_data_model(self) -> None:
         """Test data model deserialization functionality."""
         json_string = '{"id": 1, "name": "Test Model", "value": 42.5, "active": true}'
-        
+
         parsed_data = json.loads(json_string)
         assert isinstance(parsed_data, dict)
         assert parsed_data["id"] == 1
@@ -116,13 +115,13 @@ class TestFlextCliModels:
     # MODEL TRANSFORMATION
     # ========================================================================
 
-    def test_transform_data_model(self, models_service: FlextCliModels) -> None:
+    def test_transform_data_model(self) -> None:
         """Test data model transformation functionality."""
         source_data = {
             "user_id": 123,
             "user_name": "john_doe",
             "user_email": "john@example.com",
-            "user_active": True
+            "user_active": True,
         }
 
         # Transform to a different structure
@@ -130,7 +129,7 @@ class TestFlextCliModels:
             "id": source_data["user_id"],
             "name": source_data["user_name"],
             "email": source_data["user_email"],
-            "status": "active" if source_data["user_active"] else "inactive"
+            "status": "active" if source_data["user_active"] else "inactive",
         }
 
         assert transformed_data["id"] == 123
@@ -138,19 +137,15 @@ class TestFlextCliModels:
         assert transformed_data["email"] == "john@example.com"
         assert transformed_data["status"] == "active"
 
-    def test_merge_data_models(self, models_service: FlextCliModels) -> None:
+    def test_merge_data_models(self) -> None:
         """Test data model merging functionality."""
-        model1 = {
-            "id": 1,
-            "name": "Model 1",
-            "value": 10
-        }
+        model1 = {"id": 1, "name": "Model 1", "value": 10}
 
         model2 = {
             "id": 1,
             "description": "Updated description",
             "value": 20,
-            "extra_field": "extra_value"
+            "extra_field": "extra_value",
         }
 
         # Merge models (model2 takes precedence for overlapping keys)
@@ -162,7 +157,7 @@ class TestFlextCliModels:
         assert merged_model["value"] == 20
         assert merged_model["extra_field"] == "extra_value"
 
-    def test_filter_data_model(self, models_service: FlextCliModels) -> None:
+    def test_filter_data_model(self) -> None:
         """Test data model filtering functionality."""
         data_list = [
             {"id": 1, "name": "Item 1", "active": True, "value": 10},
@@ -185,7 +180,7 @@ class TestFlextCliModels:
     # MODEL VALIDATION RULES
     # ========================================================================
 
-    def test_validate_required_fields(self, models_service: FlextCliModels) -> None:
+    def test_validate_required_fields(self) -> None:
         """Test required fields validation."""
         required_fields = ["id", "name", "email"]
 
@@ -194,7 +189,7 @@ class TestFlextCliModels:
             "id": 1,
             "name": "Test User",
             "email": "test@example.com",
-            "optional_field": "optional_value"
+            "optional_field": "optional_value",
         }
 
         missing_fields = [field for field in required_fields if field not in valid_data]
@@ -203,22 +198,24 @@ class TestFlextCliModels:
         # Invalid data missing required fields
         invalid_data = {
             "id": 1,
-            "name": "Test User"
+            "name": "Test User",
             # Missing email field
         }
 
-        missing_fields = [field for field in required_fields if field not in invalid_data]
+        missing_fields = [
+            field for field in required_fields if field not in invalid_data
+        ]
         assert len(missing_fields) == 1
         assert "email" in missing_fields
 
-    def test_validate_field_types(self, models_service: FlextCliModels) -> None:
+    def test_validate_field_types(self) -> None:
         """Test field type validation."""
         expected_types = {
             "id": int,
             "name": str,
             "active": bool,
             "value": float,
-            "items": list
+            "items": list,
         }
 
         # Valid data with correct types
@@ -227,7 +224,7 @@ class TestFlextCliModels:
             "name": "Test",
             "active": True,
             "value": 42.5,
-            "items": [1, 2, 3]
+            "items": [1, 2, 3],
         }
 
         for field, expected_type in expected_types.items():
@@ -240,18 +237,21 @@ class TestFlextCliModels:
             "name": 123,  # Should be str
             "active": "true",  # Should be bool
             "value": "42.5",  # Should be float
-            "items": "not_a_list"  # Should be list
+            "items": "not_a_list",  # Should be list
         }
 
         type_errors = []
         for field, expected_type in expected_types.items():
-            if field in invalid_data and not isinstance(invalid_data[field], expected_type):
+            if field in invalid_data and not isinstance(
+                invalid_data[field], expected_type
+            ):
                 type_errors.append(field)
 
         assert len(type_errors) == 5  # All fields have wrong types
 
-    def test_validate_field_values(self, models_service: FlextCliModels) -> None:
+    def test_validate_field_values(self) -> None:
         """Test field value validation."""
+
         # Test numeric range validation
         def validate_range(value: int, min_val: int, max_val: int) -> bool:
             return min_val <= value <= max_val
@@ -270,8 +270,7 @@ class TestFlextCliModels:
 
         # Test email format validation
         def validate_email(email: str) -> bool:
-            import re
-            pattern = r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$'
+            pattern = r"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$"
             return re.match(pattern, email) is not None
 
         assert validate_email("test@example.com") is True
@@ -282,7 +281,7 @@ class TestFlextCliModels:
     # MODEL COMPARISON AND SORTING
     # ========================================================================
 
-    def test_compare_data_models(self, models_service: FlextCliModels) -> None:
+    def test_compare_data_models(self) -> None:
         """Test data model comparison functionality."""
         model1 = {"id": 1, "name": "Model 1", "value": 10}
         model2 = {"id": 2, "name": "Model 2", "value": 20}
@@ -296,7 +295,7 @@ class TestFlextCliModels:
         assert model1["value"] < model2["value"]
         assert model2["value"] > model1["value"]
 
-    def test_sort_data_models(self, models_service: FlextCliModels) -> None:
+    def test_sort_data_models(self) -> None:
         """Test data model sorting functionality."""
         models = [
             {"id": 3, "name": "Charlie", "value": 30},
@@ -305,19 +304,21 @@ class TestFlextCliModels:
         ]
 
         # Sort by id
-        sorted_by_id = sorted(models, key=lambda x: x["id"])
+        sorted_by_id = sorted(models, key=operator.itemgetter("id"))
         assert sorted_by_id[0]["id"] == 1
         assert sorted_by_id[1]["id"] == 2
         assert sorted_by_id[2]["id"] == 3
 
         # Sort by name
-        sorted_by_name = sorted(models, key=lambda x: x["name"])
+        sorted_by_name = sorted(models, key=operator.itemgetter("name"))
         assert sorted_by_name[0]["name"] == "Alice"
         assert sorted_by_name[1]["name"] == "Bob"
         assert sorted_by_name[2]["name"] == "Charlie"
 
         # Sort by value (descending)
-        sorted_by_value_desc = sorted(models, key=lambda x: x["value"], reverse=True)
+        sorted_by_value_desc = sorted(
+            models, key=operator.itemgetter("value"), reverse=True
+        )
         assert sorted_by_value_desc[0]["value"] == 30
         assert sorted_by_value_desc[1]["value"] == 20
         assert sorted_by_value_desc[2]["value"] == 10
@@ -326,7 +327,7 @@ class TestFlextCliModels:
     # MODEL AGGREGATION
     # ========================================================================
 
-    def test_aggregate_data_models(self, models_service: FlextCliModels) -> None:
+    def test_aggregate_data_models(self) -> None:
         """Test data model aggregation functionality."""
         models = [
             {"category": "A", "value": 10},
@@ -366,7 +367,7 @@ class TestFlextCliModels:
         assert averages["B"] == 22.5  # (20 + 25) / 2
         assert averages["C"] == 30.0  # 30 / 1
 
-    def test_count_data_models(self, models_service: FlextCliModels) -> None:
+    def test_count_data_models(self) -> None:
         """Test data model counting functionality."""
         models = [
             {"status": "active", "type": "user"},
@@ -398,7 +399,7 @@ class TestFlextCliModels:
     # MODEL SEARCH AND FILTERING
     # ========================================================================
 
-    def test_search_data_models(self, models_service: FlextCliModels) -> None:
+    def test_search_data_models(self) -> None:
         """Test data model search functionality."""
         models = [
             {"id": 1, "name": "Apple iPhone", "category": "electronics"},
@@ -420,13 +421,14 @@ class TestFlextCliModels:
 
         # Search by multiple criteria
         apple_electronics = [
-            model for model in models
+            model
+            for model in models
             if "Apple" in model["name"] and model["category"] == "electronics"
         ]
         assert len(apple_electronics) == 1
         assert apple_electronics[0]["name"] == "Apple iPhone"
 
-    def test_filter_data_models(self, models_service: FlextCliModels) -> None:
+    def test_filter_data_models(self) -> None:
         """Test data model filtering functionality."""
         models = [
             {"id": 1, "price": 100, "in_stock": True, "rating": 4.5},
@@ -450,7 +452,8 @@ class TestFlextCliModels:
 
         # Complex filter
         premium_in_stock = [
-            model for model in models
+            model
+            for model in models
             if model["price"] >= 150 and model["in_stock"] and model["rating"] >= 4.0
         ]
         assert len(premium_in_stock) == 2
@@ -459,7 +462,9 @@ class TestFlextCliModels:
     # ERROR HANDLING AND EDGE CASES
     # ========================================================================
 
-    def test_error_handling_with_invalid_data(self, models_service: FlextCliModels) -> None:
+    def test_error_handling_with_invalid_data(
+        self, models_service: FlextCliModels
+    ) -> None:
         """Test error handling with invalid data."""
         # Test with None data
         assert models_service is not None
@@ -473,19 +478,15 @@ class TestFlextCliModels:
         try:
             malformed_json = '{"key": "value", "incomplete": }'
             json.loads(malformed_json)
-            assert False, "Should have raised JSONDecodeError"
+            msg = "Should have raised JSONDecodeError"
+            raise AssertionError(msg)
         except json.JSONDecodeError:
             assert True  # Expected behavior
 
-    def test_edge_cases_with_special_values(self, models_service: FlextCliModels) -> None:
+    def test_edge_cases_with_special_values(self) -> None:
         """Test edge cases with special values."""
         # Test with None values
-        data_with_none = {
-            "id": 1,
-            "name": None,
-            "value": 42,
-            "optional": None
-        }
+        data_with_none = {"id": 1, "name": None, "value": 42, "optional": None}
         assert data_with_none["id"] == 1
         assert data_with_none["name"] is None
         assert data_with_none["value"] == 42
@@ -495,28 +496,20 @@ class TestFlextCliModels:
             "id": 1,
             "name": "",
             "description": "   ",  # Whitespace only
-            "value": 0
+            "value": 0,
         }
-        assert data_with_empty["name"] == ""
-        assert data_with_empty["description"].strip() == ""
+        assert not data_with_empty["name"]
+        assert not data_with_empty["description"].strip()
 
         # Test with zero values
-        data_with_zeros = {
-            "id": 0,
-            "count": 0,
-            "price": 0.0,
-            "active": False
-        }
+        data_with_zeros = {"id": 0, "count": 0, "price": 0.0, "active": False}
         assert data_with_zeros["id"] == 0
         assert data_with_zeros["count"] == 0
         assert data_with_zeros["price"] == 0.0
         assert data_with_zeros["active"] is False
 
-    def test_concurrent_operations(self, models_service: FlextCliModels) -> None:
+    def test_concurrent_operations(self) -> None:
         """Test concurrent operations to ensure thread safety."""
-        import threading
-        import time
-
         results = []
         errors = []
 
@@ -526,7 +519,7 @@ class TestFlextCliModels:
                 test_data = {
                     "worker_id": worker_id,
                     "timestamp": time.time(),
-                    "data": f"Worker {worker_id} data"
+                    "data": f"Worker {worker_id} data",
                 }
                 results.append(test_data)
             except Exception as e:
@@ -556,19 +549,51 @@ class TestFlextCliModels:
     # INTEGRATION TESTS
     # ========================================================================
 
-    def test_full_model_workflow_integration(self, models_service: FlextCliModels) -> None:
+    def test_full_model_workflow_integration(self) -> None:
         """Test complete model workflow integration."""
         # 1. Create initial data
         raw_data = [
-            {"id": 1, "name": "Product A", "price": 100, "category": "electronics", "stock": 10},
-            {"id": 2, "name": "Product B", "price": 200, "category": "electronics", "stock": 5},
-            {"id": 3, "name": "Product C", "price": 150, "category": "books", "stock": 20},
-            {"id": 4, "name": "Product D", "price": 300, "category": "electronics", "stock": 0},
-            {"id": 5, "name": "Product E", "price": 80, "category": "books", "stock": 15},
+            {
+                "id": 1,
+                "name": "Product A",
+                "price": 100,
+                "category": "electronics",
+                "stock": 10,
+            },
+            {
+                "id": 2,
+                "name": "Product B",
+                "price": 200,
+                "category": "electronics",
+                "stock": 5,
+            },
+            {
+                "id": 3,
+                "name": "Product C",
+                "price": 150,
+                "category": "books",
+                "stock": 20,
+            },
+            {
+                "id": 4,
+                "name": "Product D",
+                "price": 300,
+                "category": "electronics",
+                "stock": 0,
+            },
+            {
+                "id": 5,
+                "name": "Product E",
+                "price": 80,
+                "category": "books",
+                "stock": 15,
+            },
         ]
 
         # 2. Validate data
-        valid_data = [item for item in raw_data if item["price"] > 0 and item["stock"] >= 0]
+        valid_data = [
+            item for item in raw_data if item["price"] > 0 and item["stock"] >= 0
+        ]
         assert len(valid_data) == 5
 
         # 3. Transform data
@@ -580,24 +605,36 @@ class TestFlextCliModels:
                 "price": item["price"],
                 "category": item["category"],
                 "in_stock": item["stock"] > 0,
-                "stock_level": "high" if item["stock"] > 15 else "medium" if item["stock"] > 5 else "low"
+                "stock_level": "high"
+                if item["stock"] > 15
+                else "medium"
+                if item["stock"] > 5
+                else "low",
             }
             transformed_data.append(transformed_item)
 
         # 4. Filter electronics
-        electronics = [item for item in transformed_data if item["category"] == "electronics"]
+        electronics = [
+            item for item in transformed_data if item["category"] == "electronics"
+        ]
         assert len(electronics) == 3
 
         # 5. Sort by price
-        sorted_electronics = sorted(electronics, key=lambda x: x["price"])
+        sorted_electronics = sorted(electronics, key=operator.itemgetter("price"))
         assert sorted_electronics[0]["price"] == 100
         assert sorted_electronics[2]["price"] == 300
 
         # 6. Calculate statistics
-        total_value = sum(item["price"] * item["stock"] for item in raw_data if item["category"] == "electronics")
+        total_value = sum(
+            item["price"] * item["stock"]
+            for item in raw_data
+            if item["category"] == "electronics"
+        )
         average_price = sum(item["price"] for item in electronics) / len(electronics)
 
-        assert total_value == 2000  # (100*10) + (200*5) + (300*0) = 1000 + 1000 + 0 = 2000
+        assert (
+            total_value == 2000
+        )  # (100*10) + (200*5) + (300*0) = 1000 + 1000 + 0 = 2000
         assert average_price == 200.0  # (100 + 200 + 300) / 3
 
         # 7. Serialize results
@@ -605,18 +642,20 @@ class TestFlextCliModels:
             "electronics_count": len(electronics),
             "total_value": total_value,
             "average_price": average_price,
-            "products": sorted_electronics
+            "products": sorted_electronics,
         })
 
         # 8. Verify complete workflow
         parsed_results = json.loads(results_json)
         assert parsed_results["electronics_count"] == 3
-        assert parsed_results["total_value"] == 1000
+        assert parsed_results["total_value"] == 2000
         assert parsed_results["average_price"] == 200.0
         assert len(parsed_results["products"]) == 3
 
     @pytest.mark.asyncio
-    async def test_async_model_workflow_integration(self, models_service: FlextCliModels) -> None:
+    async def test_async_model_workflow_integration(
+        self, models_service: FlextCliModels
+    ) -> None:
         """Test async model workflow integration."""
         # Test basic async functionality
         assert models_service is not None

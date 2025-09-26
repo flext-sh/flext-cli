@@ -65,10 +65,12 @@ def demonstrate_global_configuration_refactoring() -> None:
     for key, value in cli_overrides.items():
         print(f"     {key}: {value}")
 
-    # Apply overrides to CLI config
-    cli_config.debug = cli_overrides["debug_mode"]
-    cli_config.log_level = cli_overrides["log_level"]
-    cli_config.output_format = str(cli_overrides["output_format"])
+    # Apply overrides to CLI config by creating a new instance
+    cli_config = FlextCliConfig.MainConfig(
+        debug=cli_overrides["debug_mode"],
+        log_level=cli_overrides["log_level"],
+        output_format=str(cli_overrides["output_format"]),
+    )
 
     print("   ✅ Overrides applied to CLI config")
     print()
@@ -169,10 +171,10 @@ def demonstrate_dynamic_configuration_updates() -> None:
     # Simulate dynamic updates
     print("2. Applying Dynamic Updates:")
 
-    # Update CLI config
-    cli_config.debug = True
-    cli_config.output_format = "yaml"
-    cli_config.log_level = "INFO"
+    # Update CLI config by creating a new instance
+    cli_config = FlextCliConfig.MainConfig(
+        debug=True, output_format="yaml", log_level="INFO"
+    )
 
     print("   ✅ CLI configuration updated dynamically")
     print(f"   New CLI Debug Mode: {cli_config.debug_mode}")
@@ -219,11 +221,13 @@ def demonstrate_cli_parameter_integration() -> None:
 
     cli_config = FlextCliConfig.MainConfig()
 
-    # Apply CLI overrides
-    cli_config.debug = cli_params["debug"]
-    cli_config.log_level = cli_params["log_level"]
-    cli_config.output_format = str(cli_params["output_format"])
-    cli_config.profile = str(cli_params["profile"])
+    # Apply CLI overrides by creating a new instance
+    cli_config = FlextCliConfig.MainConfig(
+        debug=cli_params["debug"],
+        log_level=cli_params["log_level"],
+        output_format=str(cli_params["output_format"]),
+        profile=str(cli_params["profile"]),
+    )
 
     print("   ✅ CLI parameters applied to configuration")
     print(f"   Final Debug Mode: {cli_config.debug_mode}")

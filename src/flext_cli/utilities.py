@@ -14,17 +14,17 @@ import hashlib
 import ipaddress
 import json
 import math
-import random
 import re
+import secrets
 import string
 import time
+import uuid
 from collections.abc import Awaitable, Callable, Sequence
 from datetime import UTC, datetime
 from io import StringIO
 from pathlib import Path
-from typing import cast
+from typing import cast, override
 from urllib.parse import urlparse
-import uuid
 
 import yaml
 from pydantic import BaseModel, ConfigDict, ValidationError
@@ -42,20 +42,93 @@ class FlextCliUtilities(FlextUtilities):
     Uses FlextModels and FlextConfig for all validation needs.
     """
 
+    @override
     def __init__(self) -> None:
         """Initialize FlextCliUtilities service."""
         super().__init__()
         self._container = FlextContainer.get_global()
         self._logger = FlextLogger(__name__)
 
-    def execute(self) -> FlextResult[None]:
+    @override
+    def execute(self) -> FlextResult[dict[str, object]]:
         """Execute the main domain service operation.
 
         Returns:
-            FlextResult[None]: Description of return value.
+            FlextResult[dict[str, object]]: Service status and capabilities.
 
         """
-        return FlextResult[None].ok(None)
+        return FlextResult[dict[str, object]].ok({
+            "status": FlextCliConstants.OPERATIONAL,
+            "service": "flext-cli-utilities",
+            "capabilities": [
+                "validation",
+                "formatting",
+                "conversion",
+                "parsing",
+                "generation",
+            ],
+        })
+
+    def parse_timestamp(self, timestamp_str: str) -> FlextResult[datetime]:
+        """Parse timestamp string to datetime object."""
+        try:
+            # Try ISO format first
+            if "T" in timestamp_str and "Z" in timestamp_str:
+                dt = datetime.fromisoformat(timestamp_str)
+                return FlextResult[datetime].ok(dt)
+
+            # Try ISO format without Z
+            if "T" in timestamp_str:
+                dt = datetime.fromisoformat(timestamp_str)
+                return FlextResult[datetime].ok(dt)
+
+            # Try standard format with UTC timezone
+            dt = datetime.strptime(timestamp_str, "%Y-%m-%d %H:%M:%S").replace(
+                tzinfo=UTC
+            )
+            return FlextResult[datetime].ok(dt)
+        except Exception as e:
+            return FlextResult[datetime].fail(f"Timestamp parsing failed: {e}")
+
+    def extract_numbers_from_string(self, text: str) -> FlextResult[list[float]]:
+        """Extract all numbers from a string."""
+        try:
+            # Find all numbers including decimals
+            pattern = r"-?\d+\.?\d*"
+            matches = re.findall(pattern, text)
+            numbers = [float(match) for match in matches if match]
+            return FlextResult[list[float]].ok(numbers)
+        except Exception as e:
+            return FlextResult[list[float]].fail(f"Failed to extract numbers: {e}")
+
+    def add_time_to_timestamp(
+        self, timestamp: float, seconds: int = 0
+    ) -> FlextResult[str]:
+        """Add time to timestamp and return as string."""
+        try:
+            new_timestamp = timestamp + seconds
+            # Convert to ISO format string
+            dt = datetime.fromtimestamp(new_timestamp, tz=UTC)
+            iso_string = dt.isoformat()
+            return FlextResult[str].ok(iso_string)
+        except Exception as e:
+            return FlextResult[str].fail(f"Failed to add time to timestamp: {e}")
+
+    def extract_domain_from_url(self, url: str) -> FlextResult[str]:
+        """Extract domain from URL."""
+        try:
+            parsed = urlparse(url)
+            domain = parsed.netloc
+            if not domain:
+                return FlextResult[str].fail("No domain found in URL")
+
+            # Remove port if present
+            if ":" in domain:
+                domain = domain.split(":")[0]
+
+            return FlextResult[str].ok(domain)
+        except Exception as e:
+            return FlextResult[str].fail(f"Failed to extract domain: {e}")
 
     @property
     def logger(self) -> FlextLogger:
@@ -286,14 +359,21 @@ class FlextCliUtilities(FlextUtilities):
                 for item in batch:
                     if callable(processor):
                         result = processor(item)
-                        if hasattr(result, "is_failure") and getattr(result, "is_failure", False):
+                        if hasattr(result, "is_failure") and getattr(
+                            result, "is_failure", False
+                        ):
                             if fail_fast:
                                 return FlextResult[
                                     list[dict[str, str | int | float] | None]
-                                ].fail(getattr(result, "error", "Batch processing failed") or "Batch processing failed")
+                                ].fail(
+                                    getattr(result, "error", "Batch processing failed")
+                                    or "Batch processing failed"
+                                )
                             continue
                         processed_item = (
-                            result if not hasattr(result, "value") else getattr(result, "value", result)
+                            result
+                            if not hasattr(result, "value")
+                            else getattr(result, "value", result)
                         )
                     else:
                         # processor is a FlextResult
@@ -302,7 +382,10 @@ class FlextCliUtilities(FlextUtilities):
                             if fail_fast:
                                 return FlextResult[
                                     list[dict[str, str | int | float] | None]
-                                ].fail(getattr(result, "error", "Batch processing failed") or "Batch processing failed")
+                                ].fail(
+                                    getattr(result, "error", "Batch processing failed")
+                                    or "Batch processing failed"
+                                )
                             continue
                         processed_item = getattr(result, "value", result)
 
@@ -902,6 +985,7 @@ class FlextCliUtilities(FlextUtilities):
     class Interactions:
         """User interaction patterns and utilities."""
 
+        @override
         def __init__(
             self, logger: FlextLogger | None = None, *, quiet: bool = False
         ) -> None:
@@ -1030,8 +1114,8 @@ class FlextCliUtilities(FlextUtilities):
         """Convert string to URL-friendly slug."""
         try:
             # Convert to lowercase and replace spaces with hyphens
-            slug = re.sub(r'[^a-zA-Z0-9\s-]', '', text.lower())
-            slug = re.sub(r'\s+', '-', slug.strip())
+            slug = re.sub(r"[^a-zA-Z0-9\s-]", "", text.lower())
+            slug = re.sub(r"\s+", "-", slug.strip())
             return FlextResult[str].ok(slug)
         except Exception as e:
             return FlextResult[str].fail(f"Slugify failed: {e}")
@@ -1040,7 +1124,7 @@ class FlextCliUtilities(FlextUtilities):
         """Convert camelCase to snake_case."""
         try:
             # Insert underscore before uppercase letters that follow lowercase letters or digits
-            snake = re.sub(r'([a-z0-9])([A-Z])', r'\1_\2', text)
+            snake = re.sub(r"([a-z0-9])([A-Z])", r"\1_\2", text)
             return FlextResult[str].ok(snake.lower())
         except Exception as e:
             return FlextResult[str].fail(f"Case conversion failed: {e}")
@@ -1048,20 +1132,24 @@ class FlextCliUtilities(FlextUtilities):
     def snake_case_to_camel_case(self, text: str) -> FlextResult[str]:
         """Convert snake_case to camelCase."""
         try:
-            components = text.split('_')
+            components = text.split("_")
             if not components:
                 return FlextResult[str].ok("")
-            camel = components[0].lower() + ''.join(word.capitalize() for word in components[1:])
+            camel = components[0].lower() + "".join(
+                word.capitalize() for word in components[1:]
+            )
             return FlextResult[str].ok(camel)
         except Exception as e:
             return FlextResult[str].fail(f"Case conversion failed: {e}")
 
-    def truncate_string(self, text: str, max_length: int, suffix: str = "...") -> FlextResult[str]:
+    def truncate_string(
+        self, text: str, max_length: int, suffix: str = "..."
+    ) -> FlextResult[str]:
         """Truncate string to specified length with suffix."""
         try:
             if len(text) <= max_length:
                 return FlextResult[str].ok(text)
-            truncated = text[:max_length - len(suffix)] + suffix
+            truncated = text[: max_length - len(suffix)] + suffix
             return FlextResult[str].ok(truncated)
         except Exception as e:
             return FlextResult[str].fail(f"Truncation failed: {e}")
@@ -1069,23 +1157,22 @@ class FlextCliUtilities(FlextUtilities):
     def remove_special_characters(self, text: str) -> FlextResult[str]:
         """Remove special characters from string."""
         try:
-            cleaned = re.sub(r'[^a-zA-Z0-9\s]', '', text)
+            cleaned = re.sub(r"[^a-zA-Z0-9\s]", "", text)
             return FlextResult[str].ok(cleaned)
         except Exception as e:
             return FlextResult[str].fail(f"Character removal failed: {e}")
 
-    def extract_numbers_from_string(self, text: str) -> FlextResult[list[int]]:
-        """Extract all numbers from string."""
-        try:
-            numbers = [int(match) for match in re.findall(r'\d+', text)]
-            return FlextResult[list[int]].ok(numbers)
-        except Exception as e:
-            return FlextResult[list[int]].fail(f"Number extraction failed: {e}")
-
     def validate_email(self, email: str) -> FlextResult[bool]:
         """Validate email address format."""
         try:
-            pattern = r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$'
+            if not email or not isinstance(email, str):
+                return FlextResult[bool].ok(False)
+
+            # Check for consecutive dots
+            if ".." in email:
+                return FlextResult[bool].ok(False)
+
+            pattern = r"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$"
             is_valid = bool(re.match(pattern, email))
             return FlextResult[bool].ok(is_valid)
         except Exception as e:
@@ -1094,7 +1181,7 @@ class FlextCliUtilities(FlextUtilities):
     def validate_url(self, url: str) -> FlextResult[bool]:
         """Validate URL format."""
         try:
-            pattern = r'^https?://[^\s/$.?#].[^\s]*$'
+            pattern = r"^https?://[^\s/$.?#].[^\s]*$"
             is_valid = bool(re.match(pattern, url))
             return FlextResult[bool].ok(is_valid)
         except Exception as e:
@@ -1103,10 +1190,31 @@ class FlextCliUtilities(FlextUtilities):
     def validate_phone_number(self, phone: str) -> FlextResult[bool]:
         """Validate phone number format."""
         try:
-            # Simple phone number pattern
-            pattern = r'^\+?[\d\s\-\(\)]{10,}$'
-            is_valid = bool(re.match(pattern, phone))
-            return FlextResult[bool].ok(is_valid)
+            if not phone or not isinstance(phone, str):
+                return FlextResult[bool].ok(False)
+
+            # Remove all non-digit characters except + at the beginning
+            cleaned = re.sub(r"[^\d+]", "", phone)
+
+            # Check if it starts with + and has 10-15 digits
+            if cleaned.startswith("+"):
+                digits = cleaned[1:]
+                if (
+                    len(digits)
+                    >= FlextCliConstants.PhoneValidation.MIN_INTERNATIONAL_DIGITS
+                    and len(digits)
+                    <= FlextCliConstants.PhoneValidation.MAX_INTERNATIONAL_DIGITS
+                ):
+                    return FlextResult[bool].ok(True)
+
+            # Check if it has exactly 10 digits (US format)
+            if (
+                len(cleaned) == FlextCliConstants.PhoneValidation.US_PHONE_DIGITS
+                and cleaned.isdigit()
+            ):
+                return FlextResult[bool].ok(True)
+
+            return FlextResult[bool].ok(False)
         except Exception as e:
             return FlextResult[bool].fail(f"Phone validation failed: {e}")
 
@@ -1140,47 +1248,47 @@ class FlextCliUtilities(FlextUtilities):
         except Exception as e:
             return FlextResult[bool].fail(f"IPv6 validation failed: {e}")
 
-    def format_timestamp(self, timestamp: float, format_str: str = "%Y-%m-%d %H:%M:%S") -> FlextResult[str]:
+    def format_timestamp(
+        self, timestamp: float, format_str: str = "%Y-%m-%dT%H:%M:%SZ"
+    ) -> FlextResult[str]:
         """Format timestamp to string."""
         try:
-            import time
-            formatted = time.strftime(format_str, time.localtime(timestamp))
+            # Use UTC time instead of local time
+            formatted = time.strftime(format_str, time.gmtime(timestamp))
             return FlextResult[str].ok(formatted)
         except Exception as e:
             return FlextResult[str].fail(f"Timestamp formatting failed: {e}")
 
-    def parse_timestamp(self, timestamp_str: str, format_str: str = "%Y-%m-%d %H:%M:%S") -> FlextResult[float]:
+    def parse_timestamp_to_float(
+        self, timestamp_str: str, format_str: str = "%Y-%m-%d %H:%M:%S"
+    ) -> FlextResult[float]:
         """Parse timestamp string to float."""
         try:
-            import time
             parsed = time.mktime(time.strptime(timestamp_str, format_str))
             return FlextResult[float].ok(parsed)
         except Exception as e:
             return FlextResult[float].fail(f"Timestamp parsing failed: {e}")
 
-    def get_timestamp_difference(self, timestamp1: float, timestamp2: float) -> FlextResult[float]:
+    def get_timestamp_difference(
+        self, timestamp1: float, timestamp2: float
+    ) -> FlextResult[float]:
         """Get difference between two timestamps."""
         try:
             difference = abs(timestamp1 - timestamp2)
             return FlextResult[float].ok(difference)
         except Exception as e:
-            return FlextResult[float].fail(f"Timestamp difference calculation failed: {e}")
-
-    def add_time_to_timestamp(self, timestamp: float, seconds: float) -> FlextResult[float]:
-        """Add seconds to timestamp."""
-        try:
-            new_timestamp = timestamp + seconds
-            return FlextResult[float].ok(new_timestamp)
-        except Exception as e:
-            return FlextResult[float].fail(f"Time addition failed: {e}")
+            return FlextResult[float].fail(
+                f"Timestamp difference calculation failed: {e}"
+            )
 
     def convert_bytes_to_human_readable(self, bytes_value: float) -> FlextResult[str]:
         """Convert bytes to human readable format."""
         try:
-            for unit in ['B', 'KB', 'MB', 'GB', 'TB']:
-                if bytes_value < 1024.0:
+            bytes_per_unit = 1024.0
+            for unit in ["B", "KB", "MB", "GB", "TB"]:
+                if bytes_value < bytes_per_unit:
                     return FlextResult[str].ok(f"{bytes_value:.1f} {unit}")
-                bytes_value /= 1024.0
+                bytes_value /= bytes_per_unit
             return FlextResult[str].ok(f"{bytes_value:.1f} PB")
         except Exception as e:
             return FlextResult[str].fail(f"Bytes conversion failed: {e}")
@@ -1188,9 +1296,8 @@ class FlextCliUtilities(FlextUtilities):
     def convert_human_readable_to_bytes(self, human_readable: str) -> FlextResult[int]:
         """Convert human readable format to bytes."""
         try:
-            units = {'B': 1, 'KB': 1024, 'MB': 1024**2, 'GB': 1024**3, 'TB': 1024**4}
-            import re
-            match = re.match(r'(\d+(?:\.\d+)?)\s*([A-Z]+)', human_readable.upper())
+            units = {"B": 1, "KB": 1024, "MB": 1024**2, "GB": 1024**3, "TB": 1024**4}
+            match = re.match(r"(\d+(?:\.\d+)?)\s*([A-Z]+)", human_readable.upper())
             if not match:
                 return FlextResult[int].fail("Invalid format")
 
@@ -1203,20 +1310,19 @@ class FlextCliUtilities(FlextUtilities):
         except Exception as e:
             return FlextResult[int].fail(f"Human readable conversion failed: {e}")
 
-    def hash_string(self, text: str, algorithm: str = "md5") -> FlextResult[str]:
+    def hash_string(self, text: str, algorithm: str = "sha256") -> FlextResult[str]:
         """Hash string using specified algorithm."""
         try:
-            import hashlib
-            if algorithm.lower() == "md5":
-                hash_obj = hashlib.md5()
-            elif algorithm.lower() == "sha1":
-                hash_obj = hashlib.sha1()
-            elif algorithm.lower() == "sha256":
+            if algorithm.lower() == "sha256":
                 hash_obj = hashlib.sha256()
+            elif algorithm.lower() == "sha512":
+                hash_obj = hashlib.sha512()
             else:
-                return FlextResult[str].fail(f"Unsupported algorithm: {algorithm}")
+                return FlextResult[str].fail(
+                    f"Unsupported algorithm: {algorithm}. Only SHA256 and SHA512 are supported for security reasons."
+                )
 
-            hash_obj.update(text.encode('utf-8'))
+            hash_obj.update(text.encode("utf-8"))
             return FlextResult[str].ok(hash_obj.hexdigest())
         except Exception as e:
             return FlextResult[str].fail(f"Hash calculation failed: {e}")
@@ -1232,7 +1338,7 @@ class FlextCliUtilities(FlextUtilities):
     def get_file_extension(self, filename: str) -> FlextResult[str]:
         """Get file extension."""
         try:
-            extension = Path(filename).suffix.lstrip('.')
+            extension = Path(filename).suffix.lstrip(".")
             return FlextResult[str].ok(extension)
         except Exception as e:
             return FlextResult[str].fail(f"Extension extraction failed: {e}")
@@ -1245,20 +1351,9 @@ class FlextCliUtilities(FlextUtilities):
         except Exception as e:
             return FlextResult[str].fail(f"Name extraction failed: {e}")
 
-    def extract_domain_from_url(self, url: str) -> FlextResult[str]:
-        """Extract domain from URL."""
-        try:
-            from urllib.parse import urlparse
-            parsed = urlparse(url)
-            domain = parsed.netloc
-            return FlextResult[str].ok(domain)
-        except Exception as e:
-            return FlextResult[str].fail(f"Domain extraction failed: {e}")
-
     def generate_uuid(self) -> FlextResult[str]:
         """Generate UUID string."""
         try:
-            import uuid
             return FlextResult[str].ok(str(uuid.uuid4()))
         except Exception as e:
             return FlextResult[str].fail(f"UUID generation failed: {e}")
@@ -1266,10 +1361,8 @@ class FlextCliUtilities(FlextUtilities):
     def generate_random_string(self, length: int = 10) -> FlextResult[str]:
         """Generate random string."""
         try:
-            import random
-            import string
             chars = string.ascii_letters + string.digits
-            random_str = ''.join(random.choice(chars) for _ in range(length))
+            random_str = "".join(secrets.choice(chars) for _ in range(length))
             return FlextResult[str].ok(random_str)
         except Exception as e:
             return FlextResult[str].fail(f"Random string generation failed: {e}")
@@ -1278,44 +1371,62 @@ class FlextCliUtilities(FlextUtilities):
         """Encrypt string (simple implementation)."""
         try:
             # Simple XOR encryption for demonstration
-            encrypted = ''.join(chr(ord(c) ^ ord(key[i % len(key)])) for i, c in enumerate(text))
+            encrypted = "".join(
+                chr(ord(c) ^ ord(key[i % len(key)])) for i, c in enumerate(text)
+            )
             return FlextResult[str].ok(encrypted)
         except Exception as e:
             return FlextResult[str].fail(f"Encryption failed: {e}")
 
-    def decrypt_string(self, encrypted_text: str, key: str = "default") -> FlextResult[str]:
+    def decrypt_string(
+        self, encrypted_text: str, key: str = "default"
+    ) -> FlextResult[str]:
         """Decrypt string (simple implementation)."""
         try:
             # Simple XOR decryption for demonstration
-            decrypted = ''.join(chr(ord(c) ^ ord(key[i % len(key)])) for i, c in enumerate(encrypted_text))
+            decrypted = "".join(
+                chr(ord(c) ^ ord(key[i % len(key)]))
+                for i, c in enumerate(encrypted_text)
+            )
             return FlextResult[str].ok(decrypted)
         except Exception as e:
             return FlextResult[str].fail(f"Decryption failed: {e}")
 
-    def convert_temperature(self, value: float, from_unit: str, to_unit: str) -> FlextResult[float]:
+    def convert_temperature(
+        self, value: float, from_unit: str, to_unit: str
+    ) -> FlextResult[float]:
         """Convert temperature between units."""
         try:
+            from_unit = from_unit.lower()
+            to_unit = to_unit.lower()
+
             # Convert to Celsius first
-            if from_unit.upper() == "F":
+            if from_unit in {"f", "fahrenheit"}:
                 celsius = (value - 32) * 5 / 9
-            elif from_unit.upper() == "K":
+            elif from_unit in {"k", "kelvin"}:
                 celsius = value - 273.15
-            else:  # Celsius
+            elif from_unit in {"c", "celsius"}:
                 celsius = value
+            else:
+                return FlextResult[float].fail(f"Unsupported from_unit: {from_unit}")
 
             # Convert from Celsius to target unit
-            if to_unit.upper() == "F":
+            if to_unit in {"f", "fahrenheit"}:
                 result = celsius * 9 / 5 + 32
-            elif to_unit.upper() == "K":
+            elif to_unit in {"k", "kelvin"}:
                 result = celsius + 273.15
-            else:  # Celsius
+            elif to_unit in {"c", "celsius"}:
                 result = celsius
+            else:
+                return FlextResult[float].fail(f"Unsupported to_unit: {to_unit}")
 
             return FlextResult[float].ok(result)
         except Exception as e:
             return FlextResult[float].fail(f"Temperature conversion failed: {e}")
 
-    def convert_currency(self, amount: float, from_currency: str, to_currency: str) -> FlextResult[float]:
+    def convert_currency(
+        self, amount: float, from_currency: str, to_currency: str
+    ) -> FlextResult[float]:
         """Convert currency (mock implementation)."""
         try:
             # Mock conversion rates
@@ -1326,21 +1437,22 @@ class FlextCliUtilities(FlextUtilities):
         except Exception as e:
             return FlextResult[float].fail(f"Currency conversion failed: {e}")
 
-    def calculate_distance(self, lat1: float, lon1: float, lat2: float, lon2: float) -> FlextResult[float]:
+    def calculate_distance(
+        self, lat1: float, lon1: float, lat2: float, lon2: float
+    ) -> FlextResult[float]:
         """Calculate distance between two coordinates (Haversine formula)."""
         try:
-            import math
-            R = 6371  # Earth's radius in kilometers
+            earth_radius_km = 6371  # Earth's radius in kilometers
 
             dlat = math.radians(lat2 - lat1)
             dlon = math.radians(lon2 - lon1)
 
-            a = (math.sin(dlat / 2) * math.sin(dlat / 2) +
-                 math.cos(math.radians(lat1)) * math.cos(math.radians(lat2)) *
-                 math.sin(dlon / 2) * math.sin(dlon / 2))
+            a = math.sin(dlat / 2) * math.sin(dlat / 2) + math.cos(
+                math.radians(lat1)
+            ) * math.cos(math.radians(lat2)) * math.sin(dlon / 2) * math.sin(dlon / 2)
 
             c = 2 * math.atan2(math.sqrt(a), math.sqrt(1 - a))
-            distance = R * c
+            distance = earth_radius_km * c
 
             return FlextResult[float].ok(distance)
         except Exception as e:
@@ -1350,13 +1462,17 @@ class FlextCliUtilities(FlextUtilities):
         """Calculate percentage."""
         try:
             if total == 0:
-                return FlextResult[float].fail("Cannot calculate percentage with zero total")
+                return FlextResult[float].fail(
+                    "Cannot calculate percentage with zero total"
+                )
             percentage = (value / total) * 100
             return FlextResult[float].ok(percentage)
         except Exception as e:
             return FlextResult[float].fail(f"Percentage calculation failed: {e}")
 
-    def round_to_decimal_places(self, value: float, places: int = 2) -> FlextResult[float]:
+    def round_to_decimal_places(
+        self, value: float, places: int = 2
+    ) -> FlextResult[float]:
         """Round number to specified decimal places."""
         try:
             rounded = round(value, places)

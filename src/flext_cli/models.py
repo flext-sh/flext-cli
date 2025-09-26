@@ -13,7 +13,7 @@ import signal
 import time
 from collections.abc import Callable
 from datetime import UTC, datetime
-from typing import Self
+from typing import Self, override
 
 from flext_core.container import FlextContainer
 from flext_core.context import FlextContext
@@ -22,7 +22,7 @@ from pydantic import BaseModel, ConfigDict, Field
 
 from flext_cli.constants import FlextCliConstants
 from flext_cli.mixins import FlextCliMixins
-from flext_cli.typings import FlextCliTypes
+from flext_cli.typings import CliCommandData, FlextCliTypes
 from flext_core import FlextModels, FlextResult
 
 
@@ -87,8 +87,8 @@ class FlextCliModels(FlextModels):
 
         @classmethod
         def validate_command_input(
-            cls, data: FlextCliTypes.CliCommandData | None
-        ) -> FlextResult[FlextCliTypes.CliCommandData | None]:
+            cls, data: CliCommandData | None
+        ) -> FlextResult[CliCommandData | None]:
             """Validate and normalize command input data using railway pattern.
 
             Args:
@@ -119,11 +119,12 @@ class FlextCliModels(FlextModels):
 
             return FlextResult[FlextCliTypes.CliCommandData | None].ok(normalized_data)
 
+        @override
         def __init__(
             self,
             command: str | None = None,
             command_line: str | None = None,
-            status: str = "pending",
+            status: str = FlextCliConstants.CommandStatus.PENDING.value,
             execution_time: str | None = None,
             **data: object,
         ) -> None:
@@ -270,6 +271,7 @@ class FlextCliModels(FlextModels):
         status: str = Field(default="active")
         user_id: str | None = None
 
+        @override
         def __init__(
             self,
             session_id: str | None = None,
@@ -365,6 +367,7 @@ class FlextCliModels(FlextModels):
         steps: list[FlextCliTypes.Data.CliDataDict | None] = Field(default_factory=list)
         config: FlextCliTypes.Data.CliDataDict | None = Field(default_factory=dict)
 
+        @override
         def __init__(
             self,
             name: str,
@@ -430,30 +433,56 @@ class FlextCliModels(FlextModels):
             return FlextResult[None].ok(None)
 
     class FlextCliConfig(FlextModels.Configuration):
-        """CLI configuration model extending _BaseValidatedModel."""
+        """CLI configuration model using config and constants-based defaults."""
 
         model_config = ConfigDict(
             validate_assignment=True, use_enum_values=True, arbitrary_types_allowed=True
         )
 
-        profile: str = Field(default="development")
+        profile: str = Field(
+            default_factory=lambda: FlextCliConstants.CliDefaults.DEFAULT_PROFILE
+        )
         debug: bool = Field(default=False)
         environment: str = Field(default="development")
-        timeout_seconds: int = Field(default=300)
+        timeout_seconds: int = Field(
+            default_factory=lambda: FlextCliConstants.TIMEOUTS.COMMAND
+        )
+
+    class LoggingConfig(FlextModels.Configuration):
+        """Logging configuration model - consolidated from scattered definition.
+
+        This model extends FlextModels.Configuration for logging-specific settings
+        while maintaining the consolidated [Project]Models pattern.
+        """
+
+        log_level: str = Field(default="INFO", description="Logging level")
+        log_format: str = Field(
+            default="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
+            description="Log format string",
+        )
+        console_output: bool = Field(default=True, description="Enable console output")
+        log_file: str | None = Field(default=None, description="Log file path")
+        log_level_source: str = Field(
+            default="default", description="Source of log level"
+        )
 
     class PipelineConfig(
         _BaseValidatedModel,
         FlextCliMixins.BusinessRulesMixin,
     ):
-        """Pipeline configuration model extending _BaseValidatedModel."""
+        """Pipeline configuration model with constants-based defaults."""
 
         name: str = Field(min_length=1)
         description: str = Field(default="")
         steps: list[FlextCliTypes.Data.CliDataDict | None] = Field(default_factory=list)
         config: FlextCliTypes.Data.CliDataDict | None = Field(default_factory=dict)
         enabled: bool = Field(default=True)
-        timeout_seconds: int = Field(default=300)
-        retry_count: int = Field(default=3)
+        timeout_seconds: int = Field(
+            default_factory=lambda: FlextCliConstants.TIMEOUTS.COMMAND
+        )
+        retry_count: int = Field(
+            default_factory=lambda: FlextCliConstants.NetworkDefaults.DEFAULT_MAX_RETRIES
+        )
 
         def validate_business_rules(self) -> FlextResult[None]:
             """Validate pipeline configuration business rules."""
@@ -756,6 +785,7 @@ class FlextCliModels(FlextModels):
         railway-oriented programming and monadic composition.
         """
 
+        @override
         def __init__(self, name: str = "FlextCliOrchestrator") -> None:
             """Initialize the service orchestrator.
 
@@ -1155,6 +1185,7 @@ class FlextCliModels(FlextModels):
         FlextContext for execution context, and FlextRegistry for service discovery.
         """
 
+        @override
         def __init__(
             self,
             name: str = "FlextCliServiceOrchestrator",
@@ -1377,7 +1408,7 @@ class FlextCliModels(FlextModels):
                 elif isinstance(current_data, dict):
                     # Convert to the expected type - flatten nested dicts using dict comprehensions
                     # First, collect nested dict values
-                    nested_items: FlextCliTypes.Data.CliDataDict | None = {
+                    nested_items: FlextCliTypes.Data.CliDataDict = {
                         nested_k: nested_v
                         for k, v in current_data.items()
                         if isinstance(v, dict)
@@ -1386,13 +1417,13 @@ class FlextCliModels(FlextModels):
                         or nested_v is None
                     }
                     # Then, collect direct values
-                    direct_items: FlextCliTypes.Data.CliDataDict | None = {
+                    direct_items: FlextCliTypes.Data.CliDataDict = {
                         k: v
                         for k, v in current_data.items()
                         if isinstance(v, (str, int, float, bool)) or v is None
                     }
                     # Combine using dict.update() for performance
-                    typed_data: FlextCliTypes.Data.CliDataDict | None = {}
+                    typed_data: FlextCliTypes.Data.CliDataDict = {}
                     typed_data.update(direct_items)
                     typed_data.update(nested_items)
                     processing_result = processor(typed_data)
@@ -1436,6 +1467,7 @@ class FlextCliModels(FlextModels):
     # CENTRALIZED VALIDATION ARCHITECTURE
     # =========================================================================
 
+    @override
     def execute(self) -> FlextResult[dict[str, object]]:
         """Execute models service operation."""
         return FlextResult[dict[str, object]].ok({

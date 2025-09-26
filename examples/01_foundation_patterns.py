@@ -206,7 +206,7 @@ def _create_sample_command() -> FlextResult[FlextCliModels.CliCommand]:
         # Create command with REAL validation and parameters
         command = FlextCliModels.CliCommand(
             command_line="echo 'Hello FLEXT CLI Foundation Patterns!'",
-            execution_time=datetime.now(tz=UTC),
+            execution_time=datetime.now(tz=UTC).isoformat(),
         )
 
         return FlextResult[FlextCliModels.CliCommand].ok(command)

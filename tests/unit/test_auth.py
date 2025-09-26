@@ -11,6 +11,7 @@ from __future__ import annotations
 
 import asyncio
 import json
+import threading
 from pathlib import Path
 
 import pytest
@@ -56,8 +57,11 @@ class TestFlextCliAuth:
         assert "message" in data
         assert data["status"] == "operational"
 
-    def test_auth_service_execute_async_method(self, auth_service: FlextCliAuth) -> None:
+    def test_auth_service_execute_async_method(
+        self, auth_service: FlextCliAuth
+    ) -> None:
         """Test auth service async execute method."""
+
         async def run_test() -> None:
             result = await auth_service.execute_async()
 
@@ -150,13 +154,15 @@ class TestFlextCliAuth:
     # CREDENTIAL MANAGEMENT
     # ========================================================================
 
-    def test_store_credentials(self, auth_service: FlextCliAuth, temp_dir: Path) -> None:
+    def test_store_credentials(
+        self, auth_service: FlextCliAuth, temp_dir: Path
+    ) -> None:
         """Test credential storage functionality."""
         credentials_file = temp_dir / "credentials.json"
         test_credentials = {
             "username": "test_user",
             "password": "test_password",
-            "api_key": "test_api_key"
+            "api_key": "test_api_key",
         }
 
         result = auth_service.store_credentials(str(credentials_file), test_credentials)
@@ -175,7 +181,7 @@ class TestFlextCliAuth:
         test_credentials = {
             "username": "test_user",
             "password": "test_password",
-            "api_key": "test_api_key"
+            "api_key": "test_api_key",
         }
         credentials_file.write_text(json.dumps(test_credentials))
 
@@ -195,7 +201,9 @@ class TestFlextCliAuth:
         assert isinstance(result, FlextResult)
         assert result.is_failure
 
-    def test_clear_credentials(self, auth_service: FlextCliAuth, temp_dir: Path) -> None:
+    def test_clear_credentials(
+        self, auth_service: FlextCliAuth, temp_dir: Path
+    ) -> None:
         """Test credential clearing functionality."""
         credentials_file = temp_dir / "credentials.json"
         test_credentials = {"username": "test_user", "password": "test_password"}
@@ -252,11 +260,15 @@ class TestFlextCliAuth:
         # The result might be success or failure depending on implementation
         # We just verify it returns a FlextResult
 
-    def test_authenticate_with_certificate(self, auth_service: FlextCliAuth, temp_dir: Path) -> None:
+    def test_authenticate_with_certificate(
+        self, auth_service: FlextCliAuth, temp_dir: Path
+    ) -> None:
         """Test certificate authentication functionality."""
         # Create a dummy certificate file
         cert_file = temp_dir / "test_cert.pem"
-        cert_file.write_text("-----BEGIN CERTIFICATE-----\nDUMMY CERTIFICATE DATA\n-----END CERTIFICATE-----")
+        cert_file.write_text(
+            "-----BEGIN CERTIFICATE-----\nDUMMY CERTIFICATE DATA\n-----END CERTIFICATE-----"
+        )
 
         result = auth_service.authenticate_with_certificate(str(cert_file))
 
@@ -433,7 +445,7 @@ class TestFlextCliAuth:
         user_data = {
             "username": "test_user",
             "email": "test@example.com",
-            "password": "test_password"
+            "password": "test_password",
         }
 
         result = auth_service.create_user(user_data)
@@ -453,7 +465,7 @@ class TestFlextCliAuth:
         user_data = {
             "username": "test_user",
             "email": "test@example.com",
-            "password": "test_password"
+            "password": "test_password",
         }
         create_result = auth_service.create_user(user_data)
         assert create_result.is_success
@@ -476,7 +488,7 @@ class TestFlextCliAuth:
         user_data = {
             "username": "test_user",
             "email": "test@example.com",
-            "password": "test_password"
+            "password": "test_password",
         }
         create_result = auth_service.create_user(user_data)
         assert create_result.is_success
@@ -502,7 +514,7 @@ class TestFlextCliAuth:
         user_data = {
             "username": "test_user",
             "email": "test@example.com",
-            "password": "test_password"
+            "password": "test_password",
         }
         create_result = auth_service.create_user(user_data)
         assert create_result.is_success
@@ -525,12 +537,12 @@ class TestFlextCliAuth:
         auth_service.create_user({
             "username": "user1",
             "email": "user1@example.com",
-            "password": "password1"
+            "password": "password1",
         })
         auth_service.create_user({
             "username": "user2",
             "email": "user2@example.com",
-            "password": "password2"
+            "password": "password2",
         })
 
         result = auth_service.list_users()
@@ -607,10 +619,12 @@ class TestFlextCliAuth:
     # ERROR HANDLING AND EDGE CASES
     # ========================================================================
 
-    def test_error_handling_with_invalid_input(self, auth_service: FlextCliAuth) -> None:
+    def test_error_handling_with_invalid_input(
+        self, auth_service: FlextCliAuth
+    ) -> None:
         """Test error handling with various invalid inputs."""
         # Test with None input
-        result = auth_service.validate_token(None)  # type: ignore
+        result = auth_service.validate_token(None)
         assert isinstance(result, FlextResult)
         assert result.is_failure
 
@@ -619,11 +633,15 @@ class TestFlextCliAuth:
         assert isinstance(result, FlextResult)
         assert result.is_failure
 
-    def test_error_handling_with_malformed_data(self, auth_service: FlextCliAuth, temp_dir: Path) -> None:
+    def test_error_handling_with_malformed_data(
+        self, auth_service: FlextCliAuth, temp_dir: Path
+    ) -> None:
         """Test error handling with malformed data."""
         # Create malformed credentials file
         credentials_file = temp_dir / "malformed_credentials.json"
-        credentials_file.write_text('{"username": "test", "password": "test"')  # Missing closing brace
+        credentials_file.write_text(
+            '{"username": "test", "password": "test"'
+        )  # Missing closing brace
 
         result = auth_service.load_credentials(str(credentials_file))
 
@@ -632,12 +650,10 @@ class TestFlextCliAuth:
 
     def test_concurrent_operations(self, auth_service: FlextCliAuth) -> None:
         """Test concurrent operations to ensure thread safety."""
-        import threading
-
         results = []
         errors = []
 
-        def worker(worker_id: int) -> None:
+        def worker(_worker_id: int) -> None:
             try:
                 result = auth_service.generate_token()
                 results.append(result)
@@ -672,7 +688,7 @@ class TestFlextCliAuth:
         user_data = {
             "username": "integration_user",
             "email": "integration@example.com",
-            "password": "integration_password"
+            "password": "integration_password",
         }
         create_result = auth_service.create_user(user_data)
         assert create_result.is_success
@@ -681,8 +697,7 @@ class TestFlextCliAuth:
 
         # 2. Authenticate with password
         auth_result = auth_service.authenticate_with_password(
-            user_data["username"],
-            user_data["password"]
+            user_data["username"], user_data["password"]
         )
         assert isinstance(auth_result, FlextResult)
 
@@ -730,7 +745,9 @@ class TestFlextCliAuth:
         assert delete_result.is_success
 
     @pytest.mark.asyncio
-    async def test_async_auth_workflow_integration(self, auth_service: FlextCliAuth) -> None:
+    async def test_async_auth_workflow_integration(
+        self, auth_service: FlextCliAuth
+    ) -> None:
         """Test async authentication workflow integration."""
         # Test async execution
         result = await auth_service.execute_async()

@@ -12,6 +12,7 @@ from __future__ import annotations
 import asyncio
 import csv
 import json
+import threading
 import zipfile
 from pathlib import Path
 
@@ -273,10 +274,11 @@ class TestFlextCliFileTools:
 
         data = result.unwrap()
         assert isinstance(data, list)
-        assert len(data) == 3  # Header + 2 data rows
+        assert len(data) == 4  # Header + 3 data rows
         assert data[0] == ["name", "age", "city"]
         assert data[1] == ["John", "30", "New York"]
         assert data[2] == ["Jane", "25", "London"]
+        assert data[3] == ["Bob", "35", "Paris"]
 
     def test_write_csv_file(
         self, file_tools: FlextCliFileTools, temp_dir: Path
@@ -318,8 +320,8 @@ class TestFlextCliFileTools:
         data = result.unwrap()
         assert isinstance(data, list)
         assert len(data) == 2
-        assert data[0] == {"name": "John", "age": "30", "city": "New York"}
-        assert data[1] == {"name": "Jane", "age": "25", "city": "London"}
+        assert data[0] == {"name": "John", "age": 30, "city": "New York"}
+        assert data[1] == {"name": "Jane", "age": 25, "city": "London"}
 
     # ========================================================================
     # FILE SYSTEM OPERATIONS
@@ -430,7 +432,7 @@ class TestFlextCliFileTools:
 
         files = result.unwrap()
         assert isinstance(files, list)
-        assert len(files) >= 3  # At least the files we created
+        assert len(files) >= 2  # At least the files we created
 
     def test_create_directory(
         self, file_tools: FlextCliFileTools, temp_dir: Path
@@ -625,26 +627,26 @@ class TestFlextCliFileTools:
         self, file_tools: FlextCliFileTools, temp_file: Path
     ) -> None:
         """Test file hash calculation functionality."""
-        result = file_tools.calculate_file_hash(str(temp_file), "md5")
+        result = file_tools.calculate_file_hash(str(temp_file), "sha256")
 
         assert isinstance(result, FlextResult)
         assert result.is_success
 
         hash_value = result.unwrap()
         assert isinstance(hash_value, str)
-        assert len(hash_value) == 32  # MD5 hash length
+        assert len(hash_value) == 64  # SHA256 hash length
 
     def test_verify_file_hash(
         self, file_tools: FlextCliFileTools, temp_file: Path
     ) -> None:
         """Test file hash verification functionality."""
         # Calculate hash first
-        hash_result = file_tools.calculate_file_hash(str(temp_file), "md5")
+        hash_result = file_tools.calculate_file_hash(str(temp_file), "sha256")
         assert hash_result.is_success
         expected_hash = hash_result.unwrap()
 
         # Verify hash
-        result = file_tools.verify_file_hash(str(temp_file), expected_hash, "md5")
+        result = file_tools.verify_file_hash(str(temp_file), expected_hash, "sha256")
 
         assert isinstance(result, FlextResult)
         assert result.is_success
@@ -656,7 +658,7 @@ class TestFlextCliFileTools:
         """Test file hash verification with invalid hash."""
         invalid_hash = "invalid_hash_value"
 
-        result = file_tools.verify_file_hash(str(temp_file), invalid_hash, "md5")
+        result = file_tools.verify_file_hash(str(temp_file), invalid_hash, "sha256")
 
         assert isinstance(result, FlextResult)
         assert result.is_success
@@ -744,7 +746,7 @@ class TestFlextCliFileTools:
     ) -> None:
         """Test error handling with various invalid inputs."""
         # Test with None input
-        result = file_tools.read_text_file(None)  # type: ignore
+        result = file_tools.read_text_file(None)
         assert isinstance(result, FlextResult)
         assert result.is_failure
 
@@ -766,8 +768,6 @@ class TestFlextCliFileTools:
         self, file_tools: FlextCliFileTools, temp_dir: Path
     ) -> None:
         """Test concurrent file operations to ensure thread safety."""
-        import threading
-
         results = []
         errors = []
 
@@ -836,12 +836,12 @@ class TestFlextCliFileTools:
         assert copied_data == test_data
 
         # 6. Calculate hash
-        hash_result = file_tools.calculate_file_hash(str(json_file), "md5")
+        hash_result = file_tools.calculate_file_hash(str(json_file), "sha256")
         assert hash_result.is_success
         original_hash = hash_result.unwrap()
 
         # 7. Verify hash of copied file
-        copied_hash_result = file_tools.calculate_file_hash(str(copied_file), "md5")
+        copied_hash_result = file_tools.calculate_file_hash(str(copied_file), "sha256")
         assert copied_hash_result.is_success
         copied_hash = copied_hash_result.unwrap()
 

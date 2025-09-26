@@ -9,6 +9,8 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
+from typing import override
+
 from flext_core import FlextExceptions
 
 
@@ -31,6 +33,7 @@ class FlextCliExceptions(FlextExceptions):
         and contextual information support.
         """
 
+        @override
         def __init__(
             self,
             message: str,
@@ -41,6 +44,7 @@ class FlextCliExceptions(FlextExceptions):
             """Initialize CLI exception with message, error code, and context."""
             super().__init__(message, code=error_code, context=context)
 
+        @override
         def __str__(self) -> str:
             """Return string representation of the exception."""
             context_str = ""
@@ -50,6 +54,7 @@ class FlextCliExceptions(FlextExceptions):
 
             return f"[{self.error_code}] {self.message}{context_str}"
 
+        @override
         def __repr__(self) -> str:
             """Return detailed representation for debugging."""
             return (
@@ -70,6 +75,7 @@ class FlextCliExceptions(FlextExceptions):
     class _CliValidationError(_BaseError):
         """CLI validation error exception."""
 
+        @override
         def __init__(self, message: str, **context: object) -> None:
             """Initialize validation error with message and context."""
             super().__init__(message, error_code="CLI_VALIDATION_ERROR", **context)
@@ -77,6 +83,7 @@ class FlextCliExceptions(FlextExceptions):
     class _CliConfigurationError(_BaseError):
         """CLI configuration error exception."""
 
+        @override
         def __init__(self, message: str, **context: object) -> None:
             """Initialize configuration error with message and context."""
             super().__init__(message, error_code="CLI_CONFIGURATION_ERROR", **context)
@@ -84,6 +91,7 @@ class FlextCliExceptions(FlextExceptions):
     class _CliConnectionError(_BaseError):
         """CLI connection error exception."""
 
+        @override
         def __init__(self, message: str, **context: object) -> None:
             """Initialize connection error with message and context."""
             super().__init__(message, error_code="CLI_CONNECTION_ERROR", **context)
@@ -91,6 +99,7 @@ class FlextCliExceptions(FlextExceptions):
     class _CliAuthenticationError(_BaseError):
         """CLI authentication error exception."""
 
+        @override
         def __init__(self, message: str, **context: object) -> None:
             """Initialize authentication error with message and context."""
             super().__init__(message, error_code="CLI_AUTHENTICATION_ERROR", **context)
@@ -98,6 +107,7 @@ class FlextCliExceptions(FlextExceptions):
     class _CommandError(_BaseError):
         """CLI command error exception."""
 
+        @override
         def __init__(self, message: str, **context: object) -> None:
             """Initialize command error with message and context."""
             super().__init__(message, error_code="COMMAND_ERROR", **context)
@@ -105,6 +115,7 @@ class FlextCliExceptions(FlextExceptions):
     class _CliTimeoutError(_BaseError):
         """CLI timeout error exception."""
 
+        @override
         def __init__(self, message: str, **context: object) -> None:
             """Initialize timeout error with message and context."""
             super().__init__(message, error_code="CLI_TIMEOUT_ERROR", **context)
@@ -112,6 +123,7 @@ class FlextCliExceptions(FlextExceptions):
     class _FormatError(_BaseError):
         """CLI format error exception."""
 
+        @override
         def __init__(self, message: str, **context: object) -> None:
             """Initialize format error with message and context."""
             super().__init__(message, error_code="FORMAT_ERROR", **context)

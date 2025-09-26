@@ -26,8 +26,6 @@ from __future__ import annotations
 import os
 from datetime import UTC, datetime, timedelta
 
-from examples.example_utils import print_demo_completion
-
 from flext_cli import (
     FlextCliAuth,
     FlextCliConfig,
@@ -35,7 +33,9 @@ from flext_cli import (
     FlextCliService,
     FlextCliUtilities,
 )
-from flext_core import FlextResult, FlextTypes
+from flext_core import FlextConstants, FlextResult, FlextTypes
+
+# from .example_utils import print_demo_completion
 
 
 def demonstrate_basic_authentication() -> FlextResult[None]:
@@ -231,7 +231,7 @@ def demonstrate_session_management() -> FlextResult[None]:
         "expires_at": now + timedelta(hours=8),
         "last_activity": now,
         "permissions": ["read", "write", "deploy"],
-        "ip_address": "127.0.0.1",
+        "ip_address": FlextConstants.Platform.LOOPBACK_IP,
         "user_agent": "flext-cli/1.0.0",
     }
 
@@ -515,9 +515,12 @@ def main() -> None:
             "🌐 FlextCliService authentication patterns",
         ]
 
-        print_demo_completion(
-            console, "Authentication and Authorization Demo", features
+        console.print(
+            "[bold green]✅ Authentication and Authorization Demo completed![/bold green]"
         )
+        console.print("[bold blue]Features demonstrated:[/bold blue]")
+        for feature in features:
+            console.print(f"  • {feature}")
 
     except Exception as e:
         console.print(f"[bold red]❌ Authentication demo error: {e}[/bold red]")
