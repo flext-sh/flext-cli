@@ -925,7 +925,7 @@ class FlextCliService(FlextService[FlextTypes.Core.Dict]):
         """Get command history."""
         try:
             return FlextResult[list[FlextCliModels.CliCommand]].ok(
-                list(self._commands._commands.values())
+                cast("list[FlextCliModels.CliCommand]", list(self._commands._commands.values()))
             )
         except Exception as e:
             return FlextResult[list[FlextCliModels.CliCommand]].fail(
@@ -945,7 +945,7 @@ class FlextCliService(FlextService[FlextTypes.Core.Dict]):
         """Get command statistics."""
         try:
             stats: FlextTypes.Core.Dict = {
-                "total_commands": len(self._commands),
+                "total_commands": len(self._commands._commands),
                 "total_sessions": len(self._sessions),
                 "total_handlers": len(self._handlers),
                 "total_plugins": len(self._plugins),
@@ -963,7 +963,7 @@ class FlextCliService(FlextService[FlextTypes.Core.Dict]):
         try:
             matching_commands = [
                 command
-                for command in self._commands.values()
+                for command in cast("list[FlextCliModels.CliCommand]", list(self._commands._commands.values()))
                 if re.search(pattern, command.command, re.IGNORECASE)
             ]
             return FlextResult[list[FlextCliModels.CliCommand]].ok(matching_commands)
@@ -979,7 +979,8 @@ class FlextCliService(FlextService[FlextTypes.Core.Dict]):
         try:
             # Sort commands by creation time and return the most recent ones
             sorted_commands = sorted(
-                self._commands.values(), key=lambda cmd: cmd.created_at, reverse=True
+                cast("list[FlextCliModels.CliCommand]", list(self._commands._commands.values())),
+                key=lambda cmd: cmd.created_at, reverse=True
             )
             return FlextResult[list[FlextCliModels.CliCommand]].ok(
                 sorted_commands[:limit]
@@ -1156,13 +1157,13 @@ class FlextCliService(FlextService[FlextTypes.Core.Dict]):
             # Initialize service components
             init_result = self._initialize_service()
             if init_result.is_failure:
-                return FlextResult[FlextTypes.Core.Dict].fail(init_result.error)
+                return FlextResult[FlextTypes.Core.Dict].fail(init_result.error or "Service initialization failed")
 
             # Return service status
             status_data: FlextTypes.Core.Dict = {
                 "service": "FlextCliService",
                 "status": "ready",
-                "commands_count": len(self._commands),
+                "commands_count": len(self._commands._commands),
                 "sessions_count": len(self._sessions),
                 "plugins_count": len(self._plugins),
                 "handlers_count": len(self._handlers),
@@ -1187,13 +1188,13 @@ class FlextCliService(FlextService[FlextTypes.Core.Dict]):
             # Initialize service components asynchronously
             init_result = await self._initialize_service_async()
             if init_result.is_failure:
-                return FlextResult[FlextTypes.Core.Dict].fail(init_result.error)
+                return FlextResult[FlextTypes.Core.Dict].fail(init_result.error or "Service initialization failed")
 
             # Return service status
             status_data: FlextTypes.Core.Dict = {
                 "service": "FlextCliService",
                 "status": "ready_async",
-                "commands_count": len(self._commands),
+                "commands_count": len(self._commands._commands),
                 "sessions_count": len(self._sessions),
                 "plugins_count": len(self._plugins),
                 "handlers_count": len(self._handlers),
@@ -1262,12 +1263,18 @@ class FlextCliService(FlextService[FlextTypes.Core.Dict]):
             FlextResult[HandlerData]: Handler result
 
         """
-        health_data = {
-            **dict(data),
-            "health": "ok",
-            "timestamp": datetime.now(UTC).isoformat(),
-        }
-        return FlextResult[HandlerData].ok(health_data)
+        if isinstance(data, dict):
+            health_data = {
+                **data,
+                "health": "ok",
+                "timestamp": datetime.now(UTC).isoformat(),
+            }
+        else:
+            health_data = {
+                "health": "ok",
+                "timestamp": datetime.now(UTC).isoformat(),
+            }
+        return FlextResult[HandlerData].ok(cast("HandlerData", health_data))
 
     # Convenience methods for backward compatibility with tests
     def read_file_content(self, file_path: str) -> FlextResult[str]:
@@ -1307,7 +1314,11 @@ class FlextCliService(FlextService[FlextTypes.Core.Dict]):
     ) -> FlextResult[str]:
         """Execute shell command."""
         full_command = f"{command} {' '.join(args)}" if args else command
-        return self._commands.execute_command(full_command, timeout)
+        result = self._commands.execute_command(full_command, None)
+        if result.is_success:
+            return FlextResult[str].ok(str(result.value))
+        else:
+            return FlextResult[str].fail(result.error or "Command execution failed")
 
     def make_http_request(
         self,
