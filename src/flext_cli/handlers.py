@@ -206,11 +206,11 @@ class FlextCliHandlers:
                 "timestamp": "2025-01-08T00:00:00Z",
                 "handlers_available": [
                     "CommandHandler",
-                    "FormatterHandler", 
+                    "FormatterHandler",
                     "ConfigHandler",
                     "AuthHandler",
-                    "DebugHandler"
-                ]
+                    "DebugHandler",
+                ],
             }
             return FlextResult[CliCommandResult].ok(result_data)
         except Exception as e:
@@ -227,10 +227,10 @@ class FlextCliHandlers:
                 "handlers_available": [
                     "CommandHandler",
                     "FormatterHandler",
-                    "ConfigHandler", 
+                    "ConfigHandler",
                     "AuthHandler",
-                    "DebugHandler"
-                ]
+                    "DebugHandler",
+                ],
             }
             return FlextResult[CliCommandResult].ok(result_data)
         except Exception as e:

@@ -31,7 +31,7 @@ class FlextCliPrompts(FlextService[None]):
         self._quiet: bool = quiet
 
     @override
-    def execute(self: object) -> FlextResult[None]:
+    def execute(self) -> FlextResult[None]:
         """Execute the main domain service operation - required by FlextService."""
         return FlextResult[None].ok(None)
 

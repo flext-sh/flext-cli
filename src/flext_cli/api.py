@@ -415,9 +415,9 @@ class FlextCliApi(FlextService[FlextTypes.Core.Dict]):
         """List files in directory."""
         return self._files.list_directory(directory_path)
 
-    def execute_command(self, command: str, timeout: int = 30) -> FlextResult[object]:  # noqa: ARG002
-        """Execute shell command."""
-        return self._commands.execute_command(command, None)
+    def execute_command(self, command: str, timeout: int = 30) -> FlextResult[object]:
+        """Execute shell command with timeout support."""
+        return self._commands.execute_command(command, None, timeout)
 
     def make_http_request(
         self,

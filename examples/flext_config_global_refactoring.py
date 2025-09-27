@@ -30,7 +30,7 @@ def demonstrate_global_configuration_refactoring() -> None:
     # 1. Show FlextConfig as SINGLE SOURCE OF TRUTH
     print("1. FlextConfig Singleton (SINGLE SOURCE OF TRUTH):")
     base_config = FlextConfig.get_global_instance()
-    cli_config = FlextCliConfig.MainConfig()
+    cli_config = FlextCliConfig()
 
     print(f"   Base Config Environment: {base_config.environment}")
     print(f"   Base Config Debug: {base_config.debug}")
@@ -66,7 +66,7 @@ def demonstrate_global_configuration_refactoring() -> None:
         print(f"     {key}: {value}")
 
     # Apply overrides to CLI config by creating a new instance
-    cli_config = FlextCliConfig.MainConfig(
+    cli_config = FlextCliConfig(
         debug=cli_overrides["debug_mode"],
         log_level=cli_overrides["log_level"],
         output_format=str(cli_overrides["output_format"]),
@@ -159,7 +159,7 @@ def demonstrate_dynamic_configuration_updates() -> None:
 
     # Get current configuration
     base_config = FlextConfig.get_global_instance()
-    cli_config = FlextCliConfig.MainConfig()
+    cli_config = FlextCliConfig()
 
     print("1. Initial Configuration State:")
     print(f"   Base Debug: {base_config.debug}")
@@ -172,9 +172,7 @@ def demonstrate_dynamic_configuration_updates() -> None:
     print("2. Applying Dynamic Updates:")
 
     # Update CLI config by creating a new instance
-    cli_config = FlextCliConfig.MainConfig(
-        debug=True, output_format="yaml", log_level="INFO"
-    )
+    cli_config = FlextCliConfig(debug=True, output_format="yaml", log_level="INFO")
 
     print("   ✅ CLI configuration updated dynamically")
     print(f"   New CLI Debug Mode: {cli_config.debug_mode}")
@@ -219,10 +217,10 @@ def demonstrate_cli_parameter_integration() -> None:
     # Apply parameters to configuration
     print("2. Applying CLI Parameters to Configuration:")
 
-    cli_config = FlextCliConfig.MainConfig()
+    cli_config = FlextCliConfig()
 
     # Apply CLI overrides by creating a new instance
-    cli_config = FlextCliConfig.MainConfig(
+    cli_config = FlextCliConfig(
         debug=cli_params["debug"],
         log_level=cli_params["log_level"],
         output_format=str(cli_params["output_format"]),

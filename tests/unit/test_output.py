@@ -14,6 +14,7 @@ import json
 import tempfile
 import time
 from pathlib import Path
+from typing import cast
 
 import pytest
 
@@ -228,7 +229,11 @@ class TestFlextCliOutput:
         self, output: FlextCliOutput, sample_data: dict
     ) -> None:
         """Test creating table."""
-        result = output.create_table(sample_data)
+        # Convert dict to list format expected by create_table
+        sample_list: list[dict[str, str | int | float] | None] = (
+            [sample_data] if isinstance(sample_data, dict) else sample_data
+        )
+        result = output.create_table(sample_list)
 
         assert isinstance(result, FlextResult)
         # May fail if data is not suitable for table format
@@ -276,7 +281,10 @@ class TestFlextCliOutput:
         assert csv_result.is_success
 
         # Step 3: Create table (may fail for complex data)
-        table_result = output.create_table(sample_data)
+        sample_list: list[dict[str, str | int | float] | None] = (
+            [sample_data] if isinstance(sample_data, dict) else sample_data
+        )
+        table_result = output.create_table(sample_list)
         assert isinstance(table_result, FlextResult)
 
         # Step 4: Print messages
@@ -318,8 +326,10 @@ class TestFlextCliOutput:
         yaml_str = yaml_result.unwrap()
         assert isinstance(yaml_str, str)
 
-        # Test table formatting
-        table_result = output.format_table(real_data)
+        # Test table formatting - cast to expected type
+        table_result = output.format_table(
+            cast("dict[str, object] | list[dict[str, object]] | None", real_data)
+        )
         assert table_result.is_success
         table_str = table_result.unwrap()
         assert isinstance(table_str, str)

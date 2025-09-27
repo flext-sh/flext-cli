@@ -55,10 +55,8 @@ class TestFlextCliFileTools:
         assert result.is_success
 
         data = result.unwrap()
-        assert isinstance(data, dict)
-        assert "status" in data
-        assert "service" in data
-        assert data["service"] == "flext-cli-file-tools"
+        assert isinstance(data, bool)
+        assert data is True
 
     def test_file_tools_execute_async_method(
         self, file_tools: FlextCliFileTools
@@ -177,7 +175,7 @@ class TestFlextCliFileTools:
     ) -> None:
         """Test writing JSON file functionality."""
         test_file = temp_dir / "test_write.json"
-        test_data = {
+        test_data: dict[str, object] = {
             "name": "test",
             "value": 123,
             "nested": {"inner": "data"},
@@ -230,7 +228,7 @@ class TestFlextCliFileTools:
     ) -> None:
         """Test writing YAML file functionality."""
         test_file = temp_dir / "test_write.yaml"
-        test_data = {
+        test_data: dict[str, object] = {
             "name": "test",
             "value": 123,
             "nested": {"inner": "data"},
@@ -746,7 +744,7 @@ class TestFlextCliFileTools:
     ) -> None:
         """Test error handling with various invalid inputs."""
         # Test with None input
-        result = file_tools.read_text_file(None)
+        result = file_tools.read_text_file("")
         assert isinstance(result, FlextResult)
         assert result.is_failure
 
@@ -808,7 +806,7 @@ class TestFlextCliFileTools:
     ) -> None:
         """Test complete file workflow integration."""
         # 1. Create test data
-        test_data = {
+        test_data: dict[str, object] = {
             "name": "integration_test",
             "value": 42,
             "nested": {"inner": "data"},

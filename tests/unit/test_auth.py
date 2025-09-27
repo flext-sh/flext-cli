@@ -159,7 +159,7 @@ class TestFlextCliAuth:
     ) -> None:
         """Test credential storage functionality."""
         credentials_file = temp_dir / "credentials.json"
-        test_credentials = {
+        test_credentials: dict[str, object] = {
             "username": "test_user",
             "password": "test_password",
             "api_key": "test_api_key",
@@ -298,7 +298,7 @@ class TestFlextCliAuth:
         create_result = auth_service.create_session()
         assert create_result.is_success
         session = create_result.unwrap()
-        session_id = session["session_id"]
+        session_id = str(session["session_id"])
 
         # Then validate it
         result = auth_service.validate_session(session_id)
@@ -326,13 +326,13 @@ class TestFlextCliAuth:
         session_id = session["session_id"]
 
         # Then destroy it
-        result = auth_service.destroy_session(session_id)
+        result = auth_service.destroy_session(str(session_id))
 
         assert isinstance(result, FlextResult)
         assert result.is_success
 
         # Verify session is no longer valid
-        validate_result = auth_service.validate_session(session_id)
+        validate_result = auth_service.validate_session(str(session_id))
         assert validate_result.is_success
         assert validate_result.unwrap() is False
 
@@ -345,7 +345,7 @@ class TestFlextCliAuth:
         session_id = session["session_id"]
 
         # Then get session info
-        result = auth_service.get_session_info(session_id)
+        result = auth_service.get_session_info(str(session_id))
 
         assert isinstance(result, FlextResult)
         assert result.is_success
@@ -367,7 +367,7 @@ class TestFlextCliAuth:
         session = create_result.unwrap()
         session_id = session["session_id"]
 
-        result = auth_service.check_permission(session_id, "read")
+        result = auth_service.check_permission(str(session_id), "read")
 
         assert isinstance(result, FlextResult)
         assert result.is_success
@@ -383,13 +383,13 @@ class TestFlextCliAuth:
         session = create_result.unwrap()
         session_id = session["session_id"]
 
-        result = auth_service.grant_permission(session_id, "write")
+        result = auth_service.grant_permission(str(session_id), "write")
 
         assert isinstance(result, FlextResult)
         assert result.is_success
 
         # Verify permission was granted
-        check_result = auth_service.check_permission(session_id, "write")
+        check_result = auth_service.check_permission(str(session_id), "write")
         assert check_result.is_success
         assert check_result.unwrap() is True
 
@@ -401,17 +401,17 @@ class TestFlextCliAuth:
         session = create_result.unwrap()
         session_id = session["session_id"]
 
-        grant_result = auth_service.grant_permission(session_id, "write")
+        grant_result = auth_service.grant_permission(str(session_id), "write")
         assert grant_result.is_success
 
         # Then revoke it
-        result = auth_service.revoke_permission(session_id, "write")
+        result = auth_service.revoke_permission(str(session_id), "write")
 
         assert isinstance(result, FlextResult)
         assert result.is_success
 
         # Verify permission was revoked
-        check_result = auth_service.check_permission(session_id, "write")
+        check_result = auth_service.check_permission(str(session_id), "write")
         assert check_result.is_success
         assert check_result.unwrap() is False
 
@@ -423,10 +423,10 @@ class TestFlextCliAuth:
         session = create_result.unwrap()
         session_id = session["session_id"]
 
-        auth_service.grant_permission(session_id, "read")
-        auth_service.grant_permission(session_id, "write")
+        auth_service.grant_permission(str(session_id), "read")
+        auth_service.grant_permission(str(session_id), "write")
 
-        result = auth_service.list_permissions(session_id)
+        result = auth_service.list_permissions(str(session_id))
 
         assert isinstance(result, FlextResult)
         assert result.is_success
@@ -442,7 +442,7 @@ class TestFlextCliAuth:
 
     def test_create_user(self, auth_service: FlextCliAuth) -> None:
         """Test user creation functionality."""
-        user_data = {
+        user_data: dict[str, object] = {
             "username": "test_user",
             "email": "test@example.com",
             "password": "test_password",
@@ -462,7 +462,7 @@ class TestFlextCliAuth:
     def test_get_user(self, auth_service: FlextCliAuth) -> None:
         """Test user retrieval functionality."""
         # First create a user
-        user_data = {
+        user_data: dict[str, object] = {
             "username": "test_user",
             "email": "test@example.com",
             "password": "test_password",
@@ -473,7 +473,7 @@ class TestFlextCliAuth:
         user_id = user["user_id"]
 
         # Then get the user
-        result = auth_service.get_user(user_id)
+        result = auth_service.get_user(str(user_id))
 
         assert isinstance(result, FlextResult)
         assert result.is_success
@@ -485,7 +485,7 @@ class TestFlextCliAuth:
     def test_update_user(self, auth_service: FlextCliAuth) -> None:
         """Test user update functionality."""
         # First create a user
-        user_data = {
+        user_data: dict[str, object] = {
             "username": "test_user",
             "email": "test@example.com",
             "password": "test_password",
@@ -496,14 +496,14 @@ class TestFlextCliAuth:
         user_id = user["user_id"]
 
         # Then update the user
-        update_data = {"email": "updated@example.com"}
-        result = auth_service.update_user(user_id, update_data)
+        update_data: dict[str, object] = {"email": "updated@example.com"}
+        result = auth_service.update_user(str(user_id), update_data)
 
         assert isinstance(result, FlextResult)
         assert result.is_success
 
         # Verify user was updated
-        get_result = auth_service.get_user(user_id)
+        get_result = auth_service.get_user(str(user_id))
         assert get_result.is_success
         updated_user = get_result.unwrap()
         assert updated_user["email"] == "updated@example.com"
@@ -511,7 +511,7 @@ class TestFlextCliAuth:
     def test_delete_user(self, auth_service: FlextCliAuth) -> None:
         """Test user deletion functionality."""
         # First create a user
-        user_data = {
+        user_data: dict[str, object] = {
             "username": "test_user",
             "email": "test@example.com",
             "password": "test_password",
@@ -522,13 +522,13 @@ class TestFlextCliAuth:
         user_id = user["user_id"]
 
         # Then delete the user
-        result = auth_service.delete_user(user_id)
+        result = auth_service.delete_user(str(user_id))
 
         assert isinstance(result, FlextResult)
         assert result.is_success
 
         # Verify user was deleted
-        get_result = auth_service.get_user(user_id)
+        get_result = auth_service.get_user(str(user_id))
         assert get_result.is_failure
 
     def test_list_users(self, auth_service: FlextCliAuth) -> None:
@@ -650,8 +650,8 @@ class TestFlextCliAuth:
 
     def test_concurrent_operations(self, auth_service: FlextCliAuth) -> None:
         """Test concurrent operations to ensure thread safety."""
-        results = []
-        errors = []
+        results: list[FlextResult[str]] = []
+        errors: list[Exception] = []
 
         def worker(_worker_id: int) -> None:
             try:
@@ -661,7 +661,7 @@ class TestFlextCliAuth:
                 errors.append(e)
 
         # Start multiple threads
-        threads = []
+        threads: list[threading.Thread] = []
         for i in range(5):
             thread = threading.Thread(target=worker, args=(i,))
             threads.append(thread)
@@ -685,7 +685,7 @@ class TestFlextCliAuth:
     def test_full_auth_workflow_integration(self, auth_service: FlextCliAuth) -> None:
         """Test complete authentication workflow integration."""
         # 1. Create a user
-        user_data = {
+        user_data: dict[str, object] = {
             "username": "integration_user",
             "email": "integration@example.com",
             "password": "integration_password",
@@ -697,7 +697,7 @@ class TestFlextCliAuth:
 
         # 2. Authenticate with password
         auth_result = auth_service.authenticate_with_password(
-            user_data["username"], user_data["password"]
+            str(user_data["username"]), str(user_data["password"])
         )
         assert isinstance(auth_result, FlextResult)
 
@@ -718,22 +718,22 @@ class TestFlextCliAuth:
         session_id = session["session_id"]
 
         # 6. Grant permissions
-        grant_result = auth_service.grant_permission(session_id, "read")
+        grant_result = auth_service.grant_permission(str(session_id), "read")
         assert grant_result.is_success
 
         # 7. Check permissions
-        check_result = auth_service.check_permission(session_id, "read")
+        check_result = auth_service.check_permission(str(session_id), "read")
         assert check_result.is_success
         assert check_result.unwrap() is True
 
         # 8. List permissions
-        list_result = auth_service.list_permissions(session_id)
+        list_result = auth_service.list_permissions(str(session_id))
         assert list_result.is_success
         permissions = list_result.unwrap()
         assert "read" in permissions
 
         # 9. Destroy session
-        destroy_result = auth_service.destroy_session(session_id)
+        destroy_result = auth_service.destroy_session(str(session_id))
         assert destroy_result.is_success
 
         # 10. Revoke token
@@ -741,7 +741,7 @@ class TestFlextCliAuth:
         assert revoke_result.is_success
 
         # 11. Delete user
-        delete_result = auth_service.delete_user(user_id)
+        delete_result = auth_service.delete_user(str(user_id))
         assert delete_result.is_success
 
     @pytest.mark.asyncio

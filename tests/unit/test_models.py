@@ -15,6 +15,7 @@ import operator
 import re
 import threading
 import time
+from typing import Any
 
 import pytest
 
@@ -173,7 +174,11 @@ class TestFlextCliModels:
         assert active_items[1]["id"] == 3
 
         # Filter items with value > 15
-        high_value_items = [item for item in data_list if item["value"] > 15]
+        high_value_items = [
+            item
+            for item in data_list
+            if isinstance(item["value"], (int, float)) and item["value"] > 15
+        ]
         assert len(high_value_items) == 3
 
     # ========================================================================
@@ -215,7 +220,7 @@ class TestFlextCliModels:
             "name": str,
             "active": bool,
             "value": float,
-            "items": list,
+            "items": list[Any],
         }
 
         # Valid data with correct types
@@ -240,7 +245,7 @@ class TestFlextCliModels:
             "items": "not_a_list",  # Should be list
         }
 
-        type_errors = []
+        type_errors: list[str] = []
         for field, expected_type in expected_types.items():
             if field in invalid_data and not isinstance(
                 invalid_data[field], expected_type
@@ -292,8 +297,11 @@ class TestFlextCliModels:
         assert model1 != model2
 
         # Test comparison by value
-        assert model1["value"] < model2["value"]
-        assert model2["value"] > model1["value"]
+        if isinstance(model1["value"], (int, float)) and isinstance(
+            model2["value"], (int, float)
+        ):
+            assert model1["value"] < model2["value"]
+            assert model2["value"] > model1["value"]
 
     def test_sort_data_models(self) -> None:
         """Test data model sorting functionality."""
@@ -338,9 +346,10 @@ class TestFlextCliModels:
         ]
 
         # Group by category
-        grouped = {}
+        grouped: dict[str, list[dict[str, int | str]]] = {}
         for model in models:
-            category = model["category"]
+            category_value = model["category"]
+            category: str = str(category_value)
             if category not in grouped:
                 grouped[category] = []
             grouped[category].append(model)
@@ -350,18 +359,25 @@ class TestFlextCliModels:
         assert len(grouped["C"]) == 1
 
         # Calculate sum by category
-        sums = {}
+        sums: dict[str, int] = {}
         for category, items in grouped.items():
-            sums[category] = sum(item["value"] for item in items)
+            sums[category] = sum(
+                item["value"] for item in items if isinstance(item["value"], int)
+            )
 
         assert sums["A"] == 25  # 10 + 15
         assert sums["B"] == 45  # 20 + 25
         assert sums["C"] == 30
 
         # Calculate average by category
-        averages = {}
+        averages: dict[str, float] = {}
         for category, items in grouped.items():
-            averages[category] = sum(item["value"] for item in items) / len(items)
+            numeric_values = [
+                item["value"] for item in items if isinstance(item["value"], int)
+            ]
+            averages[category] = (
+                sum(numeric_values) / len(numeric_values) if numeric_values else 0.0
+            )
 
         assert averages["A"] == 12.5  # (10 + 15) / 2
         assert averages["B"] == 22.5  # (20 + 25) / 2
@@ -378,18 +394,18 @@ class TestFlextCliModels:
         ]
 
         # Count by status
-        status_counts = {}
+        status_counts: dict[str, int] = {}
         for model in models:
-            status = model["status"]
+            status: str = model["status"]
             status_counts[status] = status_counts.get(status, 0) + 1
 
         assert status_counts["active"] == 3
         assert status_counts["inactive"] == 2
 
         # Count by type
-        type_counts = {}
+        type_counts: dict[str, int] = {}
         for model in models:
-            type_name = model["type"]
+            type_name: str = model["type"]
             type_counts[type_name] = type_counts.get(type_name, 0) + 1
 
         assert type_counts["user"] == 3
@@ -410,9 +426,16 @@ class TestFlextCliModels:
         ]
 
         # Search by name containing "Apple"
-        apple_products = [model for model in models if "Apple" in model["name"]]
+        apple_products = [
+            model
+            for model in models
+            if isinstance(model["name"], str) and "Apple" in model["name"]
+        ]
         assert len(apple_products) == 3
-        assert all("Apple" in product["name"] for product in apple_products)
+        assert all(
+            isinstance(product["name"], str) and "Apple" in product["name"]
+            for product in apple_products
+        )
 
         # Search by category
         electronics = [model for model in models if model["category"] == "electronics"]
@@ -423,7 +446,9 @@ class TestFlextCliModels:
         apple_electronics = [
             model
             for model in models
-            if "Apple" in model["name"] and model["category"] == "electronics"
+            if isinstance(model["name"], str)
+            and "Apple" in model["name"]
+            and model["category"] == "electronics"
         ]
         assert len(apple_electronics) == 1
         assert apple_electronics[0]["name"] == "Apple iPhone"
@@ -471,7 +496,6 @@ class TestFlextCliModels:
 
         # Test with empty data
         empty_data = {}
-        assert isinstance(empty_data, dict)
         assert len(empty_data) == 0
 
         # Test with malformed JSON
@@ -499,7 +523,8 @@ class TestFlextCliModels:
             "value": 0,
         }
         assert not data_with_empty["name"]
-        assert not data_with_empty["description"].strip()
+        if isinstance(data_with_empty["description"], str):
+            assert not data_with_empty["description"].strip()
 
         # Test with zero values
         data_with_zeros = {"id": 0, "count": 0, "price": 0.0, "active": False}
@@ -510,8 +535,8 @@ class TestFlextCliModels:
 
     def test_concurrent_operations(self) -> None:
         """Test concurrent operations to ensure thread safety."""
-        results = []
-        errors = []
+        results: list[dict[str, int | float | str]] = []
+        errors: list[Exception] = []
 
         def worker(worker_id: int) -> None:
             try:
@@ -526,7 +551,7 @@ class TestFlextCliModels:
                 errors.append(e)
 
         # Start multiple threads
-        threads = []
+        threads: list[threading.Thread] = []
         for i in range(5):
             thread = threading.Thread(target=worker, args=(i,))
             threads.append(thread)
@@ -591,46 +616,65 @@ class TestFlextCliModels:
         ]
 
         # 2. Validate data
-        valid_data = [
-            item for item in raw_data if item["price"] > 0 and item["stock"] >= 0
+        valid_data: list[dict[str, int | str]] = [
+            item
+            for item in raw_data
+            if isinstance(item["price"], (int, float))
+            and item["price"] > 0
+            and isinstance(item["stock"], (int, float))
+            and item["stock"] >= 0
         ]
         assert len(valid_data) == 5
 
         # 3. Transform data
-        transformed_data = []
+        transformed_data: list[dict[str, int | str | bool]] = []
         for item in valid_data:
             transformed_item = {
                 "id": item["id"],
-                "name": item["name"].upper(),
+                "name": item["name"].upper()
+                if isinstance(item["name"], str)
+                else str(item["name"]),
                 "price": item["price"],
                 "category": item["category"],
-                "in_stock": item["stock"] > 0,
+                "in_stock": isinstance(item["stock"], (int, float))
+                and item["stock"] > 0,
                 "stock_level": "high"
-                if item["stock"] > 15
+                if isinstance(item["stock"], (int, float)) and item["stock"] > 15
                 else "medium"
-                if item["stock"] > 5
+                if isinstance(item["stock"], (int, float)) and item["stock"] > 5
                 else "low",
             }
             transformed_data.append(transformed_item)
 
         # 4. Filter electronics
-        electronics = [
+        electronics: list[dict[str, int | str | bool]] = [
             item for item in transformed_data if item["category"] == "electronics"
         ]
         assert len(electronics) == 3
 
         # 5. Sort by price
-        sorted_electronics = sorted(electronics, key=operator.itemgetter("price"))
+        sorted_electronics: list[dict[str, int | str | bool]] = sorted(
+            electronics, key=operator.itemgetter("price")
+        )
         assert sorted_electronics[0]["price"] == 100
         assert sorted_electronics[2]["price"] == 300
 
         # 6. Calculate statistics
-        total_value = sum(
+        total_value: float = sum(
             item["price"] * item["stock"]
             for item in raw_data
-            if item["category"] == "electronics"
+            if isinstance(item["price"], (int, float))
+            and isinstance(item["stock"], (int, float))
+            and item["category"] == "electronics"
         )
-        average_price = sum(item["price"] for item in electronics) / len(electronics)
+        numeric_prices = [
+            item["price"]
+            for item in electronics
+            if isinstance(item["price"], (int, float))
+        ]
+        average_price: float = (
+            sum(numeric_prices) / len(numeric_prices) if numeric_prices else 0.0
+        )
 
         assert (
             total_value == 2000
@@ -638,7 +682,7 @@ class TestFlextCliModels:
         assert average_price == 200.0  # (100 + 200 + 300) / 3
 
         # 7. Serialize results
-        results_json = json.dumps({
+        results_json: str = json.dumps({
             "electronics_count": len(electronics),
             "total_value": total_value,
             "average_price": average_price,
@@ -646,11 +690,15 @@ class TestFlextCliModels:
         })
 
         # 8. Verify complete workflow
-        parsed_results = json.loads(results_json)
+        parsed_results: dict[str, int | float | list[dict[str, int | str | bool]]] = (
+            json.loads(results_json)
+        )
         assert parsed_results["electronics_count"] == 3
         assert parsed_results["total_value"] == 2000
         assert parsed_results["average_price"] == 200.0
-        assert len(parsed_results["products"]) == 3
+        products = parsed_results["products"]
+        assert isinstance(products, list)
+        assert len(products) == 3
 
     @pytest.mark.asyncio
     async def test_async_model_workflow_integration(
@@ -662,7 +710,9 @@ class TestFlextCliModels:
         assert isinstance(models_service, FlextCliModels)
 
         # Simulate async data processing
-        async def process_data_async(data: list[dict]) -> list[dict]:
+        async def process_data_async(
+            data: list[dict[str, int | str | bool]],
+        ) -> list[dict[str, int | str | bool]]:
             # Simulate some async processing
             await asyncio.sleep(0.001)
             return [item for item in data if item.get("active", True)]

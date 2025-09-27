@@ -34,7 +34,7 @@ def demonstrate_flext_config_singleton() -> None:
 
     # 2. Show initial FlextCliConfig.MainConfig state
     print("2. Initial FlextCliConfig.MainConfig State:")
-    cli_config = FlextCliConfig.MainConfig()
+    cli_config = FlextCliConfig()
     print(f"   Profile: {cli_config.profile}")
     print(f"   Output Format: {cli_config.output_format}")
     print(f"   Debug Mode: {cli_config.debug_mode}")
@@ -55,7 +55,7 @@ def demonstrate_flext_config_singleton() -> None:
         print(f"     {key}: {value}")
 
     # Apply overrides to CLI config by creating a new instance
-    cli_config = FlextCliConfig.MainConfig(
+    cli_config = FlextCliConfig(
         debug=cli_overrides.get("debug", False),
         profile=str(cli_overrides.get("profile", "default")),
         log_level=cli_overrides.get("log_level", "INFO"),
@@ -117,16 +117,16 @@ def demonstrate_configuration_validation() -> None:
 
     # 1. Validate CLI configuration
     print("1. CLI Configuration Validation:")
-    cli_config = FlextCliConfig.MainConfig()
+    cli_config = FlextCliConfig()
 
     # Test output format validation
-    validation_result = cli_config.validate_output_format("json")
+    validation_result = cli_config.validate_output_format_result("json")
     if validation_result.is_success:
         print("   ✅ JSON output format valid")
     else:
         print(f"   ❌ JSON output format invalid: {validation_result.error}")
 
-    validation_result = cli_config.validate_output_format("invalid_format")
+    validation_result = cli_config.validate_output_format_result("invalid_format")
     if validation_result.is_success:
         print("   ✅ Invalid format accepted (unexpected)")
     else:
@@ -158,7 +158,7 @@ def demonstrate_configuration_loading() -> None:
 
     # 1. Load configuration data
     print("1. Loading Configuration Data:")
-    cli_config = FlextCliConfig.MainConfig()
+    cli_config = FlextCliConfig()
 
     # Mock configuration loading for demonstration
     print("   ✅ Configuration loaded successfully (mock)")
@@ -176,7 +176,7 @@ def demonstrate_configuration_loading() -> None:
 
     # 2. Show configuration options
     print("2. Configuration Options:")
-    cli_options = FlextCliConfig.CliOptions()
+    cli_options = FlextCliConfig()
     cli_options.verbose = True
     cli_options.quiet = False
     cli_options.interactive = True

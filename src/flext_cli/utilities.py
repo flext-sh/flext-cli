@@ -49,7 +49,6 @@ class FlextCliUtilities(FlextUtilities):
         self._container = FlextContainer.get_global()
         self._logger = FlextLogger(__name__)
 
-    @override
     def execute(self) -> FlextResult[dict[str, object]]:
         """Execute the main domain service operation.
 
@@ -377,19 +376,29 @@ class FlextCliUtilities(FlextUtilities):
                         )
                     else:
                         # processor is a FlextResult
-                        result = processor
-                        if result.is_failure:
+                        processor_result = processor
+                        if hasattr(processor_result, "is_failure") and getattr(
+                            processor_result, "is_failure", False
+                        ):
                             if fail_fast:
                                 return FlextResult[
                                     list[dict[str, str | int | float] | None]
                                 ].fail(
-                                    getattr(result, "error", "Batch processing failed")
+                                    getattr(
+                                        processor_result,
+                                        "error",
+                                        "Batch processing failed",
+                                    )
                                     or "Batch processing failed"
                                 )
                             continue
-                        processed_item = getattr(result, "value", result)
+                        processed_item = getattr(
+                            processor_result, "value", processor_result
+                        )
 
-                    results.append(processed_item)
+                    results.append(
+                        cast("dict[str, str | int | float] | None", processed_item)
+                    )
 
             return FlextResult[list[dict[str, str | int | float] | None]].ok(results)
 

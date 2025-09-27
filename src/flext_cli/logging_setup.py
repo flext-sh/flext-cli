@@ -92,7 +92,8 @@ class FlextCliLoggingSetup(FlextService[dict[str, object]]):
             # Add custom file handler if specified
             if log_config.log_file:
                 logging_level = getattr(logging, log_config.log_level, logging.INFO)
-                log_config.log_file.parent.mkdir(parents=True, exist_ok=True)
+                log_file_path = Path(log_config.log_file)
+                log_file_path.parent.mkdir(parents=True, exist_ok=True)
                 file_handler = logging.FileHandler(log_config.log_file)
                 file_handler.setLevel(logging_level)
                 formatter = logging.Formatter(log_config.log_format)
@@ -163,7 +164,7 @@ class FlextCliLoggingSetup(FlextService[dict[str, object]]):
             # Configure log file if specified
             if log_file:
                 # Update FlextCliConfig singleton with log file path
-                config.log_file = log_file
+                config.log_file = str(log_file)
 
             result = setup_instance.setup_logging()
             if not result.is_success:
@@ -378,7 +379,9 @@ class FlextCliLoggingSetup(FlextService[dict[str, object]]):
             # Perform logging setup
             setup_result = self.setup_logging()
             if setup_result.is_failure:
-                return FlextResult[dict[str, object]].fail(setup_result.error)
+                return FlextResult[dict[str, object]].fail(
+                    setup_result.error or "Setup failed"
+                )
 
             # Return setup status
             config = FlextCliConfig.get_global_instance()
@@ -409,7 +412,9 @@ class FlextCliLoggingSetup(FlextService[dict[str, object]]):
             # Perform logging setup asynchronously
             setup_result = self.setup_logging()
             if setup_result.is_failure:
-                return FlextResult[dict[str, object]].fail(setup_result.error)
+                return FlextResult[dict[str, object]].fail(
+                    setup_result.error or "Setup failed"
+                )
 
             # Simulate async operation
             await asyncio.sleep(0.001)

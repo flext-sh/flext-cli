@@ -10,7 +10,7 @@ from __future__ import annotations
 
 import traceback
 
-from click import BaseCommand
+from click import Command
 from click.testing import CliRunner
 
 from flext_cli import FlextCli
@@ -25,7 +25,7 @@ def main() -> None:
     cli_group = cli_main.main.get_click_group()
 
     # Type assertion for MyPy
-    if not isinstance(cli_group, BaseCommand):
+    if not isinstance(cli_group, Command):
         error_msg = f"Expected BaseCommand, got {type(cli_group)}"
         raise TypeError(error_msg)
 

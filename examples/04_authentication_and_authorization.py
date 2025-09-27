@@ -278,7 +278,7 @@ def demonstrate_secure_configuration() -> FlextResult[None]:
     console.print("\n[green]7. Secure Configuration Management[/green]")
 
     # Get CLI configuration
-    FlextCliConfig.MainConfig()
+    FlextCliConfig()
     console.print("✅ CLI configuration loaded")
 
     # Demonstrate environment variable usage for sensitive data

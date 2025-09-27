@@ -115,7 +115,7 @@ class TestFlextCliPrompts:
         options = ["option1", "option2", "option3"]
 
         with patch("builtins.input", return_value="1"):
-            result = prompts.select_from_options("Choose an option:", options)
+            result = prompts.select_from_options(options, "Choose an option:")
 
             assert isinstance(result, FlextResult)
             assert result.is_success
@@ -129,7 +129,7 @@ class TestFlextCliPrompts:
         options = ["option1", "option2", "option3"]
 
         with patch("builtins.input", return_value="10"):
-            result = prompts.select_from_options("Choose an option:", options)
+            result = prompts.select_from_options(options, "Choose an option:")
 
             assert isinstance(result, FlextResult)
             # Should handle gracefully
@@ -139,7 +139,7 @@ class TestFlextCliPrompts:
         """Test select from options with empty options."""
         options = []
 
-        result = prompts.select_from_options("Choose an option:", options)
+        result = prompts.select_from_options(options, "Choose an option:")
 
         assert isinstance(result, FlextResult)
         # May fail with empty options
@@ -201,7 +201,9 @@ class TestFlextCliPrompts:
         def test_function() -> str:
             return "test result"
 
-        result = prompts.with_progress(test_function, "Processing...")
+        # with_progress expects a list of items, not a function
+        test_items: list[object] = ["item1", "item2", "item3"]
+        result = prompts.with_progress(test_items, "Processing...")
 
         assert isinstance(result, FlextResult)
         # May fail if function doesn't have len() method
@@ -226,7 +228,7 @@ class TestFlextCliPrompts:
         # Step 4: Select from options
         options = ["option1", "option2"]
         with patch("builtins.input", return_value="1"):
-            select_result = prompts.select_from_options("Choose:", options)
+            select_result = prompts.select_from_options(options, "Choose:")
             assert select_result.is_success
 
         # Step 5: Print success
@@ -287,3 +289,182 @@ class TestFlextCliPrompts:
         # Test progress creation
         progress_result = prompts.create_progress("Memory test progress")
         assert progress_result.is_success
+
+    def test_prompts_confirm_functionality(self, prompts: FlextCliPrompts) -> None:
+        """Test confirm functionality comprehensively."""
+        # Test quiet mode
+        quiet_prompts = FlextCliPrompts(quiet=True)
+        result = quiet_prompts.confirm("Test message", default=True)
+        assert result.is_success
+        assert result.value is True
+
+        result = quiet_prompts.confirm("Test message", default=False)
+        assert result.is_success
+        assert result.value is False
+
+    def test_prompts_prompt_functionality(self, prompts: FlextCliPrompts) -> None:
+        """Test prompt functionality comprehensively."""
+        # Test quiet mode
+        quiet_prompts = FlextCliPrompts(quiet=True)
+        result = quiet_prompts.prompt("Test prompt", default="default_value")
+        assert result.is_success
+        assert result.value == "default_value"
+
+    def test_prompts_print_functionality(self, prompts: FlextCliPrompts) -> None:
+        """Test print functionality comprehensively."""
+        # Test quiet mode
+        quiet_prompts = FlextCliPrompts(quiet=True)
+        result = quiet_prompts.print_success("Success message")
+        assert result.is_success
+
+        result = quiet_prompts.print_error("Error message")
+        assert result.is_success
+
+        result = quiet_prompts.print_warning("Warning message")
+        assert result.is_success
+
+        result = quiet_prompts.print_info("Info message")
+        assert result.is_success
+
+    def test_prompts_progress_functionality(self, prompts: FlextCliPrompts) -> None:
+        """Test progress functionality comprehensively."""
+        # Test quiet mode
+        quiet_prompts = FlextCliPrompts(quiet=True)
+        result = quiet_prompts.create_progress("Test progress")
+        assert result.is_success
+
+        # Test with different descriptions
+        descriptions = ["Loading...", "Processing...", "Complete!"]
+        for desc in descriptions:
+            result = prompts.create_progress(desc)
+            assert result.is_success
+
+    def test_prompts_real_functionality(self, prompts: FlextCliPrompts) -> None:
+        """Test prompts real functionality with comprehensive scenarios."""
+        # Test basic operations
+        result = prompts.execute()
+        assert result.is_success
+
+        # Test quiet mode operations
+        quiet_prompts = FlextCliPrompts(quiet=True)
+
+        # Test confirm in quiet mode
+        confirm_result = quiet_prompts.confirm("Test confirm", default=True)
+        assert confirm_result.is_success
+        assert confirm_result.value is True
+
+        # Test prompt in quiet mode
+        prompt_result = quiet_prompts.prompt("Test prompt", default="test_value")
+        assert prompt_result.is_success
+        assert prompt_result.value == "test_value"
+
+        # Test print operations in quiet mode
+        print_results = [
+            quiet_prompts.print_success("Success"),
+            quiet_prompts.print_error("Error"),
+            quiet_prompts.print_warning("Warning"),
+            quiet_prompts.print_info("Info"),
+        ]
+
+        for print_result in print_results:
+            assert print_result.is_success
+
+        # Test progress creation
+        progress_result = quiet_prompts.create_progress("Test progress")
+        assert progress_result.is_success
+
+    def test_prompts_integration_workflow(self, prompts: FlextCliPrompts) -> None:
+        """Test prompts integration workflow."""
+        # 1. Test initialization
+        assert isinstance(prompts, FlextCliPrompts)
+
+        # 2. Test basic execution
+        result = prompts.execute()
+        assert result.is_success
+
+        # 3. Test quiet mode workflow
+        quiet_prompts = FlextCliPrompts(quiet=True)
+
+        # 4. Test confirm workflow
+        confirm_result = quiet_prompts.confirm("Test confirm", default=True)
+        assert confirm_result.is_success
+
+        # 5. Test prompt workflow
+        prompt_result = quiet_prompts.prompt("Test prompt", default="default")
+        assert prompt_result.is_success
+
+        # 6. Test print workflow
+        print_result = quiet_prompts.print_info("Test info")
+        assert print_result.is_success
+
+        # 7. Test progress workflow
+        progress_result = quiet_prompts.create_progress("Test progress")
+        assert progress_result.is_success
+
+    def test_prompts_edge_cases(self, prompts: FlextCliPrompts) -> None:
+        """Test prompts edge cases and error handling."""
+        # Test with empty strings
+        quiet_prompts = FlextCliPrompts(quiet=True)
+
+        result = quiet_prompts.confirm("", default=False)
+        assert result.is_success
+        assert result.value is False
+
+        result = quiet_prompts.prompt("", default="")
+        assert result.is_success
+        assert result.value == ""
+
+        # Test with long strings
+        long_message = "x" * 1000
+        result = quiet_prompts.confirm(long_message, default=True)
+        assert result.is_success
+
+        result = quiet_prompts.prompt(long_message, default="default")
+        assert result.is_success
+
+        # Test print with empty and long messages
+        print_results = [
+            quiet_prompts.print_success(""),
+            quiet_prompts.print_error(""),
+            quiet_prompts.print_warning(""),
+            quiet_prompts.print_info(""),
+            quiet_prompts.print_success(long_message),
+            quiet_prompts.print_error(long_message),
+            quiet_prompts.print_warning(long_message),
+            quiet_prompts.print_info(long_message),
+        ]
+
+        for print_result in print_results:
+            assert print_result.is_success
+
+    def test_prompts_async_functionality(self, prompts: FlextCliPrompts) -> None:
+        """Test prompts async functionality."""
+        import asyncio
+
+        async def run_async_tests():
+            result = await prompts.execute_async()
+            assert isinstance(result, FlextResult)
+            assert result.is_success
+
+        asyncio.run(run_async_tests())
+
+    def test_prompts_error_scenarios(self, prompts: FlextCliPrompts) -> None:
+        """Test prompts error scenarios."""
+        # Test with None values
+        quiet_prompts = FlextCliPrompts(quiet=True)
+
+        # These should handle None gracefully
+        result = quiet_prompts.confirm("Test", default=None)  # type: ignore
+        assert isinstance(result, FlextResult)
+
+        # Test with various default values
+        test_defaults = [True, False, "string", 123, 0.0]
+        for default in test_defaults:
+            if isinstance(default, bool):
+                result = quiet_prompts.confirm("Test", default=default)
+                assert result.is_success
+                assert result.value == default
+            else:
+                result = quiet_prompts.prompt("Test", default=str(default))
+                assert result.is_success
+                assert result.value == str(default)

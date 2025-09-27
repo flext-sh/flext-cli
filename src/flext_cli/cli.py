@@ -18,7 +18,7 @@ import click  # ONLY module allowed to import Click in entire ecosystem
 from flext_cli.api import FlextCliApi
 from flext_cli.auth import FlextCliAuth
 from flext_cli.commands import FlextCliCommands
-from flext_cli.config import FlextCliConfig, FlextCliConfigService
+from flext_cli.config import FlextCliConfig
 from flext_cli.constants import FlextCliConstants
 from flext_cli.debug import FlextCliDebug
 from flext_cli.output import FlextCliOutput
@@ -41,7 +41,7 @@ class FlextCli(FlextService[FlextTypes.Core.Dict]):
         # Initialize CLI components
         self._api = FlextCliApi()
         self._auth = FlextCliAuth()
-        self._config = FlextCliConfigService()
+        self._config = FlextCliConfig.create_default()
         self._debug = FlextCliDebug()
         self._output = FlextCliOutput()
         self._commands = FlextCliCommands()

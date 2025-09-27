@@ -39,7 +39,7 @@ def demonstrate_single_source_of_truth() -> None:
 
     # 2. Show FlextCliConfig.MainConfig extending FlextConfig
     print("2. FlextCliConfig.MainConfig Extends FlextConfig:")
-    cli_config = FlextCliConfig.MainConfig()
+    cli_config = FlextCliConfig()
     print(f"   Profile: {cli_config.profile}")
     print(f"   Output Format: {cli_config.output_format}")
     print(f"   Debug Mode: {cli_config.debug_mode}")
@@ -77,7 +77,7 @@ def demonstrate_cli_parameter_integration() -> None:
         print(f"     {key}: {value}")
 
     # Apply overrides by creating a new instance
-    cli_config = FlextCliConfig.MainConfig(
+    cli_config = FlextCliConfig(
         debug=bool(cli_overrides.get("debug")),
         profile=str(cli_overrides.get("profile", "default")),
         output_format=str(cli_overrides.get("output_format", "table")),
@@ -123,7 +123,7 @@ def demonstrate_automatic_synchronization() -> None:
     # 2. Verify synchronization
     print("2. Synchronization Verification:")
     base_config = FlextConfig.get_global_instance()
-    cli_config = FlextCliConfig.MainConfig()
+    cli_config = FlextCliConfig()
 
     print(f"   Base Config Debug: {base_config.debug}")
     print(f"   CLI Config Debug: {cli_config.debug_mode}")
@@ -146,7 +146,7 @@ def demonstrate_integration_verification() -> None:
     # 1. Health check
     print("1. Integration Health Check:")
     FlextConfig.get_global_instance()
-    FlextCliConfig.MainConfig()
+    FlextCliConfig()
 
     print("   FlextConfig Status: ✅ Healthy")
     print("   FlextCliConfig Status: ✅ Healthy")
