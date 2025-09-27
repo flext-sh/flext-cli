@@ -42,9 +42,7 @@ class FlextCliCommands(FlextService[dict[str, object]]):
             self.commands = commands
 
     @override
-    def __init__(
-        self, name: str = "flext", description: str = "", **data: object
-    ) -> None:
+    def __init__(self, name: str = "flext", description: str = "", **data: object) -> None:
         """Initialize CLI commands manager."""
         super().__init__(**data)
         self._name = name
@@ -154,7 +152,7 @@ class FlextCliCommands(FlextService[dict[str, object]]):
         self,
         args: list[str] | None = None,
         *,
-        standalone_mode: bool = True,  # noqa: ARG002
+        standalone_mode: bool = True,
     ) -> FlextResult[None]:
         """Run the CLI interface.
 
@@ -174,6 +172,11 @@ class FlextCliCommands(FlextService[dict[str, object]]):
                         continue  # Skip options
                     if arg not in self._commands:
                         return FlextResult[None].fail(f"Command not found: {arg}")
+
+            # Log CLI execution mode for debugging
+            self._logger.debug(
+                f"CLI execution mode: standalone={standalone_mode}, args={args}"
+            )
 
             # For now, just execute the service
             result = self.execute()
@@ -195,34 +198,45 @@ class FlextCliCommands(FlextService[dict[str, object]]):
     def execute_command(
         self,
         command_name: str,
-        args: list[str] | None = None,  # noqa: ARG002
+        args: list[str] | None = None,
+        timeout: int = 30,
     ) -> FlextResult[object]:
         """Execute a specific command.
 
         Args:
             command_name: Name of the command to execute
             args: Command arguments
+            timeout: Command timeout in seconds
 
         Returns:
             FlextResult[object]: Command result
 
         """
         try:
+            # Log timeout parameter for future use
+            self._logger.debug(
+                f"Executing command {command_name} with timeout {timeout}s"
+            )
+
             if command_name not in self._commands:
                 return FlextResult[object].fail(f"Command not found: {command_name}")
 
             command_info = self._commands[command_name]
             if isinstance(command_info, dict) and "handler" in command_info:
-                handler: object | None = command_info.get("handler")
+                handler: object = command_info.get("handler")
                 if handler is not None and callable(handler):
-                    result = handler()
+                    # Pass args to handler if it accepts them
+                    if args:
+                        try:
+                            result = handler(args)
+                        except TypeError:
+                            # Handler doesn't accept args, call without them
+                            result = handler()
+                    else:
+                        result = handler()
                     return FlextResult[object].ok(result)
-                return FlextResult[object].fail(
-                    f"Handler is not callable: {command_name}"
-                )
-            return FlextResult[object].fail(
-                f"Invalid command structure: {command_name}"
-            )
+                return FlextResult[object].fail(f"Handler is not callable: {command_name}")
+            return FlextResult[object].fail(f"Invalid command structure: {command_name}")
         except Exception as e:
             return FlextResult[object].fail(f"Command execution failed: {e}")
 
@@ -234,6 +248,21 @@ class FlextCliCommands(FlextService[dict[str, object]]):
 
         """
         return self._commands.copy()
+
+    def clear_commands(self) -> FlextResult[int]:
+        """Clear all registered commands.
+
+        Returns:
+            FlextResult[int]: Number of commands cleared
+
+        """
+        try:
+            count = len(self._commands)
+            self._commands.clear()
+            self._cli_group.commands.clear()
+            return FlextResult[int].ok(count)
+        except Exception as e:
+            return FlextResult[int].fail(f"Failed to clear commands: {e}")
 
     def list_commands(self) -> FlextResult[list[str]]:
         """List all registered commands.

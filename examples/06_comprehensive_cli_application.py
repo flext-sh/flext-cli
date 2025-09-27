@@ -39,7 +39,7 @@ class ComprehensiveCliApplication:
     def __init__(self) -> None:
         """Initialize comprehensive CLI application."""
         self.logger = FlextLogger(__name__)
-        self.config = FlextCliConfig.MainConfig()
+        self.config = FlextCliConfig()
         self.container = FlextContainer.get_global()
         self.api_client = FlextCliService()
         self.cli_api = FlextCliApi()

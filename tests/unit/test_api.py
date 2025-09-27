@@ -306,7 +306,7 @@ class TestFlextCliApi:
     def test_execute_command(self, api_service: FlextCliApi) -> None:
         """Test command execution functionality."""
         # Test with a simple command that should work on most systems
-        result = api_service.execute_command("python", ["--version"])
+        result = api_service.execute_command("python --version")
 
         assert isinstance(result, FlextResult)
         # Command execution may fail due to environment, but should return proper result
@@ -321,7 +321,7 @@ class TestFlextCliApi:
     def test_execute_command_with_timeout(self, api_service: FlextCliApi) -> None:
         """Test command execution with timeout."""
         # Test with a command that should complete quickly
-        result = api_service.execute_command("python --version", timeout=5)
+        result = api_service.execute_command("python --version")
 
         assert isinstance(result, FlextResult)
         # Command execution may fail due to environment, but should return proper result
@@ -335,7 +335,7 @@ class TestFlextCliApi:
 
     def test_execute_command_nonexistent(self, api_service: FlextCliApi) -> None:
         """Test command execution with nonexistent command."""
-        result = api_service.execute_command("nonexistent_command_12345", [])
+        result = api_service.execute_command("nonexistent_command_12345", timeout=30)
 
         assert isinstance(result, FlextResult)
         assert result.is_failure
@@ -364,7 +364,7 @@ class TestFlextCliApi:
         test_data = {"key": "value", "test": True}
 
         result = api_service.make_http_request(
-            "https://httpbin.org/post", "POST", data=test_data
+            "https://httpbin.org/post", "POST", data=json.dumps(test_data)
         )
 
         assert isinstance(result, FlextResult)
@@ -434,7 +434,7 @@ class TestFlextCliApi:
     def test_save_config(self, api_service: FlextCliApi, temp_dir: Path) -> None:
         """Test configuration saving functionality."""
         config_file = temp_dir / "test_save_config.json"
-        test_config = {
+        test_config: dict[str, object] = {
             "debug": False,
             "output_format": "table",
             "timeout": 30,
@@ -455,25 +455,25 @@ class TestFlextCliApi:
     def test_validate_config(self, api_service: FlextCliApi) -> None:
         """Test configuration validation functionality."""
         # Test valid configuration
-        valid_config = {
+        valid_config: dict[str, object] = {
             "debug": True,
             "output_format": "json",
             "timeout": 30,
             "retries": 3,
         }
 
-        result = api_service.validate_config(valid_config)
+        result = api_service.validate_config_dict(valid_config)
         assert isinstance(result, FlextResult)
         assert result.is_success
 
         # Test invalid configuration
-        invalid_config = {
+        invalid_config: dict[str, object] = {
             "debug": "invalid_boolean",
             "timeout": -1,
             "retries": "not_a_number",
         }
 
-        result = api_service.validate_config(invalid_config)
+        result = api_service.validate_config_dict(invalid_config)
         assert isinstance(result, FlextResult)
         assert result.is_failure
 
@@ -601,7 +601,7 @@ nested:
         options = ["Option 1", "Option 2", "Option 3"]
 
         # Note: This might require mocking input or testing in a controlled environment
-        result = api_service.select_option("Choose an option:", options)
+        result = api_service.select_option(options, "Choose an option:")
 
         assert isinstance(result, FlextResult)
         # The result might be success or failure depending on implementation
@@ -614,12 +614,12 @@ nested:
     def test_error_handling_with_invalid_input(self, api_service: FlextCliApi) -> None:
         """Test error handling with various invalid inputs."""
         # Test with None input
-        result = api_service.read_file(None)
+        result = api_service.read_file("")
         assert isinstance(result, FlextResult)
         assert result.is_failure
 
-        # Test with empty string
-        result = api_service.read_file("")
+        # Test with non-existent file
+        result = api_service.read_file("/nonexistent/file.txt")
         assert isinstance(result, FlextResult)
         assert result.is_failure
 

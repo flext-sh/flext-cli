@@ -54,7 +54,7 @@ def _setup_cli_demo(formatter: FlextCliOutput) -> FlextResult[None]:
 
 
 def _connection_demo(
-    formatter: FlextCliOutput, _config: FlextCliConfig.MainConfig
+    formatter: FlextCliOutput, _config: FlextCliConfig
 ) -> FlextResult[None]:
     """Demo connection testing using flext-cli patterns."""
     formatter.print_success("\n2. 🌐 Connection Testing Integration")
@@ -127,7 +127,7 @@ def _file_processing_demo(formatter: FlextCliOutput) -> FlextResult[None]:
 
 
 def _cli_status_demo(
-    formatter: FlextCliOutput, config: FlextCliConfig.MainConfig
+    formatter: FlextCliOutput, config: FlextCliConfig
 ) -> FlextResult[None]:
     """Demo CLI status display using flext-cli patterns."""
     formatter.print_success("\n4. 📊 CLI Status Integration")
@@ -305,7 +305,7 @@ def main() -> None:
             return
 
         # Create config for demos
-        config = FlextCliConfig.MainConfig()
+        config = FlextCliConfig()
 
         connection_result = _connection_demo(formatter, config)
         if connection_result.is_failure:

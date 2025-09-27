@@ -531,7 +531,9 @@ class FlextCliAuth(FlextService[dict[str, object]]):
             "expires_at": (datetime.now(UTC).timestamp() + 3600),
             "permissions": [],
         }
-        return FlextResult[dict[str, object]].ok(cast("dict[str, object]", session_info))
+        return FlextResult[dict[str, object]].ok(
+            cast("dict[str, object]", session_info)
+        )
 
     def check_permission(self, session_id: str, permission: str) -> FlextResult[bool]:
         """Check if session has permission."""
@@ -673,7 +675,9 @@ class FlextCliAuth(FlextService[dict[str, object]]):
                 "active": True,
             },
         ]
-        return FlextResult[list[dict[str, object]]].ok(cast("list[dict[str, object]]", users))
+        return FlextResult[list[dict[str, object]]].ok(
+            cast("list[dict[str, object]]", users)
+        )
 
     def verify_password(self, password: str, hashed_password: str) -> FlextResult[bool]:
         """Verify password against hash."""

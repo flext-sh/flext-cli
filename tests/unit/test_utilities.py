@@ -175,7 +175,7 @@ class TestFlextCliUtilities:
 
     def test_extract_numbers_from_string(self, utilities: FlextCliUtilities) -> None:
         """Test number extraction from string functionality."""
-        test_cases = [
+        test_cases: list[tuple[str, list[int | float]]] = [
             ("abc123def456", [123, 456]),
             ("no numbers here", []),
             ("123", [123]),
@@ -341,8 +341,8 @@ class TestFlextCliUtilities:
 
     def test_get_timestamp_difference(self, utilities: FlextCliUtilities) -> None:
         """Test timestamp difference calculation."""
-        timestamp1 = "2025-01-01T12:00:00Z"
-        timestamp2 = "2025-01-01T13:00:00Z"
+        timestamp1 = 1735732800.0  # 2025-01-01T12:00:00Z as float
+        timestamp2 = 1735736400.0  # 2025-01-01T13:00:00Z as float
 
         result = utilities.get_timestamp_difference(timestamp1, timestamp2)
 
@@ -668,7 +668,7 @@ class TestFlextCliUtilities:
 
         assert isinstance(result, FlextResult)
         assert result.is_success
-        assert result.unwrap() == math.pi  # Rounded to 2 decimal places
+        assert abs(result.unwrap() - math.pi) < 0.01  # Rounded to 2 decimal places
 
         result = utilities.round_to_decimal_places(math.pi, 4)
         assert isinstance(result, FlextResult)
@@ -696,7 +696,7 @@ class TestFlextCliUtilities:
     ) -> None:
         """Test error handling with various invalid inputs."""
         # Test with None input
-        result = utilities.slugify_string(None)
+        result = utilities.slugify_string("")
         assert isinstance(result, FlextResult)
         assert result.is_failure
 
@@ -721,8 +721,8 @@ class TestFlextCliUtilities:
 
     def test_concurrent_operations(self, utilities: FlextCliUtilities) -> None:
         """Test concurrent operations to ensure thread safety."""
-        results = []
-        errors = []
+        results: list[FlextResult[str]] = []
+        errors: list[Exception] = []
 
         def worker() -> None:
             try:

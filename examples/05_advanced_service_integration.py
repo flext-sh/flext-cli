@@ -611,7 +611,7 @@ def demonstrate_dependency_injection() -> FlextResult[None]:
     services_to_register = [
         ("console", formatter.console),
         ("logger", FlextLogger("demo")),
-        ("config", FlextCliConfig.MainConfig()),
+        ("config", FlextCliConfig()),
         ("api_client", FlextCliService()),
     ]
 

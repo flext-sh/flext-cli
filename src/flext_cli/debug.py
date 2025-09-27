@@ -290,37 +290,37 @@ class FlextCliDebug(FlextService[str]):
         """Get comprehensive debug information combining all debug methods."""
         try:
             comprehensive_info: dict[str, object] = {}
-            
+
             # Collect system info
             system_result = self.get_system_info()
             if system_result.is_success:
                 comprehensive_info["system"] = system_result.value
             else:
                 comprehensive_info["system_error"] = system_result.error
-            
+
             # Collect environment info
             env_result = self.get_environment_variables()
             if env_result.is_success:
                 comprehensive_info["environment"] = env_result.value
             else:
                 comprehensive_info["environment_error"] = env_result.error
-            
+
             # Collect paths info
             paths_result = self.get_system_paths()
             if paths_result.is_success:
                 comprehensive_info["paths"] = paths_result.value
             else:
                 comprehensive_info["paths_error"] = paths_result.error
-            
+
             # Collect debug info
             debug_result = self.get_debug_info()
             if debug_result.is_success:
                 comprehensive_info["debug"] = debug_result.value
             else:
                 comprehensive_info["debug_error"] = debug_result.error
-            
+
             return FlextResult[dict[str, object]].ok(comprehensive_info)
-            
+
         except Exception as e:
             return FlextResult[dict[str, object]].fail(
                 f"Comprehensive debug info collection failed: {e}"

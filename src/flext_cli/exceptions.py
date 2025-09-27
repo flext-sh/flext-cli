@@ -38,10 +38,13 @@ class FlextCliExceptions(FlextExceptions):
             self,
             message: str,
             *,
-            error_code: str = "CLI_ERROR",
+            error_code: str | int = "CLI_ERROR",
             **context: object,
         ) -> None:
             """Initialize CLI exception with message, error code, and context."""
+            # Convert int error codes to string for consistency
+            if isinstance(error_code, int):
+                error_code = str(error_code)
             super().__init__(message, code=error_code, context=context)
 
         @override

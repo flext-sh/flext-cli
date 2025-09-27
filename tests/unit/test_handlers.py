@@ -16,7 +16,10 @@ import pytest
 from flext_cli.handlers import FlextCliHandlers
 from flext_cli.typings import (
     AuthConfigData,
+    CliCommandResult,
+    CliConfigData,
     CliFormatData,
+    DebugInfoData,
 )
 from flext_core import FlextResult
 from flext_tests import FlextTestsUtilities
@@ -42,8 +45,8 @@ class TestFlextCliHandlers:
     def test_command_handler_initialization(self, handlers: FlextCliHandlers) -> None:
         """Test CommandHandler initialization."""
 
-        def test_handler(**_kwargs: object) -> FlextResult[str]:
-            return FlextResult[str].ok("test result")
+        def test_handler(**_kwargs: object) -> FlextResult[CliCommandResult]:
+            return FlextResult[CliCommandResult].ok({"result": "test result"})
 
         command_handler = handlers.CommandHandler(test_handler)
         assert isinstance(command_handler, handlers.CommandHandler)
@@ -51,15 +54,15 @@ class TestFlextCliHandlers:
     def test_command_handler_execution(self, handlers: FlextCliHandlers) -> None:
         """Test CommandHandler execution."""
 
-        def test_handler(**_kwargs: object) -> FlextResult[str]:
-            return FlextResult[str].ok("test result")
+        def test_handler(**_kwargs: object) -> FlextResult[CliCommandResult]:
+            return FlextResult[CliCommandResult].ok({"result": "test result"})
 
         command_handler = handlers.CommandHandler(test_handler)
-        result = command_handler(test_arg="value")
+        result = command_handler(test_arg={"value": "test"})
 
         assert isinstance(result, FlextResult)
         assert result.is_success
-        assert result.unwrap() == "test result"
+        assert result.unwrap()["result"] == "test result"
 
     def test_formatter_handler_initialization(self, handlers: FlextCliHandlers) -> None:
         """Test FormatterHandler initialization."""
@@ -85,13 +88,13 @@ class TestFlextCliHandlers:
 
     def test_config_handler_initialization(self, handlers: FlextCliHandlers) -> None:
         """Test ConfigHandler initialization."""
-        config_data = {"test": "config"}
+        config_data: CliConfigData = {"test": "config"}
         config_handler = handlers.ConfigHandler(config_data)
         assert isinstance(config_handler, handlers.ConfigHandler)
 
     def test_config_handler_load_config(self, handlers: FlextCliHandlers) -> None:
         """Test ConfigHandler load_config."""
-        config_data = {"test": "config"}
+        config_data: CliConfigData = {"test": "config"}
         config_handler = handlers.ConfigHandler(config_data)
         result = config_handler.load_config()
 
@@ -101,7 +104,7 @@ class TestFlextCliHandlers:
 
     def test_config_handler_save_config(self, handlers: FlextCliHandlers) -> None:
         """Test ConfigHandler save_config."""
-        config_data = {"test": "config"}
+        config_data: CliConfigData = {"test": "config"}
         config_handler = handlers.ConfigHandler(config_data)
         result = config_handler.save_config({"new": "config"})
 
@@ -145,13 +148,13 @@ class TestFlextCliHandlers:
 
     def test_debug_handler_initialization(self, handlers: FlextCliHandlers) -> None:
         """Test DebugHandler initialization."""
-        debug_data = {"test": "debug"}
+        debug_data: DebugInfoData = {"test": "debug"}
         debug_handler = handlers.DebugHandler(debug_data)
         assert isinstance(debug_handler, handlers.DebugHandler)
 
     def test_debug_handler_get_debug_info(self, handlers: FlextCliHandlers) -> None:
         """Test DebugHandler get_debug_info."""
-        debug_data = {"test": "debug"}
+        debug_data: DebugInfoData = {"test": "debug"}
         debug_handler = handlers.DebugHandler(debug_data)
         result = debug_handler.get_debug_info()
 
@@ -163,13 +166,13 @@ class TestFlextCliHandlers:
         """Test complete handler workflow."""
 
         # Step 1: Create command handler
-        def test_command(**_kwargs: object) -> FlextResult[str]:
-            return FlextResult[str].ok("command executed")
+        def test_command(**_kwargs: object) -> FlextResult[CliCommandResult]:
+            return FlextResult[CliCommandResult].ok({"result": "command executed"})
 
         command_handler = handlers.CommandHandler(test_command)
 
         # Step 2: Execute command
-        result = command_handler(test_arg="value")
+        result = command_handler(test_arg={"value": "test"})
         assert result.is_success
 
         # Step 3: Create formatter handler
@@ -193,29 +196,29 @@ class TestFlextCliHandlers:
         """Test real handler functionality without mocks."""
 
         # Test actual handler operations
-        def real_command(**_kwargs: object) -> FlextResult[str]:
-            return FlextResult[str].ok("real command executed")
+        def real_command(**_kwargs: object) -> FlextResult[CliCommandResult]:
+            return FlextResult[CliCommandResult].ok({"result": "real command executed"})
 
         command_handler = handlers.CommandHandler(real_command)
-        result = command_handler(test_arg="real_value")
+        result = command_handler(test_arg={"value": "real_value"})
 
         assert result.is_success
-        assert result.unwrap() == "real command executed"
+        assert result.unwrap()["result"] == "real command executed"
 
     def test_handlers_edge_cases(self, handlers: FlextCliHandlers) -> None:
         """Test edge cases and error conditions."""
 
         # Test with empty data
-        def empty_handler(**_kwargs: object) -> FlextResult[str]:
-            return FlextResult[str].ok("")
+        def empty_handler(**_kwargs: object) -> FlextResult[CliCommandResult]:
+            return FlextResult[CliCommandResult].ok({"result": ""})
 
         command_handler = handlers.CommandHandler(empty_handler)
         result = command_handler()
         assert isinstance(result, FlextResult)
 
         # Test with None data
-        def none_handler(**_kwargs: object) -> FlextResult[str]:
-            return FlextResult[str].ok("none")
+        def none_handler(**_kwargs: object) -> FlextResult[CliCommandResult]:
+            return FlextResult[CliCommandResult].ok({"result": "none"})
 
         command_handler = handlers.CommandHandler(none_handler)
         result = command_handler()
@@ -224,15 +227,15 @@ class TestFlextCliHandlers:
     def test_handlers_performance(self, handlers: FlextCliHandlers) -> None:
         """Test handlers performance."""
 
-        def perf_handler(**_kwargs: object) -> FlextResult[str]:
-            return FlextResult[str].ok("perf test")
+        def perf_handler(**_kwargs: object) -> FlextResult[CliCommandResult]:
+            return FlextResult[CliCommandResult].ok({"result": "perf test"})
 
         command_handler = handlers.CommandHandler(perf_handler)
 
         # Test multiple executions performance
         start_time = time.time()
         for i in range(100):
-            command_handler(test_arg=i)
+            command_handler(test_arg={"value": i})
         end_time = time.time()
 
         # Should be fast (less than 1 second for 100 executions)
@@ -241,15 +244,17 @@ class TestFlextCliHandlers:
     def test_handlers_memory_usage(self, handlers: FlextCliHandlers) -> None:
         """Test handlers memory usage."""
         # Test with many handler creations
-        handlers_list = []
+        handlers_list: list[object] = []
         for i in range(1000):
 
-            def make_handler(handler_id: int) -> FlextResult[str]:
-                return FlextResult[str].ok(f"handler_{handler_id}")
+            def make_handler(handler_id: int) -> FlextResult[CliCommandResult]:
+                return FlextResult[CliCommandResult].ok({
+                    "result": f"handler_{handler_id}"
+                })
 
             def handler_func(
                 handler_id: int = i, **_kwargs: object
-            ) -> FlextResult[str]:
+            ) -> FlextResult[CliCommandResult]:
                 return make_handler(handler_id)
 
             command_handler = handlers.CommandHandler(handler_func)
@@ -257,5 +262,8 @@ class TestFlextCliHandlers:
 
         # Verify handlers work
         for i, handler in enumerate(handlers_list[:10]):
-            result = handler(test_arg=i)
-            assert result.is_success
+            if callable(handler):
+                result = handler(test_arg={"value": i})
+                assert hasattr(result, "is_success") and getattr(
+                    result, "is_success", False
+                )

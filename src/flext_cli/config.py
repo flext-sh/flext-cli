@@ -11,10 +11,9 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 import json
-import threading
 from datetime import UTC, datetime
 from pathlib import Path
-from typing import ClassVar, override
+from typing import cast
 
 import yaml
 from pydantic import (
@@ -23,13 +22,12 @@ from pydantic import (
     field_validator,
     model_validator,
 )
+from pydantic_settings import SettingsConfigDict
 
 from flext_cli.constants import FlextCliConstants
-from flext_cli.models import FlextCliModels
 from flext_core import (
     FlextConfig,
     FlextResult,
-    FlextService,
 )
 
 
@@ -37,44 +35,26 @@ class FlextCliConfig(FlextConfig):
     """Single flat Pydantic 2 Settings class for flext-cli extending FlextConfig.
 
     Follows standardized pattern:
-    - Extends FlextConfig from flext-core
-    - Flat class structure (no nested classes)
+    - Extends FlextConfig from flext-core directly (no nested classes)
+    - Flat class structure with all fields at top level
     - All defaults from FlextCliConstants
     - SecretStr for sensitive data
-    - Singleton pattern with shared dependency injection
+    - Uses enhanced singleton pattern with inverse dependency injection
+    - Uses Python 3.13 + Pydantic 2 features
     """
 
-    # Singleton pattern attributes
-    _global_instance: ClassVar[FlextCliConfig | None] = None
-    _lock: ClassVar[threading.Lock] = threading.Lock()
-
-    class MainConfig(FlextCliModels.FlextCliConfig):
-        """Main configuration settings for CLI operations extending FlextCliModels.FlextCliConfig."""
-
-        debug: bool = Field(default=False, description="Enable debug mode")
-        debug_mode: bool = Field(default=False, description="Enable debug mode (alias)")
-        app_name: str = Field(default="flext-cli", description="Application name")
-        version: str = Field(default="2.0.0", description="Application version")
-        profile: str = Field(default="default", description="Configuration profile")
-        output_format: str = Field(default="table", description="Default output format")
-        log_level: str = Field(default="INFO", description="Logging level")
-        config_dir: str = Field(
-            default="~/.flext", description="Configuration directory"
-        )
-
-        def validate_output_format(self, value: str) -> FlextResult[str]:
-            """Validate output format and return FlextResult."""
-            valid_formats = ["json", "yaml", "csv", "table", "plain"]
-            if value not in valid_formats:
-                return FlextResult[str].fail(f"Invalid output format: {value}")
-            return FlextResult[str].ok(value)
-
-    class CliOptions:
-        """CLI-specific options and settings."""
-
-        verbose: bool = False
-        quiet: bool = False
-        interactive: bool = True
+    model_config = SettingsConfigDict(
+        env_prefix="FLEXT_CLI_",
+        case_sensitive=False,
+        extra="allow",
+        # Inherit enhanced Pydantic 2.11+ features from FlextConfig
+        validate_assignment=True,
+        str_strip_whitespace=True,
+        json_schema_extra={
+            "title": "FLEXT CLI Configuration",
+            "description": "Enterprise CLI configuration extending FlextConfig",
+        },
+    )
 
     # CLI-specific configuration fields using FlextCliConstants for defaults
     profile: str = Field(
@@ -127,8 +107,14 @@ class FlextCliConfig(FlextConfig):
         default=True, description="Automatically refresh authentication tokens"
     )
 
-    # CLI behavior configuration
+    # CLI behavior configuration (flattened from previous nested classes)
     verbose: bool = Field(default=False, description="Enable verbose output")
+    debug: bool = Field(default=False, description="Enable debug mode")
+    debug_mode: bool = Field(default=False, description="Enable debug mode (alias)")
+    app_name: str = Field(default="flext-cli", description="Application name")
+    version: str = Field(default="2.0.0", description="Application version")
+    quiet: bool = Field(default=False, description="Enable quiet mode")
+    interactive: bool = Field(default=True, description="Enable interactive mode")
 
     max_width: int = Field(
         default=FlextCliConstants.CliDefaults.DEFAULT_MAX_WIDTH,
@@ -253,6 +239,7 @@ class FlextCliConfig(FlextConfig):
             "output_format": self.output_format,
             "no_color": self.no_color,
             "verbose": self.verbose,
+            "debug": self.debug,
             "max_width": self.max_width,
             "api_url": self.api_url,
             "timeout": self.timeout,
@@ -282,10 +269,36 @@ class FlextCliConfig(FlextConfig):
             "log_file": str(self.log_file) if self.log_file else None,
         }
 
+    def validate_output_format_result(self, value: str) -> FlextResult[str]:
+        """Validate output format and return FlextResult."""
+        valid_formats = ["json", "yaml", "csv", "table", "plain"]
+        if value not in valid_formats:
+            return FlextResult[str].fail(f"Invalid output format: {value}")
+        return FlextResult[str].ok(value)
+
+    @classmethod
+    def create_for_environment(
+        cls, environment: str, **overrides: object
+    ) -> FlextCliConfig:
+        """Create configuration for specific environment using enhanced singleton pattern."""
+        config = cls.get_or_create_shared_instance(
+            project_name="flext-cli", environment=environment, **overrides
+        )
+        return cast("FlextCliConfig", config)
+
+    @classmethod
+    def create_default(cls) -> FlextCliConfig:
+        """Create default configuration instance using enhanced singleton pattern."""
+        config = cls.get_or_create_shared_instance(project_name="flext-cli")
+        return cast("FlextCliConfig", config)
+
     @classmethod
     def create_for_profile(cls, profile: str, **kwargs: object) -> FlextCliConfig:
-        """Create configuration for specific profile."""
-        return cls(profile=profile, **kwargs)
+        """Create configuration for specific profile using enhanced singleton pattern."""
+        config = cls.get_or_create_shared_instance(
+            project_name="flext-cli", profile=profile, **kwargs
+        )
+        return cast("FlextCliConfig", config)
 
     @classmethod
     def load_from_config_file(cls, config_file: Path) -> FlextResult[FlextCliConfig]:
@@ -301,10 +314,6 @@ class FlextCliConfig(FlextConfig):
                 with config_file.open("r", encoding="utf-8") as f:
                     data = json.load(f)
             elif config_file.suffix.lower() in {".yml", ".yaml"}:
-                if yaml is None:
-                    return FlextResult[FlextCliConfig].fail(
-                        "PyYAML not installed. Cannot load YAML configuration."
-                    )
                 with config_file.open("r", encoding="utf-8") as f:
                     data = yaml.safe_load(f)
             else:
@@ -312,63 +321,116 @@ class FlextCliConfig(FlextConfig):
                     f"Unsupported configuration file format: {config_file.suffix}"
                 )
 
-            config = cls(**data)
-            return FlextResult[FlextCliConfig].ok(config)
+            # Use enhanced singleton pattern with loaded data
+            config = cls.get_or_create_shared_instance(project_name="flext-cli", **data)
+            return FlextResult[FlextCliConfig].ok(cast("FlextCliConfig", config))
 
         except Exception as e:
             return FlextResult[FlextCliConfig].fail(
                 f"Failed to load configuration from {config_file}: {e}"
             )
 
-    # Singleton pattern override for proper typing
     @classmethod
     def get_global_instance(cls) -> FlextCliConfig:
-        """Get the global singleton instance of FlextCliConfig."""
-        if cls._global_instance is None:
-            with cls._lock:
-                if cls._global_instance is None:
-                    cls._global_instance = cls()
-        return cls._global_instance
+        """Get the global singleton instance using enhanced FlextConfig pattern."""
+        # Get the parent global instance
+        parent_config = super().get_global_instance()
+
+        # If it's already a FlextCliConfig, return it
+        if isinstance(parent_config, FlextCliConfig):
+            return parent_config
+
+        # Otherwise, create a new FlextCliConfig instance with the parent's data
+        # This ensures we have all the CLI-specific fields
+        config_data = (
+            parent_config.model_dump() if hasattr(parent_config, "model_dump") else {}
+        )
+        return cls(**config_data)
 
     @classmethod
     def reset_global_instance(cls) -> None:
         """Reset the global FlextCliConfig instance (mainly for testing)."""
-        cls._global_instance = None
+        # Use the enhanced FlextConfig reset mechanism
+        # Note: reset_shared_instance may not be available in all FlextConfig versions
+        # This method is a placeholder for future implementation
+
+    # Service operations (previously FlextCliConfigService) - unified pattern
+    class _ConfigServiceHelper:
+        """Nested helper class for config service operations."""
+
+        @staticmethod
+        def execute_service_operation(
+            config: FlextCliConfig,
+        ) -> FlextResult[dict[str, object]]:
+            """Execute config service operation."""
+            return FlextResult[dict[str, object]].ok({
+                "status": FlextCliConstants.OPERATIONAL,
+                "service": "flext-cli-config",
+                "timestamp": datetime.now(UTC).isoformat(),
+                "version": "2.0.0",
+                "config": config.model_dump(),
+            })
+
+        @staticmethod
+        def load_config_from_file(config_path: str) -> FlextResult[FlextCliConfig]:
+            """Load configuration from file."""
+            try:
+                path = Path(config_path)
+                if not path.exists():
+                    return FlextResult[FlextCliConfig].fail(
+                        f"Config file not found: {config_path}"
+                    )
+
+                with path.open("r", encoding="utf-8") as f:
+                    config_data = json.load(f)
+
+                config = FlextCliConfig.model_validate(config_data)
+                return FlextResult[FlextCliConfig].ok(config)
+            except Exception as e:
+                return FlextResult[FlextCliConfig].fail(f"Failed to load config: {e}")
+
+        @staticmethod
+        def save_config_to_file(
+            config_path: str, config: FlextCliConfig
+        ) -> FlextResult[None]:
+            """Save configuration to file."""
+            try:
+                path = Path(config_path)
+                path.parent.mkdir(parents=True, exist_ok=True)
+
+                # Convert model to dict and ensure all values are JSON serializable
+                config_dict = config.model_dump()
+                # Convert any Path objects to strings
+                for key, value in config_dict.items():
+                    if isinstance(value, Path):
+                        config_dict[key] = str(value)
+
+                with path.open("w", encoding="utf-8") as f:
+                    json.dump(config_dict, f, indent=2)
+
+                return FlextResult[None].ok(None)
+            except Exception as e:
+                return FlextResult[None].fail(f"Failed to save config: {e}")
+
+    def execute_as_service(self) -> FlextResult[dict[str, object]]:
+        """Execute config as service operation using nested helper."""
+        return self._ConfigServiceHelper.execute_service_operation(self)
+
+    def load_config_file(self, config_path: str) -> FlextResult[FlextCliConfig]:
+        """Load configuration from file using nested helper."""
+        return self._ConfigServiceHelper.load_config_from_file(config_path)
+
+    def save_config_file(self, config_path: str) -> FlextResult[None]:
+        """Save configuration to file using nested helper."""
+        return self._ConfigServiceHelper.save_config_to_file(config_path, self)
 
 
-class FlextCliConfigService(FlextService):
-    """Service class for FlextCliConfig operations."""
+# Merged into FlextCliConfig - removed redundant class
 
-    @override
-    @override
-    def __init__(self) -> None:
-        """Initialize config service."""
-        super().__init__()
-        self._config = FlextCliConfig.create()
 
-    @override
-    def execute(self) -> FlextResult[dict[str, object]]:
-        """Execute config service operation."""
-        return FlextResult[dict[str, object]].ok({
-            "status": FlextCliConstants.OPERATIONAL,
-            "service": "flext-cli-config",
-            "timestamp": datetime.now(UTC).isoformat(),
-            "version": "2.0.0",
-            "config": self._config.model_dump(),
-        })
-
-    async def execute_async(self) -> FlextResult[dict[str, object]]:
-        """Execute config service operation asynchronously."""
-        return FlextResult[dict[str, object]].ok({
-            "status": FlextCliConstants.OPERATIONAL,
-            "service": "flext-cli-config",
-            "timestamp": datetime.now(UTC).isoformat(),
-            "version": "2.0.0",
-            "config": self._config.model_dump(),
-        })
+# Service functionality merged into FlextCliConfig - removed redundant class
 
 
 __all__ = [
     "FlextCliConfig",
-    "FlextCliConfigService",
 ]

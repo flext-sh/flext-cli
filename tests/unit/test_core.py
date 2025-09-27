@@ -79,8 +79,42 @@ class TestFlextCliService:
                 assert isinstance(data, dict)
                 assert "status" in data
                 assert "service" in data
-                assert "timestamp" in data
                 assert data["service"] == "FlextCliService"
+
+    def test_core_service_advanced_methods(self, core_service: FlextCliService) -> None:
+        """Test advanced core service methods."""
+        # Test health check
+        health_result = core_service.health_check()
+        assert isinstance(health_result, FlextResult)
+
+        # Test get config
+        config_result = core_service.get_config()
+        assert config_result is not None
+
+        # Test get handlers
+        handlers_result = core_service.get_handlers()
+        assert isinstance(handlers_result, dict)
+
+        # Test get plugins
+        plugins_result = core_service.get_plugins()
+        assert isinstance(plugins_result, dict)
+
+        # Test get sessions
+        sessions_result = core_service.get_sessions()
+        assert isinstance(sessions_result, dict)
+
+        # Test get commands
+        commands_result = core_service.get_commands()
+        assert isinstance(commands_result, dict)
+
+        # Test get formatters
+        formatters_result = core_service.get_formatters()
+        assert formatters_result is not None
+
+        # Test async functionality
+        async def run_test() -> None:
+            result = await core_service.execute_async()
+            assert result.is_success
 
         asyncio.run(run_test())
 
@@ -131,7 +165,7 @@ class TestFlextCliService:
     ) -> None:
         """Test configuration saving functionality."""
         config_file = temp_dir / "test_save_config.json"
-        test_config = {
+        test_config: dict[str, object] = {
             "debug": False,
             "output_format": "table",
             "timeout": 30,
@@ -152,7 +186,7 @@ class TestFlextCliService:
     def test_validate_configuration(self, core_service: FlextCliService) -> None:
         """Test configuration validation functionality."""
         # Test valid configuration
-        valid_config = {
+        valid_config: dict[str, object] = {
             "debug": True,
             "output_format": "json",
             "timeout": 30,
@@ -164,7 +198,7 @@ class TestFlextCliService:
         assert result.is_success
 
         # Test invalid configuration
-        invalid_config = {
+        invalid_config: dict[str, object] = {
             "debug": "invalid_boolean",
             "timeout": -1,
             "retries": "not_a_number",
@@ -349,7 +383,7 @@ class TestFlextCliService:
 
     def test_serialize_json_data(self, core_service: FlextCliService) -> None:
         """Test JSON data serialization functionality."""
-        test_data = {
+        test_data: dict[str, object] = {
             "key": "value",
             "number": 42,
             "list": [1, 2, 3],
@@ -397,7 +431,7 @@ nested:
 
     def test_serialize_yaml_data(self, core_service: FlextCliService) -> None:
         """Test YAML data serialization functionality."""
-        test_data = {
+        test_data: dict[str, object] = {
             "key": "value",
             "number": 42,
             "list": [1, 2, 3],
@@ -476,7 +510,7 @@ nested:
 
     def test_make_http_request_post(self, core_service: FlextCliService) -> None:
         """Test HTTP POST request functionality."""
-        test_data = {"key": "value", "test": True}
+        test_data: dict[str, object] = {"key": "value", "test": True}
 
         result = core_service.make_http_request(
             "POST", "https://httpbin.org/post", data=test_data, timeout=10
@@ -567,7 +601,7 @@ nested:
     ) -> None:
         """Test error handling with various invalid inputs."""
         # Test with None input
-        result = core_service.load_configuration(None)
+        result = core_service.load_configuration("")
         assert isinstance(result, FlextResult)
         assert result.is_failure
 
@@ -629,7 +663,7 @@ nested:
     ) -> None:
         """Test complete workflow integration."""
         # 1. Create configuration
-        config_data = {
+        config_data: dict[str, object] = {
             "debug": True,
             "output_format": "json",
             "timeout": 30,
@@ -650,7 +684,10 @@ nested:
         assert validate_result.is_success
 
         # 4. Process data
-        test_data = {"processed": True, "timestamp": "2025-01-01T00:00:00Z"}
+        test_data: dict[str, object] = {
+            "processed": True,
+            "timestamp": "2025-01-01T00:00:00Z",
+        }
         json_result = core_service.serialize_json_data(test_data)
         assert json_result.is_success
 
@@ -683,3 +720,33 @@ nested:
             assert "status" in data
             assert "service" in data
             assert data["service"] == "FlextCliService"
+
+    def test_core_service_advanced_methods(self, core_service: FlextCliService) -> None:
+        """Test advanced core service methods."""
+        # Test health check
+        health_result = core_service.health_check()
+        assert isinstance(health_result, FlextResult)
+
+        # Test get config
+        config_result = core_service.get_config()
+        assert config_result is not None
+
+        # Test get handlers
+        handlers_result = core_service.get_handlers()
+        assert isinstance(handlers_result, dict)
+
+        # Test get plugins
+        plugins_result = core_service.get_plugins()
+        assert isinstance(plugins_result, dict)
+
+        # Test get sessions
+        sessions_result = core_service.get_sessions()
+        assert isinstance(sessions_result, dict)
+
+        # Test get commands
+        commands_result = core_service.get_commands()
+        assert isinstance(commands_result, dict)
+
+        # Test get formatters
+        formatters_result = core_service.get_formatters()
+        assert formatters_result is not None

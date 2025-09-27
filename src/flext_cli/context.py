@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import uuid
 from dataclasses import dataclass, field
+from datetime import UTC, datetime
 from pathlib import Path
 from typing import override
 
@@ -88,7 +89,25 @@ class FlextCliContext(FlextService[dict[str, object]]):
     @override
     def execute(self) -> FlextResult[dict[str, object]]:
         """Execute CLI context - required by FlextService."""
-        return FlextResult[dict[str, object]].ok(self.to_dict())
+        context_dict = self.to_dict()
+        context_dict.update({
+            "status": FlextCliConstants.OPERATIONAL,
+            "service": "flext-cli-context",
+            "timestamp": datetime.now(UTC).isoformat(),
+            "version": "2.0.0",
+        })
+        return FlextResult[dict[str, object]].ok(context_dict)
+
+    async def execute_async(self) -> FlextResult[dict[str, object]]:
+        """Execute CLI context asynchronously - required by FlextService."""
+        context_dict = self.to_dict()
+        context_dict.update({
+            "status": FlextCliConstants.OPERATIONAL,
+            "service": "flext-cli-context",
+            "timestamp": datetime.now(UTC).isoformat(),
+            "version": "2.0.0",
+        })
+        return FlextResult[dict[str, object]].ok(context_dict)
 
     def to_dict(self) -> dict[str, object]:
         """Convert context to dictionary."""
@@ -214,6 +233,16 @@ class FlextCliContext(FlextService[dict[str, object]]):
                 return int(timeout)
             case _:
                 return 30
+
+    @timeout_seconds.setter
+    def timeout_seconds(self, value: int) -> None:
+        """Set default timeout for operations.
+
+        Args:
+            value: Timeout value in seconds
+
+        """
+        self._timeout_seconds = value
 
     @property
     def debug(self) -> bool:
@@ -548,8 +577,3 @@ class FlextCliContext(FlextService[dict[str, object]]):
             quiet=bool(quiet),
             verbose=bool(verbose),
         )
-
-
-__all__ = [
-    "FlextCliContext",
-]

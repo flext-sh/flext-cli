@@ -84,7 +84,9 @@ class FlextCliConstants(FlextConstants):
     class NetworkDefaults:
         """Network-related defaults for CLI operations."""
 
-        DEFAULT_API_URL: Final[str] = "http://localhost:8080/api"
+        DEFAULT_API_URL: Final[str] = (
+            f"http://{FlextConstants.Platform.DEFAULT_HOST}:{FlextConstants.Platform.FLEXT_API_PORT}/api"
+        )
         DEFAULT_TIMEOUT: Final[int] = 30
         DEFAULT_MAX_RETRIES: Final[int] = 3
         CONNECT_TIMEOUT: Final[int] = 10

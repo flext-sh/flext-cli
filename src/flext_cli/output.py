@@ -5,7 +5,7 @@ from __future__ import annotations
 import csv
 import json
 from io import StringIO
-from typing import override
+from typing import cast, override
 
 import yaml
 from rich.console import Console
@@ -15,6 +15,7 @@ from rich.text import Text
 from rich.tree import Tree
 from tabulate import tabulate
 
+from flext_cli.constants import FlextCliConstants
 from flext_core import FlextLogger, FlextResult, FlextService
 
 
@@ -360,7 +361,10 @@ class FlextCliOutput(FlextService[str]):
                 ]
                 default_headers = ["Key", "Value"]
             else:
-                table_data = data or []
+                table_data = cast(
+                    "list[dict[str, str | int | float | bool | None] | None]",
+                    data or [],
+                )
                 default_headers = (
                     list(table_data[0].keys())
                     if table_data and table_data[0] is not None
@@ -407,7 +411,9 @@ class FlextCliOutput(FlextService[str]):
             self._build_tree(tree, data)
 
             with StringIO() as output:
-                temp_console = Console(file=output, width=80)
+                temp_console = Console(
+                    file=output, width=FlextCliConstants.CliDefaults.DEFAULT_MAX_WIDTH
+                )
                 temp_console.print(tree)
                 return FlextResult[str].ok(output.getvalue())
 
