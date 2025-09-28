@@ -244,38 +244,48 @@ class TestFlextCliLoggingSetup:
         self, logging_setup: FlextCliLoggingSetup
     ) -> None:
         """Test log configuration detection."""
-        result = logging_setup._detect_log_configuration()
+        result = logging_setup.detect_log_configuration()
         assert isinstance(result, FlextResult)
         assert result.is_success
         assert hasattr(result.value, "log_level")
 
-    def test_logging_setup_get_effective_log_level(
+    def test_logging_setup_get_effective_log_level_merged(
         self, logging_setup: FlextCliLoggingSetup
     ) -> None:
-        """Test getting effective log level."""
+        """Test getting effective log level - consolidated test."""
         result = logging_setup.get_effective_log_level()
         assert isinstance(result, FlextResult)
         assert result.is_success
         assert isinstance(result.value, str)
 
-    def test_logging_setup_setup_for_cli(
+        # Additional test coverage from duplicate method
+        assert hasattr(logging_setup, "get_effective_log_level")
+        effective_level = result.unwrap()
+        assert isinstance(effective_level, str)
+        assert len(effective_level) > 0
+
+    def test_logging_setup_setup_for_cli_merged(
         self, logging_setup: FlextCliLoggingSetup
     ) -> None:
-        """Test CLI-specific logging setup."""
+        """Test CLI-specific logging setup - consolidated test."""
         result = logging_setup.setup_for_cli()
         assert isinstance(result, FlextResult)
         assert result.is_success
 
-    def test_logging_setup_integration_workflow(
+        # Additional validation from duplicate method
+        assert hasattr(logging_setup, "setup_for_cli")
+        assert callable(getattr(logging_setup, "setup_for_cli"))
+
+    def test_logging_setup_integration_workflow_merged(
         self, logging_setup: FlextCliLoggingSetup
     ) -> None:
-        """Test complete logging setup integration workflow."""
+        """Test complete logging setup integration workflow - consolidated test."""
         # 1. Test initial setup
         setup_result = logging_setup.setup_logging()
         assert setup_result.is_success
 
         # 2. Test configuration detection
-        config_result = logging_setup._detect_log_configuration()
+        config_result = logging_setup.detect_log_configuration()
         assert config_result.is_success
 
         # 3. Test getting current config
@@ -290,16 +300,25 @@ class TestFlextCliLoggingSetup:
         cli_result = logging_setup.setup_for_cli()
         assert cli_result.is_success
 
-    def test_logging_setup_real_functionality(
+        # Additional workflow steps from duplicate method
+        assert hasattr(logging_setup, "is_setup_complete")
+        complete = logging_setup.is_setup_complete
+        assert isinstance(complete, bool)
+
+        # Test project logging configuration
+        project_result = logging_setup.configure_project_logging("test_project")
+        assert project_result.is_success
+
+    def test_logging_setup_real_functionality_merged(
         self, logging_setup: FlextCliLoggingSetup
     ) -> None:
-        """Test logging setup real functionality with comprehensive scenarios."""
+        """Test logging setup real functionality with comprehensive scenarios - consolidated test."""
         # Test basic setup
         result = logging_setup.setup_logging()
         assert result.is_success
 
         # Test configuration detection
-        config_result = logging_setup._detect_log_configuration()
+        config_result = logging_setup.detect_log_configuration()
         assert config_result.is_success
         config = config_result.value
         assert hasattr(config, "log_level")
@@ -318,10 +337,15 @@ class TestFlextCliLoggingSetup:
         current_result = logging_setup.get_current_log_config()
         assert current_result.is_success
 
-    def test_logging_setup_edge_cases(
+        # Additional functionality from duplicate method
+        assert hasattr(logging_setup, "setup_logging")
+        assert hasattr(logging_setup, "setup_for_cli")
+        assert hasattr(logging_setup, "get_effective_log_level")
+
+    def test_logging_setup_edge_cases_merged(
         self, logging_setup: FlextCliLoggingSetup
     ) -> None:
-        """Test logging setup edge cases and error handling."""
+        """Test logging setup edge cases and error handling - consolidated test."""
         # Test with different verbosity levels
         verbosity_levels = ["compact", "detailed", "full"]
         for verbosity in verbosity_levels:
@@ -335,8 +359,19 @@ class TestFlextCliLoggingSetup:
 
         # Test configuration detection multiple times
         for _i in range(5):
-            result = logging_setup._detect_log_configuration()
+            result = logging_setup.detect_log_configuration()
             assert result.is_success
+
+        # Additional edge cases from duplicate method
+        # Test with various log levels
+        for level in ["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"]:
+            result = logging_setup.set_global_log_level(level)
+            assert isinstance(result, FlextResult)
+
+        # Test with various verbosity levels (extended)
+        for verbosity in ["detailed", "compact", "full"]:
+            result = logging_setup.set_global_log_verbosity(verbosity)
+            assert isinstance(result, FlextResult)
 
     def test_logging_setup_error_scenarios(
         self, logging_setup: FlextCliLoggingSetup
@@ -348,7 +383,7 @@ class TestFlextCliLoggingSetup:
         assert isinstance(result, FlextResult)
 
         # Test configuration detection robustness
-        result = logging_setup._detect_log_configuration()
+        result = logging_setup.detect_log_configuration()
         assert isinstance(result, FlextResult)
         assert result.is_success
 
@@ -356,9 +391,8 @@ class TestFlextCliLoggingSetup:
         self, logging_setup: FlextCliLoggingSetup
     ) -> None:
         """Test logging setup async functionality."""
-        import asyncio
 
-        async def run_async_tests():
+        async def run_async_tests() -> None:
             # Test async setup
             result = await logging_setup.setup_logging_async()
             assert isinstance(result, FlextResult)

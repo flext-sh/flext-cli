@@ -31,15 +31,11 @@ import pyarrow as pa
 import pyarrow.parquet as pq
 import toml
 import yaml
-from lxml import etree  # type: ignore[import]
+from lxml import etree
 
 from flext_cli.constants import FlextCliConstants
 from flext_cli.typings import FlextCliTypes
 from flext_core import FlextContainer, FlextLogger, FlextResult, FlextService
-
-# Use proper typed kwargs from FlextCliTypes
-PandasKwargs = FlextCliTypes.Data.PandasReadCsvKwargs
-PyArrowKwargs = FlextCliTypes.Data.PyArrowReadTableKwargs
 
 
 class FlextCliFileTools(FlextService[bool]):
@@ -458,18 +454,46 @@ class FlextCliFileTools(FlextService[bool]):
             if kwargs:
                 self._logger.debug(f"Loading CSV with options: {kwargs}")
 
-            # Use pandas for enhanced CSV loading
-            # Use basic pandas read_csv without kwargs to avoid type issues
-            try:
-                result = pd.read_csv(str(file_path_obj))
-            except Exception as e:
-                return FlextResult[list[dict[str, object]]].fail(f"Failed to load CSV file: {e}")
-            df: pd.DataFrame = result
-            return FlextResult[list[dict[str, object]]].ok(df.to_dict("records"))
-        except Exception as e:
-            return FlextResult[list[dict[str, object]]].fail(f"Failed to load CSV file: {e}")
+            # Use pandas for enhanced CSV loading with proper type filtering
+            pandas_kwargs: dict[str, Any] = {}
 
-    def _save_csv(self, file_path: str, data: object, **kwargs: object) -> FlextResult[bool]:
+            # Filter kwargs to only include valid pandas read_csv parameters with correct types
+            for key, value in kwargs.items():
+                if isinstance(value, (str, int, float, bool, type(None))):
+                    pandas_kwargs[key] = value
+                elif isinstance(value, list) and all(
+                    isinstance(item, str) for item in value
+                ):
+                    # Convert list of strings to proper type for pandas
+                    pandas_kwargs[key] = value
+
+            try:
+                result = pd.read_csv(str(file_path_obj), **pandas_kwargs)
+            except Exception as e:
+                return FlextResult[list[dict[str, object]]].fail(
+                    f"Failed to load CSV file: {e}"
+                )
+            # Ensure we have a DataFrame, not a TextFileReader
+            if isinstance(result, pd.DataFrame):
+                df = result
+            else:
+                # If it's a TextFileReader, read it into a DataFrame
+                df = pd.DataFrame(list(result))
+            # Convert DataFrame to list of dicts with proper typing
+            records = df.to_dict("records")
+            # Ensure all keys are strings for type safety
+            typed_records: list[dict[str, object]] = [
+                {str(k): v for k, v in record.items()} for record in records
+            ]
+            return FlextResult[list[dict[str, object]]].ok(typed_records)
+        except Exception as e:
+            return FlextResult[list[dict[str, object]]].fail(
+                f"Failed to load CSV file: {e}"
+            )
+
+    def _save_csv(
+        self, file_path: str, data: object, **kwargs: object
+    ) -> FlextResult[bool]:
         """Internal CSV saver using pandas."""
         try:
             file_path_obj = Path(file_path)
@@ -521,24 +545,39 @@ class FlextCliFileTools(FlextService[bool]):
                 )
 
             # Convert kwargs to proper types for pandas - filter out complex types
-            pandas_kwargs: dict[str, object] = {
-                k: v
-                for k, v in kwargs.items()
-                if isinstance(v, (str, int, float, bool, type(None)))
-                or (isinstance(v, list) and all(isinstance(item, str) for item in v))
-                or isinstance(v, dict)
-            }
+            pandas_kwargs: dict[str, Any] = {}
+
+            # Filter kwargs to only include valid pandas read_csv parameters
+            for k, v in kwargs.items():
+                if isinstance(v, (str, int, float, bool, type(None))):
+                    pandas_kwargs[k] = v
+                elif isinstance(v, list) and all(isinstance(item, str) for item in v):
+                    # Convert list of strings to proper type for pandas
+                    pandas_kwargs[k] = v  # type: ignore[assignment]
 
             # Use filtered kwargs for pandas TSV reading
             result = pd.read_csv(
                 str(file_path_obj),
                 sep="\t",
-                **pandas_kwargs,  # type: ignore[arg-type]
+                **pandas_kwargs,
             )
-            df: pd.DataFrame = result
-            return FlextResult[list[dict[str, object]]].ok(df.to_dict("records"))
+            # Ensure we have a DataFrame, not a TextFileReader
+            if isinstance(result, pd.DataFrame):
+                df = result
+            else:
+                # If it's a TextFileReader, read it into a DataFrame
+                df = pd.DataFrame(list(result))
+            # Convert DataFrame to list of dicts with proper typing
+            records = df.to_dict("records")
+            # Ensure all keys are strings for type safety
+            typed_records: list[dict[str, object]] = [
+                {str(k): v for k, v in record.items()} for record in records
+            ]
+            return FlextResult[list[dict[str, object]]].ok(typed_records)
         except Exception as e:
-            return FlextResult[list[dict[str, object]]].fail(f"Failed to load TSV file: {e}")
+            return FlextResult[list[dict[str, object]]].fail(
+                f"Failed to load TSV file: {e}"
+            )
 
     def _save_tsv(self, file_path: str, data: object) -> FlextResult[bool]:
         """Internal TSV saver using pandas."""
@@ -693,15 +732,27 @@ class FlextCliFileTools(FlextService[bool]):
             if sheet_name is None:
                 # Load all sheets
                 excel_file = pd.ExcelFile(file_path_obj)
-                sheets_data = {}
+                sheets_data: dict[str, list[dict[str, object]]] = {}
                 for sheet in excel_file.sheet_names:
                     df = pd.read_excel(file_path_obj, sheet_name=sheet)
-                    sheets_data[sheet] = df.to_dict("records")
+                    # Convert DataFrame to list of dicts with proper typing
+                    records = df.to_dict("records")
+                    # Ensure all keys are strings for type safety
+                    typed_records: list[dict[str, object]] = [
+                        {str(k): v for k, v in record.items()} for record in records
+                    ]
+                    sheets_data[str(sheet)] = typed_records
                 return FlextResult[object].ok(sheets_data)
 
             # Load specific sheet
             df = pd.read_excel(file_path_obj, sheet_name=cast("str", sheet_name))
-            return FlextResult[object].ok(df.to_dict("records"))
+            # Convert DataFrame to list of dicts with proper typing
+            records = df.to_dict("records")
+            # Ensure all keys are strings for type safety
+            typed_records: list[dict[str, object]] = [
+                {str(k): v for k, v in record.items()} for record in records
+            ]
+            return FlextResult[object].ok(typed_records)
         except Exception as e:
             return FlextResult[object].fail(f"Failed to load Excel file: {e}")
 
@@ -750,23 +801,19 @@ class FlextCliFileTools(FlextService[bool]):
             pyarrow_kwargs: dict[str, object] = {}
 
             # Handle specific PyArrow parameters with proper type checking
-            if (
-                "columns" in kwargs
-                and kwargs["columns"] is not None
-                and isinstance(kwargs["columns"], list)
-            ):
+            if "columns" in kwargs and isinstance(kwargs["columns"], list):
                 pyarrow_kwargs["columns"] = kwargs["columns"]
 
-            if "use_threads" in kwargs and isinstance(kwargs["use_threads"], bool):
+            if "use_threads" in kwargs:
                 pyarrow_kwargs["use_threads"] = kwargs["use_threads"]
 
-            if "schema" in kwargs and kwargs["schema"] is not None:
+            if "schema" in kwargs:
                 pyarrow_kwargs["schema"] = kwargs["schema"]
 
             if "use_pandas_metadata" in kwargs:
                 pyarrow_kwargs["use_pandas_metadata"] = kwargs["use_pandas_metadata"]
 
-            if "read_dictionary" in kwargs and kwargs["read_dictionary"] is not None:
+            if "read_dictionary" in kwargs:
                 pyarrow_kwargs["read_dictionary"] = kwargs["read_dictionary"]
 
             if "memory_map" in kwargs:
@@ -838,7 +885,7 @@ class FlextCliFileTools(FlextService[bool]):
             pyarrow_kwargs: dict[str, object] = {}
 
             # Handle specific PyArrow parameters with proper type checking
-            if "row_group_size" in kwargs and isinstance(kwargs["row_group_size"], int):
+            if "row_group_size" in kwargs:
                 pyarrow_kwargs["row_group_size"] = kwargs["row_group_size"]
 
             if (
@@ -880,25 +927,77 @@ class FlextCliFileTools(FlextService[bool]):
             # Use filtered kwargs for pyarrow parquet writing
             try:
                 # Convert to proper types for PyArrow write_table
-                filtered_kwargs: dict[str, object] = {
-                    key: value
-                    for key, value in pyarrow_kwargs.items()
-                    if key
-                    in {
-                        "version",
-                        "compression",
-                        "use_dictionary",
-                        "compression_level",
-                        "row_group_size",
-                        "use_deprecated_int96_timestamps",
-                        "coerce_timestamps",
-                        "allow_truncated_timestamps",
-                        "data_page_size",
-                        "write_statistics",
-                        "flavor",
-                    }
-                }
-                pq.write_table(table, file_path_obj, **filtered_kwargs)  # type: ignore[arg-type]
+                # Create a properly typed kwargs dict for PyArrow
+                pyarrow_write_kwargs: dict[str, Any] = {}
+
+                # Handle each parameter with proper type checking
+                if "row_group_size" in pyarrow_kwargs and isinstance(
+                    pyarrow_kwargs["row_group_size"], int
+                ):
+                    pyarrow_write_kwargs["row_group_size"] = pyarrow_kwargs[
+                        "row_group_size"
+                    ]
+
+                if (
+                    "version" in pyarrow_kwargs
+                    and isinstance(pyarrow_kwargs["version"], str)
+                    and pyarrow_kwargs["version"] in {"1.0", "2.4", "2.6"}
+                ):
+                    pyarrow_write_kwargs["version"] = pyarrow_kwargs["version"]
+
+                if "use_dictionary" in pyarrow_kwargs and isinstance(
+                    pyarrow_kwargs["use_dictionary"], bool
+                ):
+                    pyarrow_write_kwargs["use_dictionary"] = pyarrow_kwargs[
+                        "use_dictionary"
+                    ]
+
+                if "compression" in pyarrow_kwargs and isinstance(
+                    pyarrow_kwargs["compression"], str
+                ):
+                    pyarrow_write_kwargs["compression"] = pyarrow_kwargs["compression"]
+
+                if "write_statistics" in pyarrow_kwargs and isinstance(
+                    pyarrow_kwargs["write_statistics"], bool
+                ):
+                    pyarrow_write_kwargs["write_statistics"] = pyarrow_kwargs[
+                        "write_statistics"
+                    ]
+
+                if "use_deprecated_int96_timestamps" in pyarrow_kwargs and isinstance(
+                    pyarrow_kwargs["use_deprecated_int96_timestamps"], bool
+                ):
+                    pyarrow_write_kwargs["use_deprecated_int96_timestamps"] = (
+                        pyarrow_kwargs["use_deprecated_int96_timestamps"]
+                    )
+
+                if "coerce_timestamps" in pyarrow_kwargs and isinstance(
+                    pyarrow_kwargs["coerce_timestamps"], str
+                ):
+                    pyarrow_write_kwargs["coerce_timestamps"] = pyarrow_kwargs[
+                        "coerce_timestamps"
+                    ]
+
+                if "allow_truncated_timestamps" in pyarrow_kwargs and isinstance(
+                    pyarrow_kwargs["allow_truncated_timestamps"], bool
+                ):
+                    pyarrow_write_kwargs["allow_truncated_timestamps"] = pyarrow_kwargs[
+                        "allow_truncated_timestamps"
+                    ]
+
+                if "data_page_size" in pyarrow_kwargs and isinstance(
+                    pyarrow_kwargs["data_page_size"], int
+                ):
+                    pyarrow_write_kwargs["data_page_size"] = pyarrow_kwargs[
+                        "data_page_size"
+                    ]
+
+                if "flavor" in pyarrow_kwargs and isinstance(
+                    pyarrow_kwargs["flavor"], str
+                ):
+                    pyarrow_write_kwargs["flavor"] = pyarrow_kwargs["flavor"]
+
+                pq.write_table(table, file_path_obj, **pyarrow_write_kwargs)
             except TypeError:
                 # Fallback to basic write_table without kwargs
                 pq.write_table(table, file_path_obj)

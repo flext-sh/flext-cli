@@ -9,6 +9,7 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
+from collections.abc import Callable
 from typing import override
 
 import requests
@@ -42,14 +43,16 @@ class FlextCliCommands(FlextService[dict[str, object]]):
             self.commands = commands
 
     @override
-    def __init__(self, name: str = "flext", description: str = "", **data: object) -> None:
+    def __init__(
+        self, name: str = "flext", description: str = "", **data: object
+    ) -> None:
         """Initialize CLI commands manager."""
         super().__init__(**data)
         self._name = name
         self._description = description
         self._logger = FlextLogger(__name__)
         self._container = FlextContainer.get_global()
-        self._commands: dict[str, object] = {}
+        self._commands: dict[str, dict[str, object]] = {}
         self._cli_group = self._CliGroup(
             name=name,
             description=description,
@@ -76,7 +79,7 @@ class FlextCliCommands(FlextService[dict[str, object]]):
     def register_command(
         self,
         name: str,
-        handler: object,
+        handler: Callable[[], object] | Callable[[list[str]], object],
         description: str = "",
     ) -> FlextResult[None]:
         """Register a command.
@@ -235,16 +238,20 @@ class FlextCliCommands(FlextService[dict[str, object]]):
                     else:
                         result = handler()
                     return FlextResult[object].ok(result)
-                return FlextResult[object].fail(f"Handler is not callable: {command_name}")
-            return FlextResult[object].fail(f"Invalid command structure: {command_name}")
+                return FlextResult[object].fail(
+                    f"Handler is not callable: {command_name}"
+                )
+            return FlextResult[object].fail(
+                f"Invalid command structure: {command_name}"
+            )
         except Exception as e:
             return FlextResult[object].fail(f"Command execution failed: {e}")
 
-    def get_commands(self) -> dict[str, object]:
+    def get_commands(self) -> dict[str, dict[str, object]]:
         """Get all registered commands.
 
         Returns:
-            dict[str, object]: Dictionary of registered commands
+            dict[str, dict[str, object]]: Dictionary of registered commands
 
         """
         return self._commands.copy()

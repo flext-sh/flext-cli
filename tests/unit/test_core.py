@@ -721,8 +721,10 @@ nested:
             assert "service" in data
             assert data["service"] == "FlextCliService"
 
-    def test_core_service_advanced_methods(self, core_service: FlextCliService) -> None:
-        """Test advanced core service methods."""
+    def test_core_service_advanced_methods_merged(
+        self, core_service: FlextCliService
+    ) -> None:
+        """Test advanced core service methods - consolidated test."""
         # Test health check
         health_result = core_service.health_check()
         assert isinstance(health_result, FlextResult)
@@ -750,3 +752,8 @@ nested:
         # Test get formatters
         formatters_result = core_service.get_formatters()
         assert formatters_result is not None
+
+        # Additional functionality from duplicate method
+        assert hasattr(core_service, "health_check")
+        assert hasattr(core_service, "get_config")
+        assert hasattr(core_service, "get_handlers")
