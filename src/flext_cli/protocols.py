@@ -9,7 +9,7 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from typing import Protocol
+from typing import Protocol, runtime_checkable
 
 from flext_cli.typings import (
     AuthConfigData,
@@ -28,6 +28,7 @@ class FlextCliProtocols(FlextProtocols):
     Follows FLEXT pattern: one class per module with nested subclasses.
     """
 
+    @runtime_checkable
     class CliCommandHandler(Protocol):
         """Protocol for CLI command handlers."""
 
@@ -45,6 +46,7 @@ class FlextCliProtocols(FlextProtocols):
             """
             ...
 
+    @runtime_checkable
     class CliFormatter(Protocol):
         """Protocol for CLI output formatters."""
 
@@ -65,6 +67,7 @@ class FlextCliProtocols(FlextProtocols):
             """
             ...
 
+    @runtime_checkable
     class CliConfigProvider(Protocol):
         """Protocol for CLI configuration providers."""
 
@@ -89,6 +92,7 @@ class FlextCliProtocols(FlextProtocols):
             """
             ...
 
+    @runtime_checkable
     class CliAuthenticator(Protocol):
         """Protocol for CLI authentication providers."""
 
@@ -116,6 +120,7 @@ class FlextCliProtocols(FlextProtocols):
             """
             ...
 
+    @runtime_checkable
     class CliDebugProvider(Protocol):
         """Protocol for CLI debug information providers."""
 

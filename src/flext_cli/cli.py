@@ -10,217 +10,196 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from datetime import UTC, datetime
-from typing import override
+import click
 
-import click  # ONLY module allowed to import Click in entire ecosystem
-
-from flext_cli.api import FlextCliApi
-from flext_cli.auth import FlextCliAuth
-from flext_cli.commands import FlextCliCommands
-from flext_cli.config import FlextCliConfig
-from flext_cli.constants import FlextCliConstants
-from flext_cli.debug import FlextCliDebug
-from flext_cli.output import FlextCliOutput
-from flext_core import FlextLogger, FlextResult, FlextService, FlextTypes
+from flext_cli.core import FlextCliService
+from flext_cli.typings import FlextCliTypes
+from flext_core import (
+    FlextContainer,
+    FlextLogger,
+    FlextResult,
+    FlextService,
+    FlextUtilities,
+)
 
 
-class FlextCli(FlextService[FlextTypes.Core.Dict]):
-    """Unified CLI abstraction layer following ZERO TOLERANCE policy.
+class FlextCli(FlextService[FlextCliTypes.Data.CliDataDict]):
+    """Main CLI application service using domain-specific types.
 
-    This class provides the ONLY allowed Click abstraction in the entire FLEXT ecosystem.
-    All CLI functionality is properly abstracted to maintain domain separation.
+    Provides the primary CLI interface for FLEXT applications with enhanced
+    type safety using FlextCliTypes instead of generic FlextTypes.Core types.
+    Extends FlextService with CLI-specific data dictionary types.
     """
 
-    @override
-    def __init__(self) -> None:
-        """Initialize unified CLI abstraction layer."""
-        super().__init__()
+    def __init__(
+        self,
+        name: str = "flext-cli",
+        version: str = "0.9.0",
+        description: str = "FLEXT CLI Application",
+        **data: object,
+    ) -> None:
+        """Initialize CLI application with enhanced configuration.
+
+        Args:
+            name: CLI application name
+            version: Application version
+            description: Application description
+            **data: Additional initialization data
+
+        """
+        super().__init__(**data)
         self._logger = FlextLogger(__name__)
+        self._container = FlextContainer.get_global()
 
-        # Initialize CLI components
-        self._api = FlextCliApi()
-        self._auth = FlextCliAuth()
-        self._config = FlextCliConfig.create_default()
-        self._debug = FlextCliDebug()
-        self._output = FlextCliOutput()
-        self._commands = FlextCliCommands()
+        # CLI-specific initialization
+        self._name = name
+        self._version = version
+        self._description = description
 
-        self._logger.info("FlextCli abstraction layer initialized")
+        # Initialize CLI service as dependency
+        self._cli_service = FlextCliService()
 
-    # Property accessors for test compatibility
-    @property
-    def api(self) -> FlextCliApi:
-        """Get API component."""
-        return self._api
-
-    @property
-    def auth(self) -> FlextCliAuth:
-        """Get auth component."""
-        return self._auth
+        # Initialize Click group for CLI interface
+        self._click_group = click.Group(
+            name=self._name,
+            help=self._description,
+            context_settings={"help_option_names": ["-h", "--help"]},
+        )
 
     @property
-    def config(self) -> FlextCliConfig:
-        """Get config component."""
-        return FlextCliConfig()
+    def name(self) -> str:
+        """Get CLI application name.
+
+        Returns:
+            str: Application name
+
+        """
+        return self._name
 
     @property
-    def debug(self) -> FlextCliDebug:
-        """Get debug component."""
-        return self._debug
+    def version(self) -> str:
+        """Get CLI application version.
+
+        Returns:
+            str: Application version
+
+        """
+        return self._version
 
     @property
-    def formatters(self) -> FlextCliOutput:
-        """Get formatters component (aliased to output)."""
-        return self._output
+    def description(self) -> str:
+        """Get CLI application description.
+
+        Returns:
+            str: Application description
+
+        """
+        return self._description
 
     @property
-    def main(self) -> FlextCliCommands:
-        """Get main component (aliased to commands)."""
-        return self._commands
+    def cli_service(self) -> FlextCliService:
+        """Get underlying CLI service.
 
-    @override
-    def execute(self) -> FlextResult[FlextTypes.Core.Dict]:
-        """Execute the main CLI service operation - required by FlextService."""
-        return FlextResult[FlextTypes.Core.Dict].ok({
-            "status": FlextCliConstants.OPERATIONAL,
-            "service": FlextCliConstants.FLEXT_CLI,
-            "timestamp": datetime.now(UTC).isoformat(),
-            "version": "2.0.0",
-            "components": {
-                "api": FlextCliConstants.AVAILABLE,
-                "auth": FlextCliConstants.AVAILABLE,
-                "config": FlextCliConstants.AVAILABLE,
-                "debug": FlextCliConstants.AVAILABLE,
-                "formatters": FlextCliConstants.AVAILABLE,
-                "main": FlextCliConstants.AVAILABLE,
-            },
+        Returns:
+            FlextCliService: CLI service instance
+
+        """
+        return self._cli_service
+
+    @property
+    def main(self) -> FlextCli:
+        """Get main CLI interface for external access.
+
+        Returns:
+            FlextCli: Main CLI instance
+
+        """
+        return self
+
+    def get_click_group(self) -> click.Group:
+        """Get the underlying Click group for CLI operations.
+
+        Returns:
+            click.Group: Click command group
+
+        """
+        return self._click_group
+
+    def run_cli(self) -> None:
+        """Run the CLI application using Click."""
+        try:
+            self._click_group()
+        except Exception:
+            self._logger.exception("CLI execution failed")
+            raise
+
+    def execute(self) -> FlextResult[FlextCliTypes.Data.CliDataDict]:
+        """Execute CLI application using CLI-specific data types.
+
+        Returns:
+            FlextResult[FlextCliTypes.Data.CliDataDict]: CLI execution result with enhanced type safety
+
+        """
+        return FlextResult[FlextCliTypes.Data.CliDataDict].ok({
+            "cli_name": self._name,
+            "version": self._version,
+            "description": self._description,
+            "status": "ready",
+            "timestamp": FlextUtilities.Generators.generate_timestamp(),
         })
 
-    async def execute_async(self) -> FlextResult[FlextTypes.Core.Dict]:
-        """Execute the main CLI service operation asynchronously - required by FlextService."""
-        return FlextResult[FlextTypes.Core.Dict].ok({
-            "status": FlextCliConstants.OPERATIONAL,
-            "service": FlextCliConstants.FLEXT_CLI,
-            "timestamp": datetime.now(UTC).isoformat(),
-            "version": "2.0.0",
-            "components": {
-                "api": FlextCliConstants.AVAILABLE,
-                "auth": FlextCliConstants.AVAILABLE,
-                "config": FlextCliConstants.AVAILABLE,
-                "debug": FlextCliConstants.AVAILABLE,
-                "formatters": FlextCliConstants.AVAILABLE,
-                "main": FlextCliConstants.AVAILABLE,
-            },
+    def get_application_info(self) -> FlextResult[FlextCliTypes.Data.CliDataDict]:
+        """Get comprehensive CLI application information.
+
+        Returns:
+            FlextResult[FlextCliTypes.Data.CliDataDict]: Application information
+
+        """
+        try:
+            # Get service statistics for comprehensive info
+            service_stats = self._cli_service.execute()
+
+            app_info: FlextCliTypes.Data.CliDataDict = {
+                "application_name": self._name,
+                "application_version": self._version,
+                "application_description": self._description,
+                "service_ready": service_stats.is_success,
+                "commands_available": 0,  # Default value
+                "session_support": True,
+                "timestamp": FlextUtilities.Generators.generate_timestamp(),
+            }
+
+            # Add service information if available
+            if service_stats.is_success and service_stats.value:
+                service_data = service_stats.value
+                if isinstance(service_data, dict):
+                    app_info["commands_available"] = service_data.get(
+                        "commands_registered", 0
+                    )
+                    app_info["service_info"] = service_data
+
+            return FlextResult[FlextCliTypes.Data.CliDataDict].ok(app_info)
+
+        except Exception as e:
+            return FlextResult[FlextCliTypes.Data.CliDataDict].fail(
+                f"Application info collection failed: {e}",
+            )
+
+    async def execute_async(self) -> FlextResult[FlextCliTypes.Data.CliDataDict]:
+        """Execute CLI application asynchronously using CLI-specific data types.
+
+        Returns:
+            FlextResult[FlextCliTypes.Data.CliDataDict]: Async CLI execution result
+
+        """
+        return FlextResult[FlextCliTypes.Data.CliDataDict].ok({
+            "cli_name": self._name,
+            "version": self._version,
+            "description": self._description,
+            "async_execution": True,
+            "status": "async_ready",
+            "timestamp": FlextUtilities.Generators.generate_timestamp(),
         })
-
-    def create_cli_group(self, name: str = "flext") -> FlextResult[click.Group]:
-        """Create a Click CLI group with proper abstraction.
-
-        Args:
-            name: CLI group name
-
-        Returns:
-            FlextResult[click.Group]: Click group or error
-
-        """
-        try:
-
-            @click.group(name=name)
-            @click.version_option(version="0.9.0")
-            def cli_group() -> None:
-                """FLEXT CLI - Enterprise Data Integration Platform."""
-
-            return FlextResult[click.Group].ok(cli_group)
-        except Exception as e:
-            return FlextResult[click.Group].fail(f"Failed to create CLI group: {e}")
-
-    def add_status_command(self, cli_group: click.Group) -> FlextResult[None]:
-        """Add status command to CLI group.
-
-        Args:
-            cli_group: Click group to add command to
-
-        Returns:
-            FlextResult[None]: Success or failure result
-
-        """
-        try:
-
-            @cli_group.command()
-            def status() -> None:
-                """Show CLI status."""
-                result = self.execute()
-                if result.is_success:
-                    click.echo("FLEXT CLI is operational")
-                    data = result.unwrap()
-                    click.echo(f"Service: {data['service']}")
-                    click.echo(f"Version: {data['version']}")
-                else:
-                    click.echo(f"Error: {result.error}")
-                    raise click.Abort
-
-            return FlextResult[None].ok(None)
-        except Exception as e:
-            return FlextResult[None].fail(f"Failed to add status command: {e}")
-
-    def add_version_command(self, cli_group: click.Group) -> FlextResult[None]:
-        """Add version command to CLI group.
-
-        Args:
-            cli_group: Click group to add command to
-
-        Returns:
-            FlextResult[None]: Success or failure result
-
-        """
-        try:
-
-            @cli_group.command()
-            def version() -> None:
-                """Show version information."""
-                click.echo("FLEXT CLI version 0.9.0")
-
-            return FlextResult[None].ok(None)
-        except Exception as e:
-            return FlextResult[None].fail(f"Failed to add version command: {e}")
-
-    def run_cli(self) -> FlextResult[None]:
-        """Run the CLI interface with proper error handling.
-
-        Returns:
-            FlextResult[None]: Success or failure result
-
-        """
-        try:
-            # Create CLI group
-            group_result = self.create_cli_group()
-            if group_result.is_failure:
-                return FlextResult[None].fail(
-                    f"Failed to create CLI group: {group_result.error}"
-                )
-
-            cli_group = group_result.unwrap()
-
-            # Add commands
-            status_result = self.add_status_command(cli_group)
-            if status_result.is_failure:
-                return FlextResult[None].fail(
-                    f"Failed to add status command: {status_result.error}"
-                )
-
-            version_result = self.add_version_command(cli_group)
-            if version_result.is_failure:
-                return FlextResult[None].fail(
-                    f"Failed to add version command: {version_result.error}"
-                )
-
-            # Run the CLI
-            cli_group()
-            return FlextResult[None].ok(None)
-
-        except Exception as e:
-            return FlextResult[None].fail(f"CLI execution failed: {e}")
 
 
 __all__ = [

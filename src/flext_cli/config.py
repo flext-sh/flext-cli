@@ -34,6 +34,8 @@ from flext_core import (
 class FlextCliConfig(FlextConfig):
     """Single flat Pydantic 2 Settings class for flext-cli extending FlextConfig.
 
+    Implements FlextCliProtocols.CliConfigProvider through structural subtyping.
+
     Follows standardized pattern:
     - Extends FlextConfig from flext-core directly (no nested classes)
     - Flat class structure with all fields at top level
@@ -42,6 +44,9 @@ class FlextCliConfig(FlextConfig):
     - Uses enhanced singleton pattern with inverse dependency injection
     - Uses Python 3.13 + Pydantic 2 features
     """
+
+    # Class variable for singleton pattern
+    _shared_instance: FlextCliConfig | None = None
 
     model_config = SettingsConfigDict(
         env_prefix="FLEXT_CLI_",
@@ -348,11 +353,16 @@ class FlextCliConfig(FlextConfig):
         return cls(**config_data)
 
     @classmethod
+    def reset_shared_instance(cls) -> None:
+        """Reset the shared instance for testing purposes."""
+        # Reset the singleton instance
+        cls._shared_instance = None
+
+    @classmethod
     def reset_global_instance(cls) -> None:
         """Reset the global FlextCliConfig instance (mainly for testing)."""
+        cls.reset_shared_instance()
         # Use the enhanced FlextConfig reset mechanism
-        # Note: reset_shared_instance may not be available in all FlextConfig versions
-        # This method is a placeholder for future implementation
 
     # Service operations (previously FlextCliConfigService) - unified pattern
     class _ConfigServiceHelper:
@@ -423,6 +433,43 @@ class FlextCliConfig(FlextConfig):
     def save_config_file(self, config_path: str) -> FlextResult[None]:
         """Save configuration to file using nested helper."""
         return self._ConfigServiceHelper.save_config_to_file(config_path, self)
+
+    # Protocol-compliant methods for CliConfigProvider
+    def load_config(self) -> FlextResult[dict[str, object]]:
+        """Load CLI configuration - implements CliConfigProvider protocol.
+
+        Returns:
+            FlextResult[dict[str, object]]: Configuration data or error
+
+        """
+        try:
+            # Convert model to dictionary format expected by protocol
+            config_data = self.model_dump()
+            return FlextResult[dict[str, object]].ok(config_data)
+        except Exception as e:
+            return FlextResult[dict[str, object]].fail(f"Config load failed: {e}")
+
+    def save_config(self, config: dict[str, object]) -> FlextResult[None]:
+        """Save CLI configuration - implements CliConfigProvider protocol.
+
+        Args:
+            config: Configuration data to save
+
+        Returns:
+            FlextResult[None]: Success or error
+
+        """
+        try:
+            # Update model fields with provided config data
+            for key, value in config.items():
+                if hasattr(self, key):
+                    setattr(self, key, value)
+
+            # Validate the updated configuration
+            self.model_validate(self.model_dump())
+            return FlextResult[None].ok(None)
+        except Exception as e:
+            return FlextResult[None].fail(f"Config save failed: {e}")
 
 
 # Merged into FlextCliConfig - removed redundant class

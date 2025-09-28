@@ -165,14 +165,14 @@ class TestFlextCliProtocols:
         @runtime_checkable
         class SignatureProtocol(Protocol):
             def calculate(self, a: int, b: int) -> int: ...
-            def format_output(self, data: dict) -> str: ...
+            def format_data(self, data: dict) -> str: ...
 
         # Correct implementation
         class CorrectImplementation:
             def calculate(self, a: int, b: int) -> int:
                 return a + b
 
-            def format_output(self, data: dict) -> str:
+            def format_data(self, data: dict) -> str:
                 return str(data)
 
         # Incorrect implementation (wrong signature)
@@ -180,7 +180,7 @@ class TestFlextCliProtocols:
             def calculate(self, a: str, b: str) -> str:  # Wrong types
                 return a + b
 
-            def format_output(self, data: list) -> str:  # Wrong type
+            def format_data(self, data: list) -> str:  # Wrong type
                 return str(data)
 
         # Test signature validation

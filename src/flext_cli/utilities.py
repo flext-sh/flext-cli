@@ -630,7 +630,7 @@ class FlextCliUtilities(FlextUtilities):
                 return FlextResult[int].fail(f"Failed to get file size: {e}")
 
         @staticmethod
-        def save_json_file(
+        def write_json_file(
             file_path: str, data: dict[str, object]
         ) -> FlextResult[bool]:
             """Save data to JSON file.
@@ -656,7 +656,7 @@ class FlextCliUtilities(FlextUtilities):
                 return FlextResult[bool].fail(f"Failed to save JSON file: {e}")
 
         @staticmethod
-        def load_json_file(file_path: str) -> FlextResult[dict[str, object]]:
+        def read_json_file(file_path: str) -> FlextResult[dict[str, object]]:
             """Load data from JSON file.
 
             Args:
