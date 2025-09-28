@@ -913,7 +913,7 @@ class FlextCliService(FlextService[FlextTypes.Core.Dict]):
                     )
 
             # Command parts are validated above for safety
-            result = subprocess.run(  # noqa: S603
+            result = subprocess.run(
                 command_parts,
                 check=False,
                 capture_output=True,

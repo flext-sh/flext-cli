@@ -66,7 +66,6 @@ All requested QA issues have been successfully resolved for flext-cli. The codeb
 
    ```python
    FlextCliTypes.Data.PandasReadCsvKwargs = dict[str, Any]  # Acceptable - type alias for pandas
-   PyArrowKwargs = dict[str, Any]  # Acceptable - type alias for pyarrow
    ```
 
 3. **No automatic scripts** - All fixes done via MultiEdit based on context

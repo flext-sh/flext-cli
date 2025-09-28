@@ -135,7 +135,6 @@ class Project(FlextModels.AggregateRoot):
             status=ProjectStatus.ACTIVE,
             created_at=datetime.now(UTC),
             updated_at=datetime.now(UTC),
-            domain_events=[],
         )
 
         # Validate business rules

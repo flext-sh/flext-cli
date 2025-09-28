@@ -60,7 +60,7 @@ class FlextCliLoggingSetup(FlextService[dict[str, object]]):
         try:
             # Prevent duplicate setup calls
             if FlextCliLoggingSetup._setup_complete:
-                log_config_result = self._detect_log_configuration()
+                log_config_result = self.detect_log_configuration()
                 if log_config_result.is_success:
                     return FlextResult[FlextCliModels.LoggingConfig].ok(
                         log_config_result.value
@@ -68,7 +68,7 @@ class FlextCliLoggingSetup(FlextService[dict[str, object]]):
                 return log_config_result
 
             # Detect log level and its source
-            log_config_result = self._detect_log_configuration()
+            log_config_result = self.detect_log_configuration()
             if not log_config_result.is_success:
                 return log_config_result
 
@@ -115,7 +115,7 @@ class FlextCliLoggingSetup(FlextService[dict[str, object]]):
                 f"Logging setup failed: {e}"
             )
 
-    def _detect_log_configuration(self) -> FlextResult[FlextCliModels.LoggingConfig]:
+    def detect_log_configuration(self) -> FlextResult[FlextCliModels.LoggingConfig]:
         """Detect log configuration from FlextCliConfig singleton."""
         try:
             # Use FlextCliConfig singleton as single source of truth
@@ -196,7 +196,7 @@ class FlextCliLoggingSetup(FlextService[dict[str, object]]):
             if config is None:
                 config = FlextCliConfig()
             setup_instance = cls(config)
-            detection_result = setup_instance._detect_log_configuration()
+            detection_result = setup_instance.detect_log_configuration()
 
             if not detection_result.is_success:
                 return FlextResult[str].fail(
@@ -434,6 +434,40 @@ class FlextCliLoggingSetup(FlextService[dict[str, object]]):
             return FlextResult[dict[str, object]].fail(
                 f"Async logging setup execution failed: {e}"
             )
+
+    async def setup_logging_async(self) -> FlextResult[FlextCliModels.LoggingConfig]:
+        """Setup logging asynchronously.
+
+        Returns:
+            FlextResult[FlextCliModels.LoggingConfig]: Async logging setup result
+
+        """
+        try:
+            # Simulate async operation
+            await asyncio.sleep(0.001)
+
+            # Use the synchronous setup method
+            return self.setup_logging()
+        except Exception as e:
+            return FlextResult[FlextCliModels.LoggingConfig].fail(
+                f"Async logging setup failed: {e}"
+            )
+
+    async def setup_for_cli_async(self) -> FlextResult[str]:
+        """Setup logging for CLI asynchronously.
+
+        Returns:
+            FlextResult[str]: Async CLI logging setup result
+
+        """
+        try:
+            # Simulate async operation
+            await asyncio.sleep(0.001)
+
+            # Use the synchronous setup method
+            return self.setup_for_cli()
+        except Exception as e:
+            return FlextResult[str].fail(f"Async CLI logging setup failed: {e}")
 
 
 __all__ = [

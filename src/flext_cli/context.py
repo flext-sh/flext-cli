@@ -242,6 +242,9 @@ class FlextCliContext(FlextService[dict[str, object]]):
             value: Timeout value in seconds
 
         """
+        if not isinstance(value, int):
+            error_msg = f"timeout_seconds must be an int, got {type(value)}"
+            raise TypeError(error_msg)
         self._timeout_seconds = value
 
     @property
