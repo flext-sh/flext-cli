@@ -235,9 +235,7 @@ class FlextCliFileTools(FlextService[bool]):
                 "size": file_path_obj.stat().st_size,
             }
 
-            return FlextResult[dict[str, object]].ok(
-                cast("dict[str, object]", file_info)
-            )
+            return FlextResult[dict[str, object]].ok(file_info)
         except Exception as e:
             return FlextResult[dict[str, object]].fail(f"File validation failed: {e}")
 
@@ -461,8 +459,10 @@ class FlextCliFileTools(FlextService[bool]):
             for key, value in kwargs.items():
                 if isinstance(value, (str, int, float, bool, type(None))):
                     pandas_kwargs[key] = value
-                elif isinstance(value, list) and all(
-                    isinstance(item, str) for item in value
+                elif (
+                    isinstance(value, list)
+                    and value
+                    and all(isinstance(item, str) for item in value)
                 ):
                     # Convert list of strings to proper type for pandas
                     pandas_kwargs[key] = value
@@ -533,9 +533,7 @@ class FlextCliFileTools(FlextService[bool]):
         except Exception as e:
             return FlextResult[bool].fail(f"Failed to save CSV file: {e}")
 
-    def _load_tsv(
-        self, file_path: str, **kwargs: FlextCliTypes.Data.PandasReadCsvKwargs
-    ) -> FlextResult[list[dict[str, object]]]:
+    def _load_tsv(self, file_path: str) -> FlextResult[list[dict[str, object]]]:
         """Internal TSV loader using pandas."""
         try:
             file_path_obj = Path(file_path)
@@ -544,22 +542,13 @@ class FlextCliFileTools(FlextService[bool]):
                     f"Failed to load TSV file: File does not exist: {file_path}"
                 )
 
-            # Convert kwargs to proper types for pandas - filter out complex types
-            pandas_kwargs: dict[str, Any] = {}
-
-            # Filter kwargs to only include valid pandas read_csv parameters
-            for k, v in kwargs.items():
-                if isinstance(v, (str, int, float, bool, type(None))):
-                    pandas_kwargs[k] = v
-                elif isinstance(v, list) and all(isinstance(item, str) for item in v):
-                    # Convert list of strings to proper type for pandas
-                    pandas_kwargs[k] = v  # type: ignore[assignment]
-
-            # Use filtered kwargs for pandas TSV reading
+            # Use basic pandas parameters for TSV reading
             result = pd.read_csv(
                 str(file_path_obj),
                 sep="\t",
-                **pandas_kwargs,
+                # Use only basic string parameters to avoid type issues
+                encoding="utf-8",
+                na_filter=True,
             )
             # Ensure we have a DataFrame, not a TextFileReader
             if isinstance(result, pd.DataFrame):
@@ -738,10 +727,10 @@ class FlextCliFileTools(FlextService[bool]):
                     # Convert DataFrame to list of dicts with proper typing
                     records = df.to_dict("records")
                     # Ensure all keys are strings for type safety
-                    typed_records: list[dict[str, object]] = [
+                    excel_records: list[dict[str, object]] = [
                         {str(k): v for k, v in record.items()} for record in records
                     ]
-                    sheets_data[str(sheet)] = typed_records
+                    sheets_data[str(sheet)] = excel_records
                 return FlextResult[object].ok(sheets_data)
 
             # Load specific sheet
@@ -749,10 +738,10 @@ class FlextCliFileTools(FlextService[bool]):
             # Convert DataFrame to list of dicts with proper typing
             records = df.to_dict("records")
             # Ensure all keys are strings for type safety
-            typed_records: list[dict[str, object]] = [
+            sheet_records: list[dict[str, object]] = [
                 {str(k): v for k, v in record.items()} for record in records
             ]
-            return FlextResult[object].ok(typed_records)
+            return FlextResult[object].ok(sheet_records)
         except Exception as e:
             return FlextResult[object].fail(f"Failed to load Excel file: {e}")
 
@@ -1136,16 +1125,6 @@ class FlextCliFileTools(FlextService[bool]):
     ) -> FlextResult[bool]:
         """Write data to JSON file."""
         return self._save_json(file_path, data)
-
-    def load_json_file(self, file_path: str) -> FlextResult[dict[str, object]]:
-        """Load JSON file content (alias for read_json_file)."""
-        return self.read_json_file(file_path)
-
-    def save_json_file(
-        self, file_path: str, data: dict[str, object]
-    ) -> FlextResult[bool]:
-        """Save data to JSON file (alias for write_json_file)."""
-        return self.write_json_file(file_path, data)
 
     def read_yaml_file(self, file_path: str) -> FlextResult[dict[str, object]]:
         """Read YAML file content."""

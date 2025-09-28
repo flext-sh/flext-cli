@@ -13,6 +13,7 @@ import asyncio
 import json
 import threading
 from pathlib import Path
+from typing import cast
 
 import pytest
 
@@ -84,15 +85,15 @@ class TestFlextCliApi:
     # OUTPUT FORMATTING AND DISPLAY
     # ========================================================================
 
-    def test_format_output_table(self, api_service: FlextCliApi) -> None:
-        """Test table output formatting functionality."""
+    def test_format_data_table(self, api_service: FlextCliApi) -> None:
+        """Test table data formatting functionality."""
         test_data = [
             {"name": "John", "age": 30, "city": "New York"},
             {"name": "Jane", "age": 25, "city": "London"},
             {"name": "Bob", "age": 35, "city": "Paris"},
         ]
 
-        result = api_service.format_output(data=test_data, format_type="table")
+        result = api_service.format_data(data=test_data, format_type="table")
 
         assert isinstance(result, FlextResult)
         assert result.is_success
@@ -103,11 +104,11 @@ class TestFlextCliApi:
         assert "Jane" in formatted_output
         assert "Bob" in formatted_output
 
-    def test_format_output_json(self, api_service: FlextCliApi) -> None:
-        """Test JSON output formatting functionality."""
+    def test_format_data_json(self, api_service: FlextCliApi) -> None:
+        """Test JSON data formatting functionality."""
         test_data = {"key": "value", "number": 42, "list": [1, 2, 3]}
 
-        result = api_service.format_output(data=test_data, format_type="json")
+        result = api_service.format_data(data=test_data, format_type="json")
 
         assert isinstance(result, FlextResult)
         assert result.is_success
@@ -119,11 +120,11 @@ class TestFlextCliApi:
         parsed_data = json.loads(formatted_output)
         assert parsed_data == test_data
 
-    def test_format_output_yaml(self, api_service: FlextCliApi) -> None:
-        """Test YAML output formatting functionality."""
+    def test_format_data_yaml(self, api_service: FlextCliApi) -> None:
+        """Test YAML data formatting functionality."""
         test_data = {"key": "value", "number": 42, "list": [1, 2, 3]}
 
-        result = api_service.format_output(data=test_data, format_type="yaml")
+        result = api_service.format_data(data=test_data, format_type="yaml")
 
         assert isinstance(result, FlextResult)
         assert result.is_success
@@ -133,14 +134,14 @@ class TestFlextCliApi:
         assert "key: value" in formatted_output
         assert "number: 42" in formatted_output
 
-    def test_format_output_csv(self, api_service: FlextCliApi) -> None:
-        """Test CSV output formatting functionality."""
+    def test_format_data_csv(self, api_service: FlextCliApi) -> None:
+        """Test CSV data formatting functionality."""
         test_data = [
             {"name": "John", "age": 30, "city": "New York"},
             {"name": "Jane", "age": 25, "city": "London"},
         ]
 
-        result = api_service.format_output(data=test_data, format_type="csv")
+        result = api_service.format_data(data=test_data, format_type="csv")
 
         assert isinstance(result, FlextResult)
         assert result.is_success
@@ -154,7 +155,7 @@ class TestFlextCliApi:
         """Test output display functionality."""
         test_output = "This is test output content"
 
-        result = api_service.display_output(test_output)
+        result = api_service.output.display_text(test_output)
 
         assert isinstance(result, FlextResult)
         assert result.is_success
@@ -168,7 +169,7 @@ class TestFlextCliApi:
 
     def test_create_progress_bar(self, api_service: FlextCliApi) -> None:
         """Test progress bar creation functionality."""
-        result = api_service.create_progress_bar(
+        result = api_service.output.create_progress_bar(
             task_name="Test Task", total=100, show_percentage=True, show_eta=True
         )
 
@@ -335,7 +336,7 @@ class TestFlextCliApi:
 
     def test_execute_command_nonexistent(self, api_service: FlextCliApi) -> None:
         """Test command execution with nonexistent command."""
-        result = api_service.execute_command("nonexistent_command_12345", timeout=30)
+        result = api_service.execute_command("nonexistent_command_12345")
 
         assert isinstance(result, FlextResult)
         assert result.is_failure
@@ -516,7 +517,7 @@ class TestFlextCliApi:
             "nested": {"inner": "data"},
         }
 
-        result = api_service.serialize_json(test_data)
+        result = api_service.serialize_json(cast("dict[str, object]", test_data))
 
         assert isinstance(result, FlextResult)
         assert result.is_success
@@ -564,7 +565,7 @@ nested:
             "nested": {"inner": "data"},
         }
 
-        result = api_service.serialize_yaml(test_data)
+        result = api_service.serialize_yaml(cast("dict[str, object]", test_data))
 
         assert isinstance(result, FlextResult)
         assert result.is_success
@@ -684,7 +685,7 @@ nested:
         }
 
         # 2. Serialize to JSON
-        json_result = api_service.serialize_json(test_data)
+        json_result = api_service.serialize_json(cast("dict[str, object]", test_data))
         assert json_result.is_success
         json_string = json_result.unwrap()
 
@@ -704,9 +705,7 @@ nested:
         parsed_data = parse_result.unwrap()
 
         # 6. Format as table
-        table_result = api_service.format_output(
-            data=[parsed_data], format_type="table"
-        )
+        table_result = api_service.format_data(data=[parsed_data], format_type="table")
         assert table_result.is_success
 
         # 7. Display output

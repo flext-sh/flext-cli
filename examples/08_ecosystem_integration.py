@@ -36,6 +36,7 @@ from flext_cli import (
     FlextCliAuth,
     FlextCliModels,
     FlextCliService,
+    FlextCliTypes,
 )
 from flext_core import FlextConfig, FlextConstants, FlextResult, FlextTypes
 
@@ -92,9 +93,9 @@ class EcosystemService(FlextCliService):
         self._formatters = FlextCliModels.CliFormatters()
 
     @override
-    def execute(self) -> FlextResult[dict[str, object]]:
+    def execute(self) -> FlextResult[FlextCliTypes.Data.CliDataDict]:
         """Execute ecosystem service operation - FlextCliService interface."""
-        return FlextResult[dict[str, object]].ok({
+        return FlextResult[FlextCliTypes.Data.CliDataDict].ok({
             "status": "Ecosystem service executed successfully"
         })
 

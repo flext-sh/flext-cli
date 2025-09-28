@@ -32,6 +32,8 @@ from flext_core import (
 class FlextCliDebug(FlextService[str]):
     """Debug service extending FlextService from flext-core.
 
+    Implements FlextCliProtocols.CliDebugProvider through structural subtyping.
+
     Provides essential debugging functionality using flext-core patterns.
     Follows single-responsibility principle with nested helpers.
     """

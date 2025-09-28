@@ -39,6 +39,7 @@ from flext_cli import (
     FlextCliConfig,
     FlextCliOutput,
     FlextCliService,
+    FlextCliTypes,
 )
 from flext_core import FlextContainer, FlextLogger, FlextResult, FlextTypes
 
@@ -98,9 +99,9 @@ class AdvancedCliService(FlextCliService):
         self.circuit_breakers: dict[str, dict[str, object]] = {}
 
     @override
-    def execute(self) -> FlextResult[dict[str, object]]:
+    def execute(self) -> FlextResult[FlextCliTypes.Data.CliDataDict]:
         """Execute advanced CLI service operations."""
-        return FlextResult[dict[str, object]].ok({
+        return FlextResult[FlextCliTypes.Data.CliDataDict].ok({
             "status": "AdvancedCliService operational"
         })
 

@@ -19,12 +19,25 @@ from typing import Self, cast, override
 from flext_core.container import FlextContainer
 from flext_core.context import FlextContext
 from flext_core.registry import FlextRegistry
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import (
+    BaseModel,
+    ConfigDict,
+    Field,
+    computed_field,
+    field_serializer,
+    model_validator,
+)
 
 from flext_cli.constants import FlextCliConstants
 from flext_cli.mixins import FlextCliMixins
 from flext_cli.typings import CliCommandData, FlextCliTypes
 from flext_core import FlextLogger, FlextModels, FlextResult
+
+# Constants for linting compliance
+MIN_STEP_TIMEOUT_SECONDS = 10
+MAX_BATCH_SIZE_PARALLEL = 100
+STEP_BASELINE_DURATION_SECONDS = 30
+RETRY_OVERHEAD_SECONDS = 10
 
 
 class FlextCliModels(FlextModels):
@@ -42,12 +55,109 @@ class FlextCliModels(FlextModels):
     NO inline validation is allowed in service methods.
     """
 
+    # Advanced Pydantic 2.11 configuration for comprehensive model behavior
+    model_config = ConfigDict(
+        validate_assignment=True,
+        use_enum_values=True,
+        arbitrary_types_allowed=True,
+        extra="forbid",
+        frozen=False,
+        validate_return=True,
+        ser_json_timedelta="iso8601",
+        ser_json_bytes="base64",
+        hide_input_in_errors=True,
+        json_schema_extra={
+            "title": "FlextCliModels",
+            "description": "Comprehensive CLI domain models with advanced Pydantic 2.11 features",
+            "examples": [
+                {
+                    "cli_command": {
+                        "command_line": "flext validate",
+                        "status": "pending",
+                        "args": ["validate"],
+                    }
+                }
+            ],
+        },
+    )
+
+    @computed_field
+    @property
+    def active_models_count(self) -> int:
+        """Computed field returning the number of active CLI model types."""
+        # Count all nested model classes
+        model_classes = [
+            "CliCommand",
+            "DebugInfo",
+            "FormatOptions",
+            "CliSession",
+            "CliFormatters",
+            "CliPipeline",
+            "LoggingConfig",
+            "PipelineConfig",
+        ]
+        return len(model_classes)
+
+    @computed_field
+    @property
+    def model_summary(self) -> dict[str, str]:
+        """Computed field returning a summary of all available models."""
+        return {
+            "CliCommand": "Command execution model with status tracking",
+            "DebugInfo": "Debug information model with system details",
+            "FormatOptions": "Output formatting configuration model",
+            "CliSession": "User session tracking model",
+            "CliFormatters": "Available output formatters",
+            "CliPipeline": "Pipeline execution model",
+            "LoggingConfig": "Logging configuration model",
+            "PipelineConfig": "Pipeline configuration model",
+        }
+
+    @model_validator(mode="after")
+    def validate_cli_models_consistency(self) -> Self:
+        """Cross-model validation ensuring CLI models consistency."""
+        # Ensure all required nested classes are properly defined
+        required_nested_classes = [
+            "_BaseEntity",
+            "_BaseValidatedModel",
+            "_BaseConfig",
+            "CliCommand",
+            "DebugInfo",
+            "FormatOptions",
+            "CliSession",
+        ]
+
+        for class_name in required_nested_classes:
+            if not hasattr(self.__class__, class_name):
+                error_message = f"Required nested class {class_name} not found"
+                raise ValueError(error_message)
+
+        return self
+
+    @field_serializer("model_summary")
+    def serialize_model_summary(
+        self, value: dict[str, str], _info: object
+    ) -> dict[str, str | dict[str, str | int]]:
+        """Serialize model summary with additional metadata."""
+        return {
+            **value,
+            "_metadata": {
+                "generated_at": datetime.now(UTC).isoformat(),
+                "total_models": len(value),
+                "serialization_version": "2.11",
+            },
+        }
+
     # Base classes for common functionality - using flext-core patterns
     class _BaseEntity(FlextModels.Entity, FlextCliMixins.ValidationMixin):
         """Base entity with common fields for entities with id, timestamps, and status."""
 
         model_config = ConfigDict(
-            validate_assignment=True, use_enum_values=True, arbitrary_types_allowed=True
+            validate_assignment=True,
+            use_enum_values=True,
+            arbitrary_types_allowed=True,
+            extra="forbid",
+            validate_return=True,
         )
 
         id: str = Field(
@@ -59,6 +169,20 @@ class FlextCliModels(FlextModels):
         )
         status: str = Field(default=FlextCliConstants.CommandStatus.PENDING.value)
 
+        @computed_field
+        @property
+        def entity_age_seconds(self) -> float:
+            """Computed field for entity age in seconds."""
+            return (datetime.now(UTC) - self.created_at).total_seconds()
+
+        @model_validator(mode="after")
+        def validate_timestamps(self) -> Self:
+            """Validate timestamp consistency."""
+            if self.updated_at and self.updated_at < self.created_at:
+                timestamp_error = "updated_at cannot be before created_at"
+                raise ValueError(timestamp_error)
+            return self
+
         def update_timestamp(self) -> None:
             """Update the updated_at timestamp."""
             self.updated_at = datetime.now(UTC)
@@ -67,11 +191,27 @@ class FlextCliModels(FlextModels):
         """Base model with common validation patterns."""
 
         model_config = ConfigDict(
-            validate_assignment=True, use_enum_values=True, arbitrary_types_allowed=True
+            validate_assignment=True,
+            use_enum_values=True,
+            arbitrary_types_allowed=True,
+            extra="forbid",
+            validate_return=True,
         )
+
+        @computed_field
+        @property
+        def model_type(self) -> str:
+            """Computed field returning the model type name."""
+            return self.__class__.__name__
 
     class _BaseConfig(_BaseValidatedModel):
         """Base configuration model with common config validation patterns."""
+
+        @model_validator(mode="after")
+        def validate_config_consistency(self) -> Self:
+            """Validate configuration consistency."""
+            # Base validation for all config models
+            return self
 
     class CliCommand(_BaseEntity, FlextCliMixins.BusinessRulesMixin):
         """CLI command model extending _BaseEntity."""
@@ -85,6 +225,56 @@ class FlextCliModels(FlextModels):
         entry_point: str = Field(default="")
         plugin_version: str = Field(default="1.0.0")
         # status field inherited from _BaseEntity
+
+        @computed_field
+        @property
+        def command_summary(self) -> dict[str, object]:
+            """Computed field for command execution summary."""
+            return {
+                "command": self.command_line,
+                "args_count": len(self.args),
+                "has_output": bool(self.output),
+                "has_errors": bool(self.error_output),
+                "is_completed": self.exit_code is not None,
+                "execution_time": self.entity_age_seconds,
+            }
+
+        @computed_field
+        @property
+        def is_successful(self) -> bool:
+            """Computed field indicating if command executed successfully."""
+            return self.exit_code == 0 if self.exit_code is not None else False
+
+        @model_validator(mode="after")
+        def validate_command_consistency(self) -> Self:
+            """Cross-field validation for command consistency."""
+            # If exit_code is set, status should be completed
+            if (
+                self.exit_code is not None
+                and self.status == FlextCliConstants.CommandStatus.PENDING.value
+            ):
+                exit_code_error = "Command with exit_code cannot have pending status"
+                raise ValueError(exit_code_error)
+
+            # If command has output, it should have been executed
+            if (
+                self.output
+                and self.status == FlextCliConstants.CommandStatus.PENDING.value
+            ):
+                output_error = "Command with output cannot have pending status"
+                raise ValueError(output_error)
+
+            return self
+
+        @field_serializer("command_line")
+        def serialize_command_line(self, value: str, _info: object) -> str:
+            """Serialize command line with safety checks for sensitive commands."""
+            # Mask potentially sensitive command parts
+            sensitive_patterns = ["password", "token", "secret", "key"]
+            for pattern in sensitive_patterns:
+                if pattern in value.lower():
+                    return value.replace(pattern, "*" * len(pattern))
+            return value
 
         @classmethod
         def validate_command_input(
@@ -135,6 +325,7 @@ class FlextCliModels(FlextModels):
 
             Args:
                 command: Command to execute
+                command_line: Command line to execute
                 status: Command status
                 execution_time: Time when command was executed
                 **data: Additional command data
@@ -244,6 +435,43 @@ class FlextCliModels(FlextModels):
         level: str = Field(default="info")
         message: str = Field(default="")
 
+        @computed_field
+        @property
+        def debug_summary(self) -> dict[str, object]:
+            """Computed field for debug information summary."""
+            return {
+                "service": self.service,
+                "level": self.level,
+                "has_system_info": bool(self.system_info),
+                "has_config_info": bool(self.config_info),
+                "message_length": len(self.message),
+                "age_seconds": (datetime.now(UTC) - self.timestamp).total_seconds(),
+            }
+
+        @model_validator(mode="after")
+        def validate_debug_consistency(self) -> Self:
+            """Validate debug info consistency."""
+            valid_levels = {"debug", "info", "warning", "error", "critical"}
+            if self.level not in valid_levels:
+                msg = f"Invalid debug level: {self.level}"
+                raise ValueError(msg)
+            return self
+
+        @field_serializer("system_info", "config_info")
+        def serialize_sensitive_info(
+            self, value: dict[str, str], _info: object
+        ) -> dict[str, str]:
+            """Serialize system/config info masking sensitive values."""
+            sensitive_keys = {"password", "token", "secret", "key", "auth"}
+            return {
+                k: (
+                    "***MASKED***"
+                    if any(sens in k.lower() for sens in sensitive_keys)
+                    else v
+                )
+                for k, v in value.items()
+            }
+
         def validate_business_rules(self) -> FlextResult[None]:
             """Validate debug info business rules."""
             # Use mixin validation methods
@@ -267,13 +495,35 @@ class FlextCliModels(FlextModels):
         """Format options for CLI output extending BaseModel."""
 
         model_config = ConfigDict(
-            validate_assignment=True, use_enum_values=True, arbitrary_types_allowed=True
+            validate_assignment=True,
+            use_enum_values=True,
+            arbitrary_types_allowed=True,
+            extra="forbid",
         )
 
         title: str | None = None
         headers: list[str] | None = None
         show_lines: bool = True
         max_width: int | None = None
+
+        @computed_field
+        @property
+        def format_summary(self) -> dict[str, object]:
+            """Computed field for format options summary."""
+            return {
+                "has_title": self.title is not None,
+                "headers_count": len(self.headers) if self.headers else 0,
+                "show_lines": self.show_lines,
+                "has_width_limit": self.max_width is not None,
+            }
+
+        @model_validator(mode="after")
+        def validate_format_options(self) -> Self:
+            """Validate format options consistency."""
+            if self.max_width is not None and self.max_width <= 0:
+                msg = "max_width must be positive"
+                raise ValueError(msg)
+            return self
 
     class CliSession(
         FlextModels.Entity,
@@ -293,6 +543,69 @@ class FlextCliModels(FlextModels):
         commands: list[FlextCliModels.CliCommand] = Field(default_factory=list)
         status: str = Field(default="active")
         user_id: str | None = None
+
+        @computed_field
+        @property
+        def session_summary(self) -> dict[str, object]:
+            """Computed field for session activity summary."""
+            return {
+                "session_id": self.session_id,
+                "is_active": self.status == "active",
+                "commands_count": len(self.commands),
+                "duration_minutes": round(self.duration_seconds / 60, 2),
+                "has_user": self.user_id is not None,
+                "last_activity_age": self._calculate_activity_age(),
+            }
+
+        @computed_field
+        @property
+        def commands_by_status(self) -> dict[str, int]:
+            """Computed field grouping commands by status."""
+            status_counts: dict[str, int] = {}
+            for command in self.commands:
+                status = command.status
+                status_counts[status] = status_counts.get(status, 0) + 1
+            return status_counts
+
+        @model_validator(mode="after")
+        def validate_session_consistency(self) -> Self:
+            """Cross-field validation for session consistency."""
+            # Commands count should match actual commands list
+            if self.commands_executed != len(self.commands):
+                self.commands_executed = len(self.commands)
+
+            # Duration should be non-negative
+            if self.duration_seconds < 0:
+                msg = "duration_seconds cannot be negative"
+                raise ValueError(msg)
+
+            return self
+
+        @field_serializer("commands")
+        def serialize_commands(
+            self, value: list[FlextCliModels.CliCommand], _info: object
+        ) -> list[dict[str, object]]:
+            """Serialize commands with summary information."""
+            return [
+                {
+                    "id": cmd.id,
+                    "command_line": cmd.command_line,
+                    "status": cmd.status,
+                    "exit_code": cmd.exit_code,
+                    "created_at": cmd.created_at.isoformat(),
+                }
+                for cmd in value
+            ]
+
+        def _calculate_activity_age(self) -> float | None:
+            """Calculate time since last activity in seconds."""
+            if not self.last_activity:
+                return None
+            try:
+                last_time = datetime.fromisoformat(self.last_activity)
+                return (datetime.now(UTC) - last_time).total_seconds()
+            except (ValueError, AttributeError):
+                return None
 
         @override
         def __init__(
@@ -394,8 +707,23 @@ class FlextCliModels(FlextModels):
         """CLI formatters model extending BaseModel."""
 
         model_config = ConfigDict(
-            validate_assignment=True, use_enum_values=True, arbitrary_types_allowed=True
+            validate_assignment=True,
+            use_enum_values=True,
+            arbitrary_types_allowed=True,
+            extra="forbid",
         )
+
+        @computed_field
+        @property
+        def available_formats(self) -> list[str]:
+            """Computed field listing available formats."""
+            return ["json", "yaml", "csv", "table", "plain"]
+
+        @computed_field
+        @property
+        def default_format(self) -> str:
+            """Computed field returning the default format."""
+            return "table"
 
         def list_formats(self) -> list[str]:
             """List available output formats."""
@@ -408,6 +736,49 @@ class FlextCliModels(FlextModels):
         description: str = Field(default="")
         steps: list[FlextCliTypes.Data.CliDataDict | None] = Field(default_factory=list)
         config: FlextCliTypes.Data.CliDataDict | None = Field(default_factory=dict)
+
+        @computed_field
+        @property
+        def pipeline_summary(self) -> dict[str, object]:
+            """Computed field for pipeline execution summary."""
+            return {
+                "name": self.name,
+                "steps_count": len(self.steps),
+                "has_description": bool(self.description),
+                "has_config": bool(self.config),
+                "status": self.status,
+                "age_seconds": self.entity_age_seconds,
+            }
+
+        @computed_field
+        @property
+        def is_ready_to_execute(self) -> bool:
+            """Computed field indicating if pipeline is ready for execution."""
+            return (
+                bool(self.name.strip())
+                and len(self.steps) > 0
+                and self.status == FlextCliConstants.CommandStatus.PENDING.value
+            )
+
+        @model_validator(mode="after")
+        def validate_pipeline_consistency(self) -> Self:
+            """Cross-field validation for pipeline consistency."""
+            # Pipeline with steps should have a non-empty name
+            if self.steps and not self.name.strip():
+                msg = "Pipeline with steps must have a name"
+                raise ValueError(msg)
+
+            return self
+
+        @field_serializer("steps")
+        def serialize_steps(
+            self, value: list[FlextCliTypes.Data.CliDataDict | None], _info: object
+        ) -> list[FlextCliTypes.Data.CliDataDict | dict[str, str]]:
+            """Serialize pipeline steps with safety checks."""
+            return [
+                step if step is not None else {"step": "null", "action": "skip"}
+                for step in value
+            ]
 
         @override
         def __init__(
@@ -514,6 +885,34 @@ class FlextCliModels(FlextModels):
             default="default", description="Source of log level"
         )
 
+        @computed_field
+        @property
+        def logging_summary(self) -> dict[str, object]:
+            """Computed field for logging configuration summary."""
+            return {
+                "level": self.log_level,
+                "console_enabled": self.console_output,
+                "file_logging": self.log_file is not None,
+                "format_length": len(self.log_format),
+                "source": self.log_level_source,
+            }
+
+        @model_validator(mode="after")
+        def validate_logging_config(self) -> Self:
+            """Validate logging configuration consistency."""
+            valid_levels = {"DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"}
+            if self.log_level not in valid_levels:
+                msg = f"Invalid log level: {self.log_level}"
+                raise ValueError(msg)
+            return self
+
+        @field_serializer("log_file")
+        def serialize_log_file(self, value: str | None, _info: object) -> str | None:
+            """Serialize log file path with safety checks."""
+            if value and "secret" in value.lower():
+                return "***SENSITIVE_PATH***"
+            return value
+
     class PipelineConfig(
         _BaseValidatedModel,
         FlextCliMixins.BusinessRulesMixin,
@@ -531,6 +930,38 @@ class FlextCliModels(FlextModels):
         retry_count: int = Field(
             default_factory=lambda: FlextCliConstants.NetworkDefaults.DEFAULT_MAX_RETRIES
         )
+
+        @computed_field
+        @property
+        def pipeline_config_summary(self) -> dict[str, object]:
+            """Computed field for pipeline configuration summary."""
+            return {
+                "name": self.name,
+                "enabled": self.enabled,
+                "steps_count": len(self.steps),
+                "timeout_minutes": round(self.timeout_seconds / 60, 2),
+                "retry_count": self.retry_count,
+                "has_config": bool(self.config),
+            }
+
+        @computed_field
+        @property
+        def estimated_duration_seconds(self) -> int:
+            """Computed field estimating total pipeline duration."""
+            base_duration = len(self.steps) * 30  # 30 seconds per step baseline
+            retry_overhead = self.retry_count * 10  # 10 seconds overhead per retry
+            return base_duration + retry_overhead
+
+        @model_validator(mode="after")
+        def validate_pipeline_config_consistency(self) -> Self:
+            """Cross-field validation for pipeline configuration."""
+            # Timeout should be reasonable for the number of steps
+            min_timeout = len(self.steps) * 10  # Minimum 10 seconds per step
+            if self.timeout_seconds < min_timeout:
+                msg = f"Timeout too low for {len(self.steps)} steps, minimum: {min_timeout}s"
+                raise ValueError(msg)
+
+            return self
 
         def validate_business_rules(self) -> FlextResult[None]:
             """Validate pipeline configuration business rules."""

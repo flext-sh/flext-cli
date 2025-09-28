@@ -12,6 +12,7 @@ from __future__ import annotations
 from collections.abc import Callable
 from typing import override
 
+from flext_cli.protocols import FlextCliProtocols
 from flext_cli.typings import (
     AuthConfigData,
     CliCommandArgs,
@@ -19,6 +20,7 @@ from flext_cli.typings import (
     CliConfigData,
     CliFormatData,
     DebugInfoData,
+    FlextCliTypes,
 )
 from flext_core import FlextResult
 
@@ -35,8 +37,8 @@ class FlextCliHandlers:
     - Implements CLI-specific extensions while reusing core functionality
     """
 
-    class CommandHandler:
-        """CLI command handler implementation."""
+    class CommandHandler(FlextCliProtocols.CliCommandHandler):
+        """CLI command handler implementation - implements CliCommandHandler protocol."""
 
         @override
         def __init__(
@@ -67,8 +69,8 @@ class FlextCliHandlers:
                     f"Command execution failed: {e}"
                 )
 
-    class FormatterHandler:
-        """CLI formatter handler implementation."""
+    class FormatterHandler(FlextCliProtocols.CliFormatter):
+        """CLI formatter handler implementation - implements CliFormatter protocol."""
 
         @override
         def __init__(self, formatter_func: Callable[[CliFormatData], str]) -> None:
@@ -96,8 +98,8 @@ class FlextCliHandlers:
             except Exception as e:
                 return FlextResult[str].fail(f"Formatting failed: {e}")
 
-    class ConfigHandler:
-        """CLI configuration handler implementation."""
+    class ConfigHandler(FlextCliProtocols.CliConfigProvider):
+        """CLI configuration handler implementation - implements CliConfigProvider protocol."""
 
         @override
         def __init__(self, config_data: CliConfigData) -> None:
@@ -132,8 +134,8 @@ class FlextCliHandlers:
             except Exception as e:
                 return FlextResult[None].fail(f"Config save failed: {e}")
 
-    class AuthHandler:
-        """CLI authentication handler implementation."""
+    class AuthHandler(FlextCliProtocols.CliAuthenticator):
+        """CLI authentication handler implementation - implements CliAuthenticator protocol."""
 
         @override
         def __init__(self, auth_func: Callable[[AuthConfigData], str]) -> None:
@@ -174,25 +176,29 @@ class FlextCliHandlers:
             except Exception as e:
                 return FlextResult[bool].fail(f"Token validation failed: {e}")
 
-    class DebugHandler:
-        """CLI debug handler implementation."""
+    class DebugHandler(FlextCliProtocols.CliDebugProvider):
+        """CLI debug handler implementation - implements CliDebugProvider protocol."""
 
         @override
         def __init__(self, debug_data: DebugInfoData) -> None:
             """Initialize debug handler with debug data."""
             self._debug_data = debug_data
 
-        def get_debug_info(self) -> FlextResult[DebugInfoData]:
+        def get_debug_info(
+            self,
+        ) -> FlextResult[FlextCliTypes.Data.DebugInfoData]:
             """Get debug information.
 
             Returns:
-                FlextResult[DebugInfoData]: Debug information or error
+                FlextResult[FlextCliTypes.Data.DebugInfoData]: Debug information or error
 
             """
             try:
-                return FlextResult[DebugInfoData].ok(self._debug_data)
+                return FlextResult[FlextCliTypes.Data.DebugInfoData].ok(
+                    self._debug_data
+                )
             except Exception as e:
-                return FlextResult[DebugInfoData].fail(
+                return FlextResult[FlextCliTypes.Data.DebugInfoData].fail(
                     f"Debug info retrieval failed: {e}"
                 )
 

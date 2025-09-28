@@ -51,7 +51,7 @@ class FlextCliTypes(FlextTypes):
         CommandPipeline = list[dict[str, FlextTypes.Core.JsonValue]]
         CommandRegistry = dict[str, dict[str, str | list[str] | dict[str, Any]]]
         CommandContext = dict[str, FlextTypes.Core.JsonValue | Any]
-        CommandResult = dict[str, FlextTypes.Core.JsonValue | bool]
+        CommandResult = dict[str, object]
         CommandMetadata = dict[str, str | int | list[str]]
 
     class CliCommandResult:
@@ -70,7 +70,7 @@ class FlextCliTypes(FlextTypes):
         """CLI configuration complex types."""
 
         CliConfigSchema = dict[str, dict[str, FlextTypes.Core.ConfigValue]]
-        ProfileConfiguration = dict[str, FlextTypes.Core.ConfigDict]
+        ProfileConfiguration = dict[str, object]
         EnvironmentConfig = dict[str, FlextTypes.Core.ConfigValue | dict[str, Any]]
         SessionConfiguration = dict[str, FlextTypes.Core.JsonValue | bool]
         AuthenticationConfig = dict[str, str | int | bool | list[str]]

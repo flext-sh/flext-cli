@@ -17,7 +17,7 @@ import secrets
 import string
 from datetime import UTC, datetime
 from pathlib import Path
-from typing import ClassVar, cast, override
+from typing import ClassVar, override
 
 from flext_cli.config import FlextCliConfig
 from flext_cli.constants import FlextCliConstants
@@ -32,6 +32,8 @@ from flext_core import (
 
 class FlextCliAuth(FlextService[dict[str, object]]):
     """Authentication tools for CLI apps.
+
+    Implements FlextCliProtocols.CliAuthenticator through structural subtyping.
 
     Renamed from FlextCliAuth for PEP 8 compliance.
     Provides authentication functionality using flext-core patterns.
@@ -466,7 +468,7 @@ class FlextCliAuth(FlextService[dict[str, object]]):
             "token": token,
             "timestamp": datetime.now(UTC).isoformat(),
         }
-        return FlextResult[dict[str, object]].ok(cast("dict[str, object]", auth_result))
+        return FlextResult[dict[str, object]].ok(auth_result)
 
     def authenticate_with_api_key(self, api_key: str) -> FlextResult[str]:
         """Authenticate with API key."""
@@ -498,7 +500,7 @@ class FlextCliAuth(FlextService[dict[str, object]]):
             "permissions": [],
         }
         self._valid_sessions.add(session_id)
-        return FlextResult[dict[str, object]].ok(cast("dict[str, object]", session))
+        return FlextResult[dict[str, object]].ok(session)
 
     def validate_session(self, session_id: str) -> FlextResult[bool]:
         """Validate session ID."""
@@ -531,9 +533,7 @@ class FlextCliAuth(FlextService[dict[str, object]]):
             "expires_at": (datetime.now(UTC).timestamp() + 3600),
             "permissions": [],
         }
-        return FlextResult[dict[str, object]].ok(
-            cast("dict[str, object]", session_info)
-        )
+        return FlextResult[dict[str, object]].ok(session_info)
 
     def check_permission(self, session_id: str, permission: str) -> FlextResult[bool]:
         """Check if session has permission."""
@@ -624,7 +624,7 @@ class FlextCliAuth(FlextService[dict[str, object]]):
             "created_at": datetime.now(UTC).isoformat(),
             "active": True,
         }
-        return FlextResult[dict[str, object]].ok(cast("dict[str, object]", user))
+        return FlextResult[dict[str, object]].ok(user)
 
     def update_user(
         self, user_id: str, update_data: dict[str, object]
@@ -675,9 +675,7 @@ class FlextCliAuth(FlextService[dict[str, object]]):
                 "active": True,
             },
         ]
-        return FlextResult[list[dict[str, object]]].ok(
-            cast("list[dict[str, object]]", users)
-        )
+        return FlextResult[list[dict[str, object]]].ok(users)
 
     def verify_password(self, password: str, hashed_password: str) -> FlextResult[bool]:
         """Verify password against hash."""

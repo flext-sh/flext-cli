@@ -153,7 +153,7 @@ class FlextCliCmd(FlextService[dict[str, object]]):
 
             # Save to file using flext-core file operations
             config_path = FlextCliConfig().config_dir / "cli_config.json"
-            save_result = FlextCliUtilities.FileOperations.save_json_file(
+            save_result = FlextCliUtilities.FileOperations.write_json_file(
                 file_path=str(config_path), data=config_data
             )
 
@@ -183,7 +183,7 @@ class FlextCliCmd(FlextService[dict[str, object]]):
                 )
 
             # Load configuration data using flext-core utilities
-            load_result = FlextCliUtilities.FileOperations.load_json_file(
+            load_result = FlextCliUtilities.FileOperations.read_json_file(
                 str(config_path)
             )
             if load_result.is_failure:
@@ -251,7 +251,7 @@ class FlextCliCmd(FlextService[dict[str, object]]):
                         "timeout"
                     ],  # Already int from default_config
                 }
-                save_result = FlextCliUtilities.FileOperations.save_json_file(
+                save_result = FlextCliUtilities.FileOperations.write_json_file(
                     file_path=str(config_path), data=config_data
                 )
                 if save_result.is_failure:
@@ -260,7 +260,7 @@ class FlextCliCmd(FlextService[dict[str, object]]):
                     )
 
             # Load current configuration
-            load_result = FlextCliUtilities.FileOperations.load_json_file(
+            load_result = FlextCliUtilities.FileOperations.read_json_file(
                 str(config_path)
             )
             if load_result.is_failure:

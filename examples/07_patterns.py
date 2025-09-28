@@ -36,6 +36,7 @@ from flext_cli import (
     FlextCliApi,
     FlextCliCommands,
     FlextCliService,
+    FlextCliTypes,
 )
 from flext_core import (
     FlextModels,
@@ -421,9 +422,9 @@ class ProjectManagementService(FlextCliService):
     _status_handler: ChangeProjectStatusHandler
     _query_handler: ProjectQueryHandler
 
-    def __init__(self, **data: object) -> None:
+    def __init__(self, config: object = None, **data: object) -> None:
         """Initialize CQRS service with dependencies."""
-        super().__init__(**data)
+        super().__init__(config=config, **data)
 
         # Setup dependencies (in real app: DI container)
         self._repository = InMemoryProjectRepository()
@@ -434,9 +435,9 @@ class ProjectManagementService(FlextCliService):
         self._status_handler = ChangeProjectStatusHandler(repository=self._repository)
         self._query_handler = ProjectQueryHandler(repository=self._repository)
 
-    def execute(self) -> FlextResult[FlextTypes.Core.Dict]:
+    def execute(self) -> FlextResult[FlextCliTypes.Data.CliDataDict]:
         """Execute method required by FlextService base class."""
-        return FlextResult[FlextTypes.Core.Dict].ok({
+        return FlextResult[FlextCliTypes.Data.CliDataDict].ok({
             "status": "project_management service active"
         })
 
