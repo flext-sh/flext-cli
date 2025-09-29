@@ -422,7 +422,11 @@ class ProjectManagementService(FlextCliService):
     _status_handler: ChangeProjectStatusHandler
     _query_handler: ProjectQueryHandler
 
-    def __init__(self, config: object = None, **data: object) -> None:
+    def __init__(
+        self,
+        config: FlextCliTypes.Configuration.CliConfigSchema | None = None,
+        **data: object,
+    ) -> None:
         """Initialize CQRS service with dependencies."""
         super().__init__(config=config, **data)
 

@@ -18,14 +18,13 @@ from datetime import UTC, datetime
 from pathlib import Path
 from typing import override
 
-from flext_core.service import FlextService
-
 from flext_cli.constants import FlextCliConstants
-from flext_cli.typings import CliDataDict, FlextCliTypes
+from flext_cli.typings import FlextCliTypes
 from flext_core import (
     FlextContainer,
     FlextLogger,
     FlextResult,
+    FlextService,
 )
 
 
@@ -157,12 +156,12 @@ class FlextCliDebug(FlextService[str]):
 
     def get_system_info(
         self,
-    ) -> FlextResult[CliDataDict]:
+    ) -> FlextResult[FlextCliTypes.Data.CliDataDict]:
         """Get system information for debugging."""
         try:
             info = self._DebugHelper.get_system_info()
             # Convert to more specific type for better type safety
-            typed_info: CliDataDict = {}
+            typed_info: FlextCliTypes.Data.CliDataDict = {}
             for key, value in info.items():
                 if isinstance(value, (str, int, float, bool, type(None))):
                     typed_info[key] = value
@@ -176,12 +175,12 @@ class FlextCliDebug(FlextService[str]):
 
     def get_environment_variables(
         self,
-    ) -> FlextResult[CliDataDict]:
+    ) -> FlextResult[FlextCliTypes.Data.CliDataDict]:
         """Get environment variables with sensitive data masked."""
         try:
             env_info = self._DebugHelper.get_environment_info()
             # Convert to more specific type for better type safety
-            typed_env_info: CliDataDict = {}
+            typed_env_info: FlextCliTypes.Data.CliDataDict = {}
             for key, value in env_info.items():
                 if isinstance(value, (str, int, float, bool, type(None))):
                     typed_env_info[key] = value
@@ -195,25 +194,27 @@ class FlextCliDebug(FlextService[str]):
 
     def get_system_paths(
         self,
-    ) -> FlextResult[list[CliDataDict]]:
+    ) -> FlextResult[list[FlextCliTypes.Data.CliDataDict]]:
         """Get system path information."""
         try:
             paths = self._DebugHelper.get_path_info()
             # Convert to more specific type for better type safety
-            typed_paths: list[CliDataDict] = []
+            typed_paths: list[FlextCliTypes.Data.CliDataDict] = []
             for path_dict in paths:
-                typed_path: CliDataDict = {}
+                typed_path: FlextCliTypes.Data.CliDataDict = {}
                 for key, value in path_dict.items():
                     if isinstance(value, (str, int, float, bool, type(None))):
                         typed_path[key] = value
                     else:
                         typed_path[key] = str(value)
                 typed_paths.append(typed_path)
-            return FlextResult[list[CliDataDict]].ok(typed_paths)
+            return FlextResult[list[FlextCliTypes.Data.CliDataDict]].ok(typed_paths)
         except Exception as e:
-            return FlextResult[list[CliDataDict]].fail(f"Path info failed: {e}")
+            return FlextResult[list[FlextCliTypes.Data.CliDataDict]].fail(
+                f"Path info failed: {e}"
+            )
 
-    def get_path_info(self) -> FlextResult[list[CliDataDict]]:
+    def get_path_info(self) -> FlextResult[list[FlextCliTypes.Data.CliDataDict]]:
         """Get system path information (alias for get_system_paths)."""
         return self.get_system_paths()
 

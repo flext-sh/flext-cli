@@ -336,27 +336,21 @@ class TestFlextCliConstants:
             == another_constants.REFRESH_TOKEN_FILE_NAME
         )
 
-    def test_constants_immutability(self, constants_service: FlextCliConstants) -> None:
-        """Test that constants cannot be modified."""
-        # Test that constants are read-only (if implemented as properties)
-        original_project_name = constants_service.PROJECT_NAME
-        original_flext_dir = constants_service.FLEXT_DIR_NAME
-        original_token_file = constants_service.TOKEN_FILE_NAME
-        original_refresh_token_file = constants_service.REFRESH_TOKEN_FILE_NAME
+    def test_constants_expected_values(
+        self, constants_service: FlextCliConstants
+    ) -> None:
+        """Test that constants have expected values."""
+        # Test that constants have the expected values
+        assert constants_service.PROJECT_NAME == "FLEXT Core Foundation"
+        assert constants_service.FLEXT_DIR_NAME == ".flext"
+        assert constants_service.TOKEN_FILE_NAME == "token.json"
+        assert constants_service.REFRESH_TOKEN_FILE_NAME == "refresh_token.json"
 
-        # Attempt to modify (this should not affect the original values)
-        try:
-            constants_service.PROJECT_NAME = "Modified Project"
-            # If modification succeeds, verify it actually changed
-            assert constants_service.PROJECT_NAME == "Modified Project"
-            # Restore original value for other tests
-            constants_service.PROJECT_NAME = original_project_name
-        except (AttributeError, TypeError):
-            # Expected behavior if constants are read-only
-            assert original_project_name == constants_service.PROJECT_NAME
-        assert original_flext_dir == constants_service.FLEXT_DIR_NAME
-        assert original_token_file == constants_service.TOKEN_FILE_NAME
-        assert original_refresh_token_file == constants_service.REFRESH_TOKEN_FILE_NAME
+        # Test that constants are accessible as class attributes
+        assert FlextCliConstants.PROJECT_NAME == "FLEXT Core Foundation"
+        assert FlextCliConstants.FLEXT_DIR_NAME == ".flext"
+        assert FlextCliConstants.TOKEN_FILE_NAME == "token.json"
+        assert FlextCliConstants.REFRESH_TOKEN_FILE_NAME == "refresh_token.json"
 
     # ========================================================================
     # CONSTANT INTEGRATION TESTS

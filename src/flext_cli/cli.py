@@ -173,10 +173,13 @@ class FlextCli(FlextService[FlextCliTypes.Data.CliDataDict]):
             if service_stats.is_success and service_stats.value:
                 service_data = service_stats.value
                 if isinstance(service_data, dict):
-                    app_info["commands_available"] = service_data.get(
+                    commands_available_value = service_data.get(
                         "commands_registered", 0
                     )
-                    app_info["service_info"] = service_data
+                    if isinstance(commands_available_value, int):
+                        app_info["commands_available"] = commands_available_value
+                    # Store service_data as object to satisfy type checker
+                    app_info["service_info"] = service_data  # type: ignore[assignment]
 
             return FlextResult[FlextCliTypes.Data.CliDataDict].ok(app_info)
 

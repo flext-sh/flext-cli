@@ -29,7 +29,7 @@ def main() -> None:
     # Create config with default values
     config = FlextCliConfig()
     print(f"Profile: {config.profile}")
-    print(f"Debug Mode: {config.debug_mode}")
+    print(f"Debug Mode: {config.debug}")
     print(f"Output Format: {config.output_format}")
 
     # =========================================================================
@@ -45,7 +45,7 @@ def main() -> None:
 
     print(f"Custom Profile: {custom_config.profile}")
     print(f"Custom Output Format: {custom_config.output_format}")
-    print(f"Custom Debug Mode: {custom_config.debug_mode}")
+    print(f"Custom Debug Mode: {custom_config.debug}")
 
     # =========================================================================
     # 3. ENVIRONMENT VARIABLE LOADING (Pydantic BaseSettings feature)
@@ -63,7 +63,7 @@ def main() -> None:
 
     print(f"Env Profile: {env_config.profile}")
     print(f"Env Output Format: {env_config.output_format}")
-    print(f"Env Debug Mode: {env_config.debug_mode}")
+    print(f"Env Debug Mode: {env_config.debug}")
 
     # Clean up environment
     del os.environ["FLEXT_CLI_PROFILE"]

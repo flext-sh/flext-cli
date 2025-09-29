@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-# mypy: disable-error-code="misc"
 """03 - Data Processing and Output with FLEXT CLI Foundation.
 
 This example demonstrates data processing capabilities and output formatting

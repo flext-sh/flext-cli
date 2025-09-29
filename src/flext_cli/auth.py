@@ -221,7 +221,7 @@ class FlextCliAuth(FlextService[dict[str, object]]):
             "token_exists": paths["token_path"].exists(),
             "refresh_token_file": str(paths["refresh_token_path"]),
             "refresh_token_exists": paths["refresh_token_path"].exists(),
-            "timestamp": FlextUtilities.Generators.generate_iso_timestamp(),
+            "timestamp": FlextUtilities.Correlation.generate_iso_timestamp(),
         }
 
         return FlextResult[dict[str, object]].ok(dict(status))
@@ -273,7 +273,7 @@ class FlextCliAuth(FlextService[dict[str, object]]):
         # Advanced validation and token generation pipeline
         return (
             self._AuthHelper.validate_credentials(username, password)
-            .map(lambda _: FlextUtilities.Generators.generate_short_id(length=32))
+            .map(lambda _: FlextUtilities.generate_id()[:32])
             .map(lambda token_id: f"auth_token_{username}_{token_id}")
             .flat_map(
                 lambda auth_token: self.save_auth_token(auth_token).map(
@@ -463,7 +463,7 @@ class FlextCliAuth(FlextService[dict[str, object]]):
         if not validate_result.value:
             return FlextResult[dict[str, object]].fail("Invalid token")
 
-        auth_result = {
+        auth_result: dict[str, object] = {
             "authenticated": True,
             "token": token,
             "timestamp": datetime.now(UTC).isoformat(),
@@ -492,8 +492,8 @@ class FlextCliAuth(FlextService[dict[str, object]]):
 
     def create_session(self) -> FlextResult[dict[str, object]]:
         """Create a new authentication session."""
-        session_id = FlextUtilities.Generators.generate_short_id(length=16)
-        session = {
+        session_id = FlextUtilities.generate_id()[:16]
+        session: dict[str, object] = {
             "session_id": session_id,
             "created_at": datetime.now(UTC).isoformat(),
             "expires_at": (datetime.now(UTC).timestamp() + 3600),  # 1 hour
@@ -527,7 +527,7 @@ class FlextCliAuth(FlextService[dict[str, object]]):
         if not session_id or not session_id.strip():
             return FlextResult[dict[str, object]].fail("Session ID cannot be empty")
 
-        session_info = {
+        session_info: dict[str, object] = {
             "session_id": session_id,
             "created_at": datetime.now(UTC).isoformat(),
             "expires_at": (datetime.now(UTC).timestamp() + 3600),
@@ -592,7 +592,7 @@ class FlextCliAuth(FlextService[dict[str, object]]):
         if not user_data:
             return FlextResult[dict[str, object]].fail("User data cannot be empty")
 
-        user_id = FlextUtilities.Generators.generate_short_id(length=12)
+        user_id = FlextUtilities.generate_id()[:12]
         user = {
             "user_id": user_id,
             "username": user_data.get("username", ""),
@@ -617,7 +617,7 @@ class FlextCliAuth(FlextService[dict[str, object]]):
             return FlextResult[dict[str, object]].ok(self._users[user_id])
 
         # Return sample user - in real implementation, this would query user store
-        user = {
+        user: dict[str, object] = {
             "user_id": user_id,
             "username": "sample_user",
             "email": "sample@example.com",
@@ -659,7 +659,7 @@ class FlextCliAuth(FlextService[dict[str, object]]):
     def list_users(self) -> FlextResult[list[dict[str, object]]]:
         """List all users."""
         # Return sample users - in real implementation, this would query user store
-        users = [
+        users: list[dict[str, object]] = [
             {
                 "user_id": FlextCliConstants.USER1,
                 "username": "user1",

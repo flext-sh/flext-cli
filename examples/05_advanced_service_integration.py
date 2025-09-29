@@ -398,9 +398,9 @@ async def demonstrate_async_service_operations() -> None:
             tasks.append(check_service_async(service_name, task))
 
         # Execute all health checks concurrently
-        results: tuple[
-            tuple[str, FlextResult[FlextTypes.Core.Dict]]
-        ] = await asyncio.gather(*tasks)
+        results: list[tuple[str, FlextResult[FlextTypes.Core.Dict]]] = list(
+            await asyncio.gather(*tasks)
+        )
 
     # Display results
     health_table = Table(title="Concurrent Health Check Results")

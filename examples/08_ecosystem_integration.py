@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-# mypy: disable-error-code="misc"
 """08 - Ecosystem Integration: flext-* Projects Integration.
 
 This example demonstrates how flext-cli integrates with other FLEXT ecosystem projects:

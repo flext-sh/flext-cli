@@ -18,6 +18,7 @@ from typing import cast
 import pytest
 
 from flext_cli.api import FlextCliApi
+from flext_cli.constants import FlextCliConstants
 from flext_core import FlextResult
 from flext_tests import FlextTestsUtilities
 
@@ -170,7 +171,7 @@ class TestFlextCliApi:
     def test_create_progress_bar(self, api_service: FlextCliApi) -> None:
         """Test progress bar creation functionality."""
         result = api_service.output.create_progress_bar(
-            task_name="Test Task", total=100, show_percentage=True, show_eta=True
+            description="Test Task", total=100
         )
 
         assert isinstance(result, FlextResult)
@@ -414,8 +415,8 @@ class TestFlextCliApi:
         test_config = {
             "debug": True,
             "output_format": "json",
-            "timeout": 60,
-            "retries": 5,
+            "timeout": FlextCliConstants.TIMEOUTS.DEFAULT,
+            "retries": FlextCliConstants.HTTP.MAX_RETRIES,
         }
         config_file.write_text(json.dumps(test_config))
 
@@ -429,8 +430,8 @@ class TestFlextCliApi:
         assert isinstance(config_data, dict)
         assert config_data["debug"] is True
         assert config_data["output_format"] == "json"
-        assert config_data["timeout"] == 60
-        assert config_data["retries"] == 5
+        assert config_data["timeout"] == FlextCliConstants.TIMEOUTS.DEFAULT
+        assert config_data["retries"] == FlextCliConstants.HTTP.MAX_RETRIES
 
     def test_save_config(self, api_service: FlextCliApi, temp_dir: Path) -> None:
         """Test configuration saving functionality."""
@@ -438,8 +439,8 @@ class TestFlextCliApi:
         test_config: dict[str, object] = {
             "debug": False,
             "output_format": "table",
-            "timeout": 30,
-            "retries": 3,
+            "timeout": FlextCliConstants.TIMEOUTS.DEFAULT,
+            "retries": FlextCliConstants.HTTP.MAX_RETRIES,
         }
 
         # Test saving configuration
@@ -459,8 +460,8 @@ class TestFlextCliApi:
         valid_config: dict[str, object] = {
             "debug": True,
             "output_format": "json",
-            "timeout": 30,
-            "retries": 3,
+            "timeout": FlextCliConstants.TIMEOUTS.DEFAULT,
+            "retries": FlextCliConstants.HTTP.MAX_RETRIES,
         }
 
         result = api_service.validate_config_dict(valid_config)

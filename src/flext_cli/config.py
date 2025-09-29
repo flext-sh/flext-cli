@@ -13,7 +13,6 @@ from __future__ import annotations
 import json
 from datetime import UTC, datetime
 from pathlib import Path
-from typing import cast
 
 import yaml
 from pydantic import (
@@ -115,7 +114,6 @@ class FlextCliConfig(FlextConfig):
     # CLI behavior configuration (flattened from previous nested classes)
     verbose: bool = Field(default=False, description="Enable verbose output")
     debug: bool = Field(default=False, description="Enable debug mode")
-    debug_mode: bool = Field(default=False, description="Enable debug mode (alias)")
     app_name: str = Field(default="flext-cli", description="Application name")
     version: str = Field(default="2.0.0", description="Application version")
     quiet: bool = Field(default=False, description="Enable quiet mode")
@@ -286,24 +284,23 @@ class FlextCliConfig(FlextConfig):
         cls, environment: str, **overrides: object
     ) -> FlextCliConfig:
         """Create configuration for specific environment using enhanced singleton pattern."""
-        config = cls.get_or_create_shared_instance(
+        return cls.get_or_create_shared_instance(  # type: ignore[return-value]
             project_name="flext-cli", environment=environment, **overrides
         )
-        return cast("FlextCliConfig", config)
 
     @classmethod
     def create_default(cls) -> FlextCliConfig:
         """Create default configuration instance using enhanced singleton pattern."""
-        config = cls.get_or_create_shared_instance(project_name="flext-cli")
-        return cast("FlextCliConfig", config)
+        return cls.get_or_create_shared_instance(  # type: ignore[return-value]
+            project_name="flext-cli"
+        )
 
     @classmethod
     def create_for_profile(cls, profile: str, **kwargs: object) -> FlextCliConfig:
         """Create configuration for specific profile using enhanced singleton pattern."""
-        config = cls.get_or_create_shared_instance(
+        return cls.get_or_create_shared_instance(  # type: ignore[return-value]
             project_name="flext-cli", profile=profile, **kwargs
         )
-        return cast("FlextCliConfig", config)
 
     @classmethod
     def load_from_config_file(cls, config_file: Path) -> FlextResult[FlextCliConfig]:
@@ -328,7 +325,7 @@ class FlextCliConfig(FlextConfig):
 
             # Use enhanced singleton pattern with loaded data
             config = cls.get_or_create_shared_instance(project_name="flext-cli", **data)
-            return FlextResult[FlextCliConfig].ok(cast("FlextCliConfig", config))
+            return FlextResult[FlextCliConfig].ok(config)  # type: ignore[arg-type]
 
         except Exception as e:
             return FlextResult[FlextCliConfig].fail(

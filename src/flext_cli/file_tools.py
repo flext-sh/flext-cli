@@ -24,7 +24,7 @@ import stat
 import tempfile
 import zipfile
 from pathlib import Path
-from typing import Any, cast, override
+from typing import Any, override
 
 import pandas as pd
 import pyarrow as pa
@@ -228,7 +228,7 @@ class FlextCliFileTools(FlextService[bool]):
                 )
 
             # Create file info dict
-            file_info = {
+            file_info: dict[str, object] = {
                 "path": str(file_path_obj),
                 "format": format_info.value,
                 "extension": file_path_obj.suffix.lower(),
@@ -618,9 +618,12 @@ class FlextCliFileTools(FlextService[bool]):
                     child_data = xml_to_dict(child)
                     tag_name = str(child.tag)
                     if tag_name in result:
-                        if not isinstance(result[tag_name], list):
-                            result[tag_name] = [result[tag_name]]
-                        cast("list[object]", result[tag_name]).append(child_data)
+                        existing_value = result[tag_name]
+                        if not isinstance(existing_value, list):
+                            result[tag_name] = [existing_value]
+                            existing_value = result[tag_name]
+                        if isinstance(existing_value, list):
+                            existing_value.append(child_data)
                     else:
                         result[tag_name] = child_data
 
@@ -702,8 +705,12 @@ class FlextCliFileTools(FlextService[bool]):
             file_path_obj = Path(file_path)
             file_path_obj.parent.mkdir(parents=True, exist_ok=True)
 
+            # Validate data is a dict before dumping
+            if not isinstance(data, dict):
+                return FlextResult[bool].fail("TOML data must be a dictionary")
+
             with file_path_obj.open("w", encoding="utf-8") as f:
-                toml.dump(cast("dict[str, object]", data), f)
+                toml.dump(data, f)  # type: ignore[arg-type]
             return FlextResult[bool].ok(True)
         except Exception as e:
             return FlextResult[bool].fail(f"Failed to save TOML file: {e}")
@@ -734,7 +741,10 @@ class FlextCliFileTools(FlextService[bool]):
                 return FlextResult[object].ok(sheets_data)
 
             # Load specific sheet
-            df = pd.read_excel(file_path_obj, sheet_name=cast("str", sheet_name))
+            # Validate sheet_name is a string
+            if not isinstance(sheet_name, str):
+                return FlextResult[object].fail("Sheet name must be a string")
+            df = pd.read_excel(file_path_obj, sheet_name=sheet_name)
             # Convert DataFrame to list of dicts with proper typing
             records = df.to_dict("records")
             # Ensure all keys are strings for type safety
@@ -1062,7 +1072,6 @@ class FlextCliFileTools(FlextService[bool]):
         except Exception as e:
             return FlextResult[list[str]].fail(f"Failed to tail file: {e}")
 
-    # Convenience methods for backward compatibility with tests
     def read_text_file(self, file_path: str) -> FlextResult[str]:
         """Read text file content."""
         try:
@@ -1112,12 +1121,13 @@ class FlextCliFileTools(FlextService[bool]):
             return FlextResult[dict[str, object]].fail(
                 result.error or "Failed to read JSON"
             )
-        if not isinstance(result.unwrap(), dict):
+        json_data = result.unwrap()
+        if not isinstance(json_data, dict):
             return FlextResult[dict[str, object]].fail(
                 "JSON content is not a dictionary"
             )
         return FlextResult[dict[str, object]].ok(
-            cast("dict[str, object]", result.unwrap())
+            json_data  # type: ignore[arg-type]
         )
 
     def write_json_file(
@@ -1133,12 +1143,13 @@ class FlextCliFileTools(FlextService[bool]):
             return FlextResult[dict[str, object]].fail(
                 result.error or "Failed to read YAML"
             )
-        if not isinstance(result.unwrap(), dict):
+        yaml_data = result.unwrap()
+        if not isinstance(yaml_data, dict):
             return FlextResult[dict[str, object]].fail(
                 "YAML content is not a dictionary"
             )
         return FlextResult[dict[str, object]].ok(
-            cast("dict[str, object]", result.unwrap())
+            yaml_data  # type: ignore[arg-type]
         )
 
     def write_yaml_file(
@@ -1185,10 +1196,11 @@ class FlextCliFileTools(FlextService[bool]):
             return FlextResult[list[dict[str, str]]].fail(
                 result.error or "Failed to read CSV"
             )
-        if not isinstance(result.unwrap(), list):
+        csv_data = result.unwrap()
+        if not isinstance(csv_data, list):
             return FlextResult[list[dict[str, str]]].fail("CSV content is not a list")
         return FlextResult[list[dict[str, str]]].ok(
-            cast("list[dict[str, str]]", result.unwrap())
+            csv_data  # type: ignore[arg-type]
         )
 
     def list_directory(self, directory_path: str) -> FlextResult[list[str]]:

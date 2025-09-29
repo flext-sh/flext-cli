@@ -308,8 +308,8 @@ def sample_config_data() -> dict[str, Any]:
         "output_format": "table",
         "no_color": False,
         "profile": "test",
-        "timeout": 30,
-        "retries": 3,
+        "timeout": FlextCliConstants.TIMEOUTS.DEFAULT,
+        "retries": FlextCliConstants.HTTP.MAX_RETRIES,
         "api_endpoint": "https://api.example.com",
         "auth_token": "test_token_123",
     }
@@ -336,7 +336,10 @@ def sample_command_data() -> dict[str, Any]:
     return {
         "command": "test_command",
         "args": ["--verbose", "--output", "json"],
-        "kwargs": {"timeout": 30, "retries": 3},
+        "kwargs": {
+            "timeout": FlextCliConstants.TIMEOUTS.DEFAULT,
+            "retries": FlextCliConstants.HTTP.MAX_RETRIES,
+        },
         "expected_result": {"status": "success", "data": "test_output"},
     }
 

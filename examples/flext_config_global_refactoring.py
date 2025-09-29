@@ -36,7 +36,7 @@ def demonstrate_global_configuration_refactoring() -> None:
     print(f"   Base Config Debug: {base_config.debug}")
     print(f"   Base Config Log Level: {base_config.log_level}")
     print(f"   CLI Config Profile: {cli_config.profile}")
-    print(f"   CLI Config Debug Mode: {cli_config.debug_mode}")
+    print(f"   CLI Config Debug Mode: {cli_config.debug}")
     print()
 
     # 2. Initialize all modules using FlextConfig singleton
@@ -56,7 +56,7 @@ def demonstrate_global_configuration_refactoring() -> None:
     # 3. Apply CLI parameter overrides
     print("3. Applying CLI Parameter Overrides:")
     cli_overrides: dict[str, object] = {
-        "debug_mode": True,
+        "debug": True,
         "log_level": "DEBUG",
         "output_format": "json",
     }
@@ -67,8 +67,8 @@ def demonstrate_global_configuration_refactoring() -> None:
 
     # Apply overrides to CLI config by creating a new instance
     cli_config = FlextCliConfig(
-        debug=cli_overrides["debug_mode"],
-        log_level=cli_overrides["log_level"],
+        debug=bool(cli_overrides["debug"]),
+        log_level=str(cli_overrides["log_level"]),
         output_format=str(cli_overrides["output_format"]),
     )
 
@@ -105,7 +105,7 @@ def demonstrate_global_configuration_refactoring() -> None:
         },
         "cli": {
             "profile": cli_config.profile,
-            "debug_mode": cli_config.debug_mode,
+            "debug": cli_config.debug,
             "output_format": cli_config.output_format,
         },
     }
@@ -164,7 +164,7 @@ def demonstrate_dynamic_configuration_updates() -> None:
     print("1. Initial Configuration State:")
     print(f"   Base Debug: {base_config.debug}")
     print(f"   Base Log Level: {base_config.log_level}")
-    print(f"   CLI Debug Mode: {cli_config.debug_mode}")
+    print(f"   CLI Debug Mode: {cli_config.debug}")
     print(f"   CLI Output Format: {cli_config.output_format}")
     print()
 
@@ -175,7 +175,7 @@ def demonstrate_dynamic_configuration_updates() -> None:
     cli_config = FlextCliConfig(debug=True, output_format="yaml", log_level="INFO")
 
     print("   ✅ CLI configuration updated dynamically")
-    print(f"   New CLI Debug Mode: {cli_config.debug_mode}")
+    print(f"   New CLI Debug Mode: {cli_config.debug}")
     print(f"   New CLI Output Format: {cli_config.output_format}")
     print(f"   New CLI Log Level: {cli_config.log_level}")
     print()
@@ -221,14 +221,14 @@ def demonstrate_cli_parameter_integration() -> None:
 
     # Apply CLI overrides by creating a new instance
     cli_config = FlextCliConfig(
-        debug=cli_params["debug"],
-        log_level=cli_params["log_level"],
+        debug=bool(cli_params["debug"]),
+        log_level=str(cli_params["log_level"]),
         output_format=str(cli_params["output_format"]),
         profile=str(cli_params["profile"]),
     )
 
     print("   ✅ CLI parameters applied to configuration")
-    print(f"   Final Debug Mode: {cli_config.debug_mode}")
+    print(f"   Final Debug Mode: {cli_config.debug}")
     print(f"   Final Log Level: {cli_config.log_level}")
     print(f"   Final Output Format: {cli_config.output_format}")
     print(f"   Final Profile: {cli_config.profile}")
