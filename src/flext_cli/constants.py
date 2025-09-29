@@ -134,12 +134,6 @@ class FlextCliConstants(FlextConstants):
         ErrorCodes.FORMAT_ERROR.value,
     ]
 
-    # Legacy constants from application_commands.py
-    STATUS_PENDING: Final[str] = CommandStatus.PENDING.value
-    STATUS_RUNNING: Final[str] = CommandStatus.RUNNING.value
-    STATUS_COMPLETED: Final[str] = CommandStatus.COMPLETED.value
-    STATUS_FAILED: Final[str] = CommandStatus.FAILED.value
-
     class Commands:
         """CLI command name constants."""
 

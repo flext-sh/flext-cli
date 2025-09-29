@@ -16,6 +16,7 @@ import threading
 
 import pytest
 
+from flext_cli.constants import FlextCliConstants
 from flext_cli.exceptions import FlextCliError, FlextCliExceptions
 from flext_tests import FlextTestsUtilities
 
@@ -376,7 +377,11 @@ class TestFlextCliExceptions:
                 network_msg,
                 error_code=503,
                 context="network",
-                details={"url": "https://api.example.com", "timeout": 30, "retries": 3},
+                details={
+                    "url": "https://api.example.com",
+                    "timeout": FlextCliConstants.TIMEOUTS.DEFAULT,
+                    "retries": FlextCliConstants.HTTP.MAX_RETRIES,
+                },
             )
         e = exc_info.value
         assert "[503] Network connection failed" in str(e)

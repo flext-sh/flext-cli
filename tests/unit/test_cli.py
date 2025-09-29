@@ -137,7 +137,7 @@ class TestFlextCli:
         components = result.value["components"]
 
         # All components should be available
-        if hasattr(components, "values"):
+        if isinstance(components, dict):
             for component_status in components.values():
                 assert component_status == FlextCliConstants.AVAILABLE
 

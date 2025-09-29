@@ -141,12 +141,14 @@ class FlextCliService(FlextService[FlextCliTypes.Data.CliDataDict]):
         self,
         name: str,
         context: FlextCliTypes.Command.CommandContext | list[str] | None = None,
+        timeout: float | None = None,
     ) -> FlextResult[FlextCliTypes.Command.CommandResult]:
         """Execute registered command with context.
 
         Args:
             name: Command identifier to execute
             context: Optional execution context with CLI-specific data
+            timeout: Optional timeout for command execution
 
         Returns:
             FlextResult[FlextCliTypes.Command.CommandResult]: Execution result or error
@@ -172,6 +174,7 @@ class FlextCliService(FlextService[FlextCliTypes.Data.CliDataDict]):
                 "status": True,
                 "context": execution_context,
                 "timestamp": FlextUtilities.Generators.generate_timestamp(),
+                "timeout": timeout,  # Include timeout parameter in result
             }
 
             self._logger.info(f"Command '{name}' executed successfully")
@@ -975,13 +978,19 @@ class FlextCliService(FlextService[FlextCliTypes.Data.CliDataDict]):
             return FlextResult[bool].fail(f"Validate URL failed: {e}")
 
     def make_http_request(
-        self, url: str, method: str = "GET"
+        self,
+        url: str,
+        method: str = "GET",
+        data: dict[str, object] | None = None,
+        timeout: float | None = None,
     ) -> FlextResult[dict[str, object]]:
         """Make HTTP request.
 
         Args:
             url: URL to request
             method: HTTP method
+            data: Optional request data
+            timeout: Optional request timeout
 
         Returns:
             FlextResult[dict[str, object]]: Response data
@@ -993,6 +1002,8 @@ class FlextCliService(FlextService[FlextCliTypes.Data.CliDataDict]):
                 "url": url,
                 "method": method,
                 "status": "mock_response",
+                "data": data,  # Include data parameter in result
+                "timeout": timeout,  # Include timeout parameter in result
             })
         except Exception as e:
             return FlextResult[dict[str, object]].fail(f"HTTP request failed: {e}")

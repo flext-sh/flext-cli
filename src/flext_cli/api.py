@@ -16,6 +16,7 @@ from pathlib import Path
 import yaml
 
 from flext_cli.core import FlextCliService
+from flext_cli.output import FlextCliOutput
 from flext_cli.typings import FlextCliTypes
 from flext_core import (
     FlextContainer,
@@ -24,64 +25,6 @@ from flext_core import (
     FlextService,
     FlextUtilities,
 )
-
-
-class FlextCliOutput:
-    """Output handler for CLI operations."""
-
-    def __init__(self) -> None:
-        """Initialize output handler."""
-        self._logger = FlextLogger(__name__)
-
-    def display_text(self, text: str) -> FlextResult[None]:
-        """Display text output.
-
-        Args:
-            text: Text to display
-
-        Returns:
-            FlextResult[None]: Success or error
-
-        """
-        try:
-            # Use the text parameter for proper implementation
-            self._logger.info(f"Displaying text: {text}")
-            return FlextResult[None].ok(None)
-        except Exception as e:
-            return FlextResult[None].fail(f"Display text failed: {e}")
-
-    def create_progress_bar(
-        self,
-        description: str = "Processing...",
-        task_name: str | None = None,
-        total: int | None = None,
-        *,
-        show_percentage: bool = False,
-        show_eta: bool = False,
-    ) -> FlextResult[object]:
-        """Create a progress bar.
-
-        Args:
-            description: Progress bar description
-
-        Returns:
-            FlextResult[object]: Progress bar instance or error
-
-        """
-        try:
-            # Use all parameters for proper implementation
-            progress_info = {
-                "description": description,
-                "task_name": task_name,
-                "total": total,
-                "show_percentage": show_percentage,
-                "show_eta": show_eta,
-                "created": True,
-                "timestamp": FlextUtilities.Generators.generate_timestamp(),
-            }
-            return FlextResult[object].ok(progress_info)
-        except Exception as e:
-            return FlextResult[object].fail(f"Create progress bar failed: {e}")
 
 
 class FlextCliApi(FlextService[FlextCliTypes.Data.CliDataDict]):
@@ -295,7 +238,7 @@ class FlextCliApi(FlextService[FlextCliTypes.Data.CliDataDict]):
             # Prepare execution context
             execution_context: FlextCliTypes.Command.CommandContext = context or {}
             if args:
-                execution_context["args"] = args
+                execution_context["args"] = args  # type: ignore[assignment]
 
             # Execute using CLI service
             execution_result = self._cli_service.execute_command(
@@ -1014,7 +957,9 @@ class FlextCliApi(FlextService[FlextCliTypes.Data.CliDataDict]):
         except Exception as e:
             return FlextResult[str].fail(f"Export data failed: {e}")
 
-    def create_table(self, headers: list[str], rows: list[list[str]]) -> FlextResult[str]:
+    def create_table(
+        self, headers: list[str], rows: list[list[str]]
+    ) -> FlextResult[str]:
         """Create formatted table from headers and rows.
 
         Args:
@@ -1027,7 +972,9 @@ class FlextCliApi(FlextService[FlextCliTypes.Data.CliDataDict]):
         """
         try:
             # Use the headers and rows parameters for proper implementation
-            self._logger.info(f"Creating table with headers {headers} and {len(rows)} rows")
+            self._logger.info(
+                f"Creating table with headers {headers} and {len(rows)} rows"
+            )
             # Mock implementation - would actually create formatted table
             return FlextResult[str].ok("formatted_table")
         except Exception as e:

@@ -241,3 +241,7 @@
         "src",
         "tests",
     ]
+    permissive-ignores = false
+    ignore-missing-source = false
+    ignore-errors-in-generated-code = false
+    untyped-def-behavior = "check-and-infer-return-type"

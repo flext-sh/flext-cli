@@ -17,6 +17,7 @@ from pathlib import Path
 
 import pytest
 
+from flext_cli.constants import FlextCliConstants
 from flext_cli.core import FlextCliService
 from flext_core import FlextResult
 from flext_tests import FlextTestsUtilities
@@ -131,8 +132,8 @@ class TestFlextCliService:
         test_config = {
             "debug": True,
             "output_format": "json",
-            "timeout": 60,
-            "retries": 5,
+            "timeout": FlextCliConstants.TIMEOUTS.DEFAULT,
+            "retries": FlextCliConstants.HTTP.MAX_RETRIES,
         }
         config_file.write_text(json.dumps(test_config))
 
@@ -168,8 +169,8 @@ class TestFlextCliService:
         test_config: dict[str, object] = {
             "debug": False,
             "output_format": "table",
-            "timeout": 30,
-            "retries": 3,
+            "timeout": FlextCliConstants.TIMEOUTS.DEFAULT,
+            "retries": FlextCliConstants.HTTP.MAX_RETRIES,
         }
 
         # Test saving configuration
@@ -189,8 +190,8 @@ class TestFlextCliService:
         valid_config: dict[str, object] = {
             "debug": True,
             "output_format": "json",
-            "timeout": 30,
-            "retries": 3,
+            "timeout": FlextCliConstants.TIMEOUTS.DEFAULT,
+            "retries": FlextCliConstants.HTTP.MAX_RETRIES,
         }
 
         result = core_service.validate_configuration(valid_config)
@@ -666,8 +667,8 @@ nested:
         config_data: dict[str, object] = {
             "debug": True,
             "output_format": "json",
-            "timeout": 30,
-            "retries": 3,
+            "timeout": FlextCliConstants.TIMEOUTS.DEFAULT,
+            "retries": FlextCliConstants.HTTP.MAX_RETRIES,
         }
 
         config_file = temp_dir / "workflow_config.json"

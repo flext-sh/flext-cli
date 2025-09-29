@@ -14,13 +14,7 @@ import time
 import pytest
 
 from flext_cli.handlers import FlextCliHandlers
-from flext_cli.typings import (
-    AuthConfigData,
-    CliCommandResult,
-    CliConfigData,
-    CliFormatData,
-    DebugInfoData,
-)
+from flext_cli.typings import FlextCliTypes
 from flext_core import FlextResult
 from flext_tests import FlextTestsUtilities
 
@@ -45,8 +39,12 @@ class TestFlextCliHandlers:
     def test_command_handler_initialization(self, handlers: FlextCliHandlers) -> None:
         """Test CommandHandler initialization."""
 
-        def test_handler(**_kwargs: object) -> FlextResult[CliCommandResult]:
-            return FlextResult[CliCommandResult].ok({"result": "test result"})
+        def test_handler(
+            **_kwargs: object,
+        ) -> FlextResult[FlextCliTypes.Data.CliCommandResult]:
+            return FlextResult[FlextCliTypes.Data.CliCommandResult].ok({
+                "result": "test result"
+            })
 
         command_handler = handlers.CommandHandler(test_handler)
         assert isinstance(command_handler, handlers.CommandHandler)
@@ -54,20 +52,24 @@ class TestFlextCliHandlers:
     def test_command_handler_execution(self, handlers: FlextCliHandlers) -> None:
         """Test CommandHandler execution."""
 
-        def test_handler(**_kwargs: object) -> FlextResult[CliCommandResult]:
-            return FlextResult[CliCommandResult].ok({"result": "test result"})
+        def test_handler(
+            **_kwargs: object,
+        ) -> FlextResult[FlextCliTypes.Data.CliCommandResult]:
+            return FlextResult[FlextCliTypes.Data.CliCommandResult].ok({
+                "result": "test result"
+            })
 
         command_handler = handlers.CommandHandler(test_handler)
         result = command_handler(test_arg={"value": "test"})
 
         assert isinstance(result, FlextResult)
         assert result.is_success
-        assert result.unwrap()["result"] == "test result"
+        assert result.unwrap()["result"] == "test result"  # type: ignore[index]
 
     def test_formatter_handler_initialization(self, handlers: FlextCliHandlers) -> None:
         """Test FormatterHandler initialization."""
 
-        def test_formatter(_data: CliFormatData) -> str:
+        def test_formatter(_data: FlextCliTypes.Data.CliFormatData) -> str:
             return "formatted data"
 
         formatter_handler = handlers.FormatterHandler(test_formatter)
@@ -76,7 +78,7 @@ class TestFlextCliHandlers:
     def test_formatter_handler_execution(self, handlers: FlextCliHandlers) -> None:
         """Test FormatterHandler execution."""
 
-        def test_formatter(_data: CliFormatData) -> str:
+        def test_formatter(_data: FlextCliTypes.Data.CliFormatData) -> str:
             return "formatted data"
 
         formatter_handler = handlers.FormatterHandler(test_formatter)
@@ -88,13 +90,13 @@ class TestFlextCliHandlers:
 
     def test_config_handler_initialization(self, handlers: FlextCliHandlers) -> None:
         """Test ConfigHandler initialization."""
-        config_data: CliConfigData = {"test": "config"}
+        config_data: FlextCliTypes.Data.CliConfigData = {"test": "config"}
         config_handler = handlers.ConfigHandler(config_data)
         assert isinstance(config_handler, handlers.ConfigHandler)
 
     def test_config_handler_load_config(self, handlers: FlextCliHandlers) -> None:
         """Test ConfigHandler load_config."""
-        config_data: CliConfigData = {"test": "config"}
+        config_data: FlextCliTypes.Data.CliConfigData = {"test": "config"}
         config_handler = handlers.ConfigHandler(config_data)
         result = config_handler.load_config()
 
@@ -104,7 +106,7 @@ class TestFlextCliHandlers:
 
     def test_config_handler_save_config(self, handlers: FlextCliHandlers) -> None:
         """Test ConfigHandler save_config."""
-        config_data: CliConfigData = {"test": "config"}
+        config_data: FlextCliTypes.Data.CliConfigData = {"test": "config"}
         config_handler = handlers.ConfigHandler(config_data)
         result = config_handler.save_config({"new": "config"})
 
@@ -114,7 +116,7 @@ class TestFlextCliHandlers:
     def test_auth_handler_initialization(self, handlers: FlextCliHandlers) -> None:
         """Test AuthHandler initialization."""
 
-        def test_auth_func(_credentials: AuthConfigData) -> str:
+        def test_auth_func(_credentials: FlextCliTypes.Data.AuthConfigData) -> str:
             return "auth_token"
 
         auth_handler = handlers.AuthHandler(test_auth_func)
@@ -123,7 +125,7 @@ class TestFlextCliHandlers:
     def test_auth_handler_authenticate(self, handlers: FlextCliHandlers) -> None:
         """Test AuthHandler authenticate."""
 
-        def test_auth_func(_credentials: AuthConfigData) -> str:
+        def test_auth_func(_credentials: FlextCliTypes.Data.AuthConfigData) -> str:
             return "auth_token"
 
         auth_handler = handlers.AuthHandler(test_auth_func)
@@ -136,7 +138,7 @@ class TestFlextCliHandlers:
     def test_auth_handler_validate_token(self, handlers: FlextCliHandlers) -> None:
         """Test AuthHandler validate_token."""
 
-        def test_auth_func(_credentials: AuthConfigData) -> str:
+        def test_auth_func(_credentials: FlextCliTypes.Data.AuthConfigData) -> str:
             return "auth_token"
 
         auth_handler = handlers.AuthHandler(test_auth_func)
@@ -148,13 +150,13 @@ class TestFlextCliHandlers:
 
     def test_debug_handler_initialization(self, handlers: FlextCliHandlers) -> None:
         """Test DebugHandler initialization."""
-        debug_data: DebugInfoData = {"test": "debug"}
+        debug_data: FlextCliTypes.Data.DebugInfoData = {"test": "debug"}
         debug_handler = handlers.DebugHandler(debug_data)
         assert isinstance(debug_handler, handlers.DebugHandler)
 
     def test_debug_handler_get_debug_info(self, handlers: FlextCliHandlers) -> None:
         """Test DebugHandler get_debug_info."""
-        debug_data: DebugInfoData = {"test": "debug"}
+        debug_data: FlextCliTypes.Data.DebugInfoData = {"test": "debug"}
         debug_handler = handlers.DebugHandler(debug_data)
         result = debug_handler.get_debug_info()
 
@@ -166,8 +168,12 @@ class TestFlextCliHandlers:
         """Test complete handler workflow."""
 
         # Step 1: Create command handler
-        def test_command(**_kwargs: object) -> FlextResult[CliCommandResult]:
-            return FlextResult[CliCommandResult].ok({"result": "command executed"})
+        def test_command(
+            **_kwargs: object,
+        ) -> FlextResult[FlextCliTypes.Data.CliCommandResult]:
+            return FlextResult[FlextCliTypes.Data.CliCommandResult].ok({
+                "result": "command executed"
+            })
 
         command_handler = handlers.CommandHandler(test_command)
 
@@ -176,7 +182,7 @@ class TestFlextCliHandlers:
         assert result.is_success
 
         # Step 3: Create formatter handler
-        def test_formatter(_data: CliFormatData) -> str:
+        def test_formatter(_data: FlextCliTypes.Data.CliFormatData) -> str:
             return "formatted output"
 
         formatter_handler = handlers.FormatterHandler(test_formatter)
@@ -196,29 +202,39 @@ class TestFlextCliHandlers:
         """Test real handler functionality without mocks."""
 
         # Test actual handler operations
-        def real_command(**_kwargs: object) -> FlextResult[CliCommandResult]:
-            return FlextResult[CliCommandResult].ok({"result": "real command executed"})
+        def real_command(
+            **_kwargs: object,
+        ) -> FlextResult[FlextCliTypes.Data.CliCommandResult]:
+            return FlextResult[FlextCliTypes.Data.CliCommandResult].ok({
+                "result": "real command executed"
+            })
 
         command_handler = handlers.CommandHandler(real_command)
         result = command_handler(test_arg={"value": "real_value"})
 
         assert result.is_success
-        assert result.unwrap()["result"] == "real command executed"
+        assert result.unwrap()["result"] == "real command executed"  # type: ignore[index]
 
     def test_handlers_edge_cases(self, handlers: FlextCliHandlers) -> None:
         """Test edge cases and error conditions."""
 
         # Test with empty data
-        def empty_handler(**_kwargs: object) -> FlextResult[CliCommandResult]:
-            return FlextResult[CliCommandResult].ok({"result": ""})
+        def empty_handler(
+            **_kwargs: object,
+        ) -> FlextResult[FlextCliTypes.Data.CliCommandResult]:
+            return FlextResult[FlextCliTypes.Data.CliCommandResult].ok({"result": ""})
 
         command_handler = handlers.CommandHandler(empty_handler)
         result = command_handler()
         assert isinstance(result, FlextResult)
 
         # Test with None data
-        def none_handler(**_kwargs: object) -> FlextResult[CliCommandResult]:
-            return FlextResult[CliCommandResult].ok({"result": "none"})
+        def none_handler(
+            **_kwargs: object,
+        ) -> FlextResult[FlextCliTypes.Data.CliCommandResult]:
+            return FlextResult[FlextCliTypes.Data.CliCommandResult].ok({
+                "result": "none"
+            })
 
         command_handler = handlers.CommandHandler(none_handler)
         result = command_handler()
@@ -227,8 +243,12 @@ class TestFlextCliHandlers:
     def test_handlers_performance(self, handlers: FlextCliHandlers) -> None:
         """Test handlers performance."""
 
-        def perf_handler(**_kwargs: object) -> FlextResult[CliCommandResult]:
-            return FlextResult[CliCommandResult].ok({"result": "perf test"})
+        def perf_handler(
+            **_kwargs: object,
+        ) -> FlextResult[FlextCliTypes.Data.CliCommandResult]:
+            return FlextResult[FlextCliTypes.Data.CliCommandResult].ok({
+                "result": "perf test"
+            })
 
         command_handler = handlers.CommandHandler(perf_handler)
 
@@ -247,14 +267,16 @@ class TestFlextCliHandlers:
         handlers_list: list[object] = []
         for i in range(1000):
 
-            def make_handler(handler_id: int) -> FlextResult[CliCommandResult]:
-                return FlextResult[CliCommandResult].ok({
+            def make_handler(
+                handler_id: int,
+            ) -> FlextResult[FlextCliTypes.Data.CliCommandResult]:
+                return FlextResult[FlextCliTypes.Data.CliCommandResult].ok({
                     "result": f"handler_{handler_id}"
                 })
 
             def handler_func(
                 handler_id: int = i, **_kwargs: object
-            ) -> FlextResult[CliCommandResult]:
+            ) -> FlextResult[FlextCliTypes.Data.CliCommandResult]:
                 return make_handler(handler_id)
 
             command_handler = handlers.CommandHandler(handler_func)

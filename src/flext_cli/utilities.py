@@ -9,7 +9,6 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-import csv
 import hashlib
 import ipaddress
 import json
@@ -21,15 +20,12 @@ import time
 import uuid
 from collections.abc import Awaitable, Callable, Sequence
 from datetime import UTC, datetime
-from io import StringIO
 from pathlib import Path
-from typing import cast, override
+from typing import override
 from urllib.parse import urlparse
 
-import yaml
 from pydantic import BaseModel, ConfigDict, ValidationError
 from pydantic_settings import SettingsConfigDict
-from tabulate import tabulate
 
 from flext_cli.constants import FlextCliConstants
 from flext_core import FlextContainer, FlextLogger, FlextResult, FlextUtilities
@@ -260,11 +256,11 @@ class FlextCliUtilities(FlextUtilities):
                 dumped_data = model_dump_method()
                 # Ensure the dumped data is properly typed
                 if isinstance(dumped_data, dict):
-                    validated_data = cast("dict[str, object]", dumped_data)
+                    validated_data = dumped_data  # type: ignore[assignment]
                 else:
                     validated_data = {"value": dumped_data}
             elif hasattr(data, "__dict__"):
-                validated_data = cast("dict[str, object]", data.__dict__)
+                validated_data = data.__dict__  # type: ignore[assignment]
             else:
                 # Try to convert other types to dict format
                 validated_data = {"value": data}
@@ -303,8 +299,8 @@ class FlextCliUtilities(FlextUtilities):
             if isinstance(validator, dict):
                 # Simple dict-based validation
                 if isinstance(data, dict):
-                    validator_dict = cast("dict[str, type]", validator)
-                    for key, expected_type in validator_dict.items():
+                    # Validator dict maps field names to expected types
+                    for key, expected_type in validator.items():
                         expected_type_obj = expected_type
                         if key not in data:
                             return FlextResult[bool].fail(
@@ -396,9 +392,11 @@ class FlextCliUtilities(FlextUtilities):
                             processor_result, "value", processor_result
                         )
 
-                    results.append(
-                        cast("dict[str, str | int | float] | None", processed_item)
-                    )
+                    # Validate processed_item type before appending
+                    if processed_item is None or isinstance(processed_item, dict):
+                        results.append(processed_item)  # type: ignore[arg-type]
+                    else:
+                        results.append(None)
 
             return FlextResult[list[dict[str, str | int | float] | None]].ok(results)
 
@@ -463,61 +461,6 @@ class FlextCliUtilities(FlextUtilities):
             return None
         except Exception:
             return None
-
-    @staticmethod
-    def format_as_json(data: object) -> str:
-        """Format data as JSON string.
-
-        Args:
-            data: Data to format
-
-        Returns:
-            str: Formatted JSON string
-
-        """
-        return FlextCliUtilities.safe_json_stringify(data)
-
-    @staticmethod
-    def format_as_yaml(data: object) -> str:
-        """Format data as YAML string.
-
-        Args:
-            data: Data to format
-
-        Returns:
-            str: Formatted YAML string
-
-        """
-        try:
-            return yaml.dump(data, default_flow_style=False)
-        except Exception:
-            return str(data)
-
-    @staticmethod
-    def format_as_table(data: object) -> str:
-        """Format data as table string.
-
-        Args:
-            data: Data to format
-
-        Returns:
-            str: Formatted table string
-
-        """
-        try:
-            if isinstance(data, list) and data and isinstance(data[0], dict):
-                # List of dictionaries - perfect for table
-                headers = list(data[0].keys())
-                rows = [[str(row.get(h, "")) for h in headers] for row in data]
-                return tabulate(rows, headers=headers, tablefmt="grid")
-            if isinstance(data, dict):
-                # Single dictionary - convert to key-value table
-                rows = [[str(k), str(v)] for k, v in data.items()]
-                return tabulate(rows, headers=["Key", "Value"], tablefmt="grid")
-            # Fallback to JSON for other data types
-            return json.dumps(data, default=str, indent=2)
-        except Exception:
-            return str(data)
 
     @staticmethod
     def read_file(file_path: str) -> FlextResult[str]:
@@ -681,112 +624,6 @@ class FlextCliUtilities(FlextUtilities):
                 return FlextResult[dict[str, object]].fail(
                     f"Failed to load JSON file: {e}"
                 )
-
-    # =========================================================================
-    # FORMATTING SERVICE - Consolidated formatting utilities
-    # =========================================================================
-
-    class Formatting:
-        """Consolidated formatting functionality.
-
-        Consolidates all duplicate formatting implementations across the codebase
-        into a single, centralized service using flext-core utilities.
-        """
-
-        @staticmethod
-        def format_json(data: object) -> FlextResult[str]:
-            """Format data as JSON.
-
-            Args:
-                data: Data to format
-
-            Returns:
-                FlextResult[str]: Formatted JSON string
-
-            """
-            try:
-                return FlextResult[str].ok(json.dumps(data, default=str, indent=2))
-            except Exception as e:
-                return FlextResult[str].fail(f"JSON formatting failed: {e}")
-
-        @staticmethod
-        def format_yaml(data: object) -> FlextResult[str]:
-            """Format data as YAML.
-
-            Args:
-                data: Data to format
-
-            Returns:
-                FlextResult[str]: Formatted YAML string
-
-            """
-            try:
-                return FlextResult[str].ok(yaml.dump(data, default_flow_style=False))
-            except Exception as e:
-                return FlextResult[str].fail(f"YAML formatting failed: {e}")
-
-        @staticmethod
-        def format_csv(data: object) -> FlextResult[str]:
-            """Format data as CSV.
-
-            Args:
-                data: Data to format
-
-            Returns:
-                FlextResult[str]: Formatted CSV string
-
-            """
-            try:
-                if isinstance(data, list) and data and isinstance(data[0], dict):
-                    # List of dictionaries - perfect for CSV
-                    output = StringIO()
-                    fieldnames = list(data[0].keys())
-                    writer = csv.DictWriter(output, fieldnames=fieldnames)
-                    writer.writeheader()
-                    writer.writerows(data)
-                    return FlextResult[str].ok(output.getvalue())
-                if isinstance(data, dict):
-                    # Single dictionary - convert to list format
-                    output = StringIO()
-                    fieldnames = list(data.keys())
-                    writer = csv.DictWriter(output, fieldnames=fieldnames)
-                    writer.writeheader()
-                    writer.writerow(data)
-                    return FlextResult[str].ok(output.getvalue())
-                # Fallback to JSON for other data types
-                return FlextResult[str].ok(json.dumps(data, default=str, indent=2))
-            except Exception as e:
-                return FlextResult[str].fail(f"CSV formatting failed: {e}")
-
-        @staticmethod
-        def format_table(data: object) -> FlextResult[str]:
-            """Format data as table using tabulate.
-
-            Args:
-                data: Data to format
-
-            Returns:
-                FlextResult[str]: Formatted table string
-
-            """
-            try:
-                if isinstance(data, list) and data and isinstance(data[0], dict):
-                    # List of dictionaries - perfect for table
-                    headers = list(data[0].keys())
-                    rows = [[str(row.get(h, "")) for h in headers] for row in data]
-                    return FlextResult[str].ok(
-                        tabulate(rows, headers=headers, tablefmt="grid")
-                    )
-                if isinstance(data, dict):
-                    # Single dictionary - convert to key-value table
-                    rows = [[str(k), str(v)] for k, v in data.items()]
-                    return FlextResult[str].ok(
-                        tabulate(rows, headers=["Key", "Value"], tablefmt="grid")
-                    )
-                # Fallback to JSON for other data types
-                return FlextResult[str].ok(json.dumps(data, default=str, indent=2))
-            except Exception as e:
-                return FlextResult[str].fail(f"Table formatting failed: {e}")
 
     # =========================================================================
     # DECORATORS SERVICE - CLI decorators for common patterns

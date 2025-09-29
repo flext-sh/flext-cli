@@ -78,7 +78,7 @@ type-check: ## Run type checking with Pyrefly (ZERO TOLERANCE)
 .PHONY: security
 security: ## Run security scanning
 	$(POETRY) run bandit -r $(SRC_DIR)
-	$(POETRY) run pip-audit
+	$(MAKE) deps-audit
 
 .PHONY: fix
 fix: ## Auto-fix issues

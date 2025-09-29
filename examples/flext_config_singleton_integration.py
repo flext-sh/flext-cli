@@ -42,7 +42,7 @@ def demonstrate_single_source_of_truth() -> None:
     cli_config = FlextCliConfig()
     print(f"   Profile: {cli_config.profile}")
     print(f"   Output Format: {cli_config.output_format}")
-    print(f"   Debug Mode: {cli_config.debug_mode}")
+    print(f"   Debug Mode: {cli_config.debug}")
     print(f"   Log Level: {cli_config.log_level}")
     print()
 
@@ -98,7 +98,7 @@ def demonstrate_cli_parameter_integration() -> None:
     print("4. Updated FlextCliConfig.MainConfig:")
     print(f"   Profile: {cli_config.profile}")
     print(f"   Output Format: {cli_config.output_format}")
-    print(f"   Debug Mode: {cli_config.debug_mode}")
+    print(f"   Debug Mode: {cli_config.debug}")
     print()
 
     # 4. Show integration status
@@ -126,7 +126,7 @@ def demonstrate_automatic_synchronization() -> None:
     cli_config = FlextCliConfig()
 
     print(f"   Base Config Debug: {base_config.debug}")
-    print(f"   CLI Config Debug: {cli_config.debug_mode}")
+    print(f"   CLI Config Debug: {cli_config.debug}")
     print("   Synchronization Status: ✅ Verified")
     print()
 

@@ -37,7 +37,7 @@ def demonstrate_flext_config_singleton() -> None:
     cli_config = FlextCliConfig()
     print(f"   Profile: {cli_config.profile}")
     print(f"   Output Format: {cli_config.output_format}")
-    print(f"   Debug Mode: {cli_config.debug_mode}")
+    print(f"   Debug Mode: {cli_config.debug}")
     print(f"   Log Level: {cli_config.log_level}")
     print()
 
@@ -56,9 +56,9 @@ def demonstrate_flext_config_singleton() -> None:
 
     # Apply overrides to CLI config by creating a new instance
     cli_config = FlextCliConfig(
-        debug=cli_overrides.get("debug", False),
+        debug=bool(cli_overrides.get("debug")),
         profile=str(cli_overrides.get("profile", "default")),
-        log_level=cli_overrides.get("log_level", "INFO"),
+        log_level=str(cli_overrides.get("log_level", "INFO")),
         output_format=str(cli_overrides.get("output_format", "table")),
     )
 
@@ -76,7 +76,7 @@ def demonstrate_flext_config_singleton() -> None:
     print("5. Updated FlextCliConfig.MainConfig:")
     print(f"   Profile: {cli_config.profile}")
     print(f"   Output Format: {cli_config.output_format}")
-    print(f"   Debug Mode: {cli_config.debug_mode}")
+    print(f"   Debug Mode: {cli_config.debug}")
     print(f"   Log Level: {cli_config.log_level}")
     print()
 
@@ -138,7 +138,7 @@ def demonstrate_configuration_validation() -> None:
     print("2. Debug Status Check:")
     debug_enabled = cli_config.debug
     print(f"   Debug Enabled: {debug_enabled}")
-    print(f"   Debug Mode: {cli_config.debug_mode}")
+    print(f"   Debug Mode: {cli_config.debug}")
     print()
 
     # 3. Show configuration directory
@@ -165,12 +165,12 @@ def demonstrate_configuration_loading() -> None:
     config_data = {
         "profile": cli_config.profile,
         "output_format": cli_config.output_format,
-        "debug_mode": cli_config.debug_mode,
+        "debug": cli_config.debug,
         "log_level": cli_config.log_level,
     }
     print(f"   Profile: {config_data.get('profile', 'unknown')}")
     print(f"   Output Format: {config_data.get('output_format', 'unknown')}")
-    print(f"   Debug Mode: {config_data.get('debug_mode', 'unknown')}")
+    print(f"   Debug Mode: {config_data.get('debug', 'unknown')}")
 
     print()
 
@@ -187,7 +187,7 @@ def demonstrate_configuration_loading() -> None:
     print("3. Configuration Summary:")
     print(f"   Profile: {cli_config.profile}")
     print(f"   Output Format: {cli_config.output_format}")
-    print(f"   Debug Mode: {cli_config.debug_mode}")
+    print(f"   Debug Mode: {cli_config.debug}")
     print(f"   Log Level: {cli_config.log_level}")
     print(f"   App Name: {cli_config.app_name}")
     print()

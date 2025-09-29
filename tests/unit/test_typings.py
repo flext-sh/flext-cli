@@ -29,6 +29,7 @@ from typing import (
 
 import pytest
 
+from flext_cli.constants import FlextCliConstants
 from flext_cli.typings import FlextCliTypes
 from flext_tests import FlextTestsUtilities
 
@@ -75,10 +76,10 @@ class TestFlextCliTypes:
         # Test TypeVar
         assert T is not None
 
-        # Test Generic type - avoid using TypeVar in class definition
-        class GenericType(Generic):
-            def __init__(self, value: object) -> None:
-                self.value = value
+        # Test Generic type - use specific type since TypeVar appears only once
+        @dataclass  # Convert to dataclass to satisfy Ruff B903
+        class GenericType:
+            value: object
 
         # Test Protocol type
         class TestProtocol(Protocol):
@@ -97,8 +98,6 @@ class TestFlextCliTypes:
         # Test type aliases
         user_id: int = 123
         user_name: str = "test_user"
-        user_data: dict[str, Any] = {"id": user_id, "name": user_name}
-        user_list: list[dict[str, Any]] = [user_data]
 
         assert isinstance(user_id, int)
         assert isinstance(user_name, str)
@@ -108,9 +107,6 @@ class TestFlextCliTypes:
 
     def test_union_types(self) -> None:
         """Test union types functionality."""
-        # Define union types
-        str | int
-        str | None
 
         # Test union types
         def process_value(value: str | int) -> str:
@@ -496,8 +492,8 @@ class TestFlextCliTypes:
 
         api_config: ApiConfig = {
             "base_url": "https://api.example.com",
-            "timeout": 30,
-            "retries": 3,
+            "timeout": FlextCliConstants.TIMEOUTS.DEFAULT,
+            "retries": FlextCliConstants.HTTP.MAX_RETRIES,
             "headers": {"User-Agent": "FlextCLI/1.0"},
         }
 
@@ -607,6 +603,10 @@ class TestFlextCliTypes:
         # Test performance
         test_list = ["hello", "world", "test"]
         test_dict = {"key1": 123, "key2": "value", "key3": True}
+
+        # Initialize variables before loop
+        result_list: list[str] = []
+        result_dict: dict[str, str] = {}
 
         start_time = time.time()
         for _ in range(1000):

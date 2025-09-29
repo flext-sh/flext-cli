@@ -13,15 +13,7 @@ from collections.abc import Callable
 from typing import override
 
 from flext_cli.protocols import FlextCliProtocols
-from flext_cli.typings import (
-    AuthConfigData,
-    CliCommandArgs,
-    CliCommandResult,
-    CliConfigData,
-    CliFormatData,
-    DebugInfoData,
-    FlextCliTypes,
-)
+from flext_cli.typings import FlextCliTypes
 from flext_core import FlextResult
 
 
@@ -43,29 +35,32 @@ class FlextCliHandlers:
         @override
         def __init__(
             self,
-            handler_func: Callable[..., FlextResult[CliCommandResult]],
+            handler_func: Callable[
+                ..., FlextResult[FlextCliTypes.Data.CliCommandResult]
+            ],
         ) -> None:
             """Initialize command handler with handler function."""
             self._handler_func = handler_func
 
-        def __call__(self, **kwargs: CliCommandArgs) -> FlextResult[CliCommandResult]:
+        def __call__(
+            self, **kwargs: FlextCliTypes.Data.CliCommandArgs
+        ) -> FlextResult[FlextCliTypes.Data.CliCommandResult]:
             """Execute CLI command with arguments.
 
             Args:
                 **kwargs: Command arguments
 
             Returns:
-                FlextResult[CliCommandResult]: Command execution result
+                FlextResult[FlextCliTypes.Data.CliCommandResult]: Command execution result
 
             """
             try:
                 result = self._handler_func(**kwargs)
                 if isinstance(result, FlextResult):
-                    # Cast to proper return type since we know the handler returns the correct type
                     return result
-                return FlextResult[CliCommandResult].ok(result)
+                return FlextResult[FlextCliTypes.Data.CliCommandResult].ok(result)
             except Exception as e:
-                return FlextResult[CliCommandResult].fail(
+                return FlextResult[FlextCliTypes.Data.CliCommandResult].fail(
                     f"Command execution failed: {e}"
                 )
 
@@ -73,14 +68,16 @@ class FlextCliHandlers:
         """CLI formatter handler implementation - implements CliFormatter protocol."""
 
         @override
-        def __init__(self, formatter_func: Callable[[CliFormatData], str]) -> None:
+        def __init__(
+            self, formatter_func: Callable[[FlextCliTypes.Data.CliFormatData], str]
+        ) -> None:
             """Initialize formatter handler with formatter function."""
             self._formatter_func = formatter_func
 
         def format_data(
             self,
-            data: CliFormatData,
-            **options: CliConfigData,
+            data: FlextCliTypes.Data.CliFormatData,
+            **options: FlextCliTypes.Data.CliConfigData,
         ) -> FlextResult[str]:
             """Format data for CLI output.
 
@@ -102,23 +99,29 @@ class FlextCliHandlers:
         """CLI configuration handler implementation - implements CliConfigProvider protocol."""
 
         @override
-        def __init__(self, config_data: CliConfigData) -> None:
+        def __init__(self, config_data: FlextCliTypes.Data.CliConfigData) -> None:
             """Initialize config handler with configuration data."""
             self._config_data = config_data
 
-        def load_config(self) -> FlextResult[CliConfigData]:
+        def load_config(self) -> FlextResult[FlextCliTypes.Data.CliConfigData]:
             """Load CLI configuration.
 
             Returns:
-                FlextResult[CliConfigData]: Configuration data or error
+                FlextResult[FlextCliTypes.Data.CliConfigData]: Configuration data or error
 
             """
             try:
-                return FlextResult[CliConfigData].ok(self._config_data)
+                return FlextResult[FlextCliTypes.Data.CliConfigData].ok(
+                    self._config_data
+                )
             except Exception as e:
-                return FlextResult[CliConfigData].fail(f"Config load failed: {e}")
+                return FlextResult[FlextCliTypes.Data.CliConfigData].fail(
+                    f"Config load failed: {e}"
+                )
 
-        def save_config(self, config: CliConfigData) -> FlextResult[None]:
+        def save_config(
+            self, config: FlextCliTypes.Data.CliConfigData
+        ) -> FlextResult[None]:
             """Save CLI configuration.
 
             Args:
@@ -138,11 +141,15 @@ class FlextCliHandlers:
         """CLI authentication handler implementation - implements CliAuthenticator protocol."""
 
         @override
-        def __init__(self, auth_func: Callable[[AuthConfigData], str]) -> None:
+        def __init__(
+            self, auth_func: Callable[[FlextCliTypes.Data.AuthConfigData], str]
+        ) -> None:
             """Initialize auth handler with authentication function."""
             self._auth_func = auth_func
 
-        def authenticate(self, credentials: AuthConfigData) -> FlextResult[str]:
+        def authenticate(
+            self, credentials: FlextCliTypes.Data.AuthConfigData
+        ) -> FlextResult[str]:
             """Authenticate and return token.
 
             Args:
@@ -180,7 +187,7 @@ class FlextCliHandlers:
         """CLI debug handler implementation - implements CliDebugProvider protocol."""
 
         @override
-        def __init__(self, debug_data: DebugInfoData) -> None:
+        def __init__(self, debug_data: FlextCliTypes.Data.DebugInfoData) -> None:
             """Initialize debug handler with debug data."""
             self._debug_data = debug_data
 
@@ -202,11 +209,11 @@ class FlextCliHandlers:
                     f"Debug info retrieval failed: {e}"
                 )
 
-    def execute(self) -> FlextResult[CliCommandResult]:
+    def execute(self) -> FlextResult[FlextCliTypes.Data.CliCommandResult]:
         """Execute CLI handlers operation synchronously."""
         try:
             # Create a simple command result indicating handlers are operational
-            result_data: CliCommandResult = {
+            result_data: FlextCliTypes.Data.CliCommandResult = {
                 "status": "operational",
                 "service": "flext-cli-handlers",
                 "timestamp": "2025-01-08T00:00:00Z",
@@ -218,15 +225,17 @@ class FlextCliHandlers:
                     "DebugHandler",
                 ],
             }
-            return FlextResult[CliCommandResult].ok(result_data)
+            return FlextResult[FlextCliTypes.Data.CliCommandResult].ok(result_data)
         except Exception as e:
-            return FlextResult[CliCommandResult].fail(f"Handlers execution failed: {e}")
+            return FlextResult[FlextCliTypes.Data.CliCommandResult].fail(
+                f"Handlers execution failed: {e}"
+            )
 
-    async def execute_async(self) -> FlextResult[CliCommandResult]:
+    async def execute_async(self) -> FlextResult[FlextCliTypes.Data.CliCommandResult]:
         """Execute CLI handlers operation asynchronously."""
         try:
             # Create a simple command result indicating handlers are operational
-            result_data: CliCommandResult = {
+            result_data: FlextCliTypes.Data.CliCommandResult = {
                 "status": "operational",
                 "service": "flext-cli-handlers",
                 "timestamp": "2025-01-08T00:00:00Z",
@@ -238,9 +247,11 @@ class FlextCliHandlers:
                     "DebugHandler",
                 ],
             }
-            return FlextResult[CliCommandResult].ok(result_data)
+            return FlextResult[FlextCliTypes.Data.CliCommandResult].ok(result_data)
         except Exception as e:
-            return FlextResult[CliCommandResult].fail(f"Handlers execution failed: {e}")
+            return FlextResult[FlextCliTypes.Data.CliCommandResult].fail(
+                f"Handlers execution failed: {e}"
+            )
 
 
 __all__ = [

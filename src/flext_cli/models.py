@@ -14,11 +14,8 @@ import time
 import uuid
 from collections.abc import Callable
 from datetime import UTC, datetime
-from typing import Self, cast, override
+from typing import Self, override
 
-from flext_core.container import FlextContainer
-from flext_core.context import FlextContext
-from flext_core.registry import FlextRegistry
 from pydantic import (
     BaseModel,
     ConfigDict,
@@ -30,8 +27,15 @@ from pydantic import (
 
 from flext_cli.constants import FlextCliConstants
 from flext_cli.mixins import FlextCliMixins
-from flext_cli.typings import CliCommandData, FlextCliTypes
-from flext_core import FlextLogger, FlextModels, FlextResult
+from flext_cli.typings import FlextCliTypes
+from flext_core import (
+    FlextContainer,
+    FlextContext,
+    FlextLogger,
+    FlextModels,
+    FlextRegistry,
+    FlextResult,
+)
 
 # Constants for linting compliance
 MIN_STEP_TIMEOUT_SECONDS = 10
@@ -278,8 +282,8 @@ class FlextCliModels(FlextModels):
 
         @classmethod
         def validate_command_input(
-            cls, data: CliCommandData | None
-        ) -> FlextResult[CliCommandData | None]:
+            cls, data: FlextCliTypes.Data.CliCommandData | None
+        ) -> FlextResult[FlextCliTypes.Data.CliCommandData | None]:
             """Validate and normalize command input data using railway pattern.
 
             Args:
@@ -355,25 +359,33 @@ class FlextCliModels(FlextModels):
                 data["domain_events"] = []
 
             # Create parent class with explicit parameters
-            super().__init__(
-                id=str(data.get("id", str(uuid.uuid4()))),
-                version=cast("int", data.get("version", 1)),
-                created_at=cast("datetime", data.get("created_at", datetime.now(UTC))),
-                updated_at=cast("datetime | None", data.get("updated_at")),
-                domain_events=cast("list[object]", data.get("domain_events", [])),
+            version_obj = data.get("version", 1)
+            version_value: int = version_obj if isinstance(version_obj, int) else 1
+
+            created_at_obj = data.get("created_at", datetime.now(UTC))
+            created_at_value: datetime = (
+                created_at_obj
+                if isinstance(created_at_obj, datetime)
+                else datetime.now(UTC)
             )
 
-        @property
-        def command(self) -> str:
-            """Compatibility property for command access."""
-            return self.command_line
+            updated_at_obj = data.get("updated_at")
+            updated_at_value: datetime | None = (
+                updated_at_obj if isinstance(updated_at_obj, datetime) else None
+            )
 
-        @property
-        def execution_time(self) -> str:
-            """Compatibility property for execution_time access."""
-            if self.created_at:
-                return self.created_at.isoformat()
-            return datetime.now(UTC).isoformat()
+            domain_events_obj = data.get("domain_events", [])
+            domain_events_value: list[object] = (
+                domain_events_obj if isinstance(domain_events_obj, list) else []
+            )
+
+            super().__init__(
+                id=str(data.get("id", str(uuid.uuid4()))),
+                version=version_value,
+                created_at=created_at_value,
+                updated_at=updated_at_value,
+                domain_events=domain_events_value,
+            )
 
         def validate_business_rules(self) -> FlextResult[None]:
             """Validate command business rules."""
@@ -648,12 +660,32 @@ class FlextCliModels(FlextModels):
                 data["domain_events"] = []
 
             # Create parent class with explicit parameters
+            version_obj = data.get("version", 1)
+            version_value: int = version_obj if isinstance(version_obj, int) else 1
+
+            created_at_obj = data.get("created_at", datetime.now(UTC))
+            created_at_value: datetime = (
+                created_at_obj
+                if isinstance(created_at_obj, datetime)
+                else datetime.now(UTC)
+            )
+
+            updated_at_obj = data.get("updated_at")
+            updated_at_value: datetime | None = (
+                updated_at_obj if isinstance(updated_at_obj, datetime) else None
+            )
+
+            domain_events_obj = data.get("domain_events", [])
+            domain_events_value: list[object] = (
+                domain_events_obj if isinstance(domain_events_obj, list) else []
+            )
+
             super().__init__(
                 id=str(data.get("id", str(uuid.uuid4()))),
-                version=cast("int", data.get("version", 1)),
-                created_at=cast("datetime", data.get("created_at", datetime.now(UTC))),
-                updated_at=cast("datetime | None", data.get("updated_at")),
-                domain_events=cast("list[object]", data.get("domain_events", [])),
+                version=version_value,
+                created_at=created_at_value,
+                updated_at=updated_at_value,
+                domain_events=domain_events_value,
             )
 
             # Set session identifier (auto-generate if not provided)
@@ -813,12 +845,32 @@ class FlextCliModels(FlextModels):
                 data["domain_events"] = []
 
             # Create parent class with explicit parameters
+            version_obj = data.get("version", 1)
+            version_value: int = version_obj if isinstance(version_obj, int) else 1
+
+            created_at_obj = data.get("created_at", datetime.now(UTC))
+            created_at_value: datetime = (
+                created_at_obj
+                if isinstance(created_at_obj, datetime)
+                else datetime.now(UTC)
+            )
+
+            updated_at_obj = data.get("updated_at")
+            updated_at_value: datetime | None = (
+                updated_at_obj if isinstance(updated_at_obj, datetime) else None
+            )
+
+            domain_events_obj = data.get("domain_events", [])
+            domain_events_value: list[object] = (
+                domain_events_obj if isinstance(domain_events_obj, list) else []
+            )
+
             super().__init__(
                 id=str(data.get("id", str(uuid.uuid4()))),
-                version=cast("int", data.get("version", 1)),
-                created_at=cast("datetime", data.get("created_at", datetime.now(UTC))),
-                updated_at=cast("datetime | None", data.get("updated_at")),
-                domain_events=cast("list[object]", data.get("domain_events", [])),
+                version=version_value,
+                created_at=created_at_value,
+                updated_at=updated_at_value,
+                domain_events=domain_events_value,
             )
 
             # Set the fields directly
@@ -1771,8 +1823,9 @@ class FlextCliModels(FlextModels):
 
                 # Execute service with parameters
                 service = service_result.value
-                if hasattr(service, "execute"):
-                    return service.execute(**kwargs)
+                execute_method = getattr(service, "execute", None)
+                if execute_method is not None:
+                    return execute_method(**kwargs)
                 return FlextResult[FlextCliTypes.Data.CliDataDict | None].fail(
                     "Service does not have execute method"
                 )
@@ -1856,7 +1909,7 @@ class FlextCliModels(FlextModels):
                 )
 
         def _execute_operation(
-            self, operation: str, **kwargs: FlextCliTypes.Data.CliDataDict | None
+            self, operation: str, **kwargs: object
         ) -> FlextResult[FlextCliTypes.Data.CliDataDict | None]:
             """Execute the actual operation using railway patterns.
 
@@ -1869,9 +1922,17 @@ class FlextCliModels(FlextModels):
 
             """
             # Apply processors in sequence using railway pattern
-            current_data: FlextCliTypes.Data.CliDataDict | None = cast(
-                "FlextCliTypes.Data.CliDataDict | None", kwargs
-            )
+            # Convert kwargs dict[str, object] to CliDataDict with proper value types
+            if kwargs:
+                # Build CliDataDict from kwargs with type validation
+                validated_kwargs: FlextCliTypes.Data.CliDataDict = {
+                    k: v
+                    for k, v in kwargs.items()
+                    if isinstance(v, (bool, dict, float, int, list, str, type(None)))
+                }
+                current_data: FlextCliTypes.Data.CliDataDict | None = validated_kwargs
+            else:
+                current_data = None
             for processor in self.processors:
                 # Simple processing without complex type handling
                 processing_result = processor(current_data)
@@ -1895,14 +1956,14 @@ class FlextCliModels(FlextModels):
                     results.append(service_result.value)
 
                 # Combine results
-                combined_result = {
+                combined_result: FlextCliTypes.Data.CliDataDict = {
                     "operation": operation,
                     "results": results,
                     "count": len(results),
                 }
 
                 return FlextResult[FlextCliTypes.Data.CliDataDict | None].ok(
-                    cast("FlextCliTypes.Data.CliDataDict | None", combined_result)
+                    combined_result
                 )
 
             return FlextResult[FlextCliTypes.Data.CliDataDict | None].fail(

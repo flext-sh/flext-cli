@@ -15,7 +15,6 @@ import operator
 import re
 import threading
 import time
-from typing import Any
 
 import pytest
 
@@ -220,7 +219,7 @@ class TestFlextCliModels:
             "name": str,
             "active": bool,
             "value": float,
-            "items": list[Any],
+            "items": list,
         }
 
         # Valid data with correct types
