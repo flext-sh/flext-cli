@@ -88,7 +88,6 @@ class FlextCliModels(BaseModel, FlextModels):
     )
 
     @computed_field
-    @property
     def active_models_count(self) -> int:
         """Computed field returning the number of active CLI model types."""
         # Count all nested model classes
@@ -105,7 +104,6 @@ class FlextCliModels(BaseModel, FlextModels):
         return len(model_classes)
 
     @computed_field
-    @property
     def model_summary(self) -> dict[str, str]:
         """Computed field returning a summary of all available models."""
         return {
@@ -176,7 +174,6 @@ class FlextCliModels(BaseModel, FlextModels):
         status: str = Field(default=FlextCliConstants.CommandStatus.PENDING.value)
 
         @computed_field
-        @property
         def entity_age_seconds(self) -> float:
             """Computed field for entity age in seconds."""
             return (datetime.now(UTC) - self.created_at).total_seconds()
@@ -205,7 +202,6 @@ class FlextCliModels(BaseModel, FlextModels):
         )
 
         @computed_field
-        @property
         def model_type(self) -> str:
             """Computed field returning the model type name."""
             return self.__class__.__name__
@@ -235,7 +231,6 @@ class FlextCliModels(BaseModel, FlextModels):
         # status field inherited from _BaseEntity
 
         @computed_field
-        @property
         def command_summary(self) -> dict[str, object]:
             """Computed field for command execution summary."""
             return {
@@ -248,7 +243,6 @@ class FlextCliModels(BaseModel, FlextModels):
             }
 
         @computed_field
-        @property
         def is_successful(self) -> bool:
             """Computed field indicating if command executed successfully."""
             return self.exit_code == 0 if self.exit_code is not None else False
@@ -397,7 +391,6 @@ class FlextCliModels(BaseModel, FlextModels):
         message: str = Field(default="")
 
         @computed_field
-        @property
         def debug_summary(self) -> dict[str, object]:
             """Computed field for debug information summary."""
             return {
@@ -468,7 +461,6 @@ class FlextCliModels(BaseModel, FlextModels):
         max_width: int | None = None
 
         @computed_field
-        @property
         def format_summary(self) -> dict[str, object]:
             """Computed field for format options summary."""
             return {
@@ -506,7 +498,6 @@ class FlextCliModels(BaseModel, FlextModels):
         user_id: str | None = None
 
         @computed_field
-        @property
         def session_summary(self) -> dict[str, object]:
             """Computed field for session activity summary."""
             return {
@@ -519,7 +510,6 @@ class FlextCliModels(BaseModel, FlextModels):
             }
 
         @computed_field
-        @property
         def commands_by_status(self) -> dict[str, int]:
             """Computed field grouping commands by status."""
             status_counts: dict[str, int] = {}
@@ -695,13 +685,11 @@ class FlextCliModels(BaseModel, FlextModels):
         )
 
         @computed_field
-        @property
         def available_formats(self) -> list[str]:
             """Computed field listing available formats from constants."""
             return FlextCliConstants.OUTPUT_FORMATS_LIST
 
         @computed_field
-        @property
         def default_format(self) -> str:
             """Computed field returning the default format from constants."""
             return FlextCliConstants.OutputFormats.TABLE.value
@@ -720,7 +708,6 @@ class FlextCliModels(BaseModel, FlextModels):
         domain_events: list[object] = Field(default_factory=list)
 
         @computed_field
-        @property
         def pipeline_summary(self) -> dict[str, object]:
             """Computed field for pipeline execution summary."""
             return {
@@ -733,7 +720,6 @@ class FlextCliModels(BaseModel, FlextModels):
             }
 
         @computed_field
-        @property
         def is_ready_to_execute(self) -> bool:
             """Computed field indicating if pipeline is ready for execution."""
             return (
@@ -762,42 +748,42 @@ class FlextCliModels(BaseModel, FlextModels):
                 for step in value
             ]
 
-    def validate_business_rules(self: Any) -> FlextResult[None]:
-        """Validate pipeline business rules."""
-        # Use mixin validation methods
-        name_result = FlextCliMixins.ValidationMixin.validate_not_empty(
-            "Pipeline name", self.name
-        )
-        if not name_result.is_success:
-            return name_result
+        def validate_business_rules(self) -> FlextResult[None]:
+            """Validate pipeline business rules."""
+            # Use mixin validation methods
+            name_result = FlextCliMixins.ValidationMixin.validate_not_empty(
+                "Pipeline name", self.name
+            )
+            if not name_result.is_success:
+                return name_result
 
-        status_result = FlextCliMixins.ValidationMixin.validate_status(self.status)
-        if not status_result.is_success:
-            return status_result
+            status_result = FlextCliMixins.ValidationMixin.validate_status(self.status)
+            if not status_result.is_success:
+                return status_result
 
-        return FlextResult[None].ok(None)
+            return FlextResult[None].ok(None)
 
-    def add_step(
-        self: Any, step: FlextCliTypes.Data.CliDataDict | None
-    ) -> FlextResult[None]:
-        """Add a step to the pipeline."""
-        step_result = FlextCliMixins.BusinessRulesMixin.validate_pipeline_step(step)
-        if not step_result.is_success:
-            return step_result
+        def add_step(
+            self: Self, step: FlextCliTypes.Data.CliDataDict | None
+        ) -> FlextResult[None]:
+            """Add a step to the pipeline."""
+            step_result = FlextCliMixins.BusinessRulesMixin.validate_pipeline_step(step)
+            if not step_result.is_success:
+                return step_result
 
-        self.steps.append(step)
-        self.update_timestamp()  # Use inherited method
-        return FlextResult[None].ok(None)
+            self.steps.append(step)
+            self.update_timestamp()  # Use inherited method
+            return FlextResult[None].ok(None)
 
-    def update_status(self: Any, new_status: str) -> FlextResult[None]:
-        """Update pipeline status."""
-        status_result = FlextCliMixins.ValidationMixin.validate_status(new_status)
-        if not status_result.is_success:
-            return status_result
+        def update_status(self: Self, new_status: str) -> FlextResult[None]:
+            """Update pipeline status."""
+            status_result = FlextCliMixins.ValidationMixin.validate_status(new_status)
+            if not status_result.is_success:
+                return status_result
 
-        self.status = new_status
-        self.update_timestamp()  # Use inherited method
-        return FlextResult[None].ok(None)
+            self.status = new_status
+            self.update_timestamp()  # Use inherited method
+            return FlextResult[None].ok(None)
 
     # REMOVED: FlextCliConfig moved to config.py following FLEXT standards
     # Use: from flext_cli.config import FlextCliConfig
@@ -821,7 +807,6 @@ class FlextCliModels(BaseModel, FlextModels):
         )
 
         @computed_field
-        @property
         def logging_summary(self) -> dict[str, object]:
             """Computed field for logging configuration summary."""
             return {
@@ -867,7 +852,6 @@ class FlextCliModels(BaseModel, FlextModels):
         )
 
         @computed_field
-        @property
         def pipeline_config_summary(self) -> dict[str, object]:
             """Computed field for pipeline configuration summary."""
             return {
@@ -880,7 +864,6 @@ class FlextCliModels(BaseModel, FlextModels):
             }
 
         @computed_field
-        @property
         def estimated_duration_seconds(self) -> int:
             """Computed field estimating total pipeline duration."""
             base_duration = len(self.steps) * 30  # 30 seconds per step baseline

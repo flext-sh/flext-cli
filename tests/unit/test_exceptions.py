@@ -716,7 +716,7 @@ class TestFlextCliExceptionsSubclasses:
             "Command execution failed", command="test-cmd", exit_code=1
         )
         assert error.message == "Command execution failed"
-        assert error.error_code == "COMMAND_ERROR"
+        assert error.error_code == "CLI_COMMAND_ERROR"
         assert error.context["command"] == "test-cmd"
         assert error.context["exit_code"] == 1
 
@@ -726,7 +726,7 @@ class TestFlextCliExceptionsSubclasses:
         with pytest.raises(FlextCliExceptions.CliCommandError) as exc_info:
             raise FlextCliExceptions.CliCommandError(error_message)
 
-        assert exc_info.value.error_code == "COMMAND_ERROR"
+        assert exc_info.value.error_code == "CLI_COMMAND_ERROR"
         assert "Command not found" in str(exc_info.value)
 
     # ========================================================================
@@ -761,7 +761,7 @@ class TestFlextCliExceptionsSubclasses:
             "Invalid format", format="json", expected="yaml"
         )
         assert error.message == "Invalid format"
-        assert error.error_code == "FORMAT_ERROR"
+        assert error.error_code == "CLI_FORMAT_ERROR"
         assert error.context["format"] == "json"
         assert error.context["expected"] == "yaml"
 
@@ -771,7 +771,7 @@ class TestFlextCliExceptionsSubclasses:
         with pytest.raises(FlextCliExceptions.CliFormatError) as exc_info:
             raise FlextCliExceptions.CliFormatError(error_message)
 
-        assert exc_info.value.error_code == "FORMAT_ERROR"
+        assert exc_info.value.error_code == "CLI_FORMAT_ERROR"
         assert "Unsupported format" in str(exc_info.value)
 
     # ========================================================================
