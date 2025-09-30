@@ -359,17 +359,17 @@ class FlextCliOutput(FlextService[str]):
                 default_headers = ["Key", "Value"]
             else:
                 # Validate data is a list before processing
-                table_data = (
-                    []
-                    if not isinstance(data, list)
-                    else cast(
-                        "list[dict[str, str | int | float | bool | None] | None]", data
+                if not isinstance(data, list):
+                    return FlextResult[str].fail(
+                        "Table format requires dict or list of dicts"
                     )
+                table_data = cast(
+                    "list[dict[str, str | int | float | bool | None] | None]", data
                 )
+                if not table_data:
+                    return FlextResult[str].fail("No data provided for table")
                 default_headers = (
-                    list(table_data[0].keys())
-                    if table_data and table_data[0] is not None
-                    else []
+                    list(table_data[0].keys()) if table_data[0] is not None else []
                 )
 
             columns = headers or default_headers

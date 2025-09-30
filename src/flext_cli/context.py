@@ -6,6 +6,9 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
+from datetime import datetime
+from typing import TypedDict, Unpack
+
 from flext_cli.typings import FlextCliTypes
 from flext_core import (
     FlextLogger,
@@ -14,6 +17,15 @@ from flext_core import (
     FlextTypes,
     FlextUtilities,
 )
+
+
+class EntityData(TypedDict, total=False):
+    """Entity initialization data with proper typing."""
+
+    id: str
+    created_at: datetime
+    updated_at: datetime | None
+    version: int
 
 
 class FlextCliContext(FlextModels.Entity):
@@ -30,7 +42,7 @@ class FlextCliContext(FlextModels.Entity):
         arguments: list[str] | None = None,
         environment_variables: FlextCliTypes.Data.CliConfigData | None = None,
         working_directory: str | None = None,
-        **data: object,
+        **data: Unpack[EntityData],
     ) -> None:
         """Initialize CLI context with enhanced type safety.
 

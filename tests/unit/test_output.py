@@ -407,6 +407,27 @@ class TestFlextCliOutput:
         assert isinstance(result, FlextResult)
         # Should handle gracefully
 
+    def test_format_output_table_invalid_data(self, output: FlextCliOutput) -> None:
+        """Test format_data with table format but invalid data type."""
+        result = output.format_data("invalid", "table")
+        assert isinstance(result, FlextResult)
+        assert result.is_failure
+        assert "Table format requires dict or list of dicts" in result.error
+
+    def test_get_formatter_unsupported_format(self, output: FlextCliOutput) -> None:
+        """Test create_formatter with unsupported format."""
+        result = output.create_formatter("unsupported")
+        assert isinstance(result, FlextResult)
+        assert result.is_failure
+        assert "Unsupported format type: unsupported" in result.error
+
+    def test_format_table_no_data(self, output: FlextCliOutput) -> None:
+        """Test format_table with no data."""
+        result = output.format_table([])
+        assert isinstance(result, FlextResult)
+        assert result.is_failure
+        assert "No data provided for table" in result.error
+
     def test_output_custom_format(
         self, output: FlextCliOutput, sample_data: dict
     ) -> None:

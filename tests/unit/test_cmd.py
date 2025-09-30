@@ -10,6 +10,8 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 import time
+from pathlib import Path
+from typing import Never
 
 from flext_cli.cmd import FlextCliCmd
 
@@ -139,3 +141,332 @@ class TestFlextCliCmd:
 
         # Should not raise any logging-related exceptions
         assert result.value is not None
+
+    def test_cmd_create_instance(self) -> None:
+        """Test create_instance class method."""
+        instance = FlextCliCmd.create_instance()
+        assert isinstance(instance, FlextCliCmd)
+
+    def test_cmd_config_helper_get_config_paths(self) -> None:
+        """Test _ConfigHelper.get_config_paths method."""
+        paths = FlextCliCmd._ConfigHelper.get_config_paths()
+        assert isinstance(paths, list)
+        assert len(paths) > 0
+        # Check that paths contain expected flext directory
+        assert any(".flext" in path for path in paths)
+
+    def test_cmd_config_helper_validate_config_structure(self) -> None:
+        """Test _ConfigHelper.validate_config_structure method."""
+        results = FlextCliCmd._ConfigHelper.validate_config_structure()
+        assert isinstance(results, list)
+        # Results should contain validation messages
+        assert len(results) > 0
+
+    def test_cmd_config_helper_get_config_info(self) -> None:
+        """Test _ConfigHelper.get_config_info method."""
+        info = FlextCliCmd._ConfigHelper.get_config_info()
+        assert isinstance(info, dict)
+        assert "config_dir" in info
+        assert "config_exists" in info
+        assert "config_readable" in info
+        assert "config_writable" in info
+        assert "timestamp" in info
+
+    def test_cmd_show_config_paths(self) -> None:
+        """Test show_config_paths method."""
+        cmd = FlextCliCmd()
+        result = cmd.show_config_paths()
+        assert result.is_success
+        assert isinstance(result.value, list)
+        assert len(result.value) > 0
+
+    def test_cmd_validate_config(self) -> None:
+        """Test validate_config method."""
+        cmd = FlextCliCmd()
+        result = cmd.validate_config()
+        assert result.is_success
+
+    def test_cmd_get_config_info(self) -> None:
+        """Test get_config_info method."""
+        cmd = FlextCliCmd()
+        result = cmd.get_config_info()
+        assert result.is_success
+        assert isinstance(result.value, dict)
+        assert "config_dir" in result.value
+        assert "config_exists" in result.value
+
+    def test_cmd_set_config_value(self) -> None:
+        """Test set_config_value method."""
+        cmd = FlextCliCmd()
+        result = cmd.set_config_value("test_key", "test_value")
+        # This might fail if config directory doesn't exist, but should not raise exception
+        assert result is not None
+        # If it succeeds, check the result
+        if result.is_success:
+            assert result.value is True
+
+    def test_cmd_get_config_value_nonexistent_file(self) -> None:
+        """Test get_config_value with nonexistent config file."""
+        cmd = FlextCliCmd()
+        result = cmd.get_config_value("nonexistent_key")
+        # Should fail because config file doesn't exist
+        assert result.is_failure
+        assert "not found" in result.error.lower()
+
+    def test_cmd_show_config(self) -> None:
+        """Test show_config method."""
+        cmd = FlextCliCmd()
+        result = cmd.show_config()
+        assert result.is_success
+
+    def test_cmd_edit_config_creates_default(self) -> None:
+        """Test edit_config creates default configuration."""
+        cmd = FlextCliCmd()
+        result = cmd.edit_config()
+        assert result.is_success
+        assert isinstance(result.value, str)
+
+    def test_cmd_config_display_helper_show_config(self) -> None:
+        """Test _ConfigDisplayHelper.show_config method."""
+        from flext_core import FlextLogger
+        logger = FlextLogger(__name__)
+        result = FlextCliCmd._ConfigDisplayHelper.show_config(logger)
+        assert result.is_success
+
+    def test_cmd_config_modification_helper_edit_config(self) -> None:
+        """Test _ConfigModificationHelper.edit_config method."""
+        result = FlextCliCmd._ConfigModificationHelper.edit_config()
+        assert result.is_success
+        assert isinstance(result.value, str)
+
+    def test_cmd_config_validation_helper_validate_config(self) -> None:
+        """Test _ConfigValidationHelper.validate_config method."""
+        # Test with valid config
+        result = FlextCliCmd._ConfigValidationHelper.validate_config({"test": "value"})
+        assert result.is_success
+
+        # Test with None config
+        result = FlextCliCmd._ConfigValidationHelper.validate_config(None)
+        assert result.is_failure
+        assert "None" in result.error
+
+    def test_cmd_show_config_paths_error_handling(self) -> None:
+        """Test show_config_paths error handling."""
+        cmd = FlextCliCmd()
+        # Mock the helper to raise exception
+        original_helper = cmd._ConfigHelper
+
+        class FailingHelper:
+            @staticmethod
+            def get_config_paths() -> Never:
+                test_error = Exception("Test error")
+                raise test_error
+        cmd._ConfigHelper = FailingHelper
+        try:
+            result = cmd.show_config_paths()
+            assert result.is_failure
+            assert "Test error" in result.error
+        finally:
+            cmd._ConfigHelper = original_helper
+
+    def test_cmd_validate_config_error_handling(self) -> None:
+        """Test validate_config error handling."""
+        cmd = FlextCliCmd()
+        # Mock the helper to raise exception
+        original_helper = cmd._ConfigHelper
+
+        class FailingHelper:
+            @staticmethod
+            def validate_config_structure():
+                raise Exception("Test error")
+        cmd._ConfigHelper = FailingHelper
+        try:
+            result = cmd.validate_config()
+            assert result.is_failure
+            assert "Test error" in result.error
+        finally:
+            cmd._ConfigHelper = original_helper
+
+    def test_cmd_get_config_info_error_handling(self) -> None:
+        """Test get_config_info error handling."""
+        cmd = FlextCliCmd()
+        # Mock the helper to raise exception
+        original_helper = cmd._ConfigHelper
+
+        class FailingHelper:
+            @staticmethod
+            def get_config_info():
+                raise Exception("Test error")
+        cmd._ConfigHelper = FailingHelper
+        try:
+            result = cmd.get_config_info()
+            assert result.is_failure
+            assert "Test error" in result.error
+        finally:
+            cmd._ConfigHelper = original_helper
+
+    def test_cmd_set_config_value_error_handling(self) -> None:
+        """Test set_config_value error handling."""
+        cmd = FlextCliCmd()
+        # Mock file_tools to raise exception
+        original_file_tools = cmd._file_tools
+
+        class FailingFileTools:
+            def write_json_file(self, file_path, data):
+                from flext_core import FlextResult
+                return FlextResult.fail("Test file error")
+        cmd._file_tools = FailingFileTools()
+        try:
+            result = cmd.set_config_value("test_key", "test_value")
+            assert result.is_failure
+            assert "Test file error" in result.error
+        finally:
+            cmd._file_tools = original_file_tools
+
+    def test_cmd_get_config_value_file_load_error(self) -> None:
+        """Test get_config_value file load error."""
+        cmd = FlextCliCmd()
+        # Mock file_tools to return failure on read
+        original_file_tools = cmd._file_tools
+
+        class FailingFileTools:
+            def read_json_file(self, file_path):
+                from flext_core import FlextResult
+                return FlextResult.fail("Test load error")
+        cmd._file_tools = FailingFileTools()
+        try:
+            # Create a config file first to trigger the load error
+            import tempfile
+            with tempfile.NamedTemporaryFile(mode='w', suffix='.json', delete=False) as f:
+                f.write('{"test_key": "test_value"}')
+                temp_file = f.name
+            try:
+                # Temporarily replace config path
+                from flext_cli.config import FlextCliConfig
+                original_config_dir = FlextCliConfig().config_dir
+                FlextCliConfig().config_dir = Path(temp_file).parent
+                FlextCliConfig()._config_dir = Path(temp_file).parent
+                try:
+                    result = cmd.get_config_value("test_key")
+                    assert result.is_failure
+                    assert "Test load error" in result.error
+                finally:
+                    FlextCliConfig().config_dir = original_config_dir
+                    FlextCliConfig()._config_dir = original_config_dir
+            finally:
+                Path(temp_file).unlink()
+        finally:
+            cmd._file_tools = original_file_tools
+
+    def test_cmd_show_config_error_handling(self) -> None:
+        """Test show_config error handling."""
+        cmd = FlextCliCmd()
+        # Mock the helper method that get_config_info calls
+        original_helper = cmd._ConfigHelper
+
+        class FailingHelper:
+            @staticmethod
+            def get_config_info():
+                raise Exception("Test config info error")
+        cmd._ConfigHelper = FailingHelper
+        try:
+            result = cmd.show_config()
+            assert result.is_failure
+            assert "Test config info error" in result.error
+        finally:
+            cmd._ConfigHelper = original_helper
+
+    def test_cmd_edit_config_load_error(self) -> None:
+        """Test edit_config load error."""
+        cmd = FlextCliCmd()
+        # Mock file_tools to return failure on read
+        original_file_tools = cmd._file_tools
+
+        class FailingFileTools:
+            def read_json_file(self, file_path):
+                from flext_core import FlextResult
+                return FlextResult.fail("Test load error")
+
+            def write_json_file(self, file_path, data):
+                from flext_core import FlextResult
+                return FlextResult.ok(None)
+        cmd._file_tools = FailingFileTools()
+        try:
+            result = cmd.edit_config()
+            assert result.is_failure
+            assert "Test load error" in result.error
+        finally:
+            cmd._file_tools = original_file_tools
+
+    def test_cmd_config_display_helper_error_handling(self) -> None:
+        """Test _ConfigDisplayHelper.show_config error handling."""
+        from flext_core import FlextLogger
+        logger = FlextLogger(__name__)
+        # Mock logger to raise exception
+        original_info = logger.info
+
+        def failing_info(*args, **kwargs):
+            raise Exception("Test logger error")
+        logger.info = failing_info
+        try:
+            result = FlextCliCmd._ConfigDisplayHelper.show_config(logger)
+            assert result.is_failure
+            assert "Test logger error" in result.error
+        finally:
+            logger.info = original_info
+
+    def test_cmd_config_modification_helper_error_handling(self) -> None:
+        """Test _ConfigModificationHelper.edit_config error handling."""
+        # This method doesn't actually do anything that can fail, so it should always succeed
+        result = FlextCliCmd._ConfigModificationHelper.edit_config()
+        assert result.is_success
+
+    def test_cmd_edit_config_create_default_config_error(self) -> None:
+        """Test edit_config create default config error."""
+        cmd = FlextCliCmd()
+        # Mock file_tools to fail on write for default config creation
+        original_file_tools = cmd._file_tools
+        class FailingFileTools:
+            def write_json_file(self, file_path, data):
+                from flext_core import FlextResult
+                return FlextResult.fail("Test create default error")
+        cmd._file_tools = FailingFileTools()
+        try:
+            result = cmd.edit_config()
+            assert result.is_failure
+            assert "Test create default error" in result.error
+        finally:
+            cmd._file_tools = original_file_tools
+
+    def test_cmd_get_config_value_missing_key_in_file(self) -> None:
+        """Test get_config_value when key exists in file but is missing."""
+        cmd = FlextCliCmd()
+        # Mock file_tools to return data without the requested key
+        original_file_tools = cmd._file_tools
+        class MockFileTools:
+            def read_json_file(self, file_path):
+                from flext_core import FlextResult
+                return FlextResult.ok({"other_key": "value"})
+        cmd._file_tools = MockFileTools()
+        try:
+            # Create a temp file to avoid the "not found" error
+            import tempfile
+            import os
+            with tempfile.NamedTemporaryFile(mode='w', suffix='.json', delete=False) as f:
+                f.write('{"other_key": "value"}')
+                temp_file = f.name
+            try:
+                # Temporarily replace config path
+                from flext_cli.config import FlextCliConfig
+                original_config_dir = FlextCliConfig().config_dir
+                FlextCliConfig().config_dir = Path(temp_file).parent
+                try:
+                    result = cmd.get_config_value("missing_key")
+                    assert result.is_failure
+                    assert "not found" in result.error.lower()
+                finally:
+                    FlextCliConfig().config_dir = original_config_dir
+            finally:
+                os.unlink(temp_file)
+        finally:
+            cmd._file_tools = original_file_tools

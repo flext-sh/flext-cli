@@ -216,7 +216,9 @@ class FlextCliAuth(FlextService[FlextCliTypes.Auth.AuthResult]):
         paths = paths_result.value
         authenticated = self.is_authenticated()
 
-        status = {
+        status: dict[
+            str, str | int | float | bool | list[object] | dict[str, object] | None
+        ] = {
             "authenticated": authenticated,
             "token_file": str(paths["token_path"]),
             "token_exists": paths["token_path"].exists(),
@@ -225,7 +227,7 @@ class FlextCliAuth(FlextService[FlextCliTypes.Auth.AuthResult]):
             "timestamp": FlextUtilities.Correlation.generate_iso_timestamp(),
         }
 
-        return FlextResult[FlextCliTypes.Auth.AuthResult].ok(dict(status))
+        return FlextResult[FlextCliTypes.Auth.AuthResult].ok(status)
 
     def authenticate(
         self, credentials: FlextCliTypes.Auth.CredentialsData
