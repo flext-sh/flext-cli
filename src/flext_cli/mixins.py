@@ -11,6 +11,7 @@ from __future__ import annotations
 
 from flext_cli.constants import FlextCliConstants
 from flext_cli.typings import FlextCliTypes
+from flext_cli.utilities import FlextCliUtilities
 from flext_core import FlextMixins, FlextResult
 
 
@@ -59,7 +60,7 @@ class FlextCliMixins(FlextMixins):
 
         @staticmethod
         def validate_url(field_name: str, url_value: str) -> FlextResult[None]:
-            """Validate that a URL field has proper format.
+            """Validate that a URL field has proper format - delegates to FlextCliUtilities.
 
             Args:
                 field_name: Name of the field for error messages
@@ -69,12 +70,22 @@ class FlextCliMixins(FlextMixins):
                 FlextResult[None]: Success or failure result
 
             """
+            # Validate emptiness first
             if not url_value or not url_value.strip():
                 return FlextResult[None].fail(f"{field_name} cannot be empty")
-            if not url_value.startswith(("http://", "https://")):
+
+            # Delegate to FlextCliUtilities for actual URL validation
+            utilities = FlextCliUtilities()
+            validation_result = utilities.validate_url(url_value)
+
+            if validation_result.is_failure:
                 return FlextResult[None].fail(
-                    f"{field_name} must start with http:// or https://"
+                    f"{field_name} validation failed: {validation_result.error}"
                 )
+
+            if not validation_result.unwrap():
+                return FlextResult[None].fail(f"{field_name} is not a valid URL")
+
             return FlextResult[None].ok(None)
 
         @staticmethod

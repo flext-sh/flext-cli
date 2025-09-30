@@ -126,27 +126,27 @@ yaml_result = formatters.format_as_yaml(data)
 ### CLI Exceptions
 
 ```python
-from flext_cli import FlextCliError
+from flext_cli import FlextCliExceptions.FlextCliError
 
 # Unified exception with error codes and factory methods
-error = FlextCliError("Base error")
-validation_error = FlextCliError.validation_error("Invalid input")
-auth_error = FlextCliError.authentication_error("Authentication failed")
-config_error = FlextCliError.configuration_error("Config invalid")
-connection_error = FlextCliError.connection_error("Connection failed")
-command_error = FlextCliError.command_error("Command failed")
-timeout_error = FlextCliError.timeout_error("Operation timed out")
-format_error = FlextCliError.format_error("Format error")
+error = FlextCliExceptions.FlextCliError("Base error")
+validation_error = FlextCliExceptions.FlextCliError.validation_error("Invalid input")
+auth_error = FlextCliExceptions.FlextCliError.authentication_error("Authentication failed")
+config_error = FlextCliExceptions.FlextCliError.configuration_error("Config invalid")
+connection_error = FlextCliExceptions.FlextCliError.connection_error("Connection failed")
+command_error = FlextCliExceptions.FlextCliError.command_error("Command failed")
+timeout_error = FlextCliExceptions.FlextCliError.timeout_error("Operation timed out")
+format_error = FlextCliExceptions.FlextCliError.format_error("Format error")
 
 # Error codes available
-FlextCliError.ErrorCode.CLI_ERROR
-FlextCliError.ErrorCode.VALIDATION_ERROR
-FlextCliError.ErrorCode.AUTHENTICATION_ERROR
-FlextCliError.ErrorCode.CONFIGURATION_ERROR
-FlextCliError.ErrorCode.CONNECTION_ERROR
-FlextCliError.ErrorCode.COMMAND_ERROR
-FlextCliError.ErrorCode.TIMEOUT_ERROR
-FlextCliError.ErrorCode.FORMAT_ERROR
+FlextCliExceptions.FlextCliError.ErrorCode.CLI_ERROR
+FlextCliExceptions.FlextCliError.ErrorCode.VALIDATION_ERROR
+FlextCliExceptions.FlextCliError.ErrorCode.AUTHENTICATION_ERROR
+FlextCliExceptions.FlextCliError.ErrorCode.CONFIGURATION_ERROR
+FlextCliExceptions.FlextCliError.ErrorCode.CONNECTION_ERROR
+FlextCliExceptions.FlextCliError.ErrorCode.COMMAND_ERROR
+FlextCliExceptions.FlextCliError.ErrorCode.TIMEOUT_ERROR
+FlextCliExceptions.FlextCliError.ErrorCode.FORMAT_ERROR
 ```
 
 ---

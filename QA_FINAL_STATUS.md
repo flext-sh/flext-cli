@@ -79,7 +79,7 @@ All requested QA issues have been successfully resolved for flext-cli. The codeb
 super().__init__(**data)
 
 # exceptions.py - Dynamic attribute assignment (JUSTIFIED)
-setattr(FlextCliExceptions, "CommandError", ...)
+setattr(FlextCliExceptions.FlextCliError, "CommandError", ...)
 ```
 
 ## Key Technical Achievements

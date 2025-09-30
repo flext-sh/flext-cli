@@ -444,7 +444,13 @@ class TestFlextCliApi:
         }
 
         # Test saving configuration
-        result = api_service.save_config(str(config_file), test_config)
+        result = api_service.save_config(
+            str(config_file),
+            cast(
+                "dict[str, bool | dict[str, object] | float | int | list[object] | str | None]",
+                test_config,
+            ),
+        )
 
         assert isinstance(result, FlextResult)
         assert result.is_success
@@ -464,7 +470,12 @@ class TestFlextCliApi:
             "retries": FlextCliConstants.HTTP.MAX_RETRIES,
         }
 
-        result = api_service.validate_config_dict(valid_config)
+        result = api_service.validate_config_dict(
+            cast(
+                "dict[str, bool | dict[str, object] | float | int | list[object] | str | None]",
+                valid_config,
+            )
+        )
         assert isinstance(result, FlextResult)
         assert result.is_success
 
@@ -475,7 +486,12 @@ class TestFlextCliApi:
             "retries": "not_a_number",
         }
 
-        result = api_service.validate_config_dict(invalid_config)
+        result = api_service.validate_config_dict(
+            cast(
+                "dict[str, bool | dict[str, object] | float | int | list[object] | str | None]",
+                invalid_config,
+            )
+        )
         assert isinstance(result, FlextResult)
         assert result.is_failure
 
@@ -518,7 +534,12 @@ class TestFlextCliApi:
             "nested": {"inner": "data"},
         }
 
-        result = api_service.serialize_json(cast("dict[str, object]", test_data))
+        result = api_service.serialize_json(
+            cast(
+                "dict[str, bool | dict[str, object] | float | int | list[object] | str | None]",
+                test_data,
+            )
+        )
 
         assert isinstance(result, FlextResult)
         assert result.is_success
@@ -566,7 +587,12 @@ nested:
             "nested": {"inner": "data"},
         }
 
-        result = api_service.serialize_yaml(cast("dict[str, object]", test_data))
+        result = api_service.serialize_yaml(
+            cast(
+                "dict[str, bool | dict[str, object] | float | int | list[object] | str | None]",
+                test_data,
+            )
+        )
 
         assert isinstance(result, FlextResult)
         assert result.is_success
@@ -686,7 +712,12 @@ nested:
         }
 
         # 2. Serialize to JSON
-        json_result = api_service.serialize_json(cast("dict[str, object]", test_data))
+        json_result = api_service.serialize_json(
+            cast(
+                "dict[str, bool | dict[str, object] | float | int | list[object] | str | None]",
+                test_data,
+            )
+        )
         assert json_result.is_success
         json_string = json_result.unwrap()
 

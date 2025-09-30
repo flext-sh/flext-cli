@@ -45,9 +45,10 @@ class TestFlextCliService:
         assert core_service is not None
         assert hasattr(core_service, "_logger")
         assert hasattr(core_service, "_container")
-        assert hasattr(core_service, "_cli_config")
+        assert hasattr(core_service, "_config")
         assert hasattr(core_service, "_commands")
-        assert hasattr(core_service, "_utils")
+        assert hasattr(core_service, "_plugins")
+        assert hasattr(core_service, "_sessions")
 
     def test_core_service_execute_method(self, core_service: FlextCliService) -> None:
         """Test core service execute method with real functionality."""
@@ -94,25 +95,33 @@ class TestFlextCliService:
 
         # Test get handlers
         handlers_result = core_service.get_handlers()
-        assert isinstance(handlers_result, dict)
+        assert isinstance(handlers_result, FlextResult)
+        assert handlers_result.is_success
 
         # Test get plugins
         plugins_result = core_service.get_plugins()
-        assert isinstance(plugins_result, dict)
+        assert isinstance(plugins_result, FlextResult)
+        assert plugins_result.is_success
 
         # Test get sessions
         sessions_result = core_service.get_sessions()
-        assert isinstance(sessions_result, dict)
+        assert isinstance(sessions_result, FlextResult)
+        assert sessions_result.is_success
 
         # Test get commands
         commands_result = core_service.get_commands()
-        assert isinstance(commands_result, dict)
+        assert isinstance(commands_result, FlextResult)
+        assert commands_result.is_success
 
         # Test get formatters
         formatters_result = core_service.get_formatters()
         assert formatters_result is not None
 
-        # Test async functionality
+        # Test async functionality - register a command first
+        core_service.register_command(
+            "test_cmd", {"name": "test_cmd", "handler": lambda: None}
+        )
+
         async def run_test() -> None:
             result = await core_service.execute_async()
             assert result.is_success
@@ -147,8 +156,8 @@ class TestFlextCliService:
         assert isinstance(config_data, dict)
         assert config_data["debug"] is True
         assert config_data["output_format"] == "json"
-        assert config_data["timeout"] == 60
-        assert config_data["retries"] == 5
+        assert config_data["timeout"] == FlextCliConstants.TIMEOUTS.DEFAULT
+        assert config_data["retries"] == FlextCliConstants.HTTP.MAX_RETRIES
 
     def test_load_configuration_nonexistent_file(
         self, core_service: FlextCliService
@@ -159,7 +168,10 @@ class TestFlextCliService:
         assert isinstance(result, FlextResult)
         assert result.is_failure
         assert result.error is not None
-        assert "file does not exist" in result.error.lower()
+        assert (
+            "not found" in result.error.lower()
+            or "does not exist" in result.error.lower()
+        )
 
     def test_save_configuration(
         self, core_service: FlextCliService, temp_dir: Path
@@ -736,19 +748,23 @@ nested:
 
         # Test get handlers
         handlers_result = core_service.get_handlers()
-        assert isinstance(handlers_result, dict)
+        assert isinstance(handlers_result, FlextResult)
+        assert handlers_result.is_success
 
         # Test get plugins
         plugins_result = core_service.get_plugins()
-        assert isinstance(plugins_result, dict)
+        assert isinstance(plugins_result, FlextResult)
+        assert plugins_result.is_success
 
         # Test get sessions
         sessions_result = core_service.get_sessions()
-        assert isinstance(sessions_result, dict)
+        assert isinstance(sessions_result, FlextResult)
+        assert sessions_result.is_success
 
         # Test get commands
         commands_result = core_service.get_commands()
-        assert isinstance(commands_result, dict)
+        assert isinstance(commands_result, FlextResult)
+        assert commands_result.is_success
 
         # Test get formatters
         formatters_result = core_service.get_formatters()

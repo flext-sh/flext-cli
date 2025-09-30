@@ -64,7 +64,7 @@ class TestFlextCliHandlers:
 
         assert isinstance(result, FlextResult)
         assert result.is_success
-        assert result.unwrap()["result"] == "test result"  # type: ignore[index]
+        assert result.unwrap()["result"] == "test result"
 
     def test_formatter_handler_initialization(self, handlers: FlextCliHandlers) -> None:
         """Test FormatterHandler initialization."""
@@ -213,7 +213,7 @@ class TestFlextCliHandlers:
         result = command_handler(test_arg={"value": "real_value"})
 
         assert result.is_success
-        assert result.unwrap()["result"] == "real command executed"  # type: ignore[index]
+        assert result.unwrap()["result"] == "real command executed"
 
     def test_handlers_edge_cases(self, handlers: FlextCliHandlers) -> None:
         """Test edge cases and error conditions."""

@@ -16,7 +16,7 @@ from typing import override
 
 from flext_cli.config import FlextCliConfig
 from flext_cli.constants import FlextCliConstants
-from flext_cli.utilities import FlextCliUtilities
+from flext_cli.file_tools import FlextCliFileTools
 from flext_core import (
     FlextContainer,
     FlextLogger,
@@ -39,6 +39,7 @@ class FlextCliCmd(FlextService[dict[str, object]]):
         self._logger = FlextLogger(__name__)
         self._container = FlextContainer.get_global()
         self._command_bus_service: FlextCliCmd | None = None
+        self._file_tools = FlextCliFileTools()
 
     @override
     def execute(self) -> FlextResult[dict[str, object]]:
@@ -151,9 +152,9 @@ class FlextCliCmd(FlextService[dict[str, object]]):
             # Create configuration data
             config_data: dict[str, object] = {key: value}
 
-            # Save to file using flext-core file operations
+            # Save to file using FlextCliFileTools
             config_path = FlextCliConfig().config_dir / "cli_config.json"
-            save_result = FlextCliUtilities.FileOperations.write_json_file(
+            save_result = self._file_tools.write_json_file(
                 file_path=str(config_path), data=config_data
             )
 
@@ -182,10 +183,8 @@ class FlextCliCmd(FlextService[dict[str, object]]):
                     f"Configuration file not found: {config_path}"
                 )
 
-            # Load configuration data using flext-core utilities
-            load_result = FlextCliUtilities.FileOperations.read_json_file(
-                str(config_path)
-            )
+            # Load configuration data using FlextCliFileTools
+            load_result = self._file_tools.read_json_file(str(config_path))
             if load_result.is_failure:
                 return FlextResult[dict[str, object]].fail(
                     f"Config load failed: {load_result.error}"
@@ -251,7 +250,7 @@ class FlextCliCmd(FlextService[dict[str, object]]):
                         "timeout"
                     ],  # Already int from default_config
                 }
-                save_result = FlextCliUtilities.FileOperations.write_json_file(
+                save_result = self._file_tools.write_json_file(
                     file_path=str(config_path), data=config_data
                 )
                 if save_result.is_failure:
@@ -260,9 +259,7 @@ class FlextCliCmd(FlextService[dict[str, object]]):
                     )
 
             # Load current configuration
-            load_result = FlextCliUtilities.FileOperations.read_json_file(
-                str(config_path)
-            )
+            load_result = self._file_tools.read_json_file(str(config_path))
             if load_result.is_failure:
                 return FlextResult[str].fail(
                     f"Failed to load config: {load_result.error}"

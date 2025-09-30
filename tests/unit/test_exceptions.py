@@ -1,6 +1,6 @@
 """FLEXT CLI Exceptions Tests - Comprehensive Real Functionality Testing.
 
-Tests for FlextCliExceptions covering all real functionality with flext_tests
+Tests for FlextCliExceptions.FlextCliError covering all real functionality with flext_tests
 integration, comprehensive exception handling, and targeting 90%+ coverage.
 
 Copyright (c) 2025 FLEXT Team. All rights reserved.
@@ -17,17 +17,17 @@ import threading
 import pytest
 
 from flext_cli.constants import FlextCliConstants
-from flext_cli.exceptions import FlextCliError, FlextCliExceptions
+from flext_cli.exceptions import FlextCliExceptions
 from flext_tests import FlextTestsUtilities
 
 
-class TestFlextCliExceptions:
-    """Comprehensive tests for FlextCliExceptions functionality."""
+class TestFlextCliExceptionsFlextCliError:
+    """Comprehensive tests for FlextCliExceptions.FlextCliError functionality."""
 
     @pytest.fixture
-    def exceptions_service(self) -> FlextCliExceptions:
-        """Create FlextCliExceptions instance for testing."""
-        return FlextCliExceptions()
+    def exceptions_service(self) -> FlextCliExceptions.FlextCliError:
+        """Create FlextCliExceptions.FlextCliError instance for testing."""
+        return FlextCliExceptions.FlextCliError()
 
     @pytest.fixture
     def test_utilities(self) -> FlextTestsUtilities:
@@ -39,14 +39,14 @@ class TestFlextCliExceptions:
     # ========================================================================
 
     def test_exceptions_service_initialization(
-        self, exceptions_service: FlextCliExceptions
+        self, exceptions_service: FlextCliExceptions.FlextCliError
     ) -> None:
         """Test exceptions service initialization and basic properties."""
         assert exceptions_service is not None
         assert hasattr(exceptions_service, "__class__")
 
     def test_exceptions_service_basic_functionality(
-        self, exceptions_service: FlextCliExceptions
+        self, exceptions_service: FlextCliExceptions.FlextCliError
     ) -> None:
         """Test exceptions service basic functionality."""
         # Test that exceptions can be created and accessed
@@ -58,17 +58,19 @@ class TestFlextCliExceptions:
     # ========================================================================
 
     def test_flext_cli_error_creation(self) -> None:
-        """Test FlextCliError exception creation."""
+        """Test FlextCliExceptions.FlextCliError exception creation."""
         # Test basic exception creation
-        error = FlextCliError("Test error message")
-        assert isinstance(error, FlextCliError)
+        error = FlextCliExceptions.FlextCliError("Test error message")
+        assert isinstance(error, FlextCliExceptions.FlextCliError)
         assert isinstance(error, Exception)
         assert "[CLI_ERROR] Test error message" in str(error)
 
     def test_flext_cli_error_with_details(self) -> None:
-        """Test FlextCliError with additional details."""
-        error = FlextCliError("Test error", details={"code": 123, "context": "test"})
-        assert isinstance(error, FlextCliError)
+        """Test FlextCliExceptions.FlextCliError with additional details."""
+        error = FlextCliExceptions.FlextCliError(
+            "Test error", details={"code": 123, "context": "test"}
+        )
+        assert isinstance(error, FlextCliExceptions.FlextCliError)
         assert "[CLI_ERROR] Test error" in str(error)
         assert hasattr(error, "context")
         # Test context structure
@@ -76,21 +78,21 @@ class TestFlextCliExceptions:
         assert hasattr(error, "context")
 
     def test_flext_cli_error_inheritance(self) -> None:
-        """Test FlextCliError inheritance chain."""
-        error = FlextCliError("Test error")
+        """Test FlextCliExceptions.FlextCliError inheritance chain."""
+        error = FlextCliExceptions.FlextCliError("Test error")
 
         # Test inheritance
         assert isinstance(error, Exception)
-        assert isinstance(error, FlextCliError)
+        assert isinstance(error, FlextCliExceptions.FlextCliError)
 
         # Test that it can be caught as Exception
-        with pytest.raises(FlextCliError) as exc_info:
+        with pytest.raises(FlextCliExceptions.FlextCliError) as exc_info:
             raise error
         assert "[CLI_ERROR] Test error" in str(exc_info.value)
 
     def test_flext_cli_error_custom_attributes(self) -> None:
-        """Test FlextCliError with custom attributes."""
-        error = FlextCliError(
+        """Test FlextCliExceptions.FlextCliError with custom attributes."""
+        error = FlextCliExceptions.FlextCliError(
             "Test error",
             error_code=500,
             context="test_context",
@@ -106,37 +108,37 @@ class TestFlextCliExceptions:
     # ========================================================================
 
     def test_raise_flext_cli_error(self) -> None:
-        """Test raising FlextCliError exception."""
+        """Test raising FlextCliExceptions.FlextCliError exception."""
         error_message = "Test error message"
-        with pytest.raises(FlextCliError) as exc_info:
-            raise FlextCliError(error_message)
+        with pytest.raises(FlextCliExceptions.FlextCliError) as exc_info:
+            raise FlextCliExceptions.FlextCliError(error_message)
 
         assert str(exc_info.value) == "[CLI_ERROR] Test error message"
-        assert isinstance(exc_info.value, FlextCliError)
+        assert isinstance(exc_info.value, FlextCliExceptions.FlextCliError)
 
     def test_catch_flext_cli_error(self) -> None:
-        """Test catching FlextCliError exception."""
+        """Test catching FlextCliExceptions.FlextCliError exception."""
         error_message = "Test error message"
-        with pytest.raises(FlextCliError) as exc_info:
-            raise FlextCliError(error_message)
+        with pytest.raises(FlextCliExceptions.FlextCliError) as exc_info:
+            raise FlextCliExceptions.FlextCliError(error_message)
 
         assert str(exc_info.value) == f"[CLI_ERROR] {error_message}"
-        assert isinstance(exc_info.value, FlextCliError)
+        assert isinstance(exc_info.value, FlextCliExceptions.FlextCliError)
 
     def test_catch_flext_cli_error_as_exception(self) -> None:
-        """Test catching FlextCliError as generic Exception."""
+        """Test catching FlextCliExceptions.FlextCliError as generic Exception."""
         error_message = "Test error message"
-        with pytest.raises(FlextCliError) as exc_info:
-            raise FlextCliError(error_message)
+        with pytest.raises(FlextCliExceptions.FlextCliError) as exc_info:
+            raise FlextCliExceptions.FlextCliError(error_message)
         assert str(exc_info.value) == f"[CLI_ERROR] {error_message}"
 
     def test_flext_cli_error_with_cause(self) -> None:
-        """Test FlextCliError with underlying cause."""
+        """Test FlextCliExceptions.FlextCliError with underlying cause."""
         original_error = ValueError("Original error")
         wrapper_msg = "Wrapper error"
 
-        with pytest.raises(FlextCliError) as exc_info:
-            raise FlextCliError(wrapper_msg, cause=original_error)
+        with pytest.raises(FlextCliExceptions.FlextCliError) as exc_info:
+            raise FlextCliExceptions.FlextCliError(wrapper_msg, cause=original_error)
 
         e = exc_info.value
         assert "[CLI_ERROR] Wrapper error" in str(e)
@@ -155,8 +157,8 @@ class TestFlextCliExceptions:
         try:
             raise ValueError(inner_msg)
         except ValueError as inner:
-            with pytest.raises(FlextCliError) as exc_info:
-                raise FlextCliError(outer_msg) from inner
+            with pytest.raises(FlextCliExceptions.FlextCliError) as exc_info:
+                raise FlextCliExceptions.FlextCliError(outer_msg) from inner
 
         outer = exc_info.value
         assert "[CLI_ERROR] Outer error" in str(outer)
@@ -172,8 +174,8 @@ class TestFlextCliExceptions:
         try:
             raise ValueError(context_msg)
         except ValueError:
-            with pytest.raises(FlextCliError) as exc_info:
-                raise FlextCliError(new_msg) from None
+            with pytest.raises(FlextCliExceptions.FlextCliError) as exc_info:
+                raise FlextCliExceptions.FlextCliError(new_msg) from None
 
         e = exc_info.value
         assert str(e) == f"[CLI_ERROR] {new_msg}"
@@ -187,7 +189,7 @@ class TestFlextCliExceptions:
 
     def test_exception_to_dict(self) -> None:
         """Test converting exception to dictionary."""
-        error = FlextCliError(
+        error = FlextCliExceptions.FlextCliError(
             "Test error",
             error_code=404,
             context="test_context",
@@ -214,7 +216,7 @@ class TestFlextCliExceptions:
 
     def test_exception_json_serialization(self) -> None:
         """Test exception JSON serialization."""
-        error = FlextCliError("Test error", error_code=500)
+        error = FlextCliExceptions.FlextCliError("Test error", error_code=500)
 
         # Create serializable representation
         error_data = {
@@ -240,21 +242,21 @@ class TestFlextCliExceptions:
     def test_validate_exception_message(self) -> None:
         """Test exception message validation."""
         # Test with valid message
-        error = FlextCliError("Valid error message")
+        error = FlextCliExceptions.FlextCliError("Valid error message")
         assert isinstance(str(error), str)
         assert len(str(error)) > 0
 
         # Test with empty message
-        error = FlextCliError("")
+        error = FlextCliExceptions.FlextCliError("")
         assert "[CLI_ERROR] " in str(error)
 
         # Test with None message
-        error = FlextCliError("")
+        error = FlextCliExceptions.FlextCliError("")
         assert "[CLI_ERROR] " in str(error)
 
     def test_validate_exception_attributes(self) -> None:
         """Test exception attributes validation."""
-        error = FlextCliError(
+        error = FlextCliExceptions.FlextCliError(
             "Test error",
             error_code=200,
             context="test_context",
@@ -274,28 +276,30 @@ class TestFlextCliExceptions:
     # EXCEPTION UTILITIES
     # ========================================================================
 
-    def test_exception_utilities(self, exceptions_service: FlextCliExceptions) -> None:
+    def test_exception_utilities(
+        self, exceptions_service: FlextCliExceptions.FlextCliError
+    ) -> None:
         """Test exception utility functions."""
         # Test that exceptions service provides utility functions
         assert exceptions_service is not None
 
         # Test creating different types of errors
         errors = [
-            FlextCliError("Error 1"),
-            FlextCliError("Error 2", error_code=404),
-            FlextCliError("Error 3", context="test"),
+            FlextCliExceptions.FlextCliError("Error 1"),
+            FlextCliExceptions.FlextCliError("Error 2", error_code=404),
+            FlextCliExceptions.FlextCliError("Error 3", context="test"),
         ]
 
         # Test that all errors are properly created
         for error in errors:
-            assert isinstance(error, FlextCliError)
+            assert isinstance(error, FlextCliExceptions.FlextCliError)
             assert isinstance(error, Exception)
 
     def test_exception_comparison(self) -> None:
         """Test exception comparison functionality."""
-        error1 = FlextCliError("Test error")
-        error2 = FlextCliError("Test error")
-        error3 = FlextCliError("Different error")
+        error1 = FlextCliExceptions.FlextCliError("Test error")
+        error2 = FlextCliExceptions.FlextCliError("Test error")
+        error3 = FlextCliExceptions.FlextCliError("Different error")
 
         # Test equality (same message)
         assert str(error1) == str(error2)
@@ -313,8 +317,8 @@ class TestFlextCliExceptions:
         """Test file not found exception scenario."""
         file_msg = "File not found"
 
-        with pytest.raises(FlextCliError) as exc_info:
-            raise FlextCliError(
+        with pytest.raises(FlextCliExceptions.FlextCliError) as exc_info:
+            raise FlextCliExceptions.FlextCliError(
                 file_msg,
                 error_code=404,
                 context="file_operations",
@@ -334,8 +338,8 @@ class TestFlextCliExceptions:
     def test_authentication_failed_scenario(self) -> None:
         """Test authentication failed exception scenario."""
         auth_msg = "Authentication failed"
-        with pytest.raises(FlextCliError) as exc_info:
-            raise FlextCliError(
+        with pytest.raises(FlextCliExceptions.FlextCliError) as exc_info:
+            raise FlextCliExceptions.FlextCliError(
                 auth_msg,
                 error_code=401,
                 context="authentication",
@@ -351,8 +355,8 @@ class TestFlextCliExceptions:
     def test_validation_error_scenario(self) -> None:
         """Test validation error exception scenario."""
         validation_msg = "Validation failed"
-        with pytest.raises(FlextCliError) as exc_info:
-            raise FlextCliError(
+        with pytest.raises(FlextCliExceptions.FlextCliError) as exc_info:
+            raise FlextCliExceptions.FlextCliError(
                 validation_msg,
                 error_code=400,
                 context="validation",
@@ -372,8 +376,8 @@ class TestFlextCliExceptions:
     def test_network_error_scenario(self) -> None:
         """Test network error exception scenario."""
         network_msg = "Network connection failed"
-        with pytest.raises(FlextCliError) as exc_info:
-            raise FlextCliError(
+        with pytest.raises(FlextCliExceptions.FlextCliError) as exc_info:
+            raise FlextCliExceptions.FlextCliError(
                 network_msg,
                 error_code=503,
                 context="network",
@@ -399,11 +403,11 @@ class TestFlextCliExceptions:
         operation_msg = "Operation failed"
 
         def risky_operation() -> str:
-            raise FlextCliError(operation_msg, error_code=500)
+            raise FlextCliExceptions.FlextCliError(operation_msg, error_code=500)
 
         try:
             risky_operation()
-        except FlextCliError as e:
+        except FlextCliExceptions.FlextCliError as e:
             # Handle the error appropriately
             error_info = {
                 "message": str(e),
@@ -423,8 +427,8 @@ class TestFlextCliExceptions:
 
         try:
             msg = "Test error"
-            raise FlextCliError(msg, error_code=500, context="test")
-        except FlextCliError as e:
+            raise FlextCliExceptions.FlextCliError(msg, error_code=500, context="test")
+        except FlextCliExceptions.FlextCliError as e:
             # Log the error with context
             log_data = {
                 "error": str(e),
@@ -448,11 +452,11 @@ class TestFlextCliExceptions:
             for attempt in range(max_retries):
                 try:
                     if attempt < 2:  # Fail first two attempts
-                        raise FlextCliError(
+                        raise FlextCliExceptions.FlextCliError(
                             f"Attempt {attempt + 1} failed", error_code=500
                         )
                     return "Success"
-                except FlextCliError:
+                except FlextCliExceptions.FlextCliError:
                     if attempt == max_retries - 1:
                         raise  # Re-raise on final attempt
                     continue
@@ -463,7 +467,7 @@ class TestFlextCliExceptions:
         assert result == "Success"
 
         # Test failure after max retries
-        with pytest.raises(FlextCliError) as exc_info:
+        with pytest.raises(FlextCliExceptions.FlextCliError) as exc_info:
             operation_with_retry(max_retries=1)
         assert "Attempt 1 failed" in str(exc_info.value)
 
@@ -475,22 +479,24 @@ class TestFlextCliExceptions:
         """Test exception edge cases."""
         # Test with very long message
         long_message = "x" * 1000
-        error = FlextCliError(long_message)
+        error = FlextCliExceptions.FlextCliError(long_message)
         assert "[CLI_ERROR]" in str(error) and long_message in str(error)
 
         # Test with special characters
         special_message = "Error with special chars: !@#$%^&*()_+-=[]{}|;':\",./<>?"
-        error = FlextCliError(special_message)
+        error = FlextCliExceptions.FlextCliError(special_message)
         assert "[CLI_ERROR]" in str(error) and special_message in str(error)
 
         # Test with unicode characters
         unicode_message = "Error with unicode: 你好世界 🌍"
-        error = FlextCliError(unicode_message)
+        error = FlextCliExceptions.FlextCliError(unicode_message)
         assert "[CLI_ERROR]" in str(error) and unicode_message in str(error)
 
     def test_exception_none_values(self) -> None:
         """Test exception with None values."""
-        error = FlextCliError("Test error", error_code="", context=None, details=None)
+        error = FlextCliExceptions.FlextCliError(
+            "Test error", error_code="", context=None, details=None
+        )
 
         assert "[GENERIC_ERROR] Test error" in str(error)
         assert getattr(error, "error_code", None) == "GENERIC_ERROR"
@@ -503,8 +509,10 @@ class TestFlextCliExceptions:
 
         def worker(worker_id: int) -> None:
             try:
-                raise FlextCliError(f"Worker {worker_id} error", error_code=worker_id)
-            except FlextCliError as e:
+                raise FlextCliExceptions.FlextCliError(
+                    f"Worker {worker_id} error", error_code=worker_id
+                )
+            except FlextCliExceptions.FlextCliError as e:
                 errors.append(e)
             except Exception as e:
                 results.append(f"Unexpected error: {e}")
@@ -525,7 +533,7 @@ class TestFlextCliExceptions:
         assert len(results) == 0
 
         for i, error in enumerate(errors):
-            assert isinstance(error, FlextCliError)
+            assert isinstance(error, FlextCliExceptions.FlextCliError)
             assert f"Worker {i} error" in str(error)
 
     # ========================================================================
@@ -536,21 +544,27 @@ class TestFlextCliExceptions:
         """Test complete exception workflow integration."""
         # 1. Create different types of errors
         errors = [
-            FlextCliError("File error", error_code=404, context="file_ops"),
-            FlextCliError("Auth error", error_code=401, context="auth"),
-            FlextCliError("Validation error", error_code=400, context="validation"),
+            FlextCliExceptions.FlextCliError(
+                "File error", error_code=404, context="file_ops"
+            ),
+            FlextCliExceptions.FlextCliError(
+                "Auth error", error_code=401, context="auth"
+            ),
+            FlextCliExceptions.FlextCliError(
+                "Validation error", error_code=400, context="validation"
+            ),
         ]
 
         # 2. Test error handling
         for error in errors:
             # Verify error properties directly
-            assert isinstance(error, FlextCliError)
+            assert isinstance(error, FlextCliExceptions.FlextCliError)
             assert isinstance(error, Exception)
             assert hasattr(error, "error_code")
             assert hasattr(error, "context")
 
             # Test that error can be raised and caught
-            with pytest.raises(FlextCliError) as exc_info:
+            with pytest.raises(FlextCliExceptions.FlextCliError) as exc_info:
                 raise error
             e = exc_info.value
             assert e == error
@@ -589,9 +603,9 @@ class TestFlextCliExceptions:
         async def async_operation() -> str:
             msg = "Async operation failed"
             await asyncio.sleep(0)  # Make it actually async
-            raise FlextCliError(msg, error_code=500)
+            raise FlextCliExceptions.FlextCliError(msg, error_code=500)
 
-        with pytest.raises(FlextCliError) as exc_info:
+        with pytest.raises(FlextCliExceptions.FlextCliError) as exc_info:
             await async_operation()
         e = exc_info.value
         assert "[500] Async operation failed" in str(e)  # Handle actual format

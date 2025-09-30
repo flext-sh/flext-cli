@@ -24,7 +24,7 @@ import stat
 import tempfile
 import zipfile
 from pathlib import Path
-from typing import Any, override
+from typing import Any, cast, override
 
 import pandas as pd
 import pyarrow as pa
@@ -35,6 +35,7 @@ from lxml import etree
 
 from flext_cli.constants import FlextCliConstants
 from flext_cli.typings import FlextCliTypes
+from flext_cli.utilities import FlextCliUtilities
 from flext_core import FlextContainer, FlextLogger, FlextResult, FlextService
 
 
@@ -71,6 +72,7 @@ class FlextCliFileTools(FlextService[bool]):
         self._container = FlextContainer.get_global()
         self._logger = FlextLogger(__name__)
         self._supported_formats = self._initialize_format_registry()
+        self._utilities = FlextCliUtilities()
 
     @override
     def execute(self) -> FlextResult[bool]:
@@ -315,41 +317,17 @@ class FlextCliFileTools(FlextService[bool]):
         except Exception as e:
             return FlextResult[bool].fail(f"Failed to save file: {e}")
 
-    def file_exists(self, file_path: str | Path) -> FlextResult[bool]:
-        """Check if file exists.
-
-        Args:
-            file_path: Path to check
-
-        Returns:
-            FlextResult[bool]: True if file exists, False otherwise
-
-        """
+    def file_exists(self, file_path: str) -> FlextResult[bool]:
+        """Check if file exists - delegates to FlextCliUtilities."""
         try:
-            exists = Path(file_path).exists()
+            exists = self._utilities.FileOperations.file_exists(file_path)
             return FlextResult[bool].ok(exists)
         except Exception as e:
             return FlextResult[bool].fail(f"Failed to check file existence: {e}")
 
-    def get_file_size(self, file_path: str | Path) -> FlextResult[int]:
-        """Get file size in bytes.
-
-        Args:
-            file_path: Path to file
-
-        Returns:
-            FlextResult[int]: File size in bytes or error
-
-        """
-        try:
-            file_path_obj = Path(file_path)
-            if not file_path_obj.exists():
-                return FlextResult[int].fail(f"File does not exist: {file_path}")
-
-            file_size = file_path_obj.stat().st_size
-            return FlextResult[int].ok(file_size)
-        except Exception as e:
-            return FlextResult[int].fail(f"Failed to get file size: {e}")
+    def get_file_size(self, file_path: str) -> FlextResult[int]:
+        """Get file size - delegates to FlextCliUtilities."""
+        return self._utilities.FileOperations.get_file_size(file_path)
 
     # Format-specific internal methods
     def _load_json(self, file_path: str, **_kwargs: object) -> FlextResult[object]:
@@ -710,7 +688,7 @@ class FlextCliFileTools(FlextService[bool]):
                 return FlextResult[bool].fail("TOML data must be a dictionary")
 
             with file_path_obj.open("w", encoding="utf-8") as f:
-                toml.dump(data, f)  # type: ignore[arg-type]
+                toml.dump(data, f)
             return FlextResult[bool].ok(True)
         except Exception as e:
             return FlextResult[bool].fail(f"Failed to save TOML file: {e}")
@@ -1073,25 +1051,12 @@ class FlextCliFileTools(FlextService[bool]):
             return FlextResult[list[str]].fail(f"Failed to tail file: {e}")
 
     def read_text_file(self, file_path: str) -> FlextResult[str]:
-        """Read text file content."""
-        try:
-            path = Path(file_path)
-            if not path.exists():
-                return FlextResult[str].fail(f"File not found: {file_path}")
-            content = path.read_text(encoding="utf-8")
-            return FlextResult[str].ok(content)
-        except Exception as e:
-            return FlextResult[str].fail(f"Failed to read text file: {e}")
+        """Read text file content - delegates to FlextCliUtilities."""
+        return self._utilities.read_file(file_path)
 
     def write_text_file(self, file_path: str, content: str) -> FlextResult[bool]:
-        """Write content to text file."""
-        try:
-            path = Path(file_path)
-            path.parent.mkdir(parents=True, exist_ok=True)
-            path.write_text(content, encoding="utf-8")
-            return FlextResult[bool].ok(True)
-        except Exception as e:
-            return FlextResult[bool].fail(f"Failed to write text file: {e}")
+        """Write content to text file - delegates to FlextCliUtilities."""
+        return self._utilities.write_file(file_path, content)
 
     def read_binary_file(self, file_path: str) -> FlextResult[bytes]:
         """Read binary file content."""
@@ -1115,26 +1080,14 @@ class FlextCliFileTools(FlextService[bool]):
             return FlextResult[bool].fail(f"Failed to write binary file: {e}")
 
     def read_json_file(self, file_path: str) -> FlextResult[dict[str, object]]:
-        """Read JSON file content."""
-        result = self._load_json(file_path)
-        if result.is_failure:
-            return FlextResult[dict[str, object]].fail(
-                result.error or "Failed to read JSON"
-            )
-        json_data = result.unwrap()
-        if not isinstance(json_data, dict):
-            return FlextResult[dict[str, object]].fail(
-                "JSON content is not a dictionary"
-            )
-        return FlextResult[dict[str, object]].ok(
-            json_data  # type: ignore[arg-type]
-        )
+        """Read JSON file content - delegates to FlextCliUtilities."""
+        return self._utilities.FileOperations.read_json_file(file_path)
 
     def write_json_file(
         self, file_path: str, data: dict[str, object]
     ) -> FlextResult[bool]:
-        """Write data to JSON file."""
-        return self._save_json(file_path, data)
+        """Write data to JSON file - delegates to FlextCliUtilities."""
+        return self._utilities.FileOperations.write_json_file(file_path, data)
 
     def read_yaml_file(self, file_path: str) -> FlextResult[dict[str, object]]:
         """Read YAML file content."""
@@ -1148,9 +1101,7 @@ class FlextCliFileTools(FlextService[bool]):
             return FlextResult[dict[str, object]].fail(
                 "YAML content is not a dictionary"
             )
-        return FlextResult[dict[str, object]].ok(
-            yaml_data  # type: ignore[arg-type]
-        )
+        return FlextResult[dict[str, object]].ok(yaml_data)
 
     def write_yaml_file(
         self, file_path: str, data: dict[str, object]
@@ -1200,7 +1151,7 @@ class FlextCliFileTools(FlextService[bool]):
         if not isinstance(csv_data, list):
             return FlextResult[list[dict[str, str]]].fail("CSV content is not a list")
         return FlextResult[list[dict[str, str]]].ok(
-            csv_data  # type: ignore[arg-type]
+            cast("list[dict[str, str]]", csv_data)  # type: ignore[arg-type]
         )
 
     def list_directory(self, directory_path: str) -> FlextResult[list[str]]:

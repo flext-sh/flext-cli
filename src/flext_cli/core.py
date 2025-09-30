@@ -10,7 +10,6 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 import json
-import re
 import shutil
 import uuid
 from collections.abc import Callable
@@ -20,6 +19,7 @@ import yaml
 
 # Use centralized types from FlextCliTypes
 from flext_cli.typings import FlextCliTypes
+from flext_cli.utilities import FlextCliUtilities
 from flext_core import (
     FlextContainer,
     FlextLogger,
@@ -55,6 +55,7 @@ class FlextCliService(FlextService[FlextCliTypes.Data.CliDataDict]):
         super().__init__(**data)
         self._logger = FlextLogger(__name__)
         self._container = FlextContainer.get_global()
+        self._utilities = FlextCliUtilities()
 
         # Type-safe configuration initialization
         self._config = config or {}
@@ -615,9 +616,39 @@ class FlextCliService(FlextService[FlextCliTypes.Data.CliDataDict]):
             FlextResult[dict[str, object]]: Loaded configuration
 
         """
+        if not config_path or not config_path.strip():
+            return FlextResult[dict[str, object]].fail(
+                "Configuration path cannot be empty"
+            )
+
         try:
-            # Mock implementation - would load from actual file
-            return FlextResult[dict[str, object]].ok({"loaded_from": config_path})
+            config_file = Path(config_path)
+
+            if not config_file.exists():
+                return FlextResult[dict[str, object]].fail(
+                    f"Configuration file not found: {config_path}"
+                )
+
+            if not config_file.is_file():
+                return FlextResult[dict[str, object]].fail(
+                    f"Path is not a file: {config_path}"
+                )
+
+            # Read and parse JSON configuration
+            content = config_file.read_text(encoding="utf-8")
+            config_data = json.loads(content)
+
+            if not isinstance(config_data, dict):
+                return FlextResult[dict[str, object]].fail(
+                    "Configuration must be a JSON object"
+                )
+
+            return FlextResult[dict[str, object]].ok(config_data)
+
+        except json.JSONDecodeError as e:
+            return FlextResult[dict[str, object]].fail(
+                f"Invalid JSON in configuration file: {e}"
+            )
         except Exception as e:
             return FlextResult[dict[str, object]].fail(
                 f"Load configuration failed: {e}"
@@ -657,14 +688,43 @@ class FlextCliService(FlextService[FlextCliTypes.Data.CliDataDict]):
             FlextResult[None]: Success or error
 
         """
-        try:
-            # Validate that config_data is a dictionary
-            if not isinstance(config_data, dict):
-                return FlextResult[None].fail("Configuration data must be a dictionary")
+        if not isinstance(config_data, dict):
+            return FlextResult[None].fail("Configuration data must be a dictionary")
 
-            # Validate that required keys exist (basic validation)
-            # This could be extended based on specific CLI requirements
+        try:
+            # Validate specific fields if present
+            if "debug" in config_data and not isinstance(config_data["debug"], bool):
+                return FlextResult[None].fail("Field 'debug' must be a boolean")
+
+            if "output_format" in config_data:
+                if not isinstance(config_data["output_format"], str):
+                    return FlextResult[None].fail(
+                        "Field 'output_format' must be a string"
+                    )
+                valid_formats = ["json", "yaml", "table", "plain"]
+                if config_data["output_format"] not in valid_formats:
+                    return FlextResult[None].fail(
+                        f"Invalid output_format: {config_data['output_format']}"
+                    )
+
+            if "timeout" in config_data:
+                if not isinstance(config_data["timeout"], int):
+                    return FlextResult[None].fail("Field 'timeout' must be an integer")
+                if config_data["timeout"] < 0:
+                    return FlextResult[None].fail(
+                        "Field 'timeout' must be non-negative"
+                    )
+
+            if "retries" in config_data:
+                if not isinstance(config_data["retries"], int):
+                    return FlextResult[None].fail("Field 'retries' must be an integer")
+                if config_data["retries"] < 0:
+                    return FlextResult[None].fail(
+                        "Field 'retries' must be non-negative"
+                    )
+
             return FlextResult[None].ok(None)
+
         except Exception as e:
             return FlextResult[None].fail(f"Validate configuration failed: {e}")
 
@@ -948,7 +1008,7 @@ class FlextCliService(FlextService[FlextCliTypes.Data.CliDataDict]):
             return FlextResult[str].fail(f"Format timestamp failed: {e}")
 
     def validate_email(self, email: str) -> FlextResult[bool]:
-        """Validate email address.
+        """Validate email address - delegates to FlextCliUtilities.
 
         Args:
             email: Email to validate
@@ -957,13 +1017,10 @@ class FlextCliService(FlextService[FlextCliTypes.Data.CliDataDict]):
             FlextResult[bool]: Validation result
 
         """
-        try:
-            return FlextResult[bool].ok(bool(re.match(r"^[^@]+@[^@]+\.[^@]+$", email)))
-        except Exception as e:
-            return FlextResult[bool].fail(f"Validate email failed: {e}")
+        return self._utilities.validate_email(email)
 
     def validate_url(self, url: str) -> FlextResult[bool]:
-        """Validate URL.
+        """Validate URL - delegates to FlextCliUtilities.
 
         Args:
             url: URL to validate
@@ -972,17 +1029,14 @@ class FlextCliService(FlextService[FlextCliTypes.Data.CliDataDict]):
             FlextResult[bool]: Validation result
 
         """
-        try:
-            return FlextResult[bool].ok(bool(re.match(r"^https?://", url)))
-        except Exception as e:
-            return FlextResult[bool].fail(f"Validate URL failed: {e}")
+        return self._utilities.validate_url(url)
 
     def make_http_request(
         self,
         url: str,
         method: str = "GET",
-        data: dict[str, object] | None = None,
-        timeout: float | None = None,
+        _data: dict[str, object] | None = None,
+        _timeout: float | None = None,
     ) -> FlextResult[dict[str, object]]:
         """Make HTTP request.
 
@@ -996,17 +1050,21 @@ class FlextCliService(FlextService[FlextCliTypes.Data.CliDataDict]):
             FlextResult[dict[str, object]]: Response data
 
         """
-        try:
-            # Mock implementation - would make actual HTTP request
-            return FlextResult[dict[str, object]].ok({
-                "url": url,
-                "method": method,
-                "status": "mock_response",
-                "data": data,  # Include data parameter in result
-                "timeout": timeout,  # Include timeout parameter in result
-            })
-        except Exception as e:
-            return FlextResult[dict[str, object]].fail(f"HTTP request failed: {e}")
+        # Validate URL format
+        url_validation = self.validate_url(url)
+        if url_validation.is_failure or not url_validation.unwrap():
+            return FlextResult[dict[str, object]].fail(f"Invalid URL format: {url}")
+
+        # Validate HTTP method
+        valid_methods = ["GET", "POST", "PUT", "DELETE", "PATCH", "HEAD", "OPTIONS"]
+        if method.upper() not in valid_methods:
+            return FlextResult[dict[str, object]].fail(f"Invalid HTTP method: {method}")
+
+        # HTTP functionality must be implemented through flext-api domain library
+        # Following FLEXT domain separation: all HTTP/REST operations through flext-api
+        return FlextResult[dict[str, object]].fail(
+            "HTTP functionality not implemented - use flext-api domain library for HTTP operations"
+        )
 
     def format_output(
         self, data: object, format_type: str = "json"

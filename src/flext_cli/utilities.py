@@ -256,11 +256,11 @@ class FlextCliUtilities(FlextUtilities):
                 dumped_data = model_dump_method()
                 # Ensure the dumped data is properly typed
                 if isinstance(dumped_data, dict):
-                    validated_data = dumped_data  # type: ignore[assignment]
+                    validated_data = dumped_data
                 else:
                     validated_data = {"value": dumped_data}
             elif hasattr(data, "__dict__"):
-                validated_data = data.__dict__  # type: ignore[assignment]
+                validated_data = data.__dict__
             else:
                 # Try to convert other types to dict format
                 validated_data = {"value": data}
@@ -281,7 +281,9 @@ class FlextCliUtilities(FlextUtilities):
     @staticmethod
     def validate_data(
         data: dict[str, str | int | float] | None,
-        validator: Callable[[dict[str, str | int | float] | None], bool] | None,
+        validator: Callable[[dict[str, str | int | float] | None], bool]
+        | dict[str, type]
+        | None,
     ) -> FlextResult[bool]:
         """Validate data using provided validator function or dict.
 
@@ -306,7 +308,7 @@ class FlextCliUtilities(FlextUtilities):
                             return FlextResult[bool].fail(
                                 f"Missing required field: {key}",
                             )
-                        if not isinstance(data[key], expected_type_obj):
+                        if not isinstance(data[key], expected_type_obj):  # type: ignore[arg-type]
                             type_name: str = getattr(
                                 expected_type_obj, "__name__", str(expected_type_obj)
                             )
@@ -394,7 +396,7 @@ class FlextCliUtilities(FlextUtilities):
 
                     # Validate processed_item type before appending
                     if processed_item is None or isinstance(processed_item, dict):
-                        results.append(processed_item)  # type: ignore[arg-type]
+                        results.append(processed_item)
                     else:
                         results.append(None)
 
@@ -1273,12 +1275,22 @@ class FlextCliUtilities(FlextUtilities):
     def convert_currency(
         self, amount: float, from_currency: str, to_currency: str
     ) -> FlextResult[float]:
-        """Convert currency (mock implementation)."""
+        """Convert currency using static exchange rates.
+
+        Note: Uses static rates for demonstration. Production use requires
+        real-time exchange rate API integration.
+        """
         try:
-            # Mock conversion rates
+            # Static exchange rates (USD as base)
             rates = {"USD": 1.0, "EUR": 0.85, "GBP": 0.73, "JPY": 110.0}
-            usd_amount = amount / rates.get(from_currency.upper(), 1.0)
-            result = usd_amount * rates.get(to_currency.upper(), 1.0)
+
+            if from_currency.upper() not in rates:
+                return FlextResult[float].fail(f"Unsupported currency: {from_currency}")
+            if to_currency.upper() not in rates:
+                return FlextResult[float].fail(f"Unsupported currency: {to_currency}")
+
+            usd_amount = amount / rates[from_currency.upper()]
+            result = usd_amount * rates[to_currency.upper()]
             return FlextResult[float].ok(result)
         except Exception as e:
             return FlextResult[float].fail(f"Currency conversion failed: {e}")

@@ -153,7 +153,7 @@ class FlextCliApi(FlextService[FlextCliTypes.Data.CliDataDict]):
         usage: str = "",
         category: str = "custom",
         handler: object | None = None,
-        arguments: list[str] | None = None,
+        arguments: FlextCliTypes.Command.CommandArgs | None = None,
     ) -> FlextResult[FlextCliTypes.Data.CliCommandData]:
         """Create and register a new CLI command with enhanced validation.
 
@@ -267,17 +267,21 @@ class FlextCliApi(FlextService[FlextCliTypes.Data.CliDataDict]):
                 f"Command execution error: {e}",
             )
 
-    def list_available_commands(self) -> FlextResult[list[str]]:
+    def list_available_commands(
+        self,
+    ) -> FlextResult[FlextCliTypes.Command.CommandNames]:
         """List all available CLI commands.
 
         Returns:
-            FlextResult[list[str]]: List of available command names
+            FlextResult[FlextCliTypes.Command.CommandNames]: List of available command names
 
         """
         try:
             return self._cli_service.list_commands()
         except Exception as e:
-            return FlextResult[list[str]].fail(f"Command listing failed: {e}")
+            return FlextResult[FlextCliTypes.Command.CommandNames].fail(
+                f"Command listing failed: {e}"
+            )
 
     def get_command_definition(
         self,
@@ -455,21 +459,23 @@ class FlextCliApi(FlextService[FlextCliTypes.Data.CliDataDict]):
         except Exception as e:
             return FlextResult[str].fail(f"Format data failed: {e}")
 
-    async def execute_async(self) -> FlextResult[dict[str, object]]:
+    async def execute_async(self) -> FlextResult[FlextCliTypes.Data.CliDataDict]:
         """Execute CLI API operations asynchronously.
 
         Returns:
-            FlextResult[dict[str, object]]: Async execution result
+            FlextResult[FlextCliTypes.Data.CliDataDict]: Async execution result
 
         """
         try:
-            return FlextResult[dict[str, object]].ok({
+            return FlextResult[FlextCliTypes.Data.CliDataDict].ok({
                 "api_executed": True,
                 "async": True,
                 "timestamp": FlextUtilities.Generators.generate_timestamp(),
             })
         except Exception as e:
-            return FlextResult[dict[str, object]].fail(f"Async execution failed: {e}")
+            return FlextResult[FlextCliTypes.Data.CliDataDict].fail(
+                f"Async execution failed: {e}"
+            )
 
     @property
     def output(self) -> FlextCliOutput:
@@ -504,7 +510,7 @@ class FlextCliApi(FlextService[FlextCliTypes.Data.CliDataDict]):
 
         """
         try:
-            # Mock implementation - would create actual progress bar
+            # Progress bar information (Rich progress bar integration pending)
             progress_info = {
                 "description": description,
                 "task_name": task_name,
@@ -678,35 +684,37 @@ class FlextCliApi(FlextService[FlextCliTypes.Data.CliDataDict]):
         except Exception as e:
             return FlextResult[None].fail(f"Delete file failed: {e}")
 
-    def list_files(self, dir_path: str) -> FlextResult[list[str]]:
+    def list_files(self, dir_path: str) -> FlextResult[FlextCliTypes.Data.FileList]:
         """List directory contents.
 
         Args:
             dir_path: Directory path to list
 
         Returns:
-            FlextResult[list[str]]: List of directory contents or error
+            FlextResult[FlextCliTypes.Data.FileList]: List of directory contents or error
 
         """
         try:
             path = Path(dir_path)
             if not path.exists():
-                return FlextResult[list[str]].fail(
+                return FlextResult[FlextCliTypes.Data.FileList].fail(
                     f"Directory does not exist: {dir_path}"
                 )
             if not path.is_dir():
-                return FlextResult[list[str]].fail(
+                return FlextResult[FlextCliTypes.Data.FileList].fail(
                     f"Path is not a directory: {dir_path}"
                 )
 
             contents = [item.name for item in path.iterdir()]
-            return FlextResult[list[str]].ok(contents)
+            return FlextResult[FlextCliTypes.Data.FileList].ok(contents)
         except Exception as e:
-            return FlextResult[list[str]].fail(f"List directory failed: {e}")
+            return FlextResult[FlextCliTypes.Data.FileList].fail(
+                f"List directory failed: {e}"
+            )
 
     def make_http_request(
-        self, url: str, method: str = "GET", **kwargs: object
-    ) -> FlextResult[dict[str, object]]:
+        self, _url: str, _method: str = "GET", **_kwargs: object
+    ) -> FlextResult[FlextCliTypes.Http.ResponseData]:
         """Make HTTP request.
 
         Args:
@@ -715,50 +723,49 @@ class FlextCliApi(FlextService[FlextCliTypes.Data.CliDataDict]):
             **kwargs: Additional request parameters
 
         Returns:
-            FlextResult[dict[str, object]]: Response data or error
+            FlextResult[FlextCliTypes.Http.ResponseData]: Response data or error
 
         """
-        try:
-            # Mock implementation - would make actual HTTP request
-            return FlextResult[dict[str, object]].ok({
-                "url": url,
-                "method": method,
-                "status": "mock_response",
-                "kwargs": kwargs,
-            })
-        except Exception as e:
-            return FlextResult[dict[str, object]].fail(f"HTTP request failed: {e}")
+        # HTTP functionality must be implemented through flext-api domain library
+        # Following FLEXT domain separation: all HTTP/REST operations through flext-api
+        return FlextResult[FlextCliTypes.Http.ResponseData].fail(
+            "HTTP functionality not implemented - use flext-api domain library for HTTP operations"
+        )
 
-    def load_config(self, config_path: str) -> FlextResult[dict[str, object]]:
+    def load_config(
+        self, config_path: str
+    ) -> FlextResult[FlextCliTypes.Data.CliConfigData]:
         """Load configuration from file.
 
         Args:
             config_path: Path to configuration file
 
         Returns:
-            FlextResult[dict[str, object]]: Loaded configuration or error
+            FlextResult[FlextCliTypes.Data.CliConfigData]: Loaded configuration or error
 
         """
         try:
             path = Path(config_path)
             if not path.exists():
-                return FlextResult[dict[str, object]].fail(
+                return FlextResult[FlextCliTypes.Data.CliConfigData].fail(
                     f"Config file does not exist: {config_path}"
                 )
             if not path.is_file():
-                return FlextResult[dict[str, object]].fail(
+                return FlextResult[FlextCliTypes.Data.CliConfigData].fail(
                     f"Path is not a file: {config_path}"
                 )
 
             with path.open("r", encoding="utf-8") as f:
                 config_data = json.load(f)
 
-            return FlextResult[dict[str, object]].ok(config_data)
+            return FlextResult[FlextCliTypes.Data.CliConfigData].ok(config_data)
         except Exception as e:
-            return FlextResult[dict[str, object]].fail(f"Load config failed: {e}")
+            return FlextResult[FlextCliTypes.Data.CliConfigData].fail(
+                f"Load config failed: {e}"
+            )
 
     def save_config(
-        self, config_path: str, config_data: dict[str, object]
+        self, config_path: str, config_data: FlextCliTypes.Data.CliConfigData
     ) -> FlextResult[None]:
         """Save configuration to file.
 
@@ -781,7 +788,9 @@ class FlextCliApi(FlextService[FlextCliTypes.Data.CliDataDict]):
         except Exception as e:
             return FlextResult[None].fail(f"Save config failed: {e}")
 
-    def validate_config_dict(self, config_data: dict[str, object]) -> FlextResult[None]:
+    def validate_config_dict(
+        self, config_data: FlextCliTypes.Data.CliConfigData
+    ) -> FlextResult[None]:
         """Validate configuration data.
 
         Args:
@@ -800,23 +809,25 @@ class FlextCliApi(FlextService[FlextCliTypes.Data.CliDataDict]):
         except Exception as e:
             return FlextResult[None].fail(f"Validate config failed: {e}")
 
-    def parse_json(self, json_data: str) -> FlextResult[dict[str, object]]:
+    def parse_json(self, json_data: str) -> FlextResult[FlextCliTypes.Data.CliDataDict]:
         """Parse JSON data.
 
         Args:
             json_data: JSON string to parse
 
         Returns:
-            FlextResult[dict[str, object]]: Parsed JSON data or error
+            FlextResult[FlextCliTypes.Data.CliDataDict]: Parsed JSON data or error
 
         """
         try:
             data = json.loads(json_data)
-            return FlextResult[dict[str, object]].ok(data)
+            return FlextResult[FlextCliTypes.Data.CliDataDict].ok(data)
         except Exception as e:
-            return FlextResult[dict[str, object]].fail(f"Parse JSON failed: {e}")
+            return FlextResult[FlextCliTypes.Data.CliDataDict].fail(
+                f"Parse JSON failed: {e}"
+            )
 
-    def serialize_json(self, data: dict[str, object]) -> FlextResult[str]:
+    def serialize_json(self, data: FlextCliTypes.Data.CliDataDict) -> FlextResult[str]:
         """Serialize data to JSON.
 
         Args:
@@ -832,23 +843,25 @@ class FlextCliApi(FlextService[FlextCliTypes.Data.CliDataDict]):
         except Exception as e:
             return FlextResult[str].fail(f"Serialize JSON failed: {e}")
 
-    def parse_yaml(self, yaml_data: str) -> FlextResult[dict[str, object]]:
+    def parse_yaml(self, yaml_data: str) -> FlextResult[FlextCliTypes.Data.CliDataDict]:
         """Parse YAML data.
 
         Args:
             yaml_data: YAML string to parse
 
         Returns:
-            FlextResult[dict[str, object]]: Parsed YAML data or error
+            FlextResult[FlextCliTypes.Data.CliDataDict]: Parsed YAML data or error
 
         """
         try:
             data = yaml.safe_load(yaml_data)
-            return FlextResult[dict[str, object]].ok(data or {})
+            return FlextResult[FlextCliTypes.Data.CliDataDict].ok(data or {})
         except Exception as e:
-            return FlextResult[dict[str, object]].fail(f"Parse YAML failed: {e}")
+            return FlextResult[FlextCliTypes.Data.CliDataDict].fail(
+                f"Parse YAML failed: {e}"
+            )
 
-    def serialize_yaml(self, data: dict[str, object]) -> FlextResult[str]:
+    def serialize_yaml(self, data: FlextCliTypes.Data.CliDataDict) -> FlextResult[str]:
         """Serialize data to YAML.
 
         Args:
@@ -875,10 +888,9 @@ class FlextCliApi(FlextService[FlextCliTypes.Data.CliDataDict]):
 
         """
         try:
-            # Use the message parameter for proper implementation
+            # User input not implemented - requires interactive CLI integration
             self._logger.info(f"Prompting user: {message}")
-            # Mock implementation - would get actual user input
-            return FlextResult[str].ok("user_input")
+            return FlextResult[str].fail("Interactive user input not implemented")
         except Exception as e:
             return FlextResult[str].fail(f"Prompt user failed: {e}")
 
@@ -895,13 +907,17 @@ class FlextCliApi(FlextService[FlextCliTypes.Data.CliDataDict]):
         try:
             # Use the message parameter for proper implementation
             self._logger.info(f"Confirming action: {message}")
-            # Mock implementation - would get actual user confirmation
-            return FlextResult[bool].ok(True)
+            # User confirmation not implemented - requires interactive CLI integration
+            return FlextResult[bool].fail(
+                "Interactive user confirmation not implemented"
+            )
         except Exception as e:
             return FlextResult[bool].fail(f"Confirm action failed: {e}")
 
     def select_option(
-        self, options: list[str], message: str = "Choose an option:"
+        self,
+        options: FlextCliTypes.Command.CommandArgs,
+        message: str = "Choose an option:",
     ) -> FlextResult[str]:
         """Prompt user to select from options.
 
@@ -916,8 +932,8 @@ class FlextCliApi(FlextService[FlextCliTypes.Data.CliDataDict]):
         try:
             # Use the message parameter for proper implementation
             self._logger.info(f"Selecting from options {options}: {message}")
-            # Mock implementation - would get actual user selection
-            return FlextResult[str].ok(options[0] if options else "")
+            # User selection not implemented - requires interactive CLI integration
+            return FlextResult[str].fail("Interactive user selection not implemented")
         except Exception as e:
             return FlextResult[str].fail(f"Select option failed: {e}")
 
@@ -952,13 +968,17 @@ class FlextCliApi(FlextService[FlextCliTypes.Data.CliDataDict]):
         try:
             # Use the data parameter for proper implementation
             self._logger.info(f"Exporting data in format {format_type}: {data}")
-            # Mock implementation - would actually export data
-            return FlextResult[str].ok(f"exported_{format_type}_data")
+            # Data export not implemented - requires file I/O integration
+            return FlextResult[str].fail(
+                f"Data export to {format_type} not implemented"
+            )
         except Exception as e:
             return FlextResult[str].fail(f"Export data failed: {e}")
 
     def create_table(
-        self, headers: list[str], rows: list[list[str]]
+        self,
+        headers: FlextCliTypes.Data.TableHeaders,
+        rows: FlextCliTypes.Data.TableRows,
     ) -> FlextResult[str]:
         """Create formatted table from headers and rows.
 
@@ -975,8 +995,8 @@ class FlextCliApi(FlextService[FlextCliTypes.Data.CliDataDict]):
             self._logger.info(
                 f"Creating table with headers {headers} and {len(rows)} rows"
             )
-            # Mock implementation - would actually create formatted table
-            return FlextResult[str].ok("formatted_table")
+            # Table formatting not implemented - requires Rich table integration
+            return FlextResult[str].fail("Formatted table creation not implemented")
         except Exception as e:
             return FlextResult[str].fail(f"Create table failed: {e}")
 

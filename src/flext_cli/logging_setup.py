@@ -16,6 +16,7 @@ from typing import ClassVar, override
 
 from flext_cli.config import FlextCliConfig
 from flext_cli.models import FlextCliModels
+from flext_cli.typings import FlextCliTypes
 from flext_core import (
     FlextContainer,
     FlextLogger,
@@ -24,7 +25,7 @@ from flext_core import (
 )
 
 
-class FlextCliLoggingSetup(FlextService[dict[str, object]]):
+class FlextCliLoggingSetup(FlextService[FlextCliTypes.Data.CliDataDict]):
     """Unified logging setup service using FlextService.
 
     Single responsibility with nested helpers pattern.
@@ -291,25 +292,29 @@ class FlextCliLoggingSetup(FlextService[dict[str, object]]):
             return FlextResult[str].fail(f"Failed to set log verbosity: {e}")
 
     @classmethod
-    def get_current_log_config(cls: object) -> FlextResult[dict[str, str]]:
+    def get_current_log_config(
+        cls: object,
+    ) -> FlextResult[FlextCliTypes.Configuration.LogConfig]:
         """Get current logging configuration for all FLEXT projects.
 
         Returns:
-            FlextResult[dict[str, str]]: Description of return value.
+            FlextResult[FlextCliTypes.Configuration.LogConfig]: Description of return value.
 
         """
         try:
             cli_config = FlextCliConfig.get_global_instance()
-            config: dict[str, str] = {
+            config: FlextCliTypes.Configuration.LogConfig = {
                 "log_level": cli_config.log_level,
                 "log_verbosity": cli_config.log_verbosity,
                 "cli_log_level": cli_config.cli_log_level,
                 "cli_log_verbosity": cli_config.cli_log_verbosity,
                 "configured": str(FlextCliLoggingSetup._setup_complete),
             }
-            return FlextResult[dict[str, str]].ok(config)
+            return FlextResult[FlextCliTypes.Configuration.LogConfig].ok(config)
         except Exception as e:
-            return FlextResult[dict[str, str]].fail(f"Failed to get log config: {e}")
+            return FlextResult[FlextCliTypes.Configuration.LogConfig].fail(
+                f"Failed to get log config: {e}"
+            )
 
     @classmethod
     def configure_project_logging(
@@ -325,7 +330,7 @@ class FlextCliLoggingSetup(FlextService[dict[str, object]]):
 
         """
         try:
-            messages: list[str] = []
+            messages: FlextCliTypes.Data.ErrorList = []
 
             if log_level:
                 valid_levels = {"DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"}
@@ -366,11 +371,11 @@ class FlextCliLoggingSetup(FlextService[dict[str, object]]):
             return FlextResult[str].fail(f"Failed to configure project logging: {e}")
 
     @override
-    def execute(self) -> FlextResult[dict[str, object]]:
+    def execute(self) -> FlextResult[FlextCliTypes.Data.CliDataDict]:
         """Execute the main logging setup operation.
 
         Returns:
-            FlextResult[dict[str, object]]: Logging setup execution result
+            FlextResult[FlextCliTypes.Data.CliDataDict]: Logging setup execution result
 
         """
         try:
@@ -379,31 +384,31 @@ class FlextCliLoggingSetup(FlextService[dict[str, object]]):
             # Perform logging setup
             setup_result = self.setup_logging()
             if setup_result.is_failure:
-                return FlextResult[dict[str, object]].fail(
+                return FlextResult[FlextCliTypes.Data.CliDataDict].fail(
                     setup_result.error or "Setup failed"
                 )
 
             # Return setup status
             config = FlextCliConfig.get_global_instance()
-            status_data: dict[str, object] = {
-                "service": FlextCliLoggingSetup,
+            status_data: FlextCliTypes.Data.CliDataDict = {
+                "service": FlextCliLoggingSetup.__name__,
                 "status": "configured",
                 "setup_complete": self.is_setup_complete,
                 "log_level": config.log_level,
                 "log_verbosity": config.log_verbosity,
             }
 
-            return FlextResult[dict[str, object]].ok(status_data)
+            return FlextResult[FlextCliTypes.Data.CliDataDict].ok(status_data)
         except Exception as e:
-            return FlextResult[dict[str, object]].fail(
+            return FlextResult[FlextCliTypes.Data.CliDataDict].fail(
                 f"Logging setup execution failed: {e}"
             )
 
-    async def execute_async(self) -> FlextResult[dict[str, object]]:
+    async def execute_async(self) -> FlextResult[FlextCliTypes.Data.CliDataDict]:
         """Execute the main logging setup operation asynchronously.
 
         Returns:
-            FlextResult[dict[str, object]]: Async logging setup execution result
+            FlextResult[FlextCliTypes.Data.CliDataDict]: Async logging setup execution result
 
         """
         try:
@@ -412,7 +417,7 @@ class FlextCliLoggingSetup(FlextService[dict[str, object]]):
             # Perform logging setup asynchronously
             setup_result = self.setup_logging()
             if setup_result.is_failure:
-                return FlextResult[dict[str, object]].fail(
+                return FlextResult[FlextCliTypes.Data.CliDataDict].fail(
                     setup_result.error or "Setup failed"
                 )
 
@@ -421,17 +426,17 @@ class FlextCliLoggingSetup(FlextService[dict[str, object]]):
 
             # Return setup status
             config = FlextCliConfig.get_global_instance()
-            status_data: dict[str, object] = {
-                "service": FlextCliLoggingSetup,
+            status_data: FlextCliTypes.Data.CliDataDict = {
+                "service": FlextCliLoggingSetup.__name__,
                 "status": "configured_async",
                 "setup_complete": self.is_setup_complete,
                 "log_level": config.log_level,
                 "log_verbosity": config.log_verbosity,
             }
 
-            return FlextResult[dict[str, object]].ok(status_data)
+            return FlextResult[FlextCliTypes.Data.CliDataDict].ok(status_data)
         except Exception as e:
-            return FlextResult[dict[str, object]].fail(
+            return FlextResult[FlextCliTypes.Data.CliDataDict].fail(
                 f"Async logging setup execution failed: {e}"
             )
 
