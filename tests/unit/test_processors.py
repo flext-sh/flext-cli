@@ -13,7 +13,9 @@ import time
 
 import pytest
 
+from flext_cli.models import FlextCliModels
 from flext_cli.processors import FlextCliProcessors
+from flext_cli.typings import FlextCliTypes
 from flext_core import FlextResult
 from flext_tests import FlextTestsUtilities
 
@@ -218,3 +220,95 @@ class TestFlextCliProcessors:
         # Test clearing
         result = command_processor.clear_processed_commands()
         assert isinstance(result, FlextResult)
+
+    # ========================================================================
+    # execute() and execute_async() tests
+    # ========================================================================
+
+    def test_processors_execute_sync(self, processors: FlextCliProcessors) -> None:
+        """Test processors execute() method."""
+        result = processors.execute()
+        assert result.is_success
+        data = result.unwrap()
+        assert data["status"] == "operational"
+        assert data["service"] == "flext-cli-processors"
+        assert "processors" in data
+
+    @pytest.mark.asyncio
+    async def test_processors_execute_async(
+        self, processors: FlextCliProcessors
+    ) -> None:
+        """Test processors execute_async() method."""
+        result = await processors.execute_async()
+        assert result.is_success
+        data = result.unwrap()
+        assert data["status"] == "operational"
+        assert data["service"] == "flext-cli-processors"
+        assert "processors" in data
+
+    # ========================================================================
+    # process_command() tests
+    # ========================================================================
+
+    def test_command_processor_process_command(
+        self, processors: FlextCliProcessors
+    ) -> None:
+        """Test CommandProcessor process_command() method."""
+        command_processor = processors.CommandProcessor()
+
+        # Create a valid command with required fields
+        command = FlextCliModels.CliCommand(
+            name="test_command",
+            command_line="flext test",
+            description="Test command",
+            status="pending"
+        )
+
+        result = command_processor.process_command(command)
+        assert result.is_success
+        processed_command = result.unwrap()
+        assert processed_command.name == "test_command"
+
+    # ========================================================================
+    # process_session() tests
+    # ========================================================================
+
+    def test_session_processor_process_session(
+        self, processors: FlextCliProcessors
+    ) -> None:
+        """Test SessionProcessor process_session() method."""
+        session_processor = processors.SessionProcessor()
+        
+        # Create a valid session
+        session = FlextCliModels.CliSession(
+            session_id="test-session-001",
+            user="test_user",
+            status="active"
+        )
+        
+        result = session_processor.process_session(session)
+        assert result.is_success
+        processed_session = result.unwrap()
+        assert processed_session.session_id == "test-session-001"
+
+    # ========================================================================
+    # process_data() tests
+    # ========================================================================
+
+    def test_data_processor_process_data_method(
+        self, processors: FlextCliProcessors
+    ) -> None:
+        """Test DataProcessor process_data() method with actual data processing."""
+        data_processor = processors.DataProcessor()
+        
+        test_data: FlextCliTypes.Data.CliDataDict = {
+            "key1": "value1",
+            "key2": "value2",
+            "timestamp": "2025-01-08T00:00:00Z"
+        }
+        
+        result = data_processor.process_data(test_data)
+        assert result.is_success
+        processed_data = result.unwrap()
+        assert "key1" in processed_data
+        assert processed_data["key1"] == "value1"

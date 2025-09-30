@@ -17,8 +17,7 @@ import re
 import secrets
 import string
 import time
-import uuid
-from collections.abc import Awaitable, Callable, Sequence
+from collections.abc import Awaitable, Callable
 from datetime import UTC, datetime
 from pathlib import Path
 from typing import override
@@ -308,7 +307,7 @@ class FlextCliUtilities(FlextUtilities):
                             return FlextResult[bool].fail(
                                 f"Missing required field: {key}",
                             )
-                        if not isinstance(data[key], expected_type_obj):  # type: ignore[arg-type]
+                        if not isinstance(data[key], expected_type_obj):
                             type_name: str = getattr(
                                 expected_type_obj, "__name__", str(expected_type_obj)
                             )
@@ -322,90 +321,6 @@ class FlextCliUtilities(FlextUtilities):
             return FlextResult[bool].fail("Validator must be callable or dict")
         except Exception as e:
             return FlextResult[bool].fail(f"Validation failed: {e}")
-
-    @staticmethod
-    def batch_process_items(
-        items: Sequence[dict[str, str | int | float] | None],
-        processor: Callable[
-            [dict[str, str | int | float] | None], dict[str, str | int | float] | None
-        ]
-        | FlextResult[dict[str, str | int | float] | None],
-        batch_size: int = 10,
-        *,
-        fail_fast: bool = True,
-    ) -> FlextResult[list[dict[str, str | int | float] | None]]:
-        """Process items in batches using railway composition patterns.
-
-        Args:
-            items: Items to process
-            processor: Function to process each item
-            batch_size: Number of items per batch
-            fail_fast: Whether to stop on first failure
-
-        Returns:
-            FlextResult with all processed items or first error
-
-        """
-        try:
-            results: list[dict[str, str | int | float] | None] = []
-
-            # Process items in batches using railway pattern
-            for i in range(0, len(items), batch_size):
-                batch = items[i : i + batch_size]
-
-                for item in batch:
-                    if callable(processor):
-                        result = processor(item)
-                        if hasattr(result, "is_failure") and getattr(
-                            result, "is_failure", False
-                        ):
-                            if fail_fast:
-                                return FlextResult[
-                                    list[dict[str, str | int | float] | None]
-                                ].fail(
-                                    getattr(result, "error", "Batch processing failed")
-                                    or "Batch processing failed"
-                                )
-                            continue
-                        processed_item = (
-                            result
-                            if not hasattr(result, "value")
-                            else getattr(result, "value", result)
-                        )
-                    else:
-                        # processor is a FlextResult
-                        processor_result = processor
-                        if hasattr(processor_result, "is_failure") and getattr(
-                            processor_result, "is_failure", False
-                        ):
-                            if fail_fast:
-                                return FlextResult[
-                                    list[dict[str, str | int | float] | None]
-                                ].fail(
-                                    getattr(
-                                        processor_result,
-                                        "error",
-                                        "Batch processing failed",
-                                    )
-                                    or "Batch processing failed"
-                                )
-                            continue
-                        processed_item = getattr(
-                            processor_result, "value", processor_result
-                        )
-
-                    # Validate processed_item type before appending
-                    if processed_item is None or isinstance(processed_item, dict):
-                        results.append(processed_item)
-                    else:
-                        results.append(None)
-
-            return FlextResult[list[dict[str, str | int | float] | None]].ok(results)
-
-        except Exception as e:
-            return FlextResult[list[dict[str, str | int | float] | None]].fail(
-                f"Batch processing failed: {e}"
-            )
 
     @staticmethod
     def safe_json_stringify(data: object) -> str:
@@ -873,8 +788,10 @@ class FlextCliUtilities(FlextUtilities):
             except EOFError:
                 return FlextResult[bool].fail("Input stream ended")
 
-        def print_status(self, message: str, status: str = "info") -> FlextResult[None]:
-            """Print status message."""
+        def print_status(
+            self, message: str, status: str = FlextCliConstants.MessageTypes.INFO.value
+        ) -> FlextResult[None]:
+            """Print status message using FlextCliConstants.MessageTypes."""
             if self.quiet:
                 return FlextResult[None].ok(None)
             try:
@@ -886,20 +803,26 @@ class FlextCliUtilities(FlextUtilities):
                 return FlextResult[None].fail(f"Print failed: {e}")
 
         def print_success(self, message: str) -> FlextResult[None]:
-            """Print success message."""
-            return self.print_status(message, "success")
+            """Print success message using constants."""
+            return self.print_status(
+                message, FlextCliConstants.MessageTypes.SUCCESS.value
+            )
 
         def print_error(self, message: str) -> FlextResult[None]:
-            """Print error message."""
-            return self.print_status(message, "error")
+            """Print error message using constants."""
+            return self.print_status(
+                message, FlextCliConstants.MessageTypes.ERROR.value
+            )
 
         def print_warning(self, message: str) -> FlextResult[None]:
-            """Print warning message."""
-            return self.print_status(message, "warning")
+            """Print warning message using constants."""
+            return self.print_status(
+                message, FlextCliConstants.MessageTypes.WARNING.value
+            )
 
         def print_info(self, message: str) -> FlextResult[None]:
-            """Print info message."""
-            return self.print_status(message, "info")
+            """Print info message using constants."""
+            return self.print_status(message, FlextCliConstants.MessageTypes.INFO.value)
 
         def create_progress(self, message: str) -> FlextResult[object]:
             """Create progress indicator."""
@@ -959,11 +882,28 @@ class FlextCliUtilities(FlextUtilities):
 
     # String utility methods
     def slugify_string(self, text: str) -> FlextResult[str]:
-        """Convert string to URL-friendly slug."""
+        """Convert string to URL-friendly slug.
+
+        Args:
+            text: Input string to slugify
+
+        Returns:
+            FlextResult[str]: Slugified string or failure if input is invalid
+
+        """
+        # Validate input is not empty
+        if not text or not text.strip():
+            return FlextResult[str].fail("Input text cannot be empty")
+
         try:
             # Convert to lowercase and replace spaces with hyphens
             slug = re.sub(r"[^a-zA-Z0-9\s-]", "", text.lower())
             slug = re.sub(r"\s+", "-", slug.strip())
+
+            # Validate result is not empty after processing
+            if not slug:
+                return FlextResult[str].fail("Slugified result is empty")
+
             return FlextResult[str].ok(slug)
         except Exception as e:
             return FlextResult[str].fail(f"Slugify failed: {e}")
@@ -993,14 +933,10 @@ class FlextCliUtilities(FlextUtilities):
     def truncate_string(
         self, text: str, max_length: int, suffix: str = "..."
     ) -> FlextResult[str]:
-        """Truncate string to specified length with suffix."""
-        try:
-            if len(text) <= max_length:
-                return FlextResult[str].ok(text)
-            truncated = text[: max_length - len(suffix)] + suffix
-            return FlextResult[str].ok(truncated)
-        except Exception as e:
-            return FlextResult[str].fail(f"Truncation failed: {e}")
+        """Truncate string to specified length with suffix - delegates to parent TextProcessor."""
+        return self.TextProcessor.truncate_text(
+            text, max_length=max_length, suffix=suffix
+        )
 
     def remove_special_characters(self, text: str) -> FlextResult[str]:
         """Remove special characters from string."""
@@ -1200,9 +1136,10 @@ class FlextCliUtilities(FlextUtilities):
             return FlextResult[str].fail(f"Name extraction failed: {e}")
 
     def generate_uuid(self) -> FlextResult[str]:
-        """Generate UUID string."""
+        """Generate UUID string - delegates to parent Generators.generate_id."""
         try:
-            return FlextResult[str].ok(str(uuid.uuid4()))
+            uuid_str = self.Generators.generate_id()
+            return FlextResult[str].ok(uuid_str)
         except Exception as e:
             return FlextResult[str].fail(f"UUID generation failed: {e}")
 

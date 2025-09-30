@@ -1,0 +1,18 @@
+{
+  "users": [
+    {"id": 1, "name": "Alice", "email": "alice@example.com", "role": "REDACTED_LDAP_BIND_PASSWORD"},
+    {"id": 2, "name": "Bob", "email": "bob@example.com", "role": "user"},
+    {"id": 3, "name": "Charlie", "email": "charlie@example.com", "role": "user"}
+  ],
+  "metrics": {
+    "total_requests": 1000,
+    "successful_requests": 950,
+    "failed_requests": 50,
+    "average_response_time": 125.5
+  },
+  "metadata": {
+    "version": "1.0.0",
+    "timestamp": "2025-09-30T00:00:00Z",
+    "environment": "test"
+  }
+}

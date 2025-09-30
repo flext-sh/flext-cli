@@ -83,25 +83,25 @@ class FlextCliFileTools(FlextService[bool]):
         """Initialize the format registry with supported file types."""
         return {
             ".json": {
-                "format": json,
+                "format": "json",
                 "mime_type": FlextCliConstants.APPLICATION_JSON,
                 "load_method": self._load_json,
                 "save_method": self._save_json,
             },
             ".yaml": {
-                "format": yaml,
+                "format": "yaml",
                 "mime_type": FlextCliConstants.APPLICATION_YAML,
                 "load_method": self._load_yaml,
                 "save_method": self._save_yaml,
             },
             ".yml": {
-                "format": yaml,
+                "format": "yaml",
                 "mime_type": FlextCliConstants.APPLICATION_YAML,
                 "load_method": self._load_yaml,
                 "save_method": self._save_yaml,
             },
             ".csv": {
-                "format": "csv",
+                "format": FlextCliConstants.OutputFormats.CSV.value,
                 "mime_type": FlextCliConstants.TEXT_CSV,
                 "load_method": self._load_csv,
                 "save_method": self._save_csv,
@@ -256,20 +256,20 @@ class FlextCliFileTools(FlextService[bool]):
         """
         try:
             file_path = str(file_info["path"])
-            file_format = str(file_info["format"])
+            file_extension = str(file_info["extension"])
 
-            # Get the appropriate load method from format registry
-            if file_format not in self._supported_formats:
+            # Get the appropriate load method from format registry using extension
+            if file_extension not in self._supported_formats:
                 return FlextResult[object].fail(
-                    f"Unsupported file format: {file_format}"
+                    f"Unsupported file format: {file_extension}"
                 )
 
-            format_info = self._supported_formats[file_format]
+            format_info = self._supported_formats[file_extension]
             load_method = format_info.get("load_method")
 
             if not load_method or not callable(load_method):
                 return FlextResult[object].fail(
-                    f"No load method available for format: {file_format}"
+                    f"No load method available for format: {file_extension}"
                 )
 
             # Execute the load method
@@ -1151,7 +1151,7 @@ class FlextCliFileTools(FlextService[bool]):
         if not isinstance(csv_data, list):
             return FlextResult[list[dict[str, str]]].fail("CSV content is not a list")
         return FlextResult[list[dict[str, str]]].ok(
-            cast("list[dict[str, str]]", csv_data)  # type: ignore[arg-type]
+            cast("list[dict[str, str]]", csv_data)
         )
 
     def list_directory(self, directory_path: str) -> FlextResult[list[str]]:

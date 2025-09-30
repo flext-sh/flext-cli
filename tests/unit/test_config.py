@@ -10,6 +10,7 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 import time
+from pathlib import Path
 
 import pytest
 
@@ -175,3 +176,141 @@ class TestFlextCliConfigService:
         assert hasattr(config_service, "profile")
         assert hasattr(config_service, "debug")
         assert hasattr(config_service, "output_format")
+
+    # ========================================================================
+    # ClassMethod tests for FlextCliConfig
+    # ========================================================================
+
+    def test_config_create_for_environment(self) -> None:
+        """Test create_for_environment class method."""
+        config = FlextCliConfig.create_for_environment(
+            "development", debug=False, verbose=True
+        )
+        assert config is not None
+        assert isinstance(config, FlextCliConfig)
+
+    def test_config_create_default(self) -> None:
+        """Test create_default class method."""
+        config = FlextCliConfig.create_default()
+        assert config is not None
+        assert isinstance(config, FlextCliConfig)
+
+    def test_config_create_for_profile(self) -> None:
+        """Test create_for_profile class method."""
+        config = FlextCliConfig.create_for_profile("test", debug=True)
+        assert config is not None
+        assert isinstance(config, FlextCliConfig)
+        assert config.profile == "test"
+
+    def test_config_load_from_config_file_json(self, temp_json_file: Path) -> None:
+        """Test load_from_config_file with JSON file."""
+        result = FlextCliConfig.load_from_config_file(temp_json_file)
+        assert result.is_success
+        config = result.unwrap()
+        assert isinstance(config, FlextCliConfig)
+
+    def test_config_load_from_config_file_yaml(self, temp_yaml_file: Path) -> None:
+        """Test load_from_config_file with YAML file."""
+        result = FlextCliConfig.load_from_config_file(temp_yaml_file)
+        assert result.is_success
+        config = result.unwrap()
+        assert isinstance(config, FlextCliConfig)
+
+    def test_config_load_from_config_file_not_found(self, temp_dir: Path) -> None:
+        """Test load_from_config_file with non-existent file."""
+        non_existent = temp_dir / "non_existent.json"
+        result = FlextCliConfig.load_from_config_file(non_existent)
+        assert result.is_failure
+        assert "not found" in result.error.lower()
+
+    def test_config_load_from_config_file_unsupported_format(self, temp_dir: Path) -> None:
+        """Test load_from_config_file with unsupported format."""
+        unsupported_file = temp_dir / "test.txt"
+        unsupported_file.write_text("test content")
+        result = FlextCliConfig.load_from_config_file(unsupported_file)
+        assert result.is_failure
+        assert "unsupported" in result.error.lower()
+
+    def test_config_get_global_instance(self) -> None:
+        """Test get_global_instance class method."""
+        config = FlextCliConfig.get_global_instance()
+        assert config is not None
+        assert isinstance(config, FlextCliConfig)
+
+    def test_config_reset_shared_instance(self) -> None:
+        """Test reset_shared_instance class method."""
+        # Create an instance first
+        FlextCliConfig.create_default()
+        # Reset it
+        FlextCliConfig.reset_shared_instance()
+        # Verify we can create a new one
+        new_config = FlextCliConfig.create_default()
+        assert new_config is not None
+
+    def test_config_reset_global_instance(self) -> None:
+        """Test reset_global_instance class method."""
+        # Create an instance first
+        FlextCliConfig.get_global_instance()
+        # Reset it
+        FlextCliConfig.reset_global_instance()
+        # Verify we can get a new one
+        new_config = FlextCliConfig.get_global_instance()
+        assert new_config is not None
+
+    # ========================================================================
+    # Instance method tests for FlextCliConfig
+    # ========================================================================
+
+    def test_config_execute_as_service(self) -> None:
+        """Test execute_as_service instance method."""
+        config = FlextCliConfig()
+        result = config.execute_as_service()
+        assert result.is_success
+        data = result.unwrap()
+        assert isinstance(data, dict)
+        assert "status" in data
+        assert data["status"] == "operational"
+
+    def test_config_load_config_file(self, temp_json_file: Path) -> None:
+        """Test load_config_file instance method."""
+        config = FlextCliConfig()
+        result = config.load_config_file(str(temp_json_file))
+        assert result.is_success
+        loaded_config = result.unwrap()
+        assert isinstance(loaded_config, FlextCliConfig)
+
+    def test_config_load_config_file_not_found(self, temp_dir: Path) -> None:
+        """Test load_config_file with non-existent file."""
+        config = FlextCliConfig()
+        non_existent = str(temp_dir / "non_existent.json")
+        result = config.load_config_file(non_existent)
+        assert result.is_failure
+        assert "not found" in result.error.lower()
+
+    def test_config_save_config_file(self, temp_dir: Path) -> None:
+        """Test save_config_file instance method."""
+        config = FlextCliConfig(debug=True, verbose=True)
+        save_path = str(temp_dir / "saved_config.json")
+        result = config.save_config_file(save_path)
+        assert result.is_success
+
+    def test_config_load_config(self) -> None:
+        """Test load_config protocol method."""
+        config = FlextCliConfig(debug=True, verbose=False)
+        result = config.load_config()
+        assert result.is_success
+        config_data = result.unwrap()
+        assert isinstance(config_data, dict)
+        assert config_data["debug"] is True
+        assert config_data["verbose"] is False
+
+    def test_config_save_config(self) -> None:
+        """Test save_config protocol method."""
+        config = FlextCliConfig()
+        new_config_data = {"debug": True, "verbose": True, "profile": "test"}
+        result = config.save_config(new_config_data)
+        assert result.is_success
+        # Verify the config was updated
+        assert config.debug is True
+        assert config.verbose is True
+        assert config.profile == "test"

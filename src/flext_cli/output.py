@@ -49,15 +49,15 @@ class FlextCliOutput(FlextService[str]):
     def format_data(
         self,
         data: object,
-        format_type: str = "table",
+        format_type: str = FlextCliConstants.OutputFormats.TABLE.value,
         title: str | None = None,
         headers: list[str] | None = None,
     ) -> FlextResult[str]:
-        """Format data using specified format type.
+        """Format data using specified format type from FlextCliConstants.
 
         Args:
             data: Data to format
-            format_type: Format type (table, json, yaml, csv, plain)
+            format_type: Format type from FlextCliConstants.OutputFormats
             title: Optional title for table format
             headers: Optional headers for table format
 
@@ -65,24 +65,22 @@ class FlextCliOutput(FlextService[str]):
             FlextResult[str]: Formatted data string or error
 
         """
-        match format_type.lower():
-            case "json":
-                return self.format_json(data)
-            case "yaml":
-                return self.format_yaml(data)
-            case "table":
-                # Convert object to appropriate type for format_table
-                if isinstance(data, (dict, list)):
-                    return self.format_table(data, title=title, headers=headers)
-                return FlextResult[str].fail(
-                    "Table format requires dict or list of dicts"
-                )
-            case "csv":
-                return self.format_csv(data)
-            case "plain":
-                return FlextResult[str].ok(str(data))
-            case _:
-                return FlextResult[str].fail(f"Unsupported format type: {format_type}")
+        format_lower = format_type.lower()
+
+        if format_lower == FlextCliConstants.OutputFormats.JSON.value:
+            return self.format_json(data)
+        if format_lower == FlextCliConstants.OutputFormats.YAML.value:
+            return self.format_yaml(data)
+        if format_lower == FlextCliConstants.OutputFormats.TABLE.value:
+            # Convert object to appropriate type for format_table
+            if isinstance(data, (dict, list)):
+                return self.format_table(data, title=title, headers=headers)
+            return FlextResult[str].fail("Table format requires dict or list of dicts")
+        if format_lower == FlextCliConstants.OutputFormats.CSV.value:
+            return self.format_csv(data)
+        if format_lower == FlextCliConstants.OutputFormats.PLAIN.value:
+            return FlextResult[str].ok(str(data))
+        return FlextResult[str].fail(f"Unsupported format type: {format_type}")
 
     def create_formatter(self, format_type: str) -> FlextResult[object]:
         """Create a formatter instance for the specified format type.
@@ -95,9 +93,8 @@ class FlextCliOutput(FlextService[str]):
 
         """
         try:
-            # Validate format type is supported
-            supported_formats = ["json", "yaml", "table", "csv", "plain"]
-            if format_type.lower() not in supported_formats:
+            # Validate format type is supported using constants
+            if format_type.lower() not in FlextCliConstants.OUTPUT_FORMATS_LIST:
                 return FlextResult[object].fail(
                     f"Unsupported format type: {format_type}"
                 )
@@ -367,7 +364,7 @@ class FlextCliOutput(FlextService[str]):
                     if not isinstance(data, list)
                     else cast(
                         "list[dict[str, str | int | float | bool | None] | None]", data
-                    )  # type: ignore[assignment]
+                    )
                 )
                 default_headers = (
                     list(table_data[0].keys())

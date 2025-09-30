@@ -10,6 +10,8 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
+from typing import cast
+
 import click
 
 from flext_cli.constants import FlextCliConstants
@@ -20,6 +22,7 @@ from flext_core import (
     FlextLogger,
     FlextResult,
     FlextService,
+    FlextTypes,
     FlextUtilities,
 )
 
@@ -189,7 +192,10 @@ class FlextCli(FlextService[FlextCliTypes.Data.CliDataDict]):
                     if isinstance(commands_available_value, int):
                         app_info["commands_available"] = commands_available_value
                     # Store service_data as object to satisfy type checker
-                    app_info["service_info"] = service_data  # type: ignore[assignment]
+                    app_info["service_info"] = cast(
+                        "FlextTypes.Core.JsonValue",
+                        service_data,
+                    )
 
             return FlextResult[FlextCliTypes.Data.CliDataDict].ok(app_info)
 

@@ -275,9 +275,8 @@ class FlextCliConfig(FlextConfig):
         }
 
     def validate_output_format_result(self, value: str) -> FlextResult[str]:
-        """Validate output format and return FlextResult."""
-        valid_formats = ["json", "yaml", "csv", "table", "plain"]
-        if value not in valid_formats:
+        """Validate output format using FlextCliConstants and return FlextResult."""
+        if value not in FlextCliConstants.OUTPUT_FORMATS_LIST:
             return FlextResult[str].fail(f"Invalid output format: {value}")
         return FlextResult[str].ok(value)
 
