@@ -780,9 +780,7 @@ class TestFlextCliExceptionsSubclasses:
 
     def test_base_error_get_context_value(self) -> None:
         """Test BaseError get_context_value method."""
-        error = FlextCliExceptions.BaseError(
-            "Test error", key1="value1", key2="value2"
-        )
+        error = FlextCliExceptions.BaseError("Test error", key1="value1", key2="value2")
         assert error.get_context_value("key1") == "value1"
         assert error.get_context_value("key2") == "value2"
         assert error.get_context_value("nonexistent", "default") == "default"

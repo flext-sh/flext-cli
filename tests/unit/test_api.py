@@ -9,7 +9,6 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-import asyncio
 import json
 import threading
 from pathlib import Path
@@ -66,22 +65,21 @@ class TestFlextCliApi:
         assert "service" in data
         assert data["service"] == "flext-cli-api"
 
-    def test_api_service_execute_async_method(self, api_service: FlextCliApi) -> None:
+    @pytest.mark.asyncio
+    async def test_api_service_execute_async_method(
+        self, api_service: FlextCliApi
+    ) -> None:
         """Test API service async execute method."""
+        result = await api_service.execute_async()
 
-        async def run_test() -> None:
-            result = await api_service.execute_async()
+        assert isinstance(result, FlextResult)
+        assert result.is_success
 
-            assert isinstance(result, FlextResult)
-            assert result.is_success
-
-            data = result.unwrap()
-            assert isinstance(data, dict)
-            assert "status" in data
-            assert "service" in data
-            assert data["service"] == "flext-cli-api"
-
-        asyncio.run(run_test())
+        data = result.unwrap()
+        assert isinstance(data, dict)
+        assert "status" in data
+        assert "service" in data
+        assert data["service"] == "flext-cli-api"
 
     # ========================================================================
     # OUTPUT FORMATTING AND DISPLAY

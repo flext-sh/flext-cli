@@ -9,7 +9,6 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-import asyncio
 import json
 import threading
 from pathlib import Path
@@ -59,24 +58,21 @@ class TestFlextCliAuth:
         assert "message" in data
         assert data["status"] == "operational"
 
-    def test_auth_service_execute_async_method(
+    @pytest.mark.asyncio
+    async def test_auth_service_execute_async_method(
         self, auth_service: FlextCliAuth
     ) -> None:
         """Test auth service async execute method."""
+        result = await auth_service.execute_async()
 
-        async def run_test() -> None:
-            result = await auth_service.execute_async()
+        assert isinstance(result, FlextResult)
+        assert result.is_success
 
-            assert isinstance(result, FlextResult)
-            assert result.is_success
-
-            data = result.unwrap()
-            assert isinstance(data, dict)
-            assert "status" in data
-            assert "service" in data
-            assert data["status"] == "operational"
-
-        asyncio.run(run_test())
+        data = result.unwrap()
+        assert isinstance(data, dict)
+        assert "status" in data
+        assert "service" in data
+        assert data["status"] == "operational"
 
     # ========================================================================
     # TOKEN MANAGEMENT

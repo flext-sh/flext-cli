@@ -261,7 +261,7 @@ class TestFlextCliProcessors:
             name="test_command",
             command_line="flext test",
             description="Test command",
-            status="pending"
+            status="pending",
         )
 
         result = command_processor.process_command(command)
@@ -278,14 +278,12 @@ class TestFlextCliProcessors:
     ) -> None:
         """Test SessionProcessor process_session() method."""
         session_processor = processors.SessionProcessor()
-        
+
         # Create a valid session
         session = FlextCliModels.CliSession(
-            session_id="test-session-001",
-            user="test_user",
-            status="active"
+            session_id="test-session-001", user="test_user", status="active"
         )
-        
+
         result = session_processor.process_session(session)
         assert result.is_success
         processed_session = result.unwrap()
@@ -300,15 +298,16 @@ class TestFlextCliProcessors:
     ) -> None:
         """Test DataProcessor process_data() method with actual data processing."""
         data_processor = processors.DataProcessor()
-        
+
         test_data: FlextCliTypes.Data.CliDataDict = {
             "key1": "value1",
             "key2": "value2",
-            "timestamp": "2025-01-08T00:00:00Z"
+            "timestamp": "2025-01-08T00:00:00Z",
         }
-        
+
         result = data_processor.process_data(test_data)
         assert result.is_success
         processed_data = result.unwrap()
+        assert isinstance(processed_data, dict)
         assert "key1" in processed_data
         assert processed_data["key1"] == "value1"

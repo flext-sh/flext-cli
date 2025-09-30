@@ -302,7 +302,9 @@ class TestFlextCliHandlers:
         assert data["status"] == "operational"
         assert data["service"] == "flext-cli-handlers"
         assert "handlers_available" in data
-        assert len(data["handlers_available"]) == 5
+        handlers_available = data["handlers_available"]
+        assert isinstance(handlers_available, (list, tuple))
+        assert len(handlers_available) == 5
 
     @pytest.mark.asyncio
     async def test_handlers_execute_async(self, handlers: FlextCliHandlers) -> None:
@@ -313,4 +315,6 @@ class TestFlextCliHandlers:
         assert data["status"] == "operational"
         assert data["service"] == "flext-cli-handlers"
         assert "handlers_available" in data
-        assert len(data["handlers_available"]) == 5
+        handlers_available = data["handlers_available"]
+        assert isinstance(handlers_available, (list, tuple))
+        assert len(handlers_available) == 5

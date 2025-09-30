@@ -9,7 +9,6 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-import asyncio
 import time
 
 import pytest
@@ -45,17 +44,13 @@ class TestFlextCliDebug:
         assert result.is_success
         assert isinstance(result.unwrap(), str)
 
-    def test_debug_execute_async(self, debug: FlextCliDebug) -> None:
+    async def test_debug_execute_async(self, debug: FlextCliDebug) -> None:
         """Test debug async execute method."""
+        result = await debug.execute_async()
 
-        async def run_test() -> None:
-            result = await debug.execute_async()
-
-            assert isinstance(result, FlextResult)
-            assert result.is_success
-            assert isinstance(result.unwrap(), str)
-
-        asyncio.run(run_test())
+        assert isinstance(result, FlextResult)
+        assert result.is_success
+        assert isinstance(result.unwrap(), str)
 
     def test_debug_validate_config(self, debug: FlextCliDebug) -> None:
         """Test debug config validation."""

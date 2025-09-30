@@ -9,7 +9,6 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-import asyncio
 import json
 import tempfile
 from collections.abc import Generator
@@ -266,14 +265,8 @@ def flext_cli_utilities() -> FlextCliUtilities:
 # ASYNC TEST SUPPORT
 # ============================================================================
 
-
-@pytest.fixture
-def event_loop() -> Generator[asyncio.AbstractEventLoop]:
-    """Create event loop for async tests."""
-    loop = asyncio.new_event_loop()
-    asyncio.set_event_loop(loop)
-    yield loop
-    loop.close()
+# Note: pytest-asyncio provides automatic event_loop fixture
+# No custom event_loop fixture needed
 
 
 @pytest.fixture
@@ -359,7 +352,7 @@ def fixture_data_csv() -> Path:
 def load_fixture_config() -> dict[str, Any]:
     """Load configuration data from fixtures directory."""
     fixture_path = Path("tests/fixtures/configs/test_config.json")
-    with fixture_path.open() as f:
+    with fixture_path.open(encoding="utf-8") as f:
         return json.load(f)
 
 
@@ -367,7 +360,7 @@ def load_fixture_config() -> dict[str, Any]:
 def load_fixture_data() -> dict[str, Any]:
     """Load test data from fixtures directory."""
     fixture_path = Path("tests/fixtures/data/test_data.json")
-    with fixture_path.open() as f:
+    with fixture_path.open(encoding="utf-8") as f:
         return json.load(f)
 
 
@@ -436,7 +429,6 @@ def pytest_configure(config: pytest.Config) -> None:
     config.addinivalue_line("markers", "unit: marks tests as unit tests")
     config.addinivalue_line("markers", "slow: marks tests as slow running")
     config.addinivalue_line("markers", "docker: marks tests that require Docker")
-    config.addinivalue_line("markers", "async: marks tests as async tests")
     config.addinivalue_line(
         "markers", "real_functionality: marks tests that test real functionality"
     )
@@ -457,8 +449,7 @@ def pytest_collection_modifyitems(
             item.add_marker(pytest.mark.unit)
 
         # Add markers based on test names
-        if "async" in item.name:
-            item.add_marker(pytest.mark.asyncio)
+        # Note: pytest-asyncio auto-detects async functions, no need to mark manually
         if "docker" in item.name:
             item.add_marker(pytest.mark.docker)
         if "slow" in item.name:

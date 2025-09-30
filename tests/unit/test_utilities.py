@@ -905,6 +905,7 @@ class TestFlextCliUtilities:
         assert isinstance(result, FlextResult)
         assert result.is_success
         validated_model = result.unwrap()
+        assert isinstance(validated_model, TestModel)
         assert validated_model.name == "Test"
         assert validated_model.age == 25
 
@@ -916,12 +917,14 @@ class TestFlextCliUtilities:
 
     def test_validate_data(self, utilities: FlextCliUtilities) -> None:
         """Test data validation with schema."""
-        # Create a validation schema
-        schema = {"type": str, "required": True}
+
+        # Create a validation schema using callable
+        def schema_validator(data: dict[str, int | float | str] | None) -> bool:
+            return data is not None and "type" in data
 
         # Valid data
-        valid_data = {"type": "test"}
-        result = utilities.validate_data(valid_data, schema)
+        valid_data: dict[str, int | float | str] = {"type": "test"}
+        result = utilities.validate_data(valid_data, schema_validator)
         assert isinstance(result, FlextResult)
         # The method may return success or failure based on implementation
         # Just verify it returns a FlextResult
@@ -948,7 +951,7 @@ class TestFlextCliUtilities:
         self, utilities: FlextCliUtilities
     ) -> None:
         """Test stringifying FlextResult as JSON."""
-        test_result = FlextResult[dict].ok({"data": "test"})
+        test_result = FlextResult[object].ok({"data": "test"})
         result = utilities.safe_json_stringify_flext_result(test_result)
         assert isinstance(result, str)
         assert "data" in result

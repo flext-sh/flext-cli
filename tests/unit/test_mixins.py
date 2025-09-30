@@ -212,9 +212,7 @@ class TestFlextCliMixinsValidation:
 
     def test_validate_output_format_failure_invalid(self) -> None:
         """Test validate_output_format with invalid format."""
-        result = FlextCliMixins.ValidationMixin.validate_output_format(
-            "invalid_format"
-        )
+        result = FlextCliMixins.ValidationMixin.validate_output_format("invalid_format")
         assert result.is_failure
         assert result.error is not None
         assert "invalid" in result.error.lower()
