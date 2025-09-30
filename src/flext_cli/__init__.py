@@ -24,7 +24,7 @@ from flext_cli.containers import FlextCliContainers
 from flext_cli.context import FlextCliContext
 from flext_cli.core import FlextCliService
 from flext_cli.debug import FlextCliDebug
-from flext_cli.exceptions import FlextCliError, FlextCliExceptions
+from flext_cli.exceptions import FlextCliExceptions
 from flext_cli.file_tools import FlextCliFileTools
 from flext_cli.handlers import FlextCliHandlers
 from flext_cli.logging_setup import FlextCliLoggingSetup
@@ -48,7 +48,6 @@ __all__ = [
     "FlextCliContainers",
     "FlextCliContext",
     "FlextCliDebug",
-    "FlextCliError",
     "FlextCliExceptions",
     "FlextCliFileTools",
     "FlextCliHandlers",

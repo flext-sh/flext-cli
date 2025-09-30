@@ -5,7 +5,7 @@ from __future__ import annotations
 import csv
 import json
 from io import StringIO
-from typing import override
+from typing import cast, override
 
 import yaml
 from rich.console import Console
@@ -362,7 +362,13 @@ class FlextCliOutput(FlextService[str]):
                 default_headers = ["Key", "Value"]
             else:
                 # Validate data is a list before processing
-                table_data = [] if not isinstance(data, list) else data  # type: ignore[assignment]
+                table_data = (
+                    []
+                    if not isinstance(data, list)
+                    else cast(
+                        "list[dict[str, str | int | float | bool | None] | None]", data
+                    )  # type: ignore[assignment]
+                )
                 default_headers = (
                     list(table_data[0].keys())
                     if table_data and table_data[0] is not None

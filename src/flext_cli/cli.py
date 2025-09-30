@@ -12,6 +12,7 @@ from __future__ import annotations
 
 import click
 
+from flext_cli.constants import FlextCliConstants
 from flext_cli.core import FlextCliService
 from flext_cli.typings import FlextCliTypes
 from flext_core import (
@@ -34,7 +35,7 @@ class FlextCli(FlextService[FlextCliTypes.Data.CliDataDict]):
     def __init__(
         self,
         name: str = "flext-cli",
-        version: str = "0.9.0",
+        version: str = "2.0.0",
         description: str = "FLEXT CLI Application",
         **data: object,
     ) -> None:
@@ -144,8 +145,17 @@ class FlextCli(FlextService[FlextCliTypes.Data.CliDataDict]):
             "cli_name": self._name,
             "version": self._version,
             "description": self._description,
-            "status": "ready",
+            "status": FlextCliConstants.OPERATIONAL,
+            "service": FlextCliConstants.FLEXT_CLI,
             "timestamp": FlextUtilities.Generators.generate_timestamp(),
+            "components": {
+                "api": "available",
+                "auth": "available",
+                "config": "available",
+                "debug": "available",
+                "formatters": "available",
+                "main": "available",
+            },
         })
 
     def get_application_info(self) -> FlextResult[FlextCliTypes.Data.CliDataDict]:
@@ -199,9 +209,18 @@ class FlextCli(FlextService[FlextCliTypes.Data.CliDataDict]):
             "cli_name": self._name,
             "version": self._version,
             "description": self._description,
+            "status": FlextCliConstants.OPERATIONAL,
+            "service": FlextCliConstants.FLEXT_CLI,
             "async_execution": True,
-            "status": "async_ready",
             "timestamp": FlextUtilities.Generators.generate_timestamp(),
+            "components": {
+                "api": "available",
+                "auth": "available",
+                "config": "available",
+                "debug": "available",
+                "formatters": "available",
+                "main": "available",
+            },
         })
 
 

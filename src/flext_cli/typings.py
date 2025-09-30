@@ -57,6 +57,8 @@ class FlextCliTypes(FlextTypes):
         CommandContext = dict[str, FlextTypes.Core.JsonValue]
         CommandResult = dict[str, object]
         CommandMetadata = dict[str, str | int | list[str]]
+        CommandArgs = list[str]
+        CommandNames = list[str]
 
     class CliCommandResult:
         """CLI command result type definitions."""
@@ -78,8 +80,11 @@ class FlextCliTypes(FlextTypes):
         EnvironmentConfig = dict[
             str, FlextTypes.Core.ConfigValue | dict[str, FlextTypes.Core.ConfigValue]
         ]
-        SessionConfiguration = dict[str, FlextTypes.Core.JsonValue | bool]
+        SessionConfiguration = dict[
+            str, str | int | float | bool | list[object] | dict[str, object] | None
+        ]
         AuthenticationConfig = dict[str, str | int | bool | list[str]]
+        LogConfig = dict[str, str | None]
 
     # =========================================================================
     # CLI OUTPUT TYPES - Complex output formatting types
@@ -108,7 +113,9 @@ class FlextCliTypes(FlextTypes):
         WorkflowConfiguration = dict[
             str, FlextTypes.Processing.ProcessingStatus | FlextTypes.Core.JsonValue
         ]
-        TaskConfiguration = dict[str, FlextTypes.Core.JsonValue | bool]
+        TaskConfiguration = dict[
+            str, str | int | float | bool | list[object] | dict[str, object] | None
+        ]
 
     # =========================================================================
     # CLI DATA TYPES - Complex data processing types
@@ -122,17 +129,63 @@ class FlextCliTypes(FlextTypes):
         PyArrowWriteTableKwargs = dict[str, str | int | bool | object]
         CliDataDict = dict[str, FlextTypes.Core.JsonValue]
         CliCommandData = dict[str, FlextTypes.Core.JsonValue]
-        CliCommandResult = dict[str, FlextTypes.Core.JsonValue | bool]
+        CliCommandResult = dict[
+            str, str | int | float | bool | list[object] | dict[str, object] | None
+        ]
         CliCommandArgs = dict[str, FlextTypes.Core.JsonValue]
         CliFormatData = dict[str, FlextTypes.Core.JsonValue]
         CliConfigData = dict[str, FlextTypes.Core.JsonValue]
         AuthConfigData = dict[str, str | int | bool]
-        DebugInfoData = dict[str, FlextTypes.Core.JsonValue | bool]
+        DebugInfoData = dict[
+            str,
+            str
+            | int
+            | float
+            | bool
+            | list[object]
+            | dict[str, object]
+            | list[str]
+            | dict
+            | None,
+        ]
+        ErrorList = list[str]
+        FileList = list[str]
+        CsvData = list[dict[str, str]]
+        ConnectivityInfo = dict[str, str]
+        TableHeaders = list[str]
+        TableRows = list[list[str]]
+        PathInfoList = list[dict[str, FlextTypes.Core.JsonValue]]
 
     class PandasTypes:
         """Pandas-specific type definitions for CLI data processing."""
 
         PandasToCsvKwargs = dict[str, str | int | bool | object]
+
+    # =========================================================================
+    # CLI AUTH TYPES - Authentication and authorization types
+    # =========================================================================
+
+    class Auth:
+        """CLI authentication complex types."""
+
+        PermissionList = list[str]
+        RoleList = list[str]
+        SessionData = dict[str, str | int | bool]
+        CredentialsData = dict[str, FlextTypes.Core.JsonValue]
+        UserData = dict[str, FlextTypes.Core.JsonValue]
+        AuthResult = dict[str, FlextTypes.Core.JsonValue]
+        UserList = list[dict[str, FlextTypes.Core.JsonValue]]
+
+    # =========================================================================
+    # CLI HTTP TYPES - HTTP-related types
+    # =========================================================================
+
+    class Http:
+        """CLI HTTP complex types."""
+
+        Headers = dict[str, str]
+        ResponseData = dict[str, object]
+        RequestData = dict[str, object]
 
     # =========================================================================
     # CLI PROJECT TYPES - Domain-specific project types extending FlextTypes

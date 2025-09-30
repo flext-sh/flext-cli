@@ -189,7 +189,7 @@ class FlextCliHandlers:
         @override
         def __init__(self, debug_data: FlextCliTypes.Data.DebugInfoData) -> None:
             """Initialize debug handler with debug data."""
-            self._debug_data = debug_data
+            self._debug_data: FlextCliTypes.Data.DebugInfoData = debug_data
 
         def get_debug_info(
             self,

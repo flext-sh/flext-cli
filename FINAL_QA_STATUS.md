@@ -54,7 +54,7 @@
 
 ### ⚠️ 1 Test Failure
 
-**File**: `tests/test_exceptions.py::TestFlextCliErrorFactoryMethods::test_configuration_error_creation`
+**File**: `tests/test_exceptions.py::TestFlextCliExceptions.FlextCliErrorFactoryMethods::test_configuration_error_creation`
 **Issue**: Error code mismatch
 
 - **Expected**: `CLI_CONFIGURATION_ERROR`

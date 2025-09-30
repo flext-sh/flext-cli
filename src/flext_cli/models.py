@@ -1837,7 +1837,7 @@ class FlextCliModels(FlextModels):
         def execute_with_registry(
             self,
             service_type: str,
-            **kwargs: FlextCliTypes.Data.CliDataDict | None,
+            **_kwargs: FlextCliTypes.Data.CliDataDict | None,
         ) -> FlextResult[FlextCliTypes.Data.CliDataDict | None]:
             """Execute service using FlextRegistry service discovery.
 
@@ -1858,13 +1858,7 @@ class FlextCliModels(FlextModels):
                 # Use service_type for service discovery
                 self._logger.debug(f"Discovering service type: {service_type}")
 
-                # Mock service discovery (registry doesn't have discover_service method)
-                discovery_result = FlextResult[None].ok(None)
-
-                # Execute discovered service
-                service = discovery_result.value
-                if service is not None and hasattr(service, "execute"):
-                    return service.execute(**kwargs)
+                # Service discovery not available in current registry implementation
                 return FlextResult[FlextCliTypes.Data.CliDataDict | None].fail(
                     f"Service of type '{service_type}' does not have execute method or is None"
                 )
@@ -1892,18 +1886,11 @@ class FlextCliModels(FlextModels):
                 )
 
             try:
-                # Start execution context (mock implementation)
-                # self.context.start_execution()  # Method not available
-
-                # Execute operation
+                # Execute operation using railway pattern
                 return self._execute_operation(operation, **kwargs)
 
-                # Execution context completed
-
             except Exception as e:
-                # Context error handling (mock implementation)
-                # if self.context:
-                #     self.context.fail_execution(operation, str(e))  # Method not available
+                # Return failure result with error details
                 return FlextResult[FlextCliTypes.Data.CliDataDict | None].fail(
                     f"Operation execution failed: {e}"
                 )

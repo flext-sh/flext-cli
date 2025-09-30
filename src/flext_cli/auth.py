@@ -21,6 +21,7 @@ from typing import ClassVar, override
 
 from flext_cli.config import FlextCliConfig
 from flext_cli.constants import FlextCliConstants
+from flext_cli.typings import FlextCliTypes
 from flext_core import (
     FlextContainer,
     FlextLogger,
@@ -30,7 +31,7 @@ from flext_core import (
 )
 
 
-class FlextCliAuth(FlextService[dict[str, object]]):
+class FlextCliAuth(FlextService[FlextCliTypes.Auth.AuthResult]):
     """Authentication tools for CLI apps.
 
     Implements FlextCliProtocols.CliAuthenticator through structural subtyping.
@@ -42,7 +43,7 @@ class FlextCliAuth(FlextService[dict[str, object]]):
     # Simple in-memory store for testing purposes
     _deleted_users: ClassVar[set[str]] = set()
     _valid_tokens: ClassVar[set[str]] = set()
-    _users: ClassVar[dict[str, dict[str, object]]] = {}
+    _users: ClassVar[dict[str, FlextCliTypes.Auth.UserData]] = {}
     _valid_sessions: ClassVar[set[str]] = set()
     _session_permissions: ClassVar[dict[str, set[str]]] = {}
 
@@ -136,15 +137,15 @@ class FlextCliAuth(FlextService[dict[str, object]]):
                 return FlextResult[str].fail(f"Failed to load token: {e}")
 
     @override
-    def execute(self) -> FlextResult[dict[str, object]]:
+    def execute(self) -> FlextResult[FlextCliTypes.Auth.AuthResult]:
         """Execute authentication service - required by FlextService."""
         status_result = self.get_auth_status()
         if status_result.is_failure:
-            return FlextResult[dict[str, object]].fail(
+            return FlextResult[FlextCliTypes.Auth.AuthResult].fail(
                 f"Auth status check failed: {status_result.error}"
             )
 
-        return FlextResult[dict[str, object]].ok({
+        return FlextResult[FlextCliTypes.Auth.AuthResult].ok({
             "status": FlextCliConstants.OPERATIONAL,
             "message": "FlextCliAuth service operational",
         })
@@ -204,11 +205,11 @@ class FlextCliAuth(FlextService[dict[str, object]]):
 
         return FlextResult[None].ok(None)
 
-    def get_auth_status(self) -> FlextResult[dict[str, object]]:
+    def get_auth_status(self) -> FlextResult[FlextCliTypes.Auth.AuthResult]:
         """Get current authentication status information."""
         paths_result = self._AuthHelper.get_token_paths(self._config)
         if paths_result.is_failure:
-            return FlextResult[dict[str, object]].fail(
+            return FlextResult[FlextCliTypes.Auth.AuthResult].fail(
                 f"Token paths failed: {paths_result.error}"
             )
 
@@ -224,9 +225,11 @@ class FlextCliAuth(FlextService[dict[str, object]]):
             "timestamp": FlextUtilities.Correlation.generate_iso_timestamp(),
         }
 
-        return FlextResult[dict[str, object]].ok(dict(status))
+        return FlextResult[FlextCliTypes.Auth.AuthResult].ok(dict(status))
 
-    def authenticate(self, credentials: dict[str, object]) -> FlextResult[str]:
+    def authenticate(
+        self, credentials: FlextCliTypes.Auth.CredentialsData
+    ) -> FlextResult[str]:
         """Authenticate user with provided credentials using advanced patterns.
 
         Args:
@@ -248,7 +251,7 @@ class FlextCliAuth(FlextService[dict[str, object]]):
         )
 
     def _authenticate_with_token(
-        self, credentials: dict[str, object]
+        self, credentials: FlextCliTypes.Auth.CredentialsData
     ) -> FlextResult[str]:
         """Authenticate using token with monadic composition."""
         token = str(credentials["token"])
@@ -264,7 +267,7 @@ class FlextCliAuth(FlextService[dict[str, object]]):
         return FlextResult[str].ok(token)
 
     def _authenticate_with_credentials(
-        self, credentials: dict[str, object]
+        self, credentials: FlextCliTypes.Auth.CredentialsData
     ) -> FlextResult[str]:
         """Authenticate using username/password with advanced composition."""
         username = str(credentials["username"])
@@ -293,11 +296,14 @@ class FlextCliAuth(FlextService[dict[str, object]]):
             FlextResult[str]: Authentication token or error message
 
         """
-        credentials: dict[str, object] = {"username": username, "password": password}
+        credentials: FlextCliTypes.Auth.CredentialsData = {
+            "username": username,
+            "password": password,
+        }
         return self.authenticate(credentials)
 
     def store_credentials(
-        self, file_path: str, credentials: dict[str, object]
+        self, file_path: str, credentials: FlextCliTypes.Auth.CredentialsData
     ) -> FlextResult[bool]:
         """Store credentials to file.
 
@@ -379,9 +385,9 @@ class FlextCliAuth(FlextService[dict[str, object]]):
         except Exception as e:
             return FlextResult[str].fail(f"Failed to generate salt: {e}")
 
-    async def execute_async(self) -> FlextResult[dict[str, object]]:
+    async def execute_async(self) -> FlextResult[FlextCliTypes.Auth.AuthResult]:
         """Execute auth service operation asynchronously."""
-        return FlextResult[dict[str, object]].ok({
+        return FlextResult[FlextCliTypes.Auth.AuthResult].ok({
             "status": FlextCliConstants.OPERATIONAL,
             "service": "flext-cli-auth",
             "timestamp": datetime.now(UTC).isoformat(),
@@ -418,21 +424,23 @@ class FlextCliAuth(FlextService[dict[str, object]]):
             return FlextResult[bool].ok(True)
         return FlextResult[bool].ok(False)
 
-    def load_credentials(self, file_path: str) -> FlextResult[dict[str, object]]:
+    def load_credentials(
+        self, file_path: str
+    ) -> FlextResult[FlextCliTypes.Auth.CredentialsData]:
         """Load credentials from file."""
         try:
             path = Path(file_path)
             if not path.exists():
-                return FlextResult[dict[str, object]].fail(
+                return FlextResult[FlextCliTypes.Auth.CredentialsData].fail(
                     "Credentials file does not exist"
                 )
 
             with path.open("r", encoding="utf-8") as f:
                 credentials = json.load(f)
 
-            return FlextResult[dict[str, object]].ok(credentials)
+            return FlextResult[FlextCliTypes.Auth.CredentialsData].ok(credentials)
         except Exception as e:
-            return FlextResult[dict[str, object]].fail(
+            return FlextResult[FlextCliTypes.Auth.CredentialsData].fail(
                 f"Failed to load credentials: {e}"
             )
 
@@ -452,23 +460,25 @@ class FlextCliAuth(FlextService[dict[str, object]]):
         """Authenticate with username and password."""
         return self.authenticate_user(username, password)
 
-    def authenticate_with_token(self, token: str) -> FlextResult[dict[str, object]]:
+    def authenticate_with_token(
+        self, token: str
+    ) -> FlextResult[FlextCliTypes.Auth.AuthResult]:
         """Authenticate with token."""
         validate_result = self.validate_token(token)
         if validate_result.is_failure:
-            return FlextResult[dict[str, object]].fail(
+            return FlextResult[FlextCliTypes.Auth.AuthResult].fail(
                 f"Token validation failed: {validate_result.error}"
             )
 
         if not validate_result.value:
-            return FlextResult[dict[str, object]].fail("Invalid token")
+            return FlextResult[FlextCliTypes.Auth.AuthResult].fail("Invalid token")
 
-        auth_result: dict[str, object] = {
+        auth_result: FlextCliTypes.Auth.AuthResult = {
             "authenticated": True,
             "token": token,
             "timestamp": datetime.now(UTC).isoformat(),
         }
-        return FlextResult[dict[str, object]].ok(auth_result)
+        return FlextResult[FlextCliTypes.Auth.AuthResult].ok(auth_result)
 
     def authenticate_with_api_key(self, api_key: str) -> FlextResult[str]:
         """Authenticate with API key."""
@@ -490,17 +500,17 @@ class FlextCliAuth(FlextService[dict[str, object]]):
         except Exception as e:
             return FlextResult[str].fail(f"Certificate authentication failed: {e}")
 
-    def create_session(self) -> FlextResult[dict[str, object]]:
+    def create_session(self) -> FlextResult[FlextCliTypes.Auth.AuthResult]:
         """Create a new authentication session."""
         session_id = FlextUtilities.generate_id()[:16]
-        session: dict[str, object] = {
+        session: FlextCliTypes.Auth.AuthResult = {
             "session_id": session_id,
             "created_at": datetime.now(UTC).isoformat(),
             "expires_at": (datetime.now(UTC).timestamp() + 3600),  # 1 hour
             "permissions": [],
         }
         self._valid_sessions.add(session_id)
-        return FlextResult[dict[str, object]].ok(session)
+        return FlextResult[FlextCliTypes.Auth.AuthResult].ok(session)
 
     def validate_session(self, session_id: str) -> FlextResult[bool]:
         """Validate session ID."""
@@ -522,18 +532,22 @@ class FlextCliAuth(FlextService[dict[str, object]]):
             self._valid_sessions.remove(session_id)
         return FlextResult[bool].ok(True)
 
-    def get_session_info(self, session_id: str) -> FlextResult[dict[str, object]]:
+    def get_session_info(
+        self, session_id: str
+    ) -> FlextResult[FlextCliTypes.Auth.AuthResult]:
         """Get session information."""
         if not session_id or not session_id.strip():
-            return FlextResult[dict[str, object]].fail("Session ID cannot be empty")
+            return FlextResult[FlextCliTypes.Auth.AuthResult].fail(
+                "Session ID cannot be empty"
+            )
 
-        session_info: dict[str, object] = {
+        session_info: FlextCliTypes.Auth.AuthResult = {
             "session_id": session_id,
             "created_at": datetime.now(UTC).isoformat(),
             "expires_at": (datetime.now(UTC).timestamp() + 3600),
             "permissions": [],
         }
-        return FlextResult[dict[str, object]].ok(session_info)
+        return FlextResult[FlextCliTypes.Auth.AuthResult].ok(session_info)
 
     def check_permission(self, session_id: str, permission: str) -> FlextResult[bool]:
         """Check if session has permission."""
@@ -576,21 +590,27 @@ class FlextCliAuth(FlextService[dict[str, object]]):
             self._session_permissions[session_id].discard(permission)
         return FlextResult[bool].ok(True)
 
-    def list_permissions(self, session_id: str) -> FlextResult[list[str]]:
+    def list_permissions(
+        self, session_id: str
+    ) -> FlextResult[FlextCliTypes.Auth.PermissionList]:
         """List permissions for session."""
         if not session_id or not session_id.strip():
-            return FlextResult[list[str]].fail("Session ID cannot be empty")
+            return FlextResult[FlextCliTypes.Auth.PermissionList].fail(
+                "Session ID cannot be empty"
+            )
 
         # Return sample permissions - in real implementation, this would query session store
         permissions = ["read", "write"]
-        return FlextResult[list[str]].ok(permissions)
+        return FlextResult[FlextCliTypes.Auth.PermissionList].ok(permissions)
 
     def create_user(
-        self, user_data: dict[str, object]
-    ) -> FlextResult[dict[str, object]]:
+        self, user_data: FlextCliTypes.Auth.UserData
+    ) -> FlextResult[FlextCliTypes.Auth.UserData]:
         """Create a new user."""
         if not user_data:
-            return FlextResult[dict[str, object]].fail("User data cannot be empty")
+            return FlextResult[FlextCliTypes.Auth.UserData].fail(
+                "User data cannot be empty"
+            )
 
         user_id = FlextUtilities.generate_id()[:12]
         user = {
@@ -601,51 +621,57 @@ class FlextCliAuth(FlextService[dict[str, object]]):
             "active": True,
         }
         self._users[user_id] = user
-        return FlextResult[dict[str, object]].ok(user)
+        return FlextResult[FlextCliTypes.Auth.UserData].ok(user)
 
-    def get_user(self, user_id: str) -> FlextResult[dict[str, object]]:
+    def get_user(self, user_id: str) -> FlextResult[FlextCliTypes.Auth.UserData]:
         """Get user information."""
         if not user_id or not user_id.strip():
-            return FlextResult[dict[str, object]].fail("User ID cannot be empty")
+            return FlextResult[FlextCliTypes.Auth.UserData].fail(
+                "User ID cannot be empty"
+            )
 
         # Check if user was deleted
         if user_id in self._deleted_users:
-            return FlextResult[dict[str, object]].fail("User not found")
+            return FlextResult[FlextCliTypes.Auth.UserData].fail("User not found")
 
         # Check if user exists in our store
         if user_id in self._users:
-            return FlextResult[dict[str, object]].ok(self._users[user_id])
+            return FlextResult[FlextCliTypes.Auth.UserData].ok(self._users[user_id])
 
         # Return sample user - in real implementation, this would query user store
-        user: dict[str, object] = {
+        user: FlextCliTypes.Auth.UserData = {
             "user_id": user_id,
             "username": "sample_user",
             "email": "sample@example.com",
             "created_at": datetime.now(UTC).isoformat(),
             "active": True,
         }
-        return FlextResult[dict[str, object]].ok(user)
+        return FlextResult[FlextCliTypes.Auth.UserData].ok(user)
 
     def update_user(
-        self, user_id: str, update_data: dict[str, object]
-    ) -> FlextResult[dict[str, object]]:
+        self, user_id: str, update_data: FlextCliTypes.Auth.UserData
+    ) -> FlextResult[FlextCliTypes.Auth.UserData]:
         """Update user information."""
         if not user_id or not user_id.strip():
-            return FlextResult[dict[str, object]].fail("User ID cannot be empty")
+            return FlextResult[FlextCliTypes.Auth.UserData].fail(
+                "User ID cannot be empty"
+            )
 
         if not update_data:
-            return FlextResult[dict[str, object]].fail("Update data cannot be empty")
+            return FlextResult[FlextCliTypes.Auth.UserData].fail(
+                "Update data cannot be empty"
+            )
 
         # Check if user exists in our store
         if user_id not in self._users:
-            return FlextResult[dict[str, object]].fail("User not found")
+            return FlextResult[FlextCliTypes.Auth.UserData].fail("User not found")
 
         # Update the user in the store
         user = self._users[user_id].copy()
         user.update(update_data)
         self._users[user_id] = user
 
-        return FlextResult[dict[str, object]].ok(user)
+        return FlextResult[FlextCliTypes.Auth.UserData].ok(user)
 
     def delete_user(self, user_id: str) -> FlextResult[bool]:
         """Delete user."""
@@ -656,10 +682,10 @@ class FlextCliAuth(FlextService[dict[str, object]]):
         self._deleted_users.add(user_id)
         return FlextResult[bool].ok(True)
 
-    def list_users(self) -> FlextResult[list[dict[str, object]]]:
+    def list_users(self) -> FlextResult[FlextCliTypes.Auth.UserList]:
         """List all users."""
         # Return sample users - in real implementation, this would query user store
-        users: list[dict[str, object]] = [
+        users: FlextCliTypes.Auth.UserList = [
             {
                 "user_id": FlextCliConstants.USER1,
                 "username": "user1",
@@ -675,7 +701,7 @@ class FlextCliAuth(FlextService[dict[str, object]]):
                 "active": True,
             },
         ]
-        return FlextResult[list[dict[str, object]]].ok(users)
+        return FlextResult[FlextCliTypes.Auth.UserList].ok(users)
 
     def verify_password(self, password: str, hashed_password: str) -> FlextResult[bool]:
         """Verify password against hash."""

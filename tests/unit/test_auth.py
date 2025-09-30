@@ -159,7 +159,7 @@ class TestFlextCliAuth:
     ) -> None:
         """Test credential storage functionality."""
         credentials_file = temp_dir / "credentials.json"
-        test_credentials: dict[str, object] = {
+        test_credentials = {
             "username": "test_user",
             "password": "test_password",
             "api_key": "test_api_key",

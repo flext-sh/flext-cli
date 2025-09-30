@@ -134,29 +134,25 @@ class FlextCliExceptions(FlextExceptions):
 
 # Expose exception classes directly on the main class for centralized access
 # Using setattr to avoid pyright issues with dynamic attribute assignment
-setattr(FlextCliExceptions, "CommandError", FlextCliExceptions._CommandError)
-setattr(FlextCliExceptions, "FormatError", FlextCliExceptions._FormatError)
+setattr(FlextCliExceptions, "BaseError", FlextCliExceptions._BaseError)
+setattr(
+    FlextCliExceptions, "FlextCliError", FlextCliExceptions._BaseError
+)  # Alias for backwards compatibility
+setattr(FlextCliExceptions, "ValidationError", FlextCliExceptions._CliValidationError)
 setattr(
     FlextCliExceptions, "ConfigurationError", FlextCliExceptions._CliConfigurationError
 )
-setattr(
-    FlextCliExceptions, "CliConnectionError", FlextCliExceptions._CliConnectionError
-)
-setattr(FlextCliExceptions, "CliTimeoutError", FlextCliExceptions._CliTimeoutError)
-setattr(FlextCliExceptions, "ValidationError", FlextCliExceptions._CliValidationError)
+setattr(FlextCliExceptions, "ConnectionError", FlextCliExceptions._CliConnectionError)
 setattr(
     FlextCliExceptions,
     "AuthenticationError",
     FlextCliExceptions._CliAuthenticationError,
 )
-
-# Direct exception access without aliases
-FlextCliError = FlextCliExceptions._BaseError
-CommandError = FlextCliExceptions._CommandError
+setattr(FlextCliExceptions, "CommandError", FlextCliExceptions._CommandError)
+setattr(FlextCliExceptions, "TimeoutError", FlextCliExceptions._CliTimeoutError)
+setattr(FlextCliExceptions, "FormatError", FlextCliExceptions._FormatError)
 
 
 __all__ = [
-    "CommandError",
-    "FlextCliError",
     "FlextCliExceptions",
 ]

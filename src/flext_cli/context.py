@@ -58,6 +58,10 @@ class FlextCliContext(FlextModels.Entity):
         self._is_active = False
         self._created_at = FlextUtilities.Generators.generate_timestamp()
 
+        # Initialize required attributes for tests
+        self._timeout_seconds = 30
+        self._config: FlextCliTypes.Data.CliConfigData = {}
+
     @property
     def command(self) -> str | None:
         """Get current command being executed.

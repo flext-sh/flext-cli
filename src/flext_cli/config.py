@@ -13,6 +13,7 @@ from __future__ import annotations
 import json
 from datetime import UTC, datetime
 from pathlib import Path
+from typing import cast
 
 import yaml
 from pydantic import (
@@ -24,6 +25,7 @@ from pydantic import (
 from pydantic_settings import SettingsConfigDict
 
 from flext_cli.constants import FlextCliConstants
+from flext_cli.typings import FlextCliTypes
 from flext_core import (
     FlextConfig,
     FlextResult,
@@ -235,7 +237,7 @@ class FlextCliConfig(FlextConfig):
         return self
 
     # CLI-specific methods
-    def get_cli_context(self) -> dict[str, object]:
+    def get_cli_context(self) -> FlextCliTypes.Data.CliDataDict:
         """Get CLI context for command execution."""
         return {
             "profile": self.profile,
@@ -252,7 +254,7 @@ class FlextCliConfig(FlextConfig):
             "cli_log_verbosity": self.cli_log_verbosity,
         }
 
-    def get_auth_context(self) -> dict[str, object]:
+    def get_auth_context(self) -> FlextCliTypes.Configuration.AuthenticationConfig:
         """Get authentication context (without exposing secrets)."""
         return {
             "api_url": self.api_url,
@@ -262,7 +264,7 @@ class FlextCliConfig(FlextConfig):
             "api_key_configured": self.cli_api_key is not None,
         }
 
-    def get_logging_context(self) -> dict[str, object]:
+    def get_logging_context(self) -> FlextCliTypes.Configuration.LogConfig:
         """Get logging context for centralized logging configuration."""
         return {
             "log_level": self.log_level,
@@ -284,22 +286,29 @@ class FlextCliConfig(FlextConfig):
         cls, environment: str, **overrides: object
     ) -> FlextCliConfig:
         """Create configuration for specific environment using enhanced singleton pattern."""
-        return cls.get_or_create_shared_instance(  # type: ignore[return-value]
-            project_name="flext-cli", environment=environment, **overrides
+        return cast(
+            "FlextCliConfig",
+            cls.get_or_create_shared_instance(
+                project_name="flext-cli", environment=environment, **overrides
+            ),
         )
 
     @classmethod
     def create_default(cls) -> FlextCliConfig:
         """Create default configuration instance using enhanced singleton pattern."""
-        return cls.get_or_create_shared_instance(  # type: ignore[return-value]
-            project_name="flext-cli"
+        return cast(
+            "FlextCliConfig",
+            cls.get_or_create_shared_instance(project_name="flext-cli"),
         )
 
     @classmethod
     def create_for_profile(cls, profile: str, **kwargs: object) -> FlextCliConfig:
         """Create configuration for specific profile using enhanced singleton pattern."""
-        return cls.get_or_create_shared_instance(  # type: ignore[return-value]
-            project_name="flext-cli", profile=profile, **kwargs
+        return cast(
+            "FlextCliConfig",
+            cls.get_or_create_shared_instance(
+                project_name="flext-cli", profile=profile, **kwargs
+            ),
         )
 
     @classmethod
@@ -324,8 +333,11 @@ class FlextCliConfig(FlextConfig):
                 )
 
             # Use enhanced singleton pattern with loaded data
-            config = cls.get_or_create_shared_instance(project_name="flext-cli", **data)
-            return FlextResult[FlextCliConfig].ok(config)  # type: ignore[arg-type]
+            config = cast(
+                "FlextCliConfig",
+                cls.get_or_create_shared_instance(project_name="flext-cli", **data),
+            )
+            return FlextResult[FlextCliConfig].ok(config)
 
         except Exception as e:
             return FlextResult[FlextCliConfig].fail(
@@ -368,9 +380,9 @@ class FlextCliConfig(FlextConfig):
         @staticmethod
         def execute_service_operation(
             config: FlextCliConfig,
-        ) -> FlextResult[dict[str, object]]:
+        ) -> FlextResult[FlextCliTypes.Data.CliDataDict]:
             """Execute config service operation."""
-            return FlextResult[dict[str, object]].ok({
+            return FlextResult[FlextCliTypes.Data.CliDataDict].ok({
                 "status": FlextCliConstants.OPERATIONAL,
                 "service": "flext-cli-config",
                 "timestamp": datetime.now(UTC).isoformat(),
@@ -419,7 +431,7 @@ class FlextCliConfig(FlextConfig):
             except Exception as e:
                 return FlextResult[None].fail(f"Failed to save config: {e}")
 
-    def execute_as_service(self) -> FlextResult[dict[str, object]]:
+    def execute_as_service(self) -> FlextResult[FlextCliTypes.Data.CliDataDict]:
         """Execute config as service operation using nested helper."""
         return self._ConfigServiceHelper.execute_service_operation(self)
 
@@ -432,21 +444,25 @@ class FlextCliConfig(FlextConfig):
         return self._ConfigServiceHelper.save_config_to_file(config_path, self)
 
     # Protocol-compliant methods for CliConfigProvider
-    def load_config(self) -> FlextResult[dict[str, object]]:
+    def load_config(self) -> FlextResult[FlextCliTypes.Data.CliConfigData]:
         """Load CLI configuration - implements CliConfigProvider protocol.
 
         Returns:
-            FlextResult[dict[str, object]]: Configuration data or error
+            FlextResult[FlextCliTypes.Data.CliConfigData]: Configuration data or error
 
         """
         try:
             # Convert model to dictionary format expected by protocol
             config_data = self.model_dump()
-            return FlextResult[dict[str, object]].ok(config_data)
+            return FlextResult[FlextCliTypes.Data.CliConfigData].ok(config_data)
         except Exception as e:
-            return FlextResult[dict[str, object]].fail(f"Config load failed: {e}")
+            return FlextResult[FlextCliTypes.Data.CliConfigData].fail(
+                f"Config load failed: {e}"
+            )
 
-    def save_config(self, config: dict[str, object]) -> FlextResult[None]:
+    def save_config(
+        self, config: FlextCliTypes.Data.CliConfigData
+    ) -> FlextResult[None]:
         """Save CLI configuration - implements CliConfigProvider protocol.
 
         Args:
