@@ -5,7 +5,6 @@ Tests all context functionality with real implementations and comprehensive cove
 
 from __future__ import annotations
 
-import asyncio
 import json
 
 import pytest
@@ -42,16 +41,15 @@ class TestFlextCliContext:
         assert result.is_success
         assert isinstance(result.unwrap(), dict)
 
-    def test_context_execute_async_method(self, context: FlextCliContext) -> None:
+    @pytest.mark.asyncio
+    async def test_context_execute_async_operation(
+        self, context: FlextCliContext
+    ) -> None:
         """Test context async execute method."""
+        result = await context.execute_async()
 
-        async def run_test() -> None:
-            result = await context.execute_async()
-
-            assert isinstance(result, FlextResult)
-            assert result.is_success
-
-        asyncio.run(run_test())
+        assert isinstance(result, FlextResult)
+        assert result.is_success
 
     def test_context_timeout_seconds(self, context: FlextCliContext) -> None:
         """Test context timeout seconds property."""
@@ -158,7 +156,9 @@ class TestFlextCliContext:
         arguments = context.arguments
         assert isinstance(arguments, list)
 
-    def test_context_environment_variables_property(self, context: FlextCliContext) -> None:
+    def test_context_environment_variables_property(
+        self, context: FlextCliContext
+    ) -> None:
         """Test environment_variables property."""
         env_vars = context.environment_variables
         assert isinstance(env_vars, dict)
@@ -190,23 +190,26 @@ class TestFlextCliContext:
         """Test get_environment_variable method."""
         # Set an environment variable first
         context.set_environment_variable("TEST_VAR", "test_value")
-        
+
         # Get the variable
         result = context.get_environment_variable("TEST_VAR")
         assert result.is_success
         assert result.unwrap() == "test_value"
 
-    def test_context_get_environment_variable_not_found(self, context: FlextCliContext) -> None:
+    def test_context_get_environment_variable_not_found(
+        self, context: FlextCliContext
+    ) -> None:
         """Test get_environment_variable with non-existent variable."""
         result = context.get_environment_variable("NON_EXISTENT_VAR")
         assert result.is_failure
+        assert result.error is not None
         assert "not found" in result.error.lower()
 
     def test_context_set_environment_variable(self, context: FlextCliContext) -> None:
         """Test set_environment_variable method."""
         result = context.set_environment_variable("NEW_VAR", "new_value")
         assert result.is_success
-        
+
         # Verify it was set
         get_result = context.get_environment_variable("NEW_VAR")
         assert get_result.is_success
@@ -238,6 +241,7 @@ class TestFlextCliContext:
         """Test remove_argument with non-existent argument."""
         result = context.remove_argument("non_existent_arg")
         assert result.is_failure
+        assert result.error is not None
         assert "not found" in result.error.lower()
 
     def test_context_set_metadata(self, context: FlextCliContext) -> None:
@@ -249,7 +253,7 @@ class TestFlextCliContext:
         """Test get_metadata method."""
         # Set metadata first
         context.set_metadata("meta_key", "meta_value")
-        
+
         # Get it back
         result = context.get_metadata("meta_key")
         assert result.is_success
@@ -259,6 +263,7 @@ class TestFlextCliContext:
         """Test get_metadata with non-existent key."""
         result = context.get_metadata("non_existent_key")
         assert result.is_failure
+        assert result.error is not None
         assert "not found" in result.error.lower()
 
     def test_context_get_context_summary(self, context: FlextCliContext) -> None:

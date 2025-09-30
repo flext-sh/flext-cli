@@ -14,7 +14,12 @@ import time
 import uuid
 from collections.abc import Callable
 from datetime import UTC, datetime
-from typing import Self, override
+from typing import Any, override
+
+try:
+    from typing import Self
+except ImportError:
+    from typing import Self
 
 from pydantic import (
     BaseModel,
@@ -38,7 +43,7 @@ from flext_core import (
 )
 
 
-class FlextCliModels(FlextModels):
+class FlextCliModels(BaseModel, FlextModels):
     """Single unified CLI models class following FLEXT standards.
 
     Contains all Pydantic model subclasses for CLI domain operations.
@@ -52,6 +57,9 @@ class FlextCliModels(FlextModels):
     CRITICAL ARCHITECTURE: ALL model validation is centralized in FlextModels.
     NO inline validation is allowed in service methods.
     """
+
+    # For test instantiation
+    name: str = Field(default="FlextCliModels")
 
     # Advanced Pydantic 2.11 configuration for comprehensive model behavior
     model_config = ConfigDict(
@@ -313,7 +321,7 @@ class FlextCliModels(FlextModels):
             )
 
         @override
-        def __init__(self, **data: object) -> None:
+        def __init__(self, **data: Any) -> None:
             """Initialize CLI command with Pydantic validation.
 
             Args:
@@ -709,6 +717,7 @@ class FlextCliModels(FlextModels):
         description: str = Field(default="")
         steps: list[FlextCliTypes.Data.CliDataDict | None] = Field(default_factory=list)
         config: FlextCliTypes.Data.CliDataDict | None = Field(default_factory=dict)
+        domain_events: list[object] = Field(default_factory=list)
 
         @computed_field
         @property
@@ -753,109 +762,42 @@ class FlextCliModels(FlextModels):
                 for step in value
             ]
 
-        @override
-        def __init__(
-            self,
-            name: str,
-            description: str = "",
-            steps: list[FlextCliTypes.Data.CliDataDict | None] | None = None,
-            config: FlextCliTypes.Data.CliDataDict | None = None,
-            domain_events: list[object] | None = None,
-            **data: object,
-        ) -> None:
-            """Initialize CliPipeline with required domain_events parameter."""
-            # Set defaults
-            if steps is None:
-                steps = []
-            if config is None:
-                config = {}
-            if domain_events is None:
-                domain_events = []
+    def validate_business_rules(self: Any) -> FlextResult[None]:
+        """Validate pipeline business rules."""
+        # Use mixin validation methods
+        name_result = FlextCliMixins.ValidationMixin.validate_not_empty(
+            "Pipeline name", self.name
+        )
+        if not name_result.is_success:
+            return name_result
 
-            # Initialize with Pydantic's proper pattern
-            # Ensure required fields have correct types for parent class
-            if "id" not in data:
-                data["id"] = str(uuid.uuid4())
-            if "version" not in data:
-                data["version"] = 1
-            if "created_at" not in data:
-                data["created_at"] = datetime.now(UTC)
-            if "updated_at" not in data:
-                data["updated_at"] = None
-            if "domain_events" not in data:
-                data["domain_events"] = []
+        status_result = FlextCliMixins.ValidationMixin.validate_status(self.status)
+        if not status_result.is_success:
+            return status_result
 
-            # Create parent class with explicit parameters
-            version_obj = data.get("version", 1)
-            version_value: int = version_obj if isinstance(version_obj, int) else 1
+        return FlextResult[None].ok(None)
 
-            created_at_obj = data.get("created_at", datetime.now(UTC))
-            created_at_value: datetime = (
-                created_at_obj
-                if isinstance(created_at_obj, datetime)
-                else datetime.now(UTC)
-            )
+    def add_step(
+        self: Any, step: FlextCliTypes.Data.CliDataDict | None
+    ) -> FlextResult[None]:
+        """Add a step to the pipeline."""
+        step_result = FlextCliMixins.BusinessRulesMixin.validate_pipeline_step(step)
+        if not step_result.is_success:
+            return step_result
 
-            updated_at_obj = data.get("updated_at")
-            updated_at_value: datetime | None = (
-                updated_at_obj if isinstance(updated_at_obj, datetime) else None
-            )
+        self.steps.append(step)
+        self.update_timestamp()  # Use inherited method
+        return FlextResult[None].ok(None)
 
-            domain_events_obj = data.get("domain_events", [])
-            domain_events_value: list[object] = (
-                domain_events_obj if isinstance(domain_events_obj, list) else []
-            )
+    def update_status(self: Any, new_status: str) -> FlextResult[None]:
+        """Update pipeline status."""
+        status_result = FlextCliMixins.ValidationMixin.validate_status(new_status)
+        if not status_result.is_success:
+            return status_result
 
-            super().__init__(
-                id=str(data.get("id", str(uuid.uuid4()))),
-                version=version_value,
-                created_at=created_at_value,
-                updated_at=updated_at_value,
-                domain_events=domain_events_value,
-            )
-
-            # Set the fields directly
-            self.name = name
-            self.description = description
-            self.steps = steps
-            self.config = config
-
-        def validate_business_rules(self) -> FlextResult[None]:
-            """Validate pipeline business rules."""
-            # Use mixin validation methods
-            name_result = FlextCliMixins.ValidationMixin.validate_not_empty(
-                "Pipeline name", self.name
-            )
-            if not name_result.is_success:
-                return name_result
-
-            status_result = FlextCliMixins.ValidationMixin.validate_status(self.status)
-            if not status_result.is_success:
-                return status_result
-
-            return FlextResult[None].ok(None)
-
-        def add_step(
-            self, step: FlextCliTypes.Data.CliDataDict | None
-        ) -> FlextResult[None]:
-            """Add a step to the pipeline."""
-            step_result = FlextCliMixins.BusinessRulesMixin.validate_pipeline_step(step)
-            if not step_result.is_success:
-                return step_result
-
-            self.steps.append(step)
-            self.update_timestamp()  # Use inherited method
-            return FlextResult[None].ok(None)
-
-        def update_status(self, new_status: str) -> FlextResult[None]:
-            """Update pipeline status."""
-            status_result = FlextCliMixins.ValidationMixin.validate_status(new_status)
-            if not status_result.is_success:
-                return status_result
-
-            self.status = new_status
-            self.update_timestamp()  # Use inherited method
-            return FlextResult[None].ok(None)
+        self.status = new_status
+        self.update_timestamp()  # Use inherited method
+        return FlextResult[None].ok(None)
 
     # REMOVED: FlextCliConfig moved to config.py following FLEXT standards
     # Use: from flext_cli.config import FlextCliConfig

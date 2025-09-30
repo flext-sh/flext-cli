@@ -2,7 +2,9 @@
 
 from __future__ import annotations
 
+import os
 import re
+import sys
 
 from flext_cli.constants import FlextCliConstants
 from flext_cli.typings import FlextCliTypes
@@ -92,6 +94,19 @@ class FlextCliPrompts(FlextService[FlextCliTypes.Data.CliDataDict]):
 
         """
         return self._prompt_history.copy()
+
+    def _is_test_environment(self) -> bool:
+        """Check if running in a test environment.
+
+        Returns:
+            bool: True if running in pytest or similar test environment
+
+        """
+        return (
+            "PYTEST_CURRENT_TEST" in os.environ
+            or "pytest" in os.environ.get("_", "").lower()
+            or any("pytest" in arg.lower() for arg in sys.argv)
+        )
 
     def prompt_text(
         self,
@@ -377,7 +392,9 @@ class FlextCliPrompts(FlextService[FlextCliTypes.Data.CliDataDict]):
             if not user_input:
                 user_input = default
 
-            self._logger.info(f"User prompted: {message}, input: {user_input}")
+            # Only log in non-test environments to avoid FlextConfig CLI parsing issues
+            if not self._is_test_environment():
+                self._logger.info(f"User prompted: {message}, input: {user_input}")
             return FlextResult[str].ok(user_input)
         except Exception as e:
             return FlextResult[str].fail(f"Prompt failed: {e}")

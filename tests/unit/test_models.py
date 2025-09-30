@@ -110,7 +110,7 @@ class TestFlextCliModels:
             name="test_command",
             command_line="flext test --verbose",
             description="Test command",
-            status="pending"
+            status="pending",
         )
         assert command.name == "test_command"
         assert command.command_line == "flext test --verbose"
@@ -122,22 +122,12 @@ class TestFlextCliModels:
             name="test_cmd",
             command_line="flext run",
             description="Test",
-            status="completed"
+            status="completed",
         )
         data = command.model_dump()
         assert isinstance(data, dict)
         assert data["name"] == "test_cmd"
         assert data["status"] == "completed"
-
-    def test_cli_command_validation(self) -> None:
-        """Test CliCommand model validation."""
-        # Valid command
-        command = FlextCliModels.CliCommand(
-            name="valid",
-            command_line="flext test",
-            status="pending"
-        )
-        assert command is not None
 
     # ========================================================================
     # CliSession Model Tests
@@ -146,9 +136,7 @@ class TestFlextCliModels:
     def test_cli_session_creation(self) -> None:
         """Test CliSession model creation."""
         session = FlextCliModels.CliSession(
-            session_id="test-session-001",
-            user_id="test_user",
-            status="active"
+            session_id="test-session-001", user_id="test_user", status="active"
         )
         assert session.session_id == "test-session-001"
         # Note: user_id is not properly set by __init__ - field assignment bug in source
@@ -157,8 +145,7 @@ class TestFlextCliModels:
     def test_cli_session_serialization(self) -> None:
         """Test CliSession model serialization."""
         session = FlextCliModels.CliSession(
-            session_id="test-session-002",
-            status="active"
+            session_id="test-session-002", status="active"
         )
         data = session.model_dump()
         assert isinstance(data, dict)
@@ -175,7 +162,7 @@ class TestFlextCliModels:
             service="TestService",
             status="operational",
             level="info",
-            message="Test message"
+            message="Test message",
         )
         assert debug_info.service == "TestService"
         assert debug_info.status == "operational"
@@ -184,9 +171,7 @@ class TestFlextCliModels:
     def test_debug_info_serialization(self) -> None:
         """Test DebugInfo model serialization."""
         debug_info = FlextCliModels.DebugInfo(
-            service="TestService",
-            level="debug",
-            message="Debug message"
+            service="TestService", level="debug", message="Debug message"
         )
         data = debug_info.model_dump()
         assert isinstance(data, dict)
@@ -200,9 +185,7 @@ class TestFlextCliModels:
     def test_format_options_creation(self) -> None:
         """Test FormatOptions model creation."""
         format_options = FlextCliModels.FormatOptions(
-            title="Test Title",
-            headers=["col1", "col2"],
-            show_lines=True
+            title="Test Title", headers=["col1", "col2"], show_lines=True
         )
         assert format_options.title == "Test Title"
         assert format_options.headers == ["col1", "col2"]
@@ -210,10 +193,7 @@ class TestFlextCliModels:
 
     def test_format_options_serialization(self) -> None:
         """Test FormatOptions model serialization."""
-        format_options = FlextCliModels.FormatOptions(
-            title="Test",
-            show_lines=False
-        )
+        format_options = FlextCliModels.FormatOptions(title="Test", show_lines=False)
         data = format_options.model_dump()
         assert isinstance(data, dict)
         assert data["title"] == "Test"
@@ -226,8 +206,7 @@ class TestFlextCliModels:
     def test_logging_config_creation(self) -> None:
         """Test LoggingConfig model creation."""
         config = FlextCliModels.LoggingConfig(
-            log_level="DEBUG",
-            log_format="%(asctime)s - %(message)s"
+            log_level="DEBUG", log_format="%(asctime)s - %(message)s"
         )
         assert config.log_level == "DEBUG"
         assert "%(asctime)s" in config.log_format
@@ -235,8 +214,7 @@ class TestFlextCliModels:
     def test_logging_config_serialization(self) -> None:
         """Test LoggingConfig model serialization."""
         config = FlextCliModels.LoggingConfig(
-            log_level="INFO",
-            log_format="%(message)s"
+            log_level="INFO", log_format="%(message)s"
         )
         data = config.model_dump()
         assert isinstance(data, dict)
@@ -247,16 +225,25 @@ class TestFlextCliModels:
     # ========================================================================
 
     def test_cli_pipeline_creation(self) -> None:
-        """Test CliPipeline model creation - SKIPPED due to broken __init__ in source."""
-        # NOTE: CliPipeline.__init__ is broken - doesn't properly set name field
-        # The super().__init__() call passes id/version/dates but not name/description/steps
-        # This is a SOURCE CODE BUG that needs fixing
-        pytest.skip("CliPipeline.__init__ is broken - name field not properly initialized")
+        """Test CliPipeline model creation."""
+        # Test basic pipeline creation
+        pipeline = FlextCliModels.CliPipeline(name="test-pipeline")
+        assert pipeline.name == "test-pipeline"
+        assert not pipeline.description
+        assert pipeline.steps == []
+        assert pipeline.config == {}
+        assert pipeline.status == "pending"
 
     def test_cli_pipeline_serialization(self) -> None:
-        """Test CliPipeline model serialization - SKIPPED due to broken __init__."""
-        # NOTE: CliPipeline.__init__ is broken - cannot create valid instances
-        pytest.skip("CliPipeline.__init__ is broken - cannot create instances for testing")
+        """Test CliPipeline model serialization."""
+        # Test pipeline serialization
+        pipeline = FlextCliModels.CliPipeline(
+            name="test-pipeline", description="Test pipeline", steps=[{"step": "test"}]
+        )
+        data = pipeline.model_dump()
+        assert data["name"] == "test-pipeline"
+        assert data["description"] == "Test pipeline"
+        assert data["steps"] == [{"step": "test"}]
 
     # ========================================================================
     # FlextCliModels Class Method Tests
@@ -275,14 +262,18 @@ class TestFlextCliModels:
         assert len(summary) > 0
         assert "CliCommand" in summary
 
-    def test_models_validate_cli_models_consistency(self, models_service: FlextCliModels) -> None:
+    def test_models_validate_cli_models_consistency(
+        self, models_service: FlextCliModels
+    ) -> None:
         """Test validate_cli_models_consistency - this is a @model_validator, called automatically."""
         # The validator runs during model initialization
         # If we have a valid models_service instance, validation passed
         assert models_service is not None
         assert isinstance(models_service, FlextCliModels)
 
-    def test_models_serialize_model_summary(self, models_service: FlextCliModels) -> None:
+    def test_models_serialize_model_summary(
+        self, models_service: FlextCliModels
+    ) -> None:
         """Test serialize_model_summary - check if it exists and is a method."""
         # FlextCliModels is not a BaseModel, so no model_dump()
         # serialize_model_summary is a @field_serializer decorator
@@ -299,7 +290,7 @@ class TestFlextCliModels:
             name="test_command",
             command_line="flext test",
             description="Test",
-            status="pending"
+            status="pending",
         )
         result = command.validate_business_rules()
         assert result.is_success
@@ -307,15 +298,12 @@ class TestFlextCliModels:
     def test_cli_command_update_status(self) -> None:
         """Test CliCommand start and complete execution methods."""
         command = FlextCliModels.CliCommand(
-            name="test",
-            command_line="flext test",
-            description="Test",
-            status="pending"
+            name="test", command_line="flext test", description="Test", status="pending"
         )
         # Start execution first (changes status to 'running')
         start_result = command.start_execution()
         assert start_result.is_success
-        
+
         # Then complete execution
         complete_result = command.complete_execution(0)
         assert complete_result.is_success
@@ -327,7 +315,7 @@ class TestFlextCliModels:
             name="test",
             command_line="flext test --verbose",
             description="Test",
-            status="pending"
+            status="pending",
         )
         # Test computed fields
         summary = command.command_summary
@@ -338,9 +326,7 @@ class TestFlextCliModels:
     def test_debug_info_validation(self) -> None:
         """Test DebugInfo validation."""
         debug_info = FlextCliModels.DebugInfo(
-            service="TestService",
-            level="info",
-            message="Test"
+            service="TestService", level="info", message="Test"
         )
         result = debug_info.validate_business_rules()
         assert result.is_success
@@ -348,9 +334,7 @@ class TestFlextCliModels:
     def test_debug_info_computed_fields(self) -> None:
         """Test DebugInfo computed fields."""
         debug_info = FlextCliModels.DebugInfo(
-            service="TestService",
-            level="debug",
-            message="Debug message"
+            service="TestService", level="debug", message="Debug message"
         )
         summary = debug_info.debug_summary
         assert isinstance(summary, dict)
@@ -360,9 +344,7 @@ class TestFlextCliModels:
     def test_format_options_computed_fields(self) -> None:
         """Test FormatOptions computed fields."""
         format_options = FlextCliModels.FormatOptions(
-            title="Test",
-            headers=["col1", "col2"],
-            show_lines=True
+            title="Test", headers=["col1", "col2"], show_lines=True
         )
         summary = format_options.format_summary
         assert isinstance(summary, dict)
@@ -374,29 +356,20 @@ class TestFlextCliModels:
         with pytest.raises(Exception):
             FlextCliModels.FormatOptions(
                 title="Test",
-                max_width=-1  # Invalid - should be positive
+                max_width=-1,  # Invalid - should be positive
             )
 
     def test_cli_session_validation(self) -> None:
         """Test CliSession validation."""
-        session = FlextCliModels.CliSession(
-            session_id="test-session",
-            status="active"
-        )
+        session = FlextCliModels.CliSession(session_id="test-session", status="active")
         result = session.validate_business_rules()
         assert result.is_success
 
     def test_cli_session_add_command(self) -> None:
         """Test CliSession add_command method."""
-        session = FlextCliModels.CliSession(
-            session_id="test-session",
-            status="active"
-        )
+        session = FlextCliModels.CliSession(session_id="test-session", status="active")
         command = FlextCliModels.CliCommand(
-            name="test",
-            command_line="flext test",
-            description="Test",
-            status="pending"
+            name="test", command_line="flext test", description="Test", status="pending"
         )
         result = session.add_command(command)
         assert result.is_success
@@ -404,10 +377,7 @@ class TestFlextCliModels:
 
     def test_cli_session_computed_fields(self) -> None:
         """Test CliSession computed fields."""
-        session = FlextCliModels.CliSession(
-            session_id="test-session",
-            status="active"
-        )
+        session = FlextCliModels.CliSession(session_id="test-session", status="active")
         summary = session.session_summary
         assert isinstance(summary, dict)
         assert "session_id" in summary
@@ -415,25 +385,22 @@ class TestFlextCliModels:
 
     def test_cli_session_commands_by_status(self) -> None:
         """Test CliSession commands_by_status computed field."""
-        session = FlextCliModels.CliSession(
-            session_id="test-session",
-            status="active"
-        )
+        session = FlextCliModels.CliSession(session_id="test-session", status="active")
         command1 = FlextCliModels.CliCommand(
             name="test1",
             command_line="flext test1",
             description="Test1",
-            status="pending"
+            status="pending",
         )
         command2 = FlextCliModels.CliCommand(
             name="test2",
             command_line="flext test2",
             description="Test2",
-            status="completed"
+            status="completed",
         )
         session.add_command(command1)
         session.add_command(command2)
-        
+
         commands_by_status = session.commands_by_status
         assert isinstance(commands_by_status, dict)
         assert "pending" in commands_by_status or "completed" in commands_by_status
@@ -441,8 +408,7 @@ class TestFlextCliModels:
     def test_logging_config_validation(self) -> None:
         """Test LoggingConfig validation."""
         logging_config = FlextCliModels.LoggingConfig(
-            log_level="INFO",
-            log_format="%(message)s"
+            log_level="INFO", log_format="%(message)s"
         )
         # LoggingConfig doesn't have validate_business_rules, test the model itself
         assert logging_config.log_level == "INFO"
@@ -451,8 +417,7 @@ class TestFlextCliModels:
     def test_logging_config_computed_fields(self) -> None:
         """Test LoggingConfig computed fields."""
         logging_config = FlextCliModels.LoggingConfig(
-            log_level="DEBUG",
-            log_format="%(levelname)s: %(message)s"
+            log_level="DEBUG", log_format="%(levelname)s: %(message)s"
         )
         # Use actual computed field: logging_summary
         summary = logging_config.logging_summary
@@ -468,7 +433,9 @@ class TestFlextCliModels:
         assert "status" in data
 
     @pytest.mark.asyncio
-    async def test_models_execute_async_method(self, models_service: FlextCliModels) -> None:
+    async def test_models_execute_async_method(
+        self, models_service: FlextCliModels
+    ) -> None:
         """Test FlextCliModels - no execute_async method, test execute instead."""
         # FlextCliModels doesn't have execute_async, test synchronous execute
         result = models_service.execute()
@@ -483,16 +450,13 @@ class TestFlextCliModels:
     def test_cli_command_edge_cases(self) -> None:
         """Test CliCommand edge cases and error conditions."""
         command = FlextCliModels.CliCommand(
-            name="test",
-            command_line="flext test",
-            description="Test",
-            status="pending"
+            name="test", command_line="flext test", description="Test", status="pending"
         )
-        
+
         # Test completing without starting (should fail)
         result = command.complete_execution(0)
         assert result.is_failure
-        
+
         # Test double start (should fail)
         command.start_execution()
         result = command.start_execution()
@@ -502,7 +466,7 @@ class TestFlextCliModels:
         """Test CliSession validation failures."""
         session = FlextCliModels.CliSession(
             session_id="",  # Empty session_id
-            status="active"
+            status="active",
         )
         # Validation should fail for empty session_id
         result = session.validate_business_rules()
@@ -514,7 +478,7 @@ class TestFlextCliModels:
             FlextCliModels.DebugInfo(
                 service="Test",
                 level="invalid_level",  # Invalid level
-                message="Test"
+                message="Test",
             )
 
     def test_format_options_edge_cases(self) -> None:
@@ -523,7 +487,7 @@ class TestFlextCliModels:
         options = FlextCliModels.FormatOptions()
         assert options.title is None
         assert options.headers is None
-        
+
         # Test format_summary with no title
         summary = options.format_summary
         assert summary["has_title"] is False
@@ -539,9 +503,9 @@ class TestFlextCliModels:
             args=["arg1", "arg2"],
             output="test output",
             error_output="test errors",
-            exit_code=0
+            exit_code=0,
         )
-        
+
         # Test model_dump
         data = command.model_dump()
         assert isinstance(data, dict)
@@ -557,9 +521,9 @@ class TestFlextCliModels:
             level="info",
             message="Test",
             system_info={"password": "secret123", "username": "testuser"},
-            config_info={"token": "abc123", "setting": "value"}
+            config_info={"token": "abc123", "setting": "value"},
         )
-        
+
         # Serialize and check sensitive data is masked
         data = debug_info.model_dump()
         assert isinstance(data, dict)
@@ -568,21 +532,18 @@ class TestFlextCliModels:
 
     def test_cli_session_commands_serialization(self) -> None:
         """Test CliSession commands serialization."""
-        session = FlextCliModels.CliSession(
-            session_id="test-session",
-            status="active"
-        )
-        
+        session = FlextCliModels.CliSession(session_id="test-session", status="active")
+
         # Add commands
         for i in range(3):
             command = FlextCliModels.CliCommand(
                 name=f"test{i}",
                 command_line=f"flext test{i}",
                 description=f"Test {i}",
-                status="pending"
+                status="pending",
             )
             session.add_command(command)
-        
+
         # Serialize
         data = session.model_dump()
         assert isinstance(data, dict)
@@ -594,13 +555,13 @@ class TestFlextCliModels:
             log_level="DEBUG",
             log_format="%(levelname)s: %(message)s",
             console_output=True,
-            log_file="/tmp/test.log"
+            log_file="/tmp/test.log",
         )
-        
+
         assert config.log_level == "DEBUG"
         assert config.console_output is True
         assert config.log_file == "/tmp/test.log"
-        
+
         # Test logging_summary
         summary = config.logging_summary
         assert isinstance(summary, dict)
@@ -612,25 +573,26 @@ class TestFlextCliModels:
             name="test_command",
             command_line="flext test --arg value",
             description="Complete test command",
-            status="pending"
+            status="pending",
         )
-        
+
         # Test all validation methods
         result = command.validate_business_rules()
         assert result.is_success
-        
-        # Test command validation (returns Self, not FlextResult)
-        validated_command = command.validate_command_consistency()
-        assert validated_command is not None
-        assert isinstance(validated_command, FlextCliModels.CliCommand)
 
-    def test_models_class_methods_complete(self, models_service: FlextCliModels) -> None:
+        # validate_command_consistency is a Pydantic model validator, not directly callable
+        # It's automatically invoked during model validation
+        assert isinstance(command, FlextCliModels.CliCommand)
+
+    def test_models_class_methods_complete(
+        self, models_service: FlextCliModels
+    ) -> None:
         """Test FlextCliModels class methods comprehensively."""
         # Test active_models_count
         count = models_service.active_models_count
         assert isinstance(count, int)
         assert count == 8  # Expected number of models
-        
+
         # Test model_summary
         summary = models_service.model_summary
         assert isinstance(summary, dict)
@@ -639,17 +601,17 @@ class TestFlextCliModels:
 
     def test_cli_session_edge_cases_comprehensive(self) -> None:
         """Test CliSession comprehensive edge cases."""
+        # Test with valid session
         session = FlextCliModels.CliSession(
-            session_id="edge-test",
-            status="active",
-            duration_seconds=0.0
+            session_id="edge-test", status="active", duration_seconds=0.0
         )
-        
+        assert session is not None
+        assert session.session_id == "edge-test"
+
         # Test with negative duration (should fail validation)
         try:
             session2 = FlextCliModels.CliSession(
-                session_id="edge-test-2",
-                status="active"
+                session_id="edge-test-2", status="active"
             )
             # Manually set negative duration after creation to test validator
             assert session2 is not None

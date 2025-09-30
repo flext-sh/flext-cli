@@ -905,9 +905,7 @@ class TestFlextCliFileTools:
         data = result.unwrap()
         assert isinstance(data, dict)
 
-    def test_save_file(
-        self, file_tools: FlextCliFileTools, temp_dir: Path
-    ) -> None:
+    def test_save_file(self, file_tools: FlextCliFileTools, temp_dir: Path) -> None:
         """Test saving file."""
         test_file = temp_dir / "test_save.json"
         test_data = {"test": "data", "value": 123}

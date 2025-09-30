@@ -14,7 +14,6 @@ import shutil
 import uuid
 from collections.abc import Callable
 from pathlib import Path
-from typing import TYPE_CHECKING
 
 import yaml
 
@@ -22,6 +21,7 @@ import yaml
 from flext_cli.config import FlextCliConfig
 from flext_cli.constants import FlextCliConstants
 from flext_cli.models import FlextCliModels
+from flext_cli.output import FlextCliOutput
 from flext_cli.typings import FlextCliTypes
 from flext_cli.utilities import FlextCliUtilities
 from flext_core import (
@@ -31,9 +31,6 @@ from flext_core import (
     FlextService,
     FlextUtilities,
 )
-
-if TYPE_CHECKING:
-    from flext_cli.output import FlextCliOutput
 
 type HandlerData = FlextCliTypes.CliCommandResult
 type HandlerFunction = Callable[[HandlerData], FlextResult[HandlerData]]
@@ -82,8 +79,6 @@ class FlextCliService(FlextService[FlextCliTypes.Data.CliDataDict]):
 
         """
         if self._output is None:
-            from flext_cli.output import FlextCliOutput  # noqa: PLC0415
-
             self._output = FlextCliOutput()
         return self._output
 

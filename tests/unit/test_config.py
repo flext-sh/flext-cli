@@ -136,8 +136,8 @@ class TestFlextCliConfigService:
         assert hasattr(config_service, "debug")
         assert hasattr(config_service, "output_format")
 
-    def test_config_service_async_execute(self) -> None:
-        """Test config service async execute functionality."""
+    def test_config_service_execution(self) -> None:
+        """Test config service execute functionality."""
         config_service = FlextCliConfig()
 
         # Test basic config functionality
@@ -221,14 +221,18 @@ class TestFlextCliConfigService:
         non_existent = temp_dir / "non_existent.json"
         result = FlextCliConfig.load_from_config_file(non_existent)
         assert result.is_failure
+        assert result.error is not None
         assert "not found" in result.error.lower()
 
-    def test_config_load_from_config_file_unsupported_format(self, temp_dir: Path) -> None:
+    def test_config_load_from_config_file_unsupported_format(
+        self, temp_dir: Path
+    ) -> None:
         """Test load_from_config_file with unsupported format."""
         unsupported_file = temp_dir / "test.txt"
         unsupported_file.write_text("test content")
         result = FlextCliConfig.load_from_config_file(unsupported_file)
         assert result.is_failure
+        assert result.error is not None
         assert "unsupported" in result.error.lower()
 
     def test_config_get_global_instance(self) -> None:
@@ -285,6 +289,7 @@ class TestFlextCliConfigService:
         non_existent = str(temp_dir / "non_existent.json")
         result = config.load_config_file(non_existent)
         assert result.is_failure
+        assert result.error is not None
         assert "not found" in result.error.lower()
 
     def test_config_save_config_file(self, temp_dir: Path) -> None:
@@ -306,8 +311,14 @@ class TestFlextCliConfigService:
 
     def test_config_save_config(self) -> None:
         """Test save_config protocol method."""
+        from flext_cli.typings import FlextCliTypes
+
         config = FlextCliConfig()
-        new_config_data = {"debug": True, "verbose": True, "profile": "test"}
+        new_config_data: FlextCliTypes.Data.CliConfigData = {
+            "debug": True,
+            "verbose": True,
+            "profile": "test",
+        }
         result = config.save_config(new_config_data)
         assert result.is_success
         # Verify the config was updated
