@@ -17,8 +17,10 @@ from pathlib import Path
 
 import pytest
 
+from flext_cli.config import FlextCliConfig
 from flext_cli.constants import FlextCliConstants
 from flext_cli.core import FlextCliService
+from flext_cli.models import FlextCliModels
 from flext_core import FlextResult
 from flext_tests import FlextTestsUtilities
 
@@ -118,9 +120,13 @@ class TestFlextCliService:
         assert formatters_result is not None
 
         # Test async functionality - register a command first
-        core_service.register_command(
-            "test_cmd", {"name": "test_cmd", "handler": lambda: None}
+        test_command = FlextCliModels.CliCommand(
+            name="test_cmd",
+            command_line="test_cmd",
+            description="Test command",
+            usage="test_cmd",
         )
+        core_service.register_command(test_command)
 
         async def run_test() -> None:
             result = await core_service.execute_async()
@@ -198,34 +204,26 @@ class TestFlextCliService:
 
     def test_validate_configuration(self, core_service: FlextCliService) -> None:
         """Test configuration validation functionality."""
-        # Test valid configuration
-        valid_config: dict[str, object] = {
-            "debug": True,
-            "output_format": "json",
-            "timeout": FlextCliConstants.TIMEOUTS.DEFAULT,
-            "retries": FlextCliConstants.HTTP.MAX_RETRIES,
-        }
+        # Test valid configuration using FlextCliConfig model
+        valid_config = FlextCliConfig(
+            debug=True,
+            output_format="json",
+            timeout=FlextCliConstants.TIMEOUTS.DEFAULT,
+            max_retries=FlextCliConstants.HTTP.MAX_RETRIES,
+        )
 
         result = core_service.validate_configuration(valid_config)
         assert isinstance(result, FlextResult)
         assert result.is_success
 
-        # Test invalid configuration
-        invalid_config: dict[str, object] = {
-            "debug": "invalid_boolean",
-            "timeout": -1,
-            "retries": "not_a_number",
-        }
-
-        result = core_service.validate_configuration(invalid_config)
-        assert isinstance(result, FlextResult)
-        # Configuration validation may pass or fail depending on implementation
-        # Just ensure it returns a proper result
-        if result.is_success:
-            assert isinstance(result.unwrap(), bool)
-        else:
-            assert isinstance(result.error, str)
-            assert len(result.error) > 0
+        # Test invalid configuration - Pydantic will catch validation errors
+        # during model construction, so we expect an exception
+        with pytest.raises(Exception):
+            FlextCliConfig(
+                debug="invalid_boolean",
+                timeout=-1,
+                max_retries="not_a_number",
+            )
 
     # ========================================================================
     # FILE OPERATIONS
@@ -692,8 +690,14 @@ nested:
         assert load_result.is_success
         assert load_result.unwrap() == config_data
 
-        # 3. Validate configuration
-        validate_result = core_service.validate_configuration(config_data)
+        # 3. Validate configuration using FlextCliConfig model
+        config_model = FlextCliConfig(
+            debug=True,
+            output_format="json",
+            timeout=FlextCliConstants.TIMEOUTS.DEFAULT,
+            max_retries=FlextCliConstants.HTTP.MAX_RETRIES,
+        )
+        validate_result = core_service.validate_configuration(config_model)
         assert validate_result.is_success
 
         # 4. Process data

@@ -289,3 +289,28 @@ class TestFlextCliHandlers:
                 assert hasattr(result, "is_success") and getattr(
                     result, "is_success", False
                 )
+
+    # ========================================================================
+    # execute() and execute_async() tests
+    # ========================================================================
+
+    def test_handlers_execute_sync(self, handlers: FlextCliHandlers) -> None:
+        """Test handlers execute() method."""
+        result = handlers.execute()
+        assert result.is_success
+        data = result.unwrap()
+        assert data["status"] == "operational"
+        assert data["service"] == "flext-cli-handlers"
+        assert "handlers_available" in data
+        assert len(data["handlers_available"]) == 5
+
+    @pytest.mark.asyncio
+    async def test_handlers_execute_async(self, handlers: FlextCliHandlers) -> None:
+        """Test handlers execute_async() method."""
+        result = await handlers.execute_async()
+        assert result.is_success
+        data = result.unwrap()
+        assert data["status"] == "operational"
+        assert data["service"] == "flext-cli-handlers"
+        assert "handlers_available" in data
+        assert len(data["handlers_available"]) == 5

@@ -13,10 +13,12 @@ import asyncio
 import json
 import threading
 from pathlib import Path
+from typing import cast
 
 import pytest
 
 from flext_cli.auth import FlextCliAuth
+from flext_cli.typings import FlextCliTypes
 from flext_core import FlextResult
 from flext_tests import FlextTestsUtilities
 
@@ -159,13 +161,18 @@ class TestFlextCliAuth:
     ) -> None:
         """Test credential storage functionality."""
         credentials_file = temp_dir / "credentials.json"
-        test_credentials = {
+        test_credentials: dict[
+            str, bool | dict[str, object] | float | int | list[object] | str | None
+        ] = {
             "username": "test_user",
             "password": "test_password",
             "api_key": "test_api_key",
         }
 
-        result = auth_service.store_credentials(str(credentials_file), test_credentials)
+        result = auth_service.store_credentials(
+            str(credentials_file),
+            test_credentials,
+        )
 
         assert isinstance(result, FlextResult)
         assert result.is_success
@@ -448,7 +455,9 @@ class TestFlextCliAuth:
             "password": "test_password",
         }
 
-        result = auth_service.create_user(user_data)
+        result = auth_service.create_user(
+            cast("FlextCliTypes.Auth.UserData", user_data)
+        )
 
         assert isinstance(result, FlextResult)
         assert result.is_success
@@ -467,7 +476,9 @@ class TestFlextCliAuth:
             "email": "test@example.com",
             "password": "test_password",
         }
-        create_result = auth_service.create_user(user_data)
+        create_result = auth_service.create_user(
+            cast("FlextCliTypes.Auth.UserData", user_data)
+        )
         assert create_result.is_success
         user = create_result.unwrap()
         user_id = user["user_id"]
@@ -490,14 +501,18 @@ class TestFlextCliAuth:
             "email": "test@example.com",
             "password": "test_password",
         }
-        create_result = auth_service.create_user(user_data)
+        create_result = auth_service.create_user(
+            cast("FlextCliTypes.Auth.UserData", user_data)
+        )
         assert create_result.is_success
         user = create_result.unwrap()
         user_id = user["user_id"]
 
         # Then update the user
         update_data: dict[str, object] = {"email": "updated@example.com"}
-        result = auth_service.update_user(str(user_id), update_data)
+        result = auth_service.update_user(
+            str(user_id), cast("FlextCliTypes.Auth.UserData", update_data)
+        )
 
         assert isinstance(result, FlextResult)
         assert result.is_success
@@ -516,7 +531,9 @@ class TestFlextCliAuth:
             "email": "test@example.com",
             "password": "test_password",
         }
-        create_result = auth_service.create_user(user_data)
+        create_result = auth_service.create_user(
+            cast("FlextCliTypes.Auth.UserData", user_data)
+        )
         assert create_result.is_success
         user = create_result.unwrap()
         user_id = user["user_id"]
@@ -690,7 +707,9 @@ class TestFlextCliAuth:
             "email": "integration@example.com",
             "password": "integration_password",
         }
-        create_result = auth_service.create_user(user_data)
+        create_result = auth_service.create_user(
+            cast("FlextCliTypes.Auth.UserData", user_data)
+        )
         assert create_result.is_success
         user = create_result.unwrap()
         user_id = user["user_id"]

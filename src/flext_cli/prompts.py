@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import re
 
+from flext_cli.constants import FlextCliConstants
 from flext_cli.typings import FlextCliTypes
 from flext_core import (
     FlextContainer,
@@ -112,6 +113,11 @@ class FlextCliPrompts(FlextService[FlextCliTypes.Data.CliDataDict]):
         """
         if not self._interactive_mode:
             if default:
+                # Validate default value if pattern provided
+                if validation_pattern and not re.match(validation_pattern, default):
+                    return FlextResult[str].fail(
+                        f"Default value does not match required pattern: {validation_pattern}"
+                    )
                 return FlextResult[str].ok(default)
             return FlextResult[str].fail(
                 "Interactive mode disabled and no default provided"
@@ -344,7 +350,7 @@ class FlextCliPrompts(FlextService[FlextCliTypes.Data.CliDataDict]):
 
         Args:
             message: Prompt message
-            default: Default value
+            default: Default value (can be empty string)
 
         Returns:
             FlextResult[str]: User input or error
@@ -354,31 +360,22 @@ class FlextCliPrompts(FlextService[FlextCliTypes.Data.CliDataDict]):
             # Store prompt for history
             self._prompt_history.append(message)
 
-            # Handle quiet mode
+            # Handle quiet mode - return default (even if empty)
             if self._quiet:
-                if default:
-                    return FlextResult[str].ok(default)
-                return FlextResult[str].fail("Empty input is not allowed")
+                return FlextResult[str].ok(default)
 
-            # Handle non-interactive mode
+            # Handle non-interactive mode - return default (even if empty)
             if not self._interactive_mode:
-                if default:
-                    return FlextResult[str].ok(default)
-                return FlextResult[str].fail(
-                    "Non-interactive mode and no default provided"
-                )
+                return FlextResult[str].ok(default)
 
             # Get actual user input
             display_message = f"{message} (default: {default})" if default else message
 
             user_input = input(f"{display_message}: ").strip()
 
-            # Handle empty input
+            # Handle empty input - use default (even if empty)
             if not user_input:
-                if default:
-                    user_input = default
-                else:
-                    return FlextResult[str].fail("Empty input is not allowed")
+                user_input = default
 
             self._logger.info(f"User prompted: {message}, input: {user_input}")
             return FlextResult[str].ok(user_input)
@@ -397,6 +394,14 @@ class FlextCliPrompts(FlextService[FlextCliTypes.Data.CliDataDict]):
 
         """
         try:
+            # Handle quiet mode - return default
+            if self._quiet:
+                return FlextResult[bool].ok(default)
+
+            # Handle non-interactive mode - return default
+            if not self._interactive_mode:
+                return FlextResult[bool].ok(default)
+
             # Prepare the confirmation prompt
             prompt_text = f"{message} [Y/n]: " if default else f"{message} [y/N]: "
 
@@ -468,12 +473,14 @@ class FlextCliPrompts(FlextService[FlextCliTypes.Data.CliDataDict]):
         except Exception as e:
             return FlextResult[str].fail(f"Selection failed: {e}")
 
-    def print_status(self, message: str, status: str = "info") -> FlextResult[None]:
+    def print_status(
+        self, message: str, status: str = FlextCliConstants.MessageTypes.INFO.value
+    ) -> FlextResult[None]:
         """Print status message.
 
         Args:
             message: Status message
-            status: Status type
+            status: Status type (from FlextCliConstants.MessageTypes)
 
         Returns:
             FlextResult[None]: Success or error

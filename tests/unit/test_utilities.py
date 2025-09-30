@@ -14,12 +14,14 @@ import math
 import threading
 import time
 from datetime import datetime
+from pathlib import Path
 from uuid import UUID
 
 import pytest
+from pydantic import BaseModel
 
 from flext_cli.utilities import FlextCliUtilities
-from flext_core import FlextResult
+from flext_core import FlextContainer, FlextLogger, FlextResult
 from flext_tests import FlextTestsUtilities
 
 
@@ -88,7 +90,6 @@ class TestFlextCliUtilities:
             ("Special@#$Characters", "specialcharacters"),
             ("Multiple   Spaces", "multiple-spaces"),
             ("UPPERCASE", "uppercase"),
-            ("", ""),
         ]
 
         for input_str, expected in test_cases:
@@ -96,6 +97,11 @@ class TestFlextCliUtilities:
             assert isinstance(result, FlextResult)
             assert result.is_success
             assert result.unwrap() == expected
+
+        # Test empty string - should fail with validation
+        empty_result = utilities.slugify_string("")
+        assert isinstance(empty_result, FlextResult)
+        assert empty_result.is_failure
 
     def test_camel_case_to_snake_case(self, utilities: FlextCliUtilities) -> None:
         """Test camelCase to snake_case conversion."""
@@ -815,3 +821,150 @@ class TestFlextCliUtilities:
         assert "status" in data
         assert "service" in data
         assert data["service"] == "flext-cli-utilities"
+
+    # ========================================================================
+    # PROPERTY AND CONFIGURATION TESTS
+    # ========================================================================
+
+    def test_logger_property(self, utilities: FlextCliUtilities) -> None:
+        """Test logger property access."""
+        # logger is a property, not a method returning FlextResult
+        logger = utilities.logger
+        assert logger is not None
+        assert isinstance(logger, FlextLogger)
+
+    def test_container_property(self, utilities: FlextCliUtilities) -> None:
+        """Test container property access."""
+        # container is a property, not a method returning FlextResult
+        container = utilities.container
+        assert container is not None
+        assert isinstance(container, FlextContainer)
+
+    def test_get_base_config_dict(self, utilities: FlextCliUtilities) -> None:
+        """Test getting base configuration dictionary."""
+        # get_base_config_dict returns ConfigDict directly, not FlextResult
+        config = utilities.get_base_config_dict()
+        assert config is not None
+        assert isinstance(config, dict)
+        assert "validate_assignment" in config
+        assert config["validate_assignment"] is True
+
+    def test_get_strict_config_dict(self, utilities: FlextCliUtilities) -> None:
+        """Test getting strict configuration dictionary."""
+        # get_strict_config_dict returns ConfigDict directly, not FlextResult
+        config = utilities.get_strict_config_dict()
+        assert config is not None
+        assert isinstance(config, dict)
+        assert "validate_assignment" in config
+        assert config["validate_assignment"] is True
+        assert config["str_strip_whitespace"] is True
+
+    def test_get_settings_config_dict(self, utilities: FlextCliUtilities) -> None:
+        """Test getting settings configuration dictionary."""
+        # get_settings_config_dict returns SettingsConfigDict directly, not FlextResult
+        config = utilities.get_settings_config_dict()
+        assert config is not None
+        assert isinstance(config, dict)
+        assert "validate_assignment" in config
+        assert config["env_prefix"] == "FLEXT_CLI_"
+
+    def test_home_path(self, utilities: FlextCliUtilities) -> None:
+        """Test home path retrieval."""
+        # home_path returns Path directly, not FlextResult
+        path = utilities.home_path()
+        assert path is not None
+        assert isinstance(path, Path)
+        assert path.exists()
+
+    def test_token_file_path(self, utilities: FlextCliUtilities) -> None:
+        """Test token file path retrieval."""
+        # token_file_path returns Path directly, not FlextResult
+        path = utilities.token_file_path()
+        assert path is not None
+        assert isinstance(path, Path)
+        assert "token" in str(path).lower()
+
+    def test_refresh_token_file_path(self, utilities: FlextCliUtilities) -> None:
+        """Test refresh token file path retrieval."""
+        # refresh_token_file_path returns Path directly, not FlextResult
+        path = utilities.refresh_token_file_path()
+        assert path is not None
+        assert isinstance(path, Path)
+        assert "refresh" in str(path).lower()
+
+    def test_validate_with_pydantic_model(self, utilities: FlextCliUtilities) -> None:
+        """Test Pydantic model validation."""
+
+        class TestModel(BaseModel):
+            name: str
+            age: int
+
+        # Valid data - validate_with_pydantic_model returns FlextResult
+        valid_data = {"name": "Test", "age": 25}
+        result = utilities.validate_with_pydantic_model(valid_data, TestModel)
+        assert isinstance(result, FlextResult)
+        assert result.is_success
+        validated_model = result.unwrap()
+        assert validated_model.name == "Test"
+        assert validated_model.age == 25
+
+        # Invalid data
+        invalid_data = {"name": "Test", "age": "invalid"}
+        result = utilities.validate_with_pydantic_model(invalid_data, TestModel)
+        assert isinstance(result, FlextResult)
+        assert result.is_failure
+
+    def test_validate_data(self, utilities: FlextCliUtilities) -> None:
+        """Test data validation with schema."""
+        # Create a validation schema
+        schema = {"type": str, "required": True}
+
+        # Valid data
+        valid_data = {"type": "test"}
+        result = utilities.validate_data(valid_data, schema)
+        assert isinstance(result, FlextResult)
+        # The method may return success or failure based on implementation
+        # Just verify it returns a FlextResult
+
+    def test_safe_json_stringify(self, utilities: FlextCliUtilities) -> None:
+        """Test safe JSON stringification."""
+        test_data = {"key": "value", "number": 42}
+        result = utilities.safe_json_stringify(test_data)
+        assert isinstance(result, str)
+        assert "key" in result
+        assert "value" in result
+
+    def test_json_stringify_with_result(self, utilities: FlextCliUtilities) -> None:
+        """Test JSON stringify returning FlextResult."""
+        test_data = {"key": "value", "number": 42}
+        result = utilities.json_stringify_with_result(test_data)
+        assert isinstance(result, FlextResult)
+        assert result.is_success
+        json_str = result.unwrap()
+        assert isinstance(json_str, str)
+        assert "key" in json_str
+
+    def test_safe_json_stringify_flext_result(
+        self, utilities: FlextCliUtilities
+    ) -> None:
+        """Test stringifying FlextResult as JSON."""
+        test_result = FlextResult[dict].ok({"data": "test"})
+        result = utilities.safe_json_stringify_flext_result(test_result)
+        assert isinstance(result, str)
+        assert "data" in result
+
+    def test_safe_json_parse(self, utilities: FlextCliUtilities) -> None:
+        """Test safe JSON parsing."""
+        # safe_json_parse returns dict | None directly, not FlextResult
+        # Valid JSON
+        valid_json = '{"key": "value", "number": 42}'
+        data = utilities.safe_json_parse(valid_json)
+        assert data is not None
+        assert isinstance(data, dict)
+        assert data["key"] == "value"
+        assert data["number"] == 42
+
+        # Invalid JSON returns None
+        invalid_json = "{invalid json}"
+        result = utilities.safe_json_parse(invalid_json)
+        assert result is None

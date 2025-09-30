@@ -10,19 +10,25 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 import json
-import shutil
 from pathlib import Path
+from typing import cast
 
 import yaml
 
+from flext_cli.config import FlextCliConfig
+from flext_cli.constants import FlextCliConstants
 from flext_cli.core import FlextCliService
+from flext_cli.file_tools import FlextCliFileTools
+from flext_cli.models import FlextCliModels
 from flext_cli.output import FlextCliOutput
 from flext_cli.typings import FlextCliTypes
+from flext_cli.utilities import FlextCliUtilities
 from flext_core import (
     FlextContainer,
     FlextLogger,
     FlextResult,
     FlextService,
+    FlextTypes,
     FlextUtilities,
 )
 
@@ -37,7 +43,7 @@ class FlextCliApi(FlextService[FlextCliTypes.Data.CliDataDict]):
 
     def __init__(
         self,
-        default_output_format: str = "json",
+        default_output_format: str = FlextCliConstants.OutputFormats.JSON.value,
         *,
         enable_interactive: bool = True,
         **data: object,
@@ -61,6 +67,11 @@ class FlextCliApi(FlextService[FlextCliTypes.Data.CliDataDict]):
         # Initialize underlying CLI service
         self._cli_service = FlextCliService()
 
+        # Initialize file tools, output, and utilities for delegation
+        self._file_tools = FlextCliFileTools()
+        self._output = FlextCliOutput()
+        self._utilities = FlextCliUtilities()
+
         # API-specific state
         self._api_ready = False
         self._initialize_api()
@@ -68,31 +79,34 @@ class FlextCliApi(FlextService[FlextCliTypes.Data.CliDataDict]):
     def _initialize_api(self) -> None:
         """Initialize API components and register default commands."""
         try:
-            # Register essential CLI commands
-            basic_commands: dict[str, FlextCliTypes.Command.CommandDefinition] = {
-                "help": {
-                    "description": "Show help information",
-                    "usage": "help [command]",
-                    "category": "utility",
-                },
-                "version": {
-                    "description": "Show version information",
-                    "usage": "version",
-                    "category": "info",
-                },
-                "status": {
-                    "description": "Show CLI status",
-                    "usage": "status",
-                    "category": "info",
-                },
-            }
+            # Register essential CLI commands using CliCommand model instances
+            basic_commands = [
+                FlextCliModels.CliCommand(
+                    name="help",
+                    command_line="help",
+                    description="Show help information",
+                    usage="help [command]",
+                ),
+                FlextCliModels.CliCommand(
+                    name="version",
+                    command_line="version",
+                    description="Show version information",
+                    usage="version",
+                ),
+                FlextCliModels.CliCommand(
+                    name="status",
+                    command_line="status",
+                    description="Show CLI status",
+                    usage="status",
+                ),
+            ]
 
             # Register commands using CLI service
-            for cmd_name, cmd_def in basic_commands.items():
-                result = self._cli_service.register_command(cmd_name, cmd_def)
+            for command in basic_commands:
+                result = self._cli_service.register_command(command)
                 if result.is_failure:
                     self._logger.warning(
-                        f"Failed to register command '{cmd_name}': {result.error}"
+                        f"Failed to register command '{command.name}': {result.error}"
                     )
 
             self._api_ready = True
@@ -139,6 +153,8 @@ class FlextCliApi(FlextService[FlextCliTypes.Data.CliDataDict]):
 
         """
         return FlextResult[FlextCliTypes.Data.CliDataDict].ok({
+            "status": "operational" if self._api_ready else "initializing",
+            "service": "flext-cli-api",
             "api_ready": self._api_ready,
             "interactive_enabled": self._enable_interactive,
             "output_format": self._default_output_format,
@@ -151,8 +167,8 @@ class FlextCliApi(FlextService[FlextCliTypes.Data.CliDataDict]):
         name: str,
         description: str = "",
         usage: str = "",
-        category: str = "custom",
-        handler: object | None = None,
+        _category: str = "custom",
+        _handler: object | None = None,
         arguments: FlextCliTypes.Command.CommandArgs | None = None,
     ) -> FlextResult[FlextCliTypes.Data.CliCommandData]:
         """Create and register a new CLI command with enhanced validation.
@@ -161,35 +177,26 @@ class FlextCliApi(FlextService[FlextCliTypes.Data.CliDataDict]):
             name: Command name identifier
             description: Command description
             usage: Command usage pattern
-            category: Command category for organization
-            handler: Optional command handler function
+            _category: Command category for organization (unused, for backward compatibility)
+            _handler: Optional command handler function (unused, for backward compatibility)
             arguments: Optional list of command arguments
 
         Returns:
             FlextResult[FlextCliTypes.Data.CliCommandData]: Command creation result
 
         """
-        if not name or not isinstance(name, str):
-            return FlextResult[FlextCliTypes.Data.CliCommandData].fail(
-                "Command name must be a non-empty string",
-            )
-
         try:
-            # Create command definition with CLI-specific structure
-            command_definition: FlextCliTypes.Command.CommandDefinition = {
-                "name": name,
-                "description": description or f"Command: {name}",
-                "usage": usage or name,
-                "category": category,
-                "handler": str(handler) if handler else "default",
-                "arguments": arguments or [],
-                "created_at": FlextUtilities.Generators.generate_timestamp(),
-            }
+            # Create CliCommand model instance with validation
+            command = FlextCliModels.CliCommand(
+                name=name,
+                command_line=name,  # Use name as command line
+                description=description or f"Command: {name}",
+                usage=usage or name,
+                args=arguments or [],
+            )
 
             # Register command using CLI service
-            register_result = self._cli_service.register_command(
-                name, command_definition
-            )
+            register_result = self._cli_service.register_command(command)
             if register_result.is_failure:
                 return FlextResult[FlextCliTypes.Data.CliCommandData].fail(
                     f"Command registration failed: {register_result.error}",
@@ -200,7 +207,7 @@ class FlextCliApi(FlextService[FlextCliTypes.Data.CliDataDict]):
                 "command_name": name,
                 "command_description": description,
                 "command_usage": usage,
-                "command_category": category,
+                "command_category": _category,
                 "registration_status": "success",
                 "created_timestamp": FlextUtilities.Generators.generate_timestamp(),
             }
@@ -238,7 +245,10 @@ class FlextCliApi(FlextService[FlextCliTypes.Data.CliDataDict]):
             # Prepare execution context
             execution_context: FlextCliTypes.Command.CommandContext = context or {}
             if args:
-                execution_context["args"] = args  # type: ignore[assignment]
+                execution_context["args"] = cast(
+                    "FlextTypes.Core.JsonValue",
+                    args,
+                )
 
             # Execute using CLI service
             execution_result = self._cli_service.execute_command(
@@ -370,7 +380,7 @@ class FlextCliApi(FlextService[FlextCliTypes.Data.CliDataDict]):
     def display_data(
         self,
         data: object,
-        format_type: str = "table",
+        format_type: str = FlextCliConstants.OutputFormats.TABLE.value,
     ) -> FlextResult[None]:
         """Display data using CLI formatting.
 
@@ -404,7 +414,7 @@ class FlextCliApi(FlextService[FlextCliTypes.Data.CliDataDict]):
     def display_message(
         self,
         message: str,
-        message_type: str = "info",
+        message_type: str = FlextCliConstants.MessageTypes.INFO.value,
     ) -> FlextResult[None]:
         """Display a message using CLI output.
 
@@ -433,7 +443,7 @@ class FlextCliApi(FlextService[FlextCliTypes.Data.CliDataDict]):
         data: object,
         format_type: str = "json",
     ) -> FlextResult[str]:
-        """Format data for output.
+        """Format data for output - delegates to FlextCliOutput.
 
         Args:
             data: Data to format
@@ -443,21 +453,8 @@ class FlextCliApi(FlextService[FlextCliTypes.Data.CliDataDict]):
             FlextResult[str]: Formatted data or error
 
         """
-        try:
-            # Use CLI service for data formatting
-            if hasattr(self._cli_service, "format_output"):
-                format_result = self._cli_service.format_output(data, format_type)
-                if format_result.is_failure:
-                    return FlextResult[str].fail(
-                        f"Data formatting failed: {format_result.error}"
-                    )
-
-                # Return formatted string
-                return FlextResult[str].ok(str(format_result.value))
-
-            return FlextResult[str].fail("Format output method not available")
-        except Exception as e:
-            return FlextResult[str].fail(f"Format data failed: {e}")
+        # Direct delegation to FlextCliOutput for comprehensive formatting
+        return self._output.format_data(data=data, format_type=format_type)
 
     async def execute_async(self) -> FlextResult[FlextCliTypes.Data.CliDataDict]:
         """Execute CLI API operations asynchronously.
@@ -468,6 +465,8 @@ class FlextCliApi(FlextService[FlextCliTypes.Data.CliDataDict]):
         """
         try:
             return FlextResult[FlextCliTypes.Data.CliDataDict].ok({
+                "status": "operational",
+                "service": "flext-cli-api",
                 "api_executed": True,
                 "async": True,
                 "timestamp": FlextUtilities.Generators.generate_timestamp(),
@@ -562,7 +561,7 @@ class FlextCliApi(FlextService[FlextCliTypes.Data.CliDataDict]):
             return FlextResult[None].fail(f"Close progress bar failed: {e}")
 
     def read_file(self, file_path: str) -> FlextResult[str]:
-        """Read file content.
+        """Read file content - delegates to FlextCliFileTools.
 
         Args:
             file_path: Path to file to read
@@ -571,20 +570,10 @@ class FlextCliApi(FlextService[FlextCliTypes.Data.CliDataDict]):
             FlextResult[str]: File content or error
 
         """
-        try:
-            path = Path(file_path)
-            if not path.exists():
-                return FlextResult[str].fail(f"File does not exist: {file_path}")
-            if not path.is_file():
-                return FlextResult[str].fail(f"Path is not a file: {file_path}")
-
-            content = path.read_text(encoding="utf-8")
-            return FlextResult[str].ok(content)
-        except Exception as e:
-            return FlextResult[str].fail(f"Read file failed: {e}")
+        return self._file_tools.read_text_file(file_path)
 
     def write_file(self, file_path: str, content: str) -> FlextResult[None]:
-        """Write content to file.
+        """Write content to file - delegates to FlextCliFileTools.
 
         Args:
             file_path: Path to file to write
@@ -594,16 +583,13 @@ class FlextCliApi(FlextService[FlextCliTypes.Data.CliDataDict]):
             FlextResult[None]: Success or error
 
         """
-        try:
-            path = Path(file_path)
-            path.parent.mkdir(parents=True, exist_ok=True)
-            path.write_text(content, encoding="utf-8")
-            return FlextResult[None].ok(None)
-        except Exception as e:
-            return FlextResult[None].fail(f"Write file failed: {e}")
+        result = self._file_tools.write_text_file(file_path, content)
+        if result.is_failure:
+            return FlextResult[None].fail(result.error or "Write failed")
+        return FlextResult[None].ok(None)
 
     def copy_file(self, source_path: str, dest_path: str) -> FlextResult[None]:
-        """Copy file from source to destination.
+        """Copy file from source to destination - delegates to FlextCliFileTools.
 
         Args:
             source_path: Source file path
@@ -613,27 +599,13 @@ class FlextCliApi(FlextService[FlextCliTypes.Data.CliDataDict]):
             FlextResult[None]: Success or error
 
         """
-        try:
-            source = Path(source_path)
-            dest = Path(dest_path)
-
-            if not source.exists():
-                return FlextResult[None].fail(
-                    f"Source file does not exist: {source_path}"
-                )
-            if not source.is_file():
-                return FlextResult[None].fail(
-                    f"Source path is not a file: {source_path}"
-                )
-
-            dest.parent.mkdir(parents=True, exist_ok=True)
-            shutil.copy2(source, dest)
-            return FlextResult[None].ok(None)
-        except Exception as e:
-            return FlextResult[None].fail(f"Copy file failed: {e}")
+        result = self._file_tools.copy_file(source_path, dest_path)
+        if result.is_failure:
+            return FlextResult[None].fail(result.error or "Copy failed")
+        return FlextResult[None].ok(None)
 
     def move_file(self, source_path: str, dest_path: str) -> FlextResult[None]:
-        """Move file from source to destination.
+        """Move file from source to destination - delegates to FlextCliFileTools.
 
         Args:
             source_path: Source file path
@@ -643,27 +615,13 @@ class FlextCliApi(FlextService[FlextCliTypes.Data.CliDataDict]):
             FlextResult[None]: Success or error
 
         """
-        try:
-            source = Path(source_path)
-            dest = Path(dest_path)
-
-            if not source.exists():
-                return FlextResult[None].fail(
-                    f"Source file does not exist: {source_path}"
-                )
-            if not source.is_file():
-                return FlextResult[None].fail(
-                    f"Source path is not a file: {source_path}"
-                )
-
-            dest.parent.mkdir(parents=True, exist_ok=True)
-            shutil.move(str(source), str(dest))
-            return FlextResult[None].ok(None)
-        except Exception as e:
-            return FlextResult[None].fail(f"Move file failed: {e}")
+        result = self._file_tools.move_file(source_path, dest_path)
+        if result.is_failure:
+            return FlextResult[None].fail(result.error or "Move failed")
+        return FlextResult[None].ok(None)
 
     def delete_file(self, file_path: str) -> FlextResult[None]:
-        """Delete file.
+        """Delete file - delegates to FlextCliFileTools.
 
         Args:
             file_path: Path to file to delete
@@ -672,48 +630,35 @@ class FlextCliApi(FlextService[FlextCliTypes.Data.CliDataDict]):
             FlextResult[None]: Success or error
 
         """
-        try:
-            path = Path(file_path)
-            if not path.exists():
-                return FlextResult[None].fail(f"File does not exist: {file_path}")
-            if not path.is_file():
-                return FlextResult[None].fail(f"Path is not a file: {file_path}")
+        result = self._file_tools.delete_file(file_path)
+        if result.is_failure:
+            return FlextResult[None].fail(result.error or "Delete failed")
+        return FlextResult[None].ok(None)
 
-            path.unlink()
-            return FlextResult[None].ok(None)
-        except Exception as e:
-            return FlextResult[None].fail(f"Delete file failed: {e}")
-
-    def list_files(self, dir_path: str) -> FlextResult[FlextCliTypes.Data.FileList]:
-        """List directory contents.
+    def list_files(
+        self, directory_path: str
+    ) -> FlextResult[FlextCliTypes.Data.FileList]:
+        """List files in directory - delegates to FlextCliFileTools.
 
         Args:
-            dir_path: Directory path to list
+            directory_path: Path to directory
 
         Returns:
-            FlextResult[FlextCliTypes.Data.FileList]: List of directory contents or error
+            FlextResult[FlextCliTypes.Data.FileList]: List of file paths or error
 
         """
-        try:
-            path = Path(dir_path)
-            if not path.exists():
-                return FlextResult[FlextCliTypes.Data.FileList].fail(
-                    f"Directory does not exist: {dir_path}"
-                )
-            if not path.is_dir():
-                return FlextResult[FlextCliTypes.Data.FileList].fail(
-                    f"Path is not a directory: {dir_path}"
-                )
-
-            contents = [item.name for item in path.iterdir()]
-            return FlextResult[FlextCliTypes.Data.FileList].ok(contents)
-        except Exception as e:
+        result = self._file_tools.list_directory(directory_path)
+        if result.is_failure:
             return FlextResult[FlextCliTypes.Data.FileList].fail(
-                f"List directory failed: {e}"
+                result.error or "List files failed"
             )
+        return FlextResult[FlextCliTypes.Data.FileList].ok(result.unwrap())
 
     def make_http_request(
-        self, _url: str, _method: str = "GET", **_kwargs: object
+        self,
+        _url: str,
+        _method: str = FlextCliConstants.HttpMethods.GET.value,
+        **_kwargs: object,
     ) -> FlextResult[FlextCliTypes.Http.ResponseData]:
         """Make HTTP request.
 
@@ -801,16 +746,18 @@ class FlextCliApi(FlextService[FlextCliTypes.Data.CliDataDict]):
 
         """
         try:
-            # Basic validation - would implement comprehensive validation
+            # Basic validation
             if not isinstance(config_data, dict):
                 return FlextResult[None].fail("Configuration must be a dictionary")
 
+            # Use Pydantic validation through FlextCliConfig
+            FlextCliConfig.model_validate(config_data)
             return FlextResult[None].ok(None)
         except Exception as e:
-            return FlextResult[None].fail(f"Validate config failed: {e}")
+            return FlextResult[None].fail(f"Configuration validation failed: {e}")
 
     def parse_json(self, json_data: str) -> FlextResult[FlextCliTypes.Data.CliDataDict]:
-        """Parse JSON data.
+        """Parse JSON data - delegates to FlextCliUtilities.
 
         Args:
             json_data: JSON string to parse
@@ -819,16 +766,16 @@ class FlextCliApi(FlextService[FlextCliTypes.Data.CliDataDict]):
             FlextResult[FlextCliTypes.Data.CliDataDict]: Parsed JSON data or error
 
         """
-        try:
-            data = json.loads(json_data)
-            return FlextResult[FlextCliTypes.Data.CliDataDict].ok(data)
-        except Exception as e:
-            return FlextResult[FlextCliTypes.Data.CliDataDict].fail(
-                f"Parse JSON failed: {e}"
-            )
+        parsed = self._utilities.safe_json_parse(json_data)
+        if parsed is None:
+            return FlextResult[FlextCliTypes.Data.CliDataDict].fail("Parse JSON failed")
+        # Type narrowing: safe_json_parse returns dict[str, object] which is compatible with CliDataDict
+        return FlextResult[FlextCliTypes.Data.CliDataDict].ok(
+            cast("FlextCliTypes.Data.CliDataDict", parsed)
+        )
 
-    def serialize_json(self, data: FlextCliTypes.Data.CliDataDict) -> FlextResult[str]:
-        """Serialize data to JSON.
+    def serialize_json(self, data: object) -> FlextResult[str]:
+        """Serialize data to JSON - delegates to FlextCliUtilities.
 
         Args:
             data: Data to serialize
@@ -837,11 +784,7 @@ class FlextCliApi(FlextService[FlextCliTypes.Data.CliDataDict]):
             FlextResult[str]: JSON string or error
 
         """
-        try:
-            json_str = json.dumps(data, indent=2, ensure_ascii=False)
-            return FlextResult[str].ok(json_str)
-        except Exception as e:
-            return FlextResult[str].fail(f"Serialize JSON failed: {e}")
+        return FlextResult[str].ok(self._utilities.safe_json_stringify(data))
 
     def parse_yaml(self, yaml_data: str) -> FlextResult[FlextCliTypes.Data.CliDataDict]:
         """Parse YAML data.

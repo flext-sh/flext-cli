@@ -46,7 +46,6 @@ from flext_tests import (
     FlextTestDocker,
     FlextTestsAsyncs,
     FlextTestsBuilders,
-    FlextTestsFixtures,
     FlextTestsUtilities,
 )
 
@@ -71,12 +70,6 @@ def flext_test_builders() -> FlextTestsBuilders:
 def flext_test_asyncs() -> FlextTestsAsyncs:
     """Provide FlextTestsAsyncs for async test support."""
     return FlextTestsAsyncs()
-
-
-@pytest.fixture(scope="session")
-def flext_test_fixtures() -> FlextTestsFixtures:
-    """Provide FlextTestsFixtures for test fixtures."""
-    return FlextTestsFixtures()
 
 
 @pytest.fixture(scope="session")
@@ -344,46 +337,60 @@ def sample_command_data() -> dict[str, Any]:
     }
 
 
-# ============================================================================
-# DOCKER TEST SUPPORT
-# ============================================================================
-
-
-@pytest.fixture(scope="session")
-def docker_available() -> bool:
-    """Check if Docker is available for testing."""
-    try:
-        docker_client = FlextTestDocker()
-        # Check if Docker client can be initialized
-        client = docker_client.get_client()
-        return client is not None
-    except Exception:
-        return False
+@pytest.fixture
+def fixture_config_file() -> Path:
+    """Provide path to test configuration file from fixtures."""
+    return Path("tests/fixtures/configs/test_config.json")
 
 
 @pytest.fixture
-def docker_container(
-    docker_available: bool,
-) -> Generator[dict[str, Any] | None]:
-    """Provide Docker container for testing if available."""
-    if not docker_available:
-        pytest.skip("Docker not available")
-        yield None
-        return
+def fixture_data_json() -> Path:
+    """Provide path to test JSON data file from fixtures."""
+    return Path("tests/fixtures/data/test_data.json")
 
-    try:
-        docker_client = FlextTestDocker()
-        # Use available methods to start a container
-        result = docker_client.start_container("test-alpine", "alpine:latest")
-        if result.is_success:
-            yield {"name": "test-alpine", "image": "alpine:latest"}
-        else:
-            yield None
-    finally:
-        if docker_available:
-            docker_client = FlextTestDocker()
-            # Use available methods to stop the container
-            docker_client.stop_container("test-alpine", remove=True)
+
+@pytest.fixture
+def fixture_data_csv() -> Path:
+    """Provide path to test CSV data file from fixtures."""
+    return Path("tests/fixtures/data/test_data.csv")
+
+
+@pytest.fixture
+def load_fixture_config() -> dict[str, Any]:
+    """Load configuration data from fixtures directory."""
+    fixture_path = Path("tests/fixtures/configs/test_config.json")
+    with fixture_path.open() as f:
+        return json.load(f)
+
+
+@pytest.fixture
+def load_fixture_data() -> dict[str, Any]:
+    """Load test data from fixtures directory."""
+    fixture_path = Path("tests/fixtures/data/test_data.json")
+    with fixture_path.open() as f:
+        return json.load(f)
+
+
+# ============================================================================
+# DOCKER TEST SUPPORT (CENTRALIZED FIXTURES)
+# ============================================================================
+#
+# Docker fixtures are provided by flext_tests.fixtures.docker_fixtures:
+#   - ldap_container: OpenLDAP container (port 3390)
+#   - oracle_container: Oracle DB container (port 1522)
+#   - algar_oud_container: ALGAR OUD container (port 3389)
+#   - postgres_container: PostgreSQL container (port 5432)
+#   - redis_container: Redis container (port 6379)
+#
+# For CLI-specific Docker testing, use FlextTestDocker directly:
+#
+# Example:
+#   @pytest.fixture
+#   def my_test_container(flext_test_docker):
+#       result = flext_test_docker.start_shared_container("flext-openldap-test")
+#       yield result.unwrap()
+#       flext_test_docker.stop_shared_container("flext-openldap-test")
+#
 
 
 # ============================================================================

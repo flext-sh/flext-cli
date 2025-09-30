@@ -14,10 +14,14 @@ import shutil
 import uuid
 from collections.abc import Callable
 from pathlib import Path
+from typing import TYPE_CHECKING
 
 import yaml
 
-# Use centralized types from FlextCliTypes
+# Use centralized domain classes from flext-cli
+from flext_cli.config import FlextCliConfig
+from flext_cli.constants import FlextCliConstants
+from flext_cli.models import FlextCliModels
 from flext_cli.typings import FlextCliTypes
 from flext_cli.utilities import FlextCliUtilities
 from flext_core import (
@@ -27,6 +31,9 @@ from flext_core import (
     FlextService,
     FlextUtilities,
 )
+
+if TYPE_CHECKING:
+    from flext_cli.output import FlextCliOutput
 
 type HandlerData = FlextCliTypes.CliCommandResult
 type HandlerFunction = Callable[[HandlerData], FlextResult[HandlerData]]
@@ -57,6 +64,9 @@ class FlextCliService(FlextService[FlextCliTypes.Data.CliDataDict]):
         self._container = FlextContainer.get_global()
         self._utilities = FlextCliUtilities()
 
+        # Lazy initialization for output to avoid circular dependency
+        self._output: FlextCliOutput | None = None
+
         # Type-safe configuration initialization
         self._config = config or {}
         self._commands: dict[str, object] = {}
@@ -64,40 +74,40 @@ class FlextCliService(FlextService[FlextCliTypes.Data.CliDataDict]):
         self._sessions: dict[str, object] = {}
         self._session_active = False
 
+    def _get_output(self) -> FlextCliOutput:
+        """Get or initialize FlextCliOutput instance.
+
+        Returns:
+            FlextCliOutput: Output handler instance
+
+        """
+        if self._output is None:
+            from flext_cli.output import FlextCliOutput  # noqa: PLC0415
+
+            self._output = FlextCliOutput()
+        return self._output
+
     # ==========================================================================
     # CLI COMMAND MANAGEMENT - Using FlextCliTypes.Command types
     # ==========================================================================
 
     def register_command(
         self,
-        name: str,
-        definition: FlextCliTypes.Command.CommandDefinition,
+        command: FlextCliModels.CliCommand,
     ) -> FlextResult[None]:
-        """Register CLI command with enhanced type safety.
+        """Register CLI command using CliCommand model instance.
 
         Args:
-            name: Command identifier
-            definition: Complete command definition with CLI-specific structure
+            command: CliCommand model instance with validated data
 
         Returns:
             FlextResult[None]: Registration success or failure result
 
         """
-        if not name or not isinstance(name, str):
-            return FlextResult[None].fail("Command name must be a non-empty string")
-
-        if not definition or not isinstance(definition, dict):
-            return FlextResult[None].fail(
-                "Command definition must be a valid dictionary",
-            )
-
-        try:
-            # Store command with CLI-specific validation
-            self._commands[name] = definition
-            self._logger.info(f"Command '{name}' registered successfully")
-            return FlextResult[None].ok(None)
-        except Exception as e:
-            return FlextResult[None].fail(f"Command registration failed: {e}")
+        # Validation is handled by Pydantic model, no isinstance checks needed
+        self._commands[command.name] = command.model_dump()
+        self._logger.info(f"Command '{command.name}' registered successfully")
+        return FlextResult[None].ok(None)
 
     def get_command(
         self,
@@ -595,16 +605,13 @@ class FlextCliService(FlextService[FlextCliTypes.Data.CliDataDict]):
             return FlextResult[list[str]].fail(f"Get commands failed: {e}")
 
     def get_formatters(self) -> FlextResult[list[str]]:
-        """Get list of available formatters.
+        """Get list of available formatters from constants.
 
         Returns:
             FlextResult[list[str]]: List of formatter names
 
         """
-        try:
-            return FlextResult[list[str]].ok(["json", "yaml", "csv", "table", "plain"])
-        except Exception as e:
-            return FlextResult[list[str]].fail(f"Get formatters failed: {e}")
+        return FlextResult[list[str]].ok(FlextCliConstants.OUTPUT_FORMATS_LIST)
 
     def load_configuration(self, config_path: str) -> FlextResult[dict[str, object]]:
         """Load configuration from file.
@@ -676,57 +683,23 @@ class FlextCliService(FlextService[FlextCliTypes.Data.CliDataDict]):
         except Exception as e:
             return FlextResult[None].fail(f"Save configuration failed: {e}")
 
-    def validate_configuration(
-        self, config_data: dict[str, object]
-    ) -> FlextResult[None]:
-        """Validate configuration data.
+    def validate_configuration(self, _config: FlextCliConfig) -> FlextResult[None]:
+        """Validate configuration using FlextCliConfig Pydantic model.
 
         Args:
-            config_data: Configuration data to validate
+            _config: FlextCliConfig model instance (validation automatic via Pydantic)
 
         Returns:
-            FlextResult[None]: Success or error
+            FlextResult[None]: Success (validation happens during model instantiation)
+
+        Note:
+            Validation is automatically performed by Pydantic field validators
+            when FlextCliConfig instance is created. This method exists for
+            backward compatibility and returns success if config is valid.
 
         """
-        if not isinstance(config_data, dict):
-            return FlextResult[None].fail("Configuration data must be a dictionary")
-
-        try:
-            # Validate specific fields if present
-            if "debug" in config_data and not isinstance(config_data["debug"], bool):
-                return FlextResult[None].fail("Field 'debug' must be a boolean")
-
-            if "output_format" in config_data:
-                if not isinstance(config_data["output_format"], str):
-                    return FlextResult[None].fail(
-                        "Field 'output_format' must be a string"
-                    )
-                valid_formats = ["json", "yaml", "table", "plain"]
-                if config_data["output_format"] not in valid_formats:
-                    return FlextResult[None].fail(
-                        f"Invalid output_format: {config_data['output_format']}"
-                    )
-
-            if "timeout" in config_data:
-                if not isinstance(config_data["timeout"], int):
-                    return FlextResult[None].fail("Field 'timeout' must be an integer")
-                if config_data["timeout"] < 0:
-                    return FlextResult[None].fail(
-                        "Field 'timeout' must be non-negative"
-                    )
-
-            if "retries" in config_data:
-                if not isinstance(config_data["retries"], int):
-                    return FlextResult[None].fail("Field 'retries' must be an integer")
-                if config_data["retries"] < 0:
-                    return FlextResult[None].fail(
-                        "Field 'retries' must be non-negative"
-                    )
-
-            return FlextResult[None].ok(None)
-
-        except Exception as e:
-            return FlextResult[None].fail(f"Validate configuration failed: {e}")
+        # Validation already performed by Pydantic during instantiation
+        return FlextResult[None].ok(None)
 
     def read_file_content(self, file_path: str) -> FlextResult[str]:
         """Read file content.
@@ -1035,8 +1008,8 @@ class FlextCliService(FlextService[FlextCliTypes.Data.CliDataDict]):
         self,
         url: str,
         method: str = "GET",
-        _data: dict[str, object] | None = None,
-        _timeout: float | None = None,
+        data: dict[str, object] | None = None,
+        timeout: float | None = None,
     ) -> FlextResult[dict[str, object]]:
         """Make HTTP request.
 
@@ -1050,14 +1023,16 @@ class FlextCliService(FlextService[FlextCliTypes.Data.CliDataDict]):
             FlextResult[dict[str, object]]: Response data
 
         """
+        # Parameters available for validation/logging
+        _ = data, timeout  # Mark as intentionally unused for now
+
         # Validate URL format
         url_validation = self.validate_url(url)
         if url_validation.is_failure or not url_validation.unwrap():
             return FlextResult[dict[str, object]].fail(f"Invalid URL format: {url}")
 
-        # Validate HTTP method
-        valid_methods = ["GET", "POST", "PUT", "DELETE", "PATCH", "HEAD", "OPTIONS"]
-        if method.upper() not in valid_methods:
+        # Validate HTTP method using constants
+        if method.upper() not in FlextCliConstants.HTTP_METHODS_LIST:
             return FlextResult[dict[str, object]].fail(f"Invalid HTTP method: {method}")
 
         # HTTP functionality must be implemented through flext-api domain library
@@ -1069,7 +1044,7 @@ class FlextCliService(FlextService[FlextCliTypes.Data.CliDataDict]):
     def format_output(
         self, data: object, format_type: str = "json"
     ) -> FlextResult[str]:
-        """Format data for CLI output.
+        """Format data for CLI output - delegates to FlextCliOutput.
 
         Args:
             data: Data to format
@@ -1079,14 +1054,8 @@ class FlextCliService(FlextService[FlextCliTypes.Data.CliDataDict]):
             FlextResult[str]: Formatted output
 
         """
-        try:
-            if format_type == "json":
-                return FlextResult[str].ok(json.dumps(data, indent=2, default=str))
-            if format_type == "yaml":
-                return FlextResult[str].ok(yaml.dump(data, default_flow_style=False))
-            return FlextResult[str].ok(str(data))
-        except Exception as e:
-            return FlextResult[str].fail(f"Format output failed: {e}")
+        # Delegate to FlextCliOutput for comprehensive formatting
+        return self._get_output().format_data(data=data, format_type=format_type)
 
     def display_output(self, formatted_data: str) -> FlextResult[None]:
         """Display formatted output to user.
@@ -1106,31 +1075,30 @@ class FlextCliService(FlextService[FlextCliTypes.Data.CliDataDict]):
             return FlextResult[None].fail(f"Display output failed: {e}")
 
     def display_message(
-        self, message: str, message_type: str = "info"
+        self,
+        message: str,
+        message_type: str = FlextCliConstants.MessageTypes.INFO.value,
     ) -> FlextResult[None]:
-        """Display a message to the user.
+        """Display a message to the user using constants for message types.
 
         Args:
             message: Message to display
-            message_type: Type of message (info, success, warning, error)
+            message_type: Type of message from FlextCliConstants.MessageTypes
 
         Returns:
             FlextResult[None]: Success or error
 
         """
-        try:
-            # Use logger for CLI output instead of print statements
-            if message_type == "error":
-                self._logger.error(f"Error: {message}")
-            elif message_type == "warning":
-                self._logger.warning(f"Warning: {message}")
-            elif message_type == "success":
-                self._logger.info(f"Success: {message}")
-            else:
-                self._logger.info(message)
-            return FlextResult[None].ok(None)
-        except Exception as e:
-            return FlextResult[None].fail(f"Display message failed: {e}")
+        # Use logger for CLI output instead of print statements
+        if message_type == FlextCliConstants.MessageTypes.ERROR.value:
+            self._logger.error(f"Error: {message}")
+        elif message_type == FlextCliConstants.MessageTypes.WARNING.value:
+            self._logger.warning(f"Warning: {message}")
+        elif message_type == FlextCliConstants.MessageTypes.SUCCESS.value:
+            self._logger.info(f"Success: {message}")
+        else:
+            self._logger.info(message)
+        return FlextResult[None].ok(None)
 
 
 __all__ = ["FlextCliService"]

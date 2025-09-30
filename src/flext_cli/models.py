@@ -37,12 +37,6 @@ from flext_core import (
     FlextResult,
 )
 
-# Constants for linting compliance
-MIN_STEP_TIMEOUT_SECONDS = 10
-MAX_BATCH_SIZE_PARALLEL = 100
-STEP_BASELINE_DURATION_SECONDS = 30
-RETRY_OVERHEAD_SECONDS = 10
-
 
 class FlextCliModels(FlextModels):
     """Single unified CLI models class following FLEXT standards.
@@ -226,6 +220,8 @@ class FlextCliModels(FlextModels):
         output: str = Field(default="")
         error_output: str = Field(default="")
         name: str = Field(default="")
+        description: str = Field(default="")
+        usage: str = Field(default="")
         entry_point: str = Field(default="")
         plugin_version: str = Field(default="1.0.0")
         # status field inherited from _BaseEntity
@@ -317,75 +313,20 @@ class FlextCliModels(FlextModels):
             )
 
         @override
-        def __init__(
-            self,
-            command: str | None = None,
-            command_line: str | None = None,
-            status: str = FlextCliConstants.CommandStatus.PENDING.value,
-            execution_time: str | None = None,
-            **data: object,
-        ) -> None:
-            """Initialize CLI command with proper type handling.
+        def __init__(self, **data: object) -> None:
+            """Initialize CLI command with Pydantic validation.
 
             Args:
-                command: Command to execute
-                command_line: Command line to execute
-                status: Command status
-                execution_time: Time when command was executed
-                **data: Additional command data
+                **data: Command data including command_line, status, etc.
 
             """
-            # Handle command parameter - prioritize command over command_line
-            actual_command = command or command_line or ""
+            # Handle legacy 'command' parameter by converting to 'command_line'
+            if "command" in data and "command_line" not in data:
+                data["command_line"] = data.pop("command")
 
-            # Set execution time if provided
-            if execution_time is not None:
-                data["execution_time"] = execution_time
-
-            # Call parent constructor with proper data including command_line
-            data["command_line"] = actual_command
-            data["status"] = status
-
-            # Ensure required fields have correct types for parent class
-            if "id" not in data:
-                data["id"] = str(uuid.uuid4())
-            if "version" not in data:
-                data["version"] = 1
-            if "created_at" not in data:
-                data["created_at"] = datetime.now(UTC)
-            if "updated_at" not in data:
-                data["updated_at"] = None
-            if "domain_events" not in data:
-                data["domain_events"] = []
-
-            # Create parent class with explicit parameters
-            version_obj = data.get("version", 1)
-            version_value: int = version_obj if isinstance(version_obj, int) else 1
-
-            created_at_obj = data.get("created_at", datetime.now(UTC))
-            created_at_value: datetime = (
-                created_at_obj
-                if isinstance(created_at_obj, datetime)
-                else datetime.now(UTC)
-            )
-
-            updated_at_obj = data.get("updated_at")
-            updated_at_value: datetime | None = (
-                updated_at_obj if isinstance(updated_at_obj, datetime) else None
-            )
-
-            domain_events_obj = data.get("domain_events", [])
-            domain_events_value: list[object] = (
-                domain_events_obj if isinstance(domain_events_obj, list) else []
-            )
-
-            super().__init__(
-                id=str(data.get("id", str(uuid.uuid4()))),
-                version=version_value,
-                created_at=created_at_value,
-                updated_at=updated_at_value,
-                domain_events=domain_events_value,
-            )
+            # Call parent Pydantic __init__ which handles all field validation
+            # Pydantic will automatically convert types as needed
+            super().__init__(**data)
 
         def validate_business_rules(self) -> FlextResult[None]:
             """Validate command business rules."""
@@ -748,18 +689,18 @@ class FlextCliModels(FlextModels):
         @computed_field
         @property
         def available_formats(self) -> list[str]:
-            """Computed field listing available formats."""
-            return ["json", "yaml", "csv", "table", "plain"]
+            """Computed field listing available formats from constants."""
+            return FlextCliConstants.OUTPUT_FORMATS_LIST
 
         @computed_field
         @property
         def default_format(self) -> str:
-            """Computed field returning the default format."""
-            return "table"
+            """Computed field returning the default format from constants."""
+            return FlextCliConstants.OutputFormats.TABLE.value
 
         def list_formats(self) -> list[str]:
-            """List available output formats."""
-            return ["json", "yaml", "csv", "table", "plain"]
+            """List available output formats from constants."""
+            return FlextCliConstants.OUTPUT_FORMATS_LIST
 
     class CliPipeline(_BaseEntity, FlextCliMixins.BusinessRulesMixin):
         """CLI Pipeline model extending _BaseEntity."""
@@ -1556,10 +1497,10 @@ class FlextCliModels(FlextModels):
             if config_data is None:
                 return FlextResult[None].fail("Config data cannot be None")
 
-            # Validate output format
+            # Validate output format using constants
             if "output_format" in config_data:
                 output_format = config_data["output_format"]
-                valid_formats = ["table", "json", "yaml", "csv", "xml"]
+                valid_formats = FlextCliConstants.OUTPUT_FORMATS_LIST + ["xml"]
                 if output_format not in valid_formats:
                     return FlextResult[None].fail(
                         f"Invalid output format: {output_format}. Valid formats: {valid_formats}"

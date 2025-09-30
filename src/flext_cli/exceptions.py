@@ -26,7 +26,7 @@ class FlextCliExceptions(FlextExceptions):
     - Implements CLI-specific extensions while reusing core functionality
     """
 
-    class _BaseError(FlextExceptions.BaseError):
+    class BaseError(FlextExceptions.BaseError):
         """Base CLI exception extending FlextExceptions.BaseError.
 
         Simple exception class for CLI error scenarios with error categorization
@@ -61,7 +61,7 @@ class FlextCliExceptions(FlextExceptions):
         def __repr__(self) -> str:
             """Return detailed representation for debugging."""
             return (
-                f"FlextCliExceptions._BaseError("
+                f"FlextCliExceptions.BaseError("
                 f"message='{self.message}', "
                 f"error_code='{self.error_code}', "
                 f"context={self.context})"
@@ -75,7 +75,7 @@ class FlextCliExceptions(FlextExceptions):
             """Check if exception matches specific error code."""
             return str(self.error_code) == error_code
 
-    class _CliValidationError(_BaseError):
+    class CliValidationError(BaseError):
         """CLI validation error exception."""
 
         @override
@@ -83,7 +83,7 @@ class FlextCliExceptions(FlextExceptions):
             """Initialize validation error with message and context."""
             super().__init__(message, error_code="CLI_VALIDATION_ERROR", **context)
 
-    class _CliConfigurationError(_BaseError):
+    class CliConfigurationError(BaseError):
         """CLI configuration error exception."""
 
         @override
@@ -91,7 +91,7 @@ class FlextCliExceptions(FlextExceptions):
             """Initialize configuration error with message and context."""
             super().__init__(message, error_code="CLI_CONFIGURATION_ERROR", **context)
 
-    class _CliConnectionError(_BaseError):
+    class CliConnectionError(BaseError):
         """CLI connection error exception."""
 
         @override
@@ -99,7 +99,7 @@ class FlextCliExceptions(FlextExceptions):
             """Initialize connection error with message and context."""
             super().__init__(message, error_code="CLI_CONNECTION_ERROR", **context)
 
-    class _CliAuthenticationError(_BaseError):
+    class CliAuthenticationError(BaseError):
         """CLI authentication error exception."""
 
         @override
@@ -107,7 +107,7 @@ class FlextCliExceptions(FlextExceptions):
             """Initialize authentication error with message and context."""
             super().__init__(message, error_code="CLI_AUTHENTICATION_ERROR", **context)
 
-    class _CommandError(_BaseError):
+    class CliCommandError(BaseError):
         """CLI command error exception."""
 
         @override
@@ -115,7 +115,7 @@ class FlextCliExceptions(FlextExceptions):
             """Initialize command error with message and context."""
             super().__init__(message, error_code="COMMAND_ERROR", **context)
 
-    class _CliTimeoutError(_BaseError):
+    class CliTimeoutError(BaseError):
         """CLI timeout error exception."""
 
         @override
@@ -123,34 +123,13 @@ class FlextCliExceptions(FlextExceptions):
             """Initialize timeout error with message and context."""
             super().__init__(message, error_code="CLI_TIMEOUT_ERROR", **context)
 
-    class _FormatError(_BaseError):
+    class CliFormatError(BaseError):
         """CLI format error exception."""
 
         @override
         def __init__(self, message: str, **context: object) -> None:
             """Initialize format error with message and context."""
             super().__init__(message, error_code="FORMAT_ERROR", **context)
-
-
-# Expose exception classes directly on the main class for centralized access
-# Using setattr to avoid pyright issues with dynamic attribute assignment
-setattr(FlextCliExceptions, "BaseError", FlextCliExceptions._BaseError)
-setattr(
-    FlextCliExceptions, "FlextCliError", FlextCliExceptions._BaseError
-)  # Alias for backwards compatibility
-setattr(FlextCliExceptions, "ValidationError", FlextCliExceptions._CliValidationError)
-setattr(
-    FlextCliExceptions, "ConfigurationError", FlextCliExceptions._CliConfigurationError
-)
-setattr(FlextCliExceptions, "ConnectionError", FlextCliExceptions._CliConnectionError)
-setattr(
-    FlextCliExceptions,
-    "AuthenticationError",
-    FlextCliExceptions._CliAuthenticationError,
-)
-setattr(FlextCliExceptions, "CommandError", FlextCliExceptions._CommandError)
-setattr(FlextCliExceptions, "TimeoutError", FlextCliExceptions._CliTimeoutError)
-setattr(FlextCliExceptions, "FormatError", FlextCliExceptions._FormatError)
 
 
 __all__ = [

@@ -546,25 +546,25 @@ class EnterpriseCliApplication:
         create_cmd = self.cli_api.create_command(
             name="create",
             description="Create a new project using enterprise patterns",
-            handler=self._handle_create_project,
+            _handler=self._handle_create_project,
             arguments=["--name", "--description", "--owner"],
         )
         change_status_cmd = self.cli_api.create_command(
             name="change-status",
             description="Change project status using CQRS command",
-            handler=self._handle_change_status,
+            _handler=self._handle_change_status,
             arguments=["--project-id", "--status", "--reason"],
         )
         get_cmd = self.cli_api.create_command(
             name="get",
             description="Get project details using CQRS query",
-            handler=self._handle_get_project,
+            _handler=self._handle_get_project,
             arguments=["--project-id"],
         )
         list_cmd = self.cli_api.create_command(
             name="list",
             description="List projects by owner using CQRS query",
-            handler=self._handle_list_projects,
+            _handler=self._handle_list_projects,
             arguments=["--owner-id"],
         )
 

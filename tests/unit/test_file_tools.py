@@ -873,3 +873,44 @@ class TestFlextCliFileTools:
         assert "status" in data
         assert "service" in data
         assert data["service"] == "flext-cli-file-tools"
+
+    # ========================================================================
+    # ADDITIONAL COVERAGE TESTS
+    # ========================================================================
+
+    def test_detect_file_format(
+        self, file_tools: FlextCliFileTools, temp_json_file: Path
+    ) -> None:
+        """Test file format detection."""
+        result = file_tools.detect_file_format(str(temp_json_file))
+        assert result.is_success
+        assert result.unwrap() == "json"
+
+    def test_get_supported_formats(self, file_tools: FlextCliFileTools) -> None:
+        """Test getting supported file formats."""
+        result = file_tools.get_supported_formats()
+        assert result.is_success
+        formats = result.unwrap()
+        assert isinstance(formats, list)
+        assert "json" in formats
+        assert "yaml" in formats
+        assert "csv" in formats
+
+    def test_load_file_auto_detect(
+        self, file_tools: FlextCliFileTools, temp_json_file: Path
+    ) -> None:
+        """Test loading file with auto-detection."""
+        result = file_tools.load_file(str(temp_json_file))
+        assert result.is_success
+        data = result.unwrap()
+        assert isinstance(data, dict)
+
+    def test_save_file(
+        self, file_tools: FlextCliFileTools, temp_dir: Path
+    ) -> None:
+        """Test saving file."""
+        test_file = temp_dir / "test_save.json"
+        test_data = {"test": "data", "value": 123}
+        result = file_tools.save_file(str(test_file), test_data, file_format="json")
+        assert result.is_success
+        assert test_file.exists()

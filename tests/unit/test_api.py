@@ -46,11 +46,12 @@ class TestFlextCliApi:
         assert hasattr(api_service, "_logger")
         assert hasattr(api_service, "_container")
         assert hasattr(api_service, "_output")
-        assert hasattr(api_service, "_files")
-        assert hasattr(api_service, "_commands")
-        assert hasattr(api_service, "_auth")
-        assert hasattr(api_service, "_prompts")
-        assert hasattr(api_service, "_utils")
+        assert hasattr(api_service, "_file_tools")
+        assert hasattr(api_service, "_cli_service")
+        assert hasattr(api_service, "_utilities")
+        assert hasattr(api_service, "_api_ready")
+        assert hasattr(api_service, "_enable_interactive")
+        assert hasattr(api_service, "_default_output_format")
 
     def test_api_service_execute_method(self, api_service: FlextCliApi) -> None:
         """Test API service execute method with real functionality."""

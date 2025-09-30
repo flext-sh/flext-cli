@@ -81,6 +81,14 @@ class FlextCliConstants(FlextConstants):
         DEFAULT_OUTPUT_FORMAT: Final[str] = "table"
         DEFAULT_TIMEOUT: Final[int] = 30
 
+    class PipelineDefaults:
+        """Pipeline and batch processing defaults."""
+
+        MIN_STEP_TIMEOUT_SECONDS: Final[int] = 10
+        MAX_BATCH_SIZE_PARALLEL: Final[int] = 100
+        STEP_BASELINE_DURATION_SECONDS: Final[int] = 30
+        RETRY_OVERHEAD_SECONDS: Final[int] = 10
+
     class NetworkDefaults:
         """Network-related defaults for CLI operations."""
 
@@ -175,6 +183,44 @@ class FlextCliConstants(FlextConstants):
         MAX_RETRIES: Final[int] = 3
         RETRY_DELAY: Final[int] = 1
         USER_AGENT: Final[str] = "FlextCLI/1.0"
+
+    class HttpMethods(StrEnum):
+        """HTTP method constants."""
+
+        GET = "GET"
+        POST = "POST"
+        PUT = "PUT"
+        DELETE = "DELETE"
+        PATCH = "PATCH"
+        HEAD = "HEAD"
+        OPTIONS = "OPTIONS"
+
+    HTTP_METHODS_LIST: Final[list[str]] = [
+        "GET",
+        "POST",
+        "PUT",
+        "DELETE",
+        "PATCH",
+        "HEAD",
+        "OPTIONS",
+    ]
+
+    class MessageTypes(StrEnum):
+        """Message type constants for CLI output."""
+
+        INFO = "info"
+        ERROR = "error"
+        WARNING = "warning"
+        SUCCESS = "success"
+        DEBUG = "debug"
+
+    MESSAGE_TYPES_LIST: Final[list[str]] = [
+        MessageTypes.INFO.value,
+        MessageTypes.ERROR.value,
+        MessageTypes.WARNING.value,
+        MessageTypes.SUCCESS.value,
+        MessageTypes.DEBUG.value,
+    ]
 
     class TIMEOUTS:
         """Timeout constants."""
