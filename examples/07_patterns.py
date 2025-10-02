@@ -542,29 +542,25 @@ class EnterpriseCliApplication:
     def _register_project_commands(self, _cli_main: FlextCliCommands) -> None:
         """Register project management commands."""
         # Create commands and unwrap FlextResult values
-        create_cmd = self.cli_api.create_command(
+        create_cmd = self.cli_api.commands.register_command(
             name="create",
+            handler=self._handle_create_project,
             description="Create a new project using enterprise patterns",
-            _handler=self._handle_create_project,
-            arguments=["--name", "--description", "--owner"],
         )
-        change_status_cmd = self.cli_api.create_command(
+        change_status_cmd = self.cli_api.commands.register_command(
             name="change-status",
+            handler=self._handle_change_status,
             description="Change project status using CQRS command",
-            _handler=self._handle_change_status,
-            arguments=["--project-id", "--status", "--reason"],
         )
-        get_cmd = self.cli_api.create_command(
+        get_cmd = self.cli_api.commands.register_command(
             name="get",
+            handler=self._handle_get_project,
             description="Get project details using CQRS query",
-            _handler=self._handle_get_project,
-            arguments=["--project-id"],
         )
-        list_cmd = self.cli_api.create_command(
+        list_cmd = self.cli_api.commands.register_command(
             name="list",
+            handler=self._handle_list_projects,
             description="List projects by owner using CQRS query",
-            _handler=self._handle_list_projects,
-            arguments=["--owner-id"],
         )
 
         # Unwrap commands for registration - only include successful commands

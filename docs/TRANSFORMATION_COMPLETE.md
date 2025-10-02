@@ -591,7 +591,7 @@ cli.main.execute()
 
 ```python
 from flext_cli import FlextCli, command
-import aiohttp
+import http
 
 cli = FlextCli()
 
@@ -599,7 +599,7 @@ cli = FlextCli()
 @command
 def fetch(url: str):
     """Fetch data hronously."""
-    with aiohttp.ClientSession() as session:
+    with http.ClientSession() as session:
         with session.get(url) as response:
             return response.text()
 
