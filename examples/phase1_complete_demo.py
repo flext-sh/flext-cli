@@ -23,7 +23,7 @@ from flext_cli import (
 
 
 def demo_click_abstraction() -> None:
-    """Demo 1: Click Abstraction Layer - NO direct Click imports needed!"""
+    """Demo 1: Click Abstraction Layer - NO direct Click imports needed!."""
     # Initialize Click wrapper
     click_wrapper = FlextCliClick()
 
@@ -56,7 +56,7 @@ def demo_click_abstraction() -> None:
 
 
 def demo_rich_formatters() -> None:
-    """Demo 2: Rich Abstraction Layer - NO direct Rich imports needed!"""
+    """Demo 2: Rich Abstraction Layer - NO direct Rich imports needed!."""
     # Initialize Rich wrapper
     formatters = FlextCliFormatters()
 
@@ -184,7 +184,7 @@ def demo_command_registration() -> None:
 
 
 def demo_unified_api() -> None:
-    """Demo 5: Unified API Facade - Single entry point for everything!"""
+    """Demo 5: Unified API Facade - Single entry point for everything!."""
     # Single entry point for ALL CLI functionality
     cli = FlextCli()
 

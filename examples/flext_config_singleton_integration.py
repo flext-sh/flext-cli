@@ -17,8 +17,9 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from flext_cli import FlextCliConfig
 from flext_core import FlextConfig
+
+from flext_cli import FlextCliConfig
 
 
 def demonstrate_single_source_of_truth() -> None:
@@ -95,19 +96,15 @@ def demonstrate_environment_integration() -> None:
 
 def main() -> None:
     """Main function to run all demonstrations."""
-    try:
-        demonstrate_single_source_of_truth()
+    demonstrate_single_source_of_truth()
 
-        demonstrate_cli_parameter_integration()
+    demonstrate_cli_parameter_integration()
 
-        demonstrate_automatic_synchronization()
+    demonstrate_automatic_synchronization()
 
-        demonstrate_integration_verification()
+    demonstrate_integration_verification()
 
-        demonstrate_environment_integration()
-
-    except Exception:
-        raise
+    demonstrate_environment_integration()
 
 
 if __name__ == "__main__":

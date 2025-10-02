@@ -15,15 +15,15 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 from pathlib import Path
-from typing import Any
 
 try:
     import readline  # Optional dependency for enhanced input editing
 except ImportError:
-    readline = None  # type: ignore[assignment]
+    readline = None
+
+from flext_core import FlextLogger, FlextResult, FlextService
 
 from flext_cli.cli import FlextCliClick
-from flext_core import FlextLogger, FlextResult, FlextService
 
 
 class FlextCliShell(FlextService[None]):
@@ -45,7 +45,7 @@ class FlextCliShell(FlextService[None]):
 
     def __init__(
         self,
-        cli_main: Any,
+        cli_main: object,
         prompt: str = "> ",
         *,
         history_file: str | None = None,
@@ -464,7 +464,7 @@ class FlextCliShellBuilder:
 
     """
 
-    def __init__(self, cli_main: Any) -> None:
+    def __init__(self, cli_main: object) -> None:
         """Initialize shell builder.
 
         Args:

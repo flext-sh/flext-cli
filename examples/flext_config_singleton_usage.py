@@ -13,8 +13,9 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from flext_cli import FlextCliConfig, FlextCliConstants
 from flext_core import FlextConfig
+
+from flext_cli import FlextCliConfig, FlextCliConstants
 
 
 def demonstrate_flext_config_singleton() -> None:
@@ -96,17 +97,13 @@ def demonstrate_configuration_loading() -> None:
 
 def main() -> None:
     """Main function to run all demonstrations."""
-    try:
-        demonstrate_flext_config_singleton()
+    demonstrate_flext_config_singleton()
 
-        demonstrate_environment_integration()
+    demonstrate_environment_integration()
 
-        demonstrate_configuration_validation()
+    demonstrate_configuration_validation()
 
-        demonstrate_configuration_loading()
-
-    except Exception:
-        raise
+    demonstrate_configuration_loading()
 
 
 if __name__ == "__main__":

@@ -12,7 +12,7 @@ from __future__ import annotations
 import csv
 import json
 from io import StringIO
-from typing import Any, override
+from typing import override
 
 import yaml
 from rich.console import Console
@@ -175,7 +175,7 @@ class FlextCliOutput(FlextService[str]):
 
         """
         if not data:
-            return FlextResult[Any].fail("No data provided for table")
+            return FlextResult[object].fail("No data provided for table")
 
         try:
             # Determine headers
@@ -204,12 +204,12 @@ class FlextCliOutput(FlextService[str]):
                 row_values = [str(row_data.get(h, "")) for h in table_headers]
                 table.add_row(*row_values)
 
-            return FlextResult[Any].ok(table)
+            return FlextResult[object].ok(table)
 
         except Exception as e:
             error_msg = f"Failed to create Rich table: {e}"
             self._logger.exception(error_msg)
-            return FlextResult[Any].fail(error_msg)
+            return FlextResult[object].fail(error_msg)
 
     def table_to_string(
         self,
@@ -283,7 +283,7 @@ class FlextCliOutput(FlextService[str]):
         self,
         _description: str = "Processing...",
         _total: int = 100,
-    ) -> FlextResult[Any]:
+    ) -> FlextResult[object]:
         """Create a Rich progress bar using FlextCliFormatters.
 
         Args:

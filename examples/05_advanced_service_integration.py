@@ -48,11 +48,9 @@ class ContainerProtocol(Protocol):
 
     def register(self, name: str, service: object) -> FlextResult[None]:
         """Register a service in the container."""
-        ...
 
     def get(self, name: str) -> FlextResult[object]:
         """Get a service from the container."""
-        ...
 
 
 # Simple replacement for missing example_utils

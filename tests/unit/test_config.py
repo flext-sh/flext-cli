@@ -219,7 +219,7 @@ class TestFlextCliConfigService:
         result = FlextCliConfig.load_from_config_file(non_existent)
         assert result.is_failure
         assert result.error is not None
-        assert "not found" in result.error.lower()
+        assert result.error is not None and "not found" in result.error.lower()
 
     def test_config_load_from_config_file_unsupported_format(
         self, temp_dir: Path
@@ -230,7 +230,7 @@ class TestFlextCliConfigService:
         result = FlextCliConfig.load_from_config_file(unsupported_file)
         assert result.is_failure
         assert result.error is not None
-        assert "unsupported" in result.error.lower()
+        assert result.error is not None and "unsupported" in result.error.lower()
 
     def test_config_get_global_instance(self) -> None:
         """Test get_global_instance class method."""
@@ -287,7 +287,7 @@ class TestFlextCliConfigService:
         result = config.load_config_file(non_existent)
         assert result.is_failure
         assert result.error is not None
-        assert "not found" in result.error.lower()
+        assert result.error is not None and "not found" in result.error.lower()
 
     def test_config_save_config_file(self, temp_dir: Path) -> None:
         """Test save_config_file instance method."""

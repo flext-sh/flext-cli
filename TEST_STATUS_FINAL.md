@@ -97,7 +97,7 @@ These are intentionally skipped as they require optional dependencies not instal
 ### Verified Standards ✅
 
 - ✅ No unspecific `type: ignore` comments
-- ✅ Minimal `Any` usage (only in type aliases)
+- ✅ Minimal `object` usage (only in type aliases)
 - ✅ All fixes via MultiEdit based on context
 - ✅ FlextCore patterns used throughout
 - ✅ Real unit tests with actual functionality

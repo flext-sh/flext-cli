@@ -11,15 +11,13 @@ from __future__ import annotations
 
 import uuid
 from datetime import UTC, datetime
-from typing import override
+from typing import Any, Self, override
 
-try:
-    from typing import Self
-except ImportError:
-    from typing import Self
-
+from flext_core import (
+    FlextModels,
+    FlextResult,
+)
 from pydantic import (
-    BaseModel,
     ConfigDict,
     Field,
     computed_field,
@@ -30,13 +28,9 @@ from pydantic import (
 from flext_cli.constants import FlextCliConstants
 from flext_cli.mixins import FlextCliMixins
 from flext_cli.typings import FlextCliTypes
-from flext_core import (
-    FlextModels,
-    FlextResult,
-)
 
 
-class FlextCliModels(BaseModel, FlextModels):
+class FlextCliModels(FlextModels.BaseModel):
     """Single unified CLI models class following FLEXT standards.
 
     Contains all Pydantic model subclasses for CLI domain operations.
@@ -181,16 +175,10 @@ class FlextCliModels(BaseModel, FlextModels):
             """Update the updated_at timestamp."""
             self.updated_at = datetime.now(UTC)
 
-    class _BaseValidatedModel(BaseModel, FlextCliMixins.ValidationMixin):
+    class _BaseValidatedModel(
+        FlextModels.StrictArbitraryTypesModel, FlextCliMixins.ValidationMixin
+    ):
         """Base model with common validation patterns."""
-
-        model_config = ConfigDict(
-            validate_assignment=True,
-            use_enum_values=True,
-            arbitrary_types_allowed=True,
-            extra="forbid",
-            validate_return=True,
-        )
 
         @computed_field
         def model_type(self) -> str:
@@ -308,7 +296,7 @@ class FlextCliModels(BaseModel, FlextModels):
             )
 
         @override
-        def __init__(self, **data: object) -> None:
+        def __init__(self, **data: Any) -> None:
             """Initialize CLI command with Pydantic validation.
 
             Args:

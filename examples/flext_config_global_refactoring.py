@@ -19,8 +19,9 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from flext_cli import FlextCli, FlextCliAuth, FlextCliConfig
 from flext_core import FlextConfig
+
+from flext_cli import FlextCli, FlextCliAuth, FlextCliConfig
 
 
 def demonstrate_global_configuration_refactoring() -> None:
@@ -149,17 +150,13 @@ def demonstrate_cli_parameter_integration() -> None:
 
 def main() -> None:
     """Main function to run all demonstrations."""
-    try:
-        demonstrate_global_configuration_refactoring()
+    demonstrate_global_configuration_refactoring()
 
-        demonstrate_elimination_of_duplicate_patterns()
+    demonstrate_elimination_of_duplicate_patterns()
 
-        demonstrate_dynamic_configuration_updates()
+    demonstrate_dynamic_configuration_updates()
 
-        demonstrate_cli_parameter_integration()
-
-    except Exception:
-        raise
+    demonstrate_cli_parameter_integration()
 
 
 if __name__ == "__main__":

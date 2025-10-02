@@ -200,7 +200,7 @@ class TestFlextCliContext:
         result = context.get_environment_variable("NON_EXISTENT_VAR")
         assert result.is_failure
         assert result.error is not None
-        assert "not found" in result.error.lower()
+        assert result.error is not None and "not found" in result.error.lower()
 
     def test_context_set_environment_variable(self, context: FlextCliContext) -> None:
         """Test set_environment_variable method."""
@@ -239,7 +239,7 @@ class TestFlextCliContext:
         result = context.remove_argument("non_existent_arg")
         assert result.is_failure
         assert result.error is not None
-        assert "not found" in result.error.lower()
+        assert result.error is not None and "not found" in result.error.lower()
 
     def test_context_set_metadata(self, context: FlextCliContext) -> None:
         """Test set_metadata method."""
@@ -261,7 +261,7 @@ class TestFlextCliContext:
         result = context.get_metadata("non_existent_key")
         assert result.is_failure
         assert result.error is not None
-        assert "not found" in result.error.lower()
+        assert result.error is not None and "not found" in result.error.lower()
 
     def test_context_get_context_summary(self, context: FlextCliContext) -> None:
         """Test get_context_summary method."""

@@ -532,7 +532,9 @@ class TestFlextCliPrompts:
         result = quiet_prompts.prompt_text("Enter name:")
         assert result.is_failure
         assert result.error is not None
-        assert "no default provided" in result.error.lower()
+        assert (
+            result.error is not None and "no default provided" in result.error.lower()
+        )
 
         # Test with validation pattern
         result = quiet_prompts.prompt_text(
@@ -574,13 +576,13 @@ class TestFlextCliPrompts:
         result = quiet_prompts.prompt_choice("Choose:", [])
         assert result.is_failure
         assert result.error is not None
-        assert "no choices" in result.error.lower()
+        assert result.error is not None and "no choices" in result.error.lower()
 
         # Test without default in non-interactive mode
         result = quiet_prompts.prompt_choice("Choose:", choices)
         assert result.is_failure
         assert result.error is not None
-        assert "no valid default" in result.error.lower()
+        assert result.error is not None and "no valid default" in result.error.lower()
 
     def test_prompt_password_functionality(self) -> None:
         """Test prompt_password method."""
@@ -590,7 +592,10 @@ class TestFlextCliPrompts:
         result = quiet_prompts.prompt_password("Enter password:")
         assert result.is_failure
         assert result.error is not None
-        assert "interactive mode disabled" in result.error.lower()
+        assert (
+            result.error is not None
+            and "interactive mode disabled" in result.error.lower()
+        )
 
         # Test with interactive mode
         interactive_prompts = FlextCliPrompts(quiet=False, interactive_mode=True)
@@ -719,7 +724,7 @@ class TestFlextCliPrompts:
             result = interactive_prompts.confirm("Test confirm")
             assert result.is_failure
             assert result.error is not None
-            assert "cancelled" in result.error.lower()
+            assert result.error is not None and "cancelled" in result.error.lower()
 
     def test_prompt_eof_error_handling(
         self, interactive_prompts: FlextCliPrompts
@@ -730,7 +735,7 @@ class TestFlextCliPrompts:
             result = interactive_prompts.confirm("Test confirm")
             assert result.is_failure
             assert result.error is not None
-            assert "ended" in result.error.lower()
+            assert result.error is not None and "ended" in result.error.lower()
 
     def test_validate_config(self, prompts: FlextCliPrompts) -> None:
         """Test validate_config method."""

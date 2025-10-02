@@ -75,7 +75,7 @@ class TestFlextCliServiceExtended:
 
         assert isinstance(result, FlextResult)
         assert result.is_failure
-        assert "not found" in result.error
+        assert result.error is not None and "not found" in result.error
 
     def test_get_command_invalid_name_empty(
         self, core_service: FlextCliService
@@ -84,14 +84,14 @@ class TestFlextCliServiceExtended:
         result = core_service.get_command("")
 
         assert result.is_failure
-        assert "non-empty string" in result.error
+        assert result.error is not None and "non-empty string" in result.error
 
     def test_get_command_invalid_name_type(self, core_service: FlextCliService) -> None:
         """Test getting command with invalid name type."""
-        result = core_service.get_command(None)  # type: ignore[arg-type]
+        result = core_service.get_command(None)
 
         assert result.is_failure
-        assert "non-empty string" in result.error
+        assert result.error is not None and "non-empty string" in result.error
 
     def test_execute_command_success(
         self, core_service: FlextCliService, sample_command: FlextCliModels.CliCommand
@@ -150,7 +150,7 @@ class TestFlextCliServiceExtended:
         result = core_service.execute_command("nonexistent")
 
         assert result.is_failure
-        assert "not found" in result.error
+        assert result.error is not None and "not found" in result.error
 
     def test_list_commands_empty(self, core_service: FlextCliService) -> None:
         """Test listing commands when none registered."""
@@ -202,7 +202,7 @@ class TestFlextCliServiceExtended:
         result = core_service.start_session()
 
         assert result.is_failure
-        assert "already active" in result.error
+        assert result.error is not None and "already active" in result.error
 
     def test_end_session_success(self, core_service: FlextCliService) -> None:
         """Test ending active session."""
@@ -219,7 +219,7 @@ class TestFlextCliServiceExtended:
         result = core_service.end_session()
 
         assert result.is_failure
-        assert "No active session" in result.error
+        assert result.error is not None and "No active session" in result.error
 
     def test_is_session_active_false(self, core_service: FlextCliService) -> None:
         """Test session active check when no session."""
@@ -282,7 +282,7 @@ class TestFlextCliServiceExtended:
 
         assert isinstance(result, FlextResult)
         assert result.is_failure  # No active session
-        assert "No active session" in result.error
+        assert result.error is not None and "No active session" in result.error
 
     def test_get_session_statistics_with_session(
         self, core_service: FlextCliService

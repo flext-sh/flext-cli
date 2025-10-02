@@ -17,10 +17,10 @@ from pathlib import Path
 
 import pytest
 import yaml
-
-from flext_cli.file_tools import FlextCliFileTools
 from flext_core import FlextResult
 from flext_tests import FlextTestsUtilities
+
+from flext_cli.file_tools import FlextCliFileTools
 
 
 class TestFlextCliFileTools:

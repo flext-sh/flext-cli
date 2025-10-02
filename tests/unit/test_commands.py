@@ -93,7 +93,9 @@ class TestFlextCliCommands:
         result = commands.execute_command("non_existent_command")
         assert result.is_failure
         assert result.error is not None
-        assert "not found" in result.error.lower() or "unknown" in result.error.lower()
+        assert (
+            result.error is not None and "not found" in result.error.lower()
+        ) or "unknown" in result.error.lower()
 
     def test_commands_performance(self) -> None:
         """Test commands performance characteristics."""

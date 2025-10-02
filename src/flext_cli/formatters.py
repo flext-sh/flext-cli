@@ -12,11 +12,11 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 from collections.abc import Iterable
-from typing import Any
+from types import ModuleType
+from typing import Literal
 
-# CRITICAL: ONLY this file may import Rich (besides existing output.py during transition)
-from rich.align import Align
-from rich.console import Console, RenderableType
+from rich.align import Align, AlignMethod, VerticalAlignMethod
+from rich.console import Console, JustifyMethod, OverflowMethod, RenderableType
 from rich.layout import Layout
 from rich.live import Live
 from rich.markdown import Markdown
@@ -116,8 +116,8 @@ class FlextCliFormatters(FlextService[None]):
         sep: str = " ",
         end: str = "\n",
         style: str | Style | None = None,
-        justify: str | None = None,
-        overflow: str | None = None,
+        justify: JustifyMethod | None = None,
+        overflow: OverflowMethod | None = None,
         no_wrap: bool | None = None,
         emoji: bool | None = None,
         markup: bool | None = None,
@@ -153,8 +153,8 @@ class FlextCliFormatters(FlextService[None]):
                 sep=sep,
                 end=end,
                 style=style,
-                justify=justify,  # type: ignore[arg-type]
-                overflow=overflow,  # type: ignore[arg-type]
+                justify=justify,
+                overflow=overflow,
                 no_wrap=no_wrap,
                 emoji=emoji,
                 markup=markup,
@@ -177,9 +177,9 @@ class FlextCliFormatters(FlextService[None]):
         self,
         content: str | Text,
         title: str | None = None,
-        title_align: str = "left",
+        title_align: Literal["left", "center", "right"] = "left",
         subtitle: str | None = None,
-        subtitle_align: str = "left",
+        subtitle_align: Literal["left", "center", "right"] = "left",
         border_style: str | Style = "blue",
         padding: tuple[int, int] | tuple[int, int, int, int] = (0, 1),
         *,
@@ -213,9 +213,9 @@ class FlextCliFormatters(FlextService[None]):
             panel = Panel(
                 content,
                 title=title,
-                title_align=title_align,  # type: ignore[arg-type]
+                title_align=title_align,
                 subtitle=subtitle,
-                subtitle_align=subtitle_align,  # type: ignore[arg-type]
+                subtitle_align=subtitle_align,
                 border_style=border_style,
                 padding=padding,
                 expand=expand,
@@ -233,7 +233,6 @@ class FlextCliFormatters(FlextService[None]):
         content: str | Text,
         title: str | None = None,
         border_style: str = "blue",
-        **kwargs: str | int | bool | None,
     ) -> FlextResult[None]:
         """Create and display panel in one operation.
 
@@ -241,7 +240,6 @@ class FlextCliFormatters(FlextService[None]):
             content: Panel content
             title: Panel title
             border_style: Border style
-            **kwargs: Additional panel options
 
         Returns:
             FlextResult[None]
@@ -251,7 +249,6 @@ class FlextCliFormatters(FlextService[None]):
             content,
             title=title,
             border_style=border_style,
-            **kwargs,
         )
         if panel_result.is_failure:
             return FlextResult[None].fail(panel_result.error)
@@ -462,7 +459,7 @@ class FlextCliFormatters(FlextService[None]):
         try:
             # Default columns if none provided
             if not columns:
-                columns = (  # type: ignore[assignment]
+                columns = (
                     TextColumn("[progress.description]{task.description}"),
                     BarColumn(),
                     TaskProgressColumn(),
@@ -525,7 +522,7 @@ class FlextCliFormatters(FlextService[None]):
     def display_markdown(
         self,
         markdown_text: str,
-        **kwargs: str | int | bool | None,
+        **kwargs: object,
     ) -> FlextResult[None]:
         """Render and display markdown in one operation.
 
@@ -537,7 +534,21 @@ class FlextCliFormatters(FlextService[None]):
             FlextResult[None]
 
         """
-        md_result = self.render_markdown(markdown_text, **kwargs)
+        # Type narrowing for markdown options
+        code_theme = kwargs.get("code_theme", "monokai")
+        inline_code_lexer = kwargs.get("inline_code_lexer")
+
+        # Ensure proper types
+        code_theme_str: str = str(code_theme) if code_theme is not None else "monokai"
+        inline_code_lexer_str: str | None = (
+            str(inline_code_lexer) if inline_code_lexer is not None else None
+        )
+
+        md_result = self.render_markdown(
+            markdown_text,
+            code_theme=code_theme_str,
+            inline_code_lexer=inline_code_lexer_str,
+        )
         if md_result.is_failure:
             return FlextResult[None].fail(md_result.error)
 
@@ -605,7 +616,7 @@ class FlextCliFormatters(FlextService[None]):
         self,
         code: str,
         language: str = "python",
-        **kwargs: str | int | bool | None,
+        **kwargs: object,
     ) -> FlextResult[None]:
         """Highlight and display code in one operation.
 
@@ -618,7 +629,44 @@ class FlextCliFormatters(FlextService[None]):
             FlextResult[None]
 
         """
-        syntax_result = self.highlight_code(code, language, **kwargs)
+        # Type narrowing for syntax highlighting options
+        theme = kwargs.get("theme", "monokai")
+        line_numbers = kwargs.get("line_numbers", False)
+        word_wrap = kwargs.get("word_wrap", False)
+        line_range = kwargs.get("line_range")
+        highlight_lines = kwargs.get("highlight_lines")
+        code_width = kwargs.get("code_width")
+
+        # Ensure proper types
+        theme_str: str = str(theme) if theme is not None else "monokai"
+        line_numbers_bool: bool = (
+            bool(line_numbers) if isinstance(line_numbers, (bool, int)) else False
+        )
+        word_wrap_bool: bool = (
+            bool(word_wrap) if isinstance(word_wrap, (bool, int)) else False
+        )
+        line_range_tuple: tuple[int, int] | None = (
+            line_range if isinstance(line_range, tuple) else None
+        )
+        highlight_lines_set: set[int] | None = (
+            highlight_lines if isinstance(highlight_lines, set) else None
+        )
+        code_width_int: int | None = (
+            int(code_width)
+            if isinstance(code_width, (int, str)) and code_width
+            else None
+        )
+
+        syntax_result = self.highlight_code(
+            code,
+            language,
+            theme=theme_str,
+            line_numbers=line_numbers_bool,
+            word_wrap=word_wrap_bool,
+            line_range=line_range_tuple,
+            highlight_lines=highlight_lines_set,
+            code_width=code_width_int,
+        )
         if syntax_result.is_failure:
             return FlextResult[None].fail(syntax_result.error)
 
@@ -633,7 +681,7 @@ class FlextCliFormatters(FlextService[None]):
         title: str = "",
         characters: str = "─",
         style: str | Style = "rule.line",
-        align: str = "center",
+        align: Literal["left", "center", "right"] = "center",
     ) -> FlextResult[Rule]:
         """Create Rich rule/divider.
 
@@ -656,7 +704,7 @@ class FlextCliFormatters(FlextService[None]):
                 title=title,
                 characters=characters,
                 style=style,
-                align=align,  # type: ignore[arg-type]
+                align=align,
             )
             self._logger.debug("Created rule", extra={"rule_title": title})
             return FlextResult[Rule].ok(rule)
@@ -668,7 +716,7 @@ class FlextCliFormatters(FlextService[None]):
     def display_rule(
         self,
         title: str = "",
-        **kwargs: str | int | bool | None,
+        **kwargs: object,
     ) -> FlextResult[None]:
         """Create and display rule in one operation.
 
@@ -680,7 +728,25 @@ class FlextCliFormatters(FlextService[None]):
             FlextResult[None]
 
         """
-        rule_result = self.create_rule(title, **kwargs)
+        # Type narrowing for rule options
+        characters = kwargs.get("characters", "─")
+        style = kwargs.get("style", "rule.line")
+        align = kwargs.get("align", "center")
+
+        # Ensure proper types
+        characters_str: str = str(characters) if characters is not None else "─"
+        style_obj: str | Style = (
+            style if isinstance(style, (str, Style)) else "rule.line"
+        )
+        align_str: Literal["left", "center", "right"] = (
+            align  # type: ignore[assignment]
+            if isinstance(align, str) and align in {"left", "center", "right"}
+            else "center"
+        )
+
+        rule_result = self.create_rule(
+            title, characters=characters_str, style=style_obj, align=align_str
+        )
         if rule_result.is_failure:
             return FlextResult[None].fail(rule_result.error)
 
@@ -715,11 +781,25 @@ class FlextCliFormatters(FlextService[None]):
 
         """
         try:
+            # Convert justify and overflow to proper Rich types
+            justify_method: JustifyMethod | None = (
+                justify  # type: ignore[assignment]
+                if isinstance(justify, str)
+                and justify in {"default", "left", "center", "right", "full"}
+                else None
+            )
+            overflow_method: OverflowMethod | None = (
+                overflow  # type: ignore[assignment]
+                if isinstance(overflow, str)
+                and overflow in {"fold", "crop", "ellipsis", "ignore"}
+                else None
+            )
+
             text_obj = Text(
                 text,
-                style=style if style is not None else "",  # type: ignore[arg-type]
-                justify=justify,  # type: ignore[arg-type]
-                overflow=overflow,  # type: ignore[arg-type]
+                style=style if style is not None else "",
+                justify=justify_method,
+                overflow=overflow_method,
                 no_wrap=no_wrap,
                 end=end,
             )
@@ -752,10 +832,22 @@ class FlextCliFormatters(FlextService[None]):
 
         """
         try:
+            # Convert align and vertical to proper Rich types
+            align_method: AlignMethod = (
+                align  # type: ignore[assignment]
+                if isinstance(align, str) and align in {"left", "center", "right"}
+                else "center"
+            )
+            vertical_method: VerticalAlignMethod | None = (
+                vertical  # type: ignore[assignment]
+                if isinstance(vertical, str) and vertical in {"top", "middle", "bottom"}
+                else None
+            )
+
             aligned = Align(
                 content,
-                align=align,  # type: ignore[arg-type]
-                vertical=vertical,  # type: ignore[arg-type]
+                align=align_method,
+                vertical=vertical_method,
                 width=width,
                 height=height,
             )
@@ -898,7 +990,11 @@ class FlextCliFormatters(FlextService[None]):
                 extra_lines=extra_lines,
                 theme=theme,
                 word_wrap=word_wrap,
-                suppress=suppress,  # type: ignore[arg-type]
+                suppress=[
+                    item for item in suppress if isinstance(item, (str, ModuleType))
+                ]
+                if isinstance(suppress, Iterable)
+                else (),
             )
             self._logger.debug("Created Rich traceback")
             return FlextResult[Traceback].ok(traceback)
@@ -1109,11 +1205,11 @@ class FlextCliFormatters(FlextService[None]):
             self._logger.debug(
                 "Created live display", extra={"refresh_rate": refresh_per_second}
             )
-            return FlextResult[Any].ok(live)
+            return FlextResult[Live].ok(live)
         except Exception as e:
             error_msg = f"Failed to create live display: {e}"
             self._logger.exception(error_msg)
-            return FlextResult[Any].fail(error_msg)
+            return FlextResult[Live].fail(error_msg)
 
     # =========================================================================
     # UTILITY METHODS

@@ -15,15 +15,15 @@ from __future__ import annotations
 import sys
 from pathlib import Path
 
-# Add plugins directory to path for demo
-plugins_dir = Path(__file__).parent / "plugins"
-if str(plugins_dir) not in sys.path:
-    sys.path.insert(0, str(plugins_dir))
-
 from flext_cli import (
     FlextCli,
     FlextCliPluginManager,
 )
+
+# Add plugins directory to path for demo
+plugins_dir = Path(__file__).parent / "plugins"
+if str(plugins_dir) not in sys.path:
+    sys.path.insert(0, str(plugins_dir))
 
 
 def demo_plugin_discovery() -> None:
