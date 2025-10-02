@@ -5,37 +5,33 @@
     ]
 
 [project]
-    description = "FLEXT CLI - Developer Command Line Interface"
-    name = "flext-cli"
-    readme = "README.md"
-    requires-python = ">=3.13,<3.14"
-    version = "0.9.0"
     classifiers = [
         "Development Status :: 5 - Production/Stable",
         "Intended Audience :: Developers",
         "License :: OSI Approved :: MIT License",
         "Operating System :: OS Independent",
-        "Programming Language :: Python :: 3.13",
         "Programming Language :: Python :: 3 :: Only",
+        "Programming Language :: Python :: 3.13",
         "Topic :: Software Development :: Libraries :: Python Modules",
         "Typing :: Typed",
     ]
     dependencies = [
         "click>=8.2.1",
+        "defusedxml (>=0.7.1)",
+        "flext-core @ file:///home/marlonsc/flext/flext-core",
         "httpx>=0.28.1",
+        "lxml (>=6.0.2)",
         "pandas>=2.2.0",
         "pyarrow>=18.0.0",
-        "pydantic>=2.11.7",
         "pydantic-settings>=2.10.1",
+        "pydantic>=2.11.7",
         "pyyaml>=6.0",
         "rich>=14.0.0",
         "structlog>=25.4.0",
         "tabulate>=0.9.0",
-        "toml (>=0.10.2,<0.11.0)",
-        "flext-core @ file:///home/marlonsc/flext/flext-core",
-        "lxml (>=6.0.2,<7.0.0)",
-        "defusedxml (>=0.7.1,<0.8.0)",
+        "toml (>=0.10.2)",
     ]
+    description = "FLEXT CLI - Developer Command Line Interface"
     keywords = [
         "",
         "cli",
@@ -45,77 +41,81 @@
         "tools",
         "typed",
     ]
-[[project.authors]]
-    name  = "FLEXT Team"
-    email = "team@flext.sh"
+    name = "flext-cli"
+    readme = "README.md"
+    requires-python = ">=3.13,<3.14"
+    version = "0.9.0"
+    [[project.authors]]
+        email = "team@flext.sh"
+        name  = "FLEXT Team"
 
-[[project.maintainers]]
-    name  = "FLEXT Team"
-    email = "team@flext.sh"
+    [[project.maintainers]]
+        email = "team@flext.sh"
+        name  = "FLEXT Team"
 
-[project.license]
-    text = "MIT"
+    [project.license]
+        text = "MIT"
 
-[project.urls]
-    Documentation = "https://github.com/flext-sh/flext-cli/blob/main/README.md"
-    Homepage      = "https://github.com/flext-sh/flext-cli"
-    Repository    = "https://github.com/flext-sh/flext-cli"
+    [project.urls]
+        Documentation = "https://github.com/flext-sh/flext-cli/blob/main/README.md"
+        Homepage      = "https://github.com/flext-sh/flext-cli"
+        Repository    = "https://github.com/flext-sh/flext-cli"
 
-[project.optional-dependencies]
-    dev = [
-        "autoflake>=2.3.1",
-        "black>=25.1.0",
-        "codespell>=2.3.0",
-        "deptry>=0.23.0",
-        "isort>=6.0.1",
-        "pre-commit>=4.0.1",
-        "pylint>=3.3.0",
-        "pyupgrade>=3.19.0",
-        "radon>=6.0.1",
-        "ruff>=0.12.3",
-        "vulture>=2.13",
-    ]
-    test = [
-        "factory-boy>=3.3.1",
-        "faker>=37.4.0",
-        "hypothesis>=6.125.0",
-        "pytest>=8.4.0",
-        "pytest-benchmark>=5.1.0",
-        "pytest-clarity>=1.0.1",
-        "pytest-cov>=6.2.0",
-        "pytest-deadfixtures>=2.2.1",
-        "pytest-env>=1.1.5",
-        "pytest-mock>=3.14.0",
-        "pytest-randomly>=3.16.0",
-        "pytest-sugar>=1.0.0",
-        "pytest-timeout>=2.4.0",
-        "pytest-xdist>=3.8.0",
-    ]
-    typings = [
-        "django-stubs>=5.2.2",
-        "types-ldap3>=2.9.13.20250622",
-        "types-protobuf>=6.30.2.20250703",
-        "types-psutil>=7.0.0",
-        "types-psycopg2>=2.9.21.20250718",
-        "types-python-dateutil>=2.9.0",
-        "types-pyyaml>=6.0.12",
-        "types-redis>=4.6.0",
-        "types-requests>=2.32.4",
-        "types-setuptools>=80.9.0",
-        "types-toml>=0.10.8.20240310",
-    ]
-    security = [
-        "bandit>=1.8.0",
-        "pip-audit>=2.7.3",
-    ]
+    [project.optional-dependencies]
+        dev = [
+            "autoflake>=2.3.1",
+            "black>=25.1.0",
+            "codespell>=2.3.0",
+            "deptry>=0.23.0",
+            "isort>=6.0.1",
+            "pre-commit>=4.0.1",
+            "pylint>=3.3.0",
+            "pyupgrade>=3.19.0",
+            "radon>=6.0.1",
+            "ruff>=0.12.3",
+            "vulture>=2.13",
+        ]
+        security = [
+            "bandit>=1.8.0",
+            "pip-audit>=2.7.3",
+        ]
+        test = [
+            "factory-boy>=3.3.1",
+            "faker>=37.4.0",
+            "hypothesis>=6.125.0",
+            "pytest-benchmark>=5.1.0",
+            "pytest-clarity>=1.0.1",
+            "pytest-cov>=6.2.0",
+            "pytest-deadfixtures>=2.2.1",
+            "pytest-env>=1.1.5",
+            "pytest-mock>=3.14.0",
+            "pytest-randomly>=3.16.0",
+            "pytest-sugar>=1.0.0",
+            "pytest-timeout>=2.4.0",
+            "pytest-xdist>=3.8.0",
+            "pytest>=8.4.0",
+        ]
+        typings = [
+            "django-stubs>=5.2.2",
+            "types-ldap3>=2.9.13.20250622",
+            "types-protobuf>=6.30.2.20250703",
+            "types-psutil>=7.0.0",
+            "types-psycopg2>=2.9.21.20250718",
+            "types-python-dateutil>=2.9.0",
+            "types-pyyaml>=6.0.12",
+            "types-redis>=4.6.0",
+            "types-requests>=2.32.4",
+            "types-setuptools>=80.9.0",
+            "types-toml>=0.10.8.20240310",
+        ]
 
-[project.scripts]
-    flext = "flext_cli.cli:main"
+    [project.scripts]
+        flext = "flext_cli.cli:main"
 
 [tool.poetry]
-[[tool.poetry.packages]]
-    include = "flext_cli"
-    from    = "src"
+    [[tool.poetry.packages]]
+        from    = "src"
+        include = "flext_cli"
 
 [tool.bandit]
     extend = "../.bandit-shared.toml"
@@ -125,7 +125,6 @@
 
 [tool.deptry]
     exclude = [
-        "__pycache__",
         ".archive",
         ".git",
         ".meltano",
@@ -134,12 +133,13 @@
         ".pytest_cache",
         ".ruff_cache",
         ".venv",
+        "__pycache__",
         "build",
         "dist",
         "htmlcov",
-        "vendor",
         "node_modules",
         "reports",
+        "vendor",
         "venv",
     ]
     known_first_party = [
@@ -156,88 +156,88 @@
     extend = "../ruff-shared.toml"
 
 [tool.pytest.ini_options]
-    minversion = "8.0"
     addopts = "-ra -q --strict-markers --strict-config"
+    markers = [
+        " marks tests as tests",
+        "auth: marks tests as authentication tests",
+        "benchmark: marks tests as benchmark tests",
+        "compatibility: marks tests as compatibility tests",
+        "concurrency: marks tests as concurrency tests",
+        "core: marks tests as core functionality tests",
+        "integration: marks tests as integration tests",
+        "io: marks tests as I/O tests",
+        "load: marks tests as load tests",
+        "memory: marks tests as memory tests",
+        "network: marks tests as network tests",
+        "performance: marks tests as performance tests",
+        "race_condition: marks tests as race condition tests",
+        "regression: marks tests as regression tests",
+        "security: marks tests as security tests",
+        "slow: marks tests as slow (deselect with '-m \"not slow\"')",
+        "stress: marks tests as stress tests",
+        "unit: marks tests as unit tests",
+    ]
+    minversion = "8.0"
     testpaths = [
         "tests",
     ]
-    markers = [
-        "slow: marks tests as slow (deselect with '-m \"not slow\"')",
-        "integration: marks tests as integration tests",
-        "unit: marks tests as unit tests",
-        "regression: marks tests as regression tests",
-        "core: marks tests as core functionality tests",
-        "concurrency: marks tests as concurrency tests",
-        "race_condition: marks tests as race condition tests",
-        "performance: marks tests as performance tests",
-        "stress: marks tests as stress tests",
-        "load: marks tests as load tests",
-        "benchmark: marks tests as benchmark tests",
-        "memory: marks tests as memory tests",
-        "io: marks tests as I/O tests",
-        "network: marks tests as network tests",
-        "security: marks tests as security tests",
-        "compatibility: marks tests as compatibility tests",
-        " marks tests as tests",
-        "auth: marks tests as authentication tests",
-    ]
 
-[tool.poetry.dependencies.client-a-oud-mig]
-    path    = "../client-a-oud-mig"
-    develop = true
+    [tool.poetry.dependencies.client-a-oud-mig]
+        develop = true
+        path    = "../client-a-oud-mig"
 
-[tool.poetry.dependencies.flext-core]
-    path    = "../flext-core"
-    develop = true
+    [tool.poetry.dependencies.flext-core]
+        develop = true
+        path    = "../flext-core"
 
-[tool.poetry.dependencies.flext-meltano]
-    path    = "../flext-meltano"
-    develop = true
+    [tool.poetry.dependencies.flext-meltano]
+        develop = true
+        path    = "../flext-meltano"
 
-[tool.poetry.dependencies.flext-observability]
-    path    = "../flext-observability"
-    develop = true
+    [tool.poetry.dependencies.flext-observability]
+        develop = true
+        path    = "../flext-observability"
 
-[tool.poetry.dependencies.client-b-meltano-native]
-    path    = "../client-b-meltano-native"
-    develop = true
+    [tool.poetry.dependencies.client-b-meltano-native]
+        develop = true
+        path    = "../client-b-meltano-native"
 
-[tool.ruff.lint.isort]
-    known-first-party = [
-        "flext_cli",
-    ]
+    [tool.ruff.lint.isort]
+        known-first-party = [
+            "flext_cli",
+        ]
 
-[tool.poetry.group.dev.dependencies]
-    docker          = ">=7.1.0"
-    ldap3           = ">=2.9.1"
-    numpy           = ">=2.3.2"
-    psycopg2        = ">=2.9.10"
-    redis           = ">=5.0.0"
-    pytest          = "^8.4.1"
-    types-pyyaml    = "^6.0.12.20250809"
-    types-toml      = "^0.10.8.20240310"
-    hypothesis      = "^6.139.2"
-    pytest-cov      = "^7.0.0"
-    email-validator = "^2.3.0"
-    types-tabulate  = "^0.9.0.20241207"
-    pyrefly         = "^0.34.0"
+    [tool.poetry.group.dev.dependencies]
+        docker          = ">=7.1.0"
+        email-validator = "^2.3.0"
+        hypothesis      = "^6.139.2"
+        ldap3           = ">=2.9.1"
+        numpy           = ">=2.3.2"
+        psycopg2        = ">=2.9.10"
+        pyrefly         = "^0.34.0"
+        pytest          = "^8.4.1"
+        pytest-cov      = "^7.0.0"
+        redis           = ">=5.0.0"
+        types-pyyaml    = "^6.0.12.20250809"
+        types-tabulate  = "^0.9.0.20241207"
+        types-toml      = "^0.10.8.20240310"
 
-[tool.poetry.group.typings.dependencies]
-    types-pyyaml     = "^6.0.12.20250809"
-    types-toml       = "^0.10.8.20240310"
-    types-lxml       = "^2025.8.25"
-    types-defusedxml = "^0.7.0.20250822"
+    [tool.poetry.group.typings.dependencies]
+        types-defusedxml = "^0.7.0.20250822"
+        types-lxml       = "^2025.8.25"
+        types-pyyaml     = "^6.0.12.20250809"
+        types-toml       = "^0.10.8.20240310"
 
 [tool.pyrefly]
+    ignore-errors-in-generated-code = false
+    ignore-missing-source = false
+    permissive-ignores = false
     python-version = "3.13"
     search-path = [
+        "../flext-core/src",
         "examples",
         "scripts",
         "src",
         "tests",
-        "../flext-core/src",
     ]
-    permissive-ignores = false
-    ignore-missing-source = false
-    ignore-errors-in-generated-code = false
     untyped-def-behavior = "check-and-infer-return-type"

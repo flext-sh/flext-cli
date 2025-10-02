@@ -38,7 +38,6 @@ class FlextCliProtocols(FlextProtocols):
                 FlextResult[FlextCliTypes.Data.CliCommandResult]: Command execution result
 
             """
-            ...
 
     @runtime_checkable
     class CliFormatter(Protocol):
@@ -59,7 +58,6 @@ class FlextCliProtocols(FlextProtocols):
                 FlextResult[str]: Formatted output or error
 
             """
-            ...
 
     @runtime_checkable
     class CliConfigProvider(Protocol):
@@ -72,7 +70,6 @@ class FlextCliProtocols(FlextProtocols):
                 FlextResult[FlextCliTypes.Data.CliConfigData]: Configuration data or error
 
             """
-            ...
 
         def save_config(
             self, config: FlextCliTypes.Data.CliConfigData
@@ -86,7 +83,6 @@ class FlextCliProtocols(FlextProtocols):
                 FlextResult[None]: Success or error
 
             """
-            ...
 
     @runtime_checkable
     class CliAuthenticator(Protocol):
@@ -104,7 +100,6 @@ class FlextCliProtocols(FlextProtocols):
                 FlextResult[str]: Authentication token or error
 
             """
-            ...
 
         def validate_token(self, token: str) -> FlextResult[bool]:
             """Validate authentication token.
@@ -116,7 +111,6 @@ class FlextCliProtocols(FlextProtocols):
                 FlextResult[bool]: Validation result or error
 
             """
-            ...
 
     @runtime_checkable
     class CliDebugProvider(Protocol):
@@ -131,7 +125,6 @@ class FlextCliProtocols(FlextProtocols):
                 FlextResult[FlextCliTypes.Data.DebugInfoData]: Debug information or error
 
             """
-            ...
 
 
 __all__ = [

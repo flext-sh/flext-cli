@@ -13,13 +13,12 @@ from __future__ import annotations
 
 from collections.abc import Callable, Sequence
 from pathlib import Path
-from typing import Any, TypeVar
+from typing import TypeVar
 
 # CRITICAL: ONLY this file may import Click
 import click
 from click import Context as ClickContext
 from click.testing import CliRunner as ClickCliRunner
-
 from flext_core import (
     FlextContainer,
     FlextLogger,
@@ -80,8 +79,8 @@ class FlextCliClick(FlextService[None]):
     def create_command_decorator(
         self,
         name: str | None = None,
-        **kwargs: Any,
-    ) -> FlextResult[Callable[[Callable[..., Any]], click.Command]]:
+        **kwargs: object,
+    ) -> FlextResult[Callable[[Callable[..., object]], click.Command]]:
         """Create Click command decorator without exposing Click.
 
         Args:
@@ -109,21 +108,21 @@ class FlextCliClick(FlextService[None]):
                 "Created command decorator",
                 extra={"name": name, "options": kwargs},
             )
-            return FlextResult[Callable[[Callable[..., Any]], click.Command]].ok(
+            return FlextResult[Callable[[Callable[..., object]], click.Command]].ok(
                 decorator
             )
         except Exception as e:
             error_msg = f"Failed to create command decorator: {e}"
             self._logger.exception(error_msg)
-            return FlextResult[Callable[[Callable[..., Any]], click.Command]].fail(
+            return FlextResult[Callable[[Callable[..., object]], click.Command]].fail(
                 error_msg
             )
 
     def create_group_decorator(
         self,
         name: str | None = None,
-        **kwargs: Any,
-    ) -> FlextResult[Callable[[Callable[..., Any]], click.Group]]:
+        **kwargs: object,
+    ) -> FlextResult[Callable[[Callable[..., object]], click.Group]]:
         """Create Click group decorator for command groups.
 
         Args:
@@ -150,13 +149,13 @@ class FlextCliClick(FlextService[None]):
                 "Created group decorator",
                 extra={"name": name, "options": kwargs},
             )
-            return FlextResult[Callable[[Callable[..., Any]], click.Group]].ok(
+            return FlextResult[Callable[[Callable[..., object]], click.Group]].ok(
                 decorator
             )
         except Exception as e:
             error_msg = f"Failed to create group decorator: {e}"
             self._logger.exception(error_msg)
-            return FlextResult[Callable[[Callable[..., Any]], click.Group]].fail(
+            return FlextResult[Callable[[Callable[..., object]], click.Group]].fail(
                 error_msg
             )
 
@@ -167,8 +166,8 @@ class FlextCliClick(FlextService[None]):
     def create_option_decorator(
         self,
         *param_decls: str,
-        **attrs: Any,
-    ) -> FlextResult[Callable[[Callable[..., Any]], Callable[..., Any]]]:
+        **attrs: object,
+    ) -> FlextResult[Callable[[Callable[..., object]], Callable[..., object]]]:
         """Create Click option decorator.
 
         Args:
@@ -191,21 +190,21 @@ class FlextCliClick(FlextService[None]):
                 "Created option decorator",
                 extra={"param_decls": param_decls, "attrs": attrs},
             )
-            return FlextResult[Callable[[Callable[..., Any]], Callable[..., Any]]].ok(
-                decorator
-            )
+            return FlextResult[
+                Callable[[Callable[..., object]], Callable[..., object]]
+            ].ok(decorator)
         except Exception as e:
             error_msg = f"Failed to create option decorator: {e}"
             self._logger.exception(error_msg)
-            return FlextResult[Callable[[Callable[..., Any]], Callable[..., Any]]].fail(
-                error_msg
-            )
+            return FlextResult[
+                Callable[[Callable[..., object]], Callable[..., object]]
+            ].fail(error_msg)
 
     def create_argument_decorator(
         self,
         *param_decls: str,
-        **attrs: Any,
-    ) -> FlextResult[Callable[[Callable[..., Any]], Callable[..., Any]]]:
+        **attrs: object,
+    ) -> FlextResult[Callable[[Callable[..., object]], Callable[..., object]]]:
         """Create Click argument decorator.
 
         Args:
@@ -228,15 +227,15 @@ class FlextCliClick(FlextService[None]):
                 "Created argument decorator",
                 extra={"param_decls": param_decls, "attrs": attrs},
             )
-            return FlextResult[Callable[[Callable[..., Any]], Callable[..., Any]]].ok(
-                decorator
-            )
+            return FlextResult[
+                Callable[[Callable[..., object]], Callable[..., object]]
+            ].ok(decorator)
         except Exception as e:
             error_msg = f"Failed to create argument decorator: {e}"
             self._logger.exception(error_msg)
-            return FlextResult[Callable[[Callable[..., Any]], Callable[..., Any]]].fail(
-                error_msg
-            )
+            return FlextResult[
+                Callable[[Callable[..., object]], Callable[..., object]]
+            ].fail(error_msg)
 
     # =========================================================================
     # PARAMETER TYPES
@@ -420,7 +419,7 @@ class FlextCliClick(FlextService[None]):
 
     def get_tuple_type(
         self,
-        types: Sequence[type[Any] | click.ParamType],
+        types: Sequence[type[object] | click.ParamType],
     ) -> click.Tuple:
         """Get Click Tuple parameter type.
 
@@ -523,7 +522,7 @@ class FlextCliClick(FlextService[None]):
 
     def create_pass_context_decorator(
         self,
-    ) -> Callable[[Callable[..., Any]], Callable[..., Any]]:
+    ) -> Callable[[Callable[..., object]], Callable[..., object]]:
         """Create pass_context decorator.
 
         Returns:
@@ -547,7 +546,7 @@ class FlextCliClick(FlextService[None]):
     def echo(
         self,
         message: str | None = None,
-        file: Any | None = None,
+        file: object | None = None,
         nl: bool = True,
         err: bool = False,
         color: bool | None = None,
@@ -616,9 +615,9 @@ class FlextCliClick(FlextService[None]):
     def prompt(
         self,
         text: str,
-        default: Any | None = None,
-        type: Any | None = None,
-        value_proc: Callable[[str], Any] | None = None,
+        default: object | None = None,
+        type: object | None = None,
+        value_proc: Callable[[str], object] | None = None,
         prompt_suffix: str = ": ",
         *,
         hide_input: bool = False,
@@ -626,7 +625,7 @@ class FlextCliClick(FlextService[None]):
         show_default: bool = True,
         err: bool = False,
         show_choices: bool = True,
-    ) -> FlextResult[Any]:
+    ) -> FlextResult[object]:
         """Prompt for input.
 
         Args:
@@ -658,13 +657,13 @@ class FlextCliClick(FlextService[None]):
                 err=err,
                 show_choices=show_choices,
             )
-            return FlextResult[Any].ok(result)
+            return FlextResult[object].ok(result)
         except click.Abort:
-            return FlextResult[Any].fail("User aborted")
+            return FlextResult[object].fail("User aborted")
         except Exception as e:
             error_msg = f"Prompt failed: {e}"
             self._logger.exception(error_msg)
-            return FlextResult[Any].fail(error_msg)
+            return FlextResult[object].fail(error_msg)
 
     # =========================================================================
     # TESTING SUPPORT

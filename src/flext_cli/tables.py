@@ -10,7 +10,7 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 from collections.abc import Iterable, Sequence
-from typing import Any, ClassVar
+from typing import ClassVar, cast
 
 from tabulate import tabulate
 
@@ -108,7 +108,7 @@ class FlextCliTables(FlextService[None]):
 
     def create_table(
         self,
-        data: Iterable[Sequence[Any] | dict[str, Any]],
+        data: Iterable[Sequence[object] | dict[str, object]],
         headers: str | Sequence[str] = "keys",
         *,
         table_format: str = "simple",
@@ -171,7 +171,7 @@ class FlextCliTables(FlextService[None]):
 
         try:
             # Build tabulate kwargs
-            kwargs: dict[str, Any] = {
+            kwargs: dict[str, object] = {
                 "tablefmt": table_format,
                 "headers": headers,
                 "floatfmt": floatfmt,
@@ -194,7 +194,7 @@ class FlextCliTables(FlextService[None]):
                     kwargs["colalign"] = align
 
             # Generate table
-            table_str = tabulate(data, **kwargs)
+            table_str = tabulate(data, **cast("dict", kwargs))
 
             self._logger.debug(
                 "Created table",
@@ -215,7 +215,7 @@ class FlextCliTables(FlextService[None]):
 
     def create_simple_table(
         self,
-        data: Iterable[Sequence[Any] | dict[str, Any]],
+        data: Iterable[Sequence[object] | dict[str, object]],
         headers: Sequence[str] | None = None,
     ) -> FlextResult[str]:
         """Create simple ASCII table with minimal formatting.
@@ -240,7 +240,7 @@ class FlextCliTables(FlextService[None]):
 
     def create_grid_table(
         self,
-        data: Iterable[Sequence[Any] | dict[str, Any]],
+        data: Iterable[Sequence[object] | dict[str, object]],
         headers: Sequence[str] | None = None,
         *,
         fancy: bool = False,
@@ -267,7 +267,7 @@ class FlextCliTables(FlextService[None]):
 
     def create_markdown_table(
         self,
-        data: Iterable[Sequence[Any] | dict[str, Any]],
+        data: Iterable[Sequence[object] | dict[str, object]],
         headers: Sequence[str] | None = None,
     ) -> FlextResult[str]:
         """Create Markdown pipe table.
@@ -299,7 +299,7 @@ class FlextCliTables(FlextService[None]):
 
     def create_html_table(
         self,
-        data: Iterable[Sequence[Any] | dict[str, Any]],
+        data: Iterable[Sequence[object] | dict[str, object]],
         headers: Sequence[str] | None = None,
         *,
         escape: bool = True,
@@ -326,7 +326,7 @@ class FlextCliTables(FlextService[None]):
 
     def create_latex_table(
         self,
-        data: Iterable[Sequence[Any] | dict[str, Any]],
+        data: Iterable[Sequence[object] | dict[str, object]],
         headers: Sequence[str] | None = None,
         *,
         booktabs: bool = False,
@@ -362,7 +362,7 @@ class FlextCliTables(FlextService[None]):
 
     def create_rst_table(
         self,
-        data: Iterable[Sequence[Any] | dict[str, Any]],
+        data: Iterable[Sequence[object] | dict[str, object]],
         headers: Sequence[str] | None = None,
     ) -> FlextResult[str]:
         """Create reStructuredText grid table.

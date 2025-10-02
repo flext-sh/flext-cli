@@ -12,9 +12,9 @@ from __future__ import annotations
 import click
 import pytest
 from click.testing import CliRunner
+from flext_core import FlextResult
 
 from flext_cli.main import FlextCliMain
-from flext_core import FlextResult
 
 
 class TestFlextCliMain:
@@ -375,7 +375,7 @@ class TestFlextCliMain:
 
         assert isinstance(result, FlextResult)
         assert result.is_failure
-        assert "Failed to import" in result.error
+        assert result.error is not None and "Failed to import" in result.error
 
     # =========================================================================
     # COMMAND METADATA TESTS
@@ -455,7 +455,7 @@ class TestFlextCliMain:
 
         assert isinstance(result, FlextResult)
         assert result.is_failure
-        assert "not found" in result.error
+        assert result.error is not None and "not found" in result.error
 
     def test_get_group_success(self, cli_main: FlextCliMain) -> None:
         """Test getting registered group."""
@@ -477,7 +477,7 @@ class TestFlextCliMain:
 
         assert isinstance(result, FlextResult)
         assert result.is_failure
-        assert "not found" in result.error
+        assert result.error is not None and "not found" in result.error
 
     # =========================================================================
     # CLI EXECUTION TESTS

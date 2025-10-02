@@ -15,11 +15,11 @@ from pathlib import Path
 from typing import cast
 
 import pytest
+from flext_core import FlextResult
+from flext_tests import FlextTestsUtilities
 
 from flext_cli.api import FlextCli
 from flext_cli.constants import FlextCliConstants
-from flext_core import FlextResult
-from flext_tests import FlextTestsUtilities
 
 
 class TestFlextCli:

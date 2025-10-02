@@ -276,7 +276,7 @@ def oracle_query(
         sample_data = query_data_typed.get("sample_data", [])
         if output_format == "table":
             if isinstance(sample_data, list):
-                for row in sample_data:
+                for _row in sample_data:
                     pass
         elif output_format == "json":
             pass

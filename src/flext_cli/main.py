@@ -13,7 +13,6 @@ from __future__ import annotations
 import importlib
 import pkgutil
 from collections.abc import Callable
-from typing import Any
 
 from click import Group
 
@@ -94,9 +93,9 @@ class FlextCliMain(FlextService[None]):
         self._description = description or f"{name} CLI"
 
         # Command registry
-        self._commands: dict[str, Any] = {}
-        self._groups: dict[str, Any] = {}
-        self._plugin_commands: dict[str, Any] = {}
+        self._commands: dict[str, object] = {}
+        self._groups: dict[str, object] = {}
+        self._plugin_commands: dict[str, object] = {}
 
         # Main CLI group
         self._main_group = self._create_main_group(**kwargs)
@@ -575,7 +574,7 @@ class FlextCliMain(FlextService[None]):
             self._logger.exception(error_msg)
             return FlextResult[list[str]].fail(error_msg)
 
-    def get_command(self, name: str) -> FlextResult[Any]:
+    def get_command(self, name: str) -> FlextResult[object]:
         """Get a registered command by name.
 
         Args:
@@ -591,11 +590,11 @@ class FlextCliMain(FlextService[None]):
 
         """
         if name not in self._commands:
-            return FlextResult[Any].fail(f"Command '{name}' not found")
+            return FlextResult[object].fail(f"Command '{name}' not found")
 
-        return FlextResult[Any].ok(self._commands[name])
+        return FlextResult[object].ok(self._commands[name])
 
-    def get_group(self, name: str) -> FlextResult[Any]:
+    def get_group(self, name: str) -> FlextResult[object]:
         """Get a registered group by name.
 
         Args:
@@ -611,9 +610,9 @@ class FlextCliMain(FlextService[None]):
 
         """
         if name not in self._groups:
-            return FlextResult[Any].fail(f"Group '{name}' not found")
+            return FlextResult[object].fail(f"Group '{name}' not found")
 
-        return FlextResult[Any].ok(self._groups[name])
+        return FlextResult[object].ok(self._groups[name])
 
     # =========================================================================
     # CLI EXECUTION
@@ -624,7 +623,7 @@ class FlextCliMain(FlextService[None]):
         args: list[str] | None = None,
         *,
         standalone_mode: bool = True,
-    ) -> FlextResult[Any]:
+    ) -> FlextResult[object]:
         """Execute the CLI with given arguments.
 
         Args:
@@ -641,7 +640,7 @@ class FlextCliMain(FlextService[None]):
         """
         try:
             if self._main_group is None:
-                return FlextResult[Any].fail("Main group not initialized")
+                return FlextResult[object].fail("Main group not initialized")
 
             # Execute main group
             result = self._main_group(
@@ -649,14 +648,14 @@ class FlextCliMain(FlextService[None]):
                 standalone_mode=standalone_mode,
             )
 
-            return FlextResult[Any].ok(result)
+            return FlextResult[object].ok(result)
 
         except Exception as e:
             error_msg = f"CLI execution failed: {e}"
             self._logger.exception(error_msg)
-            return FlextResult[Any].fail(error_msg)
+            return FlextResult[object].fail(error_msg)
 
-    def get_main_group(self) -> FlextResult[Any]:
+    def get_main_group(self) -> FlextResult[object]:
         """Get the main CLI group object.
 
         Returns:
@@ -669,9 +668,9 @@ class FlextCliMain(FlextService[None]):
 
         """
         if self._main_group is None:
-            return FlextResult[Any].fail("Main group not initialized")
+            return FlextResult[object].fail("Main group not initialized")
 
-        return FlextResult[Any].ok(self._main_group)
+        return FlextResult[object].ok(self._main_group)
 
     # =========================================================================
     # FLEXT SERVICE METHODS

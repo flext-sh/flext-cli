@@ -35,11 +35,11 @@ class ExamplePlugin:
         self._initialized = False
         self._config: dict[str, Any] = {}
 
-    def initialize(self, cli_main: Any) -> FlextResult[None]:
+    def initialize(self, _cli_main: Any) -> FlextResult[None]:
         """Initialize the plugin.
 
         Args:
-            cli_main: FlextCliMain instance
+            _cli_main: FlextCliMain instance
 
         Returns:
             FlextResult[None] indicating success or failure
@@ -116,11 +116,11 @@ class DataProcessorPlugin:
         """Initialize data processor plugin."""
         self._processors: dict[str, Any] = {}
 
-    def initialize(self, cli_main: Any) -> FlextResult[None]:
+    def initialize(self, _cli_main: Any) -> FlextResult[None]:
         """Initialize the plugin.
 
         Args:
-            cli_main: FlextCliMain instance
+            _cli_main: FlextCliMain instance
 
         Returns:
             FlextResult[None]

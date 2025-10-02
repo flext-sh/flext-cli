@@ -14,7 +14,6 @@ import threading
 import time
 from dataclasses import dataclass
 from typing import (
-    Any,
     Generic,
     Protocol,
     TypedDict,
@@ -91,8 +90,8 @@ class TestFlextCliTypes:
     def test_type_aliases(self) -> None:
         """Test type aliases functionality."""
         # Define type aliases (using simple assignments for function scope)
-        user_data: dict[str, Any] = {"id": 1, "name": "test"}
-        user_list: list[dict[str, Any]] = [user_data]
+        user_data: dict[str, object] = {"id": 1, "name": "test"}
+        user_list: list[dict[str, object]] = [user_data]
 
         # Test type aliases
         user_id: int = 123
@@ -174,7 +173,7 @@ class TestFlextCliTypes:
         # Define function with type hints
         def typed_function(
             name: str, age: int, *, active: bool = True
-        ) -> dict[str, Any]:
+        ) -> dict[str, object]:
             return {"name": name, "age": age, "active": active}
 
         # Test type hints extraction
@@ -182,7 +181,7 @@ class TestFlextCliTypes:
         assert hints["name"] is str
         assert hints["age"] is int
         assert hints["active"] is bool
-        assert hints["return"] == dict[str, Any]
+        assert hints["return"] == dict[str, object]
 
         # Test complex type analysis
         def complex_function(data: list[dict[str, str | int]]) -> str | None:
@@ -276,7 +275,7 @@ class TestFlextCliTypes:
         # Test type introspection
         def test_function(
             param1: str, param2: int, param3: list[str] | None = None
-        ) -> dict[str, Any]:
+        ) -> dict[str, object]:
             return {"param1": param1, "param2": param2, "param3": param3}
 
         # Get type hints
@@ -596,7 +595,7 @@ class TestFlextCliTypes:
         def process_list(data: list[str]) -> list[str]:
             return [item.upper() for item in data]
 
-        def process_dict(data: dict[str, Any]) -> dict[str, str]:
+        def process_dict(data: dict[str, object]) -> dict[str, str]:
             return {key: str(value) for key, value in data.items()}
 
         # Test performance
@@ -776,11 +775,11 @@ class TestFlextCliTypes:
         # Test protocol
         @runtime_checkable
         class TestProtocol(Protocol):
-            def operation(self, data: list[str]) -> dict[str, Any]: ...
+            def operation(self, data: list[str]) -> dict[str, object]: ...
 
         # Implement protocol
         class Implementation:
-            def operation(self, data: list[str]) -> dict[str, Any]:
+            def operation(self, data: list[str]) -> dict[str, object]:
                 time.sleep(0.001)  # Simulate work
                 return {
                     "processed": [item.upper() for item in data],

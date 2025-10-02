@@ -11,11 +11,11 @@ from __future__ import annotations
 
 import time
 from pathlib import Path
-from typing import Any, Never
+
+from flext_core import FlextResult
 
 from flext_cli.cmd import FlextCliCmd
 from flext_cli.file_tools import FlextCliFileTools
-from flext_core import FlextResult
 
 
 class TestFlextCliCmd:
@@ -217,7 +217,7 @@ class TestFlextCliCmd:
         # Should fail because config file doesn't exist
         assert result.is_failure
         assert isinstance(result.error, str)
-        assert "not found" in result.error.lower()
+        assert result.error is not None and "not found" in result.error.lower()
 
     def test_cmd_show_config(self) -> None:
         """Test show_config method."""
@@ -256,7 +256,7 @@ class TestFlextCliCmd:
         result = FlextCliCmd._ConfigValidationHelper.validate_config(None)
         assert result.is_failure
         assert isinstance(result.error, str)
-        assert "None" in result.error
+        assert result.error is not None and "None" in result.error
 
     def test_cmd_show_config_paths_error_handling(self) -> None:
         """Test show_config_paths error handling."""
@@ -275,7 +275,7 @@ class TestFlextCliCmd:
             result = cmd.show_config_paths()
             assert result.is_failure
             assert isinstance(result.error, str)
-            assert "Test error" in result.error
+            assert result.error is not None and "Test error" in result.error
         finally:
             cmd._ConfigHelper = original_helper
 
@@ -296,7 +296,7 @@ class TestFlextCliCmd:
             result = cmd.validate_config()
             assert result.is_failure
             assert isinstance(result.error, str)
-            assert "Test error" in result.error
+            assert result.error is not None and "Test error" in result.error
         finally:
             cmd._ConfigHelper = original_helper
 
@@ -320,7 +320,7 @@ class TestFlextCliCmd:
             result = cmd.get_config_info()
             assert result.is_failure
             assert isinstance(result.error, str)
-            assert "Test error" in result.error
+            assert result.error is not None and "Test error" in result.error
         finally:
             cmd._ConfigHelper = original_helper
 
@@ -344,7 +344,7 @@ class TestFlextCliCmd:
             result = cmd.set_config_value("test_key", "test_value")
             assert result.is_failure
             assert isinstance(result.error, str)
-            assert "Test file error" in result.error
+            assert result.error is not None and "Test file error" in result.error
         finally:
             cmd._file_tools = original_file_tools
 
@@ -379,7 +379,7 @@ class TestFlextCliCmd:
                 result = cmd.get_config_value("test_key")
                 assert result.is_failure
                 assert result.error is not None
-                assert "Test load error" in result.error
+                assert result.error is not None and "Test load error" in result.error
             finally:
                 Path(temp_file).unlink()
         finally:
@@ -402,7 +402,7 @@ class TestFlextCliCmd:
             result = cmd.show_config()
             assert result.is_failure
             assert isinstance(result.error, str)
-            assert "Test config info error" in result.error
+            assert result.error is not None and "Test config info error" in result.error
         finally:
             cmd._ConfigHelper = original_helper
 
@@ -426,7 +426,7 @@ class TestFlextCliCmd:
             result = cmd.edit_config()
             assert result.is_failure
             assert isinstance(result.error, str)
-            assert "Test load error" in result.error
+            assert result.error is not None and "Test load error" in result.error
         finally:
             cmd._file_tools = original_file_tools
 
@@ -447,7 +447,7 @@ class TestFlextCliCmd:
             result = FlextCliCmd._ConfigDisplayHelper.show_config(logger)
             assert result.is_failure
             assert isinstance(result.error, str)
-            assert "Test logger error" in result.error
+            assert result.error is not None and "Test logger error" in result.error
         finally:
             logger.info = original_info
 
@@ -479,7 +479,9 @@ class TestFlextCliCmd:
             result = cmd.edit_config()
             assert result.is_failure
             assert isinstance(result.error, str)
-            assert "Test create default error" in result.error
+            assert (
+                result.error is not None and "Test create default error" in result.error
+            )
         finally:
             cmd._file_tools = original_file_tools
 
@@ -490,7 +492,7 @@ class TestFlextCliCmd:
         original_file_tools = cmd._file_tools
 
         class MockFileTools(FlextCliFileTools):
-            def read_json_file(self, file_path: str) -> FlextResult[dict[str, Any]]:
+            def read_json_file(self, file_path: str) -> FlextResult[dict[str, object]]:
                 return FlextResult.ok({"other_key": "value"})
 
         cmd._file_tools = MockFileTools()
@@ -513,7 +515,9 @@ class TestFlextCliCmd:
                     result = cmd.get_config_value("missing_key")
                     assert result.is_failure
                     assert isinstance(result.error, str)
-                    assert "not found" in result.error.lower()
+                    assert (
+                        result.error is not None and "not found" in result.error.lower()
+                    )
                 finally:
                     FlextCliConfig().config_dir = original_config_dir
             finally:

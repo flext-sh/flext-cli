@@ -9,7 +9,8 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from flext_cli.__version__ import __version__
+from typing import Final
+
 from flext_cli.api import FlextCli
 from flext_cli.auth import FlextCliAuth
 from flext_cli.cli import FlextCliClick
@@ -38,15 +39,20 @@ from flext_cli.shell import FlextCliShell, FlextCliShellBuilder
 from flext_cli.tables import FlextCliTables
 from flext_cli.testing import FlextCliMockScenarios, FlextCliTestRunner
 from flext_cli.typings import FlextCliTypes
+from flext_cli.version import VERSION, FlextCliVersion
 
 # Backward compatibility alias (after imports to avoid E402)
 FlextCliApi = FlextCli
 
-__author__ = "FLEXT Team"
+PROJECT_VERSION: Final[FlextCliVersion] = VERSION
+
+__version__: str = VERSION.version
+__version_info__: tuple[int | str, ...] = VERSION.version_info
 
 __all__ = [
+    "PROJECT_VERSION",
+    "VERSION",
     "FlextCli",
-    "FlextCliApi",
     "FlextCliAuth",
     "FlextCliCache",
     "FlextCliClick",
@@ -78,6 +84,8 @@ __all__ = [
     "FlextCliTables",
     "FlextCliTestRunner",
     "FlextCliTypes",
+    "FlextCliVersion",
     "__version__",
+    "__version_info__",
     "memoize",
 ]

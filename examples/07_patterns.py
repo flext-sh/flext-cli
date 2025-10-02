@@ -182,15 +182,12 @@ class ProjectRepository(Protocol):
 
     def save(self, project: Project) -> FlextResult[None]:
         """Save project to persistence."""
-        ...
 
     def find_by_id(self, project_id: UUID) -> FlextResult[Project | None]:
         """Find project by ID."""
-        ...
 
     def find_by_owner(self, owner_id: str) -> FlextResult[list[Project]]:
         """Find projects by owner."""
-        ...
 
 
 class InMemoryProjectRepository:

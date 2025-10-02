@@ -14,9 +14,9 @@ from pathlib import Path
 import click
 import pytest
 from click.testing import CliRunner
+from flext_core import FlextResult
 
 from flext_cli.cli import FlextCliClick
-from flext_core import FlextResult
 
 
 class TestFlextCliClick:
@@ -318,7 +318,7 @@ class TestFlextCliClick:
 
         assert isinstance(result, FlextResult)
         assert result.is_failure
-        assert "No Click context available" in result.error
+        assert result.error is not None and "No Click context available" in result.error
 
     def test_create_pass_context_decorator(self, cli_click: FlextCliClick) -> None:
         """Test creating pass_context decorator."""

@@ -36,14 +36,14 @@ class TestFlextCliMixinsValidation:
         result = FlextCliMixins.ValidationMixin.validate_not_empty("test_field", "")
         assert result.is_failure
         assert result.error is not None
-        assert "cannot be empty" in result.error.lower()
+        assert result.error is not None and "cannot be empty" in result.error.lower()
 
     def test_validate_not_empty_failure_whitespace_string(self) -> None:
         """Test validate_not_empty with whitespace-only string."""
         result = FlextCliMixins.ValidationMixin.validate_not_empty("test_field", "   ")
         assert result.is_failure
         assert result.error is not None
-        assert "cannot be empty" in result.error.lower()
+        assert result.error is not None and "cannot be empty" in result.error.lower()
 
     def test_validate_not_empty_success_number(self) -> None:
         """Test validate_not_empty with non-zero number."""
@@ -55,14 +55,14 @@ class TestFlextCliMixinsValidation:
         result = FlextCliMixins.ValidationMixin.validate_not_empty("test_field", 0)
         assert result.is_failure
         assert result.error is not None
-        assert "cannot be empty" in result.error.lower()
+        assert result.error is not None and "cannot be empty" in result.error.lower()
 
     def test_validate_not_empty_failure_none(self) -> None:
         """Test validate_not_empty with None."""
         result = FlextCliMixins.ValidationMixin.validate_not_empty("test_field", None)
         assert result.is_failure
         assert result.error is not None
-        assert "cannot be empty" in result.error.lower()
+        assert result.error is not None and "cannot be empty" in result.error.lower()
 
     # =========================================================================
     # validate_url tests
@@ -95,14 +95,14 @@ class TestFlextCliMixinsValidation:
         result = FlextCliMixins.ValidationMixin.validate_url("api_url", "")
         assert result.is_failure
         assert result.error is not None
-        assert "cannot be empty" in result.error.lower()
+        assert result.error is not None and "cannot be empty" in result.error.lower()
 
     def test_validate_url_failure_whitespace(self) -> None:
         """Test validate_url with whitespace-only string."""
         result = FlextCliMixins.ValidationMixin.validate_url("api_url", "   ")
         assert result.is_failure
         assert result.error is not None
-        assert "cannot be empty" in result.error.lower()
+        assert result.error is not None and "cannot be empty" in result.error.lower()
 
     # =========================================================================
     # validate_enum_value tests
@@ -124,7 +124,7 @@ class TestFlextCliMixinsValidation:
         )
         assert result.is_failure
         assert result.error is not None
-        assert "invalid" in result.error.lower()
+        assert result.error is not None and "invalid" in result.error.lower()
 
     def test_validate_enum_value_case_sensitive(self) -> None:
         """Test validate_enum_value is case-sensitive."""
@@ -153,7 +153,7 @@ class TestFlextCliMixinsValidation:
         )
         assert result.is_failure
         assert result.error is not None
-        assert "must be positive" in result.error.lower()
+        assert result.error is not None and "must be positive" in result.error.lower()
 
     def test_validate_positive_number_failure_negative(self) -> None:
         """Test validate_positive_number with negative number."""
@@ -162,7 +162,7 @@ class TestFlextCliMixinsValidation:
         )
         assert result.is_failure
         assert result.error is not None
-        assert "must be positive" in result.error.lower()
+        assert result.error is not None and "must be positive" in result.error.lower()
 
     # =========================================================================
     # validate_non_negative_number tests
@@ -189,7 +189,7 @@ class TestFlextCliMixinsValidation:
         )
         assert result.is_failure
         assert result.error is not None
-        assert "cannot be negative" in result.error.lower()
+        assert result.error is not None and "cannot be negative" in result.error.lower()
 
     # =========================================================================
     # validate_output_format tests
@@ -215,7 +215,7 @@ class TestFlextCliMixinsValidation:
         result = FlextCliMixins.ValidationMixin.validate_output_format("invalid_format")
         assert result.is_failure
         assert result.error is not None
-        assert "invalid" in result.error.lower()
+        assert result.error is not None and "invalid" in result.error.lower()
 
     # =========================================================================
     # validate_log_level tests
@@ -241,7 +241,7 @@ class TestFlextCliMixinsValidation:
         result = FlextCliMixins.ValidationMixin.validate_log_level("INVALID")
         assert result.is_failure
         assert result.error is not None
-        assert "invalid" in result.error.lower()
+        assert result.error is not None and "invalid" in result.error.lower()
 
     # =========================================================================
     # validate_status tests
@@ -259,7 +259,7 @@ class TestFlextCliMixinsValidation:
         result = FlextCliMixins.ValidationMixin.validate_status("INVALID_STATUS")
         assert result.is_failure
         assert result.error is not None
-        assert "invalid" in result.error.lower()
+        assert result.error is not None and "invalid" in result.error.lower()
 
 
 class TestFlextCliMixinsBusinessRules:
@@ -285,8 +285,8 @@ class TestFlextCliMixinsBusinessRules:
         )
         assert result.is_failure
         assert result.error is not None
-        assert "pending" in result.error.lower()
-        assert "running" in result.error.lower()
+        assert result.error is not None and "pending" in result.error.lower()
+        assert result.error is not None and "running" in result.error.lower()
 
     # =========================================================================
     # validate_session_state tests
@@ -308,7 +308,10 @@ class TestFlextCliMixinsBusinessRules:
         )
         assert result.is_failure
         assert result.error is not None
-        assert "invalid session status" in result.error.lower()
+        assert (
+            result.error is not None
+            and "invalid session status" in result.error.lower()
+        )
 
     # =========================================================================
     # validate_pipeline_step tests
@@ -329,7 +332,9 @@ class TestFlextCliMixinsBusinessRules:
         result = FlextCliMixins.BusinessRulesMixin.validate_pipeline_step(None)
         assert result.is_failure
         assert result.error is not None
-        assert "non-empty dictionary" in result.error.lower()
+        assert (
+            result.error is not None and "non-empty dictionary" in result.error.lower()
+        )
 
     def test_validate_pipeline_step_failure_missing_name(self) -> None:
         """Test validate_pipeline_step with missing 'name' field."""
@@ -340,7 +345,7 @@ class TestFlextCliMixinsBusinessRules:
         result = FlextCliMixins.BusinessRulesMixin.validate_pipeline_step(step)
         assert result.is_failure
         assert result.error is not None
-        assert "name" in result.error.lower()
+        assert result.error is not None and "name" in result.error.lower()
 
     def test_validate_pipeline_step_failure_empty_name(self) -> None:
         """Test validate_pipeline_step with empty name."""
@@ -351,7 +356,7 @@ class TestFlextCliMixinsBusinessRules:
         result = FlextCliMixins.BusinessRulesMixin.validate_pipeline_step(step)
         assert result.is_failure
         assert result.error is not None
-        assert "cannot be empty" in result.error.lower()
+        assert result.error is not None and "cannot be empty" in result.error.lower()
 
     def test_validate_pipeline_step_failure_whitespace_name(self) -> None:
         """Test validate_pipeline_step with whitespace-only name."""
@@ -362,7 +367,7 @@ class TestFlextCliMixinsBusinessRules:
         result = FlextCliMixins.BusinessRulesMixin.validate_pipeline_step(step)
         assert result.is_failure
         assert result.error is not None
-        assert "cannot be empty" in result.error.lower()
+        assert result.error is not None and "cannot be empty" in result.error.lower()
 
     # =========================================================================
     # validate_configuration_consistency tests
@@ -393,8 +398,11 @@ class TestFlextCliMixinsBusinessRules:
         )
         assert result.is_failure
         assert result.error is not None
-        assert "missing required configuration fields" in result.error.lower()
-        assert "auth_token" in result.error.lower()
+        assert (
+            result.error is not None
+            and "missing required configuration fields" in result.error.lower()
+        )
+        assert result.error is not None and "auth_token" in result.error.lower()
 
     def test_validate_configuration_consistency_success_extra_fields(self) -> None:
         """Test validate_configuration_consistency with extra fields (allowed)."""
@@ -421,4 +429,7 @@ class TestFlextCliMixinsBusinessRules:
         )
         assert result.is_failure
         assert result.error is not None
-        assert "missing required configuration fields" in result.error.lower()
+        assert (
+            result.error is not None
+            and "missing required configuration fields" in result.error.lower()
+        )

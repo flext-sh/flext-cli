@@ -15,14 +15,14 @@ from pathlib import Path
 
 import pytest
 import yaml
+from flext_core import FlextResult, FlextUtilities
+from flext_tests import FlextTestsUtilities
 
 from flext_cli.api import FlextCli
 from flext_cli.config import FlextCliConfig
 from flext_cli.constants import FlextCliConstants
 from flext_cli.core import FlextCliService
 from flext_cli.models import FlextCliModels
-from flext_core import FlextResult, FlextUtilities
-from flext_tests import FlextTestsUtilities
 
 
 class TestFlextCliService:

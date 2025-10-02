@@ -33,7 +33,7 @@ def demo_command_execution() -> None:
 
     def fetch_data(url: str) -> dict:
         """Simulate data fetching."""
-        sleep(1)  # Simulate network delay
+        time.sleep(1)  # Simulate network delay
         return {"url": url, "status": "success", "data": f"Response from {url}"}
 
     # Execute operation
@@ -49,7 +49,7 @@ def demo_concurrent_operations() -> None:
 
     def fetch_resource(resource_id: int) -> dict:
         """Simulate fetching a resource."""
-        sleep(0.5)  # Simulate delay
+        time.sleep(0.5)  # Simulate delay
         return {"id": resource_id, "status": "completed"}
 
     # Run multiple operations concurrently
@@ -71,7 +71,7 @@ def demo_with_timeout() -> None:
 
     def slow_operation() -> str:
         """Operation that takes too long."""
-        sleep(5)  # Takes 5 seconds
+        time.sleep(5)  # Takes 5 seconds
         return "completed"
 
     # Run with 2-second timeout
@@ -178,7 +178,7 @@ def demo_command_decorator() -> None:
     @command
     def fetch_user_data(user_id: int) -> dict:
         """Function wrapped as sync CLI command."""
-        sleep(0.5)
+        time.sleep(0.5)
         return {"id": user_id, "name": f"User{user_id}", "status": "active"}
 
     # Call the wrapped function (-> sync)

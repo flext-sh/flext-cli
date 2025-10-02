@@ -16,11 +16,8 @@ import functools
 import importlib
 import time
 from collections.abc import Callable
-from typing import Any, TypeVar
 
-from flext_core import FlextLogger, FlextResult, FlextService
-
-T = TypeVar("T")
+from flext_core import FlextLogger, FlextResult, FlextService, T
 
 
 class FlextCliLazyLoader(FlextService[None]):
@@ -55,7 +52,7 @@ class FlextCliLazyLoader(FlextService[None]):
         super().__init__(**data)
         self._logger = FlextLogger(__name__)
         self._lazy_modules: dict[str, str] = {}
-        self._loaded_modules: dict[str, Any] = {}
+        self._loaded_modules: dict[str, object] = {}
 
     def register_lazy_module(
         self,
@@ -93,7 +90,7 @@ class FlextCliLazyLoader(FlextService[None]):
             self._logger.exception(error_msg)
             return FlextResult[None].fail(error_msg)
 
-    def load_module(self, key: str) -> FlextResult[Any]:
+    def load_module(self, key: str) -> FlextResult[object]:
         """Load a registered lazy module.
 
         Args:
@@ -115,11 +112,11 @@ class FlextCliLazyLoader(FlextService[None]):
             # Return if already loaded
             if key in self._loaded_modules:
                 self._logger.debug("Module already loaded", extra={"module_key": key})
-                return FlextResult[Any].ok(self._loaded_modules[key])
+                return FlextResult[object].ok(self._loaded_modules[key])
 
             # Check if registered
             if key not in self._lazy_modules:
-                return FlextResult[Any].fail(
+                return FlextResult[object].fail(
                     f"Module '{key}' not registered for lazy loading"
                 )
 
@@ -135,16 +132,16 @@ class FlextCliLazyLoader(FlextService[None]):
                 "Loaded lazy module", extra={"module_name": module_name, "key": key}
             )
 
-            return FlextResult[Any].ok(module)
+            return FlextResult[object].ok(module)
 
         except ImportError as e:
             error_msg = f"Failed to import module '{key}': {e}"
             self._logger.exception(error_msg)
-            return FlextResult[Any].fail(error_msg)
+            return FlextResult[object].fail(error_msg)
         except Exception as e:
             error_msg = f"Failed to load module: {e}"
             self._logger.exception(error_msg)
-            return FlextResult[Any].fail(error_msg)
+            return FlextResult[object].fail(error_msg)
 
     def is_loaded(self, key: str) -> bool:
         """Check if module is already loaded.
@@ -158,7 +155,7 @@ class FlextCliLazyLoader(FlextService[None]):
         """
         return key in self._loaded_modules
 
-    def get_loaded_modules(self) -> FlextResult[dict[str, Any]]:
+    def get_loaded_modules(self) -> FlextResult[dict[str, object]]:
         """Get all loaded modules.
 
         Returns:
@@ -166,11 +163,11 @@ class FlextCliLazyLoader(FlextService[None]):
 
         """
         try:
-            return FlextResult[dict[str, Any]].ok(self._loaded_modules.copy())
+            return FlextResult[dict[str, object]].ok(self._loaded_modules.copy())
         except Exception as e:
             error_msg = f"Failed to get loaded modules: {e}"
             self._logger.exception(error_msg)
-            return FlextResult[dict[str, Any]].fail(error_msg)
+            return FlextResult[dict[str, object]].fail(error_msg)
 
     def execute(self) -> FlextResult[None]:
         """Execute lazy loader operations.
@@ -253,7 +250,7 @@ class FlextCliCache(FlextService[None]):
             self._logger.exception(error_msg)
             return FlextResult[None].fail(error_msg)
 
-    def get(self, key: str) -> FlextResult[Any]:
+    def get(self, key: str) -> FlextResult[object]:
         """Get cached value.
 
         Args:
@@ -271,23 +268,23 @@ class FlextCliCache(FlextService[None]):
         """
         try:
             if key not in self._cache:
-                return FlextResult[Any].fail(f"Cache miss: '{key}' not found")
+                return FlextResult[object].fail(f"Cache miss: '{key}' not found")
 
             entry = self._cache[key]
 
             # Check expiry
             if entry["expiry"] is not None and time.time() > entry["expiry"]:
                 del self._cache[key]
-                return FlextResult[Any].fail(f"Cache expired: '{key}'")
+                return FlextResult[object].fail(f"Cache expired: '{key}'")
 
             self._logger.debug("Cache hit", extra={"cache_key": key})
 
-            return FlextResult[Any].ok(entry["value"])
+            return FlextResult[object].ok(entry["value"])
 
         except Exception as e:
             error_msg = f"Failed to get cache: {e}"
             self._logger.exception(error_msg)
-            return FlextResult[Any].fail(error_msg)
+            return FlextResult[object].fail(error_msg)
 
     def delete(self, key: str) -> FlextResult[None]:
         """Delete cache entry.
@@ -361,7 +358,7 @@ class FlextCliCache(FlextService[None]):
             self._logger.exception(error_msg)
             return FlextResult[int].fail(error_msg)
 
-    def get_stats(self) -> FlextResult[dict[str, Any]]:
+    def get_stats(self) -> FlextResult[dict[str, object]]:
         """Get cache statistics.
 
         Returns:
@@ -378,12 +375,12 @@ class FlextCliCache(FlextService[None]):
                 ),
             }
 
-            return FlextResult[dict[str, Any]].ok(stats)
+            return FlextResult[dict[str, object]].ok(stats)
 
         except Exception as e:
             error_msg = f"Failed to get cache stats: {e}"
             self._logger.exception(error_msg)
-            return FlextResult[dict[str, Any]].fail(error_msg)
+            return FlextResult[dict[str, object]].fail(error_msg)
 
     def execute(self) -> FlextResult[None]:
         """Execute cache operations.

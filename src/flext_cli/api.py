@@ -9,6 +9,20 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
+from flext_core import (
+    FlextBus,
+    FlextContainer,
+    FlextContext,
+    FlextCqrs,
+    FlextDispatcher,
+    FlextLogger,
+    FlextProcessors,
+    FlextRegistry,
+    FlextResult,
+    FlextService,
+    FlextUtilities,
+)
+
 from flext_cli.auth import FlextCliAuth
 from flext_cli.cli import FlextCliClick
 from flext_cli.cmd import FlextCliCmd
@@ -32,19 +46,6 @@ from flext_cli.prompts import FlextCliPrompts
 from flext_cli.protocols import FlextCliProtocols
 from flext_cli.tables import FlextCliTables
 from flext_cli.typings import FlextCliTypes
-from flext_core import (
-    FlextBus,
-    FlextContainer,
-    FlextContext,
-    FlextCqrs,
-    FlextDispatcher,
-    FlextLogger,
-    FlextProcessors,
-    FlextRegistry,
-    FlextResult,
-    FlextService,
-    FlextUtilities,
-)
 
 
 class FlextCli(FlextService[FlextCliTypes.Data.CliDataDict]):
@@ -446,71 +447,67 @@ class FlextCli(FlextService[FlextCliTypes.Data.CliDataDict]):
     # PHASE 3 CONVENIENCE API - Simple one-liner methods
     # ==========================================================================
 
-    def success(self, message: str, **kwargs: object) -> None:
+    def success(self, message: str) -> None:
         """Print success message with green styling.
 
         Simple convenience method for common success output.
 
         Args:
             message: Success message to display
-            **kwargs: Additional styling options
 
         Example:
             >>> cli = FlextCli()
             >>> cli.success("Operation completed successfully!")
 
         """
-        self._formatters.print(f"[green]✓[/green] {message}", **kwargs)
+        self._formatters.print(f"[green]✓[/green] {message}")
 
-    def error(self, message: str, **kwargs: object) -> None:
+    def error(self, message: str) -> None:
         """Print error message with red styling.
 
         Simple convenience method for common error output.
 
         Args:
             message: Error message to display
-            **kwargs: Additional styling options
 
         Example:
             >>> cli = FlextCli()
             >>> cli.error("Operation failed!")
 
         """
-        self._formatters.print(f"[red]✗[/red] {message}", **kwargs)
+        self._formatters.print(f"[red]✗[/red] {message}")
 
-    def warning(self, message: str, **kwargs: object) -> None:
+    def warning(self, message: str) -> None:
         """Print warning message with yellow styling.
 
         Simple convenience method for common warning output.
 
         Args:
             message: Warning message to display
-            **kwargs: Additional styling options
 
         Example:
             >>> cli = FlextCli()
             >>> cli.warning("This action cannot be undone!")
 
         """
-        self._formatters.print(f"[yellow]⚠[/yellow] {message}", **kwargs)
+        self._formatters.print(f"[yellow]⚠[/yellow] {message}")
 
-    def info(self, message: str, **kwargs: object) -> None:
+    def info(self, message: str) -> None:
         """Print info message with blue styling.
 
         Simple convenience method for common info output.
 
         Args:
             message: Info message to display
-            **kwargs: Additional styling options
 
         Example:
             >>> cli = FlextCli()
             >>> cli.info("Processing data...")
 
         """
-        self._formatters.print(f"[blue]ℹ[/blue] {message}", **kwargs)
+        self._formatters.print(f"[blue]i[/blue] {message}")
 
-    def table(self, data: list[dict] | list[list], **kwargs: object) -> None:
+    def table(self, data: list[dict] | list[list], **_kwargs: object) -> None:
         """Display data as a table with automatic formatting.
 
         Simple convenience method for quick table display.
@@ -557,7 +554,7 @@ class FlextCli(FlextService[FlextCliTypes.Data.CliDataDict]):
             ...     print("Continuing...")
 
         """
-        result = self._click.confirm(prompt=prompt, default=default)
+        result = self._click.confirm(text=prompt, default=default)
         return result.unwrap() if result.is_success else default
 
     def prompt_text(self, prompt: str, default: str = "") -> str:
@@ -577,7 +574,7 @@ class FlextCli(FlextService[FlextCliTypes.Data.CliDataDict]):
             >>> name = cli.prompt_text("Enter your name:")
 
         """
-        result = self._click.prompt(prompt=prompt, default=default)
+        result = self._click.prompt(text=prompt, default=default)
         return str(result.unwrap()) if result.is_success else default
 
     def display_data(self, data: dict[str, object], format_type: str = "table") -> None:
@@ -664,7 +661,9 @@ class FlextCli(FlextService[FlextCliTypes.Data.CliDataDict]):
             raise RuntimeError(msg)
         return result.unwrap()
 
-    def write_json(self, data: dict | list, file_path: str, **_kwargs: object) -> None:
+    def write_json(
+        self, data: dict[str, object], file_path: str, **_kwargs: object
+    ) -> None:
         """Write data to JSON file.
 
         Simple convenience method for writing JSON.

@@ -15,7 +15,7 @@ from __future__ import annotations
 import importlib
 import inspect
 from pathlib import Path
-from typing import Any, Protocol
+from typing import Protocol
 
 from flext_core import FlextLogger, FlextResult, FlextService
 
@@ -49,7 +49,7 @@ class FlextCliPlugin(Protocol):
     name: str
     version: str
 
-    def initialize(self, cli_main: Any) -> FlextResult[None]:
+    def initialize(self, cli_main: object) -> FlextResult[None]:
         """Initialize the plugin.
 
         Args:
@@ -59,9 +59,8 @@ class FlextCliPlugin(Protocol):
             FlextResult[None] indicating success or failure
 
         """
-        ...
 
-    def register_commands(self, cli_main: Any) -> FlextResult[None]:
+    def register_commands(self, cli_main: object) -> FlextResult[None]:
         """Register plugin commands.
 
         Args:
@@ -71,7 +70,6 @@ class FlextCliPlugin(Protocol):
             FlextResult[None] indicating success or failure
 
         """
-        ...
 
 
 class FlextCliPluginManager(FlextService[None]):
@@ -109,8 +107,8 @@ class FlextCliPluginManager(FlextService[None]):
         """
         super().__init__(**data)
         self._logger = FlextLogger(__name__)
-        self._loaded_plugins: dict[str, Any] = {}
-        self._initialized_plugins: dict[str, Any] = {}
+        self._loaded_plugins: dict[str, object] = {}
+        self._initialized_plugins: dict[str, object] = {}
 
     def discover_plugins(
         self,
@@ -172,7 +170,7 @@ class FlextCliPluginManager(FlextService[None]):
         self,
         plugin_module: str,
         plugin_class_name: str | None = None,
-    ) -> FlextResult[Any]:
+    ) -> FlextResult[object]:
         """Load a plugin from a module.
 
         Args:
@@ -196,7 +194,7 @@ class FlextCliPluginManager(FlextService[None]):
                 self._logger.debug(
                     "Plugin already loaded", extra={"plugin_module": plugin_module}
                 )
-                return FlextResult[Any].ok(self._loaded_plugins[plugin_module])
+                return FlextResult[object].ok(self._loaded_plugins[plugin_module])
 
             # Import plugin module
             module = importlib.import_module(plugin_module)
@@ -204,7 +202,7 @@ class FlextCliPluginManager(FlextService[None]):
             # Find plugin class
             if plugin_class_name:
                 if not hasattr(module, plugin_class_name):
-                    return FlextResult[Any].fail(
+                    return FlextResult[object].fail(
                         f"Plugin class '{plugin_class_name}' not found in module"
                     )
                 plugin_class = getattr(module, plugin_class_name)
@@ -222,7 +220,7 @@ class FlextCliPluginManager(FlextService[None]):
                         break
 
                 if plugin_class is None:
-                    return FlextResult[Any].fail(
+                    return FlextResult[object].fail(
                         f"No plugin class found in module '{plugin_module}'"
                     )
 
@@ -240,17 +238,17 @@ class FlextCliPluginManager(FlextService[None]):
                 },
             )
 
-            return FlextResult[Any].ok(plugin_instance)
+            return FlextResult[object].ok(plugin_instance)
 
         except Exception as e:
             error_msg = f"Failed to load plugin '{plugin_module}': {e}"
             self._logger.exception(error_msg)
-            return FlextResult[Any].fail(error_msg)
+            return FlextResult[object].fail(error_msg)
 
     def initialize_plugin(
         self,
-        plugin: Any,
-        cli_main: Any,
+        plugin: object,
+        cli_main: object,
     ) -> FlextResult[None]:
         """Initialize a loaded plugin.
 
@@ -310,9 +308,9 @@ class FlextCliPluginManager(FlextService[None]):
     def load_and_initialize_plugin(
         self,
         plugin_module: str,
-        cli_main: Any,
+        cli_main: object,
         plugin_class_name: str | None = None,
-    ) -> FlextResult[Any]:
+    ) -> FlextResult[object]:
         """Load and initialize a plugin in one step.
 
         Args:
@@ -334,28 +332,30 @@ class FlextCliPluginManager(FlextService[None]):
             # Load plugin
             load_result = self.load_plugin(plugin_module, plugin_class_name)
             if load_result.is_failure:
-                return FlextResult[Any].fail(f"Load failed: {load_result.error}")
+                return FlextResult[object].fail(f"Load failed: {load_result.error}")
 
             plugin = load_result.unwrap()
 
             # Initialize plugin
             init_result = self.initialize_plugin(plugin, cli_main)
             if init_result.is_failure:
-                return FlextResult[Any].fail(f"Initialize failed: {init_result.error}")
+                return FlextResult[object].fail(
+                    f"Initialize failed: {init_result.error}"
+                )
 
             self._logger.info(
                 "Loaded and initialized plugin",
                 extra={"plugin_module": plugin_module, "plugin_name": plugin.name},
             )
 
-            return FlextResult[Any].ok(plugin)
+            return FlextResult[object].ok(plugin)
 
         except Exception as e:
             error_msg = f"Failed to load and initialize plugin: {e}"
             self._logger.exception(error_msg)
-            return FlextResult[Any].fail(error_msg)
+            return FlextResult[object].fail(error_msg)
 
-    def get_loaded_plugins(self) -> FlextResult[dict[str, Any]]:
+    def get_loaded_plugins(self) -> FlextResult[dict[str, object]]:
         """Get all loaded plugins.
 
         Returns:
@@ -370,13 +370,13 @@ class FlextCliPluginManager(FlextService[None]):
 
         """
         try:
-            return FlextResult[dict[str, Any]].ok(self._loaded_plugins.copy())
+            return FlextResult[dict[str, object]].ok(self._loaded_plugins.copy())
         except Exception as e:
             error_msg = f"Failed to get loaded plugins: {e}"
             self._logger.exception(error_msg)
-            return FlextResult[dict[str, Any]].fail(error_msg)
+            return FlextResult[dict[str, object]].fail(error_msg)
 
-    def get_initialized_plugins(self) -> FlextResult[dict[str, Any]]:
+    def get_initialized_plugins(self) -> FlextResult[dict[str, object]]:
         """Get all initialized plugins.
 
         Returns:
@@ -390,11 +390,11 @@ class FlextCliPluginManager(FlextService[None]):
 
         """
         try:
-            return FlextResult[dict[str, Any]].ok(self._initialized_plugins.copy())
+            return FlextResult[dict[str, object]].ok(self._initialized_plugins.copy())
         except Exception as e:
             error_msg = f"Failed to get initialized plugins: {e}"
             self._logger.exception(error_msg)
-            return FlextResult[dict[str, Any]].fail(error_msg)
+            return FlextResult[dict[str, object]].fail(error_msg)
 
     def unload_plugin(self, plugin_name: str) -> FlextResult[None]:
         """Unload a plugin.
