@@ -129,13 +129,13 @@ FLEXT CLI Decorators - Comprehensive decorator system with retry logic.
 This module provides extensive decorator functionality:
 - 34 method definitions for various decorator patterns
 - Complex retry logic with exponential backoff
-- Async/sync decorator support
+- /sync decorator support
 - Performance monitoring decorators
 
 Architectural Impact:
 - Provides decorator infrastructure for entire CLI system
 - Contains custom retry implementation (should use flext-core)
-- Heavy use of functools and asyncio
+- Heavy use of functools and io
 """
 ```
 
@@ -143,7 +143,7 @@ Architectural Impact:
 
 - **Classes**: 1 (FlextCliUtilities.Decorators)
 - **Methods**: 34 (comprehensive decorator system)
-- **External Dependencies**: asyncio, functools, time, collections.abc, pathlib, typing
+- **External Dependencies**:  functools, time, collections.abc, pathlib, typing
 - **flext-core Integration**: FlextLogger, FlextResult, P, T
 - **Critical Issues**: Custom retry implementation instead of using flext-core
 

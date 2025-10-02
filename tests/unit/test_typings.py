@@ -9,7 +9,6 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-import asyncio
 import math
 import threading
 import time
@@ -771,38 +770,35 @@ class TestFlextCliTypes:
         assert "value" in processed_item
         assert "active" in processed_item
 
-    @pytest.mark.asyncio
-    async def test_async_type_workflow_integration(
-        self, types_service: FlextCliTypes
-    ) -> None:
-        """Test async type workflow integration."""
+    def test_type_workflow_integration(self, types_service: FlextCliTypes) -> None:
+        """Test type workflow integration."""
 
-        # Test async protocol
+        # Test protocol
         @runtime_checkable
-        class AsyncProtocol(Protocol):
-            async def async_operation(self, data: list[str]) -> dict[str, Any]: ...
+        class TestProtocol(Protocol):
+            def operation(self, data: list[str]) -> dict[str, Any]: ...
 
-        # Implement async protocol
-        class AsyncImplementation:
-            async def async_operation(self, data: list[str]) -> dict[str, Any]:
-                await asyncio.sleep(0.001)  # Simulate async work
+        # Implement protocol
+        class Implementation:
+            def operation(self, data: list[str]) -> dict[str, Any]:
+                time.sleep(0.001)  # Simulate work
                 return {
                     "processed": [item.upper() for item in data],
                     "count": len(data),
                     "timestamp": "2025-01-01T00:00:00Z",
                 }
 
-        # Test async protocol
-        impl = AsyncImplementation()
-        assert isinstance(impl, AsyncProtocol)
+        # Test protocol
+        impl = Implementation()
+        assert isinstance(impl, TestProtocol)
 
         test_data = ["hello", "world", "test"]
-        result = await impl.async_operation(test_data)
+        result = impl.operation(test_data)
 
         assert result["processed"] == ["HELLO", "WORLD", "TEST"]
         assert result["count"] == 3
         assert "timestamp" in result
 
-        # Test that types service works in async context
+        # Test that types service works in context
         assert types_service is not None
         assert isinstance(types_service, FlextCliTypes)

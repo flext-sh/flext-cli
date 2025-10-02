@@ -12,8 +12,6 @@ from __future__ import annotations
 import time
 from pathlib import Path
 
-import pytest
-
 from flext_cli.config import (
     FlextCliConfig,
 )
@@ -117,11 +115,10 @@ class TestFlextCliConfigService:
         assert hasattr(config_service, "profile")
         assert hasattr(config_service, "debug")
 
-    @pytest.mark.asyncio
-    async def test_config_service_execute_async(self) -> None:
-        """Test asynchronous ConfigService execution."""
+    def test_config_service_execute(self) -> None:
+        """Test hronous ConfigService execution."""
         config_service = FlextCliConfig()
-        # FlextCliConfig doesn't have execute_async method, test basic functionality
+        # FlextCliConfig doesn't have execute method, test basic functionality
         assert config_service is not None
         assert hasattr(config_service, "profile")
         assert hasattr(config_service, "debug")

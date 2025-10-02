@@ -11,8 +11,7 @@ from __future__ import annotations
 
 from flext_cli.constants import FlextCliConstants
 from flext_cli.typings import FlextCliTypes
-from flext_cli.utilities import FlextCliUtilities
-from flext_core import FlextMixins, FlextResult
+from flext_core import FlextMixins, FlextResult, FlextUtilities
 
 
 class FlextCliMixins(FlextMixins):
@@ -74,9 +73,8 @@ class FlextCliMixins(FlextMixins):
             if not url_value or not url_value.strip():
                 return FlextResult[None].fail(f"{field_name} cannot be empty")
 
-            # Delegate to FlextCliUtilities for actual URL validation
-            utilities = FlextCliUtilities()
-            validation_result = utilities.validate_url(url_value)
+            # Use FlextUtilities from flext-core for URL validation
+            validation_result = FlextUtilities.Validation.validate_url(url_value)
 
             if validation_result.is_failure:
                 return FlextResult[None].fail(

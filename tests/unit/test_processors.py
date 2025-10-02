@@ -222,7 +222,7 @@ class TestFlextCliProcessors:
         assert isinstance(result, FlextResult)
 
     # ========================================================================
-    # execute() and execute_async() tests
+    # execute() and execute() tests
     # ========================================================================
 
     def test_processors_execute_sync(self, processors: FlextCliProcessors) -> None:
@@ -234,12 +234,9 @@ class TestFlextCliProcessors:
         assert data["service"] == "flext-cli-processors"
         assert "processors" in data
 
-    @pytest.mark.asyncio
-    async def test_processors_execute_async(
-        self, processors: FlextCliProcessors
-    ) -> None:
-        """Test processors execute_async() method."""
-        result = await processors.execute_async()
+    def test_processors_execute(self, processors: FlextCliProcessors) -> None:
+        """Test processors execute() method."""
+        result = processors.execute()
         assert result.is_success
         data = result.unwrap()
         assert data["status"] == "operational"

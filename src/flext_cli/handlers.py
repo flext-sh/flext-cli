@@ -14,10 +14,10 @@ from typing import override
 
 from flext_cli.protocols import FlextCliProtocols
 from flext_cli.typings import FlextCliTypes
-from flext_core import FlextResult
+from flext_core import FlextHandlers, FlextModels, FlextResult
 
 
-class FlextCliHandlers:
+class FlextCliHandlers(FlextHandlers):
     """Single unified CLI handlers class following FLEXT standards.
 
     Contains all handler implementations for CLI domain operations.
@@ -27,7 +27,35 @@ class FlextCliHandlers:
     - Inherits from FlextHandlers to avoid duplication
     - Uses centralized handler patterns from FlextHandlers
     - Implements CLI-specific extensions while reusing core functionality
+    - Provides execute() for CLI handler operations
     """
+
+    def __init__(self, **kwargs: object) -> None:
+        """Initialize CLI handlers with optional configuration.
+
+        Args:
+            **kwargs: Additional handler initialization data
+
+        """
+        # If no config provided, create minimal default config
+        if "config" not in kwargs:
+            kwargs["config"] = FlextModels.CqrsConfig.Handler(
+                handler_id="flext-cli-handlers",
+                handler_name="flext-cli-handlers",
+            )
+        super().__init__(**kwargs)
+
+    def execute_service(self) -> FlextResult[dict]:
+        """Execute handlers service to return operational status.
+
+        Provides no-arg service status check for CLI handlers.
+        Note: Use handle() from FlextHandlers for message processing.
+
+        Returns:
+            FlextResult[dict]: Handler service status
+
+        """
+        return self.execute_handlers()
 
     class CommandHandler(FlextCliProtocols.CliCommandHandler):
         """CLI command handler implementation - implements CliCommandHandler protocol."""
@@ -209,30 +237,35 @@ class FlextCliHandlers:
                     f"Debug info retrieval failed: {e}"
                 )
 
-    def execute(self) -> FlextResult[FlextCliTypes.Data.CliCommandResult]:
-        """Execute CLI handlers operation synchronously."""
-        try:
-            # Create a simple command result indicating handlers are operational
-            result_data: FlextCliTypes.Data.CliCommandResult = {
-                "status": "operational",
-                "service": "flext-cli-handlers",
-                "timestamp": "2025-01-08T00:00:00Z",
-                "handlers_available": [
-                    "CommandHandler",
-                    "FormatterHandler",
-                    "ConfigHandler",
-                    "AuthHandler",
-                    "DebugHandler",
-                ],
-            }
-            return FlextResult[FlextCliTypes.Data.CliCommandResult].ok(result_data)
-        except Exception as e:
-            return FlextResult[FlextCliTypes.Data.CliCommandResult].fail(
-                f"Handlers execution failed: {e}"
-            )
+    @override
+    def handle(self, message: object) -> FlextResult[object]:
+        """Handle message processing - required by FlextHandlers abstract class.
 
-    async def execute_async(self) -> FlextResult[FlextCliTypes.Data.CliCommandResult]:
-        """Execute CLI handlers operation asynchronously."""
+        Args:
+            message: Message to handle
+
+        Returns:
+            FlextResult[object]: Processing result or error
+
+        """
+        try:
+            # CLI-specific message handling implementation
+            if isinstance(message, dict):
+                return FlextResult[object].ok(message)
+            return FlextResult[object].ok({"message": str(message)})
+        except Exception as e:
+            return FlextResult[object].fail(f"Message handling failed: {e}")
+
+    def execute_handlers(self) -> FlextResult[FlextCliTypes.Data.CliCommandResult]:
+        """Execute CLI handlers health check operation.
+
+        Provides CLI-specific handler status check.
+        Note: Use handle() or execute() from FlextHandlers for message processing.
+
+        Returns:
+            FlextResult[FlextCliTypes.Data.CliCommandResult]: Handler status or error
+
+        """
         try:
             # Create a simple command result indicating handlers are operational
             result_data: FlextCliTypes.Data.CliCommandResult = {

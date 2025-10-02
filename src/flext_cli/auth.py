@@ -387,15 +387,6 @@ class FlextCliAuth(FlextService[FlextCliTypes.Auth.AuthResult]):
         except Exception as e:
             return FlextResult[str].fail(f"Failed to generate salt: {e}")
 
-    async def execute_async(self) -> FlextResult[FlextCliTypes.Auth.AuthResult]:
-        """Execute auth service operation asynchronously."""
-        return FlextResult[FlextCliTypes.Auth.AuthResult].ok({
-            "status": FlextCliConstants.OPERATIONAL,
-            "service": "flext-cli-auth",
-            "timestamp": datetime.now(UTC).isoformat(),
-            "version": "2.0.0",
-        })
-
     # Additional authentication methods expected by tests
     def validate_token(self, token: str | None) -> FlextResult[bool]:
         """Validate authentication token."""

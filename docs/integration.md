@@ -13,10 +13,10 @@
 flext-cli integrates with flext-core patterns. See flext-core documentation for foundation patterns.
 
 ```python
-from flext_cli import FlextCliApi
+from flext_cli import FlextCli
 
 # CLI operations
-api = FlextCliApi()
+api = FlextCli()
 api.process_command("example")
 ```
 
@@ -39,13 +39,13 @@ For projects that need CLI functionality:
 
 ```python
 # Project CLI module
-from Flext_cli import FlextCliApi, FlextCliConfig, FlextCliAuth
+from Flext_cli import FlextCli, FlextCliConfig, FlextCliAuth
 
 class ProjectCLI:
     """Project-specific CLI interface."""
 
     def __init__(self):
-        self.api = FlextCliApi()
+        self.api = FlextCli()
         self.config = FlextCliConfig()
         self.auth = FlextCliAuth()
 

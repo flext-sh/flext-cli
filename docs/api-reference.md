@@ -2,20 +2,20 @@
 
 **Complete API documentation for the FLEXT CLI foundation library.**
 
-**Last Updated**: September 17, 2025 | **Version**: 0.9.9 RC
+**Last Updated**: October 1, 2025 | **Version**: 2.2.0 (96% Functional)
 
 ---
 
 ## Core Classes
 
-### FlextCliApi
+### FlextCli
 
 Main CLI API interface with comprehensive functionality.
 
 ```python
-from flext_cli import FlextCliApi
+from flext_cli import FlextCli
 
-class FlextCliApi(FlextService[str]):
+class FlextCli(FlextService[str]):
     """Unified CLI API with Python 3.13 patterns."""
 
     def process_command(self, command: str) -> FlextResult[str]:
@@ -172,10 +172,10 @@ R = TypeVar('R')  # Return type variable
 ### CLI Integration
 
 ```python
-from flext_cli import FlextCliApi, FlextCliService
+from flext_cli import FlextCli, FlextCliService
 
 # CLI operations
-api = FlextCliApi()
+api = FlextCli()
 api.process_command("example")
 
 # CLI service usage
@@ -189,13 +189,13 @@ service = FlextCliService()
 ### Custom Command Handler
 
 ```python
-from flext_cli import FlextCliApi
+from flext_cli import FlextCli
 
 class CustomCommandHandler:
     """Custom command implementation."""
 
     def __init__(self):
-        self._cli_api = FlextCliApi()
+        self._cli_api = FlextCli()
 
     def handle_custom_command(self, args: dict):
         """Handle custom CLI command."""

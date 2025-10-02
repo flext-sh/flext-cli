@@ -234,6 +234,8 @@ class FlextCliCmd(FlextService[dict[str, object]]):
             if not config_path.exists():
                 # Create default configuration
                 default_config = {
+                    "host": "localhost",
+                    "port": 8080,
                     "profile": FlextCliConstants.DEFAULT,
                     "debug": False,
                     "verbose": False,

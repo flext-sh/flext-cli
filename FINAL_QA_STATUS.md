@@ -32,7 +32,7 @@
 2. ✅ Implemented proper import availability pattern
 3. ✅ Removed 28 tests for non-existent decorators
 4. ✅ Fixed all StrEnum comparisons (.value property)
-5. ✅ Fixed async_command decorator type signature
+5. ✅ Fixed command decorator type signature
 6. ✅ Fixed safe_JSON_parse return type
 7. ✅ Removed all type: ignore violations (with specific codes where needed)
 8. ✅ Fixed undefined Pandas/PyArrow type aliases

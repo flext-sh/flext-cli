@@ -9,12 +9,9 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-import asyncio
 import time
 
-import pytest
-
-from flext_cli.cli import FlextCli
+from flext_cli.api import FlextCli
 from flext_cli.constants import FlextCliConstants
 
 
@@ -40,11 +37,11 @@ class TestFlextCli:
         assert "version" in result.value
         assert "components" in result.value
 
-    @pytest.mark.asyncio
-    async def test_cli_execute_async(self) -> None:
-        """Test asynchronous CLI execution."""
+    def test_cli_execute(self) -> None:
+        """Test execute method (now sync, delegates to execute)."""
         cli = FlextCli()
-        result = await cli.execute_async()
+        # execute is now synchronous, delegates to execute()
+        result = cli.execute()
 
         assert result.is_success
         assert result.value is not None
@@ -122,9 +119,9 @@ class TestFlextCli:
         result = cli.execute()
         assert result.is_success
 
-        # Test async version
-        async_result = asyncio.run(cli.execute_async())
-        assert async_result.is_success
+        # Test version
+        result = cli.execute()
+        assert result.is_success
 
     def test_cli_integration_with_services(self) -> None:
         """Test CLI integration with internal services."""

@@ -19,7 +19,7 @@ import pytest
 import yaml
 from click.testing import CliRunner
 
-from flext_cli.api import FlextCliApi
+from flext_cli.api import FlextCli
 from flext_cli.auth import FlextCliAuth
 from flext_cli.cmd import FlextCliCmd
 from flext_cli.commands import FlextCliCommands
@@ -31,7 +31,6 @@ from flext_cli.core import FlextCliService
 from flext_cli.debug import FlextCliDebug
 from flext_cli.file_tools import FlextCliFileTools
 from flext_cli.handlers import FlextCliHandlers
-from flext_cli.logging_setup import FlextCliLoggingSetup
 from flext_cli.mixins import FlextCliMixins
 from flext_cli.models import FlextCliModels
 from flext_cli.output import FlextCliOutput
@@ -39,11 +38,9 @@ from flext_cli.processors import FlextCliProcessors
 from flext_cli.prompts import FlextCliPrompts
 from flext_cli.protocols import FlextCliProtocols
 from flext_cli.typings import FlextCliTypes
-from flext_cli.utilities import FlextCliUtilities
-from flext_core import FlextContainer
+from flext_core import FlextContainer, FlextUtilities
 from flext_tests import (
     FlextTestDocker,
-    FlextTestsAsyncs,
     FlextTestsBuilders,
     FlextTestsUtilities,
 )
@@ -63,12 +60,6 @@ def flext_test_utilities() -> FlextTestsUtilities:
 def flext_test_builders() -> FlextTestsBuilders:
     """Provide FlextTestsBuilders for test data creation."""
     return FlextTestsBuilders()
-
-
-@pytest.fixture(scope="session")
-def flext_test_asyncs() -> FlextTestsAsyncs:
-    """Provide FlextTestsAsyncs for async test support."""
-    return FlextTestsAsyncs()
 
 
 @pytest.fixture(scope="session")
@@ -136,9 +127,9 @@ def temp_csv_file(temp_dir: Path) -> Path:
 
 
 @pytest.fixture
-def flext_cli_api() -> FlextCliApi:
-    """Create FlextCliApi instance for testing."""
-    return FlextCliApi()
+def flext_cli_api() -> FlextCli:
+    """Create FlextCli instance for testing."""
+    return FlextCli()
 
 
 @pytest.fixture
@@ -208,12 +199,6 @@ def flext_cli_handlers() -> FlextCliHandlers:
 
 
 @pytest.fixture
-def flext_cli_logging_setup() -> FlextCliLoggingSetup:
-    """Create FlextCliLoggingSetup instance for testing."""
-    return FlextCliLoggingSetup()
-
-
-@pytest.fixture
 def flext_cli_mixins() -> FlextCliMixins:
     """Create FlextCliMixins instance for testing."""
     return FlextCliMixins()
@@ -256,27 +241,27 @@ def flext_cli_types() -> FlextCliTypes:
 
 
 @pytest.fixture
-def flext_cli_utilities() -> FlextCliUtilities:
-    """Create FlextCliUtilities instance for testing."""
-    return FlextCliUtilities()
+def flext_cli_utilities() -> type[FlextUtilities]:
+    """Provide FlextUtilities class from flext-core for testing."""
+    return FlextUtilities
 
 
 # ============================================================================
-# ASYNC TEST SUPPORT
+# TEST SUPPORT
 # ============================================================================
 
-# Note: pytest-asyncio provides automatic event_loop fixture
+# Note: pytest-provides automatic event_loop fixture
 # No custom event_loop fixture needed
 
 
 @pytest.fixture
-def async_flext_cli_api() -> FlextCliApi:
-    """Create FlextCliApi instance for testing."""
-    return FlextCliApi()
+def flext_cli_api() -> FlextCli:
+    """Create FlextCli instance for testing."""
+    return FlextCli()
 
 
 @pytest.fixture
-def async_flext_cli_core() -> FlextCliService:
+def flext_cli_core() -> FlextCliService:
     """Create FlextCliService instance for testing."""
     return FlextCliService()
 
@@ -449,7 +434,7 @@ def pytest_collection_modifyitems(
             item.add_marker(pytest.mark.unit)
 
         # Add markers based on test names
-        # Note: pytest-asyncio auto-detects async functions, no need to mark manually
+        # Note: pytest-auto-detects functions, no need to mark manually
         if "docker" in item.name:
             item.add_marker(pytest.mark.docker)
         if "slow" in item.name:

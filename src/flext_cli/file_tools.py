@@ -24,7 +24,7 @@ import stat
 import tempfile
 import zipfile
 from pathlib import Path
-from typing import Any, cast, override
+from typing import cast, override
 
 import pandas as pd
 import pyarrow as pa
@@ -35,8 +35,12 @@ from lxml import etree
 
 from flext_cli.constants import FlextCliConstants
 from flext_cli.typings import FlextCliTypes
-from flext_cli.utilities import FlextCliUtilities
-from flext_core import FlextContainer, FlextLogger, FlextResult, FlextService
+from flext_core import (
+    FlextContainer,
+    FlextLogger,
+    FlextResult,
+    FlextService,
+)
 
 
 class FlextCliFileTools(FlextService[bool]):
@@ -72,7 +76,6 @@ class FlextCliFileTools(FlextService[bool]):
         self._container = FlextContainer.get_global()
         self._logger = FlextLogger(__name__)
         self._supported_formats = self._initialize_format_registry()
-        self._utilities = FlextCliUtilities()
 
     @override
     def execute(self) -> FlextResult[bool]:
@@ -318,16 +321,26 @@ class FlextCliFileTools(FlextService[bool]):
             return FlextResult[bool].fail(f"Failed to save file: {e}")
 
     def file_exists(self, file_path: str) -> FlextResult[bool]:
-        """Check if file exists - delegates to FlextCliUtilities."""
+        """Check if file exists using Path from pathlib."""
         try:
-            exists = self._utilities.FileOperations.file_exists(file_path)
+            path = Path(file_path)
+            exists = path.exists()
             return FlextResult[bool].ok(exists)
         except Exception as e:
             return FlextResult[bool].fail(f"Failed to check file existence: {e}")
 
     def get_file_size(self, file_path: str) -> FlextResult[int]:
-        """Get file size - delegates to FlextCliUtilities."""
-        return self._utilities.FileOperations.get_file_size(file_path)
+        """Get file size using Path from pathlib."""
+        try:
+            path = Path(file_path)
+            if not path.exists():
+                return FlextResult[int].fail(f"File does not exist: {file_path}")
+            if not path.is_file():
+                return FlextResult[int].fail(f"Path is not a file: {file_path}")
+            size = path.stat().st_size
+            return FlextResult[int].ok(size)
+        except Exception as e:
+            return FlextResult[int].fail(f"Failed to get file size: {e}")
 
     # Format-specific internal methods
     def _load_json(self, file_path: str, **_kwargs: object) -> FlextResult[object]:
@@ -431,7 +444,7 @@ class FlextCliFileTools(FlextService[bool]):
                 self._logger.debug(f"Loading CSV with options: {kwargs}")
 
             # Use pandas for enhanced CSV loading with proper type filtering
-            pandas_kwargs: dict[str, Any] = {}
+            pandas_kwargs: dict[str, object] = {}
 
             # Filter kwargs to only include valid pandas read_csv parameters with correct types
             for key, value in kwargs.items():
@@ -494,7 +507,7 @@ class FlextCliFileTools(FlextService[bool]):
                     )
 
             # Convert kwargs to proper types for pandas to_csv - filter out complex types
-            pandas_to_csv_kwargs: dict[str, Any] = {
+            pandas_to_csv_kwargs: dict[str, object] = {
                 k: v
                 for k, v in kwargs.items()
                 if isinstance(v, (str, int, float, bool, type(None)))
@@ -811,7 +824,7 @@ class FlextCliFileTools(FlextService[bool]):
 
             # Use filtered kwargs for pyarrow parquet reading
             # Convert to proper types for PyArrow
-            filtered_kwargs: dict[str, Any] = {
+            filtered_kwargs: dict[str, object] = {
                 key: value
                 for key, value in pyarrow_kwargs.items()
                 if key
@@ -905,7 +918,7 @@ class FlextCliFileTools(FlextService[bool]):
             try:
                 # Convert to proper types for PyArrow write_table
                 # Create a properly typed kwargs dict for PyArrow
-                pyarrow_write_kwargs: dict[str, Any] = {}
+                pyarrow_write_kwargs: dict[str, object] = {}
 
                 # Handle each parameter with proper type checking
                 if "row_group_size" in pyarrow_kwargs and isinstance(
@@ -1051,12 +1064,25 @@ class FlextCliFileTools(FlextService[bool]):
             return FlextResult[list[str]].fail(f"Failed to tail file: {e}")
 
     def read_text_file(self, file_path: str) -> FlextResult[str]:
-        """Read text file content - delegates to FlextCliUtilities."""
-        return self._utilities.read_file(file_path)
+        """Read text file content using Path from pathlib."""
+        try:
+            path = Path(file_path)
+            if not path.exists():
+                return FlextResult[str].fail(f"File not found: {file_path}")
+            content = path.read_text(encoding="utf-8")
+            return FlextResult[str].ok(content)
+        except Exception as e:
+            return FlextResult[str].fail(f"Failed to read file: {e}")
 
     def write_text_file(self, file_path: str, content: str) -> FlextResult[bool]:
-        """Write content to text file - delegates to FlextCliUtilities."""
-        return self._utilities.write_file(file_path, content)
+        """Write content to text file using Path from pathlib."""
+        try:
+            path = Path(file_path)
+            path.parent.mkdir(parents=True, exist_ok=True)
+            path.write_text(content, encoding="utf-8")
+            return FlextResult[bool].ok(True)
+        except Exception as e:
+            return FlextResult[bool].fail(f"Failed to write file: {e}")
 
     def read_binary_file(self, file_path: str) -> FlextResult[bytes]:
         """Read binary file content."""
@@ -1080,14 +1106,37 @@ class FlextCliFileTools(FlextService[bool]):
             return FlextResult[bool].fail(f"Failed to write binary file: {e}")
 
     def read_json_file(self, file_path: str) -> FlextResult[dict[str, object]]:
-        """Read JSON file content - delegates to FlextCliUtilities."""
-        return self._utilities.FileOperations.read_json_file(file_path)
+        """Read JSON file content using json module."""
+        try:
+            path = Path(file_path)
+            if not path.exists():
+                return FlextResult[dict[str, object]].fail(
+                    f"File not found: {file_path}"
+                )
+            with path.open("r", encoding="utf-8") as f:
+                data = json.load(f)
+            if not isinstance(data, dict):
+                return FlextResult[dict[str, object]].fail(
+                    "JSON root must be an object"
+                )
+            return FlextResult[dict[str, object]].ok(data)
+        except json.JSONDecodeError as e:
+            return FlextResult[dict[str, object]].fail(f"Invalid JSON: {e}")
+        except Exception as e:
+            return FlextResult[dict[str, object]].fail(f"Failed to read JSON file: {e}")
 
     def write_json_file(
         self, file_path: str, data: dict[str, object]
     ) -> FlextResult[bool]:
-        """Write data to JSON file - delegates to FlextCliUtilities."""
-        return self._utilities.FileOperations.write_json_file(file_path, data)
+        """Write data to JSON file using json module."""
+        try:
+            path = Path(file_path)
+            path.parent.mkdir(parents=True, exist_ok=True)
+            with path.open("w", encoding="utf-8") as f:
+                json.dump(data, f, indent=2, ensure_ascii=False)
+            return FlextResult[bool].ok(True)
+        except Exception as e:
+            return FlextResult[bool].fail(f"Failed to write JSON file: {e}")
 
     def read_yaml_file(self, file_path: str) -> FlextResult[dict[str, object]]:
         """Read YAML file content."""
@@ -1477,22 +1526,6 @@ class FlextCliFileTools(FlextService[bool]):
             return FlextResult[bool].ok(True)
         except Exception as e:
             return FlextResult[bool].fail(f"Failed to extract ZIP archive: {e}")
-
-    async def execute_async(self) -> FlextResult[dict[str, object]]:
-        """Execute file tools service operation asynchronously."""
-        return FlextResult[dict[str, object]].ok({
-            "status": FlextCliConstants.OPERATIONAL,
-            "service": FlextCliConstants.FLEXT_CLI_FILE_TOOLS,
-            "supported_formats": list(self._supported_formats.keys()),
-            "capabilities": [
-                "read",
-                "write",
-                "validate",
-                "convert",
-                "compress",
-                "hash",
-            ],
-        })
 
 
 __all__ = ["FlextCliFileTools"]

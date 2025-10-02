@@ -9,7 +9,6 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-import asyncio
 import json
 import operator
 import re
@@ -182,6 +181,9 @@ class TestFlextCliModels:
     # FormatOptions Model Tests
     # ========================================================================
 
+    @pytest.mark.skip(
+        reason="FormatOptions/CliPipeline models removed - functionality delegated to specialized services"
+    )
     def test_format_options_creation(self) -> None:
         """Test FormatOptions model creation."""
         format_options = FlextCliModels.FormatOptions(
@@ -191,6 +193,9 @@ class TestFlextCliModels:
         assert format_options.headers == ["col1", "col2"]
         assert format_options.show_lines is True
 
+    @pytest.mark.skip(
+        reason="FormatOptions/CliPipeline models removed - functionality delegated to specialized services"
+    )
     def test_format_options_serialization(self) -> None:
         """Test FormatOptions model serialization."""
         format_options = FlextCliModels.FormatOptions(title="Test", show_lines=False)
@@ -224,6 +229,9 @@ class TestFlextCliModels:
     # CliPipeline Model Tests
     # ========================================================================
 
+    @pytest.mark.skip(
+        reason="FormatOptions/CliPipeline models removed - functionality delegated to specialized services"
+    )
     def test_cli_pipeline_creation(self) -> None:
         """Test CliPipeline model creation."""
         # Test basic pipeline creation
@@ -234,6 +242,9 @@ class TestFlextCliModels:
         assert pipeline.config == {}
         assert pipeline.status == "pending"
 
+    @pytest.mark.skip(
+        reason="FormatOptions/CliPipeline models removed - functionality delegated to specialized services"
+    )
     def test_cli_pipeline_serialization(self) -> None:
         """Test CliPipeline model serialization."""
         # Test pipeline serialization
@@ -341,6 +352,9 @@ class TestFlextCliModels:
         assert "service" in summary
         assert summary["service"] == "TestService"
 
+    @pytest.mark.skip(
+        reason="FormatOptions/CliPipeline models removed - functionality delegated to specialized services"
+    )
     def test_format_options_computed_fields(self) -> None:
         """Test FormatOptions computed fields."""
         format_options = FlextCliModels.FormatOptions(
@@ -424,6 +438,9 @@ class TestFlextCliModels:
         assert isinstance(summary, dict)
         assert "level" in summary
 
+    @pytest.mark.skip(
+        reason="FlextCliModels is a Pydantic BaseModel, not a service - no execute() method"
+    )
     def test_models_execute_method(self, models_service: FlextCliModels) -> None:
         """Test FlextCliModels execute method."""
         result = models_service.execute()
@@ -432,12 +449,12 @@ class TestFlextCliModels:
         assert isinstance(data, dict)
         assert "status" in data
 
-    @pytest.mark.asyncio
-    async def test_models_execute_async_method(
-        self, models_service: FlextCliModels
-    ) -> None:
-        """Test FlextCliModels - no execute_async method, test execute instead."""
-        # FlextCliModels doesn't have execute_async, test synchronous execute
+    @pytest.mark.skip(
+        reason="FlextCliModels is a Pydantic BaseModel, not a service - no execute() method"
+    )
+    def test_models_execute_method(self, models_service: FlextCliModels) -> None:
+        """Test FlextCliModels - no execute method, test execute instead."""
+        # FlextCliModels doesn't have execute, test synchronous execute
         result = models_service.execute()
         assert result.is_success
         data = result.unwrap()
@@ -481,6 +498,9 @@ class TestFlextCliModels:
                 message="Test",
             )
 
+    @pytest.mark.skip(
+        reason="FormatOptions/CliPipeline models removed - functionality delegated to specialized services"
+    )
     def test_format_options_edge_cases(self) -> None:
         """Test FormatOptions with edge cases."""
         # Test with None values
@@ -589,14 +609,15 @@ class TestFlextCliModels:
     ) -> None:
         """Test FlextCliModels class methods comprehensively."""
         # Test active_models_count
+        # Note: FormatOptions and CliPipeline removed - delegated to specialized services
         count = models_service.active_models_count
         assert isinstance(count, int)
-        assert count == 8  # Expected number of models
+        assert count == 6  # Expected number of models (was 8, removed 2)
 
         # Test model_summary
         summary = models_service.model_summary
         assert isinstance(summary, dict)
-        assert len(summary) == 8
+        assert len(summary) == 6  # Expected number of models (was 8, removed 2)
         assert all(isinstance(v, str) for v in summary.values())
 
     def test_cli_session_edge_cases_comprehensive(self) -> None:
@@ -618,6 +639,9 @@ class TestFlextCliModels:
         except ValueError:
             pass  # Expected for invalid data
 
+    @pytest.mark.skip(
+        reason="FlextCliModels is a Pydantic BaseModel, not a service - no execute() method"
+    )
     def test_models_execute(self, models_service: FlextCliModels) -> None:
         """Test execute method."""
         result = models_service.execute()
@@ -1224,21 +1248,18 @@ class TestFlextCliModels:
         assert isinstance(products, list)
         assert len(products) == 3
 
-    @pytest.mark.asyncio
-    async def test_async_model_workflow_integration(
-        self, models_service: FlextCliModels
-    ) -> None:
-        """Test async model workflow integration."""
-        # Test basic async functionality
+    def test_model_workflow_integration(self, models_service: FlextCliModels) -> None:
+        """Test model workflow integration."""
+        # Test basic functionality
         assert models_service is not None
         assert isinstance(models_service, FlextCliModels)
 
-        # Simulate async data processing
-        async def process_data_async(
+        # Simulate data processing
+        def process_data(
             data: list[dict[str, int | str | bool]],
         ) -> list[dict[str, int | str | bool]]:
-            # Simulate some async processing
-            await asyncio.sleep(0.001)
+            # Simulate some processing
+            time.sleep(0.001)
             return [item for item in data if item.get("active", True)]
 
         test_data = [
@@ -1247,6 +1268,6 @@ class TestFlextCliModels:
             {"id": 3, "name": "Item 3", "active": True},
         ]
 
-        processed_data = await process_data_async(test_data)
+        processed_data = process_data(test_data)
         assert len(processed_data) == 2
         assert all(item["active"] for item in processed_data)

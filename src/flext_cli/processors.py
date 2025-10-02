@@ -12,40 +12,33 @@ from __future__ import annotations
 from typing import override
 
 from flext_cli.models import FlextCliModels
-from flext_core import FlextResult, FlextService
+from flext_core import FlextProcessors, FlextResult
 
 
-class FlextCliProcessors(FlextService):
+class FlextCliProcessors(FlextProcessors):
     """Single unified CLI processors class following FLEXT standards.
 
     Contains all processor implementations for CLI domain operations.
     Follows FLEXT pattern: one class per module with nested subclasses.
 
     ARCHITECTURAL COMPLIANCE:
-    - Inherits from FlextService to provide execute methods
+    - Inherits from FlextProcessors to reuse processor patterns and pipeline functionality
     - Uses centralized processor patterns from FlextProcessors
     - Implements CLI-specific extensions while reusing core functionality
+    - Provides execute() and execute() for CLI processor operations
     """
 
     @override
     def __init__(self) -> None:
-        """Initialize CLI processors service."""
+        """Initialize CLI processors service with FlextProcessors base."""
         super().__init__()
         self._command_processor = self.CommandProcessor()
 
-    @override
     def execute(self) -> FlextResult[dict[str, object]]:
-        """Execute processors service operation."""
-        return FlextResult[dict[str, object]].ok({
-            "status": "operational",
-            "service": "flext-cli-processors",
-            "timestamp": "2025-01-08T00:00:00Z",
-            "version": "2.0.0",
-            "processors": ["CommandProcessor"],
-        })
+        """Execute processors service operation.
 
-    async def execute_async(self) -> FlextResult[dict[str, object]]:
-        """Execute processors service operation asynchronously."""
+        Provides CLI-specific processor execution status.
+        """
         return FlextResult[dict[str, object]].ok({
             "status": "operational",
             "service": "flext-cli-processors",

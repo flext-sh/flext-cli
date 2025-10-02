@@ -41,12 +41,9 @@ class TestFlextCliContext:
         assert result.is_success
         assert isinstance(result.unwrap(), dict)
 
-    @pytest.mark.asyncio
-    async def test_context_execute_async_operation(
-        self, context: FlextCliContext
-    ) -> None:
-        """Test context async execute method."""
-        result = await context.execute_async()
+    def test_context_execute_operation(self, context: FlextCliContext) -> None:
+        """Test context execute method (now sync, delegates to execute)."""
+        result = context.execute()
 
         assert isinstance(result, FlextResult)
         assert result.is_success

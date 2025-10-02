@@ -44,9 +44,9 @@ class TestFlextCliDebug:
         assert result.is_success
         assert isinstance(result.unwrap(), str)
 
-    async def test_debug_execute_async(self, debug: FlextCliDebug) -> None:
-        """Test debug async execute method."""
-        result = await debug.execute_async()
+    def test_debug_execute(self, debug: FlextCliDebug) -> None:
+        """Test debug execute method (now sync, delegates to execute)."""
+        result = debug.execute()
 
         assert isinstance(result, FlextResult)
         assert result.is_success

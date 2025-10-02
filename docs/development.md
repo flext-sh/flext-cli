@@ -69,13 +69,13 @@ Follow these patterns when extending flext-cli:
 
 ```python
 # ✅ Correct - Use flext-cli patterns
-from flext_cli import FlextCliApi
+from flext_cli import FlextCli
 
 class ProjectCliService:
     """Project CLI service following FLEXT patterns."""
 
     def __init__(self):
-        self._cli_api = FlextCliApi()
+        self._cli_api = FlextCli()
 
     def process_data(self, data: dict):
         """Process CLI data."""
@@ -108,11 +108,11 @@ tests/
 
 ```python
 import pytest
-from flext_cli import FlextCliApi
+from flext_cli import FlextCli
 
 def test_cli_api_operation():
     """Test CLI API operations."""
-    api = FlextCliApi()
+    api = FlextCli()
 
     result = api.process_command("test")
 
@@ -121,7 +121,7 @@ def test_cli_api_operation():
 
 def test_error_handling():
     """Test proper error handling."""
-    api = FlextCliApi()
+    api = FlextCli()
 
     result = api.process_command("")  # Invalid input
 
@@ -186,7 +186,7 @@ test: add integration tests for config module
 
 ```python
 from flext_core import FlextResult, FlextService
-from flext_cli import FlextCliApi
+from flext_cli import FlextCli
 
 class DataCommands(FlextService):
     """Data management commands."""

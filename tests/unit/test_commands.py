@@ -11,8 +11,6 @@ from __future__ import annotations
 
 import time
 
-import pytest
-
 from flext_cli.commands import FlextCliCommands
 from flext_cli.constants import FlextCliConstants
 
@@ -37,11 +35,10 @@ class TestFlextCliCommands:
         assert result.value["service"] == FlextCliConstants.FLEXT_CLI
         assert "commands" in result.value
 
-    @pytest.mark.asyncio
-    async def test_commands_execute_async(self) -> None:
-        """Test asynchronous Commands execution."""
+    def test_commands_execute(self) -> None:
+        """Test execute method (now sync, delegates to execute)."""
         commands = FlextCliCommands()
-        result = await commands.execute_async()
+        result = commands.execute()
 
         assert result.is_success
         assert result.value is not None
@@ -95,9 +92,8 @@ class TestFlextCliCommands:
         # Test executing non-existent command
         result = commands.execute_command("non_existent_command")
         assert result.is_failure
-        assert result.error is not None and (
-            "not found" in result.error.lower() or "unknown" in result.error.lower()
-        )
+        assert result.error is not None
+        assert "not found" in result.error.lower() or "unknown" in result.error.lower()
 
     def test_commands_performance(self) -> None:
         """Test commands performance characteristics."""
@@ -144,7 +140,7 @@ class TestFlextCliCommands:
         assert hasattr(commands, "register_command")
         assert hasattr(commands, "execute_command")
         assert hasattr(commands, "execute")
-        assert hasattr(commands, "execute_async")
+        assert hasattr(commands, "execute")
 
     def test_commands_logging_integration(self) -> None:
         """Test commands logging integration."""
@@ -165,7 +161,7 @@ class TestFlextCliCommands:
         commands.register_command("cmd1", lambda: "result1")
         commands.register_command("cmd2", lambda: "result2")
 
-        # Execute commands sequentially (since execute_command is not async)
+        # Execute commands sequentially (since execute_command is not )
         result1 = commands.execute_command("cmd1")
         result2 = commands.execute_command("cmd2")
 

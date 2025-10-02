@@ -5,7 +5,7 @@ This example demonstrates building a complete, real-world CLI application
 using all flext-cli patterns and components:
 
 Key Patterns Demonstrated:
-- Complete CLI application structure with FlextCliCommands and FlextCliApi
+- Complete CLI application structure with FlextCliCommands and FlextCli
 - Integration of all flext-cli components in a cohesive application
 - Configuration management with profiles and environments
 - Command lifecycle with validation, execution, and reporting
@@ -25,7 +25,7 @@ from datetime import UTC, datetime
 from pathlib import Path
 
 from flext_cli import (
-    FlextCliApi,
+    FlextCli,
     FlextCliCommands,
     FlextCliConfig,
     FlextCliService,
@@ -42,7 +42,7 @@ class ComprehensiveCliApplication:
         self.config = FlextCliConfig()
         self.container = FlextContainer.get_global()
         self.api_client = FlextCliService()
-        self.cli_api = FlextCliApi()
+        self.cli_api = FlextCli()
 
         # Application state
         self.current_session = None
@@ -53,10 +53,7 @@ class ComprehensiveCliApplication:
         """Initialize the CLI application with setup and validation."""
         try:
             # Display initialization message using flext-cli API
-            self.cli_api.display_data({
-                "message": "Initializing application with full flext-cli integration...",
-                "type": "info",
-            })
+            self.cli_api.info("Initializing application with full flext-cli integration...")
 
             # Setup CLI foundation
             setup_result = FlextResult[None].ok(None)
@@ -69,10 +66,7 @@ class ComprehensiveCliApplication:
             # Load user preferences
             self._load_user_preferences()
 
-            self.cli_api.display_data({
-                "message": "Application initialized successfully",
-                "type": "success",
-            })
+            self.cli_api.success("Application initialized successfully")
             return FlextResult[None].ok(None)
 
         except Exception as e:
@@ -229,8 +223,8 @@ class ComprehensiveCliApplication:
             return FlextResult[None].fail("Project name is required")
 
         # Display progress
-        self.cli_api.display_message(f"Creating project: {name}", message_type="info")
-        self.cli_api.display_message(f"Template: {template}", message_type="info")
+        self.cli_api.info(f"Creating project: {name}")
+        self.cli_api.info(f"Template: {template}")
 
         # Determine project directory
         directory = Path(str(directory_path)) if directory_path else Path.cwd() / name
@@ -265,7 +259,7 @@ python = "^3.13"
             "Created At": datetime.now(UTC).strftime("%Y-%m-%d %H:%M:%S UTC"),
         }
 
-        self.cli_api.display_data(data=project_data, format_type="table")
+        self.cli_api.info("Project data: " + str(project_data))
 
         return FlextResult[None].ok(None)
 
@@ -292,7 +286,7 @@ python = "^3.13"
             "Analysis Time": datetime.now(UTC).strftime("%Y-%m-%d %H:%M:%S UTC"),
         }
 
-        self.cli_api.display_data(data=status_data, format_type="table")
+        self.cli_api.info("Status data: " + str(status_data))
 
         return FlextResult[None].ok(None)
 
@@ -304,7 +298,7 @@ python = "^3.13"
         if not url:
             return FlextResult[None].fail("Service URL is required")
 
-        self.cli_api.display_message(
+        self.cli_api.info(
             f"Checking health of service: {url}", message_type="info"
         )
 
@@ -321,7 +315,7 @@ python = "^3.13"
             "Check Time": datetime.now(UTC).strftime("%H:%M:%S UTC"),
         }
 
-        self.cli_api.display_data(data=health_data, format_type="table")
+        self.cli_api.info("Health data: " + str(health_data))
 
         return FlextResult[None].ok(None)
 
@@ -335,7 +329,7 @@ python = "^3.13"
             "App Name": "flext-cli",
         }
 
-        self.cli_api.display_data(data=config_data, format_type="table")
+        self.cli_api.info("Config data: " + str(config_data))
 
         # Show user preferences
         self.cli_api.display_data(data=self.user_preferences, format_type="table")
@@ -348,7 +342,7 @@ python = "^3.13"
         output = kwargs.get("output")
 
         if not profile and not output:
-            self.cli_api.display_message(
+            self.cli_api.info(
                 "No configuration changes specified", message_type="warning"
             )
             return FlextResult[None].ok(None)
@@ -363,15 +357,15 @@ python = "^3.13"
             self.user_preferences["default_output_format"] = output
             changes.append(f"Output format: {output}")
 
-        self.cli_api.display_message("Configuration updated", message_type="success")
+        self.cli_api.info("Configuration updated", message_type="success")
         for change in changes:
-            self.cli_api.display_message(f"  • {change}", message_type="info")
+            self.cli_api.info(f"  • {change}", message_type="info")
 
         return FlextResult[None].ok(None)
 
     def _handle_interactive_wizard(self, **_kwargs: object) -> FlextResult[None]:
         """Handle interactive setup wizard."""
-        self.cli_api.display_message(
+        self.cli_api.info(
             "This wizard will guide you through CLI configuration...",
             message_type="info",
         )
@@ -389,7 +383,7 @@ python = "^3.13"
         self.cli_api.display_data(data=wizard_config, format_type="table")
 
         self.user_preferences.update(wizard_config)
-        self.cli_api.display_message(
+        self.cli_api.info(
             "Configuration saved successfully!", message_type="success"
         )
 
@@ -429,11 +423,11 @@ def main() -> None:
             sys.exit(1)
 
     except KeyboardInterrupt:
-        cli_api = FlextCliApi()
+        cli_api = FlextCli()
         cli_api.display_message("Operation cancelled by user", message_type="warning")
         sys.exit(130)
     except Exception as e:
-        cli_api = FlextCliApi()
+        cli_api = FlextCli()
         cli_api.display_message(f"CLI error: {e}", message_type="error")
         sys.exit(1)
 

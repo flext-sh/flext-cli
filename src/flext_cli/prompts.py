@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import getpass
 import os
 import re
 import sys
@@ -267,11 +268,8 @@ class FlextCliPrompts(FlextService[FlextCliTypes.Data.CliDataDict]):
             # Record prompt for history (without showing actual password)
             self._prompt_history.append(f"{message} [password hidden]")
 
-            # Use getpass or similar for hidden input
-
-            # Simulate password input (in real implementation, would use getpass)
-            # For security, this is a placeholder - real implementation should use secure input
-            password = f"{'x' * 8}"  # Placeholder for password
+            # Use getpass for secure password input
+            password = getpass.getpass(prompt=message + " ")
 
             if len(password) < min_length:
                 return FlextResult[str].fail(
@@ -333,31 +331,6 @@ class FlextCliPrompts(FlextService[FlextCliTypes.Data.CliDataDict]):
         except Exception as e:
             return FlextResult[FlextCliTypes.Data.CliDataDict].fail(
                 f"Prompt service execution failed: {e}",
-            )
-
-    async def execute_async(self) -> FlextResult[FlextCliTypes.Data.CliDataDict]:
-        """Execute prompt service operation asynchronously.
-
-        Returns:
-            FlextResult[FlextCliTypes.Data.CliDataDict]: Service execution result
-
-        """
-        try:
-            execution_data: FlextCliTypes.Data.CliDataDict = {
-                "service_status": "operational",
-                "interactive_mode": self._interactive_mode,
-                "default_timeout": self._default_timeout,
-                "prompts_available": True,
-                "history_entries": len(self._prompt_history),
-                "async_capable": True,
-                "execution_timestamp": FlextUtilities.Generators.generate_timestamp(),
-            }
-
-            return FlextResult[FlextCliTypes.Data.CliDataDict].ok(execution_data)
-
-        except Exception as e:
-            return FlextResult[FlextCliTypes.Data.CliDataDict].fail(
-                f"Async prompt service execution failed: {e}",
             )
 
     def prompt(self, message: str, default: str = "") -> FlextResult[str]:

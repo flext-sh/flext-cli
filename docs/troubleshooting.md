@@ -225,7 +225,7 @@ except Exception as e:
 
 ```bash
 # Profile import time
-python -X importtime -c "from flext_cli import FlextCliApi"
+python -X importtime -c "from flext_cli import FlextCli"
 
 # Optimize imports
 # - Use lazy imports where possible
@@ -242,8 +242,8 @@ import tracemalloc
 tracemalloc.start()
 
 # Your CLI operation
-from flext_cli import FlextCliApi
-api = FlextCliApi()
+from flext_cli import FlextCli
+api = FlextCli()
 
 # Check memory
 current, peak = tracemalloc.get_traced_memory()
@@ -282,7 +282,7 @@ export FLEXT_LOG_LEVEL=DEBUG
 flext command
 
 # Python debug mode
-python -d -c "from flext_cli import FlextCliApi"
+python -d -c "from flext_cli import FlextCli"
 ```
 
 ### Configuration Debug
@@ -311,7 +311,7 @@ flext config reset
 from flext_cli.internal import something
 
 # Solution
-from Flext_cli import FlextCliApi, FlextCliConfig
+from Flext_cli import FlextCli, FlextCliConfig
 ```
 
 ### "Configuration not found"
@@ -338,7 +338,7 @@ format = config.get_output_format()
 import click
 
 # Solution - use flext-cli abstraction
-from flext_cli import FlextCliCommands, FlextCliApi
+from flext_cli import FlextCliCommands, FlextCli
 ```
 
 ---

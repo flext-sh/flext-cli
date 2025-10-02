@@ -9,7 +9,6 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-import asyncio
 import threading
 import time
 from typing import Protocol, TypeVar, runtime_checkable
@@ -711,30 +710,29 @@ class TestFlextCliProtocols:
         pipeline_success = pipeline.run_pipeline()
         assert pipeline_success is True
 
-    @pytest.mark.asyncio
-    async def test_async_protocol_workflow_integration(
+    def test_protocol_workflow_integration(
         self, protocols_service: FlextCliProtocols
     ) -> None:
-        """Test async protocol workflow integration."""
+        """Test protocol workflow integration."""
 
-        # Test async protocol definition
+        # Test protocol definition
         @runtime_checkable
-        class AsyncProtocol(Protocol):
-            async def async_operation(self) -> str: ...
+        class TestProtocol(Protocol):
+            def operation(self) -> str: ...
 
-        # Implement async protocol
-        class AsyncImplementation:
-            async def async_operation(self) -> str:
-                await asyncio.sleep(0.001)  # Simulate async work
-                return "async_result"
+        # Implement protocol
+        class Implementation:
+            def operation(self) -> str:
+                time.sleep(0.001)  # Simulate work
+                return "result"
 
-        # Test async protocol
-        impl = AsyncImplementation()
-        assert isinstance(impl, AsyncProtocol)
+        # Test protocol
+        impl = Implementation()
+        assert isinstance(impl, TestProtocol)
 
-        result = await impl.async_operation()
-        assert result == "async_result"
+        result = impl.operation()
+        assert result == "result"
 
-        # Test that protocols service works in async context
+        # Test that protocols service works in context
         assert protocols_service is not None
         assert isinstance(protocols_service, FlextCliProtocols)

@@ -1,50 +1,85 @@
-"""CLI output and formatting tools."""
+"""CLI output and formatting tools.
+
+REFACTORED: This module now delegates to formatters.py for Rich functionality.
+All Rich imports are removed - use FlextCliFormatters instead.
+
+Copyright (c) 2025 FLEXT Team. All rights reserved.
+SPDX-License-Identifier: MIT
+"""
 
 from __future__ import annotations
 
 import csv
 import json
 from io import StringIO
-from typing import cast, override
+from typing import Any, override
 
 import yaml
 from rich.console import Console
-from rich.progress import Progress, TaskID
 from rich.table import Table as RichTable
-from rich.text import Text
 from rich.tree import Tree
-from tabulate import tabulate
 
 from flext_cli.constants import FlextCliConstants
+from flext_cli.formatters import FlextCliFormatters
+from flext_cli.tables import FlextCliTables
 from flext_core import FlextLogger, FlextResult, FlextService
 
 
 class FlextCliOutput(FlextService[str]):
     """Comprehensive CLI output tools for the flext ecosystem.
 
-    This class consolidates ALL CLI output functionality from:
-    - flext_cli_formatters.py (Rich-based formatting with progress bars, trees)
-    - utils.py FlextCliUtilities.Formatting (Basic format_json, format_yaml, format_csv)
-    - Table formatting using tabulate library for clean, consistent output
+    REFACTORED to use FlextCliFormatters and FlextCliTables for all output.
+    This module provides a unified output API while delegating to specialized
+    abstraction layers:
 
-    This is the ONLY module in FLEXT allowed to import Rich components directly.
+    - FlextCliFormatters: Rich-based visual output (tables, progress, styling)
+    - FlextCliTables: Tabulate-based ASCII tables (performance, plain text)
+    - Built-in: JSON, YAML, CSV formatting
+
+    Examples:
+        >>> output = FlextCliOutput()
+        >>>
+        >>> # Format data in various formats
+        >>> result = output.format_data(data={"key": "value"}, format_type="json")
+        >>>
+        >>> # Create Rich table
+        >>> table_result = output.create_rich_table(
+        ...     data=[{"name": "Alice", "age": 30}], title="Users"
+        ... )
+        >>>
+        >>> # Create ASCII table
+        >>> ascii_result = output.create_ascii_table(
+        ...     data=[{"name": "Bob", "age": 25}], format="grid"
+        ... )
+        >>>
+        >>> # Print styled messages
+        >>> output.print_error("Something failed")
+        >>> output.print_success("Operation completed")
+
+    Note:
+        This class provides backward compatibility while using the new
+        abstraction layers internally. NO Rich imports are present here.
+
     """
 
     @override
     def __init__(self) -> None:
-        """Initialize CLI output with Rich console."""
+        """Initialize CLI output with formatters."""
         super().__init__()
         self._logger = FlextLogger(__name__)
-        self._console = Console()
+
+        # Delegate to specialized formatters
+        self._formatters = FlextCliFormatters()
+        self._tables = FlextCliTables()
 
     @override
     def execute(self) -> FlextResult[str]:
         """Execute the main domain service operation - required by FlextService."""
         return FlextResult[str].ok("FlextCliOutput operational")
 
-    async def execute_async(self) -> FlextResult[str]:
-        """Execute the main domain service operation asynchronously."""
-        return FlextResult[str].ok("FlextCliOutput operational")
+    # =========================================================================
+    # FORMAT DATA - UNIFIED API
+    # =========================================================================
 
     def format_data(
         self,
@@ -63,6 +98,12 @@ class FlextCliOutput(FlextService[str]):
 
         Returns:
             FlextResult[str]: Formatted data string or error
+
+        Example:
+            >>> output = FlextCliOutput()
+            >>> result = output.format_data(
+            ...     data={"name": "Alice", "age": 30}, format_type="json"
+            ... )
 
         """
         format_lower = format_type.lower()
@@ -104,54 +145,78 @@ class FlextCliOutput(FlextService[str]):
         except Exception as e:
             return FlextResult[object].fail(f"Failed to create formatter: {e}")
 
-    def create_table(
+    # =========================================================================
+    # RICH TABLE CREATION (Delegates to FlextCliFormatters)
+    # =========================================================================
+
+    def create_rich_table(
         self,
-        data: list[dict[str, str | int | float] | None],
+        data: list[dict[str, object]],
         title: str | None = None,
         headers: list[str] | None = None,
+        **kwargs: object,
     ) -> FlextResult[RichTable]:
-        """Create a Rich table from data.
+        """Create a Rich table from data using FlextCliFormatters.
 
         Args:
             data: List of dictionaries to display
             title: Optional table title
             headers: Optional custom headers
+            **kwargs: Additional Rich table options
 
         Returns:
-            FlextResult[RichTable]: Rich table object or error
+            FlextResult containing Rich Table object
+
+        Example:
+            >>> output = FlextCliOutput()
+            >>> result = output.create_rich_table(
+            ...     data=[{"name": "Alice", "age": 30}], title="Users", show_header=True
+            ... )
 
         """
         if not data:
-            return FlextResult[RichTable].fail("No data provided for table")
+            return FlextResult[Any].fail("No data provided for table")
 
         try:
-            table_headers = headers or (
-                list(data[0].keys()) if data[0] is not None else []
+            # Determine headers
+            table_headers = headers or list(data[0].keys())
+
+            # Create Rich table through formatters abstraction
+            table_result = self._formatters.create_table(
+                title=title or "",
+                show_header=True,
+                **kwargs,
             )
 
-            # Create Rich table
-            table = RichTable(title=title or "")
+            if table_result.is_failure:
+                return FlextResult[RichTable].fail(
+                    f"Failed to create Rich table: {table_result.error}"
+                )
 
-            # Add columns
+            table = table_result.unwrap()
+
+            # Add columns directly to table
             for header in table_headers:
                 table.add_column(str(header))
 
-            # Add rows
+            # Add rows directly to table
             for row_data in data:
-                if row_data is None:
-                    continue
                 row_values = [str(row_data.get(h, "")) for h in table_headers]
                 table.add_row(*row_values)
 
-            return FlextResult[RichTable].ok(table)
+            return FlextResult[Any].ok(table)
 
         except Exception as e:
-            return FlextResult[RichTable].fail(f"Failed to create table: {e}")
+            error_msg = f"Failed to create Rich table: {e}"
+            self._logger.exception(error_msg)
+            return FlextResult[Any].fail(error_msg)
 
     def table_to_string(
-        self, table: RichTable, width: int | None = None
+        self,
+        table: RichTable,
+        width: int | None = None,
     ) -> FlextResult[str]:
-        """Convert Rich table to string.
+        """Convert Rich table to string using FlextCliFormatters.
 
         Args:
             table: Rich table object
@@ -161,40 +226,94 @@ class FlextCliOutput(FlextService[str]):
             FlextResult[str]: Table as string or error
 
         """
+        # Render table to string using console
         try:
-            console = Console(width=width)
-            with console.capture() as capture:
-                console.print(table)
-            return FlextResult[str].ok(capture.get())
-        except Exception as e:
-            return FlextResult[str].fail(f"Failed to convert table to string: {e}")
+            string_io = StringIO()
+            # Create temporary console with StringIO
+            temp_console = Console(
+                file=string_io, width=width or 80, force_terminal=False
+            )
+            temp_console.print(table)
 
-    def create_progress_bar(
-        self, description: str = "Processing...", total: int = 100
-    ) -> FlextResult[tuple[Progress, TaskID]]:
-        """Create a Rich progress bar.
+            return FlextResult[str].ok(string_io.getvalue())
+        except Exception as e:
+            return FlextResult[str].fail(f"Failed to render table to string: {e}")
+
+    # =========================================================================
+    # ASCII TABLE CREATION (Delegates to FlextCliTables)
+    # =========================================================================
+
+    def create_ascii_table(
+        self,
+        data: list[dict[str, object]],
+        headers: list[str] | None = None,
+        table_format: str = "simple",
+        **kwargs: object,
+    ) -> FlextResult[str]:
+        """Create ASCII table using FlextCliTables.
 
         Args:
-            description: Progress description
-            total: Total number of steps
+            data: List of dictionaries to display
+            headers: Optional custom headers
+            table_format: Table format (simple, grid, fancy_grid, pipe, etc.)
+            **kwargs: Additional tabulate options
 
         Returns:
-            FlextResult[tuple[Progress, TaskID]]: Progress and task ID or error
+            FlextResult[str]: ASCII table string
+
+        Example:
+            >>> output = FlextCliOutput()
+            >>> result = output.create_ascii_table(
+            ...     data=[{"name": "Bob", "age": 25}], table_format="grid"
+            ... )
 
         """
-        try:
-            progress = Progress()
-            task_id = progress.add_task(description, total=total)
-            return FlextResult[tuple[Progress, TaskID]].ok((progress, task_id))
-        except Exception as e:
-            return FlextResult[tuple[Progress, TaskID]].fail(
-                f"Failed to create progress bar: {e}"
-            )
+        return self._tables.create_table(
+            data=data,
+            headers=headers or "keys",
+            table_format=table_format,
+            **kwargs,
+        )
+
+    # =========================================================================
+    # PROGRESS BARS (Delegates to FlextCliFormatters)
+    # =========================================================================
+
+    def create_progress_bar(
+        self,
+        _description: str = "Processing...",
+        _total: int = 100,
+    ) -> FlextResult[Any]:
+        """Create a Rich progress bar using FlextCliFormatters.
+
+        Args:
+            _description: Progress description (reserved for future use)
+            _total: Total number of steps (reserved for future use)
+
+        Returns:
+            FlextResult containing Progress object
+
+        Example:
+            >>> output = FlextCliOutput()
+            >>> progress_result = output.create_progress_bar(
+            ...     description="Loading", total=100
+            ... )
+
+        """
+        return self._formatters.create_progress()
+
+    # =========================================================================
+    # STYLED PRINTING (Delegates to FlextCliFormatters)
+    # =========================================================================
 
     def print_message(
-        self, message: str, style: str = "", *, highlight: bool = False
+        self,
+        message: str,
+        style: str = "",
+        *,
+        highlight: bool = False,
     ) -> FlextResult[None]:
-        """Print a message using Rich console.
+        """Print a message using FlextCliFormatters.
 
         Args:
             message: Message to print
@@ -204,16 +323,16 @@ class FlextCliOutput(FlextService[str]):
         Returns:
             FlextResult[None]: Success or failure result
 
+        Example:
+            >>> output = FlextCliOutput()
+            >>> output.print_message("Hello", style="bold blue")
+
         """
-        try:
-            if style:
-                text = Text(message, style=style)
-                self._console.print(text, highlight=highlight)
-            else:
-                self._console.print(message, highlight=highlight)
-            return FlextResult[None].ok(None)
-        except Exception as e:
-            return FlextResult[None].fail(f"Failed to print message: {e}")
+        return self._formatters.print(
+            message,
+            style=style,
+            highlight=highlight,
+        )
 
     def print_error(self, message: str) -> FlextResult[None]:
         """Print an error message with red styling.
@@ -224,8 +343,12 @@ class FlextCliOutput(FlextService[str]):
         Returns:
             FlextResult[None]: Success or failure result
 
+        Example:
+            >>> output = FlextCliOutput()
+            >>> output.print_error("Operation failed")
+
         """
-        return self.print_message(f"Error: {message}", style="bold red")
+        return self.print_message(f"❌ Error: {message}", style="bold red")
 
     def print_success(self, message: str) -> FlextResult[None]:
         """Print a success message with green styling.
@@ -236,8 +359,12 @@ class FlextCliOutput(FlextService[str]):
         Returns:
             FlextResult[None]: Success or failure result
 
+        Example:
+            >>> output = FlextCliOutput()
+            >>> output.print_success("Task completed")
+
         """
-        return self.print_message(f"Success: {message}", style="bold green")
+        return self.print_message(f"✅ Success: {message}", style="bold green")
 
     def print_warning(self, message: str) -> FlextResult[None]:
         """Print a warning message with yellow styling.
@@ -248,13 +375,21 @@ class FlextCliOutput(FlextService[str]):
         Returns:
             FlextResult[None]: Success or failure result
 
+        Example:
+            >>> output = FlextCliOutput()
+            >>> output.print_warning("Deprecated feature")
+
         """
-        return self.print_message(f"Warning: {message}", style="bold yellow")
+        return self.print_message(f"⚠️  Warning: {message}", style="bold yellow")
 
     def display_text(
-        self, text: str, *, style: str = "", highlight: bool = False
+        self,
+        text: str,
+        *,
+        style: str = "",
+        highlight: bool = False,
     ) -> FlextResult[None]:
-        """Display text using Rich console.
+        """Display text using FlextCliFormatters.
 
         Args:
             text: Text to display
@@ -264,16 +399,20 @@ class FlextCliOutput(FlextService[str]):
         Returns:
             FlextResult[None]: Success or failure result
 
+        Example:
+            >>> output = FlextCliOutput()
+            >>> output.display_text("Important info", style="bold")
+
         """
-        try:
-            if style:
-                formatted_text = Text(text, style=style)
-                self._console.print(formatted_text, highlight=highlight)
-            else:
-                self._console.print(text, highlight=highlight)
-            return FlextResult[None].ok(None)
-        except Exception as e:
-            return FlextResult[None].fail(f"Failed to display text: {e}")
+        return self._formatters.print(
+            text,
+            style=style,
+            highlight=highlight,
+        )
+
+    # =========================================================================
+    # DATA FORMAT METHODS (Built-in)
+    # =========================================================================
 
     def format_json(self, data: object) -> FlextResult[str]:
         """Format data as JSON.
@@ -284,11 +423,17 @@ class FlextCliOutput(FlextService[str]):
         Returns:
             FlextResult[str]: Formatted JSON string
 
+        Example:
+            >>> output = FlextCliOutput()
+            >>> result = output.format_json({"key": "value"})
+
         """
         try:
             return FlextResult[str].ok(json.dumps(data, default=str, indent=2))
         except Exception as e:
-            return FlextResult[str].fail(f"JSON formatting failed: {e}")
+            error_msg = f"JSON formatting failed: {e}"
+            self._logger.exception(error_msg)
+            return FlextResult[str].fail(error_msg)
 
     def format_yaml(self, data: object) -> FlextResult[str]:
         """Format data as YAML.
@@ -299,11 +444,17 @@ class FlextCliOutput(FlextService[str]):
         Returns:
             FlextResult[str]: Formatted YAML string
 
+        Example:
+            >>> output = FlextCliOutput()
+            >>> result = output.format_yaml({"key": "value"})
+
         """
         try:
             return FlextResult[str].ok(yaml.dump(data, default_flow_style=False))
         except Exception as e:
-            return FlextResult[str].fail(f"YAML formatting failed: {e}")
+            error_msg = f"YAML formatting failed: {e}"
+            self._logger.exception(error_msg)
+            return FlextResult[str].fail(error_msg)
 
     def format_csv(self, data: object) -> FlextResult[str]:
         """Format data as CSV.
@@ -314,33 +465,104 @@ class FlextCliOutput(FlextService[str]):
         Returns:
             FlextResult[str]: Formatted CSV string
 
+        Example:
+            >>> output = FlextCliOutput()
+            >>> result = output.format_csv([{"name": "Alice", "age": 30}])
+
         """
         try:
             if isinstance(data, list) and data and isinstance(data[0], dict):
-                output = StringIO()
+                output_buffer = StringIO()
                 fieldnames = list(data[0].keys())
-                writer = csv.DictWriter(output, fieldnames=fieldnames)
+                writer = csv.DictWriter(output_buffer, fieldnames=fieldnames)
                 writer.writeheader()
                 writer.writerows(data)
-                return FlextResult[str].ok(output.getvalue())
+                return FlextResult[str].ok(output_buffer.getvalue())
             if isinstance(data, dict):
-                output = StringIO()
+                output_buffer = StringIO()
                 fieldnames = list(data.keys())
-                writer = csv.DictWriter(output, fieldnames=fieldnames)
+                writer = csv.DictWriter(output_buffer, fieldnames=fieldnames)
                 writer.writeheader()
                 writer.writerow(data)
-                return FlextResult[str].ok(output.getvalue())
+                return FlextResult[str].ok(output_buffer.getvalue())
             return FlextResult[str].ok(json.dumps(data, default=str, indent=2))
         except Exception as e:
-            return FlextResult[str].fail(f"CSV formatting failed: {e}")
+            error_msg = f"CSV formatting failed: {e}"
+            self._logger.exception(error_msg)
+            return FlextResult[str].fail(error_msg)
 
     def format_table(
         self,
-        data: dict[str, object] | list[dict[str, object]] | None,
+        data: dict[str, object] | list[dict[str, object]],
         title: str | None = None,
         headers: list[str] | None = None,
     ) -> FlextResult[str]:
-        """Format data as a tabulated table string.
+        """Format data as a tabulated table string using FlextCliTables.
+
+        Args:
+            data: Data to format (dict or list of dicts)
+            title: Optional table title
+            headers: Optional column headers
+
+        Returns:
+            FlextResult[str]: Table as string or error
+
+        Example:
+            >>> output = FlextCliOutput()
+            >>> result = output.format_table(
+            ...     data=[{"name": "Alice", "age": 30}], title="Users"
+            ... )
+
+        """
+        try:
+            # Prepare data for tabulate
+            if isinstance(data, dict):
+                table_data = [{"Key": k, "Value": str(v)} for k, v in data.items()]
+                # For list of dicts, use "keys" string as tabulate requires
+                table_headers: str | list[str] = headers or "keys"
+            else:
+                if not isinstance(data, list):
+                    return FlextResult[str].fail(
+                        "Table format requires dict or list of dicts"
+                    )
+                table_data = data
+                if not table_data:
+                    return FlextResult[str].fail("No data provided for table")
+                # For list of dicts, use "keys" string as tabulate requires
+                table_headers = headers or "keys"
+
+            # Create table using FlextCliTables
+            table_result = self._tables.create_table(
+                data=table_data,
+                headers=table_headers,
+                table_format="grid",
+            )
+
+            if table_result.is_failure:
+                return FlextResult[str].fail(
+                    f"Failed to create table: {table_result.error}"
+                )
+
+            table_str = table_result.unwrap()
+
+            # Add title if provided
+            if title:
+                table_str = f"{title}\n{table_str}\n"
+
+            return FlextResult[str].ok(table_str)
+
+        except Exception as e:
+            error_msg = f"Failed to format table: {e}"
+            self._logger.exception(error_msg)
+            return FlextResult[str].fail(error_msg)
+
+    def create_table(
+        self,
+        data: dict[str, object] | list[dict[str, object]],
+        title: str | None = None,
+        headers: list[str] | None = None,
+    ) -> FlextResult[str]:
+        """Alias for format_table for backward compatibility.
 
         Args:
             data: Data to format (dict or list of dicts)
@@ -351,53 +573,14 @@ class FlextCliOutput(FlextService[str]):
             FlextResult[str]: Table as string or error
 
         """
-        try:
-            if isinstance(data, dict):
-                table_data: list[dict[str, str | int | float | bool | None] | None] = [
-                    {"Key": k, "Value": str(v)} for k, v in data.items()
-                ]
-                default_headers = ["Key", "Value"]
-            else:
-                # Validate data is a list before processing
-                if not isinstance(data, list):
-                    return FlextResult[str].fail(
-                        "Table format requires dict or list of dicts"
-                    )
-                table_data = cast(
-                    "list[dict[str, str | int | float | bool | None] | None]", data
-                )
-                if not table_data:
-                    return FlextResult[str].fail("No data provided for table")
-                default_headers = (
-                    list(table_data[0].keys()) if table_data[0] is not None else []
-                )
-
-            columns = headers or default_headers
-
-            # Convert data to list of lists for tabulate
-            tabulate_data = []
-            for row_data in table_data:
-                if row_data is None:
-                    continue
-                row_values = [str(row_data.get(col, "")) for col in columns]
-                tabulate_data.append(row_values)
-
-            # Create table with tabulate
-            table_str = tabulate(tabulate_data, headers=columns, tablefmt="grid")
-
-            # Add title if provided
-            if title:
-                table_str = f"{title}\n{table_str}\n"
-
-            return FlextResult[str].ok(table_str)
-
-        except Exception as e:
-            return FlextResult[str].fail(f"Failed to format table: {e}")
+        return self.format_table(data=data, title=title, headers=headers)
 
     def format_as_tree(
-        self, data: dict[str, object], title: str = "Tree"
+        self,
+        data: dict[str, object],
+        title: str = "Tree",
     ) -> FlextResult[str]:
-        """Format hierarchical data as tree view.
+        """Format hierarchical data as tree view using FlextCliFormatters.
 
         Args:
             data: Hierarchical data to format
@@ -406,23 +589,47 @@ class FlextCliOutput(FlextService[str]):
         Returns:
             FlextResult[str]: Tree view as string
 
+        Example:
+            >>> output = FlextCliOutput()
+            >>> result = output.format_as_tree(
+            ...     data={"root": {"child1": "value1", "child2": "value2"}},
+            ...     title="Config",
+            ... )
+
         """
+        # Create tree through formatters
+        tree_result = self._formatters.create_tree(label=title)
+
+        if tree_result.is_failure:
+            return FlextResult[str].fail(f"Failed to create tree: {tree_result.error}")
+
+        tree = tree_result.unwrap()
+
+        # Build tree structure
+        self._build_tree(tree, data)
+
+        # Render to string
         try:
-            tree = Tree(title)
-            self._build_tree(tree, data)
+            string_io = StringIO()
+            temp_console = Console(
+                file=string_io,
+                width=FlextCliConstants.CliDefaults.DEFAULT_MAX_WIDTH,
+                force_terminal=False,
+            )
+            temp_console.print(tree)
 
-            with StringIO() as output:
-                temp_console = Console(
-                    file=output, width=FlextCliConstants.CliDefaults.DEFAULT_MAX_WIDTH
-                )
-                temp_console.print(tree)
-                return FlextResult[str].ok(output.getvalue())
-
+            return FlextResult[str].ok(string_io.getvalue())
         except Exception as e:
-            return FlextResult[str].fail(f"Failed to format tree: {e}")
+            return FlextResult[str].fail(f"Failed to render tree to string: {e}")
 
     def _build_tree(self, tree: Tree, data: object) -> None:
-        """Build tree recursively (helper for format_as_tree)."""
+        """Build tree recursively (helper for format_as_tree).
+
+        Args:
+            tree: Rich Tree object
+            data: Data to build tree from
+
+        """
         if isinstance(data, dict):
             for key, value in data.items():
                 if isinstance(value, dict):
@@ -440,24 +647,37 @@ class FlextCliOutput(FlextService[str]):
         else:
             tree.add(str(data))
 
+    # =========================================================================
+    # CONSOLE ACCESS (Delegates to FlextCliFormatters)
+    # =========================================================================
+
     @property
     def console(self) -> Console:
-        """Get Rich console instance.
+        """Get Rich console instance from FlextCliFormatters.
 
         Returns:
-            Console: Rich console instance
+            Rich Console instance
+
+        Example:
+            >>> output = FlextCliOutput()
+            >>> console = output.console
+            >>> console.print("Hello")
 
         """
-        return self._console
+        return self._formatters.get_console()
 
     def get_console(self) -> Console:
-        """Get the Rich console instance (method form).
+        """Get the Rich console instance from FlextCliFormatters (method form).
 
         Returns:
-            Console: Rich console instance
+            Rich Console instance
+
+        Example:
+            >>> output = FlextCliOutput()
+            >>> console = output.get_console()
 
         """
-        return self._console
+        return self._formatters.get_console()
 
 
 __all__ = ["FlextCliOutput"]

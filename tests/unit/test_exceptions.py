@@ -9,10 +9,10 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-import asyncio
 import json
 import logging
 import threading
+import time
 
 import pytest
 
@@ -205,10 +205,8 @@ class TestFlextCliExceptionsFlextCliError:
             "details": getattr(error, "details", None),
         }
 
-        assert (
-            error_dict["message"] is not None
-            and "[404] Test error" in error_dict["message"]
-        )
+        assert error_dict["message"] is not None
+        assert "[404] Test error" in error_dict["message"]
         assert error_dict["type"] == "BaseError"
         assert error_dict["error_code"] == "404"
         # Test context structure
@@ -414,10 +412,8 @@ class TestFlextCliExceptionsFlextCliError:
                 "code": getattr(e, "error_code", None),
                 "context": getattr(e, "context", None),
             }
-            assert (
-                error_info["message"] is not None
-                and "[500] Operation failed" in error_info["message"]
-            )
+            assert error_info["message"] is not None
+            assert "[500] Operation failed" in error_info["message"]
             assert error_info["code"] == "500"
 
     def test_exception_logging_pattern(self) -> None:
@@ -437,10 +433,8 @@ class TestFlextCliExceptionsFlextCliError:
             }
 
             # Verify log data structure
-            assert (
-                log_data["error"] is not None
-                and "[500] Test error" in log_data["error"]
-            )  # Handle actual format
+            assert log_data["error"] is not None
+            assert "[500] Test error" in log_data["error"]
             assert log_data["code"] == "500"  # Error code is now a string
             # Test context structure
             assert log_data["context"] is not None
@@ -452,9 +446,8 @@ class TestFlextCliExceptionsFlextCliError:
             for attempt in range(max_retries):
                 try:
                     if attempt < 2:  # Fail first two attempts
-                        raise FlextCliExceptions.BaseError(
-                            f"Attempt {attempt + 1} failed", error_code=500
-                        )
+                        msg = f"Attempt {attempt + 1} failed"
+                        raise FlextCliExceptions.BaseError(msg, error_code=500)
                     return "Success"
                 except FlextCliExceptions.BaseError:
                     if attempt == max_retries - 1:
@@ -480,17 +473,20 @@ class TestFlextCliExceptionsFlextCliError:
         # Test with very long message
         long_message = "x" * 1000
         error = FlextCliExceptions.BaseError(long_message)
-        assert "[CLI_ERROR]" in str(error) and long_message in str(error)
+        assert "[CLI_ERROR]" in str(error)
+        assert long_message in str(error)
 
         # Test with special characters
         special_message = "Error with special chars: !@#$%^&*()_+-=[]{}|;':\",./<>?"
         error = FlextCliExceptions.BaseError(special_message)
-        assert "[CLI_ERROR]" in str(error) and special_message in str(error)
+        assert "[CLI_ERROR]" in str(error)
+        assert special_message in str(error)
 
         # Test with unicode characters
         unicode_message = "Error with unicode: 你好世界 🌍"
         error = FlextCliExceptions.BaseError(unicode_message)
-        assert "[CLI_ERROR]" in str(error) and unicode_message in str(error)
+        assert "[CLI_ERROR]" in str(error)
+        assert unicode_message in str(error)
 
     def test_exception_none_values(self) -> None:
         """Test exception with None values."""
@@ -509,9 +505,8 @@ class TestFlextCliExceptionsFlextCliError:
 
         def worker(worker_id: int) -> None:
             try:
-                raise FlextCliExceptions.BaseError(
-                    f"Worker {worker_id} error", error_code=worker_id
-                )
+                msg = f"Worker {worker_id} error"
+                raise FlextCliExceptions.BaseError(msg, error_code=worker_id)
             except FlextCliExceptions.BaseError as e:
                 errors.append(e)
             except Exception as e:
@@ -593,24 +588,23 @@ class TestFlextCliExceptionsFlextCliError:
 
         assert recovery_successful
 
-    @pytest.mark.asyncio
-    async def test_async_exception_workflow_integration(self) -> None:
-        """Test async exception workflow integration."""
+    def test_exception_workflow_integration(self) -> None:
+        """Test exception workflow integration."""
 
-        # Test async exception handling
-        async def async_operation() -> str:
-            msg = "Async operation failed"
-            await asyncio.sleep(0)  # Make it actually async
+        # Test exception handling
+        def operation() -> str:
+            msg = "operation failed"
+            time.sleep(0)  # Simulate operation
             raise FlextCliExceptions.BaseError(msg, error_code=500)
 
         with pytest.raises(FlextCliExceptions.BaseError) as exc_info:
-            await async_operation()
+            operation()
         e = exc_info.value
-        assert "[500] Async operation failed" in str(e)  # Handle actual format
+        assert "[500] operation failed" in str(e)  # Handle actual format
         assert getattr(e, "error_code", None) == "500"
 
-        # Test that async exception handling works correctly
-        assert True  # If we reach here, async exception handling worked
+        # Test that exception handling works correctly
+        assert True  # If we reach here, exception handling worked
 
 
 class TestFlextCliExceptionsSubclasses:
