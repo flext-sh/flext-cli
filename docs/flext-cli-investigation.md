@@ -34,7 +34,7 @@ This investigation analyzes the flext-cli project to understand class inheritanc
 # Core Components
 FlextCli                    # Main CLI class
 FlextCliService            # Core service (FlextService inheritance)
-FlextCliApi               # API layer
+FlextCli               # API layer
 FlextCliAuth              # Authentication system
 FlextCliCommands              # Main CLI interface
 
@@ -243,7 +243,7 @@ file_path.chmod(0o600)
 #### Class Hierarchy
 
 ```python
-class FlextCliApi(FlextService[dict[str, object]]):
+class FlextCli(FlextService[dict[str, object]]):
     """Main CLI API - direct flext-core extension without abstraction layers."""
 ```
 
@@ -1275,7 +1275,7 @@ if result_typed.is_success:
     return result_typed.unwrap()
 # For failures, log error and return None
 logger = FlextLogger(__name__)
-logger.error(f"Async FlextResult error: {result.error}")
+logger.error(f"FlextResult error: {result.error}")
 return None
 ```
 

@@ -10,7 +10,7 @@ The examples are organized in a sequential learning path from foundational patte
 2. **[02_cli_commands_integration.py](02_cli_commands_integration.py)** - Click framework integration with decorators
 3. **[03_data_processing_and_output.py](03_data_processing_and_output.py)** - Data processing and output formatting
 4. **[04_authentication_and_authorization.py](04_authentication_and_authorization.py)** - Security patterns and token management
-5. **[05_advanced_service_integration.py](05_advanced_service_integration.py)** - Advanced patterns with async operations
+5. **[05_advanced_service_integration.py](05_advanced_service_integration.py)** - Advanced patterns with operations
 6. **[06_comprehensive_cli_application.py](06_comprehensive_cli_application.py)** - Complete real-world CLI application
 
 ## 🏗️ Architecture Patterns Demonstrated
@@ -113,7 +113,7 @@ The examples are organized in a sequential learning path from foundational patte
 **Key Patterns**:
 
 - FlextCliService with comprehensive mixins
-- Async command execution with @async_command
+- command execution with @command
 - Circuit breaker pattern for service resilience
 - Service orchestration and coordination
 - Health monitoring and performance tracking
@@ -121,7 +121,7 @@ The examples are organized in a sequential learning path from foundational patte
 **What You'll Learn**:
 
 - Building resilient service integrations
-- Implementing async operations in CLI apps
+- Implementing operations in CLI apps
 - Circuit breaker patterns for fault tolerance
 - Service health monitoring and orchestration
 
@@ -271,9 +271,9 @@ def command(count, url, input_file, output_dir, new_file):
 @flext_cli.retry(max_attempts=3, delay=1.0, backoff=2.0)
 @flext_cli.require_auth(roles=["REDACTED_LDAP_BIND_PASSWORD"])
 @flext_cli.validate_config(required_keys=["api_url"])
-@flext_cli.async_command
+@flext_cli.command
 @flext_cli.FlextCliUtilities.Decorators.handle_service_result
-async def advanced_command():
+def advanced_command():
     """Command with full decorator stack."""
     # Implementation using FlextResult patterns
     return FlextResult[None].ok("Operation completed successfully")

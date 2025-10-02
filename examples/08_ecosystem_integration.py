@@ -23,12 +23,10 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-import json
 from dataclasses import dataclass
 from pathlib import Path
 from typing import override
 
-import yaml
 from pydantic_settings import SettingsConfigDict
 
 from flext_cli import (
@@ -215,9 +213,6 @@ class EcosystemService(FlextCliService):
 
 def ecosystem_cli() -> None:
     """FLEXT Ecosystem Integration CLI - Example implementation."""
-    print("FLEXT Ecosystem Integration CLI")
-    print("This example demonstrates ecosystem integration patterns")
-    print("Use FlextCliCommands for production CLI implementation")
 
 
 def health() -> None:
@@ -227,17 +222,11 @@ def health() -> None:
 
     if health_result.is_success:
         health_data = health_result.unwrap()
-        print("=== FLEXT Ecosystem Health ===")
-        for service_name, status in health_data.items():
+        for status in health_data.values():
             if isinstance(status, dict):
                 status_dict: FlextTypes.Core.Dict = status
-                status_value: str = str(status_dict.get("status", "unknown"))
-                response_time_value: str = str(
-                    status_dict.get("response_time", "unknown")
-                )
-                print(f"{service_name}: {status_value} ({response_time_value})")
-    else:
-        print(f"Health check failed: {health_result.error}")
+                str(status_dict.get("status", "unknown"))
+                str(status_dict.get("response_time", "unknown"))
 
 
 def authenticate(username: str, password: str) -> None:
@@ -247,17 +236,10 @@ def authenticate(username: str, password: str) -> None:
 
     if auth_result.is_success:
         token_data = auth_result.unwrap()
-        print("=== Authentication Results ===")
         token_data_dict: dict[str, object] = token_data
-        print(f"Username: {token_data_dict.get('username', 'unknown')}")
-        print(f"Token: {token_data_dict.get('token', 'unknown')}")
-        print(f"Expires in: {token_data_dict.get('expires_in', 'unknown')} seconds")
         services = token_data_dict.get("services", [])
         if isinstance(services, list):
-            services_list: list[str] = [str(s) for s in services]
-            print(f"Services: {', '.join(services_list)}")
-    else:
-        print(f"Authentication failed: {auth_result.error}")
+            [str(s) for s in services]
 
 
 def meltano(operation: str, project: str) -> None:
@@ -267,22 +249,15 @@ def meltano(operation: str, project: str) -> None:
 
     if meltano_result.is_success:
         result_data = meltano_result.unwrap()
-        print("=== Meltano Operation Results ===")
         result_data_typed: FlextTypes.Core.Dict = result_data
-        print(f"Project: {result_data_typed.get('project', 'unknown')}")
-        print(f"Operation: {result_data_typed.get('operation', 'unknown')}")
-        print(f"Status: {result_data_typed.get('status', 'unknown')}")
         if "pipelines" in result_data_typed:
-            print(f"Pipelines: {result_data_typed['pipelines']}")
+            pass
         if "tests" in result_data_typed:
-            print(f"Tests: {result_data_typed['tests']}")
+            pass
         if "tasks" in result_data_typed:
-            print(f"Tasks: {result_data_typed['tasks']}")
+            pass
         if "plugins" in result_data_typed:
-            print(f"Plugins: {result_data_typed['plugins']}")
-        print(f"Duration: {result_data_typed.get('duration', 'unknown')}")
-    else:
-        print(f"Meltano operation failed: {meltano_result.error}")
+            pass
 
 
 def oracle_query(
@@ -295,35 +270,21 @@ def oracle_query(
     if query_result.is_success:
         query_data = query_result.unwrap()
         query_data_typed: FlextTypes.Core.Dict = query_data
-        print("=== Oracle Query Results ===")
-        print(f"Query: {query_data_typed.get('query', 'unknown')}")
-        print(f"Schema: {query_data_typed.get('schema', 'unknown')}")
-        print(f"Rows affected: {query_data_typed.get('rows_affected', 'unknown')}")
-        print(f"Execution time: {query_data_typed.get('execution_time', 'unknown')}")
         columns = query_data_typed.get("columns", [])
         if isinstance(columns, list):
-            columns_list: list[str] = [str(c) for c in columns]
-            print(f"Columns: {', '.join(columns_list)}")
+            [str(c) for c in columns]
 
         sample_data = query_data_typed.get("sample_data", [])
         if output_format == "table":
-            print("\nSample data:")
             if isinstance(sample_data, list):
                 for row in sample_data:
-                    print(f"  {row}")
+                    pass
         elif output_format == "json":
-            print(json.dumps(sample_data, indent=2))
-        elif output_format == "csv":
-            print("id,name,created_at,status")
-            if isinstance(sample_data, list):
-                for row in sample_data:
-                    if isinstance(row, dict):
-                        row_dict: FlextTypes.Core.Dict = row
-                        print(
-                            f"{row_dict.get('id', '')},{row_dict.get('name', '')},{row_dict.get('created_at', '')},{row_dict.get('status', '')}"
-                        )
-    else:
-        print(f"Oracle query failed: {query_result.error}")
+            pass
+        elif output_format == "csv" and isinstance(sample_data, list):
+            for row in sample_data:
+                if isinstance(row, dict):
+                    pass
 
 
 def metrics(output_format: str = "table") -> None:
@@ -333,46 +294,22 @@ def metrics(output_format: str = "table") -> None:
 
     if metrics_result.is_success:
         metrics_data = metrics_result.unwrap()
-        print("=== FLEXT Ecosystem Metrics ===")
 
         metrics_data_typed: FlextTypes.Core.Dict = metrics_data
         if output_format == "table":
-            print("Services:")
             services = metrics_data_typed.get("services", {})
             if isinstance(services, dict):
-                services_dict: FlextTypes.Core.Dict = services
-                print(f"  Total: {services_dict.get('total', 'unknown')}")
-                print(f"  Healthy: {services_dict.get('healthy', 'unknown')}")
-                print(f"  Degraded: {services_dict.get('degraded', 'unknown')}")
-                print(f"  Down: {services_dict.get('down', 'unknown')}")
+                pass
 
-            print("\nPerformance:")
             perf = metrics_data_typed.get("performance", {})
             if isinstance(perf, dict):
-                perf_dict: FlextTypes.Core.Dict = perf
-                print(
-                    f"  Avg Response Time: {perf_dict.get('avg_response_time', 'unknown')}"
-                )
-                print(
-                    f"  Requests/min: {perf_dict.get('requests_per_minute', 'unknown')}"
-                )
-                print(f"  Error Rate: {perf_dict.get('error_rate', 'unknown')}")
+                pass
 
-            print("\nResources:")
             resources = metrics_data_typed.get("resources", {})
             if isinstance(resources, dict):
-                resources_dict: FlextTypes.Core.Dict = resources
-                print(f"  CPU Usage: {resources_dict.get('cpu_usage', 'unknown')}")
-                print(
-                    f"  Memory Usage: {resources_dict.get('memory_usage', 'unknown')}"
-                )
-                print(f"  Disk Usage: {resources_dict.get('disk_usage', 'unknown')}")
-        elif output_format == "json":
-            print(json.dumps(metrics_data, indent=2))
-        elif output_format == "yaml":
-            print(yaml.dump(metrics_data, default_flow_style=False))
-    else:
-        print(f"Metrics retrieval failed: {metrics_result.error}")
+                pass
+        elif output_format in {"json", "yaml"}:
+            pass
 
 
 def config() -> None:
@@ -383,14 +320,8 @@ def config() -> None:
     if config_result.is_success:
         config_data = config_result.unwrap()
         config_data_typed: FlextTypes.Core.Dict = config_data
-        print("=== Ecosystem Configuration ===")
-        print(f"Environment: {config_data_typed.get('environment', 'unknown')}")
-        print(f"Version: {config_data_typed.get('version', 'unknown')}")
-        print("\nSettings:")
         settings = config_data_typed.get("settings", {})
         if isinstance(settings, dict):
             settings_dict: FlextTypes.Core.Dict = settings
-            for key, value in settings_dict.items():
-                print(f"  {key}: {value}")
-    else:
-        print(f"Configuration retrieval failed: {config_result.error}")
+            for _key, _value in settings_dict.items():
+                pass

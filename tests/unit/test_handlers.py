@@ -286,17 +286,16 @@ class TestFlextCliHandlers:
         for i, handler in enumerate(handlers_list[:10]):
             if callable(handler):
                 result = handler(test_arg={"value": i})
-                assert hasattr(result, "is_success") and getattr(
-                    result, "is_success", False
-                )
+                assert hasattr(result, "is_success")
+                assert getattr(result, "is_success", False)
 
     # ========================================================================
-    # execute() and execute_async() tests
+    # execute() and execute() tests
     # ========================================================================
 
     def test_handlers_execute_sync(self, handlers: FlextCliHandlers) -> None:
-        """Test handlers execute() method."""
-        result = handlers.execute()
+        """Test handlers execute_service() method."""
+        result = handlers.execute_service()
         assert result.is_success
         data = result.unwrap()
         assert data["status"] == "operational"
@@ -306,15 +305,12 @@ class TestFlextCliHandlers:
         assert isinstance(handlers_available, (list, tuple))
         assert len(handlers_available) == 5
 
-    @pytest.mark.asyncio
-    async def test_handlers_execute_async(self, handlers: FlextCliHandlers) -> None:
-        """Test handlers execute_async() method."""
-        result = await handlers.execute_async()
+    def test_handlers_execute_removed(self, handlers: FlextCliHandlers) -> None:
+        """Test that methods have been removed (converted to sync)."""
+        # Note: execute_service and execute_handlers methods exist and are tested below
+
+        # Verify sync methods still work
+        result = handlers.execute_service()
         assert result.is_success
         data = result.unwrap()
         assert data["status"] == "operational"
-        assert data["service"] == "flext-cli-handlers"
-        assert "handlers_available" in data
-        handlers_available = data["handlers_available"]
-        assert isinstance(handlers_available, (list, tuple))
-        assert len(handlers_available) == 5

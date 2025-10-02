@@ -50,10 +50,9 @@ class TestFlextCliPrompts:
         assert result.is_success
         assert result.unwrap() == {}  # Returns empty dict, not None
 
-    @pytest.mark.asyncio
-    async def test_prompts_execute_async_method(self, prompts: FlextCliPrompts) -> None:
-        """Test prompts async execute method."""
-        result = await prompts.execute_async()
+    def test_prompts_execute_method(self, prompts: FlextCliPrompts) -> None:
+        """Test prompts execute method (now sync, delegates to execute)."""
+        result = prompts.execute()
 
         assert isinstance(result, FlextResult)
         assert result.is_success
@@ -502,10 +501,9 @@ class TestFlextCliPrompts:
         edge_result = prompts.prompt("Edge case test", default="edge_value")
         assert isinstance(edge_result, FlextResult)
 
-    @pytest.mark.asyncio
-    async def test_prompts_async_behavior(self, prompts: FlextCliPrompts) -> None:
-        """Test prompts async functionality."""
-        result = await prompts.execute_async()
+    def test_prompts_behavior(self, prompts: FlextCliPrompts) -> None:
+        """Test prompts execute method (now sync, delegates to execute)."""
+        result = prompts.execute()
         assert isinstance(result, FlextResult)
 
     def test_prompts_error_scenarios(self, prompts: FlextCliPrompts) -> None:

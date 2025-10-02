@@ -16,7 +16,7 @@ Architecture Layers:
 - Domain: Rich domain models with business logic
 - Application: Use case orchestration and CQRS handlers
 - Infrastructure: External service integration and persistence
-- Commands: CLI interface layer using FlextCliCommands and FlextCliApi
+- Commands: CLI interface layer using FlextCliCommands and FlextCli
 
 Copyright (c) 2025 FLEXT Team. All rights reserved.
 SPDX-License-Identifier: MIT
@@ -33,7 +33,7 @@ from uuid import UUID, uuid4
 from pydantic import Field
 
 from flext_cli import (
-    FlextCliApi,
+    FlextCli,
     FlextCliCommands,
     FlextCliService,
     FlextCliTypes,
@@ -285,7 +285,7 @@ class CreateProjectHandler:
                 f"Failed to save project: {save_result.error}"
             )
 
-        # Process domain events (in real app, this would be async)
+        # Process domain events (in real app, this would be )
         project_created_event = {
             "type": "ProjectCreated",
             "project_id": str(project.project_id),
@@ -304,9 +304,8 @@ class CreateProjectHandler:
             ):
                 event_dict: dict[str, object] = cast("dict[str, object]", event)
                 # In real app: publish to event bus, update read models, etc.
-                event_type: str = str(event_dict.get("type", "unknown"))
-                project_id: str = str(event_dict.get("project_id", "unknown"))
-                print(f"Processing domain event: {event_type} for project {project_id}")
+                str(event_dict.get("type", "unknown"))
+                str(event_dict.get("project_id", "unknown"))
 
 
 class ChangeProjectStatusHandler:
@@ -517,7 +516,7 @@ class EnterpriseCliApplication:
 
     def __init__(self) -> None:
         """Initialize enterprise CLI application."""
-        self.cli_api = FlextCliApi()
+        self.cli_api = FlextCli()
         self.api_client = FlextCliService()
         self.service = ProjectManagementService()
 
@@ -713,7 +712,7 @@ def main() -> None:
             )
 
     except Exception as e:
-        cli_api = FlextCliApi()
+        cli_api = FlextCli()
         cli_api.display_message(f"Enterprise CLI error: {e}", message_type="error")
 
 

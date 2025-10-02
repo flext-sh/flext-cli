@@ -9,8 +9,11 @@ from __future__ import annotations
 from datetime import datetime
 from typing import TypedDict, Unpack
 
+from flext_cli.config import FlextCliConfig
+from flext_cli.constants import FlextCliConstants
 from flext_cli.typings import FlextCliTypes
 from flext_core import (
+    FlextContext,
     FlextLogger,
     FlextModels,
     FlextResult,
@@ -19,22 +22,28 @@ from flext_core import (
 )
 
 
-class EntityData(TypedDict, total=False):
-    """Entity initialization data with proper typing."""
-
-    id: str
-    created_at: datetime
-    updated_at: datetime | None
-    version: int
-
-
 class FlextCliContext(FlextModels.Entity):
     """CLI execution context using domain-specific types.
 
     Manages CLI execution context with enhanced type safety using FlextCliTypes
     instead of generic FlextTypes.Core types. Extends FlextModels.Entity for
-    proper entity lifecycle management.
+    proper entity lifecycle management and integrates FlextContext for context
+    management patterns (scoping, propagation, state management).
+
+    ARCHITECTURAL COMPLIANCE:
+    - Extends FlextModels.Entity for entity lifecycle management
+    - Integrates FlextContext for context scoping and propagation
+    - Provides CLI-specific context with domain types
+    - Uses FlextResult railway pattern for all operations
     """
+
+    class EntityData(TypedDict, total=False):
+        """Entity initialization data with proper typing - nested helper class."""
+
+        id: str
+        created_at: datetime
+        updated_at: datetime | None
+        version: int
 
     def __init__(
         self,
@@ -57,6 +66,9 @@ class FlextCliContext(FlextModels.Entity):
         super().__init__(**data)
         self._logger = FlextLogger(__name__)
 
+        # Integrate FlextContext for context management patterns
+        self._flext_context = FlextContext()
+
         # CLI context initialization with domain-specific types
         self._command = command
         self._arguments = arguments or []
@@ -70,9 +82,17 @@ class FlextCliContext(FlextModels.Entity):
         self._is_active = False
         self._created_at = FlextUtilities.Generators.generate_timestamp()
 
-        # Initialize required attributes for tests
-        self._timeout_seconds = 30
-        self._config: FlextCliTypes.Data.CliConfigData = {}
+        # Initialize required attributes using constants and config
+        self._timeout_seconds = FlextCliConstants.NetworkDefaults.DEFAULT_TIMEOUT
+        self._config: FlextCliTypes.Data.CliConfigData = FlextCliConfig().model_dump()
+
+        # Store CLI-specific data in FlextContext for scoping and propagation
+        if command:
+            self._flext_context.set("cli_command", command)
+        if arguments:
+            self._flext_context.set("cli_arguments", arguments)
+        if working_directory:
+            self._flext_context.set("cli_working_directory", working_directory)
 
     @property
     def command(self) -> str | None:
@@ -247,6 +267,22 @@ class FlextCliContext(FlextModels.Entity):
         except Exception as e:
             return FlextResult[None].fail(f"Environment variable setting failed: {e}")
 
+    @property
+    def flext_context(self) -> FlextContext:
+        """Get the underlying FlextContext for advanced context operations.
+
+        Provides access to FlextContext functionality including:
+        - Context scoping and propagation
+        - Metadata management
+        - Context cloning and snapshots
+        - Global context access
+
+        Returns:
+            FlextContext: The integrated FlextContext instance
+
+        """
+        return self._flext_context
+
     def add_argument(self, argument: str) -> FlextResult[None]:
         """Add command line argument.
 
@@ -379,26 +415,6 @@ class FlextCliContext(FlextModels.Entity):
             })
         except Exception as e:
             return FlextResult[dict[str, object]].fail(f"Context execution failed: {e}")
-
-    async def execute_async(self) -> FlextResult[dict[str, object]]:
-        """Execute the CLI context asynchronously.
-
-        Returns:
-            FlextResult[dict[str, object]]: Execution result
-
-        """
-        try:
-            return FlextResult[dict[str, object]].ok({
-                "context_executed": True,
-                "command": self._command,
-                "arguments_count": len(self._arguments) if self._arguments else 0,
-                "timestamp": FlextUtilities.Generators.generate_timestamp(),
-                "async": True,
-            })
-        except Exception as e:
-            return FlextResult[dict[str, object]].fail(
-                f"Async context execution failed: {e}"
-            )
 
     @property
     def timeout_seconds(self) -> int:

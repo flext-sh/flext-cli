@@ -27,7 +27,7 @@ from datetime import UTC, datetime
 from typing import cast
 
 from flext_cli import (
-    FlextCliApi,
+    FlextCli,
     FlextCliConfig,
     FlextCliModels,
     FlextCliOutput,
@@ -92,7 +92,7 @@ def _container_demo(
 
     container.register("formatter", formatter)
     container.register("config", config)
-    container.register("cli_api", FlextCliApi())
+    container.register("cli_api", FlextCli())
     container.register("cli_service", FlextCliService())
 
     # Use flext-cli formatting instead of direct Rich Table

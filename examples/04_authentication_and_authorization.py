@@ -31,7 +31,6 @@ from flext_cli import (
     FlextCliConfig,
     FlextCliOutput,
     FlextCliService,
-    FlextCliUtilities,
 )
 from flext_core import FlextConstants, FlextResult, FlextTypes
 
@@ -132,7 +131,7 @@ def demonstrate_api_authentication() -> FlextResult[None]:
     return FlextResult[None].ok(None)
 
 
-@FlextCliUtilities.Decorators.require_auth()
+# Note: FlextCliUtilities decorator removed - implement auth check manually if needed
 def demonstrate_protected_operation() -> FlextResult[str]:
     """Demonstrate a protected operation requiring authentication."""
     formatter = FlextCliOutput()

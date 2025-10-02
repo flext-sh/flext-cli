@@ -17,6 +17,7 @@ from typing import cast
 import pytest
 
 from flext_cli.auth import FlextCliAuth
+from flext_cli.constants import FlextCliConstants
 from flext_cli.typings import FlextCliTypes
 from flext_core import FlextResult
 from flext_tests import FlextTestsUtilities
@@ -58,12 +59,9 @@ class TestFlextCliAuth:
         assert "message" in data
         assert data["status"] == "operational"
 
-    @pytest.mark.asyncio
-    async def test_auth_service_execute_async_method(
-        self, auth_service: FlextCliAuth
-    ) -> None:
-        """Test auth service async execute method."""
-        result = await auth_service.execute_async()
+    def test_auth_service_execute_method(self, auth_service: FlextCliAuth) -> None:
+        """Test auth service execute method (now sync, delegates to execute)."""
+        result = auth_service.execute()
 
         assert isinstance(result, FlextResult)
         assert result.is_success
@@ -71,7 +69,8 @@ class TestFlextCliAuth:
         data = result.unwrap()
         assert isinstance(data, dict)
         assert "status" in data
-        assert "service" in data
+        assert "message" in data
+        assert data["status"] == FlextCliConstants.OPERATIONAL
         assert data["status"] == "operational"
 
     # ========================================================================
@@ -759,18 +758,15 @@ class TestFlextCliAuth:
         delete_result = auth_service.delete_user(str(user_id))
         assert delete_result.is_success
 
-    @pytest.mark.asyncio
-    async def test_async_auth_workflow_integration(
-        self, auth_service: FlextCliAuth
-    ) -> None:
-        """Test async authentication workflow integration."""
-        # Test async execution
-        result = await auth_service.execute_async()
+    def test_auth_workflow_integration(self, auth_service: FlextCliAuth) -> None:
+        """Test authentication workflow integration (execute now sync)."""
+        # Test execute (now sync, delegates to execute)
+        result = auth_service.execute()
         assert isinstance(result, FlextResult)
         assert result.is_success
 
         data = result.unwrap()
         assert isinstance(data, dict)
         assert "status" in data
-        assert "service" in data
-        assert data["status"] == "operational"
+        assert "message" in data
+        assert data["status"] == FlextCliConstants.OPERATIONAL

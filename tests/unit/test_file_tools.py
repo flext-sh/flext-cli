@@ -9,7 +9,6 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-import asyncio
 import csv
 import json
 import threading
@@ -58,24 +57,16 @@ class TestFlextCliFileTools:
         assert isinstance(data, bool)
         assert data is True
 
-    def test_file_tools_execute_async_method(
-        self, file_tools: FlextCliFileTools
-    ) -> None:
-        """Test file tools async execute method."""
+    def test_file_tools_execute_method(self, file_tools: FlextCliFileTools) -> None:
+        """Test file tools execute method (now sync, delegates to execute)."""
+        result = file_tools.execute()
 
-        async def run_test() -> None:
-            result = await file_tools.execute_async()
+        assert isinstance(result, FlextResult)
+        assert result.is_success
 
-            assert isinstance(result, FlextResult)
-            assert result.is_success
-
-            data = result.unwrap()
-            assert isinstance(data, dict)
-            assert "status" in data
-            assert "service" in data
-            assert data["service"] == "flext-cli-file-tools"
-
-        asyncio.run(run_test())
+        data = result.unwrap()
+        assert isinstance(data, bool)
+        assert data is True
 
     # ========================================================================
     # BASIC FILE OPERATIONS
@@ -858,21 +849,16 @@ class TestFlextCliFileTools:
         assert copied_file.exists()
         assert archive_file.exists()
 
-    @pytest.mark.asyncio
-    async def test_async_file_workflow_integration(
-        self, file_tools: FlextCliFileTools
-    ) -> None:
-        """Test async file workflow integration."""
-        # Test async execution
-        result = await file_tools.execute_async()
+    def test_file_workflow_integration(self, file_tools: FlextCliFileTools) -> None:
+        """Test file workflow integration (execute now sync)."""
+        # Test execute (now sync, delegates to execute)
+        result = file_tools.execute()
         assert isinstance(result, FlextResult)
         assert result.is_success
 
         data = result.unwrap()
-        assert isinstance(data, dict)
-        assert "status" in data
-        assert "service" in data
-        assert data["service"] == "flext-cli-file-tools"
+        assert isinstance(data, bool)
+        assert data is True
 
     # ========================================================================
     # ADDITIONAL COVERAGE TESTS

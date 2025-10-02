@@ -6,7 +6,7 @@ This example demonstrates advanced service integration patterns using flext-cli:
 Key Patterns Demonstrated:
 - FlextCliService inheritance with comprehensive mixins
 - Dependency injection with create_container()
-- Async command execution with @async_command decorator
+- command execution with @command decorator
 - Error handling with retry patterns and circuit breakers
 
 - Service composition and orchestration
@@ -25,9 +25,7 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-import asyncio
 import time
-from collections.abc import Awaitable
 from datetime import UTC, datetime
 from enum import Enum
 from typing import Protocol, cast, override
@@ -60,7 +58,6 @@ class ContainerProtocol(Protocol):
 # Simple replacement for missing example_utils
 def print_demo_completion(title: str) -> None:
     """Print demo completion message."""
-    print(f"✅ {title} completed successfully!")
 
 
 class ServiceStatus(Enum):
@@ -349,12 +346,12 @@ class AdvancedCliService(FlextCliService):
         return True  # Always succeed for demo
 
 
-# Removed @async_command and @cli_handle_keyboard_interrupt decorators - cause type inference issues
-async def demonstrate_async_service_operations() -> None:
-    """Demonstrate asynchronous service operations."""
+# Removed @command and @cli_handle_keyboard_interrupt decorators - cause type inference issues
+def demonstrate_service_operations() -> None:
+    """Demonstrate hronous service operations."""
     formatter = FlextCliOutput()
     console = formatter.console
-    console.print("[bold blue]Asynchronous Service Operations[/bold blue]")
+    console.print("[bold blue]hronous Service Operations[/bold blue]")
 
     # Initialize service
     service = AdvancedCliService()
@@ -378,29 +375,26 @@ async def demonstrate_async_service_operations() -> None:
         TextColumn("[progress.description]{task.description}"),
         console=console,
     ) as progress:
-        # Create async tasks for concurrent health checks
-        tasks: list[Awaitable[tuple[str, FlextResult[FlextTypes.Core.Dict]]]] = []
+        # Execute health checks sequentially (synchronous)
+        results = []
 
         for service_name in services:
             task = progress.add_task(f"Checking {service_name}...", total=100)
 
-            async def check_service_async(
+            def check_service(
                 name: str, task_id: TaskID
             ) -> tuple[str, FlextResult[FlextTypes.Core.Dict]]:
-                # Simulate async health check
-                await asyncio.sleep(0.5)  # Simulate network delay
+                # Simulate health check
+                time.sleep(0.5)  # Simulate network delay
                 result = service.check_service_health(name)
                 progress.update(
                     task_id, description=f"✅ {name} checked", completed=100
                 )
                 return name, result
 
-            tasks.append(check_service_async(service_name, task))
-
-        # Execute all health checks concurrently
-        results: list[tuple[str, FlextResult[FlextTypes.Core.Dict]]] = list(
-            await asyncio.gather(*tasks)
-        )
+            # Execute check synchronously
+            result = check_service(service_name, task)
+            results.append(result)
 
     # Display results
     health_table = Table(title="Concurrent Health Check Results")
@@ -410,7 +404,7 @@ async def demonstrate_async_service_operations() -> None:
     health_table.add_column("Details", style="blue")
 
     for service_name, result in results:
-        # result is already properly typed from gather
+        # results are collected from sequential execution
         typed_result: FlextResult[FlextTypes.Core.Dict] = result
         if typed_result.is_success:
             data: dict[str, object] = typed_result.value
@@ -695,7 +689,7 @@ def main() -> None:
         "[yellow]Comprehensive demonstration of advanced service integration:[/yellow]"
     )
     console.print("🏗️ FlextCliService with comprehensive mixins")
-    console.print("🔄 Async service operations with @async_command")
+    console.print("🔄 service operations with @command")
     console.print("🛡️ Circuit breaker pattern for service resilience")
     console.print("🎼 Service orchestration and coordination")
     console.print("💉 Dependency injection with CLI container")
@@ -704,13 +698,13 @@ def main() -> None:
     console.print()
 
     try:
-        # Run async demonstration
+        # Run demonstration
         console.print("\n" + "=" * 60)
         try:
-            # Run the async function properly
-            asyncio.run(demonstrate_async_service_operations())
+            # Run the function properly
+            demonstrate_service_operations()
         except Exception as e:
-            console.print(f"[red]Async operations failed: {e}[/red]")
+            console.print(f"[red]operations failed: {e}[/red]")
 
         # Run circuit breaker demonstration
         console.print("\n" + "=" * 60)

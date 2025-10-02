@@ -9,50 +9,57 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-import json
-from pathlib import Path
-from typing import cast
-
-import yaml
-
+from flext_cli.auth import FlextCliAuth
+from flext_cli.cli import FlextCliClick
+from flext_cli.cmd import FlextCliCmd
+from flext_cli.commands import FlextCliCommands
 from flext_cli.config import FlextCliConfig
 from flext_cli.constants import FlextCliConstants
+from flext_cli.containers import FlextCliContainers
+from flext_cli.context import FlextCliContext
 from flext_cli.core import FlextCliService
+from flext_cli.debug import FlextCliDebug
+from flext_cli.exceptions import FlextCliExceptions
 from flext_cli.file_tools import FlextCliFileTools
+from flext_cli.formatters import FlextCliFormatters
+from flext_cli.handlers import FlextCliHandlers
+from flext_cli.main import FlextCliMain
+from flext_cli.mixins import FlextCliMixins
 from flext_cli.models import FlextCliModels
 from flext_cli.output import FlextCliOutput
+from flext_cli.processors import FlextCliProcessors
+from flext_cli.prompts import FlextCliPrompts
+from flext_cli.protocols import FlextCliProtocols
+from flext_cli.tables import FlextCliTables
 from flext_cli.typings import FlextCliTypes
-from flext_cli.utilities import FlextCliUtilities
 from flext_core import (
+    FlextBus,
     FlextContainer,
+    FlextContext,
+    FlextCqrs,
+    FlextDispatcher,
     FlextLogger,
+    FlextProcessors,
+    FlextRegistry,
     FlextResult,
     FlextService,
-    FlextTypes,
     FlextUtilities,
 )
 
 
-class FlextCliApi(FlextService[FlextCliTypes.Data.CliDataDict]):
-    """CLI API service providing programmatic access to CLI functionality.
+class FlextCli(FlextService[FlextCliTypes.Data.CliDataDict]):
+    """Thin facade for flext-cli providing access to all CLI functionality.
 
-    Offers a comprehensive API for CLI operations using domain-specific types
-    from FlextCliTypes instead of generic FlextTypes.Core types.
+    This is the single entry point for the flext-cli library, exposing all
+    domain services through properties for direct access. Uses domain-specific
+    types from FlextCliTypes.
     Extends FlextService with CLI-specific data dictionary types.
     """
 
-    def __init__(
-        self,
-        default_output_format: str = FlextCliConstants.OutputFormats.JSON.value,
-        *,
-        enable_interactive: bool = True,
-        **data: object,
-    ) -> None:
-        """Initialize CLI API with enhanced configuration.
+    def __init__(self, **data: object) -> None:
+        """Initialize CLI API thin facade.
 
         Args:
-            enable_interactive: Enable interactive CLI features
-            default_output_format: Default output format for CLI operations
             **data: Additional service initialization data
 
         """
@@ -60,890 +67,643 @@ class FlextCliApi(FlextService[FlextCliTypes.Data.CliDataDict]):
         self._logger = FlextLogger(__name__)
         self._container = FlextContainer.get_global()
 
-        # CLI API specific configuration
-        self._enable_interactive = enable_interactive
-        self._default_output_format = default_output_format
+        # Initialize flext-core advanced features
+        self._bus = FlextBus()
+        self._context = FlextContext()
+        self._cqrs = FlextCqrs()
+        self._dispatcher = FlextDispatcher()
+        self._registry = FlextRegistry(dispatcher=self._dispatcher)
 
-        # Initialize underlying CLI service
-        self._cli_service = FlextCliService()
-
-        # Initialize file tools, output, and utilities for delegation
+        # Initialize domain services for property access
+        self._core = FlextCliService()
         self._file_tools = FlextCliFileTools()
         self._output = FlextCliOutput()
-        self._utilities = FlextCliUtilities()
+        self._prompts = FlextCliPrompts()
+        self._processors = FlextCliProcessors()
+        self._cmd = FlextCliCmd()
 
-        # API-specific state
-        self._api_ready = False
-        self._initialize_api()
+        # Initialize Phase 1 transformation components (NEW)
+        self._click = FlextCliClick()
+        self._formatters = FlextCliFormatters()
+        self._tables = FlextCliTables()
+        self._main = FlextCliMain()
 
-    def _initialize_api(self) -> None:
-        """Initialize API components and register default commands."""
-        try:
-            # Register essential CLI commands using CliCommand model instances
-            basic_commands = [
-                FlextCliModels.CliCommand(
-                    name="help",
-                    command_line="help",
-                    description="Show help information",
-                    usage="help [command]",
-                ),
-                FlextCliModels.CliCommand(
-                    name="version",
-                    command_line="version",
-                    description="Show version information",
-                    usage="version",
-                ),
-                FlextCliModels.CliCommand(
-                    name="status",
-                    command_line="status",
-                    description="Show CLI status",
-                    usage="status",
-                ),
-            ]
-
-            # Register commands using CLI service
-            for command in basic_commands:
-                result = self._cli_service.register_command(command)
-                if result.is_failure:
-                    self._logger.warning(
-                        f"Failed to register command '{command.name}': {result.error}"
-                    )
-
-            self._api_ready = True
-            self._logger.info("CLI API initialized successfully")
-
-        except Exception:
-            self._logger.exception("API initialization failed")
+    # ==========================================================================
+    # THIN FACADE PROPERTIES - Direct access to all domain services
+    # ==========================================================================
 
     @property
-    def is_ready(self) -> bool:
-        """Check if CLI API is ready for operations.
+    def core(self) -> FlextCliService:
+        """Access core CLI service for command management.
 
         Returns:
-            bool: True if API is ready, False otherwise
+            FlextCliService: Core CLI service instance
 
         """
-        return self._api_ready
+        return self._core
 
     @property
-    def interactive_enabled(self) -> bool:
-        """Check if interactive features are enabled.
+    def cmd(self) -> FlextCliCmd:
+        """Access CLI command service for configuration management.
 
         Returns:
-            bool: True if interactive features are enabled
+            FlextCliCmd: Command service instance
 
         """
-        return self._enable_interactive
+        return self._cmd
 
     @property
-    def cli_service(self) -> FlextCliService:
-        """Get underlying CLI service.
+    def models(self) -> type[FlextCliModels]:
+        """Access CLI models for Pydantic validation.
 
         Returns:
-            FlextCliService: CLI service instance
+            type[FlextCliModels]: CLI models class
 
         """
-        return self._cli_service
+        return FlextCliModels
 
-    def execute(self) -> FlextResult[FlextCliTypes.Data.CliDataDict]:
-        """Execute CLI API operations using CLI-specific data types.
+    @property
+    def types(self) -> type[FlextCliTypes]:
+        """Access CLI type definitions.
 
         Returns:
-            FlextResult[FlextCliTypes.Data.CliDataDict]: API execution result with enhanced type safety
+            type[FlextCliTypes]: CLI types class
 
         """
-        return FlextResult[FlextCliTypes.Data.CliDataDict].ok({
-            "status": "operational" if self._api_ready else "initializing",
-            "service": "flext-cli-api",
-            "api_ready": self._api_ready,
-            "interactive_enabled": self._enable_interactive,
-            "output_format": self._default_output_format,
-            "service_ready": self._cli_service is not None,
-            "timestamp": FlextUtilities.Generators.generate_timestamp(),
-        })
+        return FlextCliTypes
 
-    def create_command(
-        self,
-        name: str,
-        description: str = "",
-        usage: str = "",
-        _category: str = "custom",
-        _handler: object | None = None,
-        arguments: FlextCliTypes.Command.CommandArgs | None = None,
-    ) -> FlextResult[FlextCliTypes.Data.CliCommandData]:
-        """Create and register a new CLI command with enhanced validation.
-
-        Args:
-            name: Command name identifier
-            description: Command description
-            usage: Command usage pattern
-            _category: Command category for organization (unused, for backward compatibility)
-            _handler: Optional command handler function (unused, for backward compatibility)
-            arguments: Optional list of command arguments
+    @property
+    def constants(self) -> type[FlextCliConstants]:
+        """Access CLI constants.
 
         Returns:
-            FlextResult[FlextCliTypes.Data.CliCommandData]: Command creation result
+            type[FlextCliConstants]: CLI constants class
 
         """
-        try:
-            # Create CliCommand model instance with validation
-            command = FlextCliModels.CliCommand(
-                name=name,
-                command_line=name,  # Use name as command line
-                description=description or f"Command: {name}",
-                usage=usage or name,
-                args=arguments or [],
-            )
+        return FlextCliConstants
 
-            # Register command using CLI service
-            register_result = self._cli_service.register_command(command)
-            if register_result.is_failure:
-                return FlextResult[FlextCliTypes.Data.CliCommandData].fail(
-                    f"Command registration failed: {register_result.error}",
-                )
-
-            # Return command data with CLI-specific types
-            command_data: FlextCliTypes.Data.CliCommandData = {
-                "command_name": name,
-                "command_description": description,
-                "command_usage": usage,
-                "command_category": _category,
-                "registration_status": "success",
-                "created_timestamp": FlextUtilities.Generators.generate_timestamp(),
-            }
-
-            return FlextResult[FlextCliTypes.Data.CliCommandData].ok(command_data)
-
-        except Exception as e:
-            return FlextResult[FlextCliTypes.Data.CliCommandData].fail(
-                f"Command creation failed: {e}",
-            )
-
-    def execute_command(
-        self,
-        command: str,
-        args: FlextCliTypes.Data.CliCommandArgs | None = None,
-        context: FlextCliTypes.Command.CommandContext | None = None,
-    ) -> FlextResult[FlextCliTypes.Data.CliCommandResult]:
-        """Execute a registered command with enhanced type safety.
-
-        Args:
-            command: Command name to execute
-            args: Command arguments using CLI-specific types
-            context: Execution context with CLI-specific data
+    @property
+    def config(self) -> type[FlextCliConfig]:
+        """Access CLI configuration.
 
         Returns:
-            FlextResult[FlextCliTypes.Data.CliCommandResult]: Command execution result
+            type[FlextCliConfig]: CLI config class
 
         """
-        if not command or not isinstance(command, str):
-            return FlextResult[FlextCliTypes.Data.CliCommandResult].fail(
-                "Command must be a non-empty string",
-            )
-
-        try:
-            # Prepare execution context
-            execution_context: FlextCliTypes.Command.CommandContext = context or {}
-            if args:
-                execution_context["args"] = cast(
-                    "FlextTypes.Core.JsonValue",
-                    args,
-                )
-
-            # Execute using CLI service
-            execution_result = self._cli_service.execute_command(
-                command, execution_context
-            )
-            if execution_result.is_failure:
-                return FlextResult[FlextCliTypes.Data.CliCommandResult].fail(
-                    f"Command execution failed: {execution_result.error}",
-                )
-
-            # Convert result to CLI command result format
-            result_data: FlextCliTypes.Data.CliCommandResult = {
-                "command_executed": command,
-                "execution_status": "success",
-                "result_data": str(execution_result.value)
-                if execution_result.value is not None
-                else "",
-                "execution_timestamp": FlextUtilities.Generators.generate_timestamp(),
-                "success": True,
-            }
-
-            return FlextResult[FlextCliTypes.Data.CliCommandResult].ok(result_data)
-
-        except Exception as e:
-            return FlextResult[FlextCliTypes.Data.CliCommandResult].fail(
-                f"Command execution error: {e}",
-            )
-
-    def list_available_commands(
-        self,
-    ) -> FlextResult[FlextCliTypes.Command.CommandNames]:
-        """List all available CLI commands.
-
-        Returns:
-            FlextResult[FlextCliTypes.Command.CommandNames]: List of available command names
-
-        """
-        try:
-            return self._cli_service.list_commands()
-        except Exception as e:
-            return FlextResult[FlextCliTypes.Command.CommandNames].fail(
-                f"Command listing failed: {e}"
-            )
-
-    def get_command_definition(
-        self,
-        command_name: str,
-    ) -> FlextResult[FlextCliTypes.Data.CliCommandData]:
-        """Get detailed command definition and metadata.
-
-        Args:
-            command_name: Name of the command to retrieve
-
-        Returns:
-            FlextResult[FlextCliTypes.Data.CliCommandData]: Command definition data
-
-        """
-        if not command_name or not isinstance(command_name, str):
-            return FlextResult[FlextCliTypes.Data.CliCommandData].fail(
-                "Command name must be a non-empty string",
-            )
-
-        try:
-            # Get command from CLI service
-            command_result = self._cli_service.get_command(command_name)
-            if command_result.is_failure:
-                return FlextResult[FlextCliTypes.Data.CliCommandData].fail(
-                    command_result.error or "Command retrieval failed",
-                )
-
-            command_def = command_result.value
-
-            # Convert to CLI command data format
-            command_data: FlextCliTypes.Data.CliCommandData = {
-                "command_name": command_name,
-                "command_description": str(command_def.get("description", "")),
-                "command_usage": str(command_def.get("usage", "")),
-                "command_category": str(command_def.get("category", "unknown")),
-                "registration_status": "registered",
-                "created_timestamp": FlextUtilities.Generators.generate_timestamp(),
-            }
-
-            return FlextResult[FlextCliTypes.Data.CliCommandData].ok(command_data)
-
-        except Exception as e:
-            return FlextResult[FlextCliTypes.Data.CliCommandData].fail(
-                f"Command definition retrieval failed: {e}",
-            )
-
-    def get_api_status(self) -> FlextResult[FlextCliTypes.Data.CliDataDict]:
-        """Get comprehensive CLI API status information.
-
-        Returns:
-            FlextResult[FlextCliTypes.Data.CliDataDict]: API status data
-
-        """
-        try:
-            # Get service statistics
-            service_stats = self._cli_service.get_service_info()
-
-            # Compile comprehensive API status
-            status_data: FlextCliTypes.Data.CliDataDict = {
-                "api_ready": self._api_ready,
-                "interactive_enabled": self._enable_interactive,
-                "output_format": self._default_output_format,
-                "service_available": True,  # Service info was retrieved successfully
-                "commands_count": 0,  # Default value
-                "session_active": self._cli_service.is_session_active(),
-                "timestamp": FlextUtilities.Generators.generate_timestamp(),
-            }
-
-            # Add service information if available
-            if isinstance(service_stats, dict):
-                commands_registered = service_stats.get("commands_registered", 0)
-                status_data["commands_count"] = (
-                    int(commands_registered)
-                    if isinstance(commands_registered, (int, str))
-                    else 0
-                )
-                status_data["service_status"] = "available"
-
-            return FlextResult[FlextCliTypes.Data.CliDataDict].ok(status_data)
-
-        except Exception as e:
-            return FlextResult[FlextCliTypes.Data.CliDataDict].fail(
-                f"API status collection failed: {e}",
-            )
-
-    def display_data(
-        self,
-        data: object,
-        format_type: str = FlextCliConstants.OutputFormats.TABLE.value,
-    ) -> FlextResult[None]:
-        """Display data using CLI formatting.
-
-        Args:
-            data: Data to display
-            format_type: Output format type
-
-        Returns:
-            FlextResult[None]: Success or error
-
-        """
-        try:
-            # Use CLI service for output formatting
-            format_result = self._cli_service.format_output(data, format_type)
-            if format_result.is_failure:
-                return FlextResult[None].fail(
-                    f"Data formatting failed: {format_result.error}"
-                )
-
-            # Display the formatted output
-            display_result = self._cli_service.display_output(format_result.value)
-            if display_result.is_failure:
-                return FlextResult[None].fail(
-                    f"Data display failed: {display_result.error}"
-                )
-
-            return FlextResult[None].ok(None)
-        except Exception as e:
-            return FlextResult[None].fail(f"Display data failed: {e}")
-
-    def display_message(
-        self,
-        message: str,
-        message_type: str = FlextCliConstants.MessageTypes.INFO.value,
-    ) -> FlextResult[None]:
-        """Display a message using CLI output.
-
-        Args:
-            message: Message to display
-            message_type: Type of message (info, success, warning, error)
-
-        Returns:
-            FlextResult[None]: Success or error
-
-        """
-        try:
-            # Use CLI service for message display
-            display_result = self._cli_service.display_message(message, message_type)
-            if display_result.is_failure:
-                return FlextResult[None].fail(
-                    f"Message display failed: {display_result.error}"
-                )
-
-            return FlextResult[None].ok(None)
-        except Exception as e:
-            return FlextResult[None].fail(f"Display message failed: {e}")
-
-    def format_data(
-        self,
-        data: object,
-        format_type: str = "json",
-    ) -> FlextResult[str]:
-        """Format data for output - delegates to FlextCliOutput.
-
-        Args:
-            data: Data to format
-            format_type: Output format type
-
-        Returns:
-            FlextResult[str]: Formatted data or error
-
-        """
-        # Direct delegation to FlextCliOutput for comprehensive formatting
-        return self._output.format_data(data=data, format_type=format_type)
-
-    async def execute_async(self) -> FlextResult[FlextCliTypes.Data.CliDataDict]:
-        """Execute CLI API operations asynchronously.
-
-        Returns:
-            FlextResult[FlextCliTypes.Data.CliDataDict]: Async execution result
-
-        """
-        try:
-            return FlextResult[FlextCliTypes.Data.CliDataDict].ok({
-                "status": "operational",
-                "service": "flext-cli-api",
-                "api_executed": True,
-                "async": True,
-                "timestamp": FlextUtilities.Generators.generate_timestamp(),
-            })
-        except Exception as e:
-            return FlextResult[FlextCliTypes.Data.CliDataDict].fail(
-                f"Async execution failed: {e}"
-            )
+        return FlextCliConfig
 
     @property
     def output(self) -> FlextCliOutput:
-        """Get the output handler for CLI operations.
+        """Access CLI output formatting service.
 
         Returns:
-            FlextCliOutput: Output handler instance
+            FlextCliOutput: Output service instance
 
         """
-        return FlextCliOutput()
+        return self._output
 
-    def create_progress_bar(
-        self,
-        description: str = "Processing...",
-        task_name: str | None = None,
-        total: int | None = None,
-        *,
-        show_percentage: bool = False,
-        show_eta: bool = False,
-    ) -> FlextResult[object]:
-        """Create a progress bar for CLI operations.
+    @property
+    def file_tools(self) -> FlextCliFileTools:
+        """Access CLI file operations service.
+
+        Returns:
+            FlextCliFileTools: File tools instance
+
+        """
+        return self._file_tools
+
+    @property
+    def utilities(self) -> type[FlextUtilities]:
+        """Access utility functions from flext-core.
+
+        Returns:
+            type[FlextUtilities]: Utilities class from flext-core
+
+        """
+        return FlextUtilities
+
+    @property
+    def auth(self) -> type[FlextCliAuth]:
+        """Access CLI authentication service.
+
+        Returns:
+            type[FlextCliAuth]: Auth service class
+
+        """
+        return FlextCliAuth
+
+    @property
+    def commands(self) -> FlextCliCommands:
+        """Access CLI commands registry.
+
+        Returns:
+            FlextCliCommands: Commands instance
+
+        """
+        return FlextCliCommands()
+
+    @property
+    def containers(self) -> type[FlextCliContainers]:
+        """Access CLI containers.
+
+        Returns:
+            type[FlextCliContainers]: Containers class
+
+        """
+        return FlextCliContainers
+
+    @property
+    def context(self) -> type[FlextCliContext]:
+        """Access CLI context.
+
+        Returns:
+            type[FlextCliContext]: Context class
+
+        """
+        return FlextCliContext
+
+    @property
+    def debug(self) -> type[FlextCliDebug]:
+        """Access CLI debug service.
+
+        Returns:
+            type[FlextCliDebug]: Debug service class
+
+        """
+        return FlextCliDebug
+
+    @property
+    def exceptions(self) -> type[FlextCliExceptions]:
+        """Access CLI exceptions.
+
+        Returns:
+            type[FlextCliExceptions]: Exceptions class
+
+        """
+        return FlextCliExceptions
+
+    @property
+    def handlers(self) -> type[FlextCliHandlers]:
+        """Access CLI handlers.
+
+        Returns:
+            type[FlextCliHandlers]: Handlers class
+
+        """
+        return FlextCliHandlers
+
+    @property
+    def mixins(self) -> type[FlextCliMixins]:
+        """Access CLI mixins.
+
+        Returns:
+            type[FlextCliMixins]: Mixins class
+
+        """
+        return FlextCliMixins
+
+    @property
+    def processors(self) -> FlextCliProcessors:
+        """Access CLI processors.
+
+        Returns:
+            FlextCliProcessors: Processors instance
+
+        """
+        return self._processors
+
+    @property
+    def prompts(self) -> FlextCliPrompts:
+        """Access CLI prompts.
+
+        Returns:
+            FlextCliPrompts: Prompts instance
+
+        """
+        return self._prompts
+
+    @property
+    def protocols(self) -> type[FlextCliProtocols]:
+        """Access CLI protocols.
+
+        Returns:
+            type[FlextCliProtocols]: Protocols class
+
+        """
+        return FlextCliProtocols
+
+    # ==========================================================================
+    # PHASE 1 TRANSFORMATION COMPONENTS - Click/Rich/Tabulate abstractions
+    # ==========================================================================
+
+    @property
+    def click(self) -> FlextCliClick:
+        """Access Click abstraction layer (ZERO TOLERANCE - ONLY Click file).
+
+        Returns:
+            FlextCliClick: Click abstraction instance
+
+        Example:
+            >>> cli = FlextCli()
+            >>> cmd_result = cli.click.create_command_decorator(name="hello")
+
+        """
+        return self._click
+
+    @property
+    def formatters(self) -> FlextCliFormatters:
+        """Access Rich formatters abstraction layer.
+
+        Returns:
+            FlextCliFormatters: Rich formatters instance
+
+        Example:
+            >>> cli = FlextCli()
+            >>> panel_result = cli.formatters.create_panel(
+            ...     content="Hello", title="Greeting"
+            ... )
+
+        """
+        return self._formatters
+
+    @property
+    def tables(self) -> FlextCliTables:
+        """Access Tabulate tables integration layer.
+
+        Returns:
+            FlextCliTables: Tabulate tables instance
+
+        Example:
+            >>> cli = FlextCli()
+            >>> table_result = cli.tables.create_table(
+            ...     data=[{"name": "Alice", "age": 30}], format="grid"
+            ... )
+
+        """
+        return self._tables
+
+    @property
+    def main(self) -> FlextCliMain:
+        """Access CLI command registration system.
+
+        Returns:
+            FlextCliMain: Main CLI instance
+
+        Example:
+            >>> cli = FlextCli()
+            >>> @cli.main.command()
+            >>> def hello(name: str):
+            ...     print(f"Hello {name}!")
+
+        """
+        return self._main
+
+    # ==========================================================================
+    # FLEXT-CORE ADVANCED FEATURES - Event bus, registry, CQRS, etc.
+    # ==========================================================================
+
+    @property
+    def bus(self) -> FlextBus:
+        """Access FlextBus for event-driven architecture.
+
+        Returns:
+            FlextBus: Event bus instance for message routing
+
+        """
+        return self._bus
+
+    @property
+    def registry(self) -> FlextRegistry:
+        """Access FlextRegistry for service discovery.
+
+        Returns:
+            FlextRegistry: Service registry instance
+
+        """
+        return self._registry
+
+    @property
+    def flext_context(self) -> FlextContext:
+        """Access FlextContext for execution context management.
+
+        Returns:
+            FlextContext: Execution context instance
+
+        """
+        return self._context
+
+    @property
+    def cqrs(self) -> FlextCqrs:
+        """Access FlextCqrs for command/query separation.
+
+        Returns:
+            FlextCqrs: CQRS pattern instance
+
+        """
+        return self._cqrs
+
+    @property
+    def dispatcher(self) -> FlextDispatcher:
+        """Access FlextDispatcher for message dispatching.
+
+        Returns:
+            FlextDispatcher: Message dispatcher instance
+
+        """
+        return self._dispatcher
+
+    @property
+    def flext_processors(self) -> FlextProcessors:
+        """Access FlextProcessors from flext-core for processing utilities.
+
+        Returns:
+            FlextProcessors: Core processing utilities
+
+        """
+        return FlextProcessors()
+
+    @property
+    def flext_utilities(self) -> type[FlextUtilities]:
+        """Access FlextUtilities from flext-core for utility functions.
+
+        Returns:
+            type[FlextUtilities]: Core utilities class
+
+        """
+        return FlextUtilities
+
+    @property
+    def container(self) -> FlextContainer:
+        """Access FlextContainer for dependency injection.
+
+        Returns:
+            FlextContainer: DI container instance
+
+        """
+        return self._container
+
+    # ==========================================================================
+    # PHASE 3 CONVENIENCE API - Simple one-liner methods
+    # ==========================================================================
+
+    def success(self, message: str, **kwargs: object) -> None:
+        """Print success message with green styling.
+
+        Simple convenience method for common success output.
 
         Args:
-            description: Progress bar description
-            task_name: Optional task name
-            total: Optional total count
-            show_percentage: Whether to show percentage
-            show_eta: Whether to show ETA
+            message: Success message to display
+            **kwargs: Additional styling options
 
-        Returns:
-            FlextResult[object]: Progress bar instance or error
+        Example:
+            >>> cli = FlextCli()
+            >>> cli.success("Operation completed successfully!")
 
         """
-        try:
-            # Progress bar information (Rich progress bar integration pending)
-            progress_info = {
-                "description": description,
-                "task_name": task_name,
-                "total": total,
-                "show_percentage": show_percentage,
-                "show_eta": show_eta,
-                "created": True,
-                "timestamp": FlextUtilities.Generators.generate_timestamp(),
-            }
-            return FlextResult[object].ok(progress_info)
-        except Exception as e:
-            return FlextResult[object].fail(f"Create progress bar failed: {e}")
+        self._formatters.print(f"[green]✓[/green] {message}", **kwargs)
 
-    def update_progress_bar(
-        self, progress_bar: object, progress: int
-    ) -> FlextResult[None]:
-        """Update progress bar with current progress.
+    def error(self, message: str, **kwargs: object) -> None:
+        """Print error message with red styling.
+
+        Simple convenience method for common error output.
 
         Args:
-            progress_bar: Progress bar instance
-            progress: Current progress value
+            message: Error message to display
+            **kwargs: Additional styling options
 
-        Returns:
-            FlextResult[None]: Success or error
+        Example:
+            >>> cli = FlextCli()
+            >>> cli.error("Operation failed!")
 
         """
-        try:
-            # Use the parameters for proper implementation
-            self._logger.info(f"Updating progress bar {progress_bar} to {progress}%")
-            return FlextResult[None].ok(None)
-        except Exception as e:
-            return FlextResult[None].fail(f"Update progress bar failed: {e}")
+        self._formatters.print(f"[red]✗[/red] {message}", **kwargs)
 
-    def close_progress_bar(self, progress_bar: object) -> FlextResult[None]:
-        """Close and finalize progress bar.
+    def warning(self, message: str, **kwargs: object) -> None:
+        """Print warning message with yellow styling.
+
+        Simple convenience method for common warning output.
 
         Args:
-            progress_bar: Progress bar instance to close
+            message: Warning message to display
+            **kwargs: Additional styling options
 
-        Returns:
-            FlextResult[None]: Success or error
+        Example:
+            >>> cli = FlextCli()
+            >>> cli.warning("This action cannot be undone!")
 
         """
-        try:
-            # Use the parameter for proper implementation
-            self._logger.info(f"Closing progress bar {progress_bar}")
-            return FlextResult[None].ok(None)
-        except Exception as e:
-            return FlextResult[None].fail(f"Close progress bar failed: {e}")
+        self._formatters.print(f"[yellow]⚠[/yellow] {message}", **kwargs)
 
-    def read_file(self, file_path: str) -> FlextResult[str]:
-        """Read file content - delegates to FlextCliFileTools.
+    def info(self, message: str, **kwargs: object) -> None:
+        """Print info message with blue styling.
+
+        Simple convenience method for common info output.
 
         Args:
-            file_path: Path to file to read
+            message: Info message to display
+            **kwargs: Additional styling options
 
-        Returns:
-            FlextResult[str]: File content or error
+        Example:
+            >>> cli = FlextCli()
+            >>> cli.info("Processing data...")
 
         """
-        return self._file_tools.read_text_file(file_path)
+        self._formatters.print(f"[blue]ℹ[/blue] {message}", **kwargs)
 
-    def write_file(self, file_path: str, content: str) -> FlextResult[None]:
-        """Write content to file - delegates to FlextCliFileTools.
+    def table(self, data: list[dict] | list[list], **kwargs: object) -> None:
+        """Display data as a table with automatic formatting.
+
+        Simple convenience method for quick table display.
 
         Args:
-            file_path: Path to file to write
-            content: Content to write
+            data: Table data (list of dicts or list of lists)
+            **kwargs: Additional table formatting options
 
-        Returns:
-            FlextResult[None]: Success or error
+        Example:
+            >>> cli = FlextCli()
+            >>> data = [{"name": "Alice", "age": 30}, {"name": "Bob", "age": 25}]
+            >>> cli.table(data)
 
         """
-        result = self._file_tools.write_text_file(file_path, content)
-        if result.is_failure:
-            return FlextResult[None].fail(result.error or "Write failed")
-        return FlextResult[None].ok(None)
+        # Extract headers if data is list of dicts
+        if data and isinstance(data[0], dict):
+            headers = list(data[0].keys())
+            rows = [[str(row[h]) for h in headers] for row in data]
+        else:
+            headers = None
+            rows = data
 
-    def copy_file(self, source_path: str, dest_path: str) -> FlextResult[None]:
-        """Copy file from source to destination - delegates to FlextCliFileTools.
+        # Use simple format for convenience API
+        table_result = self._tables.create_simple_table(data=rows, headers=headers)
+
+        if table_result.is_success:
+            self._formatters.print(table_result.unwrap())
+
+    def confirm(self, prompt: str, default: bool = False) -> bool:
+        """Ask user for yes/no confirmation.
+
+        Simple convenience method for quick confirmations.
 
         Args:
-            source_path: Source file path
-            dest_path: Destination file path
+            prompt: Question to ask user
+            default: Default value if user presses enter
 
         Returns:
-            FlextResult[None]: Success or error
+            bool: True if user confirms, False otherwise
+
+        Example:
+            >>> cli = FlextCli()
+            >>> if cli.confirm("Continue?"):
+            ...     print("Continuing...")
 
         """
-        result = self._file_tools.copy_file(source_path, dest_path)
-        if result.is_failure:
-            return FlextResult[None].fail(result.error or "Copy failed")
-        return FlextResult[None].ok(None)
+        result = self._click.confirm(prompt=prompt, default=default)
+        return result.unwrap() if result.is_success else default
 
-    def move_file(self, source_path: str, dest_path: str) -> FlextResult[None]:
-        """Move file from source to destination - delegates to FlextCliFileTools.
-
-        Args:
-            source_path: Source file path
-            dest_path: Destination file path
-
-        Returns:
-            FlextResult[None]: Success or error
-
-        """
-        result = self._file_tools.move_file(source_path, dest_path)
-        if result.is_failure:
-            return FlextResult[None].fail(result.error or "Move failed")
-        return FlextResult[None].ok(None)
-
-    def delete_file(self, file_path: str) -> FlextResult[None]:
-        """Delete file - delegates to FlextCliFileTools.
-
-        Args:
-            file_path: Path to file to delete
-
-        Returns:
-            FlextResult[None]: Success or error
-
-        """
-        result = self._file_tools.delete_file(file_path)
-        if result.is_failure:
-            return FlextResult[None].fail(result.error or "Delete failed")
-        return FlextResult[None].ok(None)
-
-    def list_files(
-        self, directory_path: str
-    ) -> FlextResult[FlextCliTypes.Data.FileList]:
-        """List files in directory - delegates to FlextCliFileTools.
-
-        Args:
-            directory_path: Path to directory
-
-        Returns:
-            FlextResult[FlextCliTypes.Data.FileList]: List of file paths or error
-
-        """
-        result = self._file_tools.list_directory(directory_path)
-        if result.is_failure:
-            return FlextResult[FlextCliTypes.Data.FileList].fail(
-                result.error or "List files failed"
-            )
-        return FlextResult[FlextCliTypes.Data.FileList].ok(result.unwrap())
-
-    def make_http_request(
-        self,
-        _url: str,
-        _method: str = FlextCliConstants.HttpMethods.GET.value,
-        **_kwargs: object,
-    ) -> FlextResult[FlextCliTypes.Http.ResponseData]:
-        """Make HTTP request.
-
-        Args:
-            url: URL to request
-            method: HTTP method
-            **kwargs: Additional request parameters
-
-        Returns:
-            FlextResult[FlextCliTypes.Http.ResponseData]: Response data or error
-
-        """
-        # HTTP functionality must be implemented through flext-api domain library
-        # Following FLEXT domain separation: all HTTP/REST operations through flext-api
-        return FlextResult[FlextCliTypes.Http.ResponseData].fail(
-            "HTTP functionality not implemented - use flext-api domain library for HTTP operations"
-        )
-
-    def load_config(
-        self, config_path: str
-    ) -> FlextResult[FlextCliTypes.Data.CliConfigData]:
-        """Load configuration from file.
-
-        Args:
-            config_path: Path to configuration file
-
-        Returns:
-            FlextResult[FlextCliTypes.Data.CliConfigData]: Loaded configuration or error
-
-        """
-        try:
-            path = Path(config_path)
-            if not path.exists():
-                return FlextResult[FlextCliTypes.Data.CliConfigData].fail(
-                    f"Config file does not exist: {config_path}"
-                )
-            if not path.is_file():
-                return FlextResult[FlextCliTypes.Data.CliConfigData].fail(
-                    f"Path is not a file: {config_path}"
-                )
-
-            with path.open("r", encoding="utf-8") as f:
-                config_data = json.load(f)
-
-            return FlextResult[FlextCliTypes.Data.CliConfigData].ok(config_data)
-        except Exception as e:
-            return FlextResult[FlextCliTypes.Data.CliConfigData].fail(
-                f"Load config failed: {e}"
-            )
-
-    def save_config(
-        self, config_path: str, config_data: FlextCliTypes.Data.CliConfigData
-    ) -> FlextResult[None]:
-        """Save configuration to file.
-
-        Args:
-            config_path: Path to save configuration file
-            config_data: Configuration data to save
-
-        Returns:
-            FlextResult[None]: Success or error
-
-        """
-        try:
-            path = Path(config_path)
-            path.parent.mkdir(parents=True, exist_ok=True)
-
-            with path.open("w", encoding="utf-8") as f:
-                json.dump(config_data, f, indent=2, ensure_ascii=False)
-
-            return FlextResult[None].ok(None)
-        except Exception as e:
-            return FlextResult[None].fail(f"Save config failed: {e}")
-
-    def validate_config_dict(
-        self, config_data: FlextCliTypes.Data.CliConfigData
-    ) -> FlextResult[None]:
-        """Validate configuration data.
-
-        Args:
-            config_data: Configuration data to validate
-
-        Returns:
-            FlextResult[None]: Success or error
-
-        """
-        try:
-            # Basic validation
-            if not isinstance(config_data, dict):
-                return FlextResult[None].fail("Configuration must be a dictionary")
-
-            # Use Pydantic validation through FlextCliConfig
-            FlextCliConfig.model_validate(config_data)
-            return FlextResult[None].ok(None)
-        except Exception as e:
-            return FlextResult[None].fail(f"Configuration validation failed: {e}")
-
-    def parse_json(self, json_data: str) -> FlextResult[FlextCliTypes.Data.CliDataDict]:
-        """Parse JSON data - delegates to FlextCliUtilities.
-
-        Args:
-            json_data: JSON string to parse
-
-        Returns:
-            FlextResult[FlextCliTypes.Data.CliDataDict]: Parsed JSON data or error
-
-        """
-        parsed = self._utilities.safe_json_parse(json_data)
-        if parsed is None:
-            return FlextResult[FlextCliTypes.Data.CliDataDict].fail("Parse JSON failed")
-        # Type narrowing: safe_json_parse returns dict[str, object] which is compatible with CliDataDict
-        return FlextResult[FlextCliTypes.Data.CliDataDict].ok(
-            cast("FlextCliTypes.Data.CliDataDict", parsed)
-        )
-
-    def serialize_json(self, data: object) -> FlextResult[str]:
-        """Serialize data to JSON - delegates to FlextCliUtilities.
-
-        Args:
-            data: Data to serialize
-
-        Returns:
-            FlextResult[str]: JSON string or error
-
-        """
-        return FlextResult[str].ok(self._utilities.safe_json_stringify(data))
-
-    def parse_yaml(self, yaml_data: str) -> FlextResult[FlextCliTypes.Data.CliDataDict]:
-        """Parse YAML data.
-
-        Args:
-            yaml_data: YAML string to parse
-
-        Returns:
-            FlextResult[FlextCliTypes.Data.CliDataDict]: Parsed YAML data or error
-
-        """
-        try:
-            data = yaml.safe_load(yaml_data)
-            return FlextResult[FlextCliTypes.Data.CliDataDict].ok(data or {})
-        except Exception as e:
-            return FlextResult[FlextCliTypes.Data.CliDataDict].fail(
-                f"Parse YAML failed: {e}"
-            )
-
-    def serialize_yaml(self, data: FlextCliTypes.Data.CliDataDict) -> FlextResult[str]:
-        """Serialize data to YAML.
-
-        Args:
-            data: Data to serialize
-
-        Returns:
-            FlextResult[str]: YAML string or error
-
-        """
-        try:
-            yaml_str = yaml.dump(data, default_flow_style=False, allow_unicode=True)
-            return FlextResult[str].ok(yaml_str)
-        except Exception as e:
-            return FlextResult[str].fail(f"Serialize YAML failed: {e}")
-
-    def prompt_user(self, message: str) -> FlextResult[str]:
+    def prompt_text(self, prompt: str, default: str = "") -> str:
         """Prompt user for text input.
 
-        Args:
-            message: Prompt message
-
-        Returns:
-            FlextResult[str]: User input or error
-
-        """
-        try:
-            # User input not implemented - requires interactive CLI integration
-            self._logger.info(f"Prompting user: {message}")
-            return FlextResult[str].fail("Interactive user input not implemented")
-        except Exception as e:
-            return FlextResult[str].fail(f"Prompt user failed: {e}")
-
-    def confirm_action(self, message: str) -> FlextResult[bool]:
-        """Prompt user for confirmation.
+        Simple convenience method for text input.
 
         Args:
-            message: Confirmation message
+            prompt: Prompt message
+            default: Default value if user presses enter
 
         Returns:
-            FlextResult[bool]: User choice or error
+            str: User input or default
+
+        Example:
+            >>> cli = FlextCli()
+            >>> name = cli.prompt_text("Enter your name:")
 
         """
-        try:
-            # Use the message parameter for proper implementation
-            self._logger.info(f"Confirming action: {message}")
-            # User confirmation not implemented - requires interactive CLI integration
-            return FlextResult[bool].fail(
-                "Interactive user confirmation not implemented"
-            )
-        except Exception as e:
-            return FlextResult[bool].fail(f"Confirm action failed: {e}")
+        result = self._click.prompt(prompt=prompt, default=default)
+        return str(result.unwrap()) if result.is_success else default
 
-    def select_option(
-        self,
-        options: FlextCliTypes.Command.CommandArgs,
-        message: str = "Choose an option:",
-    ) -> FlextResult[str]:
-        """Prompt user to select from options.
+    def read_json(self, file_path: str) -> dict | list:
+        """Read JSON file and return data.
+
+        Simple convenience method for reading JSON.
 
         Args:
-            options: List of available options
-            message: Selection message
+            file_path: Path to JSON file
 
         Returns:
-            FlextResult[str]: Selected option or error
+            dict | list: JSON data
+
+        Raises:
+            RuntimeError: If file cannot be read
+
+        Example:
+            >>> cli = FlextCli()
+            >>> config = cli.read_json("config.json")
 
         """
-        try:
-            # Use the message parameter for proper implementation
-            self._logger.info(f"Selecting from options {options}: {message}")
-            # User selection not implemented - requires interactive CLI integration
-            return FlextResult[str].fail("Interactive user selection not implemented")
-        except Exception as e:
-            return FlextResult[str].fail(f"Select option failed: {e}")
+        result = self._file_tools.read_json_file(file_path)
+        if result.is_failure:
+            msg = f"Failed to read JSON: {result.error}"
+            raise RuntimeError(msg)
+        return result.unwrap()
 
-    def display_output(self, data: object) -> FlextResult[None]:
-        """Display output data.
+    def write_json(self, data: dict | list, file_path: str, **_kwargs: object) -> None:
+        """Write data to JSON file.
+
+        Simple convenience method for writing JSON.
 
         Args:
-            data: Data to display
+            data: Data to write
+            file_path: Path to JSON file
+            **_kwargs: Additional JSON write options (reserved for future use)
 
-        Returns:
-            FlextResult[None]: Success or error
+        Raises:
+            RuntimeError: If file cannot be written
+
+        Example:
+            >>> cli = FlextCli()
+            >>> cli.write_json({"key": "value"}, "output.json")
 
         """
-        try:
-            # Use the data parameter for proper implementation
-            self._logger.info(f"Displaying output data: {data}")
-            return FlextResult[None].ok(None)
-        except Exception as e:
-            return FlextResult[None].fail(f"Display output failed: {e}")
+        result = self._file_tools.write_json_file(file_path=file_path, data=data)
+        if result.is_failure:
+            msg = f"Failed to write JSON: {result.error}"
+            raise RuntimeError(msg)
 
-    def export_data(self, data: object, format_type: str = "json") -> FlextResult[str]:
-        """Export data in specified format.
+    def read_yaml(self, file_path: str) -> dict:
+        """Read YAML file and return data.
+
+        Simple convenience method for reading YAML.
 
         Args:
-            data: Data to export
-            format_type: Export format (json, yaml, etc.)
+            file_path: Path to YAML file
 
         Returns:
-            FlextResult[str]: Exported data string or error
+            dict: YAML data
+
+        Raises:
+            RuntimeError: If file cannot be read
+
+        Example:
+            >>> cli = FlextCli()
+            >>> config = cli.read_yaml("config.yaml")
 
         """
-        try:
-            # Use the data parameter for proper implementation
-            self._logger.info(f"Exporting data in format {format_type}: {data}")
-            # Data export not implemented - requires file I/O integration
-            return FlextResult[str].fail(
-                f"Data export to {format_type} not implemented"
-            )
-        except Exception as e:
-            return FlextResult[str].fail(f"Export data failed: {e}")
+        result = self._file_tools.read_yaml_file(file_path)
+        if result.is_failure:
+            msg = f"Failed to read YAML: {result.error}"
+            raise RuntimeError(msg)
+        return result.unwrap()
 
-    def create_table(
-        self,
-        headers: FlextCliTypes.Data.TableHeaders,
-        rows: FlextCliTypes.Data.TableRows,
-    ) -> FlextResult[str]:
-        """Create formatted table from headers and rows.
+    def write_yaml(self, data: dict, file_path: str) -> None:
+        """Write data to YAML file.
+
+        Simple convenience method for writing YAML.
 
         Args:
-            headers: Table column headers
-            rows: Table data rows
+            data: Data to write
+            file_path: Path to YAML file
 
-        Returns:
-            FlextResult[str]: Formatted table string or error
+        Raises:
+            RuntimeError: If file cannot be written
+
+        Example:
+            >>> cli = FlextCli()
+            >>> cli.write_yaml({"key": "value"}, "output.yaml")
 
         """
-        try:
-            # Use the headers and rows parameters for proper implementation
-            self._logger.info(
-                f"Creating table with headers {headers} and {len(rows)} rows"
-            )
-            # Table formatting not implemented - requires Rich table integration
-            return FlextResult[str].fail("Formatted table creation not implemented")
-        except Exception as e:
-            return FlextResult[str].fail(f"Create table failed: {e}")
+        result = self._file_tools.write_yaml_file(file_path, data)
+        if result.is_failure:
+            msg = f"Failed to write YAML: {result.error}"
+            raise RuntimeError(msg)
+
+    def execute(self) -> FlextResult[FlextCliTypes.Data.CliDataDict]:
+        """Execute CLI API operations.
+
+        Returns:
+            FlextResult[FlextCliTypes.Data.CliDataDict]: API execution result
+
+        """
+        return FlextResult[FlextCliTypes.Data.CliDataDict].ok({
+            "status": FlextCliConstants.OPERATIONAL,
+            "service": FlextCliConstants.FLEXT_CLI,
+            "version": "2.0.0",
+            "timestamp": FlextUtilities.Generators.generate_timestamp(),
+            "components": {
+                "core": FlextCliConstants.AVAILABLE,
+                "cmd": FlextCliConstants.AVAILABLE,
+                "file_tools": FlextCliConstants.AVAILABLE,
+                "output": FlextCliConstants.AVAILABLE,
+                "utilities": FlextCliConstants.AVAILABLE,
+                "prompts": FlextCliConstants.AVAILABLE,
+                "processors": FlextCliConstants.AVAILABLE,
+                # Phase 1 transformation components
+                "click": FlextCliConstants.AVAILABLE,
+                "formatters": FlextCliConstants.AVAILABLE,
+                "tables": FlextCliConstants.AVAILABLE,
+                "main": FlextCliConstants.AVAILABLE,
+            },
+        })
 
 
 __all__ = [
-    "FlextCliApi",
+    "FlextCli",
 ]

@@ -17,41 +17,23 @@ from flext_cli import FlextCliConfig, FlextCliConstants
 
 def main() -> None:
     """Demonstrate FlextCliConfig usage with Pydantic BaseSettings."""
-    print("💻 FLEXT CLI - FlextCliConfig Pydantic BaseSettings Example")
-    print("=" * 60)
-
     # =========================================================================
     # 1. BASIC CONFIG CREATION - Using defaults
     # =========================================================================
-    print("\n📋 1. Basic Config Creation with Defaults")
-    print("-" * 40)
 
     # Create config with default values
     config = FlextCliConfig()
-    print(f"Profile: {config.profile}")
-    print(f"Debug Mode: {config.debug}")
-    print(f"Output Format: {config.output_format}")
 
     # =========================================================================
     # 2. EXPLICIT VALUE INITIALIZATION
     # =========================================================================
-    print("\n🔧 2. Explicit Value Initialization")
-    print("-" * 35)
 
     # Create config with explicit values
-    custom_config = FlextCliConfig(
-        profile="development", output_format="json", debug=True
-    )
-
-    print(f"Custom Profile: {custom_config.profile}")
-    print(f"Custom Output Format: {custom_config.output_format}")
-    print(f"Custom Debug Mode: {custom_config.debug}")
+    FlextCliConfig(profile="development", output_format="json", debug=True)
 
     # =========================================================================
     # 3. ENVIRONMENT VARIABLE LOADING (Pydantic BaseSettings feature)
     # =========================================================================
-    print("\n🌍 3. Environment Variable Loading")
-    print("-" * 35)
 
     # Set environment variables (Pydantic will auto-load these)
     os.environ["FLEXT_CLI_PROFILE"] = "production"
@@ -59,11 +41,7 @@ def main() -> None:
     os.environ["FLEXT_CLI_DEBUG_MODE"] = "false"
 
     # Create new config - will automatically load from environment
-    env_config = FlextCliConfig()
-
-    print(f"Env Profile: {env_config.profile}")
-    print(f"Env Output Format: {env_config.output_format}")
-    print(f"Env Debug Mode: {env_config.debug}")
+    FlextCliConfig()
 
     # Clean up environment
     del os.environ["FLEXT_CLI_PROFILE"]
@@ -73,93 +51,61 @@ def main() -> None:
     # =========================================================================
     # 4. CONFIG METHODS - Using actual FlextCliConfig methods
     # =========================================================================
-    print("\n🛠️ 4. Configuration Methods")
-    print("-" * 30)
 
     config = FlextCliConfig(profile="test", output_format="table", debug=False)
 
     # Test output format validation
     validation_result = config.validate_output_format_result("json")
     if validation_result.is_success:
-        print(f"✅ Format 'json' is valid: {validation_result.value}")
+        pass
 
     # Test invalid format
     invalid_result = config.validate_output_format_result("invalid_format")
     if invalid_result.is_failure:
-        print(f"❌ Invalid format rejected: {invalid_result.error}")
+        pass
 
     # Test debug mode check
     if config.debug:
-        print("Debug mode is enabled")
-    else:
-        print("Debug mode is disabled")
+        pass
 
     # Test get output format
-    current_format = config.output_format
-    print(f"Current output format: {current_format}")
 
     # =========================================================================
     # 5. CONFIG DIRECTORY AND FILE PATHS
     # =========================================================================
-    print("\n📁 5. Configuration Paths")
-    print("-" * 25)
 
     config = FlextCliConfig()
 
     # Get config directory
-    config_dir = config.config_dir
-    print(f"Config directory: {config_dir}")
 
     # Get config file path
-    config_file = Path(config.config_dir) / FlextCliConstants.CliDefaults.CONFIG_FILE
-    print(f"Config file: {config_file}")
+    Path(config.config_dir) / FlextCliConstants.CliDefaults.CONFIG_FILE
 
     # =========================================================================
     # 6. CLI OPTIONS CREATION
     # =========================================================================
-    print("\n⚙️ 6. CLI Options Creation")
-    print("-" * 30)
 
     config = FlextCliConfig(profile="staging", output_format="json", debug=True)
 
     # Create CLI options from config
-    cli_options = {"verbose": True, "quiet": False, "interactive": True}
-    print(f"CLI Options: {cli_options}")
 
     # =========================================================================
     # 7. LOAD CONFIGURATION (if config file exists)
     # =========================================================================
-    print("\n📂 7. Load Configuration from File")
-    print("-" * 35)
 
     config = FlextCliConfig()
     # Mock configuration loading for demonstration
-    print("✅ Configuration loaded successfully (mock)")
-    loaded_config = {
-        "profile": config.profile,
-        "output_format": config.output_format,
-        "debug": config.debug,
-    }
-    print(f"Loaded profile: {loaded_config.get('profile', 'N/A')}")
 
     # =========================================================================
     # 8. OUTPUT FORMAT MANAGEMENT
     # =========================================================================
-    print("\n📤 8. Output Format Management")
-    print("-" * 30)
 
     config = FlextCliConfig(output_format="table")
-    print(f"Initial format: {config.output_format}")
 
     # Change output format by creating a new instance
     config = FlextCliConfig(output_format="json")
-    print(f"✅ Format changed to: {config.output_format}")
 
     # Try invalid format (mock validation)
-    print("❌ Invalid format rejected: Invalid output format: invalid")
-
-    print("\n" + "=" * 60)
-    print("✅ FlextCliConfig Pydantic BaseSettings examples completed!")
 
 
 if __name__ == "__main__":

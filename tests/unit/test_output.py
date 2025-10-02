@@ -9,7 +9,6 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-import asyncio
 import json
 import tempfile
 import time
@@ -57,7 +56,8 @@ class TestFlextCliOutput:
         """Test output initialization."""
         assert isinstance(output, FlextCliOutput)
         assert hasattr(output, "_logger")
-        assert hasattr(output, "_console")
+        assert hasattr(output, "_formatters")
+        assert hasattr(output, "_tables")
 
     def test_output_execute(self, output: FlextCliOutput) -> None:
         """Test output execute method."""
@@ -66,18 +66,6 @@ class TestFlextCliOutput:
         assert isinstance(result, FlextResult)
         assert result.is_success
         assert isinstance(result.unwrap(), str)
-
-    def test_output_execute_async(self, output: FlextCliOutput) -> None:
-        """Test output async execute method."""
-
-        async def run_test() -> None:
-            result = await output.execute_async()
-
-            assert isinstance(result, FlextResult)
-            assert result.is_success
-            assert isinstance(result.unwrap(), str)
-
-        asyncio.run(run_test())
 
     def test_output_validate_config(self, output: FlextCliOutput) -> None:
         """Test output config validation."""
@@ -241,7 +229,7 @@ class TestFlextCliOutput:
 
     def test_output_create_progress_bar(self, output: FlextCliOutput) -> None:
         """Test creating progress bar."""
-        result = output.create_progress_bar("Test task", total=100)
+        result = output.create_progress_bar("Test task", _total=100)
 
         assert isinstance(result, FlextResult)
         assert result.is_success
@@ -412,6 +400,8 @@ class TestFlextCliOutput:
         result = output.format_data("invalid", "table")
         assert isinstance(result, FlextResult)
         assert result.is_failure
+        assert result.error is not None
+        assert isinstance(result.error, str)
         assert "Table format requires dict or list of dicts" in result.error
 
     def test_get_formatter_unsupported_format(self, output: FlextCliOutput) -> None:
@@ -419,6 +409,8 @@ class TestFlextCliOutput:
         result = output.create_formatter("unsupported")
         assert isinstance(result, FlextResult)
         assert result.is_failure
+        assert result.error is not None
+        assert isinstance(result.error, str)
         assert "Unsupported format type: unsupported" in result.error
 
     def test_format_table_no_data(self, output: FlextCliOutput) -> None:
@@ -426,6 +418,8 @@ class TestFlextCliOutput:
         result = output.format_table([])
         assert isinstance(result, FlextResult)
         assert result.is_failure
+        assert result.error is not None
+        assert isinstance(result.error, str)
         assert "No data provided for table" in result.error
 
     def test_output_custom_format(

@@ -150,10 +150,6 @@ class FlextCliDebug(FlextService[str]):
         """Execute debug service - required by FlextService."""
         return FlextResult[str].ok("FlextCliDebug service operational")
 
-    async def execute_async(self) -> FlextResult[str]:
-        """Execute debug service asynchronously - required by FlextService."""
-        return FlextResult[str].ok("FlextCliDebug service operational")
-
     def get_system_info(
         self,
     ) -> FlextResult[FlextCliTypes.Data.CliDataDict]:
@@ -213,10 +209,6 @@ class FlextCliDebug(FlextService[str]):
             return FlextResult[list[FlextCliTypes.Data.CliDataDict]].fail(
                 f"Path info failed: {e}"
             )
-
-    def get_path_info(self) -> FlextResult[list[FlextCliTypes.Data.CliDataDict]]:
-        """Get system path information (alias for get_system_paths)."""
-        return self.get_system_paths()
 
     def validate_environment_setup(self) -> FlextResult[FlextCliTypes.Data.ErrorList]:
         """Validate environment setup and dependencies."""

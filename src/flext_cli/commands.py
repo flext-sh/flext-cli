@@ -66,14 +66,6 @@ class FlextCliCommands(FlextService[dict[str, object]]):
             "commands": list(self._commands.keys()),
         })
 
-    async def execute_async(self) -> FlextResult[dict[str, object]]:
-        """Execute the main domain service operation asynchronously."""
-        return FlextResult[dict[str, object]].ok({
-            "status": FlextCliConstants.OPERATIONAL,
-            "service": FlextCliConstants.FLEXT_CLI,
-            "commands": list(self._commands.keys()),
-        })
-
     def register_command(
         self,
         name: str,

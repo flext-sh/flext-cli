@@ -49,7 +49,7 @@ def _setup_cli_demo(formatter: FlextCliOutput) -> FlextResult[None]:
     setup_success = setup_result.value
     formatter.print_success("✅ CLI setup using FLEXT CLI foundation")
     formatter.console.print(f"   Setup result: {setup_success}")
-    formatter.console.print("   Foundation: FlextCliCommands + FlextCliApi")
+    formatter.console.print("   Foundation: FlextCliCommands + FlextCli")
     return FlextResult[None].ok(None)
 
 
