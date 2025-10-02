@@ -87,9 +87,7 @@ class TestFlextCliClick:
 
     def test_create_group_decorator(self, cli_click: FlextCliClick) -> None:
         """Test creating Click group decorator."""
-        result = cli_click.create_group_decorator(
-            name="test_group", help="Test group"
-        )
+        result = cli_click.create_group_decorator(name="test_group", help="Test group")
 
         assert isinstance(result, FlextResult)
         assert result.is_success
@@ -199,13 +197,9 @@ class TestFlextCliClick:
         # Click stores choices as tuple, not list
         assert choice_type.choices == ("json", "yaml", "csv")
 
-    def test_get_choice_type_case_insensitive(
-        self, cli_click: FlextCliClick
-    ) -> None:
+    def test_get_choice_type_case_insensitive(self, cli_click: FlextCliClick) -> None:
         """Test Choice type with case insensitivity."""
-        choice_type = cli_click.get_choice_type(
-            ["JSON", "YAML"], case_sensitive=False
-        )
+        choice_type = cli_click.get_choice_type(["JSON", "YAML"], case_sensitive=False)
 
         assert isinstance(choice_type, click.Choice)
         assert not choice_type.case_sensitive
@@ -269,9 +263,7 @@ class TestFlextCliClick:
         assert isinstance(dt_type, click.DateTime)
         assert "%Y-%m-%d" in dt_type.formats
 
-    def test_get_datetime_type_default_formats(
-        self, cli_click: FlextCliClick
-    ) -> None:
+    def test_get_datetime_type_default_formats(self, cli_click: FlextCliClick) -> None:
         """Test DateTime type with default formats."""
         dt_type = cli_click.get_datetime_type()
 
@@ -487,9 +479,7 @@ class TestFlextCliClick:
         assert result.exit_code == 0
         assert "Listing data..." in result.output
 
-    def test_cli_with_options_and_arguments(
-        self, cli_click: FlextCliClick
-    ) -> None:
+    def test_cli_with_options_and_arguments(self, cli_click: FlextCliClick) -> None:
         """Test CLI with both options and arguments."""
         # Create command
         cmd_result = cli_click.create_command_decorator(name="process")
@@ -497,7 +487,10 @@ class TestFlextCliClick:
 
         # Create option
         opt_result = cli_click.create_option_decorator(
-            "--format", "-f", default="json", type=cli_click.get_choice_type(["json", "yaml", "csv"])
+            "--format",
+            "-f",
+            default="json",
+            type=cli_click.get_choice_type(["json", "yaml", "csv"]),
         )
         assert opt_result.is_success
 

@@ -55,9 +55,7 @@ class TestFlextCliMain:
 
     def test_main_initialization_with_custom_values(self) -> None:
         """Test initialization with custom values."""
-        main = FlextCliMain(
-            name="mycli", version="2.0.0", description="My awesome CLI"
-        )
+        main = FlextCliMain(name="mycli", version="2.0.0", description="My awesome CLI")
 
         assert main._name == "mycli"
         assert main._version == "2.0.0"
@@ -138,9 +136,7 @@ class TestFlextCliMain:
         assert result.exit_code == 0
         assert "Hello, Alice!" in result.output
 
-    def test_multiple_commands(
-        self, cli_main: FlextCliMain, runner: CliRunner
-    ) -> None:
+    def test_multiple_commands(self, cli_main: FlextCliMain, runner: CliRunner) -> None:
         """Test registering multiple commands."""
 
         @cli_main.command()
@@ -191,9 +187,7 @@ class TestFlextCliMain:
         assert result_cmd.exit_code == 0
         assert "Programmatic command" in result_cmd.output
 
-    def test_register_command_without_name(
-        self, cli_main: FlextCliMain
-    ) -> None:
+    def test_register_command_without_name(self, cli_main: FlextCliMain) -> None:
         """Test registering command without explicit name."""
 
         def auto_named_command() -> None:
@@ -205,7 +199,10 @@ class TestFlextCliMain:
 
         # Should use function name (with hyphens)
         list_result = cli_main.list_commands()
-        assert "auto-named-command" in list_result.unwrap() or "auto_named_command" in list_result.unwrap()
+        assert (
+            "auto-named-command" in list_result.unwrap()
+            or "auto_named_command" in list_result.unwrap()
+        )
 
     # =========================================================================
     # GROUP REGISTRATION TESTS (DECORATOR API)
@@ -219,7 +216,6 @@ class TestFlextCliMain:
         @cli_main.group()
         def database() -> None:
             """Database commands."""
-            pass
 
         @database.command()
         def init() -> None:
@@ -244,32 +240,26 @@ class TestFlextCliMain:
         @cli_main.group(name="db")
         def database_funcs() -> None:
             """DB commands."""
-            pass
 
         # Should be registered with custom name
         result = cli_main.list_groups()
         assert result.is_success
         assert "db" in result.unwrap()
 
-    def test_multiple_groups(
-        self, cli_main: FlextCliMain
-    ) -> None:
+    def test_multiple_groups(self, cli_main: FlextCliMain) -> None:
         """Test registering multiple groups."""
 
         @cli_main.group()
         def config() -> None:
             """Config commands."""
-            pass
 
         @cli_main.group()
         def database() -> None:
             """DB commands."""
-            pass
 
         @cli_main.group()
         def users() -> None:
             """User commands."""
-            pass
 
         # All should be registered
         result = cli_main.list_groups()
@@ -288,7 +278,6 @@ class TestFlextCliMain:
         @cli_main.group()
         def config() -> None:
             """Configuration commands."""
-            pass
 
         @config.command()
         def show() -> None:
@@ -321,14 +310,11 @@ class TestFlextCliMain:
     # GROUP REGISTRATION TESTS (PROGRAMMATIC API)
     # =========================================================================
 
-    def test_register_group_programmatic(
-        self, cli_main: FlextCliMain
-    ) -> None:
+    def test_register_group_programmatic(self, cli_main: FlextCliMain) -> None:
         """Test registering group programmatically."""
 
         def my_group() -> None:
             """My commands."""
-            pass
 
         result = cli_main.register_group(my_group, name="mygroup")
 
@@ -363,9 +349,7 @@ class TestFlextCliMain:
         assert result_cmd.exit_code == 0
         assert "Plugin command" in result_cmd.output
 
-    def test_register_plugin_command_duplicate(
-        self, cli_main: FlextCliMain
-    ) -> None:
+    def test_register_plugin_command_duplicate(self, cli_main: FlextCliMain) -> None:
         """Test registering duplicate plugin command."""
 
         @click.command()
@@ -385,9 +369,7 @@ class TestFlextCliMain:
         assert result2.is_failure
         assert "already registered" in result2.error
 
-    def test_load_plugin_commands_invalid_package(
-        self, cli_main: FlextCliMain
-    ) -> None:
+    def test_load_plugin_commands_invalid_package(self, cli_main: FlextCliMain) -> None:
         """Test loading plugins from non-existent package."""
         result = cli_main.load_plugin_commands("nonexistent.package")
 
@@ -510,9 +492,7 @@ class TestFlextCliMain:
         group = result.unwrap()
         assert isinstance(group, click.Group)
 
-    def test_execute_cli_with_help(
-        self, cli_main: FlextCliMain
-    ) -> None:
+    def test_execute_cli_with_help(self, cli_main: FlextCliMain) -> None:
         """Test executing CLI with --help."""
         result = cli_main.execute_cli(["--help"], standalone_mode=False)
 
@@ -541,7 +521,6 @@ class TestFlextCliMain:
         @cli_main.group()
         def config() -> None:
             """Configuration commands."""
-            pass
 
         @config.command()
         def show() -> None:
@@ -637,20 +616,16 @@ class TestFlextCliMain:
         assert result.exit_code == 0
         assert "Processing data.txt 3 times as yaml" in result.output
 
-    def test_nested_groups(
-        self, cli_main: FlextCliMain, runner: CliRunner
-    ) -> None:
+    def test_nested_groups(self, cli_main: FlextCliMain, runner: CliRunner) -> None:
         """Test nested command groups."""
 
         @cli_main.group()
         def admin() -> None:
             """Admin commands."""
-            pass
 
         @admin.group()
         def users() -> None:
             """User management."""
-            pass
 
         @users.command()
         def list_users() -> None:

@@ -580,6 +580,65 @@ class FlextCli(FlextService[FlextCliTypes.Data.CliDataDict]):
         result = self._click.prompt(prompt=prompt, default=default)
         return str(result.unwrap()) if result.is_success else default
 
+    def display_data(self, data: dict[str, object], format_type: str = "table") -> None:
+        """Display data in specified format.
+
+        Convenience method for displaying structured data.
+
+        Args:
+            data: Data to display
+            format_type: Format type ("table", "json", "yaml")
+
+        Example:
+            >>> cli = FlextCli()
+            >>> cli.display_data({"name": "Alice", "age": 30})
+
+        """
+        if format_type == "table" and isinstance(data, dict):
+            # Convert single dict to list of dicts for table display
+            self.table([data])
+        elif format_type == "json":
+            import json
+
+            self.info(json.dumps(data, indent=2))
+        elif format_type == "yaml":
+            try:
+                import yaml
+
+                self.info(yaml.dump(data, default_flow_style=False))
+            except ImportError:
+                self.info("YAML not available, displaying as JSON")
+                import json
+
+                self.info(json.dumps(data, indent=2))
+        else:
+            self.info(str(data))
+
+    def display_message(self, message: str, message_type: str = "info") -> None:
+        """Display message with specified type.
+
+        Convenience method for displaying messages.
+
+        Args:
+            message: Message to display
+            message_type: Message type ("info", "success", "warning", "error")
+
+        Example:
+            >>> cli = FlextCli()
+            >>> cli.display_message("Operation completed", "success")
+
+        """
+        if message_type == "info":
+            self.info(message)
+        elif message_type == "success":
+            self.success(message)
+        elif message_type == "warning":
+            self.warning(message)
+        elif message_type == "error":
+            self.error(message)
+        else:
+            self.info(message)
+
     def read_json(self, file_path: str) -> dict | list:
         """Read JSON file and return data.
 

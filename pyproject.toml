@@ -208,7 +208,6 @@
     ]
 
 [tool.poetry.group.dev.dependencies]
-    aiohttp         = ">=3.12.14"
     docker          = ">=7.1.0"
     ldap3           = ">=2.9.1"
     numpy           = ">=2.3.2"
