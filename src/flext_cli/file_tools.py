@@ -43,6 +43,153 @@ from flext_core import (
     FlextTypes,
 )
 
+# ============================================================================
+# SPECIALIZED INTERNAL SERVICES - Better separation of concerns
+# ============================================================================
+
+
+class _FlextCliFileFormatDetector:
+    """Internal service for file format detection."""
+
+    def __init__(self, supported_formats: FlextTypes.NestedDict) -> None:
+        self._supported_formats = supported_formats
+        self._logger = FlextLogger(__name__)
+
+    def detect_file_format(self, file_path: str | Path) -> FlextResult[str]:
+        """Detect file format from extension."""
+        path = Path(file_path)
+        extension = path.suffix.lower().lstrip(".")
+
+        for format_name, format_info in self._supported_formats.items():
+            if isinstance(format_info, dict) and "extensions" in format_info:
+                if extension in format_info["extensions"]:
+                    return FlextResult[str].ok(format_name)
+
+        return FlextResult[str].fail(f"Unsupported file format: {extension}")
+
+    def get_supported_formats(self) -> FlextResult[FlextTypes.StringList]:
+        """Get list of supported format names."""
+        formats = list(self._supported_formats.keys())
+        return FlextResult[FlextTypes.StringList].ok(formats)
+
+
+class _FlextCliFileLoader:
+    """Internal service for loading various file formats."""
+
+    def __init__(self) -> None:
+        self._logger = FlextLogger(__name__)
+
+    def load_file(self, file_path: str | Path, **kwargs: object) -> FlextResult[object]:
+        """Load file with automatic format detection."""
+        # This would delegate to specific loaders based on format
+        # For now, keep existing implementation
+
+    # Specific format loaders
+    def _load_json(self, file_path: str, **_kwargs: object) -> FlextResult[object]:
+        """Load JSON file."""
+        try:
+            with Path(file_path).open(encoding="utf-8") as f:
+                data = json.load(f)
+            return FlextResult[object].ok(data)
+        except Exception as e:
+            return FlextResult[object].fail(f"JSON load failed: {e}")
+
+    def _load_yaml(self, file_path: str, **_kwargs: object) -> FlextResult[object]:
+        """Load YAML file."""
+        try:
+            with Path(file_path).open(encoding="utf-8") as f:
+                data = yaml.safe_load(f)
+            return FlextResult[object].ok(data)
+        except Exception as e:
+            return FlextResult[object].fail(f"YAML load failed: {e}")
+
+
+class _FlextCliFileSaver:
+    """Internal service for saving various file formats."""
+
+    def __init__(self) -> None:
+        self._logger = FlextLogger(__name__)
+
+    def save_file(
+        self, file_path: str | Path, data: object, **kwargs: object
+    ) -> FlextResult[bool]:
+        """Save data to file with automatic format detection."""
+        # This would delegate to specific savers based on format
+        # For now, keep existing implementation
+
+
+class _FlextCliFileSystemOps:
+    """Internal service for file system operations."""
+
+    def __init__(self) -> None:
+        self._logger = FlextLogger(__name__)
+
+    def file_exists(self, file_path: str) -> FlextResult[bool]:
+        """Check if file exists."""
+        try:
+            exists = Path(file_path).exists()
+            return FlextResult[bool].ok(exists)
+        except Exception as e:
+            return FlextResult[bool].fail(f"File existence check failed: {e}")
+
+    def get_file_size(self, file_path: str) -> FlextResult[int]:
+        """Get file size in bytes."""
+        try:
+            size = Path(file_path).stat().st_size
+            return FlextResult[int].ok(size)
+        except Exception as e:
+            return FlextResult[int].fail(f"File size check failed: {e}")
+
+    def copy_file(self, source_path: str, destination_path: str) -> FlextResult[bool]:
+        """Copy file from source to destination."""
+        try:
+            shutil.copy2(source_path, destination_path)
+            return FlextResult[bool].ok(True)
+        except Exception as e:
+            return FlextResult[bool].fail(f"File copy failed: {e}")
+
+    def move_file(self, source_path: str, destination_path: str) -> FlextResult[bool]:
+        """Move file from source to destination."""
+        try:
+            shutil.move(source_path, destination_path)
+            return FlextResult[bool].ok(True)
+        except Exception as e:
+            return FlextResult[bool].fail(f"File move failed: {e}")
+
+    def delete_file(self, file_path: str) -> FlextResult[bool]:
+        """Delete file."""
+        try:
+            Path(file_path).unlink()
+            return FlextResult[bool].ok(True)
+        except Exception as e:
+            return FlextResult[bool].fail(f"File delete failed: {e}")
+
+    def create_directory(self, directory_path: str) -> FlextResult[bool]:
+        """Create directory."""
+        try:
+            Path(directory_path).mkdir(parents=False, exist_ok=False)
+            return FlextResult[bool].ok(True)
+        except Exception as e:
+            return FlextResult[bool].fail(f"Directory create failed: {e}")
+
+    def create_directories(self, directory_path: str) -> FlextResult[bool]:
+        """Create directories recursively."""
+        try:
+            Path(directory_path).mkdir(parents=True, exist_ok=True)
+            return FlextResult[bool].ok(True)
+        except Exception as e:
+            return FlextResult[bool].fail(f"Directories create failed: {e}")
+
+    def list_directory(self, directory_path: str) -> FlextResult[FlextTypes.StringList]:
+        """List directory contents."""
+        try:
+            items = [str(item) for item in Path(directory_path).iterdir()]
+            return FlextResult[FlextTypes.StringList].ok(items)
+        except Exception as e:
+            return FlextResult[FlextTypes.StringList].fail(
+                f"Directory list failed: {e}"
+            )
+
 
 class FlextCliFileTools(FlextService[bool]):
     """Comprehensive file operation tools for CLI applications.
@@ -72,11 +219,19 @@ class FlextCliFileTools(FlextService[bool]):
 
     @override
     def __init__(self) -> None:
-        """Initialize file tools with format registry."""
+        """Initialize file tools with specialized internal services."""
         super().__init__()
         self._container = FlextContainer()
         self._logger = FlextLogger(__name__)
+
+        # Initialize format registry
         self._supported_formats = self._initialize_format_registry()
+
+        # Initialize specialized internal services for better separation of concerns
+        self._format_detector = _FlextCliFileFormatDetector(self._supported_formats)
+        self._file_loader = _FlextCliFileLoader()
+        self._file_saver = _FlextCliFileSaver()
+        self._file_system_ops = _FlextCliFileSystemOps()
 
     @override
     def execute(self) -> FlextResult[bool]:
@@ -164,17 +319,7 @@ class FlextCliFileTools(FlextService[bool]):
             FlextResult[str]: Detected format or error
 
         """
-        try:
-            file_path_obj = Path(file_path)
-            extension = file_path_obj.suffix.lower()
-
-            if extension in self._supported_formats:
-                format_info = self._supported_formats[extension]
-                format_name = str(format_info["format"])
-                return FlextResult[str].ok(format_name)
-            return FlextResult[str].fail(f"Unsupported file format: {extension}")
-        except Exception as e:
-            return FlextResult[str].fail(f"Failed to detect file format: {e}")
+        return self._format_detector.detect_file_format(file_path)
 
     def get_supported_formats(self) -> FlextResult[FlextTypes.StringList]:
         """Get list of all supported file formats.
@@ -183,13 +328,7 @@ class FlextCliFileTools(FlextService[bool]):
             FlextResult[FlextTypes.StringList]: List of supported formats
 
         """
-        try:
-            formats = [str(info["format"]) for info in self._supported_formats.values()]
-            return FlextResult[FlextTypes.StringList].ok(formats)
-        except Exception as e:
-            return FlextResult[FlextTypes.StringList].fail(
-                f"Failed to get supported formats: {e}"
-            )
+        return self._format_detector.get_supported_formats()
 
     def load_file(self, file_path: str | Path, **kwargs: object) -> FlextResult[object]:
         """Load file with automatic format detection using monadic composition.
@@ -324,26 +463,12 @@ class FlextCliFileTools(FlextService[bool]):
             return FlextResult[bool].fail(f"Failed to save file: {e}")
 
     def file_exists(self, file_path: str) -> FlextResult[bool]:
-        """Check if file exists using Path from pathlib."""
-        try:
-            path = Path(file_path)
-            exists = path.exists()
-            return FlextResult[bool].ok(exists)
-        except Exception as e:
-            return FlextResult[bool].fail(f"Failed to check file existence: {e}")
+        """Check if file exists."""
+        return self._file_system_ops.file_exists(file_path)
 
     def get_file_size(self, file_path: str) -> FlextResult[int]:
-        """Get file size using Path from pathlib."""
-        try:
-            path = Path(file_path)
-            if not path.exists():
-                return FlextResult[int].fail(f"File does not exist: {file_path}")
-            if not path.is_file():
-                return FlextResult[int].fail(f"Path is not a file: {file_path}")
-            size = path.stat().st_size
-            return FlextResult[int].ok(size)
-        except Exception as e:
-            return FlextResult[int].fail(f"Failed to get file size: {e}")
+        """Get file size in bytes."""
+        return self._file_system_ops.get_file_size(file_path)
 
     # Format-specific internal methods
     def _load_json(self, file_path: str, **_kwargs: object) -> FlextResult[object]:
@@ -1211,78 +1336,28 @@ class FlextCliFileTools(FlextService[bool]):
         )
 
     def list_directory(self, directory_path: str) -> FlextResult[FlextTypes.StringList]:
-        """List files in directory."""
-        try:
-            directory = Path(directory_path)
-            if not directory.exists():
-                return FlextResult[FlextTypes.StringList].fail(
-                    f"Directory does not exist: {directory_path}"
-                )
-            if not directory.is_dir():
-                return FlextResult[FlextTypes.StringList].fail(
-                    f"Path is not a directory: {directory_path}"
-                )
-
-            files = [f.name for f in directory.iterdir() if f.is_file()]
-            return FlextResult[FlextTypes.StringList].ok(files)
-        except Exception as e:
-            return FlextResult[FlextTypes.StringList].fail(
-                f"Failed to list directory: {e}"
-            )
+        """List directory contents."""
+        return self._file_system_ops.list_directory(directory_path)
 
     def copy_file(self, source_path: str, destination_path: str) -> FlextResult[bool]:
         """Copy file from source to destination."""
-        try:
-            source = Path(source_path)
-            destination = Path(destination_path)
-
-            if not source.exists():
-                return FlextResult[bool].fail(f"Source file not found: {source_path}")
-
-            destination.parent.mkdir(parents=True, exist_ok=True)
-            shutil.copy2(source, destination)
-            return FlextResult[bool].ok(True)
-        except Exception as e:
-            return FlextResult[bool].fail(f"Failed to copy file: {e}")
+        return self._file_system_ops.copy_file(source_path, destination_path)
 
     def move_file(self, source_path: str, destination_path: str) -> FlextResult[bool]:
         """Move file from source to destination."""
-        try:
-            source = Path(source_path)
-            destination = Path(destination_path)
-
-            if not source.exists():
-                return FlextResult[bool].fail(f"Source file not found: {source_path}")
-
-            destination.parent.mkdir(parents=True, exist_ok=True)
-            shutil.move(str(source), str(destination))
-            return FlextResult[bool].ok(True)
-        except Exception as e:
-            return FlextResult[bool].fail(f"Failed to move file: {e}")
+        return self._file_system_ops.move_file(source_path, destination_path)
 
     def delete_file(self, file_path: str) -> FlextResult[bool]:
         """Delete file."""
-        try:
-            path = Path(file_path)
-            if not path.exists():
-                return FlextResult[bool].fail(f"File not found: {file_path}")
-            path.unlink()
-            return FlextResult[bool].ok(True)
-        except Exception as e:
-            return FlextResult[bool].fail(f"Failed to delete file: {e}")
+        return self._file_system_ops.delete_file(file_path)
 
     def create_directory(self, directory_path: str) -> FlextResult[bool]:
         """Create directory."""
-        try:
-            path = Path(directory_path)
-            path.mkdir(parents=True, exist_ok=True)
-            return FlextResult[bool].ok(True)
-        except Exception as e:
-            return FlextResult[bool].fail(f"Failed to create directory: {e}")
+        return self._file_system_ops.create_directory(directory_path)
 
     def create_directories(self, directory_path: str) -> FlextResult[bool]:
         """Create directories recursively."""
-        return self.create_directory(directory_path)
+        return self._file_system_ops.create_directories(directory_path)
 
     def delete_directory(self, directory_path: str) -> FlextResult[bool]:
         """Delete directory."""
