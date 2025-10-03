@@ -42,7 +42,7 @@ class FlextCliDebug(FlextService[str]):
         """Initialize debug service with flext-core integration."""
         super().__init__()
         self._logger = FlextLogger(__name__)
-        self._container = FlextContainer.get_global()
+        self._container = FlextContainer()
 
     class _DebugHelper:
         """Nested helper for debug operations."""

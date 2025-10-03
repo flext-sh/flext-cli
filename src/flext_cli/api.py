@@ -9,19 +9,12 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from flext_core import (
-    FlextBus,
-    FlextContainer,
-    FlextContext,
-    FlextCqrs,
-    FlextDispatcher,
-    FlextLogger,
-    FlextProcessors,
-    FlextRegistry,
-    FlextResult,
-    FlextService,
-    FlextUtilities,
-)
+import json
+
+try:
+    import yaml
+except ImportError:
+    yaml = None
 
 from flext_cli.auth import FlextCliAuth
 from flext_cli.cli import FlextCliClick
@@ -46,6 +39,19 @@ from flext_cli.prompts import FlextCliPrompts
 from flext_cli.protocols import FlextCliProtocols
 from flext_cli.tables import FlextCliTables
 from flext_cli.typings import FlextCliTypes
+from flext_core import (
+    FlextBus,
+    FlextContainer,
+    FlextContext,
+    FlextDispatcher,
+    FlextLogger,
+    FlextProcessors,
+    FlextRegistry,
+    FlextResult,
+    FlextService,
+    FlextTypes,
+    FlextUtilities,
+)
 
 
 class FlextCli(FlextService[FlextCliTypes.Data.CliDataDict]):
@@ -66,12 +72,11 @@ class FlextCli(FlextService[FlextCliTypes.Data.CliDataDict]):
         """
         super().__init__(**data)
         self._logger = FlextLogger(__name__)
-        self._container = FlextContainer.get_global()
+        self._container = FlextContainer()
 
         # Initialize flext-core advanced features
         self._bus = FlextBus()
         self._context = FlextContext()
-        self._cqrs = FlextCqrs()
         self._dispatcher = FlextDispatcher()
         self._registry = FlextRegistry(dispatcher=self._dispatcher)
 
@@ -394,16 +399,6 @@ class FlextCli(FlextService[FlextCliTypes.Data.CliDataDict]):
         return self._context
 
     @property
-    def cqrs(self) -> FlextCqrs:
-        """Access FlextCqrs for command/query separation.
-
-        Returns:
-            FlextCqrs: CQRS pattern instance
-
-        """
-        return self._cqrs
-
-    @property
     def dispatcher(self) -> FlextDispatcher:
         """Access FlextDispatcher for message dispatching.
 
@@ -536,7 +531,7 @@ class FlextCli(FlextService[FlextCliTypes.Data.CliDataDict]):
         if table_result.is_success:
             self._formatters.print(table_result.unwrap())
 
-    def confirm(self, prompt: str, default: bool = False) -> bool:
+    def confirm(self, prompt: str, *, default: bool = False) -> bool:
         """Ask user for yes/no confirmation.
 
         Simple convenience method for quick confirmations.
@@ -577,7 +572,7 @@ class FlextCli(FlextService[FlextCliTypes.Data.CliDataDict]):
         result = self._click.prompt(text=prompt, default=default)
         return str(result.unwrap()) if result.is_success else default
 
-    def display_data(self, data: dict[str, object], format_type: str = "table") -> None:
+    def display_data(self, data: FlextTypes.Dict, format_type: str = "table") -> None:
         """Display data in specified format.
 
         Convenience method for displaying structured data.
@@ -595,18 +590,12 @@ class FlextCli(FlextService[FlextCliTypes.Data.CliDataDict]):
             # Convert single dict to list of dicts for table display
             self.table([data])
         elif format_type == "json":
-            import json
-
             self.info(json.dumps(data, indent=2))
         elif format_type == "yaml":
-            try:
-                import yaml
-
+            if yaml is not None:
                 self.info(yaml.dump(data, default_flow_style=False))
-            except ImportError:
+            else:
                 self.info("YAML not available, displaying as JSON")
-                import json
-
                 self.info(json.dumps(data, indent=2))
         else:
             self.info(str(data))
@@ -662,7 +651,7 @@ class FlextCli(FlextService[FlextCliTypes.Data.CliDataDict]):
         return result.unwrap()
 
     def write_json(
-        self, data: dict[str, object], file_path: str, **_kwargs: object
+        self, data: FlextTypes.Dict, file_path: str, **_kwargs: object
     ) -> None:
         """Write data to JSON file.
 

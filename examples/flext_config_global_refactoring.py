@@ -19,9 +19,8 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from flext_core import FlextConfig
-
 from flext_cli import FlextCli, FlextCliAuth, FlextCliConfig
+from flext_core import FlextConfig, FlextTypes
 
 
 def demonstrate_global_configuration_refactoring() -> None:
@@ -39,7 +38,7 @@ def demonstrate_global_configuration_refactoring() -> None:
     FlextCliAuth()
 
     # 3. Apply CLI parameter overrides
-    cli_overrides: dict[str, object] = {
+    cli_overrides: FlextTypes.Dict = {
         "debug": True,
         "log_level": "DEBUG",
         "output_format": "json",
@@ -66,7 +65,7 @@ def demonstrate_global_configuration_refactoring() -> None:
     # 5. Show integration with CLI API
 
     # Create sample data for API demonstration
-    sample_data: dict[str, dict[str, object]] = {
+    sample_data: FlextTypes.NestedDict = {
         "config": {
             "environment": base_config.environment,
             "debug": base_config.debug,
@@ -113,7 +112,7 @@ def demonstrate_dynamic_configuration_updates() -> None:
 def demonstrate_cli_parameter_integration() -> None:
     """Demonstrate CLI parameter integration with FlextConfig."""
     # Simulate CLI parameters
-    cli_params: dict[str, object] = {
+    cli_params: FlextTypes.Dict = {
         "debug": True,
         "log_level": "DEBUG",
         "output_format": "table",
@@ -138,7 +137,7 @@ def demonstrate_cli_parameter_integration() -> None:
     # Demonstrate usage with CLI parameters
 
     cli_api = FlextCli()
-    sample_data: dict[str, object] = {
+    sample_data: FlextTypes.Dict = {
         "cli_params": cli_params,
         "final_config": cli_config.model_dump(),
     }

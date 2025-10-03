@@ -11,7 +11,7 @@ from __future__ import annotations
 
 from typing import override
 
-from flext_core import FlextContainer, FlextResult
+from flext_core import FlextContainer, FlextResult, FlextTypes
 
 
 class FlextCliContainers:
@@ -29,7 +29,7 @@ class FlextCliContainers:
     @override
     def __init__(self) -> None:
         """Initialize CLI containers with FlextContainer composition."""
-        self._container = FlextContainer.get_global()
+        self._container = FlextContainer()
 
     class CommandContainer:
         """CLI command container for managing command instances."""
@@ -37,7 +37,7 @@ class FlextCliContainers:
         @override
         def __init__(self) -> None:
             """Initialize command container."""
-            self._commands: dict[str, object] = {}
+            self._commands: FlextTypes.Dict = {}
 
         def register(self, name: str, command: object) -> FlextResult[None]:
             """Register a command in the container.
@@ -77,17 +77,21 @@ class FlextCliContainers:
             except Exception as e:
                 return FlextResult[object].fail(f"Command retrieval failed: {e}")
 
-        def list_commands(self) -> FlextResult[list[str]]:
+        def list_commands(self) -> FlextResult[FlextTypes.StringList]:
             """List all registered command names.
 
             Returns:
-                FlextResult[list[str]]: List of command names or error
+                FlextResult[FlextTypes.StringList]: List of command names or error
 
             """
             try:
-                return FlextResult[list[str]].ok(list(self._commands.keys()))
+                return FlextResult[FlextTypes.StringList].ok(
+                    list(self._commands.keys())
+                )
             except Exception as e:
-                return FlextResult[list[str]].fail(f"Command listing failed: {e}")
+                return FlextResult[FlextTypes.StringList].fail(
+                    f"Command listing failed: {e}"
+                )
 
         def unregister(self, name: str) -> FlextResult[None]:
             """Unregister a command from the container.
@@ -113,7 +117,7 @@ class FlextCliContainers:
         @override
         def __init__(self) -> None:
             """Initialize handler container."""
-            self._handlers: dict[str, object] = {}
+            self._handlers: FlextTypes.Dict = {}
 
         def register(self, name: str, handler: object) -> FlextResult[None]:
             """Register a handler in the container.
@@ -153,17 +157,21 @@ class FlextCliContainers:
             except Exception as e:
                 return FlextResult[object].fail(f"Handler retrieval failed: {e}")
 
-        def list_handlers(self) -> FlextResult[list[str]]:
+        def list_handlers(self) -> FlextResult[FlextTypes.StringList]:
             """List all registered handler names.
 
             Returns:
-                FlextResult[list[str]]: List of handler names or error
+                FlextResult[FlextTypes.StringList]: List of handler names or error
 
             """
             try:
-                return FlextResult[list[str]].ok(list(self._handlers.keys()))
+                return FlextResult[FlextTypes.StringList].ok(
+                    list(self._handlers.keys())
+                )
             except Exception as e:
-                return FlextResult[list[str]].fail(f"Handler listing failed: {e}")
+                return FlextResult[FlextTypes.StringList].fail(
+                    f"Handler listing failed: {e}"
+                )
 
     class ConfigContainer:
         """CLI configuration container for managing configuration instances."""
@@ -171,7 +179,7 @@ class FlextCliContainers:
         @override
         def __init__(self) -> None:
             """Initialize configuration container."""
-            self._configs: dict[str, object] = {}
+            self._configs: FlextTypes.Dict = {}
 
         def register(self, name: str, config: object) -> FlextResult[None]:
             """Register a configuration in the container.
@@ -209,17 +217,19 @@ class FlextCliContainers:
             except Exception as e:
                 return FlextResult[object].fail(f"Config retrieval failed: {e}")
 
-        def list_configs(self) -> FlextResult[list[str]]:
+        def list_configs(self) -> FlextResult[FlextTypes.StringList]:
             """List all registered configuration names.
 
             Returns:
-                FlextResult[list[str]]: List of configuration names or error
+                FlextResult[FlextTypes.StringList]: List of configuration names or error
 
             """
             try:
-                return FlextResult[list[str]].ok(list(self._configs.keys()))
+                return FlextResult[FlextTypes.StringList].ok(list(self._configs.keys()))
             except Exception as e:
-                return FlextResult[list[str]].fail(f"Config listing failed: {e}")
+                return FlextResult[FlextTypes.StringList].fail(
+                    f"Config listing failed: {e}"
+                )
 
 
 __all__ = [

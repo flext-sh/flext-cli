@@ -15,116 +15,143 @@ from flext_cli.typings import FlextCliTypes
 from flext_core import FlextProtocols, FlextResult
 
 
-class FlextCliProtocols(FlextProtocols):
+class FlextCliProtocols:
     """Single unified CLI protocols class following FLEXT standards.
 
     Contains all protocol definitions for CLI domain operations.
     Follows FLEXT pattern: one class per module with nested subclasses.
     """
 
-    @runtime_checkable
-    class CliCommandHandler(Protocol):
-        """Protocol for CLI command handlers."""
+    # =========================================================================
+    # RE-EXPORT FOUNDATION PROTOCOLS - Use FlextProtocols from flext-core
+    # =========================================================================
 
-        def __call__(
-            self, **kwargs: FlextCliTypes.Data.CliCommandArgs
-        ) -> FlextResult[FlextCliTypes.Data.CliCommandResult]:
-            """Execute CLI command with arguments.
+    Foundation = FlextProtocols.Foundation
+    Domain = FlextProtocols.Domain
+    Application = FlextProtocols.Application
+    Infrastructure = FlextProtocols.Infrastructure
+    Extensions = FlextProtocols.Extensions
+    Commands = FlextProtocols.Commands
 
-            Args:
-                **kwargs: Command arguments
+    # =========================================================================
+    # CLI-SPECIFIC PROTOCOLS - Domain extension for CLI operations
+    # =========================================================================
 
-            Returns:
-                FlextResult[FlextCliTypes.Data.CliCommandResult]: Command execution result
+    class Cli:
+        """CLI domain-specific protocols."""
 
-            """
+        @runtime_checkable
+        class CliCommandHandler(Protocol):
+            """Protocol for CLI command handlers."""
 
-    @runtime_checkable
-    class CliFormatter(Protocol):
-        """Protocol for CLI output formatters."""
+            def __call__(
+                self, **kwargs: FlextCliTypes.Data.CliCommandArgs
+            ) -> FlextResult[FlextCliTypes.Data.CliCommandResult]:
+                """Execute CLI command with arguments.
 
-        def format_data(
-            self,
-            data: FlextCliTypes.Data.CliFormatData,
-            **options: FlextCliTypes.Data.CliConfigData,
-        ) -> FlextResult[str]:
-            """Format data for CLI output.
+                Args:
+                    **kwargs: Command arguments
 
-            Args:
-                data: Data to format
-                **options: Formatting options
+                Returns:
+                    FlextResult[FlextCliTypes.Data.CliCommandResult]: Command execution result
 
-            Returns:
-                FlextResult[str]: Formatted output or error
+                """
+                ...
 
-            """
+        @runtime_checkable
+        class CliFormatter(Protocol):
+            """Protocol for CLI output formatters."""
 
-    @runtime_checkable
-    class CliConfigProvider(Protocol):
-        """Protocol for CLI configuration providers."""
+            def format_data(
+                self,
+                data: FlextCliTypes.Data.CliFormatData,
+                **options: FlextCliTypes.Data.CliConfigData,
+            ) -> FlextResult[str]:
+                """Format data for CLI output.
 
-        def load_config(self: object) -> FlextResult[FlextCliTypes.Data.CliConfigData]:
-            """Load CLI configuration.
+                Args:
+                    data: Data to format
+                    **options: Formatting options
 
-            Returns:
-                FlextResult[FlextCliTypes.Data.CliConfigData]: Configuration data or error
+                Returns:
+                    FlextResult[str]: Formatted output or error
 
-            """
+                """
+                ...
 
-        def save_config(
-            self, config: FlextCliTypes.Data.CliConfigData
-        ) -> FlextResult[None]:
-            """Save CLI configuration.
+        @runtime_checkable
+        class CliConfigProvider(Protocol):
+            """Protocol for CLI configuration providers."""
 
-            Args:
-                config: Configuration data to save
+            def load_config(
+                self: object,
+            ) -> FlextResult[FlextCliTypes.Data.CliConfigData]:
+                """Load CLI configuration.
 
-            Returns:
-                FlextResult[None]: Success or error
+                Returns:
+                    FlextResult[FlextCliTypes.Data.CliConfigData]: Configuration data or error
 
-            """
+                """
+                ...
 
-    @runtime_checkable
-    class CliAuthenticator(Protocol):
-        """Protocol for CLI authentication providers."""
+            def save_config(
+                self, config: FlextCliTypes.Data.CliConfigData
+            ) -> FlextResult[None]:
+                """Save CLI configuration.
 
-        def authenticate(
-            self, credentials: FlextCliTypes.Data.AuthConfigData
-        ) -> FlextResult[str]:
-            """Authenticate and return token.
+                Args:
+                    config: Configuration data to save
 
-            Args:
-                credentials: Authentication credentials
+                Returns:
+                    FlextResult[None]: Success or error
 
-            Returns:
-                FlextResult[str]: Authentication token or error
+                """
+                ...
 
-            """
+        @runtime_checkable
+        class CliAuthenticator(Protocol):
+            """Protocol for CLI authentication providers."""
 
-        def validate_token(self, token: str) -> FlextResult[bool]:
-            """Validate authentication token.
+            def authenticate(
+                self, credentials: FlextCliTypes.Data.AuthConfigData
+            ) -> FlextResult[str]:
+                """Authenticate and return token.
 
-            Args:
-                token: Token to validate
+                Args:
+                    credentials: Authentication credentials
 
-            Returns:
-                FlextResult[bool]: Validation result or error
+                Returns:
+                    FlextResult[str]: Authentication token or error
 
-            """
+                """
+                ...
 
-    @runtime_checkable
-    class CliDebugProvider(Protocol):
-        """Protocol for CLI debug information providers."""
+            def validate_token(self, token: str) -> FlextResult[bool]:
+                """Validate authentication token.
 
-        def get_debug_info(
-            self: object,
-        ) -> FlextResult[FlextCliTypes.Data.DebugInfoData]:
-            """Get debug information.
+                Args:
+                    token: Token to validate
 
-            Returns:
-                FlextResult[FlextCliTypes.Data.DebugInfoData]: Debug information or error
+                Returns:
+                    FlextResult[bool]: Validation result or error
 
-            """
+                """
+                ...
+
+        @runtime_checkable
+        class CliDebugProvider(Protocol):
+            """Protocol for CLI debug information providers."""
+
+            def get_debug_info(
+                self: object,
+            ) -> FlextResult[FlextCliTypes.Data.DebugInfoData]:
+                """Get debug information.
+
+                Returns:
+                    FlextResult[FlextCliTypes.Data.DebugInfoData]: Debug information or error
+
+                """
+                ...
 
 
 __all__ = [

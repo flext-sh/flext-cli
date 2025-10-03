@@ -12,11 +12,11 @@ from __future__ import annotations
 import time
 
 import pytest
+from flext_tests import FlextTestsUtilities
 
 from flext_cli.handlers import FlextCliHandlers
 from flext_cli.typings import FlextCliTypes
-from flext_core import FlextResult
-from flext_tests import FlextTestsUtilities
+from flext_core import FlextResult, FlextTypes
 
 
 class TestFlextCliHandlers:
@@ -264,7 +264,7 @@ class TestFlextCliHandlers:
     def test_handlers_memory_usage(self, handlers: FlextCliHandlers) -> None:
         """Test handlers memory usage."""
         # Test with many handler creations
-        handlers_list: list[object] = []
+        handlers_list: FlextTypes.List = []
         for i in range(1000):
 
             def make_handler(

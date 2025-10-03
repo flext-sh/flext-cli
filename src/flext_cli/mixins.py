@@ -11,7 +11,7 @@ from __future__ import annotations
 
 from flext_cli.constants import FlextCliConstants
 from flext_cli.typings import FlextCliTypes
-from flext_core import FlextMixins, FlextResult, FlextUtilities
+from flext_core import FlextMixins, FlextResult, FlextTypes, FlextUtilities
 
 
 class FlextCliMixins(FlextMixins):
@@ -88,7 +88,7 @@ class FlextCliMixins(FlextMixins):
 
         @staticmethod
         def validate_enum_value(
-            field_name: str, field_value: str, valid_values: list[str]
+            field_name: str, field_value: str, valid_values: FlextTypes.StringList
         ) -> FlextResult[None]:
             """Validate that a field value is in the allowed list.
 
@@ -227,7 +227,7 @@ class FlextCliMixins(FlextMixins):
 
         @staticmethod
         def validate_session_state(
-            current_status: str, valid_states: list[str]
+            current_status: str, valid_states: FlextTypes.StringList
         ) -> FlextResult[None]:
             """Validate session state.
 
@@ -274,7 +274,7 @@ class FlextCliMixins(FlextMixins):
         @staticmethod
         def validate_configuration_consistency(
             config_data: FlextCliTypes.Data.CliDataDict | None,
-            required_fields: list[str],
+            required_fields: FlextTypes.StringList,
         ) -> FlextResult[None]:
             """Validate configuration consistency.
 

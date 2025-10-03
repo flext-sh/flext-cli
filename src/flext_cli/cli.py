@@ -13,23 +13,25 @@ from __future__ import annotations
 
 from collections.abc import Callable, Sequence
 from pathlib import Path
-from typing import TypeVar
+from typing import IO, TypeVar
 
 # CRITICAL: ONLY this file may import Click
 import click
 from click import Context as ClickContext
 from click.testing import CliRunner as ClickCliRunner
+
 from flext_core import (
     FlextContainer,
     FlextLogger,
     FlextResult,
     FlextService,
+    FlextTypes,
 )
 
 T = TypeVar("T")
 
 
-class FlextCliClick(FlextService[None]):
+class FlextCliClick(FlextService[object]):
     """Complete Click abstraction layer.
 
     This class wraps ALL Click functionality to prevent direct Click imports
@@ -70,7 +72,7 @@ class FlextCliClick(FlextService[None]):
         """Initialize Click abstraction layer."""
         super().__init__()
         self._logger = FlextLogger(__name__)
-        self._container = FlextContainer.get_global()
+        self._container = FlextContainer()
 
     # =========================================================================
     # COMMAND AND GROUP CREATION
@@ -103,10 +105,12 @@ class FlextCliClick(FlextService[None]):
 
         """
         try:
-            decorator = click.command(name=name, **kwargs)
+            command_kwargs = {"name": name}
+            command_kwargs.update(kwargs)
+            decorator = click.command(**command_kwargs)
             self._logger.debug(
                 "Created command decorator",
-                extra={"name": name, "options": kwargs},
+                extra={"command_name": name, "options": kwargs},
             )
             return FlextResult[Callable[[Callable[..., object]], click.Command]].ok(
                 decorator
@@ -144,10 +148,12 @@ class FlextCliClick(FlextService[None]):
 
         """
         try:
-            decorator = click.group(name=name, **kwargs)
+            group_kwargs = {"name": name}
+            group_kwargs.update(kwargs)
+            decorator = click.group(**group_kwargs)
             self._logger.debug(
                 "Created group decorator",
-                extra={"name": name, "options": kwargs},
+                extra={"group_name": name, "options": kwargs},
             )
             return FlextResult[Callable[[Callable[..., object]], click.Group]].ok(
                 decorator
@@ -167,7 +173,7 @@ class FlextCliClick(FlextService[None]):
         self,
         *param_decls: str,
         **attrs: object,
-    ) -> FlextResult[Callable[[Callable[..., object]], Callable[..., object]]]:
+    ) -> FlextResult[Callable[[Callable[..., object]], click.Option]]:
         """Create Click option decorator.
 
         Args:
@@ -190,21 +196,21 @@ class FlextCliClick(FlextService[None]):
                 "Created option decorator",
                 extra={"param_decls": param_decls, "attrs": attrs},
             )
-            return FlextResult[
-                Callable[[Callable[..., object]], Callable[..., object]]
-            ].ok(decorator)
+            return FlextResult[Callable[[Callable[..., object]], click.Option]].ok(
+                decorator
+            )
         except Exception as e:
             error_msg = f"Failed to create option decorator: {e}"
             self._logger.exception(error_msg)
-            return FlextResult[
-                Callable[[Callable[..., object]], Callable[..., object]]
-            ].fail(error_msg)
+            return FlextResult[Callable[[Callable[..., object]], click.Option]].fail(
+                error_msg
+            )
 
     def create_argument_decorator(
         self,
         *param_decls: str,
         **attrs: object,
-    ) -> FlextResult[Callable[[Callable[..., object]], Callable[..., object]]]:
+    ) -> FlextResult[Callable[[Callable[..., object]], click.Argument]]:
         """Create Click argument decorator.
 
         Args:
@@ -227,22 +233,22 @@ class FlextCliClick(FlextService[None]):
                 "Created argument decorator",
                 extra={"param_decls": param_decls, "attrs": attrs},
             )
-            return FlextResult[
-                Callable[[Callable[..., object]], Callable[..., object]]
-            ].ok(decorator)
+            return FlextResult[Callable[[Callable[..., object]], click.Argument]].ok(
+                decorator
+            )
         except Exception as e:
             error_msg = f"Failed to create argument decorator: {e}"
             self._logger.exception(error_msg)
-            return FlextResult[
-                Callable[[Callable[..., object]], Callable[..., object]]
-            ].fail(error_msg)
+            return FlextResult[Callable[[Callable[..., object]], click.Argument]].fail(
+                error_msg
+            )
 
     # =========================================================================
     # PARAMETER TYPES
     # =========================================================================
 
     def get_choice_type(
-        self, choices: Sequence[str], case_sensitive: bool = True
+        self, choices: Sequence[str], *, case_sensitive: bool = True
     ) -> click.Choice:
         """Get Click Choice parameter type.
 
@@ -262,6 +268,7 @@ class FlextCliClick(FlextService[None]):
 
     def get_path_type(
         self,
+        *,
         exists: bool = False,
         file_okay: bool = True,
         dir_okay: bool = True,
@@ -300,6 +307,7 @@ class FlextCliClick(FlextService[None]):
         mode: str = "r",
         encoding: str | None = None,
         errors: str | None = "strict",
+        *,
         lazy: bool | None = None,
         atomic: bool = False,
     ) -> click.File:
@@ -326,8 +334,9 @@ class FlextCliClick(FlextService[None]):
 
     def get_int_range_type(
         self,
-        min: int | None = None,
-        max: int | None = None,
+        min_val: int | None = None,
+        max_val: int | None = None,
+        *,
         min_open: bool = False,
         max_open: bool = False,
         clamp: bool = False,
@@ -335,8 +344,8 @@ class FlextCliClick(FlextService[None]):
         """Get Click IntRange parameter type.
 
         Args:
-            min: Minimum value (inclusive unless min_open=True)
-            max: Maximum value (inclusive unless max_open=True)
+            min_val: Minimum value (inclusive unless min_open=True)
+            max_val: Maximum value (inclusive unless max_open=True)
             min_open: Minimum is exclusive
             max_open: Maximum is exclusive
             clamp: Clamp values to range instead of error
@@ -346,8 +355,8 @@ class FlextCliClick(FlextService[None]):
 
         """
         return click.IntRange(
-            min=min,
-            max=max,
+            min=min_val,
+            max=max_val,
             min_open=min_open,
             max_open=max_open,
             clamp=clamp,
@@ -355,8 +364,9 @@ class FlextCliClick(FlextService[None]):
 
     def get_float_range_type(
         self,
-        min: float | None = None,
-        max: float | None = None,
+        min_val: float | None = None,
+        max_val: float | None = None,
+        *,
         min_open: bool = False,
         max_open: bool = False,
         clamp: bool = False,
@@ -364,8 +374,8 @@ class FlextCliClick(FlextService[None]):
         """Get Click FloatRange parameter type.
 
         Args:
-            min: Minimum value (inclusive unless min_open=True)
-            max: Maximum value (inclusive unless max_open=True)
+            min_val: Minimum value (inclusive unless min_open=True)
+            max_val: Maximum value (inclusive unless max_open=True)
             min_open: Minimum is exclusive
             max_open: Maximum is exclusive
             clamp: Clamp values to range instead of error
@@ -375,8 +385,8 @@ class FlextCliClick(FlextService[None]):
 
         """
         return click.FloatRange(
-            min=min,
-            max=max,
+            min=min_val,
+            max=max_val,
             min_open=min_open,
             max_open=max_open,
             clamp=clamp,
@@ -546,7 +556,8 @@ class FlextCliClick(FlextService[None]):
     def echo(
         self,
         message: str | None = None,
-        file: object | None = None,
+        file: IO[str] | None = None,
+        *,
         nl: bool = True,
         err: bool = False,
         color: bool | None = None,
@@ -575,6 +586,7 @@ class FlextCliClick(FlextService[None]):
     def confirm(
         self,
         text: str,
+        *,
         default: bool = False,
         abort: bool = False,
         prompt_suffix: str = ": ",
@@ -616,7 +628,7 @@ class FlextCliClick(FlextService[None]):
         self,
         text: str,
         default: object | None = None,
-        type: object | None = None,
+        type_hint: object | None = None,
         value_proc: Callable[[str], object] | None = None,
         prompt_suffix: str = ": ",
         *,
@@ -633,7 +645,7 @@ class FlextCliClick(FlextService[None]):
             default: Default value
             hide_input: Hide user input (for passwords)
             confirmation_prompt: Ask for confirmation
-            type: Value type
+            type_hint: Value type
             value_proc: Value processor function
             prompt_suffix: Suffix after prompt
             show_default: Show default in prompt
@@ -650,7 +662,7 @@ class FlextCliClick(FlextService[None]):
                 default=default,
                 hide_input=hide_input,
                 confirmation_prompt=confirmation_prompt,
-                type=type,
+                type=type_hint,
                 value_proc=value_proc,
                 prompt_suffix=prompt_suffix,
                 show_default=show_default,
@@ -672,7 +684,7 @@ class FlextCliClick(FlextService[None]):
     def create_cli_runner(
         self,
         charset: str = "utf-8",
-        env: dict[str, str] | None = None,
+        env: FlextTypes.StringDict | None = None,
         *,
         echo_stdin: bool = False,
         _mix_stderr: bool = True,
@@ -740,7 +752,8 @@ class FlextCliClick(FlextService[None]):
             Tuple of (width, height)
 
         """
-        return click.get_terminal_size()
+        size = click.get_terminal_size()
+        return (size[0], size[1])
 
     def clear_screen(self) -> FlextResult[None]:
         """Clear terminal screen.

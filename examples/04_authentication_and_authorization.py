@@ -61,16 +61,14 @@ def demonstrate_basic_authentication() -> FlextResult[None]:
     # 2. Retrieve authentication headers
     console.print("\n[green]2. Authorization Headers[/green]")
 
-    # get_auth_status returns FlextResult[FlextTypes.Core.Dict]
+    # get_auth_status returns FlextResult[FlextTypes.Dict]
     headers_result = auth.get_auth_status()
 
     # Handle FlextResult type
     if hasattr(headers_result, "is_success") and hasattr(headers_result, "value"):
         if getattr(headers_result, "is_success"):
-            headers: dict[str, object] = getattr(headers_result, "value") or {}
-            headers_dict: dict[str, object] = {
-                str(k): str(v) for k, v in headers.items()
-            }
+            headers: FlextTypes.Dict = getattr(headers_result, "value") or {}
+            headers_dict: FlextTypes.Dict = {str(k): str(v) for k, v in headers.items()}
             console.print("✅ Authorization headers retrieved")
             console.print("   Headers structure:")
             for key, value in headers_dict.items():
@@ -112,7 +110,7 @@ def demonstrate_api_authentication() -> FlextResult[None]:
         profile_result = simulate_authenticated_request(api_client, demo_endpoint)
 
         if profile_result.is_success:
-            profile_data: dict[str, object] = profile_result.value
+            profile_data: FlextTypes.Dict = profile_result.value
             if profile_data:
                 console.print("✅ Authenticated API request successful")
                 console.print(f"   User: {profile_data.get('username', 'demo_user')}")
@@ -161,7 +159,7 @@ def demonstrate_role_based_access() -> FlextResult[None]:
     console.print("\n[green]5. Role-Based Access Control[/green]")
 
     # Simulate different user roles and permissions
-    demo_roles: list[FlextTypes.Core.Dict] = [
+    demo_roles: list[FlextTypes.Dict] = [
         {
             "name": "admin",
             "permissions": ["read", "write", "delete", "manage_users", "system_config"],
@@ -171,13 +169,13 @@ def demonstrate_role_based_access() -> FlextResult[None]:
     ]
 
     # Create permissions table using flext-cli formatter
-    permissions_data: dict[str, object] = {}
+    permissions_data: FlextTypes.Dict = {}
 
     for role in demo_roles:
         permissions = role["permissions"]
         if isinstance(permissions, list):
             # Convert to list of strings for safe iteration
-            perm_strings: list[str] = [str(item) for item in permissions]
+            perm_strings: FlextTypes.StringList = [str(item) for item in permissions]
             permissions_str = ", ".join(perm_strings)
             access_level = (
                 "Full"
@@ -223,7 +221,7 @@ def demonstrate_session_management() -> FlextResult[None]:
 
     # Simulate session data
     now = datetime.now(UTC)
-    session_data: FlextTypes.Core.Dict = {
+    session_data: FlextTypes.Dict = {
         "session_id": f"sess_{now.strftime('%Y%m%d_%H%M%S')}",
         "user_id": "demo_user_123",
         "created_at": now,
@@ -254,7 +252,7 @@ def demonstrate_session_management() -> FlextResult[None]:
         # Simulate session refresh
         refresh_result = refresh_session(session_data)
         if refresh_result.is_success:
-            refreshed_session: dict[str, object] = refresh_result.value
+            refreshed_session: FlextTypes.Dict = refresh_result.value
             console.print("✅ Session refreshed successfully")
             if refreshed_session:
                 expires_at = refreshed_session.get("expires_at")
@@ -291,7 +289,7 @@ def demonstrate_secure_configuration() -> FlextResult[None]:
         ("FLEXT_TIMEOUT", "Request timeout configuration"),
     ]
 
-    env_data: dict[str, object] = {}
+    env_data: FlextTypes.Dict = {}
     for var_name, purpose in secure_env_vars:
         value = os.environ.get(var_name)
         status = "✅ Set" if value else "⚠️ Not set"
@@ -317,7 +315,7 @@ def demonstrate_secure_configuration() -> FlextResult[None]:
 
 def simulate_authenticated_request(
     _client: FlextCliService, endpoint: str
-) -> FlextResult[FlextTypes.Core.Dict]:
+) -> FlextResult[FlextTypes.Dict]:
     """Simulate an authenticated API request."""
     try:
         # In a real implementation, this would make an actual HTTP request
@@ -347,10 +345,10 @@ def simulate_authenticated_request(
                 "timestamp": datetime.now(UTC).isoformat(),
             }
 
-        return FlextResult[FlextTypes.Core.Dict].ok(dict(response_data))
+        return FlextResult[FlextTypes.Dict].ok(dict(response_data))
 
     except Exception as e:
-        return FlextResult[FlextTypes.Core.Dict].fail(f"API request failed: {e}")
+        return FlextResult[FlextTypes.Dict].fail(f"API request failed: {e}")
 
 
 def perform_protected_business_logic() -> FlextResult[str]:
@@ -374,7 +372,7 @@ def perform_protected_business_logic() -> FlextResult[str]:
 
 
 def check_permission(
-    user_role: str, required_permission: str, roles_config: list[FlextTypes.Core.Dict]
+    user_role: str, required_permission: str, roles_config: list[FlextTypes.Dict]
 ) -> FlextResult[bool]:
     """Check if user role has required permission."""
     try:
@@ -401,7 +399,7 @@ def check_permission(
         return FlextResult[bool].fail(f"Permission check failed: {e}")
 
 
-def validate_session(session_data: FlextTypes.Core.Dict) -> FlextResult[bool]:
+def validate_session(session_data: FlextTypes.Dict) -> FlextResult[bool]:
     """Validate session data and expiration."""
     try:
         current_time = datetime.now(UTC)
@@ -428,8 +426,8 @@ def validate_session(session_data: FlextTypes.Core.Dict) -> FlextResult[bool]:
 
 
 def refresh_session(
-    session_data: FlextTypes.Core.Dict,
-) -> FlextResult[FlextTypes.Core.Dict]:
+    session_data: FlextTypes.Dict,
+) -> FlextResult[FlextTypes.Dict]:
     """Refresh session with new expiration time."""
     try:
         current_time = datetime.now(UTC)
@@ -442,10 +440,10 @@ def refresh_session(
             "refreshed_at": current_time,
         })
 
-        return FlextResult[FlextTypes.Core.Dict].ok(refreshed_session)
+        return FlextResult[FlextTypes.Dict].ok(refreshed_session)
 
     except Exception as e:
-        return FlextResult[FlextTypes.Core.Dict].fail(f"Session refresh failed: {e}")
+        return FlextResult[FlextTypes.Dict].fail(f"Session refresh failed: {e}")
 
 
 def main() -> None:

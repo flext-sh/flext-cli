@@ -16,10 +16,10 @@ from pathlib import Path
 from typing import cast
 
 import pytest
+from flext_tests import FlextTestsUtilities
 
 from flext_cli.output import FlextCliOutput
-from flext_core import FlextResult
-from flext_tests import FlextTestsUtilities
+from flext_core import FlextResult, FlextTypes
 
 
 class TestFlextCliOutput:
@@ -316,7 +316,7 @@ class TestFlextCliOutput:
 
         # Test table formatting - cast to expected type
         table_result = output.format_table(
-            cast("dict[str, object] | list[dict[str, object]] | None", real_data)
+            cast("FlextTypes.Dict | list[FlextTypes.Dict] | None", real_data)
         )
         assert table_result.is_success
         table_str = table_result.unwrap()

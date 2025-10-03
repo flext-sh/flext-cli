@@ -17,7 +17,6 @@ from pathlib import Path
 import pytest
 import yaml
 from click.testing import CliRunner
-from flext_core import FlextContainer, FlextUtilities
 from flext_tests import (
     FlextTestDocker,
     FlextTestsBuilders,
@@ -43,6 +42,7 @@ from flext_cli.processors import FlextCliProcessors
 from flext_cli.prompts import FlextCliPrompts
 from flext_cli.protocols import FlextCliProtocols
 from flext_cli.typings import FlextCliTypes
+from flext_core import FlextContainer, FlextTypes, FlextUtilities
 
 # ============================================================================
 # CORE FLEXT TEST INFRASTRUCTURE
@@ -253,25 +253,13 @@ def flext_cli_utilities() -> type[FlextUtilities]:
 # No custom event_loop fixture needed
 
 
-@pytest.fixture
-def flext_cli_api() -> FlextCli:
-    """Create FlextCli instance for testing."""
-    return FlextCli()
-
-
-@pytest.fixture
-def flext_cli_core() -> FlextCliService:
-    """Create FlextCliService instance for testing."""
-    return FlextCliService()
-
-
 # ============================================================================
 # TEST DATA FIXTURES
 # ============================================================================
 
 
 @pytest.fixture
-def sample_config_data() -> dict[str, object]:
+def sample_config_data() -> FlextTypes.Dict:
     """Provide sample configuration data for tests."""
     return {
         "debug": True,
@@ -286,7 +274,7 @@ def sample_config_data() -> dict[str, object]:
 
 
 @pytest.fixture
-def sample_file_data(temp_dir: Path) -> dict[str, object]:
+def sample_file_data(temp_dir: Path) -> FlextTypes.Dict:
     """Provide sample file data for tests."""
     return {
         "content": "This is test content for file operations",
@@ -301,7 +289,7 @@ def sample_file_data(temp_dir: Path) -> dict[str, object]:
 
 
 @pytest.fixture
-def sample_command_data() -> dict[str, object]:
+def sample_command_data() -> FlextTypes.Dict:
     """Provide sample command data for tests."""
     return {
         "command": "test_command",
@@ -333,7 +321,7 @@ def fixture_data_csv() -> Path:
 
 
 @pytest.fixture
-def load_fixture_config() -> dict[str, object]:
+def load_fixture_config() -> FlextTypes.Dict:
     """Load configuration data from fixtures directory."""
     fixture_path = Path("tests/fixtures/configs/test_config.json")
     with fixture_path.open(encoding="utf-8") as f:
@@ -341,7 +329,7 @@ def load_fixture_config() -> dict[str, object]:
 
 
 @pytest.fixture
-def load_fixture_data() -> dict[str, object]:
+def load_fixture_data() -> FlextTypes.Dict:
     """Load test data from fixtures directory."""
     fixture_path = Path("tests/fixtures/data/test_data.json")
     with fixture_path.open(encoding="utf-8") as f:

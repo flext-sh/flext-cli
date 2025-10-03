@@ -15,11 +15,11 @@ from pathlib import Path
 from typing import cast
 
 import pytest
-from flext_core import FlextResult
 from flext_tests import FlextTestsUtilities
 
 from flext_cli.api import FlextCli
 from flext_cli.constants import FlextCliConstants
+from flext_core import FlextResult, FlextTypes
 
 
 class TestFlextCli:
@@ -64,17 +64,6 @@ class TestFlextCli:
         assert "status" in data
         assert "service" in data
         assert data["service"] == "flext-cli"
-
-    def test_api_service_execute_method(self, api_service: FlextCli) -> None:
-        """Test API service execute method (now sync)."""
-        # execute is now synchronous, delegates to execute()
-        result = api_service.execute()
-
-        assert isinstance(result, FlextResult)
-        assert result.is_success
-
-        data = result.unwrap()
-        assert isinstance(data, dict)
         assert "status" in data
         assert "service" in data
         assert data["service"] == "flext-cli"
@@ -381,7 +370,7 @@ class TestFlextCli:
     def test_save_config(self, api_service: FlextCli, temp_dir: Path) -> None:
         """Test configuration saving functionality."""
         config_file = temp_dir / "test_save_config.json"
-        test_config: dict[str, object] = {
+        test_config: FlextTypes.Dict = {
             "debug": False,
             "output_format": "table",
             "timeout": FlextCliConstants.TIMEOUTS.DEFAULT,
@@ -392,7 +381,7 @@ class TestFlextCli:
         result = api_service.file_tools.write_json_file(
             str(config_file),
             cast(
-                "dict[str, bool | dict[str, object] | float | int | list[object] | str | None]",
+                "dict[str, bool | FlextTypes.Dict | float | int | FlextTypes.List | str | None]",
                 test_config,
             ),
         )
@@ -408,7 +397,7 @@ class TestFlextCli:
     def test_validate_config(self, api_service: FlextCli) -> None:
         """Test configuration validation functionality."""
         # Test valid configuration
-        valid_config: dict[str, object] = {
+        valid_config: FlextTypes.Dict = {
             "debug": True,
             "output_format": "json",
             "timeout": FlextCliConstants.TIMEOUTS.DEFAULT,
@@ -417,7 +406,7 @@ class TestFlextCli:
 
         result = api_service.utilities.validate_data(
             cast(
-                "dict[str, bool | dict[str, object] | float | int | list[object] | str | None]",
+                "dict[str, bool | FlextTypes.Dict | float | int | FlextTypes.List | str | None]",
                 valid_config,
             ),
             {
@@ -431,7 +420,7 @@ class TestFlextCli:
         assert result.is_success
 
         # Test invalid configuration
-        invalid_config: dict[str, object] = {
+        invalid_config: FlextTypes.Dict = {
             "debug": "invalid_boolean",
             "timeout": -1,
             "retries": "not_a_number",
@@ -439,7 +428,7 @@ class TestFlextCli:
 
         result = api_service.utilities.validate_data(
             cast(
-                "dict[str, bool | dict[str, object] | float | int | list[object] | str | None]",
+                "dict[str, bool | FlextTypes.Dict | float | int | FlextTypes.List | str | None]",
                 invalid_config,
             ),
             {"debug": bool, "timeout": int, "retries": int},
@@ -541,7 +530,7 @@ nested:
         result = api_service.file_tools.write_yaml_file(
             str(yaml_file),
             cast(
-                "dict[str, bool | dict[str, object] | float | int | list[object] | str | None]",
+                "dict[str, bool | FlextTypes.Dict | float | int | FlextTypes.List | str | None]",
                 test_data,
             ),
         )

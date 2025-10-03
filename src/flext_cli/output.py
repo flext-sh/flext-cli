@@ -22,10 +22,10 @@ from rich.tree import Tree
 from flext_cli.constants import FlextCliConstants
 from flext_cli.formatters import FlextCliFormatters
 from flext_cli.tables import FlextCliTables
-from flext_core import FlextLogger, FlextResult, FlextService
+from flext_core import FlextLogger, FlextResult, FlextService, FlextTypes
 
 
-class FlextCliOutput(FlextService[str]):
+class FlextCliOutput(FlextService[object]):
     """Comprehensive CLI output tools for the flext ecosystem.
 
     REFACTORED to use FlextCliFormatters and FlextCliTables for all output.
@@ -73,7 +73,7 @@ class FlextCliOutput(FlextService[str]):
         self._tables = FlextCliTables()
 
     @override
-    def execute(self) -> FlextResult[str]:
+    def execute(self) -> FlextResult[object]:
         """Execute the main domain service operation - required by FlextService."""
         return FlextResult[str].ok("FlextCliOutput operational")
 
@@ -86,7 +86,7 @@ class FlextCliOutput(FlextService[str]):
         data: object,
         format_type: str = FlextCliConstants.OutputFormats.TABLE.value,
         title: str | None = None,
-        headers: list[str] | None = None,
+        headers: FlextTypes.StringList | None = None,
     ) -> FlextResult[str]:
         """Format data using specified format type from FlextCliConstants.
 
@@ -151,9 +151,9 @@ class FlextCliOutput(FlextService[str]):
 
     def create_rich_table(
         self,
-        data: list[dict[str, object]],
+        data: list[FlextTypes.Dict],
         title: str | None = None,
-        headers: list[str] | None = None,
+        headers: FlextTypes.StringList | None = None,
         **kwargs: object,
     ) -> FlextResult[RichTable]:
         """Create a Rich table from data using FlextCliFormatters.
@@ -245,8 +245,8 @@ class FlextCliOutput(FlextService[str]):
 
     def create_ascii_table(
         self,
-        data: list[dict[str, object]],
-        headers: list[str] | None = None,
+        data: list[FlextTypes.Dict],
+        headers: FlextTypes.StringList | None = None,
         table_format: str = "simple",
         **kwargs: object,
     ) -> FlextResult[str]:
@@ -493,9 +493,9 @@ class FlextCliOutput(FlextService[str]):
 
     def format_table(
         self,
-        data: dict[str, object] | list[dict[str, object]],
+        data: FlextTypes.Dict | list[FlextTypes.Dict],
         title: str | None = None,
-        headers: list[str] | None = None,
+        headers: FlextTypes.StringList | None = None,
     ) -> FlextResult[str]:
         """Format data as a tabulated table string using FlextCliTables.
 
@@ -519,7 +519,7 @@ class FlextCliOutput(FlextService[str]):
             if isinstance(data, dict):
                 table_data = [{"Key": k, "Value": str(v)} for k, v in data.items()]
                 # For list of dicts, use "keys" string as tabulate requires
-                table_headers: str | list[str] = headers or "keys"
+                table_headers: str | FlextTypes.StringList = headers or "keys"
             else:
                 if not isinstance(data, list):
                     return FlextResult[str].fail(
@@ -558,9 +558,9 @@ class FlextCliOutput(FlextService[str]):
 
     def create_table(
         self,
-        data: dict[str, object] | list[dict[str, object]],
+        data: FlextTypes.Dict | list[FlextTypes.Dict],
         title: str | None = None,
-        headers: list[str] | None = None,
+        headers: FlextTypes.StringList | None = None,
     ) -> FlextResult[str]:
         """Alias for format_table for backward compatibility.
 
@@ -577,7 +577,7 @@ class FlextCliOutput(FlextService[str]):
 
     def format_as_tree(
         self,
-        data: dict[str, object],
+        data: FlextTypes.Dict,
         title: str = "Tree",
     ) -> FlextResult[str]:
         """Format hierarchical data as tree view using FlextCliFormatters.

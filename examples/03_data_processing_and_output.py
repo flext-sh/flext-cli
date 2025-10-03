@@ -59,7 +59,7 @@ class ConfigData(TypedDict):
 
     database: DatabaseConfig
     api: ApiConfig
-    logging: dict[str, object]
+    logging: FlextTypes.Dict
 
 
 def _demonstrate_data_transformation(
@@ -69,7 +69,7 @@ def _demonstrate_data_transformation(
     formatter.print_success("\n1. 🔄 Data Transformation with FLEXT CLI")
 
     # Sample raw data
-    raw_data: list[dict[str, object]] = [
+    raw_data: list[FlextTypes.Dict] = [
         {
             "name": "Service A",
             "status": "running",
@@ -128,7 +128,7 @@ def _demonstrate_data_transformation(
     # Display sample enriched service using flext-cli formatter
     if enriched_services:
         sample = enriched_services[0]
-        sample_data: dict[str, object] = {
+        sample_data: FlextTypes.Dict = {
             "Service": sample["name"],
             "Health Score": str(sample["health_score"]),
             "Memory (GB)": f"{sample['memory_gb']}GB",
@@ -149,7 +149,7 @@ def _demonstrate_data_aggregation(formatter: FlextCliOutput) -> FlextResult[None
     formatter.print_success("\n2. 📊 Data Aggregation Patterns")
 
     # Sample metrics data
-    metrics_data: list[dict[str, object]] = [
+    metrics_data: list[FlextTypes.Dict] = [
         {
             "timestamp": "2025-01-15T10:00:00",
             "service": "api",
@@ -199,7 +199,7 @@ def _demonstrate_data_aggregation(formatter: FlextCliOutput) -> FlextResult[None
     formatter.print_success("✅ Service aggregation completed")
 
     # Display aggregated data using flext-cli formatter
-    agg_data: dict[str, object] = {}
+    agg_data: FlextTypes.Dict = {}
     for stats in service_stats:
         service = str(stats.get("service", "unknown"))
 
@@ -232,7 +232,7 @@ def _demonstrate_output_formatting(formatter: FlextCliOutput) -> FlextResult[Non
     formatter.print_success("\n3. 🎨 Output Formatting Patterns")
 
     # Sample structured data
-    sample_data: dict[str, object] = {
+    sample_data: FlextTypes.Dict = {
         "Application": "flext-demo",
         "Version": "1.2.3",
         "Environment": "production",
@@ -256,10 +256,10 @@ def _demonstrate_output_formatting(formatter: FlextCliOutput) -> FlextResult[Non
         formatter.console.print("   Sample JSON output generated successfully")
 
     # Services data table
-    services_data: dict[str, object] = {
-        "api-gateway": f"Port {FlextConstants.Platform.FLEXT_API_PORT}, Healthy",
-        "auth-service": f"Port {FlextConstants.Platform.FLEXT_API_PORT + 1}, Healthy",
-        "database": f"Port {FlextConstants.Platform.POSTGRES_DEFAULT_PORT}, Unhealthy",
+    services_data: FlextTypes.Dict = {
+        "api-gateway": f"Port {FlextConstants['Platform.FLEXT_API_PORT']}, Healthy",
+        "auth-service": f"Port {FlextConstants['Platform.FLEXT_API_PORT + 1']}, Healthy",
+        "database": f"Port {FlextConstants['Platform.POSTGRES_DEFAULT_PORT']}, Unhealthy",
     }
 
     services_table_result = formatter.format_table(
@@ -277,7 +277,7 @@ def _demonstrate_file_operations(formatter: FlextCliOutput) -> FlextResult[None]
     formatter.print_success("\n4. 📁 File Operations with Type Safety")
 
     # Sample configuration data
-    config_data: dict[str, object] = {
+    config_data: FlextTypes.Dict = {
         "database": {
             "host": FlextConstants.Platform.DEFAULT_HOST,
             "port": FlextConstants.Platform.POSTGRES_DEFAULT_PORT,
@@ -304,20 +304,18 @@ def _demonstrate_file_operations(formatter: FlextCliOutput) -> FlextResult[None]
     if load_result.is_failure:
         return FlextResult[None].fail(f"File load failed: {load_result.error}")
 
-    loaded_data: FlextTypes.Core.Dict = load_result.value
+    loaded_data: FlextTypes.Dict = load_result.value
     formatter.print_success("✅ Configuration loaded successfully")
 
     # Display loaded config using flext-cli formatter
-    config_display: dict[str, object] = {}
+    config_display: FlextTypes.Dict = {}
 
     # Extract database config safely - use direct access with type safety
     if "database" in loaded_data:
         db_section = loaded_data["database"]
         if isinstance(db_section, dict):
             # Safe extraction with proper type handling
-            db_section_dict: FlextTypes.Core.Dict = cast(
-                "FlextTypes.Core.Dict", db_section
-            )
+            db_section_dict: FlextTypes.Dict = cast("FlextTypes.Dict", db_section)
             db_host_value = db_section_dict.get("host", "N/A")
             db_port_value = db_section_dict.get("port", "N/A")
             config_display["Database Host"] = str(db_host_value)
@@ -328,9 +326,7 @@ def _demonstrate_file_operations(formatter: FlextCliOutput) -> FlextResult[None]
         api_section = loaded_data["api"]
         if isinstance(api_section, dict):
             # Safe extraction with proper type handling
-            api_section_dict: FlextTypes.Core.Dict = cast(
-                "FlextTypes.Core.Dict", api_section
-            )
+            api_section_dict: FlextTypes.Dict = cast("FlextTypes.Dict", api_section)
             api_port_value = api_section_dict.get("port", "N/A")
             api_debug_value = api_section_dict.get("debug", False)
             config_display["API Port"] = str(api_port_value)
@@ -364,7 +360,7 @@ def _demonstrate_batch_processing(formatter: FlextCliOutput) -> FlextResult[None
     )
 
     # Display results using flext-cli formatter
-    results_data: dict[str, object] = {}
+    results_data: FlextTypes.Dict = {}
     for i, result in enumerate(results):
         results_data[f"File {i + 1}"] = result
 
@@ -382,7 +378,7 @@ def _demonstrate_data_export(formatter: FlextCliOutput) -> FlextResult[None]:
     formatter.print_success("\n6. 📤 Data Export Functionality")
 
     # Sample report data
-    report_data: list[dict[str, object]] = [
+    report_data: list[FlextTypes.Dict] = [
         {
             "date": "2025-01-15",
             "service": "api-gateway",
@@ -409,7 +405,7 @@ def _demonstrate_data_export(formatter: FlextCliOutput) -> FlextResult[None]:
         formatter.print_success("✅ CSV export completed")
 
     # Display export summary using flext-cli formatter
-    export_summary: dict[str, object] = {
+    export_summary: FlextTypes.Dict = {
         "JSON Export": "✅ Success - All data exported",
         "CSV Export": "✅ Success - Headers and data exported",
         "Format": "Structured data with error handling",
@@ -427,7 +423,7 @@ def _summary_demo(formatter: FlextCliOutput) -> None:
     """Demo summary display."""
     formatter.print_success("\n📋 Data Processing and Output Summary")
 
-    summary_data: dict[str, object] = {
+    summary_data: FlextTypes.Dict = {
         "Feature": "Status",
         "Data Transformation": "✅ FlextResult patterns",
         "Data Aggregation": "✅ Type-safe processing",
@@ -450,24 +446,24 @@ def _summary_demo(formatter: FlextCliOutput) -> None:
 
 
 def _filter_running_services(
-    data: list[dict[str, object]],
-) -> FlextResult[list[dict[str, object]]]:
+    data: list[FlextTypes.Dict],
+) -> FlextResult[list[FlextTypes.Dict]]:
     """Filter services by running status."""
     try:
         running_services = [
             service for service in data if service.get("status") == "running"
         ]
-        return FlextResult[list[dict[str, object]]].ok(running_services)
+        return FlextResult[list[FlextTypes.Dict]].ok(running_services)
     except Exception as e:
-        return FlextResult[list[dict[str, object]]].fail(f"Filter failed: {e}")
+        return FlextResult[list[FlextTypes.Dict]].fail(f"Filter failed: {e}")
 
 
 def _enrich_service_data(
-    services: list[dict[str, object]],
-) -> FlextResult[list[dict[str, object]]]:
+    services: list[FlextTypes.Dict],
+) -> FlextResult[list[FlextTypes.Dict]]:
     """Enrich service data with computed fields."""
     try:
-        enriched_services: list[dict[str, object]] = []
+        enriched_services: list[FlextTypes.Dict] = []
         for service in services:
             # Safe type conversion with validation
             cpu_obj = service.get("cpu", 0)
@@ -484,17 +480,17 @@ def _enrich_service_data(
             }
             enriched_services.append(enriched_service)
 
-        return FlextResult[list[dict[str, object]]].ok(enriched_services)
+        return FlextResult[list[FlextTypes.Dict]].ok(enriched_services)
     except Exception as e:
-        return FlextResult[list[dict[str, object]]].fail(f"Enrichment failed: {e}")
+        return FlextResult[list[FlextTypes.Dict]].fail(f"Enrichment failed: {e}")
 
 
 def _aggregate_by_service(
-    metrics: list[dict[str, object]],
-) -> FlextResult[list[dict[str, object]]]:
+    metrics: list[FlextTypes.Dict],
+) -> FlextResult[list[FlextTypes.Dict]]:
     """Aggregate metrics by service."""
     try:
-        service_stats: dict[str, dict[str, object]] = {}
+        service_stats: FlextTypes.NestedDict = {}
 
         for metric in metrics:
             service = str(metric.get("service", "unknown"))
@@ -533,12 +529,12 @@ def _aggregate_by_service(
             service_stats[service]["total_requests"] = current_requests + requests
             service_stats[service]["total_errors"] = current_errors + errors
 
-        return FlextResult[list[dict[str, object]]].ok(list(service_stats.values()))
+        return FlextResult[list[FlextTypes.Dict]].ok(list(service_stats.values()))
     except Exception as e:
-        return FlextResult[list[dict[str, object]]].fail(f"Aggregation failed: {e}")
+        return FlextResult[list[FlextTypes.Dict]].fail(f"Aggregation failed: {e}")
 
 
-def _format_as_json(data: dict[str, object]) -> FlextResult[str]:
+def _format_as_json(data: FlextTypes.Dict) -> FlextResult[str]:
     """Format data as JSON string."""
     try:
         json_output = json.dumps(data, indent=2)
@@ -547,7 +543,7 @@ def _format_as_json(data: dict[str, object]) -> FlextResult[str]:
         return FlextResult[str].fail(f"JSON formatting failed: {e}")
 
 
-def _save_config_to_file(config_data: dict[str, object]) -> FlextResult[Path]:
+def _save_config_to_file(config_data: FlextTypes.Dict) -> FlextResult[Path]:
     """Save configuration to temporary file."""
     try:
         with NamedTemporaryFile(
@@ -561,23 +557,21 @@ def _save_config_to_file(config_data: dict[str, object]) -> FlextResult[Path]:
         return FlextResult[Path].fail(f"Save failed: {e}")
 
 
-def _load_config_from_file(file_path: Path) -> FlextResult[FlextTypes.Core.Dict]:
+def _load_config_from_file(file_path: Path) -> FlextResult[FlextTypes.Dict]:
     """Load configuration from file."""
     try:
         content = file_path.read_text(encoding="utf-8")
         data = json.loads(content)
         if not isinstance(data, dict):
-            return FlextResult[FlextTypes.Core.Dict].fail(
-                "Loaded data is not a dictionary"
-            )
+            return FlextResult[FlextTypes.Dict].fail("Loaded data is not a dictionary")
         # Cast to proper type after isinstance check
-        typed_data: FlextTypes.Core.Dict = data
-        return FlextResult[FlextTypes.Core.Dict].ok(typed_data)
+        typed_data: FlextTypes.Dict = data
+        return FlextResult[FlextTypes.Dict].ok(typed_data)
     except Exception as e:
-        return FlextResult[FlextTypes.Core.Dict].fail(f"Load failed: {e}")
+        return FlextResult[FlextTypes.Dict].fail(f"Load failed: {e}")
 
 
-def _process_sample_files() -> FlextResult[list[str]]:
+def _process_sample_files() -> FlextResult[FlextTypes.StringList]:
     """Create and process sample files."""
     try:
         with tempfile.TemporaryDirectory() as temp_dir:
@@ -589,19 +583,19 @@ def _process_sample_files() -> FlextResult[list[str]]:
                 file_path.write_text(f"Sample content for file {i}\nLine 2\nLine 3")
 
             # Process files
-            results: list[str] = []
+            results: FlextTypes.StringList = []
             for file_path in temp_path.glob("*.txt"):
                 processed = (
                     f"Processed: {file_path.name} ({file_path.stat().st_size} bytes)"
                 )
                 results.append(processed)
 
-            return FlextResult[list[str]].ok(results)
+            return FlextResult[FlextTypes.StringList].ok(results)
     except Exception as e:
-        return FlextResult[list[str]].fail(f"Batch processing failed: {e}")
+        return FlextResult[FlextTypes.StringList].fail(f"Batch processing failed: {e}")
 
 
-def _export_to_json(data: list[dict[str, object]]) -> FlextResult[str]:
+def _export_to_json(data: list[FlextTypes.Dict]) -> FlextResult[str]:
     """Export data to JSON format."""
     try:
         json_output = json.dumps(data, indent=2)
@@ -610,7 +604,7 @@ def _export_to_json(data: list[dict[str, object]]) -> FlextResult[str]:
         return FlextResult[str].fail(f"JSON export failed: {e}")
 
 
-def _export_to_csv(data: list[dict[str, object]]) -> FlextResult[str]:
+def _export_to_csv(data: list[FlextTypes.Dict]) -> FlextResult[str]:
     """Export data to CSV format."""
     try:
         output = io.StringIO()

@@ -27,6 +27,7 @@ from flext_core import (
     FlextLogger,
     FlextResult,
     FlextService,
+    FlextTypes,
 )
 
 type HandlerData = FlextCliTypes.CliCommandResult
@@ -55,7 +56,7 @@ class FlextCliService(FlextService[FlextCliTypes.Data.CliDataDict]):
         """
         super().__init__(**data)
         self._logger = FlextLogger(__name__)
-        self._container = FlextContainer.get_global()
+        self._container = FlextContainer()
 
         # Inject specialized domain services for delegation
         self._config_service = FlextCliConfig()
@@ -66,9 +67,9 @@ class FlextCliService(FlextService[FlextCliTypes.Data.CliDataDict]):
 
         # Type-safe configuration initialization
         self._config = config or {}
-        self._commands: dict[str, object] = {}
-        self._plugins: dict[str, object] = {}
-        self._sessions: dict[str, object] = {}
+        self._commands: FlextTypes.Dict = {}
+        self._plugins: FlextTypes.Dict = {}
+        self._sessions: FlextTypes.Dict = {}
         self._session_active = False
 
     # ==========================================================================
@@ -135,7 +136,9 @@ class FlextCliService(FlextService[FlextCliTypes.Data.CliDataDict]):
     def execute_command(
         self,
         name: str,
-        context: FlextCliTypes.Command.CommandContext | list[str] | None = None,
+        context: FlextCliTypes.Command.CommandContext
+        | FlextTypes.StringList
+        | None = None,
         timeout: float | None = None,
     ) -> FlextResult[FlextCliTypes.Command.CommandResult]:
         """Execute registered command with context.
@@ -180,18 +183,20 @@ class FlextCliService(FlextService[FlextCliTypes.Data.CliDataDict]):
                 f"Command execution failed: {e}",
             )
 
-    def list_commands(self) -> FlextResult[list[str]]:
+    def list_commands(self) -> FlextResult[FlextTypes.StringList]:
         """List all registered commands.
 
         Returns:
-            FlextResult[list[str]]: List of command names or error
+            FlextResult[FlextTypes.StringList]: List of command names or error
 
         """
         try:
             command_names = list(self._commands.keys())
-            return FlextResult[list[str]].ok(command_names)
+            return FlextResult[FlextTypes.StringList].ok(command_names)
         except Exception as e:
-            return FlextResult[list[str]].fail(f"Command listing failed: {e}")
+            return FlextResult[FlextTypes.StringList].fail(
+                f"Command listing failed: {e}"
+            )
 
     # ==========================================================================
     # CLI CONFIGURATION MANAGEMENT - Using FlextCliTypes.Configuration types
@@ -364,11 +369,11 @@ class FlextCliService(FlextService[FlextCliTypes.Data.CliDataDict]):
                 f"Statistics collection failed: {e}",
             )
 
-    def get_service_info(self) -> dict[str, object]:
+    def get_service_info(self) -> FlextTypes.Dict:
         """Get comprehensive service information.
 
         Returns:
-            dict[str, object]: Service information
+            FlextTypes.Dict: Service information
 
         """
         try:
@@ -376,7 +381,7 @@ class FlextCliService(FlextService[FlextCliTypes.Data.CliDataDict]):
             commands_count = len(self._commands)
             config_keys = list(self._config.keys()) if self._config else []
 
-            info_data: dict[str, object] = {
+            info_data: FlextTypes.Dict = {
                 "service_name": "FlextCliService",
                 "commands_registered": commands_count,
                 "configuration_sections": config_keys,
@@ -473,114 +478,116 @@ class FlextCliService(FlextService[FlextCliTypes.Data.CliDataDict]):
                 f"Service execution failed: {e}",
             )
 
-    def health_check(self) -> FlextResult[dict[str, object]]:
+    def health_check(self) -> FlextResult[FlextTypes.Dict]:
         """Perform health check on the CLI service.
 
         Returns:
-            FlextResult[dict[str, object]]: Health check result
+            FlextResult[FlextTypes.Dict]: Health check result
 
         """
         try:
-            return FlextResult[dict[str, object]].ok({
+            return FlextResult[FlextTypes.Dict].ok({
                 "service_healthy": True,
                 "commands_count": len(self._commands),
                 "session_active": self._session_active,
                 "timestamp": datetime.now(UTC).isoformat(),
             })
         except Exception as e:
-            return FlextResult[dict[str, object]].fail(f"Health check failed: {e}")
+            return FlextResult[FlextTypes.Dict].fail(f"Health check failed: {e}")
 
-    def get_config(self) -> FlextResult[dict[str, object]]:
+    def get_config(self) -> FlextResult[FlextTypes.Dict]:
         """Get current service configuration.
 
         Returns:
-            FlextResult[dict[str, object]]: Configuration data
+            FlextResult[FlextTypes.Dict]: Configuration data
 
         """
         try:
-            return FlextResult[dict[str, object]].ok(
+            return FlextResult[FlextTypes.Dict].ok(
                 dict(self._config) if self._config else {}
             )
         except Exception as e:
-            return FlextResult[dict[str, object]].fail(f"Get config failed: {e}")
+            return FlextResult[FlextTypes.Dict].fail(f"Get config failed: {e}")
 
-    def get_handlers(self) -> FlextResult[list[str]]:
+    def get_handlers(self) -> FlextResult[FlextTypes.StringList]:
         """Get list of registered command handlers.
 
         Returns:
-            FlextResult[list[str]]: List of handler names
+            FlextResult[FlextTypes.StringList]: List of handler names
 
         """
         try:
-            return FlextResult[list[str]].ok(
+            return FlextResult[FlextTypes.StringList].ok(
                 list(self._commands.keys()) if self._commands else []
             )
         except Exception as e:
-            return FlextResult[list[str]].fail(f"Get handlers failed: {e}")
+            return FlextResult[FlextTypes.StringList].fail(f"Get handlers failed: {e}")
 
-    def get_plugins(self) -> FlextResult[list[str]]:
+    def get_plugins(self) -> FlextResult[FlextTypes.StringList]:
         """Get list of registered plugins.
 
         Returns:
-            FlextResult[list[str]]: List of plugin names
+            FlextResult[FlextTypes.StringList]: List of plugin names
 
         """
         try:
-            return FlextResult[list[str]].ok(
+            return FlextResult[FlextTypes.StringList].ok(
                 list(self._plugins.keys()) if self._plugins else []
             )
         except Exception as e:
-            return FlextResult[list[str]].fail(f"Get plugins failed: {e}")
+            return FlextResult[FlextTypes.StringList].fail(f"Get plugins failed: {e}")
 
-    def get_sessions(self) -> FlextResult[list[str]]:
+    def get_sessions(self) -> FlextResult[FlextTypes.StringList]:
         """Get list of active sessions.
 
         Returns:
-            FlextResult[list[str]]: List of session IDs
+            FlextResult[FlextTypes.StringList]: List of session IDs
 
         """
         try:
-            return FlextResult[list[str]].ok(
+            return FlextResult[FlextTypes.StringList].ok(
                 list(self._sessions.keys()) if self._sessions else []
             )
         except Exception as e:
-            return FlextResult[list[str]].fail(f"Get sessions failed: {e}")
+            return FlextResult[FlextTypes.StringList].fail(f"Get sessions failed: {e}")
 
-    def get_commands(self) -> FlextResult[list[str]]:
+    def get_commands(self) -> FlextResult[FlextTypes.StringList]:
         """Get list of registered commands.
 
         Returns:
-            FlextResult[list[str]]: List of command names
+            FlextResult[FlextTypes.StringList]: List of command names
 
         """
         try:
-            return FlextResult[list[str]].ok(
+            return FlextResult[FlextTypes.StringList].ok(
                 list(self._commands.keys()) if self._commands else []
             )
         except Exception as e:
-            return FlextResult[list[str]].fail(f"Get commands failed: {e}")
+            return FlextResult[FlextTypes.StringList].fail(f"Get commands failed: {e}")
 
-    def get_formatters(self) -> FlextResult[list[str]]:
+    def get_formatters(self) -> FlextResult[FlextTypes.StringList]:
         """Get list of available formatters from constants.
 
         Returns:
-            FlextResult[list[str]]: List of formatter names
+            FlextResult[FlextTypes.StringList]: List of formatter names
 
         """
-        return FlextResult[list[str]].ok(FlextCliConstants.OUTPUT_FORMATS_LIST)
+        return FlextResult[FlextTypes.StringList].ok(
+            FlextCliConstants.OUTPUT_FORMATS_LIST
+        )
 
-    def load_configuration(self, config_path: str) -> FlextResult[dict[str, object]]:
+    def load_configuration(self, config_path: str) -> FlextResult[FlextTypes.Dict]:
         """Load configuration from file.
 
         Args:
             config_path: Path to configuration file
 
         Returns:
-            FlextResult[dict[str, object]]: Loaded configuration
+            FlextResult[FlextTypes.Dict]: Loaded configuration
 
         """
         if not config_path or not config_path.strip():
-            return FlextResult[dict[str, object]].fail(
+            return FlextResult[FlextTypes.Dict].fail(
                 "Configuration path cannot be empty"
             )
 
@@ -588,12 +595,12 @@ class FlextCliService(FlextService[FlextCliTypes.Data.CliDataDict]):
             config_file = Path(config_path)
 
             if not config_file.exists():
-                return FlextResult[dict[str, object]].fail(
+                return FlextResult[FlextTypes.Dict].fail(
                     f"Configuration file not found: {config_path}"
                 )
 
             if not config_file.is_file():
-                return FlextResult[dict[str, object]].fail(
+                return FlextResult[FlextTypes.Dict].fail(
                     f"Path is not a file: {config_path}"
                 )
 
@@ -602,23 +609,21 @@ class FlextCliService(FlextService[FlextCliTypes.Data.CliDataDict]):
             config_data = json.loads(content)
 
             if not isinstance(config_data, dict):
-                return FlextResult[dict[str, object]].fail(
+                return FlextResult[FlextTypes.Dict].fail(
                     "Configuration must be a JSON object"
                 )
 
-            return FlextResult[dict[str, object]].ok(config_data)
+            return FlextResult[FlextTypes.Dict].ok(config_data)
 
         except json.JSONDecodeError as e:
-            return FlextResult[dict[str, object]].fail(
+            return FlextResult[FlextTypes.Dict].fail(
                 f"Invalid JSON in configuration file: {e}"
             )
         except Exception as e:
-            return FlextResult[dict[str, object]].fail(
-                f"Load configuration failed: {e}"
-            )
+            return FlextResult[FlextTypes.Dict].fail(f"Load configuration failed: {e}")
 
     def save_configuration(
-        self, config_path: str, config_data: dict[str, object]
+        self, config_path: str, config_data: FlextTypes.Dict
     ) -> FlextResult[None]:
         """Save configuration to file.
 

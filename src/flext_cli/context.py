@@ -7,8 +7,11 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 from datetime import datetime
-from typing import TypedDict
+from typing import TypedDict, Unpack
 
+from flext_cli.config import FlextCliConfig
+from flext_cli.constants import FlextCliConstants
+from flext_cli.typings import FlextCliTypes
 from flext_core import (
     FlextContext,
     FlextLogger,
@@ -18,16 +21,12 @@ from flext_core import (
     FlextUtilities,
 )
 
-from flext_cli.config import FlextCliConfig
-from flext_cli.constants import FlextCliConstants
-from flext_cli.typings import FlextCliTypes
-
 
 class FlextCliContext(FlextModels.Entity):
     """CLI execution context using domain-specific types.
 
     Manages CLI execution context with enhanced type safety using FlextCliTypes
-    instead of generic FlextTypes.Core types. Extends FlextModels.Entity for
+    instead of generic FlextTypes types. Extends FlextModels.Entity for
     proper entity lifecycle management and integrates FlextContext for context
     management patterns (scoping, propagation, state management).
 
@@ -49,7 +48,7 @@ class FlextCliContext(FlextModels.Entity):
     def __init__(
         self,
         command: str | None = None,
-        arguments: list[str] | None = None,
+        arguments: FlextTypes.StringList | None = None,
         environment_variables: FlextCliTypes.Data.CliConfigData | None = None,
         working_directory: str | None = None,
         **data: Unpack[EntityData],
@@ -116,17 +115,17 @@ class FlextCliContext(FlextModels.Entity):
         self._command = value
 
     @property
-    def arguments(self) -> list[str]:
+    def arguments(self) -> FlextTypes.StringList:
         """Get command line arguments.
 
         Returns:
-            list[str]: List of command arguments
+            FlextTypes.StringList: List of command arguments
 
         """
         return self._arguments.copy()
 
     @arguments.setter
-    def arguments(self, value: list[str]) -> None:
+    def arguments(self, value: FlextTypes.StringList) -> None:
         """Set command line arguments.
 
         Args:
@@ -326,9 +325,7 @@ class FlextCliContext(FlextModels.Entity):
         except Exception as e:
             return FlextResult[None].fail(f"Argument removal failed: {e}")
 
-    def set_metadata(
-        self, key: str, value: FlextTypes.Core.JsonValue
-    ) -> FlextResult[None]:
+    def set_metadata(self, key: str, value: FlextTypes.JsonValue) -> FlextResult[None]:
         """Set context metadata using CLI-specific data types.
 
         Args:
@@ -384,7 +381,7 @@ class FlextCliContext(FlextModels.Entity):
                 "arguments_count": len(self._arguments),
                 "arguments": list(
                     self._arguments
-                ),  # Convert to list[object] for JsonValue compatibility
+                ),  # Convert to FlextTypes.List for JsonValue compatibility
                 "environment_variables_count": len(self._environment_variables),
                 "working_directory": self._working_directory or "not_set",
                 "is_active": self._is_active,
@@ -400,22 +397,22 @@ class FlextCliContext(FlextModels.Entity):
                 f"Context summary generation failed: {e}",
             )
 
-    def execute(self) -> FlextResult[dict[str, object]]:
+    def execute(self) -> FlextResult[FlextTypes.Dict]:
         """Execute the CLI context.
 
         Returns:
-            FlextResult[dict[str, object]]: Execution result
+            FlextResult[FlextTypes.Dict]: Execution result
 
         """
         try:
-            return FlextResult[dict[str, object]].ok({
+            return FlextResult[FlextTypes.Dict].ok({
                 "context_executed": True,
                 "command": self._command,
                 "arguments_count": len(self._arguments) if self._arguments else 0,
                 "timestamp": FlextUtilities.Generators.generate_timestamp(),
             })
         except Exception as e:
-            return FlextResult[dict[str, object]].fail(f"Context execution failed: {e}")
+            return FlextResult[FlextTypes.Dict].fail(f"Context execution failed: {e}")
 
     @property
     def timeout_seconds(self) -> int:
@@ -437,11 +434,11 @@ class FlextCliContext(FlextModels.Entity):
         """
         self._timeout_seconds = value
 
-    def to_dict(self) -> dict[str, object]:
+    def to_dict(self) -> FlextTypes.Dict:
         """Convert context to dictionary.
 
         Returns:
-            dict[str, object]: Context as dictionary
+            FlextTypes.Dict: Context as dictionary
 
         """
         return {

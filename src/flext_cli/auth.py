@@ -27,6 +27,7 @@ from flext_core import (
     FlextLogger,
     FlextResult,
     FlextService,
+    FlextTypes,
     FlextUtilities,
 )
 
@@ -54,7 +55,7 @@ class FlextCliAuth(FlextService[FlextCliTypes.Auth.AuthResult]):
         """Initialize authentication service with flext-core integration."""
         super().__init__(**_data)
         self._logger = FlextLogger(__name__)
-        self._container = FlextContainer.get_global()
+        self._container = FlextContainer()
 
         # Use config module
         if config is None:
@@ -184,7 +185,7 @@ class FlextCliAuth(FlextService[FlextCliTypes.Auth.AuthResult]):
             return FlextResult[None].fail(f"Token paths failed: {paths_result.error}")
 
         paths = paths_result.value
-        errors: list[str] = []
+        errors: FlextTypes.StringList = []
 
         # Clear access token
         if paths["token_path"].exists():
@@ -217,7 +218,7 @@ class FlextCliAuth(FlextService[FlextCliTypes.Auth.AuthResult]):
         authenticated = self.is_authenticated()
 
         status: dict[
-            str, str | int | float | bool | list[object] | dict[str, object] | None
+            str, str | int | float | bool | FlextTypes.List | FlextTypes.Dict | None
         ] = {
             "authenticated": authenticated,
             "token_file": str(paths["token_path"]),

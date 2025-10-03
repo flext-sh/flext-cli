@@ -19,7 +19,7 @@ from flext_core import FlextResult, FlextTypes
 def print_demo_completion(
     console: Console,
     demo_name: str,
-    features: FlextTypes.Core.StringList,
+    features: FlextTypes.StringList,
     *,
     border_style: str = "green",
 ) -> None:
@@ -49,9 +49,9 @@ def print_demo_completion(
 
 def handle_command_result(
     console: Console,
-    result: FlextResult[FlextTypes.Core.Dict],
+    result: FlextResult[FlextTypes.Dict],
     action: str,
-    success_fields: FlextTypes.Core.StringList | None = None,
+    success_fields: FlextTypes.StringList | None = None,
 ) -> None:
     """Generic handler for CQRS command results to eliminate code duplication.
 

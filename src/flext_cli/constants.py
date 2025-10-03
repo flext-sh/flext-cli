@@ -12,7 +12,7 @@ from __future__ import annotations
 from enum import StrEnum
 from typing import Final
 
-from flext_core import FlextConstants
+from flext_core import FlextConstants, FlextTypes
 
 
 class FlextCliConstants(FlextConstants):
@@ -108,7 +108,7 @@ class FlextCliConstants(FlextConstants):
         US_PHONE_DIGITS: Final[int] = 10
 
     # Constant lists for validation and iteration
-    OUTPUT_FORMATS_LIST: Final[list[str]] = [
+    OUTPUT_FORMATS_LIST: Final[FlextTypes.StringList] = [
         OutputFormats.JSON.value,
         OutputFormats.YAML.value,
         OutputFormats.CSV.value,
@@ -116,7 +116,7 @@ class FlextCliConstants(FlextConstants):
         OutputFormats.PLAIN.value,
     ]
 
-    LOG_LEVELS_LIST: Final[list[str]] = [
+    LOG_LEVELS_LIST: Final[FlextTypes.StringList] = [
         "DEBUG",
         "INFO",
         "WARNING",
@@ -124,14 +124,14 @@ class FlextCliConstants(FlextConstants):
         "CRITICAL",
     ]
 
-    COMMAND_STATUSES_LIST: Final[list[str]] = [
+    COMMAND_STATUSES_LIST: Final[FlextTypes.StringList] = [
         CommandStatus.PENDING.value,
         CommandStatus.RUNNING.value,
         CommandStatus.COMPLETED.value,
         CommandStatus.FAILED.value,
     ]
 
-    ERROR_CODES_LIST: Final[list[str]] = [
+    ERROR_CODES_LIST: Final[FlextTypes.StringList] = [
         ErrorCodes.CLI_ERROR.value,
         ErrorCodes.VALIDATION_ERROR.value,
         ErrorCodes.CONFIGURATION_ERROR.value,
@@ -195,7 +195,7 @@ class FlextCliConstants(FlextConstants):
         HEAD = "HEAD"
         OPTIONS = "OPTIONS"
 
-    HTTP_METHODS_LIST: Final[list[str]] = [
+    HTTP_METHODS_LIST: Final[FlextTypes.StringList] = [
         "GET",
         "POST",
         "PUT",
@@ -214,7 +214,7 @@ class FlextCliConstants(FlextConstants):
         SUCCESS = "success"
         DEBUG = "debug"
 
-    MESSAGE_TYPES_LIST: Final[list[str]] = [
+    MESSAGE_TYPES_LIST: Final[FlextTypes.StringList] = [
         MessageTypes.INFO.value,
         MessageTypes.ERROR.value,
         MessageTypes.WARNING.value,

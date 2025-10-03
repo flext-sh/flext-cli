@@ -12,7 +12,7 @@ from __future__ import annotations
 from typing import override
 
 from flext_cli.models import FlextCliModels
-from flext_core import FlextProcessors, FlextResult
+from flext_core import FlextProcessors, FlextResult, FlextTypes
 
 
 class FlextCliProcessors(FlextProcessors):
@@ -34,12 +34,12 @@ class FlextCliProcessors(FlextProcessors):
         super().__init__()
         self._command_processor = self.CommandProcessor()
 
-    def execute(self) -> FlextResult[dict[str, object]]:
+    def execute(self) -> FlextResult[FlextTypes.Dict]:
         """Execute processors service operation.
 
         Provides CLI-specific processor execution status.
         """
-        return FlextResult[dict[str, object]].ok({
+        return FlextResult[FlextTypes.Dict].ok({
             "status": "operational",
             "service": "flext-cli-processors",
             "timestamp": "2025-01-08T00:00:00Z",
@@ -193,7 +193,7 @@ class FlextCliProcessors(FlextProcessors):
         @override
         def __init__(self) -> None:
             """Initialize data processor."""
-            self._processed_data: list[object] = []
+            self._processed_data: FlextTypes.List = []
 
         def _transform_data(self, data: object) -> object:
             """Transform data for processing.
@@ -241,17 +241,17 @@ class FlextCliProcessors(FlextProcessors):
             except Exception as e:
                 return FlextResult[object].fail(f"Data processing failed: {e}")
 
-        def get_processed_data(self) -> FlextResult[list[object]]:
+        def get_processed_data(self) -> FlextResult[FlextTypes.List]:
             """Get all processed data.
 
             Returns:
-                FlextResult[list[object]]: List of processed data or error
+                FlextResult[FlextTypes.List]: List of processed data or error
 
             """
             try:
-                return FlextResult[list[object]].ok(self._processed_data.copy())
+                return FlextResult[FlextTypes.List].ok(self._processed_data.copy())
             except Exception as e:
-                return FlextResult[list[object]].fail(
+                return FlextResult[FlextTypes.List].fail(
                     f"Failed to get processed data: {e}"
                 )
 

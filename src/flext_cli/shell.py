@@ -21,12 +21,11 @@ try:
 except ImportError:
     readline = None
 
-from flext_core import FlextLogger, FlextResult, FlextService
-
 from flext_cli.cli import FlextCliClick
+from flext_core import FlextLogger, FlextResult, FlextService, FlextTypes
 
 
-class FlextCliShell(FlextService[None]):
+class FlextCliShell(FlextService[object]):
     """Interactive shell (REPL) for CLI applications.
 
     Provides a full-featured interactive shell with command history,
@@ -69,8 +68,8 @@ class FlextCliShell(FlextService[None]):
         self._history_file = Path(history_file) if history_file else None
         self._enable_completion = enable_completion
         self._running = False
-        self._history: list[str] = []
-        self._session_commands: list[str] = []
+        self._history: FlextTypes.StringList = []
+        self._session_commands: FlextTypes.StringList = []
 
     def run(self) -> FlextResult[None]:
         """Start the interactive shell.
@@ -426,7 +425,7 @@ class FlextCliShell(FlextService[None]):
         except Exception:
             return None
 
-    def execute(self) -> FlextResult[None]:
+    def execute(self) -> FlextResult[object]:
         """Execute shell service (runs interactive shell).
 
         Returns:
@@ -435,7 +434,7 @@ class FlextCliShell(FlextService[None]):
         """
         return self.run()
 
-    def execute(self) -> FlextResult[None]:
+    def execute_sync(self) -> FlextResult[object]:
         """Execute shell service (signature deprecated, now sync).
 
         Note: This method is now synchronous. The signature is maintained

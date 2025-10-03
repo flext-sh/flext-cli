@@ -15,9 +15,9 @@ import time
 from pathlib import Path
 
 import pytest
+from flext_tests import FlextTestsUtilities
 
 from flext_cli.constants import FlextCliConstants
-from flext_tests import FlextTestsUtilities
 
 
 class TestFlextCliConstants:

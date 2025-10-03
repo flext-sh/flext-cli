@@ -12,9 +12,9 @@ from __future__ import annotations
 import click
 import pytest
 from click.testing import CliRunner
-from flext_core import FlextResult
 
 from flext_cli.main import FlextCliMain
+from flext_core import FlextResult
 
 
 class TestFlextCliMain:
@@ -600,9 +600,9 @@ class TestFlextCliMain:
             "--format", "-f", type=click.Choice(["json", "yaml"]), default="json"
         )
         @click.argument("filename")
-        def process(verbose: bool, count: int, format: str, filename: str) -> None:
+        def process(verbose: bool, count: int, format_type: str, filename: str) -> None:
             if verbose:
-                click.echo(f"Processing {filename} {count} times as {format}")
+                click.echo(f"Processing {filename} {count} times as {format_type}")
             else:
                 click.echo(f"Processing {filename}")
 

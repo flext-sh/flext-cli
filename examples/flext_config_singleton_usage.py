@@ -13,9 +13,8 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from flext_core import FlextConfig
-
 from flext_cli import FlextCliConfig, FlextCliConstants
+from flext_core import FlextConfig, FlextTypes
 
 
 def demonstrate_flext_config_singleton() -> None:
@@ -27,7 +26,7 @@ def demonstrate_flext_config_singleton() -> None:
     FlextCliConfig()
 
     # 3. Simulate CLI parameter overrides
-    cli_overrides: dict[str, object] = {
+    cli_overrides: FlextTypes.Dict = {
         "debug": True,
         "profile": "development",
         "log_level": "DEBUG",

@@ -17,10 +17,10 @@ from pathlib import Path
 
 import pytest
 import yaml
-from flext_core import FlextResult
 from flext_tests import FlextTestsUtilities
 
 from flext_cli.file_tools import FlextCliFileTools
+from flext_core import FlextResult, FlextTypes
 
 
 class TestFlextCliFileTools:
@@ -48,17 +48,6 @@ class TestFlextCliFileTools:
 
     def test_file_tools_execute_method(self, file_tools: FlextCliFileTools) -> None:
         """Test file tools execute method with real functionality."""
-        result = file_tools.execute()
-
-        assert isinstance(result, FlextResult)
-        assert result.is_success
-
-        data = result.unwrap()
-        assert isinstance(data, bool)
-        assert data is True
-
-    def test_file_tools_execute_method(self, file_tools: FlextCliFileTools) -> None:
-        """Test file tools execute method (now sync, delegates to execute)."""
         result = file_tools.execute()
 
         assert isinstance(result, FlextResult)
@@ -166,7 +155,7 @@ class TestFlextCliFileTools:
     ) -> None:
         """Test writing JSON file functionality."""
         test_file = temp_dir / "test_write.json"
-        test_data: dict[str, object] = {
+        test_data: FlextTypes.Dict = {
             "name": "test",
             "value": 123,
             "nested": {"inner": "data"},
@@ -219,7 +208,7 @@ class TestFlextCliFileTools:
     ) -> None:
         """Test writing YAML file functionality."""
         test_file = temp_dir / "test_write.yaml"
-        test_data: dict[str, object] = {
+        test_data: FlextTypes.Dict = {
             "name": "test",
             "value": 123,
             "nested": {"inner": "data"},
@@ -797,7 +786,7 @@ class TestFlextCliFileTools:
     ) -> None:
         """Test complete file workflow integration."""
         # 1. Create test data
-        test_data: dict[str, object] = {
+        test_data: FlextTypes.Dict = {
             "name": "integration_test",
             "value": 42,
             "nested": {"inner": "data"},

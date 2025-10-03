@@ -45,10 +45,11 @@ from flext_core import (
     FlextLogger,
     FlextResult,
     FlextService,
+    FlextTypes,
 )
 
 
-class FlextCliFormatters(FlextService[None]):
+class FlextCliFormatters(FlextService[object]):
     r"""Complete Rich abstraction layer.
 
     This class wraps ALL Rich functionality to prevent direct Rich imports
@@ -739,7 +740,7 @@ class FlextCliFormatters(FlextService[None]):
             style if isinstance(style, (str, Style)) else "rule.line"
         )
         align_str: Literal["left", "center", "right"] = (
-            align  # type: ignore[assignment]
+            align
             if isinstance(align, str) and align in {"left", "center", "right"}
             else "center"
         )
@@ -783,13 +784,13 @@ class FlextCliFormatters(FlextService[None]):
         try:
             # Convert justify and overflow to proper Rich types
             justify_method: JustifyMethod | None = (
-                justify  # type: ignore[assignment]
+                justify
                 if isinstance(justify, str)
                 and justify in {"default", "left", "center", "right", "full"}
                 else None
             )
             overflow_method: OverflowMethod | None = (
-                overflow  # type: ignore[assignment]
+                overflow
                 if isinstance(overflow, str)
                 and overflow in {"fold", "crop", "ellipsis", "ignore"}
                 else None
@@ -834,12 +835,12 @@ class FlextCliFormatters(FlextService[None]):
         try:
             # Convert align and vertical to proper Rich types
             align_method: AlignMethod = (
-                align  # type: ignore[assignment]
+                align
                 if isinstance(align, str) and align in {"left", "center", "right"}
                 else "center"
             )
             vertical_method: VerticalAlignMethod | None = (
-                vertical  # type: ignore[assignment]
+                vertical
                 if isinstance(vertical, str) and vertical in {"top", "middle", "bottom"}
                 else None
             )
@@ -1093,7 +1094,7 @@ class FlextCliFormatters(FlextService[None]):
     def prompt_choice(
         self,
         prompt_text: str,
-        choices: list[str],
+        choices: FlextTypes.StringList,
         default: str | None = None,
     ) -> FlextResult[str]:
         """Prompt user to select from a list of choices.
@@ -1230,7 +1231,7 @@ class FlextCliFormatters(FlextService[None]):
             self._logger.exception(error_msg)
             return FlextResult[None].fail(error_msg)
 
-    def execute(self) -> FlextResult[None]:
+    def execute(self) -> FlextResult[object]:
         """Execute Rich formatters layer operations.
 
         Returns:

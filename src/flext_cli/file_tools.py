@@ -40,6 +40,7 @@ from flext_core import (
     FlextLogger,
     FlextResult,
     FlextService,
+    FlextTypes,
 )
 
 
@@ -73,7 +74,7 @@ class FlextCliFileTools(FlextService[bool]):
     def __init__(self) -> None:
         """Initialize file tools with format registry."""
         super().__init__()
-        self._container = FlextContainer.get_global()
+        self._container = FlextContainer()
         self._logger = FlextLogger(__name__)
         self._supported_formats = self._initialize_format_registry()
 
@@ -82,7 +83,7 @@ class FlextCliFileTools(FlextService[bool]):
         """Execute the main domain service operation - required by FlextService."""
         return FlextResult[bool].ok(True)
 
-    def _initialize_format_registry(self) -> dict[str, dict[str, object]]:
+    def _initialize_format_registry(self) -> FlextTypes.NestedDict:
         """Initialize the format registry with supported file types."""
         return {
             ".json": {
@@ -175,18 +176,20 @@ class FlextCliFileTools(FlextService[bool]):
         except Exception as e:
             return FlextResult[str].fail(f"Failed to detect file format: {e}")
 
-    def get_supported_formats(self) -> FlextResult[list[str]]:
+    def get_supported_formats(self) -> FlextResult[FlextTypes.StringList]:
         """Get list of all supported file formats.
 
         Returns:
-            FlextResult[list[str]]: List of supported formats
+            FlextResult[FlextTypes.StringList]: List of supported formats
 
         """
         try:
             formats = [str(info["format"]) for info in self._supported_formats.values()]
-            return FlextResult[list[str]].ok(formats)
+            return FlextResult[FlextTypes.StringList].ok(formats)
         except Exception as e:
-            return FlextResult[list[str]].fail(f"Failed to get supported formats: {e}")
+            return FlextResult[FlextTypes.StringList].fail(
+                f"Failed to get supported formats: {e}"
+            )
 
     def load_file(self, file_path: str | Path, **kwargs: object) -> FlextResult[object]:
         """Load file with automatic format detection using monadic composition.
@@ -208,44 +211,44 @@ class FlextCliFileTools(FlextService[bool]):
 
     def _validate_file_format(
         self, file_path: str | Path
-    ) -> FlextResult[dict[str, object]]:
+    ) -> FlextResult[FlextTypes.Dict]:
         """Validate file format and return file info.
 
         Args:
             file_path: Path to the file to validate
 
         Returns:
-            FlextResult[dict[str, object]]: File info or error
+            FlextResult[FlextTypes.Dict]: File info or error
 
         """
         try:
             file_path_obj = Path(file_path)
             if not file_path_obj.exists():
-                return FlextResult[dict[str, object]].fail(
+                return FlextResult[FlextTypes.Dict].fail(
                     f"File does not exist: {file_path}"
                 )
 
             # Get file format info
             format_info = self.detect_file_format(file_path)
             if format_info.is_failure:
-                return FlextResult[dict[str, object]].fail(
+                return FlextResult[FlextTypes.Dict].fail(
                     format_info.error or "Format detection failed"
                 )
 
             # Create file info dict
-            file_info: dict[str, object] = {
+            file_info: FlextTypes.Dict = {
                 "path": str(file_path_obj),
                 "format": format_info.value,
                 "extension": file_path_obj.suffix.lower(),
                 "size": file_path_obj.stat().st_size,
             }
 
-            return FlextResult[dict[str, object]].ok(file_info)
+            return FlextResult[FlextTypes.Dict].ok(file_info)
         except Exception as e:
-            return FlextResult[dict[str, object]].fail(f"File validation failed: {e}")
+            return FlextResult[FlextTypes.Dict].fail(f"File validation failed: {e}")
 
     def _execute_load_method(
-        self, file_info: dict[str, object], **kwargs: object
+        self, file_info: FlextTypes.Dict, **kwargs: object
     ) -> FlextResult[object]:
         """Execute the appropriate load method based on file info.
 
@@ -430,12 +433,12 @@ class FlextCliFileTools(FlextService[bool]):
         self,
         file_path: str,
         **kwargs: str | float | bool | None,
-    ) -> FlextResult[list[dict[str, object]]]:
+    ) -> FlextResult[list[FlextTypes.Dict]]:
         """Internal CSV loader using pandas."""
         try:
             file_path_obj = Path(file_path)
             if not file_path_obj.exists():
-                return FlextResult[list[dict[str, object]]].fail(
+                return FlextResult[list[FlextTypes.Dict]].fail(
                     f"Failed to load CSV file: File does not exist: {file_path}"
                 )
 
@@ -444,7 +447,7 @@ class FlextCliFileTools(FlextService[bool]):
                 self._logger.debug(f"Loading CSV with options: {kwargs}")
 
             # Use pandas for enhanced CSV loading with proper type filtering
-            pandas_kwargs: dict[str, object] = {}
+            pandas_kwargs: FlextTypes.Dict = {}
 
             # Filter kwargs to only include valid pandas read_csv parameters with correct types
             for key, value in kwargs.items():
@@ -461,7 +464,7 @@ class FlextCliFileTools(FlextService[bool]):
             try:
                 result = pd.read_csv(str(file_path_obj), **pandas_kwargs)
             except Exception as e:
-                return FlextResult[list[dict[str, object]]].fail(
+                return FlextResult[list[FlextTypes.Dict]].fail(
                     f"Failed to load CSV file: {e}"
                 )
             # Ensure we have a DataFrame, not a TextFileReader
@@ -473,12 +476,12 @@ class FlextCliFileTools(FlextService[bool]):
             # Convert DataFrame to list of dicts with proper typing
             records = df.to_dict("records")
             # Ensure all keys are strings for type safety
-            typed_records: list[dict[str, object]] = [
+            typed_records: list[FlextTypes.Dict] = [
                 {str(k): v for k, v in record.items()} for record in records
             ]
-            return FlextResult[list[dict[str, object]]].ok(typed_records)
+            return FlextResult[list[FlextTypes.Dict]].ok(typed_records)
         except Exception as e:
-            return FlextResult[list[dict[str, object]]].fail(
+            return FlextResult[list[FlextTypes.Dict]].fail(
                 f"Failed to load CSV file: {e}"
             )
 
@@ -507,7 +510,7 @@ class FlextCliFileTools(FlextService[bool]):
                     )
 
             # Convert kwargs to proper types for pandas to_csv - filter out complex types
-            pandas_to_csv_kwargs: dict[str, object] = {
+            pandas_to_csv_kwargs: FlextTypes.Dict = {
                 k: v
                 for k, v in kwargs.items()
                 if isinstance(v, (str, int, float, bool, type(None)))
@@ -524,12 +527,12 @@ class FlextCliFileTools(FlextService[bool]):
         except Exception as e:
             return FlextResult[bool].fail(f"Failed to save CSV file: {e}")
 
-    def _load_tsv(self, file_path: str) -> FlextResult[list[dict[str, object]]]:
+    def _load_tsv(self, file_path: str) -> FlextResult[list[FlextTypes.Dict]]:
         """Internal TSV loader using pandas."""
         try:
             file_path_obj = Path(file_path)
             if not file_path_obj.exists():
-                return FlextResult[list[dict[str, object]]].fail(
+                return FlextResult[list[FlextTypes.Dict]].fail(
                     f"Failed to load TSV file: File does not exist: {file_path}"
                 )
 
@@ -550,12 +553,12 @@ class FlextCliFileTools(FlextService[bool]):
             # Convert DataFrame to list of dicts with proper typing
             records = df.to_dict("records")
             # Ensure all keys are strings for type safety
-            typed_records: list[dict[str, object]] = [
+            typed_records: list[FlextTypes.Dict] = [
                 {str(k): v for k, v in record.items()} for record in records
             ]
-            return FlextResult[list[dict[str, object]]].ok(typed_records)
+            return FlextResult[list[FlextTypes.Dict]].ok(typed_records)
         except Exception as e:
-            return FlextResult[list[dict[str, object]]].fail(
+            return FlextResult[list[FlextTypes.Dict]].fail(
                 f"Failed to load TSV file: {e}"
             )
 
@@ -593,8 +596,8 @@ class FlextCliFileTools(FlextService[bool]):
             root = tree.getroot()
 
             # Convert XML to dict
-            def xml_to_dict(element: etree.Element) -> dict[str, object]:
-                result: dict[str, object] = {}
+            def xml_to_dict(element: etree.Element) -> FlextTypes.Dict:
+                result: FlextTypes.Dict = {}
 
                 # Handle text content
                 if element.text and element.text.strip():
@@ -719,13 +722,13 @@ class FlextCliFileTools(FlextService[bool]):
             if sheet_name is None:
                 # Load all sheets
                 excel_file = pd.ExcelFile(file_path_obj)
-                sheets_data: dict[str, list[dict[str, object]]] = {}
+                sheets_data: dict[str, list[FlextTypes.Dict]] = {}
                 for sheet in excel_file.sheet_names:
                     df = pd.read_excel(file_path_obj, sheet_name=sheet)
                     # Convert DataFrame to list of dicts with proper typing
                     records = df.to_dict("records")
                     # Ensure all keys are strings for type safety
-                    excel_records: list[dict[str, object]] = [
+                    excel_records: list[FlextTypes.Dict] = [
                         {str(k): v for k, v in record.items()} for record in records
                     ]
                     sheets_data[str(sheet)] = excel_records
@@ -739,7 +742,7 @@ class FlextCliFileTools(FlextService[bool]):
             # Convert DataFrame to list of dicts with proper typing
             records = df.to_dict("records")
             # Ensure all keys are strings for type safety
-            sheet_records: list[dict[str, object]] = [
+            sheet_records: list[FlextTypes.Dict] = [
                 {str(k): v for k, v in record.items()} for record in records
             ]
             return FlextResult[object].ok(sheet_records)
@@ -788,7 +791,7 @@ class FlextCliFileTools(FlextService[bool]):
                 return FlextResult[object].fail(f"File does not exist: {file_path}")
 
             # Extract only the specific kwargs that PyArrow read_table accepts
-            pyarrow_kwargs: dict[str, object] = {}
+            pyarrow_kwargs: FlextTypes.Dict = {}
 
             # Handle specific PyArrow parameters with proper type checking
             if "columns" in kwargs and isinstance(kwargs["columns"], list):
@@ -824,7 +827,7 @@ class FlextCliFileTools(FlextService[bool]):
 
             # Use filtered kwargs for pyarrow parquet reading
             # Convert to proper types for PyArrow
-            filtered_kwargs: dict[str, object] = {
+            filtered_kwargs: FlextTypes.Dict = {
                 key: value
                 for key, value in pyarrow_kwargs.items()
                 if key
@@ -872,7 +875,7 @@ class FlextCliFileTools(FlextService[bool]):
             table = pa.Table.from_pandas(df)
 
             # Extract only the specific kwargs that PyArrow write_table accepts
-            pyarrow_kwargs: dict[str, object] = {}
+            pyarrow_kwargs: FlextTypes.Dict = {}
 
             # Handle specific PyArrow parameters with proper type checking
             if "row_group_size" in kwargs:
@@ -918,7 +921,7 @@ class FlextCliFileTools(FlextService[bool]):
             try:
                 # Convert to proper types for PyArrow write_table
                 # Create a properly typed kwargs dict for PyArrow
-                pyarrow_write_kwargs: dict[str, object] = {}
+                pyarrow_write_kwargs: FlextTypes.Dict = {}
 
                 # Handle each parameter with proper type checking
                 if "row_group_size" in pyarrow_kwargs and isinstance(
@@ -1039,7 +1042,9 @@ class FlextCliFileTools(FlextService[bool]):
         """
         return FlextResult[None].fail("File watching not yet implemented")
 
-    def tail_file(self, file_path: str, lines: int = 10) -> FlextResult[list[str]]:
+    def tail_file(
+        self, file_path: str, lines: int = 10
+    ) -> FlextResult[FlextTypes.StringList]:
         """Get last N lines from file.
 
         Args:
@@ -1047,21 +1052,25 @@ class FlextCliFileTools(FlextService[bool]):
             lines: Number of lines to retrieve
 
         Returns:
-            FlextResult[list[str]]: Last N lines or error
+            FlextResult[FlextTypes.StringList]: Last N lines or error
 
         """
         try:
             file_path_obj = Path(file_path)
             if not file_path_obj.exists():
-                return FlextResult[list[str]].fail(f"File does not exist: {file_path}")
+                return FlextResult[FlextTypes.StringList].fail(
+                    f"File does not exist: {file_path}"
+                )
 
             with file_path_obj.open("r", encoding="utf-8") as f:
                 all_lines = f.readlines()
                 tail_lines = all_lines[-lines:] if len(all_lines) > lines else all_lines
 
-            return FlextResult[list[str]].ok([line.rstrip() for line in tail_lines])
+            return FlextResult[FlextTypes.StringList].ok([
+                line.rstrip() for line in tail_lines
+            ])
         except Exception as e:
-            return FlextResult[list[str]].fail(f"Failed to tail file: {e}")
+            return FlextResult[FlextTypes.StringList].fail(f"Failed to tail file: {e}")
 
     def read_text_file(self, file_path: str) -> FlextResult[str]:
         """Read text file content using Path from pathlib."""
@@ -1105,28 +1114,24 @@ class FlextCliFileTools(FlextService[bool]):
         except Exception as e:
             return FlextResult[bool].fail(f"Failed to write binary file: {e}")
 
-    def read_json_file(self, file_path: str) -> FlextResult[dict[str, object]]:
+    def read_json_file(self, file_path: str) -> FlextResult[FlextTypes.Dict]:
         """Read JSON file content using json module."""
         try:
             path = Path(file_path)
             if not path.exists():
-                return FlextResult[dict[str, object]].fail(
-                    f"File not found: {file_path}"
-                )
+                return FlextResult[FlextTypes.Dict].fail(f"File not found: {file_path}")
             with path.open("r", encoding="utf-8") as f:
                 data = json.load(f)
             if not isinstance(data, dict):
-                return FlextResult[dict[str, object]].fail(
-                    "JSON root must be an object"
-                )
-            return FlextResult[dict[str, object]].ok(data)
+                return FlextResult[FlextTypes.Dict].fail("JSON root must be an object")
+            return FlextResult[FlextTypes.Dict].ok(data)
         except json.JSONDecodeError as e:
-            return FlextResult[dict[str, object]].fail(f"Invalid JSON: {e}")
+            return FlextResult[FlextTypes.Dict].fail(f"Invalid JSON: {e}")
         except Exception as e:
-            return FlextResult[dict[str, object]].fail(f"Failed to read JSON file: {e}")
+            return FlextResult[FlextTypes.Dict].fail(f"Failed to read JSON file: {e}")
 
     def write_json_file(
-        self, file_path: str, data: dict[str, object]
+        self, file_path: str, data: FlextTypes.Dict
     ) -> FlextResult[bool]:
         """Write data to JSON file using json module."""
         try:
@@ -1138,44 +1143,44 @@ class FlextCliFileTools(FlextService[bool]):
         except Exception as e:
             return FlextResult[bool].fail(f"Failed to write JSON file: {e}")
 
-    def read_yaml_file(self, file_path: str) -> FlextResult[dict[str, object]]:
+    def read_yaml_file(self, file_path: str) -> FlextResult[FlextTypes.Dict]:
         """Read YAML file content."""
         result = self._load_yaml(file_path)
         if result.is_failure:
-            return FlextResult[dict[str, object]].fail(
+            return FlextResult[FlextTypes.Dict].fail(
                 result.error or "Failed to read YAML"
             )
         yaml_data = result.unwrap()
         if not isinstance(yaml_data, dict):
-            return FlextResult[dict[str, object]].fail(
-                "YAML content is not a dictionary"
-            )
-        return FlextResult[dict[str, object]].ok(yaml_data)
+            return FlextResult[FlextTypes.Dict].fail("YAML content is not a dictionary")
+        return FlextResult[FlextTypes.Dict].ok(yaml_data)
 
     def write_yaml_file(
-        self, file_path: str, data: dict[str, object]
+        self, file_path: str, data: FlextTypes.Dict
     ) -> FlextResult[bool]:
         """Write data to YAML file."""
         return self._save_yaml(file_path, data)
 
-    def read_csv_file(self, file_path: str) -> FlextResult[list[list[str]]]:
+    def read_csv_file(self, file_path: str) -> FlextResult[list[FlextTypes.StringList]]:
         """Read CSV file content as list of lists."""
         try:
             file_path_obj = Path(file_path)
             if not file_path_obj.exists():
-                return FlextResult[list[list[str]]].fail(
+                return FlextResult[list[FlextTypes.StringList]].fail(
                     f"CSV file does not exist: {file_path}"
                 )
 
             with file_path_obj.open(encoding="utf-8", newline="") as f:
                 reader = csv.reader(f)
                 data = list(reader)
-                return FlextResult[list[list[str]]].ok(data)
+                return FlextResult[list[FlextTypes.StringList]].ok(data)
         except Exception as e:
-            return FlextResult[list[list[str]]].fail(f"Failed to read CSV file: {e}")
+            return FlextResult[list[FlextTypes.StringList]].fail(
+                f"Failed to read CSV file: {e}"
+            )
 
     def write_csv_file(
-        self, file_path: str, data: list[list[str]]
+        self, file_path: str, data: list[FlextTypes.StringList]
     ) -> FlextResult[bool]:
         """Write data to CSV file."""
         try:
@@ -1189,37 +1194,41 @@ class FlextCliFileTools(FlextService[bool]):
 
     def read_csv_file_with_headers(
         self, file_path: str
-    ) -> FlextResult[list[dict[str, str]]]:
+    ) -> FlextResult[list[FlextTypes.StringDict]]:
         """Read CSV file with headers."""
         result = self._load_csv(file_path)
         if result.is_failure:
-            return FlextResult[list[dict[str, str]]].fail(
+            return FlextResult[list[FlextTypes.StringDict]].fail(
                 result.error or "Failed to read CSV"
             )
         csv_data = result.unwrap()
         if not isinstance(csv_data, list):
-            return FlextResult[list[dict[str, str]]].fail("CSV content is not a list")
-        return FlextResult[list[dict[str, str]]].ok(
-            cast("list[dict[str, str]]", csv_data)
+            return FlextResult[list[FlextTypes.StringDict]].fail(
+                "CSV content is not a list"
+            )
+        return FlextResult[list[FlextTypes.StringDict]].ok(
+            cast("list[FlextTypes.StringDict]", csv_data)
         )
 
-    def list_directory(self, directory_path: str) -> FlextResult[list[str]]:
+    def list_directory(self, directory_path: str) -> FlextResult[FlextTypes.StringList]:
         """List files in directory."""
         try:
             directory = Path(directory_path)
             if not directory.exists():
-                return FlextResult[list[str]].fail(
+                return FlextResult[FlextTypes.StringList].fail(
                     f"Directory does not exist: {directory_path}"
                 )
             if not directory.is_dir():
-                return FlextResult[list[str]].fail(
+                return FlextResult[FlextTypes.StringList].fail(
                     f"Path is not a directory: {directory_path}"
                 )
 
             files = [f.name for f in directory.iterdir() if f.is_file()]
-            return FlextResult[list[str]].ok(files)
+            return FlextResult[FlextTypes.StringList].ok(files)
         except Exception as e:
-            return FlextResult[list[str]].fail(f"Failed to list directory: {e}")
+            return FlextResult[FlextTypes.StringList].fail(
+                f"Failed to list directory: {e}"
+            )
 
     def copy_file(self, source_path: str, destination_path: str) -> FlextResult[bool]:
         """Copy file from source to destination."""
@@ -1387,28 +1396,28 @@ class FlextCliFileTools(FlextService[bool]):
 
     def find_files_by_name(
         self, directory_path: str, filename: str
-    ) -> FlextResult[list[str]]:
+    ) -> FlextResult[FlextTypes.StringList]:
         """Find files by name in directory."""
         try:
             path = Path(directory_path)
             if not path.exists():
-                return FlextResult[list[str]].fail(
+                return FlextResult[FlextTypes.StringList].fail(
                     f"Directory not found: {directory_path}"
                 )
 
             files = [str(f) for f in path.rglob(filename) if f.is_file()]
-            return FlextResult[list[str]].ok(files)
+            return FlextResult[FlextTypes.StringList].ok(files)
         except Exception as e:
-            return FlextResult[list[str]].fail(f"Failed to find files: {e}")
+            return FlextResult[FlextTypes.StringList].fail(f"Failed to find files: {e}")
 
     def find_files_by_pattern(
         self, directory_path: str, pattern: str
-    ) -> FlextResult[list[str]]:
+    ) -> FlextResult[FlextTypes.StringList]:
         """Find files by pattern in directory."""
         try:
             path = Path(directory_path)
             if not path.exists():
-                return FlextResult[list[str]].fail(
+                return FlextResult[FlextTypes.StringList].fail(
                     f"Directory not found: {directory_path}"
                 )
 
@@ -1417,18 +1426,20 @@ class FlextCliFileTools(FlextService[bool]):
                 for f in path.rglob("*")
                 if f.is_file() and fnmatch.fnmatch(f.name, pattern)
             ]
-            return FlextResult[list[str]].ok(files)
+            return FlextResult[FlextTypes.StringList].ok(files)
         except Exception as e:
-            return FlextResult[list[str]].fail(f"Failed to find files by pattern: {e}")
+            return FlextResult[FlextTypes.StringList].fail(
+                f"Failed to find files by pattern: {e}"
+            )
 
     def find_files_by_content(
         self, directory_path: str, content: str
-    ) -> FlextResult[list[str]]:
+    ) -> FlextResult[FlextTypes.StringList]:
         """Find files containing specific content."""
         try:
             path = Path(directory_path)
             if not path.exists():
-                return FlextResult[list[str]].fail(
+                return FlextResult[FlextTypes.StringList].fail(
                     f"Directory not found: {directory_path}"
                 )
 
@@ -1443,9 +1454,11 @@ class FlextCliFileTools(FlextService[bool]):
                         # Log the exception but continue processing other files
                         self._logger.warning(f"Failed to read file {f}: {e}")
                         continue
-            return FlextResult[list[str]].ok(files)
+            return FlextResult[FlextTypes.StringList].ok(files)
         except Exception as e:
-            return FlextResult[list[str]].fail(f"Failed to find files by content: {e}")
+            return FlextResult[FlextTypes.StringList].fail(
+                f"Failed to find files by content: {e}"
+            )
 
     def create_temp_file(
         self, content: str = "", suffix: str = ".tmp"
@@ -1469,7 +1482,7 @@ class FlextCliFileTools(FlextService[bool]):
             return FlextResult[str].fail(f"Failed to create temp directory: {e}")
 
     def create_zip_archive(
-        self, archive_path: str, files_or_source: str | list[str]
+        self, archive_path: str, files_or_source: str | FlextTypes.StringList
     ) -> FlextResult[bool]:
         """Create ZIP archive from source path or list of files."""
         try:
