@@ -1,7 +1,7 @@
 """CLI output and formatting tools.
 
-REFACTORED: This module now delegates to formatters.py for Rich functionality.
-All Rich imports are removed - use FlextCliFormatters instead.
+COMPLETELY REFACTORED: This module delegates ALL Rich functionality to formatters.py.
+ZERO direct Rich imports - all Rich operations go through FlextCliFormatters abstraction.
 
 Copyright (c) 2025 FLEXT Team. All rights reserved.
 SPDX-License-Identifier: MIT
@@ -15,9 +15,6 @@ from io import StringIO
 from typing import override
 
 import yaml
-from rich.console import Console
-from rich.table import Table as RichTable
-from rich.tree import Tree
 
 from flext_cli.constants import FlextCliConstants
 from flext_cli.formatters import FlextCliFormatters
@@ -155,7 +152,7 @@ class FlextCliOutput(FlextService[object]):
         title: str | None = None,
         headers: FlextTypes.StringList | None = None,
         **kwargs: object,
-    ) -> FlextResult[RichTable]:
+    ) -> FlextResult[object]:
         """Create a Rich table from data using FlextCliFormatters.
 
         Args:
@@ -189,7 +186,7 @@ class FlextCliOutput(FlextService[object]):
             )
 
             if table_result.is_failure:
-                return FlextResult[RichTable].fail(
+                return FlextResult[object].fail(
                     f"Failed to create Rich table: {table_result.error}"
                 )
 
@@ -213,7 +210,7 @@ class FlextCliOutput(FlextService[object]):
 
     def table_to_string(
         self,
-        table: RichTable,
+        table: object,  # RichTable but avoiding direct import
         width: int | None = None,
     ) -> FlextResult[str]:
         """Convert Rich table to string using FlextCliFormatters.
@@ -226,18 +223,8 @@ class FlextCliOutput(FlextService[object]):
             FlextResult[str]: Table as string or error
 
         """
-        # Render table to string using console
-        try:
-            string_io = StringIO()
-            # Create temporary console with StringIO
-            temp_console = Console(
-                file=string_io, width=width or 80, force_terminal=False
-            )
-            temp_console.print(table)
-
-            return FlextResult[str].ok(string_io.getvalue())
-        except Exception as e:
-            return FlextResult[str].fail(f"Failed to render table to string: {e}")
+        # Delegate to formatters for Rich operations
+        return self._formatters.render_table_to_string(table, width)
 
     # =========================================================================
     # ASCII TABLE CREATION (Delegates to FlextCliTables)
@@ -608,21 +595,12 @@ class FlextCliOutput(FlextService[object]):
         # Build tree structure
         self._build_tree(tree, data)
 
-        # Render to string
-        try:
-            string_io = StringIO()
-            temp_console = Console(
-                file=string_io,
-                width=FlextCliConstants.CliDefaults.DEFAULT_MAX_WIDTH,
-                force_terminal=False,
-            )
-            temp_console.print(tree)
+        # Render to string using formatters
+        return self._formatters.render_tree_to_string(
+            tree, width=FlextCliConstants.CliDefaults.DEFAULT_MAX_WIDTH
+        )
 
-            return FlextResult[str].ok(string_io.getvalue())
-        except Exception as e:
-            return FlextResult[str].fail(f"Failed to render tree to string: {e}")
-
-    def _build_tree(self, tree: Tree, data: object) -> None:
+    def _build_tree(self, tree: object, data: object) -> None:
         """Build tree recursively (helper for format_as_tree).
 
         Args:
@@ -652,7 +630,7 @@ class FlextCliOutput(FlextService[object]):
     # =========================================================================
 
     @property
-    def console(self) -> Console:
+    def console(self) -> object:
         """Get Rich console instance from FlextCliFormatters.
 
         Returns:
@@ -666,7 +644,7 @@ class FlextCliOutput(FlextService[object]):
         """
         return self._formatters.get_console()
 
-    def get_console(self) -> Console:
+    def get_console(self) -> object:
         """Get the Rich console instance from FlextCliFormatters (method form).
 
         Returns:

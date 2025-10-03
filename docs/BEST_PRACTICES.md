@@ -27,6 +27,7 @@ import tabulate      # ❌ Use FlextCliTables
 ```
 
 **Why?**
+
 - Maintains consistency across ecosystem
 - Provides type safety via FlextResult
 - Protects from upstream breaking changes
@@ -192,6 +193,7 @@ def greet(name: str = "World", count: int = 1) -> FlextResult[None]:
 ### Choose the Right Tool
 
 **Use Rich (FlextCliFormatters) for:**
+
 - Interactive terminals
 - Colored output
 - Visual styling (panels, borders)
@@ -207,6 +209,7 @@ cli.formatters.create_panel(
 ```
 
 **Use Tabulate (FlextCliTables) for:**
+
 - Plain text output
 - Log files
 - Performance-critical scenarios
@@ -654,7 +657,7 @@ cli = FlextCli()
 
 ## Summary
 
-### Key Takeaways:
+### Key Takeaways
 
 1. **ZERO TOLERANCE**: Never import Click/Rich directly
 2. **FlextResult**: Always check `is_success` before `unwrap()`
@@ -665,7 +668,7 @@ cli = FlextCli()
 7. **Testing**: Test commands and mock FlextResult
 8. **Organization**: Separate concerns and document well
 
-### Quick Reference:
+### Quick Reference
 
 ```python
 from flext_cli import FlextCli

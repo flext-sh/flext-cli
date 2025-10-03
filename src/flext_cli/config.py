@@ -459,7 +459,9 @@ class FlextCliConfig(FlextConfig):
         """Load configuration from file using FlextConfig.from_file."""
         result = FlextCliConfig.from_file(config_path)
         if result.is_failure:
-            return FlextResult[FlextCliConfig].fail(f"Failed to load config: {result.error}")
+            return FlextResult[FlextCliConfig].fail(
+                f"Failed to load config: {result.error}"
+            )
         # Cast to FlextCliConfig since from_file returns FlextConfig
         return FlextResult[FlextCliConfig].ok(result.unwrap())
 
@@ -475,6 +477,7 @@ class FlextCliConfig(FlextConfig):
 
             # Save using JSON directly for proper control
             import json
+
             path = Path(config_path)
             path.parent.mkdir(parents=True, exist_ok=True)
 

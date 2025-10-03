@@ -12,6 +12,7 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 from collections.abc import Iterable
+from io import StringIO
 from types import ModuleType
 from typing import Literal
 
@@ -1211,6 +1212,82 @@ class FlextCliFormatters(FlextService[object]):
             error_msg = f"Failed to create live display: {e}"
             self._logger.exception(error_msg)
             return FlextResult[Live].fail(error_msg)
+
+    # =========================================================================
+    # RENDERING METHODS - Convert Rich objects to strings
+    # =========================================================================
+
+    def render_table_to_string(
+        self,
+        table: RichTable,
+        width: int | None = None,
+    ) -> FlextResult[str]:
+        """Render Rich table to string using console.
+
+        Args:
+            table: Rich table object to render
+            width: Optional console width
+
+        Returns:
+            FlextResult[str]: Table as string or error
+
+        Example:
+            >>> formatters = FlextCliFormatters()
+            >>> table_result = formatters.create_table(title="Test")
+            >>> if table_result.is_success:
+            ...     string_result = formatters.render_table_to_string(
+            ...         table_result.unwrap(), width=80
+            ...     )
+
+        """
+        try:
+            string_io = StringIO()
+            temp_console = Console(
+                file=string_io, width=width or 80, force_terminal=False
+            )
+            temp_console.print(table)
+            return FlextResult[str].ok(string_io.getvalue())
+        except Exception as e:
+            error_msg = f"Failed to render table to string: {e}"
+            self._logger.exception(error_msg)
+            return FlextResult[str].fail(error_msg)
+
+    def render_tree_to_string(
+        self,
+        tree: Tree,
+        width: int | None = None,
+    ) -> FlextResult[str]:
+        """Render Rich tree to string using console.
+
+        Args:
+            tree: Rich tree object to render
+            width: Optional console width
+
+        Returns:
+            FlextResult[str]: Tree as string or error
+
+        Example:
+            >>> formatters = FlextCliFormatters()
+            >>> tree_result = formatters.create_tree("Root")
+            >>> if tree_result.is_success:
+            ...     string_result = formatters.render_tree_to_string(
+            ...         tree_result.unwrap(), width=100
+            ...     )
+
+        """
+        try:
+            string_io = StringIO()
+            temp_console = Console(
+                file=string_io,
+                width=width or self._console.size.width,
+                force_terminal=False,
+            )
+            temp_console.print(tree)
+            return FlextResult[str].ok(string_io.getvalue())
+        except Exception as e:
+            error_msg = f"Failed to render tree to string: {e}"
+            self._logger.exception(error_msg)
+            return FlextResult[str].fail(error_msg)
 
     # =========================================================================
     # UTILITY METHODS

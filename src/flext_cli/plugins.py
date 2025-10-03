@@ -561,7 +561,10 @@ class FlextCliPlugin:
         """Plugin version."""
         return getattr(self, "_version", "1.0.0")
 
-    def initialize(self, cli_main: object) -> FlextResult[None]:  # pragma: no cover  # noqa: ARG002
+    def initialize(
+        self,
+        cli_main: object,  # noqa: ARG002
+    ) -> FlextResult[None]:  # pragma: no cover
         """Initialize the plugin.
 
         Args:
@@ -574,7 +577,8 @@ class FlextCliPlugin:
         return FlextResult[None].ok(None)
 
     def register_commands(
-        self, cli_main: object  # noqa: ARG002
+        self,
+        cli_main: object,  # noqa: ARG002
     ) -> FlextResult[None]:  # pragma: no cover
         """Register plugin commands.
 
