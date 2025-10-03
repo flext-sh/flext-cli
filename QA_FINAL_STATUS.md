@@ -65,7 +65,7 @@ All requested QA issues have been successfully resolved for flext-cli. The codeb
 2. **Minimal `object` usage** - Only in type aliases for third-party library compatibility:
 
    ```python
-   FlextCliTypes.Data.PandasReadCsvKwargs = dict[str, object]  # Acceptable - type alias for pandas
+   FlextCliTypes.Data.PandasReadCsvKwargs = FlextTypes.Dict  # Acceptable - type alias for pandas
    ```
 
 3. **No automatic scripts** - All fixes done via MultiEdit based on context
@@ -104,7 +104,7 @@ setattr(FlextCliExceptions.FlextCliError, "CommandError", ...)
 def safe_json_parse(data: str) -> dict | None:
 
 # After: Explicit generic types
-def safe_json_parse(data: str) -> dict[str, object] | None:
+def safe_json_parse(data: str) -> FlextTypes.Dict | None:
 ```
 
 ### 4. Import Organization

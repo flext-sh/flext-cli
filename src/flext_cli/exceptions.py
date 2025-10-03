@@ -31,7 +31,7 @@ class FlextCliExceptions(FlextExceptions):
         """Base CLI exception extending FlextExceptions.BaseError.
 
         Simple exception class for CLI error scenarios with error categorization
-        and contextual information support.
+        and contextual information support using standard helper methods.
         """
 
         @override
@@ -40,13 +40,33 @@ class FlextCliExceptions(FlextExceptions):
             message: str,
             *,
             error_code: str | int = FlextCliConstants.ErrorCodes.CLI_ERROR,
-            **context: object,
+            **kwargs: object,
         ) -> None:
-            """Initialize CLI exception with message, error code, and context."""
+            """Initialize CLI exception with message, error code, and context using helpers.
+
+            Args:
+                message: Error message
+                error_code: CLI error code (string or int)
+                **kwargs: Additional context (context, correlation_id)
+
+            """
             # Convert int error codes to string for consistency
             if isinstance(error_code, int):
                 error_code = str(error_code)
-            super().__init__(message, code=error_code, context=context)
+
+            # Extract common parameters using helper
+            base_context, correlation_id, _ = self._extract_common_kwargs(kwargs)
+
+            # Build context
+            context = self._build_context(base_context)
+
+            # Call parent with complete error information
+            super().__init__(
+                message,
+                code=error_code,
+                context=context,
+                correlation_id=correlation_id,
+            )
 
         @override
         def __str__(self) -> str:
@@ -80,82 +100,182 @@ class FlextCliExceptions(FlextExceptions):
         """CLI validation error exception."""
 
         @override
-        def __init__(self, message: str, **context: object) -> None:
-            """Initialize validation error with message and context."""
+        def __init__(self, message: str, **kwargs: object) -> None:
+            """Initialize validation error with message and context using helpers.
+
+            Args:
+                message: Error message
+                **kwargs: Additional context (context, correlation_id)
+
+            """
+            # Extract common parameters using helper
+            base_context, correlation_id, _ = self._extract_common_kwargs(kwargs)
+
+            # Build context
+            context = self._build_context(base_context)
+
+            # Call parent with complete error information
             super().__init__(
                 message,
                 error_code=FlextCliConstants.ErrorCodes.VALIDATION_ERROR,
-                **context,
+                context=context,
+                correlation_id=correlation_id,
             )
 
     class CliConfigurationError(BaseError):
         """CLI configuration error exception."""
 
         @override
-        def __init__(self, message: str, **context: object) -> None:
-            """Initialize configuration error with message and context."""
+        def __init__(self, message: str, **kwargs: object) -> None:
+            """Initialize configuration error with message and context using helpers.
+
+            Args:
+                message: Error message
+                **kwargs: Additional context (context, correlation_id)
+
+            """
+            # Extract common parameters using helper
+            base_context, correlation_id, _ = self._extract_common_kwargs(kwargs)
+
+            # Build context
+            context = self._build_context(base_context)
+
+            # Call parent with complete error information
             super().__init__(
                 message,
                 error_code=FlextCliConstants.ErrorCodes.CONFIGURATION_ERROR,
-                **context,
+                context=context,
+                correlation_id=correlation_id,
             )
 
     class CliConnectionError(BaseError):
         """CLI connection error exception."""
 
         @override
-        def __init__(self, message: str, **context: object) -> None:
-            """Initialize connection error with message and context."""
+        def __init__(self, message: str, **kwargs: object) -> None:
+            """Initialize connection error with message and context using helpers.
+
+            Args:
+                message: Error message
+                **kwargs: Additional context (context, correlation_id)
+
+            """
+            # Extract common parameters using helper
+            base_context, correlation_id, _ = self._extract_common_kwargs(kwargs)
+
+            # Build context
+            context = self._build_context(base_context)
+
+            # Call parent with complete error information
             super().__init__(
                 message,
                 error_code=FlextCliConstants.ErrorCodes.CONNECTION_ERROR,
-                **context,
+                context=context,
+                correlation_id=correlation_id,
             )
 
     class CliAuthenticationError(BaseError):
         """CLI authentication error exception."""
 
         @override
-        def __init__(self, message: str, **context: object) -> None:
-            """Initialize authentication error with message and context."""
+        def __init__(self, message: str, **kwargs: object) -> None:
+            """Initialize authentication error with message and context using helpers.
+
+            Args:
+                message: Error message
+                **kwargs: Additional context (context, correlation_id)
+
+            """
+            # Extract common parameters using helper
+            base_context, correlation_id, _ = self._extract_common_kwargs(kwargs)
+
+            # Build context
+            context = self._build_context(base_context)
+
+            # Call parent with complete error information
             super().__init__(
                 message,
                 error_code=FlextCliConstants.ErrorCodes.AUTHENTICATION_ERROR,
-                **context,
+                context=context,
+                correlation_id=correlation_id,
             )
 
     class CliCommandError(BaseError):
         """CLI command error exception."""
 
         @override
-        def __init__(self, message: str, **context: object) -> None:
-            """Initialize command error with message and context."""
+        def __init__(self, message: str, **kwargs: object) -> None:
+            """Initialize command error with message and context using helpers.
+
+            Args:
+                message: Error message
+                **kwargs: Additional context (context, correlation_id)
+
+            """
+            # Extract common parameters using helper
+            base_context, correlation_id, _ = self._extract_common_kwargs(kwargs)
+
+            # Build context
+            context = self._build_context(base_context)
+
+            # Call parent with complete error information
             super().__init__(
                 message,
                 error_code=FlextCliConstants.ErrorCodes.COMMAND_ERROR,
-                **context,
+                context=context,
+                correlation_id=correlation_id,
             )
 
     class CliTimeoutError(BaseError):
         """CLI timeout error exception."""
 
         @override
-        def __init__(self, message: str, **context: object) -> None:
-            """Initialize timeout error with message and context."""
+        def __init__(self, message: str, **kwargs: object) -> None:
+            """Initialize timeout error with message and context using helpers.
+
+            Args:
+                message: Error message
+                **kwargs: Additional context (context, correlation_id)
+
+            """
+            # Extract common parameters using helper
+            base_context, correlation_id, _ = self._extract_common_kwargs(kwargs)
+
+            # Build context
+            context = self._build_context(base_context)
+
+            # Call parent with complete error information
             super().__init__(
                 message,
                 error_code=FlextCliConstants.ErrorCodes.TIMEOUT_ERROR,
-                **context,
+                context=context,
+                correlation_id=correlation_id,
             )
 
     class CliFormatError(BaseError):
         """CLI format error exception."""
 
         @override
-        def __init__(self, message: str, **context: object) -> None:
-            """Initialize format error with message and context."""
+        def __init__(self, message: str, **kwargs: object) -> None:
+            """Initialize format error with message and context using helpers.
+
+            Args:
+                message: Error message
+                **kwargs: Additional context (context, correlation_id)
+
+            """
+            # Extract common parameters using helper
+            base_context, correlation_id, _ = self._extract_common_kwargs(kwargs)
+
+            # Build context
+            context = self._build_context(base_context)
+
+            # Call parent with complete error information
             super().__init__(
-                message, error_code=FlextCliConstants.ErrorCodes.FORMAT_ERROR, **context
+                message,
+                error_code=FlextCliConstants.ErrorCodes.FORMAT_ERROR,
+                context=context,
+                correlation_id=correlation_id,
             )
 
 

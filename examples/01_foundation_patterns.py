@@ -33,7 +33,7 @@ from flext_cli import (
     FlextCliOutput,
     FlextCliService,
 )
-from flext_core import FlextContainer, FlextResult
+from flext_core import FlextContainer, FlextResult, FlextTypes
 
 
 def _setup_cli() -> FlextResult[str]:
@@ -67,7 +67,7 @@ def _config_demo(
     config = FlextCliConfig()
 
     # Use flext-cli table formatting instead of direct Rich
-    config_data: dict[str, object] = {
+    config_data: FlextTypes.Dict = {
         "Profile": config.profile,
         "Debug": str(config.debug),
         "Output Format": str(config.output_format),
@@ -96,7 +96,7 @@ def _container_demo(
     container.register("cli_service", FlextCliService())
 
     # Use flext-cli formatting instead of direct Rich Table
-    services_data: dict[str, object] = {}
+    services_data: FlextTypes.Dict = {}
     for service_name in ["formatter", "config", "cli_api", "cli_service"]:
         service_result = container.get(service_name)
         status = "✅ Retrieved" if service_result.is_success else "❌ Failed"
@@ -191,7 +191,7 @@ def _summary_demo(formatter: FlextCliOutput) -> None:
     }
 
     table_result = formatter.format_table(
-        data=cast("dict[str, object]", summary_data),
+        data=cast("FlextTypes.Dict", summary_data),
         title="Foundation Patterns Summary",
     )
     if table_result.is_success:

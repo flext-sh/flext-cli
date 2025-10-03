@@ -18,10 +18,11 @@ from flext_core import (
     FlextLogger,
     FlextResult,
     FlextService,
+    FlextTypes,
 )
 
 
-class FlextCliCommands(FlextService[dict[str, object]]):
+class FlextCliCommands(FlextService[FlextTypes.Dict]):
     """Single unified CLI commands class following FLEXT standards.
 
     Provides CLI command registration and management using flext-core patterns.
@@ -33,7 +34,7 @@ class FlextCliCommands(FlextService[dict[str, object]]):
 
         @override
         def __init__(
-            self, name: str, description: str, commands: dict[str, object]
+            self, name: str, description: str, commands: FlextTypes.Dict
         ) -> None:
             """Initialize CLI group."""
             self.name = name
@@ -49,8 +50,8 @@ class FlextCliCommands(FlextService[dict[str, object]]):
         self._name = name
         self._description = description
         self._logger = FlextLogger(__name__)
-        self._container = FlextContainer.get_global()
-        self._commands: dict[str, dict[str, object]] = {}
+        self._container = FlextContainer()
+        self._commands: FlextTypes.NestedDict = {}
         self._cli_group = self._CliGroup(
             name=name,
             description=description,
@@ -58,9 +59,9 @@ class FlextCliCommands(FlextService[dict[str, object]]):
         )
 
     @override
-    def execute(self) -> FlextResult[dict[str, object]]:
+    def execute(self) -> FlextResult[FlextTypes.Dict]:
         """Execute the main domain service operation - required by FlextService."""
-        return FlextResult[dict[str, object]].ok({
+        return FlextResult[FlextTypes.Dict].ok({
             "status": FlextCliConstants.OPERATIONAL,
             "service": FlextCliConstants.FLEXT_CLI,
             "commands": list(self._commands.keys()),
@@ -69,7 +70,7 @@ class FlextCliCommands(FlextService[dict[str, object]]):
     def register_command(
         self,
         name: str,
-        handler: Callable[[], object] | Callable[[list[str]], object],
+        handler: Callable[[], object] | Callable[[FlextTypes.StringList], object],
         description: str = "",
     ) -> FlextResult[None]:
         """Register a command.
@@ -118,7 +119,7 @@ class FlextCliCommands(FlextService[dict[str, object]]):
         self,
         name: str,
         description: str = "",
-        commands: dict[str, object] | None = None,
+        commands: FlextTypes.Dict | None = None,
     ) -> FlextResult[object]:
         """Create a command group.
 
@@ -143,7 +144,7 @@ class FlextCliCommands(FlextService[dict[str, object]]):
 
     def run_cli(
         self,
-        args: list[str] | None = None,
+        args: FlextTypes.StringList | None = None,
         *,
         standalone_mode: bool = True,
     ) -> FlextResult[None]:
@@ -191,7 +192,7 @@ class FlextCliCommands(FlextService[dict[str, object]]):
     def execute_command(
         self,
         command_name: str,
-        args: list[str] | None = None,
+        args: FlextTypes.StringList | None = None,
         timeout: int = 30,
     ) -> FlextResult[object]:
         """Execute a specific command.
@@ -237,11 +238,11 @@ class FlextCliCommands(FlextService[dict[str, object]]):
         except Exception as e:
             return FlextResult[object].fail(f"Command execution failed: {e}")
 
-    def get_commands(self) -> dict[str, dict[str, object]]:
+    def get_commands(self) -> FlextTypes.NestedDict:
         """Get all registered commands.
 
         Returns:
-            dict[str, dict[str, object]]: Dictionary of registered commands
+            FlextTypes.NestedDict: Dictionary of registered commands
 
         """
         return self._commands.copy()
@@ -261,18 +262,20 @@ class FlextCliCommands(FlextService[dict[str, object]]):
         except Exception as e:
             return FlextResult[int].fail(f"Failed to clear commands: {e}")
 
-    def list_commands(self) -> FlextResult[list[str]]:
+    def list_commands(self) -> FlextResult[FlextTypes.StringList]:
         """List all registered commands.
 
         Returns:
-            FlextResult[list[str]]: List of command names
+            FlextResult[FlextTypes.StringList]: List of command names
 
         """
         try:
             command_names = list(self._commands.keys())
-            return FlextResult[list[str]].ok(command_names)
+            return FlextResult[FlextTypes.StringList].ok(command_names)
         except Exception as e:
-            return FlextResult[list[str]].fail(f"Failed to list commands: {e}")
+            return FlextResult[FlextTypes.StringList].fail(
+                f"Failed to list commands: {e}"
+            )
 
     def create_main_cli(self) -> FlextCliCommands:
         """Create the main CLI instance.

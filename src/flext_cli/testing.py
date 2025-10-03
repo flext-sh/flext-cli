@@ -10,10 +10,10 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 from flext_cli.cli import FlextCliClick
-from flext_core import FlextLogger, FlextResult, FlextService
+from flext_core import FlextLogger, FlextResult, FlextService, FlextTypes
 
 
-class FlextCliTestRunner(FlextService[None]):
+class FlextCliTestRunner(FlextService[object]):
     """CLI testing utilities for flext-cli applications.
 
     Provides comprehensive testing helpers including:
@@ -52,9 +52,9 @@ class FlextCliTestRunner(FlextService[None]):
         cli_main: object,
         command_name: str,
         *,
-        args: list[str] | None = None,
+        args: FlextTypes.StringList | None = None,
         catch_exceptions: bool = True,
-    ) -> FlextResult[dict[str, object]]:
+    ) -> FlextResult[FlextTypes.Dict]:
         """Invoke a CLI command for testing.
 
         Args:
@@ -85,7 +85,7 @@ class FlextCliTestRunner(FlextService[None]):
             # Get CLI runner
             runner_result = click_wrapper.create_cli_runner()
             if runner_result.is_failure:
-                return FlextResult[dict[str, object]].fail(
+                return FlextResult[FlextTypes.Dict].fail(
                     f"Failed to create runner: {runner_result.error}"
                 )
 
@@ -94,7 +94,7 @@ class FlextCliTestRunner(FlextService[None]):
             # Get command
             cmd_result = cli_main.get_command(command_name)
             if cmd_result.is_failure:
-                return FlextResult[dict[str, object]].fail(
+                return FlextResult[FlextTypes.Dict].fail(
                     f"Failed to get command: {cmd_result.error}"
                 )
 
@@ -116,12 +116,12 @@ class FlextCliTestRunner(FlextService[None]):
                 extra={"cmd_name": command_name, "exit_code": result.exit_code},
             )
 
-            return FlextResult[dict[str, object]].ok(execution_data)
+            return FlextResult[FlextTypes.Dict].ok(execution_data)
 
         except Exception as e:
             error_msg = f"Failed to invoke command: {e}"
             self._logger.exception(error_msg)
-            return FlextResult[dict[str, object]].fail(error_msg)
+            return FlextResult[FlextTypes.Dict].fail(error_msg)
 
     def create_isolated_runner(self, *, mix_stderr: bool = True) -> FlextResult[object]:
         """Create isolated CLI runner for testing.
@@ -160,7 +160,7 @@ class FlextCliTestRunner(FlextService[None]):
         self,
         cli_main: object,
         command_name: str,
-        args: list[str] | None = None,
+        args: FlextTypes.StringList | None = None,
     ) -> FlextResult[str]:
         """Capture CLI command output for testing.
 
@@ -213,7 +213,7 @@ class FlextCliTestRunner(FlextService[None]):
         self,
         cli_main: object,
         command_name: str,
-        args: list[str] | None = None,
+        args: FlextTypes.StringList | None = None,
     ) -> FlextResult[None]:
         """Assert that CLI command succeeds (exit code 0).
 
@@ -266,7 +266,7 @@ class FlextCliTestRunner(FlextService[None]):
         cli_main: object,
         command_name: str,
         expected_text: str,
-        args: list[str] | None = None,
+        args: FlextTypes.StringList | None = None,
     ) -> FlextResult[None]:
         """Assert that command output contains expected text.
 
@@ -319,7 +319,7 @@ class FlextCliTestRunner(FlextService[None]):
             self._logger.exception(error_msg)
             return FlextResult[None].fail(error_msg)
 
-    def execute(self) -> FlextResult[None]:
+    def execute(self) -> FlextResult[object]:
         """Execute CLI testing utilities.
 
         Returns:
@@ -329,7 +329,7 @@ class FlextCliTestRunner(FlextService[None]):
         return FlextResult[None].ok(None)
 
 
-class FlextCliMockScenarios(FlextService[None]):
+class FlextCliMockScenarios(FlextService[object]):
     """Mock scenarios for CLI testing.
 
     Provides pre-configured mock scenarios for common CLI testing patterns.
@@ -359,7 +359,7 @@ class FlextCliMockScenarios(FlextService[None]):
         *,
         debug_mode: bool = False,
         **extra: object,
-    ) -> FlextResult[dict[str, object]]:
+    ) -> FlextResult[FlextTypes.Dict]:
         """Create mock user configuration for testing.
 
         Args:
@@ -387,18 +387,18 @@ class FlextCliMockScenarios(FlextService[None]):
             }
 
             self._logger.debug("Created mock config", extra={"config_profile": profile})
-            return FlextResult[dict[str, object]].ok(config)
+            return FlextResult[FlextTypes.Dict].ok(config)
 
         except Exception as e:
             error_msg = f"Failed to create mock config: {e}"
             self._logger.exception(error_msg)
-            return FlextResult[dict[str, object]].fail(error_msg)
+            return FlextResult[FlextTypes.Dict].fail(error_msg)
 
     def mock_cli_context(
         self,
         command_name: str = "test-command",
-        params: dict[str, object] | None = None,
-    ) -> FlextResult[dict[str, object]]:
+        params: FlextTypes.Dict | None = None,
+    ) -> FlextResult[FlextTypes.Dict]:
         """Create mock CLI context for testing.
 
         Args:
@@ -424,14 +424,14 @@ class FlextCliMockScenarios(FlextService[None]):
             }
 
             self._logger.debug("Created mock context", extra={"cmd_name": command_name})
-            return FlextResult[dict[str, object]].ok(context)
+            return FlextResult[FlextTypes.Dict].ok(context)
 
         except Exception as e:
             error_msg = f"Failed to create mock context: {e}"
             self._logger.exception(error_msg)
-            return FlextResult[dict[str, object]].fail(error_msg)
+            return FlextResult[FlextTypes.Dict].fail(error_msg)
 
-    def execute(self) -> FlextResult[None]:
+    def execute(self) -> FlextResult[object]:
         """Execute mock scenarios operations.
 
         Returns:

@@ -13,10 +13,6 @@ import uuid
 from datetime import UTC, datetime
 from typing import Any, Self, override
 
-from flext_core import (
-    FlextModels,
-    FlextResult,
-)
 from pydantic import (
     ConfigDict,
     Field,
@@ -28,6 +24,11 @@ from pydantic import (
 from flext_cli.constants import FlextCliConstants
 from flext_cli.mixins import FlextCliMixins
 from flext_cli.typings import FlextCliTypes
+from flext_core import (
+    FlextModels,
+    FlextResult,
+    FlextTypes,
+)
 
 
 class FlextCliModels(FlextModels.BaseModel):
@@ -90,7 +91,7 @@ class FlextCliModels(FlextModels.BaseModel):
         return len(model_classes)
 
     @computed_field
-    def model_summary(self) -> dict[str, str]:
+    def model_summary(self) -> FlextTypes.StringDict:
         """Computed field returning a summary of all available models."""
         # Note: FormatOptions and CliPipeline removed - delegated to specialized services
         return {
@@ -125,7 +126,7 @@ class FlextCliModels(FlextModels.BaseModel):
 
     @field_serializer("model_summary")
     def serialize_model_summary(
-        self, value: dict[str, str], _info: object
+        self, value: FlextTypes.StringDict, _info: object
     ) -> dict[str, str | dict[str, str | int]]:
         """Serialize model summary with additional metadata."""
         return {
@@ -198,7 +199,7 @@ class FlextCliModels(FlextModels.BaseModel):
         """CLI command model extending _BaseEntity."""
 
         command_line: str = Field(min_length=1)
-        args: list[str] = Field(default_factory=list)
+        args: FlextTypes.StringList = Field(default_factory=list)
         exit_code: int | None = None
         output: str = Field(default="")
         error_output: str = Field(default="")
@@ -212,7 +213,7 @@ class FlextCliModels(FlextModels.BaseModel):
         # status field inherited from _BaseEntity
 
         @computed_field
-        def command_summary(self) -> dict[str, object]:
+        def command_summary(self) -> FlextTypes.Dict:
             """Computed field for command execution summary."""
             return {
                 "command": self.command_line,
@@ -362,13 +363,13 @@ class FlextCliModels(FlextModels.BaseModel):
         service: str = Field(default="FlextCliDebug")
         status: str = Field(default="operational")
         timestamp: datetime = Field(default_factory=lambda: datetime.now(UTC))
-        system_info: dict[str, str] = Field(default_factory=dict)
-        config_info: dict[str, str] = Field(default_factory=dict)
+        system_info: FlextTypes.StringDict = Field(default_factory=dict)
+        config_info: FlextTypes.StringDict = Field(default_factory=dict)
         level: str = Field(default="info")
         message: str = Field(default="")
 
         @computed_field
-        def debug_summary(self) -> dict[str, object]:
+        def debug_summary(self) -> FlextTypes.Dict:
             """Computed field for debug information summary."""
             return {
                 "service": self.service,
@@ -390,8 +391,8 @@ class FlextCliModels(FlextModels.BaseModel):
 
         @field_serializer("system_info", "config_info")
         def serialize_sensitive_info(
-            self, value: dict[str, str], _info: object
-        ) -> dict[str, str]:
+            self, value: FlextTypes.StringDict, _info: object
+        ) -> FlextTypes.StringDict:
             """Serialize system/config info masking sensitive values."""
             sensitive_keys = {"password", "token", "secret", "key", "auth"}
             return {
@@ -442,7 +443,7 @@ class FlextCliModels(FlextModels.BaseModel):
         user_id: str | None = None
 
         @computed_field
-        def session_summary(self) -> dict[str, object]:
+        def session_summary(self) -> FlextTypes.Dict:
             """Computed field for session activity summary."""
             return {
                 "session_id": self.session_id,
@@ -479,7 +480,7 @@ class FlextCliModels(FlextModels.BaseModel):
         @field_serializer("commands")
         def serialize_commands(
             self, value: list[FlextCliModels.CliCommand], _info: object
-        ) -> list[dict[str, object]]:
+        ) -> list[FlextTypes.Dict]:
             """Serialize commands with summary information."""
             return [
                 {
@@ -559,7 +560,7 @@ class FlextCliModels(FlextModels.BaseModel):
             )
 
             domain_events_obj = data.get("domain_events", [])
-            domain_events_value: list[object] = (
+            domain_events_value: FlextTypes.List = (
                 domain_events_obj if isinstance(domain_events_obj, list) else []
             )
 
@@ -643,7 +644,7 @@ class FlextCliModels(FlextModels.BaseModel):
         )
 
         @computed_field
-        def logging_summary(self) -> dict[str, object]:
+        def logging_summary(self) -> FlextTypes.Dict:
             """Computed field for logging configuration summary."""
             return {
                 "level": self.log_level,

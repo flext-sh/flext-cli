@@ -225,8 +225,13 @@ class FlextCliConfig(FlextConfig):
         return verbosity_lower
 
     @model_validator(mode="after")
-    def validate_paths(self) -> FlextCliConfig:
-        """Validate that configuration paths are accessible."""
+    def validate_configuration(self) -> FlextCliConfig:
+        """Validate configuration using FlextConfig validation and custom rules."""
+        # Use FlextConfig business rules validation
+        validation_result = self.validate_business_rules()
+        if validation_result.is_failure:
+            raise ValueError(f"Business rules validation failed: {validation_result.error}")
+
         # Ensure config directory exists or can be created
         try:
             self.config_dir.mkdir(parents=True, exist_ok=True)
@@ -238,41 +243,86 @@ class FlextCliConfig(FlextConfig):
 
     # CLI-specific methods
     def get_cli_context(self) -> FlextCliTypes.Data.CliDataDict:
-        """Get CLI context for command execution."""
-        return {
-            "profile": self.profile,
-            "output_format": self.output_format,
-            "no_color": self.no_color,
-            "verbose": self.verbose,
-            "debug": self.debug,
-            "max_width": self.max_width,
-            "api_url": self.api_url,
-            "timeout": self.timeout,
-            "log_level": self.log_level,
-            "log_verbosity": self.log_verbosity,
-            "cli_log_level": self.cli_log_level,
-            "cli_log_verbosity": self.cli_log_verbosity,
-        }
+        """REMOVED: Access config attributes directly.
+
+        Migration:
+            # Old pattern
+            cli_context = config.get_cli_context()
+            profile = cli_context["profile"]
+
+            # New pattern - direct attribute access
+            cli_context = {
+                "profile": config.profile,
+                "output_format": config.output_format,
+                "no_color": config.no_color,
+                "verbose": config.verbose,
+                "debug": config.debug,
+                "max_width": config.max_width,
+                "api_url": config.api_url,
+                "timeout": config.timeout,
+                "log_level": config.log_level,
+                "log_verbosity": config.log_verbosity,
+                "cli_log_level": config.cli_log_level,
+                "cli_log_verbosity": config.cli_log_verbosity,
+            }
+            profile = config.profile  # Or direct access
+
+        """
+        msg = (
+            "FlextCliConfig.get_cli_context() has been removed. "
+            "Access configuration attributes directly."
+        )
+        raise NotImplementedError(msg)
 
     def get_auth_context(self) -> FlextCliTypes.Configuration.AuthenticationConfig:
-        """Get authentication context (without exposing secrets)."""
-        return {
-            "api_url": self.api_url,
-            "token_file": str(self.token_file),
-            "refresh_token_file": str(self.refresh_token_file),
-            "auto_refresh": self.auto_refresh,
-            "api_key_configured": self.cli_api_key is not None,
-        }
+        """REMOVED: Access config attributes directly.
+
+        Migration:
+            # Old pattern
+            auth_context = config.get_auth_context()
+            api_url = auth_context["api_url"]
+
+            # New pattern - direct attribute access
+            auth_context = {
+                "api_url": config.api_url,
+                "token_file": str(config.token_file),
+                "refresh_token_file": str(config.refresh_token_file),
+                "auto_refresh": config.auto_refresh,
+                "api_key_configured": config.cli_api_key is not None,
+            }
+            api_url = config.api_url  # Or direct access
+
+        """
+        msg = (
+            "FlextCliConfig.get_auth_context() has been removed. "
+            "Access authentication configuration attributes directly."
+        )
+        raise NotImplementedError(msg)
 
     def get_logging_context(self) -> FlextCliTypes.Configuration.LogConfig:
-        """Get logging context for centralized logging configuration."""
-        return {
-            "log_level": self.log_level,
-            "log_verbosity": self.log_verbosity,
-            "cli_log_level": self.cli_log_level,
-            "cli_log_verbosity": self.cli_log_verbosity,
-            "log_file": str(self.log_file) if self.log_file else None,
-        }
+        """REMOVED: Access config attributes directly.
+
+        Migration:
+            # Old pattern
+            logging_context = config.get_logging_context()
+            log_level = logging_context["log_level"]
+
+            # New pattern - direct attribute access
+            logging_context = {
+                "log_level": config.log_level,
+                "log_verbosity": config.log_verbosity,
+                "cli_log_level": config.cli_log_level,
+                "cli_log_verbosity": config.cli_log_verbosity,
+                "log_file": str(config.log_file) if config.log_file else None,
+            }
+            log_level = config.log_level  # Or direct access
+
+        """
+        msg = (
+            "FlextCliConfig.get_logging_context() has been removed. "
+            "Access logging configuration attributes directly."
+        )
+        raise NotImplementedError(msg)
 
     def validate_output_format_result(self, value: str) -> FlextResult[str]:
         """Validate output format using FlextCliConstants and return FlextResult."""
@@ -284,31 +334,57 @@ class FlextCliConfig(FlextConfig):
     def create_for_environment(
         cls, environment: str, **overrides: object
     ) -> FlextCliConfig:
-        """Create configuration for specific environment using enhanced singleton pattern."""
-        return cast(
-            "FlextCliConfig",
-            cls.get_or_create_shared_instance(
-                project_name="flext-cli", environment=environment, **overrides
-            ),
+        """REMOVED: Use direct instantiation with environment parameter.
+
+        Migration:
+            # Old pattern
+            config = FlextCliConfig.create_for_environment("production", debug=False)
+
+            # New pattern - direct instantiation
+            config = FlextCliConfig(environment="production", debug=False)
+
+        """
+        msg = (
+            "FlextCliConfig.create_for_environment() has been removed. "
+            "Use FlextCliConfig(environment='...') for direct instantiation."
         )
+        raise NotImplementedError(msg)
 
     @classmethod
     def create_default(cls) -> FlextCliConfig:
-        """Create default configuration instance using enhanced singleton pattern."""
-        return cast(
-            "FlextCliConfig",
-            cls.get_or_create_shared_instance(project_name="flext-cli"),
+        """REMOVED: Use direct instantiation.
+
+        Migration:
+            # Old pattern
+            config = FlextCliConfig.create_default()
+
+            # New pattern - direct instantiation
+            config = FlextCliConfig()
+
+        """
+        msg = (
+            "FlextCliConfig.create_default() has been removed. "
+            "Use FlextCliConfig() for direct instantiation."
         )
+        raise NotImplementedError(msg)
 
     @classmethod
     def create_for_profile(cls, profile: str, **kwargs: object) -> FlextCliConfig:
-        """Create configuration for specific profile using enhanced singleton pattern."""
-        return cast(
-            "FlextCliConfig",
-            cls.get_or_create_shared_instance(
-                project_name="flext-cli", profile=profile, **kwargs
-            ),
+        """REMOVED: Use direct instantiation with profile parameter.
+
+        Migration:
+            # Old pattern
+            config = FlextCliConfig.create_for_profile("dev", debug=True)
+
+            # New pattern - direct instantiation
+            config = FlextCliConfig(profile="dev", debug=True)
+
+        """
+        msg = (
+            "FlextCliConfig.create_for_profile() has been removed. "
+            "Use FlextCliConfig(profile='...') for direct instantiation."
         )
+        raise NotImplementedError(msg)
 
     @classmethod
     def load_from_config_file(cls, config_file: Path) -> FlextResult[FlextCliConfig]:
@@ -345,20 +421,31 @@ class FlextCliConfig(FlextConfig):
 
     @classmethod
     def get_global_instance(cls) -> FlextCliConfig:
-        """Get the global singleton instance using enhanced FlextConfig pattern."""
-        # Get the parent global instance
-        parent_config = super().get_global_instance()
+        """REMOVED: Use direct instantiation.
 
-        # If it's already a FlextCliConfig, return it
-        if isinstance(parent_config, FlextCliConfig):
-            return parent_config
+        Migration:
+            # Old pattern
+            config = FlextCliConfig.get_global_instance()
 
-        # Otherwise, create a new FlextCliConfig instance with the parent's data
-        # This ensures we have all the CLI-specific fields
-        config_data = (
-            parent_config.model_dump() if hasattr(parent_config, "model_dump") else {}
+            # New pattern - direct instantiation
+            config = FlextCliConfig()
+
+            # Or for singleton pattern, manage explicitly
+            import threading
+            _config_lock = threading.RLock()
+            _config_instance: FlextCliConfig | None = None
+
+            with _config_lock:
+                if _config_instance is None:
+                    _config_instance = FlextCliConfig()
+                config = _config_instance
+
+        """
+        msg = (
+            "FlextCliConfig.get_global_instance() has been removed. "
+            "Use FlextCliConfig() to create instances directly."
         )
-        return cls(**config_data)
+        raise NotImplementedError(msg)
 
     @classmethod
     def reset_shared_instance(cls) -> None:
@@ -372,75 +459,27 @@ class FlextCliConfig(FlextConfig):
         cls.reset_shared_instance()
         # Use the enhanced FlextConfig reset mechanism
 
-    # Service operations (previously FlextCliConfigService) - unified pattern
-    class _ConfigServiceHelper:
-        """Nested helper class for config service operations."""
-
-        @staticmethod
-        def execute_service_operation(
-            config: FlextCliConfig,
-        ) -> FlextResult[FlextCliTypes.Data.CliDataDict]:
-            """Execute config service operation."""
-            return FlextResult[FlextCliTypes.Data.CliDataDict].ok({
-                "status": FlextCliConstants.OPERATIONAL,
-                "service": "flext-cli-config",
-                "timestamp": datetime.now(UTC).isoformat(),
-                "version": "2.0.0",
-                "config": config.model_dump(),
-            })
-
-        @staticmethod
-        def load_config_from_file(config_path: str) -> FlextResult[FlextCliConfig]:
-            """Load configuration from file."""
-            try:
-                path = Path(config_path)
-                if not path.exists():
-                    return FlextResult[FlextCliConfig].fail(
-                        f"Config file not found: {config_path}"
-                    )
-
-                with path.open("r", encoding="utf-8") as f:
-                    config_data = json.load(f)
-
-                config = FlextCliConfig.model_validate(config_data)
-                return FlextResult[FlextCliConfig].ok(config)
-            except Exception as e:
-                return FlextResult[FlextCliConfig].fail(f"Failed to load config: {e}")
-
-        @staticmethod
-        def save_config_to_file(
-            config_path: str, config: FlextCliConfig
-        ) -> FlextResult[None]:
-            """Save configuration to file."""
-            try:
-                path = Path(config_path)
-                path.parent.mkdir(parents=True, exist_ok=True)
-
-                # Convert model to dict and ensure all values are JSON serializable
-                config_dict = config.model_dump()
-                # Convert any Path objects to strings
-                for key, value in config_dict.items():
-                    if isinstance(value, Path):
-                        config_dict[key] = str(value)
-
-                with path.open("w", encoding="utf-8") as f:
-                    json.dump(config_dict, f, indent=2)
-
-                return FlextResult[None].ok(None)
-            except Exception as e:
-                return FlextResult[None].fail(f"Failed to save config: {e}")
-
     def execute_as_service(self) -> FlextResult[FlextCliTypes.Data.CliDataDict]:
-        """Execute config as service operation using nested helper."""
-        return self._ConfigServiceHelper.execute_service_operation(self)
+        """Execute config as service operation."""
+        return FlextResult[FlextCliTypes.Data.CliDataDict].ok({
+            "status": FlextCliConstants.OPERATIONAL,
+            "service": "flext-cli-config",
+            "timestamp": datetime.now(UTC).isoformat(),
+            "version": "2.0.0",
+            "config": self.model_dump(),
+        })
 
     def load_config_file(self, config_path: str) -> FlextResult[FlextCliConfig]:
-        """Load configuration from file using nested helper."""
-        return self._ConfigServiceHelper.load_config_from_file(config_path)
+        """Load configuration from file using FlextConfig.from_file."""
+        result = FlextCliConfig.from_file(config_path)
+        if result.is_failure:
+            return FlextResult[FlextCliConfig].fail(f"Failed to load config: {result.error}")
+        # Cast to FlextCliConfig since from_file returns FlextConfig
+        return FlextResult[FlextCliConfig].ok(result.unwrap())
 
     def save_config_file(self, config_path: str) -> FlextResult[None]:
-        """Save configuration to file using nested helper."""
-        return self._ConfigServiceHelper.save_config_to_file(config_path, self)
+        """Save configuration to file using FlextConfig.save_to_file."""
+        return self.save_to_file(config_path, indent=2)
 
     # Protocol-compliant methods for CliConfigProvider
     def load_config(self) -> FlextResult[FlextCliTypes.Data.CliConfigData]:

@@ -16,6 +16,7 @@ from __future__ import annotations
 
 import contextlib
 import time
+from time import sleep
 
 from flext_cli import (
     FlextCliCache,
@@ -33,7 +34,7 @@ def demo_command_execution() -> None:
 
     def fetch_data(url: str) -> dict:
         """Simulate data fetching."""
-        time.sleep(1)  # Simulate network delay
+        sleep(1)  # Simulate network delay
         return {"url": url, "status": "success", "data": f"Response from {url}"}
 
     # Execute operation
@@ -49,7 +50,7 @@ def demo_concurrent_operations() -> None:
 
     def fetch_resource(resource_id: int) -> dict:
         """Simulate fetching a resource."""
-        time.sleep(0.5)  # Simulate delay
+        sleep(0.5)  # Simulate delay
         return {"id": resource_id, "status": "completed"}
 
     # Run multiple operations concurrently
@@ -71,7 +72,7 @@ def demo_with_timeout() -> None:
 
     def slow_operation() -> str:
         """Operation that takes too long."""
-        time.sleep(5)  # Takes 5 seconds
+        sleep(5)  # Takes 5 seconds
         return "completed"
 
     # Run with 2-second timeout
@@ -153,7 +154,7 @@ def demo_memoization() -> None:
     @memoize(ttl=60)
     def expensive_computation(x: int, y: int) -> int:
         """Expensive function that benefits from memoization."""
-        time.sleep(1)  # Simulate expensive computation
+        sleep(1)  # Simulate expensive computation
         return x + y
 
     # First call - computed
@@ -178,7 +179,7 @@ def demo_command_decorator() -> None:
     @command
     def fetch_user_data(user_id: int) -> dict:
         """Function wrapped as sync CLI command."""
-        time.sleep(0.5)
+        sleep(0.5)
         return {"id": user_id, "name": f"User{user_id}", "status": "active"}
 
     # Call the wrapped function (-> sync)

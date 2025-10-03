@@ -14,9 +14,9 @@ import time
 from typing import Protocol, TypeVar, runtime_checkable
 
 import pytest
+from flext_tests import FlextTestsUtilities
 
 from flext_cli.protocols import FlextCliProtocols
-from flext_tests import FlextTestsUtilities
 
 
 class TestFlextCliProtocols:

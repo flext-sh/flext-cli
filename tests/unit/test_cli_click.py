@@ -14,9 +14,9 @@ from pathlib import Path
 import click
 import pytest
 from click.testing import CliRunner
-from flext_core import FlextResult
 
 from flext_cli.cli import FlextCliClick
+from flext_core import FlextResult
 
 
 class TestFlextCliClick:
@@ -526,8 +526,8 @@ class TestFlextCliClick:
 
         @cmd_result.unwrap()
         @opt_result.unwrap()
-        def test_cmd(format: str) -> None:
-            click.echo(f"Format: {format}")
+        def test_cmd(format_type: str) -> None:
+            click.echo(f"Format: {format_type}")
 
         runner_result = cli_click.create_cli_runner()
         runner = runner_result.unwrap()

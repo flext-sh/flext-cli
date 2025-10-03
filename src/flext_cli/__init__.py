@@ -30,8 +30,12 @@ from flext_cli.main import FlextCliMain
 from flext_cli.mixins import FlextCliMixins
 from flext_cli.models import FlextCliModels
 from flext_cli.output import FlextCliOutput
-from flext_cli.performance import FlextCliCache, FlextCliLazyLoader, memoize
-from flext_cli.plugins import FlextCliPlugin, FlextCliPluginManager
+from flext_cli.performance import FlextCliPerformance
+from flext_cli.plugins import (
+    FlextCliPlugin,
+    FlextCliPluginProtocol,
+    FlextCliPluginSystem,
+)
 from flext_cli.processors import FlextCliProcessors
 from flext_cli.prompts import FlextCliPrompts
 from flext_cli.protocols import FlextCliProtocols
@@ -54,7 +58,6 @@ __all__ = [
     "VERSION",
     "FlextCli",
     "FlextCliAuth",
-    "FlextCliCache",
     "FlextCliClick",
     "FlextCliCmd",
     "FlextCliCommands",
@@ -67,14 +70,15 @@ __all__ = [
     "FlextCliFileTools",
     "FlextCliFormatters",
     "FlextCliHandlers",
-    "FlextCliLazyLoader",
     "FlextCliMain",
     "FlextCliMixins",
     "FlextCliMockScenarios",
     "FlextCliModels",
     "FlextCliOutput",
+    "FlextCliPerformance",
     "FlextCliPlugin",
-    "FlextCliPluginManager",
+    "FlextCliPluginProtocol",
+    "FlextCliPluginSystem",
     "FlextCliProcessors",
     "FlextCliPrompts",
     "FlextCliProtocols",
@@ -87,5 +91,4 @@ __all__ = [
     "FlextCliVersion",
     "__version__",
     "__version_info__",
-    "memoize",
 ]

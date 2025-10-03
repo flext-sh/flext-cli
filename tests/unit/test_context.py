@@ -8,10 +8,10 @@ from __future__ import annotations
 import json
 
 import pytest
+from flext_tests import FlextTestsUtilities
 
 from flext_cli.context import FlextCliContext
 from flext_core import FlextResult
-from flext_tests import FlextTestsUtilities
 
 
 class TestFlextCliContext:

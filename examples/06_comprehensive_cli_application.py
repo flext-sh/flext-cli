@@ -46,8 +46,8 @@ class ComprehensiveCliApplication:
 
         # Application state
         self.current_session = None
-        self.active_commands: FlextTypes.Core.StringList = []
-        self.user_preferences: FlextTypes.Core.Dict = {}
+        self.active_commands: FlextTypes.StringList = []
+        self.user_preferences: FlextTypes.Dict = {}
 
     def initialize_application(self) -> FlextResult[None]:
         """Initialize the CLI application with setup and validation."""
@@ -136,7 +136,7 @@ class ComprehensiveCliApplication:
 
         # Note: register_command_group method doesn't exist in FlextCliCommands
         # This would be implemented in a real CLI framework
-        # project_commands: dict[str, object] = {
+        # project_commands: FlextTypes.Dict = {
         #     "create": create_cmd_result.unwrap(),
         #     "status": status_cmd_result.unwrap(),
         # }
@@ -157,7 +157,7 @@ class ComprehensiveCliApplication:
         # )
 
         # Note: These command results would be used in a real CLI framework
-        # service_commands: dict[str, object] = {"health": health_cmd_result.unwrap()}
+        # service_commands: FlextTypes.Dict = {"health": health_cmd_result.unwrap()}
 
         # Note: register_command_group method doesn't exist in FlextCliCommands
         # cli_main.register_command_group(
@@ -183,7 +183,7 @@ class ComprehensiveCliApplication:
         # )
 
         # Note: These command results would be used in a real CLI framework
-        # config_commands: dict[str, object] = {
+        # config_commands: FlextTypes.Dict = {
         #     "show": show_cmd_result.unwrap(),
         #     "set": set_cmd_result.unwrap(),
         # }
@@ -206,7 +206,7 @@ class ComprehensiveCliApplication:
         # )
 
         # Note: These command results would be used in a real CLI framework
-        # interactive_commands: dict[str, object] = {"wizard": wizard_cmd_result.unwrap()}
+        # interactive_commands: FlextTypes.Dict = {"wizard": wizard_cmd_result.unwrap()}
 
         # Note: register_command_group method doesn't exist in FlextCliCommands
         # cli_main.register_command_group(
@@ -347,7 +347,7 @@ python = "^3.13"
             )
             return FlextResult[None].ok(None)
 
-        changes: list[str] = []
+        changes: FlextTypes.StringList = []
 
         if profile:
             self.user_preferences["default_profile"] = profile

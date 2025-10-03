@@ -19,6 +19,7 @@ import pytest
 from flext_tests import FlextTestsUtilities
 
 from flext_cli.models import FlextCliModels
+from flext_core import FlextTypes
 
 
 class TestFlextCliModels:
@@ -449,17 +450,6 @@ class TestFlextCliModels:
         assert isinstance(data, dict)
         assert "status" in data
 
-    @pytest.mark.skip(
-        reason="FlextCliModels is a Pydantic BaseModel, not a service - no execute() method"
-    )
-    def test_models_execute_method(self, models_service: FlextCliModels) -> None:
-        """Test FlextCliModels - no execute method, test execute instead."""
-        # FlextCliModels doesn't have execute, test synchronous execute
-        result = models_service.execute()
-        assert result.is_success
-        data = result.unwrap()
-        assert isinstance(data, dict)
-
     # ========================================================================
     # Additional Coverage Tests - Targeting Missing Lines
     # ========================================================================
@@ -793,7 +783,7 @@ class TestFlextCliModels:
             "items": "not_a_list",  # Should be list
         }
 
-        type_errors: list[str] = []
+        type_errors: FlextTypes.StringList = []
         for field, expected_type in expected_types.items():
             if field in invalid_data and not isinstance(
                 invalid_data[field], expected_type
@@ -918,7 +908,7 @@ class TestFlextCliModels:
         assert sums["C"] == 30
 
         # Calculate average by category
-        averages: dict[str, float] = {}
+        averages: FlextTypes.FloatDict = {}
         for category, items in grouped.items():
             numeric_values = [
                 item["value"] for item in items if isinstance(item["value"], int)

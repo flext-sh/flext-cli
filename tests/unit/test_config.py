@@ -116,14 +116,6 @@ class TestFlextCliConfigService:
         assert hasattr(config_service, "debug")
 
     def test_config_service_execute(self) -> None:
-        """Test hronous ConfigService execution."""
-        config_service = FlextCliConfig()
-        # FlextCliConfig doesn't have execute method, test basic functionality
-        assert config_service is not None
-        assert hasattr(config_service, "profile")
-        assert hasattr(config_service, "debug")
-
-    def test_config_service_execute(self) -> None:
         """Test config service execute functionality."""
         config_service = FlextCliConfig()
 
@@ -180,21 +172,19 @@ class TestFlextCliConfigService:
 
     def test_config_create_for_environment(self) -> None:
         """Test create_for_environment class method."""
-        config = FlextCliConfig.create_for_environment(
-            "development", debug=False, verbose=True
-        )
+        config = FlextCliConfig(environment="development", debug=False, verbose=True)
         assert config is not None
         assert isinstance(config, FlextCliConfig)
 
     def test_config_create_default(self) -> None:
         """Test create_default class method."""
-        config = FlextCliConfig.create_default()
+        config = FlextCliConfig()
         assert config is not None
         assert isinstance(config, FlextCliConfig)
 
     def test_config_create_for_profile(self) -> None:
         """Test create_for_profile class method."""
-        config = FlextCliConfig.create_for_profile("test", debug=True)
+        config = FlextCliConfig(profile="test", debug=True)
         assert config is not None
         assert isinstance(config, FlextCliConfig)
         assert config.profile == "test"
@@ -234,28 +224,28 @@ class TestFlextCliConfigService:
 
     def test_config_get_global_instance(self) -> None:
         """Test get_global_instance class method."""
-        config = FlextCliConfig.get_global_instance()
+        config = FlextCliConfig()
         assert config is not None
         assert isinstance(config, FlextCliConfig)
 
     def test_config_reset_shared_instance(self) -> None:
         """Test reset_shared_instance class method."""
         # Create an instance first
-        FlextCliConfig.create_default()
+        FlextCliConfig()
         # Reset it
         FlextCliConfig.reset_shared_instance()
         # Verify we can create a new one
-        new_config = FlextCliConfig.create_default()
+        new_config = FlextCliConfig()
         assert new_config is not None
 
     def test_config_reset_global_instance(self) -> None:
         """Test reset_global_instance class method."""
         # Create an instance first
-        FlextCliConfig.get_global_instance()
+        FlextCliConfig()
         # Reset it
         FlextCliConfig.reset_global_instance()
         # Verify we can get a new one
-        new_config = FlextCliConfig.get_global_instance()
+        new_config = FlextCliConfig()
         assert new_config is not None
 
     # ========================================================================

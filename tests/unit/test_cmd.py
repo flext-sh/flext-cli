@@ -11,11 +11,11 @@ from __future__ import annotations
 
 import time
 from pathlib import Path
-
-from flext_core import FlextResult
+from typing import Never
 
 from flext_cli.cmd import FlextCliCmd
 from flext_cli.file_tools import FlextCliFileTools
+from flext_core import FlextResult, FlextTypes
 
 
 class TestFlextCliCmd:
@@ -335,7 +335,7 @@ class TestFlextCliCmd:
                 pass
 
             def write_json_file(
-                self, file_path: str, data: dict[str, object]
+                self, file_path: str, data: FlextTypes.Dict
             ) -> FlextResult[bool]:
                 return FlextResult[bool].fail("Test file error")
 
@@ -358,32 +358,31 @@ class TestFlextCliCmd:
             def __init__(self) -> None:
                 pass
 
-            def read_json_file(self, file_path: str) -> FlextResult[dict[str, object]]:
-                return FlextResult[dict[str, object]].fail("Test load error")
+            def read_json_file(self, file_path: str) -> FlextResult[FlextTypes.Dict]:
+                return FlextResult[FlextTypes.Dict].fail("Test load error")
 
         cmd._file_tools = FailingFileTools()
+
+        # Create the config directory and file at the expected location
+        config_dir = Path.home() / ".flext"
+        config_dir.mkdir(exist_ok=True)
+        config_file = config_dir / "cli_config.json"
+
         try:
-            # Create a config file first to trigger the load error
-            import tempfile
-
-            with tempfile.NamedTemporaryFile(
-                mode="w", suffix=".json", delete=False, encoding="utf-8"
-            ) as f:
+            # Create the config file to pass the existence check
+            with Path(config_file).open("w", encoding="utf-8") as f:
                 f.write('{"test_key": "test_value"}')
-                temp_file = f.name
-            try:
-                # Temporarily replace config path
 
-                # Note: This test cannot properly mock config_dir due to Pydantic validation
-                # The cmd creates its own FlextCliConfig instance
-                result = cmd.get_config_value("test_key")
-                assert result.is_failure
-                assert result.error is not None
-                assert result.error is not None and "Test load error" in result.error
-            finally:
-                Path(temp_file).unlink()
+            # Now the file exists, so it will call read_json_file which is mocked to fail
+            result = cmd.get_config_value("test_key")
+            assert result.is_failure
+            assert result.error is not None
+            assert "Test load error" in result.error
         finally:
             cmd._file_tools = original_file_tools
+            # Clean up the test file
+            if config_file.exists():
+                config_file.unlink()
 
     def test_cmd_show_config_error_handling(self) -> None:
         """Test show_config error handling."""
@@ -413,11 +412,11 @@ class TestFlextCliCmd:
         original_file_tools = cmd._file_tools
 
         class FailingFileTools(FlextCliFileTools):
-            def read_json_file(self, file_path: str) -> FlextResult[dict[str, object]]:
-                return FlextResult[dict[str, object]].fail("Test load error")
+            def read_json_file(self, file_path: str) -> FlextResult[FlextTypes.Dict]:
+                return FlextResult[FlextTypes.Dict].fail("Test load error")
 
             def write_json_file(
-                self, file_path: str, data: dict[str, object]
+                self, file_path: str, data: FlextTypes.Dict
             ) -> FlextResult[bool]:
                 return FlextResult[bool].ok(True)
 
@@ -470,7 +469,7 @@ class TestFlextCliCmd:
 
         class FailingFileTools(FlextCliFileTools):
             def write_json_file(
-                self, file_path: str, data: dict[str, object]
+                self, file_path: str, data: FlextTypes.Dict
             ) -> FlextResult[bool]:
                 return FlextResult[bool].fail("Test create default error")
 
@@ -492,7 +491,7 @@ class TestFlextCliCmd:
         original_file_tools = cmd._file_tools
 
         class MockFileTools(FlextCliFileTools):
-            def read_json_file(self, file_path: str) -> FlextResult[dict[str, object]]:
+            def read_json_file(self, file_path: str) -> FlextResult[FlextTypes.Dict]:
                 return FlextResult.ok({"other_key": "value"})
 
         cmd._file_tools = MockFileTools()

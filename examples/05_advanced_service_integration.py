@@ -83,15 +83,15 @@ class AdvancedCliService(FlextCliService):
         super().__init__()
 
         # Initialize private attributes
-        self._service_health: dict[str, object] = {}
-        self._circuit_breakers: dict[str, dict[str, object]] = {}
-        self._performance_metrics: dict[str, object] = {}
+        self._service_health: FlextTypes.Dict = {}
+        self._circuit_breakers: FlextTypes.NestedDict = {}
+        self._performance_metrics: FlextTypes.Dict = {}
 
         # Initialize logger
         self._logger = FlextLogger(__name__)
 
         # Initialize circuit_breakers as public attribute
-        self.circuit_breakers: dict[str, dict[str, object]] = {}
+        self.circuit_breakers: FlextTypes.NestedDict = {}
 
     @override
     def execute(self) -> FlextResult[FlextCliTypes.Data.CliDataDict]:
@@ -102,9 +102,7 @@ class AdvancedCliService(FlextCliService):
 
     # Removed problematic decorators - @cli_enhanced, @cli_measure_time, @cli_retry
     # These decorators cause type inference issues with PyRight
-    def check_service_health(
-        self, service_name: str
-    ) -> FlextResult[FlextTypes.Core.Dict]:
+    def check_service_health(self, service_name: str) -> FlextResult[FlextTypes.Dict]:
         """Check health of a specific service with retry logic."""
         try:
             logger = getattr(self, "logger", None)
@@ -124,7 +122,7 @@ class AdvancedCliService(FlextCliService):
                     "details": health_data.get("details", {}),
                 }
 
-            return FlextResult[FlextTypes.Core.Dict].ok(health_data)
+            return FlextResult[FlextTypes.Dict].ok(health_data)
 
         except Exception as e:
             if (
@@ -133,11 +131,11 @@ class AdvancedCliService(FlextCliService):
                 and hasattr(self._logger, "exception")
             ):
                 self._logger.exception(f"Health check failed for {service_name}")
-            return FlextResult[FlextTypes.Core.Dict].fail(f"Health check failed: {e}")
+            return FlextResult[FlextTypes.Dict].fail(f"Health check failed: {e}")
 
     # Removed problematic decorators - @cli_enhanced, @with_spinner
     # These decorators cause type inference issues with PyRight
-    def orchestrate_services(self, operation: str) -> FlextResult[FlextTypes.Core.Dict]:
+    def orchestrate_services(self, operation: str) -> FlextResult[FlextTypes.Dict]:
         """Orchestrate multiple services for complex operations."""
         try:
             if (
@@ -183,11 +181,11 @@ class AdvancedCliService(FlextCliService):
                         self._logger.error(
                             f"Step failed: {service_name}.{step_operation} - {step_result.error}"
                         )
-                    return FlextResult[FlextTypes.Core.Dict].fail(
+                    return FlextResult[FlextTypes.Dict].fail(
                         f"Orchestration failed at {service_name}: {step_result.error}"
                     )
 
-            orchestration_result: dict[str, object] = {
+            orchestration_result: FlextTypes.Dict = {
                 "operation": operation,
                 "status": "completed",
                 "steps_executed": len(orchestration_steps),
@@ -195,7 +193,7 @@ class AdvancedCliService(FlextCliService):
                 "timestamp": datetime.now(UTC).isoformat(),
             }
 
-            return FlextResult[FlextTypes.Core.Dict].ok(orchestration_result)
+            return FlextResult[FlextTypes.Dict].ok(orchestration_result)
 
         except Exception as e:
             if (
@@ -204,7 +202,7 @@ class AdvancedCliService(FlextCliService):
                 and hasattr(self._logger, "exception")
             ):
                 self._logger.exception("Service orchestration failed")
-            return FlextResult[FlextTypes.Core.Dict].fail(
+            return FlextResult[FlextTypes.Dict].fail(
                 f"Service orchestration failed: {e}"
             )
 
@@ -283,7 +281,7 @@ class AdvancedCliService(FlextCliService):
         except Exception as e:
             return FlextResult[bool].fail(f"Circuit breaker implementation failed: {e}")
 
-    def _simulate_health_check(self, service_name: str) -> FlextTypes.Core.Dict:
+    def _simulate_health_check(self, service_name: str) -> FlextTypes.Dict:
         """Simulate health check for demonstration."""
         # Simulate different health statuses
 
@@ -312,7 +310,7 @@ class AdvancedCliService(FlextCliService):
 
     def _execute_orchestration_step(
         self, service_name: str, operation: str
-    ) -> FlextResult[FlextTypes.Core.Dict]:
+    ) -> FlextResult[FlextTypes.Dict]:
         """Execute a single orchestration step."""
         try:
             # Simulate step execution
@@ -324,19 +322,17 @@ class AdvancedCliService(FlextCliService):
             success = True  # Always succeed for demo
 
             if success:
-                return FlextResult[FlextTypes.Core.Dict].ok({
+                return FlextResult[FlextTypes.Dict].ok({
                     "service": service_name,
                     "operation": operation,
                     "status": "success",
                     "execution_time_ms": 150,
                     "result": f"Operation {operation} completed successfully",
                 })
-            return FlextResult[FlextTypes.Core.Dict].fail(
-                f"Operation {operation} failed"
-            )
+            return FlextResult[FlextTypes.Dict].fail(f"Operation {operation} failed")
 
         except Exception as e:
-            return FlextResult[FlextTypes.Core.Dict].fail(f"Step execution failed: {e}")
+            return FlextResult[FlextTypes.Dict].fail(f"Step execution failed: {e}")
 
     def _simulate_service_call(self, _service_name: str) -> bool:
         """Simulate service call for circuit breaker demo."""
@@ -381,7 +377,7 @@ def demonstrate_service_operations() -> None:
 
             def check_service(
                 name: str, task_id: TaskID
-            ) -> tuple[str, FlextResult[FlextTypes.Core.Dict]]:
+            ) -> tuple[str, FlextResult[FlextTypes.Dict]]:
                 # Simulate health check
                 time.sleep(0.5)  # Simulate network delay
                 result = service.check_service_health(name)
@@ -403,13 +399,13 @@ def demonstrate_service_operations() -> None:
 
     for service_name, result in results:
         # results are collected from sequential execution
-        typed_result: FlextResult[FlextTypes.Core.Dict] = result
+        typed_result: FlextResult[FlextTypes.Dict] = result
         if typed_result.is_success:
-            data: dict[str, object] = typed_result.value
+            data: FlextTypes.Dict = typed_result.value
             status: str = str(data.get("status", "unknown"))
             response_time_success: str = f"{data.get('response_time_ms', 0)}ms"
-            details_dict: dict[str, object] = cast(
-                "dict[str, object]", data.get("details", {})
+            details_dict: FlextTypes.Dict = cast(
+                "FlextTypes.Dict", data.get("details", {})
             )
             details_success: str = f"CPU: {details_dict.get('cpu_usage', 'N/A')}"
 
@@ -534,10 +530,10 @@ def demonstrate_service_orchestration() -> FlextResult[None]:
 
         # Type-safe extraction of results
         if "results" in result_data:
-            results_value = cast("dict[str, object]", result_data["results"])
+            results_value = cast("FlextTypes.Dict", result_data["results"])
             for service_name_key, step_result_value in results_value.items():
                 if isinstance(step_result_value, dict):
-                    step_result_typed = cast("dict[str, object]", step_result_value)
+                    step_result_typed = cast("FlextTypes.Dict", step_result_value)
                     # Type-safe extraction with explicit casting
                     operation_value: str = str(
                         step_result_typed.get("operation", "unknown")
@@ -587,7 +583,7 @@ def demonstrate_dependency_injection() -> FlextResult[None]:
         # Create mock container for demonstration
         class MockContainer:
             def __init__(self) -> None:
-                self._services: dict[str, object] = {}
+                self._services: FlextTypes.Dict = {}
 
             def register(self, name: str, service: object) -> FlextResult[None]:
                 self._services[name] = service

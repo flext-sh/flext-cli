@@ -12,10 +12,10 @@ from __future__ import annotations
 import time
 
 import pytest
-from flext_core import FlextResult
 from flext_tests import FlextTestsUtilities
 
 from flext_cli.debug import FlextCliDebug
+from flext_core import FlextResult
 
 
 class TestFlextCliDebug:
@@ -38,14 +38,6 @@ class TestFlextCliDebug:
 
     def test_debug_execute(self, debug: FlextCliDebug) -> None:
         """Test debug execute method."""
-        result = debug.execute()
-
-        assert isinstance(result, FlextResult)
-        assert result.is_success
-        assert isinstance(result.unwrap(), str)
-
-    def test_debug_execute(self, debug: FlextCliDebug) -> None:
-        """Test debug execute method (now sync, delegates to execute)."""
         result = debug.execute()
 
         assert isinstance(result, FlextResult)

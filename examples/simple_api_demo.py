@@ -54,22 +54,28 @@ def main() -> None:
     # =========================================================================
     print("\n--- File Operations ---")
 
-    # Write JSON
-    test_data = {"app": "flext-cli", "version": "0.9.0", "users": users}
-    cli.write_json(test_data, "/tmp/test_config.json")
-    cli.success("Written JSON to /tmp/test_config.json")
+    # Create temporary directory for safe file operations
+    with tempfile.TemporaryDirectory() as temp_dir:
+        temp_path = Path(temp_dir)
 
-    # Read JSON
-    loaded_data = cli.read_json("/tmp/test_config.json")
-    cli.info(f"Loaded JSON: {loaded_data['app']} v{loaded_data['version']}")
+        # Write JSON
+        json_file = temp_path / "test_config.json"
+        test_data = {"app": "flext-cli", "version": "0.9.0", "users": users}
+        cli.write_json(test_data, str(json_file))
+        cli.success(f"Written JSON to {json_file}")
 
-    # Write YAML
-    cli.write_yaml(test_data, "/tmp/test_config.yaml")
-    cli.success("Written YAML to /tmp/test_config.yaml")
+        # Read JSON
+        loaded_data = cli.read_json(str(json_file))
+        cli.info(f"Loaded JSON: {loaded_data['app']} v{loaded_data['version']}")
 
-    # Read YAML
-    yaml_data = cli.read_yaml("/tmp/test_config.yaml")
-    cli.info(f"Loaded YAML: {yaml_data['app']} v{yaml_data['version']}")
+        # Write YAML
+        yaml_file = temp_path / "test_config.yaml"
+        cli.write_yaml(test_data, str(yaml_file))
+        cli.success(f"Written YAML to {yaml_file}")
+
+        # Read YAML
+        yaml_data = cli.read_yaml(str(yaml_file))
+        cli.info(f"Loaded YAML: {yaml_data['app']} v{yaml_data['version']}")
 
     # =========================================================================
     # SUMMARY

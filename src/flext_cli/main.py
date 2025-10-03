@@ -14,18 +14,17 @@ import importlib
 import pkgutil
 from collections.abc import Callable
 
-from click import Group
-
 from flext_cli.cli import FlextCliClick
 from flext_core import (
     FlextContainer,
     FlextLogger,
     FlextResult,
     FlextService,
+    FlextTypes,
 )
 
 
-class FlextCliMain(FlextService[None]):
+class FlextCliMain(FlextService[object]):
     """Command registration and management system.
 
     Central hub for CLI command registration, discovery, and execution.
@@ -93,9 +92,9 @@ class FlextCliMain(FlextService[None]):
         self._description = description or f"{name} CLI"
 
         # Command registry
-        self._commands: dict[str, object] = {}
-        self._groups: dict[str, object] = {}
-        self._plugin_commands: dict[str, object] = {}
+        self._commands: FlextTypes.Dict = {}
+        self._groups: FlextTypes.Dict = {}
+        self._plugin_commands: FlextTypes.Dict = {}
 
         # Main CLI group
         self._main_group = self._create_main_group(**kwargs)
@@ -112,7 +111,7 @@ class FlextCliMain(FlextService[None]):
     # MAIN GROUP CREATION
     # =========================================================================
 
-    def _create_main_group(self, **kwargs: str | int | bool | None) -> Group:
+    def _create_main_group(self, **kwargs: str | int | bool | None) -> object:
         """Create main CLI group using Click abstraction.
 
         Args:
@@ -452,7 +451,7 @@ class FlextCliMain(FlextService[None]):
     def load_plugin_commands(
         self,
         plugin_package: str,
-    ) -> FlextResult[list[str]]:
+    ) -> FlextResult[FlextTypes.StringList]:
         """Load commands from a plugin package.
 
         Args:
@@ -469,19 +468,19 @@ class FlextCliMain(FlextService[None]):
 
         """
         try:
-            loaded_commands: list[str] = []
+            loaded_commands: FlextTypes.StringList = []
 
             # Import plugin package
             try:
                 package = importlib.import_module(plugin_package)
             except ImportError as e:
-                return FlextResult[list[str]].fail(
+                return FlextResult[FlextTypes.StringList].fail(
                     f"Failed to import plugin package: {e}",
                 )
 
             # Discover plugin modules
             if not hasattr(package, "__path__"):
-                return FlextResult[list[str]].fail(
+                return FlextResult[FlextTypes.StringList].fail(
                     f"'{plugin_package}' is not a package",
                 )
 
@@ -519,18 +518,18 @@ class FlextCliMain(FlextService[None]):
                 },
             )
 
-            return FlextResult[list[str]].ok(loaded_commands)
+            return FlextResult[FlextTypes.StringList].ok(loaded_commands)
 
         except Exception as e:
             error_msg = f"Failed to load plugin commands: {e}"
             self._logger.exception(error_msg)
-            return FlextResult[list[str]].fail(error_msg)
+            return FlextResult[FlextTypes.StringList].fail(error_msg)
 
     # =========================================================================
     # COMMAND METADATA
     # =========================================================================
 
-    def list_commands(self) -> FlextResult[list[str]]:
+    def list_commands(self) -> FlextResult[FlextTypes.StringList]:
         """List all registered commands.
 
         Returns:
@@ -545,14 +544,14 @@ class FlextCliMain(FlextService[None]):
         """
         try:
             all_commands = list(self._commands.keys())
-            return FlextResult[list[str]].ok(all_commands)
+            return FlextResult[FlextTypes.StringList].ok(all_commands)
 
         except Exception as e:
             error_msg = f"Failed to list commands: {e}"
             self._logger.exception(error_msg)
-            return FlextResult[list[str]].fail(error_msg)
+            return FlextResult[FlextTypes.StringList].fail(error_msg)
 
-    def list_groups(self) -> FlextResult[list[str]]:
+    def list_groups(self) -> FlextResult[FlextTypes.StringList]:
         """List all registered command groups.
 
         Returns:
@@ -567,12 +566,12 @@ class FlextCliMain(FlextService[None]):
         """
         try:
             all_groups = list(self._groups.keys())
-            return FlextResult[list[str]].ok(all_groups)
+            return FlextResult[FlextTypes.StringList].ok(all_groups)
 
         except Exception as e:
             error_msg = f"Failed to list groups: {e}"
             self._logger.exception(error_msg)
-            return FlextResult[list[str]].fail(error_msg)
+            return FlextResult[FlextTypes.StringList].fail(error_msg)
 
     def get_command(self, name: str) -> FlextResult[object]:
         """Get a registered command by name.
@@ -620,7 +619,7 @@ class FlextCliMain(FlextService[None]):
 
     def execute_cli(
         self,
-        args: list[str] | None = None,
+        args: FlextTypes.StringList | None = None,
         *,
         standalone_mode: bool = True,
     ) -> FlextResult[object]:
@@ -676,7 +675,7 @@ class FlextCliMain(FlextService[None]):
     # FLEXT SERVICE METHODS
     # =========================================================================
 
-    def execute(self) -> FlextResult[None]:
+    def execute(self) -> FlextResult[object]:
         """Execute CLI main operations.
 
         Returns:

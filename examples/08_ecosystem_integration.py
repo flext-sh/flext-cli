@@ -95,9 +95,9 @@ class EcosystemService(FlextCliService):
             "status": "Ecosystem service executed successfully"
         })
 
-    def get_health_status(self) -> FlextResult[dict[str, object]]:
+    def get_health_status(self) -> FlextResult[FlextTypes.Dict]:
         """Get health status of all FLEXT services."""
-        health_data: dict[str, object] = {
+        health_data: FlextTypes.Dict = {
             "flext_api": {"status": "healthy", "response_time": "45ms"},
             "flext_core": {"status": "healthy", "response_time": "12ms"},
             "flext_auth": {"status": "healthy", "response_time": "23ms"},
@@ -105,28 +105,28 @@ class EcosystemService(FlextCliService):
             "flext_meltano": {"status": "healthy", "response_time": "67ms"},
             "flext_db_oracle": {"status": "healthy", "response_time": "89ms"},
         }
-        return FlextResult[dict[str, object]].ok(health_data)
+        return FlextResult[FlextTypes.Dict].ok(health_data)
 
     def authenticate_user(
         self, username: str, password: str
-    ) -> FlextResult[dict[str, object]]:
+    ) -> FlextResult[FlextTypes.Dict]:
         """Authenticate user across FLEXT ecosystem."""
         # Simulate authentication since FlextCliAuth doesn't have authenticate method
         # Password is used for authentication validation
         _ = password  # Acknowledge parameter usage
-        auth_data: dict[str, object] = {
+        auth_data: FlextTypes.Dict = {
             "username": username,
             "token": "mock_token_12345",
             "expires_in": self._settings.auth_token_expiry,
             "services": ["flext_api", "flext_core", "flext_auth"],
         }
-        return FlextResult[dict[str, object]].ok(auth_data)
+        return FlextResult[FlextTypes.Dict].ok(auth_data)
 
     def run_meltano_operation(
         self, operation: str, project: str
-    ) -> FlextResult[dict[str, object]]:
+    ) -> FlextResult[FlextTypes.Dict]:
         """Run Meltano operation."""
-        operations: dict[str, dict[str, object]] = {
+        operations: FlextTypes.NestedDict = {
             "run": {"status": "completed", "pipelines": 3, "duration": "2m 34s"},
             "test": {"status": "passed", "tests": 15, "duration": "45s"},
             "invoke": {"status": "completed", "tasks": 2, "duration": "1m 12s"},
@@ -134,22 +134,20 @@ class EcosystemService(FlextCliService):
         }
 
         if operation not in operations:
-            return FlextResult[dict[str, object]].fail(
-                f"Unknown operation: {operation}"
-            )
+            return FlextResult[FlextTypes.Dict].fail(f"Unknown operation: {operation}")
 
-        result_data: dict[str, object] = operations[operation].copy()
+        result_data: FlextTypes.Dict = operations[operation].copy()
         result_data["project"] = project
         result_data["operation"] = operation
 
-        return FlextResult[dict[str, object]].ok(result_data)
+        return FlextResult[FlextTypes.Dict].ok(result_data)
 
     def execute_oracle_query(
         self, query: str, schema: str = "public"
-    ) -> FlextResult[dict[str, object]]:
+    ) -> FlextResult[FlextTypes.Dict]:
         """Execute Oracle query."""
         # Simulate query execution
-        query_data: dict[str, object] = {
+        query_data: FlextTypes.Dict = {
             "query": query,
             "schema": schema,
             "rows_affected": 42,
@@ -170,11 +168,11 @@ class EcosystemService(FlextCliService):
                 },
             ],
         }
-        return FlextResult[dict[str, object]].ok(query_data)
+        return FlextResult[FlextTypes.Dict].ok(query_data)
 
-    def get_ecosystem_metrics(self) -> FlextResult[dict[str, object]]:
+    def get_ecosystem_metrics(self) -> FlextResult[FlextTypes.Dict]:
         """Get ecosystem metrics."""
-        metrics_data: dict[str, object] = {
+        metrics_data: FlextTypes.Dict = {
             "services": {"total": 6, "healthy": 6, "degraded": 0, "down": 0},
             "performance": {
                 "avg_response_time": "45ms",
@@ -187,11 +185,11 @@ class EcosystemService(FlextCliService):
                 "disk_usage": "45%",
             },
         }
-        return FlextResult[dict[str, object]].ok(metrics_data)
+        return FlextResult[FlextTypes.Dict].ok(metrics_data)
 
-    def get_ecosystem_config(self) -> FlextResult[dict[str, object]]:
+    def get_ecosystem_config(self) -> FlextResult[FlextTypes.Dict]:
         """Get ecosystem configuration."""
-        config_data: dict[str, object] = {
+        config_data: FlextTypes.Dict = {
             "settings": {
                 "flext_api_url": self._settings.flext_api_url,
                 "flexcore_url": self._settings.flexcore_url,
@@ -202,7 +200,7 @@ class EcosystemService(FlextCliService):
             "environment": "development",
             "version": "0.9.1",
         }
-        return FlextResult[dict[str, object]].ok(config_data)
+        return FlextResult[FlextTypes.Dict].ok(config_data)
 
 
 # CLI Functions - Using flext-cli patterns
@@ -223,7 +221,7 @@ def health() -> None:
         health_data = health_result.unwrap()
         for status in health_data.values():
             if isinstance(status, dict):
-                status_dict: FlextTypes.Core.Dict = status
+                status_dict: FlextTypes.Dict = status
                 str(status_dict.get("status", "unknown"))
                 str(status_dict.get("response_time", "unknown"))
 
@@ -235,7 +233,7 @@ def authenticate(username: str, password: str) -> None:
 
     if auth_result.is_success:
         token_data = auth_result.unwrap()
-        token_data_dict: dict[str, object] = token_data
+        token_data_dict: FlextTypes.Dict = token_data
         services = token_data_dict.get("services", [])
         if isinstance(services, list):
             [str(s) for s in services]
@@ -248,7 +246,7 @@ def meltano(operation: str, project: str) -> None:
 
     if meltano_result.is_success:
         result_data = meltano_result.unwrap()
-        result_data_typed: FlextTypes.Core.Dict = result_data
+        result_data_typed: FlextTypes.Dict = result_data
         if "pipelines" in result_data_typed:
             pass
         if "tests" in result_data_typed:
@@ -268,7 +266,7 @@ def oracle_query(
 
     if query_result.is_success:
         query_data = query_result.unwrap()
-        query_data_typed: FlextTypes.Core.Dict = query_data
+        query_data_typed: FlextTypes.Dict = query_data
         columns = query_data_typed.get("columns", [])
         if isinstance(columns, list):
             [str(c) for c in columns]
@@ -294,7 +292,7 @@ def metrics(output_format: str = "table") -> None:
     if metrics_result.is_success:
         metrics_data = metrics_result.unwrap()
 
-        metrics_data_typed: FlextTypes.Core.Dict = metrics_data
+        metrics_data_typed: FlextTypes.Dict = metrics_data
         if output_format == "table":
             services = metrics_data_typed.get("services", {})
             if isinstance(services, dict):
@@ -318,9 +316,9 @@ def config() -> None:
 
     if config_result.is_success:
         config_data = config_result.unwrap()
-        config_data_typed: FlextTypes.Core.Dict = config_data
+        config_data_typed: FlextTypes.Dict = config_data
         settings = config_data_typed.get("settings", {})
         if isinstance(settings, dict):
-            settings_dict: FlextTypes.Core.Dict = settings
+            settings_dict: FlextTypes.Dict = settings
             for _key, _value in settings_dict.items():
                 pass

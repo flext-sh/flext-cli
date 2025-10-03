@@ -13,7 +13,10 @@ import math
 import threading
 import time
 from dataclasses import dataclass
-from typing import (
+
+import pytest
+from flext_tests import FlextTestsUtilities
+from flext_typing import (
     Generic,
     Protocol,
     TypedDict,
@@ -25,11 +28,9 @@ from typing import (
     runtime_checkable,
 )
 
-import pytest
-
 from flext_cli.constants import FlextCliConstants
 from flext_cli.typings import FlextCliTypes
-from flext_tests import FlextTestsUtilities
+from flext_core import FlextTypes
 
 
 class TestFlextCliTypes:
@@ -69,10 +70,10 @@ class TestFlextCliTypes:
     def test_type_definition(self) -> None:
         """Test type definition functionality."""
         # Test basic type definitions
-        T = TypeVar("T")
+        t = TypeVar("t")
 
         # Test TypeVar
-        assert T is not None
+        assert t is not None
 
         # Test Generic type - use specific type since TypeVar appears only once
         @dataclass  # Convert to dataclass to satisfy Ruff B903
@@ -90,8 +91,8 @@ class TestFlextCliTypes:
     def test_type_aliases(self) -> None:
         """Test type aliases functionality."""
         # Define type aliases (using simple assignments for function scope)
-        user_data: dict[str, object] = {"id": 1, "name": "test"}
-        user_list: list[dict[str, object]] = [user_data]
+        user_data: FlextTypes.Dict = {"id": 1, "name": "test"}
+        user_list: list[FlextTypes.Dict] = [user_data]
 
         # Test type aliases
         user_id: int = 123
@@ -123,29 +124,29 @@ class TestFlextCliTypes:
 
     def test_generic_types(self) -> None:
         """Test generic types functionality."""
-        T = TypeVar("T")
-        K = TypeVar("K")
-        V = TypeVar("V")
+        t = TypeVar("t")
+        k = TypeVar("k")
+        v = TypeVar("v")
 
         # Define generic classes
-        class Container(Generic[T]):
-            def __init__(self, value: T) -> None:
+        class Container(Generic[t]):
+            def __init__(self, value: t) -> None:
                 self.value = value
 
-            def get_value(self) -> T:
+            def get_value(self) -> t:
                 return self.value
 
-            def set_value(self, value: T) -> None:
+            def set_value(self, value: t) -> None:
                 self.value = value
 
-        class KeyValueStore(Generic[K, V]):
+        class KeyValueStore(Generic[k, v]):
             def __init__(self) -> None:
-                self._store: dict[K, V] = {}
+                self._store: dict[k, v] = {}
 
-            def set(self, key: K, value: V) -> None:
+            def set(self, key: k, value: v) -> None:
                 self._store[key] = value
 
-            def get(self, key: K) -> V | None:
+            def get(self, key: k) -> v | None:
                 return self._store.get(key)
 
         # Test generic types
@@ -173,7 +174,7 @@ class TestFlextCliTypes:
         # Define function with type hints
         def typed_function(
             name: str, age: int, *, active: bool = True
-        ) -> dict[str, object]:
+        ) -> FlextTypes.Dict:
             return {"name": name, "age": age, "active": active}
 
         # Test type hints extraction
@@ -181,7 +182,7 @@ class TestFlextCliTypes:
         assert hints["name"] is str
         assert hints["age"] is int
         assert hints["active"] is bool
-        assert hints["return"] == dict[str, object]
+        assert hints["return"] == FlextTypes.Dict
 
         # Test complex type analysis
         def complex_function(data: list[dict[str, str | int]]) -> str | None:
@@ -200,7 +201,7 @@ class TestFlextCliTypes:
                 self.name = name
                 self.value = value
 
-            def process(self, data: list[str]) -> dict[str, int]:
+            def process(self, data: FlextTypes.StringList) -> dict[str, int]:
                 return {item: len(item) for item in data}
 
         # Test type hints
@@ -209,7 +210,7 @@ class TestFlextCliTypes:
         assert hints["value"] is int
 
         hints = get_type_hints(TypedClass.process)
-        assert hints["data"] == list[str]
+        assert hints["data"] == FlextTypes.StringList
         assert hints["return"] == dict[str, int]
 
         # Test type creation and usage
@@ -274,8 +275,8 @@ class TestFlextCliTypes:
 
         # Test type introspection
         def test_function(
-            param1: str, param2: int, param3: list[str] | None = None
-        ) -> dict[str, object]:
+            param1: str, param2: int, param3: FlextTypes.StringList | None = None
+        ) -> FlextTypes.Dict:
             return {"param1": param1, "param2": param2, "param3": param3}
 
         # Get type hints
@@ -286,7 +287,7 @@ class TestFlextCliTypes:
         assert "return" in hints
 
         # Test type origin and args
-        list_type = list[str]
+        list_type = FlextTypes.StringList
         assert get_origin(list_type) is list
         assert get_args(list_type) == (str,)
 
@@ -298,7 +299,7 @@ class TestFlextCliTypes:
         """Test type inspection functionality."""
         # Define complex types
         complex_type = list[dict[str, str | int]]
-        optional_type = list[str] | None
+        optional_type = FlextTypes.StringList | None
         union_type = str | int | bool
 
         # Test type inspection
@@ -311,7 +312,7 @@ class TestFlextCliTypes:
         assert get_origin(optional_type) is not None
         optional_args = get_args(optional_type)
         assert type(None) in optional_args
-        assert list[str] in optional_args
+        assert FlextTypes.StringList in optional_args
 
         # In Python 3.13, union_type creates a UnionType, not Union
         assert get_origin(union_type) is not None
@@ -382,14 +383,14 @@ class TestFlextCliTypes:
 
     def test_data_processing_type_scenario(self) -> None:
         """Test data processing type scenario."""
-        T = TypeVar("T")
+        t = TypeVar("t")
 
         # Define data processing protocol
         @runtime_checkable
-        class DataProcessor(Protocol[T]):
-            def validate(self, data: T) -> bool: ...
-            def transform(self, data: T) -> T: ...
-            def process(self, data: T) -> T: ...
+        class DataProcessor(Protocol[t]):
+            def validate(self, data: t) -> bool: ...
+            def transform(self, data: t) -> t: ...
+            def process(self, data: t) -> t: ...
 
         # Implement data processor
         class StringProcessor:
@@ -451,14 +452,14 @@ class TestFlextCliTypes:
             base_url: str
             timeout: int
             retries: int
-            headers: dict[str, str]
+            headers: FlextTypes.StringDict
 
         class AppConfig(TypedDict):
             debug: bool
             log_level: str
             database: DatabaseConfig
             api: ApiConfig
-            features: list[str]
+            features: FlextTypes.StringList
 
         # Define configuration using dataclass
         @dataclass
@@ -476,7 +477,7 @@ class TestFlextCliTypes:
             log_level: str
             database: DatabaseConfigDC
             api: ApiConfig
-            features: list[str]
+            features: FlextTypes.StringList
 
         # Test configuration creation
         db_config: DatabaseConfig = {
@@ -592,10 +593,10 @@ class TestFlextCliTypes:
         """Test type performance."""
 
         # Test type checking performance
-        def process_list(data: list[str]) -> list[str]:
+        def process_list(data: FlextTypes.StringList) -> FlextTypes.StringList:
             return [item.upper() for item in data]
 
-        def process_dict(data: dict[str, object]) -> dict[str, str]:
+        def process_dict(data: FlextTypes.Dict) -> FlextTypes.StringDict:
             return {key: str(value) for key, value in data.items()}
 
         # Test performance
@@ -603,8 +604,8 @@ class TestFlextCliTypes:
         test_dict = {"key1": 123, "key2": "value", "key3": True}
 
         # Initialize variables before loop
-        result_list: list[str] = []
-        result_dict: dict[str, str] = {}
+        result_list: FlextTypes.StringList = []
+        result_dict: FlextTypes.StringDict = {}
 
         start_time = time.time()
         for _ in range(1000):
@@ -656,7 +657,9 @@ class TestFlextCliTypes:
         """Test type concurrent access."""
 
         # Test thread-safe type operations
-        def thread_safe_operation(data: list[str], results: list[str]) -> None:
+        def thread_safe_operation(
+            data: FlextTypes.StringList, results: FlextTypes.StringList
+        ) -> None:
             processed = [item.upper() for item in data]
             results.extend(processed)
 
@@ -686,7 +689,7 @@ class TestFlextCliTypes:
     def test_full_type_workflow_integration(self) -> None:
         """Test complete type workflow integration."""
         # 1. Define complex type system
-        T = TypeVar("T")
+        TypeVar("t")
 
         class DataItem(TypedDict):
             id: int
@@ -775,11 +778,11 @@ class TestFlextCliTypes:
         # Test protocol
         @runtime_checkable
         class TestProtocol(Protocol):
-            def operation(self, data: list[str]) -> dict[str, object]: ...
+            def operation(self, data: FlextTypes.StringList) -> FlextTypes.Dict: ...
 
         # Implement protocol
         class Implementation:
-            def operation(self, data: list[str]) -> dict[str, object]:
+            def operation(self, data: FlextTypes.StringList) -> FlextTypes.Dict:
                 time.sleep(0.001)  # Simulate work
                 return {
                     "processed": [item.upper() for item in data],

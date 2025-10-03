@@ -344,7 +344,7 @@ def set_config_value(self, key: str, value: str) -> FlextResult[bool]:
     except Exception as e:
         return FlextResult[bool].fail(f"Set config failed: {e}")
 
-def get_config_value(self, key: str) -> FlextResult[dict[str, object]]:
+def get_config_value(self, key: str) -> FlextResult[FlextTypes.Dict]:
     """
     Get configuration value (PLACEHOLDER IMPLEMENTATION).
 
@@ -359,14 +359,14 @@ def get_config_value(self, key: str) -> FlextResult[dict[str, object]]:
     """
     try:
         # Placeholder implementation - would integrate with flext_cli_config
-        config_data: dict[str, object] = {
+        config_data: FlextTypes.Dict = {
             "key": key,
             "value": f"config_value_for_{key}",  # ❌ FAKE VALUE
             "timestamp": datetime.now(UTC).isoformat(),
         }
-        return FlextResult[dict[str, object]].ok(config_data)
+        return FlextResult[FlextTypes.Dict].ok(config_data)
     except Exception as e:
-        return FlextResult[dict[str, object]].fail(f"Get config failed: {e}")
+        return FlextResult[FlextTypes.Dict].fail(f"Get config failed: {e}")
 ```
 
 #### **Command Execution**

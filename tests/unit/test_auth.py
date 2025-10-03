@@ -15,11 +15,12 @@ from pathlib import Path
 from typing import cast
 
 import pytest
-from flext_core import FlextResult
 from flext_tests import FlextTestsUtilities
 
 from flext_cli.auth import FlextCliAuth
 from flext_cli.constants import FlextCliConstants
+from flext_cli.typings import FlextCliTypes
+from flext_core import FlextResult, FlextTypes
 
 
 class TestFlextCliAuth:
@@ -57,19 +58,6 @@ class TestFlextCliAuth:
         assert "status" in data
         assert "message" in data
         assert data["status"] == "operational"
-
-    def test_auth_service_execute_method(self, auth_service: FlextCliAuth) -> None:
-        """Test auth service execute method (now sync, delegates to execute)."""
-        result = auth_service.execute()
-
-        assert isinstance(result, FlextResult)
-        assert result.is_success
-
-        data = result.unwrap()
-        assert isinstance(data, dict)
-        assert "status" in data
-        assert "message" in data
-        assert data["status"] == FlextCliConstants.OPERATIONAL
         assert data["status"] == "operational"
 
     # ========================================================================
@@ -156,7 +144,7 @@ class TestFlextCliAuth:
         """Test credential storage functionality."""
         credentials_file = temp_dir / "credentials.json"
         test_credentials: dict[
-            str, bool | dict[str, object] | float | int | list[object] | str | None
+            str, bool | FlextTypes.Dict | float | int | FlextTypes.List | str | None
         ] = {
             "username": "test_user",
             "password": "test_password",
@@ -443,7 +431,7 @@ class TestFlextCliAuth:
 
     def test_create_user(self, auth_service: FlextCliAuth) -> None:
         """Test user creation functionality."""
-        user_data: dict[str, object] = {
+        user_data: FlextTypes.Dict = {
             "username": "test_user",
             "email": "test@example.com",
             "password": "test_password",
@@ -465,7 +453,7 @@ class TestFlextCliAuth:
     def test_get_user(self, auth_service: FlextCliAuth) -> None:
         """Test user retrieval functionality."""
         # First create a user
-        user_data: dict[str, object] = {
+        user_data: FlextTypes.Dict = {
             "username": "test_user",
             "email": "test@example.com",
             "password": "test_password",
@@ -490,7 +478,7 @@ class TestFlextCliAuth:
     def test_update_user(self, auth_service: FlextCliAuth) -> None:
         """Test user update functionality."""
         # First create a user
-        user_data: dict[str, object] = {
+        user_data: FlextTypes.Dict = {
             "username": "test_user",
             "email": "test@example.com",
             "password": "test_password",
@@ -503,7 +491,7 @@ class TestFlextCliAuth:
         user_id = user["user_id"]
 
         # Then update the user
-        update_data: dict[str, object] = {"email": "updated@example.com"}
+        update_data: FlextTypes.Dict = {"email": "updated@example.com"}
         result = auth_service.update_user(
             str(user_id), cast("FlextCliTypes.Auth.UserData", update_data)
         )
@@ -520,7 +508,7 @@ class TestFlextCliAuth:
     def test_delete_user(self, auth_service: FlextCliAuth) -> None:
         """Test user deletion functionality."""
         # First create a user
-        user_data: dict[str, object] = {
+        user_data: FlextTypes.Dict = {
             "username": "test_user",
             "email": "test@example.com",
             "password": "test_password",
@@ -696,7 +684,7 @@ class TestFlextCliAuth:
     def test_full_auth_workflow_integration(self, auth_service: FlextCliAuth) -> None:
         """Test complete authentication workflow integration."""
         # 1. Create a user
-        user_data: dict[str, object] = {
+        user_data: FlextTypes.Dict = {
             "username": "integration_user",
             "email": "integration@example.com",
             "password": "integration_password",

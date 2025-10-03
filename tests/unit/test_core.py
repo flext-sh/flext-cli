@@ -15,7 +15,6 @@ from pathlib import Path
 
 import pytest
 import yaml
-from flext_core import FlextResult, FlextUtilities
 from flext_tests import FlextTestsUtilities
 
 from flext_cli.api import FlextCli
@@ -23,6 +22,7 @@ from flext_cli.config import FlextCliConfig
 from flext_cli.constants import FlextCliConstants
 from flext_cli.core import FlextCliService
 from flext_cli.models import FlextCliModels
+from flext_core import FlextResult, FlextTypes, FlextUtilities
 
 
 class TestFlextCliService:
@@ -70,11 +70,6 @@ class TestFlextCliService:
             # If execution fails, should have proper error message
             assert isinstance(result.error, str)
             assert len(result.error) > 0
-
-    def test_core_service_execute_method(self, core_service: FlextCliService) -> None:
-        """Test core service execute method."""
-
-        def run_test() -> None:
             result = core_service.execute()
 
             assert isinstance(result, FlextResult)
@@ -187,7 +182,7 @@ class TestFlextCliService:
     ) -> None:
         """Test configuration saving functionality."""
         config_file = temp_dir / "test_save_config.json"
-        test_config: dict[str, object] = {
+        test_config: FlextTypes.Dict = {
             "debug": False,
             "output_format": "table",
             "timeout": FlextCliConstants.TIMEOUTS.DEFAULT,
@@ -395,7 +390,7 @@ class TestFlextCliService:
 
     def test_serialize_json_data(self) -> None:
         """Test JSON data serialization functionality."""
-        test_data: dict[str, object] = {
+        test_data: FlextTypes.Dict = {
             "key": "value",
             "number": 42,
             "list": [1, 2, 3],
@@ -451,7 +446,7 @@ nested:
 
     def test_serialize_yaml_data(self) -> None:
         """Test YAML data serialization functionality."""
-        test_data: dict[str, object] = {
+        test_data: FlextTypes.Dict = {
             "key": "value",
             "number": 42,
             "list": [1, 2, 3],
@@ -536,7 +531,7 @@ nested:
     @pytest.mark.skip(reason="HTTP operations removed from core CLI")
     def test_make_http_request_post(self, core_service: FlextCliService) -> None:
         """Test HTTP POST request functionality."""
-        test_data: dict[str, object] = {"key": "value", "test": True}
+        test_data: FlextTypes.Dict = {"key": "value", "test": True}
 
         result = core_service.make_http_request(
             "POST", "https://httpbin.org/post", data=test_data, timeout=10
@@ -678,7 +673,7 @@ nested:
     ) -> None:
         """Test complete workflow integration."""
         # 1. Create configuration
-        config_data: dict[str, object] = {
+        config_data: FlextTypes.Dict = {
             "debug": True,
             "output_format": "json",
             "timeout": FlextCliConstants.TIMEOUTS.DEFAULT,
@@ -705,7 +700,7 @@ nested:
         assert validate_result.is_success
 
         # 4. Process data
-        test_data: dict[str, object] = {
+        test_data: FlextTypes.Dict = {
             "processed": True,
             "timestamp": "2025-01-01T00:00:00Z",
         }

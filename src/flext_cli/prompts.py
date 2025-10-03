@@ -14,6 +14,7 @@ from flext_core import (
     FlextLogger,
     FlextResult,
     FlextService,
+    FlextTypes,
     FlextUtilities,
 )
 
@@ -22,7 +23,7 @@ class FlextCliPrompts(FlextService[FlextCliTypes.Data.CliDataDict]):
     """CLI prompts and interactive input service using domain-specific types.
 
     Provides comprehensive prompt functionality for CLI applications with enhanced
-    type safety using FlextCliTypes instead of generic FlextTypes.Core types.
+    type safety using FlextCliTypes instead of generic FlextTypes types.
     Extends FlextService with CLI-specific data dictionary types.
     """
 
@@ -47,14 +48,14 @@ class FlextCliPrompts(FlextService[FlextCliTypes.Data.CliDataDict]):
         """
         super().__init__(**data)
         self._logger = logger or FlextLogger(__name__)
-        self._container = FlextContainer.get_global()
+        self._container = FlextContainer()
 
         # Prompts-specific configuration
         # If quiet mode is enabled, disable interactive mode
         self._interactive_mode = interactive_mode and not quiet
         self._quiet = quiet
         self._default_timeout = default_timeout
-        self._prompt_history: list[str] = []
+        self._prompt_history: FlextTypes.StringList = []
 
     @property
     def interactive_mode(self) -> bool:
@@ -87,11 +88,11 @@ class FlextCliPrompts(FlextService[FlextCliTypes.Data.CliDataDict]):
         return self._default_timeout
 
     @property
-    def prompt_history(self) -> list[str]:
+    def prompt_history(self) -> FlextTypes.StringList:
         """Get prompt history.
 
         Returns:
-            list[str]: List of previous prompts
+            FlextTypes.StringList: List of previous prompts
 
         """
         return self._prompt_history.copy()
@@ -200,7 +201,7 @@ class FlextCliPrompts(FlextService[FlextCliTypes.Data.CliDataDict]):
     def prompt_choice(
         self,
         message: str,
-        choices: list[str],
+        choices: FlextTypes.StringList,
         default: str | None = None,
     ) -> FlextResult[str]:
         """Prompt user to select from multiple choices.
@@ -414,7 +415,7 @@ class FlextCliPrompts(FlextService[FlextCliTypes.Data.CliDataDict]):
             return FlextResult[bool].fail(f"Confirmation failed: {e}")
 
     def select_from_options(
-        self, options: list[str], message: str = "Choose an option:"
+        self, options: FlextTypes.StringList, message: str = "Choose an option:"
     ) -> FlextResult[str]:
         """Prompt user to select from multiple options.
 
@@ -575,7 +576,7 @@ class FlextCliPrompts(FlextService[FlextCliTypes.Data.CliDataDict]):
             return FlextResult[object].fail(f"Progress creation failed: {e}")
 
     def with_progress(
-        self, items: list[object], description: str = "Processing..."
+        self, items: FlextTypes.List, description: str = "Processing..."
     ) -> FlextResult[object]:
         """Execute with progress indicator.
 

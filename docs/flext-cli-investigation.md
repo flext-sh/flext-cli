@@ -81,7 +81,7 @@ def main() -> None:
 #### Class Hierarchy
 
 ```python
-class FlextCliService(FlextService[FlextTypes.Core.Dict]):
+class FlextCliService(FlextService[FlextTypes.Dict]):
     """Essential CLI service using flext-core directly."""
 ```
 
@@ -127,7 +127,7 @@ self._formatters = FlextCliModels.CliFormatters()
 
 #### Type Safety Analysis
 
-- **Generic Types**: `FlextService[FlextTypes.Core.Dict]`
+- **Generic Types**: `FlextService[FlextTypes.Dict]`
 - **Type Aliases**: `HandlerData`, `HandlerFunction`
 - **Type Narrowing**: Proper type checking for CSV data formatting
 - **Override Decorator**: `@override` for interface compliance
@@ -171,7 +171,7 @@ Each module will be analyzed for:
 #### Class Hierarchy
 
 ```python
-class FlextCliAuth(FlextService[dict[str, object]]):
+class FlextCliAuth(FlextService[FlextTypes.Dict]):
     """Authentication service extending FlextService from flext-core."""
 ```
 
@@ -243,7 +243,7 @@ file_path.chmod(0o600)
 #### Class Hierarchy
 
 ```python
-class FlextCli(FlextService[dict[str, object]]):
+class FlextCli(FlextService[FlextTypes.Dict]):
     """Main CLI API - direct flext-core extension without abstraction layers."""
 ```
 
@@ -309,7 +309,7 @@ self._console.print(format_result.unwrap())
 
 #### Type Safety Analysis
 
-- **Generic Types**: `FlextService[dict[str, object]]`
+- **Generic Types**: `FlextService[FlextTypes.Dict]`
 - **Type Narrowing**: Proper casting for CSV data
 - **Safe Calls**: Uses `FlextResult.safe_call()` for operations
 
@@ -332,7 +332,7 @@ self._console.print(format_result.unwrap())
 #### Class Hierarchy
 
 ```python
-class FlextCliCommands(FlextService[dict[str, object]]):
+class FlextCliCommands(FlextService[FlextTypes.Dict]):
     """Main CLI class - direct Click integration without abstraction layers."""
 ```
 
@@ -396,9 +396,9 @@ command = click.Command(
 
 #### Type Safety Analysis
 
-- **Type Aliases**: `ClickOptions = dict[str, str | bool | int | list[str] | None]`
+- **Type Aliases**: `ClickOptions = dict[str, str | bool | int | FlextTypes.StringList | None]`
 - **Type Casting**: Proper casting for Click parameters
-- **Generic Types**: `FlextService[dict[str, object]]`
+- **Generic Types**: `FlextService[FlextTypes.Dict]`
 
 #### Factory Function
 
@@ -616,7 +616,7 @@ class _ConsoleOutput:
 #### Class Hierarchy
 
 ```python
-class FlextCliCmd(FlextService[dict[str, object]]):
+class FlextCliCmd(FlextService[FlextTypes.Dict]):
     """CMD service extending FlextService from flext-core."""
 ```
 
@@ -665,7 +665,7 @@ class _ConfigHelper:
     """Nested helper for configuration operations."""
 
     @staticmethod
-    def get_config_paths() -> list[str]:
+    def get_config_paths() -> FlextTypes.StringList:
         """Get standard configuration paths."""
         home = Path.home()
         flext_dir = home / ".flext"
@@ -743,7 +743,7 @@ def command_bus_service(self) -> FlextCliCmd:
 #### Class Hierarchy
 
 ```python
-class FlextCliCommandService(FlextService[FlextTypes.Core.List]):
+class FlextCliCommandService(FlextService[FlextTypes.List]):
     """Unified command service using single responsibility principle."""
 ```
 
@@ -809,7 +809,7 @@ class _CommandBuilderHelper:
         """Create command with proper metadata."""
 
     @staticmethod
-    def create_command_with_options(name: str, description: str, handler: object, **options: object) -> dict[str, object]:
+    def create_command_with_options(name: str, description: str, handler: object, **options: object) -> FlextTypes.Dict:
         """Create command with options for CLI frameworks."""
 ```
 
@@ -832,7 +832,7 @@ class _CommandBuilderHelper:
 #### Class Hierarchy
 
 ```python
-class FlextCliSessionService(FlextService[dict[str, object]]):
+class FlextCliSessionService(FlextService[FlextTypes.Dict]):
     """Unified session service using single responsibility principle."""
 ```
 
@@ -900,7 +900,7 @@ class _SessionStateHelper:
 #### Session Statistics Analysis
 
 ```python
-def get_session_statistics(self) -> FlextResult[FlextTypes.Core.Dict]:
+def get_session_statistics(self) -> FlextResult[FlextTypes.Dict]:
     """Get session statistics - single responsibility."""
     statistics = {
         "total_active_sessions": total_sessions,
@@ -1000,7 +1000,7 @@ class ExecutionContext:
     """Extended context for command execution (lightweight dataclass)."""
 
     command_name: str | None = None
-    command_args: FlextTypes.Core.Dict = field(default_factory=dict)
+    command_args: FlextTypes.Dict = field(default_factory=dict)
     execution_id: str | None = None
     start_time: float | None = None
     session_id: str | None = None
@@ -1169,18 +1169,18 @@ def set_config_value(self, key: str, value: str) -> FlextResult[bool]:
     except Exception as e:
         return FlextResult[bool].fail(f"Set config failed: {e}")
 
-def get_config_value(self, key: str) -> FlextResult[dict[str, object]]:
+def get_config_value(self, key: str) -> FlextResult[FlextTypes.Dict]:
     """Get configuration value (placeholder implementation)."""
     try:
         # Placeholder implementation - would integrate with flext_cli_config
-        config_data: dict[str, object] = {
+        config_data: FlextTypes.Dict = {
             "key": key,
             "value": f"config_value_for_{key}",  # FAKE VALUE
             "timestamp": datetime.now(UTC).isoformat(),
         }
-        return FlextResult[dict[str, object]].ok(config_data)
+        return FlextResult[FlextTypes.Dict].ok(config_data)
     except Exception as e:
-        return FlextResult[dict[str, object]].fail(f"Get config failed: {e}")
+        return FlextResult[FlextTypes.Dict].fail(f"Get config failed: {e}")
 
 def edit_config(self) -> FlextResult[str]:
     """Edit configuration (placeholder implementation)."""
@@ -1326,7 +1326,7 @@ return FlextResult[str].ok(f"Executed: {command_line}")  # Without executing
 
    ```python
    # Replace mock token with real API integration
-   def authenticate(self, credentials: dict[str, object]) -> FlextResult[str]:
+   def authenticate(self, credentials: FlextTypes.Dict) -> FlextResult[str]:
        # Integrate with actual authentication service
        # Use secure token generation
        # Implement proper session management
@@ -1596,7 +1596,7 @@ def json_stringify_with_result() -> FlextResult[str]
 **File**: `flext_cli_auth.py` - Lines 248-257
 
 ```python
-def authenticate(self, credentials: dict[str, object]) -> FlextResult[str]:
+def authenticate(self, credentials: FlextTypes.Dict) -> FlextResult[str]:
     """Authenticate user with provided credentials."""
     # Handle username/password authentication (basic implementation)
     if "username" in credentials and "password" in credentials:
@@ -1621,7 +1621,7 @@ def authenticate(self, credentials: dict[str, object]) -> FlextResult[str]:
 
 ```python
 # Should implement real authentication:
-def authenticate(self, credentials: dict[str, object]) -> FlextResult[str]:
+def authenticate(self, credentials: FlextTypes.Dict) -> FlextResult[str]:
     """Authenticate user with provided credentials."""
     if "username" in credentials and "password" in credentials:
         username = str(credentials["username"])
@@ -1650,18 +1650,18 @@ def set_config_value(self, key: str, value: str) -> FlextResult[bool]:
     except Exception as e:
         return FlextResult[bool].fail(f"Set config failed: {e}")
 
-def get_config_value(self, key: str) -> FlextResult[dict[str, object]]:
+def get_config_value(self, key: str) -> FlextResult[FlextTypes.Dict]:
     """Get configuration value (placeholder implementation)."""
     try:
         # Placeholder implementation - would integrate with flext_cli_config
-        config_data: dict[str, object] = {
+        config_data: FlextTypes.Dict = {
             "key": key,
             "value": f"config_value_for_{key}",  # ❌ FAKE VALUE
             "timestamp": datetime.now(UTC).isoformat(),
         }
-        return FlextResult[dict[str, object]].ok(config_data)
+        return FlextResult[FlextTypes.Dict].ok(config_data)
     except Exception as e:
-        return FlextResult[dict[str, object]].fail(f"Get config failed: {e}")
+        return FlextResult[FlextTypes.Dict].fail(f"Get config failed: {e}")
 
 def edit_config(self) -> FlextResult[str]:
     """Edit configuration (placeholder implementation)."""
@@ -1695,7 +1695,7 @@ def set_config_value(self, key: str, value: str) -> FlextResult[bool]:
     except Exception as e:
         return FlextResult[bool].fail(f"Set config failed: {e}")
 
-def get_config_value(self, key: str) -> FlextResult[dict[str, object]]:
+def get_config_value(self, key: str) -> FlextResult[FlextTypes.Dict]:
     """Get configuration value."""
     try:
         # Real implementation should:
@@ -1703,13 +1703,13 @@ def get_config_value(self, key: str) -> FlextResult[dict[str, object]]:
         # 2. Return actual value
         config = self._load_config()
         value = config.get(key)
-        return FlextResult[dict[str, object]].ok({
+        return FlextResult[FlextTypes.Dict].ok({
             "key": key,
             "value": value,
             "timestamp": datetime.now(UTC).isoformat(),
         })
     except Exception as e:
-        return FlextResult[dict[str, object]].fail(f"Get config failed: {e}")
+        return FlextResult[FlextTypes.Dict].fail(f"Get config failed: {e}")
 ```
 
 #### **3. Incomplete Command Execution**
@@ -2229,7 +2229,7 @@ class FlextCliValidationService(FlextService[bool]):
 
 ```python
 # Replace custom table formatting with tabulate
-def format_table(self, data: list[dict], headers: list[str] = None) -> FlextResult[str]:
+def format_table(self, data: list[dict], headers: FlextTypes.StringList = None) -> FlextResult[str]:
     """Format data as table using tabulate library."""
     try:
         import tabulate

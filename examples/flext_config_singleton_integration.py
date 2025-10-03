@@ -17,9 +17,8 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from flext_core import FlextConfig
-
 from flext_cli import FlextCliConfig
+from flext_core import FlextConfig, FlextTypes
 
 
 def demonstrate_single_source_of_truth() -> None:
@@ -38,7 +37,7 @@ def demonstrate_cli_parameter_integration() -> None:
     # 1. Ensure integration is maintained
 
     # 2. Apply CLI parameter overrides
-    cli_overrides: dict[str, object] = {
+    cli_overrides: FlextTypes.Dict = {
         "debug": True,
         "profile": "development",
         "output_format": "json",

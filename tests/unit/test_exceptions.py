@@ -15,10 +15,10 @@ import threading
 import time
 
 import pytest
+from flext_tests import FlextTestsUtilities
 
 from flext_cli.constants import FlextCliConstants
 from flext_cli.exceptions import FlextCliExceptions
-from flext_tests import FlextTestsUtilities
 
 
 class TestFlextCliExceptionsFlextCliError:
