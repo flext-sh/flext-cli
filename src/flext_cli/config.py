@@ -46,8 +46,6 @@ class FlextCliConfig(FlextConfig):
     - Uses Python 3.13 + Pydantic 2 features
     """
 
-    # Class variable for singleton pattern
-    _shared_instance: FlextCliConfig | None = None
 
     model_config = SettingsConfigDict(
         env_prefix="FLEXT_CLI_",
@@ -448,16 +446,10 @@ class FlextCliConfig(FlextConfig):
         raise NotImplementedError(msg)
 
     @classmethod
-    def reset_shared_instance(cls) -> None:
-        """Reset the shared instance for testing purposes."""
-        # Reset the singleton instance
-        cls._shared_instance = None
-
-    @classmethod
     def reset_global_instance(cls) -> None:
         """Reset the global FlextCliConfig instance (mainly for testing)."""
-        cls.reset_shared_instance()
         # Use the enhanced FlextConfig reset mechanism
+        cls.reset_global_instance()
 
     def execute_as_service(self) -> FlextResult[FlextCliTypes.Data.CliDataDict]:
         """Execute config as service operation."""
