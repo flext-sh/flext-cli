@@ -10,6 +10,7 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 from flext_cli.cli import FlextCliClick
+from flext_cli.main import FlextCliMain
 from flext_core import FlextLogger, FlextResult, FlextService, FlextTypes
 
 
@@ -49,7 +50,7 @@ class FlextCliTestRunner(FlextService[object]):
 
     def invoke_command(
         self,
-        cli_main: object,
+        cli_main: FlextCliMain,
         command_name: str,
         *,
         args: FlextTypes.StringList | None = None,
@@ -141,7 +142,7 @@ class FlextCliTestRunner(FlextService[object]):
         """
         try:
             click_wrapper = FlextCliClick()
-            runner_result = click_wrapper.create_cli_runner(mix_stderr=mix_stderr)
+            runner_result = click_wrapper.create_cli_runner(_mix_stderr=mix_stderr)
 
             if runner_result.is_failure:
                 return FlextResult[object].fail(
@@ -319,7 +320,7 @@ class FlextCliTestRunner(FlextService[object]):
             self._logger.exception(error_msg)
             return FlextResult[None].fail(error_msg)
 
-    def execute(self) -> FlextResult[object]:
+    def execute(self) -> FlextResult[None]:
         """Execute CLI testing utilities.
 
         Returns:
@@ -420,7 +421,7 @@ class FlextCliMockScenarios(FlextService[object]):
             context = {
                 "command": command_name,
                 "params": params or {},
-                "invoked_subcommand": None,
+                "invoked_subcommand": "",
             }
 
             self._logger.debug("Created mock context", extra={"cmd_name": command_name})
@@ -431,7 +432,7 @@ class FlextCliMockScenarios(FlextService[object]):
             self._logger.exception(error_msg)
             return FlextResult[FlextTypes.Dict].fail(error_msg)
 
-    def execute(self) -> FlextResult[object]:
+    def execute(self) -> FlextResult[None]:
         """Execute mock scenarios operations.
 
         Returns:

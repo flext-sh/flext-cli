@@ -441,7 +441,7 @@ class FlextCliTables(FlextService[object]):
             self._logger.exception(error_msg)
             return FlextResult[None].fail(error_msg)
 
-    def execute(self) -> FlextResult[object]:
+    def execute(self) -> FlextResult[None]:
         """Execute Tabulate tables layer operations.
 
         Returns:

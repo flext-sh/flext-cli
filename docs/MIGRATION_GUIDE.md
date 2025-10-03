@@ -4,9 +4,9 @@
 
 ---
 
-## Why Migrate?
+## Why Migrate
 
-### Benefits of flext-cli Abstractions:
+### Benefits of flext-cli Abstractions
 
 ✅ **ZERO TOLERANCE**: No direct Click/Rich imports needed
 ✅ **Type Safety**: FlextResult-based error handling
@@ -52,7 +52,8 @@ Use the migration patterns below for each scenario.
 
 ### Commands
 
-#### Before (Direct Click):
+#### Before (Direct Click)
+
 ```python
 import click
 
@@ -66,7 +67,8 @@ if __name__ == '__main__':
     hello()
 ```
 
-#### After (flext-cli):
+#### After (flext-cli)
+
 ```python
 from flext_cli import FlextCli
 
@@ -82,6 +84,7 @@ if __name__ == '__main__':
 ```
 
 **Changes**:
+
 - Replace `@click.command()` with `@cli.main.command()`
 - Remove `@click.option()` (handled by function signature)
 - Use `cli.main.execute_cli()` instead of calling function
@@ -90,7 +93,8 @@ if __name__ == '__main__':
 
 ### Command Groups
 
-#### Before (Direct Click):
+#### Before (Direct Click)
+
 ```python
 import click
 
@@ -113,7 +117,8 @@ if __name__ == '__main__':
     cli()
 ```
 
-#### After (flext-cli):
+#### After (flext-cli)
+
 ```python
 from flext_cli import FlextCli
 
@@ -139,6 +144,7 @@ if __name__ == '__main__':
 ```
 
 **Changes**:
+
 - Replace `@click.group()` with `@cli.main.group()`
 - Add commands to group with `@group_name.command()`
 - Use FlextResult pattern for error handling
@@ -147,7 +153,8 @@ if __name__ == '__main__':
 
 ### Options and Arguments
 
-#### Before (Direct Click):
+#### Before (Direct Click)
+
 ```python
 import click
 
@@ -161,7 +168,8 @@ def hello(count, name, out):
         click.echo(f'Hello {name}!', file=out)
 ```
 
-#### After (flext-cli):
+#### After (flext-cli)
+
 ```python
 from flext_cli import FlextCli
 
@@ -189,6 +197,7 @@ def hello(count: int = 1, name: str = "World"):
 ```
 
 **Changes**:
+
 - Use `cli.click.create_option_decorator()` for options
 - Or leverage function signatures with type hints
 - Use FlextResult pattern for error handling
@@ -197,7 +206,8 @@ def hello(count: int = 1, name: str = "World"):
 
 ### Parameter Types
 
-#### Before (Direct Click):
+#### Before (Direct Click)
+
 ```python
 import click
 
@@ -210,7 +220,8 @@ def process(color, path, count):
     pass
 ```
 
-#### After (flext-cli):
+#### After (flext-cli)
+
 ```python
 from flext_cli import FlextCli
 
@@ -234,6 +245,7 @@ def process(color: str, path: str, count: int):
 ```
 
 **Changes**:
+
 - Use `cli.click.get_*_type()` methods
 - Pass types to option decorators
 - Maintain type safety with FlextResult
@@ -244,7 +256,8 @@ def process(color: str, path: str, count: int):
 
 ### Console Printing
 
-#### Before (Direct Rich):
+#### Before (Direct Rich)
+
 ```python
 from rich.console import Console
 
@@ -253,7 +266,8 @@ console.print("Hello", style="bold red")
 console.print("[bold blue]Styled text[/bold blue]")
 ```
 
-#### After (flext-cli):
+#### After (flext-cli)
+
 ```python
 from flext_cli import FlextCli
 
@@ -269,6 +283,7 @@ cli.formatters.print_rich(
 ```
 
 **Changes**:
+
 - Replace `console.print()` with `cli.formatters.print_rich()`
 - Use FlextResult for error handling
 - Same Rich markup syntax works!
@@ -277,7 +292,8 @@ cli.formatters.print_rich(
 
 ### Panels
 
-#### Before (Direct Rich):
+#### Before (Direct Rich)
+
 ```python
 from rich.console import Console
 from rich.panel import Panel
@@ -287,7 +303,8 @@ panel = Panel("Content", title="Title", border_style="blue")
 console.print(panel)
 ```
 
-#### After (flext-cli):
+#### After (flext-cli)
+
 ```python
 from flext_cli import FlextCli
 
@@ -303,6 +320,7 @@ if panel_result.is_success:
 ```
 
 **Changes**:
+
 - Use `cli.formatters.create_panel()`
 - Check `is_success` before using
 - Same Rich styling options
@@ -311,7 +329,8 @@ if panel_result.is_success:
 
 ### Tables
 
-#### Before (Direct Rich):
+#### Before (Direct Rich)
+
 ```python
 from rich.console import Console
 from rich.table import Table
@@ -324,7 +343,8 @@ table.add_row("Alice", "30")
 console.print(table)
 ```
 
-#### After (flext-cli):
+#### After (flext-cli)
+
 ```python
 from flext_cli import FlextCli
 
@@ -347,6 +367,7 @@ if ascii_result.is_success:
 ```
 
 **Changes**:
+
 - Use `cli.formatters.create_table()` for Rich tables
 - Or use `cli.tables.*` for ASCII tables
 - FlextResult error handling
@@ -355,7 +376,8 @@ if ascii_result.is_success:
 
 ### Progress Bars
 
-#### Before (Direct Rich):
+#### Before (Direct Rich)
+
 ```python
 from rich.progress import Progress
 
@@ -366,7 +388,8 @@ with Progress() as progress:
         progress.update(task, advance=1)
 ```
 
-#### After (flext-cli):
+#### After (flext-cli)
+
 ```python
 from flext_cli import FlextCli
 
@@ -383,6 +406,7 @@ if progress_result.is_success:
 ```
 
 **Changes**:
+
 - Use `cli.formatters.create_progress()`
 - Check FlextResult success
 - Same Rich Progress API
@@ -391,7 +415,8 @@ if progress_result.is_success:
 
 ### Markdown Rendering
 
-#### Before (Direct Rich):
+#### Before (Direct Rich)
+
 ```python
 from rich.console import Console
 from rich.markdown import Markdown
@@ -401,7 +426,8 @@ md = Markdown("# Title\n- Item 1")
 console.print(md)
 ```
 
-#### After (flext-cli):
+#### After (flext-cli)
+
 ```python
 from flext_cli import FlextCli
 
@@ -413,6 +439,7 @@ if markdown_result.is_success:
 ```
 
 **Changes**:
+
 - Use `cli.formatters.render_markdown()`
 - FlextResult pattern
 - Same markdown syntax
@@ -421,7 +448,8 @@ if markdown_result.is_success:
 
 ### Syntax Highlighting
 
-#### Before (Direct Rich):
+#### Before (Direct Rich)
+
 ```python
 from rich.console import Console
 from rich.syntax import Syntax
@@ -432,7 +460,8 @@ syntax = Syntax(code, "python", theme="monokai")
 console.print(syntax)
 ```
 
-#### After (flext-cli):
+#### After (flext-cli)
+
 ```python
 from flext_cli import FlextCli
 
@@ -448,6 +477,7 @@ if code_result.is_success:
 ```
 
 **Changes**:
+
 - Use `cli.formatters.highlight_code()`
 - FlextResult pattern
 - Same themes and languages
@@ -458,7 +488,8 @@ if code_result.is_success:
 
 ### Pattern 1: Error Handling
 
-#### Before:
+#### Before
+
 ```python
 try:
     result = some_operation()
@@ -467,7 +498,8 @@ except Exception as e:
     print(f"Error: {e}")
 ```
 
-#### After:
+#### After
+
 ```python
 result = some_operation()  # Returns FlextResult
 if result.is_success:
@@ -481,7 +513,8 @@ else:
 
 ### Pattern 2: CLI with Rich Output
 
-#### Before:
+#### Before
+
 ```python
 import click
 from rich.console import Console
@@ -493,7 +526,8 @@ def hello(name):
     console.print(f"[bold green]Hello {name}![/bold green]")
 ```
 
-#### After:
+#### After
+
 ```python
 from flext_cli import FlextCli
 
@@ -511,7 +545,8 @@ def hello(name: str = "World"):
 
 ### Pattern 3: Testing
 
-#### Before:
+#### Before
+
 ```python
 from click.testing import CliRunner
 
@@ -521,7 +556,8 @@ def test_hello():
     assert result.exit_code == 0
 ```
 
-#### After:
+#### After
+
 ```python
 from flext_cli import FlextCli
 
@@ -537,14 +573,16 @@ def test_hello():
 
 ## Migration Checklist
 
-### Pre-Migration:
+### Pre-Migration
+
 - [ ] Audit all direct Click imports
 - [ ] Audit all direct Rich imports
 - [ ] List all Click parameter types used
 - [ ] List all Rich components used
 - [ ] Identify command structure (groups, subcommands)
 
-### During Migration:
+### During Migration
+
 - [ ] Replace Click imports with `FlextCliClick` or `cli.click`
 - [ ] Replace Rich imports with `FlextCliFormatters` or `cli.formatters`
 - [ ] Update command decorators
@@ -552,7 +590,8 @@ def test_hello():
 - [ ] Update error handling
 - [ ] Migrate tests
 
-### Post-Migration:
+### Post-Migration
+
 - [ ] Remove all direct Click imports
 - [ ] Remove all direct Rich imports
 - [ ] Verify ZERO TOLERANCE compliance
@@ -566,6 +605,7 @@ def test_hello():
 You can migrate gradually:
 
 ### Phase 1: Add flext-cli alongside existing code
+
 ```python
 # Old code still works
 import click
@@ -576,6 +616,7 @@ cli = FlextCli()
 ```
 
 ### Phase 2: Migrate commands one by one
+
 ```python
 from flext_cli import FlextCli
 
@@ -593,6 +634,7 @@ def old_command():
 ```
 
 ### Phase 3: Complete migration
+
 ```python
 from flext_cli import FlextCli
 
@@ -615,6 +657,7 @@ def command2():
 ### Issue: "Can't find Click/Rich features"
 
 **Solution**: Check if feature is wrapped in flext-cli:
+
 - `FlextCliClick`: Check `cli.py` for Click wrappers
 - `FlextCliFormatters`: Check `formatters.py` for Rich wrappers
 - If missing, feature may be in Phase 2/3 roadmap
@@ -622,6 +665,7 @@ def command2():
 ### Issue: "FlextResult handling is verbose"
 
 **Solution**: Helper functions can reduce boilerplate:
+
 ```python
 def unwrap_or_exit(result, error_msg="Operation failed"):
     """Helper to unwrap or exit on failure."""
@@ -637,6 +681,7 @@ data = unwrap_or_exit(some_operation())
 ### Issue: "Need features not yet wrapped"
 
 **Solutions**:
+
 1. Check if feature is in Phase 2/3 roadmap
 2. Use `cli.formatters.get_console()` for direct Rich access (temporary)
 3. Request feature addition to flext-cli

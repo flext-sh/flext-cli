@@ -31,14 +31,14 @@ from flext_core import (
 )
 
 
-class FlextCliModels(FlextModels.BaseModel):
+class FlextCliModels(FlextModels):
     """Single unified CLI models class following FLEXT standards.
 
     Contains all Pydantic model subclasses for CLI domain operations.
     Follows FLEXT pattern: one class per module with nested subclasses.
 
     ARCHITECTURAL COMPLIANCE:
-    - Inherits from FlextModels to avoid duplication
+    - Extends FlextModels foundation for ecosystem consistency
     - Uses centralized validation via FlextModels.Validation
     - Implements CLI-specific extensions while reusing core functionality
 

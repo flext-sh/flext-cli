@@ -13,10 +13,7 @@ import math
 import threading
 import time
 from dataclasses import dataclass
-
-import pytest
-from flext_tests import FlextTestsUtilities
-from flext_typing import (
+from typing import (
     Generic,
     Protocol,
     TypedDict,
@@ -28,12 +25,15 @@ from flext_typing import (
     runtime_checkable,
 )
 
+import pytest
+from flext_tests import FlextTestsUtilities
+
 from flext_cli.constants import FlextCliConstants
 from flext_cli.typings import FlextCliTypes
 from flext_core import FlextTypes
 
 # Type variables for generic tests
-T = TypeVar('T')
+T = TypeVar("T")
 
 
 class TestFlextCliTypes:

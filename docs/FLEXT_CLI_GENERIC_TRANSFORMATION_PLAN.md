@@ -33,6 +33,7 @@ Transform flext-cli from a 96% functional CLI abstraction layer into a **100% co
 ### Module Inventory (31 Files)
 
 **Core Infrastructure** (9 files):
+
 - `api.py` - FlextCli main facade (PRIMARY ENTRY POINT)
 - `config.py` - FlextCliConfig configuration
 - `constants.py` - FlextCliConstants
@@ -44,12 +45,14 @@ Transform flext-cli from a 96% functional CLI abstraction layer into a **100% co
 - `context.py` - FlextCliContext
 
 **Abstraction Layer** (4 files):
+
 - `cli.py` - Click abstraction (ONLY file with Click imports)
 - `formatters.py` - Rich abstraction (ONLY file with Rich imports)
 - `tables.py` - Tabulate integration
 - `output.py` - FlextCliOutput service
 
 **Feature Modules** (10 files):
+
 - `support.py` - runner, task manager
 - `auth.py` - Authentication commands
 - `cmd.py` - Configuration commands
@@ -62,6 +65,7 @@ Transform flext-cli from a 96% functional CLI abstraction layer into a **100% co
 - `shell.py` - Interactive REPL
 
 **Uncertain/Audit Needed** (5 files):
+
 - `containers.py` - FlextCliContainers (USAGE UNCLEAR)
 - `handlers.py` - FlextCliHandlers
 - `main.py` - FlextCliMain command registration
@@ -69,24 +73,26 @@ Transform flext-cli from a 96% functional CLI abstraction layer into a **100% co
 - `processors.py` - FlextCliProcessors (INTEGRATION STATUS?)
 
 **Infrastructure** (3 files):
+
 - `testing.py` - Test utilities (functional)
 - `__init__.py` - Exports (32 items)
 - `__version__.py` - Version string
 
 ### Quality Metrics (Current)
 
-| Metric | Current | Target | Gap |
-|--------|---------|--------|-----|
-| **Ruff Violations** | 216 | 0 | -216 |
-| **Pyrefly Type Errors** | 13 | 0 | -13 |
-| **Test Pass Rate** | 654/675 (96.9%) | 675/675 (100%) | +21 tests |
-| **Test Coverage** | ~75% | 75%+ | Maintain |
-| **Security Issues** | Unknown | 0 | Validate |
-| **Documentation Sync** | Partial | Complete | Major update needed |
+| Metric                  | Current         | Target         | Gap                 |
+| ----------------------- | --------------- | -------------- | ------------------- |
+| **Ruff Violations**     | 216             | 0              | -216                |
+| **Pyrefly Type Errors** | 13              | 0              | -13                 |
+| **Test Pass Rate**      | 654/675 (96.9%) | 675/675 (100%) | +21 tests           |
+| **Test Coverage**       | ~75%            | 75%+           | Maintain            |
+| **Security Issues**     | Unknown         | 0              | Validate            |
+| **Documentation Sync**  | Partial         | Complete       | Major update needed |
 
 ### Functional Gaps
 
 **Click Functionality**:
+
 - ❓ Custom parameter types exposed?
 - ❓ Context passing fully accessible?
 - ❓ Multi-command chaining available?
@@ -94,6 +100,7 @@ Transform flext-cli from a 96% functional CLI abstraction layer into a **100% co
 - ❓ Testing utilities (CliRunner) accessible?
 
 **Rich Functionality**:
+
 - ❓ Live displays available?
 - ❓ Tree views exposed?
 - ❓ Markdown rendering accessible?
@@ -101,11 +108,13 @@ Transform flext-cli from a 96% functional CLI abstraction layer into a **100% co
 - ❓ Logging integration available?
 
 **Tabulate**:
+
 - ✅ Basic tables working
 - ❓ All 22+ formats accessible?
 - ❓ Custom alignment/formatting available?
 
 **File Tools**:
+
 - ✅ JSON, YAML, CSV supported
 - ❓ TOML support?
 - ❓ XML support?
@@ -119,18 +128,19 @@ Transform flext-cli from a 96% functional CLI abstraction layer into a **100% co
 
 ### Quality Targets
 
-| Metric | Target | Validation |
-|--------|--------|------------|
-| **Ruff Violations** | 0 in src/ | `make lint` |
-| **Type Errors** | 0 in src/ | `make type-check` |
-| **Test Pass Rate** | 100% | `make test` |
-| **Coverage** | 75%+ | `pytest --cov` |
-| **Security** | 0 critical | `make security` |
-| **Documentation** | Complete | Manual review |
+| Metric              | Target     | Validation        |
+| ------------------- | ---------- | ----------------- |
+| **Ruff Violations** | 0 in src/  | `make lint`       |
+| **Type Errors**     | 0 in src/  | `make type-check` |
+| **Test Pass Rate**  | 100%       | `make test`       |
+| **Coverage**        | 75%+       | `pytest --cov`    |
+| **Security**        | 0 critical | `make security`   |
+| **Documentation**   | Complete   | Manual review     |
 
 ### Functional Targets
 
 **Click Complete Exposure**:
+
 - ✅ All decorators accessible
 - ✅ Context object fully usable
 - ✅ Custom types, callbacks, validation
@@ -139,6 +149,7 @@ Transform flext-cli from a 96% functional CLI abstraction layer into a **100% co
 - ✅ Environment variable integration
 
 **Rich Complete Exposure**:
+
 - ✅ Full Console API
 - ✅ All progress bar types
 - ✅ Syntax highlighting
@@ -150,11 +161,13 @@ Transform flext-cli from a 96% functional CLI abstraction layer into a **100% co
 - ✅ Logging integration
 
 **Tabulate Complete**:
+
 - ✅ All 22+ formats accessible
 - ✅ Custom alignment/formatting
 - ✅ Missing value handling
 
 **File Tools Complete**:
+
 - ✅ All formats: JSON, YAML, CSV, TOML, XML, Parquet
 - ✅ Binary operations
 - ✅ Archive handling (zip, tar)
@@ -164,6 +177,7 @@ Transform flext-cli from a 96% functional CLI abstraction layer into a **100% co
 ### API Design Targets
 
 **Simple API** (Common Operations):
+
 ```python
 cli = FlextCli()
 
@@ -191,6 +205,7 @@ cli.write_yaml(data, "out.yaml")
 ```
 
 **Advanced API** (Power Users):
+
 ```python
 # Direct library access
 cli.console.print("[bold]Custom[/bold]")
@@ -212,6 +227,7 @@ if result.is_success:
 **Goal**: Create plan document, audit modules, map gaps, define success criteria
 
 **Tasks**:
+
 1. ✅ Create `docs/FLEXT_CLI_GENERIC_TRANSFORMATION_PLAN.md` (this document)
 2. ⏳ Audit all 31 modules for actual usage
 3. ⏳ Map current vs maximum functionality gaps
@@ -219,20 +235,23 @@ if result.is_success:
 5. ⏳ Define measurable success criteria
 
 **Audit Questions** (Per Module):
+
 - Is it imported in api.py?
-- Is it exported in __init__.py?
+- Is it exported in **init**.py?
 - Is it instantiated/used?
 - Does it have passing tests?
 - Is it documented?
 - **Can it be removed/simplified/integrated?**
 
 **Deliverables**:
+
 - [x] Transformation plan document
 - [ ] Module usage audit report
 - [ ] Functionality gap analysis
 - [ ] Success criteria checklist
 
 **Validation**:
+
 ```bash
 # Document created and readable
 ls docs/FLEXT_CLI_GENERIC_TRANSFORMATION_PLAN.md
@@ -250,6 +269,7 @@ git status # Should show only docs/ changes
 **Module Audit Strategy**:
 
 For each module, check:
+
 1. **Import Check**: Is it imported in `api.py` (FlextCli)?
 2. **Export Check**: Is it in `__init__.py __all__`?
 3. **Usage Check**: Is it instantiated/called somewhere?
@@ -258,15 +278,15 @@ For each module, check:
 
 **High-Priority Audit Targets**:
 
-| Module | Status | Action Needed |
-|--------|--------|---------------|
-| `containers.py` | ❓ UNCLEAR | Verify usage or REMOVE |
-| `processors.py` | ❓ UNCLEAR | Verify integration or REMOVE |
-| `mixins.py` | ❓ UNCLEAR | Find where mixed in or REMOVE |
-| `commands.py` | ❓ DUPLICATE? | May overlap with `cmd.py` |
-| `core.py` | ✅ BASE CLASS | Keep (FlextCliService) |
-| `handlers.py` | ✅ USED | Keep (FlextCliHandlers) |
-| `main.py` | ✅ USED | Keep (FlextCliMain) |
+| Module          | Status        | Action Needed                 |
+| --------------- | ------------- | ----------------------------- |
+| `containers.py` | ❓ UNCLEAR    | Verify usage or REMOVE        |
+| `processors.py` | ❓ UNCLEAR    | Verify integration or REMOVE  |
+| `mixins.py`     | ❓ UNCLEAR    | Find where mixed in or REMOVE |
+| `commands.py`   | ❓ DUPLICATE? | May overlap with `cmd.py`     |
+| `core.py`       | ✅ BASE CLASS | Keep (FlextCliService)        |
+| `handlers.py`   | ✅ USED       | Keep (FlextCliHandlers)       |
+| `main.py`       | ✅ USED       | Keep (FlextCliMain)           |
 
 **Cleanup Actions**:
 
@@ -274,7 +294,7 @@ Based on audit results:
 
 1. **If unused**: REMOVE module
    - Delete file from src/
-   - Remove from __init__.py
+   - Remove from **init**.py
    - Remove tests
    - Update docs
 
@@ -294,21 +314,24 @@ Based on audit results:
    - Improve clarity
 
 **Tasks**:
+
 1. Audit each of 31 modules systematically
 2. Create audit report (table with findings)
 3. Execute cleanup actions
-4. Update __init__.py exports
+4. Update **init**.py exports
 5. Update tests
 6. Update documentation
 
 **Deliverables**:
+
 - Module audit report (markdown table)
 - Cleaned src/ directory
-- Updated __init__.py
+- Updated **init**.py
 - Passing test suite
 - Updated documentation
 
 **Validation**:
+
 ```bash
 make test      # All tests still pass
 make lint      # No new violations
@@ -323,10 +346,11 @@ print('✅ All exports validated')
 ```
 
 **Success Criteria**:
+
 - [ ] All 31 modules audited
 - [ ] Unused modules removed
 - [ ] Duplicate functionality consolidated
-- [ ] __init__.py reflects reality
+- [ ] **init**.py reflects reality
 - [ ] All tests pass
 - [ ] Documentation updated
 
@@ -339,6 +363,7 @@ print('✅ All exports validated')
 **Status**: ✅ **COMPLETE** - 97.75% coverage already achieved (see PHASE2_FUNCTIONALITY_ANALYSIS.md)
 
 **Analysis Results**:
+
 - Click (cli.py): 95% complete - only edge cases missing (editor, pager)
 - Rich (formatters.py): 98% complete - only nice-to-haves missing (columns layout)
 - Tabulate (tables.py): 100% complete - all 36 formats available
@@ -355,6 +380,7 @@ print('✅ All exports validated')
 **Features to Add/Verify**:
 
 **Decorators** (All Accessible):
+
 - [ ] `@click.command()` - Command decorator
 - [ ] `@click.group()` - Group decorator
 - [ ] `@click.option()` - Option decorator
@@ -367,6 +393,7 @@ print('✅ All exports validated')
 - [ ] `@click.Choice()` - Choice type
 
 **Interactive Functions**:
+
 - [ ] `click.confirm()` - Yes/no prompts
 - [ ] `click.prompt()` - User input
 - [ ] `click.edit()` - Launch editor
@@ -375,6 +402,7 @@ print('✅ All exports validated')
 - [ ] `click.get_terminal_size()` - Terminal dimensions
 
 **Context & Configuration**:
+
 - [ ] `click.Context()` - Full context object
 - [ ] Context.obj - Custom object storage
 - [ ] Context.params - Parameter access
@@ -382,11 +410,13 @@ print('✅ All exports validated')
 - [ ] Context.forward() - Forward parameters
 
 **Testing Utilities**:
+
 - [ ] `click.testing.CliRunner` - Test runner
 - [ ] `CliRunner.invoke()` - Command invocation
 - [ ] `CliRunner.isolated_filesystem()` - Temp filesystem
 
 **Implementation Strategy**:
+
 1. Add methods to `cli.py` (FlextCliClick class)
 2. Expose through `api.py` (FlextCli.click property)
 3. Add convenience wrappers (FlextCli.confirm(), etc.)
@@ -404,6 +434,7 @@ print('✅ All exports validated')
 **Features to Add/Verify**:
 
 **Console API** (Complete):
+
 - [ ] `console.print()` - With full styling
 - [ ] `console.log()` - With timestamps
 - [ ] `console.rule()` - Horizontal rules
@@ -413,6 +444,7 @@ print('✅ All exports validated')
 - [ ] `console.bell()` - Terminal bell
 
 **Tables** (All Styles):
+
 - [ ] `rich.table.Table()` - Full configuration
 - [ ] All box styles (ROUNDED, SQUARE, MINIMAL, etc.)
 - [ ] Column alignment and styling
@@ -421,6 +453,7 @@ print('✅ All exports validated')
 - [ ] Expandable columns
 
 **Progress Bars** (All Types):
+
 - [ ] `Progress()` - Standard progress
 - [ ] Multiple progress bars
 - [ ] Custom columns (BarColumn, TimeColumn, etc.)
@@ -428,28 +461,33 @@ print('✅ All exports validated')
 - [ ] Progress.track() - Iterable wrapper
 
 **Syntax Highlighting**:
+
 - [ ] `rich.syntax.Syntax()` - Code highlighting
 - [ ] Support all languages
 - [ ] Theme selection
 - [ ] Line numbers
 
 **Markdown**:
+
 - [ ] `rich.markdown.Markdown()` - MD rendering
 - [ ] Headers, lists, code blocks
 - [ ] Links and emphasis
 
 **Layouts**:
+
 - [ ] `rich.panel.Panel()` - Bordered panels
 - [ ] `rich.columns.Columns()` - Multi-column
 - [ ] `rich.layout.Layout()` - Complex layouts
 - [ ] `rich.tree.Tree()` - Hierarchical data
 
 **Live Displays**:
+
 - [ ] `rich.live.Live()` - Auto-updating display
 - [ ] Refresh rates
 - [ ] Context manager support
 
 **Prompts**:
+
 - [ ] `Confirm.ask()` - Yes/no
 - [ ] `Prompt.ask()` - Text input
 - [ ] `IntPrompt.ask()` - Integer input
@@ -457,16 +495,19 @@ print('✅ All exports validated')
 - [ ] Custom validators
 
 **Traceback**:
+
 - [ ] `rich.traceback.install()` - Pretty tracebacks
 - [ ] Theme customization
 - [ ] Code context
 
 **Logging**:
+
 - [ ] `rich.logging.RichHandler` - Logging integration
 - [ ] Log levels with colors
 - [ ] Structured logging
 
 **Implementation Strategy**:
+
 1. Enhance `formatters.py` (FlextCliFormatters class)
 2. Expose through `api.py` (FlextCli.rich property)
 3. Add convenience wrappers (FlextCli.panel(), FlextCli.tree(), etc.)
@@ -482,6 +523,7 @@ print('✅ All exports validated')
 **Target**: All 22+ formats accessible
 
 **All Tabulate Formats** (Verify Accessible):
+
 - [ ] `plain` - No borders
 - [ ] `simple` - Simple borders
 - [ ] `grid` - Grid borders
@@ -506,6 +548,7 @@ print('✅ All exports validated')
 - [ ] `tsv` - Tab-separated values
 
 **Additional Features**:
+
 - [ ] Custom column alignment (left, right, center, decimal)
 - [ ] Number formatting
 - [ ] Missing value handling
@@ -513,6 +556,7 @@ print('✅ All exports validated')
 - [ ] Custom separators
 
 **Implementation Strategy**:
+
 1. Verify all formats in `tables.py` (FlextCliTables class)
 2. Add format validation
 3. Create format showcase example
@@ -530,30 +574,35 @@ print('✅ All exports validated')
 **File Formats** (Complete Support):
 
 **Text Formats**:
+
 - [ ] `.txt` - Plain text (read_text, write_text)
 - [ ] `.log` - Log files
 
 **Data Formats**:
-- [ ] `.json` - JSON (read_json, write_json)
-- [ ] `.yaml`, `.yml` - YAML (read_yaml, write_yaml)
+
+- [ ] `.json` - JSON (read_JSON, write_JSON)
+- [ ] `.yaml`, `.yml` - YAML (read_YAML, write_YAML)
 - [ ] `.csv` - CSV (read_csv, write_csv)
 - [ ] `.tsv` - Tab-separated
 - [ ] `.toml` - TOML config (read_toml, write_toml)
-- [ ] `.xml` - XML (read_xml, write_xml)
+- [ ] `.xml` - XML (read_XML, write_XML)
 - [ ] `.parquet` - Parquet data files
 
 **Binary Operations**:
+
 - [ ] `read_bytes()` - Read binary
 - [ ] `write_bytes()` - Write binary
 - [ ] Binary file handling
 
 **Archive Formats**:
+
 - [ ] `.zip` - ZIP archives (create, extract)
 - [ ] `.tar` - TAR archives
 - [ ] `.tar.gz`, `.tgz` - Compressed TAR
 - [ ] `.tar.bz2` - Bzip2 compressed TAR
 
 **Path Utilities** (pathlib Integration):
+
 - [ ] `exists()` - Check existence
 - [ ] `mkdir()` - Create directories
 - [ ] `rmdir()` - Remove directories
@@ -564,12 +613,14 @@ print('✅ All exports validated')
 - [ ] `walk()` - Directory traversal
 
 **Temporary Files**:
+
 - [ ] `TemporaryFile` - Temp file object
 - [ ] `NamedTemporaryFile` - Named temp file
 - [ ] `TemporaryDirectory` - Temp directory
 - [ ] Context manager support
 
 **Implementation Strategy**:
+
 1. Enhance `file_tools.py` (FlextCliFileTools class)
 2. Add missing format support (TOML, XML, Parquet, archives)
 3. Add path utilities using pathlib
@@ -581,6 +632,7 @@ print('✅ All exports validated')
 ---
 
 **Phase 2 Validation**:
+
 ```bash
 # Test all new features
 make test
@@ -596,6 +648,7 @@ python docs/examples/file_formats.py
 ```
 
 **Phase 2 Success Criteria**:
+
 - [ ] All Click features accessible
 - [ ] All Rich features accessible
 - [ ] All 22+ Tabulate formats work
@@ -615,6 +668,7 @@ python docs/examples/file_formats.py
 Add convenience methods to `api.py` (FlextCli class):
 
 **Simple Output Methods**:
+
 ```python
 # In api.py (FlextCli class)
 
@@ -633,6 +687,7 @@ def info(self, message: str) -> FlextResult[None]:
 ```
 
 **Simple Table Method**:
+
 ```python
 def table(
     self,
@@ -645,6 +700,7 @@ def table(
 ```
 
 **Simple Progress Context**:
+
 ```python
 @contextmanager
 def progress(
@@ -657,6 +713,7 @@ def progress(
 ```
 
 **Simple Prompts**:
+
 ```python
 def confirm(self, question: str, default: bool = False) -> bool:
     """Ask yes/no question."""
@@ -672,6 +729,7 @@ def prompt_float(self, question: str, default: float | None = None) -> float:
 ```
 
 **Simple File Operations**:
+
 ```python
 def read_json(self, path: str) -> dict:
     """Read JSON file (simple, raises on error)."""
@@ -695,6 +753,7 @@ def write_yaml(self, data: dict, path: str) -> None:
 Maintain direct library access for power users:
 
 **Property-Based Access**:
+
 ```python
 # In api.py (FlextCli class)
 
@@ -720,6 +779,7 @@ def file(self) -> FlextCliFileTools:
 ```
 
 **Usage Examples**:
+
 ```python
 # Simple API
 cli = FlextCli()
@@ -757,12 +817,14 @@ def read_json_result(self, path: str) -> FlextResult[dict]:
 ```
 
 Users choose based on preference:
+
 - Simple API for prototyping, scripts
 - Result API for production, error handling
 
 ---
 
 **Phase 3 Tasks**:
+
 1. Add convenience methods to `api.py`
 2. Add property-based advanced access
 3. Implement dual API (simple + result methods)
@@ -772,6 +834,7 @@ Users choose based on preference:
 7. Document both approaches
 
 **Phase 3 Deliverables**:
+
 - Enhanced `api.py` with convenience methods
 - Property-based advanced access
 - `docs/examples/quick_start.py`
@@ -780,6 +843,7 @@ Users choose based on preference:
 - API documentation
 
 **Phase 3 Validation**:
+
 ```bash
 # Test simple API
 python docs/examples/quick_start.py
@@ -792,6 +856,7 @@ make test
 ```
 
 **Phase 3 Success Criteria**:
+
 - [ ] All convenience methods implemented
 - [ ] Advanced API accessible via properties
 - [ ] Dual API (simple + result) working
@@ -812,17 +877,20 @@ make test
 **Target**: 0 violations in src/
 
 **Strategy**:
+
 1. Run: `ruff check src/ --statistics` to get violation breakdown
 2. Fix by category (highest count first)
 3. Validate after each fix
 
 **Common Violations to Fix**:
+
 - F821: Undefined names → Add imports or fix references
 - E501: Line too long → Reformat (but allow long URLs/strings)
 - ARG: Unused arguments → Remove or prefix with `_`
 - Others: Fix as identified
 
 **Tasks**:
+
 1. Get violation breakdown
 2. Create fix plan by category
 3. Fix systematically (one category at a time)
@@ -837,6 +905,7 @@ make test
 **Target**: 0 errors in src/
 
 **Strategy**:
+
 1. Run: `pyrefly check src/` to list all errors
 2. Fix each error one by one
 3. Add type hints where missing
@@ -844,12 +913,14 @@ make test
 5. Remove invalid `type: ignore` comments
 
 **Common Type Errors**:
+
 - Missing return type hints
 - Incorrect generic type parameters
 - Type mismatches in function calls
 - Invalid override signatures
 
 **Tasks**:
+
 1. List all 13 type errors
 2. Fix each error
 3. Add comprehensive type hints
@@ -864,11 +935,13 @@ make test
 **Target**: 675/675 passing (or justified skips)
 
 **Strategy**:
+
 1. Review each of 21 skipped tests
 2. Determine why skipped
 3. Either: enable and fix OR document justification
 
 **Tasks**:
+
 1. List all 21 skipped tests
 2. For each skipped test:
    - If fixable: Fix and enable
@@ -885,6 +958,7 @@ make test
 **Target**: 0 critical vulnerabilities
 
 **Tasks**:
+
 1. Run: `make security` (Bandit scan)
 2. Fix any critical issues
 3. Document any false positives
@@ -893,6 +967,7 @@ make test
 ---
 
 **Phase 4 Validation**:
+
 ```bash
 # Complete quality pipeline
 make validate
@@ -908,6 +983,7 @@ pytest --cov=src --cov-report=term-missing --cov-fail-under=75
 ```
 
 **Phase 4 Success Criteria**:
+
 - [ ] 0 Ruff violations in src/
 - [ ] 0 Pyrefly type errors in src/
 - [ ] 100% test pass rate (or justified skips)
@@ -924,11 +1000,13 @@ pytest --cov=src --cov-report=term-missing --cov-fail-under=75
 #### 5.1 Update README.md
 
 **Current Issues**:
+
 - Says "96% functional" (should be 100% after transformation)
 - Missing new features from Phase 2
 - Missing simplified API from Phase 3
 
 **Updates Needed**:
+
 - [ ] Update status badges (100% functional, 0 errors)
 - [ ] Add new features section (complete Click/Rich/Tabulate/File support)
 - [ ] Add quick-start examples (simple API)
@@ -938,6 +1016,7 @@ pytest --cov=src --cov-report=term-missing --cov-fail-under=75
 - [ ] Add links to new docs
 
 **Structure**:
+
 1. Status badges (updated)
 2. Quick start (simple API examples)
 3. Features (complete list)
@@ -953,11 +1032,13 @@ pytest --cov=src --cov-report=term-missing --cov-fail-under=75
 #### 5.2 Update CLAUDE.md
 
 **Current Issues**:
+
 - Says "30% functional targeting 75%" in memory (outdated)
 - Quality metrics outdated (216 violations, 13 errors)
 - Missing Phase 2/3 patterns
 
 **Updates Needed**:
+
 - [ ] Update status line (100% functional)
 - [ ] Update quality metrics (0 errors)
 - [ ] Document new functionality
@@ -971,6 +1052,7 @@ pytest --cov=src --cov-report=term-missing --cov-fail-under=75
 #### 5.3 Create/Update docs/
 
 **New Documents**:
+
 - [ ] `docs/quick-start.md` - Simple API guide
 - [ ] `docs/advanced-usage.md` - Power user guide
 - [ ] `docs/api-reference.md` - Complete API docs
@@ -978,9 +1060,11 @@ pytest --cov=src --cov-report=term-missing --cov-fail-under=75
 - [ ] `docs/FLEXT_CLI_GENERIC_TRANSFORMATION_PLAN.md` - This document (mark COMPLETE)
 
 **Update Existing**:
+
 - [ ] `docs/examples/` - Add comprehensive examples
 
 **Example Structure**:
+
 ```
 docs/
 ├── FLEXT_CLI_GENERIC_TRANSFORMATION_PLAN.md [COMPLETE]
@@ -1002,6 +1086,7 @@ docs/
 #### 5.4 Update Inline Documentation
 
 **Standards**:
+
 - Google-style docstrings
 - Type hints on all functions
 - Examples in docstrings
@@ -1009,6 +1094,7 @@ docs/
 - Return value descriptions
 
 **Tasks**:
+
 - [ ] Add/update docstrings for all public methods
 - [ ] Add type hints where missing
 - [ ] Add docstring examples
@@ -1021,6 +1107,7 @@ docs/
 **Update Memory**: `project_purpose_and_tech_stack`
 
 New content:
+
 - Status: 100% functional (was 30%)
 - Quality: 0 errors (was 216 Ruff + 13 type)
 - Features: Complete Click/Rich/Tabulate/File support
@@ -1029,6 +1116,7 @@ New content:
 **Add Memory**: `transformation_completion`
 
 Document:
+
 - Transformation date
 - Phases completed
 - Key achievements
@@ -1037,6 +1125,7 @@ Document:
 ---
 
 **Phase 5 Validation**:
+
 ```bash
 # Check all docs render
 ls docs/*.md
@@ -1053,6 +1142,7 @@ python docs/examples/advanced_usage.py
 ```
 
 **Phase 5 Success Criteria**:
+
 - [ ] README.md updated and accurate
 - [ ] CLAUDE.md synced with reality
 - [ ] All docs/ documents created/updated
@@ -1066,6 +1156,7 @@ python docs/examples/advanced_usage.py
 ## ✅ Success Criteria (Master Checklist)
 
 ### Code Quality
+
 - [ ] 0 Ruff violations in src/
 - [ ] 0 Pyrefly type errors in src/
 - [ ] 100% pytest pass rate (or justified skips)
@@ -1074,6 +1165,7 @@ python docs/examples/advanced_usage.py
 - [ ] All declared modules in src/ are used
 
 ### Functionality
+
 - [ ] Complete Click functionality exposed
 - [ ] Complete Rich functionality exposed
 - [ ] All 22+ Tabulate formats accessible
@@ -1083,6 +1175,7 @@ python docs/examples/advanced_usage.py
 - [ ] FlextResult patterns throughout
 
 ### Documentation
+
 - [ ] README.md accurate and complete
 - [ ] CLAUDE.md synced with reality
 - [ ] docs/ complete with guides and examples
@@ -1092,6 +1185,7 @@ python docs/examples/advanced_usage.py
 - [ ] Memories updated
 
 ### Ecosystem Compatibility
+
 - [ ] Backward compatible with existing usage
 - [ ] Easy to import: `from flext_cli import FlextCli`
 - [ ] Clear, intuitive API
@@ -1115,26 +1209,28 @@ Update as phases complete:
 
 ### Metrics Dashboard
 
-| Metric | Start | Current | Target | Status |
-|--------|-------|---------|--------|--------|
-| Ruff Violations | 216 | 216 | 0 | 🔴 |
-| Type Errors | 13 | 13 | 0 | 🔴 |
-| Test Pass Rate | 96.9% | 96.9% | 100% | 🟡 |
-| Coverage | ~75% | ~75% | 75%+ | 🟢 |
-| Modules Audited | 0 | 0 | 31 | 🔴 |
-| Docs Complete | 10% | 20% | 100% | 🔴 |
+| Metric          | Start | Current | Target | Status |
+| --------------- | ----- | ------- | ------ | ------ |
+| Ruff Violations | 216   | 216     | 0      | 🔴     |
+| Type Errors     | 13    | 13      | 0      | 🔴     |
+| Test Pass Rate  | 96.9% | 96.9%   | 100%   | 🟡     |
+| Coverage        | ~75%  | ~75%    | 75%+   | 🟢     |
+| Modules Audited | 0     | 0       | 31     | 🔴     |
+| Docs Complete   | 10%   | 20%     | 100%   | 🔴     |
 
 ---
 
 ## 🚀 Execution Strategy
 
 ### Incremental Approach
+
 1. One phase at a time
 2. Complete all tasks in phase before proceeding
 3. Validate after each phase
 4. Don't skip validation gates
 
 ### Validation at Each Step
+
 ```bash
 # After each file change
 ruff check src/[changed_file].py
@@ -1147,6 +1243,7 @@ make test      # Must pass before next phase
 ### Phase Transition Checklist
 
 Before proceeding to next phase:
+
 - [ ] All phase tasks complete
 - [ ] All phase deliverables created
 - [ ] All validation checks pass
@@ -1157,6 +1254,7 @@ Before proceeding to next phase:
 ### Reference This Document
 
 At the start of each phase:
+
 1. Read the phase section in this document
 2. Follow the tasks listed
 3. Use the validation commands provided
@@ -1167,18 +1265,22 @@ At the start of each phase:
 
 ## 🎓 Lessons Learned
 
-*(To be filled after completion)*
+_(To be filled after completion)_
 
 ### What Worked Well
+
 - TBD after execution
 
 ### What Was Challenging
+
 - TBD after execution
 
 ### What Would We Do Differently
+
 - TBD after execution
 
 ### Best Practices Discovered
+
 - TBD after execution
 
 ---
@@ -1189,34 +1291,34 @@ At the start of each phase:
 
 For each module, document:
 
-| Module | Imported in api.py? | In __init__.py? | Used? | Has Tests? | Documented? | Action |
-|--------|---------------------|-----------------|-------|------------|-------------|--------|
-| api.py | N/A (main facade) | ✅ | ✅ | ✅ | ✅ | Keep |
-| ... | | | | | | |
+| Module | Imported in api.py? | In **init**.py? | Used? | Has Tests? | Documented? | Action |
+| ------ | ------------------- | --------------- | ----- | ---------- | ----------- | ------ |
+| api.py | N/A (main facade)   | ✅              | ✅    | ✅         | ✅          | Keep   |
+| ...    |                     |                 |       |            |             |        |
 
 ### Appendix B: Ruff Violation Categories
 
-*(To be filled during Phase 4.1)*
+_(To be filled during Phase 4.1)_
 
 | Category | Count | Priority | Status |
-|----------|-------|----------|--------|
-| ... | | | |
+| -------- | ----- | -------- | ------ |
+| ...      |       |          |        |
 
 ### Appendix C: Pyrefly Type Errors
 
-*(To be filled during Phase 4.2)*
+_(To be filled during Phase 4.2)_
 
 | File | Line | Error | Fix | Status |
-|------|------|-------|-----|--------|
-| ... | | | | |
+| ---- | ---- | ----- | --- | ------ |
+| ...  |      |       |     |        |
 
 ### Appendix D: Skipped Tests
 
-*(To be filled during Phase 4.3)*
+_(To be filled during Phase 4.3)_
 
 | Test | Reason | Action | Status |
-|------|--------|--------|--------|
-| ... | | | |
+| ---- | ------ | ------ | ------ |
+| ...  |        |        |        |
 
 ---
 

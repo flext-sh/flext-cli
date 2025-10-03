@@ -10,30 +10,33 @@
 
 ### Quality Metrics (Verified)
 
-| Metric | Current | Target | Gap |
-|--------|---------|--------|-----|
-| **Functional Status** | 96% | 100% | 4% |
-| **Test Pass Rate** | 620/657 (96%) | 657/657 (100%) | 37 tests |
-| **Type Errors** | 13 | 0 | 13 errors |
-| **Lint Violations** | 216* | ~200 | 16 violations |
+| Metric                | Current       | Target         | Gap           |
+| --------------------- | ------------- | -------------- | ------------- |
+| **Functional Status** | 96%           | 100%           | 4%            |
+| **Test Pass Rate**    | 620/657 (96%) | 657/657 (100%) | 37 tests      |
+| **Type Errors**       | 13            | 0              | 13 errors     |
+| **Lint Violations**   | 216\*         | ~200           | 16 violations |
 
-*Most violations are CLI design-appropriate patterns (FBT, ANN401)
+\*Most violations are CLI design-appropriate patterns (FBT, ANN401)
 
 ### Completed Work (Phase 5)
 
 ✅ **Comprehensive QA**:
+
 - Ruff linting: 246→216 violations (81% reduction)
 - Pyrefly type checking: 70→13 errors (81% reduction)
 - Pytest validation: 96% pass rate confirmed
 - Test infrastructure fully operational
 
 ✅ **Documentation Alignment**:
+
 - All 7 major docs updated with accurate metrics
 - PHASE5_QA_SUMMARY.md created
 - Version bumped to 2.2.0
 - Status accurately reflects 96% functional
 
 ✅ **Code Quality**:
+
 - Fixed 57 type errors systematically
 - Fixed 30 lint violations
 - Restored configuration files
@@ -48,6 +51,7 @@
 **Issue**: output.py calls non-existent methods on FlextCliFormatters
 
 **Required Changes**:
+
 ```python
 # Current (BROKEN):
 self._formatters.add_table_column(...)
@@ -68,6 +72,7 @@ self._formatters.create_tree(...)    # Use create_tree instead
 **Estimated Effort**: 2-4 hours (systematic refactoring)
 
 **Files Affected**:
+
 - `src/flext_cli/output.py` (primary changes)
 - `tests/unit/test_output.py` (13 test failures will be fixed)
 
@@ -76,6 +81,7 @@ self._formatters.create_tree(...)    # Use create_tree instead
 **Issue**: Tests expect utilities methods that don't exist
 
 **Required Changes**:
+
 ```python
 # Add to api.py or create utilities module:
 def safe_json_parse(self, json_string: str) -> FlextResult[dict]:
@@ -100,6 +106,7 @@ def safe_json_stringify(self, data: dict) -> FlextResult[str]:
 **Estimated Effort**: 1-2 hours
 
 **Files Affected**:
+
 - `src/flext_cli/api.py` (add methods)
 - `tests/unit/test_api.py` (will pass after implementation)
 
@@ -108,6 +115,7 @@ def safe_json_stringify(self, data: dict) -> FlextResult[str]:
 **Issue**: Handler execution tests failing
 
 **Required Actions**:
+
 1. Debug handler execute_sync and execute methods
 2. Verify handler lifecycle is correct
 3. Check if mock setup in tests is correct
@@ -115,6 +123,7 @@ def safe_json_stringify(self, data: dict) -> FlextResult[str]:
 **Estimated Effort**: 1-2 hours
 
 **Files Affected**:
+
 - `src/flext_cli/handlers.py` (potential fixes)
 - `tests/unit/test_handlers.py` (test adjustments)
 
@@ -123,6 +132,7 @@ def safe_json_stringify(self, data: dict) -> FlextResult[str]:
 **Issue**: Import errors preventing test collection
 
 **Required Actions**:
+
 1. Fix import paths in test_models.py
 2. Verify FlextCliModels module structure
 3. Ensure all required classes are exported
@@ -130,6 +140,7 @@ def safe_json_stringify(self, data: dict) -> FlextResult[str]:
 **Estimated Effort**: 1 hour
 
 **Files Affected**:
+
 - `tests/unit/test_models.py` (fix imports)
 - `src/flext_cli/models.py` (verify exports)
 
@@ -213,6 +224,7 @@ pyrefly check src/
 ```
 
 **Expected Outcome**:
+
 - Tests: 657/657 passing (100%)
 - Type errors: 0
 - Status: 100% Production Ready
@@ -225,12 +237,12 @@ After completing the 4% remaining work:
 
 ### Quality Metrics (Target)
 
-| Metric | Target |
-|--------|--------|
-| **Test Pass Rate** | 100% (657/657) |
-| **Type Errors** | 0 |
+| Metric                | Target                |
+| --------------------- | --------------------- |
+| **Test Pass Rate**    | 100% (657/657)        |
+| **Type Errors**       | 0                     |
 | **Functional Status** | 100% Production Ready |
-| **Code Coverage** | 90%+ (aspirational) |
+| **Code Coverage**     | 90%+ (aspirational)   |
 
 ### Documentation Updates Required
 
@@ -314,8 +326,8 @@ pytest --cov=src/flext_cli --cov-report=term-missing
   - [ ] Run test_output.py tests (should be 0 failures)
 
 - [ ] **Add utilities methods** (8 test failures → 0)
-  - [ ] Implement safe_json_parse in api.py
-  - [ ] Implement safe_json_stringify in api.py
+  - [ ] Implement safe_JSON_parse in api.py
+  - [ ] Implement safe_JSON_stringify in api.py
   - [ ] Run test_api.py utilities tests (should pass)
 
 - [ ] **Fix handler tests** (2 test failures → 0)
@@ -341,6 +353,7 @@ pytest --cov=src/flext_cli --cov-report=term-missing
 ### Working with output.py
 
 1. **Check actual API first**:
+
    ```python
    from flext_cli import FlextCliFormatters
    f = FlextCliFormatters()
@@ -356,6 +369,7 @@ pytest --cov=src/flext_cli --cov-report=term-missing
 1. **Run with verbose output**: `pytest -vv` for detailed information
 
 2. **Use pdb for debugging**:
+
    ```python
    import pdb; pdb.set_trace()
    ```
@@ -367,8 +381,9 @@ pytest --cov=src/flext_cli --cov-report=term-missing
 1. **Start with pyrefly output**: Shows exact line and error type
 
 2. **Add specific type ignores if needed**:
+
    ```python
- 
+
    ```
 
 3. **Fix root cause when possible**: Don't just suppress with ignores
@@ -434,6 +449,6 @@ The library will be considered **100% Production Ready** when:
 
 ---
 
-*Document prepared after comprehensive Phase 5 QA validation*
-*All metrics verified through actual tool execution*
-*Ready for immediate action on remaining 4% work*
+_Document prepared after comprehensive Phase 5 QA validation_
+_All metrics verified through actual tool execution_
+_Ready for immediate action on remaining 4% work_

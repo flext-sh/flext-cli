@@ -208,6 +208,7 @@ if result.is_failure:
 ```
 
 **Benefits**:
+
 - Type-safe error handling
 - No exceptions to catch
 - Explicit success/failure checking
@@ -286,7 +287,7 @@ for format_type in ["simple", "grid", "fancy_grid", "pipe"]:
 
 ## Best Practices
 
-### ✅ DO:
+### ✅ DO
 
 ```python
 # Use unified API
@@ -303,7 +304,7 @@ if result.is_success:
 # - Tabulate: Plain text, performance
 ```
 
-### ❌ DON'T:
+### ❌ DON'T
 
 ```python
 # Don't import Click directly
@@ -349,6 +350,7 @@ panel = result.unwrap()  # ❌ Check is_success first!
 - ✅ Commands: Use `FlextCliMain` or `cli.main`
 
 **Benefits**:
+
 - Consistent API across ecosystem
 - Type-safe abstractions
 - Easier testing and mocking

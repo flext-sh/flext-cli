@@ -143,7 +143,7 @@ Architectural Impact:
 
 - **Classes**: 1 (FlextCliUtilities.Decorators)
 - **Methods**: 34 (comprehensive decorator system)
-- **External Dependencies**:  functools, time, collections.abc, pathlib, typing
+- **External Dependencies**: functools, time, collections.abc, pathlib, typing
 - **flext-core Integration**: FlextLogger, FlextResult, P, T
 - **Critical Issues**: Custom retry implementation instead of using flext-core
 
