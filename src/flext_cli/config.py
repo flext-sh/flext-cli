@@ -42,7 +42,7 @@ class FlextCliConfig(FlextConfig):
     - Flat class structure with all fields at top level
     - All defaults from FlextCliConstants
     - SecretStr for sensitive data
-    - Uses enhanced singleton pattern with inverse dependency injection
+    - Uses FlextConfig features for configuration management
     - Uses Python 3.13 + Pydantic 2 features
     """
 
@@ -445,11 +445,6 @@ class FlextCliConfig(FlextConfig):
         )
         raise NotImplementedError(msg)
 
-    @classmethod
-    def reset_global_instance(cls) -> None:
-        """Reset the global FlextCliConfig instance (mainly for testing)."""
-        # Use the enhanced FlextConfig reset mechanism
-        cls.reset_global_instance()
 
     def execute_as_service(self) -> FlextResult[FlextCliTypes.Data.CliDataDict]:
         """Execute config as service operation."""
