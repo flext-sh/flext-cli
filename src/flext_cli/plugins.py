@@ -547,7 +547,7 @@ class FlextCliPlugin:
     All plugins must inherit from this class and implement the required methods.
     """
 
-    def __init__(self, **data: object) -> None:
+    def __init__(self, **data: object) -> None:  # noqa: ARG002
         """Initialize plugin."""
         self._logger = FlextLogger(__name__)
 
@@ -561,7 +561,7 @@ class FlextCliPlugin:
         """Plugin version."""
         return getattr(self, "_version", "1.0.0")
 
-    def initialize(self, cli_main: object) -> FlextResult[None]:  # pragma: no cover
+    def initialize(self, cli_main: object) -> FlextResult[None]:  # pragma: no cover  # noqa: ARG002
         """Initialize the plugin.
 
         Args:
@@ -574,7 +574,7 @@ class FlextCliPlugin:
         return FlextResult[None].ok(None)
 
     def register_commands(
-        self, cli_main: object
+        self, cli_main: object  # noqa: ARG002
     ) -> FlextResult[None]:  # pragma: no cover
         """Register plugin commands.
 
@@ -590,7 +590,7 @@ class FlextCliPlugin:
 
 # Type alias for backward compatibility
 FlextCliPluginProtocol = FlextCliPluginSystem.PluginProtocol
-FlextCliPluginManager = FlextCliPluginSystem._PluginManager
+FlextCliPluginManager = FlextCliPluginSystem._PluginManager  # noqa: SLF001
 
 
 __all__ = [

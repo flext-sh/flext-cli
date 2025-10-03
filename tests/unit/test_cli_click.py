@@ -288,25 +288,25 @@ class TestFlextCliClick:
         """Test getting bool parameter type."""
         bool_type = cli_click.get_bool_type()
 
-        assert bool_type == bool
+        assert bool_type is bool
 
     def test_get_string_type(self, cli_click: FlextCliClick) -> None:
         """Test getting string parameter type."""
         str_type = cli_click.get_string_type()
 
-        assert str_type == str
+        assert str_type is str
 
     def test_get_int_type(self, cli_click: FlextCliClick) -> None:
         """Test getting int parameter type."""
         int_type = cli_click.get_int_type()
 
-        assert int_type == int
+        assert int_type is int
 
     def test_get_float_type(self, cli_click: FlextCliClick) -> None:
         """Test getting float parameter type."""
         float_type = cli_click.get_float_type()
 
-        assert float_type == float
+        assert float_type is float
 
     # =========================================================================
     # CONTEXT MANAGEMENT TESTS
@@ -501,8 +501,8 @@ class TestFlextCliClick:
         @cmd_result.unwrap()
         @opt_result.unwrap()
         @arg_result.unwrap()
-        def process(filename: str, format: str) -> None:
-            click.echo(f"Processing {filename} as {format}")
+        def process(filename: str, output_format: str) -> None:
+            click.echo(f"Processing {filename} as {output_format}")
 
         # Test with runner
         runner_result = cli_click.create_cli_runner()

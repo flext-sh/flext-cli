@@ -7,6 +7,9 @@ Copyright (c) 2025 FLEXT Team. All rights reserved.
 SPDX-License-Identifier: MIT
 """
 
+import tempfile
+from pathlib import Path
+
 from flext_cli import FlextCli
 
 
