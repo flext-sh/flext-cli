@@ -46,7 +46,6 @@ class FlextCliConfig(FlextConfig):
     - Uses Python 3.13 + Pydantic 2 features
     """
 
-
     model_config = SettingsConfigDict(
         env_prefix="FLEXT_CLI_",
         case_sensitive=False,
@@ -228,7 +227,8 @@ class FlextCliConfig(FlextConfig):
         # Use FlextConfig business rules validation
         validation_result = self.validate_business_rules()
         if validation_result.is_failure:
-            raise ValueError(f"Business rules validation failed: {validation_result.error}")
+            msg = f"Business rules validation failed: {validation_result.error}"
+            raise ValueError(msg)
 
         # Ensure config directory exists or can be created
         try:
@@ -445,7 +445,6 @@ class FlextCliConfig(FlextConfig):
         )
         raise NotImplementedError(msg)
 
-
     def execute_as_service(self) -> FlextResult[FlextCliTypes.Data.CliDataDict]:
         """Execute config as service operation."""
         return FlextResult[FlextCliTypes.Data.CliDataDict].ok({
@@ -465,8 +464,26 @@ class FlextCliConfig(FlextConfig):
         return FlextResult[FlextCliConfig].ok(result.unwrap())
 
     def save_config_file(self, config_path: str) -> FlextResult[None]:
-        """Save configuration to file using FlextConfig.save_to_file."""
-        return self.save_to_file(config_path, indent=2)
+        """Save configuration to file with proper Path serialization."""
+        try:
+            # Convert model to dict and ensure all values are JSON serializable
+            config_dict = self.model_dump()
+            # Convert any Path objects to strings
+            for key, value in config_dict.items():
+                if isinstance(value, Path):
+                    config_dict[key] = str(value)
+
+            # Save using JSON directly for proper control
+            import json
+            path = Path(config_path)
+            path.parent.mkdir(parents=True, exist_ok=True)
+
+            with path.open("w", encoding="utf-8") as f:
+                json.dump(config_dict, f, indent=2)
+
+            return FlextResult[None].ok(None)
+        except Exception as e:
+            return FlextResult[None].fail(f"Save failed: {e}")
 
     # Protocol-compliant methods for CliConfigProvider
     def load_config(self) -> FlextResult[FlextCliTypes.Data.CliConfigData]:

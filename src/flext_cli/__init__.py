@@ -45,8 +45,9 @@ from flext_cli.testing import FlextCliMockScenarios, FlextCliTestRunner
 from flext_cli.typings import FlextCliTypes
 from flext_cli.version import VERSION, FlextCliVersion
 
-# Backward compatibility alias (after imports to avoid E402)
+# Backward compatibility aliases (after imports to avoid E402)
 FlextCliApi = FlextCli
+FlextCliConfigs = FlextCliConfig
 
 PROJECT_VERSION: Final[FlextCliVersion] = VERSION
 
@@ -57,11 +58,13 @@ __all__ = [
     "PROJECT_VERSION",
     "VERSION",
     "FlextCli",
+    "FlextCliApi",  # Backward compatibility alias
     "FlextCliAuth",
     "FlextCliClick",
     "FlextCliCmd",
     "FlextCliCommands",
     "FlextCliConfig",
+    "FlextCliConfigs",  # Backward compatibility alias
     "FlextCliConstants",
     "FlextCliContainers",
     "FlextCliContext",

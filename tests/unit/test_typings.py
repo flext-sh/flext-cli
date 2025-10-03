@@ -32,6 +32,9 @@ from flext_cli.constants import FlextCliConstants
 from flext_cli.typings import FlextCliTypes
 from flext_core import FlextTypes
 
+# Type variables for generic tests
+T = TypeVar('T')
+
 
 class TestFlextCliTypes:
     """Comprehensive tests for FlextCliTypes functionality."""
