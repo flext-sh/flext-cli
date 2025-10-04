@@ -13,8 +13,9 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from flext_cli import FlextCliConfig, FlextCliConstants
 from flext_core import FlextConfig, FlextTypes
+
+from flext_cli import FlextCliConfig, FlextCliConstants
 
 
 def demonstrate_flext_config_singleton() -> None:

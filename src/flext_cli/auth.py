@@ -19,9 +19,6 @@ from datetime import UTC, datetime
 from pathlib import Path
 from typing import ClassVar, override
 
-from flext_cli.config import FlextCliConfig
-from flext_cli.constants import FlextCliConstants
-from flext_cli.typings import FlextCliTypes
 from flext_core import (
     FlextContainer,
     FlextLogger,
@@ -30,6 +27,10 @@ from flext_core import (
     FlextTypes,
     FlextUtilities,
 )
+
+from flext_cli.config import FlextCliConfig
+from flext_cli.constants import FlextCliConstants
+from flext_cli.typings import FlextCliTypes
 
 
 class FlextCliAuth(FlextService[FlextCliTypes.Auth.AuthResult]):
@@ -47,6 +48,11 @@ class FlextCliAuth(FlextService[FlextCliTypes.Auth.AuthResult]):
     _users: ClassVar[dict[str, FlextCliTypes.Auth.UserData]] = {}
     _valid_sessions: ClassVar[set[str]] = set()
     _session_permissions: ClassVar[dict[str, set[str]]] = {}
+
+    # Attribute declarations - override FlextService optional types
+    # These are guaranteed initialized in __init__
+    _logger: FlextLogger
+    _container: FlextContainer
 
     @override
     def __init__(

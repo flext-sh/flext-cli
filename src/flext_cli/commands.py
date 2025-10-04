@@ -12,7 +12,6 @@ from __future__ import annotations
 from collections.abc import Callable
 from typing import override
 
-from flext_cli.constants import FlextCliConstants
 from flext_core import (
     FlextContainer,
     FlextLogger,
@@ -20,6 +19,8 @@ from flext_core import (
     FlextService,
     FlextTypes,
 )
+
+from flext_cli.constants import FlextCliConstants
 
 
 class FlextCliCommands(FlextService[FlextTypes.Dict]):
@@ -32,7 +33,6 @@ class FlextCliCommands(FlextService[FlextTypes.Dict]):
     class _CliGroup:
         """Nested helper for CLI group operations."""
 
-        @override
         def __init__(
             self, name: str, description: str, commands: FlextTypes.Dict
         ) -> None:
@@ -40,6 +40,11 @@ class FlextCliCommands(FlextService[FlextTypes.Dict]):
             self.name = name
             self.description = description
             self.commands = commands
+
+    # Attribute declarations - override FlextService optional types
+    # These are guaranteed initialized in __init__
+    _logger: FlextLogger
+    _container: FlextContainer
 
     @override
     def __init__(

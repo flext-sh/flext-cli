@@ -26,11 +26,11 @@ from typing import (
 )
 
 import pytest
+from flext_core import FlextTypes
 from flext_tests import FlextTestsUtilities
 
 from flext_cli.constants import FlextCliConstants
 from flext_cli.typings import FlextCliTypes
-from flext_core import FlextTypes
 
 # Type variables for generic tests
 T = TypeVar("T")

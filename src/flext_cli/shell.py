@@ -15,14 +15,25 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 from pathlib import Path
+from typing import TYPE_CHECKING
 
 try:
     import readline  # Optional dependency for enhanced input editing
 except ImportError:
     readline = None
 
+from flext_core import (
+    FlextContainer,
+    FlextLogger,
+    FlextResult,
+    FlextService,
+    FlextTypes,
+)
+
+if TYPE_CHECKING:
+    from flext_cli.main import FlextCliMain
+
 from flext_cli.cli import FlextCliClick
-from flext_core import FlextLogger, FlextResult, FlextService, FlextTypes
 
 
 class FlextCliShell(FlextService[object]):
@@ -44,7 +55,7 @@ class FlextCliShell(FlextService[object]):
 
     def __init__(
         self,
-        cli_main: object,
+        cli_main: FlextCliMain,
         prompt: str = "> ",
         *,
         history_file: str | None = None,
@@ -425,6 +436,11 @@ class FlextCliShell(FlextService[object]):
         except Exception:
             return None
 
+    # Attribute declarations - override FlextService optional types
+    # These are guaranteed initialized in __init__
+    _logger: FlextLogger
+    _container: FlextContainer
+
     def execute(self) -> FlextResult[object]:
         """Execute shell service (runs interactive shell).
 
@@ -447,87 +463,114 @@ class FlextCliShell(FlextService[object]):
         """
         return self.execute()
 
+    # ==========================================================================
+    # NESTED SHELL BUILDER - Consolidated within unified class
+    # ==========================================================================
 
-class FlextCliShellBuilder:
-    """Builder for configuring interactive shell.
+    class ShellBuilder:
+        """Builder for configuring interactive shell.
 
-    Example:
-        >>> builder = FlextCliShellBuilder(cli.main)
-        >>> shell = (
-        ...     builder.with_prompt("myapp> ")
-        ...     .with_history("~/.myapp_history")
-        ...     .with_completion()
-        ...     .build()
-        ... )
-        >>> shell.run()
-
-    """
-
-    def __init__(self, cli_main: object) -> None:
-        """Initialize shell builder.
-
-        Args:
-            cli_main: FlextCliMain instance
+        Example:
+            >>> builder = FlextCliShellBuilder(cli.main)
+            >>> shell = (
+            ...     builder.with_prompt("myapp> ")
+            ...     .with_history("~/.myapp_history")
+            ...     .with_completion()
+            ...     .build()
+            ... )
+            >>> shell.run()
 
         """
-        self._cli_main = cli_main
-        self._prompt = "> "
-        self._history_file: str | None = None
-        self._enable_completion = False
 
-    def with_prompt(self, prompt: str) -> FlextCliShellBuilder:
-        """Set shell prompt.
+        def __init__(self, cli_main: object) -> None:
+            """Initialize shell builder.
 
-        Args:
-            prompt: Prompt string
+            Args:
+                cli_main: FlextCliMain instance
+
+            """
+            self._cli_main = cli_main
+            self._prompt = "> "
+            self._history_file: str | None = None
+            self._enable_completion = False
+
+        def with_prompt(self, prompt: str) -> FlextCliShell.ShellBuilder:
+            """Set shell prompt.
+
+            Args:
+                prompt: Prompt string
+
+            Returns:
+                Self for chaining
+
+            """
+            self._prompt = prompt
+            return self
+
+        def with_history(self, history_file: str) -> FlextCliShell.ShellBuilder:
+            """Enable command history persistence.
+
+            Args:
+                history_file: Path to history file
+
+            Returns:
+                Self for chaining
+
+            """
+            self._history_file = history_file
+            return self
+
+        def with_completion(self, *, enable: bool = True) -> FlextCliShell.ShellBuilder:
+            """Enable tab completion.
+
+            Args:
+                enable: Whether to enable completion
+
+            Returns:
+                Self for chaining
+
+            """
+            self._enable_completion = enable
+            return self
+
+        def build(self) -> FlextCliShell:
+            """Build the shell instance.
+
+            Returns:
+                Configured FlextCliShell instance
+
+            """
+            return FlextCliShell(
+                cli_main=self._cli_main,
+                prompt=self._prompt,
+                history_file=self._history_file,
+                enable_completion=self._enable_completion,
+            )
+
+    # ==========================================================================
+    # BACKWARD COMPATIBILITY PROPERTIES - Access nested classes
+    # ==========================================================================
+
+    @property
+    def shell_builder_class(self) -> type[ShellBuilder]:
+        """Access shell builder class (backward compatibility).
 
         Returns:
-            Self for chaining
+            type[ShellBuilder]: Shell builder class for configuration
 
         """
-        self._prompt = prompt
-        return self
+        return self.ShellBuilder
 
-    def with_history(self, history_file: str) -> FlextCliShellBuilder:
-        """Enable command history persistence.
 
-        Args:
-            history_file: Path to history file
+# ==========================================================================
+# BACKWARD COMPATIBILITY ALIASES - Maintain existing API surface
+# ==========================================================================
 
-        Returns:
-            Self for chaining
+# Create instances for backward compatibility
+_shell = FlextCliShell(cli_main=None)  # Dummy instance for class access
 
-        """
-        self._history_file = history_file
-        return self
-
-    def with_completion(self, *, enable: bool = True) -> FlextCliShellBuilder:
-        """Enable tab completion.
-
-        Args:
-            enable: Whether to enable completion
-
-        Returns:
-            Self for chaining
-
-        """
-        self._enable_completion = enable
-        return self
-
-    def build(self) -> FlextCliShell:
-        """Build the shell instance.
-
-        Returns:
-            Configured FlextCliShell instance
-
-        """
-        return FlextCliShell(
-            cli_main=self._cli_main,
-            prompt=self._prompt,
-            history_file=self._history_file,
-            enable_completion=self._enable_completion,
-        )
-
+# Backward compatibility aliases - access nested classes through instance
+FlextCliShellBuilder = _shell.shell_builder_class
 
 __all__ = [
     "FlextCliShell",

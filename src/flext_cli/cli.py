@@ -13,13 +13,11 @@ from __future__ import annotations
 
 from collections.abc import Callable, Sequence
 from pathlib import Path
-from typing import IO, TypeVar
+from typing import IO, override
 
-# CRITICAL: ONLY this file may import Click
 import click
 from click import Context as ClickContext
 from click.testing import CliRunner as ClickCliRunner
-
 from flext_core import (
     FlextContainer,
     FlextLogger,
@@ -27,8 +25,6 @@ from flext_core import (
     FlextService,
     FlextTypes,
 )
-
-T = TypeVar("T")
 
 
 class FlextCliClick(FlextService[object]):
@@ -788,14 +784,20 @@ class FlextCliClick(FlextService[object]):
             self._logger.exception(error_msg)
             return FlextResult[None].fail(error_msg)
 
-    def execute(self) -> FlextResult[None]:
+    @override
+    def execute(self) -> FlextResult[object]:
         """Execute Click abstraction layer operations.
 
         Returns:
-            FlextResult[None]
+            FlextResult[object]: Success with CLI status or failure with error
 
         """
-        return FlextResult[None].ok(None)
+        return FlextResult[object].ok({"service": "flext-cli", "status": "operational"})
+
+    # Attribute declarations - override FlextService optional types
+    # These are guaranteed initialized in __init__
+    _logger: FlextLogger
+    _container: FlextContainer
 
 
 __all__ = [

@@ -16,10 +16,10 @@ from pathlib import Path
 from typing import cast
 
 import pytest
+from flext_core import FlextResult, FlextTypes
 from flext_tests import FlextTestsUtilities
 
 from flext_cli.output import FlextCliOutput
-from flext_core import FlextResult, FlextTypes
 
 
 class TestFlextCliOutput:

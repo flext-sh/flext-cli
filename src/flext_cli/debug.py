@@ -18,14 +18,15 @@ from datetime import UTC, datetime
 from pathlib import Path
 from typing import cast, override
 
-from flext_cli.constants import FlextCliConstants
-from flext_cli.typings import FlextCliTypes, FlextCliTypes as Types
 from flext_core import (
     FlextContainer,
     FlextLogger,
     FlextResult,
     FlextService,
 )
+
+from flext_cli.constants import FlextCliConstants
+from flext_cli.typings import FlextCliTypes, FlextCliTypes as Types
 
 
 class FlextCliDebug(FlextService[str]):
@@ -36,6 +37,11 @@ class FlextCliDebug(FlextService[str]):
     Provides essential debugging functionality using flext-core patterns.
     Follows single-responsibility principle with nested helpers.
     """
+
+    # Attribute declarations - override FlextService optional types
+    # These are guaranteed initialized in __init__
+    _logger: FlextLogger
+    _container: FlextContainer
 
     @override
     def __init__(self, **_data: object) -> None:
@@ -51,7 +57,7 @@ class FlextCliDebug(FlextService[str]):
         def get_system_info() -> Types.Data.DebugInfoData:
             """Get basic system information."""
             return {
-                "service": FlextCliDebug.__name__,
+                "service": "FlextCliDebug",
                 "status": FlextCliConstants.OPERATIONAL,
                 "timestamp": datetime.now(UTC).isoformat(),
                 "python_version": sys.version,
@@ -243,7 +249,7 @@ class FlextCliDebug(FlextService[str]):
             health_info: Types.Data.DebugInfoData = {
                 "status": FlextCliConstants.HEALTHY,
                 "timestamp": datetime.now(UTC).isoformat(),
-                "service": self.__class__.__name__,
+                "service": "FlextCliDebug",
                 "check_id": str(uuid.uuid4()),
                 "checks_passed": True,
             }
@@ -280,7 +286,7 @@ class FlextCliDebug(FlextService[str]):
         """
         try:
             debug_info: Types.Data.DebugInfoData = {
-                "service": self.__class__.__name__,
+                "service": "FlextCliDebug",
                 "timestamp": datetime.now(UTC).isoformat(),
                 "debug_id": str(uuid.uuid4()),
                 "system_info": self._DebugHelper.get_system_info(),

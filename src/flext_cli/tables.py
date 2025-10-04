@@ -12,8 +12,6 @@ from __future__ import annotations
 from collections.abc import Iterable, Sequence
 from typing import ClassVar, cast
 
-from tabulate import tabulate
-
 from flext_core import (
     FlextContainer,
     FlextLogger,
@@ -21,6 +19,7 @@ from flext_core import (
     FlextService,
     FlextTypes,
 )
+from tabulate import tabulate
 
 
 class FlextCliTables(FlextService[object]):
@@ -441,14 +440,19 @@ class FlextCliTables(FlextService[object]):
             self._logger.exception(error_msg)
             return FlextResult[None].fail(error_msg)
 
-    def execute(self) -> FlextResult[None]:
+    # Attribute declarations - override FlextService optional types
+    # These are guaranteed initialized in __init__
+    _logger: FlextLogger
+    _container: FlextContainer
+
+    def execute(self) -> FlextResult[object]:
         """Execute Tabulate tables layer operations.
 
         Returns:
-            FlextResult[None]
+            FlextResult[object]
 
         """
-        return FlextResult[None].ok(None)
+        return FlextResult[object].ok(None)
 
 
 __all__ = [

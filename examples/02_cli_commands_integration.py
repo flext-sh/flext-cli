@@ -29,12 +29,13 @@ from datetime import UTC, datetime
 from pathlib import Path
 from typing import cast
 
+from flext_core import FlextConstants, FlextResult, FlextTypes
+
 from flext_cli import (
     FlextCliConfig,
     FlextCliModels,
     FlextCliOutput,
 )
-from flext_core import FlextConstants, FlextResult, FlextTypes
 
 
 def _setup_cli_demo(formatter: FlextCliOutput) -> FlextResult[None]:

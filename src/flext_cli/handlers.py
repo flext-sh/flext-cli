@@ -12,9 +12,10 @@ from __future__ import annotations
 from collections.abc import Callable
 from typing import override
 
+from flext_core import FlextHandlers, FlextModels, FlextResult
+
 from flext_cli.protocols import FlextCliProtocols
 from flext_cli.typings import FlextCliTypes
-from flext_core import FlextHandlers, FlextModels, FlextResult
 
 
 class FlextCliHandlers(FlextHandlers):
@@ -38,21 +39,23 @@ class FlextCliHandlers(FlextHandlers):
 
         """
         # If no config provided, create minimal default config
-        if "config" not in kwargs:
-            kwargs["config"] = FlextModels.CqrsConfig.Handler(
+        config = kwargs.pop("config", None)
+        if config is None:
+            config = FlextModels.CqrsConfig.Handler(
                 handler_id="flext-cli-handlers",
                 handler_name="flext-cli-handlers",
+                handler_type="command",  # Explicit handler type
             )
-        super().__init__(**kwargs)
+        super().__init__(config=config, **kwargs)
 
-    def execute_service(self) -> FlextResult[dict]:
+    def execute_service(self) -> FlextResult[FlextTypes.Dict]:
         """Execute handlers service to return operational status.
 
         Provides no-arg service status check for CLI handlers.
         Note: Use handle() from FlextHandlers for message processing.
 
         Returns:
-            FlextResult[dict]: Handler service status
+            FlextResult[FlextTypes.Dict]: Handler service status
 
         """
         return self.execute_handlers()

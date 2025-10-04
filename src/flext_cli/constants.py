@@ -269,6 +269,16 @@ class FlextCliConstants(FlextConstants):
     # Format names
     TSV: Final[str] = "tsv"
 
+    # File formats configuration
+    FILE_FORMATS: Final[dict[str, dict[str, list[str]]]] = {
+        "json": {"extensions": ["json"]},
+        "yaml": {"extensions": ["yaml", "yml"]},
+        "csv": {"extensions": ["csv"]},
+        "tsv": {"extensions": ["tsv"]},
+        "toml": {"extensions": ["toml"]},
+        "xml": {"extensions": ["xml"]},
+    }
+
     # Service names
     FLEXT_CLI_FILE_TOOLS: Final[str] = "flext-cli-file-tools"
 

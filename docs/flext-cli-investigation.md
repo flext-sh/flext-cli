@@ -2229,7 +2229,7 @@ class FlextCliValidationService(FlextService[bool]):
 
 ```python
 # Replace custom table formatting with tabulate
-def format_table(self, data: list[dict], headers: FlextTypes.StringList = None) -> FlextResult[str]:
+def format_table(self, data: list[FlextTypes.Dict], headers: FlextTypes.StringList = None) -> FlextResult[str]:
     """Format data as table using tabulate library."""
     try:
         import tabulate

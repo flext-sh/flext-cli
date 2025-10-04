@@ -17,8 +17,9 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from flext_cli import FlextCliConfig
 from flext_core import FlextConfig, FlextTypes
+
+from flext_cli import FlextCliConfig
 
 
 def demonstrate_single_source_of_truth() -> None:

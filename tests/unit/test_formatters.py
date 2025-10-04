@@ -10,6 +10,7 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 import pytest
+from flext_core import FlextResult
 from rich.console import Console
 from rich.layout import Layout
 from rich.live import Live
@@ -25,7 +26,6 @@ from rich.text import Text
 from rich.tree import Tree
 
 from flext_cli.formatters import FlextCliFormatters
-from flext_core import FlextResult
 
 
 class TestFlextCliFormatters:

@@ -15,6 +15,7 @@ from pathlib import Path
 
 import pytest
 import yaml
+from flext_core import FlextResult, FlextTypes, FlextUtilities
 from flext_tests import FlextTestsUtilities
 
 from flext_cli.api import FlextCli
@@ -22,7 +23,6 @@ from flext_cli.config import FlextCliConfig
 from flext_cli.constants import FlextCliConstants
 from flext_cli.core import FlextCliService
 from flext_cli.models import FlextCliModels
-from flext_core import FlextResult, FlextTypes, FlextUtilities
 
 
 class TestFlextCliService:
@@ -360,9 +360,9 @@ class TestFlextCliService:
 
         try:
             parsed = json.loads(json_data)
-            result = FlextResult[dict].ok(parsed)
+            result = FlextResult[FlextTypes.Dict].ok(parsed)
         except Exception as e:
-            result = FlextResult[dict].fail(str(e))
+            result = FlextResult[FlextTypes.Dict].fail(str(e))
 
         assert isinstance(result, FlextResult)
         assert result.is_success
@@ -381,9 +381,9 @@ class TestFlextCliService:
 
         try:
             parsed = json.loads(invalid_json)
-            result = FlextResult[dict].ok(parsed)
+            result = FlextResult[FlextTypes.Dict].ok(parsed)
         except Exception as e:
-            result = FlextResult[dict].fail(str(e))
+            result = FlextResult[FlextTypes.Dict].fail(str(e))
 
         assert isinstance(result, FlextResult)
         assert result.is_failure
@@ -428,9 +428,9 @@ nested:
 
         try:
             parsed = yaml.safe_load(yaml_data)
-            result = FlextResult[dict].ok(parsed)
+            result = FlextResult[FlextTypes.Dict].ok(parsed)
         except Exception as e:
-            result = FlextResult[dict].fail(str(e))
+            result = FlextResult[FlextTypes.Dict].fail(str(e))
 
         assert isinstance(result, FlextResult)
         assert result.is_success

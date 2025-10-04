@@ -26,13 +26,14 @@ from __future__ import annotations
 import os
 from datetime import UTC, datetime, timedelta
 
+from flext_core import FlextConstants, FlextResult, FlextTypes
+
 from flext_cli import (
     FlextCliAuth,
     FlextCliConfig,
     FlextCliOutput,
     FlextCliService,
 )
-from flext_core import FlextConstants, FlextResult, FlextTypes
 
 # from .example_utils import print_demo_completion
 

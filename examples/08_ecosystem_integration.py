@@ -27,6 +27,7 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import override
 
+from flext_core import FlextConfig, FlextConstants, FlextResult, FlextTypes
 from pydantic_settings import SettingsConfigDict
 
 from flext_cli import (
@@ -34,7 +35,6 @@ from flext_cli import (
     FlextCliService,
     FlextCliTypes,
 )
-from flext_core import FlextConfig, FlextConstants, FlextResult, FlextTypes
 
 
 class EcosystemSettings(FlextConfig):

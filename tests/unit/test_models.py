@@ -16,10 +16,10 @@ import threading
 import time
 
 import pytest
+from flext_core import FlextTypes
 from flext_tests import FlextTestsUtilities
 
 from flext_cli.models import FlextCliModels
-from flext_core import FlextTypes
 
 
 class TestFlextCliModels:

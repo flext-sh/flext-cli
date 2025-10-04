@@ -33,10 +33,11 @@ from pathlib import Path
 from tempfile import NamedTemporaryFile
 from typing import TypedDict, cast
 
+from flext_core import FlextConstants, FlextResult, FlextTypes
+
 from flext_cli import (
     FlextCliOutput,
 )
-from flext_core import FlextConstants, FlextResult, FlextTypes
 
 
 class DatabaseConfig(TypedDict):

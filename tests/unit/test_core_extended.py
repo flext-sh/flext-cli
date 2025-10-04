@@ -13,10 +13,10 @@ import tempfile
 from pathlib import Path
 
 import pytest
+from flext_core import FlextResult
 
 from flext_cli.core import FlextCliService
 from flext_cli.models import FlextCliModels
-from flext_core import FlextResult
 
 
 class TestFlextCliServiceExtended:

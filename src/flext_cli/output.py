@@ -12,14 +12,23 @@ from __future__ import annotations
 import csv
 import json
 from io import StringIO
-from typing import override
+from typing import TYPE_CHECKING, override
 
 import yaml
+from flext_core import (
+    FlextContainer,
+    FlextLogger,
+    FlextResult,
+    FlextService,
+    FlextTypes,
+)
 
 from flext_cli.constants import FlextCliConstants
 from flext_cli.formatters import FlextCliFormatters
 from flext_cli.tables import FlextCliTables
-from flext_core import FlextLogger, FlextResult, FlextService, FlextTypes
+
+if TYPE_CHECKING:
+    from rich.tree import Tree
 
 
 class FlextCliOutput(FlextService[object]):
@@ -58,6 +67,11 @@ class FlextCliOutput(FlextService[object]):
         abstraction layers internally. NO Rich imports are present here.
 
     """
+
+    # Attribute declarations - override FlextService optional types
+    # These are guaranteed initialized in __init__
+    _logger: FlextLogger
+    _container: FlextContainer
 
     @override
     def __init__(self) -> None:
@@ -600,7 +614,7 @@ class FlextCliOutput(FlextService[object]):
             tree, width=FlextCliConstants.CliDefaults.DEFAULT_MAX_WIDTH
         )
 
-    def _build_tree(self, tree: object, data: object) -> None:
+    def _build_tree(self, tree: Tree, data: object) -> None:
         """Build tree recursively (helper for format_as_tree).
 
         Args:

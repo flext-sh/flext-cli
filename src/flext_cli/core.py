@@ -14,6 +14,14 @@ from collections.abc import Callable
 from datetime import UTC, datetime
 from pathlib import Path
 
+from flext_core import (
+    FlextContainer,
+    FlextLogger,
+    FlextResult,
+    FlextService,
+    FlextTypes,
+)
+
 from flext_cli.config import FlextCliConfig
 from flext_cli.constants import FlextCliConstants
 from flext_cli.file_tools import FlextCliFileTools
@@ -22,13 +30,6 @@ from flext_cli.output import FlextCliOutput
 from flext_cli.processors import FlextCliProcessors
 from flext_cli.prompts import FlextCliPrompts
 from flext_cli.typings import FlextCliTypes
-from flext_core import (
-    FlextContainer,
-    FlextLogger,
-    FlextResult,
-    FlextService,
-    FlextTypes,
-)
 
 type HandlerData = FlextCliTypes.CliCommandResult
 type HandlerFunction = Callable[[HandlerData], FlextResult[HandlerData]]
@@ -66,7 +67,8 @@ class FlextCliService(FlextService[FlextCliTypes.Data.CliDataDict]):
         self._prompts = FlextCliPrompts()
 
         # Type-safe configuration initialization
-        self._config = config or {}
+        # Use dict type for internal config management
+        self._config: FlextCliTypes.Configuration.CliConfigSchema = config or {}
         self._commands: FlextTypes.Dict = {}
         self._plugins: FlextTypes.Dict = {}
         self._sessions: FlextTypes.Dict = {}
@@ -447,6 +449,12 @@ class FlextCliService(FlextService[FlextCliTypes.Data.CliDataDict]):
     # ==========================================================================
     # SERVICE EXECUTION METHODS - FlextService protocol implementation
     # ==========================================================================
+
+    # Attribute declarations - override FlextService optional types
+    # These are guaranteed initialized in __init__
+    _logger: FlextLogger
+    _container: FlextContainer
+    _config: FlextCliTypes.Configuration.CliConfigSchema
 
     def execute(self) -> FlextResult[FlextCliTypes.Data.CliDataDict]:
         """Execute CLI service operations.

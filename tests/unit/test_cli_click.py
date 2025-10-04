@@ -14,9 +14,9 @@ from pathlib import Path
 import click
 import pytest
 from click.testing import CliRunner
+from flext_core import FlextResult
 
 from flext_cli.cli import FlextCliClick
-from flext_core import FlextResult
 
 
 class TestFlextCliClick:

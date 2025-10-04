@@ -14,9 +14,6 @@ from datetime import UTC, datetime
 from pathlib import Path
 from typing import override
 
-from flext_cli.config import FlextCliConfig
-from flext_cli.constants import FlextCliConstants
-from flext_cli.file_tools import FlextCliFileTools
 from flext_core import (
     FlextContainer,
     FlextLogger,
@@ -25,6 +22,10 @@ from flext_core import (
     FlextTypes,
 )
 
+from flext_cli.config import FlextCliConfig
+from flext_cli.constants import FlextCliConstants
+from flext_cli.file_tools import FlextCliFileTools
+
 
 class FlextCliCmd(FlextService[FlextTypes.Dict]):
     """CMD service extending FlextService from flext-core.
@@ -32,6 +33,11 @@ class FlextCliCmd(FlextService[FlextTypes.Dict]):
     Provides essential command functionality using flext-core patterns.
     Follows single-responsibility principle with nested helpers.
     """
+
+    # Attribute declarations - override FlextService optional types
+    # These are guaranteed initialized in __init__
+    _logger: FlextLogger
+    _container: FlextContainer
 
     @override
     def __init__(self) -> None:

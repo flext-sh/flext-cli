@@ -9,9 +9,10 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
+from flext_core import FlextMixins, FlextResult, FlextTypes, FlextUtilities
+
 from flext_cli.constants import FlextCliConstants
 from flext_cli.typings import FlextCliTypes
-from flext_core import FlextMixins, FlextResult, FlextTypes, FlextUtilities
 
 
 class FlextCliMixins(FlextMixins):

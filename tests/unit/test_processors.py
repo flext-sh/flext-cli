@@ -12,12 +12,12 @@ from __future__ import annotations
 import time
 
 import pytest
+from flext_core import FlextResult
 from flext_tests import FlextTestsUtilities
 
 from flext_cli.models import FlextCliModels
 from flext_cli.processors import FlextCliProcessors
 from flext_cli.typings import FlextCliTypes
-from flext_core import FlextResult
 
 
 class TestFlextCliProcessors:

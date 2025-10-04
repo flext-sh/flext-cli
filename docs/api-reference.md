@@ -24,7 +24,7 @@ class FlextCli(FlextService[str]):
     def format_output(self, data: dict, format_type: str) -> FlextResult[str]:
         """Format output data using Rich abstraction."""
 
-    def validate_config(self, config_data: dict) -> FlextResult[dict]:
+    def validate_config(self, config_data: dict) -> FlextResult[FlextTypes.Dict]:
         """Validate CLI configuration data."""
 ```
 
@@ -64,7 +64,7 @@ class FlextCliAuth:
     def logout(self) -> FlextResult[None]:
         """Logout current user."""
 
-    def get_status(self) -> FlextResult[dict]:
+    def get_status(self) -> FlextResult[FlextTypes.Dict]:
         """Get authentication status."""
 ```
 
