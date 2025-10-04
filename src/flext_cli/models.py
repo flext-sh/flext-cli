@@ -13,6 +13,11 @@ import uuid
 from datetime import UTC, datetime
 from typing import Any, Self, override
 
+from flext_core import (
+    FlextModels,
+    FlextResult,
+    FlextTypes,
+)
 from pydantic import (
     ConfigDict,
     Field,
@@ -24,11 +29,6 @@ from pydantic import (
 from flext_cli.constants import FlextCliConstants
 from flext_cli.mixins import FlextCliMixins
 from flext_cli.typings import FlextCliTypes
-from flext_core import (
-    FlextModels,
-    FlextResult,
-    FlextTypes,
-)
 
 
 class FlextCliModels(FlextModels):

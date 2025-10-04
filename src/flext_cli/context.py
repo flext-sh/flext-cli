@@ -9,9 +9,6 @@ from __future__ import annotations
 from datetime import datetime
 from typing import TypedDict, Unpack
 
-from flext_cli.config import FlextCliConfig
-from flext_cli.constants import FlextCliConstants
-from flext_cli.typings import FlextCliTypes
 from flext_core import (
     FlextContext,
     FlextLogger,
@@ -20,6 +17,10 @@ from flext_core import (
     FlextTypes,
     FlextUtilities,
 )
+
+from flext_cli.config import FlextCliConfig
+from flext_cli.constants import FlextCliConstants
+from flext_cli.typings import FlextCliTypes
 
 
 class FlextCliContext(FlextModels.Entity):

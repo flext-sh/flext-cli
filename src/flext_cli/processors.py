@@ -11,8 +11,9 @@ from __future__ import annotations
 
 from typing import override
 
-from flext_cli.models import FlextCliModels
 from flext_core import FlextProcessors, FlextResult, FlextTypes
+
+from flext_cli.models import FlextCliModels
 
 
 class FlextCliProcessors(FlextProcessors):

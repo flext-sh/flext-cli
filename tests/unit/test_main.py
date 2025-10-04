@@ -12,9 +12,9 @@ from __future__ import annotations
 import click
 import pytest
 from click.testing import CliRunner
+from flext_core import FlextResult
 
 from flext_cli.main import FlextCliMain
-from flext_core import FlextResult
 
 
 class TestFlextCliMain:

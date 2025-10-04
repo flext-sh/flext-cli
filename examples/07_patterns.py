@@ -30,6 +30,12 @@ from enum import StrEnum
 from typing import Protocol, cast, override
 from uuid import UUID, uuid4
 
+from flext_core import (
+    FlextModels,
+    FlextResult,
+    FlextService,
+    FlextTypes,
+)
 from pydantic import Field
 
 from flext_cli import (
@@ -37,12 +43,6 @@ from flext_cli import (
     FlextCliCommands,
     FlextCliService,
     FlextCliTypes,
-)
-from flext_core import (
-    FlextModels,
-    FlextResult,
-    FlextService,
-    FlextTypes,
 )
 
 

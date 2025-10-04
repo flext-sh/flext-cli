@@ -12,10 +12,10 @@ from __future__ import annotations
 import time
 
 import pytest
+from flext_core import FlextResult
 from flext_tests import FlextTestsUtilities
 
 from flext_cli.containers import FlextCliContainers
-from flext_core import FlextResult
 
 
 class TestFlextCliContainers:

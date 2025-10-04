@@ -26,6 +26,8 @@ from __future__ import annotations
 from datetime import UTC, datetime
 from typing import cast
 
+from flext_core import FlextContainer, FlextResult, FlextTypes
+
 from flext_cli import (
     FlextCli,
     FlextCliConfig,
@@ -33,7 +35,6 @@ from flext_cli import (
     FlextCliOutput,
     FlextCliService,
 )
-from flext_core import FlextContainer, FlextResult, FlextTypes
 
 
 def _setup_cli() -> FlextResult[str]:

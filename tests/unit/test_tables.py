@@ -10,9 +10,9 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 import pytest
+from flext_core import FlextResult, FlextTypes
 
 from flext_cli.tables import FlextCliTables
-from flext_core import FlextResult, FlextTypes
 
 
 @pytest.fixture

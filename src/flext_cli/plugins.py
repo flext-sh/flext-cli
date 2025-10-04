@@ -14,7 +14,13 @@ import inspect
 from pathlib import Path
 from typing import Protocol
 
-from flext_core import FlextLogger, FlextResult, FlextService, FlextTypes
+from flext_core import (
+    FlextContainer,
+    FlextLogger,
+    FlextResult,
+    FlextService,
+    FlextTypes,
+)
 
 
 class FlextCliPluginSystem(FlextService[object]):
@@ -96,6 +102,10 @@ class FlextCliPluginSystem(FlextService[object]):
         Manages plugin discovery, loading, initialization, and lifecycle.
 
         """
+
+        # Attribute declarations - override FlextService optional types
+        _logger: FlextLogger
+        _container: FlextContainer
 
         def __init__(self, **data: object) -> None:
             """Initialize plugin manager.
@@ -306,7 +316,7 @@ class FlextCliPluginSystem(FlextService[object]):
                 if load_result.is_failure:
                     return FlextResult[object].fail(f"Load failed: {load_result.error}")
 
-                plugin = load_result.unwrap()
+                plugin: FlextCliPluginSystem.PluginProtocol = load_result.unwrap()
 
                 # Initialize plugin
                 init_result = self.initialize_plugin(plugin, cli_main)
@@ -547,7 +557,7 @@ class FlextCliPlugin:
     All plugins must inherit from this class and implement the required methods.
     """
 
-    def __init__(self, **data: object) -> None:  # noqa: ARG002
+    def __init__(self, **data: object) -> None:
         """Initialize plugin."""
         self._logger = FlextLogger(__name__)
 
@@ -563,7 +573,7 @@ class FlextCliPlugin:
 
     def initialize(
         self,
-        cli_main: object,  # noqa: ARG002
+        cli_main: object,
     ) -> FlextResult[None]:  # pragma: no cover
         """Initialize the plugin.
 
@@ -578,7 +588,7 @@ class FlextCliPlugin:
 
     def register_commands(
         self,
-        cli_main: object,  # noqa: ARG002
+        cli_main: object,
     ) -> FlextResult[None]:  # pragma: no cover
         """Register plugin commands.
 
@@ -594,7 +604,7 @@ class FlextCliPlugin:
 
 # Type alias for backward compatibility
 FlextCliPluginProtocol = FlextCliPluginSystem.PluginProtocol
-FlextCliPluginManager = FlextCliPluginSystem._PluginManager  # noqa: SLF001
+FlextCliPluginManager = FlextCliPluginSystem._PluginManager
 
 
 __all__ = [

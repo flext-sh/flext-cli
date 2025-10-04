@@ -281,16 +281,16 @@ class TableFormats:
 
 ```python
 # ✅ CORRECT - Descriptive errors
-def load_config(path: str) -> FlextResult[dict]:
+def load_config(path: str) -> FlextResult[FlextTypes.Dict]:
     """Load configuration file."""
     if not path:
-        return FlextResult[dict].fail(
+        return FlextResult[FlextTypes.Dict].fail(
             "Configuration path cannot be empty. "
             "Please provide a valid file path."
         )
 
     # More processing...
-    return FlextResult[dict].ok(config_data)
+    return FlextResult[FlextTypes.Dict].ok(config_data)
 ```
 
 ### Handle Errors Gracefully

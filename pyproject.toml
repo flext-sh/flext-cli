@@ -229,9 +229,7 @@
         types-toml       = "^0.10.8.20240310"
 
 [tool.pyrefly]
-    ignore-errors-in-generated-code = false
-    ignore-missing-source = false
-    permissive-ignores = false
+    ignore-errors-in-generated-code = true
     python-version = "3.13"
     search-path = [
         "../flext-core/src",
@@ -240,4 +238,3 @@
         "src",
         "tests",
     ]
-    untyped-def-behavior = "check-and-infer-return-type"

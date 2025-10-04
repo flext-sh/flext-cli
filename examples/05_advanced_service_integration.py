@@ -30,6 +30,7 @@ from datetime import UTC, datetime
 from enum import Enum
 from typing import Protocol, cast, override
 
+from flext_core import FlextContainer, FlextLogger, FlextResult, FlextTypes
 from rich.progress import Progress, SpinnerColumn, TaskID, TextColumn
 from rich.table import Table
 
@@ -39,7 +40,6 @@ from flext_cli import (
     FlextCliService,
     FlextCliTypes,
 )
-from flext_core import FlextContainer, FlextLogger, FlextResult, FlextTypes
 
 
 # Container protocol for type compatibility

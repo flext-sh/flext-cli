@@ -13,10 +13,10 @@ import time
 from unittest.mock import patch
 
 import pytest
+from flext_core import FlextLogger, FlextResult, FlextTypes
 from flext_tests import FlextTestsUtilities
 
 from flext_cli.prompts import FlextCliPrompts
-from flext_core import FlextLogger, FlextResult, FlextTypes
 
 
 class TestFlextCliPrompts:

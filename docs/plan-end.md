@@ -591,12 +591,12 @@ file_result = FlextUtilities.FileOperations.save_file(path, content)
 
 ```python
 # CURRENT CUSTOM TABLE FORMATTING
-def format_table(self, data: list[dict], headers: FlextTypes.StringList = None) -> FlextResult[str]:
+def format_table(self, data: list[FlextTypes.Dict], headers: FlextTypes.StringList = None) -> FlextResult[str]:
     """Custom table formatting implementation."""
     # Custom Rich table implementation
 
 # REQUIRED FIX
-def format_table_with_tabulate(self, data: list[dict], headers: FlextTypes.StringList = None) -> FlextResult[str]:
+def format_table_with_tabulate(self, data: list[FlextTypes.Dict], headers: FlextTypes.StringList = None) -> FlextResult[str]:
     """Format data as table using tabulate library."""
     try:
         import tabulate

@@ -16,6 +16,13 @@ from io import StringIO
 from types import ModuleType
 from typing import Literal
 
+from flext_core import (
+    FlextContainer,
+    FlextLogger,
+    FlextResult,
+    FlextService,
+    FlextTypes,
+)
 from rich.align import Align, AlignMethod, VerticalAlignMethod
 from rich.console import Console, JustifyMethod, OverflowMethod, RenderableType
 from rich.layout import Layout
@@ -40,14 +47,6 @@ from rich.table import Table as RichTable
 from rich.text import Text
 from rich.traceback import Traceback
 from rich.tree import Tree
-
-from flext_core import (
-    FlextContainer,
-    FlextLogger,
-    FlextResult,
-    FlextService,
-    FlextTypes,
-)
 
 
 class FlextCliFormatters(FlextService[object]):
@@ -1307,6 +1306,11 @@ class FlextCliFormatters(FlextService[object]):
             error_msg = f"Failed to clear console: {e}"
             self._logger.exception(error_msg)
             return FlextResult[None].fail(error_msg)
+
+    # Attribute declarations - override FlextService optional types
+    # These are guaranteed initialized in __init__
+    _logger: FlextLogger
+    _container: FlextContainer
 
     def execute(self) -> FlextResult[object]:
         """Execute Rich formatters layer operations.

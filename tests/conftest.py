@@ -17,6 +17,7 @@ from pathlib import Path
 import pytest
 import yaml
 from click.testing import CliRunner
+from flext_core import FlextContainer, FlextTypes, FlextUtilities
 from flext_tests import (
     FlextTestDocker,
     FlextTestsBuilders,
@@ -42,7 +43,6 @@ from flext_cli.processors import FlextCliProcessors
 from flext_cli.prompts import FlextCliPrompts
 from flext_cli.protocols import FlextCliProtocols
 from flext_cli.typings import FlextCliTypes
-from flext_core import FlextContainer, FlextTypes, FlextUtilities
 
 # ============================================================================
 # CORE FLEXT TEST INFRASTRUCTURE

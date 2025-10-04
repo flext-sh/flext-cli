@@ -12,11 +12,11 @@ from __future__ import annotations
 import time
 
 import pytest
+from flext_core import FlextResult, FlextTypes
 from flext_tests import FlextTestsUtilities
 
 from flext_cli.handlers import FlextCliHandlers
 from flext_cli.typings import FlextCliTypes
-from flext_core import FlextResult, FlextTypes
 
 
 class TestFlextCliHandlers:

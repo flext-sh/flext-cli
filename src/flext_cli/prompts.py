@@ -7,8 +7,6 @@ import os
 import re
 import sys
 
-from flext_cli.constants import FlextCliConstants
-from flext_cli.typings import FlextCliTypes
 from flext_core import (
     FlextContainer,
     FlextLogger,
@@ -17,6 +15,9 @@ from flext_core import (
     FlextTypes,
     FlextUtilities,
 )
+
+from flext_cli.constants import FlextCliConstants
+from flext_cli.typings import FlextCliTypes
 
 
 class FlextCliPrompts(FlextService[FlextCliTypes.Data.CliDataDict]):
@@ -317,6 +318,11 @@ class FlextCliPrompts(FlextService[FlextCliTypes.Data.CliDataDict]):
             return FlextResult[FlextCliTypes.Data.CliDataDict].fail(
                 f"Statistics collection failed: {e}",
             )
+
+    # Attribute declarations - override FlextService optional types
+    # These are guaranteed initialized in __init__
+    _logger: FlextLogger
+    _container: FlextContainer
 
     def execute(self) -> FlextResult[FlextCliTypes.Data.CliDataDict]:
         """Execute prompt service operation.

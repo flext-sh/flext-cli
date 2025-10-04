@@ -11,14 +11,16 @@ from __future__ import annotations
 
 from typing import Protocol, runtime_checkable
 
-from flext_cli.typings import FlextCliTypes
 from flext_core import FlextProtocols, FlextResult
 
+from flext_cli.typings import FlextCliTypes
 
-class FlextCliProtocols:
+
+class FlextCliProtocols(FlextProtocols):
     """Single unified CLI protocols class following FLEXT standards.
 
     Contains all protocol definitions for CLI domain operations.
+    Extends FlextProtocols to inherit foundation protocols while adding CLI-specific ones.
     Follows FLEXT pattern: one class per module with nested subclasses.
     """
 

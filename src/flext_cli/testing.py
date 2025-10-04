@@ -9,9 +9,21 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
+from typing import TYPE_CHECKING
+
+from flext_core import (
+    FlextContainer,
+    FlextLogger,
+    FlextResult,
+    FlextService,
+    FlextTypes,
+)
+
 from flext_cli.cli import FlextCliClick
 from flext_cli.main import FlextCliMain
-from flext_core import FlextLogger, FlextResult, FlextService, FlextTypes
+
+if TYPE_CHECKING:
+    from click.testing import Result
 
 
 class FlextCliTestRunner(FlextService[object]):
@@ -102,19 +114,26 @@ class FlextCliTestRunner(FlextService[object]):
             command = cmd_result.unwrap()
 
             # Invoke command
-            result = runner.invoke(
+            result: Result = runner.invoke(
                 command, args or [], catch_exceptions=catch_exceptions
             )
 
+            # Extract result data with explicit typing
+            exit_code: int = result.exit_code
+            output: str = result.output
+            exception: Exception | None = (
+                result.exception if hasattr(result, "exception") else None
+            )
+
             execution_data = {
-                "exit_code": result.exit_code,
-                "output": result.output,
-                "exception": result.exception if hasattr(result, "exception") else None,
+                "exit_code": exit_code,
+                "output": output,
+                "exception": exception,
             }
 
             self._logger.debug(
                 "Invoked command for testing",
-                extra={"cmd_name": command_name, "exit_code": result.exit_code},
+                extra={"cmd_name": command_name, "exit_code": exit_code},
             )
 
             return FlextResult[FlextTypes.Dict].ok(execution_data)
@@ -320,38 +339,48 @@ class FlextCliTestRunner(FlextService[object]):
             self._logger.exception(error_msg)
             return FlextResult[None].fail(error_msg)
 
-    def execute(self) -> FlextResult[None]:
+    # Attribute declarations - override FlextService optional types
+    # These are guaranteed initialized in __init__
+    _logger: FlextLogger
+    _container: FlextContainer
+
+    def execute(self) -> FlextResult[object]:
         """Execute CLI testing utilities.
 
         Returns:
-            FlextResult[None]
+            FlextResult[object]
 
         """
-        return FlextResult[None].ok(None)
+        return FlextResult[object].ok(None)
 
+    # ==========================================================================
+    # NESTED MOCK SCENARIOS - Consolidated within unified class
+    # ==========================================================================
 
-class FlextCliMockScenarios(FlextService[object]):
-    """Mock scenarios for CLI testing.
+    class MockScenarios(FlextService[object]):
+        """Mock scenarios for CLI testing.
 
-    Provides pre-configured mock scenarios for common CLI testing patterns.
+        Provides pre-configured mock scenarios for common CLI testing patterns.
 
-    Example:
-        >>> from flext_cli.testing import FlextCliMockScenarios
-        >>>
-        >>> scenarios = FlextCliMockScenarios()
-        >>> mock_config = scenarios.mock_user_config(profile="test", debug_mode=True)
+        Example:
+            >>> from flext_cli.testing import FlextCliMockScenarios
+            >>>
+            >>> scenarios = FlextCliMockScenarios()
+            >>> mock_config = scenarios.mock_user_config(
+            ...     profile="test", debug_mode=True
+            ... )
 
-    """
+        """
 
-    def __init__(self, **data: object) -> None:
-        """Initialize mock scenarios.
+        def __init__(self, **data: object) -> None:
+            """Initialize mock scenarios.
 
-        Args:
+            Args:
             **data: Additional service data
 
-        """
-        super().__init__(**data)
-        self._logger = FlextLogger(__name__)
+            """
+            super().__init__(**data)
+            self._logger = FlextLogger(__name__)
 
     def mock_user_config(
         self,
@@ -432,15 +461,39 @@ class FlextCliMockScenarios(FlextService[object]):
             self._logger.exception(error_msg)
             return FlextResult[FlextTypes.Dict].fail(error_msg)
 
-    def execute(self) -> FlextResult[None]:
+    def run_scenarios(self) -> FlextResult[object]:
         """Execute mock scenarios operations.
 
         Returns:
-            FlextResult[None]
+            FlextResult[object]
 
         """
-        return FlextResult[None].ok(None)
+        return FlextResult[object].ok(None)
 
+    # ==========================================================================
+    # BACKWARD COMPATIBILITY PROPERTIES - Access nested classes
+    # ==========================================================================
+
+    @property
+    def mock_scenarios_class(self) -> type[MockScenarios]:
+        """Access mock scenarios class (backward compatibility).
+
+        Returns:
+            type[MockScenarios]: Mock scenarios class for testing
+
+        """
+        return self.MockScenarios
+
+
+# ==========================================================================
+# BACKWARD COMPATIBILITY ALIASES - Maintain existing API surface
+# ==========================================================================
+
+# Create instances for backward compatibility
+_test_runner = FlextCliTestRunner()
+
+# Backward compatibility aliases - access nested classes through instance
+FlextCliMockScenarios = _test_runner.mock_scenarios_class
 
 __all__ = [
     "FlextCliMockScenarios",

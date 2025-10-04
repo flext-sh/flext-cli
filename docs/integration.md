@@ -205,10 +205,10 @@ class ProjectCommands(FlextService):
         # Deployment logic
         return FlextResult[None].ok(None)
 
-    def status_check(self, **kwargs) -> FlextResult[dict]:
+    def status_check(self, **kwargs) -> FlextResult[FlextTypes.Dict]:
         """Check project status."""
         status = {"status": "running", "health": "ok"}
-        return FlextResult[dict].ok(status)
+        return FlextResult[FlextTypes.Dict].ok(status)
 
 # Register with CLI
 cli = FlextCliCommands(name="project-cli")

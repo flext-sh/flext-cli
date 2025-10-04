@@ -11,8 +11,9 @@ from __future__ import annotations
 
 from typing import override
 
-from flext_cli.constants import FlextCliConstants
 from flext_core import FlextExceptions
+
+from flext_cli.constants import FlextCliConstants
 
 
 class FlextCliExceptions(FlextExceptions):

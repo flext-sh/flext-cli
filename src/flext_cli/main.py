@@ -13,8 +13,8 @@ from __future__ import annotations
 import importlib
 import pkgutil
 from collections.abc import Callable
+from typing import TYPE_CHECKING
 
-from flext_cli.cli import FlextCliClick
 from flext_core import (
     FlextContainer,
     FlextLogger,
@@ -22,6 +22,11 @@ from flext_core import (
     FlextService,
     FlextTypes,
 )
+
+from flext_cli.cli import FlextCliClick
+
+if TYPE_CHECKING:
+    import click
 
 
 class FlextCliMain(FlextService[object]):
@@ -111,14 +116,16 @@ class FlextCliMain(FlextService[object]):
     # MAIN GROUP CREATION
     # =========================================================================
 
-    def _create_main_group(self, **kwargs: str | int | bool | None) -> object:
+    def _create_main_group(
+        self, **kwargs: str | int | bool | None
+    ) -> click.Group | None:
         """Create main CLI group using Click abstraction.
 
         Args:
             **kwargs: Additional Click group options
 
         Returns:
-            Click group object (internal use only)
+            Click group object (internal use only) or None if creation fails
 
         """
         group_result = self._click.create_group_decorator(
@@ -674,6 +681,11 @@ class FlextCliMain(FlextService[object]):
     # =========================================================================
     # FLEXT SERVICE METHODS
     # =========================================================================
+
+    # Attribute declarations - override FlextService optional types
+    # These are guaranteed initialized in __init__
+    _logger: FlextLogger
+    _container: FlextContainer
 
     def execute(self) -> FlextResult[object]:
         """Execute CLI main operations.

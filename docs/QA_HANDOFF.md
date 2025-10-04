@@ -84,13 +84,13 @@ self._formatters.create_tree(...)    # Use create_tree instead
 
 ```python
 # Add to api.py or create utilities module:
-def safe_json_parse(self, json_string: str) -> FlextResult[dict]:
+def safe_json_parse(self, json_string: str) -> FlextResult[FlextTypes.Dict]:
     """Parse JSON with error handling."""
     try:
         data = json.loads(json_string)
-        return FlextResult[dict].ok(data)
+        return FlextResult[FlextTypes.Dict].ok(data)
     except Exception as e:
-        return FlextResult[dict].fail(f"JSON parse error: {e}")
+        return FlextResult[FlextTypes.Dict].fail(f"JSON parse error: {e}")
 
 def safe_json_stringify(self, data: dict) -> FlextResult[str]:
     """Stringify data to JSON with error handling."""

@@ -16,6 +16,20 @@ try:
 except ImportError:
     yaml = None
 
+from flext_core import (
+    FlextBus,
+    FlextContainer,
+    FlextContext,
+    FlextDispatcher,
+    FlextLogger,
+    FlextProcessors,
+    FlextRegistry,
+    FlextResult,
+    FlextService,
+    FlextTypes,
+    FlextUtilities,
+)
+
 from flext_cli.auth import FlextCliAuth
 from flext_cli.cli import FlextCliClick
 from flext_cli.cmd import FlextCliCmd
@@ -39,19 +53,6 @@ from flext_cli.prompts import FlextCliPrompts
 from flext_cli.protocols import FlextCliProtocols
 from flext_cli.tables import FlextCliTables
 from flext_cli.typings import FlextCliTypes
-from flext_core import (
-    FlextBus,
-    FlextContainer,
-    FlextContext,
-    FlextDispatcher,
-    FlextLogger,
-    FlextProcessors,
-    FlextRegistry,
-    FlextResult,
-    FlextService,
-    FlextTypes,
-    FlextUtilities,
-)
 
 
 class FlextCli(FlextService[FlextCliTypes.Data.CliDataDict]):
@@ -149,14 +150,17 @@ class FlextCli(FlextService[FlextCliTypes.Data.CliDataDict]):
         return FlextCliConstants
 
     @property
-    def config(self) -> type[FlextCliConfig]:
+    def config(self) -> FlextCliConfig:
         """Access CLI configuration.
 
         Returns:
-            type[FlextCliConfig]: CLI config class
+            FlextCliConfig: CLI config instance
 
         """
-        return FlextCliConfig
+        # Create instance and ensure proper type due to inheritance issues
+        config = FlextCliConfig()
+        config.__class__ = FlextCliConfig
+        return config
 
     @property
     def output(self) -> FlextCliOutput:
@@ -189,14 +193,14 @@ class FlextCli(FlextService[FlextCliTypes.Data.CliDataDict]):
         return FlextUtilities
 
     @property
-    def auth(self) -> type[FlextCliAuth]:
+    def auth(self) -> FlextCliAuth:
         """Access CLI authentication service.
 
         Returns:
-            type[FlextCliAuth]: Auth service class
+            FlextCliAuth: Auth service instance
 
         """
-        return FlextCliAuth
+        return FlextCliAuth()
 
     @property
     def commands(self) -> FlextCliCommands:
@@ -229,14 +233,14 @@ class FlextCli(FlextService[FlextCliTypes.Data.CliDataDict]):
         return FlextCliContext
 
     @property
-    def debug(self) -> type[FlextCliDebug]:
+    def debug(self) -> FlextCliDebug:
         """Access CLI debug service.
 
         Returns:
-            type[FlextCliDebug]: Debug service class
+            FlextCliDebug: Debug service instance
 
         """
-        return FlextCliDebug
+        return FlextCliDebug()
 
     @property
     def exceptions(self) -> type[FlextCliExceptions]:
@@ -502,7 +506,9 @@ class FlextCli(FlextService[FlextCliTypes.Data.CliDataDict]):
         """
         self._formatters.print(f"[blue]i[/blue] {message}")
 
-    def table(self, data: list[dict] | list[list], **_kwargs: object) -> None:
+    def table(
+        self, data: list[FlextTypes.Dict] | list[list], **_kwargs: object
+    ) -> None:
         """Display data as a table with automatic formatting.
 
         Simple convenience method for quick table display.
@@ -722,6 +728,14 @@ class FlextCli(FlextService[FlextCliTypes.Data.CliDataDict]):
             msg = f"Failed to write YAML: {result.error}"
             raise RuntimeError(msg)
 
+    # Attribute declarations - override FlextService optional types
+    # These are guaranteed initialized in __init__
+    _logger: FlextLogger
+    _container: FlextContainer
+    _bus: FlextBus
+    _context: FlextContext
+    _dispatcher: FlextDispatcher
+
     def execute(self) -> FlextResult[FlextCliTypes.Data.CliDataDict]:
         """Execute CLI API operations.
 
@@ -735,6 +749,10 @@ class FlextCli(FlextService[FlextCliTypes.Data.CliDataDict]):
             "version": "2.0.0",
             "timestamp": FlextUtilities.Generators.generate_timestamp(),
             "components": {
+                "api": FlextCliConstants.AVAILABLE,
+                "auth": FlextCliConstants.AVAILABLE,
+                "config": FlextCliConstants.AVAILABLE,
+                "debug": FlextCliConstants.AVAILABLE,
                 "core": FlextCliConstants.AVAILABLE,
                 "cmd": FlextCliConstants.AVAILABLE,
                 "file_tools": FlextCliConstants.AVAILABLE,

@@ -16,6 +16,10 @@ from pathlib import Path
 from typing import cast
 
 import yaml
+from flext_core import (
+    FlextConfig,
+    FlextResult,
+)
 from pydantic import (
     Field,
     SecretStr,
@@ -26,10 +30,6 @@ from pydantic_settings import SettingsConfigDict
 
 from flext_cli.constants import FlextCliConstants
 from flext_cli.typings import FlextCliTypes
-from flext_core import (
-    FlextConfig,
-    FlextResult,
-)
 
 
 class FlextCliConfig(FlextConfig):
@@ -463,7 +463,9 @@ class FlextCliConfig(FlextConfig):
                 f"Failed to load config: {result.error}"
             )
         # Cast to FlextCliConfig since from_file returns FlextConfig
-        return FlextResult[FlextCliConfig].ok(result.unwrap())
+        from typing import cast
+
+        return FlextResult[FlextCliConfig].ok(cast("FlextCliConfig", result.unwrap()))
 
     def save_config_file(self, config_path: str) -> FlextResult[None]:
         """Save configuration to file with proper Path serialization."""
