@@ -560,6 +560,9 @@ class FlextCliPlugin:
     def __init__(self, **data: object) -> None:
         """Initialize plugin."""
         self._logger = FlextLogger(__name__)
+        # Store any additional data for extensibility
+        for key, value in data.items():
+            setattr(self, f"_{key}", value)
 
     @property
     def name(self) -> str:
@@ -573,7 +576,7 @@ class FlextCliPlugin:
 
     def initialize(
         self,
-        cli_main: object,
+        cli_main: object,  # noqa: ARG002
     ) -> FlextResult[None]:  # pragma: no cover
         """Initialize the plugin.
 
@@ -588,7 +591,7 @@ class FlextCliPlugin:
 
     def register_commands(
         self,
-        cli_main: object,
+        cli_main: object,  # noqa: ARG002
     ) -> FlextResult[None]:  # pragma: no cover
         """Register plugin commands.
 
@@ -604,7 +607,7 @@ class FlextCliPlugin:
 
 # Type alias for backward compatibility
 FlextCliPluginProtocol = FlextCliPluginSystem.PluginProtocol
-FlextCliPluginManager = FlextCliPluginSystem._PluginManager
+FlextCliPluginManager = FlextCliPluginSystem._PluginManager  # noqa: SLF001
 
 
 __all__ = [
