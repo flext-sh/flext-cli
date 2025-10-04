@@ -12,7 +12,7 @@ from __future__ import annotations
 from collections.abc import Callable
 from typing import override
 
-from flext_core import FlextHandlers, FlextModels, FlextResult
+from flext_core import FlextHandlers, FlextModels, FlextResult, FlextTypes
 
 from flext_cli.protocols import FlextCliProtocols
 from flext_cli.typings import FlextCliTypes

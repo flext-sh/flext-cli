@@ -183,15 +183,35 @@ class FlextCliFileTools(FlextService[FlextTypes.Dict]):
 
         @staticmethod
         def save_file(
-            file_path: str | Path,  # noqa: ARG004
-            data: object,  # noqa: ARG004
-            **kwargs: object,  # noqa: ARG004
-        ) -> FlextResult[bool]:
-            """Save data to file with automatic format detection."""
-            # This would delegate to specific savers based on format
-            # For now, keep existing implementation
-            return FlextResult[bool].fail(
-                "save_file not yet implemented - use specific savers"
+            file_path: str | Path,
+            data: object,
+            **kwargs: object,
+        ) -> FlextResult[None]:
+            """Save data to file with automatic format detection.
+
+            Args:
+                file_path: Path to save file
+                data: Data to save
+                **kwargs: Additional options for the specific format
+
+            Returns:
+                FlextResult[bool] indicating success or failure
+
+            """
+            path = Path(file_path)
+            extension = path.suffix.lower()
+
+            # Detect format and delegate to appropriate saver
+            if extension == ".json":
+                # Create temporary instance to use instance method
+                temp_instance = object.__new__(FlextCliFileTools)
+                return temp_instance.write_json_file(file_path, data, **kwargs)
+            if extension in {".yaml", ".yml"}:
+                # Create temporary instance to use instance method
+                temp_instance = object.__new__(FlextCliFileTools)
+                return temp_instance.write_yaml_file(file_path, data, **kwargs)
+            return FlextResult[None].fail(
+                f"Unsupported file format: {extension}. Supported: .json, .yaml, .yml"
             )
 
     class _FileSystemOps:
