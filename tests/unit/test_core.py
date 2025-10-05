@@ -16,8 +16,8 @@ from pathlib import Path
 import pytest
 import yaml
 from flext_core import FlextResult, FlextTypes, FlextUtilities
-from flext_tests import FlextTestsUtilities
 
+# Test utilities removed from flext-core production exports
 from flext_cli.api import FlextCli
 from flext_cli.config import FlextCliConfig
 from flext_cli.constants import FlextCliConstants

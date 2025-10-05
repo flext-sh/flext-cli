@@ -576,7 +576,7 @@ class FlextCliPlugin:
 
     def initialize(
         self,
-        cli_main: object,  # noqa: ARG002
+        cli_main: object,
     ) -> FlextResult[None]:  # pragma: no cover
         """Initialize the plugin.
 
@@ -591,7 +591,7 @@ class FlextCliPlugin:
 
     def register_commands(
         self,
-        cli_main: object,  # noqa: ARG002
+        cli_main: object,
     ) -> FlextResult[None]:  # pragma: no cover
         """Register plugin commands.
 
@@ -607,7 +607,7 @@ class FlextCliPlugin:
 
 # Type alias for backward compatibility
 FlextCliPluginProtocol = FlextCliPluginSystem.PluginProtocol
-FlextCliPluginManager = FlextCliPluginSystem._PluginManager  # noqa: SLF001
+FlextCliPluginManager = FlextCliPluginSystem._PluginManager
 
 
 __all__ = [

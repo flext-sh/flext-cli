@@ -18,12 +18,9 @@ import pytest
 import yaml
 from click.testing import CliRunner
 from flext_core import FlextContainer, FlextTypes, FlextUtilities
-from flext_tests import (
-    FlextTestDocker,
-    FlextTestsBuilders,
-    FlextTestsUtilities,
-)
 
+# Test utilities removed from flext-core production exports
+# Using simple implementations for test fixtures
 from flext_cli.api import FlextCli
 from flext_cli.auth import FlextCliAuth
 from flext_cli.cmd import FlextCliCmd
@@ -45,26 +42,11 @@ from flext_cli.protocols import FlextCliProtocols
 from flext_cli.typings import FlextCliTypes
 
 # ============================================================================
-# CORE FLEXT TEST INFRASTRUCTURE
+# CORE FLEXT TEST INFRASTRUCTURE - Simplified for flext-cli
 # ============================================================================
 
-
-@pytest.fixture(scope="session")
-def flext_test_utilities() -> FlextTestsUtilities:
-    """Provide FlextTestsUtilities for test infrastructure."""
-    return FlextTestsUtilities()
-
-
-@pytest.fixture(scope="session")
-def flext_test_builders() -> FlextTestsBuilders:
-    """Provide FlextTestsBuilders for test data creation."""
-    return FlextTestsBuilders()
-
-
-@pytest.fixture(scope="session")
-def flext_test_docker() -> FlextTestDocker:
-    """Provide FlextTestDocker for containerized testing."""
-    return FlextTestDocker()
+# Note: Advanced test utilities removed from flext-core production exports
+# Using simple implementations for basic test support
 
 
 # ============================================================================
@@ -340,21 +322,14 @@ def load_fixture_data() -> FlextTypes.Dict:
 # DOCKER TEST SUPPORT (CENTRALIZED FIXTURES)
 # ============================================================================
 #
-# Docker fixtures are provided by flext_tests.fixtures.docker_fixtures:
-#   - ldap_container: OpenLDAP container (port 3390)
-#   - oracle_container: Oracle DB container (port 1522)
-#   - algar_oud_container: ALGAR OUD container (port 3389)
-#   - postgres_container: PostgreSQL container (port 5432)
-#   - redis_container: Redis container (port 6379)
-#
-# For CLI-specific Docker testing, use FlextTestDocker directly:
+# Docker test fixtures removed from flext-core production exports
+# For CLI-specific Docker testing, implement container fixtures directly:
 #
 # Example:
 #   @pytest.fixture
-#   def my_test_container(flext_test_docker):
-#       result = flext_test_docker.start_shared_container("flext-openldap-test")
-#       yield result.unwrap()
-#       flext_test_docker.stop_shared_container("flext-openldap-test")
+#   def ldap_container():
+#       # Direct Docker container setup for CLI tests
+#       pass
 #
 
 

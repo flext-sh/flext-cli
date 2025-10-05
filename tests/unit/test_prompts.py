@@ -14,8 +14,8 @@ from unittest.mock import patch
 
 import pytest
 from flext_core import FlextLogger, FlextResult, FlextTypes
-from flext_tests import FlextTestsUtilities
 
+# Test utilities removed from flext-core production exports
 from flext_cli.prompts import FlextCliPrompts
 
 
