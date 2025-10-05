@@ -66,6 +66,62 @@ class FlextCliFileTools(FlextService[FlextTypes.Dict]):
     # PUBLIC API - File operations exposed to ecosystem
     # ==========================================================================
 
+    def read_text_file(self, file_path: str | Path) -> FlextResult[str]:
+        """Read text file.
+
+        Args:
+            file_path: Path to text file
+
+        Returns:
+            FlextResult containing file content as string
+
+        """
+        try:
+            content = Path(file_path).read_text(encoding="utf-8")
+            return FlextResult[str].ok(content)
+        except Exception as e:
+            return FlextResult[str].fail(f"Text file read failed: {e}")
+
+    def write_text_file(
+        self, file_path: str | Path, content: str, **kwargs: object
+    ) -> FlextResult[None]:
+        """Write text content to file.
+
+        Args:
+            file_path: Path to text file
+            content: Content to write
+            **kwargs: Additional options (encoding, etc.)
+
+        Returns:
+            FlextResult[None] indicating success or failure
+
+        """
+        try:
+            encoding = kwargs.get("encoding", "utf-8")
+            Path(file_path).write_text(content, encoding=encoding)
+            return FlextResult[None].ok(None)
+        except Exception as e:
+            return FlextResult[None].fail(f"Text file write failed: {e}")
+
+    def copy_file(
+        self, source_path: str | Path, destination_path: str | Path
+    ) -> FlextResult[bool]:
+        """Copy file from source to destination.
+
+        Args:
+            source_path: Source file path
+            destination_path: Destination file path
+
+        Returns:
+            FlextResult[bool] indicating success or failure
+
+        """
+        try:
+            shutil.copy2(str(source_path), str(destination_path))
+            return FlextResult[bool].ok(True)
+        except Exception as e:
+            return FlextResult[bool].fail(f"File copy failed: {e}")
+
     def read_json_file(self, file_path: str | Path) -> FlextResult[object]:
         """Read JSON file using internal loader.
 

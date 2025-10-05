@@ -15,8 +15,8 @@ import threading
 import time
 
 import pytest
-from flext_tests import FlextTestsUtilities
 
+# Test utilities removed from flext-core production exports
 from flext_cli.constants import FlextCliConstants
 from flext_cli.exceptions import FlextCliExceptions
 

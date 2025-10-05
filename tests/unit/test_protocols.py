@@ -14,8 +14,8 @@ import time
 from typing import Protocol, TypeVar, runtime_checkable
 
 import pytest
-from flext_tests import FlextTestsUtilities
 
+# Test utilities removed from flext-core production exports
 from flext_cli.protocols import FlextCliProtocols
 
 
