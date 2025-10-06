@@ -23,10 +23,6 @@ class TestFlextCliContext:
         return FlextCliContext()
 
     @pytest.fixture
-    def test_utilities(self) -> FlextTestsUtilities:
-        """Provide FlextTestsUtilities for test support."""
-        return FlextTestsUtilities()
-
     def test_context_initialization(self, context: FlextCliContext) -> None:
         """Test context initialization and basic properties."""
         assert isinstance(context, FlextCliContext)

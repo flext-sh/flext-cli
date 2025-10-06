@@ -264,7 +264,7 @@ def fetch(url: str):
 ### **Interactive Shell**
 
 ```python
-from flext_cli import FlextCli, FlextCliShellBuilder
+from flext_cli import FlextCli, FlextCliShell
 
 cli = FlextCli()
 
@@ -276,7 +276,7 @@ def deploy(env: str):
 
 # Create interactive shell
 shell = (
-    FlextCliShellBuilder(cli.main)
+    FlextCliShell(cli.main)
     .with_prompt("myapp> ")
     .with_history("~/.myapp_history")
     .with_completion(True)

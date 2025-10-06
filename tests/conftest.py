@@ -27,7 +27,6 @@ from flext_cli.cmd import FlextCliCmd
 from flext_cli.commands import FlextCliCommands
 from flext_cli.config import FlextCliConfig
 from flext_cli.constants import FlextCliConstants
-from flext_cli.containers import FlextCliContainers
 from flext_cli.context import FlextCliContext
 from flext_cli.core import FlextCliService
 from flext_cli.debug import FlextCliDebug
@@ -141,12 +140,6 @@ def flext_cli_config() -> FlextCliConfig:
 def flext_cli_constants() -> FlextCliConstants:
     """Create FlextCliConstants instance for testing."""
     return FlextCliConstants()
-
-
-@pytest.fixture
-def flext_cli_containers() -> FlextCliContainers:
-    """Create FlextCliContainers instance for testing."""
-    return FlextCliContainers()
 
 
 @pytest.fixture

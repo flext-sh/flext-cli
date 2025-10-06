@@ -33,10 +33,6 @@ class TestFlextCliPrompts:
         return FlextCliPrompts(interactive_mode=True, quiet=False)
 
     @pytest.fixture
-    def test_utilities(self) -> FlextTestsUtilities:
-        """Provide FlextTestsUtilities for test support."""
-        return FlextTestsUtilities()
-
     def test_prompts_initialization(self, prompts: FlextCliPrompts) -> None:
         """Test prompts initialization."""
         assert isinstance(prompts, FlextCliPrompts)

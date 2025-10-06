@@ -12,7 +12,6 @@ from __future__ import annotations
 import importlib
 import inspect
 from pathlib import Path
-from typing import Protocol
 
 from flext_core import (
     FlextContainer,
@@ -21,6 +20,8 @@ from flext_core import (
     FlextService,
     FlextTypes,
 )
+
+from flext_cli.protocols import FlextCliProtocols
 
 
 class FlextCliPluginSystem(FlextService[object]):
@@ -59,44 +60,9 @@ class FlextCliPluginSystem(FlextService[object]):
         self._logger = FlextLogger(__name__)
 
         # Initialize nested plugin components
-        self._manager = self._PluginManager()
+        self._manager = self.PluginManager()
 
-    class PluginProtocol(Protocol):
-        """Protocol defining the plugin interface.
-
-        All plugins must implement this protocol to be discoverable
-        and loadable by the plugin system.
-
-        """
-
-        name: str
-        version: str
-
-        def initialize(self, cli_main: object) -> FlextResult[None]:
-            """Initialize the plugin.
-
-            Args:
-                cli_main: FlextCliMain instance
-
-            Returns:
-                FlextResult[None] indicating success or failure
-
-            """
-            ...
-
-        def register_commands(self, cli_main: object) -> FlextResult[None]:
-            """Register plugin commands.
-
-            Args:
-                cli_main: FlextCliMain instance for command registration
-
-            Returns:
-                FlextResult[None] indicating success or failure
-
-            """
-            ...
-
-    class _PluginManager(FlextService[object]):
+    class PluginManager(FlextService[object]):
         """Plugin manager for flext-cli.
 
         Manages plugin discovery, loading, initialization, and lifecycle.
@@ -242,7 +208,7 @@ class FlextCliPluginSystem(FlextService[object]):
 
         def initialize_plugin(
             self,
-            plugin: FlextCliPluginSystem.PluginProtocol,
+            plugin: FlextCliProtocols.Extensions.CliPlugin,
             cli_main: object,
         ) -> FlextResult[None]:
             """Initialize a loaded plugin.
@@ -316,7 +282,7 @@ class FlextCliPluginSystem(FlextService[object]):
                 if load_result.is_failure:
                     return FlextResult[object].fail(f"Load failed: {load_result.error}")
 
-                plugin: FlextCliPluginSystem.PluginProtocol = load_result.unwrap()
+                plugin: FlextCliProtocols.Extensions.CliPlugin = load_result.unwrap()
 
                 # Initialize plugin
                 init_result = self.initialize_plugin(plugin, cli_main)
@@ -413,21 +379,21 @@ class FlextCliPluginSystem(FlextService[object]):
     # ==========================================================================
 
     @property
-    def plugin_protocol(self) -> type[PluginProtocol]:
+    def plugin_protocol(self) -> type[FlextCliProtocols.Extensions.CliPlugin]:
         """Access plugin protocol definition.
 
         Returns:
-            type[PluginProtocol]: Plugin protocol class
+            type[FlextCliProtocols.Extensions.CliPlugin]: Plugin protocol class
 
         """
-        return self.PluginProtocol
+        return FlextCliProtocols.Extensions.CliPlugin
 
     @property
-    def manager(self) -> _PluginManager:
+    def manager(self) -> PluginManager:
         """Access plugin manager functionality.
 
         Returns:
-            _PluginManager: Plugin manager instance
+            PluginManager: Plugin manager instance
 
         """
         return self._manager
@@ -470,7 +436,7 @@ class FlextCliPluginSystem(FlextService[object]):
 
     def initialize_plugin(
         self,
-        plugin: PluginProtocol,
+        plugin: FlextCliProtocols.Extensions.CliPlugin,
         cli_main: object,
     ) -> FlextResult[None]:
         """Initialize a loaded plugin.
@@ -536,6 +502,59 @@ class FlextCliPluginSystem(FlextService[object]):
         """
         return self._manager.unload_plugin(plugin_name)
 
+    class Plugin:
+        """Concrete base class for FLEXT CLI plugins.
+
+        All plugins must inherit from this class and implement the required methods.
+        """
+
+        def __init__(self, **data: object) -> None:
+            """Initialize plugin."""
+            self._logger = FlextLogger(__name__)
+            # Store any additional data for extensibility
+            for key, value in data.items():
+                setattr(self, f"_{key}", value)
+
+        @property
+        def name(self) -> str:
+            """Plugin name."""
+            return getattr(self, "_name", self.__class__.__name__)
+
+        @property
+        def version(self) -> str:
+            """Plugin version."""
+            return getattr(self, "_version", "1.0.0")
+
+        def initialize(
+            self,
+            _cli_main: object,
+        ) -> FlextResult[None]:  # pragma: no cover
+            """Initialize the plugin.
+
+            Args:
+                cli_main: FlextCliMain instance
+
+            Returns:
+                FlextResult[None] indicating success or failure
+
+            """
+            return FlextResult[None].ok(None)
+
+        def register_commands(
+            self,
+            _cli_main: object,
+        ) -> FlextResult[None]:  # pragma: no cover
+            """Register plugin commands.
+
+            Args:
+                cli_main: FlextCliMain instance for command registration
+
+            Returns:
+                FlextResult[None] indicating success or failure
+
+            """
+            return FlextResult[None].ok(None)
+
     def execute(self) -> FlextResult[object]:
         """Execute plugin system operations.
 
@@ -546,73 +565,6 @@ class FlextCliPluginSystem(FlextService[object]):
         return FlextResult[None].ok(None)
 
 
-# ==========================================================================
-# BACKWARD COMPATIBILITY ALIASES
-# ==========================================================================
-
-
-class FlextCliPlugin:
-    """Concrete base class for FLEXT CLI plugins.
-
-    All plugins must inherit from this class and implement the required methods.
-    """
-
-    def __init__(self, **data: object) -> None:
-        """Initialize plugin."""
-        self._logger = FlextLogger(__name__)
-        # Store any additional data for extensibility
-        for key, value in data.items():
-            setattr(self, f"_{key}", value)
-
-    @property
-    def name(self) -> str:
-        """Plugin name."""
-        return getattr(self, "_name", self.__class__.__name__)
-
-    @property
-    def version(self) -> str:
-        """Plugin version."""
-        return getattr(self, "_version", "1.0.0")
-
-    def initialize(
-        self,
-        cli_main: object,
-    ) -> FlextResult[None]:  # pragma: no cover
-        """Initialize the plugin.
-
-        Args:
-            cli_main: FlextCliMain instance
-
-        Returns:
-            FlextResult[None] indicating success or failure
-
-        """
-        return FlextResult[None].ok(None)
-
-    def register_commands(
-        self,
-        cli_main: object,
-    ) -> FlextResult[None]:  # pragma: no cover
-        """Register plugin commands.
-
-        Args:
-            cli_main: FlextCliMain instance for command registration
-
-        Returns:
-            FlextResult[None] indicating success or failure
-
-        """
-        return FlextResult[None].ok(None)
-
-
-# Type alias for backward compatibility
-FlextCliPluginProtocol = FlextCliPluginSystem.PluginProtocol
-FlextCliPluginManager = FlextCliPluginSystem._PluginManager
-
-
 __all__ = [
-    "FlextCliPlugin",
-    "FlextCliPluginManager",
-    "FlextCliPluginProtocol",
     "FlextCliPluginSystem",
 ]

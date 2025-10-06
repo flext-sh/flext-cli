@@ -49,10 +49,7 @@ class FlextCliAuth(FlextService[FlextCliTypes.Auth.AuthResult]):
     _valid_sessions: ClassVar[set[str]] = set()
     _session_permissions: ClassVar[dict[str, set[str]]] = {}
 
-    # Attribute declarations - override FlextService optional types
-    # These are guaranteed initialized in __init__
-    _logger: FlextLogger
-    _container: FlextContainer
+    # Attributes initialized in __init__ (inherit types from FlextService)
 
     @override
     def __init__(
@@ -69,79 +66,79 @@ class FlextCliAuth(FlextService[FlextCliTypes.Auth.AuthResult]):
         else:
             self._config = config
 
-    class _AuthHelper:
-        """Nested helper for authentication operations."""
+    def _validate_credentials(self, username: str, password: str) -> FlextResult[None]:
+        """Validate user credentials.
 
-        @staticmethod
-        def validate_credentials(username: str, password: str) -> FlextResult[None]:
-            """Validate login credentials."""
-            if not username or not username.strip():
-                return FlextResult[None].fail("Username cannot be empty")
+        Args:
+            username: Username to validate
+            password: Password to validate
 
-            if not password or not password.strip():
-                return FlextResult[None].fail("Password cannot be empty")
+        Returns:
+            FlextResult[None]: Success if credentials are valid
 
-            if len(username.strip()) < 1 or len(password.strip()) < 1:
-                return FlextResult[None].fail(
-                    "Username and password must be at least 1 character"
-                )
+        """
+        if not username or not password:
+            return FlextResult[None].fail("Username and password are required")
+
+        if len(username) < FlextCliConstants.Auth.MIN_USERNAME_LENGTH:
+            return FlextResult[None].fail("Username must be at least 3 characters")
+
+        if len(password) < FlextCliConstants.Auth.MIN_PASSWORD_LENGTH:
+            return FlextResult[None].fail("Password must be at least 6 characters")
+
+        return FlextResult[None].ok(None)
+
+    def _get_token_paths(self, config: object) -> FlextResult[dict[str, Path]]:
+        """Get token file paths from configuration."""
+        try:
+            # Use basic config attributes or defaults
+            token_path = getattr(
+                config,
+                "token_file",
+                Path.home() / FlextCliConstants.FLEXT_DIR_NAME / "token",
+            )
+            refresh_path = getattr(
+                config,
+                "refresh_token_file",
+                Path.home() / FlextCliConstants.FLEXT_DIR_NAME / "refresh_token",
+            )
+
+            paths = {"token_path": token_path, "refresh_token_path": refresh_path}
+
+            return FlextResult[dict[str, Path]].ok(paths)
+        except Exception as e:
+            return FlextResult[dict[str, Path]].fail(f"Failed to get token paths: {e}")
+
+    def _save_token_to_file(self, token: str, file_path: Path) -> FlextResult[None]:
+        """Save token to secure file storage."""
+        try:
+            if not token or not token.strip():
+                return FlextResult[None].fail("Token cannot be empty")
+
+            # Create parent directories with secure permissions
+            file_path.parent.mkdir(parents=True, exist_ok=True, mode=0o700)
+
+            # Write token with secure permissions
+            file_path.write_text(token.strip(), encoding="utf-8")
+            file_path.chmod(0o600)
 
             return FlextResult[None].ok(None)
+        except (OSError, PermissionError) as e:
+            return FlextResult[None].fail(f"Failed to save token: {e}")
 
-        @staticmethod
-        def get_token_paths(config: object) -> FlextResult[dict[str, Path]]:
-            """Get token file paths from configuration."""
-            try:
-                # Use basic config attributes or defaults
-                token_path = getattr(
-                    config, "token_file", Path.home() / ".flext" / "token"
-                )
-                refresh_path = getattr(
-                    config,
-                    "refresh_token_file",
-                    Path.home() / ".flext" / "refresh_token",
-                )
+    def _load_token_from_file(self, file_path: Path) -> FlextResult[str]:
+        """Load token from secure file storage."""
+        try:
+            if not file_path.exists():
+                return FlextResult[str].fail("Token file does not exist")
 
-                paths = {"token_path": token_path, "refresh_token_path": refresh_path}
+            token = file_path.read_text(encoding="utf-8").strip()
+            if not token:
+                return FlextResult[str].fail("Token file is empty")
 
-                return FlextResult[dict[str, Path]].ok(paths)
-            except Exception as e:
-                return FlextResult[dict[str, Path]].fail(
-                    f"Failed to get token paths: {e}"
-                )
-
-        @staticmethod
-        def save_token_to_file(token: str, file_path: Path) -> FlextResult[None]:
-            """Save token to secure file storage."""
-            try:
-                if not token or not token.strip():
-                    return FlextResult[None].fail("Token cannot be empty")
-
-                # Create parent directories with secure permissions
-                file_path.parent.mkdir(parents=True, exist_ok=True, mode=0o700)
-
-                # Write token with secure permissions
-                file_path.write_text(token.strip(), encoding="utf-8")
-                file_path.chmod(0o600)
-
-                return FlextResult[None].ok(None)
-            except (OSError, PermissionError) as e:
-                return FlextResult[None].fail(f"Failed to save token: {e}")
-
-        @staticmethod
-        def load_token_from_file(file_path: Path) -> FlextResult[str]:
-            """Load token from secure file storage."""
-            try:
-                if not file_path.exists():
-                    return FlextResult[str].fail("Token file does not exist")
-
-                token = file_path.read_text(encoding="utf-8").strip()
-                if not token:
-                    return FlextResult[str].fail("Token file is empty")
-
-                return FlextResult[str].ok(token)
-            except (OSError, PermissionError) as e:
-                return FlextResult[str].fail(f"Failed to load token: {e}")
+            return FlextResult[str].ok(token)
+        except (OSError, PermissionError) as e:
+            return FlextResult[str].fail(f"Failed to load token: {e}")
 
     @override
     def execute(self) -> FlextResult[FlextCliTypes.Auth.AuthResult]:
@@ -159,25 +156,25 @@ class FlextCliAuth(FlextService[FlextCliTypes.Auth.AuthResult]):
 
     def validate_credentials(self, username: str, password: str) -> FlextResult[None]:
         """Validate login credentials."""
-        return self._AuthHelper.validate_credentials(username, password)
+        return self._validate_credentials(username, password)
 
     def save_auth_token(self, token: str) -> FlextResult[None]:
         """Save authentication token to secure storage."""
-        paths_result = self._AuthHelper.get_token_paths(self._config)
+        paths_result = self._get_token_paths(self._config)
         if paths_result.is_failure:
             return FlextResult[None].fail(f"Token paths failed: {paths_result.error}")
 
         paths = paths_result.value
-        return self._AuthHelper.save_token_to_file(token, paths["token_path"])
+        return self._save_token_to_file(token, paths["token_path"])
 
     def get_auth_token(self) -> FlextResult[str]:
         """Retrieve authentication token from storage."""
-        paths_result = self._AuthHelper.get_token_paths(self._config)
+        paths_result = self._get_token_paths(self._config)
         if paths_result.is_failure:
             return FlextResult[str].fail(f"Token paths failed: {paths_result.error}")
 
         paths = paths_result.value
-        return self._AuthHelper.load_token_from_file(paths["token_path"])
+        return self._load_token_from_file(paths["token_path"])
 
     def is_authenticated(self) -> bool:
         """Check if user is currently authenticated."""
@@ -186,7 +183,7 @@ class FlextCliAuth(FlextService[FlextCliTypes.Auth.AuthResult]):
 
     def clear_auth_tokens(self) -> FlextResult[None]:
         """Clear all authentication tokens from storage."""
-        paths_result = self._AuthHelper.get_token_paths(self._config)
+        paths_result = self._get_token_paths(self._config)
         if paths_result.is_failure:
             return FlextResult[None].fail(f"Token paths failed: {paths_result.error}")
 
@@ -214,7 +211,7 @@ class FlextCliAuth(FlextService[FlextCliTypes.Auth.AuthResult]):
 
     def get_auth_status(self) -> FlextResult[FlextCliTypes.Auth.AuthResult]:
         """Get current authentication status information."""
-        paths_result = self._AuthHelper.get_token_paths(self._config)
+        paths_result = self._get_token_paths(self._config)
         if paths_result.is_failure:
             return FlextResult[FlextCliTypes.Auth.AuthResult].fail(
                 f"Token paths failed: {paths_result.error}"
@@ -284,7 +281,7 @@ class FlextCliAuth(FlextService[FlextCliTypes.Auth.AuthResult]):
 
         # Advanced validation and token generation pipeline
         return (
-            self._AuthHelper.validate_credentials(username, password)
+            self._validate_credentials(username, password)
             .map(lambda _: FlextUtilities.generate_id()[:32])
             .map(lambda token_id: f"auth_token_{username}_{token_id}")
             .flat_map(

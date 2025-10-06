@@ -13,8 +13,8 @@ from __future__ import annotations
 import importlib
 import pkgutil
 from collections.abc import Callable
-from typing import TYPE_CHECKING
 
+import click
 from flext_core import (
     FlextContainer,
     FlextLogger,
@@ -23,10 +23,7 @@ from flext_core import (
     FlextTypes,
 )
 
-from flext_cli.cli import FlextCliClick
-
-if TYPE_CHECKING:
-    import click
+from flext_cli.cli import FlextCliCli
 
 
 class FlextCliMain(FlextService[object]):
@@ -65,7 +62,7 @@ class FlextCliMain(FlextService[object]):
         >>> result = main.execute_cli()
 
     Note:
-        This class uses FlextCliClick internally but provides a higher-level
+        This class uses FlextCliCli internally but provides a higher-level
         API for command management. All Click functionality is abstracted.
 
     """
@@ -89,7 +86,7 @@ class FlextCliMain(FlextService[object]):
         super().__init__()
         self._logger = FlextLogger(__name__)
         self._container = FlextContainer.get_global()
-        self._click = FlextCliClick()
+        self._click = FlextCliCli()
 
         # CLI metadata
         self._name = name
@@ -648,8 +645,8 @@ class FlextCliMain(FlextService[object]):
             if self._main_group is None:
                 return FlextResult[object].fail("Main group not initialized")
 
-            # Execute main group
-            result = self._main_group(
+            # Execute main group using Click's main method
+            result = self._main_group.main(
                 args=args,
                 standalone_mode=standalone_mode,
             )

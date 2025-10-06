@@ -30,6 +30,7 @@
         "structlog>=25.4.0",
         "tabulate>=0.9.0",
         "toml (>=0.10.2)",
+        "prompt-toolkit (>=3.0.52,<4.0.0)",
     ]
     description = "FLEXT CLI - Developer Command Line Interface"
     keywords = [
@@ -112,129 +113,121 @@
     [project.scripts]
         flext = "flext_cli.cli:main"
 
-[tool.poetry]
-    [[tool.poetry.packages]]
-        from    = "src"
-        include = "flext_cli"
+[tool]
 
-[tool.bandit]
-    extend = "../.bandit-shared.toml"
+    [tool.bandit]
+        extend = "../.bandit-shared.toml"
 
-[tool.coverage]
-    extend = "../.coverage-shared.toml"
+    [tool.coverage]
+        extend = "../.coverage-shared.toml"
 
-[tool.deptry]
-    exclude = [
-        ".archive",
-        ".git",
-        ".meltano",
-        ".mypy_cache",
-        ".pyrefly_cache",
-        ".pytest_cache",
-        ".ruff_cache",
-        ".venv",
-        "__pycache__",
-        "build",
-        "dist",
-        "htmlcov",
-        "node_modules",
-        "reports",
-        "vendor",
-        "venv",
-    ]
-    known_first_party = [
-        "flext_cli",
-    ]
-    pep621_dev_dependency_groups = [
-        "dev",
-        "security",
-        "test",
-        "typings",
-    ]
-
-[tool.ruff]
-    extend = "../ruff-shared.toml"
-
-[tool.pytest.ini_options]
-    addopts = "-ra -q --strict-markers --strict-config"
-    markers = [
-        " marks tests as tests",
-        "auth: marks tests as authentication tests",
-        "benchmark: marks tests as benchmark tests",
-        "compatibility: marks tests as compatibility tests",
-        "concurrency: marks tests as concurrency tests",
-        "core: marks tests as core functionality tests",
-        "integration: marks tests as integration tests",
-        "io: marks tests as I/O tests",
-        "load: marks tests as load tests",
-        "memory: marks tests as memory tests",
-        "network: marks tests as network tests",
-        "performance: marks tests as performance tests",
-        "race_condition: marks tests as race condition tests",
-        "regression: marks tests as regression tests",
-        "security: marks tests as security tests",
-        "slow: marks tests as slow (deselect with '-m \"not slow\"')",
-        "stress: marks tests as stress tests",
-        "unit: marks tests as unit tests",
-    ]
-    minversion = "8.0"
-    testpaths = [
-        "tests",
-    ]
-
-    [tool.poetry.dependencies.client-a-oud-mig]
-        develop = true
-        path    = "../client-a-oud-mig"
-
-    [tool.poetry.dependencies.flext-core]
-        develop = true
-        path    = "../flext-core"
-
-    [tool.poetry.dependencies.flext-meltano]
-        develop = true
-        path    = "../flext-meltano"
-
-    [tool.poetry.dependencies.flext-observability]
-        develop = true
-        path    = "../flext-observability"
-
-    [tool.poetry.dependencies.client-b-meltano-native]
-        develop = true
-        path    = "../client-b-meltano-native"
-
-    [tool.ruff.lint.isort]
-        known-first-party = [
+    [tool.deptry]
+        exclude = [
+            ".archive",
+            ".git",
+            ".meltano",
+            ".mypy_cache",
+            ".pyrefly_cache",
+            ".pytest_cache",
+            ".ruff_cache",
+            ".venv",
+            "__pycache__",
+            "build",
+            "dist",
+            "htmlcov",
+            "node_modules",
+            "reports",
+            "vendor",
+            "venv",
+        ]
+        known_first_party = [
             "flext_cli",
         ]
+        pep621_dev_dependency_groups = [
+            "dev",
+            "security",
+            "test",
+            "typings",
+        ]
 
-    [tool.poetry.group.dev.dependencies]
-        docker          = ">=7.1.0"
-        email-validator = "^2.3.0"
-        hypothesis      = "^6.139.2"
-        ldap3           = ">=2.9.1"
-        numpy           = ">=2.3.2"
-        psycopg2        = ">=2.9.10"
-        pyrefly         = "^0.34.0"
-        pytest          = "^8.4.1"
-        pytest-cov      = "^7.0.0"
-        redis           = ">=5.0.0"
-        types-pyyaml    = "^6.0.12.20250809"
-        types-tabulate  = "^0.9.0.20241207"
-        types-toml      = "^0.10.8.20240310"
+    [tool.poetry]
+        [[tool.poetry.packages]]
+            from    = "src"
+            include = "flext_cli"
 
-    [tool.poetry.group.typings.dependencies]
-        types-defusedxml = "^0.7.0.20250822"
-        types-lxml       = "^2025.8.25"
-        types-pyyaml     = "^6.0.12.20250809"
-        types-toml       = "^0.10.8.20240310"
 
-[tool.pyrefly]
-    ignore-errors-in-generated-code = true
-    python-version = "3.13"
-    search-path = [
-        "../flext-core/src",
-        "examples",
-        "scripts",
-        "src",
-        "tests",
-    ]
+        [tool.poetry.dependencies.flext-core]
+            develop = true
+            path    = "../flext-core"
+
+        [tool.poetry.dependencies.flext-observability]
+            develop = true
+            path    = "../flext-observability"
+
+
+        [tool.poetry.group.dev.dependencies]
+            docker          = ">=7.1.0"
+            email-validator = "^2.3.0"
+            hypothesis      = "^6.139.2"
+            ldap3           = ">=2.9.1"
+            numpy           = ">=2.3.2"
+            psycopg2        = ">=2.9.10"
+            pyrefly         = "^0.34.0"
+            pytest          = "^8.4.1"
+            pytest-cov      = "^7.0.0"
+            redis           = ">=5.0.0"
+            types-pyyaml    = "^6.0.12.20250809"
+            types-tabulate  = "^0.9.0.20241207"
+            types-toml      = "^0.10.8.20240310"
+
+        [tool.poetry.group.typings.dependencies]
+            types-defusedxml = "^0.7.0.20250822"
+            types-lxml       = "^2025.8.25"
+            types-pyyaml     = "^6.0.12.20250809"
+            types-toml       = "^0.10.8.20240310"
+
+    [tool.pytest.ini_options]
+        addopts = "-ra -q --strict-markers --strict-config"
+        markers = [
+            " marks tests as tests",
+            "auth: marks tests as authentication tests",
+            "benchmark: marks tests as benchmark tests",
+            "compatibility: marks tests as compatibility tests",
+            "concurrency: marks tests as concurrency tests",
+            "core: marks tests as core functionality tests",
+            "integration: marks tests as integration tests",
+            "io: marks tests as I/O tests",
+            "load: marks tests as load tests",
+            "memory: marks tests as memory tests",
+            "network: marks tests as network tests",
+            "performance: marks tests as performance tests",
+            "race_condition: marks tests as race condition tests",
+            "regression: marks tests as regression tests",
+            "security: marks tests as security tests",
+            "slow: marks tests as slow (deselect with '-m \"not slow\"')",
+            "stress: marks tests as stress tests",
+            "unit: marks tests as unit tests",
+        ]
+        minversion = "8.0"
+        testpaths = [
+            "tests",
+        ]
+
+
+    [tool.pyrefly]
+        ignore-errors-in-generated-code = true
+        python-version = "3.13"
+        search-path = [
+            "examples",
+            "scripts",
+            "src",
+            "tests",
+        ]
+
+    [tool.ruff]
+        extend = "../ruff-shared.toml"
+
+        [tool.ruff.lint.isort]
+            known-first-party = [
+                "flext_cli",
+            ]

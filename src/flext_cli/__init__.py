@@ -11,14 +11,13 @@ from __future__ import annotations
 
 from typing import Final
 
-from flext_cli.api import FlextCli
+from flext_cli.api import FlextCliApi
 from flext_cli.auth import FlextCliAuth
-from flext_cli.cli import FlextCliClick
+from flext_cli.cli import FlextCliCli
 from flext_cli.cmd import FlextCliCmd
 from flext_cli.commands import FlextCliCommands
 from flext_cli.config import FlextCliConfig
 from flext_cli.constants import FlextCliConstants
-from flext_cli.containers import FlextCliContainers
 from flext_cli.context import FlextCliContext
 from flext_cli.core import FlextCliService
 from flext_cli.debug import FlextCliDebug
@@ -31,42 +30,35 @@ from flext_cli.mixins import FlextCliMixins
 from flext_cli.models import FlextCliModels
 from flext_cli.output import FlextCliOutput
 from flext_cli.performance import FlextCliPerformance
-from flext_cli.plugins import (
-    FlextCliPlugin,
-    FlextCliPluginProtocol,
-    FlextCliPluginSystem,
-)
+from flext_cli.plugins import FlextCliPluginSystem
 from flext_cli.processors import FlextCliProcessors
 from flext_cli.prompts import FlextCliPrompts
 from flext_cli.protocols import FlextCliProtocols
-from flext_cli.shell import FlextCliShell, FlextCliShellBuilder
+from flext_cli.shell import FlextCliShell
 from flext_cli.tables import FlextCliTables
-from flext_cli.testing import FlextCliMockScenarios, FlextCliTestRunner
+from flext_cli.testing import FlextCliTestRunner
 from flext_cli.typings import FlextCliTypes
 from flext_cli.version import VERSION, FlextCliVersion
 
-# Backward compatibility aliases (after imports to avoid E402)
-FlextCliApi = FlextCli
-FlextCliConfigs = FlextCliConfig
+# Common alias for backward compatibility
+FlextCli = FlextCliApi
 
+# Module-level properties for backward compatibility
 PROJECT_VERSION: Final[FlextCliVersion] = VERSION
-
-__version__: str = VERSION.version
+__version__: str = FlextCliConstants.VERSION
 __version_info__: tuple[int | str, ...] = VERSION.version_info
 
 __all__ = [
     "PROJECT_VERSION",
     "VERSION",
     "FlextCli",
-    "FlextCliApi",  # Backward compatibility alias
+    "FlextCliApi",
     "FlextCliAuth",
-    "FlextCliClick",
+    "FlextCliCli",
     "FlextCliCmd",
     "FlextCliCommands",
     "FlextCliConfig",
-    "FlextCliConfigs",  # Backward compatibility alias
     "FlextCliConstants",
-    "FlextCliContainers",
     "FlextCliContext",
     "FlextCliDebug",
     "FlextCliExceptions",
@@ -75,19 +67,15 @@ __all__ = [
     "FlextCliHandlers",
     "FlextCliMain",
     "FlextCliMixins",
-    "FlextCliMockScenarios",
     "FlextCliModels",
     "FlextCliOutput",
     "FlextCliPerformance",
-    "FlextCliPlugin",
-    "FlextCliPluginProtocol",
     "FlextCliPluginSystem",
     "FlextCliProcessors",
     "FlextCliPrompts",
     "FlextCliProtocols",
     "FlextCliService",
     "FlextCliShell",
-    "FlextCliShellBuilder",
     "FlextCliTables",
     "FlextCliTestRunner",
     "FlextCliTypes",

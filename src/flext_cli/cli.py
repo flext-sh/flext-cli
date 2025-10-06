@@ -1,7 +1,7 @@
-"""FLEXT CLI - Click Abstraction Layer.
+"""FLEXT CLI - Click Direct Access Layer.
 
 This is the ONLY file in the entire FLEXT ecosystem allowed to import Click.
-All Click functionality is wrapped here and exposed through FlextResult-based APIs.
+All Click functionality is exposed directly without wrappers.
 
 ZERO TOLERANCE ENFORCEMENT: No other file may import Click directly.
 
@@ -26,12 +26,14 @@ from flext_core import (
     FlextTypes,
 )
 
+# FlextCliMain is imported inside main() to avoid circular import
 
-class FlextCliClick(FlextService[object]):
-    """Complete Click abstraction layer.
 
-    This class wraps ALL Click functionality to prevent direct Click imports
-    across the FLEXT ecosystem. Provides FlextResult-based APIs for:
+class FlextCliCli(FlextService[object]):
+    """Complete Click direct access layer.
+
+    This class exposes ALL Click functionality directly to prevent direct Click imports
+    across the FLEXT ecosystem. Provides direct APIs for:
 
     - Command and group creation
     - Decorators (option, argument, command)
@@ -40,23 +42,19 @@ class FlextCliClick(FlextService[object]):
     - Command execution and testing
 
     Examples:
-        >>> cli = FlextCliClick()
+        >>> cli = FlextCliCli()
         >>>
         >>> # Create command decorator
-        >>> cmd_result = cli.create_command_decorator(name="greet")
-        >>> if cmd_result.is_success:
-        >>>     command = cmd_result.unwrap()
+        >>> command = cli.create_command_decorator(name="greet")
         >>>
         >>> # Create option decorator
-        >>> opt_result = cli.create_option_decorator(
+        >>> option = cli.create_option_decorator(
         ...     "--count", "-c", default=1, help="Number of greetings"
         ... )
         >>>
         >>> # Execute command with CliRunner
-        >>> runner_result = cli.create_cli_runner()
-        >>> if runner_result.is_success:
-        >>>     runner = runner_result.unwrap()
-        >>>     result = runner.invoke(my_command, ["--count", "3"])
+        >>> runner = cli.create_cli_runner()
+        >>> result = runner.invoke(my_command, ["--count", "3"])
 
     Note:
         ALL Click functionality MUST be accessed through this class.
@@ -78,7 +76,7 @@ class FlextCliClick(FlextService[object]):
         self,
         name: str | None = None,
         **kwargs: object,
-    ) -> FlextResult[Callable[[Callable[..., object]], click.Command]]:
+    ) -> Callable[[Callable[..., object]], click.Command]:
         """Create Click command decorator without exposing Click.
 
         Args:
@@ -86,43 +84,32 @@ class FlextCliClick(FlextService[object]):
             **kwargs: Click command options (help, context_settings, etc.)
 
         Returns:
-            FlextResult containing command decorator function
+            Command decorator function
 
         Example:
-            >>> cli = FlextCliClick()
-            >>> decorator_result = cli.create_command_decorator(
+            >>> cli = FlextCliCli()
+            >>> decorator = cli.create_command_decorator(
             ...     name="hello", help="Greet someone"
             ... )
-            >>> if decorator_result.is_success:
-            ...
-            ...     @decorator_result.unwrap()
-            ...     def hello():
-            ...         click.echo("Hello!")
+            >>> @decorator
+            ... def hello():
+            ...     click.echo("Hello!")
 
         """
-        try:
-            command_kwargs = {"name": name}
-            command_kwargs.update(kwargs)
-            decorator = click.command(**command_kwargs)
-            self._logger.debug(
-                "Created command decorator",
-                extra={"command_name": name, "options": kwargs},
-            )
-            return FlextResult[Callable[[Callable[..., object]], click.Command]].ok(
-                decorator
-            )
-        except Exception as e:
-            error_msg = f"Failed to create command decorator: {e}"
-            self._logger.exception(error_msg)
-            return FlextResult[Callable[[Callable[..., object]], click.Command]].fail(
-                error_msg
-            )
+        command_kwargs = {"name": name}
+        command_kwargs.update(kwargs)
+        decorator = click.command(**command_kwargs)
+        self._logger.debug(
+            "Created command decorator",
+            extra={"command_name": name, "options": kwargs},
+        )
+        return decorator
 
     def create_group_decorator(
         self,
         name: str | None = None,
         **kwargs: object,
-    ) -> FlextResult[Callable[[Callable[..., object]], click.Group]]:
+    ) -> Callable[[Callable[..., object]], click.Group]:
         """Create Click group decorator for command groups.
 
         Args:
@@ -130,36 +117,25 @@ class FlextCliClick(FlextService[object]):
             **kwargs: Click group options
 
         Returns:
-            FlextResult containing group decorator function
+            Group decorator function
 
         Example:
-            >>> cli = FlextCliClick()
-            >>> group_result = cli.create_group_decorator(name="db")
-            >>> if group_result.is_success:
-            ...
-            ...     @group_result.unwrap()
-            ...     def db():
-            ...         '''Database commands'''
-            ...         pass
+            >>> cli = FlextCliCli()
+            >>> group = cli.create_group_decorator(name="db")
+            >>> @group
+            ... def db():
+            ...     '''Database commands'''
+            ...     pass
 
         """
-        try:
-            group_kwargs = {"name": name}
-            group_kwargs.update(kwargs)
-            decorator = click.group(**group_kwargs)
-            self._logger.debug(
-                "Created group decorator",
-                extra={"group_name": name, "options": kwargs},
-            )
-            return FlextResult[Callable[[Callable[..., object]], click.Group]].ok(
-                decorator
-            )
-        except Exception as e:
-            error_msg = f"Failed to create group decorator: {e}"
-            self._logger.exception(error_msg)
-            return FlextResult[Callable[[Callable[..., object]], click.Group]].fail(
-                error_msg
-            )
+        group_kwargs = {"name": name}
+        group_kwargs.update(kwargs)
+        decorator = click.group(**group_kwargs)
+        self._logger.debug(
+            "Created group decorator",
+            extra={"group_name": name, "options": kwargs},
+        )
+        return decorator
 
     # =========================================================================
     # PARAMETER DECORATORS (OPTION, ARGUMENT)
@@ -169,7 +145,7 @@ class FlextCliClick(FlextService[object]):
         self,
         *param_decls: str,
         **attrs: object,
-    ) -> FlextResult[Callable[[Callable[..., object]], click.Option]]:
+    ) -> Callable[[Callable[..., object]], click.Option]:
         """Create Click option decorator.
 
         Args:
@@ -177,36 +153,27 @@ class FlextCliClick(FlextService[object]):
             **attrs: Option attributes (default, help, type, required, etc.)
 
         Returns:
-            FlextResult containing option decorator
+            Option decorator
 
         Example:
-            >>> cli = FlextCliClick()
-            >>> opt_result = cli.create_option_decorator(
+            >>> cli = FlextCliCli()
+            >>> option = cli.create_option_decorator(
             ...     "--verbose", "-v", is_flag=True, help="Enable verbose output"
             ... )
 
         """
-        try:
-            decorator = click.option(*param_decls, **attrs)
-            self._logger.debug(
-                "Created option decorator",
-                extra={"param_decls": param_decls, "attrs": attrs},
-            )
-            return FlextResult[Callable[[Callable[..., object]], click.Option]].ok(
-                decorator
-            )
-        except Exception as e:
-            error_msg = f"Failed to create option decorator: {e}"
-            self._logger.exception(error_msg)
-            return FlextResult[Callable[[Callable[..., object]], click.Option]].fail(
-                error_msg
-            )
+        decorator = click.option(*param_decls, **attrs)
+        self._logger.debug(
+            "Created option decorator",
+            extra={"param_decls": param_decls, "attrs": attrs},
+        )
+        return decorator
 
     def create_argument_decorator(
         self,
         *param_decls: str,
         **attrs: object,
-    ) -> FlextResult[Callable[[Callable[..., object]], click.Argument]]:
+    ) -> Callable[[Callable[..., object]], click.Argument]:
         """Create Click argument decorator.
 
         Args:
@@ -214,30 +181,21 @@ class FlextCliClick(FlextService[object]):
             **attrs: Argument attributes (type, required, nargs, etc.)
 
         Returns:
-            FlextResult containing argument decorator
+            Argument decorator
 
         Example:
-            >>> cli = FlextCliClick()
-            >>> arg_result = cli.create_argument_decorator(
+            >>> cli = FlextCliCli()
+            >>> argument = cli.create_argument_decorator(
             ...     "filename", type=cli.get_path_type()
             ... )
 
         """
-        try:
-            decorator = click.argument(*param_decls, **attrs)
-            self._logger.debug(
-                "Created argument decorator",
-                extra={"param_decls": param_decls, "attrs": attrs},
-            )
-            return FlextResult[Callable[[Callable[..., object]], click.Argument]].ok(
-                decorator
-            )
-        except Exception as e:
-            error_msg = f"Failed to create argument decorator: {e}"
-            self._logger.exception(error_msg)
-            return FlextResult[Callable[[Callable[..., object]], click.Argument]].fail(
-                error_msg
-            )
+        decorator = click.argument(*param_decls, **attrs)
+        self._logger.debug(
+            "Created argument decorator",
+            extra={"param_decls": param_decls, "attrs": attrs},
+        )
+        return decorator
 
     # =========================================================================
     # PARAMETER TYPES
@@ -256,7 +214,7 @@ class FlextCliClick(FlextService[object]):
             Click Choice type
 
         Example:
-            >>> cli = FlextCliClick()
+            >>> cli = FlextCliCli()
             >>> choice_type = cli.get_choice_type(["json", "yaml", "csv"])
 
         """
@@ -401,7 +359,7 @@ class FlextCliClick(FlextService[object]):
             Click DateTime type
 
         Example:
-            >>> cli = FlextCliClick()
+            >>> cli = FlextCliCli()
             >>> dt_type = cli.get_datetime_type(formats=["%Y-%m-%d", "%d/%m/%Y"])
 
         """
@@ -416,7 +374,7 @@ class FlextCliClick(FlextService[object]):
             Click UUID parameter type instance
 
         Example:
-            >>> cli = FlextCliClick()
+            >>> cli = FlextCliCli()
             >>> uuid_type = cli.get_uuid_type()
             >>> # Use in option: type=uuid_type
 
@@ -436,7 +394,7 @@ class FlextCliClick(FlextService[object]):
             Click Tuple type
 
         Example:
-            >>> cli = FlextCliClick()
+            >>> cli = FlextCliCli()
             >>> # Tuple of (int, int, int) for RGB values
             >>> rgb_type = cli.get_tuple_type([int, int, int])
             >>> # Tuple of (str, int) for name and age
@@ -452,7 +410,7 @@ class FlextCliClick(FlextService[object]):
             bool type for Click parameters
 
         Example:
-            >>> cli = FlextCliClick()
+            >>> cli = FlextCliCli()
             >>> bool_type = cli.get_bool_type()
             >>> # Use in option: type=bool_type
 
@@ -466,7 +424,7 @@ class FlextCliClick(FlextService[object]):
             str type for Click parameters
 
         Example:
-            >>> cli = FlextCliClick()
+            >>> cli = FlextCliCli()
             >>> str_type = cli.get_string_type()
 
         """
@@ -479,7 +437,7 @@ class FlextCliClick(FlextService[object]):
             int type for Click parameters
 
         Example:
-            >>> cli = FlextCliClick()
+            >>> cli = FlextCliCli()
             >>> int_type = cli.get_int_type()
 
         """
@@ -492,7 +450,7 @@ class FlextCliClick(FlextService[object]):
             float type for Click parameters
 
         Example:
-            >>> cli = FlextCliClick()
+            >>> cli = FlextCliCli()
             >>> float_type = cli.get_float_type()
 
         """
@@ -502,29 +460,20 @@ class FlextCliClick(FlextService[object]):
     # CONTEXT MANAGEMENT
     # =========================================================================
 
-    def get_current_context(self) -> FlextResult[ClickContext]:
+    def get_current_context(self) -> ClickContext | None:
         """Get current Click context.
 
         Returns:
-            FlextResult containing current Click context
+            Current Click context or None if not available
 
         Example:
-            >>> cli = FlextCliClick()
-            >>> ctx_result = cli.get_current_context()
-            >>> if ctx_result.is_success:
-            ...     ctx = ctx_result.unwrap()
+            >>> cli = FlextCliCli()
+            >>> ctx = cli.get_current_context()
+            >>> if ctx:
             ...     print(ctx.command.name)
 
         """
-        try:
-            ctx = click.get_current_context(silent=True)
-            if ctx is None:
-                return FlextResult[ClickContext].fail("No Click context available")
-            return FlextResult[ClickContext].ok(ctx)
-        except Exception as e:
-            error_msg = f"Failed to get Click context: {e}"
-            self._logger.exception(error_msg)
-            return FlextResult[ClickContext].fail(error_msg)
+        return click.get_current_context(silent=True)
 
     def create_pass_context_decorator(
         self,
@@ -535,7 +484,7 @@ class FlextCliClick(FlextService[object]):
             pass_context decorator
 
         Example:
-            >>> cli = FlextCliClick()
+            >>> cli = FlextCliCli()
             >>> pass_ctx = cli.create_pass_context_decorator()
             >>>
             >>> @pass_ctx
@@ -557,7 +506,7 @@ class FlextCliClick(FlextService[object]):
         nl: bool = True,
         err: bool = False,
         color: bool | None = None,
-    ) -> FlextResult[None]:
+    ) -> None:
         """Output message using Click.echo.
 
         Args:
@@ -567,17 +516,8 @@ class FlextCliClick(FlextService[object]):
             err: Write to stderr
             color: Force color on/off
 
-        Returns:
-            FlextResult[None]
-
         """
-        try:
-            click.echo(message=message, file=file, nl=nl, err=err, color=color)
-            return FlextResult[None].ok(None)
-        except Exception as e:
-            error_msg = f"Failed to echo message: {e}"
-            self._logger.exception(error_msg)
-            return FlextResult[None].fail(error_msg)
+        click.echo(message=message, file=file, nl=nl, err=err, color=color)
 
     def confirm(
         self,
@@ -588,7 +528,7 @@ class FlextCliClick(FlextService[object]):
         prompt_suffix: str = ": ",
         show_default: bool = True,
         err: bool = False,
-    ) -> FlextResult[bool]:
+    ) -> bool:
         """Prompt for confirmation.
 
         Args:
@@ -600,25 +540,20 @@ class FlextCliClick(FlextService[object]):
             err: Write to stderr
 
         Returns:
-            FlextResult containing user's confirmation
+            User's confirmation
+
+        Raises:
+            click.Abort: If user aborts
 
         """
-        try:
-            result = click.confirm(
-                text=text,
-                default=default,
-                abort=abort,
-                prompt_suffix=prompt_suffix,
-                show_default=show_default,
-                err=err,
-            )
-            return FlextResult[bool].ok(result)
-        except click.Abort:
-            return FlextResult[bool].fail("User aborted")
-        except Exception as e:
-            error_msg = f"Confirmation failed: {e}"
-            self._logger.exception(error_msg)
-            return FlextResult[bool].fail(error_msg)
+        return click.confirm(
+            text=text,
+            default=default,
+            abort=abort,
+            prompt_suffix=prompt_suffix,
+            show_default=show_default,
+            err=err,
+        )
 
     def prompt(
         self,
@@ -633,7 +568,7 @@ class FlextCliClick(FlextService[object]):
         show_default: bool = True,
         err: bool = False,
         show_choices: bool = True,
-    ) -> FlextResult[object]:
+    ) -> object:
         """Prompt for input.
 
         Args:
@@ -649,29 +584,24 @@ class FlextCliClick(FlextService[object]):
             show_choices: Show available choices
 
         Returns:
-            FlextResult containing user input
+            User input
+
+        Raises:
+            click.Abort: If user aborts
 
         """
-        try:
-            result = click.prompt(
-                text=text,
-                default=default,
-                hide_input=hide_input,
-                confirmation_prompt=confirmation_prompt,
-                type=type_hint,
-                value_proc=value_proc,
-                prompt_suffix=prompt_suffix,
-                show_default=show_default,
-                err=err,
-                show_choices=show_choices,
-            )
-            return FlextResult[object].ok(result)
-        except click.Abort:
-            return FlextResult[object].fail("User aborted")
-        except Exception as e:
-            error_msg = f"Prompt failed: {e}"
-            self._logger.exception(error_msg)
-            return FlextResult[object].fail(error_msg)
+        return click.prompt(
+            text=text,
+            default=default,
+            hide_input=hide_input,
+            confirmation_prompt=confirmation_prompt,
+            type=type_hint,
+            value_proc=value_proc,
+            prompt_suffix=prompt_suffix,
+            show_default=show_default,
+            err=err,
+            show_choices=show_choices,
+        )
 
     # =========================================================================
     # TESTING SUPPORT
@@ -683,41 +613,31 @@ class FlextCliClick(FlextService[object]):
         env: FlextTypes.StringDict | None = None,
         *,
         echo_stdin: bool = False,
-        _mix_stderr: bool = True,
-    ) -> FlextResult[ClickCliRunner]:
+    ) -> ClickCliRunner:
         """Create Click CliRunner for testing.
 
         Args:
             charset: Character encoding
             env: Environment variables
             echo_stdin: Echo stdin to output
-            _mix_stderr: Mix stderr into stdout (ignored in newer Click versions, reserved for future use)
 
         Returns:
-            FlextResult containing CliRunner instance
+            CliRunner instance
 
         Example:
-            >>> cli = FlextCliClick()
-            >>> runner_result = cli.create_cli_runner()
-            >>> if runner_result.is_success:
-            ...     runner = runner_result.unwrap()
-            ...     result = runner.invoke(my_cli, ["--help"])
-            ...     assert result.exit_code == 0
+            >>> cli = FlextCliCli()
+            >>> runner = cli.create_cli_runner()
+            >>> result = runner.invoke(my_cli, ["--help"])
+            >>> assert result.exit_code == 0
 
         """
-        try:
-            # Note: mix_stderr parameter removed in Click 8+
-            runner = ClickCliRunner(
-                charset=charset,
-                env=env,
-                echo_stdin=echo_stdin,
-            )
-            self._logger.debug("Created CliRunner for testing")
-            return FlextResult[ClickCliRunner].ok(runner)
-        except Exception as e:
-            error_msg = f"Failed to create CliRunner: {e}"
-            self._logger.exception(error_msg)
-            return FlextResult[ClickCliRunner].fail(error_msg)
+        runner = ClickCliRunner(
+            charset=charset,
+            env=env,
+            echo_stdin=echo_stdin,
+        )
+        self._logger.debug("Created CliRunner for testing")
+        return runner
 
     # =========================================================================
     # UTILITIES
@@ -751,38 +671,18 @@ class FlextCliClick(FlextService[object]):
         size = click.get_terminal_size()
         return (size[0], size[1])
 
-    def clear_screen(self) -> FlextResult[None]:
-        """Clear terminal screen.
+    def clear_screen(self) -> None:
+        """Clear terminal screen."""
+        click.clear()
 
-        Returns:
-            FlextResult[None]
-
-        """
-        try:
-            click.clear()
-            return FlextResult[None].ok(None)
-        except Exception as e:
-            error_msg = f"Failed to clear screen: {e}"
-            self._logger.exception(error_msg)
-            return FlextResult[None].fail(error_msg)
-
-    def pause(self, info: str = "Press any key to continue...") -> FlextResult[None]:
+    def pause(self, info: str = "Press any key to continue...") -> None:
         """Pause execution until key press.
 
         Args:
             info: Information message to display
 
-        Returns:
-            FlextResult[None]
-
         """
-        try:
-            click.pause(info=info)
-            return FlextResult[None].ok(None)
-        except Exception as e:
-            error_msg = f"Failed to pause: {e}"
-            self._logger.exception(error_msg)
-            return FlextResult[None].fail(error_msg)
+        click.pause(info=info)
 
     @override
     def execute(self) -> FlextResult[object]:
@@ -801,5 +701,5 @@ class FlextCliClick(FlextService[object]):
 
 
 __all__ = [
-    "FlextCliClick",
+    "FlextCliCli",
 ]

@@ -11,12 +11,12 @@ from __future__ import annotations
 
 from typing import override
 
-from flext_core import FlextProcessors, FlextResult, FlextTypes
+from flext_core import FlextResult, FlextService, FlextTypes
 
 from flext_cli.models import FlextCliModels
 
 
-class FlextCliProcessors(FlextProcessors):
+class FlextCliProcessors(FlextService[FlextTypes.Dict]):
     """Single unified CLI processors class following FLEXT standards.
 
     Contains all processor implementations for CLI domain operations.

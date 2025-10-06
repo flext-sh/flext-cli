@@ -28,10 +28,6 @@ class TestFlextCliHandlers:
         return FlextCliHandlers()
 
     @pytest.fixture
-    def test_utilities(self) -> FlextTestsUtilities:
-        """Provide FlextTestsUtilities for test support."""
-        return FlextTestsUtilities()
-
     def test_handlers_initialization(self, handlers: FlextCliHandlers) -> None:
         """Test handlers initialization."""
         assert isinstance(handlers, FlextCliHandlers)

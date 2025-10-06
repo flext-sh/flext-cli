@@ -30,14 +30,9 @@ class TestFlextCliExceptionsFlextCliError:
         return FlextCliExceptions.BaseError("Test exception")
 
     @pytest.fixture
-    def test_utilities(self) -> FlextTestsUtilities:
-        """Provide FlextTestsUtilities for test support."""
-        return FlextTestsUtilities()
-
     # ========================================================================
     # INITIALIZATION AND BASIC FUNCTIONALITY
     # ========================================================================
-
     def test_exceptions_service_initialization(
         self, exceptions_service: FlextCliExceptions.BaseError
     ) -> None:

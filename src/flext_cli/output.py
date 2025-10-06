@@ -12,7 +12,7 @@ from __future__ import annotations
 import csv
 import json
 from io import StringIO
-from typing import TYPE_CHECKING, override
+from typing import override
 
 import yaml
 from flext_core import (
@@ -22,13 +22,11 @@ from flext_core import (
     FlextService,
     FlextTypes,
 )
+from rich.tree import Tree
 
 from flext_cli.constants import FlextCliConstants
 from flext_cli.formatters import FlextCliFormatters
 from flext_cli.tables import FlextCliTables
-
-if TYPE_CHECKING:
-    from rich.tree import Tree
 
 
 class FlextCliOutput(FlextService[object]):
@@ -556,25 +554,6 @@ class FlextCliOutput(FlextService[object]):
             error_msg = f"Failed to format table: {e}"
             self._logger.exception(error_msg)
             return FlextResult[str].fail(error_msg)
-
-    def create_table(
-        self,
-        data: FlextTypes.Dict | list[FlextTypes.Dict],
-        title: str | None = None,
-        headers: FlextTypes.StringList | None = None,
-    ) -> FlextResult[str]:
-        """Alias for format_table for backward compatibility.
-
-        Args:
-            data: Data to format (dict or list of dicts)
-            title: Optional table title
-            headers: Optional column headers
-
-        Returns:
-            FlextResult[str]: Table as string or error
-
-        """
-        return self.format_table(data=data, title=title, headers=headers)
 
     def format_as_tree(
         self,

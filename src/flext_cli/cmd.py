@@ -34,10 +34,7 @@ class FlextCliCmd(FlextService[FlextTypes.Dict]):
     Follows single-responsibility principle with nested helpers.
     """
 
-    # Attribute declarations - override FlextService optional types
-    # These are guaranteed initialized in __init__
-    _logger: FlextLogger
-    _container: FlextContainer
+    # Attributes initialized in __init__ (inherit types from FlextService)
 
     @override
     def __init__(self) -> None:
@@ -68,65 +65,59 @@ class FlextCliCmd(FlextService[FlextTypes.Dict]):
         """Create new instance of FlextCliCmd."""
         return cls()
 
-    class _ConfigHelper:
-        """Nested helper for configuration operations."""
+    def _get_config_paths(self) -> FlextTypes.StringList:
+        """Get standard configuration paths."""
+        home = Path.home()
+        flext_dir = home / FlextCliConstants.FLEXT_DIR_NAME
 
-        @staticmethod
-        def get_config_paths() -> FlextTypes.StringList:
-            """Get standard configuration paths."""
-            home = Path.home()
-            flext_dir = home / ".flext"
+        return [
+            str(flext_dir),
+            str(flext_dir / "config"),
+            str(flext_dir / "cache"),
+            str(flext_dir / "logs"),
+            str(flext_dir / "token"),
+            str(flext_dir / "refresh_token"),
+        ]
 
-            return [
-                str(flext_dir),
-                str(flext_dir / "config"),
-                str(flext_dir / "cache"),
-                str(flext_dir / "logs"),
-                str(flext_dir / "token"),
-                str(flext_dir / "refresh_token"),
-            ]
+    def _validate_config_structure(self) -> FlextTypes.StringList:
+        """Validate configuration directory structure."""
+        results: FlextTypes.StringList = []
+        home = Path.home()
+        flext_dir = home / FlextCliConstants.FLEXT_DIR_NAME
 
-        @staticmethod
-        def validate_config_structure() -> FlextTypes.StringList:
-            """Validate configuration directory structure."""
-            results: FlextTypes.StringList = []
-            home = Path.home()
-            flext_dir = home / ".flext"
+        # Check main config directory
+        if flext_dir.exists():
+            results.append("✓ Main config directory exists")
+        else:
+            results.append("✗ Main config directory missing")
 
-            # Check main config directory
-            if flext_dir.exists():
-                results.append("✓ Main config directory exists")
+        # Check subdirectories
+        for subdir in ["config", "cache", "logs"]:
+            path = flext_dir / subdir
+            if path.exists():
+                results.append(f"✓ {subdir} directory exists")
             else:
-                results.append("✗ Main config directory missing")
+                results.append(f"✗ {subdir} directory missing")
 
-            # Check subdirectories
-            for subdir in ["config", "cache", "logs"]:
-                path = flext_dir / subdir
-                if path.exists():
-                    results.append(f"✓ {subdir} directory exists")
-                else:
-                    results.append(f"✗ {subdir} directory missing")
+        return results
 
-            return results
+    def _get_config_info(self) -> FlextTypes.Dict:
+        """Get configuration information."""
+        home = Path.home()
+        flext_dir = home / FlextCliConstants.FLEXT_DIR_NAME
 
-        @staticmethod
-        def get_config_info() -> FlextTypes.Dict:
-            """Get configuration information."""
-            home = Path.home()
-            flext_dir = home / ".flext"
-
-            return {
-                "config_dir": str(flext_dir),
-                "config_exists": flext_dir.exists(),
-                "config_readable": flext_dir.exists() and os.access(flext_dir, os.R_OK),
-                "config_writable": flext_dir.exists() and os.access(flext_dir, os.W_OK),
-                "timestamp": datetime.now(UTC).isoformat(),
-            }
+        return {
+            "config_dir": str(flext_dir),
+            "config_exists": flext_dir.exists(),
+            "config_readable": flext_dir.exists() and os.access(flext_dir, os.R_OK),
+            "config_writable": flext_dir.exists() and os.access(flext_dir, os.W_OK),
+            "timestamp": datetime.now(UTC).isoformat(),
+        }
 
     def show_config_paths(self) -> FlextResult[FlextTypes.StringList]:
         """Show configuration paths."""
         try:
-            paths = self._ConfigHelper.get_config_paths()
+            paths = self._get_config_paths()
             return FlextResult[FlextTypes.StringList].ok(paths)
         except Exception as e:
             return FlextResult[FlextTypes.StringList].fail(f"Config paths failed: {e}")
@@ -134,7 +125,7 @@ class FlextCliCmd(FlextService[FlextTypes.Dict]):
     def validate_config(self) -> FlextResult[None]:
         """Validate configuration structure."""
         try:
-            results = self._ConfigHelper.validate_config_structure()
+            results = self._validate_config_structure()
             if results:
                 self._logger.info(f"Config validation results: {results}")
             return FlextResult[None].ok(None)
@@ -144,7 +135,7 @@ class FlextCliCmd(FlextService[FlextTypes.Dict]):
     def get_config_info(self) -> FlextResult[FlextTypes.Dict]:
         """Get configuration information."""
         try:
-            info = self._ConfigHelper.get_config_info()
+            info = self._get_config_info()
             return FlextResult[FlextTypes.Dict].ok(info)
         except Exception as e:
             return FlextResult[FlextTypes.Dict].fail(f"Config info failed: {e}")
@@ -289,44 +280,6 @@ class FlextCliCmd(FlextService[FlextTypes.Dict]):
 
         except Exception as e:
             return FlextResult[str].fail(f"Edit config failed: {e}")
-
-    class _ConfigDisplayHelper:
-        """Helper for configuration display operations."""
-
-        @staticmethod
-        def show_config(logger: FlextLogger) -> FlextResult[None]:
-            """Show configuration using logger."""
-            try:
-                logger.info("Configuration displayed")
-                return FlextResult[None].ok(None)
-            except Exception as e:
-                return FlextResult[None].fail(f"Show config failed: {e}")
-
-    class _ConfigModificationHelper:
-        """Helper for configuration modification operations."""
-
-        @staticmethod
-        def edit_config() -> FlextResult[str]:
-            """Edit configuration."""
-            try:
-                return FlextResult[str].ok("Config edit completed")
-            except Exception as e:
-                return FlextResult[str].fail(f"Edit config failed: {e}")
-
-    class _ConfigValidationHelper:
-        """Helper for configuration validation operations."""
-
-        @staticmethod
-        def validate_config(config: object) -> FlextResult[None]:
-            """Validate configuration."""
-            try:
-                # Basic validation - config object exists
-                if config is None:
-                    return FlextResult[None].fail("Configuration is None")
-
-                return FlextResult[None].ok(None)
-            except Exception as e:
-                return FlextResult[None].fail(f"Config validation failed: {e}")
 
 
 __all__ = [

@@ -31,11 +31,6 @@ class TestFlextCliOutput:
         return FlextCliOutput()
 
     @pytest.fixture
-    def test_utilities(self) -> FlextTestsUtilities:
-        """Provide FlextTestsUtilities for test support."""
-        return FlextTestsUtilities()
-
-    @pytest.fixture
     def temp_file(self) -> Path:
         """Create temporary file for testing."""
         with tempfile.NamedTemporaryFile(mode="w", delete=False, encoding="utf-8") as f:
