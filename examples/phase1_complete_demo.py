@@ -13,6 +13,8 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
+from rich.text import Text
+
 from flext_cli import (
     FlextCli,
     FlextCliCli,
@@ -71,7 +73,6 @@ def demo_rich_formatters() -> None:
         formatters.print_rich(renderable=panel_result.unwrap())
 
     # 2. Print styled text
-    from rich.text import Text
     styled_text = Text("Bold Red Text", style="bold red")
     formatters.print_rich(renderable=styled_text)
 

@@ -64,7 +64,7 @@ def demo_advanced_rich_features() -> None:
 def demo_testing_utilities() -> None:
     """Demo 3: Testing Utilities and Patterns."""
     # Initialize testing utilities
-    runner = FlextCliTestRunner()
+    runner = FlextCliTesting()
     scenarios = FlextCliTesting.MockScenarios()
 
     # Mock scenarios
@@ -99,7 +99,7 @@ def demo_integration_test_pattern() -> None:
 def demo_complete_phase3_workflow() -> None:
     """Demo 5: Complete Phase 3 Workflow - All Features Together."""
     cli = FlextCli()
-    runner = FlextCliTestRunner()
+    runner = FlextCliTesting()
     scenarios = FlextCliTesting.MockScenarios()
 
     # Create command with advanced parameter types

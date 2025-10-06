@@ -15,6 +15,7 @@ import pkgutil
 import traceback
 from collections.abc import Callable
 
+import click
 import typer
 from flext_core import (
     FlextContainer,
@@ -25,6 +26,7 @@ from flext_core import (
 )
 
 from flext_cli.cli import FlextCliCli
+from flext_cli.models import FlextCliModels
 
 
 class FlextCliMain(FlextService[object]):
@@ -104,7 +106,7 @@ class FlextCliMain(FlextService[object]):
         # Get and store the Typer app's Click group (only created once)
         self._main_group = typer.main.get_group(self._app)
 
-        self._logger.debug(
+        self.logger.debug(
             "Initialized CLI main with Typer backend",
             extra={
                 "cli_name": self._name,
@@ -133,7 +135,7 @@ class FlextCliMain(FlextService[object]):
             pretty_exceptions_enable=kwargs.get("pretty_exceptions_enable", True),
         )
 
-        self._logger.debug(
+        self.logger.debug(
             "Created Typer app",
             extra={
                 "app_name": self._name,
@@ -189,7 +191,7 @@ class FlextCliMain(FlextService[object]):
             if self._main_group is not None:
                 self._main_group.add_command(command_obj)
 
-            self._logger.debug(
+            self.logger.debug(
                 "Registered command (Click ABI, Typer container)",
                 extra={
                     "command_name": cmd_name,
@@ -238,7 +240,7 @@ class FlextCliMain(FlextService[object]):
             if self._main_group is not None:
                 self._main_group.add_command(command_obj)
 
-            self._logger.debug(
+            self.logger.debug(
                 "Registered command (Click ABI, Typer container)",
                 extra={
                     "command_name": cmd_name,
@@ -249,7 +251,7 @@ class FlextCliMain(FlextService[object]):
 
         except Exception as e:
             error_msg = f"Failed to register command: {e}"
-            self._logger.exception(error_msg)
+            self.logger.exception(error_msg)
             return FlextResult[None].fail(error_msg)
 
     # =========================================================================
@@ -305,7 +307,7 @@ class FlextCliMain(FlextService[object]):
             if self._main_group is not None:
                 self._main_group.add_command(group_obj)
 
-            self._logger.debug(
+            self.logger.debug(
                 "Registered group via Typer",
                 extra={
                     "group_name": grp_name,
@@ -355,7 +357,7 @@ class FlextCliMain(FlextService[object]):
             if self._main_group is not None:
                 self._main_group.add_command(group_obj)
 
-            self._logger.debug(
+            self.logger.debug(
                 "Registered group via Typer",
                 extra={
                     "group_name": grp_name,
@@ -366,7 +368,7 @@ class FlextCliMain(FlextService[object]):
 
         except Exception as e:
             error_msg = f"Failed to register group: {e}"
-            self._logger.exception(error_msg)
+            self.logger.exception(error_msg)
             return FlextResult[None].fail(error_msg)
 
     def register_model_command(
@@ -411,13 +413,11 @@ class FlextCliMain(FlextService[object]):
             ...     model_class=MigrateParams,
             ...     handler=handle_migrate,
             ...     name="migrate",
-            ...     help_text="Execute migration"
+            ...     help_text="Execute migration",
             ... )
 
         """
         try:
-            from flext_cli.models import FlextCliModels
-
             # Get command name
             cmd_name = name or model_class.__name__.lower().replace("params", "")
 
@@ -446,7 +446,7 @@ class FlextCliMain(FlextService[object]):
 
                 if model_result.is_failure:
                     error_msg = f"Invalid parameters: {model_result.error}"
-                    self._logger.error(error_msg)
+                    self.logger.error(error_msg)
                     # Return exit code 1 for validation errors
                     return 1
 
@@ -457,7 +457,7 @@ class FlextCliMain(FlextService[object]):
                 if isinstance(handler_result, FlextResult):
                     if handler_result.is_failure:
                         error_msg = f"Command failed: {handler_result.error}"
-                        self._logger.error(error_msg)
+                        self.logger.error(error_msg)
                         return 1
                     return 0
                 # Handler returned non-FlextResult, assume success
@@ -468,8 +468,6 @@ class FlextCliMain(FlextService[object]):
             command_wrapper.__doc__ = cmd_help
 
             # Create Click command manually to avoid **kwargs issues
-            import click
-
             # Start with base command
             cmd = click.command(name=cmd_name, help=cmd_help)(command_wrapper)
 
@@ -496,7 +494,7 @@ class FlextCliMain(FlextService[object]):
             if self._main_group is not None:
                 self._main_group.add_command(cmd)
 
-            self._logger.debug(
+            self.logger.debug(
                 "Registered model-driven command",
                 extra={
                     "command_name": cmd_name,
@@ -508,7 +506,7 @@ class FlextCliMain(FlextService[object]):
 
         except Exception as e:
             error_msg = f"Failed to register model command: {e}"
-            self._logger.exception(error_msg)
+            self.logger.exception(error_msg)
             return FlextResult[None].fail(error_msg)
 
     def _get_click_type(self, click_type_str: str) -> object:
@@ -521,8 +519,6 @@ class FlextCliMain(FlextService[object]):
             Click type object
 
         """
-        import click
-
         type_map: FlextTypes.Dict = {
             "STRING": click.STRING,
             "INT": click.INT,
@@ -566,7 +562,7 @@ class FlextCliMain(FlextService[object]):
             if self._main_group is not None:
                 self._main_group.add_command(command_obj)
 
-            self._logger.debug(
+            self.logger.debug(
                 "Registered plugin command via Typer",
                 extra={
                     "command_name": command_name,
@@ -577,7 +573,7 @@ class FlextCliMain(FlextService[object]):
 
         except Exception as e:
             error_msg = f"Failed to register plugin command: {e}"
-            self._logger.exception(error_msg)
+            self.logger.exception(error_msg)
             return FlextResult[None].fail(error_msg)
 
     def load_plugin_commands(
@@ -637,12 +633,12 @@ class FlextCliMain(FlextService[object]):
                                 loaded_commands.append(attr_name)
 
                 except Exception as e:
-                    self._logger.warning(
+                    self.logger.warning(
                         f"Failed to load plugin module '{full_module}': {e}",
                     )
                     continue
 
-            self._logger.info(
+            self.logger.info(
                 "Loaded plugin commands",
                 extra={
                     "plugin_package": plugin_package,
@@ -654,7 +650,7 @@ class FlextCliMain(FlextService[object]):
 
         except Exception as e:
             error_msg = f"Failed to load plugin commands: {e}"
-            self._logger.exception(error_msg)
+            self.logger.exception(error_msg)
             return FlextResult[FlextTypes.StringList].fail(error_msg)
 
     # =========================================================================
@@ -680,7 +676,7 @@ class FlextCliMain(FlextService[object]):
 
         except Exception as e:
             error_msg = f"Failed to list commands: {e}"
-            self._logger.exception(error_msg)
+            self.logger.exception(error_msg)
             return FlextResult[FlextTypes.StringList].fail(error_msg)
 
     def list_groups(self) -> FlextResult[FlextTypes.StringList]:
@@ -702,7 +698,7 @@ class FlextCliMain(FlextService[object]):
 
         except Exception as e:
             error_msg = f"Failed to list groups: {e}"
-            self._logger.exception(error_msg)
+            self.logger.exception(error_msg)
             return FlextResult[FlextTypes.StringList].fail(error_msg)
 
     def get_command(self, name: str) -> FlextResult[object]:
@@ -783,7 +779,7 @@ class FlextCliMain(FlextService[object]):
 
         except Exception as e:
             error_msg = f"CLI execution failed: {e}"
-            self._logger.exception(error_msg)
+            self.logger.exception(error_msg)
             return FlextResult[object].fail(error_msg)
 
     def get_main_group(self) -> FlextResult[object]:
@@ -809,7 +805,7 @@ class FlextCliMain(FlextService[object]):
 
     # Attribute declarations - override FlextService optional types
     # These are guaranteed initialized in __init__
-    _logger: FlextLogger
+    logger: FlextLogger
     _container: FlextContainer
 
     def execute(self) -> FlextResult[object]:

@@ -69,8 +69,8 @@ class FlextCliTyper(FlextService[object]):
         super().__init__()
         # Logger and container inherited from FlextService via FlextMixins
 
-        if self._logger:
-            self._logger.debug(
+        if self.logger:
+            self.logger.debug(
                 "Initialized Typer abstraction layer",
                 extra={
                     "typer_version": typer.__version__,
@@ -88,7 +88,7 @@ class FlextCliTyper(FlextService[object]):
         *,
         add_completion: bool = True,
         pretty_exceptions_enable: bool = True,
-        **kwargs: Any,
+        **kwargs: object,
     ) -> FlextResult[typer.Typer]:
         """Create a Typer application.
 
@@ -121,8 +121,8 @@ class FlextCliTyper(FlextService[object]):
                 **kwargs,
             )
 
-            if self._logger:
-                self._logger.debug(
+            if self.logger:
+                self.logger.debug(
                     "Created Typer app",
                     extra={
                         "app_name": name,
@@ -133,8 +133,8 @@ class FlextCliTyper(FlextService[object]):
 
         except Exception as e:
             error_msg = f"Failed to create Typer app: {e}"
-            if self._logger:
-                self._logger.exception(error_msg)
+            if self.logger:
+                self.logger.exception(error_msg)
             return FlextResult[typer.Typer].fail(error_msg)
 
     # =========================================================================
@@ -146,7 +146,7 @@ class FlextCliTyper(FlextService[object]):
         func: Callable[..., Any],
         name: str | None = None,
         help_text: str | None = None,
-        **kwargs: Any,
+        **kwargs: object,
     ) -> FlextResult[Callable[..., Any]]:
         """Create a Typer command from a function.
 
@@ -182,8 +182,8 @@ class FlextCliTyper(FlextService[object]):
             # This method prepares the function for registration
             command_name = name or func.__name__
 
-            if self._logger:
-                self._logger.debug(
+            if self.logger:
+                self.logger.debug(
                     "Created Typer command",
                     extra={
                         "command_name": command_name,
@@ -211,8 +211,8 @@ class FlextCliTyper(FlextService[object]):
 
         except Exception as e:
             error_msg = f"Failed to create Typer command: {e}"
-            if self._logger:
-                self._logger.exception(error_msg)
+            if self.logger:
+                self.logger.exception(error_msg)
             return FlextResult[Callable[..., Any]].fail(error_msg)
 
     # =========================================================================
@@ -224,7 +224,7 @@ class FlextCliTyper(FlextService[object]):
         app: typer.Typer,
         name: str | None = None,
         help_text: str | None = None,
-        **kwargs: Any,
+        **kwargs: object,
     ) -> FlextResult[Callable[[Callable[..., Any]], Callable[..., Any]]]:
         """Create a command decorator for a Typer app.
 
@@ -259,8 +259,8 @@ class FlextCliTyper(FlextService[object]):
                 **kwargs,
             )
 
-            if self._logger:
-                self._logger.debug(
+            if self.logger:
+                self.logger.debug(
                     "Created Typer command decorator",
                     extra={
                         "command_name": name,
@@ -273,8 +273,8 @@ class FlextCliTyper(FlextService[object]):
 
         except Exception as e:
             error_msg = f"Failed to create command decorator: {e}"
-            if self._logger:
-                self._logger.exception(error_msg)
+            if self.logger:
+                self.logger.exception(error_msg)
             return FlextResult[Callable[[Callable[..., Any]], Callable[..., Any]]].fail(
                 error_msg,
             )
@@ -288,7 +288,7 @@ class FlextCliTyper(FlextService[object]):
         func: Callable[..., Any],
         name: str | None = None,
         help_text: str | None = None,
-        **kwargs: Any,
+        **kwargs: object,
     ) -> FlextResult[Callable[..., Any]]:
         """Create an async Typer command from an async function.
 
@@ -326,8 +326,8 @@ class FlextCliTyper(FlextService[object]):
 
             command_name = name or func.__name__
 
-            if self._logger:
-                self._logger.debug(
+            if self.logger:
+                self.logger.debug(
                     "Created async Typer command",
                     extra={
                         "command_name": command_name,
@@ -355,8 +355,8 @@ class FlextCliTyper(FlextService[object]):
 
         except Exception as e:
             error_msg = f"Failed to create async command: {e}"
-            if self._logger:
-                self._logger.exception(error_msg)
+            if self.logger:
+                self.logger.exception(error_msg)
             return FlextResult[Callable[..., Any]].fail(error_msg)
 
     # =========================================================================
@@ -367,7 +367,7 @@ class FlextCliTyper(FlextService[object]):
         self,
         default: object = ...,
         help_text: str | None = None,
-        **kwargs: Any,
+        **kwargs: object,
     ) -> FlextResult[object]:
         """Create a Typer Argument for explicit argument definition.
 
@@ -400,15 +400,15 @@ class FlextCliTyper(FlextService[object]):
 
         except Exception as e:
             error_msg = f"Failed to create Typer Argument: {e}"
-            if self._logger:
-                self._logger.exception(error_msg)
+            if self.logger:
+                self.logger.exception(error_msg)
             return FlextResult[object].fail(error_msg)
 
     def create_option(
         self,
         default: object = None,
         help_text: str | None = None,
-        **kwargs: Any,
+        **kwargs: object,
     ) -> FlextResult[object]:
         """Create a Typer Option for explicit option definition.
 
@@ -443,15 +443,15 @@ class FlextCliTyper(FlextService[object]):
 
         except Exception as e:
             error_msg = f"Failed to create Typer Option: {e}"
-            if self._logger:
-                self._logger.exception(error_msg)
+            if self.logger:
+                self.logger.exception(error_msg)
             return FlextResult[object].fail(error_msg)
 
     # =========================================================================
     # TYPER UTILITIES
     # =========================================================================
 
-    def echo(self, message: str, **kwargs: Any) -> FlextResult[None]:
+    def echo(self, message: str, **kwargs: object) -> FlextResult[None]:
         """Echo a message using Typer's echo (which uses Rich internally).
 
         Args:
@@ -472,8 +472,8 @@ class FlextCliTyper(FlextService[object]):
 
         except Exception as e:
             error_msg = f"Failed to echo message: {e}"
-            if self._logger:
-                self._logger.exception(error_msg)
+            if self.logger:
+                self.logger.exception(error_msg)
             return FlextResult[None].fail(error_msg)
 
     def secho(
@@ -483,7 +483,7 @@ class FlextCliTyper(FlextService[object]):
         bg: str | None = None,
         *,
         bold: bool = False,
-        **kwargs: Any,
+        **kwargs: object,
     ) -> FlextResult[None]:
         """Echo a styled message using Typer.
 
@@ -514,8 +514,8 @@ class FlextCliTyper(FlextService[object]):
 
         except Exception as e:
             error_msg = f"Failed to echo styled message: {e}"
-            if self._logger:
-                self._logger.exception(error_msg)
+            if self.logger:
+                self.logger.exception(error_msg)
             return FlextResult[None].fail(error_msg)
 
     # =========================================================================

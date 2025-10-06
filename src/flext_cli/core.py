@@ -91,7 +91,7 @@ class FlextCliCore(FlextService[FlextCliTypes.Data.CliDataDict]):
         """
         # Validation is handled by Pydantic model, no isinstance checks needed
         self._commands[command.name] = command.model_dump()
-        self._logger.info(f"Command '{command.name}' registered successfully")
+        self.logger.info(f"Command '{command.name}' registered successfully")
         return FlextResult[None].ok(None)
 
     def get_command(
@@ -175,7 +175,7 @@ class FlextCliCore(FlextService[FlextCliTypes.Data.CliDataDict]):
                 "timeout": timeout,  # Include timeout parameter in result
             }
 
-            self._logger.info(f"Command '{name}' executed successfully")
+            self.logger.info(f"Command '{name}' executed successfully")
             return FlextResult[FlextCliTypes.CliCommand.CommandResult].ok(result_data)
 
         except Exception as e:
@@ -221,7 +221,7 @@ class FlextCliCore(FlextService[FlextCliTypes.Data.CliDataDict]):
         try:
             # Merge with existing configuration
             self._config.update(config)
-            self._logger.info("CLI configuration updated successfully")
+            self.logger.info("CLI configuration updated successfully")
             return FlextResult[None].ok(None)
         except Exception as e:
             return FlextResult[None].fail(f"Configuration update failed: {e}")
@@ -274,7 +274,7 @@ class FlextCliCore(FlextService[FlextCliTypes.Data.CliDataDict]):
             profiles_section = self._config["profiles"]
             if isinstance(profiles_section, dict):
                 profiles_section[name] = profile_config
-                self._logger.info(f"Profile '{name}' created successfully")
+                self.logger.info(f"Profile '{name}' created successfully")
                 return FlextResult[None].ok(None)
             return FlextResult[None].fail("Invalid profiles configuration structure")
 
@@ -307,7 +307,7 @@ class FlextCliCore(FlextService[FlextCliTypes.Data.CliDataDict]):
             self._session_active = True
             self._session_start_time = datetime.now(UTC).isoformat()
 
-            self._logger.info("CLI session started successfully")
+            self.logger.info("CLI session started successfully")
             return FlextResult[None].ok(None)
 
         except Exception as e:
@@ -330,7 +330,7 @@ class FlextCliCore(FlextService[FlextCliTypes.Data.CliDataDict]):
             if hasattr(self, "_session_start_time"):
                 delattr(self, "_session_start_time")
 
-            self._logger.info("CLI session ended successfully")
+            self.logger.info("CLI session ended successfully")
             return FlextResult[None].ok(None)
 
         except Exception as e:
@@ -393,7 +393,7 @@ class FlextCliCore(FlextService[FlextCliTypes.Data.CliDataDict]):
             return info_data
 
         except Exception as e:
-            self._logger.exception("Service info collection failed")
+            self.logger.exception("Service info collection failed")
             return {"error": str(e)}
 
     def get_session_statistics(self) -> FlextResult[FlextCliTypes.Data.CliDataDict]:
@@ -450,8 +450,8 @@ class FlextCliCore(FlextService[FlextCliTypes.Data.CliDataDict]):
 
     # Attribute declarations - override FlextService optional types
     # These are guaranteed initialized in __init__
-    _logger: FlextLogger | None
-    _container: FlextContainer | None
+    logger: FlextLogger
+    _container: FlextContainer
     _config: FlextCliTypes.Configuration.CliConfigSchema | None
 
     def execute(self) -> FlextResult[FlextCliTypes.Data.CliDataDict]:

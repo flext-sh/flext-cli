@@ -111,7 +111,7 @@ class FlextCliPerformance(FlextService[object]):
                 key = alias or module_name
                 self._lazy_modules[key] = module_name
 
-                self._logger.debug(
+                self.logger.debug(
                     "Registered lazy module",
                     extra={"module_name": module_name, "alias": key},
                 )
@@ -120,7 +120,7 @@ class FlextCliPerformance(FlextService[object]):
 
             except Exception as e:
                 error_msg = f"Failed to register lazy module: {e}"
-                self._logger.exception(error_msg)
+                self.logger.exception(error_msg)
                 return FlextResult[None].fail(error_msg)
 
         def load_module(self, key: str) -> FlextResult[object]:
@@ -136,7 +136,7 @@ class FlextCliPerformance(FlextService[object]):
             try:
                 # Return if already loaded
                 if key in self._loaded_modules:
-                    self._logger.debug(
+                    self.logger.debug(
                         "Module already loaded", extra={"module_key": key}
                     )
                     return FlextResult[object].ok(self._loaded_modules[key])
@@ -155,7 +155,7 @@ class FlextCliPerformance(FlextService[object]):
                 # Cache loaded module
                 self._loaded_modules[key] = module
 
-                self._logger.info(
+                self.logger.info(
                     "Loaded lazy module", extra={"module_name": module_name, "key": key}
                 )
 
@@ -163,11 +163,11 @@ class FlextCliPerformance(FlextService[object]):
 
             except ImportError as e:
                 error_msg = f"Failed to import module '{key}': {e}"
-                self._logger.exception(error_msg)
+                self.logger.exception(error_msg)
                 return FlextResult[object].fail(error_msg)
             except Exception as e:
                 error_msg = f"Failed to load module: {e}"
-                self._logger.exception(error_msg)
+                self.logger.exception(error_msg)
                 return FlextResult[object].fail(error_msg)
 
         def is_loaded(self, key: str) -> bool:
@@ -193,12 +193,12 @@ class FlextCliPerformance(FlextService[object]):
                 return FlextResult[FlextTypes.Dict].ok(self._loaded_modules.copy())
             except Exception as e:
                 error_msg = f"Failed to get loaded modules: {e}"
-                self._logger.exception(error_msg)
+                self.logger.exception(error_msg)
                 return FlextResult[FlextTypes.Dict].fail(error_msg)
 
         # Attribute declarations - override FlextService optional types
         # These are guaranteed initialized in __init__
-        _logger: FlextLogger
+        logger: FlextLogger
         _container: FlextContainer
 
         def execute(self) -> FlextResult[None]:
@@ -224,7 +224,7 @@ class FlextCliPerformance(FlextService[object]):
         """
 
         # Attribute declarations - override FlextService optional types
-        _logger: FlextLogger
+        logger: FlextLogger
         _container: FlextContainer
 
         def __init__(self, **data: object) -> None:
@@ -264,13 +264,13 @@ class FlextCliPerformance(FlextService[object]):
                     "created_at": time.time(),
                 }
 
-                self._logger.debug("Cached entry", extra={"cache_key": key, "ttl": ttl})
+                self.logger.debug("Cached entry", extra={"cache_key": key, "ttl": ttl})
 
                 return FlextResult[None].ok(None)
 
             except Exception as e:
                 error_msg = f"Failed to set cache: {e}"
-                self._logger.exception(error_msg)
+                self.logger.exception(error_msg)
                 return FlextResult[None].fail(error_msg)
 
         def get(self, key: str) -> FlextResult[object]:
@@ -294,13 +294,13 @@ class FlextCliPerformance(FlextService[object]):
                     del self._cache[key]
                     return FlextResult[object].fail(f"Cache expired: '{key}'")
 
-                self._logger.debug("Cache hit", extra={"cache_key": key})
+                self.logger.debug("Cache hit", extra={"cache_key": key})
 
                 return FlextResult[object].ok(entry["value"])
 
             except Exception as e:
                 error_msg = f"Failed to get cache: {e}"
-                self._logger.exception(error_msg)
+                self.logger.exception(error_msg)
                 return FlextResult[object].fail(error_msg)
 
         def delete(self, key: str) -> FlextResult[None]:
@@ -316,13 +316,13 @@ class FlextCliPerformance(FlextService[object]):
             try:
                 if key in self._cache:
                     del self._cache[key]
-                    self._logger.debug("Deleted cache entry", extra={"cache_key": key})
+                    self.logger.debug("Deleted cache entry", extra={"cache_key": key})
 
                 return FlextResult[None].ok(None)
 
             except Exception as e:
                 error_msg = f"Failed to delete cache: {e}"
-                self._logger.exception(error_msg)
+                self.logger.exception(error_msg)
                 return FlextResult[None].fail(error_msg)
 
         def clear(self) -> FlextResult[None]:
@@ -336,13 +336,13 @@ class FlextCliPerformance(FlextService[object]):
                 count = len(self._cache)
                 self._cache.clear()
 
-                self._logger.info("Cleared cache", extra={"entry_count": count})
+                self.logger.info("Cleared cache", extra={"entry_count": count})
 
                 return FlextResult[None].ok(None)
 
             except Exception as e:
                 error_msg = f"Failed to clear cache: {e}"
-                self._logger.exception(error_msg)
+                self.logger.exception(error_msg)
                 return FlextResult[None].fail(error_msg)
 
         def cleanup_expired(self) -> FlextResult[int]:
@@ -363,7 +363,7 @@ class FlextCliPerformance(FlextService[object]):
                 for key in expired_keys:
                     del self._cache[key]
 
-                self._logger.info(
+                self.logger.info(
                     "Cleaned up expired cache entries",
                     extra={"removed_count": len(expired_keys)},
                 )
@@ -372,7 +372,7 @@ class FlextCliPerformance(FlextService[object]):
 
             except Exception as e:
                 error_msg = f"Failed to cleanup cache: {e}"
-                self._logger.exception(error_msg)
+                self.logger.exception(error_msg)
                 return FlextResult[int].fail(error_msg)
 
         def get_stats(self) -> FlextResult[FlextTypes.Dict]:
@@ -396,7 +396,7 @@ class FlextCliPerformance(FlextService[object]):
 
             except Exception as e:
                 error_msg = f"Failed to get cache stats: {e}"
-                self._logger.exception(error_msg)
+                self.logger.exception(error_msg)
                 return FlextResult[FlextTypes.Dict].fail(error_msg)
 
         def execute(self) -> FlextResult[None]:

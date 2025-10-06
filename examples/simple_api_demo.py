@@ -81,8 +81,12 @@ def main() -> None:
         cli.success(f"Written YAML to {yaml_file}")
 
         # Read YAML
-        yaml_data = cli.read_yaml(str(yaml_file))
-        cli.info(f"Loaded YAML: {yaml_data['app']} v{yaml_data['version']}")
+        yaml_result = cli.read_yaml(str(yaml_file))
+        if yaml_result.is_success:
+            yaml_data = yaml_result.unwrap()
+            cli.info(f"Loaded YAML: {yaml_data['app']} v{yaml_data['version']}")
+        else:
+            cli.error(f"Failed to load YAML: {yaml_result.error}")
 
     # =========================================================================
     # SUMMARY

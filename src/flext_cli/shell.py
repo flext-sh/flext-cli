@@ -118,13 +118,13 @@ class FlextCliShell(FlextService[object]):
             # Load history
             load_result = self._load_history()
             if load_result.is_failure:
-                self._logger.warning(f"Failed to load history: {load_result.error}")
+                self.logger.warning(f"Failed to load history: {load_result.error}")
 
             # Setup completion if enabled
             if self._enable_completion:
                 setup_result = self._setup_completion()
                 if setup_result.is_failure:
-                    self._logger.warning(
+                    self.logger.warning(
                         f"Completion setup failed: {setup_result.error}"
                     )
 
@@ -138,21 +138,21 @@ class FlextCliShell(FlextService[object]):
                 if loop_result.is_failure:
                     if "exit" in str(loop_result.error).lower():
                         break
-                    self._logger.error(f"REPL error: {loop_result.error}")
+                    self.logger.error(f"REPL error: {loop_result.error}")
 
             # Save history on exit
             save_result = self._save_history()
             if save_result.is_failure:
-                self._logger.warning(f"Failed to save history: {save_result.error}")
+                self.logger.warning(f"Failed to save history: {save_result.error}")
 
-            self._logger.info("Interactive shell session ended")
+            self.logger.info("Interactive shell session ended")
             return FlextResult[None].ok(None)
 
         except KeyboardInterrupt:
             return FlextResult[None].ok(None)
         except Exception as e:
             error_msg = f"Shell failed: {e}"
-            self._logger.exception(error_msg)
+            self.logger.exception(error_msg)
             return FlextResult[None].fail(error_msg)
 
     def _repl_iteration(self) -> FlextResult[None]:
@@ -351,7 +351,7 @@ class FlextCliShell(FlextService[object]):
         """
         try:
             # History is managed by prompt_toolkit
-            self._logger.debug("History managed by prompt_toolkit")
+            self.logger.debug("History managed by prompt_toolkit")
             return FlextResult[None].ok(None)
 
         except Exception as e:
@@ -366,7 +366,7 @@ class FlextCliShell(FlextService[object]):
         """
         try:
             # History is managed by prompt_toolkit
-            self._logger.debug("History managed by prompt_toolkit")
+            self.logger.debug("History managed by prompt_toolkit")
             return FlextResult[None].ok(None)
 
         except Exception as e:
@@ -381,7 +381,7 @@ class FlextCliShell(FlextService[object]):
         """
         try:
             # Completion is handled automatically by prompt_toolkit
-            self._logger.debug("Tab completion enabled via prompt_toolkit")
+            self.logger.debug("Tab completion enabled via prompt_toolkit")
             return FlextResult[None].ok(None)
 
         except Exception as e:
@@ -389,7 +389,7 @@ class FlextCliShell(FlextService[object]):
 
     # Attribute declarations - override FlextService optional types
     # These are guaranteed initialized in __init__
-    _logger: FlextLogger | None
+    logger: FlextLogger | None
     _container: FlextContainer | None
 
     def execute(self) -> FlextResult[None]:

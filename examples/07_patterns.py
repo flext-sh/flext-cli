@@ -181,12 +181,15 @@ class ProjectRepository(Protocol):
 
     def save(self, project: Project) -> FlextResult[None]:
         """Save project to persistence."""
+        ...
 
     def find_by_id(self, project_id: UUID) -> FlextResult[Project | None]:
         """Find project by ID."""
+        ...
 
     def find_by_owner(self, owner_id: str) -> FlextResult[list[Project]]:
         """Find projects by owner."""
+        ...
 
 
 class InMemoryProjectRepository:
@@ -420,10 +423,12 @@ class ProjectManagementService:
     def __init__(
         self,
         config: FlextCliTypes.Configuration.CliConfigSchema | None = None,
-        **data: object,
+        **_data: object,
     ) -> None:
         """Initialize CQRS service with dependencies."""
-        super().__init__(config=config, **data)
+        super().__init__()
+        # Store config if provided
+        self._config = config
 
         # Setup dependencies (in real app: DI container)
         self._repository = InMemoryProjectRepository()

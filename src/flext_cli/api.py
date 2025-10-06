@@ -75,7 +75,7 @@ class FlextCli:
     def __init__(self) -> None:
         """Initialize CLI API thin facade with Phase 1 context enrichment."""
         # Initialize logger first
-        self._logger = FlextLogger(__name__)
+        self.logger = FlextLogger(__name__)
 
         # Initialize flext-core advanced features
         self._bus = FlextBus()
@@ -91,7 +91,7 @@ class FlextCli:
 
         # Enrich logger with correlation tracking
         correlation_id = FlextContext.Correlation.generate_correlation_id()
-        self._logger.bind_global_context(
+        self.logger.bind_global_context(
             service_name="flext-cli",
             service_type="FlextCli",
             correlation_id=correlation_id,

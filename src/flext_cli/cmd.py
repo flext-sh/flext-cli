@@ -123,8 +123,8 @@ class FlextCliCmd(FlextService[FlextTypes.Dict]):
         """Validate configuration structure."""
         try:
             results = self._validate_config_structure()
-            if results and self._logger:
-                self._logger.info(f"Config validation results: {results}")
+            if results and self.logger:
+                self.logger.info(f"Config validation results: {results}")
             return FlextResult[None].ok(None)
         except Exception as e:
             return FlextResult[None].fail(f"Config validation failed: {e}")
@@ -158,8 +158,8 @@ class FlextCliCmd(FlextService[FlextTypes.Dict]):
                     f"Config save failed: {save_result.error}"
                 )
 
-            if self._logger:
-                self._logger.info(f"Configuration saved: {key} = {value}")
+            if self.logger:
+                self.logger.info(f"Configuration saved: {key} = {value}")
             return FlextResult[bool].ok(True)
 
         except Exception as e:
@@ -219,8 +219,8 @@ class FlextCliCmd(FlextService[FlextTypes.Dict]):
                     f"Show config failed: {info_result.error}"
                 )
 
-            if self._logger:
-                self._logger.info("Configuration displayed", config=info_result.value)
+            if self.logger:
+                self.logger.info("Configuration displayed", config=info_result.value)
             return FlextResult[None].ok(None)
         except Exception as e:
             return FlextResult[None].fail(f"Show config failed: {e}")
@@ -286,8 +286,8 @@ class FlextCliCmd(FlextService[FlextTypes.Dict]):
                 "message": "Configuration loaded successfully. Use set_config_value to modify specific values.",
             }
 
-            if self._logger:
-                self._logger.info("Configuration edit completed", config=config_info)
+            if self.logger:
+                self.logger.info("Configuration edit completed", config=config_info)
             return FlextResult[str].ok("Configuration edit completed successfully")
 
         except Exception as e:

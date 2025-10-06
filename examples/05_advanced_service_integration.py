@@ -28,7 +28,7 @@ from __future__ import annotations
 import time
 from datetime import UTC, datetime
 from enum import Enum
-from typing import Protocol, cast, override
+from typing import Protocol, cast
 
 from flext_core import FlextContainer, FlextLogger, FlextResult, FlextTypes
 from rich.progress import Progress, SpinnerColumn, TaskID, TextColumn
@@ -48,9 +48,11 @@ class ContainerProtocol(Protocol):
 
     def register(self, name: str, service: object) -> FlextResult[None]:
         """Register a service in the container."""
+        ...
 
     def get(self, name: str) -> FlextResult[object]:
         """Get a service from the container."""
+        ...
 
 
 # Simple replacement for missing example_utils
@@ -88,12 +90,11 @@ class AdvancedCliService:
         self._performance_metrics: FlextTypes.Dict = {}
 
         # Initialize logger
-        self._logger = FlextLogger(__name__)
+        self.logger = FlextLogger(__name__)
 
         # Initialize circuit_breakers as public attribute
         self.circuit_breakers: FlextTypes.NestedDict = {}
 
-    @override
     def execute(self) -> FlextResult[FlextCliTypes.Data.CliDataDict]:
         """Execute advanced CLI service operations."""
         return FlextResult[FlextCliTypes.Data.CliDataDict].ok({
@@ -127,10 +128,10 @@ class AdvancedCliService:
         except Exception as e:
             if (
                 hasattr(self, "logger")
-                and self._logger
-                and hasattr(self._logger, "exception")
+                and self.logger
+                and hasattr(self.logger, "exception")
             ):
-                self._logger.exception(f"Health check failed for {service_name}")
+                self.logger.exception(f"Health check failed for {service_name}")
             return FlextResult[FlextTypes.Dict].fail(f"Health check failed: {e}")
 
     # Removed problematic decorators - @cli_enhanced, @with_spinner
@@ -138,12 +139,8 @@ class AdvancedCliService:
     def orchestrate_services(self, operation: str) -> FlextResult[FlextTypes.Dict]:
         """Orchestrate multiple services for complex operations."""
         try:
-            if (
-                hasattr(self, "logger")
-                and self._logger
-                and hasattr(self._logger, "info")
-            ):
-                self._logger.info(f"Starting service orchestration: {operation}")
+            if hasattr(self, "logger") and self.logger and hasattr(self.logger, "info"):
+                self.logger.info(f"Starting service orchestration: {operation}")
 
             # Define service orchestration steps
             orchestration_steps = [
@@ -165,20 +162,20 @@ class AdvancedCliService:
                     results[service_name] = step_result.value
                     if (
                         hasattr(self, "logger")
-                        and self._logger
-                        and hasattr(self._logger, "info")
+                        and self.logger
+                        and hasattr(self.logger, "info")
                     ):
-                        self._logger.info(
+                        self.logger.info(
                             f"Step completed: {service_name}.{step_operation}"
                         )
                 else:
                     # Handle step failure - implement rollback if needed
                     if (
                         hasattr(self, "logger")
-                        and self._logger
-                        and hasattr(self._logger, "error")
+                        and self.logger
+                        and hasattr(self.logger, "error")
                     ):
-                        self._logger.error(
+                        self.logger.error(
                             f"Step failed: {service_name}.{step_operation} - {step_result.error}"
                         )
                     return FlextResult[FlextTypes.Dict].fail(
@@ -198,10 +195,10 @@ class AdvancedCliService:
         except Exception as e:
             if (
                 hasattr(self, "logger")
-                and self._logger
-                and hasattr(self._logger, "exception")
+                and self.logger
+                and hasattr(self.logger, "exception")
             ):
-                self._logger.exception("Service orchestration failed")
+                self.logger.exception("Service orchestration failed")
             return FlextResult[FlextTypes.Dict].fail(
                 f"Service orchestration failed: {e}"
             )
@@ -235,10 +232,10 @@ class AdvancedCliService:
                 breaker["state"] = CircuitBreakerState.HALF_OPEN
                 if (
                     hasattr(self, "logger")
-                    and self._logger
-                    and hasattr(self._logger, "info")
+                    and self.logger
+                    and hasattr(self.logger, "info")
                 ):
-                    self._logger.info(
+                    self.logger.info(
                         f"Circuit breaker for {service_name} moved to HALF_OPEN"
                     )
 
@@ -271,10 +268,10 @@ class AdvancedCliService:
                 breaker["state"] = CircuitBreakerState.OPEN
                 if (
                     hasattr(self, "logger")
-                    and self._logger
-                    and hasattr(self._logger, "warning")
+                    and self.logger
+                    and hasattr(self.logger, "warning")
                 ):
-                    self._logger.warning(f"Circuit breaker OPENED for {service_name}")
+                    self.logger.warning(f"Circuit breaker OPENED for {service_name}")
 
             return FlextResult[bool].fail(f"Service call failed for {service_name}")
 

@@ -46,7 +46,7 @@ class TestFlextCliCore:
     def test_core_service_initialization(self, core_service: FlextCliCore) -> None:
         """Test core service initialization and basic properties."""
         assert core_service is not None
-        assert hasattr(core_service, "_logger")
+        assert hasattr(core_service, "logger")
         assert hasattr(core_service, "_container")
         assert hasattr(core_service, "_config")
         assert hasattr(core_service, "_commands")

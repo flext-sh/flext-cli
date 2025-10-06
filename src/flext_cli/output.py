@@ -68,7 +68,7 @@ class FlextCliOutput(FlextService[object]):
 
     # Attribute declarations - override FlextService optional types
     # These are guaranteed initialized in __init__
-    _logger: FlextLogger
+    logger: FlextLogger
     _container: FlextContainer
 
     @override
@@ -217,7 +217,7 @@ class FlextCliOutput(FlextService[object]):
 
         except Exception as e:
             error_msg = f"Failed to create Rich table: {e}"
-            self._logger.exception(error_msg)
+            self.logger.exception(error_msg)
             return FlextResult[object].fail(error_msg)
 
     def table_to_string(
@@ -409,6 +409,85 @@ class FlextCliOutput(FlextService[object]):
             highlight=highlight,
         )
 
+    def display_message(
+        self,
+        message: str,
+        message_type: str = "info",
+        **kwargs: object,
+    ) -> FlextResult[None]:
+        """Display message with specified type and styling.
+
+        Args:
+            message: Message to display
+            message_type: Type of message (info, success, error, warning)
+            **kwargs: Additional formatting options
+
+        Returns:
+            FlextResult[None]: Success or failure result
+
+        Example:
+            >>> output = FlextCliOutput()
+            >>> output.display_message("Operation completed", message_type="success")
+
+        """
+        # Map message types to styles
+        style_map = {
+            "info": "blue",
+            "success": "bold green",
+            "error": "bold red",
+            "warning": "bold yellow",
+        }
+
+        # Get style for message type, default to info
+        style = style_map.get(message_type, "blue")
+
+        # Add emoji prefix based on message type
+        emoji_map = {
+            "info": "ℹ️",
+            "success": "✅",
+            "error": "❌",
+            "warning": "⚠️",
+        }
+
+        emoji = emoji_map.get(message_type, "ℹ️")
+        formatted_message = f"{emoji} {message}"
+
+        return self.print_message(formatted_message, style=style, **kwargs)
+
+    def display_data(
+        self,
+        data: object,
+        format_type: str = "table",
+        **kwargs: object,
+    ) -> FlextResult[None]:
+        """Display data in specified format.
+
+        Args:
+            data: Data to display
+            format_type: Format type (table, json, yaml, etc.)
+            **kwargs: Additional formatting options
+
+        Returns:
+            FlextResult[None]: Success or failure result
+
+        Example:
+            >>> output = FlextCliOutput()
+            >>> output.display_data({"key": "value"}, format_type="json")
+
+        """
+        # Format the data first
+        format_result = self.format_data(data, format_type=format_type, **kwargs)
+
+        if format_result.is_failure:
+            return FlextResult[None].fail(
+                f"Failed to format data: {format_result.error}"
+            )
+
+        formatted_data = format_result.unwrap()
+
+        # Display the formatted data
+        return self.print_message(formatted_data)
+
     # =========================================================================
     # DATA FORMAT METHODS (Built-in)
     # =========================================================================
@@ -431,7 +510,7 @@ class FlextCliOutput(FlextService[object]):
             return FlextResult[str].ok(json.dumps(data, default=str, indent=2))
         except Exception as e:
             error_msg = f"JSON formatting failed: {e}"
-            self._logger.exception(error_msg)
+            self.logger.exception(error_msg)
             return FlextResult[str].fail(error_msg)
 
     def format_yaml(self, data: object) -> FlextResult[str]:
@@ -452,7 +531,7 @@ class FlextCliOutput(FlextService[object]):
             return FlextResult[str].ok(yaml.dump(data, default_flow_style=False))
         except Exception as e:
             error_msg = f"YAML formatting failed: {e}"
-            self._logger.exception(error_msg)
+            self.logger.exception(error_msg)
             return FlextResult[str].fail(error_msg)
 
     def format_csv(self, data: object) -> FlextResult[str]:
@@ -487,7 +566,7 @@ class FlextCliOutput(FlextService[object]):
             return FlextResult[str].ok(json.dumps(data, default=str, indent=2))
         except Exception as e:
             error_msg = f"CSV formatting failed: {e}"
-            self._logger.exception(error_msg)
+            self.logger.exception(error_msg)
             return FlextResult[str].fail(error_msg)
 
     def format_table(
@@ -552,7 +631,7 @@ class FlextCliOutput(FlextService[object]):
 
         except Exception as e:
             error_msg = f"Failed to format table: {e}"
-            self._logger.exception(error_msg)
+            self.logger.exception(error_msg)
             return FlextResult[str].fail(error_msg)
 
     def format_as_tree(

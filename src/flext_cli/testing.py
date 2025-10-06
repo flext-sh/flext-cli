@@ -131,7 +131,7 @@ class FlextCliTesting(FlextService[object]):
                 "exception": exception,
             }
 
-            self._logger.debug(
+            self.logger.debug(
                 "Invoked command for testing",
                 extra={"cmd_name": command_name, "exit_code": exit_code},
             )
@@ -140,7 +140,7 @@ class FlextCliTesting(FlextService[object]):
 
         except Exception as e:
             error_msg = f"Failed to invoke command: {e}"
-            self._logger.exception(error_msg)
+            self.logger.exception(error_msg)
             return FlextResult[FlextTypes.Dict].fail(error_msg)
 
     def create_isolated_runner(self, *, mix_stderr: bool = True) -> FlextResult[object]:
@@ -168,12 +168,12 @@ class FlextCliTesting(FlextService[object]):
                     f"Failed to create runner: {runner_result.error}"
                 )
 
-            self._logger.debug("Created isolated CLI runner")
+            self.logger.debug("Created isolated CLI runner")
             return FlextResult[object].ok(runner_result.unwrap())
 
         except Exception as e:
             error_msg = f"Failed to create isolated runner: {e}"
-            self._logger.exception(error_msg)
+            self.logger.exception(error_msg)
             return FlextResult[object].fail(error_msg)
 
     def capture_output(
@@ -217,7 +217,7 @@ class FlextCliTesting(FlextService[object]):
             data = result.unwrap()
             output = str(data.get("output", ""))
 
-            self._logger.debug(
+            self.logger.debug(
                 "Captured CLI output",
                 extra={"cmd_name": command_name, "output_len": len(output)},
             )
@@ -226,7 +226,7 @@ class FlextCliTesting(FlextService[object]):
 
         except Exception as e:
             error_msg = f"Failed to capture output: {e}"
-            self._logger.exception(error_msg)
+            self.logger.exception(error_msg)
             return FlextResult[str].fail(error_msg)
 
     def assert_command_succeeds(
@@ -273,12 +273,12 @@ class FlextCliTesting(FlextService[object]):
                     f"Command failed with exit code {exit_code}"
                 )
 
-            self._logger.debug("Command succeeded", extra={"cmd_name": command_name})
+            self.logger.debug("Command succeeded", extra={"cmd_name": command_name})
             return FlextResult[None].ok(None)
 
         except Exception as e:
             error_msg = f"Assertion failed: {e}"
-            self._logger.exception(error_msg)
+            self.logger.exception(error_msg)
             return FlextResult[None].fail(error_msg)
 
     def assert_output_contains(
@@ -328,7 +328,7 @@ class FlextCliTesting(FlextService[object]):
                     f"Expected text '{expected_text}' not found in output"
                 )
 
-            self._logger.debug(
+            self.logger.debug(
                 "Output contains expected text",
                 extra={"cmd_name": command_name, "expected": expected_text},
             )
@@ -336,12 +336,12 @@ class FlextCliTesting(FlextService[object]):
 
         except Exception as e:
             error_msg = f"Assertion failed: {e}"
-            self._logger.exception(error_msg)
+            self.logger.exception(error_msg)
             return FlextResult[None].fail(error_msg)
 
     # Attribute declarations - override FlextService optional types
     # These are guaranteed initialized in __init__
-    _logger: FlextLogger | None
+    logger: FlextLogger | None
     _container: FlextContainer | None
 
     def execute(self) -> FlextResult[object]:
@@ -416,12 +416,12 @@ class FlextCliTesting(FlextService[object]):
                 **extra,
             }
 
-            self._logger.debug("Created mock config", extra={"config_profile": profile})
+            self.logger.debug("Created mock config", extra={"config_profile": profile})
             return FlextResult[FlextTypes.Dict].ok(config)
 
         except Exception as e:
             error_msg = f"Failed to create mock config: {e}"
-            self._logger.exception(error_msg)
+            self.logger.exception(error_msg)
             return FlextResult[FlextTypes.Dict].fail(error_msg)
 
     def mock_cli_context(
@@ -453,12 +453,12 @@ class FlextCliTesting(FlextService[object]):
                 "invoked_subcommand": "",
             }
 
-            self._logger.debug("Created mock context", extra={"cmd_name": command_name})
+            self.logger.debug("Created mock context", extra={"cmd_name": command_name})
             return FlextResult[FlextTypes.Dict].ok(context)
 
         except Exception as e:
             error_msg = f"Failed to create mock context: {e}"
-            self._logger.exception(error_msg)
+            self.logger.exception(error_msg)
             return FlextResult[FlextTypes.Dict].fail(error_msg)
 
     def run_scenarios(self) -> FlextResult[object]:

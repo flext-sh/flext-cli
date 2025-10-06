@@ -44,7 +44,7 @@ class TestFlextCliFormatters:
         """Test formatters initialization."""
         assert isinstance(formatters, FlextCliFormatters)
         assert hasattr(formatters, "_console")
-        assert hasattr(formatters, "_logger")
+        assert hasattr(formatters, "logger")
         assert hasattr(formatters, "_container")
 
     def test_formatters_execute(self, formatters: FlextCliFormatters) -> None:

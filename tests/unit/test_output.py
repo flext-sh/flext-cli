@@ -50,7 +50,7 @@ class TestFlextCliOutput:
     def test_output_initialization(self, output: FlextCliOutput) -> None:
         """Test output initialization."""
         assert isinstance(output, FlextCliOutput)
-        assert hasattr(output, "_logger")
+        assert hasattr(output, "logger")
         assert hasattr(output, "_formatters")
         assert hasattr(output, "_tables")
 

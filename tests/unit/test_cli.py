@@ -34,7 +34,7 @@ class TestFlextCliCli:
     def test_cli_cli_initialization(self, cli_cli: FlextCliCli) -> None:
         """Test Click abstraction layer initialization."""
         assert isinstance(cli_cli, FlextCliCli)
-        assert hasattr(cli_cli, "_logger")
+        assert hasattr(cli_cli, "logger")
         assert hasattr(cli_cli, "_container")
 
     def test_cli_cli_execute(self, cli_cli: FlextCliCli) -> None:

@@ -36,7 +36,7 @@ class TestFlextCli:
     def test_api_service_initialization(self, api_service: FlextCli) -> None:
         """Test API service initialization and basic properties."""
         assert api_service is not None
-        assert hasattr(api_service, "_logger")
+        assert hasattr(api_service, "logger")
         assert hasattr(api_service, "_container")
         assert hasattr(api_service, "_output")
         assert hasattr(api_service, "_file_tools")

@@ -38,7 +38,7 @@ class TestFlextCliAuth:
     def test_auth_service_initialization(self, auth_service: FlextCliAuth) -> None:
         """Test auth service initialization and basic properties."""
         assert auth_service is not None
-        assert hasattr(auth_service, "_logger")
+        assert hasattr(auth_service, "logger")
         assert hasattr(auth_service, "_container")
 
     def test_auth_service_execute_method(self, auth_service: FlextCliAuth) -> None:

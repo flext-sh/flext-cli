@@ -85,7 +85,7 @@ class FlextCliFormatters(FlextService[object]):
     """
 
     # Override base class optional attributes with guaranteed initialized types
-    _logger: FlextLogger
+    logger: FlextLogger
     _container: FlextContainer
 
     def __init__(self) -> None:
@@ -174,7 +174,7 @@ class FlextCliFormatters(FlextService[object]):
             return FlextResult[None].ok(None)
         except Exception as e:
             error_msg = f"Failed to print to console: {e}"
-            self._logger.exception(error_msg)
+            self.logger.exception(error_msg)
             return FlextResult[None].fail(error_msg)
 
     # =========================================================================
@@ -229,11 +229,11 @@ class FlextCliFormatters(FlextService[object]):
                 expand=expand,
                 width=width,
             )
-            self._logger.debug("Created Rich panel", extra={"title": title})
+            self.logger.debug("Created Rich panel", extra={"title": title})
             return FlextResult[Panel].ok(panel)
         except Exception as e:
             error_msg = f"Failed to create panel: {e}"
-            self._logger.exception(error_msg)
+            self.logger.exception(error_msg)
             return FlextResult[Panel].fail(error_msg)
 
     def display_panel(
@@ -303,11 +303,11 @@ class FlextCliFormatters(FlextService[object]):
                 minimum_size=minimum_size,
                 ratio=ratio,
             )
-            self._logger.debug("Created Rich layout", extra={"layout_name": name})
+            self.logger.debug("Created Rich layout", extra={"layout_name": name})
             return FlextResult[Layout].ok(layout)
         except Exception as e:
             error_msg = f"Failed to create layout: {e}"
-            self._logger.exception(error_msg)
+            self.logger.exception(error_msg)
             return FlextResult[Layout].fail(error_msg)
 
     # =========================================================================
@@ -346,11 +346,11 @@ class FlextCliFormatters(FlextService[object]):
                 transient=transient,
                 console=self.console,
             )
-            self._logger.debug("Created Live display")
+            self.logger.debug("Created Live display")
             return FlextResult[Live].ok(live)
         except Exception as e:
             error_msg = f"Failed to create Live display: {e}"
-            self._logger.exception(error_msg)
+            self.logger.exception(error_msg)
             return FlextResult[Live].fail(error_msg)
 
     # =========================================================================
@@ -382,11 +382,11 @@ class FlextCliFormatters(FlextService[object]):
         """
         try:
             spinner = Spinner(spinner_name, text=text, style=style)
-            self._logger.debug("Created spinner", extra={"spinner_type": spinner_name})
+            self.logger.debug("Created spinner", extra={"spinner_type": spinner_name})
             return FlextResult[Spinner].ok(spinner)
         except Exception as e:
             error_msg = f"Failed to create spinner: {e}"
-            self._logger.exception(error_msg)
+            self.logger.exception(error_msg)
             return FlextResult[Spinner].fail(error_msg)
 
     def create_status(
@@ -421,11 +421,11 @@ class FlextCliFormatters(FlextService[object]):
                 spinner_style=spinner_style,
                 console=self.console,
             )
-            self._logger.debug("Created status", extra={"status_message": status})
+            self.logger.debug("Created status", extra={"status_message": status})
             return FlextResult[Status].ok(status_obj)
         except Exception as e:
             error_msg = f"Failed to create status: {e}"
-            self._logger.exception(error_msg)
+            self.logger.exception(error_msg)
             return FlextResult[Status].fail(error_msg)
 
     # =========================================================================
@@ -480,11 +480,11 @@ class FlextCliFormatters(FlextService[object]):
                 expand=expand,
                 console=self.console,
             )
-            self._logger.debug("Created progress bar")
+            self.logger.debug("Created progress bar")
             return FlextResult[Progress].ok(progress)
         except Exception as e:
             error_msg = f"Failed to create progress bar: {e}"
-            self._logger.exception(error_msg)
+            self.logger.exception(error_msg)
             return FlextResult[Progress].fail(error_msg)
 
     # =========================================================================
@@ -520,11 +520,11 @@ class FlextCliFormatters(FlextService[object]):
                 code_theme=code_theme,
                 inline_code_lexer=inline_code_lexer,
             )
-            self._logger.debug("Rendered markdown")
+            self.logger.debug("Rendered markdown")
             return FlextResult[Markdown].ok(markdown)
         except Exception as e:
             error_msg = f"Failed to render markdown: {e}"
-            self._logger.exception(error_msg)
+            self.logger.exception(error_msg)
             return FlextResult[Markdown].fail(error_msg)
 
     def display_markdown(
@@ -611,13 +611,13 @@ class FlextCliFormatters(FlextService[object]):
                 highlight_lines=highlight_lines,
                 code_width=code_width,
             )
-            self._logger.debug(
+            self.logger.debug(
                 "Created syntax highlighting", extra={"language": language}
             )
             return FlextResult[Syntax].ok(syntax)
         except Exception as e:
             error_msg = f"Failed to create syntax highlighting: {e}"
-            self._logger.exception(error_msg)
+            self.logger.exception(error_msg)
             return FlextResult[Syntax].fail(error_msg)
 
     def display_code(
@@ -714,11 +714,11 @@ class FlextCliFormatters(FlextService[object]):
                 style=style,
                 align=align,
             )
-            self._logger.debug("Created rule", extra={"rule_title": title})
+            self.logger.debug("Created rule", extra={"rule_title": title})
             return FlextResult[Rule].ok(rule)
         except Exception as e:
             error_msg = f"Failed to create rule: {e}"
-            self._logger.exception(error_msg)
+            self.logger.exception(error_msg)
             return FlextResult[Rule].fail(error_msg)
 
     def display_rule(
@@ -811,11 +811,11 @@ class FlextCliFormatters(FlextService[object]):
                 no_wrap=no_wrap,
                 end=end,
             )
-            self._logger.debug("Created Rich text")
+            self.logger.debug("Created Rich text")
             return FlextResult[Text].ok(text_obj)
         except Exception as e:
             error_msg = f"Failed to create text: {e}"
-            self._logger.exception(error_msg)
+            self.logger.exception(error_msg)
             return FlextResult[Text].fail(error_msg)
 
     def align_text(
@@ -859,11 +859,11 @@ class FlextCliFormatters(FlextService[object]):
                 width=width,
                 height=height,
             )
-            self._logger.debug("Created alignment")
+            self.logger.debug("Created alignment")
             return FlextResult[Align].ok(aligned)
         except Exception as e:
             error_msg = f"Failed to create alignment: {e}"
-            self._logger.exception(error_msg)
+            self.logger.exception(error_msg)
             return FlextResult[Align].fail(error_msg)
 
     # =========================================================================
@@ -915,11 +915,11 @@ class FlextCliFormatters(FlextService[object]):
                 expand=expand,
                 padding=padding,
             )
-            self._logger.debug("Created Rich table", extra={"table_title": title})
+            self.logger.debug("Created Rich table", extra={"table_title": title})
             return FlextResult[RichTable].ok(table)
         except Exception as e:
             error_msg = f"Failed to create table: {e}"
-            self._logger.exception(error_msg)
+            self.logger.exception(error_msg)
             return FlextResult[RichTable].fail(error_msg)
 
     def create_tree(
@@ -947,11 +947,11 @@ class FlextCliFormatters(FlextService[object]):
         """
         try:
             tree = Tree(label, guide_style=guide_style)
-            self._logger.debug("Created tree", extra={"tree_label": label})
+            self.logger.debug("Created tree", extra={"tree_label": label})
             return FlextResult[Tree].ok(tree)
         except Exception as e:
             error_msg = f"Failed to create tree: {e}"
-            self._logger.exception(error_msg)
+            self.logger.exception(error_msg)
             return FlextResult[Tree].fail(error_msg)
 
     # =========================================================================
@@ -1004,11 +1004,11 @@ class FlextCliFormatters(FlextService[object]):
                 if isinstance(suppress, Iterable)
                 else (),
             )
-            self._logger.debug("Created Rich traceback")
+            self.logger.debug("Created Rich traceback")
             return FlextResult[Traceback].ok(traceback)
         except Exception as e:
             error_msg = f"Failed to create traceback: {e}"
-            self._logger.exception(error_msg)
+            self.logger.exception(error_msg)
             return FlextResult[Traceback].fail(error_msg)
 
     # =========================================================================
@@ -1049,13 +1049,13 @@ class FlextCliFormatters(FlextService[object]):
                 show_default=show_default,
                 console=self.console,
             )
-            self._logger.debug(
+            self.logger.debug(
                 "Prompted user for input", extra={"prompt_msg": prompt_text}
             )
             return FlextResult[str].ok(str(value))
         except Exception as e:
             error_msg = f"Failed to prompt user: {e}"
-            self._logger.exception(error_msg)
+            self.logger.exception(error_msg)
             return FlextResult[str].fail(error_msg)
 
     def confirm(
@@ -1089,13 +1089,13 @@ class FlextCliFormatters(FlextService[object]):
                 show_default=show_default,
                 console=self.console,
             )
-            self._logger.debug(
+            self.logger.debug(
                 "Asked user for confirmation", extra={"confirm_question": question}
             )
             return FlextResult[bool].ok(result)
         except Exception as e:
             error_msg = f"Failed to confirm: {e}"
-            self._logger.exception(error_msg)
+            self.logger.exception(error_msg)
             return FlextResult[bool].fail(error_msg)
 
     def prompt_choice(
@@ -1128,14 +1128,14 @@ class FlextCliFormatters(FlextService[object]):
                 default=default,
                 console=self.console,
             )
-            self._logger.debug(
+            self.logger.debug(
                 "Prompted user for choice",
                 extra={"prompt_msg": prompt_text, "choice_count": len(choices)},
             )
             return FlextResult[str].ok(str(value))
         except Exception as e:
             error_msg = f"Failed to prompt for choice: {e}"
-            self._logger.exception(error_msg)
+            self.logger.exception(error_msg)
             return FlextResult[str].fail(error_msg)
 
     def prompt_int(
@@ -1165,13 +1165,13 @@ class FlextCliFormatters(FlextService[object]):
             )
             if value is None:
                 return FlextResult[int].fail("No integer value provided")
-            self._logger.debug(
+            self.logger.debug(
                 "Prompted user for integer", extra={"prompt_msg": prompt_text}
             )
             return FlextResult[int].ok(value)
         except Exception as e:
             error_msg = f"Failed to prompt for integer: {e}"
-            self._logger.exception(error_msg)
+            self.logger.exception(error_msg)
             return FlextResult[int].fail(error_msg)
 
     def create_live_display_with_renderable(
@@ -1210,13 +1210,13 @@ class FlextCliFormatters(FlextService[object]):
                 transient=transient,
                 console=self.console,
             )
-            self._logger.debug(
+            self.logger.debug(
                 "Created live display", extra={"refresh_rate": refresh_per_second}
             )
             return FlextResult[Live].ok(live)
         except Exception as e:
             error_msg = f"Failed to create live display: {e}"
-            self._logger.exception(error_msg)
+            self.logger.exception(error_msg)
             return FlextResult[Live].fail(error_msg)
 
     # =========================================================================
@@ -1255,7 +1255,7 @@ class FlextCliFormatters(FlextService[object]):
             return FlextResult[str].ok(string_io.getvalue())
         except Exception as e:
             error_msg = f"Failed to render table to string: {e}"
-            self._logger.exception(error_msg)
+            self.logger.exception(error_msg)
             return FlextResult[str].fail(error_msg)
 
     def render_tree_to_string(
@@ -1292,7 +1292,7 @@ class FlextCliFormatters(FlextService[object]):
             return FlextResult[str].ok(string_io.getvalue())
         except Exception as e:
             error_msg = f"Failed to render tree to string: {e}"
-            self._logger.exception(error_msg)
+            self.logger.exception(error_msg)
             return FlextResult[str].fail(error_msg)
 
     # =========================================================================
@@ -1362,7 +1362,7 @@ class FlextCliFormatters(FlextService[object]):
             return FlextResult[None].ok(None)
         except Exception as e:
             error_msg = f"Failed to print renderable: {e}"
-            self._logger.exception(error_msg)
+            self.logger.exception(error_msg)
             return FlextResult[None].fail(error_msg)
 
     # =========================================================================
@@ -1381,7 +1381,7 @@ class FlextCliFormatters(FlextService[object]):
             return FlextResult[None].ok(None)
         except Exception as e:
             error_msg = f"Failed to clear console: {e}"
-            self._logger.exception(error_msg)
+            self.logger.exception(error_msg)
             return FlextResult[None].fail(error_msg)
 
     def execute(self) -> FlextResult[object]:

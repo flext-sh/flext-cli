@@ -62,6 +62,63 @@ class FlextCliFileTools(FlextService[FlextTypes.Dict]):
     # PUBLIC API - File operations exposed to ecosystem
     # ==========================================================================
 
+    def write_json(
+        self, data: object, path: str | Path, **kwargs: object
+    ) -> FlextResult[None]:
+        """Write JSON data to file (alias for write_json_file).
+
+        Args:
+            data: Data to write
+            path: File path
+            **kwargs: Additional options
+
+        Returns:
+            FlextResult[None]: Success or failure
+
+        """
+        return self.write_json_file(path, data, **kwargs)
+
+    def read_json(self, path: str | Path) -> FlextResult[object]:
+        """Read JSON data from file (alias for read_json_file).
+
+        Args:
+            path: File path
+
+        Returns:
+            FlextResult[object]: Parsed data or error
+
+        """
+        return self.read_json_file(path)
+
+    def write_yaml(
+        self, data: object, path: str | Path, **kwargs: object
+    ) -> FlextResult[None]:
+        """Write YAML data to file (alias for write_yaml_file).
+
+        Args:
+            data: Data to write
+            path: File path
+            **kwargs: Additional options
+
+        Returns:
+            FlextResult[None]: Success or failure
+
+        """
+        return self.write_yaml_file(path, data, **kwargs)
+
+    def read_yaml(self, path: str | Path, **kwargs: object) -> FlextResult[object]:
+        """Read YAML data from file (alias for read_yaml_file).
+
+        Args:
+            path: File path
+            **kwargs: Additional options
+
+        Returns:
+            FlextResult[object]: Parsed data or error
+
+        """
+        return self.read_yaml_file(path)
+
     def read_text_file(self, file_path: str | Path) -> FlextResult[str]:
         """Read text file.
 
