@@ -41,7 +41,6 @@ from pydantic import Field
 from flext_cli import (
     FlextCli,
     FlextCliCommands,
-    FlextCliService,
     FlextCliTypes,
 )
 
@@ -410,7 +409,7 @@ class ProjectQueryHandler:
         return FlextResult[list[FlextTypes.Dict]].ok(project_list_obj)
 
 
-class ProjectManagementService(FlextCliService):
+class ProjectManagementService:
     """Infrastructure service orchestrating the application layer."""
 
     _repository: InMemoryProjectRepository
@@ -514,7 +513,7 @@ class EnterpriseCliApplication:
     def __init__(self) -> None:
         """Initialize enterprise CLI application."""
         self.cli_api = FlextCli()
-        self.api_client = FlextCliService()
+        self.api_client = FlextCli()
         self.service = ProjectManagementService()
 
     def create_cli_interface(self) -> FlextResult[FlextCliCommands]:

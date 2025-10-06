@@ -43,19 +43,18 @@ class FlextCliCommands(FlextService[FlextTypes.Dict]):
 
     # Attribute declarations - override FlextService optional types
     # These are guaranteed initialized in __init__
-    _logger: FlextLogger
-    _container: FlextContainer
+    _logger: FlextLogger | None
+    _container: FlextContainer | None
 
     @override
     def __init__(
         self, name: str = "flext", description: str = "", **data: object
     ) -> None:
-        """Initialize CLI commands manager."""
+        """Initialize CLI commands manager with Phase 1 context enrichment."""
         super().__init__(**data)
+        # Logger and container inherited from FlextService via FlextMixins
         self._name = name
         self._description = description
-        self._logger = FlextLogger(__name__)
-        self._container = FlextContainer()
         self._commands: FlextTypes.NestedDict = {}
         self._cli_group = self._CliGroup(
             name=name,

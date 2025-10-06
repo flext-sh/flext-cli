@@ -258,9 +258,9 @@ def _demonstrate_output_formatting(formatter: FlextCliOutput) -> FlextResult[Non
 
     # Services data table
     services_data: FlextTypes.Dict = {
-        "api-gateway": f"Port {FlextConstants['Platform.FLEXT_API_PORT']}, Healthy",
-        "auth-service": f"Port {FlextConstants['Platform.FLEXT_API_PORT + 1']}, Healthy",
-        "database": f"Port {FlextConstants['Platform.POSTGRES_DEFAULT_PORT']}, Unhealthy",
+        "api-gateway": f"Port {FlextConstants.Platform.FLEXT_API_PORT}, Healthy",
+        "auth-service": f"Port {FlextConstants.Platform.FLEXT_API_PORT + 1}, Healthy",
+        "database": f"Port {FlextConstants.Platform.POSTGRES_DEFAULT_PORT}, Unhealthy",
     }
 
     services_table_result = formatter.format_table(

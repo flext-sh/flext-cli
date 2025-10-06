@@ -14,7 +14,7 @@ from __future__ import annotations
 from collections.abc import Iterable
 from io import StringIO
 from types import ModuleType
-from typing import Literal, cast
+from typing import Literal
 
 from flext_core import (
     FlextContainer,
@@ -89,10 +89,9 @@ class FlextCliFormatters(FlextService[object]):
     _container: FlextContainer
 
     def __init__(self) -> None:
-        """Initialize Rich formatters layer."""
+        """Initialize Rich formatters layer with Phase 1 context enrichment."""
         super().__init__()
-        self._logger = cast("FlextLogger", FlextLogger(__name__))
-        self._container = cast("FlextContainer", FlextContainer.get_global())
+        # Logger and container inherited from FlextService via FlextMixins
         self._console: Console | None = None
 
     @property

@@ -37,7 +37,7 @@ class FlextCliPrompts(FlextService[FlextCliTypes.Data.CliDataDict]):
         logger: FlextLogger | None = None,
         **data: object,
     ) -> None:
-        """Initialize CLI prompts service with enhanced configuration.
+        """Initialize CLI prompts service with enhanced configuration and Phase 1 context enrichment.
 
         Args:
             interactive_mode: Enable interactive prompt features
@@ -48,8 +48,10 @@ class FlextCliPrompts(FlextService[FlextCliTypes.Data.CliDataDict]):
 
         """
         super().__init__(**data)
-        self._logger = logger or FlextLogger(__name__)
-        self._container = FlextContainer()
+        # Logger and container inherited from FlextService via FlextMixins
+        # Optional logger parameter allows test injection if needed
+        if logger:
+            self._logger = logger
 
         # Prompts-specific configuration
         # If quiet mode is enabled, disable interactive mode
@@ -321,8 +323,8 @@ class FlextCliPrompts(FlextService[FlextCliTypes.Data.CliDataDict]):
 
     # Attribute declarations - override FlextService optional types
     # These are guaranteed initialized in __init__
-    _logger: FlextLogger
-    _container: FlextContainer
+    _logger: FlextLogger | None
+    _container: FlextContainer | None
 
     def execute(self) -> FlextResult[FlextCliTypes.Data.CliDataDict]:
         """Execute prompt service operation.

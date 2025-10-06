@@ -22,6 +22,7 @@ from flext_core import (
     FlextService,
     FlextTypes,
 )
+from rich.console import Console
 
 from flext_cli.constants import FlextCliConstants
 from flext_cli.formatters import FlextCliFormatters
@@ -72,9 +73,9 @@ class FlextCliOutput(FlextService[object]):
 
     @override
     def __init__(self) -> None:
-        """Initialize CLI output with formatters."""
+        """Initialize CLI output with formatters and Phase 1 context enrichment."""
         super().__init__()
-        self._logger = FlextLogger(__name__)
+        # Logger and container inherited from FlextService via FlextMixins
 
         # Delegate to specialized formatters
         self._formatters = FlextCliFormatters()
@@ -622,7 +623,7 @@ class FlextCliOutput(FlextService[object]):
     # =========================================================================
 
     @property
-    def console(self) -> object:
+    def console(self) -> Console:
         """Get Rich console instance from FlextCliFormatters.
 
         Returns:
@@ -634,9 +635,9 @@ class FlextCliOutput(FlextService[object]):
             >>> console.print("Hello")
 
         """
-        return self._formatters.get_console()
+        return self._formatters.console
 
-    def get_console(self) -> object:
+    def get_console(self) -> Console:
         """Get the Rich console instance from FlextCliFormatters (method form).
 
         Returns:

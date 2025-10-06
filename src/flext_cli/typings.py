@@ -54,7 +54,7 @@ class FlextCliTypes(FlextTypes):
     # CLI COMMAND TYPES - Complex command processing types
     # =========================================================================
 
-    class Command:
+    class CliCommand:
         """CLI command-specific complex types."""
 
         CommandDefinition = dict[

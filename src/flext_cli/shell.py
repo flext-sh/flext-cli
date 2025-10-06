@@ -69,7 +69,7 @@ class FlextCliShell(FlextService[object]):
 
         """
         super().__init__(**data)
-        self._logger = FlextLogger(__name__)
+        # Logger and container inherited from FlextService via FlextMixins
         self._cli_main = cli_main
         self._prompt = prompt
         self._history_file = Path(history_file) if history_file else None
@@ -389,10 +389,10 @@ class FlextCliShell(FlextService[object]):
 
     # Attribute declarations - override FlextService optional types
     # These are guaranteed initialized in __init__
-    _logger: FlextLogger
-    _container: FlextContainer
+    _logger: FlextLogger | None
+    _container: FlextContainer | None
 
-    def execute(self) -> FlextResult[object]:
+    def execute(self) -> FlextResult[None]:
         """Execute shell service (runs interactive shell).
 
         Returns:

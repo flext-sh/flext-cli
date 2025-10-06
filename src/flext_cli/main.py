@@ -12,9 +12,10 @@ from __future__ import annotations
 
 import importlib
 import pkgutil
+import traceback
 from collections.abc import Callable
 
-import click
+import typer
 from flext_core import (
     FlextContainer,
     FlextLogger,
@@ -74,18 +75,17 @@ class FlextCliMain(FlextService[object]):
         description: str | None = None,
         **kwargs: str | int | bool | None,
     ) -> None:
-        """Initialize command registration system.
+        """Initialize command registration system with Typer backend.
 
         Args:
             name: CLI application name
             version: Application version
             description: CLI description
-            **kwargs: Additional Click group options
+            **kwargs: Additional Typer app options
 
         """
         super().__init__()
-        self._logger = FlextLogger(__name__)
-        self._container = FlextContainer.get_global()
+        # Logger and container inherited from FlextService via FlextMixins
         self._click = FlextCliCli()
 
         # CLI metadata
@@ -98,11 +98,14 @@ class FlextCliMain(FlextService[object]):
         self._groups: FlextTypes.Dict = {}
         self._plugin_commands: FlextTypes.Dict = {}
 
-        # Main CLI group
-        self._main_group = self._create_main_group(**kwargs)
+        # Main Typer app (replaces Click group)
+        self._app = self._create_typer_app(**kwargs)
+
+        # Get and store the Typer app's Click group (only created once)
+        self._main_group = typer.main.get_group(self._app)
 
         self._logger.debug(
-            "Initialized CLI main",
+            "Initialized CLI main with Typer backend",
             extra={
                 "cli_name": self._name,
                 "version": self._version,
@@ -110,41 +113,34 @@ class FlextCliMain(FlextService[object]):
         )
 
     # =========================================================================
-    # MAIN GROUP CREATION
+    # TYPER APP CREATION
     # =========================================================================
 
-    def _create_main_group(
-        self, **kwargs: str | int | bool | None
-    ) -> click.Group | None:
-        """Create main CLI group using Click abstraction.
+    def _create_typer_app(self, **kwargs: str | int | bool | None) -> typer.Typer:
+        """Create main Typer app.
 
         Args:
-            **kwargs: Additional Click group options
+            **kwargs: Additional Typer app options
 
         Returns:
-            Click group object (internal use only) or None if creation fails
+            Typer app instance
 
         """
-        group_result = self._click.create_group_decorator(
+        app = typer.Typer(
             name=self._name,
             help=self._description,
-            **kwargs,
+            add_completion=kwargs.get("add_completion", True),
+            pretty_exceptions_enable=kwargs.get("pretty_exceptions_enable", True),
         )
 
-        if group_result.is_failure:
-            self._logger.error(
-                f"Failed to create main group: {group_result.error}",
-            )
-            return None
+        self._logger.debug(
+            "Created Typer app",
+            extra={
+                "app_name": self._name,
+            },
+        )
 
-        group_decorator = group_result.unwrap()
-
-        # Create empty group function
-        def main_cli() -> None:
-            """Main CLI entry point."""
-
-        # Apply decorator
-        return group_decorator(main_cli)
+        return app
 
     # =========================================================================
     # COMMAND REGISTRATION
@@ -157,7 +153,7 @@ class FlextCliMain(FlextService[object]):
     ) -> Callable[
         [Callable[..., str | int | bool | None]], Callable[..., str | int | bool | None]
     ]:
-        """Register a command decorator.
+        """Register a command decorator (maintains Click ABI via Typer container).
 
         Args:
             name: Command name (optional, uses function name if None)
@@ -178,31 +174,23 @@ class FlextCliMain(FlextService[object]):
             func: Callable[..., str | int | bool | None],
         ) -> Callable[..., str | int | bool | None]:
             """Command decorator."""
-            # Create command using Click abstraction
-            cmd_result = self._click.create_command_decorator(
+            # Use Click decorator to maintain ABI compatibility
+            cmd_decorator = self._click.create_command_decorator(
                 name=name,
                 **kwargs,
             )
-
-            if cmd_result.is_failure:
-                self._logger.error(
-                    f"Failed to create command: {cmd_result.error}",
-                )
-                return func
-
-            cmd_decorator = cmd_result.unwrap()
             command_obj = cmd_decorator(func)
 
             # Register command
             cmd_name = name or func.__name__
             self._commands[cmd_name] = command_obj
 
-            # Add to main group
+            # Add to main group (Typer's Click group)
             if self._main_group is not None:
                 self._main_group.add_command(command_obj)
 
             self._logger.debug(
-                "Registered command",
+                "Registered command (Click ABI, Typer container)",
                 extra={
                     "command_name": cmd_name,
                 },
@@ -218,7 +206,7 @@ class FlextCliMain(FlextService[object]):
         name: str | None = None,
         **kwargs: str | int | bool | None,
     ) -> FlextResult[None]:
-        """Register a command programmatically.
+        """Register a command programmatically (maintains Click ABI).
 
         Args:
             func: Command function
@@ -235,30 +223,23 @@ class FlextCliMain(FlextService[object]):
 
         """
         try:
-            # Create command
-            cmd_result = self._click.create_command_decorator(
+            # Use Click decorator to maintain ABI compatibility
+            cmd_decorator = self._click.create_command_decorator(
                 name=name,
                 **kwargs,
             )
-
-            if cmd_result.is_failure:
-                return FlextResult[None].fail(
-                    f"Failed to create command: {cmd_result.error}",
-                )
-
-            cmd_decorator = cmd_result.unwrap()
             command_obj = cmd_decorator(func)
 
             # Register
             cmd_name = name or func.__name__
             self._commands[cmd_name] = command_obj
 
-            # Add to main group
+            # Add to main group (Typer's Click group)
             if self._main_group is not None:
                 self._main_group.add_command(command_obj)
 
             self._logger.debug(
-                "Registered command",
+                "Registered command (Click ABI, Typer container)",
                 extra={
                     "command_name": cmd_name,
                 },
@@ -282,7 +263,7 @@ class FlextCliMain(FlextService[object]):
     ) -> Callable[
         [Callable[..., str | int | bool | None]], Callable[..., str | int | bool | None]
     ]:
-        """Register a command group decorator.
+        """Register a command group decorator (Click groups work with Typer).
 
         Args:
             name: Group name (optional)
@@ -309,31 +290,23 @@ class FlextCliMain(FlextService[object]):
             func: Callable[..., str | int | bool | None],
         ) -> Callable[..., str | int | bool | None]:
             """Group decorator."""
-            # Create group using Click abstraction
-            grp_result = self._click.create_group_decorator(
+            # Create group using Click (Typer supports Click groups)
+            grp_decorator = self._click.create_group_decorator(
                 name=name,
                 **kwargs,
             )
-
-            if grp_result.is_failure:
-                self._logger.error(
-                    f"Failed to create group: {grp_result.error}",
-                )
-                return func
-
-            grp_decorator = grp_result.unwrap()
             group_obj = grp_decorator(func)
 
             # Register group
             grp_name = name or func.__name__
             self._groups[grp_name] = group_obj
 
-            # Add to main group
+            # Add to main group (Typer's Click group)
             if self._main_group is not None:
                 self._main_group.add_command(group_obj)
 
             self._logger.debug(
-                "Registered group",
+                "Registered group via Typer",
                 extra={
                     "group_name": grp_name,
                 },
@@ -368,29 +341,22 @@ class FlextCliMain(FlextService[object]):
         """
         try:
             # Create group
-            grp_result = self._click.create_group_decorator(
+            grp_decorator = self._click.create_group_decorator(
                 name=name,
                 **kwargs,
             )
-
-            if grp_result.is_failure:
-                return FlextResult[None].fail(
-                    f"Failed to create group: {grp_result.error}",
-                )
-
-            grp_decorator = grp_result.unwrap()
             group_obj = grp_decorator(func)
 
             # Register
             grp_name = name or func.__name__
             self._groups[grp_name] = group_obj
 
-            # Add to main group
+            # Add to main group (Typer's Click group)
             if self._main_group is not None:
                 self._main_group.add_command(group_obj)
 
             self._logger.debug(
-                "Registered group",
+                "Registered group via Typer",
                 extra={
                     "group_name": grp_name,
                 },
@@ -434,12 +400,12 @@ class FlextCliMain(FlextService[object]):
             # Register plugin command
             self._plugin_commands[command_name] = command_obj
 
-            # Add to main group
+            # Add to main group (Typer's Click group)
             if self._main_group is not None:
                 self._main_group.add_command(command_obj)
 
             self._logger.debug(
-                "Registered plugin command",
+                "Registered plugin command via Typer",
                 extra={
                     "command_name": command_name,
                 },
@@ -627,7 +593,7 @@ class FlextCliMain(FlextService[object]):
         *,
         standalone_mode: bool = True,
     ) -> FlextResult[object]:
-        """Execute the CLI with given arguments.
+        """Execute the CLI with given arguments using Typer backend.
 
         Args:
             args: CLI arguments (None = sys.argv)
@@ -645,7 +611,7 @@ class FlextCliMain(FlextService[object]):
             if self._main_group is None:
                 return FlextResult[object].fail("Main group not initialized")
 
-            # Execute main group using Click's main method
+            # Execute main group (Typer's Click group)
             result = self._main_group.main(
                 args=args,
                 standalone_mode=standalone_mode,
@@ -659,7 +625,7 @@ class FlextCliMain(FlextService[object]):
             return FlextResult[object].fail(error_msg)
 
     def get_main_group(self) -> FlextResult[object]:
-        """Get the main CLI group object.
+        """Get the main CLI group object (Typer app's Click group).
 
         Returns:
             FlextResult containing main group
@@ -712,7 +678,6 @@ class FlextCliMain(FlextService[object]):
             return 1
 
         except Exception:
-            import traceback
             traceback.print_exc()
             return 1
 
