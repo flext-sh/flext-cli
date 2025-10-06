@@ -43,8 +43,8 @@ class FlextCliCommands(FlextService[FlextTypes.Dict]):
 
     # Attribute declarations - override FlextService optional types
     # These are guaranteed initialized in __init__
-    _logger: FlextLogger | None
-    _container: FlextContainer | None
+    logger: FlextLogger
+    _container: FlextContainer
 
     @override
     def __init__(
@@ -172,7 +172,7 @@ class FlextCliCommands(FlextService[FlextTypes.Dict]):
                         return FlextResult[None].fail(f"Command not found: {arg}")
 
             # Log CLI execution mode for debugging
-            self._logger.debug(
+            self.logger.debug(
                 f"CLI execution mode: standalone={standalone_mode}, args={args}"
             )
 
@@ -212,7 +212,7 @@ class FlextCliCommands(FlextService[FlextTypes.Dict]):
         """
         try:
             # Log timeout parameter for future use
-            self._logger.debug(
+            self.logger.debug(
                 f"Executing command {command_name} with timeout {timeout}s"
             )
 

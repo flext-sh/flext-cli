@@ -30,7 +30,7 @@ class TestFlextCliDebug:
     def test_debug_initialization(self, debug: FlextCliDebug) -> None:
         """Test debug initialization."""
         assert isinstance(debug, FlextCliDebug)
-        assert hasattr(debug, "_logger")
+        assert hasattr(debug, "logger")
 
     def test_debug_execute(self, debug: FlextCliDebug) -> None:
         """Test debug execute method."""

@@ -36,7 +36,7 @@ class TestFlextCliPrompts:
     def test_prompts_initialization(self, prompts: FlextCliPrompts) -> None:
         """Test prompts initialization."""
         assert isinstance(prompts, FlextCliPrompts)
-        assert hasattr(prompts, "_logger")
+        assert hasattr(prompts, "logger")
 
     def test_prompts_execute(self, prompts: FlextCliPrompts) -> None:
         """Test prompts execute method."""
@@ -670,7 +670,7 @@ class TestFlextCliPrompts:
         # Test with custom logger
         logger = FlextLogger("test_logger")
         prompts = FlextCliPrompts(logger=logger)
-        assert prompts._logger is logger
+        assert prompts.logger is logger
 
     def test_print_status_with_custom_status(self, prompts: FlextCliPrompts) -> None:
         """Test print_status with various status types."""

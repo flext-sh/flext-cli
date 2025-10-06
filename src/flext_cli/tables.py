@@ -171,7 +171,7 @@ class FlextCliTables(FlextService[object]):
             # Generate table
             table_str = tabulate(data, **cast("dict", kwargs))
 
-            self._logger.debug(
+            self.logger.debug(
                 "Created table",
                 extra={
                     "table_format": table_format,
@@ -185,7 +185,7 @@ class FlextCliTables(FlextService[object]):
 
         except Exception as e:
             error_msg = f"Failed to create table: {e}"
-            self._logger.exception(error_msg)
+            self.logger.exception(error_msg)
             return FlextResult[str].fail(error_msg)
 
     def create_simple_table(
@@ -412,12 +412,12 @@ class FlextCliTables(FlextService[object]):
 
         except Exception as e:
             error_msg = f"Failed to print formats: {e}"
-            self._logger.exception(error_msg)
+            self.logger.exception(error_msg)
             return FlextResult[None].fail(error_msg)
 
     # Attribute declarations - override FlextService optional types
     # These are guaranteed initialized in __init__
-    _logger: FlextLogger | None
+    logger: FlextLogger | None
     _container: FlextContainer | None
 
     def execute(self) -> FlextResult[object]:

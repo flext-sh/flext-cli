@@ -25,7 +25,6 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from pathlib import Path
-from typing import override
 
 from flext_core import FlextConfig, FlextConstants, FlextResult, FlextTypes
 from pydantic_settings import SettingsConfigDict
@@ -88,7 +87,6 @@ class EcosystemService:
         self._auth_service = FlextCliAuth()
         self._formatters = None  # Removed CliFormatters model
 
-    @override
     def execute(self) -> FlextResult[FlextCliTypes.Data.CliDataDict]:
         """Execute ecosystem service operation - FlextCliService interface."""
         return FlextResult[FlextCliTypes.Data.CliDataDict].ok({

@@ -38,7 +38,7 @@ class TestFlextCliFileTools:
     def test_file_tools_initialization(self, file_tools: FlextCliFileTools) -> None:
         """Test file tools initialization and basic properties."""
         assert file_tools is not None
-        assert hasattr(file_tools, "_logger")
+        assert hasattr(file_tools, "logger")
         assert hasattr(file_tools, "_container")
 
     def test_file_tools_execute_method(self, file_tools: FlextCliFileTools) -> None:

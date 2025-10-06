@@ -37,7 +37,7 @@ class TestFlextCliTyper:
     def test_typer_cli_initialization(self, typer_cli: FlextCliTyper) -> None:
         """Test Typer abstraction layer initialization."""
         assert isinstance(typer_cli, FlextCliTyper)
-        assert hasattr(typer_cli, "_logger")
+        assert hasattr(typer_cli, "logger")
         assert hasattr(typer_cli, "_container")
 
     def test_typer_cli_execute(self, typer_cli: FlextCliTyper) -> None:

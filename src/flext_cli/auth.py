@@ -54,7 +54,7 @@ class FlextCliAuth:
         self, *, config: FlextCliConfig | None = None, **_data: object
     ) -> None:
         """Initialize authentication service with flext-core integration."""
-        self._logger = FlextLogger(__name__)
+        self.logger = FlextLogger(__name__)
         self._container = FlextContainer()
 
         # Use config module

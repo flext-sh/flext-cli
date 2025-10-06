@@ -41,8 +41,8 @@ class FlextCliDebug(FlextService[str]):
 
     # Attribute declarations - override FlextService optional types
     # These are guaranteed initialized in __init__
-    _logger: FlextLogger | None
-    _container: FlextContainer | None
+    logger: FlextLogger
+    _container: FlextContainer
 
     @override
     def __init__(self, **_data: object) -> None:

@@ -1256,7 +1256,7 @@ class FlextCliModels(FlextModels):
 
             """
             super().__init__(**data)
-            self._logger = FlextLogger(__name__)
+            self.logger = FlextLogger(__name__)
 
             # CLI context initialization with domain-specific types
             self._command = command

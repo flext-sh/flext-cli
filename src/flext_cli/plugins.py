@@ -70,7 +70,7 @@ class FlextCliPlugins(FlextService[object]):
         """
 
         # Attribute declarations - override FlextService optional types
-        _logger: FlextLogger | None
+        logger: FlextLogger | None
         _container: FlextContainer | None
 
         def __init__(self, **data: object) -> None:
@@ -119,7 +119,7 @@ class FlextCliPlugins(FlextService[object]):
                     if f.stem != "__init__" and not f.stem.startswith("_")
                 ]
 
-                self._logger.info(
+                self.logger.info(
                     "Discovered plugins",
                     extra={
                         "plugin_count": len(plugin_modules),
@@ -131,7 +131,7 @@ class FlextCliPlugins(FlextService[object]):
 
             except Exception as e:
                 error_msg = f"Failed to discover plugins: {e}"
-                self._logger.exception(error_msg)
+                self.logger.exception(error_msg)
                 return FlextResult[FlextTypes.StringList].fail(error_msg)
 
         def load_plugin(
@@ -152,7 +152,7 @@ class FlextCliPlugins(FlextService[object]):
             try:
                 # Check if already loaded
                 if plugin_module in self._loaded_plugins:
-                    self._logger.debug(
+                    self.logger.debug(
                         "Plugin already loaded", extra={"plugin_module": plugin_module}
                     )
                     return FlextResult[object].ok(self._loaded_plugins[plugin_module])
@@ -191,7 +191,7 @@ class FlextCliPlugins(FlextService[object]):
                 # Store loaded plugin
                 self._loaded_plugins[plugin_module] = plugin_instance
 
-                self._logger.info(
+                self.logger.info(
                     "Loaded plugin",
                     extra={
                         "plugin_module": plugin_module,
@@ -203,7 +203,7 @@ class FlextCliPlugins(FlextService[object]):
 
             except Exception as e:
                 error_msg = f"Failed to load plugin '{plugin_module}': {e}"
-                self._logger.exception(error_msg)
+                self.logger.exception(error_msg)
                 return FlextResult[object].fail(error_msg)
 
         def initialize_plugin(
@@ -226,7 +226,7 @@ class FlextCliPlugins(FlextService[object]):
 
                 # Check if already initialized
                 if plugin_name in self._initialized_plugins:
-                    self._logger.debug(
+                    self.logger.debug(
                         "Plugin already initialized", extra={"plugin_name": plugin_name}
                     )
                     return FlextResult[None].ok(None)
@@ -248,7 +248,7 @@ class FlextCliPlugins(FlextService[object]):
                 # Mark as initialized
                 self._initialized_plugins[plugin_name] = plugin
 
-                self._logger.info(
+                self.logger.info(
                     "Initialized plugin", extra={"plugin_name": plugin_name}
                 )
 
@@ -256,7 +256,7 @@ class FlextCliPlugins(FlextService[object]):
 
             except Exception as e:
                 error_msg = f"Failed to initialize plugin: {e}"
-                self._logger.exception(error_msg)
+                self.logger.exception(error_msg)
                 return FlextResult[None].fail(error_msg)
 
         def load_and_initialize_plugin(
@@ -291,7 +291,7 @@ class FlextCliPlugins(FlextService[object]):
                         f"Initialize failed: {init_result.error}"
                     )
 
-                self._logger.info(
+                self.logger.info(
                     "Loaded and initialized plugin",
                     extra={"plugin_module": plugin_module, "plugin_name": plugin.name},
                 )
@@ -300,7 +300,7 @@ class FlextCliPlugins(FlextService[object]):
 
             except Exception as e:
                 error_msg = f"Failed to load and initialize plugin: {e}"
-                self._logger.exception(error_msg)
+                self.logger.exception(error_msg)
                 return FlextResult[object].fail(error_msg)
 
         def get_loaded_plugins(self) -> FlextResult[FlextTypes.Dict]:
@@ -314,7 +314,7 @@ class FlextCliPlugins(FlextService[object]):
                 return FlextResult[FlextTypes.Dict].ok(self._loaded_plugins.copy())
             except Exception as e:
                 error_msg = f"Failed to get loaded plugins: {e}"
-                self._logger.exception(error_msg)
+                self.logger.exception(error_msg)
                 return FlextResult[FlextTypes.Dict].fail(error_msg)
 
         def get_initialized_plugins(self) -> FlextResult[FlextTypes.Dict]:
@@ -328,7 +328,7 @@ class FlextCliPlugins(FlextService[object]):
                 return FlextResult[FlextTypes.Dict].ok(self._initialized_plugins.copy())
             except Exception as e:
                 error_msg = f"Failed to get initialized plugins: {e}"
-                self._logger.exception(error_msg)
+                self.logger.exception(error_msg)
                 return FlextResult[FlextTypes.Dict].fail(error_msg)
 
         def unload_plugin(self, plugin_name: str) -> FlextResult[None]:
@@ -356,13 +356,13 @@ class FlextCliPlugins(FlextService[object]):
                 if module_to_remove:
                     del self._loaded_plugins[module_to_remove]
 
-                self._logger.info("Unloaded plugin", extra={"plugin_name": plugin_name})
+                self.logger.info("Unloaded plugin", extra={"plugin_name": plugin_name})
 
                 return FlextResult[None].ok(None)
 
             except Exception as e:
                 error_msg = f"Failed to unload plugin: {e}"
-                self._logger.exception(error_msg)
+                self.logger.exception(error_msg)
                 return FlextResult[None].fail(error_msg)
 
         def execute(self) -> FlextResult[None]:
@@ -510,7 +510,7 @@ class FlextCliPlugins(FlextService[object]):
 
         def __init__(self, **data: object) -> None:
             """Initialize plugin."""
-            self._logger = FlextLogger(__name__)
+            self.logger = FlextLogger(__name__)
             # Store any additional data for extensibility
             for key, value in data.items():
                 setattr(self, f"_{key}", value)

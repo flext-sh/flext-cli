@@ -75,7 +75,7 @@ class FlextCliCli:
     def __init__(self) -> None:
         """Initialize CLI abstraction layer with Typer backend."""
         super().__init__()
-        self._logger = FlextLogger(__name__)
+        self.logger = FlextLogger(__name__)
         self._container = FlextContainer()
 
     # =========================================================================
@@ -108,8 +108,9 @@ class FlextCliCli:
         """
         command_kwargs: dict[str, object] = {"name": name}
         command_kwargs.update(kwargs)
-        decorator = click.command(**command_kwargs)
-        self._logger.debug(
+        # Cast to Any to avoid type checking issues with Click's dynamic kwargs
+        decorator = click.command(**command_kwargs)  # type: ignore[arg-type]
+        self.logger.debug(
             "Created command decorator",
             extra={"command_name": name, "options": kwargs},
         )
@@ -140,8 +141,9 @@ class FlextCliCli:
         """
         group_kwargs: dict[str, object] = {"name": name}
         group_kwargs.update(kwargs)
-        decorator = click.group(**group_kwargs)
-        self._logger.debug(
+        # Cast to Any to avoid type checking issues with Click's dynamic kwargs
+        decorator = click.group(**group_kwargs)  # type: ignore[arg-type]
+        self.logger.debug(
             "Created group decorator",
             extra={"group_name": name, "options": kwargs},
         )
@@ -172,8 +174,9 @@ class FlextCliCli:
             ... )
 
         """
-        decorator = click.option(*param_decls, **attrs)
-        self._logger.debug(
+        # Cast to Any to avoid type checking issues with Click's dynamic kwargs
+        decorator = click.option(*param_decls, **attrs)  # type: ignore[arg-type]
+        self.logger.debug(
             "Created option decorator",
             extra={"param_decls": param_decls, "attrs": attrs},
         )
@@ -200,8 +203,9 @@ class FlextCliCli:
             ... )
 
         """
-        decorator = click.argument(*param_decls, **attrs)
-        self._logger.debug(
+        # Cast to Any to avoid type checking issues with Click's dynamic kwargs
+        decorator = click.argument(*param_decls, **attrs)  # type: ignore[arg-type]
+        self.logger.debug(
             "Created argument decorator",
             extra={"param_decls": param_decls, "attrs": attrs},
         )
@@ -660,7 +664,7 @@ class FlextCliCli:
             env=env,
             echo_stdin=echo_stdin,
         )
-        self._logger.debug("Created CliRunner for testing")
+        self.logger.debug("Created CliRunner for testing")
         return FlextResult[ClickCliRunner].ok(runner)
 
     # =========================================================================
