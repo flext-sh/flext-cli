@@ -68,8 +68,12 @@ def main() -> None:
         cli.success(f"Written JSON to {json_file}")
 
         # Read JSON
-        loaded_data = cli.read_json(str(json_file))
-        cli.info(f"Loaded JSON: {loaded_data['app']} v{loaded_data['version']}")
+        loaded_result = cli.read_json(str(json_file))
+        if loaded_result.is_success:
+            loaded_data = loaded_result.unwrap()
+            cli.info(f"Loaded JSON: {loaded_data['app']} v{loaded_data['version']}")
+        else:
+            cli.error(f"Failed to load JSON: {loaded_result.error}")
 
         # Write YAML
         yaml_file = temp_path / "test_config.yaml"

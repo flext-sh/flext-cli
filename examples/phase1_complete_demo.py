@@ -1,7 +1,7 @@
 """FLEXT-CLI Phase 1 Complete Demo.
 
 This example demonstrates ALL Phase 1 components:
-- FlextCliClick: Click abstraction layer
+- FlextCliCli: Click abstraction layer
 - FlextCliFormatters: Rich abstraction layer
 - FlextCliTables: Tabulate integration
 - FlextCliMain: Command registration system
@@ -15,7 +15,7 @@ from __future__ import annotations
 
 from flext_cli import (
     FlextCli,
-    FlextCliClick,
+    FlextCliCli,
     FlextCliFormatters,
     FlextCliMain,
     FlextCliTables,
@@ -25,7 +25,7 @@ from flext_cli import (
 def demo_click_abstraction() -> None:
     """Demo 1: Click Abstraction Layer - NO direct Click imports needed!."""
     # Initialize Click wrapper
-    click_wrapper = FlextCliClick()
+    click_wrapper = FlextCliCli()
 
     # Create command decorator
     cmd_result = click_wrapper.create_command_decorator(
@@ -71,10 +71,9 @@ def demo_rich_formatters() -> None:
         formatters.print_rich(renderable=panel_result.unwrap())
 
     # 2. Print styled text
-    formatters.print_rich(
-        text="Bold Red Text",
-        style="bold red",
-    )
+    from rich.text import Text
+    styled_text = Text("Bold Red Text", style="bold red")
+    formatters.print_rich(renderable=styled_text)
 
     # 3. Create a progress bar
     progress_result = formatters.create_progress()

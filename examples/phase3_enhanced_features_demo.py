@@ -14,8 +14,7 @@ from __future__ import annotations
 
 from flext_cli import (
     FlextCli,
-    FlextCliMockScenarios,
-    FlextCliTestRunner,
+    FlextCliTesting,
 )
 
 
@@ -66,7 +65,7 @@ def demo_testing_utilities() -> None:
     """Demo 3: Testing Utilities and Patterns."""
     # Initialize testing utilities
     runner = FlextCliTestRunner()
-    scenarios = FlextCliMockScenarios()
+    scenarios = FlextCliTesting.MockScenarios()
 
     # Mock scenarios
     config_result = scenarios.mock_user_config(
@@ -101,7 +100,7 @@ def demo_complete_phase3_workflow() -> None:
     """Demo 5: Complete Phase 3 Workflow - All Features Together."""
     cli = FlextCli()
     runner = FlextCliTestRunner()
-    scenarios = FlextCliMockScenarios()
+    scenarios = FlextCliTesting.MockScenarios()
 
     # Create command with advanced parameter types
     cli.click.get_datetime_type()

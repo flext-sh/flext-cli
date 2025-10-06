@@ -369,6 +369,168 @@ class FlextCliMain(FlextService[object]):
             self._logger.exception(error_msg)
             return FlextResult[None].fail(error_msg)
 
+    def register_model_command(
+        self,
+        model_class: type,
+        handler: Callable[..., FlextResult[object]],
+        name: str | None = None,
+        help_text: str | None = None,
+    ) -> FlextResult[None]:
+        """Register a command from a Pydantic model with automatic parameter mapping.
+
+        This method provides automatic CLI generation from Pydantic models:
+        1. Extracts all model fields as CLI parameters
+        2. Creates Click command with proper types and validation
+        3. Automatically converts CLI args to model instance
+        4. Calls handler with the validated model instance
+
+        Args:
+            model_class: Pydantic model class defining CLI parameters
+            handler: Handler function that receives model instance
+            name: Command name (defaults to model class name in lowercase)
+            help_text: Command help text (defaults to model docstring)
+
+        Returns:
+            FlextResult[None]
+
+        Example:
+            >>> from pydantic import BaseModel, Field
+            >>> from flext_core import FlextResult
+            >>>
+            >>> class MigrateParams(BaseModel):
+            ...     input_dir: str = Field(description="Input directory")
+            ...     output_dir: str = Field(description="Output directory")
+            ...     sync: bool = Field(default=False, description="Sync mode")
+            >>>
+            >>> def handle_migrate(params: MigrateParams) -> FlextResult[None]:
+            ...     # Use params.input_dir, params.output_dir, params.sync
+            ...     return FlextResult[None].ok(None)
+            >>>
+            >>> main = FlextCliMain()
+            >>> result = main.register_model_command(
+            ...     model_class=MigrateParams,
+            ...     handler=handle_migrate,
+            ...     name="migrate",
+            ...     help_text="Execute migration"
+            ... )
+
+        """
+        try:
+            from flext_cli.models import FlextCliModels
+
+            # Get command name
+            cmd_name = name or model_class.__name__.lower().replace("params", "")
+
+            # Get help text
+            cmd_help = help_text or model_class.__doc__ or f"Execute {cmd_name}"
+
+            # Convert model to Click options
+            options_result = FlextCliModels.CliModelConverter.model_to_click_options(
+                model_class
+            )
+
+            if options_result.is_failure:
+                return FlextResult[None].fail(
+                    f"Failed to convert model to CLI options: {options_result.error}"
+                )
+
+            click_options = options_result.unwrap()
+
+            # Create wrapper function that converts CLI args to model
+            def command_wrapper(**cli_args: object) -> int:
+                """Wrapper that converts CLI args to model and calls handler."""
+                # Convert CLI args to model instance
+                model_result = FlextCliModels.CliModelConverter.cli_args_to_model(
+                    model_class, cli_args
+                )
+
+                if model_result.is_failure:
+                    error_msg = f"Invalid parameters: {model_result.error}"
+                    self._logger.error(error_msg)
+                    # Return exit code 1 for validation errors
+                    return 1
+
+                # Call handler with validated model
+                model_instance = model_result.unwrap()
+                handler_result = handler(model_instance)
+
+                if isinstance(handler_result, FlextResult):
+                    if handler_result.is_failure:
+                        error_msg = f"Command failed: {handler_result.error}"
+                        self._logger.error(error_msg)
+                        return 1
+                    return 0
+                # Handler returned non-FlextResult, assume success
+                return 0
+
+            # Set function metadata
+            command_wrapper.__name__ = cmd_name
+            command_wrapper.__doc__ = cmd_help
+
+            # Create Click command manually to avoid **kwargs issues
+            import click
+
+            # Start with base command
+            cmd = click.command(name=cmd_name, help=cmd_help)(command_wrapper)
+
+            # Add all options from model
+            for option_spec in reversed(
+                click_options
+            ):  # Reverse to maintain order after decorating
+                option_name = option_spec["option_name"]
+                opt_kwargs: FlextTypes.Dict = {
+                    "type": self._get_click_type(option_spec["type"]),
+                    "default": option_spec["default"],
+                    "help": option_spec["help"],
+                    "required": option_spec["required"],
+                    "show_default": option_spec.get("show_default", True),
+                }
+
+                # Apply click.option decorator
+                cmd = click.option(option_name, **opt_kwargs)(cmd)
+
+            # Register command
+            self._commands[cmd_name] = cmd
+
+            # Add to main group
+            if self._main_group is not None:
+                self._main_group.add_command(cmd)
+
+            self._logger.debug(
+                "Registered model-driven command",
+                extra={
+                    "command_name": cmd_name,
+                    "model_class": model_class.__name__,
+                },
+            )
+
+            return FlextResult[None].ok(None)
+
+        except Exception as e:
+            error_msg = f"Failed to register model command: {e}"
+            self._logger.exception(error_msg)
+            return FlextResult[None].fail(error_msg)
+
+    def _get_click_type(self, click_type_str: str) -> object:
+        """Convert Click type string to Click type object.
+
+        Args:
+            click_type_str: String representation of Click type
+
+        Returns:
+            Click type object
+
+        """
+        import click
+
+        type_map: FlextTypes.Dict = {
+            "STRING": click.STRING,
+            "INT": click.INT,
+            "FLOAT": click.FLOAT,
+            "BOOL": click.BOOL,
+        }
+        return type_map.get(click_type_str, click.STRING)
+
     # =========================================================================
     # PLUGIN COMMAND LOADING
     # =========================================================================

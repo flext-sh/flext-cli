@@ -201,7 +201,7 @@ class FlextCliTyper(FlextService[object]):
                     "kwargs": kwargs,
                 })
             else:
-                func.__flext_cli_metadata__ = {  # type: ignore[attr-defined]
+                func.__flext_cli_metadata__ = {
                     "name": command_name,
                     "help": help_text,
                     "kwargs": kwargs,
@@ -345,7 +345,7 @@ class FlextCliTyper(FlextService[object]):
                     "kwargs": kwargs,
                 })
             else:
-                func.__flext_cli_metadata__ = {  # type: ignore[attr-defined]
+                func.__flext_cli_metadata__ = {
                     "name": command_name,
                     "help": help_text,
                     "kwargs": kwargs,

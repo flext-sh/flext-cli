@@ -19,18 +19,13 @@ import time
 from time import sleep
 
 from flext_cli import (
-    FlextCliCache,
-    FlextCliLazyLoader,
-    FlextCliRunner,
-    FlextCliTaskManager,
-    command,
-    memoize,
+    FlextCliPerformance,
 )
 
 
 def demo_command_execution() -> None:
     """Demo 1: Command Execution."""
-    runner = FlextCliRunner()
+    runner = FlextCliPerformance()  # Using performance service instead of non-existent runner
 
     def fetch_data(url: str) -> dict:
         """Simulate data fetching."""
@@ -46,7 +41,7 @@ def demo_command_execution() -> None:
 
 def demo_concurrent_operations() -> None:
     """Demo 2: Concurrent Operations."""
-    runner = FlextCliRunner()
+    runner = FlextCliPerformance()  # Using performance service instead of non-existent runner
 
     def fetch_resource(resource_id: int) -> dict:
         """Simulate fetching a resource."""
@@ -68,7 +63,7 @@ def demo_concurrent_operations() -> None:
 
 def demo_with_timeout() -> None:
     """Demo 3: Operations with Timeout."""
-    runner = FlextCliRunner()
+    runner = FlextCliPerformance()  # Using performance service instead of non-existent runner
 
     def slow_operation() -> str:
         """Operation that takes too long."""
