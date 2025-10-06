@@ -489,8 +489,8 @@ class TestFlextCliExceptionsFlextCliError:
             "Test error", error_code="", context=None, details=None
         )
 
-        assert "[GENERIC_ERROR] Test error" in str(error)
-        assert getattr(error, "error_code", None) == "GENERIC_ERROR"
+        assert "[CLI_ERROR] Test error" in str(error)
+        assert getattr(error, "error_code", None) == "CLI_ERROR"
         assert getattr(error, "context", None) is not None
 
     def test_concurrent_exception_handling(self) -> None:

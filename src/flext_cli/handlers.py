@@ -10,10 +10,12 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 from collections.abc import Callable
-from typing import override
+from typing import Any, override
 
 from flext_core import FlextHandlers, FlextModels, FlextResult, FlextTypes
+from pydantic import BaseModel
 
+from flext_cli.models import FlextCliModels
 from flext_cli.protocols import FlextCliProtocols
 from flext_cli.typings import FlextCliTypes
 
@@ -59,6 +61,185 @@ class FlextCliHandlers(FlextHandlers):
 
         """
         return self.execute_handlers()
+
+    # ========================================================================
+    # MODEL-DRIVEN HANDLER REGISTRATION - Auto-generate handlers from models
+    # ========================================================================
+
+    class ModelHandlerFactory:
+        """Factory for creating model-driven CLI handlers.
+
+        Automatically generates handlers from Pydantic models with integrated
+        validation, reducing boilerplate and ensuring type safety.
+
+        ARCHITECTURAL PATTERN:
+        - Introspect Pydantic model to determine handler behavior
+        - Generate handler function with automatic validation
+        - Register handler with CLI system
+        - Provide declarative handler registration via decorators
+
+        USAGE:
+            factory = ModelHandlerFactory()
+            handler = factory.create_command_handler(ConfigModel, config_logic)
+            # Handler now validates input with ConfigModel automatically
+        """
+
+        @staticmethod
+        def create_model_handler(
+            model_class: type[BaseModel],
+            handler_func: Callable[[BaseModel], FlextResult[Any]],
+        ) -> Callable[[dict[str, Any]], FlextResult[Any]]:
+            """Create a handler that validates input with Pydantic model.
+
+            Args:
+                model_class: Pydantic model class for validation
+                handler_func: Handler function that receives validated model instance
+
+            Returns:
+                Handler function with integrated model validation
+
+            """
+
+            def model_validated_handler(cli_data: dict[str, Any]) -> FlextResult[Any]:
+                # Validate CLI data with model
+                validation_result = (
+                    FlextCliModels.CliModelConverter.validate_cli_data_with_model(
+                        model_class, cli_data
+                    )
+                )
+
+                if validation_result.is_failure:
+                    return FlextResult[Any].fail(
+                        f"Input validation failed: {validation_result.error}"
+                    )
+
+                validated_model = validation_result.unwrap()
+
+                # Execute handler with validated model
+                return handler_func(validated_model)
+
+            return model_validated_handler
+
+        @staticmethod
+        def create_command_handler_from_model(
+            model_class: type[BaseModel],
+            command_logic: Callable[
+                [BaseModel], FlextResult[FlextCliTypes.Data.CliCommandResult]
+            ],
+        ) -> FlextCliHandlers.CommandHandler:
+            """Create CommandHandler from Pydantic model and logic function.
+
+            Args:
+                model_class: Pydantic model defining command parameters
+                command_logic: Function implementing command logic
+
+            Returns:
+                CommandHandler instance with model validation
+
+            Example:
+                def configure_db(config: DatabaseConfig) -> FlextResult[dict]:
+                    # config is validated DatabaseConfig instance
+                    return FlextResult[dict].ok({"status": "configured"})
+
+                handler = factory.create_command_handler_from_model(
+                    DatabaseConfig, configure_db
+                )
+
+            """
+
+            def handler_func(
+                **kwargs: object,
+            ) -> FlextResult[FlextCliTypes.Data.CliCommandResult]:
+                # Validate with model
+                validation_result = (
+                    FlextCliModels.CliModelConverter.validate_cli_data_with_model(
+                        model_class, kwargs
+                    )
+                )
+
+                if validation_result.is_failure:
+                    return FlextResult[FlextCliTypes.Data.CliCommandResult].fail(
+                        f"Validation failed: {validation_result.error}"
+                    )
+
+                validated_model = validation_result.unwrap()
+
+                # Execute command logic
+                return command_logic(validated_model)
+
+            return FlextCliHandlers.CommandHandler(handler_func)
+
+        @staticmethod
+        def register_model_handler(
+            handler_registry: dict[str, Callable[..., Any]],
+            command_name: str,
+            model_class: type[BaseModel],
+            handler_func: Callable[[BaseModel], FlextResult[Any]],
+        ) -> FlextResult[None]:
+            """Register model-driven handler in handler registry.
+
+            Args:
+                handler_registry: Dictionary mapping command names to handlers
+                command_name: Name for the command
+                model_class: Pydantic model for validation
+                handler_func: Handler implementation
+
+            Returns:
+                FlextResult indicating success or failure
+
+            """
+            try:
+                # Create model-validated handler
+                validated_handler = (
+                    FlextCliHandlers.ModelHandlerFactory.create_model_handler(
+                        model_class, handler_func
+                    )
+                )
+
+                # Register in registry
+                handler_registry[command_name] = validated_handler
+
+                return FlextResult[None].ok(None)
+            except Exception as e:
+                return FlextResult[None].fail(f"Handler registration failed: {e}")
+
+    class ModelHandlerDecorators:
+        """Decorators for model-driven handler registration.
+
+        Provides declarative syntax for creating handlers from models.
+
+        USAGE:
+            @model_command_handler(DatabaseConfig)
+            def setup_database(config: DatabaseConfig) -> FlextResult[dict]:
+                # config is validated
+                return FlextResult[dict].ok({"status": "ok"})
+        """
+
+        @staticmethod
+        def model_command_handler(
+            model_class: type[BaseModel],
+        ) -> Callable[
+            [Callable[[BaseModel], FlextResult[Any]]],
+            Callable[[dict[str, Any]], FlextResult[Any]],
+        ]:
+            """Decorator to create model-validated command handler.
+
+            Args:
+                model_class: Pydantic model for parameter validation
+
+            Returns:
+                Decorator that wraps handler with model validation
+
+            """
+
+            def decorator(
+                func: Callable[[BaseModel], FlextResult[Any]],
+            ) -> Callable[[dict[str, Any]], FlextResult[Any]]:
+                return FlextCliHandlers.ModelHandlerFactory.create_model_handler(
+                    model_class, func
+                )
+
+            return decorator
 
     class CommandHandler(FlextCliProtocols.Commands.CliCommandHandler):
         """CLI command handler implementation - implements CliCommandHandler protocol."""

@@ -329,8 +329,8 @@ class FlextCliConfig(FlextConfig):
         return FlextResult[str].ok(value)
 
     @classmethod
-    def create_for_environment(
-        cls, environment: str, **overrides: object
+    def create_for_environment(  # noqa: ARG003
+        cls, environment: str, **overrides: object  # noqa: ARG003
     ) -> FlextCliConfig:
         """REMOVED: Use direct instantiation with environment parameter.
 
@@ -405,11 +405,8 @@ class FlextCliConfig(FlextConfig):
                     f"Unsupported configuration file format: {config_file.suffix}"
                 )
 
-            # Use enhanced singleton pattern with loaded data
-            config = cast(
-                "FlextCliConfig",
-                cls.get_or_create_shared_instance(project_name="flext-cli", **data),
-            )
+            # Create config instance directly with loaded data
+            config = cls(**data)
             return FlextResult[FlextCliConfig].ok(config)
 
         except Exception as e:
@@ -463,7 +460,6 @@ class FlextCliConfig(FlextConfig):
                 f"Failed to load config: {result.error}"
             )
         # Cast to FlextCliConfig since from_file returns FlextConfig
-        from typing import cast
 
         return FlextResult[FlextCliConfig].ok(cast("FlextCliConfig", result.unwrap()))
 

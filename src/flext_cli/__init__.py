@@ -37,6 +37,7 @@ from flext_cli.protocols import FlextCliProtocols
 from flext_cli.shell import FlextCliShell
 from flext_cli.tables import FlextCliTables
 from flext_cli.testing import FlextCliTesting
+from flext_cli.typer_cli import FlextCliTyper
 from flext_cli.typings import FlextCliTypes
 from flext_cli.version import VERSION, FlextCliVersion
 
@@ -74,6 +75,7 @@ __all__ = [
     "FlextCliShell",
     "FlextCliTables",
     "FlextCliTesting",
+    "FlextCliTyper",
     "FlextCliTypes",
     "FlextCliVersion",
     "__version__",

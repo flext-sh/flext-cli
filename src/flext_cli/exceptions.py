@@ -58,18 +58,27 @@ class FlextCliExceptions(FlextExceptions):
             if isinstance(error_code, int):
                 error_code = str(error_code)
 
-            # Extract common parameters using helper
-            base_context, correlation_id, _ = self._extract_common_kwargs(kwargs)
+            # Default empty error_code to CLI_ERROR constant
+            if not error_code:
+                error_code = FlextCliConstants.ErrorCodes.CLI_ERROR
 
-            # Build context
-            context = self._build_context(base_context)
+            # Extract common parameters using helper
+            base_context, correlation_id, remaining = self._extract_common_kwargs(
+                kwargs
+            )
+
+            # Build context merging base and remaining kwargs
+            context = self._build_context(base_context, remaining)
+
+            # Initialize context attribute before calling parent
+            self.context = context or {}
 
             # Call parent with complete error information
             super().__init__(
                 message,
-                code=error_code,
-                context=context,
+                error_code=error_code,
                 correlation_id=correlation_id,
+                metadata=context,
             )
 
         @override
@@ -103,23 +112,44 @@ class FlextCliExceptions(FlextExceptions):
         def _extract_common_kwargs(
             self, kwargs: dict[str, object]
         ) -> tuple[dict[str, object], str | None, dict[str, object]]:
-            """Extract common kwargs for exception initialization."""
+            """Extract common kwargs for exception initialization.
+
+            If context is provided as a dict, use it as base context.
+            If context is provided as a non-dict value, treat it as a regular kwarg.
+            """
             context = kwargs.get("context")
-            if not isinstance(context, dict):
-                context = {}
+            base_context: dict[str, object] = {}
+            remaining: dict[str, object] = {}
+
+            # If context is a dict, use it as base context
+            if isinstance(context, dict):
+                base_context = context
+                # Remaining excludes both context and correlation_id
+                remaining = {
+                    k: v
+                    for k, v in kwargs.items()
+                    if k not in {"context", "correlation_id"}
+                }
+            else:
+                # If context is not a dict, treat all kwargs (including context) as remaining
+                remaining = {k: v for k, v in kwargs.items() if k != "correlation_id"}
+
             correlation_id = kwargs.get("correlation_id")
             if correlation_id is not None and not isinstance(correlation_id, str):
                 correlation_id = str(correlation_id)
-            remaining = {
-                k: v
-                for k, v in kwargs.items()
-                if k not in {"context", "correlation_id"}
-            }
-            return context, correlation_id, remaining
 
-        def _build_context(self, base_context: dict[str, object]) -> dict[str, object]:
-            """Build complete context dictionary."""
-            return base_context
+            return base_context, correlation_id, remaining
+
+        def _build_context(
+            self,
+            base_context: dict[str, object],
+            remaining: dict[str, object] | None = None,
+        ) -> dict[str, object]:
+            """Build complete context dictionary merging base and remaining kwargs."""
+            result = base_context.copy()
+            if remaining:
+                result.update(remaining)
+            return result
 
     class CliValidationError(BaseError):
         """CLI validation error exception."""
@@ -130,14 +160,16 @@ class FlextCliExceptions(FlextExceptions):
 
             Args:
                 message: Error message
-                **kwargs: Additional context (context, correlation_id)
+                **kwargs: Additional context (context, correlation_id, plus any extra kwargs)
 
             """
             # Extract common parameters using helper
-            base_context, correlation_id, _ = self._extract_common_kwargs(kwargs)
+            base_context, correlation_id, remaining = self._extract_common_kwargs(
+                kwargs
+            )
 
-            # Build context
-            context = self._build_context(base_context)
+            # Build context merging base and remaining kwargs
+            context = self._build_context(base_context, remaining)
 
             # Call parent with complete error information
             super().__init__(
@@ -160,10 +192,12 @@ class FlextCliExceptions(FlextExceptions):
 
             """
             # Extract common parameters using helper
-            base_context, correlation_id, _ = self._extract_common_kwargs(kwargs)
+            base_context, correlation_id, remaining = self._extract_common_kwargs(
+                kwargs
+            )
 
             # Build context
-            context = self._build_context(base_context)
+            context = self._build_context(base_context, remaining)
 
             # Call parent with complete error information
             super().__init__(
@@ -186,10 +220,12 @@ class FlextCliExceptions(FlextExceptions):
 
             """
             # Extract common parameters using helper
-            base_context, correlation_id, _ = self._extract_common_kwargs(kwargs)
+            base_context, correlation_id, remaining = self._extract_common_kwargs(
+                kwargs
+            )
 
             # Build context
-            context = self._build_context(base_context)
+            context = self._build_context(base_context, remaining)
 
             # Call parent with complete error information
             super().__init__(
@@ -212,10 +248,12 @@ class FlextCliExceptions(FlextExceptions):
 
             """
             # Extract common parameters using helper
-            base_context, correlation_id, _ = self._extract_common_kwargs(kwargs)
+            base_context, correlation_id, remaining = self._extract_common_kwargs(
+                kwargs
+            )
 
             # Build context
-            context = self._build_context(base_context)
+            context = self._build_context(base_context, remaining)
 
             # Call parent with complete error information
             super().__init__(
@@ -238,10 +276,12 @@ class FlextCliExceptions(FlextExceptions):
 
             """
             # Extract common parameters using helper
-            base_context, correlation_id, _ = self._extract_common_kwargs(kwargs)
+            base_context, correlation_id, remaining = self._extract_common_kwargs(
+                kwargs
+            )
 
             # Build context
-            context = self._build_context(base_context)
+            context = self._build_context(base_context, remaining)
 
             # Call parent with complete error information
             super().__init__(
@@ -264,10 +304,12 @@ class FlextCliExceptions(FlextExceptions):
 
             """
             # Extract common parameters using helper
-            base_context, correlation_id, _ = self._extract_common_kwargs(kwargs)
+            base_context, correlation_id, remaining = self._extract_common_kwargs(
+                kwargs
+            )
 
             # Build context
-            context = self._build_context(base_context)
+            context = self._build_context(base_context, remaining)
 
             # Call parent with complete error information
             super().__init__(
@@ -290,10 +332,12 @@ class FlextCliExceptions(FlextExceptions):
 
             """
             # Extract common parameters using helper
-            base_context, correlation_id, _ = self._extract_common_kwargs(kwargs)
+            base_context, correlation_id, remaining = self._extract_common_kwargs(
+                kwargs
+            )
 
             # Build context
-            context = self._build_context(base_context)
+            context = self._build_context(base_context, remaining)
 
             # Call parent with complete error information
             super().__init__(

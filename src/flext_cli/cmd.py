@@ -15,8 +15,6 @@ from pathlib import Path
 from typing import override
 
 from flext_core import (
-    FlextContainer,
-    FlextLogger,
     FlextResult,
     FlextService,
     FlextTypes,
@@ -38,10 +36,9 @@ class FlextCliCmd(FlextService[FlextTypes.Dict]):
 
     @override
     def __init__(self) -> None:
-        """Initialize command service with flext-core integration."""
+        """Initialize command service with flext-core integration and Phase 1 context enrichment."""
         super().__init__()
-        self._logger = FlextLogger(__name__)
-        self._container = FlextContainer()
+        # Logger and container inherited from FlextService via FlextMixins
         self._command_bus_service: FlextCliCmd | None = None
         self._file_tools = FlextCliFileTools()
 

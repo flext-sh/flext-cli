@@ -33,7 +33,6 @@ from flext_cli import (
     FlextCliConfig,
     FlextCliModels,
     FlextCliOutput,
-    FlextCliService,
 )
 
 
@@ -94,7 +93,7 @@ def _container_demo(
     container.register("formatter", formatter)
     container.register("config", config)
     container.register("cli_api", FlextCli())
-    container.register("cli_service", FlextCliService())
+    container.register("cli_service", FlextCli())
 
     # Use flext-cli formatting instead of direct Rich Table
     services_data: FlextTypes.Dict = {}

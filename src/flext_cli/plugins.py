@@ -57,7 +57,7 @@ class FlextCliPlugins(FlextService[object]):
 
         """
         super().__init__(**data)
-        self._logger = FlextLogger(__name__)
+        # Logger and container inherited from FlextService via FlextMixins
 
         # Initialize nested plugin components
         self._manager = self.PluginManager()
@@ -70,8 +70,8 @@ class FlextCliPlugins(FlextService[object]):
         """
 
         # Attribute declarations - override FlextService optional types
-        _logger: FlextLogger
-        _container: FlextContainer
+        _logger: FlextLogger | None
+        _container: FlextContainer | None
 
         def __init__(self, **data: object) -> None:
             """Initialize plugin manager.
@@ -81,7 +81,7 @@ class FlextCliPlugins(FlextService[object]):
 
             """
             super().__init__(**data)
-            self._logger = FlextLogger(__name__)
+            # Logger and container inherited from FlextService via FlextMixins
             self._loaded_plugins: FlextTypes.Dict = {}
             self._initialized_plugins: FlextTypes.Dict = {}
 
@@ -365,7 +365,7 @@ class FlextCliPlugins(FlextService[object]):
                 self._logger.exception(error_msg)
                 return FlextResult[None].fail(error_msg)
 
-        def execute(self) -> FlextResult[object]:
+        def execute(self) -> FlextResult[None]:
             """Execute plugin manager operations.
 
             Returns:
@@ -555,7 +555,7 @@ class FlextCliPlugins(FlextService[object]):
             """
             return FlextResult[None].ok(None)
 
-    def execute(self) -> FlextResult[object]:
+    def execute(self) -> FlextResult[None]:
         """Execute plugin system operations.
 
         Returns:

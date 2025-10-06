@@ -229,11 +229,11 @@ class TestFlextCliConfigService:
         assert isinstance(config, FlextCliConfig)
 
     def test_config_reset_shared_instance(self) -> None:
-        """Test reset_shared_instance class method."""
+        """Test reset_global_instance class method."""
         # Create an instance first
         FlextCliConfig()
         # Reset it
-        FlextCliConfig.reset_shared_instance()
+        FlextCliConfig.reset_global_instance()
         # Verify we can create a new one
         new_config = FlextCliConfig()
         assert new_config is not None

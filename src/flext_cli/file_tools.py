@@ -22,7 +22,6 @@ from typing import cast
 
 import yaml
 from flext_core import (
-    FlextLogger,
     FlextResult,
     FlextService,
     FlextTypes,
@@ -43,9 +42,9 @@ class FlextCliFileTools(FlextService[FlextTypes.Dict]):
     """
 
     def __init__(self) -> None:
-        """Initialize unified file tools service."""
+        """Initialize unified file tools service with Phase 1 context enrichment."""
         super().__init__()
-        self._logger = FlextLogger(__name__)
+        # Logger and container inherited from FlextService via FlextMixins
         self._supported_formats = FlextCliConstants.FILE_FORMATS
 
     # Attributes initialized in __init__

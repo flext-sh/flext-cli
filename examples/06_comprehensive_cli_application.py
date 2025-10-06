@@ -30,7 +30,6 @@ from flext_cli import (
     FlextCli,
     FlextCliCommands,
     FlextCliConfig,
-    FlextCliService,
 )
 
 
@@ -42,7 +41,7 @@ class ComprehensiveCliApplication:
         self.logger = FlextLogger(__name__)
         self.config = FlextCliConfig()
         self.container = FlextContainer.get_global()
-        self.api_client = FlextCliService()
+        self.api_client = FlextCli()
         self.cli_api = FlextCli()
 
         # Application state

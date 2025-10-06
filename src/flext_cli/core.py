@@ -44,7 +44,7 @@ class FlextCliCore(FlextService[FlextCliTypes.Data.CliDataDict]):
         config: FlextCliTypes.Configuration.CliConfigSchema | None = None,
         **data: object,
     ) -> None:
-        """Initialize CLI service with specialized service injection.
+        """Initialize CLI service with specialized service injection and Phase 1 context enrichment.
 
         Args:
             config: CLI configuration schema using domain-specific types
@@ -52,8 +52,10 @@ class FlextCliCore(FlextService[FlextCliTypes.Data.CliDataDict]):
 
         """
         super().__init__(**data)
-        self._logger = FlextLogger(__name__)
-        self._container = FlextContainer()
+
+        # Phase 1 Enhancement: Context enrichment happens automatically in FlextService.__init__
+        # The parent class already calls _enrich_context with service metadata
+        # Logger and container are inherited from FlextService via FlextMixins
 
         # Inject specialized domain services for delegation
         self._config_service = FlextCliConfig()
@@ -71,7 +73,7 @@ class FlextCliCore(FlextService[FlextCliTypes.Data.CliDataDict]):
         self._session_active = False
 
     # ==========================================================================
-    # CLI COMMAND MANAGEMENT - Using FlextCliTypes.Command types
+    # CLI COMMAND MANAGEMENT - Using FlextCliTypes.CliCommand types
     # ==========================================================================
 
     def register_command(
@@ -95,23 +97,23 @@ class FlextCliCore(FlextService[FlextCliTypes.Data.CliDataDict]):
     def get_command(
         self,
         name: str,
-    ) -> FlextResult[FlextCliTypes.Command.CommandDefinition]:
+    ) -> FlextResult[FlextCliTypes.CliCommand.CommandDefinition]:
         """Retrieve registered command definition.
 
         Args:
             name: Command identifier to retrieve
 
         Returns:
-            FlextResult[FlextCliTypes.Command.CommandDefinition]: Command definition or error
+            FlextResult[FlextCliTypes.CliCommand.CommandDefinition]: Command definition or error
 
         """
         if not name or not isinstance(name, str):
-            return FlextResult[FlextCliTypes.Command.CommandDefinition].fail(
+            return FlextResult[FlextCliTypes.CliCommand.CommandDefinition].fail(
                 "Command name must be a non-empty string",
             )
 
         if name not in self._commands:
-            return FlextResult[FlextCliTypes.Command.CommandDefinition].fail(
+            return FlextResult[FlextCliTypes.CliCommand.CommandDefinition].fail(
                 f"Command '{name}' not found",
             )
 
@@ -119,26 +121,26 @@ class FlextCliCore(FlextService[FlextCliTypes.Data.CliDataDict]):
             command_def = self._commands[name]
             # Type-safe conversion to CLI command definition
             if isinstance(command_def, dict):
-                typed_def: FlextCliTypes.Command.CommandDefinition = command_def
-                return FlextResult[FlextCliTypes.Command.CommandDefinition].ok(
+                typed_def: FlextCliTypes.CliCommand.CommandDefinition = command_def
+                return FlextResult[FlextCliTypes.CliCommand.CommandDefinition].ok(
                     typed_def,
                 )
-            return FlextResult[FlextCliTypes.Command.CommandDefinition].fail(
+            return FlextResult[FlextCliTypes.CliCommand.CommandDefinition].fail(
                 f"Invalid command definition type for '{name}'",
             )
         except Exception as e:
-            return FlextResult[FlextCliTypes.Command.CommandDefinition].fail(
+            return FlextResult[FlextCliTypes.CliCommand.CommandDefinition].fail(
                 f"Command retrieval failed: {e}",
             )
 
     def execute_command(
         self,
         name: str,
-        context: FlextCliTypes.Command.CommandContext
+        context: FlextCliTypes.CliCommand.CommandContext
         | FlextTypes.StringList
         | None = None,
         timeout: float | None = None,
-    ) -> FlextResult[FlextCliTypes.Command.CommandResult]:
+    ) -> FlextResult[FlextCliTypes.CliCommand.CommandResult]:
         """Execute registered command with context.
 
         Args:
@@ -147,12 +149,12 @@ class FlextCliCore(FlextService[FlextCliTypes.Data.CliDataDict]):
             timeout: Optional timeout for command execution
 
         Returns:
-            FlextResult[FlextCliTypes.Command.CommandResult]: Execution result or error
+            FlextResult[FlextCliTypes.CliCommand.CommandResult]: Execution result or error
 
         """
         command_result = self.get_command(name)
         if command_result.is_failure:
-            return FlextResult[FlextCliTypes.Command.CommandResult].fail(
+            return FlextResult[FlextCliTypes.CliCommand.CommandResult].fail(
                 command_result.error or "Command not found",
             )
 
@@ -165,7 +167,7 @@ class FlextCliCore(FlextService[FlextCliTypes.Data.CliDataDict]):
                 execution_context = context or {}
 
             # Basic command execution simulation
-            result_data: FlextCliTypes.Command.CommandResult = {
+            result_data: FlextCliTypes.CliCommand.CommandResult = {
                 "command": name,
                 "status": True,
                 "context": execution_context,
@@ -174,10 +176,10 @@ class FlextCliCore(FlextService[FlextCliTypes.Data.CliDataDict]):
             }
 
             self._logger.info(f"Command '{name}' executed successfully")
-            return FlextResult[FlextCliTypes.Command.CommandResult].ok(result_data)
+            return FlextResult[FlextCliTypes.CliCommand.CommandResult].ok(result_data)
 
         except Exception as e:
-            return FlextResult[FlextCliTypes.Command.CommandResult].fail(
+            return FlextResult[FlextCliTypes.CliCommand.CommandResult].fail(
                 f"Command execution failed: {e}",
             )
 
@@ -448,9 +450,9 @@ class FlextCliCore(FlextService[FlextCliTypes.Data.CliDataDict]):
 
     # Attribute declarations - override FlextService optional types
     # These are guaranteed initialized in __init__
-    _logger: FlextLogger
-    _container: FlextContainer
-    _config: FlextCliTypes.Configuration.CliConfigSchema
+    _logger: FlextLogger | None
+    _container: FlextContainer | None
+    _config: FlextCliTypes.Configuration.CliConfigSchema | None
 
     def execute(self) -> FlextResult[FlextCliTypes.Data.CliDataDict]:
         """Execute CLI service operations.
@@ -481,6 +483,56 @@ class FlextCliCore(FlextService[FlextCliTypes.Data.CliDataDict]):
             return FlextResult[FlextCliTypes.Data.CliDataDict].fail(
                 f"Service execution failed: {e}",
             )
+
+    def execute_cli_command_with_context(
+        self,
+        command_name: str,
+        user_id: str | None = None,
+        **context_data: object,
+    ) -> FlextResult[FlextCliTypes.Data.CliDataDict]:
+        """Execute CLI command with automatic context enrichment (Phase 1 pattern).
+
+        Demonstrates the new execute_with_context_enrichment() pattern from flext-core
+        Phase 1 architectural enhancement for CLI operations.
+
+        Args:
+            command_name: Name of the command to execute
+            user_id: Optional user ID for audit context
+            **context_data: Additional context data for enriched logging
+
+        Returns:
+            FlextResult[FlextCliTypes.Data.CliDataDict]: Command execution result
+
+        Example:
+            ```python
+            cli_core = FlextCliCore()
+            result = cli_core.execute_cli_command_with_context(
+                command_name="list-users",
+                user_id="admin",
+                operation_type="query",
+                environment="production",
+            )
+            ```
+
+        Note:
+            This uses the inherited execute_with_context_enrichment() from FlextService,
+            demonstrating how flext-cli integrates Phase 1 enhancements.
+
+        """
+        # Use the inherited execute_with_context_enrichment() pattern from FlextService
+        # This automatically handles:
+        # - Correlation ID generation/propagation
+        # - Operation context enrichment
+        # - User context binding
+        # - Performance tracking
+        # - Structured logging with context
+        return self.execute_with_context_enrichment(
+            operation_name=f"cli_command_{command_name}",
+            correlation_id=None,  # Auto-generated if None
+            user_id=user_id,
+            command_name=command_name,
+            **context_data,
+        )
 
     def health_check(self) -> FlextResult[FlextTypes.Dict]:
         """Perform health check on the CLI service.

@@ -60,7 +60,7 @@ class FlextCliPerformance(FlextService[object]):
 
         """
         super().__init__(**data)
-        self._logger = FlextLogger(__name__)
+        # Logger and container inherited from FlextService via FlextMixins
 
         # Initialize nested performance components
         self._lazy_loader = self._LazyLoader()
@@ -88,7 +88,7 @@ class FlextCliPerformance(FlextService[object]):
 
             """
             super().__init__(**data)
-            self._logger = FlextLogger(__name__)
+            # Logger and container inherited from FlextService via FlextMixins
             self._lazy_modules: FlextTypes.StringDict = {}
             self._loaded_modules: FlextTypes.Dict = {}
 
@@ -201,7 +201,7 @@ class FlextCliPerformance(FlextService[object]):
         _logger: FlextLogger
         _container: FlextContainer
 
-        def execute(self) -> FlextResult[object]:
+        def execute(self) -> FlextResult[None]:
             """Execute lazy loader operations.
 
             Returns:
@@ -235,7 +235,7 @@ class FlextCliPerformance(FlextService[object]):
 
             """
             super().__init__(**data)
-            self._logger = FlextLogger(__name__)
+            # Logger and container inherited from FlextService via FlextMixins
             self._cache: FlextTypes.NestedDict = {}
 
         def set(
@@ -399,7 +399,7 @@ class FlextCliPerformance(FlextService[object]):
                 self._logger.exception(error_msg)
                 return FlextResult[FlextTypes.Dict].fail(error_msg)
 
-        def execute(self) -> FlextResult[object]:
+        def execute(self) -> FlextResult[None]:
             """Execute cache operations.
 
             Returns:
@@ -494,7 +494,7 @@ class FlextCliPerformance(FlextService[object]):
         """
         return self._memoizer
 
-    def execute(self) -> FlextResult[object]:
+    def execute(self) -> FlextResult[None]:
         """Execute performance optimization operations.
 
         Returns:

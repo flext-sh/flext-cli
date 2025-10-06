@@ -35,9 +35,9 @@ from rich.progress import Progress, SpinnerColumn, TaskID, TextColumn
 from rich.table import Table
 
 from flext_cli import (
+    FlextCli,
     FlextCliConfig,
     FlextCliOutput,
-    FlextCliService,
     FlextCliTypes,
 )
 
@@ -75,7 +75,7 @@ class CircuitBreakerState(Enum):
     HALF_OPEN = "half_open"
 
 
-class AdvancedCliService(FlextCliService):
+class AdvancedCliService:
     """Advanced CLI service demonstrating comprehensive service integration."""
 
     def __init__(self) -> None:
@@ -601,7 +601,7 @@ def demonstrate_dependency_injection() -> FlextResult[None]:
         ("console", formatter.console),
         ("logger", FlextLogger("demo")),
         ("config", FlextCliConfig()),
-        ("api_client", FlextCliService()),
+        ("api_client", FlextCli()),
     ]
 
     console.print("📦 Registering services in container:")

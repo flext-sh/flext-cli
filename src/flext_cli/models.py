@@ -10,8 +10,9 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 import uuid
+from collections.abc import Callable
 from datetime import UTC, datetime
-from typing import Self, override
+from typing import Any, Self, get_args, get_origin, override
 
 from flext_core import (
     FlextLogger,
@@ -21,12 +22,15 @@ from flext_core import (
     FlextUtilities,
 )
 from pydantic import (
+    BaseModel,
     ConfigDict,
     Field,
     computed_field,
     field_serializer,
+    fields,
     model_validator,
 )
+from pydantic_core import PydanticUndefined
 
 from flext_cli.config import FlextCliConfig
 from flext_cli.constants import FlextCliConstants
@@ -140,6 +144,555 @@ class FlextCliModels(FlextModels):
                 "serialization_version": "2.11",
             },
         }
+
+    # ========================================================================
+    # CLI MODEL INTEGRATION UTILITIES - Pydantic → CLI Conversion
+    # ========================================================================
+
+    class CliModelConverter:
+        """Comprehensive utilities for converting Pydantic models to CLI parameters.
+
+        Provides complete automation from Pydantic Field metadata to Click-compatible
+        CLI options and arguments, enabling fully model-driven CLI development.
+
+        ARCHITECTURAL PATTERN:
+        - Extracts Pydantic Field metadata (type, default, description, validators)
+        - Converts to CLI parameter specifications (option name, type, help, validation)
+        - Handles type conversions: Pydantic types → Python native types → Click types
+        - Supports validation, default values, and complex nested structures
+        - Generates complete Click decorators and command specifications
+        - Provides bidirectional conversion (Model ↔ CLI parameters)
+
+        COMPREHENSIVE FEATURES:
+        - model_to_cli_params: Extract all CLI parameters from model
+        - model_to_click_options: Generate Click option decorators
+        - cli_args_to_model: Validate and convert CLI args to model instance
+        - generate_command_spec: Complete command specification with all metadata
+        - model_to_cli_dict: Convert model instance to CLI argument dictionary
+        - validate_cli_input: Validate CLI input against model constraints
+
+        USAGE:
+            # Extract CLI parameters
+            params = CliModelConverter.model_to_cli_params(MyModel)
+
+            # Generate Click options
+            options = CliModelConverter.model_to_click_options(MyModel)
+
+            # Validate and convert CLI input
+            model_instance = CliModelConverter.cli_args_to_model(MyModel, cli_args)
+
+            # Generate complete command specification
+            command_spec = CliModelConverter.generate_command_spec(MyModel, "my-command")
+        """
+
+        @staticmethod
+        def pydantic_type_to_python_type(field_type: type) -> type:
+            """Convert Pydantic field type to Python native type.
+
+            Handles Optional, Union, List, Dict, and complex Pydantic types,
+            converting them to Python native types suitable for CLI usage.
+
+            Args:
+                field_type: Pydantic field type annotation
+
+            Returns:
+                type: Python native type for CLI usage
+
+            """
+            # Handle Optional types (Union with None)
+            origin = get_origin(field_type)
+            if origin is type(int | None):  # Union type check
+                args = get_args(field_type)
+                if args:
+                    # Get first non-None type
+                    for arg in args:
+                        if arg is not type(None):
+                            return FlextCliModels.CliModelConverter.pydantic_type_to_python_type(
+                                arg
+                            )
+
+            # Handle List types
+            if origin is list:
+                return list
+
+            # Handle Dict types
+            if origin is dict:
+                return dict
+
+            # Native types pass through
+            if field_type in {str, int, float, bool}:
+                return field_type
+
+            # Default to str for complex types
+            return str
+
+        @staticmethod
+        def python_type_to_click_type(python_type: type) -> str:
+            """Convert Python type to Click type specification string.
+
+            Args:
+                python_type: Python type
+
+            Returns:
+                str: Click type specification (e.g., 'STRING', 'INT', 'FLOAT', 'BOOL')
+
+            """
+            type_map = {
+                str: "STRING",
+                int: "INT",
+                float: "FLOAT",
+                bool: "BOOL",
+                list: "STRING",  # Lists as comma-separated strings
+                dict: "STRING",  # Dicts as JSON strings
+            }
+            return type_map.get(python_type, "STRING")
+
+        @staticmethod
+        def field_to_cli_param(
+            field_name: str, field_info: fields.FieldInfo
+        ) -> FlextResult[dict[str, Any]]:
+            """Convert Pydantic Field to comprehensive CLI parameter specification.
+
+            Args:
+                field_name: Name of the field
+                field_info: Pydantic FieldInfo object
+
+            Returns:
+                FlextResult containing CLI parameter specification dict with:
+                - name: CLI parameter name (--field-name)
+                - type: Python type for the parameter
+                - click_type: Click type specification
+                - default: Default value if any
+                - help: Help text from field description
+                - required: Whether the parameter is required
+                - validators: List of validation functions
+                - metadata: Additional Pydantic metadata
+
+            """
+            try:
+                # Extract field metadata
+                field_type = field_info.annotation
+                if field_type is None:
+                    return FlextResult[dict[str, Any]].fail(
+                        f"Field {field_name} has no type annotation"
+                    )
+
+                # Convert types
+                python_type = (
+                    FlextCliModels.CliModelConverter.pydantic_type_to_python_type(
+                        field_type
+                    )
+                )
+                click_type = FlextCliModels.CliModelConverter.python_type_to_click_type(
+                    python_type
+                )
+
+                # Determine if required (no default value)
+                is_required = field_info.default is PydanticUndefined
+                default_value = None if is_required else field_info.default
+
+                # Extract description
+                description = field_info.description or f"{field_name} parameter"
+
+                # Extract validation constraints from metadata
+                validators: list[str] = []
+                metadata: dict[str, Any] = {}
+
+                if hasattr(field_info, "metadata"):
+                    for meta_item in field_info.metadata:
+                        if hasattr(meta_item, "__dict__"):
+                            metadata.update(meta_item.__dict__)
+
+                # Build comprehensive CLI parameter spec
+                cli_param: dict[str, Any] = {
+                    "name": field_name.replace("_", "-"),  # CLI convention: dashes
+                    "field_name": field_name,  # Original Python field name
+                    "type": python_type,
+                    "click_type": click_type,
+                    "required": is_required,
+                    "default": default_value,
+                    "help": description,
+                    "validators": validators,
+                    "metadata": metadata,
+                }
+
+                return FlextResult[dict[str, Any]].ok(cli_param)
+            except Exception as e:
+                return FlextResult[dict[str, Any]].fail(
+                    f"Failed to convert field {field_name}: {e}"
+                )
+
+        @staticmethod
+        def model_to_cli_params(
+            model_class: type[BaseModel],
+        ) -> FlextResult[list[dict[str, Any]]]:
+            """Extract all fields from Pydantic model and convert to CLI parameters.
+
+            Args:
+                model_class: Pydantic model class to convert
+
+            Returns:
+                FlextResult containing list of comprehensive CLI parameter specifications
+
+            """
+            try:
+                cli_params: list[dict[str, Any]] = []
+
+                # Get model fields
+                model_fields = model_class.model_fields
+
+                for field_name, field_info in model_fields.items():
+                    # Convert each field
+                    param_result = FlextCliModels.CliModelConverter.field_to_cli_param(
+                        field_name, field_info
+                    )
+
+                    if param_result.is_failure:
+                        # Skip fields that fail conversion
+                        continue
+
+                    cli_params.append(param_result.unwrap())
+
+                return FlextResult[list[dict[str, Any]]].ok(cli_params)
+            except Exception as e:
+                return FlextResult[list[dict[str, Any]]].fail(
+                    f"Failed to convert model {model_class.__name__}: {e}"
+                )
+
+        @staticmethod
+        def model_to_click_options(
+            model_class: type[BaseModel],
+        ) -> FlextResult[list[dict[str, Any]]]:
+            """Generate Click option specifications from Pydantic model.
+
+            Creates complete Click option definitions that can be used to
+            programmatically create Click commands with @click.option decorators.
+
+            Args:
+                model_class: Pydantic model class to convert
+
+            Returns:
+                FlextResult containing list of Click option specifications with:
+                - option_name: Full option name with dashes (e.g., '--field-name')
+                - param_decls: List of parameter declarations
+                - type: Click type object
+                - default: Default value
+                - help: Help text
+                - required: Whether option is required
+                - show_default: Whether to show default in help
+
+            """
+            try:
+                params_result = FlextCliModels.CliModelConverter.model_to_cli_params(
+                    model_class
+                )
+                if params_result.is_failure:
+                    return FlextResult[list[dict[str, Any]]].fail(params_result.error)
+
+                click_options: list[dict[str, Any]] = []
+                for param in params_result.unwrap():
+                    option_name = f"--{param['name']}"
+
+                    click_option = {
+                        "option_name": option_name,
+                        "param_decls": [option_name],
+                        "type": param["click_type"],
+                        "default": param["default"],
+                        "help": param["help"],
+                        "required": param["required"],
+                        "show_default": not param["required"],
+                        "metadata": param.get("metadata", {}),
+                    }
+
+                    click_options.append(click_option)
+
+                return FlextResult[list[dict[str, Any]]].ok(click_options)
+            except Exception as e:
+                return FlextResult[list[dict[str, Any]]].fail(
+                    f"Failed to generate Click options for {model_class.__name__}: {e}"
+                )
+
+        @staticmethod
+        def cli_args_to_model(
+            model_class: type[BaseModel],
+            cli_args: dict[str, Any],
+        ) -> FlextResult[BaseModel]:
+            """Convert CLI arguments dictionary to Pydantic model instance.
+
+            Validates CLI input against model constraints and creates a validated
+            model instance. Handles type conversions and validation errors.
+
+            Args:
+                model_class: Pydantic model class to instantiate
+                cli_args: Dictionary of CLI argument name/value pairs
+
+            Returns:
+                FlextResult containing validated model instance
+
+            """
+            try:
+                # Convert CLI argument names (with dashes) to Python field names (with underscores)
+                model_args = {
+                    key.replace("-", "_"): value for key, value in cli_args.items()
+                }
+
+                # Create and validate model instance
+                model_instance = model_class(**model_args)
+
+                return FlextResult[BaseModel].ok(model_instance)
+            except Exception as e:
+                return FlextResult[BaseModel].fail(
+                    f"Failed to create {model_class.__name__} from CLI args: {e}"
+                )
+
+        @staticmethod
+        def model_to_cli_dict(
+            model_instance: BaseModel,
+        ) -> FlextResult[dict[str, Any]]:
+            """Convert Pydantic model instance to CLI arguments dictionary.
+
+            Useful for converting model instances back to CLI-compatible format
+            for display, logging, or passing to other CLI commands.
+
+            Args:
+                model_instance: Pydantic model instance
+
+            Returns:
+                FlextResult containing dictionary with CLI-style argument names (dashes)
+
+            """
+            try:
+                # Get model dict
+                model_dict = model_instance.model_dump()
+
+                # Convert field names to CLI format (dashes instead of underscores)
+                cli_dict = {
+                    key.replace("_", "-"): value for key, value in model_dict.items()
+                }
+
+                return FlextResult[dict[str, Any]].ok(cli_dict)
+            except Exception as e:
+                return FlextResult[dict[str, Any]].fail(
+                    f"Failed to convert model to CLI dict: {e}"
+                )
+
+        @staticmethod
+        def validate_cli_input(
+            model_class: type[BaseModel],
+            cli_args: dict[str, Any],
+        ) -> FlextResult[dict[str, Any]]:
+            """Validate CLI input against Pydantic model constraints.
+
+            Performs validation without creating a model instance, returning
+            validation errors or the validated argument dictionary.
+
+            Args:
+                model_class: Pydantic model class for validation
+                cli_args: Dictionary of CLI argument name/value pairs
+
+            Returns:
+                FlextResult containing validated arguments dict or validation errors
+
+            """
+            try:
+                # Convert to model to validate
+                model_result = FlextCliModels.CliModelConverter.cli_args_to_model(
+                    model_class, cli_args
+                )
+
+                if model_result.is_failure:
+                    return FlextResult[dict[str, Any]].fail(model_result.error)
+
+                # Return validated args
+                return FlextResult[dict[str, Any]].ok(cli_args)
+            except Exception as e:
+                return FlextResult[dict[str, Any]].fail(
+                    f"CLI input validation failed: {e}"
+                )
+
+        @staticmethod
+        def generate_command_spec(
+            model_class: type[BaseModel],
+            command_name: str,
+            command_help: str | None = None,
+        ) -> FlextResult[dict[str, Any]]:
+            """Generate complete Click command specification from Pydantic model.
+
+            Creates a comprehensive command specification that includes all metadata
+            needed to programmatically create a complete Click command with options.
+
+            Args:
+                model_class: Pydantic model class defining command parameters
+                command_name: Name of the command
+                command_help: Help text for the command (defaults to model docstring)
+
+            Returns:
+                FlextResult containing complete command specification with:
+                - name: Command name
+                - help: Command help text
+                - options: List of Click option specifications
+                - model_class: Reference to the Pydantic model class
+                - param_count: Number of parameters
+                - required_params: List of required parameter names
+
+            """
+            try:
+                # Get Click options
+                options_result = (
+                    FlextCliModels.CliModelConverter.model_to_click_options(model_class)
+                )
+                if options_result.is_failure:
+                    return FlextResult[dict[str, Any]].fail(options_result.error)
+
+                options = options_result.unwrap()
+
+                # Extract required parameters
+                required_params = [
+                    opt["option_name"] for opt in options if opt["required"]
+                ]
+
+                # Use model docstring if no help provided
+                if command_help is None:
+                    command_help = model_class.__doc__ or f"{command_name} command"
+
+                # Build complete command specification
+                command_spec = {
+                    "name": command_name,
+                    "help": command_help,
+                    "options": options,
+                    "model_class": model_class,
+                    "model_name": model_class.__name__,
+                    "param_count": len(options),
+                    "required_params": required_params,
+                    "optional_params": [
+                        opt["option_name"] for opt in options if not opt["required"]
+                    ],
+                }
+
+                return FlextResult[dict[str, Any]].ok(command_spec)
+            except Exception as e:
+                return FlextResult[dict[str, Any]].fail(
+                    f"Failed to generate command spec for {command_name}: {e}"
+                )
+
+    class CliModelDecorators:
+        """Decorators for model-driven CLI command generation.
+
+        Provides decorators that automatically generate CLI commands from Pydantic models,
+        eliminating manual parameter declaration boilerplate.
+
+        ARCHITECTURAL PATTERN:
+        - Introspect Pydantic model structure
+        - Generate CLI parameters from model fields
+        - Inject validation before handler execution
+        - Return validated model instance to handler
+
+        USAGE:
+            @cli_from_model(ConfigModel)
+            def configure(config: ConfigModel):
+                # config is already validated Pydantic instance
+                pass
+        """
+
+        @staticmethod
+        def cli_from_model(
+            model_class: type[BaseModel], command_name: str | None = None
+        ) -> Callable[[Callable[..., Any]], Callable[..., Any]]:
+            """Decorator that generates CLI command from Pydantic model.
+
+            Args:
+                model_class: Pydantic model class defining CLI parameters
+                command_name: Optional command name (defaults to function name)
+
+            Returns:
+                Decorator function that wraps the command handler
+
+            Example:
+                @cli_from_model(DatabaseConfig)
+                def setup_database(config: DatabaseConfig):
+                    # config is validated DatabaseConfig instance
+                    print(f"Connecting to {config.host}:{config.port}")
+
+            """
+
+            def decorator(func: Callable[..., Any]) -> Callable[..., Any]:
+                # Store model metadata on function for CLI builder inspection
+                setattr(func, "__cli_model__", model_class)
+                setattr(func, "__cli_command_name__", command_name or func.__name__)
+
+                def wrapper(**cli_kwargs: Any) -> Any:
+                    # Validate CLI input with Pydantic model
+                    validation_result = (
+                        FlextCliModels.CliModelConverter.cli_args_to_model(
+                            model_class, cli_kwargs
+                        )
+                    )
+
+                    if validation_result.is_failure:
+                        # Return error result
+                        return FlextResult[Any].fail(
+                            f"Invalid input: {validation_result.error}"
+                        )
+
+                    validated_model = validation_result.unwrap()
+
+                    # Call original function with validated model
+                    return func(validated_model)
+
+                return wrapper
+
+            return decorator
+
+        @staticmethod
+        def cli_from_multiple_models(
+            *model_classes: type[BaseModel], command_name: str | None = None
+        ) -> Callable[[Callable[..., Any]], Callable[..., Any]]:
+            """Decorator for CLI command with multiple model inputs.
+
+            Args:
+                *model_classes: Multiple Pydantic model classes
+                command_name: Optional command name
+
+            Returns:
+                Decorator function that validates with all models
+
+            Example:
+                @cli_from_multiple_models(AuthConfig, ServerConfig)
+                def deploy(auth: AuthConfig, server: ServerConfig):
+                    # Both configs are validated instances
+                    pass
+
+            """
+
+            def decorator(func: Callable[..., Any]) -> Callable[..., Any]:
+                # Store multiple models metadata
+                setattr(func, "__cli_models__", model_classes)
+                setattr(func, "__cli_command_name__", command_name or func.__name__)
+
+                def wrapper(**cli_kwargs: Any) -> Any:
+                    validated_models: list[BaseModel] = []
+
+                    # Validate with each model
+                    for model_class in model_classes:
+                        validation_result = (
+                            FlextCliModels.CliModelConverter.cli_args_to_model(
+                                model_class, cli_kwargs
+                            )
+                        )
+
+                        if validation_result.is_failure:
+                            return FlextResult[Any].fail(
+                                f"Validation failed for {model_class.__name__}: {validation_result.error}"
+                            )
+
+                        validated_models.append(validation_result.unwrap())
+
+                    # Call with validated models
+                    return func(*validated_models)
+
+                return wrapper
+
+            return decorator
 
     # Base classes for common functionality - using flext-core patterns
     class _BaseEntity(FlextModels.Entity, FlextCliMixins.ValidationMixin):

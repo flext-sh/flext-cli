@@ -31,8 +31,8 @@ from flext_core import FlextConfig, FlextConstants, FlextResult, FlextTypes
 from pydantic_settings import SettingsConfigDict
 
 from flext_cli import (
+    FlextCli,
     FlextCliAuth,
-    FlextCliService,
     FlextCliTypes,
 )
 
@@ -75,7 +75,7 @@ class ServiceHealth:
     error: str | None = None
 
 
-class EcosystemService(FlextCliService):
+class EcosystemService:
     """Service for FLEXT ecosystem integration."""
 
     _formatters: object = None  # Removed CliFormatters model
@@ -84,7 +84,7 @@ class EcosystemService(FlextCliService):
         """Initialize ecosystem service."""
         super().__init__()
         self._settings = EcosystemSettings()
-        self._api_client = FlextCliService()
+        self._api_client = FlextCli()
         self._auth_service = FlextCliAuth()
         self._formatters = None  # Removed CliFormatters model
 

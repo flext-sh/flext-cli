@@ -9,6 +9,8 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
+from pathlib import Path
+
 from flext_core import (
     FlextBus,
     FlextContainer,
@@ -71,15 +73,29 @@ class FlextCli:
     _main: FlextCliMain
 
     def __init__(self) -> None:
-        """Initialize CLI API thin facade."""
+        """Initialize CLI API thin facade with Phase 1 context enrichment."""
+        # Initialize logger first
         self._logger = FlextLogger(__name__)
-        self._container = FlextContainer()
 
         # Initialize flext-core advanced features
         self._bus = FlextBus()
         self._context = FlextContext()
         self._dispatcher = FlextDispatcher()
         self._registry = FlextRegistry(dispatcher=self._dispatcher)
+        self._container = FlextContainer()
+
+        # Phase 1 Enhancement: Enrich context with service metadata
+        # This automatically adds CLI service information to all logs
+        FlextContext.Service.set_service_name("flext-cli")
+        FlextContext.Service.set_service_version("1.0.0")
+
+        # Enrich logger with correlation tracking
+        correlation_id = FlextContext.Correlation.generate_correlation_id()
+        self._logger.bind_global_context(
+            service_name="flext-cli",
+            service_type="FlextCli",
+            correlation_id=correlation_id,
+        )
 
         # Initialize domain services for property access
         self._core = FlextCliCore()
@@ -308,6 +324,89 @@ class FlextCli:
         return FlextCliProtocols
 
     # ==========================================================================
+    # MODEL-DRIVEN CLI UTILITIES - Pydantic model integration for CLI
+    # ==========================================================================
+
+    @property
+    def model_converter(self) -> type[FlextCliModels.CliModelConverter]:
+        """Access Pydantic model to CLI parameter converter.
+
+        Returns:
+            type[FlextCliModels.CliModelConverter]: Model converter utilities
+
+        Example:
+            >>> cli = FlextCli()
+            >>> converter = cli.model_converter()
+            >>> params_result = converter.model_to_cli_params(MyModel)
+
+        """
+        return FlextCliModels.CliModelConverter
+
+    @property
+    def model_decorators(self) -> type[FlextCliModels.CliModelDecorators]:
+        """Access model-driven CLI decorators.
+
+        Returns:
+            type[FlextCliModels.CliModelDecorators]: Model decorator utilities
+
+        Example:
+            >>> from flext_cli import FlextCli
+            >>> cli = FlextCli()
+            >>> @cli.model_decorators.cli_from_model(ConfigModel)
+            >>> def configure(config: ConfigModel):
+            ...     pass
+
+        """
+        return FlextCliModels.CliModelDecorators
+
+    @property
+    def model_handler_factory(self) -> type[FlextCliHandlers.ModelHandlerFactory]:
+        """Access model-driven handler factory.
+
+        Returns:
+            type[FlextCliHandlers.ModelHandlerFactory]: Handler factory utilities
+
+        Example:
+            >>> cli = FlextCli()
+            >>> factory = cli.model_handler_factory()
+            >>> handler = factory.create_command_handler_from_model(Model, logic)
+
+        """
+        return FlextCliHandlers.ModelHandlerFactory
+
+    @property
+    def model_handler_decorators(self) -> type[FlextCliHandlers.ModelHandlerDecorators]:
+        """Access model-driven handler decorators.
+
+        Returns:
+            type[FlextCliHandlers.ModelHandlerDecorators]: Handler decorator utilities
+
+        Example:
+            >>> from flext_cli import FlextCli
+            >>> cli = FlextCli()
+            >>> @cli.model_handler_decorators.model_command_handler(Model)
+            >>> def handler(model: Model):
+            ...     pass
+
+        """
+        return FlextCliHandlers.ModelHandlerDecorators
+
+    @property
+    def model_processor(self) -> type[FlextCliProcessors.ModelProcessor]:
+        """Access model validation and processing utilities.
+
+        Returns:
+            type[FlextCliProcessors.ModelProcessor]: Model processor class
+
+        Example:
+            >>> cli = FlextCli()
+            >>> processor = cli.model_processor()
+            >>> result = processor.validate_with_model(data, Model)
+
+        """
+        return FlextCliProcessors.ModelProcessor
+
+    # ==========================================================================
     # PHASE 1 TRANSFORMATION COMPONENTS - Click/Rich/Tabulate abstractions
     # ==========================================================================
 
@@ -438,6 +537,194 @@ class FlextCli:
         return self._container
 
     # Attributes initialized in __init__ (inherit types from FlextService)
+
+    # ==========================================================================
+    # CONVENIENCE METHODS - Direct access to common CLI operations
+    # ==========================================================================
+
+    def info(self, message: str, **kwargs: object) -> FlextResult[None]:
+        """Display informational message.
+
+        Args:
+            message: Message to display
+            **kwargs: Additional formatting options
+
+        Returns:
+            FlextResult[None]: Operation result
+
+        """
+        return self.output.display_message(message, message_type="info", **kwargs)
+
+    def success(self, message: str, **kwargs: object) -> FlextResult[None]:
+        """Display success message.
+
+        Args:
+            message: Message to display
+            **kwargs: Additional formatting options
+
+        Returns:
+            FlextResult[None]: Operation result
+
+        """
+        return self.output.display_message(message, message_type="success", **kwargs)
+
+    def error(self, message: str, **kwargs: object) -> FlextResult[None]:
+        """Display error message.
+
+        Args:
+            message: Message to display
+            **kwargs: Additional formatting options
+
+        Returns:
+            FlextResult[None]: Operation result
+
+        """
+        return self.output.display_message(message, message_type="error", **kwargs)
+
+    def warning(self, message: str, **kwargs: object) -> FlextResult[None]:
+        """Display warning message.
+
+        Args:
+            message: Message to display
+            **kwargs: Additional formatting options
+
+        Returns:
+            FlextResult[None]: Operation result
+
+        """
+        return self.output.display_message(message, message_type="warning", **kwargs)
+
+    def display_message(
+        self, message: str, message_type: str = "info", **kwargs: object
+    ) -> FlextResult[None]:
+        """Display message with specified type.
+
+        Args:
+            message: Message to display
+            message_type: Type of message (info, success, error, warning)
+            **kwargs: Additional formatting options
+
+        Returns:
+            FlextResult[None]: Operation result
+
+        """
+        return self.output.display_message(message, message_type=message_type, **kwargs)
+
+    def display_data(
+        self, data: object, format_type: str = "table", **kwargs: object
+    ) -> FlextResult[None]:
+        """Display data in specified format.
+
+        Args:
+            data: Data to display
+            format_type: Format type (table, json, yaml, etc.)
+            **kwargs: Additional formatting options
+
+        Returns:
+            FlextResult[None]: Operation result
+
+        """
+        return self.output.display_data(data, format_type=format_type, **kwargs)
+
+    def table(self, data: object, **kwargs: object) -> FlextResult[None]:
+        """Display data as table.
+
+        Args:
+            data: Data to display as table
+            **kwargs: Additional table options
+
+        Returns:
+            FlextResult[None]: Operation result
+
+        """
+        return self.output.display_data(data, format_type="table", **kwargs)
+
+    def confirm(self, message: str, *, default: bool = False) -> FlextResult[bool]:
+        """Prompt user for confirmation.
+
+        Args:
+            message: Confirmation message
+            default: Default value if no input
+
+        Returns:
+            FlextResult[bool]: User confirmation result
+
+        """
+        return self.prompts.confirm(message, default=default)
+
+    def prompt_text(
+        self, message: str, default: str = "", **kwargs: object
+    ) -> FlextResult[str]:
+        """Prompt user for text input.
+
+        Args:
+            message: Prompt message
+            default: Default value
+            **kwargs: Additional prompt options
+
+        Returns:
+            FlextResult[str]: User input result
+
+        """
+        return self.prompts.prompt_text(message, default=default, **kwargs)
+
+    def write_json(
+        self, data: object, path: str | Path, **kwargs: object
+    ) -> FlextResult[None]:
+        """Write data to JSON file.
+
+        Args:
+            data: Data to write
+            path: File path
+            **kwargs: Additional write options
+
+        Returns:
+            FlextResult[None]: Write operation result
+
+        """
+        return self.file_tools.write_json(data, path, **kwargs)
+
+    def read_json(self, path: str | Path, **kwargs: object) -> FlextResult[object]:
+        """Read data from JSON file.
+
+        Args:
+            path: File path
+            **kwargs: Additional read options
+
+        Returns:
+            FlextResult[object]: Read operation result
+
+        """
+        return self.file_tools.read_json(path, **kwargs)
+
+    def write_yaml(
+        self, data: object, path: str | Path, **kwargs: object
+    ) -> FlextResult[None]:
+        """Write data to YAML file.
+
+        Args:
+            data: Data to write
+            path: File path
+            **kwargs: Additional write options
+
+        Returns:
+            FlextResult[None]: Write operation result
+
+        """
+        return self.file_tools.write_yaml(data, path, **kwargs)
+
+    def read_yaml(self, path: str | Path, **kwargs: object) -> FlextResult[object]:
+        """Read data from YAML file.
+
+        Args:
+            path: File path
+            **kwargs: Additional read options
+
+        Returns:
+            FlextResult[object]: Read operation result
+
+        """
+        return self.file_tools.read_yaml(path, **kwargs)
 
     def execute(self) -> FlextResult[FlextCliTypes.Data.CliDataDict]:
         """Execute CLI API operations.

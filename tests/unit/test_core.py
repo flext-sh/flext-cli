@@ -1,6 +1,6 @@
 """FLEXT CLI Core Service Tests - Comprehensive Real Functionality Testing.
 
-Tests for FlextCliService covering all real functionality with flext_tests
+Tests for FlextCliCore covering all real functionality with flext_tests
 integration, Docker support, and comprehensive coverage targeting 90%+.
 
 Copyright (c) 2025 FLEXT Team. All rights reserved.
@@ -19,20 +19,20 @@ import yaml
 from flext_core import FlextResult, FlextTypes, FlextUtilities
 
 # Test utilities removed from flext-core production exports
-from flext_cli.api import FlextCliApi as FlextCli
+from flext_cli.api import FlextCli
 from flext_cli.config import FlextCliConfig
 from flext_cli.constants import FlextCliConstants
-from flext_cli.core import FlextCliService
+from flext_cli.core import FlextCliCore
 from flext_cli.models import FlextCliModels
 
 
-class TestFlextCliService:
-    """Comprehensive tests for FlextCliService functionality."""
+class TestFlextCliCore:
+    """Comprehensive tests for FlextCliCore functionality."""
 
     @pytest.fixture
-    def core_service(self) -> FlextCliService:
-        """Create FlextCliService instance for testing."""
-        return FlextCliService()
+    def core_service(self) -> FlextCliCore:
+        """Create FlextCliCore instance for testing."""
+        return FlextCliCore()
 
     @pytest.fixture
     def cli_facade(self) -> FlextCli:
@@ -43,7 +43,7 @@ class TestFlextCliService:
     # ========================================================================
     # INITIALIZATION AND BASIC FUNCTIONALITY
     # ========================================================================
-    def test_core_service_initialization(self, core_service: FlextCliService) -> None:
+    def test_core_service_initialization(self, core_service: FlextCliCore) -> None:
         """Test core service initialization and basic properties."""
         assert core_service is not None
         assert hasattr(core_service, "_logger")
@@ -53,7 +53,7 @@ class TestFlextCliService:
         assert hasattr(core_service, "_plugins")
         assert hasattr(core_service, "_sessions")
 
-    def test_core_service_execute_method(self, core_service: FlextCliService) -> None:
+    def test_core_service_execute_method(self, core_service: FlextCliCore) -> None:
         """Test core service execute method with real functionality."""
         result = core_service.execute()
 
@@ -77,9 +77,9 @@ class TestFlextCliService:
                 assert isinstance(data, dict)
                 assert "status" in data
                 assert "service" in data
-                assert data["service"] == "FlextCliService"
+                assert data["service"] == "FlextCliCore"
 
-    def test_core_service_advanced_methods(self, core_service: FlextCliService) -> None:
+    def test_core_service_advanced_methods(self, core_service: FlextCliCore) -> None:
         """Test advanced core service methods."""
         # Test health check
         health_result = core_service.health_check()
@@ -133,7 +133,7 @@ class TestFlextCliService:
     # ========================================================================
 
     def test_load_configuration(
-        self, core_service: FlextCliService, temp_dir: Path
+        self, core_service: FlextCliCore, temp_dir: Path
     ) -> None:
         """Test configuration loading functionality."""
         # Create test config file
@@ -160,7 +160,7 @@ class TestFlextCliService:
         assert config_data["retries"] == FlextCliConstants.HTTP.MAX_RETRIES
 
     def test_load_configuration_nonexistent_file(
-        self, core_service: FlextCliService
+        self, core_service: FlextCliCore
     ) -> None:
         """Test configuration loading with nonexistent file."""
         result = core_service.load_configuration("/nonexistent/config.json")
@@ -174,7 +174,7 @@ class TestFlextCliService:
         )
 
     def test_save_configuration(
-        self, core_service: FlextCliService, temp_dir: Path
+        self, core_service: FlextCliCore, temp_dir: Path
     ) -> None:
         """Test configuration saving functionality."""
         config_file = temp_dir / "test_save_config.json"
@@ -196,7 +196,7 @@ class TestFlextCliService:
         saved_data = json.loads(config_file.read_text())
         assert saved_data == test_config
 
-    def test_validate_configuration(self, core_service: FlextCliService) -> None:
+    def test_validate_configuration(self, core_service: FlextCliCore) -> None:
         """Test configuration validation functionality."""
         # Test valid configuration using FlextCliConfig model
         valid_config = FlextCliConfig(
@@ -467,7 +467,7 @@ nested:
     # COMMAND EXECUTION
     # ========================================================================
 
-    def test_execute_command(self, core_service: FlextCliService) -> None:
+    def test_execute_command(self, core_service: FlextCliCore) -> None:
         """Test command execution functionality."""
         # Test with a simple command that should work on most systems
         result = core_service.execute_command("echo", ["Hello, World!"])
@@ -480,7 +480,7 @@ nested:
             output = result.unwrap()
             assert isinstance(output, str)
 
-    def test_execute_command_with_timeout(self, core_service: FlextCliService) -> None:
+    def test_execute_command_with_timeout(self, core_service: FlextCliCore) -> None:
         """Test command execution with timeout."""
         # Test with a command that should complete quickly
         result = core_service.execute_command("python", ["--version"], timeout=5)
@@ -495,7 +495,7 @@ nested:
             assert isinstance(result.error, str)
             assert len(result.error) > 0
 
-    def test_execute_command_nonexistent(self, core_service: FlextCliService) -> None:
+    def test_execute_command_nonexistent(self, core_service: FlextCliCore) -> None:
         """Test command execution with nonexistent command."""
         result = core_service.execute_command("nonexistent_command_12345", [])
 
@@ -507,7 +507,7 @@ nested:
     # ========================================================================
 
     @pytest.mark.skip(reason="HTTP operations removed from core CLI")
-    def test_make_http_request(self, core_service: FlextCliService) -> None:
+    def test_make_http_request(self, core_service: FlextCliCore) -> None:
         """Test HTTP request functionality."""
         # Test with a simple GET request to a reliable endpoint
         result = core_service.make_http_request(
@@ -525,7 +525,7 @@ nested:
             assert len(result.error) > 0
 
     @pytest.mark.skip(reason="HTTP operations removed from core CLI")
-    def test_make_http_request_post(self, core_service: FlextCliService) -> None:
+    def test_make_http_request_post(self, core_service: FlextCliCore) -> None:
         """Test HTTP POST request functionality."""
         test_data: FlextTypes.Dict = {"key": "value", "test": True}
 
@@ -544,7 +544,7 @@ nested:
             assert len(result.error) > 0
 
     @pytest.mark.skip(reason="HTTP operations removed from core CLI")
-    def test_make_http_request_invalid_url(self, core_service: FlextCliService) -> None:
+    def test_make_http_request_invalid_url(self, core_service: FlextCliCore) -> None:
         """Test HTTP request with invalid URL."""
         result = core_service.make_http_request(
             "GET", "invalid-url-that-should-fail", timeout=5
@@ -605,7 +605,7 @@ nested:
     # ========================================================================
 
     def test_error_handling_with_invalid_input(
-        self, core_service: FlextCliService
+        self, core_service: FlextCliCore
     ) -> None:
         """Test error handling with various invalid inputs."""
         # Test with None input
@@ -665,7 +665,7 @@ nested:
     # ========================================================================
 
     def test_full_workflow_integration(
-        self, core_service: FlextCliService, cli_facade: FlextCli, temp_dir: Path
+        self, core_service: FlextCliCore, cli_facade: FlextCli, temp_dir: Path
     ) -> None:
         """Test complete workflow integration."""
         # 1. Create configuration
@@ -719,7 +719,7 @@ nested:
         assert data_file.exists()
         assert json.loads(data_file.read_text()) == test_data
 
-    def test_workflow_integration(self, core_service: FlextCliService) -> None:
+    def test_workflow_integration(self, core_service: FlextCliCore) -> None:
         """Test execute method (now sync, delegates to execute)."""
         # execute is now synchronous, delegates to execute()
         result = core_service.execute()
@@ -732,10 +732,10 @@ nested:
             assert isinstance(data, dict)
             assert "status" in data
             assert "service" in data
-            assert data["service"] == "FlextCliService"
+            assert data["service"] == "FlextCliCore"
 
     def test_core_service_advanced_methods_merged(
-        self, core_service: FlextCliService
+        self, core_service: FlextCliCore
     ) -> None:
         """Test advanced core service methods - consolidated test."""
         # Test health check
@@ -776,13 +776,13 @@ nested:
         assert hasattr(core_service, "get_handlers")
 
 
-class TestFlextCliServiceExtended:
-    """Extended tests for FlextCliService core functionality."""
+class TestFlextCliCoreExtended:
+    """Extended tests for FlextCliCore core functionality."""
 
     @pytest.fixture
-    def core_service(self) -> FlextCliService:
-        """Create FlextCliService instance for testing."""
-        return FlextCliService()
+    def core_service(self) -> FlextCliCore:
+        """Create FlextCliCore instance for testing."""
+        return FlextCliCore()
 
     @pytest.fixture
     def sample_command(self) -> FlextCliModels.CliCommand:
@@ -798,7 +798,7 @@ class TestFlextCliServiceExtended:
     # =========================================================================
 
     def test_register_command_success(
-        self, core_service: FlextCliService, sample_command: FlextCliModels.CliCommand
+        self, core_service: FlextCliCore, sample_command: FlextCliModels.CliCommand
     ) -> None:
         """Test successful command registration."""
         result = core_service.register_command(sample_command)
@@ -812,7 +812,7 @@ class TestFlextCliServiceExtended:
         assert "test-cmd" in list_result.unwrap()
 
     def test_get_command_success(
-        self, core_service: FlextCliService, sample_command: FlextCliModels.CliCommand
+        self, core_service: FlextCliCore, sample_command: FlextCliModels.CliCommand
     ) -> None:
         """Test retrieving registered command."""
         # Register command first
@@ -826,7 +826,7 @@ class TestFlextCliServiceExtended:
         command_def = result.unwrap()
         assert command_def["name"] == "test-cmd"
 
-    def test_get_command_not_found(self, core_service: FlextCliService) -> None:
+    def test_get_command_not_found(self, core_service: FlextCliCore) -> None:
         """Test getting non-existent command."""
         result = core_service.get_command("nonexistent")
 
@@ -834,16 +834,14 @@ class TestFlextCliServiceExtended:
         assert result.is_failure
         assert result.error is not None and "not found" in result.error
 
-    def test_get_command_invalid_name_empty(
-        self, core_service: FlextCliService
-    ) -> None:
+    def test_get_command_invalid_name_empty(self, core_service: FlextCliCore) -> None:
         """Test getting command with empty name."""
         result = core_service.get_command("")
 
         assert result.is_failure
         assert result.error is not None and "non-empty string" in result.error
 
-    def test_get_command_invalid_name_type(self, core_service: FlextCliService) -> None:
+    def test_get_command_invalid_name_type(self, core_service: FlextCliCore) -> None:
         """Test getting command with invalid name type."""
         result = core_service.get_command(None)
 
@@ -851,7 +849,7 @@ class TestFlextCliServiceExtended:
         assert result.error is not None and "non-empty string" in result.error
 
     def test_execute_command_success(
-        self, core_service: FlextCliService, sample_command: FlextCliModels.CliCommand
+        self, core_service: FlextCliCore, sample_command: FlextCliModels.CliCommand
     ) -> None:
         """Test executing registered command."""
         core_service.register_command(sample_command)
@@ -865,7 +863,7 @@ class TestFlextCliServiceExtended:
         assert command_result["status"] is True
 
     def test_execute_command_with_context_list(
-        self, core_service: FlextCliService, sample_command: FlextCliModels.CliCommand
+        self, core_service: FlextCliCore, sample_command: FlextCliModels.CliCommand
     ) -> None:
         """Test executing command with list context."""
         core_service.register_command(sample_command)
@@ -878,7 +876,7 @@ class TestFlextCliServiceExtended:
         assert command_result["context"]["args"] == ["arg1", "arg2"]
 
     def test_execute_command_with_context_dict(
-        self, core_service: FlextCliService, sample_command: FlextCliModels.CliCommand
+        self, core_service: FlextCliCore, sample_command: FlextCliModels.CliCommand
     ) -> None:
         """Test executing command with dict context."""
         core_service.register_command(sample_command)
@@ -891,7 +889,7 @@ class TestFlextCliServiceExtended:
         assert command_result["context"] == context
 
     def test_execute_command_with_timeout(
-        self, core_service: FlextCliService, sample_command: FlextCliModels.CliCommand
+        self, core_service: FlextCliCore, sample_command: FlextCliModels.CliCommand
     ) -> None:
         """Test executing command with timeout."""
         core_service.register_command(sample_command)
@@ -902,14 +900,14 @@ class TestFlextCliServiceExtended:
         command_result = result.unwrap()
         assert command_result["timeout"] == 30.0
 
-    def test_execute_command_not_found(self, core_service: FlextCliService) -> None:
+    def test_execute_command_not_found(self, core_service: FlextCliCore) -> None:
         """Test executing non-existent command."""
         result = core_service.execute_command("nonexistent")
 
         assert result.is_failure
         assert result.error is not None and "not found" in result.error
 
-    def test_list_commands_empty(self, core_service: FlextCliService) -> None:
+    def test_list_commands_empty(self, core_service: FlextCliCore) -> None:
         """Test listing commands when none registered."""
         result = core_service.list_commands()
 
@@ -917,7 +915,7 @@ class TestFlextCliServiceExtended:
         assert result.is_success
         assert result.unwrap() == []
 
-    def test_list_commands_multiple(self, core_service: FlextCliService) -> None:
+    def test_list_commands_multiple(self, core_service: FlextCliCore) -> None:
         """Test listing multiple registered commands."""
         # Register multiple commands
         for i in range(3):
@@ -941,7 +939,7 @@ class TestFlextCliServiceExtended:
     # SESSION MANAGEMENT TESTS
     # =========================================================================
 
-    def test_start_session_success(self, core_service: FlextCliService) -> None:
+    def test_start_session_success(self, core_service: FlextCliCore) -> None:
         """Test starting new session."""
         result = core_service.start_session()
 
@@ -951,7 +949,7 @@ class TestFlextCliServiceExtended:
         # Verify session is active
         assert core_service.is_session_active()
 
-    def test_start_session_already_active(self, core_service: FlextCliService) -> None:
+    def test_start_session_already_active(self, core_service: FlextCliCore) -> None:
         """Test starting session when one is already active."""
         core_service.start_session()
 
@@ -961,7 +959,7 @@ class TestFlextCliServiceExtended:
         assert result.is_failure
         assert result.error is not None and "already active" in result.error
 
-    def test_end_session_success(self, core_service: FlextCliService) -> None:
+    def test_end_session_success(self, core_service: FlextCliCore) -> None:
         """Test ending active session."""
         core_service.start_session()
 
@@ -971,18 +969,18 @@ class TestFlextCliServiceExtended:
         assert result.is_success
         assert not core_service.is_session_active()
 
-    def test_end_session_not_active(self, core_service: FlextCliService) -> None:
+    def test_end_session_not_active(self, core_service: FlextCliCore) -> None:
         """Test ending session when none active."""
         result = core_service.end_session()
 
         assert result.is_failure
         assert result.error is not None and "No active session" in result.error
 
-    def test_is_session_active_false(self, core_service: FlextCliService) -> None:
+    def test_is_session_active_false(self, core_service: FlextCliCore) -> None:
         """Test session active check when no session."""
         assert not core_service.is_session_active()
 
-    def test_is_session_active_true(self, core_service: FlextCliService) -> None:
+    def test_is_session_active_true(self, core_service: FlextCliCore) -> None:
         """Test session active check when session running."""
         core_service.start_session()
 
@@ -993,7 +991,7 @@ class TestFlextCliServiceExtended:
     # =========================================================================
 
     def test_get_command_statistics_no_commands(
-        self, core_service: FlextCliService
+        self, core_service: FlextCliCore
     ) -> None:
         """Test command statistics with no commands."""
         result = core_service.get_command_statistics()
@@ -1004,7 +1002,7 @@ class TestFlextCliServiceExtended:
         assert stats["total_commands"] == 0
 
     def test_get_command_statistics_with_commands(
-        self, core_service: FlextCliService
+        self, core_service: FlextCliCore
     ) -> None:
         """Test command statistics with registered commands."""
         # Register commands
@@ -1022,7 +1020,7 @@ class TestFlextCliServiceExtended:
         stats = result.unwrap()
         assert stats["total_commands"] == 5
 
-    def test_get_service_info(self, core_service: FlextCliService) -> None:
+    def test_get_service_info(self, core_service: FlextCliCore) -> None:
         """Test getting service information."""
         info = core_service.get_service_info()
 
@@ -1032,7 +1030,7 @@ class TestFlextCliServiceExtended:
         assert "session_active" in info
 
     def test_get_session_statistics_no_sessions(
-        self, core_service: FlextCliService
+        self, core_service: FlextCliCore
     ) -> None:
         """Test session statistics with no sessions."""
         result = core_service.get_session_statistics()
@@ -1042,7 +1040,7 @@ class TestFlextCliServiceExtended:
         assert result.error is not None and "No active session" in result.error
 
     def test_get_session_statistics_with_session(
-        self, core_service: FlextCliService
+        self, core_service: FlextCliCore
     ) -> None:
         """Test session statistics with active session."""
         core_service.start_session()
@@ -1058,7 +1056,7 @@ class TestFlextCliServiceExtended:
     # HEALTH CHECK TESTS
     # =========================================================================
 
-    def test_health_check_success(self, core_service: FlextCliService) -> None:
+    def test_health_check_success(self, core_service: FlextCliCore) -> None:
         """Test health check returns success."""
         result = core_service.health_check()
 
@@ -1073,7 +1071,7 @@ class TestFlextCliServiceExtended:
     # CONFIGURATION MANAGEMENT TESTS
     # =========================================================================
 
-    def test_get_config_success(self, core_service: FlextCliService) -> None:
+    def test_get_config_success(self, core_service: FlextCliCore) -> None:
         """Test getting configuration."""
         result = core_service.get_config()
 
@@ -1082,7 +1080,7 @@ class TestFlextCliServiceExtended:
         config = result.unwrap()
         assert isinstance(config, dict)
 
-    def test_update_configuration_success(self, core_service: FlextCliService) -> None:
+    def test_update_configuration_success(self, core_service: FlextCliCore) -> None:
         """Test updating configuration."""
         config = {"theme": "dark", "verbose": True}
 
@@ -1091,7 +1089,7 @@ class TestFlextCliServiceExtended:
         assert isinstance(result, FlextResult)
         assert result.is_success
 
-    def test_get_configuration_success(self, core_service: FlextCliService) -> None:
+    def test_get_configuration_success(self, core_service: FlextCliCore) -> None:
         """Test getting configuration."""
         result = core_service.get_configuration()
 
@@ -1100,7 +1098,7 @@ class TestFlextCliServiceExtended:
         config = result.unwrap()
         assert isinstance(config, dict)
 
-    def test_create_profile_success(self, core_service: FlextCliService) -> None:
+    def test_create_profile_success(self, core_service: FlextCliCore) -> None:
         """Test creating configuration profile."""
         profile_config = {"color": "blue", "size": "large"}
 
@@ -1109,7 +1107,7 @@ class TestFlextCliServiceExtended:
         assert isinstance(result, FlextResult)
         assert result.is_success
 
-    def test_load_configuration_valid_file(self, core_service: FlextCliService) -> None:
+    def test_load_configuration_valid_file(self, core_service: FlextCliCore) -> None:
         """Test loading configuration from valid file."""
         # Create temp config file
         with tempfile.NamedTemporaryFile(
@@ -1131,7 +1129,7 @@ class TestFlextCliServiceExtended:
             Path(config_path).unlink()
 
     def test_load_configuration_nonexistent_file(
-        self, core_service: FlextCliService
+        self, core_service: FlextCliCore
     ) -> None:
         """Test loading configuration from non-existent file."""
         result = core_service.load_configuration("/nonexistent/config.json")
@@ -1139,7 +1137,7 @@ class TestFlextCliServiceExtended:
         assert isinstance(result, FlextResult)
         assert result.is_failure
 
-    def test_save_configuration_success(self, core_service: FlextCliService) -> None:
+    def test_save_configuration_success(self, core_service: FlextCliCore) -> None:
         """Test saving configuration to file."""
         with tempfile.TemporaryDirectory() as temp_dir:
             config_path = str(Path(temp_dir) / "config.json")
@@ -1157,7 +1155,7 @@ class TestFlextCliServiceExtended:
     # UTILITY METHOD TESTS
     # =========================================================================
 
-    def test_get_handlers_success(self, core_service: FlextCliService) -> None:
+    def test_get_handlers_success(self, core_service: FlextCliCore) -> None:
         """Test getting list of handlers."""
         result = core_service.get_handlers()
 
@@ -1166,7 +1164,7 @@ class TestFlextCliServiceExtended:
         handlers = result.unwrap()
         assert isinstance(handlers, list)
 
-    def test_get_plugins_success(self, core_service: FlextCliService) -> None:
+    def test_get_plugins_success(self, core_service: FlextCliCore) -> None:
         """Test getting list of plugins."""
         result = core_service.get_plugins()
 
@@ -1175,7 +1173,7 @@ class TestFlextCliServiceExtended:
         plugins = result.unwrap()
         assert isinstance(plugins, list)
 
-    def test_get_sessions_success(self, core_service: FlextCliService) -> None:
+    def test_get_sessions_success(self, core_service: FlextCliCore) -> None:
         """Test getting list of sessions."""
         result = core_service.get_sessions()
 
@@ -1184,7 +1182,7 @@ class TestFlextCliServiceExtended:
         sessions = result.unwrap()
         assert isinstance(sessions, list)
 
-    def test_get_commands_success(self, core_service: FlextCliService) -> None:
+    def test_get_commands_success(self, core_service: FlextCliCore) -> None:
         """Test getting list of commands."""
         result = core_service.get_commands()
 
@@ -1193,7 +1191,7 @@ class TestFlextCliServiceExtended:
         commands = result.unwrap()
         assert isinstance(commands, list)
 
-    def test_get_formatters_success(self, core_service: FlextCliService) -> None:
+    def test_get_formatters_success(self, core_service: FlextCliCore) -> None:
         """Test getting list of formatters."""
         result = core_service.get_formatters()
 
@@ -1206,7 +1204,7 @@ class TestFlextCliServiceExtended:
     # INTEGRATION TESTS
     # =========================================================================
 
-    def test_complete_workflow(self, core_service: FlextCliService) -> None:
+    def test_complete_workflow(self, core_service: FlextCliCore) -> None:
         """Test complete CLI workflow."""
         # Step 1: Start session
         session_result = core_service.start_session()
@@ -1246,7 +1244,7 @@ class TestFlextCliServiceExtended:
         assert end_result.is_success
         assert not core_service.is_session_active()
 
-    def test_configuration_workflow(self, core_service: FlextCliService) -> None:
+    def test_configuration_workflow(self, core_service: FlextCliCore) -> None:
         """Test configuration management workflow."""
         # Step 1: Update configuration
         config = {"theme": "dark", "verbose": True, "timeout": 30}

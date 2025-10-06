@@ -73,10 +73,9 @@ class FlextCliTables(FlextService[object]):
     """
 
     def __init__(self) -> None:
-        """Initialize Tabulate tables layer."""
+        """Initialize Tabulate tables layer with Phase 1 context enrichment."""
         super().__init__()
-        self._logger = FlextLogger(__name__)
-        self._container = FlextContainer()
+        # Logger and container inherited from FlextService via FlextMixins
 
     # =========================================================================
     # TABLE CREATION
@@ -418,8 +417,8 @@ class FlextCliTables(FlextService[object]):
 
     # Attribute declarations - override FlextService optional types
     # These are guaranteed initialized in __init__
-    _logger: FlextLogger
-    _container: FlextContainer
+    _logger: FlextLogger | None
+    _container: FlextContainer | None
 
     def execute(self) -> FlextResult[object]:
         """Execute Tabulate tables layer operations.

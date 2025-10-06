@@ -41,15 +41,14 @@ class FlextCliDebug(FlextService[str]):
 
     # Attribute declarations - override FlextService optional types
     # These are guaranteed initialized in __init__
-    _logger: FlextLogger
-    _container: FlextContainer
+    _logger: FlextLogger | None
+    _container: FlextContainer | None
 
     @override
     def __init__(self, **_data: object) -> None:
-        """Initialize debug service with flext-core integration."""
+        """Initialize debug service with flext-core integration and Phase 1 context enrichment."""
         super().__init__()
-        self._logger = FlextLogger(__name__)
-        self._container = FlextContainer()
+        # Logger and container inherited from FlextService via FlextMixins
 
     @override
     def execute(self) -> FlextResult[str]:

@@ -58,7 +58,7 @@ class FlextCliTesting(FlextService[object]):
 
         """
         super().__init__(**data)
-        self._logger = FlextLogger(__name__)
+        # Logger and container inherited from FlextService via FlextMixins
 
     def invoke_command(
         self,
@@ -341,8 +341,8 @@ class FlextCliTesting(FlextService[object]):
 
     # Attribute declarations - override FlextService optional types
     # These are guaranteed initialized in __init__
-    _logger: FlextLogger
-    _container: FlextContainer
+    _logger: FlextLogger | None
+    _container: FlextContainer | None
 
     def execute(self) -> FlextResult[object]:
         """Execute CLI testing utilities.
@@ -380,7 +380,7 @@ class FlextCliTesting(FlextService[object]):
 
             """
             super().__init__(**data)
-            self._logger = FlextLogger(__name__)
+            # Logger and container inherited from FlextService via FlextMixins
 
     def mock_user_config(
         self,
