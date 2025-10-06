@@ -443,13 +443,13 @@ class FlextCliOutput(FlextService[object]):
 
         # Add emoji prefix based on message type
         emoji_map = {
-            "info": "ℹ️",
+            "info": "i",
             "success": "✅",
             "error": "❌",
             "warning": "⚠️",
         }
 
-        emoji = emoji_map.get(message_type, "ℹ️")
+        emoji = emoji_map.get(message_type, "i")
         formatted_message = f"{emoji} {message}"
 
         return self.print_message(formatted_message, style=style, **kwargs)
