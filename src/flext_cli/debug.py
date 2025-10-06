@@ -10,6 +10,11 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
+import os
+import pathlib
+import platform
+import sys
+import tempfile
 import uuid
 from datetime import UTC, datetime
 from typing import cast, override
@@ -239,6 +244,73 @@ class FlextCliDebug(FlextService[str]):
             return FlextResult[Types.Data.DebugInfoData].fail(
                 f"Comprehensive debug info collection failed: {e}"
             )
+
+    # =========================================================================
+    # PRIVATE HELPER METHODS - Implementation details
+    # =========================================================================
+
+    def _get_system_info(self) -> dict[str, object]:
+        """Get basic system information."""
+        return {
+            "python_version": sys.version,
+            "platform": platform.platform(),
+            "architecture": platform.architecture(),
+            "processor": platform.processor(),
+            "hostname": platform.node(),
+        }
+
+    def _get_environment_info(self) -> dict[str, object]:
+        """Get environment variables with sensitive data masked."""
+        env_info = {}
+        sensitive_keys = {"password", "token", "secret", "key", "auth"}
+
+        for key, value in os.environ.items():
+            if any(sens in key.lower() for sens in sensitive_keys):
+                env_info[key] = "***MASKED***"
+            else:
+                env_info[key] = value
+
+        return env_info
+
+    def _get_path_info(self) -> list[dict[str, object]]:
+        """Get system path information."""
+        paths = []
+        for i, path in enumerate(sys.path):
+            paths.append({
+                "index": i,
+                "path": path,
+                "exists": pathlib.Path(path).exists(),
+                "is_dir": pathlib.Path(path).is_dir()
+                if pathlib.Path(path).exists()
+                else False,
+            })
+
+        return paths
+
+    def _validate_filesystem_permissions(self) -> FlextCliTypes.Data.ErrorList:
+        """Validate filesystem permissions and setup."""
+        errors = []
+
+        try:
+            # Test temp directory access
+            with tempfile.NamedTemporaryFile(delete=True) as tmp:
+                tmp.write(b"test")
+                tmp.flush()
+
+            # Test current directory access
+            current_dir = pathlib.Path.cwd()
+            test_file = current_dir / "test_write.tmp"
+            try:
+                with pathlib.Path(test_file).open("w", encoding="utf-8") as f:
+                    f.write("test")
+                pathlib.Path(test_file).unlink()
+            except OSError as e:
+                errors.append(f"Cannot write to current directory: {e}")
+
+        except Exception as e:
+            errors.append(f"Filesystem validation failed: {e}")
+
+        return errors
 
 
 __all__ = [

@@ -17,13 +17,12 @@ import secrets
 import string
 from datetime import UTC, datetime
 from pathlib import Path
-from typing import ClassVar, override
+from typing import ClassVar
 
 from flext_core import (
     FlextContainer,
     FlextLogger,
     FlextResult,
-    FlextService,
     FlextTypes,
     FlextUtilities,
 )
@@ -33,7 +32,7 @@ from flext_cli.constants import FlextCliConstants
 from flext_cli.typings import FlextCliTypes
 
 
-class FlextCliAuth(FlextService[FlextCliTypes.Auth.AuthResult]):
+class FlextCliAuth:
     """Authentication tools for CLI apps.
 
     Implements FlextCliProtocols.CliAuthenticator through structural subtyping.
@@ -51,12 +50,10 @@ class FlextCliAuth(FlextService[FlextCliTypes.Auth.AuthResult]):
 
     # Attributes initialized in __init__ (inherit types from FlextService)
 
-    @override
     def __init__(
         self, *, config: FlextCliConfig | None = None, **_data: object
     ) -> None:
         """Initialize authentication service with flext-core integration."""
-        super().__init__(**_data)
         self._logger = FlextLogger(__name__)
         self._container = FlextContainer()
 
@@ -140,7 +137,6 @@ class FlextCliAuth(FlextService[FlextCliTypes.Auth.AuthResult]):
         except (OSError, PermissionError) as e:
             return FlextResult[str].fail(f"Failed to load token: {e}")
 
-    @override
     def execute(self) -> FlextResult[FlextCliTypes.Auth.AuthResult]:
         """Execute authentication service - required by FlextService."""
         status_result = self.get_auth_status()

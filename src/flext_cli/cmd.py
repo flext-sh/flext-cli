@@ -126,7 +126,7 @@ class FlextCliCmd(FlextService[FlextTypes.Dict]):
         """Validate configuration structure."""
         try:
             results = self._validate_config_structure()
-            if results:
+            if results and self._logger:
                 self._logger.info(f"Config validation results: {results}")
             return FlextResult[None].ok(None)
         except Exception as e:
@@ -161,7 +161,8 @@ class FlextCliCmd(FlextService[FlextTypes.Dict]):
                     f"Config save failed: {save_result.error}"
                 )
 
-            self._logger.info(f"Configuration saved: {key} = {value}")
+            if self._logger:
+                self._logger.info(f"Configuration saved: {key} = {value}")
             return FlextResult[bool].ok(True)
 
         except Exception as e:
@@ -190,6 +191,12 @@ class FlextCliCmd(FlextService[FlextTypes.Dict]):
 
             config_data = load_result.value
 
+            # Ensure config_data is a dict
+            if not isinstance(config_data, dict):
+                return FlextResult[FlextTypes.Dict].fail(
+                    "Configuration data is not a valid dictionary"
+                )
+
             # Get the specific key value
             if key not in config_data:
                 return FlextResult[FlextTypes.Dict].fail(
@@ -215,7 +222,8 @@ class FlextCliCmd(FlextService[FlextTypes.Dict]):
                     f"Show config failed: {info_result.error}"
                 )
 
-            self._logger.info("Configuration displayed", config=info_result.value)
+            if self._logger:
+                self._logger.info("Configuration displayed", config=info_result.value)
             return FlextResult[None].ok(None)
         except Exception as e:
             return FlextResult[None].fail(f"Show config failed: {e}")
@@ -267,6 +275,12 @@ class FlextCliCmd(FlextService[FlextTypes.Dict]):
 
             config_data = load_result.value
 
+            # Ensure config_data is a dict
+            if not isinstance(config_data, dict):
+                return FlextResult[str].fail(
+                    "Configuration data is not a valid dictionary"
+                )
+
             # For now, return success with config info
             # In a real implementation, this would open an editor
             config_info = {
@@ -275,7 +289,8 @@ class FlextCliCmd(FlextService[FlextTypes.Dict]):
                 "message": "Configuration loaded successfully. Use set_config_value to modify specific values.",
             }
 
-            self._logger.info("Configuration edit completed", config=config_info)
+            if self._logger:
+                self._logger.info("Configuration edit completed", config=config_info)
             return FlextResult[str].ok("Configuration edit completed successfully")
 
         except Exception as e:

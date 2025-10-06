@@ -14,7 +14,7 @@ from __future__ import annotations
 from collections.abc import Iterable
 from io import StringIO
 from types import ModuleType
-from typing import Literal
+from typing import Literal, cast
 
 from flext_core import (
     FlextContainer,
@@ -69,15 +69,12 @@ class FlextCliFormatters(FlextService[object]):
 
     Examples:
         >>> formatters = FlextCliFormatters()
-        >>>
         >>> # Create panel
         >>> panel_result = formatters.create_panel(
         ...     "Important Message", title="Alert", border_style="red"
         ... )
-        >>>
         >>> # Render markdown
         >>> md_result = formatters.render_markdown("# Title\\n\\nContent")
-        >>>
         >>> # Syntax highlighting
         >>> code_result = formatters.highlight_code("print('Hello')", language="python")
 
@@ -87,11 +84,15 @@ class FlextCliFormatters(FlextService[object]):
 
     """
 
+    # Override base class optional attributes with guaranteed initialized types
+    _logger: FlextLogger
+    _container: FlextContainer
+
     def __init__(self) -> None:
         """Initialize Rich formatters layer."""
         super().__init__()
-        self._logger = FlextLogger(__name__)
-        self._container = FlextContainer.get_global()
+        self._logger = cast("FlextLogger", FlextLogger(__name__))
+        self._container = cast("FlextContainer", FlextContainer.get_global())
         self._console: Console | None = None
 
     @property
@@ -99,7 +100,7 @@ class FlextCliFormatters(FlextService[object]):
         """Get console instance with lazy initialization."""
         if self._console is None:
             self._console = Console(force_terminal=True, width=80, height=24)
-        return self.console
+        return self._console
 
     # =========================================================================
     # CONSOLE OPERATIONS
@@ -1296,6 +1297,76 @@ class FlextCliFormatters(FlextService[object]):
             return FlextResult[str].fail(error_msg)
 
     # =========================================================================
+    # RENDERING METHODS - Print Rich objects directly
+    # =========================================================================
+
+    def print_rich(
+        self,
+        renderable: RenderableType,
+        *,
+        style: Style | str | None = None,
+        justify: JustifyMethod | None = None,
+        overflow: OverflowMethod | None = None,
+        no_wrap: bool | None = None,
+        emoji: bool | None = None,
+        markup: bool | None = None,
+        highlight: bool | None = None,
+        width: int | None = None,
+        height: int | None = None,
+        crop: bool = True,
+        soft_wrap: bool | None = None,
+        new_line_start: bool = False,
+    ) -> FlextResult[None]:
+        """Print Rich renderable directly to console.
+
+        Args:
+            renderable: Rich renderable object to print
+            style: Optional style for the output
+            justify: Text justification method
+            overflow: Overflow handling method
+            no_wrap: Disable text wrapping
+            emoji: Enable emoji rendering
+            markup: Enable markup parsing
+            highlight: Enable syntax highlighting
+            width: Maximum width for output
+            height: Maximum height for output
+            crop: Crop output to fit dimensions
+            soft_wrap: Enable soft wrapping
+            new_line_start: Start with new line
+
+        Returns:
+            FlextResult[None]: Success or error
+
+        Example:
+            >>> formatters = FlextCliFormatters()
+            >>> panel_result = formatters.create_panel("Hello World", title="Test")
+            >>> if panel_result.is_success:
+            ...     formatters.print_rich(panel_result.unwrap())
+
+        """
+        try:
+            self.console.print(
+                renderable,
+                style=style,
+                justify=justify,
+                overflow=overflow,
+                no_wrap=no_wrap,
+                emoji=emoji,
+                markup=markup,
+                highlight=highlight,
+                width=width,
+                height=height,
+                crop=crop,
+                soft_wrap=soft_wrap,
+                new_line_start=new_line_start,
+            )
+            return FlextResult[None].ok(None)
+        except Exception as e:
+            error_msg = f"Failed to print renderable: {e}"
+            self._logger.exception(error_msg)
+            return FlextResult[None].fail(error_msg)
+
+    # =========================================================================
     # UTILITY METHODS
     # =========================================================================
 
@@ -1303,7 +1374,7 @@ class FlextCliFormatters(FlextService[object]):
         """Clear the console.
 
         Returns:
-            FlextResult[None]
+            FlextResult[None]: Success or error result
 
         """
         try:
@@ -1314,19 +1385,14 @@ class FlextCliFormatters(FlextService[object]):
             self._logger.exception(error_msg)
             return FlextResult[None].fail(error_msg)
 
-    # Attribute declarations - override FlextService optional types
-    # These are guaranteed initialized in __init__
-    _logger: FlextLogger
-    _container: FlextContainer
-
     def execute(self) -> FlextResult[object]:
         """Execute Rich formatters layer operations.
 
         Returns:
-            FlextResult[None]
+            FlextResult[object]: Success result
 
         """
-        return FlextResult[None].ok(None)
+        return FlextResult[object].ok(None)
 
 
 __all__ = [

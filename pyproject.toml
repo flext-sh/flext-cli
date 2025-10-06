@@ -111,7 +111,7 @@
         ]
 
     [project.scripts]
-        flext = "flext_cli.cli:main"
+        flext = "flext_cli.main:main"
 
 [tool]
 

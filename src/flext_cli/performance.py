@@ -13,7 +13,6 @@ import functools
 import importlib
 import time
 from collections.abc import Callable
-from typing import TypeVar
 
 from flext_core import (
     FlextContainer,
@@ -23,7 +22,7 @@ from flext_core import (
     FlextTypes,
 )
 
-T = TypeVar("T")
+from flext_cli.typings import T
 
 
 class FlextCliPerformance(FlextService[object]):

@@ -24,7 +24,7 @@ from flext_core import (
 from flext_cli.protocols import FlextCliProtocols
 
 
-class FlextCliPluginSystem(FlextService[object]):
+class FlextCliPlugins(FlextService[object]):
     """Unified plugin system for flext-cli.
 
     Provides plugin discovery, loading, initialization, lifecycle management,
@@ -566,5 +566,5 @@ class FlextCliPluginSystem(FlextService[object]):
 
 
 __all__ = [
-    "FlextCliPluginSystem",
+    "FlextCliPlugins",
 ]

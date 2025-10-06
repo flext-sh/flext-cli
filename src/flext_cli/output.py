@@ -22,7 +22,6 @@ from flext_core import (
     FlextService,
     FlextTypes,
 )
-from rich.tree import Tree
 
 from flext_cli.constants import FlextCliConstants
 from flext_cli.formatters import FlextCliFormatters
@@ -593,7 +592,7 @@ class FlextCliOutput(FlextService[object]):
             tree, width=FlextCliConstants.CliDefaults.DEFAULT_MAX_WIDTH
         )
 
-    def _build_tree(self, tree: Tree, data: object) -> None:
+    def _build_tree(self, tree: object, data: object) -> None:
         """Build tree recursively (helper for format_as_tree).
 
         Args:

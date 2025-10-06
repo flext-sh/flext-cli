@@ -17,7 +17,6 @@ from flext_core import (
     FlextLogger,
     FlextRegistry,
     FlextResult,
-    FlextService,
     FlextUtilities,
 )
 
@@ -28,7 +27,7 @@ from flext_cli.commands import FlextCliCommands
 from flext_cli.config import FlextCliConfig
 from flext_cli.constants import FlextCliConstants
 from flext_cli.context import FlextCliContext
-from flext_cli.core import FlextCliService
+from flext_cli.core import FlextCliCore
 from flext_cli.debug import FlextCliDebug
 from flext_cli.exceptions import FlextCliExceptions
 from flext_cli.file_tools import FlextCliFileTools
@@ -38,7 +37,7 @@ from flext_cli.main import FlextCliMain
 from flext_cli.mixins import FlextCliMixins
 from flext_cli.models import FlextCliModels
 from flext_cli.output import FlextCliOutput
-from flext_cli.plugins import FlextCliPluginSystem
+from flext_cli.plugins import FlextCliPlugins
 from flext_cli.processors import FlextCliProcessors
 from flext_cli.prompts import FlextCliPrompts
 from flext_cli.protocols import FlextCliProtocols
@@ -46,7 +45,7 @@ from flext_cli.tables import FlextCliTables
 from flext_cli.typings import FlextCliTypes
 
 
-class FlextCliApi(FlextService[FlextCliTypes.Data.CliDataDict]):
+class FlextCli:
     """Thin facade for flext-cli providing access to all CLI functionality.
 
     This is the single entry point for the flext-cli library, exposing all
@@ -55,14 +54,24 @@ class FlextCliApi(FlextService[FlextCliTypes.Data.CliDataDict]):
     Extends FlextService with CLI-specific data dictionary types.
     """
 
-    def __init__(self, **data: object) -> None:
-        """Initialize CLI API thin facade.
+    # Declare attributes for type checking
+    _bus: FlextBus
+    _context: FlextContext
+    _dispatcher: FlextDispatcher
+    _registry: FlextRegistry
+    _core: FlextCliCore
+    _file_tools: FlextCliFileTools
+    _output: FlextCliOutput
+    _prompts: FlextCliPrompts
+    _processors: FlextCliProcessors
+    _cmd: FlextCliCmd
+    _click: FlextCliCli
+    _formatters: FlextCliFormatters
+    _tables: FlextCliTables
+    _main: FlextCliMain
 
-        Args:
-            **data: Additional service initialization data
-
-        """
-        super().__init__(**data)
+    def __init__(self) -> None:
+        """Initialize CLI API thin facade."""
         self._logger = FlextLogger(__name__)
         self._container = FlextContainer()
 
@@ -73,7 +82,7 @@ class FlextCliApi(FlextService[FlextCliTypes.Data.CliDataDict]):
         self._registry = FlextRegistry(dispatcher=self._dispatcher)
 
         # Initialize domain services for property access
-        self._core = FlextCliService()
+        self._core = FlextCliCore()
         self._file_tools = FlextCliFileTools()
         self._output = FlextCliOutput()
         self._prompts = FlextCliPrompts()
@@ -91,11 +100,11 @@ class FlextCliApi(FlextService[FlextCliTypes.Data.CliDataDict]):
     # ==========================================================================
 
     @property
-    def core(self) -> FlextCliService:
+    def core(self) -> FlextCliCore:
         """Access core CLI service for command management.
 
         Returns:
-            FlextCliService: Core CLI service instance
+            FlextCliCore: Core CLI service instance
 
         """
         return self._core
@@ -204,14 +213,14 @@ class FlextCliApi(FlextService[FlextCliTypes.Data.CliDataDict]):
         return FlextCliCommands()
 
     @property
-    def context(self) -> type[FlextCliContext]:
-        """Access CLI context.
+    def context(self) -> FlextCliContext:
+        """Access CLI context service.
 
         Returns:
-            type[FlextCliContext]: Context class
+            FlextCliContext: Context service instance
 
         """
-        return FlextCliContext
+        return FlextCliContext()
 
     @property
     def debug(self) -> FlextCliDebug:
@@ -264,11 +273,11 @@ class FlextCliApi(FlextService[FlextCliTypes.Data.CliDataDict]):
         return self._processors
 
     @property
-    def plugins(self) -> FlextCliPluginSystem:
+    def plugins(self) -> FlextCliPlugins:
         """Access CLI plugin system.
 
         Returns:
-            FlextCliPluginSystem: Plugin system instance
+            FlextCliPlugins: Plugin system instance
 
         Example:
             >>> cli = FlextCliApi()
@@ -276,7 +285,7 @@ class FlextCliApi(FlextService[FlextCliTypes.Data.CliDataDict]):
             >>> discover_result = plugin_system.discover_plugins("./plugins")
 
         """
-        return FlextCliPluginSystem()
+        return FlextCliPlugins()
 
     @property
     def prompts(self) -> FlextCliPrompts:
@@ -376,7 +385,7 @@ class FlextCliApi(FlextService[FlextCliTypes.Data.CliDataDict]):
             FlextBus: Event bus instance for message routing
 
         """
-        return self._busFlextLDAPModels
+        return self._bus
 
     @property
     def registry(self) -> FlextRegistry:
@@ -396,7 +405,7 @@ class FlextCliApi(FlextService[FlextCliTypes.Data.CliDataDict]):
             FlextContext: Execution context instance
 
         """
-        return self._contextFlextLDAPModels
+        return self._context
 
     @property
     def dispatcher(self) -> FlextDispatcher:
@@ -426,7 +435,7 @@ class FlextCliApi(FlextService[FlextCliTypes.Data.CliDataDict]):
             FlextContainer: DI container instance
 
         """
-        return self._containerFlextLDAPModels
+        return self._container
 
     # Attributes initialized in __init__ (inherit types from FlextService)
 
@@ -459,5 +468,5 @@ class FlextCliApi(FlextService[FlextCliTypes.Data.CliDataDict]):
 
 
 __all__ = [
-    "FlextCliApi",
+    "FlextCli",
 ]

@@ -18,10 +18,10 @@ from __future__ import annotations
 import json
 import shutil
 from pathlib import Path
+from typing import cast
 
 import yaml
 from flext_core import (
-    FlextContainer,
     FlextLogger,
     FlextResult,
     FlextService,
@@ -48,10 +48,7 @@ class FlextCliFileTools(FlextService[FlextTypes.Dict]):
         self._logger = FlextLogger(__name__)
         self._supported_formats = FlextCliConstants.FILE_FORMATS
 
-    # Attribute declarations - override FlextService optional types
-    # These are guaranteed initialized in __init__
-    _logger: FlextLogger
-    _container: FlextContainer
+    # Attributes initialized in __init__
 
     def execute(self) -> FlextResult[FlextTypes.Dict]:
         """Execute file tools service - FlextService interface.
@@ -98,6 +95,8 @@ class FlextCliFileTools(FlextService[FlextTypes.Dict]):
         """
         try:
             encoding = kwargs.get("encoding", "utf-8")
+            if not isinstance(encoding, str):
+                encoding = "utf-8"
             Path(file_path).write_text(content, encoding=encoding)
             return FlextResult[None].ok(None)
         except Exception as e:
@@ -134,8 +133,9 @@ class FlextCliFileTools(FlextService[FlextTypes.Dict]):
         """
         return self._FileLoader.load_json(str(file_path))
 
+    @staticmethod
     def write_json_file(
-        self, file_path: str | Path, data: object, **kwargs: object
+        file_path: str | Path, data: object, **kwargs: object
     ) -> FlextResult[None]:
         """Write data to JSON file.
 
@@ -149,8 +149,24 @@ class FlextCliFileTools(FlextService[FlextTypes.Dict]):
 
         """
         try:
+            # Filter kwargs to only valid json.dump parameters
+            valid_keys = {
+                "skipkeys",
+                "ensure_ascii",
+                "check_circular",
+                "allow_nan",
+                "cls",
+                "indent",
+                "separators",
+                "default",
+                "sort_keys",
+            }
+            dump_kwargs = {
+                key: value for key, value in kwargs.items() if key in valid_keys
+            }
+
             with Path(file_path).open("w", encoding="utf-8") as f:
-                json.dump(data, f, indent=2, **kwargs)
+                json.dump(data, f, indent=2, **dump_kwargs)
             return FlextResult[None].ok(None)
         except Exception as e:
             return FlextResult[None].fail(f"JSON write failed: {e}")
@@ -167,8 +183,9 @@ class FlextCliFileTools(FlextService[FlextTypes.Dict]):
         """
         return self._FileLoader.load_yaml(str(file_path))
 
+    @staticmethod
     def write_yaml_file(
-        self, file_path: str | Path, data: object, **kwargs: object
+        file_path: str | Path, data: object, **kwargs: object
     ) -> FlextResult[None]:
         """Write data to YAML file.
 
@@ -183,7 +200,7 @@ class FlextCliFileTools(FlextService[FlextTypes.Dict]):
         """
         try:
             with Path(file_path).open("w", encoding="utf-8") as f:
-                yaml.safe_dump(data, f, **kwargs)
+                yaml.safe_dump(data, f, **cast("dict[str, object]", kwargs))
             return FlextResult[None].ok(None)
         except Exception as e:
             return FlextResult[None].fail(f"YAML write failed: {e}")
@@ -205,6 +222,7 @@ class FlextCliFileTools(FlextService[FlextTypes.Dict]):
                 if (
                     isinstance(format_info, dict)
                     and "extensions" in format_info
+                    and isinstance(format_info["extensions"], (list, tuple))
                     and extension in format_info["extensions"]
                 ):
                     return FlextResult[str].ok(format_name)
@@ -259,13 +277,9 @@ class FlextCliFileTools(FlextService[FlextTypes.Dict]):
 
             # Detect format and delegate to appropriate saver
             if extension == ".json":
-                # Create temporary instance to use instance method
-                temp_instance = object.__new__(FlextCliFileTools)
-                return temp_instance.write_json_file(file_path, data, **kwargs)
+                return FlextCliFileTools.write_json_file(file_path, data, **kwargs)
             if extension in {".yaml", ".yml"}:
-                # Create temporary instance to use instance method
-                temp_instance = object.__new__(FlextCliFileTools)
-                return temp_instance.write_yaml_file(file_path, data, **kwargs)
+                return FlextCliFileTools.write_yaml_file(file_path, data, **kwargs)
             return FlextResult[None].fail(
                 f"Unsupported file format: {extension}. Supported: .json, .yaml, .yml"
             )

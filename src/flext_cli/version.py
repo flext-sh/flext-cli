@@ -12,19 +12,16 @@ from __future__ import annotations
 from importlib.metadata import metadata
 from typing import Final
 
-from flext_core import FlextService
 
-
-class FlextCliVersion(FlextService[object]):
+class FlextCliVersion:
     """Single unified CLI version class following FLEXT standards.
 
     Provides version and package metadata using importlib.metadata.
     Follows FLEXT pattern: one class per module with nested subclasses.
     """
 
-    def __init__(self, **data: object) -> None:
+    def __init__(self) -> None:
         """Initialize version service with metadata."""
-        super().__init__(**data)
         self._metadata = metadata("flext-cli")
         self._version = self._metadata["Version"]
         self._version_info = tuple(

@@ -13,7 +13,7 @@ from __future__ import annotations
 
 from collections.abc import Callable, Sequence
 from pathlib import Path
-from typing import IO, override
+from typing import IO
 
 import click
 from click import Context as ClickContext
@@ -22,14 +22,13 @@ from flext_core import (
     FlextContainer,
     FlextLogger,
     FlextResult,
-    FlextService,
     FlextTypes,
 )
 
 # FlextCliMain is imported inside main() to avoid circular import
 
 
-class FlextCliCli(FlextService[object]):
+class FlextCliCli:
     """Complete Click direct access layer.
 
     This class exposes ALL Click functionality directly to prevent direct Click imports
@@ -145,7 +144,7 @@ class FlextCliCli(FlextService[object]):
         self,
         *param_decls: str,
         **attrs: object,
-    ) -> Callable[[Callable[..., object]], click.Option]:
+    ) -> object:
         """Create Click option decorator.
 
         Args:
@@ -173,7 +172,7 @@ class FlextCliCli(FlextService[object]):
         self,
         *param_decls: str,
         **attrs: object,
-    ) -> Callable[[Callable[..., object]], click.Argument]:
+    ) -> object:
         """Create Click argument decorator.
 
         Args:
@@ -684,7 +683,6 @@ class FlextCliCli(FlextService[object]):
         """
         click.pause(info=info)
 
-    @override
     def execute(self) -> FlextResult[object]:
         """Execute Click abstraction layer operations.
 
@@ -693,11 +691,6 @@ class FlextCliCli(FlextService[object]):
 
         """
         return FlextResult[object].ok({"service": "flext-cli", "status": "operational"})
-
-    # Attribute declarations - override FlextService optional types
-    # These are guaranteed initialized in __init__
-    _logger: FlextLogger
-    _container: FlextContainer
 
 
 __all__ = [
