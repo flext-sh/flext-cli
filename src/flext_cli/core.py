@@ -66,7 +66,7 @@ class FlextCliCore(FlextService[FlextCliTypes.Data.CliDataDict]):
 
         # Type-safe configuration initialization
         # Use dict type for internal config management
-        self._config: FlextCliTypes.Configuration.CliConfigSchema = config or {}
+        self._config: dict[str, object] = config or {}
         self._commands: FlextTypes.Dict = {}
         self._plugins: FlextTypes.Dict = {}
         self._sessions: FlextTypes.Dict = {}
@@ -228,11 +228,11 @@ class FlextCliCore(FlextService[FlextCliTypes.Data.CliDataDict]):
 
     def get_configuration(
         self,
-    ) -> FlextResult[FlextCliTypes.Configuration.CliConfigSchema]:
+    ) -> FlextResult[dict[str, object]]:
         """Get current CLI configuration.
 
         Returns:
-            FlextResult[FlextCliTypes.Configuration.CliConfigSchema]: Current configuration or error
+            FlextResult[dict[str, object]]: Current configuration or error
 
         """
         try:

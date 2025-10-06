@@ -18,7 +18,7 @@ from __future__ import annotations
 import json
 import shutil
 from pathlib import Path
-from typing import cast
+from typing import Any
 
 import yaml
 from flext_core import (
@@ -106,12 +106,11 @@ class FlextCliFileTools(FlextService[FlextTypes.Dict]):
         """
         return self.write_yaml_file(path, data, **kwargs)
 
-    def read_yaml(self, path: str | Path, **kwargs: object) -> FlextResult[object]:
+    def read_yaml(self, path: str | Path) -> FlextResult[object]:
         """Read YAML data from file (alias for read_yaml_file).
 
         Args:
             path: File path
-            **kwargs: Additional options
 
         Returns:
             FlextResult[object]: Parsed data or error
@@ -191,7 +190,7 @@ class FlextCliFileTools(FlextService[FlextTypes.Dict]):
 
     @staticmethod
     def write_json_file(
-        file_path: str | Path, data: object, **kwargs: object
+        file_path: str | Path, data: object, **kwargs: Any
     ) -> FlextResult[None]:
         """Write data to JSON file.
 
@@ -217,7 +216,7 @@ class FlextCliFileTools(FlextService[FlextTypes.Dict]):
                 "default",
                 "sort_keys",
             }
-            dump_kwargs = {
+            dump_kwargs: dict[str, Any] = {
                 key: value for key, value in kwargs.items() if key in valid_keys
             }
 
@@ -241,7 +240,7 @@ class FlextCliFileTools(FlextService[FlextTypes.Dict]):
 
     @staticmethod
     def write_yaml_file(
-        file_path: str | Path, data: object, **kwargs: object
+        file_path: str | Path, data: object, **kwargs: Any
     ) -> FlextResult[None]:
         """Write data to YAML file.
 
@@ -255,8 +254,28 @@ class FlextCliFileTools(FlextService[FlextTypes.Dict]):
 
         """
         try:
+            # Filter kwargs to only valid yaml.safe_dump parameters
+            valid_keys = {
+                "default_style",
+                "default_flow_style",
+                "canonical",
+                "indent",
+                "width",
+                "allow_unicode",
+                "line_break",
+                "encoding",
+                "explicit_start",
+                "explicit_end",
+                "version",
+                "tags",
+                "sort_keys",
+            }
+            dump_kwargs: dict[str, Any] = {
+                key: value for key, value in kwargs.items() if key in valid_keys
+            }
+
             with Path(file_path).open("w", encoding="utf-8") as f:
-                yaml.safe_dump(data, f, **cast("dict[str, object]", kwargs))
+                yaml.safe_dump(data, f, **dump_kwargs)
             return FlextResult[None].ok(None)
         except Exception as e:
             return FlextResult[None].fail(f"YAML write failed: {e}")

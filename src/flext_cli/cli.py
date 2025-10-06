@@ -17,6 +17,7 @@ from __future__ import annotations
 from collections.abc import Callable, Sequence
 from pathlib import Path
 from typing import IO
+import shutil
 
 import click
 import typer
@@ -696,8 +697,8 @@ class FlextCliCli:
             Tuple of (width, height)
 
         """
-        size = click.get_terminal_size()
-        return (size[0], size[1])
+        size = shutil.get_terminal_size()
+        return (size.columns, size.lines)
 
     def clear_screen(self) -> FlextResult[None]:
         """Clear terminal screen.
