@@ -31,7 +31,7 @@ from flext_cli.prompts import FlextCliPrompts
 from flext_cli.typings import FlextCliTypes
 
 
-class FlextCliService(FlextService[FlextCliTypes.Data.CliDataDict]):
+class FlextCliCore(FlextService[FlextCliTypes.Data.CliDataDict]):
     """Core CLI service providing comprehensive command-line functionality.
 
     Manages CLI operations, command execution, configuration, and session handling
@@ -680,4 +680,4 @@ class FlextCliService(FlextService[FlextCliTypes.Data.CliDataDict]):
     # ==========================================================================
 
 
-__all__ = ["FlextCliService"]
+__all__ = ["FlextCliCore"]

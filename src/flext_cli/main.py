@@ -693,6 +693,29 @@ class FlextCliMain(FlextService[object]):
         """
         return FlextResult[None].ok(None)
 
+    @classmethod
+    def main(cls) -> int:
+        """Main CLI entry point."""
+        try:
+            # Create main CLI instance
+            cli_main = cls(
+                name="flext",
+                version="0.9.0",
+                description="FLEXT - Enterprise Data Integration Platform",
+            )
+
+            # Execute CLI
+            result = cli_main.execute_cli()
+
+            if result.is_success:
+                return 0
+            return 1
+
+        except Exception:
+            import traceback
+            traceback.print_exc()
+            return 1
+
 
 __all__ = [
     "FlextCliMain",

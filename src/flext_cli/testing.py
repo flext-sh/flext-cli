@@ -26,7 +26,7 @@ if TYPE_CHECKING:
     from click.testing import Result
 
 
-class FlextCliTestRunner(FlextService[object]):
+class FlextCliTesting(FlextService[object]):
     """CLI testing utilities for flext-cli applications.
 
     Provides comprehensive testing helpers including:
@@ -36,12 +36,12 @@ class FlextCliTestRunner(FlextService[object]):
     - Integration test patterns
 
     Example:
-        >>> from flext_cli.testing import FlextCliTestRunner
+        >>> from flext_cli.testing import FlextCliTesting
         >>> from flext_cli import FlextCliApi
         >>>
         >>> # Setup CLI for testing
         >>> cli = FlextCliApi()
-        >>> runner = FlextCliTestRunner()
+        >>> runner = FlextCliTesting()
         >>>
         >>> # Test command execution
         >>> test_result = runner.invoke_command(
@@ -83,7 +83,7 @@ class FlextCliTestRunner(FlextService[object]):
                 - exception: Exception if raised (when catch_exceptions=True)
 
         Example:
-            >>> runner = FlextCliTestRunner()
+            >>> runner = FlextCliTesting()
             >>> result = runner.invoke_command(
             ...     cli_main=cli.main, command_name="greet", args=["--name", "Alice"]
             ... )
@@ -153,7 +153,7 @@ class FlextCliTestRunner(FlextService[object]):
             FlextResult containing Click CliRunner
 
         Example:
-            >>> runner = FlextCliTestRunner()
+            >>> runner = FlextCliTesting()
             >>> isolated_result = runner.create_isolated_runner()
             >>> if isolated_result.is_success:
             ...     cli_runner = isolated_result.unwrap()
@@ -193,7 +193,7 @@ class FlextCliTestRunner(FlextService[object]):
             FlextResult containing captured output string
 
         Example:
-            >>> runner = FlextCliTestRunner()
+            >>> runner = FlextCliTesting()
             >>> output_result = runner.capture_output(
             ...     cli_main=cli.main, command_name="hello", args=["--name", "Bob"]
             ... )
@@ -246,7 +246,7 @@ class FlextCliTestRunner(FlextService[object]):
             FlextResult[None] - success if command exits with 0, failure otherwise
 
         Example:
-            >>> runner = FlextCliTestRunner()
+            >>> runner = FlextCliTesting()
             >>> result = runner.assert_command_succeeds(
             ...     cli_main=cli.main, command_name="version"
             ... )
@@ -300,7 +300,7 @@ class FlextCliTestRunner(FlextService[object]):
             FlextResult[None] - success if text found, failure otherwise
 
         Example:
-            >>> runner = FlextCliTestRunner()
+            >>> runner = FlextCliTesting()
             >>> result = runner.assert_output_contains(
             ...     cli_main=cli.main,
             ...     command_name="hello",
@@ -472,5 +472,5 @@ class FlextCliTestRunner(FlextService[object]):
 
 
 __all__ = [
-    "FlextCliTestRunner",
+    "FlextCliTesting",
 ]

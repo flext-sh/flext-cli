@@ -35,6 +35,9 @@ class FlextCliExceptions(FlextExceptions):
         and contextual information support using standard helper methods.
         """
 
+        # Add context attribute for CLI-specific usage
+        context: dict[str, object]
+
         @override
         def __init__(
             self,
@@ -96,6 +99,27 @@ class FlextCliExceptions(FlextExceptions):
         def is_error_code(self, error_code: str) -> bool:
             """Check if exception matches specific error code."""
             return str(self.error_code) == error_code
+
+        def _extract_common_kwargs(
+            self, kwargs: dict[str, object]
+        ) -> tuple[dict[str, object], str | None, dict[str, object]]:
+            """Extract common kwargs for exception initialization."""
+            context = kwargs.get("context")
+            if not isinstance(context, dict):
+                context = {}
+            correlation_id = kwargs.get("correlation_id")
+            if correlation_id is not None and not isinstance(correlation_id, str):
+                correlation_id = str(correlation_id)
+            remaining = {
+                k: v
+                for k, v in kwargs.items()
+                if k not in {"context", "correlation_id"}
+            }
+            return context, correlation_id, remaining
+
+        def _build_context(self, base_context: dict[str, object]) -> dict[str, object]:
+            """Build complete context dictionary."""
+            return base_context
 
     class CliValidationError(BaseError):
         """CLI validation error exception."""

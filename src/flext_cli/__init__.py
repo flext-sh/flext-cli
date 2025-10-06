@@ -11,7 +11,7 @@ from __future__ import annotations
 
 from typing import Final
 
-from flext_cli.api import FlextCliApi
+from flext_cli.api import FlextCli
 from flext_cli.auth import FlextCliAuth
 from flext_cli.cli import FlextCliCli
 from flext_cli.cmd import FlextCliCmd
@@ -19,7 +19,7 @@ from flext_cli.commands import FlextCliCommands
 from flext_cli.config import FlextCliConfig
 from flext_cli.constants import FlextCliConstants
 from flext_cli.context import FlextCliContext
-from flext_cli.core import FlextCliService
+from flext_cli.core import FlextCliCore
 from flext_cli.debug import FlextCliDebug
 from flext_cli.exceptions import FlextCliExceptions
 from flext_cli.file_tools import FlextCliFileTools
@@ -30,18 +30,15 @@ from flext_cli.mixins import FlextCliMixins
 from flext_cli.models import FlextCliModels
 from flext_cli.output import FlextCliOutput
 from flext_cli.performance import FlextCliPerformance
-from flext_cli.plugins import FlextCliPluginSystem
+from flext_cli.plugins import FlextCliPlugins
 from flext_cli.processors import FlextCliProcessors
 from flext_cli.prompts import FlextCliPrompts
 from flext_cli.protocols import FlextCliProtocols
 from flext_cli.shell import FlextCliShell
 from flext_cli.tables import FlextCliTables
-from flext_cli.testing import FlextCliTestRunner
+from flext_cli.testing import FlextCliTesting
 from flext_cli.typings import FlextCliTypes
 from flext_cli.version import VERSION, FlextCliVersion
-
-# Common alias for backward compatibility
-FlextCli = FlextCliApi
 
 # Module-level properties for backward compatibility
 PROJECT_VERSION: Final[FlextCliVersion] = VERSION
@@ -52,7 +49,6 @@ __all__ = [
     "PROJECT_VERSION",
     "VERSION",
     "FlextCli",
-    "FlextCliApi",
     "FlextCliAuth",
     "FlextCliCli",
     "FlextCliCmd",
@@ -60,6 +56,7 @@ __all__ = [
     "FlextCliConfig",
     "FlextCliConstants",
     "FlextCliContext",
+    "FlextCliCore",
     "FlextCliDebug",
     "FlextCliExceptions",
     "FlextCliFileTools",
@@ -70,14 +67,13 @@ __all__ = [
     "FlextCliModels",
     "FlextCliOutput",
     "FlextCliPerformance",
-    "FlextCliPluginSystem",
+    "FlextCliPlugins",
     "FlextCliProcessors",
     "FlextCliPrompts",
     "FlextCliProtocols",
-    "FlextCliService",
     "FlextCliShell",
     "FlextCliTables",
-    "FlextCliTestRunner",
+    "FlextCliTesting",
     "FlextCliTypes",
     "FlextCliVersion",
     "__version__",

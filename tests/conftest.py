@@ -28,7 +28,7 @@ from flext_cli.commands import FlextCliCommands
 from flext_cli.config import FlextCliConfig
 from flext_cli.constants import FlextCliConstants
 from flext_cli.context import FlextCliContext
-from flext_cli.core import FlextCliService
+from flext_cli.core import FlextCliCore
 from flext_cli.debug import FlextCliDebug
 from flext_cli.file_tools import FlextCliFileTools
 from flext_cli.handlers import FlextCliHandlers
@@ -149,9 +149,9 @@ def flext_cli_context() -> FlextCliContext:
 
 
 @pytest.fixture
-def flext_cli_core() -> FlextCliService:
-    """Create FlextCliService instance for testing."""
-    return FlextCliService()
+def flext_cli_core() -> FlextCliCore:
+    """Create FlextCliCore instance for testing."""
+    return FlextCliCore()
 
 
 @pytest.fixture

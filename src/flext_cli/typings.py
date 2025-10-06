@@ -31,6 +31,9 @@ TCliContext = TypeVar("TCliContext")
 TCliPlugin = TypeVar("TCliPlugin")
 TCliFormatter = TypeVar("TCliFormatter")
 
+# Generic TypeVar for utility functions
+T = TypeVar("T")
+
 
 class FlextCliTypes(FlextTypes):
     """CLI-specific type definitions extending FlextTypes.
@@ -39,6 +42,13 @@ class FlextCliTypes(FlextTypes):
     Follows FLEXT pattern: domain-specific complex types only, no simple aliases.
     Uses Python 3.13+ type syntax and patterns.
     """
+
+    # =========================================================================
+    # MISSING TYPES FROM FLEXT-CORE - Define locally until fixed upstream
+    # =========================================================================
+
+    # StringList type (missing from flext-core)
+    StringList = list[str]
 
     # =========================================================================
     # CLI COMMAND TYPES - Complex command processing types
