@@ -10,7 +10,6 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 import json
-from collections.abc import Callable
 from datetime import UTC, datetime
 from pathlib import Path
 
@@ -30,9 +29,6 @@ from flext_cli.output import FlextCliOutput
 from flext_cli.processors import FlextCliProcessors
 from flext_cli.prompts import FlextCliPrompts
 from flext_cli.typings import FlextCliTypes
-
-type HandlerData = FlextCliTypes.CliCommandResult
-type HandlerFunction = Callable[[HandlerData], FlextResult[HandlerData]]
 
 
 class FlextCliService(FlextService[FlextCliTypes.Data.CliDataDict]):

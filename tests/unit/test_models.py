@@ -31,14 +31,9 @@ class TestFlextCliModels:
         return FlextCliModels()
 
     @pytest.fixture
-    def test_utilities(self) -> FlextTestsUtilities:
-        """Provide FlextTestsUtilities for test support."""
-        return FlextTestsUtilities()
-
     # ========================================================================
     # INITIALIZATION AND BASIC FUNCTIONALITY
     # ========================================================================
-
     def test_models_service_initialization(
         self, models_service: FlextCliModels
     ) -> None:

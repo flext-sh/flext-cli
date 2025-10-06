@@ -32,14 +32,9 @@ class TestFlextCliFileTools:
         return FlextCliFileTools()
 
     @pytest.fixture
-    def test_utilities(self) -> FlextTestsUtilities:
-        """Provide FlextTestsUtilities for test support."""
-        return FlextTestsUtilities()
-
     # ========================================================================
     # INITIALIZATION AND BASIC FUNCTIONALITY
     # ========================================================================
-
     def test_file_tools_initialization(self, file_tools: FlextCliFileTools) -> None:
         """Test file tools initialization and basic properties."""
         assert file_tools is not None

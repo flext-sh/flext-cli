@@ -27,10 +27,6 @@ class TestFlextCliDebug:
         return FlextCliDebug()
 
     @pytest.fixture
-    def test_utilities(self) -> FlextTestsUtilities:
-        """Provide FlextTestsUtilities for test support."""
-        return FlextTestsUtilities()
-
     def test_debug_initialization(self, debug: FlextCliDebug) -> None:
         """Test debug initialization."""
         assert isinstance(debug, FlextCliDebug)

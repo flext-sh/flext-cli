@@ -60,7 +60,7 @@ class FlextCliHandlers(FlextHandlers):
         """
         return self.execute_handlers()
 
-    class CommandHandler(FlextCliProtocols.Cli.CliCommandHandler):
+    class CommandHandler(FlextCliProtocols.Commands.CliCommandHandler):
         """CLI command handler implementation - implements CliCommandHandler protocol."""
 
         @override
@@ -95,7 +95,7 @@ class FlextCliHandlers(FlextHandlers):
                     f"Command execution failed: {e}"
                 )
 
-    class FormatterHandler(FlextCliProtocols.Cli.CliFormatter):
+    class FormatterHandler(FlextCliProtocols.Application.CliFormatter):
         """CLI formatter handler implementation - implements CliFormatter protocol."""
 
         @override
@@ -126,7 +126,7 @@ class FlextCliHandlers(FlextHandlers):
             except Exception as e:
                 return FlextResult[str].fail(f"Formatting failed: {e}")
 
-    class ConfigHandler(FlextCliProtocols.Cli.CliConfigProvider):
+    class ConfigHandler(FlextCliProtocols.Infrastructure.CliConfigProvider):
         """CLI configuration handler implementation - implements CliConfigProvider protocol."""
 
         @override
@@ -168,7 +168,7 @@ class FlextCliHandlers(FlextHandlers):
             except Exception as e:
                 return FlextResult[None].fail(f"Config save failed: {e}")
 
-    class AuthHandler(FlextCliProtocols.Cli.CliAuthenticator):
+    class AuthHandler(FlextCliProtocols.Infrastructure.CliAuthenticator):
         """CLI authentication handler implementation - implements CliAuthenticator protocol."""
 
         @override
@@ -214,7 +214,7 @@ class FlextCliHandlers(FlextHandlers):
             except Exception as e:
                 return FlextResult[bool].fail(f"Token validation failed: {e}")
 
-    class DebugHandler(FlextCliProtocols.Cli.CliDebugProvider):
+    class DebugHandler(FlextCliProtocols.Extensions.CliDebugProvider):
         """CLI debug handler implementation - implements CliDebugProvider protocol."""
 
         @override

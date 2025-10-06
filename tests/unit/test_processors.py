@@ -29,10 +29,6 @@ class TestFlextCliProcessors:
         return FlextCliProcessors()
 
     @pytest.fixture
-    def test_utilities(self) -> FlextTestsUtilities:
-        """Provide FlextTestsUtilities for test support."""
-        return FlextTestsUtilities()
-
     def test_processors_initialization(self, processors: FlextCliProcessors) -> None:
         """Test processors initialization."""
         assert isinstance(processors, FlextCliProcessors)

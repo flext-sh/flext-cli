@@ -14,7 +14,7 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from flext_cli import FlextCli, FlextCliShell, FlextCliShellBuilder
+from flext_cli import FlextCli, FlextCliShell
 
 
 def demo_basic_shell() -> None:
@@ -87,7 +87,7 @@ def demo_shell_builder() -> None:
         """Clean build artifacts."""
 
     # Use builder pattern
-    builder = FlextCliShellBuilder(cli.main)
+    builder = FlextCliShell(cli.main)
 
     (
         builder.with_prompt("builder> ")
@@ -140,7 +140,7 @@ def demo_full_featured_shell() -> None:
 
     # Create full-featured shell
     (
-        FlextCliShellBuilder(cli.main)
+        FlextCliShell(cli.main)
         .with_prompt("myapp> ")
         .with_history("~/.myapp_history")
         .with_completion(True)

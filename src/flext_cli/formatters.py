@@ -92,7 +92,14 @@ class FlextCliFormatters(FlextService[object]):
         super().__init__()
         self._logger = FlextLogger(__name__)
         self._container = FlextContainer.get_global()
-        self._console = Console()
+        self._console: Console | None = None
+
+    @property
+    def console(self) -> Console:
+        """Get console instance with lazy initialization."""
+        if self._console is None:
+            self._console = Console(force_terminal=True, width=80, height=24)
+        return self.console
 
     # =========================================================================
     # CONSOLE OPERATIONS
@@ -109,7 +116,7 @@ class FlextCliFormatters(FlextService[object]):
             Ecosystem should use formatter methods instead.
 
         """
-        return self._console
+        return self.console
 
     def print(
         self,
@@ -149,7 +156,7 @@ class FlextCliFormatters(FlextService[object]):
 
         """
         try:
-            self._console.print(
+            self.console.print(
                 *objects,
                 sep=sep,
                 end=end,
@@ -337,7 +344,7 @@ class FlextCliFormatters(FlextService[object]):
                 auto_refresh=auto_refresh,
                 refresh_per_second=refresh_per_second,
                 transient=transient,
-                console=self._console,
+                console=self.console,
             )
             self._logger.debug("Created Live display")
             return FlextResult[Live].ok(live)
@@ -412,7 +419,7 @@ class FlextCliFormatters(FlextService[object]):
                 status,
                 spinner=spinner,
                 spinner_style=spinner_style,
-                console=self._console,
+                console=self.console,
             )
             self._logger.debug("Created status", extra={"status_message": status})
             return FlextResult[Status].ok(status_obj)
@@ -471,7 +478,7 @@ class FlextCliFormatters(FlextService[object]):
                 *columns,
                 transient=transient,
                 expand=expand,
-                console=self._console,
+                console=self.console,
             )
             self._logger.debug("Created progress bar")
             return FlextResult[Progress].ok(progress)
@@ -1040,7 +1047,7 @@ class FlextCliFormatters(FlextService[object]):
                 default=default,
                 password=password,
                 show_default=show_default,
-                console=self._console,
+                console=self.console,
             )
             self._logger.debug(
                 "Prompted user for input", extra={"prompt_msg": prompt_text}
@@ -1080,7 +1087,7 @@ class FlextCliFormatters(FlextService[object]):
                 question,
                 default=default,
                 show_default=show_default,
-                console=self._console,
+                console=self.console,
             )
             self._logger.debug(
                 "Asked user for confirmation", extra={"confirm_question": question}
@@ -1119,7 +1126,7 @@ class FlextCliFormatters(FlextService[object]):
                 prompt_text,
                 choices=choices,
                 default=default,
-                console=self._console,
+                console=self.console,
             )
             self._logger.debug(
                 "Prompted user for choice",
@@ -1154,7 +1161,7 @@ class FlextCliFormatters(FlextService[object]):
             value = IntPrompt.ask(
                 prompt_text,
                 default=default,
-                console=self._console,
+                console=self.console,
             )
             if value is None:
                 return FlextResult[int].fail("No integer value provided")
@@ -1201,7 +1208,7 @@ class FlextCliFormatters(FlextService[object]):
                 renderable,
                 refresh_per_second=refresh_per_second,
                 transient=transient,
-                console=self._console,
+                console=self.console,
             )
             self._logger.debug(
                 "Created live display", extra={"refresh_rate": refresh_per_second}
@@ -1278,7 +1285,7 @@ class FlextCliFormatters(FlextService[object]):
             string_io = StringIO()
             temp_console = Console(
                 file=string_io,
-                width=width or self._console.size.width,
+                width=width or self.console.size.width,
                 force_terminal=False,
             )
             temp_console.print(tree)
@@ -1300,7 +1307,7 @@ class FlextCliFormatters(FlextService[object]):
 
         """
         try:
-            self._console.clear()
+            self.console.clear()
             return FlextResult[None].ok(None)
         except Exception as e:
             error_msg = f"Failed to clear console: {e}"

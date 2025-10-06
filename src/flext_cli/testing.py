@@ -19,7 +19,7 @@ from flext_core import (
     FlextTypes,
 )
 
-from flext_cli.cli import FlextCliClick
+from flext_cli.cli import FlextCliCli
 from flext_cli.main import FlextCliMain
 
 if TYPE_CHECKING:
@@ -37,10 +37,10 @@ class FlextCliTestRunner(FlextService[object]):
 
     Example:
         >>> from flext_cli.testing import FlextCliTestRunner
-        >>> from flext_cli import FlextCli
+        >>> from flext_cli import FlextCliApi
         >>>
         >>> # Setup CLI for testing
-        >>> cli = FlextCli()
+        >>> cli = FlextCliApi()
         >>> runner = FlextCliTestRunner()
         >>>
         >>> # Test command execution
@@ -93,7 +93,7 @@ class FlextCliTestRunner(FlextService[object]):
 
         """
         try:
-            click_wrapper = FlextCliClick()
+            click_wrapper = FlextCliCli()
 
             # Get CLI runner
             runner_result = click_wrapper.create_cli_runner()
@@ -160,7 +160,7 @@ class FlextCliTestRunner(FlextService[object]):
 
         """
         try:
-            click_wrapper = FlextCliClick()
+            click_wrapper = FlextCliCli()
             runner_result = click_wrapper.create_cli_runner(_mix_stderr=mix_stderr)
 
             if runner_result.is_failure:
@@ -470,32 +470,7 @@ class FlextCliTestRunner(FlextService[object]):
         """
         return FlextResult[object].ok(None)
 
-    # ==========================================================================
-    # BACKWARD COMPATIBILITY PROPERTIES - Access nested classes
-    # ==========================================================================
-
-    @property
-    def mock_scenarios_class(self) -> type[MockScenarios]:
-        """Access mock scenarios class (backward compatibility).
-
-        Returns:
-            type[MockScenarios]: Mock scenarios class for testing
-
-        """
-        return self.MockScenarios
-
-
-# ==========================================================================
-# BACKWARD COMPATIBILITY ALIASES - Maintain existing API surface
-# ==========================================================================
-
-# Create instances for backward compatibility
-_test_runner = FlextCliTestRunner()
-
-# Backward compatibility aliases - access nested classes through instance
-FlextCliMockScenarios = _test_runner.mock_scenarios_class
 
 __all__ = [
-    "FlextCliMockScenarios",
     "FlextCliTestRunner",
 ]

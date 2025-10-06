@@ -32,14 +32,9 @@ class TestFlextCliAuth:
         return FlextCliAuth()
 
     @pytest.fixture
-    def test_utilities(self) -> FlextTestsUtilities:
-        """Provide FlextTestsUtilities for test support."""
-        return FlextTestsUtilities()
-
     # ========================================================================
     # INITIALIZATION AND BASIC FUNCTIONALITY
     # ========================================================================
-
     def test_auth_service_initialization(self, auth_service: FlextCliAuth) -> None:
         """Test auth service initialization and basic properties."""
         assert auth_service is not None

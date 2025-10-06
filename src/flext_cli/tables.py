@@ -10,7 +10,7 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 from collections.abc import Iterable, Sequence
-from typing import ClassVar, cast
+from typing import cast
 
 from flext_core import (
     FlextContainer,
@@ -20,6 +20,8 @@ from flext_core import (
     FlextTypes,
 )
 from tabulate import tabulate
+
+from flext_cli.constants import FlextCliConstants
 
 
 class FlextCliTables(FlextService[object]):
@@ -70,32 +72,6 @@ class FlextCliTables(FlextService[object]):
 
     """
 
-    # Available table formats (ClassVar for Pydantic compatibility)
-    FORMATS: ClassVar[FlextTypes.StringDict] = {
-        "plain": "Minimal formatting, no borders",
-        "simple": "Simple ASCII borders",
-        "grid": "Grid-style ASCII table",
-        "fancy_grid": "Fancy grid with double lines",
-        "pipe": "Markdown pipe table",
-        "orgtbl": "Emacs org-mode table",
-        "jira": "Jira markup table",
-        "presto": "Presto SQL output",
-        "pretty": "Pretty ASCII table",
-        "psql": "PostgreSQL psql output",
-        "rst": "reStructuredText grid",
-        "mediawiki": "MediaWiki markup",
-        "moinmoin": "MoinMoin markup",
-        "youtrack": "YouTrack markup",
-        "html": "HTML table",
-        "unsafehtml": "HTML without escaping",
-        "latex": "LaTeX table",
-        "latex_raw": "LaTeX table (raw)",
-        "latex_booktabs": "LaTeX booktabs style",
-        "latex_longtable": "LaTeX longtable",
-        "textile": "Textile markup",
-        "tsv": "Tab-separated values",
-    }
-
     def __init__(self) -> None:
         """Initialize Tabulate tables layer."""
         super().__init__()
@@ -130,7 +106,7 @@ class FlextCliTables(FlextService[object]):
                 - "firstrow": Use first row as headers
                 - Sequence: Custom headers
                 - "" or []: No headers
-            table_format: Table format (see FORMATS for options)
+            table_format: Table format (see FlextCliConstants.TABLE_FORMATS for options)
             align: Column alignment (left, right, center, decimal)
             floatfmt: Float number formatting
             numalign: Number alignment
@@ -164,9 +140,9 @@ class FlextCliTables(FlextService[object]):
         if not data:
             return FlextResult[str].fail("Table data cannot be empty")
 
-        if table_format not in self.FORMATS:
+        if table_format not in FlextCliConstants.TABLE_FORMATS:
             return FlextResult[str].fail(
-                f"Invalid table format: {table_format}. Available: {', '.join(self.FORMATS.keys())}"
+                f"Invalid table format: {table_format}. Available: {', '.join(FlextCliConstants.TABLE_FORMATS.keys())}"
             )
 
         try:
@@ -396,7 +372,7 @@ class FlextCliTables(FlextService[object]):
             List of format names
 
         """
-        return list(self.FORMATS.keys())
+        return list(FlextCliConstants.TABLE_FORMATS.keys())
 
     def get_format_description(self, format_name: str) -> FlextResult[str]:
         """Get description of a table format.
@@ -408,10 +384,10 @@ class FlextCliTables(FlextService[object]):
             FlextResult containing format description
 
         """
-        if format_name not in self.FORMATS:
+        if format_name not in FlextCliConstants.TABLE_FORMATS:
             return FlextResult[str].fail(f"Unknown format: {format_name}")
 
-        return FlextResult[str].ok(self.FORMATS[format_name])
+        return FlextResult[str].ok(FlextCliConstants.TABLE_FORMATS[format_name])
 
     def print_available_formats(self) -> FlextResult[None]:
         """Print all available table formats with descriptions.
@@ -423,7 +399,7 @@ class FlextCliTables(FlextService[object]):
         try:
             formats_data = [
                 {"format": name, "description": desc}
-                for name, desc in self.FORMATS.items()
+                for name, desc in FlextCliConstants.TABLE_FORMATS.items()
             ]
 
             # Use tabulate to print the formats table

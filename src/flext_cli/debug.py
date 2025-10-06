@@ -10,12 +10,8 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-import importlib.util
-import os
-import sys
 import uuid
 from datetime import UTC, datetime
-from pathlib import Path
 from typing import cast, override
 
 from flext_core import (
@@ -50,107 +46,6 @@ class FlextCliDebug(FlextService[str]):
         self._logger = FlextLogger(__name__)
         self._container = FlextContainer()
 
-    class _DebugHelper:
-        """Nested helper for debug operations."""
-
-        @staticmethod
-        def get_system_info() -> Types.Data.DebugInfoData:
-            """Get basic system information."""
-            return {
-                "service": "FlextCliDebug",
-                "status": FlextCliConstants.OPERATIONAL,
-                "timestamp": datetime.now(UTC).isoformat(),
-                "python_version": sys.version,
-                "platform": sys.platform,
-            }
-
-        @staticmethod
-        def get_environment_info() -> Types.Data.DebugInfoData:
-            """Get environment information with sensitive data masked."""
-            flext_vars = {k: v for k, v in os.environ.items() if k.startswith("FLEXT_")}
-
-            sensitive_patterns = ["TOKEN", "KEY", "SECRET", "PASSWORD"]
-            masked_vars = {}
-            masked_count = 0
-            preview_length = 4
-
-            for key, value in flext_vars.items():
-                if any(pattern in key.upper() for pattern in sensitive_patterns):
-                    masked_vars[key] = (
-                        f"{value[:preview_length]}****"
-                        if len(value) > preview_length
-                        else "****"
-                    )
-                    masked_count += 1
-                else:
-                    masked_vars[key] = value
-
-            return {
-                "variables": masked_vars,
-                "masked_count": masked_count,
-                "total_count": len(flext_vars),
-            }
-
-        @staticmethod
-        def get_path_info() -> FlextCliTypes.Data.PathInfoList:
-            """Get system path information."""
-            home = Path.home()
-            flext_dir = home / ".flext"
-
-            return [
-                {
-                    "label": FlextCliConstants.HOME,
-                    "path": str(home),
-                    "exists": home.exists(),
-                },
-                {
-                    "label": FlextCliConstants.CONFIG,
-                    "path": str(flext_dir),
-                    "exists": flext_dir.exists(),
-                },
-                {
-                    "label": FlextCliConstants.CACHE,
-                    "path": str(flext_dir / "cache"),
-                    "exists": (flext_dir / "cache").exists(),
-                },
-                {
-                    "label": FlextCliConstants.LOGS,
-                    "path": str(flext_dir / "logs"),
-                    "exists": (flext_dir / "logs").exists(),
-                },
-            ]
-
-        @staticmethod
-        def validate_environment() -> FlextCliTypes.Data.ErrorList:
-            """Validate environment setup."""
-            results: FlextCliTypes.Data.ErrorList = []
-
-            # Check Python version
-            if hasattr(sys, "version_info") and sys.version_info >= (3, 11):
-                results.append("✓ Python version check passed")
-            else:
-                results.append("✗ Python version check failed")
-
-            # Check flext-core availability
-            try:
-                spec = importlib.util.find_spec("flext_core")
-                if spec is not None:
-                    results.append("✓ flext-core dependency available")
-                else:
-                    results.append("✗ flext-core dependency missing")
-            except ImportError:
-                results.append("✗ flext-core dependency missing")
-
-            # Check basic filesystem permissions
-            try:
-                test_path = Path.home() / ".flext"
-                test_path.mkdir(exist_ok=True)
-                results.append("✓ Filesystem permissions check passed")
-            except (OSError, PermissionError):
-                results.append("✗ Filesystem permissions check failed")
-
-            return results
-
     @override
     def execute(self) -> FlextResult[str]:
         """Execute debug service - required by FlextService."""
@@ -161,7 +56,7 @@ class FlextCliDebug(FlextService[str]):
     ) -> FlextResult[FlextCliTypes.Data.CliDataDict]:
         """Get system information for debugging."""
         try:
-            info = self._DebugHelper.get_system_info()
+            info = self._get_system_info()
             # Convert to more specific type for better type safety
             typed_info: FlextCliTypes.Data.CliDataDict = {}
             for key, value in info.items():
@@ -180,7 +75,7 @@ class FlextCliDebug(FlextService[str]):
     ) -> FlextResult[FlextCliTypes.Data.CliDataDict]:
         """Get environment variables with sensitive data masked."""
         try:
-            env_info = self._DebugHelper.get_environment_info()
+            env_info = self._get_environment_info()
             # Convert to more specific type for better type safety
             typed_env_info: FlextCliTypes.Data.CliDataDict = {}
             for key, value in env_info.items():
@@ -199,7 +94,7 @@ class FlextCliDebug(FlextService[str]):
     ) -> FlextResult[list[FlextCliTypes.Data.CliDataDict]]:
         """Get system path information."""
         try:
-            paths = self._DebugHelper.get_path_info()
+            paths = self._get_path_info()
             # Convert to more specific type for better type safety
             typed_paths: list[FlextCliTypes.Data.CliDataDict] = []
             for path_dict in paths:
@@ -219,7 +114,7 @@ class FlextCliDebug(FlextService[str]):
     def validate_environment_setup(self) -> FlextResult[FlextCliTypes.Data.ErrorList]:
         """Validate environment setup and dependencies."""
         try:
-            results = self._DebugHelper.validate_environment()
+            results = self._validate_filesystem_permissions()
             return FlextResult[FlextCliTypes.Data.ErrorList].ok(results)
         except Exception as e:
             return FlextResult[FlextCliTypes.Data.ErrorList].fail(
@@ -289,7 +184,7 @@ class FlextCliDebug(FlextService[str]):
                 "service": "FlextCliDebug",
                 "timestamp": datetime.now(UTC).isoformat(),
                 "debug_id": str(uuid.uuid4()),
-                "system_info": self._DebugHelper.get_system_info(),
+                "system_info": self._get_system_info(),
                 "environment_status": FlextCliConstants.OPERATIONAL,
                 "connectivity_status": FlextCliConstants.CONNECTED,
             }

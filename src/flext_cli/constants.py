@@ -22,15 +22,18 @@ class FlextCliConstants(FlextConstants):
     without duplication or wrappers, using direct access patterns.
     """
 
-    # Project identification (Final attributes inherited from FlextConstants)
-    # PROJECT_PREFIX inherited from FlextConstants
-    # PROJECT_NAME inherited from FlextConstants
-
     # Directory and file names
     FLEXT_DIR_NAME: Final[str] = ".flext"
     AUTH_DIR_NAME: Final[str] = "auth"
     TOKEN_FILE_NAME: Final[str] = "token.json"
     REFRESH_TOKEN_FILE_NAME: Final[str] = "refresh_token.json"
+
+    # Default paths
+    DEFAULT_FLEXT_DIR: Final[str] = f"~/{FLEXT_DIR_NAME}"
+    DEFAULT_TOKEN_PATH: Final[str] = f"{DEFAULT_FLEXT_DIR}/{TOKEN_FILE_NAME}"
+    DEFAULT_REFRESH_TOKEN_PATH: Final[str] = (
+        f"{DEFAULT_FLEXT_DIR}/{REFRESH_TOKEN_FILE_NAME}"
+    )
 
     class CommandStatus(StrEnum):
         """Command execution status enum."""
@@ -151,11 +154,41 @@ class FlextCliConstants(FlextConstants):
         FORMAT: Final[str] = "format"
         EXPORT: Final[str] = "export"
 
+    class Shell:
+        """Shell-specific constants."""
+
+        # Built-in shell commands
+        EXIT: Final[str] = "exit"
+        QUIT: Final[str] = "quit"
+        Q: Final[str] = "q"
+        HISTORY: Final[str] = "history"
+        CLEAR: Final[str] = "clear"
+        HELP: Final[str] = "help"
+        COMMANDS: Final[str] = "commands"
+        SESSION: Final[str] = "session"
+
+        # Shell command list
+        BUILTIN_COMMANDS: Final[FlextTypes.StringList] = [
+            EXIT,
+            QUIT,
+            Q,
+            HISTORY,
+            CLEAR,
+            HELP,
+            COMMANDS,
+            SESSION,
+        ]
+
+        # Default prompt
+        DEFAULT_PROMPT: Final[str] = "> "
+
     class Auth:
         """CLI authentication constants."""
 
         TOKEN_FILENAME: Final[str] = "token.json"
         CONFIG_FILENAME: Final[str] = "auth.json"
+        MIN_USERNAME_LENGTH: Final[int] = 3
+        MIN_PASSWORD_LENGTH: Final[int] = 6
 
     class Session:
         """CLI session constants."""
@@ -281,6 +314,35 @@ class FlextCliConstants(FlextConstants):
 
     # Service names
     FLEXT_CLI_FILE_TOOLS: Final[str] = "flext-cli-file-tools"
+
+    # Version constants
+    VERSION: Final[str] = "2.0.0"
+
+    # Table formats for tabulate integration
+    TABLE_FORMATS: Final[FlextTypes.StringDict] = {
+        "plain": "Minimal formatting, no borders",
+        "simple": "Simple ASCII borders",
+        "grid": "Grid-style ASCII table",
+        "fancy_grid": "Fancy grid with double lines",
+        "pipe": "Markdown pipe table",
+        "orgtbl": "Emacs org-mode table",
+        "jira": "Jira markup table",
+        "presto": "Presto SQL output",
+        "pretty": "Pretty ASCII table",
+        "psql": "PostgreSQL psql output",
+        "rst": "reStructuredText grid",
+        "mediawiki": "MediaWiki markup",
+        "moinmoin": "MoinMoin markup",
+        "youtrack": "YouTrack markup",
+        "html": "HTML table",
+        "unsafehtml": "Unsafe HTML table",
+        "latex": "LaTeX table",
+        "latex_raw": "Raw LaTeX table",
+        "latex_booktabs": "LaTeX booktabs table",
+        "latex_longtable": "LaTeX longtable",
+        "textile": "Textile markup",
+        "tsv": "Tab-separated values",
+    }
 
 
 __all__ = [

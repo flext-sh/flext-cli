@@ -15,12 +15,6 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 from pathlib import Path
-from typing import TYPE_CHECKING
-
-try:
-    import readline  # Optional dependency for enhanced input editing
-except ImportError:
-    readline = None
 
 from flext_core import (
     FlextContainer,
@@ -29,11 +23,13 @@ from flext_core import (
     FlextService,
     FlextTypes,
 )
+from prompt_toolkit import PromptSession
+from prompt_toolkit.completion import WordCompleter
+from prompt_toolkit.history import FileHistory
 
-if TYPE_CHECKING:
-    from flext_cli.main import FlextCliMain
-
-from flext_cli.cli import FlextCliClick
+from flext_cli.cli import FlextCliCli
+from flext_cli.constants import FlextCliConstants
+from flext_cli.main import FlextCliMain
 
 
 class FlextCliShell(FlextService[object]):
@@ -43,9 +39,9 @@ class FlextCliShell(FlextService[object]):
     completion, multi-line editing, and session management.
 
     Example:
-        >>> from flext_cli import FlextCli, FlextCliShell
+        >>> from flext_cli import FlextCliApi, FlextCliShell
         >>>
-        >>> cli = FlextCli()
+        >>> cli = FlextCliApi()
         >>> shell = FlextCliShell(cli_main=cli.main, prompt="myapp> ")
         >>>
         >>> # Start interactive shell
@@ -56,7 +52,7 @@ class FlextCliShell(FlextService[object]):
     def __init__(
         self,
         cli_main: FlextCliMain,
-        prompt: str = "> ",
+        prompt: str = FlextCliConstants.Shell.DEFAULT_PROMPT,
         *,
         history_file: str | None = None,
         enable_completion: bool = True,
@@ -81,6 +77,28 @@ class FlextCliShell(FlextService[object]):
         self._running = False
         self._history: FlextTypes.StringList = []
         self._session_commands: FlextTypes.StringList = []
+
+        # Initialize prompt_toolkit session
+        # Get available commands for completion
+        commands_result = self._cli_main.list_commands()
+        commands = commands_result.unwrap() if commands_result.is_success else []
+
+        # Add built-in commands
+        all_commands = list(commands) + FlextCliConstants.Shell.BUILTIN_COMMANDS
+
+        # Create completer
+        completer = WordCompleter(all_commands, ignore_case=True)
+
+        # Create history handler
+        history = FileHistory(str(self._history_file)) if self._history_file else None
+
+        # Create prompt session
+        self._prompt_session = PromptSession(
+            completer=completer if self._enable_completion else None,
+            history=history,
+            enable_history_search=True,
+            enable_suspend=True,
+        )
 
     def run(self) -> FlextResult[None]:
         """Start the interactive shell.
@@ -157,7 +175,12 @@ class FlextCliShell(FlextService[object]):
                 return FlextResult[None].ok(None)
 
             # Check for exit
-            if command.strip().lower() in {"exit", "quit", "q"}:
+            exit_commands = {
+                FlextCliConstants.Shell.EXIT,
+                FlextCliConstants.Shell.QUIT,
+                FlextCliConstants.Shell.Q,
+            }
+            if command.strip().lower() in exit_commands:
                 self._running = False
                 return FlextResult[None].fail("exit")
 
@@ -190,8 +213,7 @@ class FlextCliShell(FlextService[object]):
 
         """
         try:
-            # Use input with readline enhancement if available
-            user_input = input(self._prompt)
+            user_input = self._prompt_session.prompt(self._prompt)
             return FlextResult[str].ok(user_input)
 
         except Exception as e:
@@ -222,7 +244,7 @@ class FlextCliShell(FlextService[object]):
                 return FlextResult[None].fail(f"Unknown command: {command_name}")
 
             # Execute command
-            click_wrapper = FlextCliClick()
+            click_wrapper = FlextCliCli()
             runner_result = click_wrapper.create_cli_runner()
             if runner_result.is_failure:
                 return FlextResult[None].fail(
@@ -328,16 +350,8 @@ class FlextCliShell(FlextService[object]):
 
         """
         try:
-            if not self._history_file or not self._history_file.exists():
-                return FlextResult[None].ok(None)
-
-            with Path(self._history_file).open(encoding="utf-8") as f:
-                self._history = [line.strip() for line in f if line.strip()]
-
-            self._logger.debug(
-                "Loaded command history", extra={"history_count": len(self._history)}
-            )
-
+            # History is managed by prompt_toolkit
+            self._logger.debug("History managed by prompt_toolkit")
             return FlextResult[None].ok(None)
 
         except Exception as e:
@@ -351,20 +365,8 @@ class FlextCliShell(FlextService[object]):
 
         """
         try:
-            if not self._history_file:
-                return FlextResult[None].ok(None)
-
-            # Create parent directory if needed
-            self._history_file.parent.mkdir(parents=True, exist_ok=True)
-
-            # Save history (limit to last 1000 commands)
-            with Path(self._history_file).open("w", encoding="utf-8") as f:
-                f.writelines(f"{cmd}\n" for cmd in self._history[-1000:])
-
-            self._logger.debug(
-                "Saved command history", extra={"history_count": len(self._history)}
-            )
-
+            # History is managed by prompt_toolkit
+            self._logger.debug("History managed by prompt_toolkit")
             return FlextResult[None].ok(None)
 
         except Exception as e:
@@ -378,63 +380,12 @@ class FlextCliShell(FlextService[object]):
 
         """
         try:
-            # Set up completer if readline is available
-            if readline is not None:
-                readline.set_completer(self._complete)
-                readline.parse_and_bind("tab: complete")
-
-                # Use GNU readline defaults if available
-                if "libedit" not in readline.__doc__:
-                    readline.parse_and_bind("set show-all-if-ambiguous on")
-                    readline.parse_and_bind("set completion-ignore-case on")
-
-                self._logger.debug("Tab completion enabled")
-
+            # Completion is handled automatically by prompt_toolkit
+            self._logger.debug("Tab completion enabled via prompt_toolkit")
             return FlextResult[None].ok(None)
 
         except Exception as e:
             return FlextResult[None].fail(f"Completion setup failed: {e}")
-
-    def _complete(self, text: str, state: int) -> str | None:
-        """Completion function for readline.
-
-        Args:
-            text: Text to complete
-            state: Completion state
-
-        Returns:
-            Completion string or None
-
-        """
-        try:
-            # Get available commands
-            commands_result = self._cli_main.list_commands()
-            if commands_result.is_failure:
-                return None
-
-            commands = commands_result.unwrap()
-
-            # Add built-in commands
-            all_commands = list(commands) + [
-                "exit",
-                "quit",
-                "!history",
-                "!clear",
-                "!help",
-                "!commands",
-                "!session",
-            ]
-
-            # Filter matches
-            matches = [cmd for cmd in all_commands if cmd.startswith(text)]
-
-            if state < len(matches):
-                return matches[state]
-
-            return None
-
-        except Exception:
-            return None
 
     # Attribute declarations - override FlextService optional types
     # These are guaranteed initialized in __init__
@@ -463,116 +414,68 @@ class FlextCliShell(FlextService[object]):
         """
         return self.execute()
 
-    # ==========================================================================
-    # NESTED SHELL BUILDER - Consolidated within unified class
-    # ==========================================================================
+    def with_prompt(self, prompt: str) -> FlextCliShell:
+        """Set shell prompt.
 
-    class ShellBuilder:
-        """Builder for configuring interactive shell.
+        Args:
+            prompt: Prompt string
+
+        Returns:
+            Self for chaining
+
+        """
+        self._prompt = prompt
+        return self
+
+    def with_history(self, history_file: str) -> FlextCliShell:
+        """Enable command history persistence.
+
+        Args:
+            history_file: Path to history file
+
+        Returns:
+            Self for chaining
+
+        """
+        self._history_file = Path(history_file) if history_file else None
+        return self
+
+    def with_completion(self, *, enable: bool = True) -> FlextCliShell:
+        """Enable tab completion.
+
+        Args:
+            enable: Whether to enable completion
+
+        Returns:
+            Self for chaining
+
+        """
+        self._enable_completion = enable
+        return self
+
+    @classmethod
+    def create_builder(cls, cli_main: FlextCliMain) -> FlextCliShell:
+        """Create shell with builder pattern.
+
+        Args:
+            cli_main: FlextCliMain instance
+
+        Returns:
+            FlextCliShell instance for chaining
 
         Example:
-            >>> builder = FlextCliShellBuilder(cli.main)
             >>> shell = (
-            ...     builder.with_prompt("myapp> ")
+            ...     FlextCliShell.create_builder(cli.main)
+            ...     .with_prompt("myapp> ")
             ...     .with_history("~/.myapp_history")
             ...     .with_completion()
-            ...     .build()
             ... )
             >>> shell.run()
 
         """
+        return cls(cli_main=cli_main)
 
-        def __init__(self, cli_main: object) -> None:
-            """Initialize shell builder.
-
-            Args:
-                cli_main: FlextCliMain instance
-
-            """
-            self._cli_main = cli_main
-            self._prompt = "> "
-            self._history_file: str | None = None
-            self._enable_completion = False
-
-        def with_prompt(self, prompt: str) -> FlextCliShell.ShellBuilder:
-            """Set shell prompt.
-
-            Args:
-                prompt: Prompt string
-
-            Returns:
-                Self for chaining
-
-            """
-            self._prompt = prompt
-            return self
-
-        def with_history(self, history_file: str) -> FlextCliShell.ShellBuilder:
-            """Enable command history persistence.
-
-            Args:
-                history_file: Path to history file
-
-            Returns:
-                Self for chaining
-
-            """
-            self._history_file = history_file
-            return self
-
-        def with_completion(self, *, enable: bool = True) -> FlextCliShell.ShellBuilder:
-            """Enable tab completion.
-
-            Args:
-                enable: Whether to enable completion
-
-            Returns:
-                Self for chaining
-
-            """
-            self._enable_completion = enable
-            return self
-
-        def build(self) -> FlextCliShell:
-            """Build the shell instance.
-
-            Returns:
-                Configured FlextCliShell instance
-
-            """
-            return FlextCliShell(
-                cli_main=self._cli_main,
-                prompt=self._prompt,
-                history_file=self._history_file,
-                enable_completion=self._enable_completion,
-            )
-
-    # ==========================================================================
-    # BACKWARD COMPATIBILITY PROPERTIES - Access nested classes
-    # ==========================================================================
-
-    @property
-    def shell_builder_class(self) -> type[ShellBuilder]:
-        """Access shell builder class (backward compatibility).
-
-        Returns:
-            type[ShellBuilder]: Shell builder class for configuration
-
-        """
-        return self.ShellBuilder
-
-
-# ==========================================================================
-# BACKWARD COMPATIBILITY ALIASES - Maintain existing API surface
-# ==========================================================================
-
-# Create instances for backward compatibility
-_shell = FlextCliShell(cli_main=None)  # Dummy instance for class access
-
-# Backward compatibility aliases - access nested classes through instance
-FlextCliShellBuilder = _shell.shell_builder_class
 
 __all__ = [
     "FlextCliShell",
-    "FlextCliShellBuilder",
 ]
