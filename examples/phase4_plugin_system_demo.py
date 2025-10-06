@@ -17,7 +17,7 @@ from pathlib import Path
 
 from flext_cli import (
     FlextCli,
-    FlextCliPluginSystem,
+    FlextCliPlugins,
 )
 
 # Add plugins directory to path for demo
@@ -28,7 +28,7 @@ if str(plugins_dir) not in sys.path:
 
 def demo_plugin_discovery() -> None:
     """Demo 1: Plugin Discovery."""
-    plugin_manager = FlextCliPluginSystem.PluginManager()
+    plugin_manager = FlextCliPlugins.PluginManager()
 
     # Discover plugins
     discover_result = plugin_manager.discover_plugins("examples/plugins")
@@ -41,7 +41,7 @@ def demo_plugin_discovery() -> None:
 
 def demo_plugin_loading() -> None:
     """Demo 2: Plugin Loading."""
-    plugin_manager = FlextCliPluginSystem.PluginManager()
+    plugin_manager = FlextCliPlugins.PluginManager()
 
     # Load plugin
     load_result = plugin_manager.load_plugin("example_plugin")
@@ -61,7 +61,7 @@ def demo_plugin_loading() -> None:
 def demo_plugin_initialization() -> None:
     """Demo 3: Plugin Initialization."""
     cli = FlextCli()
-    plugin_manager = FlextCliPluginSystem.PluginManager()
+    plugin_manager = FlextCliPlugins.PluginManager()
 
     # Load plugin
     load_result = plugin_manager.load_plugin("example_plugin")
@@ -87,7 +87,7 @@ def demo_plugin_initialization() -> None:
 def demo_plugin_commands() -> None:
     """Demo 4: Plugin Commands (conceptual - shows registered commands)."""
     cli = FlextCli()
-    plugin_manager = FlextCliPluginSystem.PluginManager()
+    plugin_manager = FlextCliPlugins.PluginManager()
 
     # Load and initialize plugin
     result = plugin_manager.load_and_initialize_plugin("example_plugin", cli.main)
@@ -101,7 +101,7 @@ def demo_plugin_commands() -> None:
 def demo_multiple_plugins() -> None:
     """Demo 5: Loading Multiple Plugins."""
     cli = FlextCli()
-    plugin_manager = FlextCliPluginSystem.PluginManager()
+    plugin_manager = FlextCliPlugins.PluginManager()
 
     plugins_to_load = [
         ("example_plugin", "ExamplePlugin"),
@@ -130,7 +130,7 @@ def demo_multiple_plugins() -> None:
 def demo_plugin_lifecycle() -> None:
     """Demo 6: Plugin Lifecycle Management."""
     cli = FlextCli()
-    plugin_manager = FlextCliPluginSystem.PluginManager()
+    plugin_manager = FlextCliPlugins.PluginManager()
 
     # Load and initialize
     result = plugin_manager.load_and_initialize_plugin("example_plugin", cli.main)

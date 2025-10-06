@@ -329,8 +329,8 @@ class FlextCliConfig(FlextConfig):
         return FlextResult[str].ok(value)
 
     @classmethod
-    def create_for_environment(  # noqa: ARG003
-        cls, environment: str, **overrides: object  # noqa: ARG003
+    def create_for_environment(
+        cls, environment: str, **overrides: object
     ) -> FlextCliConfig:
         """REMOVED: Use direct instantiation with environment parameter.
 
