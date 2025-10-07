@@ -190,7 +190,7 @@ class FlextCliFileTools(FlextService[FlextTypes.Dict]):
 
     @staticmethod
     def write_json_file(
-        file_path: str | Path, data: object, **kwargs: Any
+        file_path: str | Path, data: object, **kwargs: dict[str, Any]
     ) -> FlextResult[None]:
         """Write data to JSON file.
 
@@ -240,7 +240,7 @@ class FlextCliFileTools(FlextService[FlextTypes.Dict]):
 
     @staticmethod
     def write_yaml_file(
-        file_path: str | Path, data: object, **kwargs: Any
+        file_path: str | Path, data: object, **kwargs: dict[str, Any]
     ) -> FlextResult[None]:
         """Write data to YAML file.
 

@@ -12,10 +12,7 @@ from __future__ import annotations
 import time
 from pathlib import Path
 
-from flext_cli.config import (
-    FlextCliConfig,
-)
-from flext_cli.models import FlextCliModels
+from flext_cli import FlextCliConfig, FlextCliModels
 
 
 class TestFlextCliConfig:

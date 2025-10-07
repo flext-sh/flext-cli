@@ -726,6 +726,15 @@ class FlextCli:
         """
         return self.file_tools.read_yaml(path, **kwargs)
 
+    def run(self) -> FlextResult[FlextCliTypes.Data.CliDataDict]:
+        """Run CLI API operations.
+
+        Returns:
+            FlextResult[FlextCliTypes.Data.CliDataDict]: API execution result
+
+        """
+        return self.execute()
+
     def execute(self) -> FlextResult[FlextCliTypes.Data.CliDataDict]:
         """Execute CLI API operations.
 

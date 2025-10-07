@@ -14,7 +14,7 @@ import pytest
 from click.testing import CliRunner
 from flext_core import FlextResult
 
-from flext_cli.main import FlextCliMain
+from flext_cli import FlextCliMain
 
 
 class TestFlextCliMain:
