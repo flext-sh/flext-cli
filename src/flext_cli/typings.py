@@ -1,6 +1,6 @@
 """FLEXT CLI Types - Domain-specific CLI type definitions.
 
-This module provides CLI-specific type definitions extending FlextTypes.
+This module provides CLI-specific type definitions extending FlextCore.Types.
 Follows FLEXT standards:
 - Single unified class per module
 - Domain-specific complex types only
@@ -15,7 +15,7 @@ from __future__ import annotations
 
 from typing import Literal, TypeVar
 
-from flext_core import FlextTypes
+from flext_core import FlextCore
 
 # =============================================================================
 # CLI-SPECIFIC TYPE VARIABLES - Domain-specific TypeVars for CLI operations
@@ -35,8 +35,8 @@ TCliFormatter = TypeVar("TCliFormatter")
 T = TypeVar("T")
 
 
-class FlextCliTypes(FlextTypes):
-    """CLI-specific type definitions extending FlextTypes.
+class FlextCliTypes(FlextCore.Types):
+    """CLI-specific type definitions extending FlextCore.Types.
 
     Contains complex CLI-specific types that add business value.
     Follows FLEXT pattern: domain-specific complex types only, no simple aliases.
@@ -58,24 +58,27 @@ class FlextCliTypes(FlextTypes):
         """CLI command-specific complex types."""
 
         CommandDefinition = dict[
-            str, str | FlextTypes.StringList | dict[str, FlextTypes.JsonValue]
+            str, str | FlextCore.Types.StringList | dict[str, FlextCore.Types.JsonValue]
         ]
-        CommandPipeline = list[dict[str, FlextTypes.JsonValue]]
+        CommandPipeline = list[dict[str, FlextCore.Types.JsonValue]]
         CommandRegistry = dict[
             str,
-            dict[str, str | FlextTypes.StringList | dict[str, FlextTypes.JsonValue]],
+            dict[
+                str,
+                str | FlextCore.Types.StringList | dict[str, FlextCore.Types.JsonValue],
+            ],
         ]
-        CommandContext = dict[str, FlextTypes.JsonValue]
-        CommandResult = FlextTypes.Dict
-        CommandMetadata = dict[str, str | int | FlextTypes.StringList]
-        CommandArgs = FlextTypes.StringList
-        CommandNames = FlextTypes.StringList
+        CommandContext = dict[str, FlextCore.Types.JsonValue]
+        CommandResult = FlextCore.Types.Dict
+        CommandMetadata = dict[str, str | int | FlextCore.Types.StringList]
+        CommandArgs = FlextCore.Types.StringList
+        CommandNames = FlextCore.Types.StringList
 
     class CliCommandResult:
         """CLI command result type definitions."""
 
         # Core command result types
-        CommandResultData = dict[str, FlextTypes.JsonValue]
+        CommandResultData = dict[str, FlextCore.Types.JsonValue]
         CommandResultStatus = Literal["success", "failure", "error"]
         CommandResultMetadata = dict[str, str | int | bool]
 
@@ -86,48 +89,62 @@ class FlextCliTypes(FlextTypes):
     class Configuration:
         """CLI configuration complex types."""
 
-        CliConfigSchema = dict[str, dict[str, FlextTypes.ConfigValue]]
-        ProfileConfiguration = FlextTypes.Dict
+        CliConfigSchema = dict[str, dict[str, FlextCore.Types.ConfigValue]]
+        ProfileConfiguration = FlextCore.Types.Dict
         EnvironmentConfig = dict[
-            str, FlextTypes.ConfigValue | dict[str, FlextTypes.ConfigValue]
+            str, FlextCore.Types.ConfigValue | dict[str, FlextCore.Types.ConfigValue]
         ]
         SessionConfiguration = dict[
-            str, str | int | float | bool | FlextTypes.List | FlextTypes.Dict | None
+            str,
+            str
+            | int
+            | float
+            | bool
+            | FlextCore.Types.List
+            | FlextCore.Types.Dict
+            | None,
         ]
-        AuthenticationConfig = dict[str, str | int | bool | FlextTypes.StringList]
+        AuthenticationConfig = dict[str, str | int | bool | FlextCore.Types.StringList]
         LogConfig = dict[str, str | None]
 
     # =========================================================================
     # CLI OUTPUT TYPES - Complex output formatting types
     # =========================================================================
 
-    class Output(FlextTypes.Output):
-        """CLI output formatting complex types extending FlextTypes.Output."""
+    class Output(FlextCore.Types.Output):
+        """CLI output formatting complex types extending FlextCore.Types.Output."""
 
         FormatterConfig = dict[
-            str, FlextTypes.Output.OutputFormat | FlextTypes.StringDict
+            str, FlextCore.Types.Output.OutputFormat | FlextCore.Types.StringDict
         ]
-        TableConfiguration = dict[str, str | int | FlextTypes.StringList | bool]
+        TableConfiguration = dict[str, str | int | FlextCore.Types.StringList | bool]
         ProgressBarConfig = dict[str, str | int | bool]
         OutputPipeline = list[
-            dict[str, FlextTypes.Output.OutputFormat | FlextTypes.JsonValue]
+            dict[str, FlextCore.Types.Output.OutputFormat | FlextCore.Types.JsonValue]
         ]
-        RenderingOptions = dict[str, bool | str | int | FlextTypes.StringList]
+        RenderingOptions = dict[str, bool | str | int | FlextCore.Types.StringList]
 
     # =========================================================================
     # CLI PROCESSING TYPES - Complex processing types
     # =========================================================================
 
-    class Processing(FlextTypes.Processing):
-        """CLI processing complex types extending FlextTypes.Processing."""
+    class Processing(FlextCore.Types.Processing):
+        """CLI processing complex types extending FlextCore.Types.Processing."""
 
-        BatchOperation = dict[str, list[dict[str, FlextTypes.JsonValue]]]
-        PipelineDefinition = list[dict[str, str | dict[str, FlextTypes.JsonValue]]]
+        BatchOperation = dict[str, list[dict[str, FlextCore.Types.JsonValue]]]
+        PipelineDefinition = list[dict[str, str | dict[str, FlextCore.Types.JsonValue]]]
         WorkflowConfiguration = dict[
-            str, FlextTypes.Processing.ProcessingStatus | FlextTypes.JsonValue
+            str, FlextCore.Types.Processing.ProcessingStatus | FlextCore.Types.JsonValue
         ]
         TaskConfiguration = dict[
-            str, str | int | float | bool | FlextTypes.List | FlextTypes.Dict | None
+            str,
+            str
+            | int
+            | float
+            | bool
+            | FlextCore.Types.List
+            | FlextCore.Types.Dict
+            | None,
         ]
 
     # =========================================================================
@@ -140,14 +157,21 @@ class FlextCliTypes(FlextTypes):
         PandasReadCsvKwargs = dict[str, str | int | bool | object]
         PyArrowReadTableKwargs = dict[str, str | int | bool | object]
         PyArrowWriteTableKwargs = dict[str, str | int | bool | object]
-        CliDataDict = dict[str, FlextTypes.JsonValue]
-        CliCommandData = dict[str, FlextTypes.JsonValue]
+        CliDataDict = dict[str, FlextCore.Types.JsonValue]
+        CliCommandData = dict[str, FlextCore.Types.JsonValue]
         CliCommandResult = dict[
-            str, str | int | float | bool | FlextTypes.List | FlextTypes.Dict | None
+            str,
+            str
+            | int
+            | float
+            | bool
+            | FlextCore.Types.List
+            | FlextCore.Types.Dict
+            | None,
         ]
-        CliCommandArgs = dict[str, FlextTypes.JsonValue]
-        CliFormatData = dict[str, FlextTypes.JsonValue]
-        CliConfigData = dict[str, FlextTypes.JsonValue]
+        CliCommandArgs = dict[str, FlextCore.Types.JsonValue]
+        CliFormatData = dict[str, FlextCore.Types.JsonValue]
+        CliConfigData = dict[str, FlextCore.Types.JsonValue]
         AuthConfigData = dict[str, str | int | bool]
         DebugInfoData = dict[
             str,
@@ -155,19 +179,19 @@ class FlextCliTypes(FlextTypes):
             | int
             | float
             | bool
-            | FlextTypes.List
-            | FlextTypes.Dict
-            | FlextTypes.StringList
-            | dict
+            | FlextCore.Types.List
+            | FlextCore.Types.Dict
+            | FlextCore.Types.StringList
+                | dict[str, object]
             | None,
         ]
-        ErrorList = FlextTypes.StringList
-        FileList = FlextTypes.StringList
-        CsvData = list[FlextTypes.StringDict]
-        ConnectivityInfo = FlextTypes.StringDict
-        TableHeaders = FlextTypes.StringList
-        TableRows = list[FlextTypes.StringList]
-        PathInfoList = list[dict[str, FlextTypes.JsonValue]]
+        ErrorList = FlextCore.Types.StringList
+        FileList = FlextCore.Types.StringList
+        CsvData = list[FlextCore.Types.StringDict]
+        ConnectivityInfo = FlextCore.Types.StringDict
+        TableHeaders = FlextCore.Types.StringList
+        TableRows = list[FlextCore.Types.StringList]
+        PathInfoList = list[dict[str, FlextCore.Types.JsonValue]]
 
     class PandasTypes:
         """Pandas-specific type definitions for CLI data processing."""
@@ -181,13 +205,13 @@ class FlextCliTypes(FlextTypes):
     class Auth:
         """CLI authentication complex types."""
 
-        PermissionList = FlextTypes.StringList
-        RoleList = FlextTypes.StringList
+        PermissionList = FlextCore.Types.StringList
+        RoleList = FlextCore.Types.StringList
         SessionData = dict[str, str | int | bool]
-        CredentialsData = dict[str, FlextTypes.JsonValue]
-        UserData = dict[str, FlextTypes.JsonValue]
-        AuthResult = dict[str, FlextTypes.JsonValue]
-        UserList = list[dict[str, FlextTypes.JsonValue]]
+        CredentialsData = dict[str, FlextCore.Types.JsonValue]
+        UserData = dict[str, FlextCore.Types.JsonValue]
+        AuthResult = dict[str, FlextCore.Types.JsonValue]
+        UserList = list[dict[str, FlextCore.Types.JsonValue]]
 
     # =========================================================================
     # CLI HTTP TYPES - HTTP-related types
@@ -196,18 +220,18 @@ class FlextCliTypes(FlextTypes):
     class Http:
         """CLI HTTP complex types."""
 
-        Headers = FlextTypes.StringDict
-        ResponseData = FlextTypes.Dict
-        RequestData = FlextTypes.Dict
+        Headers = FlextCore.Types.StringDict
+        ResponseData = FlextCore.Types.Dict
+        RequestData = FlextCore.Types.Dict
 
     # =========================================================================
-    # CLI PROJECT TYPES - Domain-specific project types extending FlextTypes
+    # CLI PROJECT TYPES - Domain-specific project types extending FlextCore.Types
     # =========================================================================
 
-    class Project(FlextTypes.Project):
-        """CLI-specific project types extending FlextTypes.Project.
+    class Project(FlextCore.Types.Project):
+        """CLI-specific project types extending FlextCore.Types.Project.
 
-        Adds CLI-specific project types while inheriting generic types from FlextTypes.
+        Adds CLI-specific project types while inheriting generic types from FlextCore.Types.
         Follows domain separation principle: CLI domain owns CLI-specific types.
         """
 
@@ -224,11 +248,13 @@ class FlextCliTypes(FlextTypes):
         ]
 
         # CLI-specific project configurations
-        CliProjectConfig = dict[str, FlextTypes.ConfigValue]
-        CommandLineConfig = dict[str, str | int | bool | FlextTypes.StringList]
-        InteractiveConfig = dict[str, bool | str | dict[str, FlextTypes.ConfigValue]]
+        CliProjectConfig = dict[str, FlextCore.Types.ConfigValue]
+        CommandLineConfig = dict[str, str | int | bool | FlextCore.Types.StringList]
+        InteractiveConfig = dict[
+            str, bool | str | dict[str, FlextCore.Types.ConfigValue]
+        ]
         OutputConfig = dict[
-            str, FlextTypes.Output.OutputFormat | FlextTypes.ConfigValue
+            str, FlextCore.Types.Output.OutputFormat | FlextCore.Types.ConfigValue
         ]
 
 
@@ -236,7 +262,7 @@ class FlextCliTypes(FlextTypes):
 # PUBLIC API EXPORTS - CLI TypeVars and types
 # =============================================================================
 
-__all__: FlextTypes.StringList = [
+__all__: FlextCore.Types.StringList = [
     "FlextCliTypes",
     "TCliCommand",
     "TCliConfig",

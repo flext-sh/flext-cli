@@ -11,21 +11,21 @@ from __future__ import annotations
 
 from typing import Protocol, runtime_checkable
 
-from flext_core import FlextProtocols, FlextResult
+from flext_core import FlextCore
 
 from flext_cli.typings import FlextCliTypes
 
 
-class FlextCliProtocols(FlextProtocols):
+class FlextCliProtocols(FlextCore.Protocols):
     """Single unified CLI protocols class following FLEXT standards."""
 
-    class Foundation(FlextProtocols.Foundation):
+    class Foundation(FlextCore.Protocols.Foundation):
         """Re-export foundation protocols without CLI overrides."""
 
-    class Domain(FlextProtocols.Domain):
+    class Domain(FlextCore.Protocols.Domain):
         """Domain layer protocols for CLI."""
 
-    class Application(FlextProtocols.Application):
+    class Application(FlextCore.Protocols.Application):
         """Application layer protocols for CLI orchestration."""
 
         @runtime_checkable
@@ -36,11 +36,11 @@ class FlextCliProtocols(FlextProtocols):
                 self,
                 data: FlextCliTypes.Data.CliFormatData,
                 **options: FlextCliTypes.Data.CliConfigData,
-            ) -> FlextResult[str]:
+            ) -> FlextCore.Result[str]:
                 """Format data for CLI output."""
                 ...
 
-    class Infrastructure(FlextProtocols.Infrastructure):
+    class Infrastructure(FlextCore.Protocols.Infrastructure):
         """Infrastructure layer protocols for CLI adapters."""
 
         @runtime_checkable
@@ -49,14 +49,14 @@ class FlextCliProtocols(FlextProtocols):
 
             def load_config(
                 self: object,
-            ) -> FlextResult[FlextCliTypes.Data.CliConfigData]:
+            ) -> FlextCore.Result[FlextCliTypes.Data.CliConfigData]:
                 """Load CLI configuration."""
                 ...
 
             def save_config(
                 self,
                 config: FlextCliTypes.Data.CliConfigData,
-            ) -> FlextResult[None]:
+            ) -> FlextCore.Result[None]:
                 """Save CLI configuration."""
                 ...
 
@@ -67,15 +67,15 @@ class FlextCliProtocols(FlextProtocols):
             def authenticate(
                 self,
                 credentials: FlextCliTypes.Data.AuthConfigData,
-            ) -> FlextResult[str]:
+            ) -> FlextCore.Result[str]:
                 """Authenticate and return token."""
                 ...
 
-            def validate_token(self, token: str) -> FlextResult[bool]:
+            def validate_token(self, token: str) -> FlextCore.Result[bool]:
                 """Validate authentication token."""
                 ...
 
-    class Extensions(FlextProtocols.Extensions):
+    class Extensions(FlextCore.Protocols.Extensions):
         """Extension layer protocols for CLI auxiliary services."""
 
         @runtime_checkable
@@ -84,7 +84,7 @@ class FlextCliProtocols(FlextProtocols):
 
             def get_debug_info(
                 self: object,
-            ) -> FlextResult[FlextCliTypes.Data.DebugInfoData]:
+            ) -> FlextCore.Result[FlextCliTypes.Data.DebugInfoData]:
                 """Get debug information."""
                 ...
 
@@ -95,15 +95,15 @@ class FlextCliProtocols(FlextProtocols):
             name: str
             version: str
 
-            def initialize(self, cli_main: object) -> FlextResult[None]:
+            def initialize(self, cli_main: object) -> FlextCore.Result[None]:
                 """Initialize plugin with CLI context."""
                 ...
 
-            def register_commands(self, cli_main: object) -> FlextResult[None]:
+            def register_commands(self, cli_main: object) -> FlextCore.Result[None]:
                 """Register plugin commands with CLI."""
                 ...
 
-    class Commands(FlextProtocols.Commands):
+    class Commands(FlextCore.Protocols.Commands):
         """Command layer protocols for CLI execution paths."""
 
         @runtime_checkable
@@ -113,7 +113,7 @@ class FlextCliProtocols(FlextProtocols):
             def __call__(
                 self,
                 **kwargs: FlextCliTypes.Data.CliCommandArgs,
-            ) -> FlextResult[FlextCliTypes.Data.CliCommandResult]:
+            ) -> FlextCore.Result[FlextCliTypes.Data.CliCommandResult]:
                 """Execute CLI command with arguments."""
                 ...
 

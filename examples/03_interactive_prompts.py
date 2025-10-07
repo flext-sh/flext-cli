@@ -25,6 +25,7 @@ def demonstrate_basic_prompts() -> None:
 
 def demonstrate_validation() -> None:
     """Prompt validation with FlextResult."""
+
     def validate_email(email: str) -> FlextResult[str]:
         if "@" not in email:
             return FlextResult[str].fail("Invalid email")

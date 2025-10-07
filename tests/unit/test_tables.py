@@ -52,8 +52,9 @@ class TestFlextCliTables:
         """Test FlextCliTables initialization."""
         assert tables is not None
         assert isinstance(tables, FlextCliTables)
-        assert hasattr(tables, "FORMATS")
-        assert len(tables.FORMATS) > 0
+        # Tables service should have logger and container from FlextService
+        assert hasattr(tables, "logger")
+        assert hasattr(tables, "container")
 
     def test_tables_formats_available(self, tables: FlextCliTables) -> None:
         """Test that all expected formats are available."""

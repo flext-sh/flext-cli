@@ -13,22 +13,17 @@ import importlib
 import inspect
 from pathlib import Path
 
-from flext_core import (
-    FlextLogger,
-    FlextResult,
-    FlextService,
-    FlextTypes,
-)
+from flext_core import FlextCore
 
 from flext_cli.protocols import FlextCliProtocols
 
 
-class FlextCliPlugins(FlextService[object]):
+class FlextCliPlugins(FlextCore.Service[object]):
     """Unified plugin system for flext-cli.
 
     Provides plugin discovery, loading, initialization, lifecycle management,
     and command registration through a single service interface with nested helpers.
-    Extends FlextService with full flext-core integration.
+    Extends FlextCore.Service with full flext-core integration.
 
     Example:
         >>> from flext_cli.plugins import FlextCliPluginSystem
@@ -56,12 +51,12 @@ class FlextCliPlugins(FlextService[object]):
 
         """
         super().__init__(**data)
-        # Logger and container inherited from FlextService via FlextMixins
+        # Logger and container inherited from FlextCore.Service via FlextCore.Mixins
 
         # Initialize nested plugin components
         self._manager = self.PluginManager()
 
-    class PluginManager(FlextService[object]):
+    class PluginManager(FlextCore.Service[object]):
         """Plugin manager for flext-cli.
 
         Manages plugin discovery, loading, initialization, and lifecycle.
@@ -76,33 +71,33 @@ class FlextCliPlugins(FlextService[object]):
 
             """
             super().__init__(**data)
-            # Logger and container inherited from FlextService via FlextMixins
-            self._loaded_plugins: FlextTypes.Dict = {}
-            self._initialized_plugins: FlextTypes.Dict = {}
+            # Logger and container inherited from FlextCore.Service via FlextCore.Mixins
+            self._loaded_plugins: FlextCore.Types.Dict = {}
+            self._initialized_plugins: FlextCore.Types.Dict = {}
 
         def discover_plugins(
             self,
             plugin_dir: str | Path,
-        ) -> FlextResult[FlextTypes.StringList]:
+        ) -> FlextCore.Result[FlextCore.Types.StringList]:
             """Discover available plugins in a directory.
 
             Args:
                 plugin_dir: Directory containing plugin modules
 
             Returns:
-                FlextResult containing list of discovered plugin module names
+                FlextCore.Result containing list of discovered plugin module names
 
             """
             try:
                 plugin_path = Path(plugin_dir)
 
                 if not plugin_path.exists():
-                    return FlextResult[FlextTypes.StringList].fail(
+                    return FlextCore.Result[FlextCore.Types.StringList].fail(
                         f"Plugin directory does not exist: {plugin_dir}"
                     )
 
                 if not plugin_path.is_dir():
-                    return FlextResult[FlextTypes.StringList].fail(
+                    return FlextCore.Result[FlextCore.Types.StringList].fail(
                         f"Plugin path is not a directory: {plugin_dir}"
                     )
 
@@ -122,18 +117,18 @@ class FlextCliPlugins(FlextService[object]):
                     },
                 )
 
-                return FlextResult[FlextTypes.StringList].ok(plugin_modules)
+                return FlextCore.Result[FlextCore.Types.StringList].ok(plugin_modules)
 
             except Exception as e:
                 error_msg = f"Failed to discover plugins: {e}"
                 self.logger.exception(error_msg)
-                return FlextResult[FlextTypes.StringList].fail(error_msg)
+                return FlextCore.Result[FlextCore.Types.StringList].fail(error_msg)
 
         def load_plugin(
             self,
             plugin_module: str,
             plugin_class_name: str | None = None,
-        ) -> FlextResult[object]:
+        ) -> FlextCore.Result[object]:
             """Load a plugin from a module.
 
             Args:
@@ -141,7 +136,7 @@ class FlextCliPlugins(FlextService[object]):
                 plugin_class_name: Name of plugin class (auto-detected if None)
 
             Returns:
-                FlextResult containing loaded plugin instance
+                FlextCore.Result containing loaded plugin instance
 
             """
             try:
@@ -150,7 +145,9 @@ class FlextCliPlugins(FlextService[object]):
                     self.logger.debug(
                         "Plugin already loaded", extra={"plugin_module": plugin_module}
                     )
-                    return FlextResult[object].ok(self._loaded_plugins[plugin_module])
+                    return FlextCore.Result[object].ok(
+                        self._loaded_plugins[plugin_module]
+                    )
 
                 # Import plugin module
                 module = importlib.import_module(plugin_module)
@@ -158,7 +155,7 @@ class FlextCliPlugins(FlextService[object]):
                 # Find plugin class
                 if plugin_class_name:
                     if not hasattr(module, plugin_class_name):
-                        return FlextResult[object].fail(
+                        return FlextCore.Result[object].fail(
                             f"Plugin class '{plugin_class_name}' not found in module"
                         )
                     plugin_class = getattr(module, plugin_class_name)
@@ -176,7 +173,7 @@ class FlextCliPlugins(FlextService[object]):
                             break
 
                     if plugin_class is None:
-                        return FlextResult[object].fail(
+                        return FlextCore.Result[object].fail(
                             f"No plugin class found in module '{plugin_module}'"
                         )
 
@@ -194,18 +191,18 @@ class FlextCliPlugins(FlextService[object]):
                     },
                 )
 
-                return FlextResult[object].ok(plugin_instance)
+                return FlextCore.Result[object].ok(plugin_instance)
 
             except Exception as e:
                 error_msg = f"Failed to load plugin '{plugin_module}': {e}"
                 self.logger.exception(error_msg)
-                return FlextResult[object].fail(error_msg)
+                return FlextCore.Result[object].fail(error_msg)
 
         def initialize_plugin(
             self,
             plugin: FlextCliProtocols.Extensions.CliPlugin,
             cli_main: object,
-        ) -> FlextResult[None]:
+        ) -> FlextCore.Result[None]:
             """Initialize a loaded plugin.
 
             Args:
@@ -213,7 +210,7 @@ class FlextCliPlugins(FlextService[object]):
                 cli_main: FlextCliMain instance
 
             Returns:
-                FlextResult[None] indicating success or failure
+                FlextCore.Result[None] indicating success or failure
 
             """
             try:
@@ -224,19 +221,19 @@ class FlextCliPlugins(FlextService[object]):
                     self.logger.debug(
                         "Plugin already initialized", extra={"plugin_name": plugin_name}
                     )
-                    return FlextResult[None].ok(None)
+                    return FlextCore.Result[None].ok(None)
 
                 # Initialize plugin
                 init_result = plugin.initialize(cli_main)
                 if init_result.is_failure:
-                    return FlextResult[None].fail(
+                    return FlextCore.Result[None].fail(
                         f"Plugin initialization failed: {init_result.error}"
                     )
 
                 # Register commands
                 register_result = plugin.register_commands(cli_main)
                 if register_result.is_failure:
-                    return FlextResult[None].fail(
+                    return FlextCore.Result[None].fail(
                         f"Plugin command registration failed: {register_result.error}"
                     )
 
@@ -247,19 +244,19 @@ class FlextCliPlugins(FlextService[object]):
                     "Initialized plugin", extra={"plugin_name": plugin_name}
                 )
 
-                return FlextResult[None].ok(None)
+                return FlextCore.Result[None].ok(None)
 
             except Exception as e:
                 error_msg = f"Failed to initialize plugin: {e}"
                 self.logger.exception(error_msg)
-                return FlextResult[None].fail(error_msg)
+                return FlextCore.Result[None].fail(error_msg)
 
         def load_and_initialize_plugin(
             self,
             plugin_module: str,
             cli_main: object,
             plugin_class_name: str | None = None,
-        ) -> FlextResult[object]:
+        ) -> FlextCore.Result[object]:
             """Load and initialize a plugin in one step.
 
             Args:
@@ -268,21 +265,23 @@ class FlextCliPlugins(FlextService[object]):
                 plugin_class_name: Name of plugin class (auto-detected if None)
 
             Returns:
-                FlextResult containing initialized plugin instance
+                FlextCore.Result containing initialized plugin instance
 
             """
             try:
                 # Load plugin
                 load_result = self.load_plugin(plugin_module, plugin_class_name)
                 if load_result.is_failure:
-                    return FlextResult[object].fail(f"Load failed: {load_result.error}")
+                    return FlextCore.Result[object].fail(
+                        f"Load failed: {load_result.error}"
+                    )
 
                 plugin: FlextCliProtocols.Extensions.CliPlugin = load_result.unwrap()
 
                 # Initialize plugin
                 init_result = self.initialize_plugin(plugin, cli_main)
                 if init_result.is_failure:
-                    return FlextResult[object].fail(
+                    return FlextCore.Result[object].fail(
                         f"Initialize failed: {init_result.error}"
                     )
 
@@ -291,49 +290,53 @@ class FlextCliPlugins(FlextService[object]):
                     extra={"plugin_module": plugin_module, "plugin_name": plugin.name},
                 )
 
-                return FlextResult[object].ok(plugin)
+                return FlextCore.Result[object].ok(plugin)
 
             except Exception as e:
                 error_msg = f"Failed to load and initialize plugin: {e}"
                 self.logger.exception(error_msg)
-                return FlextResult[object].fail(error_msg)
+                return FlextCore.Result[object].fail(error_msg)
 
-        def get_loaded_plugins(self) -> FlextResult[FlextTypes.Dict]:
+        def get_loaded_plugins(self) -> FlextCore.Result[FlextCore.Types.Dict]:
             """Get all loaded plugins.
 
             Returns:
-                FlextResult containing dict of loaded plugins (module_name -> plugin)
+                FlextCore.Result containing dict of loaded plugins (module_name -> plugin)
 
             """
             try:
-                return FlextResult[FlextTypes.Dict].ok(self._loaded_plugins.copy())
+                return FlextCore.Result[FlextCore.Types.Dict].ok(
+                    self._loaded_plugins.copy()
+                )
             except Exception as e:
                 error_msg = f"Failed to get loaded plugins: {e}"
                 self.logger.exception(error_msg)
-                return FlextResult[FlextTypes.Dict].fail(error_msg)
+                return FlextCore.Result[FlextCore.Types.Dict].fail(error_msg)
 
-        def get_initialized_plugins(self) -> FlextResult[FlextTypes.Dict]:
+        def get_initialized_plugins(self) -> FlextCore.Result[FlextCore.Types.Dict]:
             """Get all initialized plugins.
 
             Returns:
-                FlextResult containing dict of initialized plugins (name -> plugin)
+                FlextCore.Result containing dict of initialized plugins (name -> plugin)
 
             """
             try:
-                return FlextResult[FlextTypes.Dict].ok(self._initialized_plugins.copy())
+                return FlextCore.Result[FlextCore.Types.Dict].ok(
+                    self._initialized_plugins.copy()
+                )
             except Exception as e:
                 error_msg = f"Failed to get initialized plugins: {e}"
                 self.logger.exception(error_msg)
-                return FlextResult[FlextTypes.Dict].fail(error_msg)
+                return FlextCore.Result[FlextCore.Types.Dict].fail(error_msg)
 
-        def unload_plugin(self, plugin_name: str) -> FlextResult[None]:
+        def unload_plugin(self, plugin_name: str) -> FlextCore.Result[None]:
             """Unload a plugin.
 
             Args:
                 plugin_name: Name of plugin to unload
 
             Returns:
-                FlextResult[None] indicating success or failure
+                FlextCore.Result[None] indicating success or failure
 
             """
             try:
@@ -353,21 +356,21 @@ class FlextCliPlugins(FlextService[object]):
 
                 self.logger.info("Unloaded plugin", extra={"plugin_name": plugin_name})
 
-                return FlextResult[None].ok(None)
+                return FlextCore.Result[None].ok(None)
 
             except Exception as e:
                 error_msg = f"Failed to unload plugin: {e}"
                 self.logger.exception(error_msg)
-                return FlextResult[None].fail(error_msg)
+                return FlextCore.Result[None].fail(error_msg)
 
-        def execute(self) -> FlextResult[None]:
+        def execute(self) -> FlextCore.Result[None]:
             """Execute plugin manager operations.
 
             Returns:
-                FlextResult[None]
+                FlextCore.Result[None]
 
             """
-            return FlextResult[None].ok(None)
+            return FlextCore.Result[None].ok(None)
 
     # ==========================================================================
     # PUBLIC PROPERTIES - Access to nested plugin components
@@ -400,14 +403,14 @@ class FlextCliPlugins(FlextService[object]):
     def discover_plugins(
         self,
         plugin_dir: str | Path,
-    ) -> FlextResult[FlextTypes.StringList]:
+    ) -> FlextCore.Result[FlextCore.Types.StringList]:
         """Discover available plugins in a directory.
 
         Args:
             plugin_dir: Directory containing plugin modules
 
         Returns:
-            FlextResult containing list of discovered plugin module names
+            FlextCore.Result containing list of discovered plugin module names
 
         """
         return self._manager.discover_plugins(plugin_dir)
@@ -416,7 +419,7 @@ class FlextCliPlugins(FlextService[object]):
         self,
         plugin_module: str,
         plugin_class_name: str | None = None,
-    ) -> FlextResult[object]:
+    ) -> FlextCore.Result[object]:
         """Load a plugin from a module.
 
         Args:
@@ -424,7 +427,7 @@ class FlextCliPlugins(FlextService[object]):
             plugin_class_name: Name of plugin class (auto-detected if None)
 
         Returns:
-            FlextResult containing loaded plugin instance
+            FlextCore.Result containing loaded plugin instance
 
         """
         return self._manager.load_plugin(plugin_module, plugin_class_name)
@@ -433,7 +436,7 @@ class FlextCliPlugins(FlextService[object]):
         self,
         plugin: FlextCliProtocols.Extensions.CliPlugin,
         cli_main: object,
-    ) -> FlextResult[None]:
+    ) -> FlextCore.Result[None]:
         """Initialize a loaded plugin.
 
         Args:
@@ -441,7 +444,7 @@ class FlextCliPlugins(FlextService[object]):
             cli_main: FlextCliMain instance
 
         Returns:
-            FlextResult[None] indicating success or failure
+            FlextCore.Result[None] indicating success or failure
 
         """
         return self._manager.initialize_plugin(plugin, cli_main)
@@ -451,7 +454,7 @@ class FlextCliPlugins(FlextService[object]):
         plugin_module: str,
         cli_main: object,
         plugin_class_name: str | None = None,
-    ) -> FlextResult[object]:
+    ) -> FlextCore.Result[object]:
         """Load and initialize a plugin in one step.
 
         Args:
@@ -460,39 +463,39 @@ class FlextCliPlugins(FlextService[object]):
             plugin_class_name: Name of plugin class (auto-detected if None)
 
         Returns:
-            FlextResult containing initialized plugin instance
+            FlextCore.Result containing initialized plugin instance
 
         """
         return self._manager.load_and_initialize_plugin(
             plugin_module, cli_main, plugin_class_name
         )
 
-    def get_loaded_plugins(self) -> FlextResult[FlextTypes.Dict]:
+    def get_loaded_plugins(self) -> FlextCore.Result[FlextCore.Types.Dict]:
         """Get all loaded plugins.
 
         Returns:
-            FlextResult containing dict of loaded plugins (module_name -> plugin)
+            FlextCore.Result containing dict of loaded plugins (module_name -> plugin)
 
         """
         return self._manager.get_loaded_plugins()
 
-    def get_initialized_plugins(self) -> FlextResult[FlextTypes.Dict]:
+    def get_initialized_plugins(self) -> FlextCore.Result[FlextCore.Types.Dict]:
         """Get all initialized plugins.
 
         Returns:
-            FlextResult containing dict of initialized plugins (name -> plugin)
+            FlextCore.Result containing dict of initialized plugins (name -> plugin)
 
         """
         return self._manager.get_initialized_plugins()
 
-    def unload_plugin(self, plugin_name: str) -> FlextResult[None]:
+    def unload_plugin(self, plugin_name: str) -> FlextCore.Result[None]:
         """Unload a plugin.
 
         Args:
             plugin_name: Name of plugin to unload
 
         Returns:
-            FlextResult[None] indicating success or failure
+            FlextCore.Result[None] indicating success or failure
 
         """
         return self._manager.unload_plugin(plugin_name)
@@ -505,7 +508,7 @@ class FlextCliPlugins(FlextService[object]):
 
         def __init__(self, **data: object) -> None:
             """Initialize plugin."""
-            self.logger = FlextLogger(__name__)
+            self.logger = FlextCore.Logger(__name__)
             # Store any additional data for extensibility
             for key, value in data.items():
                 setattr(self, f"_{key}", value)
@@ -523,41 +526,41 @@ class FlextCliPlugins(FlextService[object]):
         def initialize(
             self,
             _cli_main: object,
-        ) -> FlextResult[None]:  # pragma: no cover
+        ) -> FlextCore.Result[None]:  # pragma: no cover
             """Initialize the plugin.
 
             Args:
                 cli_main: FlextCliMain instance
 
             Returns:
-                FlextResult[None] indicating success or failure
+                FlextCore.Result[None] indicating success or failure
 
             """
-            return FlextResult[None].ok(None)
+            return FlextCore.Result[None].ok(None)
 
         def register_commands(
             self,
             _cli_main: object,
-        ) -> FlextResult[None]:  # pragma: no cover
+        ) -> FlextCore.Result[None]:  # pragma: no cover
             """Register plugin commands.
 
             Args:
                 cli_main: FlextCliMain instance for command registration
 
             Returns:
-                FlextResult[None] indicating success or failure
+                FlextCore.Result[None] indicating success or failure
 
             """
-            return FlextResult[None].ok(None)
+            return FlextCore.Result[None].ok(None)
 
-    def execute(self) -> FlextResult[None]:
+    def execute(self) -> FlextCore.Result[None]:
         """Execute plugin system operations.
 
         Returns:
-            FlextResult[None]
+            FlextCore.Result[None]
 
         """
-        return FlextResult[None].ok(None)
+        return FlextCore.Result[None].ok(None)
 
 
 __all__ = [

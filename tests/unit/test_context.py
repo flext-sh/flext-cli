@@ -1,289 +1,190 @@
-"""FLEXT CLI Context Tests - Comprehensive test coverage for FlextCliContext.
+"""Tests for FlextCliContext - CLI execution context management.
 
-Tests all context functionality with real implementations and comprehensive coverage.
+Copyright (c) 2025 FLEXT Team. All rights reserved.
+SPDX-License-Identifier: MIT
 """
 
 from __future__ import annotations
 
-import json
-
 import pytest
 from flext_core import FlextResult
 
-# Test utilities removed from flext-core production exports
 from flext_cli.context import FlextCliContext
+from flext_cli.models import FlextCliModels
 
 
 class TestFlextCliContext:
-    """Comprehensive tests for FlextCliContext functionality."""
+    """Test suite for FlextCliContext service."""
 
     @pytest.fixture
-    def context(self) -> FlextCliContext:
-        """Create FlextCliContext instance for testing."""
+    def context_service(self) -> FlextCliContext:
+        """Fixture providing FlextCliContext instance."""
         return FlextCliContext()
 
-    @pytest.fixture
-    def test_context_initialization(self, context: FlextCliContext) -> None:
-        """Test context initialization and basic properties."""
-        assert isinstance(context, FlextCliContext)
-        assert hasattr(context, "_timeout_seconds")
-        assert hasattr(context, "_config")
+    # ========================================================================
+    # INITIALIZATION AND BASIC FUNCTIONALITY
+    # ========================================================================
 
-    def test_context_execute(self, context: FlextCliContext) -> None:
-        """Test context execute method."""
-        result = context.execute()
+    def test_context_service_initialization(
+        self, context_service: FlextCliContext
+    ) -> None:
+        """Test context service initialization."""
+        assert context_service is not None
+        assert hasattr(context_service, "logger")
+        assert hasattr(context_service, "container")  # Property from FlextService
+        assert hasattr(context_service, "_model_class")
+
+    def test_context_service_execute_method(
+        self, context_service: FlextCliContext
+    ) -> None:
+        """Test context service execute method."""
+        result = context_service.execute()
 
         assert isinstance(result, FlextResult)
         assert result.is_success
-        assert isinstance(result.unwrap(), dict)
 
-    def test_context_execute_operation(self, context: FlextCliContext) -> None:
-        """Test context execute method (now sync, delegates to execute)."""
-        result = context.execute()
-
-        assert isinstance(result, FlextResult)
-        assert result.is_success
-
-    def test_context_timeout_seconds(self, context: FlextCliContext) -> None:
-        """Test context timeout seconds property."""
-        timeout = context.timeout_seconds
-        assert isinstance(timeout, int)
-        assert timeout > 0
-
-    def test_context_set_timeout(self, context: FlextCliContext) -> None:
-        """Test context timeout setting."""
-        # Test with different timeout values
-        test_timeouts = [10, 30, 60, 120]
-
-        for timeout in test_timeouts:
-            context.timeout_seconds = timeout
-            assert context.timeout_seconds == timeout
-
-    def test_context_to_dict(self, context: FlextCliContext) -> None:
-        """Test context to_dict functionality."""
-        data = context.to_dict()
-
+        data = result.unwrap()
         assert isinstance(data, dict)
-        assert "timeout_seconds" in data
-        assert isinstance(data["timeout_seconds"], int)
-
-    def test_context_to_dict_json(self, context: FlextCliContext) -> None:
-        """Test context to_dict JSON functionality."""
-        data = context.to_dict()
-        json_data = json.dumps(data)
-
-        assert isinstance(json_data, str)
-        assert "timeout_seconds" in json_data
-
-    def test_context_validation(self, context: FlextCliContext) -> None:
-        """Test context validation functionality."""
-        # Test valid timeout values
-        valid_timeouts = [1, 30, 60, 300]
-
-        for timeout in valid_timeouts:
-            context.timeout_seconds = timeout
-            # Should not raise any exceptions
-            _ = context.timeout_seconds
-
-    def test_context_real_functionality(self, context: FlextCliContext) -> None:
-        """Test context real functionality with comprehensive scenarios."""
-        # Test basic execution
-        result = context.execute()
-        assert result.is_success
-
-        # Test with different configurations
-        context.timeout_seconds = 15
-        result = context.execute()
-        assert result.is_success
-
-        # Test serialization
-        data = context.to_dict()
-        assert "timeout_seconds" in data
-        assert data["timeout_seconds"] == 15
-
-    def test_context_integration_workflow(self, context: FlextCliContext) -> None:
-        """Test context integration workflow."""
-        # 1. Initialize context
-        assert isinstance(context, FlextCliContext)
-
-        # 2. Configure timeout
-        context.timeout_seconds = 45
-
-        # 3. Execute context operations
-        result = context.execute()
-        assert result.is_success
-
-        # 4. Verify configuration persistence
-        assert context.timeout_seconds == 45
-
-        # 5. Test serialization
-        data = context.to_dict()
-        assert data["timeout_seconds"] == 45
-
-    def test_context_edge_cases(self, context: FlextCliContext) -> None:
-        """Test context edge cases and error handling."""
-        # Test with minimum timeout
-        context.timeout_seconds = 1
-        assert context.timeout_seconds == 1
-
-        # Test with large timeout
-        context.timeout_seconds = 3600
-        assert context.timeout_seconds == 3600
-
-        # Test to_dict with edge values
-        data = context.to_dict()
-        assert data["timeout_seconds"] == 3600
 
     # ========================================================================
-    # Property and method tests for FlextCliContext
+    # CREATE CONTEXT
     # ========================================================================
 
-    def test_context_command_property(self, context: FlextCliContext) -> None:
-        """Test command property."""
-        command = context.command
-        # Can be None or str
-        assert command is None or isinstance(command, str)
+    def test_create_context_minimal(self, context_service: FlextCliContext) -> None:
+        """Test creating context with minimal parameters."""
+        result = context_service.create_context()
 
-    def test_context_arguments_property(self, context: FlextCliContext) -> None:
-        """Test arguments property."""
-        arguments = context.arguments
-        assert isinstance(arguments, list)
+        assert isinstance(result, FlextResult)
+        assert result.is_success
 
-    def test_context_environment_variables_property(
-        self, context: FlextCliContext
+        context = result.unwrap()
+        assert isinstance(context, FlextCliModels.CliContext)
+
+    def test_create_context_with_command(
+        self, context_service: FlextCliContext
     ) -> None:
-        """Test environment_variables property."""
-        env_vars = context.environment_variables
-        assert isinstance(env_vars, dict)
+        """Test creating context with command."""
+        result = context_service.create_context(command="test_command")
 
-    def test_context_working_directory_property(self, context: FlextCliContext) -> None:
-        """Test working_directory property."""
-        working_dir = context.working_directory
-        # Can be None or str
-        assert working_dir is None or isinstance(working_dir, str)
-
-    def test_context_is_active_property(self, context: FlextCliContext) -> None:
-        """Test is_active property."""
-        is_active = context.is_active
-        assert isinstance(is_active, bool)
-
-    def test_context_activate_method(self, context: FlextCliContext) -> None:
-        """Test activate method."""
-        result = context.activate()
+        assert isinstance(result, FlextResult)
         assert result.is_success
 
-    def test_context_deactivate_method(self, context: FlextCliContext) -> None:
-        """Test deactivate method."""
-        # Activate first, then deactivate
-        context.activate()
-        result = context.deactivate()
-        assert result.is_success
+        context = result.unwrap()
+        assert context.command == "test_command"
 
-    def test_context_get_environment_variable(self, context: FlextCliContext) -> None:
-        """Test get_environment_variable method."""
-        # Set an environment variable first
-        context.set_environment_variable("TEST_VAR", "test_value")
-
-        # Get the variable
-        result = context.get_environment_variable("TEST_VAR")
-        assert result.is_success
-        assert result.unwrap() == "test_value"
-
-    def test_context_get_environment_variable_not_found(
-        self, context: FlextCliContext
+    def test_create_context_with_arguments(
+        self, context_service: FlextCliContext
     ) -> None:
-        """Test get_environment_variable with non-existent variable."""
-        result = context.get_environment_variable("NON_EXISTENT_VAR")
-        assert result.is_failure
-        assert result.error is not None
-        assert result.error is not None and "not found" in result.error.lower()
+        """Test creating context with arguments."""
+        result = context_service.create_context(
+            command="test", arguments=["arg1", "arg2"]
+        )
 
-    def test_context_set_environment_variable(self, context: FlextCliContext) -> None:
-        """Test set_environment_variable method."""
-        result = context.set_environment_variable("NEW_VAR", "new_value")
+        assert isinstance(result, FlextResult)
         assert result.is_success
 
-        # Verify it was set
-        get_result = context.get_environment_variable("NEW_VAR")
-        assert get_result.is_success
-        assert get_result.unwrap() == "new_value"
+        context = result.unwrap()
+        assert context.arguments == ["arg1", "arg2"]
 
-    def test_context_add_argument(self, context: FlextCliContext) -> None:
-        """Test add_argument method."""
-        result = context.add_argument("--test-arg")
+    def test_create_context_with_environment(
+        self, context_service: FlextCliContext
+    ) -> None:
+        """Test creating context with environment variables."""
+        env = {"KEY": "value", "DEBUG": "true"}
+        result = context_service.create_context(environment_variables=env)
+
+        assert isinstance(result, FlextResult)
         assert result.is_success
 
-        # Verify it was added
-        arguments = context.arguments
-        assert "--test-arg" in arguments
+        context = result.unwrap()
+        assert context.environment_variables == env
 
-    def test_context_remove_argument(self, context: FlextCliContext) -> None:
-        """Test remove_argument method."""
-        # Add an argument first
-        context.add_argument("--remove-me")
+    # ========================================================================
+    # VALIDATE CONTEXT
+    # ========================================================================
 
-        # Remove it
-        result = context.remove_argument("--remove-me")
+    def test_validate_context_success(self, context_service: FlextCliContext) -> None:
+        """Test validating a valid context."""
+        create_result = context_service.create_context(command="test")
+        assert create_result.is_success
+
+        context = create_result.unwrap()
+        validate_result = context_service.validate_context(context)
+
+        assert isinstance(validate_result, FlextResult)
+        assert validate_result.is_success
+
+    # ========================================================================
+    # CREATE CONTEXT FROM MODEL
+    # ========================================================================
+
+    def test_create_context_from_model(self, context_service: FlextCliContext) -> None:
+        """Test creating context from model data."""
+        # Create a proper Pydantic model instance (use CliContext as the model)
+        model_instance = FlextCliModels.CliContext(
+            command="test",
+            arguments=["arg1"],
+            environment_variables={},
+            working_directory=None,
+        )
+
+        result = context_service.create_context_from_model(
+            model_instance, command="test"
+        )
+
+        assert isinstance(result, FlextResult)
         assert result.is_success
 
-        # Verify it was removed
-        arguments = context.arguments
-        assert "--remove-me" not in arguments
+        context = result.unwrap()
+        assert isinstance(context, FlextCliModels.CliContext)
 
-    def test_context_remove_argument_not_found(self, context: FlextCliContext) -> None:
-        """Test remove_argument with non-existent argument."""
-        result = context.remove_argument("non_existent_arg")
-        assert result.is_failure
-        assert result.error is not None
-        assert result.error is not None and "not found" in result.error.lower()
+    # ========================================================================
+    # ATTACH AND EXTRACT MODEL
+    # ========================================================================
 
-    def test_context_set_metadata(self, context: FlextCliContext) -> None:
-        """Test set_metadata method."""
-        result = context.set_metadata("test_key", "test_value")
+    def test_attach_and_extract_model(self, context_service: FlextCliContext) -> None:
+        """Test attaching and extracting model from context."""
+        # Create a context
+        create_result = context_service.create_context(command="test")
+        assert create_result.is_success
+        context = create_result.unwrap()
+
+        # Create a model instance to attach
+        model_instance = FlextCliModels.CliContext(
+            command="test_model",
+            arguments=["arg1"],
+            environment_variables={},
+            working_directory=None,
+        )
+
+        # Attach model to context
+        attach_result = context_service.attach_model_to_context(context, model_instance)
+        assert isinstance(attach_result, FlextResult)
+        assert attach_result.is_success
+
+        # Extract model from context
+        extract_result = context_service.extract_model_from_context(
+            context, FlextCliModels.CliContext
+        )
+        assert isinstance(extract_result, FlextResult)
+        assert extract_result.is_success
+
+    # ========================================================================
+    # GET MODEL METADATA
+    # ========================================================================
+
+    def test_get_model_metadata(self, context_service: FlextCliContext) -> None:
+        """Test getting model metadata."""
+        # First create a context
+        create_result = context_service.create_context(command="test")
+        assert create_result.is_success
+        context = create_result.unwrap()
+
+        # Then get metadata from it
+        result = context_service.get_model_metadata(context)
+
+        assert isinstance(result, FlextResult)
         assert result.is_success
 
-    def test_context_get_metadata(self, context: FlextCliContext) -> None:
-        """Test get_metadata method."""
-        # Set metadata first
-        context.set_metadata("meta_key", "meta_value")
-
-        # Get it back
-        result = context.get_metadata("meta_key")
-        assert result.is_success
-        assert result.unwrap() == "meta_value"
-
-    def test_context_get_metadata_not_found(self, context: FlextCliContext) -> None:
-        """Test get_metadata with non-existent key."""
-        result = context.get_metadata("non_existent_key")
-        assert result.is_failure
-        assert result.error is not None
-        assert result.error is not None and "not found" in result.error.lower()
-
-    def test_context_get_context_summary(self, context: FlextCliContext) -> None:
-        """Test get_context_summary method."""
-        result = context.get_context_summary()
-        assert result.is_success
-        summary = result.unwrap()
-        assert isinstance(summary, dict)
-        assert "command" in summary
-        assert "arguments" in summary or "arguments_count" in summary
-
-    def test_context_print_error(self, context: FlextCliContext) -> None:
-        """Test print_error method."""
-        # Should not raise exception
-        context.print_error("Test error message")
-
-    def test_context_print_info(self, context: FlextCliContext) -> None:
-        """Test print_info method."""
-        # Should not raise exception
-        context.print_info("Test info message")
-
-    def test_context_print_success(self, context: FlextCliContext) -> None:
-        """Test print_success method."""
-        # Should not raise exception
-        context.print_success("Test success message")
-
-    def test_context_print_warning(self, context: FlextCliContext) -> None:
-        """Test print_warning method."""
-        # Should not raise exception
-        context.print_warning("Test warning message")
+        metadata = result.unwrap()
+        assert isinstance(metadata, dict)

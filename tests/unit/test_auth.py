@@ -17,7 +17,6 @@ from typing import cast
 import pytest
 from flext_core import FlextResult, FlextTypes
 
-# Test utilities removed from flext-core production exports
 from flext_cli.auth import FlextCliAuth
 from flext_cli.constants import FlextCliConstants
 from flext_cli.typings import FlextCliTypes

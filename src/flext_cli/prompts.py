@@ -7,24 +7,18 @@ import os
 import re
 import sys
 
-from flext_core import (
-    FlextLogger,
-    FlextResult,
-    FlextService,
-    FlextTypes,
-    FlextUtilities,
-)
+from flext_core import FlextCore
 
 from flext_cli.constants import FlextCliConstants
 from flext_cli.typings import FlextCliTypes
 
 
-class FlextCliPrompts(FlextService[FlextCliTypes.Data.CliDataDict]):
+class FlextCliPrompts(FlextCore.Service[FlextCliTypes.Data.CliDataDict]):
     """CLI prompts and interactive input service using domain-specific types.
 
     Provides comprehensive prompt functionality for CLI applications with enhanced
-    type safety using FlextCliTypes instead of generic FlextTypes types.
-    Extends FlextService with CLI-specific data dictionary types.
+    type safety using FlextCliTypes instead of generic FlextCore.Types types.
+    Extends FlextCore.Service with CLI-specific data dictionary types.
     """
 
     def __init__(
@@ -33,7 +27,7 @@ class FlextCliPrompts(FlextService[FlextCliTypes.Data.CliDataDict]):
         *,
         interactive_mode: bool = True,
         quiet: bool = False,
-        logger: FlextLogger | None = None,
+        logger: FlextCore.Logger | None = None,
         **data: object,
     ) -> None:
         """Initialize CLI prompts service with enhanced configuration and Phase 1 context enrichment.
@@ -50,14 +44,14 @@ class FlextCliPrompts(FlextService[FlextCliTypes.Data.CliDataDict]):
         if logger:
             data["logger_instance"] = logger
         super().__init__(**data)
-        # Logger and container inherited from FlextService via FlextMixins
+        # Logger and container inherited from FlextCore.Service via FlextCore.Mixins
 
         # Prompts-specific configuration
         # If quiet mode is enabled, disable interactive mode
         self._interactive_mode = interactive_mode and not quiet
         self._quiet = quiet
         self._default_timeout = default_timeout
-        self._prompt_history: FlextTypes.StringList = []
+        self._prompt_history: FlextCore.Types.StringList = []
 
     @property
     def interactive_mode(self) -> bool:
@@ -90,11 +84,11 @@ class FlextCliPrompts(FlextService[FlextCliTypes.Data.CliDataDict]):
         return self._default_timeout
 
     @property
-    def prompt_history(self) -> FlextTypes.StringList:
+    def prompt_history(self) -> FlextCore.Types.StringList:
         """Get prompt history.
 
         Returns:
-            FlextTypes.StringList: List of previous prompts
+            FlextCore.Types.StringList: List of previous prompts
 
         """
         return self._prompt_history.copy()
@@ -117,7 +111,7 @@ class FlextCliPrompts(FlextService[FlextCliTypes.Data.CliDataDict]):
         message: str,
         default: str = "",
         validation_pattern: str | None = None,
-    ) -> FlextResult[str]:
+    ) -> FlextCore.Result[str]:
         """Prompt user for text input with enhanced validation.
 
         Args:
@@ -127,18 +121,18 @@ class FlextCliPrompts(FlextService[FlextCliTypes.Data.CliDataDict]):
             validation_pattern: Optional regex pattern for input validation
 
         Returns:
-            FlextResult[str]: User input or error
+            FlextCore.Result[str]: User input or error
 
         """
         if not self._interactive_mode:
             if default:
                 # Validate default value if pattern provided
                 if validation_pattern and not re.match(validation_pattern, default):
-                    return FlextResult[str].fail(
+                    return FlextCore.Result[str].fail(
                         f"Default value does not match required pattern: {validation_pattern}"
                     )
-                return FlextResult[str].ok(default)
-            return FlextResult[str].fail(
+                return FlextCore.Result[str].ok(default)
+            return FlextCore.Result[str].fail(
                 "Interactive mode disabled and no default provided"
             )
 
@@ -157,21 +151,21 @@ class FlextCliPrompts(FlextService[FlextCliTypes.Data.CliDataDict]):
                 and user_input
                 and not re.match(validation_pattern, user_input)
             ):
-                return FlextResult[str].fail(
+                return FlextCore.Result[str].fail(
                     f"Input does not match required pattern: {validation_pattern}"
                 )
 
-            return FlextResult[str].ok(user_input)
+            return FlextCore.Result[str].ok(user_input)
 
         except Exception as e:
-            return FlextResult[str].fail(f"Text prompt failed: {e}")
+            return FlextCore.Result[str].fail(f"Text prompt failed: {e}")
 
     def prompt_confirmation(
         self,
         message: str,
         *,
         default: bool = False,
-    ) -> FlextResult[bool]:
+    ) -> FlextCore.Result[bool]:
         """Prompt user for yes/no confirmation.
 
         Args:
@@ -180,11 +174,11 @@ class FlextCliPrompts(FlextService[FlextCliTypes.Data.CliDataDict]):
             timeout: Timeout in seconds (uses default if None)
 
         Returns:
-            FlextResult[bool]: User confirmation or error
+            FlextCore.Result[bool]: User confirmation or error
 
         """
         if not self._interactive_mode:
-            return FlextResult[bool].ok(default)
+            return FlextCore.Result[bool].ok(default)
 
         try:
             # Record prompt for history
@@ -195,17 +189,19 @@ class FlextCliPrompts(FlextService[FlextCliTypes.Data.CliDataDict]):
             # Simulate user input (in real implementation, would use proper input handling)
             response = "y" if default else "n"
 
-            return FlextResult[bool].ok(response.lower() in {"y", "yes", "true", "1"})
+            return FlextCore.Result[bool].ok(
+                response.lower() in {"y", "yes", "true", "1"}
+            )
 
         except Exception as e:
-            return FlextResult[bool].fail(f"Confirmation prompt failed: {e}")
+            return FlextCore.Result[bool].fail(f"Confirmation prompt failed: {e}")
 
     def prompt_choice(
         self,
         message: str,
-        choices: FlextTypes.StringList,
+        choices: FlextCore.Types.StringList,
         default: str | None = None,
-    ) -> FlextResult[str]:
+    ) -> FlextCore.Result[str]:
         """Prompt user to select from multiple choices.
 
         Args:
@@ -215,16 +211,16 @@ class FlextCliPrompts(FlextService[FlextCliTypes.Data.CliDataDict]):
             timeout: Timeout in seconds (uses default if None)
 
         Returns:
-            FlextResult[str]: Selected choice or error
+            FlextCore.Result[str]: Selected choice or error
 
         """
         if not choices:
-            return FlextResult[str].fail("No choices provided")
+            return FlextCore.Result[str].fail("No choices provided")
 
         if not self._interactive_mode:
             if default and default in choices:
-                return FlextResult[str].ok(default)
-            return FlextResult[str].fail(
+                return FlextCore.Result[str].ok(default)
+            return FlextCore.Result[str].fail(
                 "Interactive mode disabled and no valid default provided"
             )
 
@@ -241,18 +237,18 @@ class FlextCliPrompts(FlextService[FlextCliTypes.Data.CliDataDict]):
             selected = default or choices[0]
 
             if selected not in choices:
-                return FlextResult[str].fail(f"Invalid choice: {selected}")
+                return FlextCore.Result[str].fail(f"Invalid choice: {selected}")
 
-            return FlextResult[str].ok(selected)
+            return FlextCore.Result[str].ok(selected)
 
         except Exception as e:
-            return FlextResult[str].fail(f"Choice prompt failed: {e}")
+            return FlextCore.Result[str].fail(f"Choice prompt failed: {e}")
 
     def prompt_password(
         self,
         message: str = "Password:",
         min_length: int = 1,
-    ) -> FlextResult[str]:
+    ) -> FlextCore.Result[str]:
         """Prompt user for password input with hidden text.
 
         Args:
@@ -261,11 +257,13 @@ class FlextCliPrompts(FlextService[FlextCliTypes.Data.CliDataDict]):
             min_length: Minimum password length
 
         Returns:
-            FlextResult[str]: Password input or error
+            FlextCore.Result[str]: Password input or error
 
         """
         if not self._interactive_mode:
-            return FlextResult[str].fail("Interactive mode disabled for password input")
+            return FlextCore.Result[str].fail(
+                "Interactive mode disabled for password input"
+            )
 
         try:
             # Record prompt for history (without showing actual password)
@@ -275,33 +273,33 @@ class FlextCliPrompts(FlextService[FlextCliTypes.Data.CliDataDict]):
             password = getpass.getpass(prompt=message + " ")
 
             if len(password) < min_length:
-                return FlextResult[str].fail(
+                return FlextCore.Result[str].fail(
                     f"Password must be at least {min_length} characters"
                 )
 
-            return FlextResult[str].ok(password)
+            return FlextCore.Result[str].ok(password)
 
         except Exception as e:
-            return FlextResult[str].fail(f"Password prompt failed: {e}")
+            return FlextCore.Result[str].fail(f"Password prompt failed: {e}")
 
-    def clear_prompt_history(self) -> FlextResult[None]:
+    def clear_prompt_history(self) -> FlextCore.Result[None]:
         """Clear prompt history.
 
         Returns:
-            FlextResult[None]: Success or failure result
+            FlextCore.Result[None]: Success or failure result
 
         """
         try:
             self._prompt_history.clear()
-            return FlextResult[None].ok(None)
+            return FlextCore.Result[None].ok(None)
         except Exception as e:
-            return FlextResult[None].fail(f"History clear failed: {e}")
+            return FlextCore.Result[None].fail(f"History clear failed: {e}")
 
-    def get_prompt_statistics(self) -> FlextResult[FlextCliTypes.Data.CliDataDict]:
+    def get_prompt_statistics(self) -> FlextCore.Result[FlextCliTypes.Data.CliDataDict]:
         """Get prompt usage statistics.
 
         Returns:
-            FlextResult[FlextCliTypes.Data.CliDataDict]: Statistics data
+            FlextCore.Result[FlextCliTypes.Data.CliDataDict]: Statistics data
 
         """
         try:
@@ -310,33 +308,33 @@ class FlextCliPrompts(FlextService[FlextCliTypes.Data.CliDataDict]):
                 "interactive_mode": self._interactive_mode,
                 "default_timeout": self._default_timeout,
                 "history_size": len(self._prompt_history),
-                "timestamp": FlextUtilities.Generators.generate_timestamp(),
+                "timestamp": FlextCore.Utilities.Generators.generate_timestamp(),
             }
 
-            return FlextResult[FlextCliTypes.Data.CliDataDict].ok(stats)
+            return FlextCore.Result[FlextCliTypes.Data.CliDataDict].ok(stats)
 
         except Exception as e:
-            return FlextResult[FlextCliTypes.Data.CliDataDict].fail(
+            return FlextCore.Result[FlextCliTypes.Data.CliDataDict].fail(
                 f"Statistics collection failed: {e}",
             )
 
-    def execute(self) -> FlextResult[FlextCliTypes.Data.CliDataDict]:
+    def execute(self) -> FlextCore.Result[FlextCliTypes.Data.CliDataDict]:
         """Execute prompt service operation.
 
         Returns:
-            FlextResult[FlextCliTypes.Data.CliDataDict]: Service execution result
+            FlextCore.Result[FlextCliTypes.Data.CliDataDict]: Service execution result
 
         """
         try:
             # Simple execution that returns empty dict as expected by tests
-            return FlextResult[FlextCliTypes.Data.CliDataDict].ok({})
+            return FlextCore.Result[FlextCliTypes.Data.CliDataDict].ok({})
 
         except Exception as e:
-            return FlextResult[FlextCliTypes.Data.CliDataDict].fail(
+            return FlextCore.Result[FlextCliTypes.Data.CliDataDict].fail(
                 f"Prompt service execution failed: {e}",
             )
 
-    def prompt(self, message: str, default: str = "") -> FlextResult[str]:
+    def prompt(self, message: str, default: str = "") -> FlextCore.Result[str]:
         """Prompt user for text input.
 
         Args:
@@ -344,7 +342,7 @@ class FlextCliPrompts(FlextService[FlextCliTypes.Data.CliDataDict]):
             default: Default value (can be empty string)
 
         Returns:
-            FlextResult[str]: User input or error
+            FlextCore.Result[str]: User input or error
 
         """
         try:
@@ -353,11 +351,11 @@ class FlextCliPrompts(FlextService[FlextCliTypes.Data.CliDataDict]):
 
             # Handle quiet mode - return default (even if empty)
             if self._quiet:
-                return FlextResult[str].ok(default)
+                return FlextCore.Result[str].ok(default)
 
             # Handle non-interactive mode - return default (even if empty)
             if not self._interactive_mode:
-                return FlextResult[str].ok(default)
+                return FlextCore.Result[str].ok(default)
 
             # Get actual user input
             display_message = f"{message} (default: {default})" if default else message
@@ -368,14 +366,14 @@ class FlextCliPrompts(FlextService[FlextCliTypes.Data.CliDataDict]):
             if not user_input:
                 user_input = default
 
-            # Only log in non-test environments to avoid FlextConfig CLI parsing issues
+            # Only log in non-test environments to avoid FlextCore.Config CLI parsing issues
             if not self._is_test_environment():
                 self.logger.info(f"User prompted: {message}, input: {user_input}")
-            return FlextResult[str].ok(user_input)
+            return FlextCore.Result[str].ok(user_input)
         except Exception as e:
-            return FlextResult[str].fail(f"Prompt failed: {e}")
+            return FlextCore.Result[str].fail(f"Prompt failed: {e}")
 
-    def confirm(self, message: str, *, default: bool = False) -> FlextResult[bool]:
+    def confirm(self, message: str, *, default: bool = False) -> FlextCore.Result[bool]:
         """Prompt user for yes/no confirmation.
 
         Args:
@@ -383,17 +381,17 @@ class FlextCliPrompts(FlextService[FlextCliTypes.Data.CliDataDict]):
             default: Default value
 
         Returns:
-            FlextResult[bool]: User choice or error
+            FlextCore.Result[bool]: User choice or error
 
         """
         try:
             # Handle quiet mode - return default
             if self._quiet:
-                return FlextResult[bool].ok(default)
+                return FlextCore.Result[bool].ok(default)
 
             # Handle non-interactive mode - return default
             if not self._interactive_mode:
-                return FlextResult[bool].ok(default)
+                return FlextCore.Result[bool].ok(default)
 
             # Prepare the confirmation prompt
             prompt_text = f"{message} [Y/n]: " if default else f"{message} [y/N]: "
@@ -402,23 +400,23 @@ class FlextCliPrompts(FlextService[FlextCliTypes.Data.CliDataDict]):
                 user_input = input(prompt_text).strip().lower()
 
                 if not user_input:  # Empty input uses default
-                    return FlextResult[bool].ok(default)
+                    return FlextCore.Result[bool].ok(default)
 
                 if user_input in {"y", "yes"}:
-                    return FlextResult[bool].ok(True)
+                    return FlextCore.Result[bool].ok(True)
                 if user_input in {"n", "no"}:
-                    return FlextResult[bool].ok(False)
+                    return FlextCore.Result[bool].ok(False)
                 self.logger.warning("Please enter 'y', 'yes', 'n', or 'no'.")
         except KeyboardInterrupt:
-            return FlextResult[bool].fail("User cancelled confirmation")
+            return FlextCore.Result[bool].fail("User cancelled confirmation")
         except EOFError:
-            return FlextResult[bool].fail("Input stream ended")
+            return FlextCore.Result[bool].fail("Input stream ended")
         except Exception as e:
-            return FlextResult[bool].fail(f"Confirmation failed: {e}")
+            return FlextCore.Result[bool].fail(f"Confirmation failed: {e}")
 
     def select_from_options(
-        self, options: FlextTypes.StringList, message: str = "Choose an option:"
-    ) -> FlextResult[str]:
+        self, options: FlextCore.Types.StringList, message: str = "Choose an option:"
+    ) -> FlextCore.Result[str]:
         """Prompt user to select from multiple options.
 
         Args:
@@ -426,7 +424,7 @@ class FlextCliPrompts(FlextService[FlextCliTypes.Data.CliDataDict]):
             message: Selection message
 
         Returns:
-            FlextResult[str]: Selected option or error
+            FlextCore.Result[str]: Selected option or error
 
         """
         try:
@@ -435,7 +433,7 @@ class FlextCliPrompts(FlextService[FlextCliTypes.Data.CliDataDict]):
 
             # Display options to user
             if not options:
-                return FlextResult[str].fail("No options provided")
+                return FlextCore.Result[str].fail("No options provided")
 
             self.logger.info(f"Selection prompt: {message}")
             for i, option in enumerate(options, 1):
@@ -459,16 +457,16 @@ class FlextCliPrompts(FlextService[FlextCliTypes.Data.CliDataDict]):
                 except ValueError:
                     self.logger.warning("Please enter a valid number.")
                 except KeyboardInterrupt:
-                    return FlextResult[str].fail("User cancelled selection")
+                    return FlextCore.Result[str].fail("User cancelled selection")
 
             self.logger.info(f"User selected: {message}, choice: {selected_option}")
-            return FlextResult[str].ok(selected_option)
+            return FlextCore.Result[str].ok(selected_option)
         except Exception as e:
-            return FlextResult[str].fail(f"Selection failed: {e}")
+            return FlextCore.Result[str].fail(f"Selection failed: {e}")
 
     def print_status(
         self, message: str, status: str = FlextCliConstants.MessageTypes.INFO.value
-    ) -> FlextResult[None]:
+    ) -> FlextCore.Result[None]:
         """Print status message.
 
         Args:
@@ -476,7 +474,7 @@ class FlextCliPrompts(FlextService[FlextCliTypes.Data.CliDataDict]):
             status: Status type (from FlextCliConstants.MessageTypes)
 
         Returns:
-            FlextResult[None]: Success or error
+            FlextCore.Result[None]: Success or error
 
         """
         try:
@@ -484,84 +482,84 @@ class FlextCliPrompts(FlextService[FlextCliTypes.Data.CliDataDict]):
             status_upper = status.upper()
             formatted_message = f"[{status_upper}] {message}"
             self.logger.info(formatted_message)
-            return FlextResult[None].ok(None)
+            return FlextCore.Result[None].ok(None)
         except Exception as e:
-            return FlextResult[None].fail(f"Print status failed: {e}")
+            return FlextCore.Result[None].fail(f"Print status failed: {e}")
 
-    def print_success(self, message: str) -> FlextResult[None]:
+    def print_success(self, message: str) -> FlextCore.Result[None]:
         """Print success message.
 
         Args:
             message: Success message
 
         Returns:
-            FlextResult[None]: Success or error
+            FlextCore.Result[None]: Success or error
 
         """
         try:
             self.logger.info(f"SUCCESS: {message}")
-            return FlextResult[None].ok(None)
+            return FlextCore.Result[None].ok(None)
         except Exception as e:
-            return FlextResult[None].fail(f"Print success failed: {e}")
+            return FlextCore.Result[None].fail(f"Print success failed: {e}")
 
-    def print_error(self, message: str) -> FlextResult[None]:
+    def print_error(self, message: str) -> FlextCore.Result[None]:
         """Print error message.
 
         Args:
             message: Error message
 
         Returns:
-            FlextResult[None]: Success or error
+            FlextCore.Result[None]: Success or error
 
         """
         try:
             self.logger.error(f"ERROR: {message}")
-            return FlextResult[None].ok(None)
+            return FlextCore.Result[None].ok(None)
         except Exception as e:
-            return FlextResult[None].fail(f"Print error failed: {e}")
+            return FlextCore.Result[None].fail(f"Print error failed: {e}")
 
-    def print_warning(self, message: str) -> FlextResult[None]:
+    def print_warning(self, message: str) -> FlextCore.Result[None]:
         """Print warning message.
 
         Args:
             message: Warning message
 
         Returns:
-            FlextResult[None]: Success or error
+            FlextCore.Result[None]: Success or error
 
         """
         try:
             self.logger.warning(f"WARNING: {message}")
-            return FlextResult[None].ok(None)
+            return FlextCore.Result[None].ok(None)
         except Exception as e:
-            return FlextResult[None].fail(f"Print warning failed: {e}")
+            return FlextCore.Result[None].fail(f"Print warning failed: {e}")
 
-    def print_info(self, message: str) -> FlextResult[None]:
+    def print_info(self, message: str) -> FlextCore.Result[None]:
         """Print info message.
 
         Args:
             message: Info message
 
         Returns:
-            FlextResult[None]: Success or error
+            FlextCore.Result[None]: Success or error
 
         """
         try:
             self.logger.info(f"INFO: {message}")
-            return FlextResult[None].ok(None)
+            return FlextCore.Result[None].ok(None)
         except Exception as e:
-            return FlextResult[None].fail(f"Print info failed: {e}")
+            return FlextCore.Result[None].fail(f"Print info failed: {e}")
 
     def create_progress(
         self, description: str = "Processing..."
-    ) -> FlextResult[object]:
+    ) -> FlextCore.Result[object]:
         """Create progress indicator.
 
         Args:
             description: Progress description
 
         Returns:
-            FlextResult[object]: Progress indicator or error
+            FlextCore.Result[object]: Progress indicator or error
 
         """
         try:
@@ -573,13 +571,13 @@ class FlextCliPrompts(FlextService[FlextCliTypes.Data.CliDataDict]):
 
             self.logger.info(f"Created progress: {description}")
             # Return the original description as expected by tests
-            return FlextResult[object].ok(description)
+            return FlextCore.Result[object].ok(description)
         except Exception as e:
-            return FlextResult[object].fail(f"Progress creation failed: {e}")
+            return FlextCore.Result[object].fail(f"Progress creation failed: {e}")
 
     def with_progress(
-        self, items: FlextTypes.List, description: str = "Processing..."
-    ) -> FlextResult[object]:
+        self, items: FlextCore.Types.List, description: str = "Processing..."
+    ) -> FlextCore.Result[object]:
         """Execute with progress indicator.
 
         Args:
@@ -587,7 +585,7 @@ class FlextCliPrompts(FlextService[FlextCliTypes.Data.CliDataDict]):
             description: Progress description
 
         Returns:
-            FlextResult[object]: Result with original items or error
+            FlextCore.Result[object]: Result with original items or error
 
         """
         try:
@@ -624,9 +622,9 @@ class FlextCliPrompts(FlextService[FlextCliTypes.Data.CliDataDict]):
                 f"Progress completed: {description}, processed: {processed_count}"
             )
             # Return the original items as expected by tests
-            return FlextResult[object].ok(items)
+            return FlextCore.Result[object].ok(items)
         except Exception as e:
-            return FlextResult[object].fail(f"Progress processing failed: {e}")
+            return FlextCore.Result[object].fail(f"Progress processing failed: {e}")
 
 
 __all__ = [

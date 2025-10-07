@@ -45,7 +45,7 @@ class TestFlextCliFormatters:
         assert isinstance(formatters, FlextCliFormatters)
         assert hasattr(formatters, "_console")
         assert hasattr(formatters, "logger")
-        assert hasattr(formatters, "_container")
+        assert hasattr(formatters, "container")  # Property from FlextService
 
     def test_formatters_execute(self, formatters: FlextCliFormatters) -> None:
         """Test formatters execute method."""

@@ -9,15 +9,15 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from typing import Any, override
+from typing import override
 
-from flext_core import FlextResult, FlextService, FlextTypes
+from flext_core import FlextCore
 from pydantic import BaseModel
 
 from flext_cli.models import FlextCliModels
 
 
-class FlextCliProcessors(FlextService[FlextTypes.Dict]):
+class FlextCliProcessors(FlextCore.Service[FlextCore.Types.Dict]):
     """Single unified CLI processors class following FLEXT standards.
 
     Contains all processor implementations for CLI domain operations.
@@ -36,12 +36,12 @@ class FlextCliProcessors(FlextService[FlextTypes.Dict]):
         super().__init__()
         self._command_processor = self.CommandProcessor()
 
-    def execute(self) -> FlextResult[FlextTypes.Dict]:
+    def execute(self) -> FlextCore.Result[FlextCore.Types.Dict]:
         """Execute processors service operation.
 
         Provides CLI-specific processor execution status.
         """
-        return FlextResult[FlextTypes.Dict].ok({
+        return FlextCore.Result[FlextCore.Types.Dict].ok({
             "status": "operational",
             "service": "flext-cli-processors",
             "timestamp": "2025-01-08T00:00:00Z",
@@ -77,8 +77,8 @@ class FlextCliProcessors(FlextService[FlextTypes.Dict]):
             self._validation_errors: list[str] = []
 
         def validate_with_model(
-            self, data: dict[str, Any], model_class: type[BaseModel]
-        ) -> FlextResult[BaseModel]:
+            self, data: dict[str, object], model_class: type[BaseModel]
+        ) -> FlextCore.Result[BaseModel]:
             """Validate data using Pydantic model.
 
             Args:
@@ -86,7 +86,7 @@ class FlextCliProcessors(FlextService[FlextTypes.Dict]):
                 model_class: Pydantic model class for validation
 
             Returns:
-                FlextResult containing validated model instance or error
+                FlextCore.Result containing validated model instance or error
 
             """
             validation_result = (
@@ -98,15 +98,15 @@ class FlextCliProcessors(FlextService[FlextTypes.Dict]):
             if validation_result.is_success:
                 validated_model = validation_result.unwrap()
                 self._processed_models.append(validated_model)
-                return FlextResult[BaseModel].ok(validated_model)
+                return FlextCore.Result[BaseModel].ok(validated_model)
 
             error = validation_result.error or "Validation failed"
             self._validation_errors.append(error)
-            return FlextResult[BaseModel].fail(error)
+            return FlextCore.Result[BaseModel].fail(error)
 
         def validate_and_process(
-            self, data: dict[str, Any], model_class: type[BaseModel]
-        ) -> FlextResult[dict[str, Any]]:
+            self, data: dict[str, object], model_class: type[BaseModel]
+        ) -> FlextCore.Result[dict[str, object]]:
             """Validate data with model and return processed dict.
 
             Args:
@@ -114,14 +114,14 @@ class FlextCliProcessors(FlextService[FlextTypes.Dict]):
                 model_class: Pydantic model class for validation
 
             Returns:
-                FlextResult containing validated and processed data dictionary
+                FlextCore.Result containing validated and processed data dictionary
 
             """
             # Validate with model
             validation_result = self.validate_with_model(data, model_class)
 
             if validation_result.is_failure:
-                return FlextResult[dict[str, Any]].fail(
+                return FlextCore.Result[dict[str, object]].fail(
                     f"Validation failed: {validation_result.error}"
                 )
 
@@ -130,36 +130,36 @@ class FlextCliProcessors(FlextService[FlextTypes.Dict]):
             # Convert back to dict for CLI processing
             processed_data = validated_model.model_dump()
 
-            return FlextResult[dict[str, Any]].ok(processed_data)
+            return FlextCore.Result[dict[str, object]].ok(processed_data)
 
         def create_model_pipeline(
             self, *model_classes: type[BaseModel]
-        ) -> FlextResult[list[type[BaseModel]]]:
+        ) -> FlextCore.Result[list[type[BaseModel]]]:
             """Create processing pipeline from multiple models.
 
             Args:
                 *model_classes: Sequence of Pydantic model classes
 
             Returns:
-                FlextResult containing ordered list of model classes
+                FlextCore.Result containing ordered list of model classes
 
             """
             try:
                 if not model_classes:
-                    return FlextResult[list[type[BaseModel]]].fail(
+                    return FlextCore.Result[list[type[BaseModel]]].fail(
                         "At least one model class required"
                     )
 
                 pipeline: list[type[BaseModel]] = list(model_classes)
-                return FlextResult[list[type[BaseModel]]].ok(pipeline)
+                return FlextCore.Result[list[type[BaseModel]]].ok(pipeline)
             except Exception as e:
-                return FlextResult[list[type[BaseModel]]].fail(
+                return FlextCore.Result[list[type[BaseModel]]].fail(
                     f"Pipeline creation failed: {e}"
                 )
 
         def process_through_pipeline(
-            self, data: dict[str, Any], pipeline: list[type[BaseModel]]
-        ) -> FlextResult[dict[str, Any]]:
+            self, data: dict[str, object], pipeline: list[type[BaseModel]]
+        ) -> FlextCore.Result[dict[str, object]]:
             """Process data through sequence of model validations.
 
             Args:
@@ -167,7 +167,7 @@ class FlextCliProcessors(FlextService[FlextTypes.Dict]):
                 pipeline: List of model classes to validate against
 
             Returns:
-                FlextResult containing data validated by all models
+                FlextCore.Result containing data validated by all models
 
             """
             try:
@@ -178,60 +178,62 @@ class FlextCliProcessors(FlextService[FlextTypes.Dict]):
                     result = self.validate_and_process(current_data, model_class)
 
                     if result.is_failure:
-                        return FlextResult[dict[str, Any]].fail(
+                        return FlextCore.Result[dict[str, object]].fail(
                             f"Pipeline failed at {model_class.__name__}: {result.error}"
                         )
 
                     # Update data with validated output
                     current_data = result.unwrap()
 
-                return FlextResult[dict[str, Any]].ok(current_data)
+                return FlextCore.Result[dict[str, object]].ok(current_data)
             except Exception as e:
-                return FlextResult[dict[str, Any]].fail(
+                return FlextCore.Result[dict[str, object]].fail(
                     f"Pipeline processing failed: {e}"
                 )
 
-        def get_processed_models(self) -> FlextResult[list[BaseModel]]:
+        def get_processed_models(self) -> FlextCore.Result[list[BaseModel]]:
             """Get all successfully processed models.
 
             Returns:
-                FlextResult containing list of processed model instances
+                FlextCore.Result containing list of processed model instances
 
             """
             try:
-                return FlextResult[list[BaseModel]].ok(self._processed_models.copy())
+                return FlextCore.Result[list[BaseModel]].ok(
+                    self._processed_models.copy()
+                )
             except Exception as e:
-                return FlextResult[list[BaseModel]].fail(
+                return FlextCore.Result[list[BaseModel]].fail(
                     f"Failed to get processed models: {e}"
                 )
 
-        def get_validation_errors(self) -> FlextResult[list[str]]:
+        def get_validation_errors(self) -> FlextCore.Result[list[str]]:
             """Get all validation errors encountered.
 
             Returns:
-                FlextResult containing list of validation error messages
+                FlextCore.Result containing list of validation error messages
 
             """
             try:
-                return FlextResult[list[str]].ok(self._validation_errors.copy())
+                return FlextCore.Result[list[str]].ok(self._validation_errors.copy())
             except Exception as e:
-                return FlextResult[list[str]].fail(
+                return FlextCore.Result[list[str]].fail(
                     f"Failed to get validation errors: {e}"
                 )
 
-        def clear_history(self) -> FlextResult[None]:
+        def clear_history(self) -> FlextCore.Result[None]:
             """Clear processing history and errors.
 
             Returns:
-                FlextResult indicating success or failure
+                FlextCore.Result indicating success or failure
 
             """
             try:
                 self._processed_models.clear()
                 self._validation_errors.clear()
-                return FlextResult[None].ok(None)
+                return FlextCore.Result[None].ok(None)
             except Exception as e:
-                return FlextResult[None].fail(f"Failed to clear history: {e}")
+                return FlextCore.Result[None].fail(f"Failed to clear history: {e}")
 
     class CommandProcessor:
         """CLI command processor for processing command operations."""
@@ -243,21 +245,21 @@ class FlextCliProcessors(FlextService[FlextTypes.Dict]):
 
         def process_command(
             self, command: FlextCliModels.CliCommand
-        ) -> FlextResult[FlextCliModels.CliCommand]:
+        ) -> FlextCore.Result[FlextCliModels.CliCommand]:
             """Process a CLI command.
 
             Args:
                 command: Command to process
 
             Returns:
-                FlextResult[FlextCliModels.CliCommand]: Processed command or error
+                FlextCore.Result[FlextCliModels.CliCommand]: Processed command or error
 
             """
             try:
                 # Validate command business rules
                 validation_result = command.validate_business_rules()
                 if not validation_result.is_success:
-                    return FlextResult[FlextCliModels.CliCommand].fail(
+                    return FlextCore.Result[FlextCliModels.CliCommand].fail(
                         validation_result.error or "Command validation failed"
                     )
 
@@ -265,43 +267,45 @@ class FlextCliProcessors(FlextService[FlextTypes.Dict]):
                 command.update_timestamp()
                 self._processed_commands.append(command)
 
-                return FlextResult[FlextCliModels.CliCommand].ok(command)
+                return FlextCore.Result[FlextCliModels.CliCommand].ok(command)
             except Exception as e:
-                return FlextResult[FlextCliModels.CliCommand].fail(
+                return FlextCore.Result[FlextCliModels.CliCommand].fail(
                     f"Command processing failed: {e}"
                 )
 
         def get_processed_commands(
             self,
-        ) -> FlextResult[list[FlextCliModels.CliCommand]]:
+        ) -> FlextCore.Result[list[FlextCliModels.CliCommand]]:
             """Get all processed commands.
 
             Returns:
-                FlextResult[list[FlextCliModels.CliCommand]]: List of processed commands or error
+                FlextCore.Result[list[FlextCliModels.CliCommand]]: List of processed commands or error
 
             """
             try:
-                return FlextResult[list[FlextCliModels.CliCommand]].ok(
+                return FlextCore.Result[list[FlextCliModels.CliCommand]].ok(
                     self._processed_commands.copy()
                 )
             except Exception as e:
-                return FlextResult[list[FlextCliModels.CliCommand]].fail(
+                return FlextCore.Result[list[FlextCliModels.CliCommand]].fail(
                     f"Failed to get processed commands: {e}"
                 )
 
-        def clear_processed_commands(self) -> FlextResult[int]:
+        def clear_processed_commands(self) -> FlextCore.Result[int]:
             """Clear all processed commands.
 
             Returns:
-                FlextResult[int]: Number of commands cleared or error
+                FlextCore.Result[int]: Number of commands cleared or error
 
             """
             try:
                 count = len(self._processed_commands)
                 self._processed_commands.clear()
-                return FlextResult[int].ok(count)
+                return FlextCore.Result[int].ok(count)
             except Exception as e:
-                return FlextResult[int].fail(f"Failed to clear processed commands: {e}")
+                return FlextCore.Result[int].fail(
+                    f"Failed to clear processed commands: {e}"
+                )
 
     class SessionProcessor:
         """CLI session processor for processing session operations."""
@@ -313,21 +317,21 @@ class FlextCliProcessors(FlextService[FlextTypes.Dict]):
 
         def process_session(
             self, session: FlextCliModels.CliSession
-        ) -> FlextResult[FlextCliModels.CliSession]:
+        ) -> FlextCore.Result[FlextCliModels.CliSession]:
             """Process a CLI session.
 
             Args:
                 session: Session to process
 
             Returns:
-                FlextResult[FlextCliModels.CliSession]: Processed session or error
+                FlextCore.Result[FlextCliModels.CliSession]: Processed session or error
 
             """
             try:
                 # Validate session business rules
                 validation_result = session.validate_business_rules()
                 if not validation_result.is_success:
-                    return FlextResult[FlextCliModels.CliSession].fail(
+                    return FlextCore.Result[FlextCliModels.CliSession].fail(
                         validation_result.error or "Session validation failed"
                     )
 
@@ -335,43 +339,45 @@ class FlextCliProcessors(FlextService[FlextTypes.Dict]):
                 session.update_timestamp()
                 self._processed_sessions.append(session)
 
-                return FlextResult[FlextCliModels.CliSession].ok(session)
+                return FlextCore.Result[FlextCliModels.CliSession].ok(session)
             except Exception as e:
-                return FlextResult[FlextCliModels.CliSession].fail(
+                return FlextCore.Result[FlextCliModels.CliSession].fail(
                     f"Session processing failed: {e}"
                 )
 
         def get_processed_sessions(
             self,
-        ) -> FlextResult[list[FlextCliModels.CliSession]]:
+        ) -> FlextCore.Result[list[FlextCliModels.CliSession]]:
             """Get all processed sessions.
 
             Returns:
-                FlextResult[list[FlextCliModels.CliSession]]: List of processed sessions or error
+                FlextCore.Result[list[FlextCliModels.CliSession]]: List of processed sessions or error
 
             """
             try:
-                return FlextResult[list[FlextCliModels.CliSession]].ok(
+                return FlextCore.Result[list[FlextCliModels.CliSession]].ok(
                     self._processed_sessions.copy()
                 )
             except Exception as e:
-                return FlextResult[list[FlextCliModels.CliSession]].fail(
+                return FlextCore.Result[list[FlextCliModels.CliSession]].fail(
                     f"Failed to get processed sessions: {e}"
                 )
 
-        def clear_processed_sessions(self) -> FlextResult[int]:
+        def clear_processed_sessions(self) -> FlextCore.Result[int]:
             """Clear all processed sessions.
 
             Returns:
-                FlextResult[int]: Number of sessions cleared or error
+                FlextCore.Result[int]: Number of sessions cleared or error
 
             """
             try:
                 count = len(self._processed_sessions)
                 self._processed_sessions.clear()
-                return FlextResult[int].ok(count)
+                return FlextCore.Result[int].ok(count)
             except Exception as e:
-                return FlextResult[int].fail(f"Failed to clear processed sessions: {e}")
+                return FlextCore.Result[int].fail(
+                    f"Failed to clear processed sessions: {e}"
+                )
 
     class DataProcessor:
         """CLI data processor for processing data operations."""
@@ -379,7 +385,7 @@ class FlextCliProcessors(FlextService[FlextTypes.Dict]):
         @override
         def __init__(self) -> None:
             """Initialize data processor."""
-            self._processed_data: FlextTypes.List = []
+            self._processed_data: FlextCore.Types.List = []
 
         def _transform_data(self, data: object) -> object:
             """Transform data for processing.
@@ -404,56 +410,60 @@ class FlextCliProcessors(FlextService[FlextTypes.Dict]):
             # Return data as-is for other types
             return data
 
-        def process_data(self, data: object) -> FlextResult[object]:
+        def process_data(self, data: object) -> FlextCore.Result[object]:
             """Process data.
 
             Args:
                 data: Data to process
 
             Returns:
-                FlextResult[object]: Processed data or error
+                FlextCore.Result[object]: Processed data or error
 
             """
             try:
                 # Basic data processing
                 if data is None:
-                    return FlextResult[object].fail("Data cannot be None")
+                    return FlextCore.Result[object].fail("Data cannot be None")
 
                 # Process the data with proper transformation
                 processed = self._transform_data(data)
                 self._processed_data.append(processed)
 
-                return FlextResult[object].ok(processed)
+                return FlextCore.Result[object].ok(processed)
             except Exception as e:
-                return FlextResult[object].fail(f"Data processing failed: {e}")
+                return FlextCore.Result[object].fail(f"Data processing failed: {e}")
 
-        def get_processed_data(self) -> FlextResult[FlextTypes.List]:
+        def get_processed_data(self) -> FlextCore.Result[FlextCore.Types.List]:
             """Get all processed data.
 
             Returns:
-                FlextResult[FlextTypes.List]: List of processed data or error
+                FlextCore.Result[FlextCore.Types.List]: List of processed data or error
 
             """
             try:
-                return FlextResult[FlextTypes.List].ok(self._processed_data.copy())
+                return FlextCore.Result[FlextCore.Types.List].ok(
+                    self._processed_data.copy()
+                )
             except Exception as e:
-                return FlextResult[FlextTypes.List].fail(
+                return FlextCore.Result[FlextCore.Types.List].fail(
                     f"Failed to get processed data: {e}"
                 )
 
-        def clear_processed_data(self) -> FlextResult[int]:
+        def clear_processed_data(self) -> FlextCore.Result[int]:
             """Clear all processed data.
 
             Returns:
-                FlextResult[int]: Number of data items cleared or error
+                FlextCore.Result[int]: Number of data items cleared or error
 
             """
             try:
                 count = len(self._processed_data)
                 self._processed_data.clear()
-                return FlextResult[int].ok(count)
+                return FlextCore.Result[int].ok(count)
             except Exception as e:
-                return FlextResult[int].fail(f"Failed to clear processed data: {e}")
+                return FlextCore.Result[int].fail(
+                    f"Failed to clear processed data: {e}"
+                )
 
 
 __all__ = [

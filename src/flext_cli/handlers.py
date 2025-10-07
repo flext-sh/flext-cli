@@ -10,9 +10,9 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 from collections.abc import Callable
-from typing import Any, override
+from typing import override
 
-from flext_core import FlextHandlers, FlextModels, FlextResult, FlextTypes
+from flext_core import FlextCore
 from pydantic import BaseModel
 
 from flext_cli.models import FlextCliModels
@@ -20,15 +20,15 @@ from flext_cli.protocols import FlextCliProtocols
 from flext_cli.typings import FlextCliTypes
 
 
-class FlextCliHandlers(FlextHandlers):
+class FlextCliHandlers(FlextCore.Handlers):
     """Single unified CLI handlers class following FLEXT standards.
 
     Contains all handler implementations for CLI domain operations.
     Follows FLEXT pattern: one class per module with nested subclasses.
 
     ARCHITECTURAL COMPLIANCE:
-    - Inherits from FlextHandlers to avoid duplication
-    - Uses centralized handler patterns from FlextHandlers
+    - Inherits from FlextCore.Handlers to avoid duplication
+    - Uses centralized handler patterns from FlextCore.Handlers
     - Implements CLI-specific extensions while reusing core functionality
     - Provides execute() for CLI handler operations
     """
@@ -43,21 +43,21 @@ class FlextCliHandlers(FlextHandlers):
         # If no config provided, create minimal default config
         config = kwargs.pop("config", None)
         if config is None:
-            config = FlextModels.CqrsConfig.Handler(
+            config = FlextCore.Models.CqrsConfig.Handler(
                 handler_id="flext-cli-handlers",
                 handler_name="flext-cli-handlers",
                 handler_type="command",  # Explicit handler type
             )
         super().__init__(config=config, **kwargs)
 
-    def execute_service(self) -> FlextResult[FlextTypes.Dict]:
+    def execute_service(self) -> FlextCore.Result[FlextCore.Types.Dict]:
         """Execute handlers service to return operational status.
 
         Provides no-arg service status check for CLI handlers.
-        Note: Use handle() from FlextHandlers for message processing.
+        Note: Use handle() from FlextCore.Handlers for message processing.
 
         Returns:
-            FlextResult[FlextTypes.Dict]: Handler service status
+            FlextCore.Result[FlextCore.Types.Dict]: Handler service status
 
         """
         return self.execute_handlers()
@@ -87,8 +87,8 @@ class FlextCliHandlers(FlextHandlers):
         @staticmethod
         def create_model_handler(
             model_class: type[BaseModel],
-            handler_func: Callable[[BaseModel], FlextResult[Any]],
-        ) -> Callable[[dict[str, Any]], FlextResult[Any]]:
+            handler_func: Callable[[BaseModel], FlextCore.Result[object]],
+        ) -> Callable[[dict[str, object]], FlextCore.Result[object]]:
             """Create a handler that validates input with Pydantic model.
 
             Args:
@@ -100,7 +100,9 @@ class FlextCliHandlers(FlextHandlers):
 
             """
 
-            def model_validated_handler(cli_data: dict[str, Any]) -> FlextResult[Any]:
+            def model_validated_handler(
+                cli_data: dict[str, object],
+            ) -> FlextCore.Result[object]:
                 # Validate CLI data with model
                 validation_result = (
                     FlextCliModels.CliModelConverter.validate_cli_data_with_model(
@@ -109,7 +111,7 @@ class FlextCliHandlers(FlextHandlers):
                 )
 
                 if validation_result.is_failure:
-                    return FlextResult[Any].fail(
+                    return FlextCore.Result[object].fail(
                         f"Input validation failed: {validation_result.error}"
                     )
 
@@ -124,7 +126,7 @@ class FlextCliHandlers(FlextHandlers):
         def create_command_handler_from_model(
             model_class: type[BaseModel],
             command_logic: Callable[
-                [BaseModel], FlextResult[FlextCliTypes.Data.CliCommandResult]
+                [BaseModel], FlextCore.Result[FlextCliTypes.Data.CliCommandResult]
             ],
         ) -> FlextCliHandlers.CommandHandler:
             """Create CommandHandler from Pydantic model and logic function.
@@ -137,9 +139,9 @@ class FlextCliHandlers(FlextHandlers):
                 CommandHandler instance with model validation
 
             Example:
-                def configure_db(config: DatabaseConfig) -> FlextResult[dict]:
+                def configure_db(config: DatabaseConfig) -> FlextCore.Result[dict]:
                     # config is validated DatabaseConfig instance
-                    return FlextResult[dict].ok({"status": "configured"})
+                    return FlextCore.Result[dict].ok({"status": "configured"})
 
                 handler = factory.create_command_handler_from_model(
                     DatabaseConfig, configure_db
@@ -149,7 +151,7 @@ class FlextCliHandlers(FlextHandlers):
 
             def handler_func(
                 **kwargs: object,
-            ) -> FlextResult[FlextCliTypes.Data.CliCommandResult]:
+            ) -> FlextCore.Result[FlextCliTypes.Data.CliCommandResult]:
                 # Validate with model
                 validation_result = (
                     FlextCliModels.CliModelConverter.validate_cli_data_with_model(
@@ -158,7 +160,7 @@ class FlextCliHandlers(FlextHandlers):
                 )
 
                 if validation_result.is_failure:
-                    return FlextResult[FlextCliTypes.Data.CliCommandResult].fail(
+                    return FlextCore.Result[FlextCliTypes.Data.CliCommandResult].fail(
                         f"Validation failed: {validation_result.error}"
                     )
 
@@ -171,11 +173,11 @@ class FlextCliHandlers(FlextHandlers):
 
         @staticmethod
         def register_model_handler(
-            handler_registry: dict[str, Callable[..., Any]],
+            handler_registry: dict[str, Callable[..., object]],
             command_name: str,
             model_class: type[BaseModel],
-            handler_func: Callable[[BaseModel], FlextResult[Any]],
-        ) -> FlextResult[None]:
+            handler_func: Callable[[BaseModel], FlextCore.Result[object]],
+        ) -> FlextCore.Result[None]:
             """Register model-driven handler in handler registry.
 
             Args:
@@ -185,7 +187,7 @@ class FlextCliHandlers(FlextHandlers):
                 handler_func: Handler implementation
 
             Returns:
-                FlextResult indicating success or failure
+                FlextCore.Result indicating success or failure
 
             """
             try:
@@ -199,9 +201,9 @@ class FlextCliHandlers(FlextHandlers):
                 # Register in registry
                 handler_registry[command_name] = validated_handler
 
-                return FlextResult[None].ok(None)
+                return FlextCore.Result[None].ok(None)
             except Exception as e:
-                return FlextResult[None].fail(f"Handler registration failed: {e}")
+                return FlextCore.Result[None].fail(f"Handler registration failed: {e}")
 
     class ModelHandlerDecorators:
         """Decorators for model-driven handler registration.
@@ -210,17 +212,17 @@ class FlextCliHandlers(FlextHandlers):
 
         USAGE:
             @model_command_handler(DatabaseConfig)
-            def setup_database(config: DatabaseConfig) -> FlextResult[dict]:
+            def setup_database(config: DatabaseConfig) -> FlextCore.Result[dict]:
                 # config is validated
-                return FlextResult[dict].ok({"status": "ok"})
+                return FlextCore.Result[dict].ok({"status": "ok"})
         """
 
         @staticmethod
         def model_command_handler(
             model_class: type[BaseModel],
         ) -> Callable[
-            [Callable[[BaseModel], FlextResult[Any]]],
-            Callable[[dict[str, Any]], FlextResult[Any]],
+            [Callable[[BaseModel], FlextCore.Result[object]]],
+            Callable[[dict[str, object]], FlextCore.Result[object]],
         ]:
             """Decorator to create model-validated command handler.
 
@@ -233,8 +235,8 @@ class FlextCliHandlers(FlextHandlers):
             """
 
             def decorator(
-                func: Callable[[BaseModel], FlextResult[Any]],
-            ) -> Callable[[dict[str, Any]], FlextResult[Any]]:
+                func: Callable[[BaseModel], FlextCore.Result[object]],
+            ) -> Callable[[dict[str, object]], FlextCore.Result[object]]:
                 return FlextCliHandlers.ModelHandlerFactory.create_model_handler(
                     model_class, func
                 )
@@ -248,7 +250,7 @@ class FlextCliHandlers(FlextHandlers):
         def __init__(
             self,
             handler_func: Callable[
-                ..., FlextResult[FlextCliTypes.Data.CliCommandResult]
+                ..., FlextCore.Result[FlextCliTypes.Data.CliCommandResult]
             ],
         ) -> None:
             """Initialize command handler with handler function."""
@@ -256,23 +258,23 @@ class FlextCliHandlers(FlextHandlers):
 
         def __call__(
             self, **kwargs: FlextCliTypes.Data.CliCommandArgs
-        ) -> FlextResult[FlextCliTypes.Data.CliCommandResult]:
+        ) -> FlextCore.Result[FlextCliTypes.Data.CliCommandResult]:
             """Execute CLI command with arguments.
 
             Args:
                 **kwargs: Command arguments
 
             Returns:
-                FlextResult[FlextCliTypes.Data.CliCommandResult]: Command execution result
+                FlextCore.Result[FlextCliTypes.Data.CliCommandResult]: Command execution result
 
             """
             try:
                 result = self._handler_func(**kwargs)
-                if isinstance(result, FlextResult):
+                if isinstance(result, FlextCore.Result):
                     return result
-                return FlextResult[FlextCliTypes.Data.CliCommandResult].ok(result)
+                return FlextCore.Result[FlextCliTypes.Data.CliCommandResult].ok(result)
             except Exception as e:
-                return FlextResult[FlextCliTypes.Data.CliCommandResult].fail(
+                return FlextCore.Result[FlextCliTypes.Data.CliCommandResult].fail(
                     f"Command execution failed: {e}"
                 )
 
@@ -290,7 +292,7 @@ class FlextCliHandlers(FlextHandlers):
             self,
             data: FlextCliTypes.Data.CliFormatData,
             **options: FlextCliTypes.Data.CliConfigData,
-        ) -> FlextResult[str]:
+        ) -> FlextCore.Result[str]:
             """Format data for CLI output.
 
             Args:
@@ -298,14 +300,14 @@ class FlextCliHandlers(FlextHandlers):
                 **options: Formatting options
 
             Returns:
-                FlextResult[str]: Formatted output or error
+                FlextCore.Result[str]: Formatted output or error
 
             """
             try:
                 formatted = self._formatter_func(data, **options)
-                return FlextResult[str].ok(formatted)
+                return FlextCore.Result[str].ok(formatted)
             except Exception as e:
-                return FlextResult[str].fail(f"Formatting failed: {e}")
+                return FlextCore.Result[str].fail(f"Formatting failed: {e}")
 
     class ConfigHandler(FlextCliProtocols.Infrastructure.CliConfigProvider):
         """CLI configuration handler implementation - implements CliConfigProvider protocol."""
@@ -315,39 +317,39 @@ class FlextCliHandlers(FlextHandlers):
             """Initialize config handler with configuration data."""
             self._config_data = config_data
 
-        def load_config(self) -> FlextResult[FlextCliTypes.Data.CliConfigData]:
+        def load_config(self) -> FlextCore.Result[FlextCliTypes.Data.CliConfigData]:
             """Load CLI configuration.
 
             Returns:
-                FlextResult[FlextCliTypes.Data.CliConfigData]: Configuration data or error
+                FlextCore.Result[FlextCliTypes.Data.CliConfigData]: Configuration data or error
 
             """
             try:
-                return FlextResult[FlextCliTypes.Data.CliConfigData].ok(
+                return FlextCore.Result[FlextCliTypes.Data.CliConfigData].ok(
                     self._config_data
                 )
             except Exception as e:
-                return FlextResult[FlextCliTypes.Data.CliConfigData].fail(
+                return FlextCore.Result[FlextCliTypes.Data.CliConfigData].fail(
                     f"Config load failed: {e}"
                 )
 
         def save_config(
             self, config: FlextCliTypes.Data.CliConfigData
-        ) -> FlextResult[None]:
+        ) -> FlextCore.Result[None]:
             """Save CLI configuration.
 
             Args:
                 config: Configuration data to save
 
             Returns:
-                FlextResult[None]: Success or error
+                FlextCore.Result[None]: Success or error
 
             """
             try:
                 self._config_data = config
-                return FlextResult[None].ok(None)
+                return FlextCore.Result[None].ok(None)
             except Exception as e:
-                return FlextResult[None].fail(f"Config save failed: {e}")
+                return FlextCore.Result[None].fail(f"Config save failed: {e}")
 
     class AuthHandler(FlextCliProtocols.Infrastructure.CliAuthenticator):
         """CLI authentication handler implementation - implements CliAuthenticator protocol."""
@@ -361,39 +363,39 @@ class FlextCliHandlers(FlextHandlers):
 
         def authenticate(
             self, credentials: FlextCliTypes.Data.AuthConfigData
-        ) -> FlextResult[str]:
+        ) -> FlextCore.Result[str]:
             """Authenticate and return token.
 
             Args:
                 credentials: Authentication credentials
 
             Returns:
-                FlextResult[str]: Authentication token or error
+                FlextCore.Result[str]: Authentication token or error
 
             """
             try:
                 token = self._auth_func(credentials)
-                return FlextResult[str].ok(token)
+                return FlextCore.Result[str].ok(token)
             except Exception as e:
-                return FlextResult[str].fail(f"Authentication failed: {e}")
+                return FlextCore.Result[str].fail(f"Authentication failed: {e}")
 
-        def validate_token(self, token: str) -> FlextResult[bool]:
+        def validate_token(self, token: str) -> FlextCore.Result[bool]:
             """Validate authentication token.
 
             Args:
                 token: Token to validate
 
             Returns:
-                FlextResult[bool]: Validation result or error
+                FlextCore.Result[bool]: Validation result or error
 
             """
             try:
                 # Simple validation - in real implementation would check token validity
                 min_token_length = 10
                 is_valid = bool(token and len(token) > min_token_length)
-                return FlextResult[bool].ok(is_valid)
+                return FlextCore.Result[bool].ok(is_valid)
             except Exception as e:
-                return FlextResult[bool].fail(f"Token validation failed: {e}")
+                return FlextCore.Result[bool].fail(f"Token validation failed: {e}")
 
     class DebugHandler(FlextCliProtocols.Extensions.CliDebugProvider):
         """CLI debug handler implementation - implements CliDebugProvider protocol."""
@@ -405,49 +407,49 @@ class FlextCliHandlers(FlextHandlers):
 
         def get_debug_info(
             self,
-        ) -> FlextResult[FlextCliTypes.Data.DebugInfoData]:
+        ) -> FlextCore.Result[FlextCliTypes.Data.DebugInfoData]:
             """Get debug information.
 
             Returns:
-                FlextResult[FlextCliTypes.Data.DebugInfoData]: Debug information or error
+                FlextCore.Result[FlextCliTypes.Data.DebugInfoData]: Debug information or error
 
             """
             try:
-                return FlextResult[FlextCliTypes.Data.DebugInfoData].ok(
+                return FlextCore.Result[FlextCliTypes.Data.DebugInfoData].ok(
                     self._debug_data
                 )
             except Exception as e:
-                return FlextResult[FlextCliTypes.Data.DebugInfoData].fail(
+                return FlextCore.Result[FlextCliTypes.Data.DebugInfoData].fail(
                     f"Debug info retrieval failed: {e}"
                 )
 
     @override
-    def handle(self, message: object) -> FlextResult[object]:
-        """Handle message processing - required by FlextHandlers abstract class.
+    def handle(self, message: object) -> FlextCore.Result[object]:
+        """Handle message processing - required by FlextCore.Handlers abstract class.
 
         Args:
             message: Message to handle
 
         Returns:
-            FlextResult[object]: Processing result or error
+            FlextCore.Result[object]: Processing result or error
 
         """
         try:
             # CLI-specific message handling implementation
             if isinstance(message, dict):
-                return FlextResult[object].ok(message)
-            return FlextResult[object].ok({"message": str(message)})
+                return FlextCore.Result[object].ok(message)
+            return FlextCore.Result[object].ok({"message": str(message)})
         except Exception as e:
-            return FlextResult[object].fail(f"Message handling failed: {e}")
+            return FlextCore.Result[object].fail(f"Message handling failed: {e}")
 
-    def execute_handlers(self) -> FlextResult[FlextCliTypes.Data.CliCommandResult]:
+    def execute_handlers(self) -> FlextCore.Result[FlextCliTypes.Data.CliCommandResult]:
         """Execute CLI handlers health check operation.
 
         Provides CLI-specific handler status check.
-        Note: Use handle() or execute() from FlextHandlers for message processing.
+        Note: Use handle() or execute() from FlextCore.Handlers for message processing.
 
         Returns:
-            FlextResult[FlextCliTypes.Data.CliCommandResult]: Handler status or error
+            FlextCore.Result[FlextCliTypes.Data.CliCommandResult]: Handler status or error
 
         """
         try:
@@ -464,9 +466,9 @@ class FlextCliHandlers(FlextHandlers):
                     "DebugHandler",
                 ],
             }
-            return FlextResult[FlextCliTypes.Data.CliCommandResult].ok(result_data)
+            return FlextCore.Result[FlextCliTypes.Data.CliCommandResult].ok(result_data)
         except Exception as e:
-            return FlextResult[FlextCliTypes.Data.CliCommandResult].fail(
+            return FlextCore.Result[FlextCliTypes.Data.CliCommandResult].fail(
                 f"Handlers execution failed: {e}"
             )
 
