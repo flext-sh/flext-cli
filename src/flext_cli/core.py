@@ -14,8 +14,6 @@ from datetime import UTC, datetime
 from pathlib import Path
 
 from flext_core import (
-    FlextContainer,
-    FlextLogger,
     FlextResult,
     FlextService,
     FlextTypes,
@@ -23,11 +21,7 @@ from flext_core import (
 
 from flext_cli.config import FlextCliConfig
 from flext_cli.constants import FlextCliConstants
-from flext_cli.file_tools import FlextCliFileTools
 from flext_cli.models import FlextCliModels
-from flext_cli.output import FlextCliOutput
-from flext_cli.processors import FlextCliProcessors
-from flext_cli.prompts import FlextCliPrompts
 from flext_cli.typings import FlextCliTypes
 
 
@@ -57,16 +51,11 @@ class FlextCliCore(FlextService[FlextCliTypes.Data.CliDataDict]):
         # The parent class already calls _enrich_context with service metadata
         # Logger and container are inherited from FlextService via FlextMixins
 
-        # Inject specialized domain services for delegation
-        self._config_service = FlextCliConfig()
-        self._output = FlextCliOutput()
-        self._file_tools = FlextCliFileTools()
-        self._processors = FlextCliProcessors()
-        self._prompts = FlextCliPrompts()
-
         # Type-safe configuration initialization
         # Use dict type for internal config management
-        self._config: dict[str, object] = config or {}
+        self._config: FlextCliTypes.Configuration.CliConfigSchema = (
+            config if config is not None else {}
+        )
         self._commands: FlextTypes.Dict = {}
         self._plugins: FlextTypes.Dict = {}
         self._sessions: FlextTypes.Dict = {}
@@ -220,24 +209,32 @@ class FlextCliCore(FlextService[FlextCliTypes.Data.CliDataDict]):
 
         try:
             # Merge with existing configuration
-            self._config.update(config)
-            self.logger.info("CLI configuration updated successfully")
-            return FlextResult[None].ok(None)
+            # Type guard: _config is always initialized as dict in __init__
+            if isinstance(self._config, dict):
+                self._config.update(config)
+                self.logger.info("CLI configuration updated successfully")
+                return FlextResult[None].ok(None)
+            return FlextResult[None].fail("Internal configuration is not initialized")
         except Exception as e:
             return FlextResult[None].fail(f"Configuration update failed: {e}")
 
     def get_configuration(
         self,
-    ) -> FlextResult[dict[str, object]]:
+    ) -> FlextResult[FlextCliTypes.Configuration.CliConfigSchema]:
         """Get current CLI configuration.
 
         Returns:
-            FlextResult[dict[str, object]]: Current configuration or error
+            FlextResult[FlextCliTypes.Configuration.CliConfigSchema]: Current configuration or error
 
         """
         try:
-            return FlextResult[FlextCliTypes.Configuration.CliConfigSchema].ok(
-                self._config,
+            # Type guard: _config is always initialized as dict in __init__
+            if isinstance(self._config, dict):
+                return FlextResult[FlextCliTypes.Configuration.CliConfigSchema].ok(
+                    self._config,
+                )
+            return FlextResult[FlextCliTypes.Configuration.CliConfigSchema].fail(
+                "Internal configuration is not initialized",
             )
         except Exception as e:
             return FlextResult[FlextCliTypes.Configuration.CliConfigSchema].fail(
@@ -266,6 +263,12 @@ class FlextCliCore(FlextService[FlextCliTypes.Data.CliDataDict]):
             return FlextResult[None].fail("Profile config must be a valid dictionary")
 
         try:
+            # Type guard: _config is always initialized as dict in __init__
+            if not isinstance(self._config, dict):
+                return FlextResult[None].fail(
+                    "Internal configuration is not initialized"
+                )
+
             # Store profile in configuration
             if "profiles" not in self._config:
                 self._config["profiles"] = {}
@@ -447,12 +450,6 @@ class FlextCliCore(FlextService[FlextCliTypes.Data.CliDataDict]):
     # ==========================================================================
     # SERVICE EXECUTION METHODS - FlextService protocol implementation
     # ==========================================================================
-
-    # Attribute declarations - override FlextService optional types
-    # These are guaranteed initialized in __init__
-    logger: FlextLogger
-    _container: FlextContainer
-    _config: FlextCliTypes.Configuration.CliConfigSchema | None
 
     def execute(self) -> FlextResult[FlextCliTypes.Data.CliDataDict]:
         """Execute CLI service operations.

@@ -20,8 +20,6 @@ from datetime import UTC, datetime
 from typing import cast, override
 
 from flext_core import (
-    FlextContainer,
-    FlextLogger,
     FlextResult,
     FlextService,
 )
@@ -38,11 +36,6 @@ class FlextCliDebug(FlextService[str]):
     Provides essential debugging functionality using flext-core patterns.
     Follows single-responsibility principle with nested helpers.
     """
-
-    # Attribute declarations - override FlextService optional types
-    # These are guaranteed initialized in __init__
-    logger: FlextLogger
-    _container: FlextContainer
 
     @override
     def __init__(self, **_data: object) -> None:

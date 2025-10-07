@@ -9,8 +9,6 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from pathlib import Path
-
 from flext_core import (
     FlextBus,
     FlextContainer,
@@ -56,36 +54,40 @@ class FlextCli:
     Extends FlextService with CLI-specific data dictionary types.
     """
 
-    # Declare attributes for type checking
-    _bus: FlextBus
-    _context: FlextContext
-    _dispatcher: FlextDispatcher
-    _registry: FlextRegistry
-    _core: FlextCliCore
-    _file_tools: FlextCliFileTools
-    _output: FlextCliOutput
-    _prompts: FlextCliPrompts
-    _processors: FlextCliProcessors
-    _cmd: FlextCliCmd
-    _click: FlextCliCli
-    _formatters: FlextCliFormatters
-    _tables: FlextCliTables
-    _main: FlextCliMain
+    @classmethod
+    def get_instance(cls) -> FlextCli:
+        """Get singleton FlextCli instance from container.
+
+        Returns:
+            FlextCli: Singleton instance from FlextContainer
+
+        Example:
+            >>> cli = FlextCli.get_instance()
+            >>> # Same instance every time - no repetitive initialization
+
+        """
+        container = FlextContainer.get_global()
+        result = container.get("flext_cli")
+
+        # If not registered yet, create and register
+        if result.is_failure or result.value is None:
+            return cls()
+
+        # Type assertion: container.get returns FlextCli instance
+        return result.value  # type: ignore[return-value]
 
     def __init__(self) -> None:
-        """Initialize CLI API thin facade with Phase 1 context enrichment."""
+        """Initialize CLI API with minimal setup - services lazy-loaded on demand."""
         # Initialize logger first
         self.logger = FlextLogger(__name__)
 
-        # Initialize flext-core advanced features
-        self._bus = FlextBus()
-        self._context = FlextContext()
-        self._dispatcher = FlextDispatcher()
-        self._registry = FlextRegistry(dispatcher=self._dispatcher)
-        self._container = FlextContainer()
+        # Get global container for DI
+        self._container = FlextContainer.get_global()
+
+        # Register this instance as singleton in container for DI
+        self._container.register("flext_cli", self)
 
         # Phase 1 Enhancement: Enrich context with service metadata
-        # This automatically adds CLI service information to all logs
         FlextContext.Service.set_service_name("flext-cli")
         FlextContext.Service.set_service_version("1.0.0")
 
@@ -96,20 +98,6 @@ class FlextCli:
             service_type="FlextCli",
             correlation_id=correlation_id,
         )
-
-        # Initialize domain services for property access
-        self._core = FlextCliCore()
-        self._file_tools = FlextCliFileTools()
-        self._output = FlextCliOutput()
-        self._prompts = FlextCliPrompts()
-        self._processors = FlextCliProcessors()
-        self._cmd = FlextCliCmd()
-
-        # Initialize Phase 1 transformation components (NEW)
-        self._click = FlextCliCli()
-        self._formatters = FlextCliFormatters()
-        self._tables = FlextCliTables()
-        self._main = FlextCliMain()
 
     # ==========================================================================
     # THIN FACADE PROPERTIES - Direct access to all domain services
@@ -123,7 +111,7 @@ class FlextCli:
             FlextCliCore: Core CLI service instance
 
         """
-        return self._core
+        return self._container.get_or_register("core", FlextCliCore).unwrap()
 
     @property
     def cmd(self) -> FlextCliCmd:
@@ -133,7 +121,7 @@ class FlextCli:
             FlextCliCmd: Command service instance
 
         """
-        return self._cmd
+        return self._container.get_or_register("cmd", FlextCliCmd).unwrap()
 
     @property
     def models(self) -> type[FlextCliModels]:
@@ -167,14 +155,14 @@ class FlextCli:
 
     @property
     def config(self) -> FlextCliConfig:
-        """Access CLI configuration.
+        """Access CLI configuration singleton.
 
         Returns:
-            FlextCliConfig: CLI config instance
+            FlextCliConfig: Singleton CLI config instance from FlextContainer
 
         """
-        # Create instance and ensure proper type due to inheritance issues
-        config = FlextCliConfig()
+        # Use singleton pattern from FlextConfig
+        config = FlextCliConfig.get_global_instance()
         config.__class__ = FlextCliConfig
         return config
 
@@ -186,7 +174,7 @@ class FlextCli:
             FlextCliOutput: Output service instance
 
         """
-        return self._output
+        return self._container.get_or_register("output", FlextCliOutput).unwrap()
 
     @property
     def file_tools(self) -> FlextCliFileTools:
@@ -196,7 +184,9 @@ class FlextCli:
             FlextCliFileTools: File tools instance
 
         """
-        return self._file_tools
+        return self._container.get_or_register(
+            "file_tools", FlextCliFileTools
+        ).unwrap()
 
     @property
     def utilities(self) -> type[FlextUtilities]:
@@ -216,7 +206,7 @@ class FlextCli:
             FlextCliAuth: Auth service instance
 
         """
-        return FlextCliAuth()
+        return self._container.get_or_register("auth", FlextCliAuth).unwrap()
 
     @property
     def commands(self) -> FlextCliCommands:
@@ -226,7 +216,7 @@ class FlextCli:
             FlextCliCommands: Commands instance
 
         """
-        return FlextCliCommands()
+        return self._container.get_or_register("commands", FlextCliCommands).unwrap()
 
     @property
     def context(self) -> FlextCliContext:
@@ -236,7 +226,7 @@ class FlextCli:
             FlextCliContext: Context service instance
 
         """
-        return FlextCliContext()
+        return self._container.get_or_register("context", FlextCliContext).unwrap()
 
     @property
     def debug(self) -> FlextCliDebug:
@@ -246,7 +236,7 @@ class FlextCli:
             FlextCliDebug: Debug service instance
 
         """
-        return FlextCliDebug()
+        return self._container.get_or_register("debug", FlextCliDebug).unwrap()
 
     @property
     def exceptions(self) -> type[FlextCliExceptions]:
@@ -286,7 +276,9 @@ class FlextCli:
             FlextCliProcessors: Processors instance
 
         """
-        return self._processors
+        return self._container.get_or_register(
+            "processors", FlextCliProcessors
+        ).unwrap()
 
     @property
     def plugins(self) -> FlextCliPlugins:
@@ -296,12 +288,12 @@ class FlextCli:
             FlextCliPlugins: Plugin system instance
 
         Example:
-            >>> cli = FlextCliApi()
+            >>> cli = FlextCli.get_instance()
             >>> plugin_system = cli.plugins
             >>> discover_result = plugin_system.discover_plugins("./plugins")
 
         """
-        return FlextCliPlugins()
+        return self._container.get_or_register("plugins", FlextCliPlugins).unwrap()
 
     @property
     def prompts(self) -> FlextCliPrompts:
@@ -311,7 +303,7 @@ class FlextCli:
             FlextCliPrompts: Prompts instance
 
         """
-        return self._prompts
+        return self._container.get_or_register("prompts", FlextCliPrompts).unwrap()
 
     @property
     def protocols(self) -> type[FlextCliProtocols]:
@@ -324,105 +316,24 @@ class FlextCli:
         return FlextCliProtocols
 
     # ==========================================================================
-    # MODEL-DRIVEN CLI UTILITIES - Pydantic model integration for CLI
-    # ==========================================================================
-
-    @property
-    def model_converter(self) -> type[FlextCliModels.CliModelConverter]:
-        """Access Pydantic model to CLI parameter converter.
-
-        Returns:
-            type[FlextCliModels.CliModelConverter]: Model converter utilities
-
-        Example:
-            >>> cli = FlextCli()
-            >>> converter = cli.model_converter()
-            >>> params_result = converter.model_to_cli_params(MyModel)
-
-        """
-        return FlextCliModels.CliModelConverter
-
-    @property
-    def model_decorators(self) -> type[FlextCliModels.CliModelDecorators]:
-        """Access model-driven CLI decorators.
-
-        Returns:
-            type[FlextCliModels.CliModelDecorators]: Model decorator utilities
-
-        Example:
-            >>> from flext_cli import FlextCli
-            >>> cli = FlextCli()
-            >>> @cli.model_decorators.cli_from_model(ConfigModel)
-            >>> def configure(config: ConfigModel):
-            ...     pass
-
-        """
-        return FlextCliModels.CliModelDecorators
-
-    @property
-    def model_handler_factory(self) -> type[FlextCliHandlers.ModelHandlerFactory]:
-        """Access model-driven handler factory.
-
-        Returns:
-            type[FlextCliHandlers.ModelHandlerFactory]: Handler factory utilities
-
-        Example:
-            >>> cli = FlextCli()
-            >>> factory = cli.model_handler_factory()
-            >>> handler = factory.create_command_handler_from_model(Model, logic)
-
-        """
-        return FlextCliHandlers.ModelHandlerFactory
-
-    @property
-    def model_handler_decorators(self) -> type[FlextCliHandlers.ModelHandlerDecorators]:
-        """Access model-driven handler decorators.
-
-        Returns:
-            type[FlextCliHandlers.ModelHandlerDecorators]: Handler decorator utilities
-
-        Example:
-            >>> from flext_cli import FlextCli
-            >>> cli = FlextCli()
-            >>> @cli.model_handler_decorators.model_command_handler(Model)
-            >>> def handler(model: Model):
-            ...     pass
-
-        """
-        return FlextCliHandlers.ModelHandlerDecorators
-
-    @property
-    def model_processor(self) -> type[FlextCliProcessors.ModelProcessor]:
-        """Access model validation and processing utilities.
-
-        Returns:
-            type[FlextCliProcessors.ModelProcessor]: Model processor class
-
-        Example:
-            >>> cli = FlextCli()
-            >>> processor = cli.model_processor()
-            >>> result = processor.validate_with_model(data, Model)
-
-        """
-        return FlextCliProcessors.ModelProcessor
-
-    # ==========================================================================
     # PHASE 1 TRANSFORMATION COMPONENTS - Click/Rich/Tabulate abstractions
     # ==========================================================================
 
     @property
     def click(self) -> FlextCliCli:
-        """Access Click abstraction layer (ZERO TOLERANCE - ONLY Click file).
+        """Access Click abstraction layer.
+
+        ZERO TOLERANCE - ONLY Click file should import click directly.
 
         Returns:
             FlextCliCli: Click abstraction instance
 
         Example:
-            >>> cli = FlextCliApi()
+            >>> cli = FlextCli()
             >>> cmd_result = cli.click.create_command_decorator(name="hello")
 
         """
-        return self._click
+        return self._container.get_or_register("click", FlextCliCli).unwrap()
 
     @property
     def formatters(self) -> FlextCliFormatters:
@@ -432,13 +343,15 @@ class FlextCli:
             FlextCliFormatters: Rich formatters instance
 
         Example:
-            >>> cli = FlextCliApi()
+            >>> cli = FlextCli()
             >>> panel_result = cli.formatters.create_panel(
             ...     content="Hello", title="Greeting"
             ... )
 
         """
-        return self._formatters
+        return self._container.get_or_register(
+            "formatters", FlextCliFormatters
+        ).unwrap()
 
     @property
     def tables(self) -> FlextCliTables:
@@ -448,13 +361,13 @@ class FlextCli:
             FlextCliTables: Tabulate tables instance
 
         Example:
-            >>> cli = FlextCliApi()
+            >>> cli = FlextCli()
             >>> table_result = cli.tables.create_table(
             ...     data=[{"name": "Alice", "age": 30}], format="grid"
             ... )
 
         """
-        return self._tables
+        return self._container.get_or_register("tables", FlextCliTables).unwrap()
 
     @property
     def main(self) -> FlextCliMain:
@@ -464,13 +377,13 @@ class FlextCli:
             FlextCliMain: Main CLI instance
 
         Example:
-            >>> cli = FlextCliApi()
+            >>> cli = FlextCli()
             >>> @cli.main.command()
             >>> def hello(name: str):
             ...     print(f"Hello {name}!")
 
         """
-        return self._main
+        return self._container.get_or_register("main", FlextCliMain).unwrap()
 
     # ==========================================================================
     # FLEXT-CORE ADVANCED FEATURES - Event bus, registry, CQRS, etc.
@@ -484,7 +397,7 @@ class FlextCli:
             FlextBus: Event bus instance for message routing
 
         """
-        return self._bus
+        return self._container.get_or_register("bus", FlextBus).unwrap()
 
     @property
     def registry(self) -> FlextRegistry:
@@ -494,17 +407,10 @@ class FlextCli:
             FlextRegistry: Service registry instance
 
         """
-        return self._registry
-
-    @property
-    def flext_context(self) -> FlextContext:
-        """Access FlextContext for execution context management.
-
-        Returns:
-            FlextContext: Execution context instance
-
-        """
-        return self._context
+        # Registry needs dispatcher - use lambda for dependency
+        return self._container.get_or_register(
+            "registry", lambda: FlextRegistry(dispatcher=self.dispatcher)
+        ).unwrap()
 
     @property
     def dispatcher(self) -> FlextDispatcher:
@@ -514,17 +420,7 @@ class FlextCli:
             FlextDispatcher: Message dispatcher instance
 
         """
-        return self._dispatcher
-
-    @property
-    def flext_utilities(self) -> type[FlextUtilities]:
-        """Access FlextUtilities from flext-core for utility functions.
-
-        Returns:
-            type[FlextUtilities]: Core utilities class
-
-        """
-        return FlextUtilities
+        return self._container.get_or_register("dispatcher", FlextDispatcher).unwrap()
 
     @property
     def container(self) -> FlextContainer:
@@ -537,194 +433,6 @@ class FlextCli:
         return self._container
 
     # Attributes initialized in __init__ (inherit types from FlextService)
-
-    # ==========================================================================
-    # CONVENIENCE METHODS - Direct access to common CLI operations
-    # ==========================================================================
-
-    def info(self, message: str, **kwargs: object) -> FlextResult[None]:
-        """Display informational message.
-
-        Args:
-            message: Message to display
-            **kwargs: Additional formatting options
-
-        Returns:
-            FlextResult[None]: Operation result
-
-        """
-        return self.output.display_message(message, message_type="info", **kwargs)
-
-    def success(self, message: str, **kwargs: object) -> FlextResult[None]:
-        """Display success message.
-
-        Args:
-            message: Message to display
-            **kwargs: Additional formatting options
-
-        Returns:
-            FlextResult[None]: Operation result
-
-        """
-        return self.output.display_message(message, message_type="success", **kwargs)
-
-    def error(self, message: str, **kwargs: object) -> FlextResult[None]:
-        """Display error message.
-
-        Args:
-            message: Message to display
-            **kwargs: Additional formatting options
-
-        Returns:
-            FlextResult[None]: Operation result
-
-        """
-        return self.output.display_message(message, message_type="error", **kwargs)
-
-    def warning(self, message: str, **kwargs: object) -> FlextResult[None]:
-        """Display warning message.
-
-        Args:
-            message: Message to display
-            **kwargs: Additional formatting options
-
-        Returns:
-            FlextResult[None]: Operation result
-
-        """
-        return self.output.display_message(message, message_type="warning", **kwargs)
-
-    def display_message(
-        self, message: str, message_type: str = "info", **kwargs: object
-    ) -> FlextResult[None]:
-        """Display message with specified type.
-
-        Args:
-            message: Message to display
-            message_type: Type of message (info, success, error, warning)
-            **kwargs: Additional formatting options
-
-        Returns:
-            FlextResult[None]: Operation result
-
-        """
-        return self.output.display_message(message, message_type=message_type, **kwargs)
-
-    def display_data(
-        self, data: object, format_type: str = "table", **kwargs: object
-    ) -> FlextResult[None]:
-        """Display data in specified format.
-
-        Args:
-            data: Data to display
-            format_type: Format type (table, json, yaml, etc.)
-            **kwargs: Additional formatting options
-
-        Returns:
-            FlextResult[None]: Operation result
-
-        """
-        return self.output.display_data(data, format_type=format_type, **kwargs)
-
-    def table(self, data: object, **kwargs: object) -> FlextResult[None]:
-        """Display data as table.
-
-        Args:
-            data: Data to display as table
-            **kwargs: Additional table options
-
-        Returns:
-            FlextResult[None]: Operation result
-
-        """
-        return self.output.display_data(data, format_type="table", **kwargs)
-
-    def confirm(self, message: str, *, default: bool = False) -> FlextResult[bool]:
-        """Prompt user for confirmation.
-
-        Args:
-            message: Confirmation message
-            default: Default value if no input
-
-        Returns:
-            FlextResult[bool]: User confirmation result
-
-        """
-        return self.prompts.confirm(message, default=default)
-
-    def prompt_text(
-        self, message: str, default: str = "", **kwargs: object
-    ) -> FlextResult[str]:
-        """Prompt user for text input.
-
-        Args:
-            message: Prompt message
-            default: Default value
-            **kwargs: Additional prompt options
-
-        Returns:
-            FlextResult[str]: User input result
-
-        """
-        return self.prompts.prompt_text(message, default=default, **kwargs)
-
-    def write_json(
-        self, data: object, path: str | Path, **kwargs: object
-    ) -> FlextResult[None]:
-        """Write data to JSON file.
-
-        Args:
-            data: Data to write
-            path: File path
-            **kwargs: Additional write options
-
-        Returns:
-            FlextResult[None]: Write operation result
-
-        """
-        return self.file_tools.write_json(data, path, **kwargs)
-
-    def read_json(self, path: str | Path, **kwargs: object) -> FlextResult[object]:
-        """Read data from JSON file.
-
-        Args:
-            path: File path
-            **kwargs: Additional read options
-
-        Returns:
-            FlextResult[object]: Read operation result
-
-        """
-        return self.file_tools.read_json(path, **kwargs)
-
-    def write_yaml(
-        self, data: object, path: str | Path, **kwargs: object
-    ) -> FlextResult[None]:
-        """Write data to YAML file.
-
-        Args:
-            data: Data to write
-            path: File path
-            **kwargs: Additional write options
-
-        Returns:
-            FlextResult[None]: Write operation result
-
-        """
-        return self.file_tools.write_yaml(data, path, **kwargs)
-
-    def read_yaml(self, path: str | Path, **kwargs: object) -> FlextResult[object]:
-        """Read data from YAML file.
-
-        Args:
-            path: File path
-            **kwargs: Additional read options
-
-        Returns:
-            FlextResult[object]: Read operation result
-
-        """
-        return self.file_tools.read_yaml(path, **kwargs)
 
     def run(self) -> FlextResult[FlextCliTypes.Data.CliDataDict]:
         """Run CLI API operations.

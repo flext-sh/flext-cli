@@ -11,6 +11,8 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 import json
+import os
+import shutil
 from datetime import UTC, datetime
 from pathlib import Path
 from typing import cast
@@ -18,11 +20,14 @@ from typing import cast
 import yaml
 from flext_core import (
     FlextConfig,
+    FlextContainer,
+    FlextContext,
     FlextResult,
 )
 from pydantic import (
     Field,
     SecretStr,
+    computed_field,
     field_validator,
     model_validator,
 )
@@ -223,7 +228,15 @@ class FlextCliConfig(FlextConfig):
 
     @model_validator(mode="after")
     def validate_configuration(self) -> FlextCliConfig:
-        """Validate configuration using FlextConfig validation and custom rules."""
+        """Validate configuration and auto-propagate to FlextContext/FlextContainer.
+
+        This method:
+        1. Validates business rules from FlextConfig
+        2. Ensures config directory exists
+        3. Auto-propagates config to FlextContext for global access
+        4. Auto-registers in FlextContainer for dependency injection
+
+        """
         # Use FlextConfig business rules validation
         validation_result = self.validate_business_rules()
         if validation_result.is_failure:
@@ -237,152 +250,156 @@ class FlextCliConfig(FlextConfig):
             msg = f"Cannot access config directory {self.config_dir}: {e}"
             raise ValueError(msg) from e
 
+        # Auto-propagate config to FlextContext for global access
+        try:
+            FlextContext.set("cli_config", self)
+            FlextContext.set("cli_auto_output_format", self.auto_output_format)
+            FlextContext.set("cli_auto_color_support", self.auto_color_support)
+            FlextContext.set("cli_auto_verbosity", self.auto_verbosity)
+            FlextContext.set("cli_optimal_table_format", self.optimal_table_format)
+        except Exception:
+            # FlextContext might not be initialized yet - that's okay
+            pass
+
+        # Auto-register in FlextContainer for dependency injection
+        try:
+            container = FlextContainer.get_global()
+            container.register_instance("flext_cli_config", self)
+        except Exception:
+            # Container might not be initialized yet - that's okay
+            pass
+
         return self
 
+    # Pydantic 2 computed fields for smart auto-configuration
+    @computed_field
+    @property
+    def auto_output_format(self) -> str:
+        """Auto-detect optimal output format based on terminal capabilities.
+
+        Detects:
+        - Terminal width for best table format
+        - Color support for styling
+        - Interactive vs non-interactive mode
+
+        Returns:
+            str: Optimal output format (table, json, plain, etc.)
+
+        """
+        # Check if output is being piped (non-interactive)
+        if not os.isatty(1):  # stdout is not a terminal
+            return FlextCliConstants.OutputFormats.JSON.value
+
+        # Get terminal width
+        terminal_width = shutil.get_terminal_size(fallback=(80, 24)).columns
+
+        # For narrow terminals, use simple format
+        if terminal_width < 80:
+            return FlextCliConstants.OutputFormats.PLAIN.value
+
+        # For wide terminals with color support, use table
+        if self.auto_color_support:
+            return FlextCliConstants.OutputFormats.TABLE.value
+
+        # Fallback to JSON for compatibility
+        return FlextCliConstants.OutputFormats.JSON.value
+
+    @computed_field
+    @property
+    def auto_color_support(self) -> bool:
+        """Auto-detect if terminal supports colors.
+
+        Checks:
+        - TERM environment variable
+        - COLORTERM environment variable
+        - NO_COLOR environment variable
+
+        Returns:
+            bool: True if colors are supported, False otherwise
+
+        """
+        # Check NO_COLOR environment variable (standard)
+        if os.environ.get("NO_COLOR"):
+            return False
+
+        # Check if user explicitly disabled colors in config
+        if self.no_color:
+            return False
+
+        # Check COLORTERM for truecolor support
+        if os.environ.get("COLORTERM") in ("truecolor", "24bit"):
+            return True
+
+        # Check TERM for color capability
+        term = os.environ.get("TERM", "")
+        if any(
+            color_term in term
+            for color_term in ("color", "256", "ansi", "xterm", "screen")
+        ):
+            return True
+
+        # Conservative default for unknown terminals
+        return False
+
+    @computed_field
+    @property
+    def auto_verbosity(self) -> str:
+        """Auto-set verbosity based on environment.
+
+        Development/local environments get verbose output.
+        Production/staging environments get quiet output.
+
+        Returns:
+            str: Verbosity level (verbose, normal, quiet)
+
+        """
+        # Check if explicitly set via config
+        if self.verbose:
+            return "verbose"
+        if self.quiet:
+            return "quiet"
+
+        # Auto-detect based on environment (from FlextConfig)
+        env_lower = self.environment.lower()
+
+        if env_lower in ("development", "dev", "local"):
+            return "verbose"
+
+        if env_lower in ("production", "prod"):
+            return "quiet"
+
+        # Default to normal verbosity
+        return "normal"
+
+    @computed_field
+    @property
+    def optimal_table_format(self) -> str:
+        """Best tabulate format for current terminal width.
+
+        Returns:
+            str: Optimal tabulate format based on terminal width
+
+        """
+        terminal_width = shutil.get_terminal_size(fallback=(80, 24)).columns
+
+        # Narrow terminals: simple format
+        if terminal_width < 80:
+            return "simple"
+
+        # Medium terminals: github format
+        if terminal_width < 120:
+            return "github"
+
+        # Wide terminals: grid format (most visually appealing)
+        return "grid"
+
     # CLI-specific methods
-    def get_cli_context(self) -> FlextCliTypes.Data.CliDataDict:
-        """REMOVED: Access config attributes directly.
-
-        Migration:
-            # Old pattern
-            cli_context = config.get_cli_context()
-            profile = cli_context["profile"]
-
-            # New pattern - direct attribute access
-            cli_context = {
-                "profile": config.profile,
-                "output_format": config.output_format,
-                "no_color": config.no_color,
-                "verbose": config.verbose,
-                "debug": config.debug,
-                "max_width": config.max_width,
-                "api_url": config.api_url,
-                "timeout": config.timeout,
-                "log_level": config.log_level,
-                "log_verbosity": config.log_verbosity,
-                "cli_log_level": config.cli_log_level,
-                "cli_log_verbosity": config.cli_log_verbosity,
-            }
-            profile = config.profile  # Or direct access
-
-        """
-        msg = (
-            "FlextCliConfig.get_cli_context() has been removed. "
-            "Access configuration attributes directly."
-        )
-        raise NotImplementedError(msg)
-
-    def get_auth_context(self) -> FlextCliTypes.Configuration.AuthenticationConfig:
-        """REMOVED: Access config attributes directly.
-
-        Migration:
-            # Old pattern
-            auth_context = config.get_auth_context()
-            api_url = auth_context["api_url"]
-
-            # New pattern - direct attribute access
-            auth_context = {
-                "api_url": config.api_url,
-                "token_file": str(config.token_file),
-                "refresh_token_file": str(config.refresh_token_file),
-                "auto_refresh": config.auto_refresh,
-                "api_key_configured": config.cli_api_key is not None,
-            }
-            api_url = config.api_url  # Or direct access
-
-        """
-        msg = (
-            "FlextCliConfig.get_auth_context() has been removed. "
-            "Access authentication configuration attributes directly."
-        )
-        raise NotImplementedError(msg)
-
-    def get_logging_context(self) -> FlextCliTypes.Configuration.LogConfig:
-        """REMOVED: Access config attributes directly.
-
-        Migration:
-            # Old pattern
-            logging_context = config.get_logging_context()
-            log_level = logging_context["log_level"]
-
-            # New pattern - direct attribute access
-            logging_context = {
-                "log_level": config.log_level,
-                "log_verbosity": config.log_verbosity,
-                "cli_log_level": config.cli_log_level,
-                "cli_log_verbosity": config.cli_log_verbosity,
-                "log_file": str(config.log_file) if config.log_file else None,
-            }
-            log_level = config.log_level  # Or direct access
-
-        """
-        msg = (
-            "FlextCliConfig.get_logging_context() has been removed. "
-            "Access logging configuration attributes directly."
-        )
-        raise NotImplementedError(msg)
 
     def validate_output_format_result(self, value: str) -> FlextResult[str]:
         """Validate output format using FlextCliConstants and return FlextResult."""
         if value not in FlextCliConstants.OUTPUT_FORMATS_LIST:
             return FlextResult[str].fail(f"Invalid output format: {value}")
         return FlextResult[str].ok(value)
-
-    @classmethod
-    def create_for_environment(
-        cls, environment: str, **overrides: object
-    ) -> FlextCliConfig:
-        """REMOVED: Use direct instantiation with environment parameter.
-
-        Migration:
-            # Old pattern
-            config = FlextCliConfig.create_for_environment("production", debug=False)
-
-            # New pattern - direct instantiation
-            config = FlextCliConfig(environment="production", debug=False)
-
-        """
-        msg = (
-            "FlextCliConfig.create_for_environment() has been removed. "
-            "Use FlextCliConfig(environment='...') for direct instantiation."
-        )
-        raise NotImplementedError(msg)
-
-    @classmethod
-    def create_default(cls) -> FlextCliConfig:
-        """REMOVED: Use direct instantiation.
-
-        Migration:
-            # Old pattern
-            config = FlextCliConfig.create_default()
-
-            # New pattern - direct instantiation
-            config = FlextCliConfig()
-
-        """
-        msg = (
-            "FlextCliConfig.create_default() has been removed. "
-            "Use FlextCliConfig() for direct instantiation."
-        )
-        raise NotImplementedError(msg)
-
-    @classmethod
-    def create_for_profile(cls, profile: str, **kwargs: object) -> FlextCliConfig:
-        """REMOVED: Use direct instantiation with profile parameter.
-
-        Migration:
-            # Old pattern
-            config = FlextCliConfig.create_for_profile("dev", debug=True)
-
-            # New pattern - direct instantiation
-            config = FlextCliConfig(profile="dev", debug=True)
-
-        """
-        msg = (
-            "FlextCliConfig.create_for_profile() has been removed. "
-            "Use FlextCliConfig(profile='...') for direct instantiation."
-        )
-        raise NotImplementedError(msg)
 
     @classmethod
     def load_from_config_file(cls, config_file: Path) -> FlextResult[FlextCliConfig]:
@@ -413,34 +430,6 @@ class FlextCliConfig(FlextConfig):
             return FlextResult[FlextCliConfig].fail(
                 f"Failed to load configuration from {config_file}: {e}"
             )
-
-    @classmethod
-    def get_global_instance(cls) -> FlextCliConfig:
-        """REMOVED: Use direct instantiation.
-
-        Migration:
-            # Old pattern
-            config = FlextCliConfig.get_global_instance()
-
-            # New pattern - direct instantiation
-            config = FlextCliConfig()
-
-            # Or for singleton pattern, manage explicitly
-            import threading
-            _config_lock = threading.RLock()
-            config_instance: FlextCliConfig | None = None
-
-            with _config_lock:
-                if config_instance is None:
-                    config_instance = FlextCliConfig()
-                config = config_instance
-
-        """
-        msg = (
-            "FlextCliConfig.get_global_instance() has been removed. "
-            "Use FlextCliConfig() to create instances directly."
-        )
-        raise NotImplementedError(msg)
 
     def execute_as_service(self) -> FlextResult[FlextCliTypes.Data.CliDataDict]:
         """Execute config as service operation."""

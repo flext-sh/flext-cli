@@ -9,12 +9,7 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from typing import Final
-
 from flext_cli.api import FlextCli
-
-# Backward compatibility alias
-FlextCliApi = FlextCli
 from flext_cli.auth import FlextCliAuth
 from flext_cli.cli import FlextCliCli
 from flext_cli.cmd import FlextCliCmd
@@ -44,16 +39,13 @@ from flext_cli.typer_cli import FlextCliTyper
 from flext_cli.typings import FlextCliTypes
 from flext_cli.version import VERSION, FlextCliVersion
 
-# Module-level properties for backward compatibility
-PROJECT_VERSION: Final[FlextCliVersion] = VERSION
+# Standard Python package metadata
 __version__: str = FlextCliConstants.VERSION
 __version_info__: tuple[int | str, ...] = VERSION.version_info
 
 __all__ = [
-    "PROJECT_VERSION",
     "VERSION",
     "FlextCli",
-    "FlextCliApi",
     "FlextCliAuth",
     "FlextCliCli",
     "FlextCliCmd",

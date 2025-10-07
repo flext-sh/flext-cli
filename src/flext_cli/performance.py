@@ -15,8 +15,6 @@ import time
 from collections.abc import Callable
 
 from flext_core import (
-    FlextContainer,
-    FlextLogger,
     FlextResult,
     FlextService,
     FlextTypes,
@@ -196,11 +194,6 @@ class FlextCliPerformance(FlextService[object]):
                 self.logger.exception(error_msg)
                 return FlextResult[FlextTypes.Dict].fail(error_msg)
 
-        # Attribute declarations - override FlextService optional types
-        # These are guaranteed initialized in __init__
-        logger: FlextLogger
-        _container: FlextContainer
-
         def execute(self) -> FlextResult[None]:
             """Execute lazy loader operations.
 
@@ -222,10 +215,6 @@ class FlextCliPerformance(FlextService[object]):
             >>> cached = perf.cache.get("expensive_query")
 
         """
-
-        # Attribute declarations - override FlextService optional types
-        logger: FlextLogger
-        _container: FlextContainer
 
         def __init__(self, **data: object) -> None:
             """Initialize cache.

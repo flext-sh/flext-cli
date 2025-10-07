@@ -13,8 +13,6 @@ from collections.abc import Iterable, Sequence
 from typing import cast
 
 from flext_core import (
-    FlextContainer,
-    FlextLogger,
     FlextResult,
     FlextService,
     FlextTypes,
@@ -414,11 +412,6 @@ class FlextCliTables(FlextService[object]):
             error_msg = f"Failed to print formats: {e}"
             self.logger.exception(error_msg)
             return FlextResult[None].fail(error_msg)
-
-    # Attribute declarations - override FlextService optional types
-    # These are guaranteed initialized in __init__
-    logger: FlextLogger | None
-    _container: FlextContainer | None
 
     def execute(self) -> FlextResult[object]:
         """Execute Tabulate tables layer operations.

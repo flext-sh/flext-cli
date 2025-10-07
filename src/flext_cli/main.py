@@ -12,14 +12,11 @@ from __future__ import annotations
 
 import importlib
 import pkgutil
-import traceback
 from collections.abc import Callable
 
 import click
 import typer
 from flext_core import (
-    FlextContainer,
-    FlextLogger,
     FlextResult,
     FlextService,
     FlextTypes,
@@ -803,10 +800,8 @@ class FlextCliMain(FlextService[object]):
     # FLEXT SERVICE METHODS
     # =========================================================================
 
-    # Attribute declarations - override FlextService optional types
-    # These are guaranteed initialized in __init__
-    logger: FlextLogger
-    _container: FlextContainer
+    # Note: logger and _container are inherited from FlextService parent class
+    # No need to redeclare them here as Pydantic v2 treats them as fields
 
     def execute(self) -> FlextResult[object]:
         """Execute CLI main operations.
@@ -816,28 +811,6 @@ class FlextCliMain(FlextService[object]):
 
         """
         return FlextResult[None].ok(None)
-
-    @classmethod
-    def main(cls) -> int:
-        """Main CLI entry point."""
-        try:
-            # Create main CLI instance
-            cli_main = cls(
-                name="flext",
-                version="0.9.0",
-                description="FLEXT - Enterprise Data Integration Platform",
-            )
-
-            # Execute CLI
-            result = cli_main.execute_cli()
-
-            if result.is_success:
-                return 0
-            return 1
-
-        except Exception:
-            traceback.print_exc()
-            return 1
 
 
 __all__ = [

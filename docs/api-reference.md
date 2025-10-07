@@ -26,7 +26,7 @@ from flext_cli.shell import FlextCliShell
 
 # CLI patterns
 from flext_cli.core import FlextCliCore
-from flext_cli.api import FlextCliApi
+from flext_cli.api import FlextCli
 from flext_cli.auth import FlextCliAuth
 ```
 
