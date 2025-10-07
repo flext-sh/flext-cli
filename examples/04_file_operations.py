@@ -8,6 +8,8 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
+from typing import cast
+
 from flext_cli import FlextCli
 
 # Module-level singleton
@@ -19,11 +21,13 @@ def demonstrate_file_io() -> None:
     test_data = {"name": "example", "value": 42}
 
     # Auto-formatting based on file extension
-    write_result = cli.file_tools.write_json("/tmp/test.json", test_data)
+    write_result = cli.file_tools.write_json(
+        "/tmp/flext_cli_test.json", cast("object", test_data)
+    )
     if write_result.is_success:
         cli.output.print_success("File written with auto-formatting")
 
-    read_result = cli.file_tools.read_json("/tmp/test.json")
+    read_result = cli.file_tools.read_json("/tmp/flext_cli_test.json")
     if read_result.is_success:
         cli.output.print_success(f"Read: {read_result.value}")
 

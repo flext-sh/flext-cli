@@ -13,6 +13,8 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
+from typing import cast
+
 from flext_core import FlextResult
 
 from flext_cli import FlextCli
@@ -28,14 +30,16 @@ def demonstrate_singleton_pattern() -> None:
 
     # Verify same instance everywhere
     cli2 = FlextCli.get_instance()
-    assert cli is cli2
+    if cli is not cli2:
+        cli.output.print_error("Singleton pattern failed")
+        return
 
 
 def demonstrate_auto_configuration() -> None:
     """Auto-configuration - zero manual setup."""
     # Everything auto-configured by library
     users = [{"name": "Alice", "age": 30}, {"name": "Bob", "age": 25}]
-    table_result = cli.tables.create_grid_table(users)
+    table_result = cli.tables.create_grid_table(cast("list[dict[str, object]]", users))
 
     if table_result.is_success:
         print(table_result.value)

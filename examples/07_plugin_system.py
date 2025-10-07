@@ -32,6 +32,7 @@ def demonstrate_plugin_loading() -> None:
 
 def demonstrate_custom_plugin() -> None:
     """Show custom plugin with auto-lifecycle."""
+
     # Plugin lifecycle auto-managed (init, load, cleanup)
     class CustomPlugin:
         def execute(self) -> FlextResult[dict]:

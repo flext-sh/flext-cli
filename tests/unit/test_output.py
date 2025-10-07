@@ -211,12 +211,12 @@ class TestFlextCliOutput:
     def test_output_create_table(
         self, output: FlextCliOutput, sample_data: dict
     ) -> None:
-        """Test creating table."""
-        # Convert dict to list format expected by create_table
-        sample_list: list[dict[str, str | int | float] | None] = (
-            [sample_data] if isinstance(sample_data, dict) else sample_data
+        """Test formatting table."""
+        # Convert dict to list format expected by format_table
+        sample_list: list[dict[str, str | int | float]] = (
+            [sample_data] if isinstance(sample_data, dict) else [sample_data]
         )
-        result = output.create_table(sample_list)
+        result = output.format_table(sample_list)
 
         assert isinstance(result, FlextResult)
         # May fail if data is not suitable for table format
@@ -263,11 +263,11 @@ class TestFlextCliOutput:
         csv_result = output.format_data(sample_data, "csv")
         assert csv_result.is_success
 
-        # Step 3: Create table (may fail for complex data)
-        sample_list: list[dict[str, str | int | float] | None] = (
-            [sample_data] if isinstance(sample_data, dict) else sample_data
+        # Step 3: Format table (may fail for complex data)
+        sample_list: list[dict[str, str | int | float]] = (
+            [sample_data] if isinstance(sample_data, dict) else [sample_data]
         )
-        table_result = output.create_table(sample_list)
+        table_result = output.format_table(sample_list)
         assert isinstance(table_result, FlextResult)
 
         # Step 4: Print messages

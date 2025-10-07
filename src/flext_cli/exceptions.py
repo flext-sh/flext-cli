@@ -11,25 +11,25 @@ from __future__ import annotations
 
 from typing import override
 
-from flext_core import FlextExceptions
+from flext_core import FlextCore
 
 from flext_cli.constants import FlextCliConstants
 
 
-class FlextCliExceptions(FlextExceptions):
+class FlextCliExceptions(FlextCore.Exceptions):
     """Single unified CLI exceptions class following FLEXT standards.
 
     Contains all exception subclasses for CLI domain operations.
     Follows FLEXT pattern: one class per module with nested subclasses.
 
     ARCHITECTURAL COMPLIANCE:
-    - Inherits from FlextExceptions to avoid duplication
-    - Uses centralized exception patterns from FlextExceptions
+    - Inherits from FlextCore.Exceptions to avoid duplication
+    - Uses centralized exception patterns from FlextCore.Exceptions
     - Implements CLI-specific extensions while reusing core functionality
     """
 
-    class BaseError(FlextExceptions.BaseError):
-        """Base CLI exception extending FlextExceptions.BaseError.
+    class BaseError(FlextCore.Exceptions.BaseError):
+        """Base CLI exception extending FlextCore.Exceptions.BaseError.
 
         Simple exception class for CLI error scenarios with error categorization
         and contextual information support using standard helper methods.

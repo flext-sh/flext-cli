@@ -22,7 +22,7 @@ def main() -> None:
 
     # Create CLI instance and get the Click group
     cli_main = FlextCli()
-    cli_group = cli_main.main.get_click_group()
+    cli_group = cli_main.main.get_click_group()  # type: ignore
 
     # Type assertion for MyPy
     if not isinstance(cli_group, Command):

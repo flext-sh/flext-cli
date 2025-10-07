@@ -8,6 +8,8 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
+from typing import cast
+
 from flext_cli import FlextCli
 
 # Module-level singleton
@@ -19,7 +21,7 @@ def demonstrate_styled_output() -> None:
     cli.output.print_success("✅ Success - auto-styled")
     cli.output.print_error("❌ Error - auto-styled")
     cli.output.print_warning("⚠️  Warning - auto-styled")
-    cli.output.print_message("ℹ️  Info - auto-styled")
+    cli.output.print_message("i  Info - auto-styled")
 
 
 def demonstrate_table_formatting() -> None:
@@ -29,7 +31,7 @@ def demonstrate_table_formatting() -> None:
         {"name": "Bob", "age": 25, "role": "Developer"},
     ]
 
-    table_result = cli.tables.create_grid_table(users)
+    table_result = cli.tables.create_grid_table(cast("list[dict[str, object]]", users))
     if table_result.is_success:
         print(table_result.value)
 

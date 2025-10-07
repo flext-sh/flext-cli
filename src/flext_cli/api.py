@@ -9,16 +9,7 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from flext_core import (
-    FlextBus,
-    FlextContainer,
-    FlextContext,
-    FlextDispatcher,
-    FlextLogger,
-    FlextRegistry,
-    FlextResult,
-    FlextUtilities,
-)
+from flext_core import FlextCore
 
 from flext_cli.auth import FlextCliAuth
 from flext_cli.cli import FlextCliCli
@@ -59,14 +50,14 @@ class FlextCli:
         """Get singleton FlextCli instance from container.
 
         Returns:
-            FlextCli: Singleton instance from FlextContainer
+            FlextCli: Singleton instance from FlextCore.Container
 
         Example:
             >>> cli = FlextCli.get_instance()
             >>> # Same instance every time - no repetitive initialization
 
         """
-        container = FlextContainer.get_global()
+        container = FlextCore.Container.get_global()
         result = container.get("flext_cli")
 
         # If not registered yet, create and register
@@ -79,20 +70,20 @@ class FlextCli:
     def __init__(self) -> None:
         """Initialize CLI API with minimal setup - services lazy-loaded on demand."""
         # Initialize logger first
-        self.logger = FlextLogger(__name__)
+        self.logger = FlextCore.Logger(__name__)
 
         # Get global container for DI
-        self._container = FlextContainer.get_global()
+        self._container = FlextCore.Container.get_global()
 
         # Register this instance as singleton in container for DI
         self._container.register("flext_cli", self)
 
         # Phase 1 Enhancement: Enrich context with service metadata
-        FlextContext.Service.set_service_name("flext-cli")
-        FlextContext.Service.set_service_version("1.0.0")
+        FlextCore.Context.Service.set_service_name("flext-cli")
+        FlextCore.Context.Service.set_service_version("1.0.0")
 
         # Enrich logger with correlation tracking
-        correlation_id = FlextContext.Correlation.generate_correlation_id()
+        correlation_id = FlextCore.Context.Correlation.generate_correlation_id()
         self.logger.bind_global_context(
             service_name="flext-cli",
             service_type="FlextCli",
@@ -111,7 +102,7 @@ class FlextCli:
             FlextCliCore: Core CLI service instance
 
         """
-        return self._container.get_or_register("core", FlextCliCore).unwrap()
+        return self._container.get_or_create("core", FlextCliCore).unwrap()
 
     @property
     def cmd(self) -> FlextCliCmd:
@@ -121,7 +112,7 @@ class FlextCli:
             FlextCliCmd: Command service instance
 
         """
-        return self._container.get_or_register("cmd", FlextCliCmd).unwrap()
+        return self._container.get_or_create("cmd", FlextCliCmd).unwrap()
 
     @property
     def models(self) -> type[FlextCliModels]:
@@ -153,18 +144,192 @@ class FlextCli:
         """
         return FlextCliConstants
 
+    # ==========================================================================
+    # CONFIGURATION MANAGEMENT - Unified config access for CLI, Core, and Tools
+    # ==========================================================================
+
     @property
     def config(self) -> FlextCliConfig:
         """Access CLI configuration singleton.
 
         Returns:
-            FlextCliConfig: Singleton CLI config instance from FlextContainer
+            FlextCliConfig: Singleton CLI config instance
+
+        Example:
+            >>> cli = FlextCli.get_instance()
+            >>> cli.config.profile
+            'default'
+            >>> cli.config.output_format
+            'table'
 
         """
-        # Use singleton pattern from FlextConfig
+        # Use singleton pattern from FlextCore.Config
         config = FlextCliConfig.get_global_instance()
         config.__class__ = FlextCliConfig
         return config
+
+    @property
+    def core_config(self) -> FlextCore.Config:
+        """Access flext-core configuration singleton.
+
+        Allows flext-cli to read and modify flext-core configuration.
+
+        Returns:
+            FlextCore.Config: Core configuration instance
+
+        Example:
+            >>> cli = FlextCli.get_instance()
+            >>> cli.core_config.environment
+            'development'
+            >>> cli.core_config.debug
+            False
+
+        """
+        return FlextCore.Config.get_global_instance()
+
+    def configure_cli(
+        self,
+        profile: str | None = None,
+        output_format: str | None = None,
+        *,
+        verbose: bool | None = None,
+        debug: bool | None = None,
+        **kwargs: object,
+    ) -> FlextCore.Result[None]:
+        """Configure CLI settings dynamically.
+
+        Args:
+            profile: CLI profile to use
+            output_format: Output format (json, yaml, table, etc.)
+            verbose: Enable verbose output
+            debug: Enable debug mode
+            **kwargs: Additional CLI configuration options
+
+        Returns:
+            FlextCore.Result[None]: Success or error
+
+        Example:
+            >>> cli = FlextCli.get_instance()
+            >>> result = cli.configure_cli(
+            ...     profile="production", output_format="json", debug=False
+            ... )
+            >>> result.is_success
+            True
+
+        """
+        try:
+            config_dict: FlextCore.Types.Dict = {}
+            if profile is not None:
+                config_dict["profile"] = profile
+            if output_format is not None:
+                config_dict["output_format"] = output_format
+            if verbose is not None:
+                config_dict["verbose"] = verbose
+            if debug is not None:
+                config_dict["debug"] = debug
+
+            # Add additional kwargs
+            config_dict.update(kwargs)
+
+            # Apply to CLI config
+            for key, value in config_dict.items():
+                if hasattr(self.config, key):
+                    setattr(self.config, key, value)
+
+            return FlextCore.Result[None].ok(None)
+        except Exception as e:
+            return FlextCore.Result[None].fail(f"CLI configuration failed: {e}")
+
+    def configure_core(self, **config: object) -> FlextCore.Result[None]:
+        """Configure flext-core settings.
+
+        Allows flext-cli to modify flext-core configuration for the application.
+
+        Args:
+            **config: Core configuration options (environment, debug, etc.)
+
+        Returns:
+            FlextCore.Result[None]: Success or error
+
+        Example:
+            >>> cli = FlextCli.get_instance()
+            >>> result = cli.configure_core(environment="production", debug=False)
+
+        """
+        config_dict = dict(config)
+        return self.core_config.configure(config_dict)
+
+    def get_component_config(
+        self, component: str
+    ) -> FlextCore.Result[FlextCore.Types.Dict]:
+        """Get component-specific configuration.
+
+        Supports namespaced configuration for tools using flext-cli.
+
+        Args:
+            component: Component name (e.g., "myapp", "database", "api")
+
+        Returns:
+            FlextCore.Result[FlextCore.Types.Dict]: Component configuration or error
+
+        Example:
+            >>> cli = FlextCli.get_instance()
+            >>> # Get config for a tool using flext-cli
+            >>> result = cli.get_component_config("myapp")
+            >>> if result.is_success:
+            ...     myapp_config = result.unwrap()
+
+        """
+        return self.core_config.get_component_config(component)
+
+    def configure_component(
+        self, component: str, **config: object
+    ) -> FlextCore.Result[None]:
+        """Configure a specific component.
+
+        Allows tools using flext-cli to have their own namespaced configuration.
+
+        Args:
+            component: Component name
+            **config: Component configuration options
+
+        Returns:
+            FlextCore.Result[None]: Success or error
+
+        Example:
+            >>> cli = FlextCli.get_instance()
+            >>> # Configure a tool using flext-cli
+            >>> result = cli.configure_component(
+            ...     "myapp",
+            ...     database_url="postgresql://localhost/mydb",
+            ...     api_key="secret",
+            ... )
+
+        """
+        try:
+            # Get current component config
+            result = self.get_component_config(component)
+            if result.is_failure:
+                # Component config doesn't exist, create it
+                component_config: FlextCore.Types.Dict = {}
+            else:
+                component_config = result.unwrap()
+
+            # Update with new config
+            component_config.update(config)
+
+            # Save back to core config
+            core_config_dict: FlextCore.Types.Dict = {component: component_config}
+            return self.core_config.configure(core_config_dict)
+
+        except Exception as e:
+            return FlextCore.Result[None].fail(
+                f"Component configuration failed for {component}: {e}"
+            )
+
+    # ==========================================================================
+    # DOMAIN SERVICES - Direct access to CLI functionality
+    # ==========================================================================
 
     @property
     def output(self) -> FlextCliOutput:
@@ -174,7 +339,7 @@ class FlextCli:
             FlextCliOutput: Output service instance
 
         """
-        return self._container.get_or_register("output", FlextCliOutput).unwrap()
+        return self._container.get_or_create("output", FlextCliOutput).unwrap()
 
     @property
     def file_tools(self) -> FlextCliFileTools:
@@ -184,19 +349,17 @@ class FlextCli:
             FlextCliFileTools: File tools instance
 
         """
-        return self._container.get_or_register(
-            "file_tools", FlextCliFileTools
-        ).unwrap()
+        return self._container.get_or_create("file_tools", FlextCliFileTools).unwrap()
 
     @property
-    def utilities(self) -> type[FlextUtilities]:
+    def utilities(self) -> type[FlextCore.Utilities]:
         """Access utility functions from flext-core.
 
         Returns:
-            type[FlextUtilities]: Utilities class from flext-core
+            type[FlextCore.Utilities]: Utilities class from flext-core
 
         """
-        return FlextUtilities
+        return FlextCore.Utilities
 
     @property
     def auth(self) -> FlextCliAuth:
@@ -206,7 +369,7 @@ class FlextCli:
             FlextCliAuth: Auth service instance
 
         """
-        return self._container.get_or_register("auth", FlextCliAuth).unwrap()
+        return self._container.get_or_create("auth", FlextCliAuth).unwrap()
 
     @property
     def commands(self) -> FlextCliCommands:
@@ -216,7 +379,7 @@ class FlextCli:
             FlextCliCommands: Commands instance
 
         """
-        return self._container.get_or_register("commands", FlextCliCommands).unwrap()
+        return self._container.get_or_create("commands", FlextCliCommands).unwrap()
 
     @property
     def context(self) -> FlextCliContext:
@@ -226,7 +389,7 @@ class FlextCli:
             FlextCliContext: Context service instance
 
         """
-        return self._container.get_or_register("context", FlextCliContext).unwrap()
+        return self._container.get_or_create("context", FlextCliContext).unwrap()
 
     @property
     def debug(self) -> FlextCliDebug:
@@ -236,7 +399,7 @@ class FlextCli:
             FlextCliDebug: Debug service instance
 
         """
-        return self._container.get_or_register("debug", FlextCliDebug).unwrap()
+        return self._container.get_or_create("debug", FlextCliDebug).unwrap()
 
     @property
     def exceptions(self) -> type[FlextCliExceptions]:
@@ -276,9 +439,7 @@ class FlextCli:
             FlextCliProcessors: Processors instance
 
         """
-        return self._container.get_or_register(
-            "processors", FlextCliProcessors
-        ).unwrap()
+        return self._container.get_or_create("processors", FlextCliProcessors).unwrap()
 
     @property
     def plugins(self) -> FlextCliPlugins:
@@ -293,7 +454,7 @@ class FlextCli:
             >>> discover_result = plugin_system.discover_plugins("./plugins")
 
         """
-        return self._container.get_or_register("plugins", FlextCliPlugins).unwrap()
+        return self._container.get_or_create("plugins", FlextCliPlugins).unwrap()
 
     @property
     def prompts(self) -> FlextCliPrompts:
@@ -303,7 +464,7 @@ class FlextCli:
             FlextCliPrompts: Prompts instance
 
         """
-        return self._container.get_or_register("prompts", FlextCliPrompts).unwrap()
+        return self._container.get_or_create("prompts", FlextCliPrompts).unwrap()
 
     @property
     def protocols(self) -> type[FlextCliProtocols]:
@@ -333,7 +494,7 @@ class FlextCli:
             >>> cmd_result = cli.click.create_command_decorator(name="hello")
 
         """
-        return self._container.get_or_register("click", FlextCliCli).unwrap()
+        return self._container.get_or_create("click", FlextCliCli).unwrap()
 
     @property
     def formatters(self) -> FlextCliFormatters:
@@ -349,9 +510,7 @@ class FlextCli:
             ... )
 
         """
-        return self._container.get_or_register(
-            "formatters", FlextCliFormatters
-        ).unwrap()
+        return self._container.get_or_create("formatters", FlextCliFormatters).unwrap()
 
     @property
     def tables(self) -> FlextCliTables:
@@ -367,7 +526,7 @@ class FlextCli:
             ... )
 
         """
-        return self._container.get_or_register("tables", FlextCliTables).unwrap()
+        return self._container.get_or_create("tables", FlextCliTables).unwrap()
 
     @property
     def main(self) -> FlextCliMain:
@@ -383,78 +542,80 @@ class FlextCli:
             ...     print(f"Hello {name}!")
 
         """
-        return self._container.get_or_register("main", FlextCliMain).unwrap()
+        return self._container.get_or_create("main", FlextCliMain).unwrap()
 
     # ==========================================================================
     # FLEXT-CORE ADVANCED FEATURES - Event bus, registry, CQRS, etc.
     # ==========================================================================
 
     @property
-    def bus(self) -> FlextBus:
-        """Access FlextBus for event-driven architecture.
+    def bus(self) -> FlextCore.Bus:
+        """Access FlextCore.Bus for event-driven architecture.
 
         Returns:
-            FlextBus: Event bus instance for message routing
+            FlextCore.Bus: Event bus instance for message routing
 
         """
-        return self._container.get_or_register("bus", FlextBus).unwrap()
+        return self._container.get_or_create("bus", FlextCore.Bus).unwrap()
 
     @property
-    def registry(self) -> FlextRegistry:
-        """Access FlextRegistry for service discovery.
+    def registry(self) -> FlextCore.Registry:
+        """Access FlextCore.Registry for service discovery.
 
         Returns:
-            FlextRegistry: Service registry instance
+            FlextCore.Registry: Service registry instance
 
         """
         # Registry needs dispatcher - use lambda for dependency
-        return self._container.get_or_register(
-            "registry", lambda: FlextRegistry(dispatcher=self.dispatcher)
+        return self._container.get_or_create(
+            "registry", lambda: FlextCore.Registry(dispatcher=self.dispatcher)
         ).unwrap()
 
     @property
-    def dispatcher(self) -> FlextDispatcher:
-        """Access FlextDispatcher for message dispatching.
+    def dispatcher(self) -> FlextCore.Dispatcher:
+        """Access FlextCore.Dispatcher for message dispatching.
 
         Returns:
-            FlextDispatcher: Message dispatcher instance
+            FlextCore.Dispatcher: Message dispatcher instance
 
         """
-        return self._container.get_or_register("dispatcher", FlextDispatcher).unwrap()
+        return self._container.get_or_create(
+            "dispatcher", FlextCore.Dispatcher
+        ).unwrap()
 
     @property
-    def container(self) -> FlextContainer:
-        """Access FlextContainer for dependency injection.
+    def container(self) -> FlextCore.Container:
+        """Access FlextCore.Container for dependency injection.
 
         Returns:
-            FlextContainer: DI container instance
+            FlextCore.Container: DI container instance
 
         """
         return self._container
 
     # Attributes initialized in __init__ (inherit types from FlextService)
 
-    def run(self) -> FlextResult[FlextCliTypes.Data.CliDataDict]:
+    def run(self) -> FlextCore.Result[FlextCliTypes.Data.CliDataDict]:
         """Run CLI API operations.
 
         Returns:
-            FlextResult[FlextCliTypes.Data.CliDataDict]: API execution result
+            FlextCore.Result[FlextCliTypes.Data.CliDataDict]: API execution result
 
         """
         return self.execute()
 
-    def execute(self) -> FlextResult[FlextCliTypes.Data.CliDataDict]:
+    def execute(self) -> FlextCore.Result[FlextCliTypes.Data.CliDataDict]:
         """Execute CLI API operations.
 
         Returns:
-            FlextResult[FlextCliTypes.Data.CliDataDict]: API execution result
+            FlextCore.Result[FlextCliTypes.Data.CliDataDict]: API execution result
 
         """
-        return FlextResult[FlextCliTypes.Data.CliDataDict].ok({
+        return FlextCore.Result[FlextCliTypes.Data.CliDataDict].ok({
             "status": FlextCliConstants.OPERATIONAL,
             "service": FlextCliConstants.FLEXT_CLI,
             "version": FlextCliConstants.VERSION,
-            "timestamp": FlextUtilities.Generators.generate_timestamp(),
+            "timestamp": FlextCore.Utilities.Generators.generate_timestamp(),
             "components": {
                 "api": FlextCliConstants.AVAILABLE,
                 "auth": FlextCliConstants.AVAILABLE,

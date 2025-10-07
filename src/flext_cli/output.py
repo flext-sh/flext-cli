@@ -12,25 +12,18 @@ from __future__ import annotations
 import csv
 import json
 from io import StringIO
-from typing import TYPE_CHECKING, override
+from typing import override
 
 import yaml
-from flext_core import (
-    FlextResult,
-    FlextService,
-    FlextTypes,
-)
-
-# ZERO TOLERANCE: Rich imports ONLY for type checking, not runtime
-if TYPE_CHECKING:
-    from rich.console import Console
+from flext_core import FlextCore
+from rich.console import Console
 
 from flext_cli.constants import FlextCliConstants
 from flext_cli.formatters import FlextCliFormatters
 from flext_cli.tables import FlextCliTables
 
 
-class FlextCliOutput(FlextService[object]):
+class FlextCliOutput(FlextCore.Service[object]):
     """Comprehensive CLI output tools for the flext ecosystem.
 
     REFACTORED to use FlextCliFormatters and FlextCliTables for all output.
@@ -71,24 +64,22 @@ class FlextCliOutput(FlextService[object]):
     def __init__(self) -> None:
         """Initialize CLI output - formatters lazy-loaded via properties."""
         super().__init__()
-        # Logger and container inherited from FlextService via FlextMixins
+        # Logger and container inherited from FlextCore.Service via FlextCore.Mixins
 
     @property
     def _formatters(self) -> FlextCliFormatters:
         """Get formatters instance via container."""
-        return self._container.get_or_register(
-            "formatters", FlextCliFormatters
-        ).unwrap()
+        return self.container.get_or_create("formatters", FlextCliFormatters).unwrap()
 
     @property
     def _tables(self) -> FlextCliTables:
         """Get tables instance via container."""
-        return self._container.get_or_register("tables", FlextCliTables).unwrap()
+        return self.container.get_or_create("tables", FlextCliTables).unwrap()
 
     @override
-    def execute(self) -> FlextResult[object]:
-        """Execute the main domain service operation - required by FlextService."""
-        return FlextResult[str].ok("FlextCliOutput operational")
+    def execute(self) -> FlextCore.Result[object]:
+        """Execute the main domain service operation - required by FlextCore.Service."""
+        return FlextCore.Result[str].ok("FlextCliOutput operational")
 
     # =========================================================================
     # FORMAT DATA - UNIFIED API
@@ -99,8 +90,8 @@ class FlextCliOutput(FlextService[object]):
         data: object,
         format_type: str = FlextCliConstants.OutputFormats.TABLE.value,
         title: str | None = None,
-        headers: FlextTypes.StringList | None = None,
-    ) -> FlextResult[str]:
+        headers: FlextCore.Types.StringList | None = None,
+    ) -> FlextCore.Result[str]:
         """Format data using specified format type from FlextCliConstants.
 
         Args:
@@ -110,7 +101,7 @@ class FlextCliOutput(FlextService[object]):
             headers: Optional headers for table format
 
         Returns:
-            FlextResult[str]: Formatted data string or error
+            FlextCore.Result[str]: Formatted data string or error
 
         Example:
             >>> output = FlextCliOutput()
@@ -129,34 +120,36 @@ class FlextCliOutput(FlextService[object]):
             # Convert object to appropriate type for format_table
             if isinstance(data, (dict, list)):
                 return self.format_table(data, title=title, headers=headers)
-            return FlextResult[str].fail("Table format requires dict or list of dicts")
+            return FlextCore.Result[str].fail(
+                "Table format requires dict or list of dicts"
+            )
         if format_lower == FlextCliConstants.OutputFormats.CSV.value:
             return self.format_csv(data)
         if format_lower == FlextCliConstants.OutputFormats.PLAIN.value:
-            return FlextResult[str].ok(str(data))
-        return FlextResult[str].fail(f"Unsupported format type: {format_type}")
+            return FlextCore.Result[str].ok(str(data))
+        return FlextCore.Result[str].fail(f"Unsupported format type: {format_type}")
 
-    def create_formatter(self, format_type: str) -> FlextResult[object]:
+    def create_formatter(self, format_type: str) -> FlextCore.Result[object]:
         """Create a formatter instance for the specified format type.
 
         Args:
             format_type: Format type to create formatter for
 
         Returns:
-            FlextResult[object]: Formatter instance or error
+            FlextCore.Result[object]: Formatter instance or error
 
         """
         try:
             # Validate format type is supported using constants
             if format_type.lower() not in FlextCliConstants.OUTPUT_FORMATS_LIST:
-                return FlextResult[object].fail(
+                return FlextCore.Result[object].fail(
                     f"Unsupported format type: {format_type}"
                 )
 
             # Return self as the formatter since this class handles all formats
-            return FlextResult[object].ok(self)
+            return FlextCore.Result[object].ok(self)
         except Exception as e:
-            return FlextResult[object].fail(f"Failed to create formatter: {e}")
+            return FlextCore.Result[object].fail(f"Failed to create formatter: {e}")
 
     # =========================================================================
     # RICH TABLE CREATION (Delegates to FlextCliFormatters)
@@ -164,11 +157,11 @@ class FlextCliOutput(FlextService[object]):
 
     def create_rich_table(
         self,
-        data: list[FlextTypes.Dict],
+        data: list[FlextCore.Types.Dict],
         title: str | None = None,
-        headers: FlextTypes.StringList | None = None,
+        headers: FlextCore.Types.StringList | None = None,
         **kwargs: object,
-    ) -> FlextResult[object]:
+    ) -> FlextCore.Result[object]:
         """Create a Rich table from data using FlextCliFormatters.
 
         Args:
@@ -178,7 +171,7 @@ class FlextCliOutput(FlextService[object]):
             **kwargs: Additional Rich table options
 
         Returns:
-            FlextResult containing Rich Table object
+            FlextCore.Result containing Rich Table object
 
         Example:
             >>> output = FlextCliOutput()
@@ -188,7 +181,7 @@ class FlextCliOutput(FlextService[object]):
 
         """
         if not data:
-            return FlextResult[object].fail("No data provided for table")
+            return FlextCore.Result[object].fail("No data provided for table")
 
         try:
             # Determine headers
@@ -202,7 +195,7 @@ class FlextCliOutput(FlextService[object]):
             )
 
             if table_result.is_failure:
-                return FlextResult[object].fail(
+                return FlextCore.Result[object].fail(
                     f"Failed to create Rich table: {table_result.error}"
                 )
 
@@ -217,18 +210,18 @@ class FlextCliOutput(FlextService[object]):
                 row_values = [str(row_data.get(h, "")) for h in table_headers]
                 table.add_row(*row_values)
 
-            return FlextResult[object].ok(table)
+            return FlextCore.Result[object].ok(table)
 
         except Exception as e:
             error_msg = f"Failed to create Rich table: {e}"
             self.logger.exception(error_msg)
-            return FlextResult[object].fail(error_msg)
+            return FlextCore.Result[object].fail(error_msg)
 
     def table_to_string(
         self,
         table: object,  # RichTable but avoiding direct import
         width: int | None = None,
-    ) -> FlextResult[str]:
+    ) -> FlextCore.Result[str]:
         """Convert Rich table to string using FlextCliFormatters.
 
         Args:
@@ -236,7 +229,7 @@ class FlextCliOutput(FlextService[object]):
             width: Optional width for console
 
         Returns:
-            FlextResult[str]: Table as string or error
+            FlextCore.Result[str]: Table as string or error
 
         """
         # Delegate to formatters for Rich operations
@@ -248,11 +241,11 @@ class FlextCliOutput(FlextService[object]):
 
     def create_ascii_table(
         self,
-        data: list[FlextTypes.Dict],
-        headers: FlextTypes.StringList | None = None,
+        data: list[FlextCore.Types.Dict],
+        headers: FlextCore.Types.StringList | None = None,
         table_format: str = "simple",
         **kwargs: object,
-    ) -> FlextResult[str]:
+    ) -> FlextCore.Result[str]:
         """Create ASCII table using FlextCliTables.
 
         Args:
@@ -262,7 +255,7 @@ class FlextCliOutput(FlextService[object]):
             **kwargs: Additional tabulate options
 
         Returns:
-            FlextResult[str]: ASCII table string
+            FlextCore.Result[str]: ASCII table string
 
         Example:
             >>> output = FlextCliOutput()
@@ -286,7 +279,7 @@ class FlextCliOutput(FlextService[object]):
         self,
         _description: str = "Processing...",
         _total: int = 100,
-    ) -> FlextResult[object]:
+    ) -> FlextCore.Result[object]:
         """Create a Rich progress bar using FlextCliFormatters.
 
         Args:
@@ -294,7 +287,7 @@ class FlextCliOutput(FlextService[object]):
             _total: Total number of steps (reserved for future use)
 
         Returns:
-            FlextResult containing Progress object
+            FlextCore.Result containing Progress object
 
         Example:
             >>> output = FlextCliOutput()
@@ -315,7 +308,7 @@ class FlextCliOutput(FlextService[object]):
         style: str = "",
         *,
         highlight: bool = False,
-    ) -> FlextResult[None]:
+    ) -> FlextCore.Result[None]:
         """Print a message using FlextCliFormatters.
 
         Args:
@@ -324,7 +317,7 @@ class FlextCliOutput(FlextService[object]):
             highlight: Whether to enable syntax highlighting
 
         Returns:
-            FlextResult[None]: Success or failure result
+            FlextCore.Result[None]: Success or failure result
 
         Example:
             >>> output = FlextCliOutput()
@@ -337,14 +330,14 @@ class FlextCliOutput(FlextService[object]):
             highlight=highlight,
         )
 
-    def print_error(self, message: str) -> FlextResult[None]:
+    def print_error(self, message: str) -> FlextCore.Result[None]:
         """Print an error message with red styling.
 
         Args:
             message: Error message to print
 
         Returns:
-            FlextResult[None]: Success or failure result
+            FlextCore.Result[None]: Success or failure result
 
         Example:
             >>> output = FlextCliOutput()
@@ -353,14 +346,14 @@ class FlextCliOutput(FlextService[object]):
         """
         return self.print_message(f"❌ Error: {message}", style="bold red")
 
-    def print_success(self, message: str) -> FlextResult[None]:
+    def print_success(self, message: str) -> FlextCore.Result[None]:
         """Print a success message with green styling.
 
         Args:
             message: Success message to print
 
         Returns:
-            FlextResult[None]: Success or failure result
+            FlextCore.Result[None]: Success or failure result
 
         Example:
             >>> output = FlextCliOutput()
@@ -369,14 +362,14 @@ class FlextCliOutput(FlextService[object]):
         """
         return self.print_message(f"✅ Success: {message}", style="bold green")
 
-    def print_warning(self, message: str) -> FlextResult[None]:
+    def print_warning(self, message: str) -> FlextCore.Result[None]:
         """Print a warning message with yellow styling.
 
         Args:
             message: Warning message to print
 
         Returns:
-            FlextResult[None]: Success or failure result
+            FlextCore.Result[None]: Success or failure result
 
         Example:
             >>> output = FlextCliOutput()
@@ -391,7 +384,7 @@ class FlextCliOutput(FlextService[object]):
         *,
         style: str = "",
         highlight: bool = False,
-    ) -> FlextResult[None]:
+    ) -> FlextCore.Result[None]:
         """Display text using FlextCliFormatters.
 
         Args:
@@ -400,7 +393,7 @@ class FlextCliOutput(FlextService[object]):
             highlight: Whether to enable syntax highlighting
 
         Returns:
-            FlextResult[None]: Success or failure result
+            FlextCore.Result[None]: Success or failure result
 
         Example:
             >>> output = FlextCliOutput()
@@ -418,7 +411,7 @@ class FlextCliOutput(FlextService[object]):
         message: str,
         message_type: str = "info",
         **kwargs: object,
-    ) -> FlextResult[None]:
+    ) -> FlextCore.Result[None]:
         """Display message with specified type and styling.
 
         Args:
@@ -427,7 +420,7 @@ class FlextCliOutput(FlextService[object]):
             **kwargs: Additional formatting options
 
         Returns:
-            FlextResult[None]: Success or failure result
+            FlextCore.Result[None]: Success or failure result
 
         Example:
             >>> output = FlextCliOutput()
@@ -463,7 +456,7 @@ class FlextCliOutput(FlextService[object]):
         data: object,
         format_type: str = "table",
         **kwargs: object,
-    ) -> FlextResult[None]:
+    ) -> FlextCore.Result[None]:
         """Display data in specified format.
 
         Args:
@@ -472,7 +465,7 @@ class FlextCliOutput(FlextService[object]):
             **kwargs: Additional formatting options
 
         Returns:
-            FlextResult[None]: Success or failure result
+            FlextCore.Result[None]: Success or failure result
 
         Example:
             >>> output = FlextCliOutput()
@@ -483,7 +476,7 @@ class FlextCliOutput(FlextService[object]):
         format_result = self.format_data(data, format_type=format_type, **kwargs)
 
         if format_result.is_failure:
-            return FlextResult[None].fail(
+            return FlextCore.Result[None].fail(
                 f"Failed to format data: {format_result.error}"
             )
 
@@ -496,14 +489,14 @@ class FlextCliOutput(FlextService[object]):
     # DATA FORMAT METHODS (Built-in)
     # =========================================================================
 
-    def format_json(self, data: object) -> FlextResult[str]:
+    def format_json(self, data: object) -> FlextCore.Result[str]:
         """Format data as JSON.
 
         Args:
             data: Data to format
 
         Returns:
-            FlextResult[str]: Formatted JSON string
+            FlextCore.Result[str]: Formatted JSON string
 
         Example:
             >>> output = FlextCliOutput()
@@ -511,20 +504,20 @@ class FlextCliOutput(FlextService[object]):
 
         """
         try:
-            return FlextResult[str].ok(json.dumps(data, default=str, indent=2))
+            return FlextCore.Result[str].ok(json.dumps(data, default=str, indent=2))
         except Exception as e:
             error_msg = f"JSON formatting failed: {e}"
             self.logger.exception(error_msg)
-            return FlextResult[str].fail(error_msg)
+            return FlextCore.Result[str].fail(error_msg)
 
-    def format_yaml(self, data: object) -> FlextResult[str]:
+    def format_yaml(self, data: object) -> FlextCore.Result[str]:
         """Format data as YAML.
 
         Args:
             data: Data to format
 
         Returns:
-            FlextResult[str]: Formatted YAML string
+            FlextCore.Result[str]: Formatted YAML string
 
         Example:
             >>> output = FlextCliOutput()
@@ -532,20 +525,20 @@ class FlextCliOutput(FlextService[object]):
 
         """
         try:
-            return FlextResult[str].ok(yaml.dump(data, default_flow_style=False))
+            return FlextCore.Result[str].ok(yaml.dump(data, default_flow_style=False))
         except Exception as e:
             error_msg = f"YAML formatting failed: {e}"
             self.logger.exception(error_msg)
-            return FlextResult[str].fail(error_msg)
+            return FlextCore.Result[str].fail(error_msg)
 
-    def format_csv(self, data: object) -> FlextResult[str]:
+    def format_csv(self, data: object) -> FlextCore.Result[str]:
         """Format data as CSV.
 
         Args:
             data: Data to format
 
         Returns:
-            FlextResult[str]: Formatted CSV string
+            FlextCore.Result[str]: Formatted CSV string
 
         Example:
             >>> output = FlextCliOutput()
@@ -559,26 +552,26 @@ class FlextCliOutput(FlextService[object]):
                 writer = csv.DictWriter(output_buffer, fieldnames=fieldnames)
                 writer.writeheader()
                 writer.writerows(data)
-                return FlextResult[str].ok(output_buffer.getvalue())
+                return FlextCore.Result[str].ok(output_buffer.getvalue())
             if isinstance(data, dict):
                 output_buffer = StringIO()
                 fieldnames = list(data.keys())
                 writer = csv.DictWriter(output_buffer, fieldnames=fieldnames)
                 writer.writeheader()
                 writer.writerow(data)
-                return FlextResult[str].ok(output_buffer.getvalue())
-            return FlextResult[str].ok(json.dumps(data, default=str, indent=2))
+                return FlextCore.Result[str].ok(output_buffer.getvalue())
+            return FlextCore.Result[str].ok(json.dumps(data, default=str, indent=2))
         except Exception as e:
             error_msg = f"CSV formatting failed: {e}"
             self.logger.exception(error_msg)
-            return FlextResult[str].fail(error_msg)
+            return FlextCore.Result[str].fail(error_msg)
 
     def format_table(
         self,
-        data: FlextTypes.Dict | list[FlextTypes.Dict],
+        data: FlextCore.Types.Dict | list[FlextCore.Types.Dict],
         title: str | None = None,
-        headers: FlextTypes.StringList | None = None,
-    ) -> FlextResult[str]:
+        headers: FlextCore.Types.StringList | None = None,
+    ) -> FlextCore.Result[str]:
         """Format data as a tabulated table string using FlextCliTables.
 
         Args:
@@ -587,7 +580,7 @@ class FlextCliOutput(FlextService[object]):
             headers: Optional column headers
 
         Returns:
-            FlextResult[str]: Table as string or error
+            FlextCore.Result[str]: Table as string or error
 
         Example:
             >>> output = FlextCliOutput()
@@ -601,15 +594,15 @@ class FlextCliOutput(FlextService[object]):
             if isinstance(data, dict):
                 table_data = [{"Key": k, "Value": str(v)} for k, v in data.items()]
                 # For list of dicts, use "keys" string as tabulate requires
-                table_headers: str | FlextTypes.StringList = headers or "keys"
+                table_headers: str | FlextCore.Types.StringList = headers or "keys"
             else:
                 if not isinstance(data, list):
-                    return FlextResult[str].fail(
+                    return FlextCore.Result[str].fail(
                         "Table format requires dict or list of dicts"
                     )
                 table_data = data
                 if not table_data:
-                    return FlextResult[str].fail("No data provided for table")
+                    return FlextCore.Result[str].fail("No data provided for table")
                 # For list of dicts, use "keys" string as tabulate requires
                 table_headers = headers or "keys"
 
@@ -621,7 +614,7 @@ class FlextCliOutput(FlextService[object]):
             )
 
             if table_result.is_failure:
-                return FlextResult[str].fail(
+                return FlextCore.Result[str].fail(
                     f"Failed to create table: {table_result.error}"
                 )
 
@@ -631,18 +624,18 @@ class FlextCliOutput(FlextService[object]):
             if title:
                 table_str = f"{title}\n{table_str}\n"
 
-            return FlextResult[str].ok(table_str)
+            return FlextCore.Result[str].ok(table_str)
 
         except Exception as e:
             error_msg = f"Failed to format table: {e}"
             self.logger.exception(error_msg)
-            return FlextResult[str].fail(error_msg)
+            return FlextCore.Result[str].fail(error_msg)
 
     def format_as_tree(
         self,
-        data: FlextTypes.Dict,
+        data: FlextCore.Types.Dict,
         title: str = "Tree",
-    ) -> FlextResult[str]:
+    ) -> FlextCore.Result[str]:
         """Format hierarchical data as tree view using FlextCliFormatters.
 
         Args:
@@ -650,7 +643,7 @@ class FlextCliOutput(FlextService[object]):
             title: Tree title
 
         Returns:
-            FlextResult[str]: Tree view as string
+            FlextCore.Result[str]: Tree view as string
 
         Example:
             >>> output = FlextCliOutput()
@@ -664,7 +657,9 @@ class FlextCliOutput(FlextService[object]):
         tree_result = self._formatters.create_tree(label=title)
 
         if tree_result.is_failure:
-            return FlextResult[str].fail(f"Failed to create tree: {tree_result.error}")
+            return FlextCore.Result[str].fail(
+                f"Failed to create tree: {tree_result.error}"
+            )
 
         tree = tree_result.unwrap()
 

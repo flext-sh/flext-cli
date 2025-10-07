@@ -15,8 +15,7 @@ from typing import Never
 
 from flext_core import FlextResult, FlextTypes
 
-from flext_cli.cmd import FlextCliCmd
-from flext_cli.file_tools import FlextCliFileTools
+from flext_cli import FlextCliCmd, FlextCliFileTools
 
 
 class TestFlextCliCmd:

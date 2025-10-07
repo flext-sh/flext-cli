@@ -27,19 +27,14 @@ from flext_cli.main import FlextCliMain
 from flext_cli.mixins import FlextCliMixins
 from flext_cli.models import FlextCliModels
 from flext_cli.output import FlextCliOutput
-from flext_cli.performance import FlextCliPerformance
 from flext_cli.plugins import FlextCliPlugins
 from flext_cli.processors import FlextCliProcessors
 from flext_cli.prompts import FlextCliPrompts
 from flext_cli.protocols import FlextCliProtocols
-from flext_cli.shell import FlextCliShell
 from flext_cli.tables import FlextCliTables
-from flext_cli.testing import FlextCliTesting
-from flext_cli.typer_cli import FlextCliTyper
 from flext_cli.typings import FlextCliTypes
 from flext_cli.version import VERSION, FlextCliVersion
 
-# Standard Python package metadata
 __version__: str = FlextCliConstants.VERSION
 __version_info__: tuple[int | str, ...] = VERSION.version_info
 
@@ -63,15 +58,11 @@ __all__ = [
     "FlextCliMixins",
     "FlextCliModels",
     "FlextCliOutput",
-    "FlextCliPerformance",
     "FlextCliPlugins",
     "FlextCliProcessors",
     "FlextCliPrompts",
     "FlextCliProtocols",
-    "FlextCliShell",
     "FlextCliTables",
-    "FlextCliTesting",
-    "FlextCliTyper",
     "FlextCliTypes",
     "FlextCliVersion",
     "__version__",

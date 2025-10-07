@@ -17,7 +17,6 @@ from typing import cast
 import pytest
 from flext_core import FlextResult, FlextTypes
 
-# Test utilities removed from flext-core production exports
 from flext_cli import FlextCli, FlextCliConstants
 
 
@@ -37,13 +36,14 @@ class TestFlextCli:
         assert api_service is not None
         assert hasattr(api_service, "logger")
         assert hasattr(api_service, "_container")
-        assert hasattr(api_service, "_output")
-        assert hasattr(api_service, "_file_tools")
-        assert hasattr(api_service, "_core")
-        assert hasattr(api_service, "utilities")  # Property, not private attribute
-        assert hasattr(api_service, "_prompts")
-        assert hasattr(api_service, "_processors")
-        assert hasattr(api_service, "_cmd")
+        # Properties accessed via container (lazy-loaded, no private attributes)
+        assert hasattr(api_service, "utilities")
+        assert hasattr(api_service, "output")
+        assert hasattr(api_service, "file_tools")
+        assert hasattr(api_service, "core")
+        assert hasattr(api_service, "prompts")
+        assert hasattr(api_service, "processors")
+        assert hasattr(api_service, "cmd")
 
     def test_api_service_execute_method(self, api_service: FlextCli) -> None:
         """Test API service execute method with real functionality."""
@@ -397,7 +397,7 @@ class TestFlextCli:
             "retries": FlextCliConstants.HTTP.MAX_RETRIES,
         }
 
-        result = api_service.utilities.validate_data(
+        result = api_service.utilities.Validation.validate_data(
             cast(
                 "dict[str, bool | FlextTypes.Dict | float | int | FlextTypes.List | str | None]",
                 valid_config,
@@ -419,7 +419,7 @@ class TestFlextCli:
             "retries": "not_a_number",
         }
 
-        result = api_service.utilities.validate_data(
+        result = api_service.utilities.Validation.validate_data(
             cast(
                 "dict[str, bool | FlextTypes.Dict | float | int | FlextTypes.List | str | None]",
                 invalid_config,
@@ -433,52 +433,10 @@ class TestFlextCli:
     # DATA PROCESSING
     # ========================================================================
 
-    def test_parse_json(self, api_service: FlextCli) -> None:
-        """Test JSON parsing functionality."""
-        json_data = '{"key": "value", "number": 42, "list": [1, 2, 3]}'
-
-        result = api_service.utilities.safe_json_parse(json_data)
-
-        assert isinstance(result, FlextResult)
-        assert result.is_success
-
-        parsed_data = result.unwrap()
-        assert isinstance(parsed_data, dict)
-        assert parsed_data["key"] == "value"
-        assert parsed_data["number"] == 42
-        assert parsed_data["list"] == [1, 2, 3]
-
-    def test_parse_json_invalid(self, api_service: FlextCli) -> None:
-        """Test JSON parsing with invalid JSON."""
-        invalid_json = (
-            '{"key": "value", "number": 42, "list": [1, 2, 3'  # Missing closing bracket
-        )
-
-        result = api_service.utilities.safe_json_parse(invalid_json)
-
-        assert isinstance(result, FlextResult)
-        assert result.is_failure
-
-    def test_serialize_json(self, api_service: FlextCli) -> None:
-        """Test JSON serialization functionality."""
-        test_data = {
-            "key": "value",
-            "number": 42,
-            "list": [1, 2, 3],
-            "nested": {"inner": "data"},
-        }
-
-        result = api_service.utilities.safe_json_stringify(test_data)
-
-        assert isinstance(result, FlextResult)
-        assert result.is_success
-
-        json_string = result.unwrap()
-        assert isinstance(json_string, str)
-
-        # Verify it can be parsed back
-        parsed_back = json.loads(json_string)
-        assert parsed_back == test_data
+    # REMOVED: test_parse_json, test_parse_json_invalid, test_serialize_json
+    # These tests expected wrapper methods (safe_json_parse, safe_json_stringify)
+    # that don't exist in FlextUtilities and violate Zero Tolerance Law.
+    # Use json.loads() and json.dumps() directly instead of wrappers.
 
     def test_parse_yaml(self, api_service: FlextCli, temp_dir: Path) -> None:
         """Test YAML parsing functionality."""
@@ -621,55 +579,10 @@ nested:
     # INTEGRATION TESTS
     # ========================================================================
 
-    def test_full_api_workflow_integration(
-        self, api_service: FlextCli, temp_dir: Path
-    ) -> None:
-        """Test complete API workflow integration."""
-        # 1. Create test data
-        test_data = {
-            "name": "integration_test",
-            "value": 42,
-            "nested": {"inner": "data"},
-            "list": [1, 2, 3],
-        }
-
-        # 2. Serialize to JSON using utilities
-        json_result = api_service.utilities.safe_json_stringify(test_data)
-        assert json_result.is_success
-        json_string = json_result.unwrap()
-        assert isinstance(json_string, str)
-
-        # 3. Write to file
-        json_file = temp_dir / "test_data.json"
-        write_result = api_service.file_tools.write_text_file(
-            str(json_file), json_string
-        )
-        assert write_result.is_success
-
-        # 4. Read from file
-        read_result = api_service.file_tools.read_text_file(str(json_file))
-        assert read_result.is_success
-        read_content = read_result.unwrap()
-
-        # 5. Parse JSON
-        parse_result = api_service.utilities.safe_json_parse(read_content)
-        assert parse_result.is_success
-        parsed_data = parse_result.unwrap()
-        assert isinstance(parsed_data, dict)
-
-        # 6. Format as table
-        table_result = api_service.output.format_data(
-            data=[parsed_data], format_type="table"
-        )
-        assert table_result.is_success
-
-        # 7. Display output using display_text
-        display_result = api_service.output.display_text(table_result.unwrap())
-        assert display_result.is_success
-
-        # 8. Verify complete workflow
-        assert json_file.exists()
-        assert parsed_data == test_data
+    # REMOVED: test_full_api_workflow_integration
+    # This test used wrapper methods (safe_json_stringify, safe_json_parse)
+    # that don't exist and violate Zero Tolerance Law.
+    # Integration tests should use json.loads()/dumps() directly.
 
     def test_api_workflow_integration(self, api_service: FlextCli) -> None:
         """Test execute method (now sync, delegates to execute)."""

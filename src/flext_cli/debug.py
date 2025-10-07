@@ -19,17 +19,14 @@ import uuid
 from datetime import UTC, datetime
 from typing import cast, override
 
-from flext_core import (
-    FlextResult,
-    FlextService,
-)
+from flext_core import FlextCore
 
 from flext_cli.constants import FlextCliConstants
 from flext_cli.typings import FlextCliTypes, FlextCliTypes as Types
 
 
-class FlextCliDebug(FlextService[str]):
-    """Debug service extending FlextService from flext-core.
+class FlextCliDebug(FlextCore.Service[str]):
+    """Debug service extending FlextCore.Service from flext-core.
 
     Implements FlextCliProtocols.CliDebugProvider through structural subtyping.
 
@@ -41,16 +38,16 @@ class FlextCliDebug(FlextService[str]):
     def __init__(self, **_data: object) -> None:
         """Initialize debug service with flext-core integration and Phase 1 context enrichment."""
         super().__init__()
-        # Logger and container inherited from FlextService via FlextMixins
+        # Logger and container inherited from FlextCore.Service via FlextMixins
 
     @override
-    def execute(self) -> FlextResult[str]:
-        """Execute debug service - required by FlextService."""
-        return FlextResult[str].ok("FlextCliDebug service operational")
+    def execute(self) -> FlextCore.Result[str]:
+        """Execute debug service - required by FlextCore.Service."""
+        return FlextCore.Result[str].ok("FlextCliDebug service operational")
 
     def get_system_info(
         self,
-    ) -> FlextResult[FlextCliTypes.Data.CliDataDict]:
+    ) -> FlextCore.Result[FlextCliTypes.Data.CliDataDict]:
         """Get system information for debugging."""
         try:
             info = self._get_system_info()
@@ -61,15 +58,15 @@ class FlextCliDebug(FlextService[str]):
                     typed_info[key] = value
                 else:
                     typed_info[key] = str(value)
-            return FlextResult[FlextCliTypes.Data.CliDataDict].ok(typed_info)
+            return FlextCore.Result[FlextCliTypes.Data.CliDataDict].ok(typed_info)
         except Exception as e:
-            return FlextResult[FlextCliTypes.Data.CliDataDict].fail(
+            return FlextCore.Result[FlextCliTypes.Data.CliDataDict].fail(
                 f"System info failed: {e}"
             )
 
     def get_environment_variables(
         self,
-    ) -> FlextResult[FlextCliTypes.Data.CliDataDict]:
+    ) -> FlextCore.Result[FlextCliTypes.Data.CliDataDict]:
         """Get environment variables with sensitive data masked."""
         try:
             env_info = self._get_environment_info()
@@ -80,15 +77,15 @@ class FlextCliDebug(FlextService[str]):
                     typed_env_info[key] = value
                 else:
                     typed_env_info[key] = str(value)
-            return FlextResult[FlextCliTypes.Data.CliDataDict].ok(typed_env_info)
+            return FlextCore.Result[FlextCliTypes.Data.CliDataDict].ok(typed_env_info)
         except Exception as e:
-            return FlextResult[FlextCliTypes.Data.CliDataDict].fail(
+            return FlextCore.Result[FlextCliTypes.Data.CliDataDict].fail(
                 f"Environment info failed: {e}"
             )
 
     def get_system_paths(
         self,
-    ) -> FlextResult[list[FlextCliTypes.Data.CliDataDict]]:
+    ) -> FlextCore.Result[list[FlextCliTypes.Data.CliDataDict]]:
         """Get system path information."""
         try:
             paths = self._get_path_info()
@@ -102,23 +99,29 @@ class FlextCliDebug(FlextService[str]):
                     else:
                         typed_path[key] = str(value)
                 typed_paths.append(typed_path)
-            return FlextResult[list[FlextCliTypes.Data.CliDataDict]].ok(typed_paths)
+            return FlextCore.Result[list[FlextCliTypes.Data.CliDataDict]].ok(
+                typed_paths
+            )
         except Exception as e:
-            return FlextResult[list[FlextCliTypes.Data.CliDataDict]].fail(
+            return FlextCore.Result[list[FlextCliTypes.Data.CliDataDict]].fail(
                 f"Path info failed: {e}"
             )
 
-    def validate_environment_setup(self) -> FlextResult[FlextCliTypes.Data.ErrorList]:
+    def validate_environment_setup(
+        self,
+    ) -> FlextCore.Result[FlextCliTypes.Data.ErrorList]:
         """Validate environment setup and dependencies."""
         try:
             results = self._validate_filesystem_permissions()
-            return FlextResult[FlextCliTypes.Data.ErrorList].ok(results)
+            return FlextCore.Result[FlextCliTypes.Data.ErrorList].ok(results)
         except Exception as e:
-            return FlextResult[FlextCliTypes.Data.ErrorList].fail(
+            return FlextCore.Result[FlextCliTypes.Data.ErrorList].fail(
                 f"Environment validation failed: {e}"
             )
 
-    def test_connectivity(self) -> FlextResult[FlextCliTypes.Data.ConnectivityInfo]:
+    def test_connectivity(
+        self,
+    ) -> FlextCore.Result[FlextCliTypes.Data.ConnectivityInfo]:
         """Test basic connectivity and service status."""
         try:
             connectivity_info = {
@@ -127,15 +130,15 @@ class FlextCliDebug(FlextService[str]):
                 "service": str(FlextCliDebug),
                 "connectivity": FlextCliConstants.OPERATIONAL,
             }
-            return FlextResult[FlextCliTypes.Data.ConnectivityInfo].ok(
+            return FlextCore.Result[FlextCliTypes.Data.ConnectivityInfo].ok(
                 connectivity_info
             )
         except Exception as e:
-            return FlextResult[FlextCliTypes.Data.ConnectivityInfo].fail(
+            return FlextCore.Result[FlextCliTypes.Data.ConnectivityInfo].fail(
                 f"Connectivity test failed: {e}"
             )
 
-    def execute_health_check(self) -> FlextResult[Types.Data.DebugInfoData]:
+    def execute_health_check(self) -> FlextCore.Result[Types.Data.DebugInfoData]:
         """Execute comprehensive health check."""
         try:
             health_info: Types.Data.DebugInfoData = {
@@ -145,15 +148,15 @@ class FlextCliDebug(FlextService[str]):
                 "check_id": str(uuid.uuid4()),
                 "checks_passed": True,
             }
-            return FlextResult[Types.Data.DebugInfoData].ok(health_info)
+            return FlextCore.Result[Types.Data.DebugInfoData].ok(health_info)
         except Exception as e:
-            return FlextResult[Types.Data.DebugInfoData].fail(
+            return FlextCore.Result[Types.Data.DebugInfoData].fail(
                 f"Health check failed: {e}"
             )
 
     def execute_trace(
         self, args: Types.Command.CommandArgs
-    ) -> FlextResult[Types.Data.DebugInfoData]:
+    ) -> FlextCore.Result[Types.Data.DebugInfoData]:
         """Execute trace operation with provided arguments."""
         try:
             trace_info: Types.Data.DebugInfoData = {
@@ -163,17 +166,17 @@ class FlextCliDebug(FlextService[str]):
                 "timestamp": datetime.now(UTC).isoformat(),
                 "trace_id": str(uuid.uuid4()),
             }
-            return FlextResult[Types.Data.DebugInfoData].ok(trace_info)
+            return FlextCore.Result[Types.Data.DebugInfoData].ok(trace_info)
         except Exception as e:
-            return FlextResult[Types.Data.DebugInfoData].fail(
+            return FlextCore.Result[Types.Data.DebugInfoData].fail(
                 f"Trace execution failed: {e}"
             )
 
-    def get_debug_info(self) -> FlextResult[Types.Data.DebugInfoData]:
+    def get_debug_info(self) -> FlextCore.Result[Types.Data.DebugInfoData]:
         """Get comprehensive debug information.
 
         Returns:
-            FlextResult[Types.Data.DebugInfoData]: Debug information or error
+            FlextCore.Result[Types.Data.DebugInfoData]: Debug information or error
 
         """
         try:
@@ -185,15 +188,15 @@ class FlextCliDebug(FlextService[str]):
                 "environment_status": FlextCliConstants.OPERATIONAL,
                 "connectivity_status": FlextCliConstants.CONNECTED,
             }
-            return FlextResult[Types.Data.DebugInfoData].ok(debug_info)
+            return FlextCore.Result[Types.Data.DebugInfoData].ok(debug_info)
         except Exception as e:
-            return FlextResult[Types.Data.DebugInfoData].fail(
+            return FlextCore.Result[Types.Data.DebugInfoData].fail(
                 f"Debug info collection failed: {e}"
             )
 
     def get_comprehensive_debug_info(
         self,
-    ) -> FlextResult[Types.Data.DebugInfoData]:
+    ) -> FlextCore.Result[Types.Data.DebugInfoData]:
         """Get comprehensive debug information combining all debug methods."""
         try:
             comprehensive_info: Types.Data.DebugInfoData = {}
@@ -230,10 +233,10 @@ class FlextCliDebug(FlextService[str]):
             else:
                 comprehensive_info["debug_error"] = debug_result.error
 
-            return FlextResult[Types.Data.DebugInfoData].ok(comprehensive_info)
+            return FlextCore.Result[Types.Data.DebugInfoData].ok(comprehensive_info)
 
         except Exception as e:
-            return FlextResult[Types.Data.DebugInfoData].fail(
+            return FlextCore.Result[Types.Data.DebugInfoData].fail(
                 f"Comprehensive debug info collection failed: {e}"
             )
 

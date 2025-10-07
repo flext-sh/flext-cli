@@ -14,6 +14,8 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
+from typing import cast
+
 from flext_core import FlextResult
 
 from flext_cli import FlextCli
@@ -29,7 +31,7 @@ def demonstrate_complete_workflow() -> FlextResult[dict]:
 
     # File I/O with auto-validation and formatting
     test_data = {"users": [{"name": "Alice", "role": "Admin"}]}
-    cli.file_tools.write_json("/tmp/data.json", test_data)
+    cli.file_tools.write_json("/tmp/data.json", cast("object", test_data))
 
     # Read with auto-validation
     read_result = cli.file_tools.read_json("/tmp/data.json")
@@ -37,14 +39,16 @@ def demonstrate_complete_workflow() -> FlextResult[dict]:
         return FlextResult[dict].fail(f"Read failed: {read_result.error}")
 
     # Table display with auto-format selection
-    table_result = cli.tables.create_grid_table(read_result.value["users"])
+    table_result = cli.tables.create_grid_table(
+        cast("list[dict[str, object]]", cast("dict", read_result.value)["users"])
+    )
     if table_result.is_success:
         print(table_result.value)  # Auto-formatted for terminal
 
     # Success output with auto-styling
     cli.output.print_success("✅ Workflow complete - all features auto-configured")
 
-    return FlextResult[dict].ok(read_result.value)
+    return FlextResult[dict].ok(cast("dict", read_result.value))
 
 
 def demonstrate_railway_pattern() -> None:

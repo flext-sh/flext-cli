@@ -12,10 +12,10 @@ from __future__ import annotations
 from enum import StrEnum
 from typing import Final
 
-from flext_core import FlextConstants, FlextTypes
+from flext_core import FlextCore
 
 
-class FlextCliConstants(FlextConstants):
+class FlextCliConstants(FlextCore.Constants):
     """CLI constants extending flext-core standardization for CLI domain.
 
     Centralizes all CLI-specific constants, enums, literals, and defaults
@@ -51,6 +51,10 @@ class FlextCliConstants(FlextConstants):
         CSV = "csv"
         TABLE = "table"
         PLAIN = "plain"
+
+    # Terminal width thresholds for format selection
+    TERMINAL_WIDTH_NARROW: Final[int] = 80
+    TERMINAL_WIDTH_MEDIUM: Final[int] = 120
 
     class ErrorCodes(StrEnum):
         """CLI error codes."""
@@ -96,7 +100,7 @@ class FlextCliConstants(FlextConstants):
         """Network-related defaults for CLI operations."""
 
         DEFAULT_API_URL: Final[str] = (
-            f"http://{FlextConstants.Platform.DEFAULT_HOST}:{FlextConstants.Platform.FLEXT_API_PORT}/api"
+            f"http://{FlextCore.Constants.Platform.DEFAULT_HOST}:{FlextCore.Constants.Platform.FLEXT_API_PORT}/api"
         )
         DEFAULT_TIMEOUT: Final[int] = 30
         DEFAULT_MAX_RETRIES: Final[int] = 3
@@ -111,7 +115,7 @@ class FlextCliConstants(FlextConstants):
         US_PHONE_DIGITS: Final[int] = 10
 
     # Constant lists for validation and iteration
-    OUTPUT_FORMATS_LIST: Final[FlextTypes.StringList] = [
+    OUTPUT_FORMATS_LIST: Final[FlextCore.Types.StringList] = [
         OutputFormats.JSON.value,
         OutputFormats.YAML.value,
         OutputFormats.CSV.value,
@@ -119,7 +123,7 @@ class FlextCliConstants(FlextConstants):
         OutputFormats.PLAIN.value,
     ]
 
-    LOG_LEVELS_LIST: Final[FlextTypes.StringList] = [
+    LOG_LEVELS_LIST: Final[FlextCore.Types.StringList] = [
         "DEBUG",
         "INFO",
         "WARNING",
@@ -127,14 +131,14 @@ class FlextCliConstants(FlextConstants):
         "CRITICAL",
     ]
 
-    COMMAND_STATUSES_LIST: Final[FlextTypes.StringList] = [
+    COMMAND_STATUSES_LIST: Final[FlextCore.Types.StringList] = [
         CommandStatus.PENDING.value,
         CommandStatus.RUNNING.value,
         CommandStatus.COMPLETED.value,
         CommandStatus.FAILED.value,
     ]
 
-    ERROR_CODES_LIST: Final[FlextTypes.StringList] = [
+    ERROR_CODES_LIST: Final[FlextCore.Types.StringList] = [
         ErrorCodes.CLI_ERROR.value,
         ErrorCodes.VALIDATION_ERROR.value,
         ErrorCodes.CONFIGURATION_ERROR.value,
@@ -168,7 +172,7 @@ class FlextCliConstants(FlextConstants):
         SESSION: Final[str] = "session"
 
         # Shell command list
-        BUILTIN_COMMANDS: Final[FlextTypes.StringList] = [
+        BUILTIN_COMMANDS: Final[FlextCore.Types.StringList] = [
             EXIT,
             QUIT,
             Q,
@@ -228,7 +232,7 @@ class FlextCliConstants(FlextConstants):
         HEAD = "HEAD"
         OPTIONS = "OPTIONS"
 
-    HTTP_METHODS_LIST: Final[FlextTypes.StringList] = [
+    HTTP_METHODS_LIST: Final[FlextCore.Types.StringList] = [
         "GET",
         "POST",
         "PUT",
@@ -247,7 +251,7 @@ class FlextCliConstants(FlextConstants):
         SUCCESS = "success"
         DEBUG = "debug"
 
-    MESSAGE_TYPES_LIST: Final[FlextTypes.StringList] = [
+    MESSAGE_TYPES_LIST: Final[FlextCore.Types.StringList] = [
         MessageTypes.INFO.value,
         MessageTypes.ERROR.value,
         MessageTypes.WARNING.value,
@@ -319,7 +323,7 @@ class FlextCliConstants(FlextConstants):
     VERSION: Final[str] = "2.0.0"
 
     # Table formats for tabulate integration
-    TABLE_FORMATS: Final[FlextTypes.StringDict] = {
+    TABLE_FORMATS: Final[FlextCore.Types.StringDict] = {
         "plain": "Minimal formatting, no borders",
         "simple": "Simple ASCII borders",
         "grid": "Grid-style ASCII table",

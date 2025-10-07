@@ -33,6 +33,7 @@ def demonstrate_interactive_shell() -> None:
 
 def demonstrate_custom_commands() -> None:
     """Show command registration with auto-help."""
+
     def greet(name: str) -> FlextResult[None]:
         print(f"Hello, {name}!")
         return FlextResult[None].ok(None)

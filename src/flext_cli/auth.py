@@ -19,13 +19,7 @@ from datetime import UTC, datetime
 from pathlib import Path
 from typing import ClassVar
 
-from flext_core import (
-    FlextContainer,
-    FlextLogger,
-    FlextResult,
-    FlextTypes,
-    FlextUtilities,
-)
+from flext_core import FlextCore
 
 from flext_cli.config import FlextCliConfig
 from flext_cli.constants import FlextCliConstants
@@ -54,8 +48,8 @@ class FlextCliAuth:
         self, *, config: FlextCliConfig | None = None, **_data: object
     ) -> None:
         """Initialize authentication service with flext-core integration."""
-        self.logger = FlextLogger(__name__)
-        self._container = FlextContainer()
+        self.logger = FlextCore.Logger(__name__)
+        self._container = FlextCore.Container()
 
         # Use config module
         if config is None:
@@ -63,7 +57,9 @@ class FlextCliAuth:
         else:
             self._config = config
 
-    def _validate_credentials(self, username: str, password: str) -> FlextResult[None]:
+    def _validate_credentials(
+        self, username: str, password: str
+    ) -> FlextCore.Result[None]:
         """Validate user credentials.
 
         Args:
@@ -71,21 +67,21 @@ class FlextCliAuth:
             password: Password to validate
 
         Returns:
-            FlextResult[None]: Success if credentials are valid
+            FlextCore.Result[None]: Success if credentials are valid
 
         """
         if not username or not password:
-            return FlextResult[None].fail("Username and password are required")
+            return FlextCore.Result[None].fail("Username and password are required")
 
         if len(username) < FlextCliConstants.Auth.MIN_USERNAME_LENGTH:
-            return FlextResult[None].fail("Username must be at least 3 characters")
+            return FlextCore.Result[None].fail("Username must be at least 3 characters")
 
         if len(password) < FlextCliConstants.Auth.MIN_PASSWORD_LENGTH:
-            return FlextResult[None].fail("Password must be at least 6 characters")
+            return FlextCore.Result[None].fail("Password must be at least 6 characters")
 
-        return FlextResult[None].ok(None)
+        return FlextCore.Result[None].ok(None)
 
-    def _get_token_paths(self, config: object) -> FlextResult[dict[str, Path]]:
+    def _get_token_paths(self, config: object) -> FlextCore.Result[dict[str, Path]]:
         """Get token file paths from configuration."""
         try:
             # Use basic config attributes or defaults
@@ -102,15 +98,19 @@ class FlextCliAuth:
 
             paths = {"token_path": token_path, "refresh_token_path": refresh_path}
 
-            return FlextResult[dict[str, Path]].ok(paths)
+            return FlextCore.Result[dict[str, Path]].ok(paths)
         except Exception as e:
-            return FlextResult[dict[str, Path]].fail(f"Failed to get token paths: {e}")
+            return FlextCore.Result[dict[str, Path]].fail(
+                f"Failed to get token paths: {e}"
+            )
 
-    def _save_token_to_file(self, token: str, file_path: Path) -> FlextResult[None]:
+    def _save_token_to_file(
+        self, token: str, file_path: Path
+    ) -> FlextCore.Result[None]:
         """Save token to secure file storage."""
         try:
             if not token or not token.strip():
-                return FlextResult[None].fail("Token cannot be empty")
+                return FlextCore.Result[None].fail("Token cannot be empty")
 
             # Create parent directories with secure permissions
             file_path.parent.mkdir(parents=True, exist_ok=True, mode=0o700)
@@ -119,55 +119,61 @@ class FlextCliAuth:
             file_path.write_text(token.strip(), encoding="utf-8")
             file_path.chmod(0o600)
 
-            return FlextResult[None].ok(None)
+            return FlextCore.Result[None].ok(None)
         except (OSError, PermissionError) as e:
-            return FlextResult[None].fail(f"Failed to save token: {e}")
+            return FlextCore.Result[None].fail(f"Failed to save token: {e}")
 
-    def _load_token_from_file(self, file_path: Path) -> FlextResult[str]:
+    def _load_token_from_file(self, file_path: Path) -> FlextCore.Result[str]:
         """Load token from secure file storage."""
         try:
             if not file_path.exists():
-                return FlextResult[str].fail("Token file does not exist")
+                return FlextCore.Result[str].fail("Token file does not exist")
 
             token = file_path.read_text(encoding="utf-8").strip()
             if not token:
-                return FlextResult[str].fail("Token file is empty")
+                return FlextCore.Result[str].fail("Token file is empty")
 
-            return FlextResult[str].ok(token)
+            return FlextCore.Result[str].ok(token)
         except (OSError, PermissionError) as e:
-            return FlextResult[str].fail(f"Failed to load token: {e}")
+            return FlextCore.Result[str].fail(f"Failed to load token: {e}")
 
-    def execute(self) -> FlextResult[FlextCliTypes.Auth.AuthResult]:
+    def execute(self) -> FlextCore.Result[FlextCliTypes.Auth.AuthResult]:
         """Execute authentication service - required by FlextService."""
         status_result = self.get_auth_status()
         if status_result.is_failure:
-            return FlextResult[FlextCliTypes.Auth.AuthResult].fail(
+            return FlextCore.Result[FlextCliTypes.Auth.AuthResult].fail(
                 f"Auth status check failed: {status_result.error}"
             )
 
-        return FlextResult[FlextCliTypes.Auth.AuthResult].ok({
+        return FlextCore.Result[FlextCliTypes.Auth.AuthResult].ok({
             "status": FlextCliConstants.OPERATIONAL,
             "message": "FlextCliAuth service operational",
         })
 
-    def validate_credentials(self, username: str, password: str) -> FlextResult[None]:
+    def validate_credentials(
+        self, username: str, password: str
+    ) -> FlextCore.Result[None]:
         """Validate login credentials."""
         return self._validate_credentials(username, password)
 
-    def save_auth_token(self, token: str) -> FlextResult[None]:
+    def save_auth_token(self, token: str) -> FlextCore.Result[None]:
         """Save authentication token to secure storage."""
         paths_result = self._get_token_paths(self._config)
         if paths_result.is_failure:
-            return FlextResult[None].fail(f"Token paths failed: {paths_result.error}")
+            return FlextCore.Result[None].fail(
+                f"Token paths failed: {paths_result.error}"
+            )
 
         paths = paths_result.value
         return self._save_token_to_file(token, paths["token_path"])
 
-    def get_auth_token(self) -> FlextResult[str]:
+    def get_auth_token(self) -> FlextCore.Result[str]:
         """Retrieve authentication token from storage."""
         paths_result = self._get_token_paths(self._config)
         if paths_result.is_failure:
-            return FlextResult[str].fail(f"Token paths failed: {paths_result.error}")
+            return FlextCore.Result[str].fail(
+                f"Token paths failed: {paths_result.error}"
+            )
 
         paths = paths_result.value
         return self._load_token_from_file(paths["token_path"])
@@ -177,14 +183,16 @@ class FlextCliAuth:
         token_result = self.get_auth_token()
         return token_result.is_success and bool(token_result.value)
 
-    def clear_auth_tokens(self) -> FlextResult[None]:
+    def clear_auth_tokens(self) -> FlextCore.Result[None]:
         """Clear all authentication tokens from storage."""
         paths_result = self._get_token_paths(self._config)
         if paths_result.is_failure:
-            return FlextResult[None].fail(f"Token paths failed: {paths_result.error}")
+            return FlextCore.Result[None].fail(
+                f"Token paths failed: {paths_result.error}"
+            )
 
         paths = paths_result.value
-        errors: FlextTypes.StringList = []
+        errors: FlextCore.Types.StringList = []
 
         # Clear access token
         if paths["token_path"].exists():
@@ -201,15 +209,15 @@ class FlextCliAuth:
                 errors.append(f"Failed to remove refresh token file: {e}")
 
         if errors:
-            return FlextResult[None].fail("; ".join(errors))
+            return FlextCore.Result[None].fail("; ".join(errors))
 
-        return FlextResult[None].ok(None)
+        return FlextCore.Result[None].ok(None)
 
-    def get_auth_status(self) -> FlextResult[FlextCliTypes.Auth.AuthResult]:
+    def get_auth_status(self) -> FlextCore.Result[FlextCliTypes.Auth.AuthResult]:
         """Get current authentication status information."""
         paths_result = self._get_token_paths(self._config)
         if paths_result.is_failure:
-            return FlextResult[FlextCliTypes.Auth.AuthResult].fail(
+            return FlextCore.Result[FlextCliTypes.Auth.AuthResult].fail(
                 f"Token paths failed: {paths_result.error}"
             )
 
@@ -217,28 +225,35 @@ class FlextCliAuth:
         authenticated = self.is_authenticated()
 
         status: dict[
-            str, str | int | float | bool | FlextTypes.List | FlextTypes.Dict | None
+            str,
+            str
+            | int
+            | float
+            | bool
+            | FlextCore.Types.List
+            | FlextCore.Types.Dict
+            | None,
         ] = {
             "authenticated": authenticated,
             "token_file": str(paths["token_path"]),
             "token_exists": paths["token_path"].exists(),
             "refresh_token_file": str(paths["refresh_token_path"]),
             "refresh_token_exists": paths["refresh_token_path"].exists(),
-            "timestamp": FlextUtilities.Correlation.generate_iso_timestamp(),
+            "timestamp": FlextCore.Utilities.Correlation.generate_iso_timestamp(),
         }
 
-        return FlextResult[FlextCliTypes.Auth.AuthResult].ok(status)
+        return FlextCore.Result[FlextCliTypes.Auth.AuthResult].ok(status)
 
     def authenticate(
         self, credentials: FlextCliTypes.Auth.CredentialsData
-    ) -> FlextResult[str]:
+    ) -> FlextCore.Result[str]:
         """Authenticate user with provided credentials using advanced patterns.
 
         Args:
             credentials: Authentication credentials (username, password, token, etc.)
 
         Returns:
-            FlextResult[str]: Authentication token or error message
+            FlextCore.Result[str]: Authentication token or error message
 
         """
         # Railway-oriented authentication with pattern matching
@@ -248,29 +263,31 @@ class FlextCliAuth:
         if "username" in credentials and "password" in credentials:
             return self._authenticate_with_credentials(credentials)
 
-        return FlextResult[str].fail(
+        return FlextCore.Result[str].fail(
             "Invalid credentials: missing token or username/password"
         )
 
     def _authenticate_with_token(
         self, credentials: FlextCliTypes.Auth.CredentialsData
-    ) -> FlextResult[str]:
+    ) -> FlextCore.Result[str]:
         """Authenticate using token with monadic composition."""
         token = str(credentials["token"])
         # Save token using railway composition
         save_result = self.save_auth_token(token)
         if save_result.is_failure:
-            return FlextResult[str].fail(f"Failed to save token: {save_result.error}")
+            return FlextCore.Result[str].fail(
+                f"Failed to save token: {save_result.error}"
+            )
 
         # Validate token is not empty
         if not token.strip():
-            return FlextResult[str].fail("Token cannot be empty")
+            return FlextCore.Result[str].fail("Token cannot be empty")
 
-        return FlextResult[str].ok(token)
+        return FlextCore.Result[str].ok(token)
 
     def _authenticate_with_credentials(
         self, credentials: FlextCliTypes.Auth.CredentialsData
-    ) -> FlextResult[str]:
+    ) -> FlextCore.Result[str]:
         """Authenticate using username/password with advanced composition."""
         username = str(credentials["username"])
         password = str(credentials["password"])
@@ -278,7 +295,7 @@ class FlextCliAuth:
         # Advanced validation and token generation pipeline
         return (
             self._validate_credentials(username, password)
-            .map(lambda _: FlextUtilities.generate_id()[:32])
+            .map(lambda _: FlextCore.Utilities.generate_id()[:32])
             .map(lambda token_id: f"auth_token_{username}_{token_id}")
             .flat_map(
                 lambda auth_token: self.save_auth_token(auth_token).map(
@@ -287,7 +304,7 @@ class FlextCliAuth:
             )
         )
 
-    def authenticate_user(self, username: str, password: str) -> FlextResult[str]:
+    def authenticate_user(self, username: str, password: str) -> FlextCore.Result[str]:
         """Authenticate user with username and password.
 
         Args:
@@ -295,7 +312,7 @@ class FlextCliAuth:
             password: User's password
 
         Returns:
-            FlextResult[str]: Authentication token or error message
+            FlextCore.Result[str]: Authentication token or error message
 
         """
         credentials: FlextCliTypes.Auth.CredentialsData = {
@@ -306,7 +323,7 @@ class FlextCliAuth:
 
     def store_credentials(
         self, file_path: str, credentials: FlextCliTypes.Auth.CredentialsData
-    ) -> FlextResult[bool]:
+    ) -> FlextCore.Result[bool]:
         """Store credentials to file.
 
         Args:
@@ -314,7 +331,7 @@ class FlextCliAuth:
             credentials: Credentials data
 
         Returns:
-            FlextResult[bool]: Success status
+            FlextCore.Result[bool]: Success status
 
         """
         try:
@@ -324,18 +341,18 @@ class FlextCliAuth:
             with path.open("w", encoding="utf-8") as f:
                 json.dump(credentials, f, indent=2)
 
-            return FlextResult[bool].ok(True)
+            return FlextCore.Result[bool].ok(True)
         except Exception as e:
-            return FlextResult[bool].fail(f"Failed to store credentials: {e}")
+            return FlextCore.Result[bool].fail(f"Failed to store credentials: {e}")
 
-    def hash_password(self, password: str) -> FlextResult[str]:
+    def hash_password(self, password: str) -> FlextCore.Result[str]:
         """Hash password securely.
 
         Args:
             password: Plain text password
 
         Returns:
-            FlextResult[str]: Hashed password
+            FlextCore.Result[str]: Hashed password
 
         """
         try:
@@ -352,15 +369,15 @@ class FlextCliAuth:
 
             # Combine salt and hash
             hashed = f"{salt}:{password_hash.hex()}"
-            return FlextResult[str].ok(hashed)
+            return FlextCore.Result[str].ok(hashed)
         except Exception as e:
-            return FlextResult[str].fail(f"Failed to hash password: {e}")
+            return FlextCore.Result[str].fail(f"Failed to hash password: {e}")
 
-    def generate_token(self) -> FlextResult[str]:
+    def generate_token(self) -> FlextCore.Result[str]:
         """Generate authentication token.
 
         Returns:
-            FlextResult[str]: Generated token
+            FlextCore.Result[str]: Generated token
 
         """
         try:
@@ -368,134 +385,134 @@ class FlextCliAuth:
             alphabet = string.ascii_letters + string.digits
             token = "".join(secrets.choice(alphabet) for _ in range(32))
             self._valid_tokens.add(token)
-            return FlextResult[str].ok(token)
+            return FlextCore.Result[str].ok(token)
         except Exception as e:
-            return FlextResult[str].fail(f"Failed to generate token: {e}")
+            return FlextCore.Result[str].fail(f"Failed to generate token: {e}")
 
-    def generate_salt(self) -> FlextResult[str]:
+    def generate_salt(self) -> FlextCore.Result[str]:
         """Generate cryptographic salt for password hashing.
 
         Returns:
-            FlextResult[str]: Generated salt string
+            FlextCore.Result[str]: Generated salt string
 
         """
         try:
             # Generate secure random salt (16 bytes, base64 encoded)
             salt_bytes = secrets.token_bytes(16)
             salt = base64.b64encode(salt_bytes).decode("utf-8")
-            return FlextResult[str].ok(salt)
+            return FlextCore.Result[str].ok(salt)
         except Exception as e:
-            return FlextResult[str].fail(f"Failed to generate salt: {e}")
+            return FlextCore.Result[str].fail(f"Failed to generate salt: {e}")
 
     # Additional authentication methods expected by tests
-    def validate_token(self, token: str | None) -> FlextResult[bool]:
+    def validate_token(self, token: str | None) -> FlextCore.Result[bool]:
         """Validate authentication token."""
         if not token or not token.strip():
-            return FlextResult[bool].fail("Token cannot be empty")
+            return FlextCore.Result[bool].fail("Token cannot be empty")
 
         # Check if token is in our valid tokens store
         if token in self._valid_tokens:
-            return FlextResult[bool].ok(True)
-        return FlextResult[bool].ok(False)
+            return FlextCore.Result[bool].ok(True)
+        return FlextCore.Result[bool].ok(False)
 
-    def refresh_token(self, token: str) -> FlextResult[str]:
+    def refresh_token(self, token: str) -> FlextCore.Result[str]:
         """Refresh authentication token."""
         if not token or not token.strip():
-            return FlextResult[str].fail("Token cannot be empty")
+            return FlextCore.Result[str].fail("Token cannot be empty")
 
         # Generate new token
         return self.generate_token()
 
-    def revoke_token(self, token: str) -> FlextResult[bool]:
+    def revoke_token(self, token: str) -> FlextCore.Result[bool]:
         """Revoke authentication token."""
         if not token or not token.strip():
-            return FlextResult[bool].fail("Token cannot be empty")
+            return FlextCore.Result[bool].fail("Token cannot be empty")
 
         # Remove token from valid tokens store
         if token in self._valid_tokens:
             self._valid_tokens.remove(token)
-            return FlextResult[bool].ok(True)
-        return FlextResult[bool].ok(False)
+            return FlextCore.Result[bool].ok(True)
+        return FlextCore.Result[bool].ok(False)
 
     def load_credentials(
         self, file_path: str
-    ) -> FlextResult[FlextCliTypes.Auth.CredentialsData]:
+    ) -> FlextCore.Result[FlextCliTypes.Auth.CredentialsData]:
         """Load credentials from file."""
         try:
             path = Path(file_path)
             if not path.exists():
-                return FlextResult[FlextCliTypes.Auth.CredentialsData].fail(
+                return FlextCore.Result[FlextCliTypes.Auth.CredentialsData].fail(
                     "Credentials file does not exist"
                 )
 
             with path.open("r", encoding="utf-8") as f:
                 credentials = json.load(f)
 
-            return FlextResult[FlextCliTypes.Auth.CredentialsData].ok(credentials)
+            return FlextCore.Result[FlextCliTypes.Auth.CredentialsData].ok(credentials)
         except Exception as e:
-            return FlextResult[FlextCliTypes.Auth.CredentialsData].fail(
+            return FlextCore.Result[FlextCliTypes.Auth.CredentialsData].fail(
                 f"Failed to load credentials: {e}"
             )
 
-    def clear_credentials(self, file_path: str) -> FlextResult[bool]:
+    def clear_credentials(self, file_path: str) -> FlextCore.Result[bool]:
         """Clear credentials file."""
         try:
             path = Path(file_path)
             if path.exists():
                 path.unlink()
-            return FlextResult[bool].ok(True)
+            return FlextCore.Result[bool].ok(True)
         except Exception as e:
-            return FlextResult[bool].fail(f"Failed to clear credentials: {e}")
+            return FlextCore.Result[bool].fail(f"Failed to clear credentials: {e}")
 
     def authenticate_with_password(
         self, username: str, password: str
-    ) -> FlextResult[str]:
+    ) -> FlextCore.Result[str]:
         """Authenticate with username and password."""
         return self.authenticate_user(username, password)
 
     def authenticate_with_token(
         self, token: str
-    ) -> FlextResult[FlextCliTypes.Auth.AuthResult]:
+    ) -> FlextCore.Result[FlextCliTypes.Auth.AuthResult]:
         """Authenticate with token."""
         validate_result = self.validate_token(token)
         if validate_result.is_failure:
-            return FlextResult[FlextCliTypes.Auth.AuthResult].fail(
+            return FlextCore.Result[FlextCliTypes.Auth.AuthResult].fail(
                 f"Token validation failed: {validate_result.error}"
             )
 
         if not validate_result.value:
-            return FlextResult[FlextCliTypes.Auth.AuthResult].fail("Invalid token")
+            return FlextCore.Result[FlextCliTypes.Auth.AuthResult].fail("Invalid token")
 
         auth_result: FlextCliTypes.Auth.AuthResult = {
             "authenticated": True,
             "token": token,
             "timestamp": datetime.now(UTC).isoformat(),
         }
-        return FlextResult[FlextCliTypes.Auth.AuthResult].ok(auth_result)
+        return FlextCore.Result[FlextCliTypes.Auth.AuthResult].ok(auth_result)
 
-    def authenticate_with_api_key(self, api_key: str) -> FlextResult[str]:
+    def authenticate_with_api_key(self, api_key: str) -> FlextCore.Result[str]:
         """Authenticate with API key."""
         if not api_key or not api_key.strip():
-            return FlextResult[str].fail("API key cannot be empty")
+            return FlextCore.Result[str].fail("API key cannot be empty")
 
         # Generate token for API key authentication
         return self.generate_token()
 
-    def authenticate_with_certificate(self, cert_file: str) -> FlextResult[str]:
+    def authenticate_with_certificate(self, cert_file: str) -> FlextCore.Result[str]:
         """Authenticate with certificate file."""
         try:
             path = Path(cert_file)
             if not path.exists():
-                return FlextResult[str].fail("Certificate file does not exist")
+                return FlextCore.Result[str].fail("Certificate file does not exist")
 
             # In real implementation, this would validate the certificate
             return self.generate_token()
         except Exception as e:
-            return FlextResult[str].fail(f"Certificate authentication failed: {e}")
+            return FlextCore.Result[str].fail(f"Certificate authentication failed: {e}")
 
-    def create_session(self) -> FlextResult[FlextCliTypes.Auth.AuthResult]:
+    def create_session(self) -> FlextCore.Result[FlextCliTypes.Auth.AuthResult]:
         """Create a new authentication session."""
-        session_id = FlextUtilities.generate_id()[:16]
+        session_id = FlextCore.Utilities.generate_id()[:16]
         session: FlextCliTypes.Auth.AuthResult = {
             "session_id": session_id,
             "created_at": datetime.now(UTC).isoformat(),
@@ -503,34 +520,34 @@ class FlextCliAuth:
             "permissions": [],
         }
         self._valid_sessions.add(session_id)
-        return FlextResult[FlextCliTypes.Auth.AuthResult].ok(session)
+        return FlextCore.Result[FlextCliTypes.Auth.AuthResult].ok(session)
 
-    def validate_session(self, session_id: str) -> FlextResult[bool]:
+    def validate_session(self, session_id: str) -> FlextCore.Result[bool]:
         """Validate session ID."""
         if not session_id or not session_id.strip():
-            return FlextResult[bool].fail("Session ID cannot be empty")
+            return FlextCore.Result[bool].fail("Session ID cannot be empty")
 
         # Check if session is in our valid sessions store
         if session_id in self._valid_sessions:
-            return FlextResult[bool].ok(True)
-        return FlextResult[bool].ok(False)
+            return FlextCore.Result[bool].ok(True)
+        return FlextCore.Result[bool].ok(False)
 
-    def destroy_session(self, session_id: str) -> FlextResult[bool]:
+    def destroy_session(self, session_id: str) -> FlextCore.Result[bool]:
         """Destroy authentication session."""
         if not session_id or not session_id.strip():
-            return FlextResult[bool].fail("Session ID cannot be empty")
+            return FlextCore.Result[bool].fail("Session ID cannot be empty")
 
         # Remove session from valid sessions store
         if session_id in self._valid_sessions:
             self._valid_sessions.remove(session_id)
-        return FlextResult[bool].ok(True)
+        return FlextCore.Result[bool].ok(True)
 
     def get_session_info(
         self, session_id: str
-    ) -> FlextResult[FlextCliTypes.Auth.AuthResult]:
+    ) -> FlextCore.Result[FlextCliTypes.Auth.AuthResult]:
         """Get session information."""
         if not session_id or not session_id.strip():
-            return FlextResult[FlextCliTypes.Auth.AuthResult].fail(
+            return FlextCore.Result[FlextCliTypes.Auth.AuthResult].fail(
                 "Session ID cannot be empty"
             )
 
@@ -540,72 +557,78 @@ class FlextCliAuth:
             "expires_at": (datetime.now(UTC).timestamp() + 3600),
             "permissions": [],
         }
-        return FlextResult[FlextCliTypes.Auth.AuthResult].ok(session_info)
+        return FlextCore.Result[FlextCliTypes.Auth.AuthResult].ok(session_info)
 
-    def check_permission(self, session_id: str, permission: str) -> FlextResult[bool]:
+    def check_permission(
+        self, session_id: str, permission: str
+    ) -> FlextCore.Result[bool]:
         """Check if session has permission."""
         if not session_id or not session_id.strip():
-            return FlextResult[bool].fail("Session ID cannot be empty")
+            return FlextCore.Result[bool].fail("Session ID cannot be empty")
 
         if not permission or not permission.strip():
-            return FlextResult[bool].fail("Permission cannot be empty")
+            return FlextCore.Result[bool].fail("Permission cannot be empty")
 
         # Check if session has permission in our store
         if session_id in self._session_permissions:
             has_permission = permission in self._session_permissions[session_id]
-            return FlextResult[bool].ok(has_permission)
-        return FlextResult[bool].ok(False)
+            return FlextCore.Result[bool].ok(has_permission)
+        return FlextCore.Result[bool].ok(False)
 
-    def grant_permission(self, session_id: str, permission: str) -> FlextResult[bool]:
+    def grant_permission(
+        self, session_id: str, permission: str
+    ) -> FlextCore.Result[bool]:
         """Grant permission to session."""
         if not session_id or not session_id.strip():
-            return FlextResult[bool].fail("Session ID cannot be empty")
+            return FlextCore.Result[bool].fail("Session ID cannot be empty")
 
         if not permission or not permission.strip():
-            return FlextResult[bool].fail("Permission cannot be empty")
+            return FlextCore.Result[bool].fail("Permission cannot be empty")
 
         # Add permission to session permissions store
         if session_id not in self._session_permissions:
             self._session_permissions[session_id] = set()
         self._session_permissions[session_id].add(permission)
-        return FlextResult[bool].ok(True)
+        return FlextCore.Result[bool].ok(True)
 
-    def revoke_permission(self, session_id: str, permission: str) -> FlextResult[bool]:
+    def revoke_permission(
+        self, session_id: str, permission: str
+    ) -> FlextCore.Result[bool]:
         """Revoke permission from session."""
         if not session_id or not session_id.strip():
-            return FlextResult[bool].fail("Session ID cannot be empty")
+            return FlextCore.Result[bool].fail("Session ID cannot be empty")
 
         if not permission or not permission.strip():
-            return FlextResult[bool].fail("Permission cannot be empty")
+            return FlextCore.Result[bool].fail("Permission cannot be empty")
 
         # Remove permission from session permissions store
         if session_id in self._session_permissions:
             self._session_permissions[session_id].discard(permission)
-        return FlextResult[bool].ok(True)
+        return FlextCore.Result[bool].ok(True)
 
     def list_permissions(
         self, session_id: str
-    ) -> FlextResult[FlextCliTypes.Auth.PermissionList]:
+    ) -> FlextCore.Result[FlextCliTypes.Auth.PermissionList]:
         """List permissions for session."""
         if not session_id or not session_id.strip():
-            return FlextResult[FlextCliTypes.Auth.PermissionList].fail(
+            return FlextCore.Result[FlextCliTypes.Auth.PermissionList].fail(
                 "Session ID cannot be empty"
             )
 
         # Return sample permissions - in real implementation, this would query session store
         permissions = ["read", "write"]
-        return FlextResult[FlextCliTypes.Auth.PermissionList].ok(permissions)
+        return FlextCore.Result[FlextCliTypes.Auth.PermissionList].ok(permissions)
 
     def create_user(
         self, user_data: FlextCliTypes.Auth.UserData
-    ) -> FlextResult[FlextCliTypes.Auth.UserData]:
+    ) -> FlextCore.Result[FlextCliTypes.Auth.UserData]:
         """Create a new user."""
         if not user_data:
-            return FlextResult[FlextCliTypes.Auth.UserData].fail(
+            return FlextCore.Result[FlextCliTypes.Auth.UserData].fail(
                 "User data cannot be empty"
             )
 
-        user_id = FlextUtilities.generate_id()[:12]
+        user_id = FlextCore.Utilities.generate_id()[:12]
         user = {
             "user_id": user_id,
             "username": user_data.get("username", ""),
@@ -614,22 +637,24 @@ class FlextCliAuth:
             "active": True,
         }
         self._users[user_id] = user
-        return FlextResult[FlextCliTypes.Auth.UserData].ok(user)
+        return FlextCore.Result[FlextCliTypes.Auth.UserData].ok(user)
 
-    def get_user(self, user_id: str) -> FlextResult[FlextCliTypes.Auth.UserData]:
+    def get_user(self, user_id: str) -> FlextCore.Result[FlextCliTypes.Auth.UserData]:
         """Get user information."""
         if not user_id or not user_id.strip():
-            return FlextResult[FlextCliTypes.Auth.UserData].fail(
+            return FlextCore.Result[FlextCliTypes.Auth.UserData].fail(
                 "User ID cannot be empty"
             )
 
         # Check if user was deleted
         if user_id in self._deleted_users:
-            return FlextResult[FlextCliTypes.Auth.UserData].fail("User not found")
+            return FlextCore.Result[FlextCliTypes.Auth.UserData].fail("User not found")
 
         # Check if user exists in our store
         if user_id in self._users:
-            return FlextResult[FlextCliTypes.Auth.UserData].ok(self._users[user_id])
+            return FlextCore.Result[FlextCliTypes.Auth.UserData].ok(
+                self._users[user_id]
+            )
 
         # Return sample user - in real implementation, this would query user store
         user: FlextCliTypes.Auth.UserData = {
@@ -639,43 +664,43 @@ class FlextCliAuth:
             "created_at": datetime.now(UTC).isoformat(),
             "active": True,
         }
-        return FlextResult[FlextCliTypes.Auth.UserData].ok(user)
+        return FlextCore.Result[FlextCliTypes.Auth.UserData].ok(user)
 
     def update_user(
         self, user_id: str, update_data: FlextCliTypes.Auth.UserData
-    ) -> FlextResult[FlextCliTypes.Auth.UserData]:
+    ) -> FlextCore.Result[FlextCliTypes.Auth.UserData]:
         """Update user information."""
         if not user_id or not user_id.strip():
-            return FlextResult[FlextCliTypes.Auth.UserData].fail(
+            return FlextCore.Result[FlextCliTypes.Auth.UserData].fail(
                 "User ID cannot be empty"
             )
 
         if not update_data:
-            return FlextResult[FlextCliTypes.Auth.UserData].fail(
+            return FlextCore.Result[FlextCliTypes.Auth.UserData].fail(
                 "Update data cannot be empty"
             )
 
         # Check if user exists in our store
         if user_id not in self._users:
-            return FlextResult[FlextCliTypes.Auth.UserData].fail("User not found")
+            return FlextCore.Result[FlextCliTypes.Auth.UserData].fail("User not found")
 
         # Update the user in the store
         user = self._users[user_id].copy()
         user.update(update_data)
         self._users[user_id] = user
 
-        return FlextResult[FlextCliTypes.Auth.UserData].ok(user)
+        return FlextCore.Result[FlextCliTypes.Auth.UserData].ok(user)
 
-    def delete_user(self, user_id: str) -> FlextResult[bool]:
+    def delete_user(self, user_id: str) -> FlextCore.Result[bool]:
         """Delete user."""
         if not user_id or not user_id.strip():
-            return FlextResult[bool].fail("User ID cannot be empty")
+            return FlextCore.Result[bool].fail("User ID cannot be empty")
 
         # Mark user as deleted in our simple store
         self._deleted_users.add(user_id)
-        return FlextResult[bool].ok(True)
+        return FlextCore.Result[bool].ok(True)
 
-    def list_users(self) -> FlextResult[FlextCliTypes.Auth.UserList]:
+    def list_users(self) -> FlextCore.Result[FlextCliTypes.Auth.UserList]:
         """List all users."""
         # Return sample users - in real implementation, this would query user store
         users: FlextCliTypes.Auth.UserList = [
@@ -694,15 +719,17 @@ class FlextCliAuth:
                 "active": True,
             },
         ]
-        return FlextResult[FlextCliTypes.Auth.UserList].ok(users)
+        return FlextCore.Result[FlextCliTypes.Auth.UserList].ok(users)
 
-    def verify_password(self, password: str, hashed_password: str) -> FlextResult[bool]:
+    def verify_password(
+        self, password: str, hashed_password: str
+    ) -> FlextCore.Result[bool]:
         """Verify password against hash."""
         if not password or not password.strip():
-            return FlextResult[bool].fail("Password cannot be empty")
+            return FlextCore.Result[bool].fail("Password cannot be empty")
 
         if not hashed_password or not hashed_password.strip():
-            return FlextResult[bool].fail("Hashed password cannot be empty")
+            return FlextCore.Result[bool].fail("Hashed password cannot be empty")
 
         try:
             # Simple verification - in real implementation, this would use proper password verification
@@ -711,10 +738,10 @@ class FlextCliAuth:
                 password_hash = hashlib.pbkdf2_hmac(
                     "sha256", password.encode("utf-8"), salt.encode("utf-8"), 100000
                 )
-                return FlextResult[bool].ok(password_hash.hex() == stored_hash)
-            return FlextResult[bool].ok(False)
+                return FlextCore.Result[bool].ok(password_hash.hex() == stored_hash)
+            return FlextCore.Result[bool].ok(False)
         except Exception as e:
-            return FlextResult[bool].fail(f"Password verification failed: {e}")
+            return FlextCore.Result[bool].fail(f"Password verification failed: {e}")
 
 
 __all__ = ["FlextCliAuth"]

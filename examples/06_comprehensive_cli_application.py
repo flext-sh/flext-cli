@@ -53,7 +53,7 @@ class ComprehensiveCliApplication:
         """Initialize the CLI application with setup and validation."""
         try:
             # Display initialization message using flext-cli API
-            self.cli_api.info(
+            self.cli.output.print_message(
                 "Initializing application with full flext-cli integration..."
             )
 
@@ -68,7 +68,7 @@ class ComprehensiveCliApplication:
             # Load user preferences
             self._load_user_preferences()
 
-            self.cli_api.success("Application initialized successfully")
+            self.cli.output.print_success("Application initialized successfully")
             return FlextResult[None].ok(None)
 
         except Exception as e:
@@ -225,8 +225,8 @@ class ComprehensiveCliApplication:
             return FlextResult[None].fail("Project name is required")
 
         # Display progress
-        self.cli_api.info(f"Creating project: {name}")
-        self.cli_api.info(f"Template: {template}")
+        self.cli.output.print_message(f"Creating project: {name}")
+        self.cli.output.print_message(f"Template: {template}")
 
         # Determine project directory
         directory = Path(str(directory_path)) if directory_path else Path.cwd() / name
@@ -261,7 +261,7 @@ python = "^3.13"
             "Created At": datetime.now(UTC).strftime("%Y-%m-%d %H:%M:%S UTC"),
         }
 
-        self.cli_api.info("Project data: " + str(project_data))
+        self.cli.output.print_message("Project data: " + str(project_data))
 
         return FlextResult[None].ok(None)
 
@@ -288,7 +288,7 @@ python = "^3.13"
             "Analysis Time": datetime.now(UTC).strftime("%Y-%m-%d %H:%M:%S UTC"),
         }
 
-        self.cli_api.info("Status data: " + str(status_data))
+        self.cli.output.print_message("Status data: " + str(status_data))
 
         return FlextResult[None].ok(None)
 
@@ -300,7 +300,9 @@ python = "^3.13"
         if not url:
             return FlextResult[None].fail("Service URL is required")
 
-        self.cli_api.info(f"Checking health of service: {url}", message_type="info")
+        self.cli.output.print_message(
+            f"Checking health of service: {url}", message_type="info"
+        )
 
         # Simulate health check (in real implementation, would make HTTP request)
         health_status = "healthy"
@@ -315,7 +317,7 @@ python = "^3.13"
             "Check Time": datetime.now(UTC).strftime("%H:%M:%S UTC"),
         }
 
-        self.cli_api.info("Health data: " + str(health_data))
+        self.cli.output.print_message("Health data: " + str(health_data))
 
         return FlextResult[None].ok(None)
 
@@ -329,10 +331,10 @@ python = "^3.13"
             "App Name": "flext-cli",
         }
 
-        self.cli_api.info("Config data: " + str(config_data))
+        self.cli.output.print_message("Config data: " + str(config_data))
 
         # Show user preferences
-        self.cli_api.info("User preferences: " + str(self.user_preferences))
+        self.cli.output.print_message("User preferences: " + str(self.user_preferences))
 
         return FlextResult[None].ok(None)
 
@@ -342,7 +344,7 @@ python = "^3.13"
         output = kwargs.get("output")
 
         if not profile and not output:
-            self.cli_api.info(
+            self.cli.output.print_message(
                 "No configuration changes specified", message_type="warning"
             )
             return FlextResult[None].ok(None)
@@ -357,15 +359,15 @@ python = "^3.13"
             self.user_preferences["default_output_format"] = output
             changes.append(f"Output format: {output}")
 
-        self.cli_api.info("Configuration updated", message_type="success")
+        self.cli.output.print_message("Configuration updated", message_type="success")
         for change in changes:
-            self.cli_api.info(f"  • {change}", message_type="info")
+            self.cli.output.print_message(f"  • {change}", message_type="info")
 
         return FlextResult[None].ok(None)
 
     def _handle_interactive_wizard(self, **_kwargs: object) -> FlextResult[None]:
         """Handle interactive setup wizard."""
-        self.cli_api.info(
+        self.cli.output.print_message(
             "This wizard will guide you through CLI configuration...",
             message_type="info",
         )
@@ -380,10 +382,12 @@ python = "^3.13"
             "configured_at": datetime.now(UTC).isoformat(),
         }
 
-        self.cli_api.info("Wizard config: " + str(wizard_config))
+        self.cli.output.print_message("Wizard config: " + str(wizard_config))
 
         self.user_preferences.update(wizard_config)
-        self.cli_api.info("Configuration saved successfully!", message_type="success")
+        self.cli.output.print_message(
+            "Configuration saved successfully!", message_type="success"
+        )
 
         return FlextResult[None].ok(None)
 
@@ -397,7 +401,7 @@ def main() -> None:
         # Initialize application
         init_result = app.initialize_application()
         if init_result.is_failure:
-            app.cli_api.info(
+            app.cli.output.print_message(
                 f"Initialization failed: {init_result.error}", message_type="error"
             )
             sys.exit(1)
@@ -405,7 +409,7 @@ def main() -> None:
         # Create CLI interface
         cli_result = app.create_cli_interface()
         if cli_result.is_failure:
-            app.cli_api.info(
+            app.cli.output.print_message(
                 f"CLI creation failed: {cli_result.error}", message_type="error"
             )
             sys.exit(1)
@@ -415,18 +419,18 @@ def main() -> None:
         execution_result = cli_main.execute()
 
         if execution_result.is_failure:
-            app.cli_api.info(
+            app.cli.output.print_message(
                 f"CLI execution failed: {execution_result.error}", message_type="error"
             )
             sys.exit(1)
 
     except KeyboardInterrupt:
         cli_api = FlextCli()
-        cli_api.warning("Operation cancelled by user")
+        cli_api.output.print_warning("Operation cancelled by user")
         sys.exit(130)
     except Exception as e:
         cli_api = FlextCli()
-        cli_api.error(f"CLI error: {e}")
+        cli_api.output.print_error(f"CLI error: {e}")
         sys.exit(1)
 
 

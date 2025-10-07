@@ -17,10 +17,8 @@ from pathlib import Path
 import pytest
 import yaml
 from click.testing import CliRunner
-from flext_core import FlextContainer, FlextTypes, FlextUtilities
+from flext_core import FlextCore
 
-# Test utilities removed from flext-core production exports
-# Using simple implementations for test fixtures
 from flext_cli.api import FlextCli
 from flext_cli.auth import FlextCliAuth
 from flext_cli.cmd import FlextCliCmd
@@ -215,9 +213,9 @@ def flext_cli_types() -> FlextCliTypes:
 
 
 @pytest.fixture
-def flext_cli_utilities() -> type[FlextUtilities]:
-    """Provide FlextUtilities class from flext-core for testing."""
-    return FlextUtilities
+def flext_cli_utilities() -> type[FlextCore.Utilities]:
+    """Provide FlextCore.Utilities class from flext-core for testing."""
+    return FlextCore.Utilities
 
 
 # ============================================================================
@@ -234,7 +232,7 @@ def flext_cli_utilities() -> type[FlextUtilities]:
 
 
 @pytest.fixture
-def sample_config_data() -> FlextTypes.Dict:
+def sample_config_data() -> FlextCore.Types.Dict:
     """Provide sample configuration data for tests."""
     return {
         "debug": True,
@@ -249,7 +247,7 @@ def sample_config_data() -> FlextTypes.Dict:
 
 
 @pytest.fixture
-def sample_file_data(temp_dir: Path) -> FlextTypes.Dict:
+def sample_file_data(temp_dir: Path) -> FlextCore.Types.Dict:
     """Provide sample file data for tests."""
     return {
         "content": "This is test content for file operations",
@@ -264,7 +262,7 @@ def sample_file_data(temp_dir: Path) -> FlextTypes.Dict:
 
 
 @pytest.fixture
-def sample_command_data() -> FlextTypes.Dict:
+def sample_command_data() -> FlextCore.Types.Dict:
     """Provide sample command data for tests."""
     return {
         "command": "test_command",
@@ -296,7 +294,7 @@ def fixture_data_csv() -> Path:
 
 
 @pytest.fixture
-def load_fixture_config() -> FlextTypes.Dict:
+def load_fixture_config() -> FlextCore.Types.Dict:
     """Load configuration data from fixtures directory."""
     fixture_path = Path("tests/fixtures/configs/test_config.json")
     with fixture_path.open(encoding="utf-8") as f:
@@ -304,7 +302,7 @@ def load_fixture_config() -> FlextTypes.Dict:
 
 
 @pytest.fixture
-def load_fixture_data() -> FlextTypes.Dict:
+def load_fixture_data() -> FlextCore.Types.Dict:
     """Load test data from fixtures directory."""
     fixture_path = Path("tests/fixtures/data/test_data.json")
     with fixture_path.open(encoding="utf-8") as f:
@@ -344,18 +342,18 @@ def mock_env_vars(monkeypatch: pytest.MonkeyPatch) -> None:
 
 @pytest.fixture
 def clean_flext_container() -> Generator[None]:
-    """Ensure clean FlextContainer state for tests."""
+    """Ensure clean FlextCore.Container state for tests."""
     # Store original state
-    FlextContainer.get_global()
+    FlextCore.Container.get_global()
 
     # Create fresh container - use configure_global instead of set_global
-    FlextContainer()
-    FlextContainer.configure_global({})
+    FlextCore.Container()
+    FlextCore.Container.configure_global({})  # type: ignore
 
     yield
 
     # Restore original state - reset to original configuration
-    FlextContainer.configure_global({})
+    FlextCore.Container.configure_global({})  # type: ignore
 
 
 # ============================================================================
