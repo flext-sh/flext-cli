@@ -42,7 +42,6 @@ class TestFlextCli:
         assert hasattr(api_service, "file_tools")
         assert hasattr(api_service, "core")
         assert hasattr(api_service, "prompts")
-        assert hasattr(api_service, "processors")
         assert hasattr(api_service, "cmd")
 
     def test_api_service_execute_method(self, api_service: FlextCli) -> None:
@@ -67,7 +66,7 @@ class TestFlextCli:
 
     def test_format_data_table(self, api_service: FlextCli) -> None:
         """Test table data formatting functionality."""
-        test_data = [
+        test_data: list[dict[str, str | int]] = [
             {"name": "John", "age": 30, "city": "New York"},
             {"name": "Jane", "age": 25, "city": "London"},
             {"name": "Bob", "age": 35, "city": "Paris"},
@@ -86,7 +85,11 @@ class TestFlextCli:
 
     def test_format_data_json(self, api_service: FlextCli) -> None:
         """Test JSON data formatting functionality."""
-        test_data = {"key": "value", "number": 42, "list": [1, 2, 3]}
+        test_data: dict[str, str | int | list[int]] = {
+            "key": "value",
+            "number": 42,
+            "list": [1, 2, 3],
+        }
 
         result = api_service.output.format_data(data=test_data, format_type="json")
 
@@ -102,7 +105,11 @@ class TestFlextCli:
 
     def test_format_data_yaml(self, api_service: FlextCli) -> None:
         """Test YAML data formatting functionality."""
-        test_data = {"key": "value", "number": 42, "list": [1, 2, 3]}
+        test_data: dict[str, str | int | list[int]] = {
+            "key": "value",
+            "number": 42,
+            "list": [1, 2, 3],
+        }
 
         result = api_service.output.format_data(data=test_data, format_type="yaml")
 
@@ -116,7 +123,7 @@ class TestFlextCli:
 
     def test_format_data_csv(self, api_service: FlextCli) -> None:
         """Test CSV data formatting functionality."""
-        test_data = [
+        test_data: list[dict[str, str | int]] = [
             {"name": "John", "age": 30, "city": "New York"},
             {"name": "Jane", "age": 25, "city": "London"},
         ]
@@ -339,7 +346,7 @@ class TestFlextCli:
         """Test configuration loading functionality."""
         # Create test config file
         config_file = temp_dir / "test_config.json"
-        test_config = {
+        test_config: dict[str, bool | str | int] = {
             "debug": True,
             "output_format": "json",
             "timeout": FlextCliConstants.TIMEOUTS.DEFAULT,
@@ -397,11 +404,8 @@ class TestFlextCli:
             "retries": FlextCliConstants.HTTP.MAX_RETRIES,
         }
 
-        result = api_service.utilities.Validation.validate_data(
-            cast(
-                "dict[str, bool | FlextTypes.Dict | float | int | FlextTypes.List | str | None]",
-                valid_config,
-            ),
+        result = api_service.utilities.Validation.validate_data(  # type: ignore[arg-type]
+            valid_config,
             {
                 "debug": bool,
                 "output_format": str,
@@ -419,11 +423,8 @@ class TestFlextCli:
             "retries": "not_a_number",
         }
 
-        result = api_service.utilities.Validation.validate_data(
-            cast(
-                "dict[str, bool | FlextTypes.Dict | float | int | FlextTypes.List | str | None]",
-                invalid_config,
-            ),
+        result = api_service.utilities.Validation.validate_data(  # type: ignore[arg-type]
+            invalid_config,
             {"debug": bool, "timeout": int, "retries": int},
         )
         assert isinstance(result, FlextResult)
@@ -470,7 +471,7 @@ nested:
 
     def test_serialize_yaml(self, api_service: FlextCli, temp_dir: Path) -> None:
         """Test YAML serialization functionality."""
-        test_data = {
+        test_data: dict[str, str | int | list[int] | dict[str, str]] = {
             "key": "value",
             "number": 42,
             "list": [1, 2, 3],
@@ -544,8 +545,8 @@ nested:
 
     def test_concurrent_operations(self, api_service: FlextCli, temp_dir: Path) -> None:
         """Test concurrent operations to ensure thread safety."""
-        results = []
-        errors = []
+        results: list[FlextResult[object]] = []
+        errors: list[Exception] = []
 
         def worker(worker_id: int) -> None:
             try:
@@ -553,20 +554,20 @@ nested:
                 result = api_service.file_tools.write_text_file(
                     str(test_file), f"Worker {worker_id} content"
                 )
-                results.append(result)
+                results.append(result)  # type: ignore[unknown-member-type]
             except Exception as e:
-                errors.append(e)
+                errors.append(e)  # type: ignore[unknown-member-type]
 
         # Start multiple threads
-        threads = []
+        threads: list[threading.Thread] = []
         for i in range(5):
             thread = threading.Thread(target=worker, args=(i,))
-            threads.append(thread)
+            threads.append(thread)  # type: ignore[unknown-member-type]
             thread.start()
 
         # Wait for all threads to complete
         for thread in threads:
-            thread.join()
+            thread.join()  # type: ignore[unknown-member-type]
 
         # Verify all operations succeeded
         assert len(errors) == 0, f"Errors occurred: {errors}"

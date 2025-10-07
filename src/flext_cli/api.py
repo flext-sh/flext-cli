@@ -23,13 +23,11 @@ from flext_cli.debug import FlextCliDebug
 from flext_cli.exceptions import FlextCliExceptions
 from flext_cli.file_tools import FlextCliFileTools
 from flext_cli.formatters import FlextCliFormatters
-from flext_cli.handlers import FlextCliHandlers
 from flext_cli.main import FlextCliMain
 from flext_cli.mixins import FlextCliMixins
 from flext_cli.models import FlextCliModels
 from flext_cli.output import FlextCliOutput
 from flext_cli.plugins import FlextCliPlugins
-from flext_cli.processors import FlextCliProcessors
 from flext_cli.prompts import FlextCliPrompts
 from flext_cli.protocols import FlextCliProtocols
 from flext_cli.tables import FlextCliTables
@@ -65,7 +63,7 @@ class FlextCli:
             return cls()
 
         # Type assertion: container.get returns FlextCli instance
-        return result.value  # type: ignore[return-value]
+        return result.value
 
     def __init__(self) -> None:
         """Initialize CLI API with minimal setup - services lazy-loaded on demand."""
@@ -238,7 +236,9 @@ class FlextCli:
 
             return FlextCore.Result[None].ok(None)
         except Exception as e:
-            return FlextCore.Result[None].fail(f"CLI configuration failed: {e}")
+            return FlextCore.Result[None].fail(
+                FlextCliConstants.ErrorMessages.CLI_CONFIG_FAILED.format(error=e)
+            )
 
     def configure_core(self, **config: object) -> FlextCore.Result[None]:
         """Configure flext-core settings.
@@ -412,16 +412,6 @@ class FlextCli:
         return FlextCliExceptions
 
     @property
-    def handlers(self) -> type[FlextCliHandlers]:
-        """Access CLI handlers.
-
-        Returns:
-            type[FlextCliHandlers]: Handlers class
-
-        """
-        return FlextCliHandlers
-
-    @property
     def mixins(self) -> type[FlextCliMixins]:
         """Access CLI mixins.
 
@@ -430,16 +420,6 @@ class FlextCli:
 
         """
         return FlextCliMixins
-
-    @property
-    def processors(self) -> FlextCliProcessors:
-        """Access CLI processors.
-
-        Returns:
-            FlextCliProcessors: Processors instance
-
-        """
-        return self._container.get_or_create("processors", FlextCliProcessors).unwrap()
 
     @property
     def plugins(self) -> FlextCliPlugins:

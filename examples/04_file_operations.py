@@ -8,6 +8,7 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
+import pathlib
 from typing import cast
 
 from flext_cli import FlextCli
@@ -18,18 +19,31 @@ cli = FlextCli.get_instance()
 
 def demonstrate_file_io() -> None:
     """File I/O with auto-validation and formatting."""
+    import tempfile
+
     test_data = {"name": "example", "value": 42}
 
-    # Auto-formatting based on file extension
-    write_result = cli.file_tools.write_json(
-        "/tmp/flext_cli_test.json", cast("object", test_data)
-    )
-    if write_result.is_success:
-        cli.output.print_success("File written with auto-formatting")
+    # Use secure temporary file instead of hardcoded path
+    with tempfile.NamedTemporaryFile(
+        encoding="utf-8", mode="w", suffix=".json", delete=False
+    ) as tmp_file:
+        tmp_path = tmp_file.name
 
-    read_result = cli.file_tools.read_json("/tmp/flext_cli_test.json")
-    if read_result.is_success:
-        cli.output.print_success(f"Read: {read_result.value}")
+    try:
+        # Auto-formatting based on file extension
+        write_result = cli.file_tools.write_json(tmp_path, cast("object", test_data))
+        if write_result.is_success:
+            cli.output.print_success("File written with auto-formatting")
+
+        read_result = cli.file_tools.read_json(tmp_path)
+        if read_result.is_success:
+            cli.output.print_success(f"Read: {read_result.value}")
+    finally:
+        # Clean up temporary file
+        try:
+            pathlib.Path(tmp_path).unlink()
+        except OSError:
+            pass  # File may have been cleaned up already
 
 
 def demonstrate_path_operations() -> None:

@@ -139,6 +139,27 @@ class FlextCliModels(FlextCore.Models):
             },
         }
 
+    def execute(self) -> FlextCore.Result[object]:
+        """Execute model operations - placeholder for testing."""
+        return FlextCore.Result[object].ok(None)
+
+    # ========================================================================
+    # CLI MODEL SUBCLASSES - Specialized CLI Models
+    # ========================================================================
+
+    class FormatOptions(BaseModel):
+        """Table formatting options for CLI output."""
+
+        title: str | None = None
+        headers: list[str] | None = None
+        show_lines: bool = True
+
+    class CliPipeline(BaseModel):
+        """CLI pipeline configuration."""
+
+        name: str
+        steps: list[str] = Field(default_factory=list)
+
     # ========================================================================
     # CLI MODEL INTEGRATION UTILITIES - Pydantic → CLI Conversion
     # ========================================================================
@@ -615,8 +636,8 @@ class FlextCliModels(FlextCore.Models):
 
             def decorator(func: Callable[..., object]) -> Callable[..., object]:
                 # Store model metadata on function for CLI builder inspection
-                setattr(func, "__cli_model__", model_class)
-                setattr(func, "__cli_command_name__", command_name or func.__name__)
+                func.__cli_model__ = model_class
+                func.__cli_command_name__ = command_name or func.__name__
 
                 def wrapper(**cli_kwargs: object) -> object:
                     # Validate CLI input with Pydantic model
@@ -664,8 +685,8 @@ class FlextCliModels(FlextCore.Models):
 
             def decorator(func: Callable[..., object]) -> Callable[..., object]:
                 # Store multiple models metadata
-                setattr(func, "__cli_models__", model_classes)
-                setattr(func, "__cli_command_name__", command_name or func.__name__)
+                func.__cli_models__ = model_classes
+                func.__cli_command_name__ = command_name or func.__name__
 
                 def wrapper(**cli_kwargs: object) -> object:
                     validated_models: list[BaseModel] = []
@@ -711,7 +732,7 @@ class FlextCliModels(FlextCore.Models):
         updated_at: datetime | None = (
             None  # Inherit from parent - can be None initially
         )
-        status: str = Field(default=FlextCliConstants.CommandStatus.PENDING.value)
+        status: str = Field(default="pending")
 
         @computed_field
         def entity_age_seconds(self) -> float:
@@ -761,9 +782,7 @@ class FlextCliModels(FlextCore.Models):
         description: str = Field(default="")
         usage: str = Field(default="")
         entry_point: str = Field(default="")
-        plugin_version: str = Field(
-            default_factory=lambda: FlextCliConstants.CliDefaults.DEFAULT_PROFILE
-        )
+        plugin_version: str = Field(default="default")
         # status field inherited from _BaseEntity
 
         @computed_field
@@ -808,7 +827,12 @@ class FlextCliModels(FlextCore.Models):
         def serialize_command_line(self, value: str, _info: object) -> str:
             """Serialize command line with safety checks for sensitive commands."""
             # Mask potentially sensitive command parts
-            sensitive_patterns = ["password", "token", "secret", "key"]
+            sensitive_patterns = [
+                FlextCliConstants.DictKeys.PASSWORD,
+                FlextCliConstants.DictKeys.TOKEN,
+                "secret",
+                "key",
+            ]
             for pattern in sensitive_patterns:
                 if pattern in value.lower():
                     return value.replace(pattern, "*" * len(pattern))
@@ -948,7 +972,13 @@ class FlextCliModels(FlextCore.Models):
             self, value: FlextCore.Types.StringDict, _info: object
         ) -> FlextCore.Types.StringDict:
             """Serialize system/config info masking sensitive values."""
-            sensitive_keys = {"password", "token", "secret", "key", "auth"}
+            sensitive_keys = {
+                FlextCliConstants.DictKeys.PASSWORD,
+                FlextCliConstants.DictKeys.TOKEN,
+                "secret",
+                "key",
+                "auth",
+            }
             return {
                 k: (
                     "***MASKED***"
@@ -1141,7 +1171,9 @@ class FlextCliModels(FlextCore.Models):
 
             # Validate user_id if provided
             if self.user_id is not None and not self.user_id.strip():
-                return FlextCore.Result[None].fail("User ID cannot be empty")
+                return FlextCore.Result[None].fail(
+                    FlextCliConstants.ErrorMessages.USER_ID_EMPTY
+                )
 
             valid_statuses = ["active", "completed", "terminated"]
             status_result = FlextCliMixins.ValidationMixin.validate_enum_value(
@@ -1510,6 +1542,46 @@ class FlextCliModels(FlextCore.Models):
     # These were over-engineered patterns not used anywhere in the codebase.
     # Total removed: ~1,016 lines of unused code
 
+
+# Rebuild Pydantic models to resolve forward references
+# CRITICAL: Must rebuild FlextCore models and base entities first, then nested classes
+try:
+    # Import FlextModels from flext-core to provide namespace for forward references
+    from flext_core.models import FlextModels
+
+    # Create namespace dict with all required types for forward reference resolution
+    _namespace = {
+        "FlextModels": FlextModels,
+        "FlextCore": FlextCore,
+        "FlextCliModels": FlextCliModels,
+        "FlextCliConstants": FlextCliConstants,
+        "FlextCliTypes": FlextCliTypes,
+        "FlextCliMixins": FlextCliMixins,
+    }
+
+    # 1. Rebuild FlextCore parent models first with namespace
+    FlextCore.Models.Entity.model_rebuild(_types_namespace=_namespace)
+
+    # 2. Rebuild FlextCliModels base classes that extend FlextCore
+    FlextCliModels._BaseEntity.model_rebuild(_types_namespace=_namespace)
+    FlextCliModels._BaseValidatedModel.model_rebuild(_types_namespace=_namespace)
+    FlextCliModels._BaseConfig.model_rebuild(_types_namespace=_namespace)
+
+    # 3. Finally rebuild all nested CLI models that depend on base classes
+    FlextCliModels.CliCommand.model_rebuild(_types_namespace=_namespace)
+    FlextCliModels.DebugInfo.model_rebuild(_types_namespace=_namespace)
+    FlextCliModels.CliSession.model_rebuild(_types_namespace=_namespace)
+    FlextCliModels.LoggingConfig.model_rebuild(_types_namespace=_namespace)
+    FlextCliModels.CliContext.model_rebuild(_types_namespace=_namespace)
+except Exception as e:
+    # Log but don't fail - models will be rebuilt on first use
+    # This is safe as models will rebuild on first access if needed
+    import logging
+
+    logging.getLogger(__name__).warning(
+        f"Failed to rebuild Pydantic models at import time: {e}. "
+        "Models will be rebuilt on first use."
+    )
 
 __all__ = [
     "FlextCliModels",

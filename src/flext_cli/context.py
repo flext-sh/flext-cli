@@ -12,6 +12,7 @@ from __future__ import annotations
 from flext_core import FlextCore
 from pydantic import BaseModel
 
+from flext_cli.constants import FlextCliConstants
 from flext_cli.models import FlextCliModels
 from flext_cli.typings import FlextCliTypes
 
@@ -87,7 +88,11 @@ class FlextCliContext(FlextCore.Service[FlextCliTypes.Data.CliDataDict]):
 
             return FlextCore.Result[None].ok(None)
         except Exception as e:
-            return FlextCore.Result[None].fail(f"Context validation failed: {e}")
+            return FlextCore.Result[None].fail(
+                FlextCliConstants.ErrorMessages.CONTEXT_VALIDATION_FAILED.format(
+                    error=e
+                )
+            )
 
     # ========================================================================
     # MODEL CONTEXT PROPAGATION - Attach/retrieve models from context
@@ -184,7 +189,9 @@ class FlextCliContext(FlextCore.Service[FlextCliTypes.Data.CliDataDict]):
 
             return FlextCore.Result[None].ok(None)
         except Exception as e:
-            return FlextCore.Result[None].fail(f"Model attachment failed: {e}")
+            return FlextCore.Result[None].fail(
+                FlextCliConstants.ErrorMessages.MODEL_ATTACHMENT_FAILED.format(error=e)
+            )
 
     def extract_model_from_context(
         self,
@@ -220,7 +227,9 @@ class FlextCliContext(FlextCore.Service[FlextCliTypes.Data.CliDataDict]):
 
             return FlextCore.Result[BaseModel].ok(model_instance)
         except Exception as e:
-            return FlextCore.Result[BaseModel].fail(f"Model extraction failed: {e}")
+            return FlextCore.Result[BaseModel].fail(
+                FlextCliConstants.ErrorMessages.MODEL_EXTRACTION_FAILED.format(error=e)
+            )
 
     def get_model_metadata(
         self,

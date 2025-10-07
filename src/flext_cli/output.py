@@ -16,7 +16,6 @@ from typing import override
 
 import yaml
 from flext_core import FlextCore
-from rich.console import Console
 
 from flext_cli.constants import FlextCliConstants
 from flext_cli.formatters import FlextCliFormatters
@@ -121,13 +120,17 @@ class FlextCliOutput(FlextCore.Service[object]):
             if isinstance(data, (dict, list)):
                 return self.format_table(data, title=title, headers=headers)
             return FlextCore.Result[str].fail(
-                "Table format requires dict or list of dicts"
+                FlextCliConstants.ErrorMessages.TABLE_FORMAT_REQUIRED_DICT
             )
         if format_lower == FlextCliConstants.OutputFormats.CSV.value:
             return self.format_csv(data)
         if format_lower == FlextCliConstants.OutputFormats.PLAIN.value:
             return FlextCore.Result[str].ok(str(data))
-        return FlextCore.Result[str].fail(f"Unsupported format type: {format_type}")
+        return FlextCore.Result[str].fail(
+            FlextCliConstants.ErrorMessages.UNSUPPORTED_FORMAT_TYPE.format(
+                format_type=format_type
+            )
+        )
 
     def create_formatter(self, format_type: str) -> FlextCore.Result[object]:
         """Create a formatter instance for the specified format type.
@@ -143,13 +146,17 @@ class FlextCliOutput(FlextCore.Service[object]):
             # Validate format type is supported using constants
             if format_type.lower() not in FlextCliConstants.OUTPUT_FORMATS_LIST:
                 return FlextCore.Result[object].fail(
-                    f"Unsupported format type: {format_type}"
+                    FlextCliConstants.ErrorMessages.UNSUPPORTED_FORMAT_TYPE.format(
+                        format_type=format_type
+                    )
                 )
 
             # Return self as the formatter since this class handles all formats
             return FlextCore.Result[object].ok(self)
         except Exception as e:
-            return FlextCore.Result[object].fail(f"Failed to create formatter: {e}")
+            return FlextCore.Result[object].fail(
+                FlextCliConstants.ErrorMessages.CREATE_FORMATTER_FAILED.format(error=e)
+            )
 
     # =========================================================================
     # RICH TABLE CREATION (Delegates to FlextCliFormatters)
@@ -181,7 +188,9 @@ class FlextCliOutput(FlextCore.Service[object]):
 
         """
         if not data:
-            return FlextCore.Result[object].fail("No data provided for table")
+            return FlextCore.Result[object].fail(
+                FlextCliConstants.ErrorMessages.NO_DATA_PROVIDED
+            )
 
         try:
             # Determine headers
@@ -213,7 +222,9 @@ class FlextCliOutput(FlextCore.Service[object]):
             return FlextCore.Result[object].ok(table)
 
         except Exception as e:
-            error_msg = f"Failed to create Rich table: {e}"
+            error_msg = FlextCliConstants.ErrorMessages.CREATE_RICH_TABLE_FAILED.format(
+                error=e
+            )
             self.logger.exception(error_msg)
             return FlextCore.Result[object].fail(error_msg)
 
@@ -344,7 +355,9 @@ class FlextCliOutput(FlextCore.Service[object]):
             >>> output.print_error("Operation failed")
 
         """
-        return self.print_message(f"❌ Error: {message}", style="bold red")
+        return self.print_message(
+            f"{FlextCliConstants.Symbols.ERROR_PREFIX} {message}", style="bold red"
+        )
 
     def print_success(self, message: str) -> FlextCore.Result[None]:
         """Print a success message with green styling.
@@ -360,7 +373,9 @@ class FlextCliOutput(FlextCore.Service[object]):
             >>> output.print_success("Task completed")
 
         """
-        return self.print_message(f"✅ Success: {message}", style="bold green")
+        return self.print_message(
+            f"{FlextCliConstants.Symbols.SUCCESS_PREFIX} {message}", style="bold green"
+        )
 
     def print_warning(self, message: str) -> FlextCore.Result[None]:
         """Print a warning message with yellow styling.
@@ -598,11 +613,13 @@ class FlextCliOutput(FlextCore.Service[object]):
             else:
                 if not isinstance(data, list):
                     return FlextCore.Result[str].fail(
-                        "Table format requires dict or list of dicts"
+                        FlextCliConstants.ErrorMessages.TABLE_FORMAT_REQUIRED_DICT
                     )
                 table_data = data
                 if not table_data:
-                    return FlextCore.Result[str].fail("No data provided for table")
+                    return FlextCore.Result[str].fail(
+                        FlextCliConstants.ErrorMessages.NO_DATA_PROVIDED
+                    )
                 # For list of dicts, use "keys" string as tabulate requires
                 table_headers = headers or "keys"
 
@@ -701,25 +718,25 @@ class FlextCliOutput(FlextCore.Service[object]):
     # =========================================================================
 
     @property
-    def console(self) -> Console:
-        """Get Rich console instance from FlextCliFormatters.
+    def console(self) -> object:
+        """Get console instance from FlextCliFormatters (Rich Console abstraction).
 
         Returns:
-            Rich Console instance
+            Console instance (Rich Console wrapped)
 
         Example:
             >>> output = FlextCliOutput()
             >>> console = output.console
-            >>> console.print("Hello")
+            >>> # Use through formatters abstraction
 
         """
         return self._formatters.console
 
-    def get_console(self) -> Console:
-        """Get the Rich console instance from FlextCliFormatters (method form).
+    def get_console(self) -> object:
+        """Get the console instance from FlextCliFormatters (method form).
 
         Returns:
-            Rich Console instance
+            Console instance (Rich Console wrapped)
 
         Example:
             >>> output = FlextCliOutput()

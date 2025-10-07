@@ -182,7 +182,7 @@ class FlextCliTypes(FlextCore.Types):
             | FlextCore.Types.List
             | FlextCore.Types.Dict
             | FlextCore.Types.StringList
-                | dict[str, object]
+            | dict[str, object]
             | None,
         ]
         ErrorList = FlextCore.Types.StringList

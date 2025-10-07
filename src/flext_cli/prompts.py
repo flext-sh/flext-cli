@@ -42,7 +42,7 @@ class FlextCliPrompts(FlextCore.Service[FlextCliTypes.Data.CliDataDict]):
         """
         # Pass logger to parent via logger_instance parameter if provided
         if logger:
-            data["logger_instance"] = logger
+            data[FlextCliConstants.DictKeys.LOGGER_INSTANCE] = logger
         super().__init__(**data)
         # Logger and container inherited from FlextCore.Service via FlextCore.Mixins
 
@@ -101,7 +101,7 @@ class FlextCliPrompts(FlextCore.Service[FlextCliTypes.Data.CliDataDict]):
 
         """
         return (
-            "PYTEST_CURRENT_TEST" in os.environ
+            FlextCliConstants.Environment.PYTEST_CURRENT_TEST in os.environ
             or "pytest" in os.environ.get("_", "").lower()
             or any("pytest" in arg.lower() for arg in sys.argv)
         )
@@ -129,11 +129,13 @@ class FlextCliPrompts(FlextCore.Service[FlextCliTypes.Data.CliDataDict]):
                 # Validate default value if pattern provided
                 if validation_pattern and not re.match(validation_pattern, default):
                     return FlextCore.Result[str].fail(
-                        f"Default value does not match required pattern: {validation_pattern}"
+                        FlextCliConstants.ErrorMessages.DEFAULT_PATTERN_MISMATCH.format(
+                            pattern=validation_pattern
+                        )
                     )
                 return FlextCore.Result[str].ok(default)
             return FlextCore.Result[str].fail(
-                "Interactive mode disabled and no default provided"
+                FlextCliConstants.ErrorMessages.INTERACTIVE_MODE_DISABLED
             )
 
         try:
@@ -143,7 +145,7 @@ class FlextCliPrompts(FlextCore.Service[FlextCliTypes.Data.CliDataDict]):
             # Use input with timeout if available
 
             # Simulate user input (in real implementation, would use proper input handling)
-            user_input = default or "simulated_input"
+            user_input = default or FlextCliConstants.StatusValues.SIMULATED_INPUT
 
             # Validate input if pattern provided
             if (
@@ -152,13 +154,17 @@ class FlextCliPrompts(FlextCore.Service[FlextCliTypes.Data.CliDataDict]):
                 and not re.match(validation_pattern, user_input)
             ):
                 return FlextCore.Result[str].fail(
-                    f"Input does not match required pattern: {validation_pattern}"
+                    FlextCliConstants.ErrorMessages.INPUT_PATTERN_MISMATCH.format(
+                        pattern=validation_pattern
+                    )
                 )
 
             return FlextCore.Result[str].ok(user_input)
 
         except Exception as e:
-            return FlextCore.Result[str].fail(f"Text prompt failed: {e}")
+            return FlextCore.Result[str].fail(
+                FlextCliConstants.ErrorMessages.TEXT_PROMPT_FAILED.format(error=e)
+            )
 
     def prompt_confirmation(
         self,
@@ -190,11 +196,15 @@ class FlextCliPrompts(FlextCore.Service[FlextCliTypes.Data.CliDataDict]):
             response = "y" if default else "n"
 
             return FlextCore.Result[bool].ok(
-                response.lower() in {"y", "yes", "true", "1"}
+                response.lower() in FlextCliConstants.YesNo.YES_VALUES
             )
 
         except Exception as e:
-            return FlextCore.Result[bool].fail(f"Confirmation prompt failed: {e}")
+            return FlextCore.Result[bool].fail(
+                FlextCliConstants.ErrorMessages.CONFIRMATION_PROMPT_FAILED.format(
+                    error=e
+                )
+            )
 
     def prompt_choice(
         self,
@@ -215,13 +225,15 @@ class FlextCliPrompts(FlextCore.Service[FlextCliTypes.Data.CliDataDict]):
 
         """
         if not choices:
-            return FlextCore.Result[str].fail("No choices provided")
+            return FlextCore.Result[str].fail(
+                FlextCliConstants.ErrorMessages.NO_CHOICES_PROVIDED
+            )
 
         if not self._interactive_mode:
             if default and default in choices:
                 return FlextCore.Result[str].ok(default)
             return FlextCore.Result[str].fail(
-                "Interactive mode disabled and no valid default provided"
+                FlextCliConstants.ErrorMessages.INTERACTIVE_MODE_DISABLED_CHOICE
             )
 
         try:
@@ -237,12 +249,18 @@ class FlextCliPrompts(FlextCore.Service[FlextCliTypes.Data.CliDataDict]):
             selected = default or choices[0]
 
             if selected not in choices:
-                return FlextCore.Result[str].fail(f"Invalid choice: {selected}")
+                return FlextCore.Result[str].fail(
+                    FlextCliConstants.ErrorMessages.INVALID_CHOICE.format(
+                        selected=selected
+                    )
+                )
 
             return FlextCore.Result[str].ok(selected)
 
         except Exception as e:
-            return FlextCore.Result[str].fail(f"Choice prompt failed: {e}")
+            return FlextCore.Result[str].fail(
+                FlextCliConstants.ErrorMessages.CHOICE_PROMPT_FAILED.format(error=e)
+            )
 
     def prompt_password(
         self,
@@ -262,7 +280,7 @@ class FlextCliPrompts(FlextCore.Service[FlextCliTypes.Data.CliDataDict]):
         """
         if not self._interactive_mode:
             return FlextCore.Result[str].fail(
-                "Interactive mode disabled for password input"
+                FlextCliConstants.ErrorMessages.INTERACTIVE_MODE_DISABLED_PASSWORD
             )
 
         try:
@@ -274,13 +292,17 @@ class FlextCliPrompts(FlextCore.Service[FlextCliTypes.Data.CliDataDict]):
 
             if len(password) < min_length:
                 return FlextCore.Result[str].fail(
-                    f"Password must be at least {min_length} characters"
+                    FlextCliConstants.ErrorMessages.PASSWORD_TOO_SHORT_MIN.format(
+                        min_length=min_length
+                    )
                 )
 
             return FlextCore.Result[str].ok(password)
 
         except Exception as e:
-            return FlextCore.Result[str].fail(f"Password prompt failed: {e}")
+            return FlextCore.Result[str].fail(
+                FlextCliConstants.ErrorMessages.PASSWORD_PROMPT_FAILED.format(error=e)
+            )
 
     def clear_prompt_history(self) -> FlextCore.Result[None]:
         """Clear prompt history.
@@ -293,7 +315,9 @@ class FlextCliPrompts(FlextCore.Service[FlextCliTypes.Data.CliDataDict]):
             self._prompt_history.clear()
             return FlextCore.Result[None].ok(None)
         except Exception as e:
-            return FlextCore.Result[None].fail(f"History clear failed: {e}")
+            return FlextCore.Result[None].fail(
+                FlextCliConstants.ErrorMessages.HISTORY_CLEAR_FAILED.format(error=e)
+            )
 
     def get_prompt_statistics(self) -> FlextCore.Result[FlextCliTypes.Data.CliDataDict]:
         """Get prompt usage statistics.
@@ -304,8 +328,8 @@ class FlextCliPrompts(FlextCore.Service[FlextCliTypes.Data.CliDataDict]):
         """
         try:
             stats: FlextCliTypes.Data.CliDataDict = {
-                "prompts_executed": len(self._prompt_history),
-                "interactive_mode": self._interactive_mode,
+                FlextCliConstants.DictKeys.PROMPTS_EXECUTED: len(self._prompt_history),
+                FlextCliConstants.DictKeys.INTERACTIVE_MODE: self._interactive_mode,
                 "default_timeout": self._default_timeout,
                 "history_size": len(self._prompt_history),
                 "timestamp": FlextCore.Utilities.Generators.generate_timestamp(),

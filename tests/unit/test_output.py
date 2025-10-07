@@ -213,9 +213,7 @@ class TestFlextCliOutput:
     ) -> None:
         """Test formatting table."""
         # Convert dict to list format expected by format_table
-        sample_list: list[dict[str, str | int | float]] = (
-            [sample_data] if isinstance(sample_data, dict) else [sample_data]
-        )
+        sample_list: list[dict[str, str | int | float]] = [sample_data]
         result = output.format_table(sample_list)
 
         assert isinstance(result, FlextResult)
@@ -264,9 +262,7 @@ class TestFlextCliOutput:
         assert csv_result.is_success
 
         # Step 3: Format table (may fail for complex data)
-        sample_list: list[dict[str, str | int | float]] = (
-            [sample_data] if isinstance(sample_data, dict) else [sample_data]
-        )
+        sample_list: list[dict[str, str | int | float]] = [sample_data]
         table_result = output.format_table(sample_list)
         assert isinstance(table_result, FlextResult)
 

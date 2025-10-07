@@ -15,6 +15,7 @@ from pathlib import Path
 
 from flext_core import FlextCore
 
+from flext_cli.constants import FlextCliConstants
 from flext_cli.protocols import FlextCliProtocols
 
 
@@ -93,12 +94,16 @@ class FlextCliPlugins(FlextCore.Service[object]):
 
                 if not plugin_path.exists():
                     return FlextCore.Result[FlextCore.Types.StringList].fail(
-                        f"Plugin directory does not exist: {plugin_dir}"
+                        FlextCliConstants.ErrorMessages.PLUGIN_DIR_NOT_EXIST.format(
+                            dir=plugin_dir
+                        )
                     )
 
                 if not plugin_path.is_dir():
                     return FlextCore.Result[FlextCore.Types.StringList].fail(
-                        f"Plugin path is not a directory: {plugin_dir}"
+                        FlextCliConstants.ErrorMessages.PLUGIN_PATH_NOT_DIR.format(
+                            path=plugin_dir
+                        )
                     )
 
                 # Find all Python files in plugin directory
@@ -120,7 +125,11 @@ class FlextCliPlugins(FlextCore.Service[object]):
                 return FlextCore.Result[FlextCore.Types.StringList].ok(plugin_modules)
 
             except Exception as e:
-                error_msg = f"Failed to discover plugins: {e}"
+                error_msg = (
+                    FlextCliConstants.ErrorMessages.FAILED_DISCOVER_PLUGINS.format(
+                        error=e
+                    )
+                )
                 self.logger.exception(error_msg)
                 return FlextCore.Result[FlextCore.Types.StringList].fail(error_msg)
 
@@ -156,7 +165,9 @@ class FlextCliPlugins(FlextCore.Service[object]):
                 if plugin_class_name:
                     if not hasattr(module, plugin_class_name):
                         return FlextCore.Result[object].fail(
-                            f"Plugin class '{plugin_class_name}' not found in module"
+                            FlextCliConstants.ErrorMessages.PLUGIN_CLASS_NOT_FOUND.format(
+                                class_name=plugin_class_name
+                            )
                         )
                     plugin_class = getattr(module, plugin_class_name)
                 else:
@@ -174,7 +185,9 @@ class FlextCliPlugins(FlextCore.Service[object]):
 
                     if plugin_class is None:
                         return FlextCore.Result[object].fail(
-                            f"No plugin class found in module '{plugin_module}'"
+                            FlextCliConstants.ErrorMessages.NO_PLUGIN_CLASS_FOUND.format(
+                                module=plugin_module
+                            )
                         )
 
                 # Instantiate plugin
@@ -194,7 +207,9 @@ class FlextCliPlugins(FlextCore.Service[object]):
                 return FlextCore.Result[object].ok(plugin_instance)
 
             except Exception as e:
-                error_msg = f"Failed to load plugin '{plugin_module}': {e}"
+                error_msg = FlextCliConstants.ErrorMessages.FAILED_LOAD_PLUGIN.format(
+                    module=plugin_module, error=e
+                )
                 self.logger.exception(error_msg)
                 return FlextCore.Result[object].fail(error_msg)
 
@@ -227,14 +242,18 @@ class FlextCliPlugins(FlextCore.Service[object]):
                 init_result = plugin.initialize(cli_main)
                 if init_result.is_failure:
                     return FlextCore.Result[None].fail(
-                        f"Plugin initialization failed: {init_result.error}"
+                        FlextCliConstants.ErrorMessages.PLUGIN_INIT_FAILED.format(
+                            error=init_result.error
+                        )
                     )
 
                 # Register commands
                 register_result = plugin.register_commands(cli_main)
                 if register_result.is_failure:
                     return FlextCore.Result[None].fail(
-                        f"Plugin command registration failed: {register_result.error}"
+                        FlextCliConstants.ErrorMessages.PLUGIN_REGISTER_FAILED.format(
+                            error=register_result.error
+                        )
                     )
 
                 # Mark as initialized
@@ -247,7 +266,11 @@ class FlextCliPlugins(FlextCore.Service[object]):
                 return FlextCore.Result[None].ok(None)
 
             except Exception as e:
-                error_msg = f"Failed to initialize plugin: {e}"
+                error_msg = (
+                    FlextCliConstants.ErrorMessages.FAILED_INITIALIZE_PLUGIN.format(
+                        error=e
+                    )
+                )
                 self.logger.exception(error_msg)
                 return FlextCore.Result[None].fail(error_msg)
 
@@ -273,7 +296,9 @@ class FlextCliPlugins(FlextCore.Service[object]):
                 load_result = self.load_plugin(plugin_module, plugin_class_name)
                 if load_result.is_failure:
                     return FlextCore.Result[object].fail(
-                        f"Load failed: {load_result.error}"
+                        FlextCliConstants.ErrorMessages.LOAD_FAILED.format(
+                            error=load_result.error
+                        )
                     )
 
                 plugin: FlextCliProtocols.Extensions.CliPlugin = load_result.unwrap()
@@ -282,7 +307,9 @@ class FlextCliPlugins(FlextCore.Service[object]):
                 init_result = self.initialize_plugin(plugin, cli_main)
                 if init_result.is_failure:
                     return FlextCore.Result[object].fail(
-                        f"Initialize failed: {init_result.error}"
+                        FlextCliConstants.ErrorMessages.INITIALIZE_FAILED.format(
+                            error=init_result.error
+                        )
                     )
 
                 self.logger.info(
@@ -293,7 +320,11 @@ class FlextCliPlugins(FlextCore.Service[object]):
                 return FlextCore.Result[object].ok(plugin)
 
             except Exception as e:
-                error_msg = f"Failed to load and initialize plugin: {e}"
+                error_msg = (
+                    FlextCliConstants.ErrorMessages.FAILED_LOAD_AND_INIT_PLUGIN.format(
+                        error=e
+                    )
+                )
                 self.logger.exception(error_msg)
                 return FlextCore.Result[object].fail(error_msg)
 
@@ -309,7 +340,11 @@ class FlextCliPlugins(FlextCore.Service[object]):
                     self._loaded_plugins.copy()
                 )
             except Exception as e:
-                error_msg = f"Failed to get loaded plugins: {e}"
+                error_msg = (
+                    FlextCliConstants.ErrorMessages.FAILED_GET_LOADED_PLUGINS.format(
+                        error=e
+                    )
+                )
                 self.logger.exception(error_msg)
                 return FlextCore.Result[FlextCore.Types.Dict].fail(error_msg)
 
@@ -325,7 +360,11 @@ class FlextCliPlugins(FlextCore.Service[object]):
                     self._initialized_plugins.copy()
                 )
             except Exception as e:
-                error_msg = f"Failed to get initialized plugins: {e}"
+                error_msg = (
+                    FlextCliConstants.ErrorMessages.FAILED_GET_INIT_PLUGINS.format(
+                        error=e
+                    )
+                )
                 self.logger.exception(error_msg)
                 return FlextCore.Result[FlextCore.Types.Dict].fail(error_msg)
 
@@ -359,7 +398,9 @@ class FlextCliPlugins(FlextCore.Service[object]):
                 return FlextCore.Result[None].ok(None)
 
             except Exception as e:
-                error_msg = f"Failed to unload plugin: {e}"
+                error_msg = FlextCliConstants.ErrorMessages.FAILED_UNLOAD_PLUGIN.format(
+                    error=e
+                )
                 self.logger.exception(error_msg)
                 return FlextCore.Result[None].fail(error_msg)
 

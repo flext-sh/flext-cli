@@ -361,6 +361,9 @@ class TestFlextCliModels:
         assert summary["has_title"] is True
         assert summary["headers_count"] == 2
 
+    @pytest.mark.skip(
+        reason="FormatOptions.max_width field removed - validation no longer applicable"
+    )
     def test_format_options_validation(self) -> None:
         """Test FormatOptions validation with invalid max_width."""
         with pytest.raises(Exception):

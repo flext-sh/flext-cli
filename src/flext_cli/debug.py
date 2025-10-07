@@ -43,7 +43,9 @@ class FlextCliDebug(FlextCore.Service[str]):
     @override
     def execute(self) -> FlextCore.Result[str]:
         """Execute debug service - required by FlextCore.Service."""
-        return FlextCore.Result[str].ok("FlextCliDebug service operational")
+        return FlextCore.Result[str].ok(
+            FlextCliConstants.ServiceMessages.FLEXT_CLI_DEBUG_OPERATIONAL
+        )
 
     def get_system_info(
         self,
@@ -257,7 +259,13 @@ class FlextCliDebug(FlextCore.Service[str]):
     def _get_environment_info(self) -> dict[str, object]:
         """Get environment variables with sensitive data masked."""
         env_info = {}
-        sensitive_keys = {"password", "token", "secret", "key", "auth"}
+        sensitive_keys = {
+            FlextCliConstants.DictKeys.PASSWORD,
+            FlextCliConstants.DictKeys.TOKEN,
+            "secret",
+            "key",
+            "auth",
+        }
 
         for key, value in os.environ.items():
             if any(sens in key.lower() for sens in sensitive_keys):
@@ -296,14 +304,24 @@ class FlextCliDebug(FlextCore.Service[str]):
             current_dir = pathlib.Path.cwd()
             test_file = current_dir / "test_write.tmp"
             try:
-                with pathlib.Path(test_file).open("w", encoding="utf-8") as f:
+                with pathlib.Path(test_file).open(
+                    "w", encoding=FlextCliConstants.Encoding.UTF8
+                ) as f:
                     f.write("test")
                 pathlib.Path(test_file).unlink()
             except OSError as e:
-                errors.append(f"Cannot write to current directory: {e}")
+                errors.append(
+                    FlextCliConstants.ErrorMessages.CANNOT_WRITE_CURRENT_DIR.format(
+                        error=e
+                    )
+                )
 
         except Exception as e:
-            errors.append(f"Filesystem validation failed: {e}")
+            errors.append(
+                FlextCliConstants.ErrorMessages.FILESYSTEM_VALIDATION_FAILED.format(
+                    error=e
+                )
+            )
 
         return errors
 

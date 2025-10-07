@@ -9,6 +9,8 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
+from typing import cast
+
 import pytest
 from flext_core import FlextResult, FlextTypes
 
@@ -280,7 +282,9 @@ class TestFlextCliTables:
             {"name": "Alice", "age": 30, "city": None},
             {"name": "Bob", "age": None, "city": "London"},
         ]
-        result = tables.create_table(data=data_with_none, table_format="simple")
+        result = tables.create_table(
+            data=cast("list[dict[str, object]]", data_with_none), table_format="simple"
+        )
 
         assert result.is_success
         table_str = result.unwrap()

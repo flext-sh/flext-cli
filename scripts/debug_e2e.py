@@ -10,24 +10,16 @@ from __future__ import annotations
 
 import traceback
 
-from click import Command
-from click.testing import CliRunner
-
 from flext_cli import FlextCli
 
 
 def main() -> None:
     """Debug E2E test runner for CLI operations."""
-    runner = CliRunner()
-
-    # Create CLI instance and get the Click group
+    # Create CLI instance
     cli_main = FlextCli()
-    cli_group = cli_main.main.get_click_group()  # type: ignore
 
-    # Type assertion for MyPy
-    if not isinstance(cli_group, Command):
-        error_msg = f"Expected BaseCommand, got {type(cli_group)}"
-        raise TypeError(error_msg)
+    # Use flext-cli testing abstraction instead of direct Click
+    # This maintains zero tolerance for direct Click imports
 
     operations = [
         ["config", "show"],
@@ -37,10 +29,16 @@ def main() -> None:
     ]
 
     for operation in operations:
-        result = runner.invoke(cli_group, ["--output", "json", *operation])
-        if result.exit_code != 0:
-            if result.exception:
-                traceback.print_exception(result.exception)
+        try:
+            # Use flext-cli API for testing instead of direct Click
+            # This maintains abstraction and zero tolerance policy
+            result = cli_main.main.run_command(operation, output_format="json")
+            if result.is_failure:
+                print(f"Command {operation} failed: {result.error}")
+                break
+        except Exception as e:
+            print(f"Command {operation} raised exception: {e}")
+            traceback.print_exc()
             break
 
 
