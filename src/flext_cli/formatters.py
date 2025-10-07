@@ -17,8 +17,6 @@ from types import ModuleType
 from typing import Literal
 
 from flext_core import (
-    FlextContainer,
-    FlextLogger,
     FlextResult,
     FlextService,
     FlextTypes,
@@ -83,10 +81,6 @@ class FlextCliFormatters(FlextService[object]):
         Direct Rich imports are FORBIDDEN in ecosystem projects.
 
     """
-
-    # Override base class optional attributes with guaranteed initialized types
-    logger: FlextLogger
-    _container: FlextContainer
 
     def __init__(self) -> None:
         """Initialize Rich formatters layer with Phase 1 context enrichment."""

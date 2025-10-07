@@ -12,17 +12,18 @@ from __future__ import annotations
 import csv
 import json
 from io import StringIO
-from typing import override
+from typing import TYPE_CHECKING, override
 
 import yaml
 from flext_core import (
-    FlextContainer,
-    FlextLogger,
     FlextResult,
     FlextService,
     FlextTypes,
 )
-from rich.console import Console
+
+# ZERO TOLERANCE: Rich imports ONLY for type checking, not runtime
+if TYPE_CHECKING:
+    from rich.console import Console
 
 from flext_cli.constants import FlextCliConstants
 from flext_cli.formatters import FlextCliFormatters
@@ -66,20 +67,23 @@ class FlextCliOutput(FlextService[object]):
 
     """
 
-    # Attribute declarations - override FlextService optional types
-    # These are guaranteed initialized in __init__
-    logger: FlextLogger
-    _container: FlextContainer
-
     @override
     def __init__(self) -> None:
-        """Initialize CLI output with formatters and Phase 1 context enrichment."""
+        """Initialize CLI output - formatters lazy-loaded via properties."""
         super().__init__()
         # Logger and container inherited from FlextService via FlextMixins
 
-        # Delegate to specialized formatters
-        self._formatters = FlextCliFormatters()
-        self._tables = FlextCliTables()
+    @property
+    def _formatters(self) -> FlextCliFormatters:
+        """Get formatters instance via container."""
+        return self._container.get_or_register(
+            "formatters", FlextCliFormatters
+        ).unwrap()
+
+    @property
+    def _tables(self) -> FlextCliTables:
+        """Get tables instance via container."""
+        return self._container.get_or_register("tables", FlextCliTables).unwrap()
 
     @override
     def execute(self) -> FlextResult[object]:

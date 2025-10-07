@@ -8,7 +8,6 @@ import re
 import sys
 
 from flext_core import (
-    FlextContainer,
     FlextLogger,
     FlextResult,
     FlextService,
@@ -47,11 +46,11 @@ class FlextCliPrompts(FlextService[FlextCliTypes.Data.CliDataDict]):
             **data: Additional service initialization data
 
         """
+        # Pass logger to parent via logger_instance parameter if provided
+        if logger:
+            data["logger_instance"] = logger
         super().__init__(**data)
         # Logger and container inherited from FlextService via FlextMixins
-        # Optional logger parameter allows test injection if needed
-        if logger:
-            self.logger = logger
 
         # Prompts-specific configuration
         # If quiet mode is enabled, disable interactive mode
@@ -320,11 +319,6 @@ class FlextCliPrompts(FlextService[FlextCliTypes.Data.CliDataDict]):
             return FlextResult[FlextCliTypes.Data.CliDataDict].fail(
                 f"Statistics collection failed: {e}",
             )
-
-    # Attribute declarations - override FlextService optional types
-    # These are guaranteed initialized in __init__
-    logger: FlextLogger | None
-    _container: FlextContainer | None
 
     def execute(self) -> FlextResult[FlextCliTypes.Data.CliDataDict]:
         """Execute prompt service operation.

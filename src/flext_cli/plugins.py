@@ -14,7 +14,6 @@ import inspect
 from pathlib import Path
 
 from flext_core import (
-    FlextContainer,
     FlextLogger,
     FlextResult,
     FlextService,
@@ -68,10 +67,6 @@ class FlextCliPlugins(FlextService[object]):
         Manages plugin discovery, loading, initialization, and lifecycle.
 
         """
-
-        # Attribute declarations - override FlextService optional types
-        logger: FlextLogger | None
-        _container: FlextContainer | None
 
         def __init__(self, **data: object) -> None:
             """Initialize plugin manager.

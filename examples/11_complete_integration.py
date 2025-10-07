@@ -1,0 +1,83 @@
+"""Complete Integration - All Features Together.
+
+Demonstrates complete flext-cli integration using all modules.
+
+Key Features:
+- Singleton pattern eliminates repetitive initialization
+- Auto-configuration propagates to all services
+- FlextResult railway pattern throughout
+- All modules work seamlessly together
+
+Copyright (c) 2025 FLEXT Team. All rights reserved.
+SPDX-License-Identifier: MIT
+"""
+
+from __future__ import annotations
+
+from flext_core import FlextResult
+
+from flext_cli import FlextCli
+
+# Module-level singleton
+cli = FlextCli.get_instance()
+
+
+def demonstrate_complete_workflow() -> FlextResult[dict]:
+    """Show complete workflow with all features auto-configured."""
+    # Auth auto-managed with secure storage
+    cli.auth.save_auth_token("example_token")
+
+    # File I/O with auto-validation and formatting
+    test_data = {"users": [{"name": "Alice", "role": "Admin"}]}
+    cli.file_tools.write_json("/tmp/data.json", test_data)
+
+    # Read with auto-validation
+    read_result = cli.file_tools.read_json("/tmp/data.json")
+    if read_result.is_failure:
+        return FlextResult[dict].fail(f"Read failed: {read_result.error}")
+
+    # Table display with auto-format selection
+    table_result = cli.tables.create_grid_table(read_result.value["users"])
+    if table_result.is_success:
+        print(table_result.value)  # Auto-formatted for terminal
+
+    # Success output with auto-styling
+    cli.output.print_success("✅ Workflow complete - all features auto-configured")
+
+    return FlextResult[dict].ok(read_result.value)
+
+
+def demonstrate_railway_pattern() -> None:
+    """Show FlextResult railway pattern across modules."""
+    # Chain operations with automatic error propagation
+    result = (
+        cli.file_tools.read_json("/tmp/data.json")
+        .map(lambda d: {**d, "processed": True})
+        .map(lambda d: {**d, "validated": True})
+    )
+
+    if result.is_success:
+        cli.output.print_success(f"Chained operations: {result.value}")
+
+
+def demonstrate_zero_configuration() -> None:
+    """Show zero-configuration usage."""
+    # Terminal capabilities auto-detected
+    # Colors auto-enabled/disabled
+    # Table format auto-selected
+    # Output format auto-optimized
+    cli.output.print_message("All features auto-configured - zero manual setup")
+
+
+def main() -> None:
+    """Run all demonstrations."""
+    workflow_result = demonstrate_complete_workflow()
+    if workflow_result.is_failure:
+        print(f"Workflow failed: {workflow_result.error}")
+
+    demonstrate_railway_pattern()
+    demonstrate_zero_configuration()
+
+
+if __name__ == "__main__":
+    main()

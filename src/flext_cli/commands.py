@@ -13,8 +13,6 @@ from collections.abc import Callable
 from typing import override
 
 from flext_core import (
-    FlextContainer,
-    FlextLogger,
     FlextResult,
     FlextService,
     FlextTypes,
@@ -40,11 +38,6 @@ class FlextCliCommands(FlextService[FlextTypes.Dict]):
             self.name = name
             self.description = description
             self.commands = commands
-
-    # Attribute declarations - override FlextService optional types
-    # These are guaranteed initialized in __init__
-    logger: FlextLogger
-    _container: FlextContainer
 
     @override
     def __init__(

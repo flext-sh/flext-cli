@@ -17,8 +17,6 @@ from __future__ import annotations
 from pathlib import Path
 
 from flext_core import (
-    FlextContainer,
-    FlextLogger,
     FlextResult,
     FlextService,
     FlextTypes,
@@ -386,11 +384,6 @@ class FlextCliShell(FlextService[object]):
 
         except Exception as e:
             return FlextResult[None].fail(f"Completion setup failed: {e}")
-
-    # Attribute declarations - override FlextService optional types
-    # These are guaranteed initialized in __init__
-    logger: FlextLogger | None
-    _container: FlextContainer | None
 
     def execute(self) -> FlextResult[None]:
         """Execute shell service (runs interactive shell).
