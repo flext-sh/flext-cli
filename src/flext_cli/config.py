@@ -428,12 +428,12 @@ class FlextCliConfig(FlextConfig):
             # Or for singleton pattern, manage explicitly
             import threading
             _config_lock = threading.RLock()
-            _config_instance: FlextCliConfig | None = None
+            config_instance: FlextCliConfig | None = None
 
             with _config_lock:
-                if _config_instance is None:
-                    _config_instance = FlextCliConfig()
-                config = _config_instance
+                if config_instance is None:
+                    config_instance = FlextCliConfig()
+                config = config_instance
 
         """
         msg = (

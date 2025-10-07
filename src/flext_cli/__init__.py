@@ -12,6 +12,9 @@ from __future__ import annotations
 from typing import Final
 
 from flext_cli.api import FlextCli
+
+# Backward compatibility alias
+FlextCliApi = FlextCli
 from flext_cli.auth import FlextCliAuth
 from flext_cli.cli import FlextCliCli
 from flext_cli.cmd import FlextCliCmd
@@ -50,6 +53,7 @@ __all__ = [
     "PROJECT_VERSION",
     "VERSION",
     "FlextCli",
+    "FlextCliApi",
     "FlextCliAuth",
     "FlextCliCli",
     "FlextCliCmd",

@@ -725,7 +725,6 @@ class FlextCliCore(FlextService[FlextCliTypes.Data.CliDataDict]):
     # and output formatting are now accessed directly through their respective
     # services via the FlextCli facade:
     #   - File operations: Use cli.file_tools.* directly
-    #   - JSON/YAML: Use FlextUtilities.Transformation.* from flext-core
     #   - Validation: Use FlextUtilities.Validation.* from flext-core
     #   - HTTP: Use flext-api domain library
     #   - Output: Use cli.output.* directly

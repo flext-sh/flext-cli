@@ -18,8 +18,7 @@ import pytest
 from flext_core import FlextResult, FlextTypes
 
 # Test utilities removed from flext-core production exports
-from flext_cli.api import FlextCli
-from flext_cli.constants import FlextCliConstants
+from flext_cli import FlextCli, FlextCliConstants
 
 
 class TestFlextCli:

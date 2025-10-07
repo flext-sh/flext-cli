@@ -14,10 +14,10 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
+import shutil
 from collections.abc import Callable, Sequence
 from pathlib import Path
 from typing import IO
-import shutil
 
 import click
 import typer
@@ -110,7 +110,7 @@ class FlextCliCli:
         command_kwargs: dict[str, object] = {"name": name}
         command_kwargs.update(kwargs)
         # Cast to Any to avoid type checking issues with Click's dynamic kwargs
-        decorator = click.command(**command_kwargs)  # type: ignore[arg-type]
+        decorator = click.command(**command_kwargs)
         self.logger.debug(
             "Created command decorator",
             extra={"command_name": name, "options": kwargs},
@@ -143,7 +143,7 @@ class FlextCliCli:
         group_kwargs: dict[str, object] = {"name": name}
         group_kwargs.update(kwargs)
         # Cast to Any to avoid type checking issues with Click's dynamic kwargs
-        decorator = click.group(**group_kwargs)  # type: ignore[arg-type]
+        decorator = click.group(**group_kwargs)
         self.logger.debug(
             "Created group decorator",
             extra={"group_name": name, "options": kwargs},
@@ -176,7 +176,7 @@ class FlextCliCli:
 
         """
         # Cast to Any to avoid type checking issues with Click's dynamic kwargs
-        decorator = click.option(*param_decls, **attrs)  # type: ignore[arg-type]
+        decorator = click.option(*param_decls, **attrs)
         self.logger.debug(
             "Created option decorator",
             extra={"param_decls": param_decls, "attrs": attrs},
@@ -205,7 +205,7 @@ class FlextCliCli:
 
         """
         # Cast to Any to avoid type checking issues with Click's dynamic kwargs
-        decorator = click.argument(*param_decls, **attrs)  # type: ignore[arg-type]
+        decorator = click.argument(*param_decls, **attrs)
         self.logger.debug(
             "Created argument decorator",
             extra={"param_decls": param_decls, "attrs": attrs},
