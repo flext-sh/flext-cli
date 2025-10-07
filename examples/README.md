@@ -6,9 +6,10 @@
 
 This directory contains comprehensive examples demonstrating all flext-cli capabilities. Each example focuses on specific modules and features, showing how to use them through the `FlextCli` API.
 
-## 🎯 What is flext-cli?
+## 🎯 What is flext-cli
 
 flext-cli is a production-ready Python library that provides:
+
 - **Click abstraction** - No direct Click imports needed
 - **Rich terminal output** - Beautiful formatted output
 - **Table formatting** - 22+ table formats via Tabulate
@@ -213,23 +214,16 @@ cli.output.info(f"Debug mode: {config.debug}")
 ## 🎓 Learning Path
 
 **Beginner** (Start here):
+
 1. 01_getting_started.py
 2. 02_output_formatting.py
 3. 03_interactive_prompts.py
 
-**Intermediate**:
-4. 04_file_operations.py
-5. 05_authentication.py
-6. 06_configuration.py
+**Intermediate**: 4. 04_file_operations.py 5. 05_authentication.py 6. 06_configuration.py
 
-**Advanced**:
-7. 07_plugin_system.py
-8. 08_shell_interaction.py
-9. 09_performance_optimization.py
-10. 10_testing_utilities.py
+**Advanced**: 7. 07_plugin_system.py 8. 08_shell_interaction.py 9. 09_performance_optimization.py 10. 10_testing_utilities.py
 
-**Integration**:
-11. 11_complete_integration.py
+**Integration**: 11. 11_complete_integration.py
 
 ## 📝 Key Concepts
 

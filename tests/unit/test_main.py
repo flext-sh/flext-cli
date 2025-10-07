@@ -93,7 +93,9 @@ class TestFlextCliMain:
         main_group = cli_main.get_main_group()
         assert main_group.is_success
 
-        result_cmd = runner.invoke(cast(click.Command, main_group.unwrap()), ["hello"])
+        result_cmd = runner.invoke(
+            cast("click.Command", main_group.unwrap()), ["hello"]
+        )
         assert result_cmd.exit_code == 0
         assert "Hello, world!" in result_cmd.output
 
@@ -113,7 +115,9 @@ class TestFlextCliMain:
 
         # Test execution
         main_group = cli_main.get_main_group()
-        result_cmd = runner.invoke(cast(click.Command, main_group.unwrap()), ["greet"])
+        result_cmd = runner.invoke(
+            cast("click.Command", main_group.unwrap()), ["greet"]
+        )
         assert result_cmd.exit_code == 0
         assert "Greetings!" in result_cmd.output
 
@@ -129,12 +133,14 @@ class TestFlextCliMain:
 
         # Test with default
         main_group = cli_main.get_main_group()
-        result = runner.invoke(cast(click.Command, main_group.unwrap()), ["hello"])
+        result = runner.invoke(cast("click.Command", main_group.unwrap()), ["hello"])
         assert result.exit_code == 0
         assert "Hello, World!" in result.output
 
         # Test with custom name
-        result = runner.invoke(cast(click.Command, main_group.unwrap()), ["hello", "--name", "Alice"])
+        result = runner.invoke(
+            cast("click.Command", main_group.unwrap()), ["hello", "--name", "Alice"]
+        )
         assert result.exit_code == 0
         assert "Hello, Alice!" in result.output
 
@@ -185,7 +191,9 @@ class TestFlextCliMain:
 
         # Test execution
         main_group = cli_main.get_main_group()
-        result_cmd = runner.invoke(cast(click.Command, main_group.unwrap()), ["mycmd"])
+        result_cmd = runner.invoke(
+            cast("click.Command", main_group.unwrap()), ["mycmd"]
+        )
         assert result_cmd.exit_code == 0
         assert "Programmatic command" in result_cmd.output
 
@@ -230,7 +238,9 @@ class TestFlextCliMain:
 
         # Test group command execution
         main_group = cli_main.get_main_group()
-        result_cmd = runner.invoke(cast(click.Command, main_group.unwrap()), ["database", "init"])
+        result_cmd = runner.invoke(
+            cast("click.Command", main_group.unwrap()), ["database", "init"]
+        )
         assert result_cmd.exit_code == 0
         assert "Initializing database..." in result_cmd.output
 
@@ -296,15 +306,21 @@ class TestFlextCliMain:
         # Test all subcommands
         main_group = cli_main.get_main_group()
 
-        result = runner.invoke(cast(click.Command, main_group.unwrap()), ["config", "show"])
+        result = runner.invoke(
+            cast("click.Command", main_group.unwrap()), ["config", "show"]
+        )
         assert result.exit_code == 0
         assert "Showing config..." in result.output
 
-        result = runner.invoke(cast(click.Command, main_group.unwrap()), ["config", "edit"])
+        result = runner.invoke(
+            cast("click.Command", main_group.unwrap()), ["config", "edit"]
+        )
         assert result.exit_code == 0
         assert "Editing config..." in result.output
 
-        result = runner.invoke(cast(click.Command, main_group.unwrap()), ["config", "reset"])
+        result = runner.invoke(
+            cast("click.Command", main_group.unwrap()), ["config", "reset"]
+        )
         assert result.exit_code == 0
         assert "Resetting config..." in result.output
 
@@ -347,7 +363,9 @@ class TestFlextCliMain:
 
         # Test execution
         main_group = cli_main.get_main_group()
-        result_cmd = runner.invoke(cast(click.Command, main_group.unwrap()), ["plugin"])
+        result_cmd = runner.invoke(
+            cast("click.Command", main_group.unwrap()), ["plugin"]
+        )
         assert result_cmd.exit_code == 0
         assert "Plugin command" in result_cmd.output
 
@@ -369,7 +387,7 @@ class TestFlextCliMain:
 
         result2 = cli_main.register_plugin_command("duplicate", cmd2)
         assert result2.is_failure
-        assert "already registered" in result2.error
+        assert result2.error is not None and "already registered" in result2.error
 
     def test_load_plugin_commands_invalid_package(self, cli_main: FlextCliMain) -> None:
         """Test loading plugins from non-existent package."""
@@ -545,15 +563,17 @@ class TestFlextCliMain:
         main_group = cli_main.get_main_group()
         assert main_group.is_success
 
-        result = runner.invoke(cast(click.Command, main_group.unwrap()), ["version"])
+        result = runner.invoke(cast("click.Command", main_group.unwrap()), ["version"])
         assert result.exit_code == 0
         assert "v1.0.0" in result.output
 
-        result = runner.invoke(cast(click.Command, main_group.unwrap()), ["info"])
+        result = runner.invoke(cast("click.Command", main_group.unwrap()), ["info"])
         assert result.exit_code == 0
         assert "Test CLI" in result.output
 
-        result = runner.invoke(cast(click.Command, main_group.unwrap()), ["config", "show"])
+        result = runner.invoke(
+            cast("click.Command", main_group.unwrap()), ["config", "show"]
+        )
         assert result.exit_code == 0
         assert "Config: enabled" in result.output
 
@@ -578,11 +598,13 @@ class TestFlextCliMain:
         main_group = cli_main.get_main_group()
 
         # Click shows "decorated" (not "decorated-cmd") in command list
-        result1 = runner.invoke(cast(click.Command, main_group.unwrap()), ["decorated"])
+        result1 = runner.invoke(
+            cast("click.Command", main_group.unwrap()), ["decorated"]
+        )
         assert result1.exit_code == 0
         assert "Decorated" in result1.output
 
-        result2 = runner.invoke(cast(click.Command, main_group.unwrap()), ["prog"])
+        result2 = runner.invoke(cast("click.Command", main_group.unwrap()), ["prog"])
         assert result2.exit_code == 0
         assert "Programmatic" in result2.output
 
@@ -599,12 +621,18 @@ class TestFlextCliMain:
         @click.option("--verbose", "-v", is_flag=True, help="Verbose output")
         @click.option("--count", "-c", default=1, type=int, help="Count")
         @click.option(
-            "--format", "-f", type=click.Choice(["json", "yaml"]), default="json"
+            "--output-format",
+            "-f",
+            type=click.Choice(["json", "yaml"]),
+            default="json",
+            help="Output format",
         )
         @click.argument("filename")
-        def process(verbose: bool, count: int, format: str, filename: str) -> None:
+        def process(
+            verbose: bool, count: int, output_format: str, filename: str
+        ) -> None:
             if verbose:
-                click.echo(f"Processing {filename} {count} times as {format}")
+                click.echo(f"Processing {filename} {count} times as {output_format}")
             else:
                 click.echo(f"Processing {filename}")
 
@@ -612,8 +640,16 @@ class TestFlextCliMain:
 
         # Test with all options
         result = runner.invoke(
-            cast(click.Command, main_group.unwrap()),
-            ["process", "--verbose", "--count", "3", "--format", "yaml", "data.txt"],
+            cast("click.Command", main_group.unwrap()),
+            [
+                "process",
+                "--verbose",
+                "--count",
+                "3",
+                "--output-format",
+                "yaml",
+                "data.txt",
+            ],
         )
         assert result.exit_code == 0
         assert "Processing data.txt 3 times as yaml" in result.output
@@ -636,6 +672,8 @@ class TestFlextCliMain:
         main_group = cli_main.get_main_group()
 
         # Test nested execution
-        result = runner.invoke(cast(click.Command, main_group.unwrap()), ["admin", "users", "list-users"])
+        result = runner.invoke(
+            cast("click.Command", main_group.unwrap()), ["admin", "users", "list-users"]
+        )
         assert result.exit_code == 0
         assert "Listing users..." in result.output

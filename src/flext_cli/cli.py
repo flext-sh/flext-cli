@@ -24,6 +24,8 @@ import typer
 from flext_core import FlextCore
 from typer.testing import CliRunner
 
+from flext_cli.constants import FlextCliConstants
+
 
 class FlextCliCli:
     """Complete CLI framework abstraction layer.
@@ -564,7 +566,11 @@ class FlextCliCli:
             )
             return FlextCore.Result[bool].ok(result)
         except typer.Abort as e:
-            return FlextCore.Result[bool].fail(f"User aborted confirmation: {e}")
+            return FlextCore.Result[bool].fail(
+                FlextCliConstants.ErrorMessages.USER_ABORTED_CONFIRMATION.format(
+                    error=e
+                )
+            )
 
     def prompt(
         self,
@@ -616,7 +622,9 @@ class FlextCliCli:
             )
             return FlextCore.Result[object].ok(result)
         except typer.Abort as e:
-            return FlextCore.Result[object].fail(f"User aborted prompt: {e}")
+            return FlextCore.Result[object].fail(
+                FlextCliConstants.ErrorMessages.USER_ABORTED_PROMPT.format(error=e)
+            )
 
     # =========================================================================
     # TESTING SUPPORT
@@ -624,7 +632,7 @@ class FlextCliCli:
 
     def create_cli_runner(
         self,
-        charset: str = "utf-8",
+        charset: str = FlextCliConstants.Encoding.UTF8,
         env: FlextCore.Types.StringDict | None = None,
         *,
         echo_stdin: bool = False,

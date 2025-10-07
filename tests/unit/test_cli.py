@@ -376,9 +376,9 @@ class TestFlextCliCli:
 
         @command_decorator
         @option_decorator
-        def select(format: str) -> None:
+        def select(output_format: str) -> None:
             """Select format."""
-            click.echo(f"Format: {format}")
+            click.echo(f"Format: {output_format}")
 
         # Verify command was created with choice type option
         assert isinstance(select, click.Command)

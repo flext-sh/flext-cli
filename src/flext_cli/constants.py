@@ -322,6 +322,442 @@ class FlextCliConstants(FlextCore.Constants):
     # Version constants
     VERSION: Final[str] = "2.0.0"
 
+    class ErrorMessages:
+        """Centralized error message templates for CLI operations."""
+
+        # Authentication errors
+        USERNAME_PASSWORD_REQUIRED: Final[str] = "Username and password are required"
+        USERNAME_TOO_SHORT: Final[str] = "Username must be at least 3 characters"
+        PASSWORD_TOO_SHORT: Final[str] = "Password must be at least 6 characters"
+        TOKEN_EMPTY: Final[str] = "Token cannot be empty"
+        TOKEN_FILE_NOT_FOUND: Final[str] = "Token file does not exist"
+        TOKEN_FILE_EMPTY: Final[str] = "Token file is empty"
+        INVALID_CREDENTIALS: Final[str] = (
+            "Invalid credentials: missing token or username/password"
+        )
+
+        # Command errors
+        COMMAND_NAME_EMPTY: Final[str] = "Command name must be a non-empty string"
+        COMMAND_NOT_FOUND: Final[str] = "Command '{name}' not found"
+        INVALID_COMMAND_TYPE: Final[str] = (
+            "Invalid command definition type for '{name}'"
+        )
+        COMMAND_RETRIEVAL_FAILED: Final[str] = "Command retrieval failed: {error}"
+        COMMAND_EXECUTION_FAILED: Final[str] = "Command execution failed: {error}"
+        COMMAND_LISTING_FAILED: Final[str] = "Command listing failed: {error}"
+
+        # Configuration errors
+        CONFIG_NOT_DICT: Final[str] = "Configuration must be a valid dictionary"
+        CONFIG_NOT_INITIALIZED: Final[str] = "Internal configuration is not initialized"
+        CONFIG_UPDATE_FAILED: Final[str] = "Configuration update failed: {error}"
+        CONFIG_RETRIEVAL_FAILED: Final[str] = "Configuration retrieval failed: {error}"
+        CONFIG_DATA_NONE: Final[str] = "Configuration data cannot be None"
+        CONFIG_DATA_NOT_DICT: Final[str] = "Configuration data must be a dictionary"
+        CONFIG_VALIDATION_FAILED: Final[str] = "Config validation failed: {error}"
+        INVALID_PROFILES_STRUCTURE: Final[str] = (
+            "Invalid profiles configuration structure"
+        )
+
+        # Profile errors
+        PROFILE_NAME_EMPTY: Final[str] = "Profile name must be a non-empty string"
+        PROFILE_CONFIG_NOT_DICT: Final[str] = (
+            "Profile config must be a valid dictionary"
+        )
+        PROFILE_CREATION_FAILED: Final[str] = "Profile creation failed: {error}"
+
+        # Session errors
+        SESSION_ALREADY_ACTIVE: Final[str] = "Session is already active"
+        NO_ACTIVE_SESSION: Final[str] = "No active session to end"
+        SESSION_START_FAILED: Final[str] = "Session start failed: {error}"
+        SESSION_END_FAILED: Final[str] = "Session end failed: {error}"
+
+        # File operation errors
+        TEXT_FILE_READ_FAILED: Final[str] = "Text file read failed: {error}"
+        TEXT_FILE_WRITE_FAILED: Final[str] = "Text file write failed: {error}"
+        FILE_COPY_FAILED: Final[str] = "File copy failed: {error}"
+        JSON_WRITE_FAILED: Final[str] = "JSON write failed: {error}"
+        TOKEN_SAVE_FAILED: Final[str] = "Failed to save token: {error}"
+        TOKEN_LOAD_FAILED: Final[str] = "Failed to load token: {error}"
+        TOKEN_PATHS_FAILED: Final[str] = "Token paths failed: {error}"
+
+        # Validation errors
+        NO_DATA_PROVIDED: Final[str] = "No data provided for table"
+        TABLE_FORMAT_REQUIRED_DICT: Final[str] = (
+            "Table format requires dict or list of dicts"
+        )
+        UNSUPPORTED_FORMAT_TYPE: Final[str] = "Unsupported format type: {format_type}"
+        CREATE_FORMATTER_FAILED: Final[str] = "Failed to create formatter: {error}"
+        CREATE_RICH_TABLE_FAILED: Final[str] = "Failed to create Rich table: {error}"
+
+        # Prompt errors
+        NO_CHOICES_PROVIDED: Final[str] = "No choices provided"
+        INVALID_CHOICE: Final[str] = "Invalid choice: {selected}"
+        TEXT_PROMPT_FAILED: Final[str] = "Text prompt failed: {error}"
+        CONFIRMATION_PROMPT_FAILED: Final[str] = "Confirmation prompt failed: {error}"
+        CHOICE_PROMPT_FAILED: Final[str] = "Choice prompt failed: {error}"
+        PASSWORD_PROMPT_FAILED: Final[str] = "Password prompt failed: {error}"
+        INTERACTIVE_MODE_DISABLED: Final[str] = (
+            "Interactive mode disabled and no default provided"
+        )
+        INTERACTIVE_MODE_DISABLED_CHOICE: Final[str] = (
+            "Interactive mode disabled and no valid default provided"
+        )
+        INTERACTIVE_MODE_DISABLED_PASSWORD: Final[str] = (
+            "Interactive mode disabled for password input"
+        )
+        DEFAULT_PATTERN_MISMATCH: Final[str] = (
+            "Default value does not match required pattern: {pattern}"
+        )
+        INPUT_PATTERN_MISMATCH: Final[str] = (
+            "Input does not match required pattern: {pattern}"
+        )
+        PASSWORD_TOO_SHORT_MIN: Final[str] = (
+            "Password must be at least {min_length} characters"
+        )
+        HISTORY_CLEAR_FAILED: Final[str] = "History clear failed: {error}"
+
+        # Config operation errors
+        SHOW_CONFIG_FAILED: Final[str] = "Show config failed: {error}"
+        EDIT_CONFIG_FAILED: Final[str] = "Edit config failed: {error}"
+        CONFIG_PATHS_FAILED: Final[str] = "Config paths failed: {error}"
+        CONFIG_INFO_FAILED: Final[str] = "Config info failed: {error}"
+        CREATE_DEFAULT_CONFIG_FAILED: Final[str] = (
+            "Failed to create default config: {error}"
+        )
+        LOAD_CONFIG_FAILED: Final[str] = "Failed to load config: {error}"
+        SAVE_CONFIG_FAILED: Final[str] = "Save configuration failed: {error}"
+
+        # Additional authentication errors
+        API_KEY_EMPTY: Final[str] = "API key cannot be empty"
+        CERTIFICATE_NOT_EXIST: Final[str] = "Certificate file does not exist"
+        CERTIFICATE_AUTH_FAILED: Final[str] = (
+            "Certificate authentication failed: {error}"
+        )
+        HASHED_PASSWORD_EMPTY: Final[str] = "Hashed password cannot be empty"
+        PASSWORD_EMPTY: Final[str] = "Password cannot be empty"
+        PERMISSION_EMPTY: Final[str] = "Permission cannot be empty"
+        SESSION_ID_EMPTY: Final[str] = "Session ID cannot be empty"
+        USER_ID_EMPTY: Final[str] = "User ID cannot be empty"
+        USER_NOT_FOUND: Final[str] = "User not found"
+        INVALID_TOKEN: Final[str] = "Invalid token"
+        FAILED_STORE_CREDENTIALS: Final[str] = "Failed to store credentials: {error}"
+        FAILED_HASH_PASSWORD: Final[str] = "Failed to hash password: {error}"
+        FAILED_GENERATE_TOKEN: Final[str] = "Failed to generate token: {error}"
+        FAILED_GENERATE_SALT: Final[str] = "Failed to generate salt: {error}"
+        FAILED_CLEAR_CREDENTIALS: Final[str] = "Failed to clear credentials: {error}"
+        FAILED_PASSWORD_VERIFICATION: Final[str] = (
+            "Password verification failed: {error}"
+        )
+
+        # Additional config/CLI errors
+        CLI_CONFIG_FAILED: Final[str] = "CLI configuration failed: {error}"
+        BUSINESS_RULES_VALIDATION_FAILED: Final[str] = (
+            "Business rules validation failed: {error}"
+        )
+        CANNOT_ACCESS_CONFIG_DIR: Final[str] = (
+            "Cannot access config directory {config_dir}: {error}"
+        )
+        INVALID_OUTPUT_FORMAT: Final[str] = "Invalid output format: {format}"
+        PROFILE_NAME_EMPTY_MSG: Final[str] = "Profile name cannot be empty"
+        INVALID_API_URL_FORMAT: Final[str] = (
+            "Invalid API URL format: {url}. Must start with http:// or https://"
+        )
+        INVALID_LOG_LEVEL: Final[str] = (
+            "Invalid log level: {level}. Must be one of: {valid_levels}"
+        )
+        INVALID_LOG_VERBOSITY: Final[str] = (
+            "Invalid log verbosity: {verbosity}. Must be one of: {valid_verbosity}"
+        )
+        CLI_ARGS_UPDATE_FAILED: Final[str] = "CLI args update failed: {error}"
+        ENV_MERGE_FAILED: Final[str] = "Environment merge failed: {error}"
+        UNKNOWN_CONFIG_FIELD: Final[str] = "Unknown config field: {field}"
+        INVALID_VALUE_FOR_FIELD: Final[str] = "Invalid value for {field}: {error}"
+        VALIDATION_ERRORS: Final[str] = "Validation errors: {errors}"
+        CONFIG_LOAD_FAILED_MSG: Final[str] = "Config load failed: {error}"
+        CONFIG_SAVE_FAILED_MSG: Final[str] = "Config save failed: {error}"
+
+        # File and path errors
+        CONFIG_FILE_NOT_FOUND: Final[str] = "Configuration file not found: {file}"
+        UNSUPPORTED_CONFIG_FORMAT: Final[str] = (
+            "Unsupported configuration file format: {suffix}"
+        )
+        FAILED_LOAD_CONFIG_FROM_FILE: Final[str] = (
+            "Failed to load configuration from {file}: {error}"
+        )
+        SAVE_FAILED: Final[str] = "Save failed: {error}"
+
+        # Additional prompt/CLI errors
+        USER_ABORTED_CONFIRMATION: Final[str] = "User aborted confirmation: {error}"
+        USER_ABORTED_PROMPT: Final[str] = "User aborted prompt: {error}"
+
+        # Command errors (additional)
+        SET_CONFIG_FAILED: Final[str] = "Set config failed: {error}"
+        COMMAND_REGISTRATION_FAILED: Final[str] = "Command registration failed: {error}"
+        COMMAND_UNREGISTRATION_FAILED: Final[str] = (
+            "Command unregistration failed: {error}"
+        )
+        CLI_EXECUTION_FAILED: Final[str] = "CLI execution failed"
+        CLI_EXECUTION_ERROR: Final[str] = "CLI execution failed: {error}"
+        GROUP_CREATION_FAILED: Final[str] = "Group creation failed: {error}"
+        LOAD_FAILED: Final[str] = "Load failed: {error}"
+        INITIALIZE_FAILED: Final[str] = "Initialize failed: {error}"
+
+        # Context and model errors
+        CONTEXT_VALIDATION_FAILED: Final[str] = "Context validation failed: {error}"
+        MODEL_ATTACHMENT_FAILED: Final[str] = "Model attachment failed: {error}"
+        MODEL_EXTRACTION_FAILED: Final[str] = "Model extraction failed: {error}"
+
+        # Plugin errors
+        PLUGIN_DIR_NOT_EXIST: Final[str] = "Plugin directory does not exist: {dir}"
+        PLUGIN_PATH_NOT_DIR: Final[str] = "Plugin path is not a directory: {path}"
+        FAILED_DISCOVER_PLUGINS: Final[str] = "Failed to discover plugins: {error}"
+        PLUGIN_CLASS_NOT_FOUND: Final[str] = (
+            "Plugin class '{class_name}' not found in module"
+        )
+        NO_PLUGIN_CLASS_FOUND: Final[str] = "No plugin class found in module '{module}'"
+        FAILED_LOAD_PLUGIN: Final[str] = "Failed to load plugin '{module}': {error}"
+        PLUGIN_INIT_FAILED: Final[str] = "Plugin initialization failed: {error}"
+        PLUGIN_REGISTER_FAILED: Final[str] = (
+            "Plugin command registration failed: {error}"
+        )
+        FAILED_INITIALIZE_PLUGIN: Final[str] = "Failed to initialize plugin: {error}"
+        FAILED_LOAD_AND_INIT_PLUGIN: Final[str] = (
+            "Failed to load and initialize plugin: {error}"
+        )
+        FAILED_GET_LOADED_PLUGINS: Final[str] = "Failed to get loaded plugins: {error}"
+        FAILED_GET_INIT_PLUGINS: Final[str] = (
+            "Failed to get initialized plugins: {error}"
+        )
+        FAILED_UNLOAD_PLUGIN: Final[str] = "Failed to unload plugin: {error}"
+
+        # File tools errors
+        YAML_WRITE_FAILED: Final[str] = "YAML write failed: {error}"
+        FORMAT_DETECTION_FAILED: Final[str] = "Format detection failed"
+        UNSUPPORTED_FORMAT: Final[str] = "Unsupported format: {format}"
+
+        # Debug errors
+        FILESYSTEM_VALIDATION_FAILED: Final[str] = (
+            "Filesystem validation failed: {error}"
+        )
+        CANNOT_WRITE_CURRENT_DIR: Final[str] = (
+            "Cannot write to current directory: {error}"
+        )
+
+    class ServiceMessages:
+        """Service operational status messages."""
+
+        FLEXT_CLI_AUTH_OPERATIONAL: Final[str] = "FlextCliAuth service operational"
+        CONFIG_LOADED_SUCCESSFULLY: Final[str] = (
+            "Configuration loaded successfully. Use set_config_value to modify specific values."
+        )
+        FLEXT_CLI_DEBUG_OPERATIONAL: Final[str] = "FlextCliDebug service operational"
+
+    class LogMessages:
+        """Centralized log message templates for CLI operations."""
+
+        # Command log messages
+        COMMAND_REGISTERED: Final[str] = "Command '{name}' registered successfully"
+        COMMAND_EXECUTED: Final[str] = "Command '{name}' executed successfully"
+
+        # Configuration log messages
+        CLI_CONFIG_UPDATED: Final[str] = "CLI configuration updated successfully"
+        PROFILE_CREATED: Final[str] = "Profile '{name}' created successfully"
+
+        # Session log messages
+        SESSION_STARTED: Final[str] = "CLI session started successfully"
+        SESSION_ENDED: Final[str] = "CLI session ended successfully"
+
+        # Config operation log messages
+        CONFIG_DISPLAYED: Final[str] = "Configuration displayed"
+        CONFIG_VALIDATION_RESULTS: Final[str] = "Config validation results: {results}"
+        CONFIG_EDIT_COMPLETED: Final[str] = "Configuration edit completed successfully"
+
+    class FieldDescriptions:
+        """Field description constants for Pydantic models."""
+
+        # CLI configuration field descriptions
+        PROFILE: Final[str] = "CLI profile to use for configuration"
+        OUTPUT_FORMAT: Final[str] = "Default output format for CLI commands"
+        NO_COLOR: Final[str] = "Disable colored output in CLI"
+        CONFIG_DIR: Final[str] = "Configuration directory path"
+        PROJECT_NAME: Final[str] = "Project name for CLI operations"
+        API_URL: Final[str] = "API URL for remote operations"
+        CLI_API_KEY: Final[str] = "API key for authentication (sensitive)"
+        TOKEN_FILE: Final[str] = "Path to authentication token file"
+        REFRESH_TOKEN_FILE: Final[str] = "Path to refresh token file"
+        AUTO_REFRESH: Final[str] = "Automatically refresh authentication tokens"
+        VERBOSE: Final[str] = "Enable verbose output"
+        DEBUG: Final[str] = "Enable debug mode"
+        APP_NAME: Final[str] = "Application name"
+        VERSION: Final[str] = "Application version"
+        QUIET: Final[str] = "Enable quiet mode"
+        INTERACTIVE: Final[str] = "Enable interactive mode"
+        MAX_WIDTH: Final[str] = "Maximum width for CLI output"
+        CONFIG_FILE: Final[str] = "Custom configuration file path"
+        TIMEOUT: Final[str] = "Network timeout in seconds"
+        MAX_RETRIES: Final[str] = "Maximum number of retry attempts"
+        LOG_LEVEL: Final[str] = "Global logging level for FLEXT projects"
+        LOG_VERBOSITY: Final[str] = "Logging verbosity (compact, detailed, full)"
+        CLI_LOG_LEVEL: Final[str] = "CLI-specific logging level"
+        CLI_LOG_VERBOSITY: Final[str] = "CLI-specific logging verbosity"
+        LOG_FILE: Final[str] = "Optional log file path for persistent logging"
+
+    class ValidationMessages:
+        """Centralized validation message templates."""
+
+        FIELD_NOT_EMPTY: Final[str] = "{field} cannot be empty"
+        FIELD_MIN_LENGTH: Final[str] = (
+            "{field} must be at least {min_length} characters"
+        )
+        VALUE_REQUIRED: Final[str] = "{field} is required"
+        INVALID_VALUE: Final[str] = "Invalid {field}: {value}"
+        VALUE_OUT_OF_RANGE: Final[str] = (
+            "{field} must be between {min_val} and {max_val}"
+        )
+        INVALID_OUTPUT_FORMAT_MUST_BE: Final[str] = (
+            "Invalid output format: {format}. Must be one of: {valid_formats}"
+        )
+        PROFILE_NAME_CANNOT_BE_EMPTY: Final[str] = "Profile name cannot be empty"
+        INVALID_API_URL_MUST_START: Final[str] = (
+            "Invalid API URL format: {url}. Must start with http:// or https://"
+        )
+        INVALID_LOG_LEVEL_MUST_BE: Final[str] = (
+            "Invalid log level: {level}. Must be one of: {valid_levels}"
+        )
+        INVALID_LOG_VERBOSITY_MUST_BE: Final[str] = (
+            "Invalid log verbosity: {verbosity}. Must be one of: {valid_verbosity}"
+        )
+
+    class DictKeys:
+        """Centralized dictionary key constants."""
+
+        # Token and auth keys
+        TOKEN_FILE: Final[str] = "token_file"
+        REFRESH_TOKEN_FILE: Final[str] = "refresh_token_file"
+        TOKEN_PATH: Final[str] = "token_path"
+        REFRESH_TOKEN_PATH: Final[str] = "refresh_token_path"
+        TOKEN: Final[str] = "token"
+        USERNAME: Final[str] = "username"
+        PASSWORD: Final[str] = "password"
+        AUTHENTICATED: Final[str] = "authenticated"
+        TOKEN_EXISTS: Final[str] = "token_exists"
+        REFRESH_TOKEN_EXISTS: Final[str] = "refresh_token_exists"
+
+        # Configuration keys
+        CONFIG_DIR: Final[str] = "config_dir"
+        CONFIG_EXISTS: Final[str] = "config_exists"
+        CONFIG_READABLE: Final[str] = "config_readable"
+        CONFIG_WRITABLE: Final[str] = "config_writable"
+        CONFIG: Final[str] = "config"
+        PROFILES: Final[str] = "profiles"
+
+        # Command execution keys
+        ARGS: Final[str] = "args"
+        COMMAND: Final[str] = "command"
+        STATUS: Final[str] = "status"
+        CONTEXT: Final[str] = "context"
+        TIMESTAMP: Final[str] = "timestamp"
+        TOTAL_COMMANDS: Final[str] = "total_commands"
+        EXECUTION_TIME: Final[str] = "execution_time"
+
+        # Service and system keys
+        SERVICE: Final[str] = "service"
+        MESSAGE: Final[str] = "message"
+        LOGGER_INSTANCE: Final[str] = "logger_instance"
+        PROMPTS_EXECUTED: Final[str] = "prompts_executed"
+        INTERACTIVE_MODE: Final[str] = "interactive_mode"
+
+        # File and directory keys
+        HOST: Final[str] = "host"
+        PORT: Final[str] = "port"
+        TIMEOUT: Final[str] = "timeout"
+
+    class StatusValues:
+        """Additional status values for CLI operations."""
+
+        SIMULATED_INPUT: Final[str] = "simulated_input"
+        PASSWORD_HIDDEN: Final[str] = "[password hidden]"
+
+    class Subdirectories:
+        """CLI subdirectory names."""
+
+        CONFIG: Final[str] = "config"
+        CACHE: Final[str] = "cache"
+        LOGS: Final[str] = "logs"
+        TOKEN: Final[str] = "token"
+        REFRESH_TOKEN: Final[str] = "refresh_token"
+
+    class Symbols:
+        """CLI symbols and markers."""
+
+        SUCCESS_MARK: Final[str] = "✓"
+        FAILURE_MARK: Final[str] = "✗"
+        ERROR_PREFIX: Final[str] = "❌ Error:"
+        SUCCESS_PREFIX: Final[str] = "✅ Success:"
+
+    class YesNo:
+        """Yes/No response constants."""
+
+        YES: Final[str] = "y"
+        YES_FULL: Final[str] = "yes"
+        NO: Final[str] = "n"
+        NO_FULL: Final[str] = "no"
+        TRUE: Final[str] = "true"
+        FALSE: Final[str] = "false"
+        ONE: Final[str] = "1"
+        ZERO: Final[str] = "0"
+
+        YES_VALUES: Final[FlextCore.Types.StringList] = ["y", "yes", "true", "1"]
+        NO_VALUES: Final[FlextCore.Types.StringList] = ["n", "no", "false", "0"]
+
+    class Encoding:
+        """Encoding constants."""
+
+        UTF8: Final[str] = "utf-8"
+        ASCII: Final[str] = "ascii"
+
+    class JsonOptions:
+        """JSON serialization option keys."""
+
+        SKIPKEYS: Final[str] = "skipkeys"
+        ENSURE_ASCII: Final[str] = "ensure_ascii"
+        CHECK_CIRCULAR: Final[str] = "check_circular"
+        ALLOW_NAN: Final[str] = "allow_nan"
+        CLS: Final[str] = "cls"
+        INDENT: Final[str] = "indent"
+        SEPARATORS: Final[str] = "separators"
+        DEFAULT: Final[str] = "default"
+        SORT_KEYS: Final[str] = "sort_keys"
+
+    class YamlOptions:
+        """YAML serialization option keys."""
+
+        DEFAULT_STYLE: Final[str] = "default_style"
+        DEFAULT_FLOW_STYLE: Final[str] = "default_flow_style"
+        CANONICAL: Final[str] = "canonical"
+        INDENT: Final[str] = "indent"
+        WIDTH: Final[str] = "width"
+        ALLOW_UNICODE: Final[str] = "allow_unicode"
+        LINE_BREAK: Final[str] = "line_break"
+        ENCODING: Final[str] = "encoding"
+        EXPLICIT_START: Final[str] = "explicit_start"
+        EXPLICIT_END: Final[str] = "explicit_end"
+        VERSION: Final[str] = "version"
+        TAGS: Final[str] = "tags"
+        SORT_KEYS: Final[str] = "sort_keys"
+
+    class Environment:
+        """Environment variable and testing constants."""
+
+        PYTEST_CURRENT_TEST: Final[str] = "PYTEST_CURRENT_TEST"
+        PYTEST: Final[str] = "pytest"
+        UNDERSCORE: Final[str] = "_"
+
+    class ConfigFiles:
+        """Configuration file names."""
+
+        CLI_CONFIG_JSON: Final[str] = "cli_config.json"
+
     # Table formats for tabulate integration
     TABLE_FORMATS: Final[FlextCore.Types.StringDict] = {
         "plain": "Minimal formatting, no borders",

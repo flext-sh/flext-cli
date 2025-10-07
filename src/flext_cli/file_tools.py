@@ -131,10 +131,14 @@ class FlextCliFileTools(FlextCore.Service[FlextCore.Types.Dict]):
 
         """
         try:
-            content = Path(file_path).read_text(encoding="utf-8")
+            content = Path(file_path).read_text(
+                encoding=FlextCliConstants.Encoding.UTF8
+            )
             return FlextCore.Result[str].ok(content)
         except Exception as e:
-            return FlextCore.Result[str].fail(f"Text file read failed: {e}")
+            return FlextCore.Result[str].fail(
+                FlextCliConstants.ErrorMessages.TEXT_FILE_READ_FAILED.format(error=e)
+            )
 
     def write_text_file(
         self, file_path: str | Path, content: str, **kwargs: object
@@ -151,13 +155,15 @@ class FlextCliFileTools(FlextCore.Service[FlextCore.Types.Dict]):
 
         """
         try:
-            encoding = kwargs.get("encoding", "utf-8")
+            encoding = kwargs.get("encoding", FlextCliConstants.Encoding.UTF8)
             if not isinstance(encoding, str):
-                encoding = "utf-8"
+                encoding = FlextCliConstants.Encoding.UTF8
             Path(file_path).write_text(content, encoding=encoding)
             return FlextCore.Result[None].ok(None)
         except Exception as e:
-            return FlextCore.Result[None].fail(f"Text file write failed: {e}")
+            return FlextCore.Result[None].fail(
+                FlextCliConstants.ErrorMessages.TEXT_FILE_WRITE_FAILED.format(error=e)
+            )
 
     def copy_file(
         self, source_path: str | Path, destination_path: str | Path
@@ -176,7 +182,9 @@ class FlextCliFileTools(FlextCore.Service[FlextCore.Types.Dict]):
             shutil.copy2(str(source_path), str(destination_path))
             return FlextCore.Result[bool].ok(True)
         except Exception as e:
-            return FlextCore.Result[bool].fail(f"File copy failed: {e}")
+            return FlextCore.Result[bool].fail(
+                FlextCliConstants.ErrorMessages.FILE_COPY_FAILED.format(error=e)
+            )
 
     def read_json_file(self, file_path: str | Path) -> FlextCore.Result[object]:
         """Read JSON file using internal loader.
@@ -208,25 +216,29 @@ class FlextCliFileTools(FlextCore.Service[FlextCore.Types.Dict]):
         try:
             # Filter kwargs to only valid json.dump parameters
             valid_keys = {
-                "skipkeys",
-                "ensure_ascii",
-                "check_circular",
-                "allow_nan",
-                "cls",
-                "indent",
-                "separators",
+                FlextCliConstants.JsonOptions.SKIPKEYS,
+                FlextCliConstants.JsonOptions.ENSURE_ASCII,
+                FlextCliConstants.JsonOptions.CHECK_CIRCULAR,
+                FlextCliConstants.JsonOptions.ALLOW_NAN,
+                FlextCliConstants.JsonOptions.CLS,
+                FlextCliConstants.JsonOptions.INDENT,
+                FlextCliConstants.JsonOptions.SEPARATORS,
                 "default",
-                "sort_keys",
+                FlextCliConstants.JsonOptions.SORT_KEYS,
             }
             dump_kwargs: dict[str, object] = {
                 key: value for key, value in kwargs.items() if key in valid_keys
             }
 
-            with Path(file_path).open("w", encoding="utf-8") as f:
+            with Path(file_path).open(
+                "w", encoding=FlextCliConstants.Encoding.UTF8
+            ) as f:
                 json.dump(data, f, indent=2, **dump_kwargs)
             return FlextCore.Result[None].ok(None)
         except Exception as e:
-            return FlextCore.Result[None].fail(f"JSON write failed: {e}")
+            return FlextCore.Result[None].fail(
+                FlextCliConstants.ErrorMessages.JSON_WRITE_FAILED.format(error=e)
+            )
 
     def read_yaml_file(self, file_path: str | Path) -> FlextCore.Result[object]:
         """Read YAML file using internal loader.
@@ -261,7 +273,7 @@ class FlextCliFileTools(FlextCore.Service[FlextCore.Types.Dict]):
                 "default_style",
                 "default_flow_style",
                 "canonical",
-                "indent",
+                FlextCliConstants.JsonOptions.INDENT,
                 "width",
                 "allow_unicode",
                 "line_break",
@@ -270,17 +282,21 @@ class FlextCliFileTools(FlextCore.Service[FlextCore.Types.Dict]):
                 "explicit_end",
                 "version",
                 "tags",
-                "sort_keys",
+                FlextCliConstants.JsonOptions.SORT_KEYS,
             }
             dump_kwargs: dict[str, object] = {
                 key: value for key, value in kwargs.items() if key in valid_keys
             }
 
-            with Path(file_path).open("w", encoding="utf-8") as f:
+            with Path(file_path).open(
+                "w", encoding=FlextCliConstants.Encoding.UTF8
+            ) as f:
                 yaml.safe_dump(data, f, **dump_kwargs)
             return FlextCore.Result[None].ok(None)
         except Exception as e:
-            return FlextCore.Result[None].fail(f"YAML write failed: {e}")
+            return FlextCore.Result[None].fail(
+                FlextCliConstants.ErrorMessages.YAML_WRITE_FAILED.format(error=e)
+            )
 
     # === PUBLIC API METHODS ===
 
@@ -303,7 +319,8 @@ class FlextCliFileTools(FlextCore.Service[FlextCore.Types.Dict]):
         format_result = self.detect_file_format(file_path)
         if format_result.is_failure:
             return FlextCore.Result[object].fail(
-                format_result.error or "Format detection failed"
+                format_result.error
+                or FlextCliConstants.ErrorMessages.FORMAT_DETECTION_FAILED
             )
 
         file_format = format_result.unwrap()
@@ -312,7 +329,11 @@ class FlextCliFileTools(FlextCore.Service[FlextCore.Types.Dict]):
         if file_format == "yaml":
             return self._FileLoader.load_yaml(str(file_path), **kwargs)
 
-        return FlextCore.Result[object].fail(f"Unsupported format: {file_format}")
+        return FlextCore.Result[object].fail(
+            FlextCliConstants.ErrorMessages.UNSUPPORTED_FORMAT.format(
+                format=file_format
+            )
+        )
 
     def save_file(
         self, file_path: str | Path, data: object, **kwargs: object
@@ -341,7 +362,9 @@ class FlextCliFileTools(FlextCore.Service[FlextCore.Types.Dict]):
     def read_csv_file(self, file_path: str | Path) -> FlextCore.Result[list[list[str]]]:
         """Read CSV file content."""
         try:
-            with Path(file_path).open(encoding="utf-8", newline="") as f:
+            with Path(file_path).open(
+                encoding=FlextCliConstants.Encoding.UTF8, newline=""
+            ) as f:
                 reader = csv.reader(f)
                 data = list(reader)
             return FlextCore.Result[list[list[str]]].ok(data)
@@ -353,7 +376,9 @@ class FlextCliFileTools(FlextCore.Service[FlextCore.Types.Dict]):
     ) -> FlextCore.Result[None]:
         """Write CSV file content."""
         try:
-            with Path(file_path).open("w", encoding="utf-8", newline="") as f:
+            with Path(file_path).open(
+                "w", encoding=FlextCliConstants.Encoding.UTF8, newline=""
+            ) as f:
                 writer = csv.writer(f)
                 writer.writerows(data)
             return FlextCore.Result[None].ok(None)
@@ -365,7 +390,9 @@ class FlextCliFileTools(FlextCore.Service[FlextCore.Types.Dict]):
     ) -> FlextCore.Result[list[dict[str, str]]]:
         """Read CSV file with headers."""
         try:
-            with Path(file_path).open(encoding="utf-8", newline="") as f:
+            with Path(file_path).open(
+                encoding=FlextCliConstants.Encoding.UTF8, newline=""
+            ) as f:
                 reader = csv.DictReader(f)
                 data = list(reader)
             return FlextCore.Result[list[dict[str, str]]].ok(data)
@@ -553,7 +580,9 @@ class FlextCliFileTools(FlextCore.Service[FlextCore.Types.Dict]):
             for file_path in Path(directory).rglob("*"):
                 if file_path.is_file():
                     try:
-                        text = file_path.read_text(encoding="utf-8")
+                        text = file_path.read_text(
+                            encoding=FlextCliConstants.Encoding.UTF8
+                        )
                         if content in text:
                             matches.append(str(file_path))
                     except (UnicodeDecodeError, PermissionError):
@@ -602,7 +631,9 @@ class FlextCliFileTools(FlextCore.Service[FlextCore.Types.Dict]):
         def load_json(file_path: str, **_kwargs: object) -> FlextCore.Result[object]:
             """Load JSON file."""
             try:
-                with Path(file_path).open(encoding="utf-8") as f:
+                with Path(file_path).open(
+                    encoding=FlextCliConstants.Encoding.UTF8
+                ) as f:
                     data = json.load(f)
                 return FlextCore.Result[object].ok(data)
             except Exception as e:
@@ -612,7 +643,9 @@ class FlextCliFileTools(FlextCore.Service[FlextCore.Types.Dict]):
         def load_yaml(file_path: str, **_kwargs: object) -> FlextCore.Result[object]:
             """Load YAML file."""
             try:
-                with Path(file_path).open(encoding="utf-8") as f:
+                with Path(file_path).open(
+                    encoding=FlextCliConstants.Encoding.UTF8
+                ) as f:
                     data = yaml.safe_load(f)
                 return FlextCore.Result[object].ok(data)
             except Exception as e:

@@ -13,7 +13,7 @@ import time
 from pathlib import Path
 from typing import Never
 
-from flext_core import FlextResult, FlextTypes
+from flext_core import FlextResult
 
 from flext_cli import FlextCliCmd, FlextCliFileTools
 
@@ -237,7 +237,7 @@ class TestFlextCliCmd:
         from flext_core import FlextLogger
 
         logger = FlextLogger(__name__)
-        result = FlextCliCmd._ConfigDisplayHelper.show_config(logger)
+        result = FlextCliCmd._ConfigDisplayHelper.show_config(logger)  # type: ignore[arg-type]
         assert result.is_success
 
     def test_cmd_config_modification_helper_edit_config(self) -> None:
@@ -270,7 +270,7 @@ class TestFlextCliCmd:
                 test_error_msg = "Test error"
                 raise self.TestingException(test_error_msg)
 
-        cmd._ConfigHelper = FailingHelper
+        cmd._ConfigHelper = FailingHelper  # type: ignore[assignment]
         try:
             result = cmd.show_config_paths()
             assert result.is_failure
@@ -291,7 +291,7 @@ class TestFlextCliCmd:
                 test_error_msg = "Test error"
                 raise self.TestingException(test_error_msg)
 
-        cmd._ConfigHelper = FailingHelper
+        cmd._ConfigHelper = FailingHelper  # type: ignore[assignment]
         try:
             result = cmd.validate_config()
             assert result.is_failure
@@ -315,7 +315,7 @@ class TestFlextCliCmd:
                 test_error_msg = "Test error"
                 raise TestingException(test_error_msg)
 
-        cmd._ConfigHelper = FailingHelper
+        cmd._ConfigHelper = FailingHelper  # type: ignore[assignment]
         try:
             result = cmd.get_config_info()
             assert result.is_failure
@@ -331,13 +331,13 @@ class TestFlextCliCmd:
         original_file_tools = cmd._file_tools
 
         class FailingFileTools(FlextCliFileTools):
-            def __init__(self) -> None:
-                pass
+            def __init__(self) -> None:  # type: ignore[no-untyped-call]
+                super().__init__()
 
-            def write_json_file(
-                self, file_path: str, data: FlextTypes.Dict
-            ) -> FlextResult[bool]:
-                return FlextResult[bool].fail("Test file error")
+            def write_json_file(  # type: ignore[override]
+                self, file_path: str | Path, data: object, **kwargs: dict[str, object]
+            ) -> FlextResult[None]:
+                return FlextResult[None].fail("Test file error")
 
         cmd._file_tools = FailingFileTools()
         try:
@@ -355,11 +355,11 @@ class TestFlextCliCmd:
         original_file_tools = cmd._file_tools
 
         class FailingFileTools(FlextCliFileTools):
-            def __init__(self) -> None:
-                pass
+            def __init__(self) -> None:  # type: ignore[no-untyped-call]
+                super().__init__()
 
-            def read_json_file(self, file_path: str) -> FlextResult[FlextTypes.Dict]:
-                return FlextResult[FlextTypes.Dict].fail("Test load error")
+            def read_json_file(self, file_path: str | Path) -> FlextResult[object]:  # type: ignore[override]
+                return FlextResult[object].fail("Test load error")
 
         cmd._file_tools = FailingFileTools()
 
@@ -396,7 +396,7 @@ class TestFlextCliCmd:
                 test_error_msg = "Test config info error"
                 raise self.TestingException(test_error_msg)
 
-        cmd._ConfigHelper = FailingHelper
+        cmd._ConfigHelper = FailingHelper  # type: ignore[assignment]
         try:
             result = cmd.show_config()
             assert result.is_failure
@@ -412,13 +412,13 @@ class TestFlextCliCmd:
         original_file_tools = cmd._file_tools
 
         class FailingFileTools(FlextCliFileTools):
-            def read_json_file(self, file_path: str) -> FlextResult[FlextTypes.Dict]:
-                return FlextResult[FlextTypes.Dict].fail("Test load error")
+            def read_json_file(self, file_path: str | Path) -> FlextResult[object]:  # type: ignore[override]
+                return FlextResult[object].fail("Test load error")
 
-            def write_json_file(
-                self, file_path: str, data: FlextTypes.Dict
-            ) -> FlextResult[bool]:
-                return FlextResult[bool].ok(True)
+            def write_json_file(  # type: ignore[override]
+                self, file_path: str | Path, data: object, **kwargs: dict[str, object]
+            ) -> FlextResult[None]:
+                return FlextResult[None].ok(None)
 
         cmd._file_tools = FailingFileTools()
         try:
@@ -443,7 +443,7 @@ class TestFlextCliCmd:
 
         logger.info = failing_info
         try:
-            result = FlextCliCmd._ConfigDisplayHelper.show_config(logger)
+            result = FlextCliCmd._ConfigDisplayHelper.show_config(logger)  # type: ignore[arg-type]
             assert result.is_failure
             assert isinstance(result.error, str)
             assert result.error is not None and "Test logger error" in result.error
@@ -468,10 +468,10 @@ class TestFlextCliCmd:
         original_file_tools = cmd._file_tools
 
         class FailingFileTools(FlextCliFileTools):
-            def write_json_file(
-                self, file_path: str, data: FlextTypes.Dict
-            ) -> FlextResult[bool]:
-                return FlextResult[bool].fail("Test create default error")
+            def write_json_file(  # type: ignore[override]
+                self, file_path: str | Path, data: object, **kwargs: dict[str, object]
+            ) -> FlextResult[None]:
+                return FlextResult[None].fail("Test create default error")
 
         cmd._file_tools = FailingFileTools()
         try:
@@ -491,8 +491,11 @@ class TestFlextCliCmd:
         original_file_tools = cmd._file_tools
 
         class MockFileTools(FlextCliFileTools):
-            def read_json_file(self, file_path: str) -> FlextResult[FlextTypes.Dict]:
-                return FlextResult.ok({"other_key": "value"})
+            def __init__(self) -> None:  # type: ignore[no-untyped-call]
+                super().__init__()
+
+            def read_json_file(self, file_path: str | Path) -> FlextResult[object]:  # type: ignore[override]
+                return FlextResult[object].ok({"other_key": "value"})  # type: ignore[unknown-variable-type]
 
         cmd._file_tools = MockFileTools()
         try:

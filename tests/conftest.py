@@ -29,22 +29,12 @@ from flext_cli.context import FlextCliContext
 from flext_cli.core import FlextCliCore
 from flext_cli.debug import FlextCliDebug
 from flext_cli.file_tools import FlextCliFileTools
-from flext_cli.handlers import FlextCliHandlers
 from flext_cli.mixins import FlextCliMixins
 from flext_cli.models import FlextCliModels
 from flext_cli.output import FlextCliOutput
-from flext_cli.processors import FlextCliProcessors
 from flext_cli.prompts import FlextCliPrompts
 from flext_cli.protocols import FlextCliProtocols
 from flext_cli.typings import FlextCliTypes
-
-# ============================================================================
-# CORE FLEXT TEST INFRASTRUCTURE - Simplified for flext-cli
-# ============================================================================
-
-# Note: Advanced test utilities removed from flext-core production exports
-# Using simple implementations for basic test support
-
 
 # ============================================================================
 # CLI TEST INFRASTRUCTURE
@@ -165,12 +155,6 @@ def flext_cli_file_tools() -> FlextCliFileTools:
 
 
 @pytest.fixture
-def flext_cli_handlers() -> FlextCliHandlers:
-    """Create FlextCliHandlers instance for testing."""
-    return FlextCliHandlers()
-
-
-@pytest.fixture
 def flext_cli_mixins() -> FlextCliMixins:
     """Create FlextCliMixins instance for testing."""
     return FlextCliMixins()
@@ -186,12 +170,6 @@ def flext_cli_models() -> FlextCliModels:
 def flext_cli_output() -> FlextCliOutput:
     """Create FlextCliOutput instance for testing."""
     return FlextCliOutput()
-
-
-@pytest.fixture
-def flext_cli_processors() -> FlextCliProcessors:
-    """Create FlextCliProcessors instance for testing."""
-    return FlextCliProcessors()
 
 
 @pytest.fixture
@@ -346,14 +324,15 @@ def clean_flext_container() -> Generator[None]:
     # Store original state
     FlextCore.Container.get_global()
 
-    # Create fresh container - use configure_global instead of set_global
+    # Create fresh container - use configure_container instead of set_global
     FlextCore.Container()
-    FlextCore.Container.configure_global({})  # type: ignore
+    container = FlextCore.Container()
+    container.configure_container({})  # type: ignore[attr-defined]
 
     yield
 
     # Restore original state - reset to original configuration
-    FlextCore.Container.configure_global({})  # type: ignore
+    container.configure_container({})  # type: ignore[attr-defined]
 
 
 # ============================================================================

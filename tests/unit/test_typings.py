@@ -599,7 +599,9 @@ class TestFlextCliTypes:
 
         # Test performance
         test_list = ["hello", "world", "test"]
-        test_dict = {"key1": 123, "key2": "value", "key3": True}
+        test_dict = cast(
+            "dict[str, object]", {"key1": 123, "key2": "value", "key3": True}
+        )
 
         # Initialize variables before loop
         result_list: FlextTypes.StringList = []

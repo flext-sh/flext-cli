@@ -19,6 +19,7 @@ import typer
 from flext_core import FlextCore
 
 from flext_cli.cli import FlextCliCli
+from flext_cli.constants import FlextCliConstants
 from flext_cli.models import FlextCliModels
 
 
@@ -724,7 +725,7 @@ class FlextCliMain(FlextCore.Service[object]):
             FlextCore.Result containing group object
 
         Example:
-            >>> result = main.get_group("config")
+            >>> result = main.get_group(FlextCliConstants.DictKeys.CONFIG)
             >>> if result.is_success:
             ...     grp = result.unwrap()
 
@@ -771,7 +772,9 @@ class FlextCliMain(FlextCore.Service[object]):
             return FlextCore.Result[object].ok(result)
 
         except Exception as e:
-            error_msg = f"CLI execution failed: {e}"
+            error_msg = FlextCliConstants.ErrorMessages.CLI_EXECUTION_ERROR.format(
+                error=e
+            )
             self.logger.exception(error_msg)
             return FlextCore.Result[object].fail(error_msg)
 
