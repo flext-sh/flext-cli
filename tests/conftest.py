@@ -66,7 +66,11 @@ def temp_file(temp_dir: Path) -> Path:
 def temp_json_file(temp_dir: Path) -> Path:
     """Create temporary JSON file for tests."""
     temp_file_path = temp_dir / "test_file.json"
-    test_data = {"key": "value", "number": 42, "list": [1, 2, 3]}
+    test_data: dict[str, str | int | list[int]] = {
+        "key": "value",
+        "number": 42,
+        "list": [1, 2, 3],
+    }
     temp_file_path.write_text(json.dumps(test_data))
     return temp_file_path
 
@@ -75,7 +79,11 @@ def temp_json_file(temp_dir: Path) -> Path:
 def temp_yaml_file(temp_dir: Path) -> Path:
     """Create temporary YAML file for tests."""
     temp_file_path = temp_dir / "test_file.yaml"
-    test_data = {"key": "value", "number": 42, "list": [1, 2, 3]}
+    test_data: dict[str, str | int | list[int]] = {
+        "key": "value",
+        "number": 42,
+        "list": [1, 2, 3],
+    }
     temp_file_path.write_text(yaml.dump(test_data))
     return temp_file_path
 
@@ -327,12 +335,12 @@ def clean_flext_container() -> Generator[None]:
     # Create fresh container - use configure_container instead of set_global
     FlextCore.Container()
     container = FlextCore.Container()
-    container.configure_container({})  # type: ignore[attr-defined]
+    container.configure_container({})
 
     yield
 
     # Restore original state - reset to original configuration
-    container.configure_container({})  # type: ignore[attr-defined]
+    container.configure_container({})
 
 
 # ============================================================================

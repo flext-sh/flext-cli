@@ -11,7 +11,7 @@ from __future__ import annotations
 
 import time
 from pathlib import Path
-from typing import Never
+from typing import Never, cast
 
 from flext_core import FlextResult
 
@@ -234,10 +234,7 @@ class TestFlextCliCmd:
 
     def test_cmd_config_display_helper_show_config(self) -> None:
         """Test _ConfigDisplayHelper.show_config method."""
-        from flext_core import FlextLogger
-
-        logger = FlextLogger(__name__)
-        result = FlextCliCmd._ConfigDisplayHelper.show_config(logger)  # type: ignore[arg-type]
+        result = FlextCliCmd._ConfigDisplayHelper.show_config(None)
         assert result.is_success
 
     def test_cmd_config_modification_helper_edit_config(self) -> None:
@@ -270,7 +267,7 @@ class TestFlextCliCmd:
                 test_error_msg = "Test error"
                 raise self.TestingException(test_error_msg)
 
-        cmd._ConfigHelper = FailingHelper  # type: ignore[assignment]
+        cmd._ConfigHelper = cast("type[cmd._ConfigHelper]", FailingHelper)
         try:
             result = cmd.show_config_paths()
             assert result.is_failure
@@ -291,7 +288,7 @@ class TestFlextCliCmd:
                 test_error_msg = "Test error"
                 raise self.TestingException(test_error_msg)
 
-        cmd._ConfigHelper = FailingHelper  # type: ignore[assignment]
+        cmd._ConfigHelper = cast("type[cmd._ConfigHelper]", FailingHelper)
         try:
             result = cmd.validate_config()
             assert result.is_failure
@@ -315,7 +312,7 @@ class TestFlextCliCmd:
                 test_error_msg = "Test error"
                 raise TestingException(test_error_msg)
 
-        cmd._ConfigHelper = FailingHelper  # type: ignore[assignment]
+        cmd._ConfigHelper = cast("type[cmd._ConfigHelper]", FailingHelper)
         try:
             result = cmd.get_config_info()
             assert result.is_failure
@@ -331,11 +328,12 @@ class TestFlextCliCmd:
         original_file_tools = cmd._file_tools
 
         class FailingFileTools(FlextCliFileTools):
-            def __init__(self) -> None:  # type: ignore[no-untyped-call]
+            def __init__(self) -> None:
                 super().__init__()
 
-            def write_json_file(  # type: ignore[override]
-                self, file_path: str | Path, data: object, **kwargs: dict[str, object]
+            @staticmethod
+            def write_json_file(
+                _file_path: str | Path, _data: object, **_kwargs: dict[str, object]
             ) -> FlextResult[None]:
                 return FlextResult[None].fail("Test file error")
 
@@ -355,10 +353,10 @@ class TestFlextCliCmd:
         original_file_tools = cmd._file_tools
 
         class FailingFileTools(FlextCliFileTools):
-            def __init__(self) -> None:  # type: ignore[no-untyped-call]
+            def __init__(self) -> None:
                 super().__init__()
 
-            def read_json_file(self, file_path: str | Path) -> FlextResult[object]:  # type: ignore[override]
+            def read_json_file(self, file_path: str | Path) -> FlextResult[object]:
                 return FlextResult[object].fail("Test load error")
 
         cmd._file_tools = FailingFileTools()
@@ -396,7 +394,7 @@ class TestFlextCliCmd:
                 test_error_msg = "Test config info error"
                 raise self.TestingException(test_error_msg)
 
-        cmd._ConfigHelper = FailingHelper  # type: ignore[assignment]
+        cmd._ConfigHelper = cast("type[cmd._ConfigHelper]", FailingHelper)
         try:
             result = cmd.show_config()
             assert result.is_failure
@@ -412,11 +410,12 @@ class TestFlextCliCmd:
         original_file_tools = cmd._file_tools
 
         class FailingFileTools(FlextCliFileTools):
-            def read_json_file(self, file_path: str | Path) -> FlextResult[object]:  # type: ignore[override]
+            def read_json_file(self, file_path: str | Path) -> FlextResult[object]:
                 return FlextResult[object].fail("Test load error")
 
-            def write_json_file(  # type: ignore[override]
-                self, file_path: str | Path, data: object, **kwargs: dict[str, object]
+            @staticmethod
+            def write_json_file(
+                _file_path: str | Path, _data: object, **_kwargs: dict[str, object]
             ) -> FlextResult[None]:
                 return FlextResult[None].ok(None)
 
@@ -443,7 +442,7 @@ class TestFlextCliCmd:
 
         logger.info = failing_info
         try:
-            result = FlextCliCmd._ConfigDisplayHelper.show_config(logger)  # type: ignore[arg-type]
+            result = FlextCliCmd._ConfigDisplayHelper.show_config(None)
             assert result.is_failure
             assert isinstance(result.error, str)
             assert result.error is not None and "Test logger error" in result.error
@@ -468,8 +467,9 @@ class TestFlextCliCmd:
         original_file_tools = cmd._file_tools
 
         class FailingFileTools(FlextCliFileTools):
-            def write_json_file(  # type: ignore[override]
-                self, file_path: str | Path, data: object, **kwargs: dict[str, object]
+            @staticmethod
+            def write_json_file(
+                _file_path: str | Path, _data: object, **_kwargs: dict[str, object]
             ) -> FlextResult[None]:
                 return FlextResult[None].fail("Test create default error")
 
@@ -491,11 +491,11 @@ class TestFlextCliCmd:
         original_file_tools = cmd._file_tools
 
         class MockFileTools(FlextCliFileTools):
-            def __init__(self) -> None:  # type: ignore[no-untyped-call]
+            def __init__(self) -> None:
                 super().__init__()
 
-            def read_json_file(self, file_path: str | Path) -> FlextResult[object]:  # type: ignore[override]
-                return FlextResult[object].ok({"other_key": "value"})  # type: ignore[unknown-variable-type]
+            def read_json_file(self, file_path: str | Path) -> FlextResult[object]:
+                return FlextResult[object].ok({"other_key": "value"})
 
         cmd._file_tools = MockFileTools()
         try:

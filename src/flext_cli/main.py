@@ -81,7 +81,8 @@ class FlextCliMain(FlextCore.Service[object]):
 
         """
         super().__init__()
-        # Logger and container inherited from FlextCore.Service via FlextMixins
+        # Initialize logger (inherited from FlextCore.Service)
+        self.logger = FlextCore.Logger(__name__)
         self._click = FlextCliCli()
 
         # CLI metadata

@@ -404,7 +404,7 @@ class TestFlextCli:
             "retries": FlextCliConstants.HTTP.MAX_RETRIES,
         }
 
-        result = api_service.utilities.Validation.validate_data(  # type: ignore[arg-type]
+        result = api_service.utilities.Validation.validate_data(
             valid_config,
             {
                 "debug": bool,
@@ -423,7 +423,7 @@ class TestFlextCli:
             "retries": "not_a_number",
         }
 
-        result = api_service.utilities.Validation.validate_data(  # type: ignore[arg-type]
+        result = api_service.utilities.Validation.validate_data(
             invalid_config,
             {"debug": bool, "timeout": int, "retries": int},
         )
@@ -545,7 +545,7 @@ nested:
 
     def test_concurrent_operations(self, api_service: FlextCli, temp_dir: Path) -> None:
         """Test concurrent operations to ensure thread safety."""
-        results: list[FlextResult[object]] = []
+        results: list[FlextResult[None]] = []
         errors: list[Exception] = []
 
         def worker(worker_id: int) -> None:
@@ -554,20 +554,20 @@ nested:
                 result = api_service.file_tools.write_text_file(
                     str(test_file), f"Worker {worker_id} content"
                 )
-                results.append(result)  # type: ignore[unknown-member-type]
+                results.append(result)
             except Exception as e:
-                errors.append(e)  # type: ignore[unknown-member-type]
+                errors.append(e)
 
         # Start multiple threads
         threads: list[threading.Thread] = []
         for i in range(5):
             thread = threading.Thread(target=worker, args=(i,))
-            threads.append(thread)  # type: ignore[unknown-member-type]
+            threads.append(thread)
             thread.start()
 
         # Wait for all threads to complete
         for thread in threads:
-            thread.join()  # type: ignore[unknown-member-type]
+            thread.join()
 
         # Verify all operations succeeded
         assert len(errors) == 0, f"Errors occurred: {errors}"

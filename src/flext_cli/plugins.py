@@ -301,7 +301,9 @@ class FlextCliPlugins(FlextCore.Service[object]):
                         )
                     )
 
-                plugin: FlextCliProtocols.Extensions.CliPlugin = load_result.unwrap()
+                plugin: FlextCliProtocols.Extensions.CliPlugin = FlextCore.cast(
+                    FlextCliProtocols.Extensions.CliPlugin, load_result.unwrap()
+                )
 
                 # Initialize plugin
                 init_result = self.initialize_plugin(plugin, cli_main)
@@ -404,14 +406,14 @@ class FlextCliPlugins(FlextCore.Service[object]):
                 self.logger.exception(error_msg)
                 return FlextCore.Result[None].fail(error_msg)
 
-        def execute(self) -> FlextCore.Result[None]:
+        def execute(self) -> FlextCore.Result[object]:
             """Execute plugin manager operations.
 
             Returns:
-                FlextCore.Result[None]
+                FlextCore.Result[object]
 
             """
-            return FlextCore.Result[None].ok(None)
+            return FlextCore.Result[object].ok(None)
 
     # ==========================================================================
     # PUBLIC PROPERTIES - Access to nested plugin components
@@ -594,14 +596,14 @@ class FlextCliPlugins(FlextCore.Service[object]):
             """
             return FlextCore.Result[None].ok(None)
 
-    def execute(self) -> FlextCore.Result[None]:
+    def execute(self) -> FlextCore.Result[object]:
         """Execute plugin system operations.
 
         Returns:
-            FlextCore.Result[None]
+            FlextCore.Result[object]
 
         """
-        return FlextCore.Result[None].ok(None)
+        return FlextCore.Result[object].ok(None)
 
 
 __all__ = [

@@ -8,7 +8,9 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
+import contextlib
 import pathlib
+import tempfile
 from typing import cast
 
 from flext_cli import FlextCli
@@ -19,8 +21,6 @@ cli = FlextCli.get_instance()
 
 def demonstrate_file_io() -> None:
     """File I/O with auto-validation and formatting."""
-    import tempfile
-
     test_data = {"name": "example", "value": 42}
 
     # Use secure temporary file instead of hardcoded path
@@ -40,10 +40,8 @@ def demonstrate_file_io() -> None:
             cli.output.print_success(f"Read: {read_result.value}")
     finally:
         # Clean up temporary file
-        try:
+        with contextlib.suppress(OSError):
             pathlib.Path(tmp_path).unlink()
-        except OSError:
-            pass  # File may have been cleaned up already
 
 
 def demonstrate_path_operations() -> None:

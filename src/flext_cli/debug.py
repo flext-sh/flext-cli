@@ -157,7 +157,7 @@ class FlextCliDebug(FlextCore.Service[str]):
             )
 
     def execute_trace(
-        self, args: Types.Command.CommandArgs
+        self, args: Types.CliCommand.CommandArgs
     ) -> FlextCore.Result[Types.Data.DebugInfoData]:
         """Execute trace operation with provided arguments."""
         try:

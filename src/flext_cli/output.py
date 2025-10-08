@@ -11,11 +11,15 @@ from __future__ import annotations
 
 import csv
 import json
+from collections.abc import Sequence
 from io import StringIO
-from typing import override
+from typing import cast, override
 
 import yaml
 from flext_core import FlextCore
+from rich.console import Console
+from rich.table import Table as RichTable
+from rich.tree import Tree
 
 from flext_cli.constants import FlextCliConstants
 from flext_cli.formatters import FlextCliFormatters
@@ -78,7 +82,7 @@ class FlextCliOutput(FlextCore.Service[object]):
     @override
     def execute(self) -> FlextCore.Result[object]:
         """Execute the main domain service operation - required by FlextCore.Service."""
-        return FlextCore.Result[str].ok("FlextCliOutput operational")
+        return FlextCore.Result[object].ok("FlextCliOutput operational")
 
     # =========================================================================
     # FORMAT DATA - UNIFIED API
@@ -167,7 +171,12 @@ class FlextCliOutput(FlextCore.Service[object]):
         data: list[FlextCore.Types.Dict],
         title: str | None = None,
         headers: FlextCore.Types.StringList | None = None,
-        **kwargs: object,
+        *,
+        show_header: bool = True,
+        show_lines: bool = False,
+        show_edge: bool = True,
+        expand: bool = False,
+        padding: tuple[int, int] = (0, 1),
     ) -> FlextCore.Result[object]:
         """Create a Rich table from data using FlextCliFormatters.
 
@@ -199,8 +208,11 @@ class FlextCliOutput(FlextCore.Service[object]):
             # Create Rich table through formatters abstraction
             table_result = self._formatters.create_table(
                 title=title or "",
-                show_header=True,
-                **kwargs,
+                show_header=show_header,
+                show_lines=show_lines,
+                show_edge=show_edge,
+                expand=expand,
+                padding=padding,
             )
 
             if table_result.is_failure:
@@ -244,7 +256,7 @@ class FlextCliOutput(FlextCore.Service[object]):
 
         """
         # Delegate to formatters for Rich operations
-        return self._formatters.render_table_to_string(table, width)
+        return self._formatters.render_table_to_string(cast("RichTable", table), width)
 
     # =========================================================================
     # ASCII TABLE CREATION (Delegates to FlextCliTables)
@@ -255,7 +267,15 @@ class FlextCliOutput(FlextCore.Service[object]):
         data: list[FlextCore.Types.Dict],
         headers: FlextCore.Types.StringList | None = None,
         table_format: str = "simple",
-        **kwargs: object,
+        *,
+        align: str | Sequence[str] | None = None,
+        floatfmt: str = "g",
+        numalign: str = "decimal",
+        stralign: str = "left",
+        missingval: str = "",
+        showindex: bool | str = False,
+        disable_numparse: bool = False,
+        colalign: Sequence[str] | None = None,
     ) -> FlextCore.Result[str]:
         """Create ASCII table using FlextCliTables.
 
@@ -279,7 +299,14 @@ class FlextCliOutput(FlextCore.Service[object]):
             data=data,
             headers=headers or "keys",
             table_format=table_format,
-            **kwargs,
+            align=align,
+            floatfmt=floatfmt,
+            numalign=numalign,
+            stralign=stralign,
+            missingval=missingval,
+            showindex=showindex,
+            disable_numparse=disable_numparse,
+            colalign=colalign,
         )
 
     # =========================================================================
@@ -307,7 +334,9 @@ class FlextCliOutput(FlextCore.Service[object]):
             ... )
 
         """
-        return self._formatters.create_progress()
+        progress_result = self._formatters.create_progress()
+        # Cast to object type to match return type
+        return cast("FlextCore.Result[object]", progress_result)
 
     # =========================================================================
     # STYLED PRINTING (Delegates to FlextCliFormatters)
@@ -464,7 +493,11 @@ class FlextCliOutput(FlextCore.Service[object]):
         emoji = emoji_map.get(message_type, "i")
         formatted_message = f"{emoji} {message}"
 
-        return self.print_message(formatted_message, style=style, **kwargs)
+        # Extract highlight parameter from kwargs if present
+        highlight = kwargs.get("highlight", False)
+        if not isinstance(highlight, bool):
+            highlight = False
+        return self.print_message(formatted_message, style=style, highlight=highlight)
 
     def display_data(
         self,
@@ -487,8 +520,17 @@ class FlextCliOutput(FlextCore.Service[object]):
             >>> output.display_data({"key": "value"}, format_type="json")
 
         """
-        # Format the data first
-        format_result = self.format_data(data, format_type=format_type, **kwargs)
+        # Format the data first - extract valid parameters from kwargs
+        title = kwargs.get("title")
+        if title is not None and not isinstance(title, str):
+            title = None
+        headers = kwargs.get("headers")
+        if headers is not None and not isinstance(headers, list):
+            headers = None
+
+        format_result = self.format_data(
+            data, format_type=format_type, title=title, headers=headers
+        )
 
         if format_result.is_failure:
             return FlextCore.Result[None].fail(
@@ -625,7 +667,7 @@ class FlextCliOutput(FlextCore.Service[object]):
 
             # Create table using FlextCliTables
             table_result = self._tables.create_table(
-                data=table_data,
+                data=cast("list[FlextCore.Types.Dict]", table_data),
                 headers=table_headers,
                 table_format="grid",
             )
@@ -696,29 +738,30 @@ class FlextCliOutput(FlextCore.Service[object]):
             data: Data to build tree from
 
         """
+        tree_obj = cast("Tree", tree)
         if isinstance(data, dict):
             for key, value in data.items():
                 if isinstance(value, dict):
-                    branch = tree.add(str(key))
+                    branch = tree_obj.add(str(key))
                     self._build_tree(branch, value)
                 elif isinstance(value, list):
-                    branch = tree.add(f"{key} (list)")
+                    branch = tree_obj.add(f"{key} (list)")
                     for item in value:
                         self._build_tree(branch, item)
                 else:
-                    tree.add(f"{key}: {value}")
+                    tree_obj.add(f"{key}: {value}")
         elif isinstance(data, list):
             for item in data:
                 self._build_tree(tree, item)
         else:
-            tree.add(str(data))
+            tree_obj.add(str(data))
 
     # =========================================================================
     # CONSOLE ACCESS (Delegates to FlextCliFormatters)
     # =========================================================================
 
     @property
-    def console(self) -> object:
+    def console(self) -> Console:
         """Get console instance from FlextCliFormatters (Rich Console abstraction).
 
         Returns:
@@ -732,7 +775,7 @@ class FlextCliOutput(FlextCore.Service[object]):
         """
         return self._formatters.console
 
-    def get_console(self) -> object:
+    def get_console(self) -> Console:
         """Get the console instance from FlextCliFormatters (method form).
 
         Returns:

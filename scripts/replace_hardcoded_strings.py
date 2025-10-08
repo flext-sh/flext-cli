@@ -242,8 +242,11 @@ REPLACEMENTS = [
     (r'"separators"', "FlextCliConstants.JsonOptions.SEPARATORS"),
     (r'"sort_keys"', "FlextCliConstants.JsonOptions.SORT_KEYS"),
     # Environment
-    (r'"PYTEST_CURRENT_TEST"', "FlextCliConstants.Environment.PYTEST_CURRENT_TEST"),
-    (r'"pytest"(?! in)', "FlextCliConstants.Environment.PYTEST"),
+    (
+        r'"PYTEST_CURRENT_TEST"',
+        "FlextCliConstants.EnvironmentConstants.PYTEST_CURRENT_TEST",
+    ),
+    (r'"pytest"(?! in)', "FlextCliConstants.EnvironmentConstants.PYTEST"),
     # Config files
     (r'"cli_config\.json"', "FlextCliConstants.ConfigFiles.CLI_CONFIG_JSON"),
     # Additional auth errors
@@ -574,10 +577,10 @@ def replace_strings_in_file(file_path: Path) -> tuple[int, int]:
         if content != original_content:
             file_path.write_text(content, encoding="utf-8")
             lines_changed = len([
-                l
-                for l in content.split("\n")
-                if l != original_content.split("\n")[content.split("\n").index(l)]
-                if content.split("\n").index(l) < len(original_content.split("\n"))
+                line
+                for line in content.split("\n")
+                if line != original_content.split("\n")[content.split("\n").index(line)]
+                if content.split("\n").index(line) < len(original_content.split("\n"))
             ])
             return (replacements_made, lines_changed)
 
