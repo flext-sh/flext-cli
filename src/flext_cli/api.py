@@ -9,6 +9,8 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
+from typing import cast
+
 from flext_core import FlextCore
 
 from flext_cli.auth import FlextCliAuth
@@ -63,7 +65,7 @@ class FlextCli:
             return cls()
 
         # Type assertion: container.get returns FlextCli instance
-        return result.value
+        return cast("FlextCli", result.value)
 
     def __init__(self) -> None:
         """Initialize CLI API with minimal setup - services lazy-loaded on demand."""

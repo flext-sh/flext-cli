@@ -31,6 +31,9 @@ from pydantic_settings import SettingsConfigDict
 from flext_cli.constants import FlextCliConstants
 from flext_cli.typings import FlextCliTypes
 
+# Module-level logger for use in validators and static methods
+logger = FlextCore.Logger(__name__)
+
 
 class FlextCliConfig(FlextCore.Config):
     """Single flat Pydantic 2 Settings class for flext-cli extending FlextCore.Config.
@@ -112,6 +115,10 @@ class FlextCliConfig(FlextCore.Config):
 
     auto_refresh: bool = Field(
         default=True, description="Automatically refresh authentication tokens"
+    )
+
+    environment: str = Field(
+        default="development", description="Deployment environment (development, staging, production)"
     )
 
     # CLI behavior configuration (flattened from previous nested classes)
@@ -272,17 +279,17 @@ class FlextCliConfig(FlextCore.Config):
             FlextCore.Context.set("cli_auto_color_support", self.auto_color_support)
             FlextCore.Context.set("cli_auto_verbosity", self.auto_verbosity)
             FlextCore.Context.set("cli_optimal_table_format", self.optimal_table_format)
-        except Exception:
+        except Exception as e:
             # FlextCore.Context might not be initialized yet - continue gracefully
-            pass
+            logger.debug(f"Context not available during config initialization: {e}")
 
         # Auto-register in FlextCore.Container for dependency injection
         try:
             container = FlextCore.Container.get_global()
             container.register_instance("flext_cli_config", self)
-        except Exception:
+        except Exception as e:
             # Container might not be initialized yet - continue gracefully
-            pass
+            logger.debug(f"Container not available during config initialization: {e}")
 
         return self
 
@@ -692,6 +699,42 @@ class FlextCliConfig(FlextCore.Config):
             return FlextCore.Result[None].fail(
                 FlextCliConstants.ErrorMessages.CONFIG_SAVE_FAILED_MSG.format(error=e)
             )
+
+    def validate_business_rules(self) -> FlextCore.Result[None]:
+        """Validate configuration business rules.
+
+        Returns:
+            FlextCore.Result[None]: Success if all rules pass, error otherwise
+
+        """
+        try:
+            # Basic validation rules for CLI config
+            if not self.profile:
+                return FlextCore.Result[None].fail("Profile cannot be empty")
+
+            if not self.output_format:
+                return FlextCore.Result[None].fail("Output format cannot be empty")
+
+            if not self.config_dir:
+                return FlextCore.Result[None].fail("Config directory cannot be empty")
+
+            # Validate output format is supported
+            supported_formats = [
+                FlextCliConstants.OutputFormats.TABLE,
+                FlextCliConstants.OutputFormats.JSON,
+                FlextCliConstants.OutputFormats.YAML,
+                FlextCliConstants.OutputFormats.CSV,
+            ]
+            if self.output_format not in supported_formats:
+                return FlextCore.Result[None].fail(
+                    f"Unsupported output format: {self.output_format}. "
+                    f"Supported: {', '.join(supported_formats)}"
+                )
+
+            return FlextCore.Result[None].ok(None)
+
+        except Exception as e:
+            return FlextCore.Result[None].fail(f"Business rules validation failed: {e}")
 
 
 # Merged into FlextCliConfig - removed redundant class

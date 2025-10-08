@@ -233,6 +233,7 @@ class FlextCliFileTools(FlextCore.Service[FlextCore.Types.Dict]):
             with Path(file_path).open(
                 "w", encoding=FlextCliConstants.Encoding.UTF8
             ) as f:
+                # Cast dump_kwargs to avoid type checker issues with **kwargs
                 json.dump(data, f, indent=2, **dump_kwargs)
             return FlextCore.Result[None].ok(None)
         except Exception as e:
@@ -291,6 +292,7 @@ class FlextCliFileTools(FlextCore.Service[FlextCore.Types.Dict]):
             with Path(file_path).open(
                 "w", encoding=FlextCliConstants.Encoding.UTF8
             ) as f:
+                # Cast dump_kwargs to avoid type checker issues with **kwargs
                 yaml.safe_dump(data, f, **dump_kwargs)
             return FlextCore.Result[None].ok(None)
         except Exception as e:
@@ -310,7 +312,9 @@ class FlextCliFileTools(FlextCore.Service[FlextCore.Types.Dict]):
             "json": {"extensions": ["json"]},
             "yaml": {"extensions": ["yaml", "yml"]},
         }
-        return self._FormatDetector.detect_format(supported_formats, file_path)
+        return self._FormatDetector.detect_format(
+            FlextCore.Types.NestedDict(supported_formats), file_path
+        )
 
     def load_file_auto_detect(
         self, file_path: str | Path, **kwargs: object

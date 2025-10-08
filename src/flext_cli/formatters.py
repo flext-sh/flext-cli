@@ -81,7 +81,8 @@ class FlextCliFormatters(FlextCore.Service[object]):
     def __init__(self) -> None:
         """Initialize Rich formatters layer with Phase 1 context enrichment."""
         super().__init__()
-        # Logger and container inherited from FlextCore.Service via FlextMixins
+        # Initialize logger (inherited from FlextCore.Service)
+        self.logger = FlextCore.Logger(__name__)
         self._console: Console | None = None
 
     @property

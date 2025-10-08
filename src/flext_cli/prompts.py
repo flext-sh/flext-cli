@@ -101,7 +101,7 @@ class FlextCliPrompts(FlextCore.Service[FlextCliTypes.Data.CliDataDict]):
 
         """
         return (
-            FlextCliConstants.Environment.PYTEST_CURRENT_TEST in os.environ
+            FlextCliConstants.EnvironmentConstants.PYTEST_CURRENT_TEST in os.environ
             or "pytest" in os.environ.get("_", "").lower()
             or any("pytest" in arg.lower() for arg in sys.argv)
         )

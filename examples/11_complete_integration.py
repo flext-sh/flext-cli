@@ -14,7 +14,10 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
+import contextlib
+import json
 import pathlib
+import tempfile
 from typing import cast
 
 from flext_core import FlextResult
@@ -31,8 +34,6 @@ def demonstrate_complete_workflow() -> FlextResult[dict]:
     cli.auth.save_auth_token("example_token")
 
     # File I/O with auto-validation and formatting
-    import tempfile
-
     test_data = {"users": [{"name": "Alice", "role": "Admin"}]}
 
     # Use secure temporary file instead of hardcoded path
@@ -62,23 +63,18 @@ def demonstrate_complete_workflow() -> FlextResult[dict]:
         return FlextResult[dict].ok(cast("dict", read_result.value))
     finally:
         # Clean up temporary file
-        try:
+        with contextlib.suppress(OSError):
             pathlib.Path(tmp_path).unlink()
-        except OSError:
-            pass  # File may have been cleaned up already
 
 
 def demonstrate_railway_pattern() -> None:
     """Show FlextResult railway pattern across modules."""
-    import tempfile
-
     # Create a temporary file for the demo
     test_data = {"status": "demo", "data": [1, 2, 3]}
     with tempfile.NamedTemporaryFile(
         encoding="utf-8", mode="w", suffix=".json", delete=False
     ) as tmp_file:
         tmp_path = tmp_file.name
-        import json
 
         json.dump(test_data, tmp_file)
 
@@ -94,10 +90,8 @@ def demonstrate_railway_pattern() -> None:
             cli.output.print_success(f"Chained operations: {result.value}")
     finally:
         # Clean up temporary file
-        try:
+        with contextlib.suppress(OSError):
             pathlib.Path(tmp_path).unlink()
-        except OSError:
-            pass  # File may have been cleaned up already
 
 
 def demonstrate_zero_configuration() -> None:

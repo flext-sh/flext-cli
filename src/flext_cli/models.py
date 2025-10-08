@@ -1289,7 +1289,46 @@ class FlextCliModels(FlextCore.Models):
                 **data: Additional entity initialization data
 
             """
-            super().__init__(**data)
+            # Ensure required fields for FlextCore.Models.Entity
+            if "id" not in data:
+                data["id"] = str(uuid.uuid4())
+            if "version" not in data:
+                data["version"] = 1
+            if "created_at" not in data:
+                data["created_at"] = datetime.now(UTC)
+            if "updated_at" not in data:
+                data["updated_at"] = None
+            if "domain_events" not in data:
+                data["domain_events"] = []
+
+            # Create parent class with explicit parameters
+            version_obj = data.get("version", 1)
+            version_value: int = version_obj if isinstance(version_obj, int) else 1
+
+            created_at_obj = data.get("created_at", datetime.now(UTC))
+            created_at_value: datetime = (
+                created_at_obj
+                if isinstance(created_at_obj, datetime)
+                else datetime.now(UTC)
+            )
+
+            updated_at_obj = data.get("updated_at")
+            updated_at_value: datetime | None = (
+                updated_at_obj if isinstance(updated_at_obj, datetime) else None
+            )
+
+            domain_events_obj = data.get("domain_events", [])
+            domain_events_value: FlextCore.Types.List = (
+                domain_events_obj if isinstance(domain_events_obj, list) else []
+            )
+
+            super().__init__(
+                id=str(data.get("id", str(uuid.uuid4()))),
+                version=version_value,
+                created_at=created_at_value,
+                updated_at=updated_at_value,
+                domain_events=domain_events_value,
+            )
 
             # CLI context initialization with domain-specific types
             self._command = command
@@ -1410,7 +1449,7 @@ class FlextCliModels(FlextCore.Models):
                 )
 
             if not isinstance(value, str):
-                return FlextCore.Result[str].fail("Variable value must be a string")
+                return FlextCore.Result[None].fail("Variable value must be a string")
 
             try:
                 self._environment_variables[name] = value
@@ -1563,9 +1602,9 @@ try:
     FlextCore.Models.Entity.model_rebuild(_types_namespace=_namespace)
 
     # 2. Rebuild FlextCliModels base classes that extend FlextCore
-    FlextCliModels._BaseEntity.model_rebuild(_types_namespace=_namespace)
-    FlextCliModels._BaseValidatedModel.model_rebuild(_types_namespace=_namespace)
-    FlextCliModels._BaseConfig.model_rebuild(_types_namespace=_namespace)
+    FlextCliModels._BaseEntity.model_rebuild(_types_namespace=_namespace)  # type: ignore[attr-defined]  # noqa: SLF001
+    FlextCliModels._BaseValidatedModel.model_rebuild(_types_namespace=_namespace)  # type: ignore[attr-defined]  # noqa: SLF001
+    FlextCliModels._BaseConfig.model_rebuild(_types_namespace=_namespace)  # type: ignore[attr-defined]  # noqa: SLF001
 
     # 3. Finally rebuild all nested CLI models that depend on base classes
     FlextCliModels.CliCommand.model_rebuild(_types_namespace=_namespace)

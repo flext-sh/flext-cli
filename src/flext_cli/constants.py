@@ -746,7 +746,7 @@ class FlextCliConstants(FlextCore.Constants):
         TAGS: Final[str] = "tags"
         SORT_KEYS: Final[str] = "sort_keys"
 
-    class Environment:
+    class EnvironmentConstants:
         """Environment variable and testing constants."""
 
         PYTEST_CURRENT_TEST: Final[str] = "PYTEST_CURRENT_TEST"

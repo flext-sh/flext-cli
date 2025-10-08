@@ -17,7 +17,7 @@ from __future__ import annotations
 import shutil
 from collections.abc import Callable, Sequence
 from pathlib import Path
-from typing import IO, cast
+from typing import IO
 
 import click
 import typer
@@ -100,7 +100,7 @@ class FlextCliCli:
         command_kwargs: dict[str, object] = {"name": name}
         command_kwargs.update(kwargs)
         # Cast to object to avoid type checking issues with Click's dynamic kwargs
-        decorator = click.command(**cast("dict[str, object]", command_kwargs))
+        decorator = click.command(**command_kwargs)
         self.logger.debug(
             "Created command decorator",
             extra={"command_name": name, "options": kwargs},
@@ -133,7 +133,7 @@ class FlextCliCli:
         group_kwargs: dict[str, object] = {"name": name}
         group_kwargs.update(kwargs)
         # Cast to object to avoid type checking issues with Click's dynamic kwargs
-        decorator = click.group(**cast("dict[str, object]", group_kwargs))
+        decorator = click.group(**group_kwargs)
         self.logger.debug(
             "Created group decorator",
             extra={"group_name": name, "options": kwargs},
@@ -166,7 +166,7 @@ class FlextCliCli:
 
         """
         # Cast to object to avoid type checking issues with Click's dynamic kwargs
-        decorator = click.option(*param_decls, **attrs)
+        decorator = click.option(*param_decls, **attrs)  # type: ignore[call-overload]
         self.logger.debug(
             "Created option decorator",
             extra={"param_decls": param_decls, "attrs": attrs},
