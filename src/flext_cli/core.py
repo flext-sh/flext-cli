@@ -13,7 +13,7 @@ import json
 from datetime import UTC, datetime
 from pathlib import Path
 
-from flext_core import FlextCore
+from flext_core import FlextCore, FlextResult
 
 from flext_cli.config import FlextCliConfig
 from flext_cli.constants import FlextCliConstants
@@ -64,14 +64,14 @@ class FlextCliCore(FlextCore.Service[FlextCliTypes.Data.CliDataDict]):
     def register_command(
         self,
         command: FlextCliModels.CliCommand,
-    ) -> FlextCore.Result[None]:
+    ) -> FlextResult[None]:
         """Register CLI command using CliCommand model instance.
 
         Args:
             command: CliCommand model instance with validated data
 
         Returns:
-            FlextCore.Result[None]: Registration success or failure result
+            FlextResult[None]: Registration success or failure result
 
         """
         # Validation is handled by Pydantic model, no isinstance checks needed
@@ -79,28 +79,28 @@ class FlextCliCore(FlextCore.Service[FlextCliTypes.Data.CliDataDict]):
         self.logger.info(
             FlextCliConstants.LogMessages.COMMAND_REGISTERED.format(name=command.name)
         )
-        return FlextCore.Result[None].ok(None)
+        return FlextResult[None].ok(None)
 
     def get_command(
         self,
         name: str,
-    ) -> FlextCore.Result[FlextCliTypes.CliCommand.CommandDefinition]:
+    ) -> FlextResult[FlextCliTypes.CliCommand.CommandDefinition]:
         """Retrieve registered command definition.
 
         Args:
             name: Command identifier to retrieve
 
         Returns:
-            FlextCore.Result[FlextCliTypes.CliCommand.CommandDefinition]: Command definition or error
+            FlextResult[FlextCliTypes.CliCommand.CommandDefinition]: Command definition or error
 
         """
         if not name or not isinstance(name, str):
-            return FlextCore.Result[FlextCliTypes.CliCommand.CommandDefinition].fail(
+            return FlextResult[FlextCliTypes.CliCommand.CommandDefinition].fail(
                 FlextCliConstants.ErrorMessages.COMMAND_NAME_EMPTY,
             )
 
         if name not in self._commands:
-            return FlextCore.Result[FlextCliTypes.CliCommand.CommandDefinition].fail(
+            return FlextResult[FlextCliTypes.CliCommand.CommandDefinition].fail(
                 FlextCliConstants.ErrorMessages.COMMAND_NOT_FOUND.format(name=name),
             )
 
@@ -109,14 +109,14 @@ class FlextCliCore(FlextCore.Service[FlextCliTypes.Data.CliDataDict]):
             # Type-safe conversion to CLI command definition
             if isinstance(command_def, dict):
                 typed_def: FlextCliTypes.CliCommand.CommandDefinition = command_def
-                return FlextCore.Result[FlextCliTypes.CliCommand.CommandDefinition].ok(
+                return FlextResult[FlextCliTypes.CliCommand.CommandDefinition].ok(
                     typed_def,
                 )
-            return FlextCore.Result[FlextCliTypes.CliCommand.CommandDefinition].fail(
+            return FlextResult[FlextCliTypes.CliCommand.CommandDefinition].fail(
                 FlextCliConstants.ErrorMessages.INVALID_COMMAND_TYPE.format(name=name),
             )
         except Exception as e:
-            return FlextCore.Result[FlextCliTypes.CliCommand.CommandDefinition].fail(
+            return FlextResult[FlextCliTypes.CliCommand.CommandDefinition].fail(
                 FlextCliConstants.ErrorMessages.COMMAND_RETRIEVAL_FAILED.format(
                     error=e
                 ),
@@ -129,7 +129,7 @@ class FlextCliCore(FlextCore.Service[FlextCliTypes.Data.CliDataDict]):
         | FlextCore.Types.StringList
         | None = None,
         timeout: float | None = None,
-    ) -> FlextCore.Result[FlextCliTypes.CliCommand.CommandResult]:
+    ) -> FlextResult[FlextCliTypes.CliCommand.CommandResult]:
         """Execute registered command with context.
 
         Args:
@@ -138,12 +138,12 @@ class FlextCliCore(FlextCore.Service[FlextCliTypes.Data.CliDataDict]):
             timeout: Optional timeout for command execution
 
         Returns:
-            FlextCore.Result[FlextCliTypes.CliCommand.CommandResult]: Execution result or error
+            FlextResult[FlextCliTypes.CliCommand.CommandResult]: Execution result or error
 
         """
         command_result = self.get_command(name)
         if command_result.is_failure:
-            return FlextCore.Result[FlextCliTypes.CliCommand.CommandResult].fail(
+            return FlextResult[FlextCliTypes.CliCommand.CommandResult].fail(
                 command_result.error
                 or FlextCliConstants.ErrorMessages.COMMAND_NOT_FOUND.format(name=name),
             )
@@ -168,29 +168,27 @@ class FlextCliCore(FlextCore.Service[FlextCliTypes.Data.CliDataDict]):
             self.logger.info(
                 FlextCliConstants.LogMessages.COMMAND_EXECUTED.format(name=name)
             )
-            return FlextCore.Result[FlextCliTypes.CliCommand.CommandResult].ok(
-                result_data
-            )
+            return FlextResult[FlextCliTypes.CliCommand.CommandResult].ok(result_data)
 
         except Exception as e:
-            return FlextCore.Result[FlextCliTypes.CliCommand.CommandResult].fail(
+            return FlextResult[FlextCliTypes.CliCommand.CommandResult].fail(
                 FlextCliConstants.ErrorMessages.COMMAND_EXECUTION_FAILED.format(
                     error=e
                 ),
             )
 
-    def list_commands(self) -> FlextCore.Result[FlextCore.Types.StringList]:
+    def list_commands(self) -> FlextResult[FlextCore.Types.StringList]:
         """List all registered commands.
 
         Returns:
-            FlextCore.Result[FlextCore.Types.StringList]: List of command names or error
+            FlextResult[FlextCore.Types.StringList]: List of command names or error
 
         """
         try:
             command_names = list(self._commands.keys())
-            return FlextCore.Result[FlextCore.Types.StringList].ok(command_names)
+            return FlextResult[FlextCore.Types.StringList].ok(command_names)
         except Exception as e:
-            return FlextCore.Result[FlextCore.Types.StringList].fail(
+            return FlextResult[FlextCore.Types.StringList].fail(
                 FlextCliConstants.ErrorMessages.COMMAND_LISTING_FAILED.format(error=e)
             )
 
@@ -201,18 +199,18 @@ class FlextCliCore(FlextCore.Service[FlextCliTypes.Data.CliDataDict]):
     def update_configuration(
         self,
         config: FlextCliTypes.Configuration.CliConfigSchema,
-    ) -> FlextCore.Result[None]:
+    ) -> FlextResult[None]:
         """Update CLI configuration with enhanced validation.
 
         Args:
             config: New configuration schema with CLI-specific structure
 
         Returns:
-            FlextCore.Result[None]: Configuration update result
+            FlextResult[None]: Configuration update result
 
         """
         if not config or not isinstance(config, dict):
-            return FlextCore.Result[None].fail(
+            return FlextResult[None].fail(
                 FlextCliConstants.ErrorMessages.CONFIG_NOT_DICT
             )
 
@@ -222,35 +220,35 @@ class FlextCliCore(FlextCore.Service[FlextCliTypes.Data.CliDataDict]):
             if isinstance(self._config, dict):
                 self._config.update(config)
                 self.logger.info(FlextCliConstants.LogMessages.CLI_CONFIG_UPDATED)
-                return FlextCore.Result[None].ok(None)
-            return FlextCore.Result[None].fail(
+                return FlextResult[None].ok(None)
+            return FlextResult[None].fail(
                 FlextCliConstants.ErrorMessages.CONFIG_NOT_INITIALIZED
             )
         except Exception as e:
-            return FlextCore.Result[None].fail(
+            return FlextResult[None].fail(
                 FlextCliConstants.ErrorMessages.CONFIG_UPDATE_FAILED.format(error=e)
             )
 
     def get_configuration(
         self,
-    ) -> FlextCore.Result[FlextCliTypes.Configuration.CliConfigSchema]:
+    ) -> FlextResult[FlextCliTypes.Configuration.CliConfigSchema]:
         """Get current CLI configuration.
 
         Returns:
-            FlextCore.Result[FlextCliTypes.Configuration.CliConfigSchema]: Current configuration or error
+            FlextResult[FlextCliTypes.Configuration.CliConfigSchema]: Current configuration or error
 
         """
         try:
             # Type guard: _config is always initialized as dict in __init__
             if isinstance(self._config, dict):
-                return FlextCore.Result[FlextCliTypes.Configuration.CliConfigSchema].ok(
+                return FlextResult[FlextCliTypes.Configuration.CliConfigSchema].ok(
                     self._config,
                 )
-            return FlextCore.Result[FlextCliTypes.Configuration.CliConfigSchema].fail(
+            return FlextResult[FlextCliTypes.Configuration.CliConfigSchema].fail(
                 FlextCliConstants.ErrorMessages.CONFIG_NOT_INITIALIZED,
             )
         except Exception as e:
-            return FlextCore.Result[FlextCliTypes.Configuration.CliConfigSchema].fail(
+            return FlextResult[FlextCliTypes.Configuration.CliConfigSchema].fail(
                 FlextCliConstants.ErrorMessages.CONFIG_RETRIEVAL_FAILED.format(error=e),
             )
 
@@ -258,7 +256,7 @@ class FlextCliCore(FlextCore.Service[FlextCliTypes.Data.CliDataDict]):
         self,
         name: str,
         profile_config: FlextCliTypes.Configuration.ProfileConfiguration,
-    ) -> FlextCore.Result[None]:
+    ) -> FlextResult[None]:
         """Create CLI configuration profile.
 
         Args:
@@ -266,23 +264,23 @@ class FlextCliCore(FlextCore.Service[FlextCliTypes.Data.CliDataDict]):
             profile_config: Profile-specific configuration
 
         Returns:
-            FlextCore.Result[None]: Profile creation result
+            FlextResult[None]: Profile creation result
 
         """
         if not name or not isinstance(name, str):
-            return FlextCore.Result[None].fail(
+            return FlextResult[None].fail(
                 FlextCliConstants.ErrorMessages.PROFILE_NAME_EMPTY
             )
 
         if not profile_config or not isinstance(profile_config, dict):
-            return FlextCore.Result[None].fail(
+            return FlextResult[None].fail(
                 FlextCliConstants.ErrorMessages.PROFILE_CONFIG_NOT_DICT
             )
 
         try:
             # Type guard: _config is always initialized as dict in __init__
             if not isinstance(self._config, dict):
-                return FlextCore.Result[None].fail(
+                return FlextResult[None].fail(
                     FlextCliConstants.ErrorMessages.CONFIG_NOT_INITIALIZED
                 )
 
@@ -297,13 +295,13 @@ class FlextCliCore(FlextCore.Service[FlextCliTypes.Data.CliDataDict]):
                 self.logger.info(
                     FlextCliConstants.LogMessages.PROFILE_CREATED.format(name=name)
                 )
-                return FlextCore.Result[None].ok(None)
-            return FlextCore.Result[None].fail(
+                return FlextResult[None].ok(None)
+            return FlextResult[None].fail(
                 FlextCliConstants.ErrorMessages.INVALID_PROFILES_STRUCTURE
             )
 
         except Exception as e:
-            return FlextCore.Result[None].fail(
+            return FlextResult[None].fail(
                 FlextCliConstants.ErrorMessages.PROFILE_CREATION_FAILED.format(error=e)
             )
 
@@ -314,18 +312,18 @@ class FlextCliCore(FlextCore.Service[FlextCliTypes.Data.CliDataDict]):
     def start_session(
         self,
         session_config: FlextCliTypes.Configuration.SessionConfiguration | None = None,
-    ) -> FlextCore.Result[None]:
+    ) -> FlextResult[None]:
         """Start CLI session with configuration.
 
         Args:
             session_config: Optional session-specific configuration
 
         Returns:
-            FlextCore.Result[None]: Session start result
+            FlextResult[None]: Session start result
 
         """
         if self._session_active:
-            return FlextCore.Result[None].fail(
+            return FlextResult[None].fail(
                 FlextCliConstants.ErrorMessages.SESSION_ALREADY_ACTIVE
             )
 
@@ -336,22 +334,22 @@ class FlextCliCore(FlextCore.Service[FlextCliTypes.Data.CliDataDict]):
             self._session_start_time = datetime.now(UTC).isoformat()
 
             self.logger.info(FlextCliConstants.LogMessages.SESSION_STARTED)
-            return FlextCore.Result[None].ok(None)
+            return FlextResult[None].ok(None)
 
         except Exception as e:
-            return FlextCore.Result[None].fail(
+            return FlextResult[None].fail(
                 FlextCliConstants.ErrorMessages.SESSION_START_FAILED.format(error=e)
             )
 
-    def end_session(self) -> FlextCore.Result[None]:
+    def end_session(self) -> FlextResult[None]:
         """End current CLI session.
 
         Returns:
-            FlextCore.Result[None]: Session end result
+            FlextResult[None]: Session end result
 
         """
         if not self._session_active:
-            return FlextCore.Result[None].fail("No active session to end")
+            return FlextResult[None].fail("No active session to end")
 
         try:
             self._session_active = False
@@ -361,10 +359,10 @@ class FlextCliCore(FlextCore.Service[FlextCliTypes.Data.CliDataDict]):
                 delattr(self, "_session_start_time")
 
             self.logger.info("CLI session ended successfully")
-            return FlextCore.Result[None].ok(None)
+            return FlextResult[None].ok(None)
 
         except Exception as e:
-            return FlextCore.Result[None].fail(f"Session end failed: {e}")
+            return FlextResult[None].fail(f"Session end failed: {e}")
 
     def is_session_active(self) -> bool:
         """Check if CLI session is currently active.
@@ -381,11 +379,11 @@ class FlextCliCore(FlextCore.Service[FlextCliTypes.Data.CliDataDict]):
 
     def get_command_statistics(
         self,
-    ) -> FlextCore.Result[FlextCliTypes.Data.CliDataDict]:
+    ) -> FlextResult[FlextCliTypes.Data.CliDataDict]:
         """Get command usage statistics using CLI-specific data types.
 
         Returns:
-            FlextCore.Result[FlextCliTypes.Data.CliDataDict]: Statistics data or error
+            FlextResult[FlextCliTypes.Data.CliDataDict]: Statistics data or error
 
         """
         try:
@@ -395,9 +393,9 @@ class FlextCliCore(FlextCore.Service[FlextCliTypes.Data.CliDataDict]):
                 "session_active": self._session_active,
                 FlextCliConstants.DictKeys.TIMESTAMP: datetime.now(UTC).isoformat(),
             }
-            return FlextCore.Result[FlextCliTypes.Data.CliDataDict].ok(stats)
+            return FlextResult[FlextCliTypes.Data.CliDataDict].ok(stats)
         except Exception as e:
-            return FlextCore.Result[FlextCliTypes.Data.CliDataDict].fail(
+            return FlextResult[FlextCliTypes.Data.CliDataDict].fail(
                 f"Statistics collection failed: {e}",
             )
 
@@ -430,15 +428,15 @@ class FlextCliCore(FlextCore.Service[FlextCliTypes.Data.CliDataDict]):
 
     def get_session_statistics(
         self,
-    ) -> FlextCore.Result[FlextCliTypes.Data.CliDataDict]:
+    ) -> FlextResult[FlextCliTypes.Data.CliDataDict]:
         """Get session-specific statistics using CLI data types.
 
         Returns:
-            FlextCore.Result[FlextCliTypes.Data.CliDataDict]: Session statistics or error
+            FlextResult[FlextCliTypes.Data.CliDataDict]: Session statistics or error
 
         """
         if not self._session_active:
-            return FlextCore.Result[FlextCliTypes.Data.CliDataDict].fail(
+            return FlextResult[FlextCliTypes.Data.CliDataDict].fail(
                 "No active session for statistics",
             )
 
@@ -471,10 +469,10 @@ class FlextCliCore(FlextCore.Service[FlextCliTypes.Data.CliDataDict]):
                 "current_time": datetime.now(UTC).isoformat(),
             }
 
-            return FlextCore.Result[FlextCliTypes.Data.CliDataDict].ok(statistics)
+            return FlextResult[FlextCliTypes.Data.CliDataDict].ok(statistics)
 
         except Exception as e:
-            return FlextCore.Result[FlextCliTypes.Data.CliDataDict].fail(
+            return FlextResult[FlextCliTypes.Data.CliDataDict].fail(
                 f"Session statistics collection failed: {e}",
             )
 
@@ -482,17 +480,17 @@ class FlextCliCore(FlextCore.Service[FlextCliTypes.Data.CliDataDict]):
     # SERVICE EXECUTION METHODS - FlextCore.Service protocol implementation
     # ==========================================================================
 
-    def execute(self) -> FlextCore.Result[FlextCliTypes.Data.CliDataDict]:
+    def execute(self) -> FlextResult[FlextCliTypes.Data.CliDataDict]:
         """Execute CLI service operations.
 
         Returns:
-            FlextCore.Result[FlextCliTypes.Data.CliDataDict]: Service execution result
+            FlextResult[FlextCliTypes.Data.CliDataDict]: Service execution result
 
         """
         try:
             # Validate service state before execution
             if not self._commands:
-                return FlextCore.Result[FlextCliTypes.Data.CliDataDict].fail(
+                return FlextResult[FlextCliTypes.Data.CliDataDict].fail(
                     "No commands registered for execution",
                 )
 
@@ -505,10 +503,10 @@ class FlextCliCore(FlextCore.Service[FlextCliTypes.Data.CliDataDict]):
                 "service_ready": True,
             }
 
-            return FlextCore.Result[FlextCliTypes.Data.CliDataDict].ok(status_data)
+            return FlextResult[FlextCliTypes.Data.CliDataDict].ok(status_data)
 
         except Exception as e:
-            return FlextCore.Result[FlextCliTypes.Data.CliDataDict].fail(
+            return FlextResult[FlextCliTypes.Data.CliDataDict].fail(
                 f"Service execution failed: {e}",
             )
 
@@ -517,7 +515,7 @@ class FlextCliCore(FlextCore.Service[FlextCliTypes.Data.CliDataDict]):
         command_name: str,
         user_id: str | None = None,
         **context_data: object,
-    ) -> FlextCore.Result[FlextCliTypes.Data.CliDataDict]:
+    ) -> FlextResult[FlextCliTypes.Data.CliDataDict]:
         """Execute CLI command with automatic context enrichment (Phase 1 pattern).
 
         Demonstrates the new execute_with_context_enrichment() pattern from flext-core
@@ -529,7 +527,7 @@ class FlextCliCore(FlextCore.Service[FlextCliTypes.Data.CliDataDict]):
             **context_data: Additional context data for enriched logging
 
         Returns:
-            FlextCore.Result[FlextCliTypes.Data.CliDataDict]: Command execution result
+            FlextResult[FlextCliTypes.Data.CliDataDict]: Command execution result
 
         Example:
             ```python
@@ -562,130 +560,124 @@ class FlextCliCore(FlextCore.Service[FlextCliTypes.Data.CliDataDict]):
             **context_data,
         )
 
-    def health_check(self) -> FlextCore.Result[FlextCore.Types.Dict]:
+    def health_check(self) -> FlextResult[FlextCore.Types.Dict]:
         """Perform health check on the CLI service.
 
         Returns:
-            FlextCore.Result[FlextCore.Types.Dict]: Health check result
+            FlextResult[FlextCore.Types.Dict]: Health check result
 
         """
         try:
-            return FlextCore.Result[FlextCore.Types.Dict].ok({
+            return FlextResult[FlextCore.Types.Dict].ok({
                 "service_healthy": True,
                 "commands_count": len(self._commands),
                 "session_active": self._session_active,
                 "timestamp": datetime.now(UTC).isoformat(),
             })
         except Exception as e:
-            return FlextCore.Result[FlextCore.Types.Dict].fail(
-                f"Health check failed: {e}"
-            )
+            return FlextResult[FlextCore.Types.Dict].fail(f"Health check failed: {e}")
 
-    def get_config(self) -> FlextCore.Result[FlextCore.Types.Dict]:
+    def get_config(self) -> FlextResult[FlextCore.Types.Dict]:
         """Get current service configuration.
 
         Returns:
-            FlextCore.Result[FlextCore.Types.Dict]: Configuration data
+            FlextResult[FlextCore.Types.Dict]: Configuration data
 
         """
         try:
-            return FlextCore.Result[FlextCore.Types.Dict].ok(
+            return FlextResult[FlextCore.Types.Dict].ok(
                 dict(self._config) if self._config else {}
             )
         except Exception as e:
-            return FlextCore.Result[FlextCore.Types.Dict].fail(
-                f"Get config failed: {e}"
-            )
+            return FlextResult[FlextCore.Types.Dict].fail(f"Get config failed: {e}")
 
-    def get_handlers(self) -> FlextCore.Result[FlextCore.Types.StringList]:
+    def get_handlers(self) -> FlextResult[FlextCore.Types.StringList]:
         """Get list of registered command handlers.
 
         Returns:
-            FlextCore.Result[FlextCore.Types.StringList]: List of handler names
+            FlextResult[FlextCore.Types.StringList]: List of handler names
 
         """
         try:
-            return FlextCore.Result[FlextCore.Types.StringList].ok(
+            return FlextResult[FlextCore.Types.StringList].ok(
                 list(self._commands.keys()) if self._commands else []
             )
         except Exception as e:
-            return FlextCore.Result[FlextCore.Types.StringList].fail(
+            return FlextResult[FlextCore.Types.StringList].fail(
                 f"Get handlers failed: {e}"
             )
 
-    def get_plugins(self) -> FlextCore.Result[FlextCore.Types.StringList]:
+    def get_plugins(self) -> FlextResult[FlextCore.Types.StringList]:
         """Get list of registered plugins.
 
         Returns:
-            FlextCore.Result[FlextCore.Types.StringList]: List of plugin names
+            FlextResult[FlextCore.Types.StringList]: List of plugin names
 
         """
         try:
-            return FlextCore.Result[FlextCore.Types.StringList].ok(
+            return FlextResult[FlextCore.Types.StringList].ok(
                 list(self._plugins.keys()) if self._plugins else []
             )
         except Exception as e:
-            return FlextCore.Result[FlextCore.Types.StringList].fail(
+            return FlextResult[FlextCore.Types.StringList].fail(
                 f"Get plugins failed: {e}"
             )
 
-    def get_sessions(self) -> FlextCore.Result[FlextCore.Types.StringList]:
+    def get_sessions(self) -> FlextResult[FlextCore.Types.StringList]:
         """Get list of active sessions.
 
         Returns:
-            FlextCore.Result[FlextCore.Types.StringList]: List of session IDs
+            FlextResult[FlextCore.Types.StringList]: List of session IDs
 
         """
         try:
-            return FlextCore.Result[FlextCore.Types.StringList].ok(
+            return FlextResult[FlextCore.Types.StringList].ok(
                 list(self._sessions.keys()) if self._sessions else []
             )
         except Exception as e:
-            return FlextCore.Result[FlextCore.Types.StringList].fail(
+            return FlextResult[FlextCore.Types.StringList].fail(
                 f"Get sessions failed: {e}"
             )
 
-    def get_commands(self) -> FlextCore.Result[FlextCore.Types.StringList]:
+    def get_commands(self) -> FlextResult[FlextCore.Types.StringList]:
         """Get list of registered commands.
 
         Returns:
-            FlextCore.Result[FlextCore.Types.StringList]: List of command names
+            FlextResult[FlextCore.Types.StringList]: List of command names
 
         """
         try:
-            return FlextCore.Result[FlextCore.Types.StringList].ok(
+            return FlextResult[FlextCore.Types.StringList].ok(
                 list(self._commands.keys()) if self._commands else []
             )
         except Exception as e:
-            return FlextCore.Result[FlextCore.Types.StringList].fail(
+            return FlextResult[FlextCore.Types.StringList].fail(
                 f"Get commands failed: {e}"
             )
 
-    def get_formatters(self) -> FlextCore.Result[FlextCore.Types.StringList]:
+    def get_formatters(self) -> FlextResult[FlextCore.Types.StringList]:
         """Get list of available formatters from constants.
 
         Returns:
-            FlextCore.Result[FlextCore.Types.StringList]: List of formatter names
+            FlextResult[FlextCore.Types.StringList]: List of formatter names
 
         """
-        return FlextCore.Result[FlextCore.Types.StringList].ok(
+        return FlextResult[FlextCore.Types.StringList].ok(
             FlextCliConstants.OUTPUT_FORMATS_LIST
         )
 
-    def load_configuration(
-        self, config_path: str
-    ) -> FlextCore.Result[FlextCore.Types.Dict]:
+    def load_configuration(self, config_path: str) -> FlextResult[FlextCore.Types.Dict]:
         """Load configuration from file.
 
         Args:
             config_path: Path to configuration file
 
         Returns:
-            FlextCore.Result[FlextCore.Types.Dict]: Loaded configuration
+            FlextResult[FlextCore.Types.Dict]: Loaded configuration
 
         """
         if not config_path or not config_path.strip():
-            return FlextCore.Result[FlextCore.Types.Dict].fail(
+            return FlextResult[FlextCore.Types.Dict].fail(
                 "Configuration path cannot be empty"
             )
 
@@ -693,12 +685,12 @@ class FlextCliCore(FlextCore.Service[FlextCliTypes.Data.CliDataDict]):
             config_file = Path(config_path)
 
             if not config_file.exists():
-                return FlextCore.Result[FlextCore.Types.Dict].fail(
+                return FlextResult[FlextCore.Types.Dict].fail(
                     f"Configuration file not found: {config_path}"
                 )
 
             if not config_file.is_file():
-                return FlextCore.Result[FlextCore.Types.Dict].fail(
+                return FlextResult[FlextCore.Types.Dict].fail(
                     f"Path is not a file: {config_path}"
                 )
 
@@ -707,24 +699,24 @@ class FlextCliCore(FlextCore.Service[FlextCliTypes.Data.CliDataDict]):
             config_data = json.loads(content)
 
             if not isinstance(config_data, dict):
-                return FlextCore.Result[FlextCore.Types.Dict].fail(
+                return FlextResult[FlextCore.Types.Dict].fail(
                     "Configuration must be a JSON object"
                 )
 
-            return FlextCore.Result[FlextCore.Types.Dict].ok(config_data)
+            return FlextResult[FlextCore.Types.Dict].ok(config_data)
 
         except json.JSONDecodeError as e:
-            return FlextCore.Result[FlextCore.Types.Dict].fail(
+            return FlextResult[FlextCore.Types.Dict].fail(
                 f"Invalid JSON in configuration file: {e}"
             )
         except Exception as e:
-            return FlextCore.Result[FlextCore.Types.Dict].fail(
+            return FlextResult[FlextCore.Types.Dict].fail(
                 f"Load configuration failed: {e}"
             )
 
     def save_configuration(
         self, config_path: str, config_data: FlextCore.Types.Dict
-    ) -> FlextCore.Result[None]:
+    ) -> FlextResult[None]:
         """Save configuration to file.
 
         Args:
@@ -732,7 +724,7 @@ class FlextCliCore(FlextCore.Service[FlextCliTypes.Data.CliDataDict]):
             config_data: Configuration data to save
 
         Returns:
-            FlextCore.Result[None]: Success or error
+            FlextResult[None]: Success or error
 
         """
         try:
@@ -740,18 +732,18 @@ class FlextCliCore(FlextCore.Service[FlextCliTypes.Data.CliDataDict]):
             path.parent.mkdir(parents=True, exist_ok=True)
             with path.open("w", encoding="utf-8") as f:
                 json.dump(config_data, f, indent=2, ensure_ascii=False)
-            return FlextCore.Result[None].ok(None)
+            return FlextResult[None].ok(None)
         except Exception as e:
-            return FlextCore.Result[None].fail(f"Save configuration failed: {e}")
+            return FlextResult[None].fail(f"Save configuration failed: {e}")
 
-    def validate_configuration(self, _config: FlextCliConfig) -> FlextCore.Result[None]:
+    def validate_configuration(self, _config: FlextCliConfig) -> FlextResult[None]:
         """Validate configuration using FlextCliConfig Pydantic model.
 
         Args:
             _config: FlextCliConfig model instance (validation automatic via Pydantic)
 
         Returns:
-            FlextCore.Result[None]: Success (validation happens during model instantiation)
+            FlextResult[None]: Success (validation happens during model instantiation)
 
         Note:
             Validation is automatically performed by Pydantic field validators
@@ -760,7 +752,7 @@ class FlextCliCore(FlextCore.Service[FlextCliTypes.Data.CliDataDict]):
 
         """
         # Validation already performed by Pydantic during instantiation
-        return FlextCore.Result[None].ok(None)
+        return FlextResult[None].ok(None)
 
     # ==========================================================================
     # END OF CORE CLI SERVICE METHODS

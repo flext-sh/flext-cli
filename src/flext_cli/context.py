@@ -1,6 +1,6 @@
 """FLEXT CLI Context - CLI execution context management.
 
-Provides CLI execution context with type-safe operations and FlextCore.Result patterns.
+Provides CLI execution context with type-safe operations and FlextResult patterns.
 Follows FLEXT standards with single FlextCliContext class per module.
 
 Copyright (c) 2025 FLEXT Team. All rights reserved.
@@ -9,7 +9,7 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from flext_core import FlextCore
+from flext_core import FlextCore, FlextResult
 from pydantic import BaseModel
 
 from flext_cli.constants import FlextCliConstants
@@ -20,7 +20,7 @@ from flext_cli.typings import FlextCliTypes
 class FlextCliContext(FlextCore.Service[FlextCliTypes.Data.CliDataDict]):
     """CLI execution context management service.
 
-    Provides type-safe CLI context operations with FlextCore.Result railway patterns.
+    Provides type-safe CLI context operations with FlextResult railway patterns.
     Wraps CliContext model from FlextCliModels for service-level operations.
     """
 
@@ -37,7 +37,7 @@ class FlextCliContext(FlextCore.Service[FlextCliTypes.Data.CliDataDict]):
         environment_variables: FlextCliTypes.Data.CliConfigData | None = None,
         working_directory: str | None = None,
         **data: object,
-    ) -> FlextCore.Result[FlextCliModels.CliContext]:
+    ) -> FlextResult[FlextCliModels.CliContext]:
         """Create a new CLI context instance.
 
         Args:
@@ -48,7 +48,7 @@ class FlextCliContext(FlextCore.Service[FlextCliTypes.Data.CliDataDict]):
             **data: Additional context data
 
         Returns:
-            FlextCore.Result[FlextCliModels.CliContext]: Created context instance
+            FlextResult[FlextCliModels.CliContext]: Created context instance
 
         """
         try:
@@ -59,36 +59,36 @@ class FlextCliContext(FlextCore.Service[FlextCliTypes.Data.CliDataDict]):
                 working_directory=working_directory,
                 **data,
             )
-            return FlextCore.Result[FlextCliModels.CliContext].ok(context)
+            return FlextResult[FlextCliModels.CliContext].ok(context)
         except Exception as e:
-            return FlextCore.Result[FlextCliModels.CliContext].fail(
+            return FlextResult[FlextCliModels.CliContext].fail(
                 f"Failed to create context: {e}"
             )
 
     def validate_context(
         self,
         context: FlextCliModels.CliContext,
-    ) -> FlextCore.Result[None]:
+    ) -> FlextResult[None]:
         """Validate CLI context instance.
 
         Args:
             context: Context to validate
 
         Returns:
-            FlextCore.Result[None]: Validation result
+            FlextResult[None]: Validation result
 
         """
         try:
             # Validation is automatic via Pydantic in the model
             # This method provides explicit validation interface
             if not context.command and not context.arguments:
-                return FlextCore.Result[None].fail(
+                return FlextResult[None].fail(
                     "Context must have either command or arguments"
                 )
 
-            return FlextCore.Result[None].ok(None)
+            return FlextResult[None].ok(None)
         except Exception as e:
-            return FlextCore.Result[None].fail(
+            return FlextResult[None].fail(
                 FlextCliConstants.ErrorMessages.CONTEXT_VALIDATION_FAILED.format(
                     error=e
                 )
@@ -102,7 +102,7 @@ class FlextCliContext(FlextCore.Service[FlextCliTypes.Data.CliDataDict]):
         self,
         model: BaseModel,
         command: str | None = None,
-    ) -> FlextCore.Result[FlextCliModels.CliContext]:
+    ) -> FlextResult[FlextCliModels.CliContext]:
         """Create CLI context from Pydantic model instance.
 
         Args:
@@ -110,7 +110,7 @@ class FlextCliContext(FlextCore.Service[FlextCliTypes.Data.CliDataDict]):
             command: Optional command name
 
         Returns:
-            FlextCore.Result[FlextCliModels.CliContext]: Context with attached model
+            FlextResult[FlextCliModels.CliContext]: Context with attached model
 
         """
         try:
@@ -129,7 +129,7 @@ class FlextCliContext(FlextCore.Service[FlextCliTypes.Data.CliDataDict]):
             for key, value in model_data.items():
                 set_result = context.set_metadata(f"model_{key}", value)
                 if set_result.is_failure:
-                    return FlextCore.Result[FlextCliModels.CliContext].fail(
+                    return FlextResult[FlextCliModels.CliContext].fail(
                         f"Failed to attach model data: {set_result.error}"
                     )
 
@@ -138,13 +138,13 @@ class FlextCliContext(FlextCore.Service[FlextCliTypes.Data.CliDataDict]):
                 "model_class", model.__class__.__name__
             )
             if model_class_result.is_failure:
-                return FlextCore.Result[FlextCliModels.CliContext].fail(
+                return FlextResult[FlextCliModels.CliContext].fail(
                     f"Failed to store model class: {model_class_result.error}"
                 )
 
-            return FlextCore.Result[FlextCliModels.CliContext].ok(context)
+            return FlextResult[FlextCliModels.CliContext].ok(context)
         except Exception as e:
-            return FlextCore.Result[FlextCliModels.CliContext].fail(
+            return FlextResult[FlextCliModels.CliContext].fail(
                 f"Context creation from model failed: {e}"
             )
 
@@ -153,7 +153,7 @@ class FlextCliContext(FlextCore.Service[FlextCliTypes.Data.CliDataDict]):
         context: FlextCliModels.CliContext,
         model: BaseModel,
         prefix: str = "model",
-    ) -> FlextCore.Result[None]:
+    ) -> FlextResult[None]:
         """Attach Pydantic model instance to existing context.
 
         Args:
@@ -162,7 +162,7 @@ class FlextCliContext(FlextCore.Service[FlextCliTypes.Data.CliDataDict]):
             prefix: Prefix for model data keys in context metadata
 
         Returns:
-            FlextCore.Result[None]: Success or error
+            FlextResult[None]: Success or error
 
         """
         try:
@@ -174,7 +174,7 @@ class FlextCliContext(FlextCore.Service[FlextCliTypes.Data.CliDataDict]):
                 metadata_key = f"{prefix}_{key}"
                 set_result = context.set_metadata(metadata_key, value)
                 if set_result.is_failure:
-                    return FlextCore.Result[None].fail(
+                    return FlextResult[None].fail(
                         f"Failed to attach {key}: {set_result.error}"
                     )
 
@@ -183,13 +183,13 @@ class FlextCliContext(FlextCore.Service[FlextCliTypes.Data.CliDataDict]):
                 f"{prefix}_class", model.__class__.__name__
             )
             if class_result.is_failure:
-                return FlextCore.Result[None].fail(
+                return FlextResult[None].fail(
                     f"Failed to store model class: {class_result.error}"
                 )
 
-            return FlextCore.Result[None].ok(None)
+            return FlextResult[None].ok(None)
         except Exception as e:
-            return FlextCore.Result[None].fail(
+            return FlextResult[None].fail(
                 FlextCliConstants.ErrorMessages.MODEL_ATTACHMENT_FAILED.format(error=e)
             )
 
@@ -198,7 +198,7 @@ class FlextCliContext(FlextCore.Service[FlextCliTypes.Data.CliDataDict]):
         context: FlextCliModels.CliContext,
         model_class: type[BaseModel],
         prefix: str = "model",
-    ) -> FlextCore.Result[BaseModel]:
+    ) -> FlextResult[BaseModel]:
         """Extract Pydantic model instance from context metadata.
 
         Args:
@@ -207,7 +207,7 @@ class FlextCliContext(FlextCore.Service[FlextCliTypes.Data.CliDataDict]):
             prefix: Prefix used when attaching model data
 
         Returns:
-            FlextCore.Result[BaseModel]: Reconstructed model instance or error
+            FlextResult[BaseModel]: Reconstructed model instance or error
 
         """
         try:
@@ -225,9 +225,9 @@ class FlextCliContext(FlextCore.Service[FlextCliTypes.Data.CliDataDict]):
             # Reconstruct model from extracted data
             model_instance = model_class(**model_data)
 
-            return FlextCore.Result[BaseModel].ok(model_instance)
+            return FlextResult[BaseModel].ok(model_instance)
         except Exception as e:
-            return FlextCore.Result[BaseModel].fail(
+            return FlextResult[BaseModel].fail(
                 FlextCliConstants.ErrorMessages.MODEL_EXTRACTION_FAILED.format(error=e)
             )
 
@@ -235,7 +235,7 @@ class FlextCliContext(FlextCore.Service[FlextCliTypes.Data.CliDataDict]):
         self,
         context: FlextCliModels.CliContext,
         prefix: str = "model",
-    ) -> FlextCore.Result[dict[str, object]]:
+    ) -> FlextResult[dict[str, object]]:
         """Get all model-related metadata from context.
 
         Args:
@@ -243,14 +243,14 @@ class FlextCliContext(FlextCore.Service[FlextCliTypes.Data.CliDataDict]):
             prefix: Prefix for model data keys
 
         Returns:
-            FlextCore.Result containing dictionary of model metadata
+            FlextResult containing dictionary of model metadata
 
         """
         try:
             # Get context summary to access metadata
             summary_result = context.get_context_summary()
             if summary_result.is_failure:
-                return FlextCore.Result[dict[str, object]].fail(
+                return FlextResult[dict[str, object]].fail(
                     f"Failed to get context summary: {summary_result.error}"
                 )
 
@@ -270,20 +270,20 @@ class FlextCliContext(FlextCore.Service[FlextCliTypes.Data.CliDataDict]):
                             clean_key = key[len(f"{prefix}_") :]
                             model_metadata[clean_key] = value_result.unwrap()
 
-            return FlextCore.Result[dict[str, object]].ok(model_metadata)
+            return FlextResult[dict[str, object]].ok(model_metadata)
         except Exception as e:
-            return FlextCore.Result[dict[str, object]].fail(
+            return FlextResult[dict[str, object]].fail(
                 f"Metadata retrieval failed: {e}"
             )
 
-    def execute(self) -> FlextCore.Result[FlextCliTypes.Data.CliDataDict]:
+    def execute(self) -> FlextResult[FlextCliTypes.Data.CliDataDict]:
         """Execute context service operations.
 
         Returns:
-            FlextCore.Result[FlextCliTypes.Data.CliDataDict]: Service execution result
+            FlextResult[FlextCliTypes.Data.CliDataDict]: Service execution result
 
         """
-        return FlextCore.Result[FlextCliTypes.Data.CliDataDict].ok({
+        return FlextResult[FlextCliTypes.Data.CliDataDict].ok({
             "service": "FlextCliContext",
             "status": "operational",
         })

@@ -88,6 +88,26 @@ class FlextCliConstants(FlextCore.Constants):
         DEFAULT_OUTPUT_FORMAT: Final[str] = "table"
         DEFAULT_TIMEOUT: Final[int] = 30
 
+        # Application defaults
+        DEFAULT_APP_NAME: Final[str] = "flext-cli"
+        DEFAULT_VERSION: Final[str] = "2.0.0"
+
+        # Boolean flag defaults
+        DEFAULT_NO_COLOR: Final[bool] = False
+        DEFAULT_AUTO_REFRESH: Final[bool] = True
+        DEFAULT_VERBOSE: Final[bool] = False
+        DEFAULT_DEBUG: Final[bool] = False
+        DEFAULT_QUIET: Final[bool] = False
+        DEFAULT_INTERACTIVE: Final[bool] = True
+
+        # Log level defaults
+        DEFAULT_LOG_LEVEL: Final[str] = "INFO"
+        DEFAULT_CLI_LOG_LEVEL: Final[str] = "INFO"
+
+        # Verbosity defaults
+        DEFAULT_LOG_VERBOSITY: Final[str] = "detailed"
+        DEFAULT_CLI_LOG_VERBOSITY: Final[str] = "detailed"
+
     class PipelineDefaults:
         """Pipeline and batch processing defaults."""
 

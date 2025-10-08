@@ -11,7 +11,8 @@ from __future__ import annotations
 
 from typing import cast
 
-from flext_core import FlextCore
+from flext_core import FlextCore, FlextResult
+from flext_core.base import FlextBase
 
 from flext_cli.auth import FlextCliAuth
 from flext_cli.cli import FlextCliCli
@@ -70,7 +71,7 @@ class FlextCli:
     def __init__(self) -> None:
         """Initialize CLI API with minimal setup - services lazy-loaded on demand."""
         # Initialize logger first
-        self.logger = FlextCore.Logger(__name__)
+        # Logger is automatically provided by FlextMixins.Logging mixin
 
         # Get global container for DI
         self._container = FlextCore.Container.get_global()
@@ -84,11 +85,19 @@ class FlextCli:
 
         # Enrich logger with correlation tracking
         correlation_id = FlextCore.Context.Correlation.generate_correlation_id()
-        self.logger.bind_global_context(
+        self._logger = FlextCore.Logger(__name__)
+        self._logger.bind_global_context(
             service_name="flext-cli",
             service_type="FlextCli",
             correlation_id=correlation_id,
         )
+
+    @property
+    def logger(self) -> FlextCore.Logger:
+        """Get logger instance."""
+        if not hasattr(self, "_logger"):
+            self._logger = FlextCore.Logger(__name__)
+        return self._logger
 
     # ==========================================================================
     # THIN FACADE PROPERTIES - Direct access to all domain services
@@ -179,8 +188,6 @@ class FlextCli:
 
         Example:
             >>> cli = FlextCli.get_instance()
-            >>> cli.core_config.environment
-            'development'
             >>> cli.core_config.debug
             False
 
@@ -195,7 +202,7 @@ class FlextCli:
         verbose: bool | None = None,
         debug: bool | None = None,
         **kwargs: object,
-    ) -> FlextCore.Result[None]:
+    ) -> FlextResult[None]:
         """Configure CLI settings dynamically.
 
         Args:
@@ -206,7 +213,7 @@ class FlextCli:
             **kwargs: Additional CLI configuration options
 
         Returns:
-            FlextCore.Result[None]: Success or error
+            FlextResult[None]: Success or error
 
         Example:
             >>> cli = FlextCli.get_instance()
@@ -236,13 +243,13 @@ class FlextCli:
                 if hasattr(self.config, key):
                     setattr(self.config, key, value)
 
-            return FlextCore.Result[None].ok(None)
+            return FlextResult[None].ok(None)
         except Exception as e:
-            return FlextCore.Result[None].fail(
+            return FlextResult[None].fail(
                 FlextCliConstants.ErrorMessages.CLI_CONFIG_FAILED.format(error=e)
             )
 
-    def configure_core(self, **config: object) -> FlextCore.Result[None]:
+    def configure_core(self, **config: object) -> FlextResult[None]:
         """Configure flext-core settings.
 
         Allows flext-cli to modify flext-core configuration for the application.
@@ -251,7 +258,7 @@ class FlextCli:
             **config: Core configuration options (environment, debug, etc.)
 
         Returns:
-            FlextCore.Result[None]: Success or error
+            FlextResult[None]: Success or error
 
         Example:
             >>> cli = FlextCli.get_instance()
@@ -261,9 +268,7 @@ class FlextCli:
         config_dict = dict(config)
         return self.core_config.configure(config_dict)
 
-    def get_component_config(
-        self, component: str
-    ) -> FlextCore.Result[FlextCore.Types.Dict]:
+    def get_component_config(self, component: str) -> FlextResult[FlextCore.Types.Dict]:
         """Get component-specific configuration.
 
         Supports namespaced configuration for tools using flext-cli.
@@ -272,7 +277,7 @@ class FlextCli:
             component: Component name (e.g., "myapp", "database", "api")
 
         Returns:
-            FlextCore.Result[FlextCore.Types.Dict]: Component configuration or error
+            FlextResult[FlextCore.Types.Dict]: Component configuration or error
 
         Example:
             >>> cli = FlextCli.get_instance()
@@ -286,7 +291,7 @@ class FlextCli:
 
     def configure_component(
         self, component: str, **config: object
-    ) -> FlextCore.Result[None]:
+    ) -> FlextResult[None]:
         """Configure a specific component.
 
         Allows tools using flext-cli to have their own namespaced configuration.
@@ -296,7 +301,7 @@ class FlextCli:
             **config: Component configuration options
 
         Returns:
-            FlextCore.Result[None]: Success or error
+            FlextResult[None]: Success or error
 
         Example:
             >>> cli = FlextCli.get_instance()
@@ -325,7 +330,7 @@ class FlextCli:
             return self.core_config.configure(core_config_dict)
 
         except Exception as e:
-            return FlextCore.Result[None].fail(
+            return FlextResult[None].fail(
                 f"Component configuration failed for {component}: {e}"
             )
 
@@ -566,34 +571,34 @@ class FlextCli:
         ).unwrap()
 
     @property
-    def container(self) -> FlextCore.Container:
+    def container(self) -> FlextBase.Container:
         """Access FlextCore.Container for dependency injection.
 
         Returns:
-            FlextCore.Container: DI container instance
+            FlextBase.Container: DI container instance
 
         """
         return self._container
 
     # Attributes initialized in __init__ (inherit types from FlextService)
 
-    def run(self) -> FlextCore.Result[FlextCliTypes.Data.CliDataDict]:
+    def run(self) -> FlextResult[FlextCliTypes.Data.CliDataDict]:
         """Run CLI API operations.
 
         Returns:
-            FlextCore.Result[FlextCliTypes.Data.CliDataDict]: API execution result
+            FlextResult[FlextCliTypes.Data.CliDataDict]: API execution result
 
         """
         return self.execute()
 
-    def execute(self) -> FlextCore.Result[FlextCliTypes.Data.CliDataDict]:
+    def execute(self) -> FlextResult[FlextCliTypes.Data.CliDataDict]:
         """Execute CLI API operations.
 
         Returns:
-            FlextCore.Result[FlextCliTypes.Data.CliDataDict]: API execution result
+            FlextResult[FlextCliTypes.Data.CliDataDict]: API execution result
 
         """
-        return FlextCore.Result[FlextCliTypes.Data.CliDataDict].ok({
+        return FlextResult[FlextCliTypes.Data.CliDataDict].ok({
             "status": FlextCliConstants.OPERATIONAL,
             "service": FlextCliConstants.FLEXT_CLI,
             "version": FlextCliConstants.VERSION,

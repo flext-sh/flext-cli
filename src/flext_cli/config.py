@@ -18,7 +18,7 @@ from pathlib import Path
 from typing import cast
 
 import yaml
-from flext_core import FlextCore
+from flext_core import FlextCore, FlextResult
 from pydantic import (
     Field,
     SecretStr,
@@ -50,19 +50,14 @@ class FlextCliConfig(FlextCore.Config):
     """
 
     model_config = SettingsConfigDict(
-        env_prefix="FLEXT_CLI_",
         case_sensitive=False,
         extra="allow",
-        # Auto-load from .env files (checked in order, first found is used)
-        env_file=(".env", ".env.local", ".env.development"),
-        env_file_encoding=FlextCliConstants.Encoding.UTF8,
-        env_nested_delimiter="__",  # Support FLEXT_CLI_NESTED__VALUE format
         # Inherit enhanced Pydantic 2.11+ features from FlextCore.Config
         validate_assignment=True,
         str_strip_whitespace=True,
         json_schema_extra={
             "title": "FLEXT CLI Configuration",
-            "description": "Enterprise CLI configuration extending FlextCore.Config with auto .env loading",
+            "description": "Enterprise CLI configuration extending FlextCore.Config",
         },
     )
 
@@ -77,7 +72,10 @@ class FlextCliConfig(FlextCore.Config):
         description="Default output format for CLI commands",
     )
 
-    no_color: bool = Field(default=False, description="Disable colored output in CLI")
+    no_color: bool = Field(
+        default=FlextCliConstants.CliDefaults.DEFAULT_NO_COLOR,
+        description="Disable colored output in CLI",
+    )
 
     config_dir: Path = Field(
         default_factory=lambda: Path.home() / FlextCliConstants.FLEXT_DIR_NAME,
@@ -115,10 +113,6 @@ class FlextCliConfig(FlextCore.Config):
 
     auto_refresh: bool = Field(
         default=True, description="Automatically refresh authentication tokens"
-    )
-
-    environment: str = Field(
-        default="development", description="Deployment environment (development, staging, production)"
     )
 
     # CLI behavior configuration (flattened from previous nested classes)
@@ -180,6 +174,18 @@ class FlextCliConfig(FlextCore.Config):
         default=None,
         description="Optional log file path for persistent logging",
     )
+
+    def __init__(self, trace: FlextCore.Logger | None = None, **data: object) -> None:
+        """Initialize FlextCliConfig with optional trace logger.
+
+        Args:
+            trace: Optional logger for tracing operations
+            **data: Additional configuration data
+
+        """
+        if trace is None:
+            trace = logger
+        super().__init__(trace=trace, **data)
 
     # Pydantic 2.11 field validators
     @field_validator("output_format")
@@ -274,11 +280,13 @@ class FlextCliConfig(FlextCore.Config):
 
         # Auto-propagate config to FlextCore.Context for global access
         try:
-            FlextCore.Context.set("cli_config", self)
-            FlextCore.Context.set("cli_auto_output_format", self.auto_output_format)
-            FlextCore.Context.set("cli_auto_color_support", self.auto_color_support)
-            FlextCore.Context.set("cli_auto_verbosity", self.auto_verbosity)
-            FlextCore.Context.set("cli_optimal_table_format", self.optimal_table_format)
+            # Create context instance and set values
+            context = FlextCore.Context()
+            context.set("cli_config", self)
+            context.set("cli_auto_output_format", self.auto_output_format)
+            context.set("cli_auto_color_support", self.auto_color_support)
+            context.set("cli_auto_verbosity", self.auto_verbosity)
+            context.set("cli_optimal_table_format", self.optimal_table_format)
         except Exception as e:
             # FlextCore.Context might not be initialized yet - continue gracefully
             logger.debug(f"Context not available during config initialization: {e}")
@@ -286,7 +294,7 @@ class FlextCliConfig(FlextCore.Config):
         # Auto-register in FlextCore.Container for dependency injection
         try:
             container = FlextCore.Container.get_global()
-            container.register_instance("flext_cli_config", self)
+            container.register("flext_cli_config", self)
         except Exception as e:
             # Container might not be initialized yet - continue gracefully
             logger.debug(f"Container not available during config initialization: {e}")
@@ -295,7 +303,6 @@ class FlextCliConfig(FlextCore.Config):
 
     # Pydantic 2 computed fields for smart auto-configuration
     @computed_field
-    @property
     def auto_output_format(self) -> str:
         """Auto-detect optimal output format based on terminal capabilities.
 
@@ -320,52 +327,33 @@ class FlextCliConfig(FlextCore.Config):
             return FlextCliConstants.OutputFormats.PLAIN.value
 
         # For wide terminals with color support, use table
-        if self.auto_color_support:
+        if bool(self.auto_color_support):
             return FlextCliConstants.OutputFormats.TABLE.value
 
         # Fallback to JSON for compatibility
         return FlextCliConstants.OutputFormats.JSON.value
 
     @computed_field
-    @property
     def auto_color_support(self) -> bool:
         """Auto-detect if terminal supports colors.
 
         Checks:
-        - TERM environment variable
-        - COLORTERM environment variable
-        - NO_COLOR environment variable
+        - Configuration setting (no_color)
 
         Returns:
             bool: True if colors are supported, False otherwise
 
         """
-        # Check NO_COLOR environment variable (standard)
-        if os.environ.get("NO_COLOR"):
-            return False
-
         # Check if user explicitly disabled colors in config
         if self.no_color:
             return False
 
-        # Check COLORTERM for truecolor support
-        if os.environ.get("COLORTERM") in {"truecolor", "24bit"}:
-            return True
-
-        # Check TERM for color capability
-        term = os.environ.get("TERM", "")
-        return any(
-            color_term in term
-            for color_term in ("color", "256", "ansi", "xterm", "screen")
-        )
+        # Default to color support (can be overridden by config)
+        return True
 
     @computed_field
-    @property
     def auto_verbosity(self) -> str:
-        """Auto-set verbosity based on environment.
-
-        Development/local environments get verbose output.
-        Production/staging environments get quiet output.
+        """Auto-set verbosity based on configuration.
 
         Returns:
             str: Verbosity level (verbose, normal, quiet)
@@ -377,20 +365,10 @@ class FlextCliConfig(FlextCore.Config):
         if self.quiet:
             return "quiet"
 
-        # Auto-detect based on environment (from FlextCore.Config)
-        env_lower = self.environment.lower()
-
-        if env_lower in {"development", "dev", "local"}:
-            return "verbose"
-
-        if env_lower in {"production", "prod"}:
-            return "quiet"
-
         # Default to normal verbosity
         return "normal"
 
     @computed_field
-    @property
     def optimal_table_format(self) -> str:
         """Best tabulate format for current terminal width.
 
@@ -413,24 +391,22 @@ class FlextCliConfig(FlextCore.Config):
 
     # CLI-specific methods
 
-    def validate_output_format_result(self, value: str) -> FlextCore.Result[str]:
-        """Validate output format using FlextCliConstants and return FlextCore.Result."""
+    def validate_output_format_result(self, value: str) -> FlextResult[str]:
+        """Validate output format using FlextCliConstants and return FlextResult."""
         if value not in FlextCliConstants.OUTPUT_FORMATS_LIST:
-            return FlextCore.Result[str].fail(
+            return FlextResult[str].fail(
                 FlextCliConstants.ErrorMessages.INVALID_OUTPUT_FORMAT.format(
                     format=value
                 )
             )
-        return FlextCore.Result[str].ok(value)
+        return FlextResult[str].ok(value)
 
     @classmethod
-    def load_from_config_file(
-        cls, config_file: Path
-    ) -> FlextCore.Result[FlextCliConfig]:
+    def load_from_config_file(cls, config_file: Path) -> FlextResult[FlextCliConfig]:
         """Load configuration from file with proper error handling."""
         try:
             if not config_file.exists():
-                return FlextCore.Result[FlextCliConfig].fail(
+                return FlextResult[FlextCliConfig].fail(
                     FlextCliConstants.ErrorMessages.CONFIG_FILE_NOT_FOUND.format(
                         file=config_file
                     )
@@ -448,7 +424,7 @@ class FlextCliConfig(FlextCore.Config):
                 ) as f:
                     data = yaml.safe_load(f)
             else:
-                return FlextCore.Result[FlextCliConfig].fail(
+                return FlextResult[FlextCliConfig].fail(
                     FlextCliConstants.ErrorMessages.UNSUPPORTED_CONFIG_FORMAT.format(
                         suffix=config_file.suffix
                     )
@@ -456,18 +432,18 @@ class FlextCliConfig(FlextCore.Config):
 
             # Create config instance directly with loaded data
             config = cls(**data)
-            return FlextCore.Result[FlextCliConfig].ok(config)
+            return FlextResult[FlextCliConfig].ok(config)
 
         except Exception as e:
-            return FlextCore.Result[FlextCliConfig].fail(
+            return FlextResult[FlextCliConfig].fail(
                 FlextCliConstants.ErrorMessages.FAILED_LOAD_CONFIG_FROM_FILE.format(
                     file=config_file, error=e
                 )
             )
 
-    def execute_as_service(self) -> FlextCore.Result[FlextCliTypes.Data.CliDataDict]:
+    def execute_as_service(self) -> FlextResult[FlextCliTypes.Data.CliDataDict]:
         """Execute config as service operation."""
-        return FlextCore.Result[FlextCliTypes.Data.CliDataDict].ok({
+        return FlextResult[FlextCliTypes.Data.CliDataDict].ok({
             "status": FlextCliConstants.OPERATIONAL,
             "service": "flext-cli-config",
             "timestamp": datetime.now(UTC).isoformat(),
@@ -475,20 +451,18 @@ class FlextCliConfig(FlextCore.Config):
             "config": self.model_dump(),
         })
 
-    def load_config_file(self, config_path: str) -> FlextCore.Result[FlextCliConfig]:
+    def load_config_file(self, config_path: str) -> FlextResult[FlextCliConfig]:
         """Load configuration from file using FlextCore.Config.from_file."""
         result = FlextCliConfig.from_file(config_path)
         if result.is_failure:
-            return FlextCore.Result[FlextCliConfig].fail(
+            return FlextResult[FlextCliConfig].fail(
                 f"Failed to load config: {result.error}"
             )
         # Cast to FlextCliConfig since from_file returns FlextCore.Config
 
-        return FlextCore.Result[FlextCliConfig].ok(
-            cast("FlextCliConfig", result.unwrap())
-        )
+        return FlextResult[FlextCliConfig].ok(cast("FlextCliConfig", result.unwrap()))
 
-    def save_config_file(self, config_path: str) -> FlextCore.Result[None]:
+    def save_config_file(self, config_path: str) -> FlextResult[None]:
         """Save configuration to file with proper Path serialization."""
         try:
             # Convert model to dict and ensure all values are JSON serializable
@@ -507,13 +481,13 @@ class FlextCliConfig(FlextCore.Config):
             with path.open("w", encoding=FlextCliConstants.Encoding.UTF8) as f:
                 json.dump(config_dict, f, indent=2)
 
-            return FlextCore.Result[None].ok(None)
+            return FlextResult[None].ok(None)
         except Exception as e:
-            return FlextCore.Result[None].fail(
+            return FlextResult[None].fail(
                 FlextCliConstants.ErrorMessages.SAVE_FAILED.format(error=e)
             )
 
-    def update_from_cli_args(self, **kwargs: object) -> FlextCore.Result[None]:
+    def update_from_cli_args(self, **kwargs: object) -> FlextResult[None]:
         """Update configuration from CLI arguments with validation.
 
         Allows CLI commands to override configuration values dynamically.
@@ -523,7 +497,7 @@ class FlextCliConfig(FlextCore.Config):
             **kwargs: Configuration key-value pairs to update
 
         Returns:
-            FlextCore.Result[None]: Success or validation error
+            FlextResult[None]: Success or validation error
 
         Example:
             >>> config = FlextCliConfig()
@@ -547,21 +521,21 @@ class FlextCliConfig(FlextCore.Config):
             # Re-validate entire model to ensure consistency
             self.model_validate(self.model_dump())
 
-            return FlextCore.Result[None].ok(None)
+            return FlextResult[None].ok(None)
 
         except Exception as e:
-            return FlextCore.Result[None].fail(
+            return FlextResult[None].fail(
                 FlextCliConstants.ErrorMessages.CLI_ARGS_UPDATE_FAILED.format(error=e)
             )
 
-    def merge_with_env(self) -> FlextCore.Result[None]:
+    def merge_with_env(self) -> FlextResult[None]:
         """Re-load environment variables and merge with current config.
 
         Useful when environment variables change during runtime.
         Existing config values take precedence over environment variables.
 
         Returns:
-            FlextCore.Result[None]: Success or error
+            FlextResult[None]: Success or error
 
         Example:
             >>> config = FlextCliConfig()
@@ -588,16 +562,16 @@ class FlextCliConfig(FlextCore.Config):
             for key in current_config:
                 setattr(self, key, getattr(env_config, key))
 
-            return FlextCore.Result[None].ok(None)
+            return FlextResult[None].ok(None)
 
         except Exception as e:
-            return FlextCore.Result[None].fail(
+            return FlextResult[None].fail(
                 FlextCliConstants.ErrorMessages.ENV_MERGE_FAILED.format(error=e)
             )
 
     def validate_cli_overrides(
         self, **overrides: object
-    ) -> FlextCore.Result[dict[str, object]]:
+    ) -> FlextResult[dict[str, object]]:
         """Validate CLI overrides without applying them.
 
         Useful for checking if CLI arguments are valid before applying.
@@ -606,7 +580,7 @@ class FlextCliConfig(FlextCore.Config):
             **overrides: Configuration overrides to validate
 
         Returns:
-            FlextCore.Result[dict[str, object]]: Valid overrides or validation errors
+            FlextResult[dict[str, object]]: Valid overrides or validation errors
 
         Example:
             >>> config = FlextCliConfig()
@@ -646,44 +620,44 @@ class FlextCliConfig(FlextCore.Config):
                     )
 
             if errors:
-                return FlextCore.Result[dict[str, object]].fail(
+                return FlextResult[dict[str, object]].fail(
                     FlextCliConstants.ErrorMessages.VALIDATION_ERRORS.format(
                         errors="; ".join(errors)
                     )
                 )
 
-            return FlextCore.Result[dict[str, object]].ok(valid_overrides)
+            return FlextResult[dict[str, object]].ok(valid_overrides)
 
         except Exception as e:
-            return FlextCore.Result[dict[str, object]].fail(f"Validation failed: {e}")
+            return FlextResult[dict[str, object]].fail(f"Validation failed: {e}")
 
     # Protocol-compliant methods for CliConfigProvider
-    def load_config(self) -> FlextCore.Result[FlextCliTypes.Data.CliConfigData]:
+    def load_config(self) -> FlextResult[FlextCliTypes.Data.CliConfigData]:
         """Load CLI configuration - implements CliConfigProvider protocol.
 
         Returns:
-            FlextCore.Result[FlextCliTypes.Data.CliConfigData]: Configuration data or error
+            FlextResult[FlextCliTypes.Data.CliConfigData]: Configuration data or error
 
         """
         try:
             # Convert model to dictionary format expected by protocol
             config_data = self.model_dump()
-            return FlextCore.Result[FlextCliTypes.Data.CliConfigData].ok(config_data)
+            return FlextResult[FlextCliTypes.Data.CliConfigData].ok(config_data)
         except Exception as e:
-            return FlextCore.Result[FlextCliTypes.Data.CliConfigData].fail(
+            return FlextResult[FlextCliTypes.Data.CliConfigData].fail(
                 FlextCliConstants.ErrorMessages.CONFIG_LOAD_FAILED_MSG.format(error=e)
             )
 
     def save_config(
         self, config: FlextCliTypes.Data.CliConfigData
-    ) -> FlextCore.Result[None]:
+    ) -> FlextResult[None]:
         """Save CLI configuration - implements CliConfigProvider protocol.
 
         Args:
             config: Configuration data to save
 
         Returns:
-            FlextCore.Result[None]: Success or error
+            FlextResult[None]: Success or error
 
         """
         try:
@@ -694,29 +668,29 @@ class FlextCliConfig(FlextCore.Config):
 
             # Validate the updated configuration
             self.model_validate(self.model_dump())
-            return FlextCore.Result[None].ok(None)
+            return FlextResult[None].ok(None)
         except Exception as e:
-            return FlextCore.Result[None].fail(
+            return FlextResult[None].fail(
                 FlextCliConstants.ErrorMessages.CONFIG_SAVE_FAILED_MSG.format(error=e)
             )
 
-    def validate_business_rules(self) -> FlextCore.Result[None]:
+    def validate_business_rules(self) -> FlextResult[None]:
         """Validate configuration business rules.
 
         Returns:
-            FlextCore.Result[None]: Success if all rules pass, error otherwise
+            FlextResult[None]: Success if all rules pass, error otherwise
 
         """
         try:
             # Basic validation rules for CLI config
             if not self.profile:
-                return FlextCore.Result[None].fail("Profile cannot be empty")
+                return FlextResult[None].fail("Profile cannot be empty")
 
             if not self.output_format:
-                return FlextCore.Result[None].fail("Output format cannot be empty")
+                return FlextResult[None].fail("Output format cannot be empty")
 
             if not self.config_dir:
-                return FlextCore.Result[None].fail("Config directory cannot be empty")
+                return FlextResult[None].fail("Config directory cannot be empty")
 
             # Validate output format is supported
             supported_formats = [
@@ -726,15 +700,15 @@ class FlextCliConfig(FlextCore.Config):
                 FlextCliConstants.OutputFormats.CSV,
             ]
             if self.output_format not in supported_formats:
-                return FlextCore.Result[None].fail(
+                return FlextResult[None].fail(
                     f"Unsupported output format: {self.output_format}. "
                     f"Supported: {', '.join(supported_formats)}"
                 )
 
-            return FlextCore.Result[None].ok(None)
+            return FlextResult[None].ok(None)
 
         except Exception as e:
-            return FlextCore.Result[None].fail(f"Business rules validation failed: {e}")
+            return FlextResult[None].fail(f"Business rules validation failed: {e}")
 
 
 # Merged into FlextCliConfig - removed redundant class
