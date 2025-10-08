@@ -9,6 +9,8 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
+from urllib.parse import urlparse
+
 from flext_core import FlextCore, FlextResult
 
 from flext_cli.constants import FlextCliConstants
@@ -74,16 +76,14 @@ class FlextCliMixins(FlextCore.Mixins):
             if not url_value or not url_value.strip():
                 return FlextResult[None].fail(f"{field_name} cannot be empty")
 
-            # Use FlextCore.Utilities from flext-core for URL validation
-            validation_result = FlextCore.Utilities.Validation.validate_url(url_value)
+            # Simple URL validation
 
-            if validation_result.is_failure:
-                return FlextResult[None].fail(
-                    f"{field_name} validation failed: {validation_result.error}"
-                )
-
-            if not validation_result.unwrap():
-                return FlextResult[None].fail(f"{field_name} is not a valid URL")
+            try:
+                parsed = urlparse(url_value)
+                if not parsed.scheme or not parsed.netloc:
+                    return FlextResult[None].fail(f"{field_name} is not a valid URL")
+            except Exception as e:
+                return FlextResult[None].fail(f"{field_name} validation failed: {e}")
 
             return FlextResult[None].ok(None)
 

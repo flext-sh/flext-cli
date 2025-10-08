@@ -578,7 +578,7 @@ class FlextCli:
             FlextBase.Container: DI container instance
 
         """
-        return self._container
+        return cast("FlextBase.Container", self._container)
 
     # Attributes initialized in __init__ (inherit types from FlextService)
 

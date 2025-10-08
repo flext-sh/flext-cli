@@ -9,13 +9,14 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
+import tempfile
 import time
 from pathlib import Path
 from typing import Never, cast
 
-from flext_core import FlextResult
+from flext_core import FlextLogger, FlextResult
 
-from flext_cli import FlextCliCmd, FlextCliFileTools
+from flext_cli import FlextCliCmd, FlextCliConfig, FlextCliFileTools
 
 
 class TestFlextCliCmd:
@@ -329,7 +330,7 @@ class TestFlextCliCmd:
 
         class FailingFileTools(FlextCliFileTools):
             @staticmethod
-            def write_json_file(  # type: ignore[unused-argument]
+            def write_json_file(
                 _file_path: str | Path, _data: object, **_kwargs: dict[str, object]
             ) -> FlextResult[None]:
                 return FlextResult[None].fail("Test file error")
@@ -410,7 +411,7 @@ class TestFlextCliCmd:
                 return FlextResult[object].fail("Test load error")
 
             @staticmethod
-            def write_json_file(  # type: ignore[unused-argument]
+            def write_json_file(
                 _file_path: str | Path, _data: object, **_kwargs: dict[str, object]
             ) -> FlextResult[None]:
                 return FlextResult[None].ok(None)
@@ -426,8 +427,6 @@ class TestFlextCliCmd:
 
     def test_cmd_config_display_helper_error_handling(self) -> None:
         """Test _ConfigDisplayHelper.show_config error handling."""
-        from flext_core import FlextLogger
-
         logger = FlextLogger(__name__)
         # Mock logger to raise exception
         original_info = logger.info
@@ -453,8 +452,6 @@ class TestFlextCliCmd:
 
     def test_cmd_edit_config_create_default_config_error(self) -> None:
         """Test edit_config create default config error."""
-        from flext_cli.config import FlextCliConfig
-
         cmd = FlextCliCmd()
         # Ensure config file doesn't exist to trigger default creation
         config_path = FlextCliConfig().config_dir / "cli_config.json"
@@ -464,7 +461,7 @@ class TestFlextCliCmd:
 
         class FailingFileTools(FlextCliFileTools):
             @staticmethod
-            def write_json_file(  # type: ignore[unused-argument]
+            def write_json_file(
                 _file_path: str | Path, _data: object, **_kwargs: dict[str, object]
             ) -> FlextResult[None]:
                 return FlextResult[None].fail("Test create default error")
@@ -496,8 +493,6 @@ class TestFlextCliCmd:
         cmd._file_tools = MockFileTools()
         try:
             # Create a temp file to avoid the "not found" error
-            import tempfile
-
             with tempfile.NamedTemporaryFile(
                 mode="w", suffix=".json", delete=False, encoding="utf-8"
             ) as f:
@@ -505,8 +500,6 @@ class TestFlextCliCmd:
                 temp_file = f.name
             try:
                 # Temporarily replace config path
-                from flext_cli.config import FlextCliConfig
-
                 original_config_dir = FlextCliConfig().config_dir
                 FlextCliConfig().config_dir = Path(temp_file).parent
                 try:

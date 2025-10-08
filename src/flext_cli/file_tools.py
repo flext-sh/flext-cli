@@ -78,7 +78,7 @@ class FlextCliFileTools(FlextCore.Service[FlextCore.Types.Dict]):
             FlextResult[None]: Success or failure
 
         """
-        return self.write_json_file(path, data, **kwargs)  # type: ignore[arg-type]
+        return self.write_json_file(path, data, **kwargs)
 
     def read_json(self, path: str | Path) -> FlextResult[object]:
         """Read JSON data from file (alias for read_json_file).
@@ -106,7 +106,7 @@ class FlextCliFileTools(FlextCore.Service[FlextCore.Types.Dict]):
             FlextResult[None]: Success or failure
 
         """
-        return self.write_yaml_file(path, data, **kwargs)  # type: ignore[arg-type]
+        return self.write_yaml_file(path, data, **kwargs)
 
     def read_yaml(self, path: str | Path) -> FlextResult[object]:
         """Read YAML data from file (alias for read_yaml_file).
@@ -234,7 +234,7 @@ class FlextCliFileTools(FlextCore.Service[FlextCore.Types.Dict]):
                 "w", encoding=FlextCliConstants.Encoding.UTF8
             ) as f:
                 # Cast dump_kwargs to avoid type checker issues with **kwargs
-                json.dump(data, f, indent=2, **dump_kwargs)  # type: ignore[misc]
+                json.dump(data, f, indent=2, **dump_kwargs)
             return FlextResult[None].ok(None)
         except Exception as e:
             return FlextResult[None].fail(
@@ -678,9 +678,9 @@ class FlextCliFileTools(FlextCore.Service[FlextCore.Types.Dict]):
 
             # Detect format and delegate to appropriate saver
             if extension == ".json":
-                return FlextCliFileTools.write_json_file(file_path, data, **kwargs)  # type: ignore[arg-type]
+                return FlextCliFileTools.write_json_file(file_path, data, **kwargs)
             if extension in {".yaml", ".yml"}:
-                return FlextCliFileTools.write_yaml_file(file_path, data, **kwargs)  # type: ignore[arg-type]
+                return FlextCliFileTools.write_yaml_file(file_path, data, **kwargs)
             return FlextResult[None].fail(
                 f"Unsupported file format: {extension}. Supported: .json, .yaml, .yml"
             )

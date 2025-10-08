@@ -199,7 +199,7 @@ class FlextCliDebug(FlextCore.Service[str]):
     ) -> FlextResult[Types.Data.DebugInfoData]:
         """Get comprehensive debug information combining all debug methods."""
         try:
-            comprehensive_info: Types.Data.DebugInfoData = {}
+            comprehensive_info: dict[str, object] = {}
 
             # Collect system info
             system_result = self.get_system_info()

@@ -555,7 +555,7 @@ class FlextCliMain(FlextCore.Service[object]):
 
             # Add to main group (Typer's Click group)
             if self._main_group is not None:
-                self._main_group.add_command(command_obj)  # type: ignore[arg-type]
+                self._main_group.add_command(command_obj)
 
             self.logger.debug(
                 "Registered plugin command via Typer",
@@ -796,6 +796,39 @@ class FlextCliMain(FlextCore.Service[object]):
 
         return FlextResult[object].ok(self._main_group)
 
+    def run_command(
+        self,
+        operation: list[str],
+        output_format: str | None = None,
+    ) -> FlextResult[object]:
+        """Run a CLI command with given arguments.
+
+        Args:
+            operation: List of command arguments (e.g., ["config", "show"])
+            output_format: Optional output format override
+
+        Returns:
+            FlextResult containing command execution result
+
+        Example:
+            >>> main = FlextCliMain()
+            >>> result = main.run_command(["config", "show"], output_format="json")
+
+        """
+        try:
+            # Convert operation list to args format
+            args = operation
+
+            # Execute the command with optional output format override
+            return self.execute_cli(
+                args=args, standalone_mode=False, output_format=output_format
+            )
+
+        except Exception as e:
+            error_msg = f"Failed to run command {operation}: {e}"
+            self.logger.exception(error_msg)
+            return FlextResult[object].fail(error_msg)
+
     # =========================================================================
     # FLEXT SERVICE METHODS
     # =========================================================================
@@ -803,7 +836,7 @@ class FlextCliMain(FlextCore.Service[object]):
     # Note: logger and _container are inherited from FlextCore.Service parent class
     # No need to redeclare them here as Pydantic v2 treats them as fields
 
-    def execute(self) -> FlextResult[object]:
+    def execute(self) -> FlextResult[None]:
         """Execute CLI main operations.
 
         Returns:

@@ -108,7 +108,7 @@ class FlextCliCli:
         command_kwargs: dict[str, object] = {"name": name}
         command_kwargs.update(kwargs)
         # Cast to object to avoid type checking issues with Click's dynamic kwargs
-        decorator = click.command(**command_kwargs)
+        decorator = click.command(**command_kwargs)  # type: ignore[arg-type]
         self.logger.debug(
             "Created command decorator",
             extra={"command_name": name, "options": kwargs},
@@ -141,7 +141,7 @@ class FlextCliCli:
         group_kwargs: dict[str, object] = {"name": name}
         group_kwargs.update(kwargs)
         # Cast to object to avoid type checking issues with Click's dynamic kwargs
-        decorator = click.group(**group_kwargs)
+        decorator = click.group(**group_kwargs)  # type: ignore[arg-type]
         self.logger.debug(
             "Created group decorator",
             extra={"group_name": name, "options": kwargs},
@@ -174,7 +174,7 @@ class FlextCliCli:
 
         """
         # Cast to object to avoid type checking issues with Click's dynamic kwargs
-        decorator = click.option(*param_decls, **attrs)
+        decorator = click.option(*param_decls, **attrs)  # type: ignore[arg-type]
         self.logger.debug(
             "Created option decorator",
             extra={"param_decls": param_decls, "attrs": attrs},
@@ -203,7 +203,7 @@ class FlextCliCli:
 
         """
         # Cast to object to avoid type checking issues with Click's dynamic kwargs
-        decorator = click.argument(*param_decls, **attrs)
+        decorator = click.argument(*param_decls, **attrs)  # type: ignore[arg-type]
         self.logger.debug(
             "Created argument decorator",
             extra={"param_decls": param_decls, "attrs": attrs},
@@ -473,7 +473,7 @@ class FlextCliCli:
     # CONTEXT MANAGEMENT
     # =========================================================================
 
-    def get_current_context(self) -> click.typer.Context | None:
+    def get_current_context(self) -> click.Context | None:
         """Get current CLI context.
 
         Returns:

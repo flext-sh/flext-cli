@@ -12,7 +12,7 @@ from __future__ import annotations
 import uuid
 from collections.abc import Callable
 from datetime import UTC, datetime
-from typing import Self, get_args, get_origin, override
+from typing import Self, cast, get_args, get_origin, override
 
 from flext_core import FlextCore, FlextResult
 from pydantic import (
@@ -586,7 +586,9 @@ class FlextCliModels(FlextCore.Models):
                     ],
                 }
 
-                return FlextResult[dict[str, object]].ok(command_spec)
+                return FlextResult[dict[str, object]].ok(
+                    cast("dict[str, object]", command_spec)
+                )
             except Exception as e:
                 return FlextResult[dict[str, object]].fail(
                     f"Failed to generate command spec for {command_name}: {e}"
