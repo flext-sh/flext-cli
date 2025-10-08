@@ -8,8 +8,6 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from typing import cast
-
 from flext_cli import FlextCli
 
 # Module-level singleton
@@ -18,38 +16,52 @@ cli = FlextCli.get_instance()
 
 def demonstrate_styled_output() -> None:
     """Styled messages - auto-color detection."""
-    cli.output.print_success("✅ Success - auto-styled")
-    cli.output.print_error("❌ Error - auto-styled")
-    cli.output.print_warning("⚠️  Warning - auto-styled")
-    cli.output.print_message("i  Info - auto-styled")
+    cli.formatters.print("✅ Success - auto-styled", style="bold green")
+    cli.formatters.print("❌ Error - auto-styled", style="bold red")
+    cli.formatters.print("⚠️  Warning - auto-styled", style="bold yellow")
+    cli.formatters.print("ℹ️  Info - auto-styled", style="cyan")
 
 
 def demonstrate_table_formatting() -> None:
     """Table auto-formatting based on terminal width."""
-    users = [
-        {"name": "Alice", "age": 30, "role": "Admin"},
-        {"name": "Bob", "age": 25, "role": "Developer"},
-    ]
+    users = {
+        "Alice": "30 | Admin",
+        "Bob": "25 | Developer",
+        "Charlie": "35 | Manager",
+    }
 
-    table_result = cli.tables.create_grid_table(cast("list[dict[str, object]]", users))
+    cli.formatters.print("\n📊 User Table:", style="bold cyan")
+    table_result = cli.create_table(
+        data=users, headers=["Name", "Age | Role"], title="User Information"
+    )
     if table_result.is_success:
-        print(table_result.value)
+        cli.formatters.console.print(table_result.unwrap())
 
 
 def demonstrate_data_formatting() -> None:
     """Data formatting - auto-indented, auto-colored."""
+    import json
+
     data = {"status": "success", "count": 42, "items": ["a", "b", "c"]}
 
-    json_result = cli.output.format_json(data)
-    if json_result.is_success:
-        print(json_result.value)
+    cli.formatters.print("\n📄 JSON Output:", style="bold cyan")
+    formatted_json = json.dumps(data, indent=2)
+    cli.formatters.print(formatted_json, style="green")
 
 
 def main() -> None:
     """Run all demonstrations."""
+    cli.formatters.print("=" * 60, style="bold blue")
+    cli.formatters.print("  Output Formatting Examples", style="bold white on blue")
+    cli.formatters.print("=" * 60, style="bold blue")
+
     demonstrate_styled_output()
     demonstrate_table_formatting()
     demonstrate_data_formatting()
+
+    cli.formatters.print("\n" + "=" * 60, style="bold blue")
+    cli.formatters.print("  ✅ All formatting examples completed!", style="bold green")
+    cli.formatters.print("=" * 60, style="bold blue")
 
 
 if __name__ == "__main__":

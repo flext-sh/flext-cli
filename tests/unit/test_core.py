@@ -591,13 +591,12 @@ nested:
 
     def test_validate_url(self) -> None:
         """Test URL validation functionality."""
-        # Test valid URL (accepts normalized URL with trailing slash)
+        # Test valid URL - validate_url returns FlextResult[None] (validation pattern)
         result = FlextUtilities.Validation.validate_url("https://example.com")
         assert isinstance(result, FlextResult)
         assert result.is_success
-        # URL validation may normalize by adding trailing slash
-        normalized_url = result.unwrap()
-        assert normalized_url in {"https://example.com", "https://example.com/"}
+        # Validation functions return None on success (validation pattern, not transformation)
+        assert result.unwrap() is None
 
         # Test invalid URL
         result = FlextUtilities.Validation.validate_url("not-a-url")

@@ -32,7 +32,7 @@ def main() -> None:
         try:
             # Use flext-cli API for testing instead of direct Click
             # This maintains abstraction and zero tolerance policy
-            result = cli_main.main.run_command(operation, output_format="json")
+            result = cli_main.main.run_command(operation)
             if result.is_failure:
                 print(f"Command {operation} failed: {result.error}")
                 break

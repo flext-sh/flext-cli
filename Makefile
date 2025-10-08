@@ -126,7 +126,7 @@ build-clean: clean build ## Clean and build
 
 .PHONY: cli-test
 cli-test: ## Test CLI commands
-	$(POETRY) run python -c "from flext_cli.main import cli; print('CLI test passed')"
+	$(POETRY) run python -c "from flext_cli.api import FlextCli; cli = FlextCli(); print('CLI test passed')"
 
 .PHONY: cli-auth
 cli-auth: ## Test auth commands

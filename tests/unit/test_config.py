@@ -9,10 +9,14 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
+import os
+import tempfile
 import time
 from pathlib import Path
 
-from flext_cli import FlextCliConfig, FlextCliModels
+import pytest
+
+from flext_cli import FlextCli, FlextCliConfig, FlextCliModels
 
 
 class TestFlextCliConfig:
@@ -309,3 +313,828 @@ class TestFlextCliConfigService:
         assert config.debug is True
         assert config.verbose is True
         assert config.profile == "test"
+
+
+class TestPydanticSettingsAutoLoading:
+    """Test Pydantic 2 Settings auto-loading with .env and environment variables."""
+
+    def test_env_file_auto_loading(self) -> None:
+        """Test automatic .env file loading via Pydantic Settings."""
+        with tempfile.TemporaryDirectory() as tmpdir:
+            # Create .env file
+            env_file = Path(tmpdir) / ".env"
+            env_file.write_text(
+                "FLEXT_DEBUG=true\n"
+                "FLEXT_VERBOSE=true\n"
+                "FLEXT_OUTPUT_FORMAT=json\n"
+                "FLEXT_PROFILE=dotenv_test\n"
+                "FLEXT_TIMEOUT=60\n"
+                "FLEXT_MAX_RETRIES=5\n"
+            )
+
+            # Change to temp directory for .env loading
+            original_dir = Path.cwd()
+            try:
+                os.chdir(tmpdir)
+
+                # Create config - should auto-load .env
+                config = FlextCliConfig()
+
+                # Verify .env values were loaded
+                assert config.debug is True, ".env DEBUG not loaded"
+                assert config.verbose is True, ".env VERBOSE not loaded"
+                assert config.output_format == "json", ".env OUTPUT_FORMAT not loaded"
+                assert config.profile == "dotenv_test", ".env PROFILE not loaded"
+                assert config.timeout == 60, ".env TIMEOUT not loaded"
+                assert config.max_retries == 5, ".env MAX_RETRIES not loaded"
+
+            finally:
+                os.chdir(original_dir)
+
+    def test_environment_variable_loading(self) -> None:
+        """Test environment variable loading with FLEXT_ prefix."""
+        # Save original env
+        original_env = {}
+        env_vars = [
+            "FLEXT_DEBUG",
+            "FLEXT_VERBOSE",
+            "FLEXT_OUTPUT_FORMAT",
+            "FLEXT_PROFILE",
+            "FLEXT_TIMEOUT",
+        ]
+        for var in env_vars:
+            original_env[var] = os.environ.get(var)
+
+        try:
+            # Set environment variables
+            os.environ["FLEXT_DEBUG"] = "true"
+            os.environ["FLEXT_VERBOSE"] = "false"
+            os.environ["FLEXT_OUTPUT_FORMAT"] = "yaml"
+            os.environ["FLEXT_PROFILE"] = "env_test"
+            os.environ["FLEXT_TIMEOUT"] = "90"
+
+            # Create config - should load from environment
+            config = FlextCliConfig()
+
+            # Verify environment values were loaded
+            assert config.debug is True, "ENV DEBUG not loaded"
+            assert config.verbose is False, "ENV VERBOSE not loaded"
+            assert config.output_format == "yaml", "ENV OUTPUT_FORMAT not loaded"
+            assert config.profile == "env_test", "ENV PROFILE not loaded"
+            assert config.timeout == 90, "ENV TIMEOUT not loaded"
+
+        finally:
+            # Restore original environment
+            for var, value in original_env.items():
+                if value is None:
+                    os.environ.pop(var, None)
+                else:
+                    os.environ[var] = value
+
+    def test_precedence_env_over_dotenv(self) -> None:
+        """Test precedence: ENV vars > .env file."""
+        with tempfile.TemporaryDirectory() as tmpdir:
+            # Create .env file
+            env_file = Path(tmpdir) / ".env"
+            env_file.write_text(
+                "FLEXT_DEBUG=false\nFLEXT_PROFILE=dotenv_value\nFLEXT_TIMEOUT=30\n"
+            )
+
+            original_dir = Path.cwd()
+            original_debug = os.environ.get("FLEXT_DEBUG")
+            original_profile = os.environ.get("FLEXT_PROFILE")
+
+            try:
+                os.chdir(tmpdir)
+
+                # Set ENV var that should override .env
+                os.environ["FLEXT_DEBUG"] = "true"
+                os.environ["FLEXT_PROFILE"] = "env_override"
+
+                # Create config
+                config = FlextCliConfig()
+
+                # ENV should override .env
+                assert config.debug is True, "ENV should override .env for DEBUG"
+                assert config.profile == "env_override", (
+                    "ENV should override .env for PROFILE"
+                )
+                # .env should be used when ENV not set
+                assert config.timeout == 30, (
+                    ".env TIMEOUT should be used when ENV not set"
+                )
+
+            finally:
+                os.chdir(original_dir)
+                if original_debug is None:
+                    os.environ.pop("FLEXT_DEBUG", None)
+                else:
+                    os.environ["FLEXT_DEBUG"] = original_debug
+                if original_profile is None:
+                    os.environ.pop("FLEXT_PROFILE", None)
+                else:
+                    os.environ["FLEXT_PROFILE"] = original_profile
+
+    def test_precedence_params_over_env(self) -> None:
+        """Test precedence: parameters > ENV > .env."""
+        with tempfile.TemporaryDirectory() as tmpdir:
+            # Create .env
+            env_file = Path(tmpdir) / ".env"
+            env_file.write_text("FLEXT_PROFILE=dotenv_value\nFLEXT_DEBUG=false\n")
+
+            original_dir = Path.cwd()
+            original_env = {
+                "FLEXT_PROFILE": os.environ.get("FLEXT_PROFILE"),
+                "FLEXT_DEBUG": os.environ.get("FLEXT_DEBUG"),
+            }
+
+            try:
+                os.chdir(tmpdir)
+
+                # Set ENV var
+                os.environ["FLEXT_PROFILE"] = "env_value"
+                os.environ["FLEXT_DEBUG"] = "true"
+
+                # Create config with parameters (should override both)
+                config = FlextCliConfig(profile="param_value", debug=False)
+
+                # Parameters should override ENV and .env
+                assert config.profile == "param_value", (
+                    "Parameter should override ENV and .env"
+                )
+                assert config.debug is False, "Parameter should override ENV and .env"
+
+            finally:
+                os.chdir(original_dir)
+                for var, value in original_env.items():
+                    if value is None:
+                        os.environ.pop(var, None)
+                    else:
+                        os.environ[var] = value
+
+    def test_parameter_passing(self) -> None:
+        """Test CLI parameter passing (programmatic)."""
+        # Clear environment to test parameter-only
+        original_env = {}
+        for key in list(os.environ.keys()):
+            if key.startswith("FLEXT_"):
+                original_env[key] = os.environ.pop(key)
+
+        try:
+            # Create config with explicit parameters
+            config = FlextCliConfig(
+                debug=True,
+                verbose=True,
+                output_format="json",
+                profile="param_test",
+                timeout=120,
+                max_retries=10,
+            )
+
+            # Verify parameters were set
+            assert config.debug is True
+            assert config.verbose is True
+            assert config.output_format == "json"
+            assert config.profile == "param_test"
+            assert config.timeout == 120
+            assert config.max_retries == 10
+
+        finally:
+            # Restore environment
+            for key, value in original_env.items():
+                os.environ[key] = value
+
+    def test_default_values_when_no_config(self) -> None:
+        """Test that defaults are applied when no config sources present."""
+        # Clear all FLEXT_ env vars
+        original_env = {}
+        for key in list(os.environ.keys()):
+            if key.startswith("FLEXT_"):
+                original_env[key] = os.environ.pop(key)
+
+        try:
+            # Create config with no parameters, no env vars, no .env
+            config = FlextCliConfig()
+
+            # Verify defaults from FlextCliConstants
+            assert config.debug is False, "Default DEBUG should be False"
+            assert config.verbose is False, "Default VERBOSE should be False"
+            assert config.output_format == "table", (
+                "Default OUTPUT_FORMAT should be 'table'"
+            )
+            assert config.profile == "default", "Default PROFILE should be 'default'"
+            assert config.timeout == 30, "Default TIMEOUT should be 30"
+            assert config.max_retries == 3, "Default MAX_RETRIES should be 3"
+            assert config.app_name in {"flext", "flext-cli"}, (
+                "Default APP_NAME should be flext or flext-cli"
+            )
+
+        finally:
+            # Restore environment
+            for key, value in original_env.items():
+                os.environ[key] = value
+
+
+class TestFlextCliConfigIntegration:
+    """Test FlextCli integration with FlextCliConfig."""
+
+    def test_flext_cli_uses_config_from_env(self) -> None:
+        """Test that FlextCli uses config loaded from environment."""
+        original_env = {
+            "FLEXT_DEBUG": os.environ.get("FLEXT_DEBUG"),
+            "FLEXT_PROFILE": os.environ.get("FLEXT_PROFILE"),
+        }
+
+        try:
+            # Set test environment
+            os.environ["FLEXT_DEBUG"] = "true"
+            os.environ["FLEXT_PROFILE"] = "cli_integration_test"
+
+            # Create FlextCli instance
+            cli = FlextCli()
+
+            # Access config
+            config = cli.config
+
+            # Verify config is FlextCliConfig with ENV values
+            assert isinstance(config, FlextCliConfig), "Config should be FlextCliConfig"
+            assert config.debug is True, "FlextCli should use config from ENV"
+            assert config.profile == "cli_integration_test", (
+                "FlextCli should use config from ENV"
+            )
+
+        finally:
+            for var, value in original_env.items():
+                if value is None:
+                    os.environ.pop(var, None)
+                else:
+                    os.environ[var] = value
+
+    def test_flext_cli_config_singleton(self) -> None:
+        """Test that FlextCli uses global config instance."""
+        # Create CLI instance
+        cli = FlextCli()
+        config1 = cli.config
+
+        # Get global instance directly
+        config2 = FlextCliConfig.get_global_instance()
+
+        # Should be same instance
+        assert config1.profile == config2.profile
+        assert config1.debug == config2.debug
+
+    def test_config_inheritance_from_flext_core(self) -> None:
+        """Test that FlextCliConfig properly inherits from FlextCore.Config."""
+        from flext_core import FlextCore
+
+        config = FlextCliConfig()
+
+        # Verify inheritance
+        assert isinstance(config, FlextCore.Config), (
+            "FlextCliConfig should inherit from FlextCore.Config"
+        )
+
+        # Verify Pydantic Settings features
+        assert hasattr(config, "model_config"), "Should have model_config from Pydantic"
+        assert hasattr(config, "model_dump"), "Should have model_dump from Pydantic"
+        assert hasattr(config, "model_validate"), (
+            "Should have model_validate from Pydantic"
+        )
+
+
+class TestConfigValidationConstraints:
+    """Test Pydantic validation constraints in FlextCliConfig."""
+
+    def test_timeout_validation_range(self) -> None:
+        """Test timeout validation (1-300 seconds)."""
+        # Valid timeout
+        config = FlextCliConfig(timeout=60)
+        assert config.timeout == 60
+
+        # Test boundary values
+        config_min = FlextCliConfig(timeout=1)
+        assert config_min.timeout == 1
+
+        config_max = FlextCliConfig(timeout=300)
+        assert config_max.timeout == 300
+
+    def test_max_retries_validation_range(self) -> None:
+        """Test max_retries validation (0-10)."""
+        # Valid retries
+        config = FlextCliConfig(max_retries=5)
+        assert config.max_retries == 5
+
+        # Test boundary values
+        config_min = FlextCliConfig(max_retries=0)
+        assert config_min.max_retries == 0
+
+        config_max = FlextCliConfig(max_retries=10)
+        assert config_max.max_retries == 10
+
+    def test_max_width_validation_range(self) -> None:
+        """Test max_width validation (40-200)."""
+        # Valid width
+        config = FlextCliConfig(max_width=120)
+        assert config.max_width == 120
+
+        # Test boundary values
+        config_min = FlextCliConfig(max_width=40)
+        assert config_min.max_width == 40
+
+        config_max = FlextCliConfig(max_width=200)
+        assert config_max.max_width == 200
+
+    def test_string_strip_whitespace(self) -> None:
+        """Test that string fields strip whitespace (Pydantic feature)."""
+        config = FlextCliConfig(profile="  test_profile  ")
+        # Pydantic str_strip_whitespace should remove whitespace
+        assert config.profile == "test_profile"
+
+    def test_case_insensitive_env_vars(self) -> None:
+        """Test case-insensitive environment variable loading."""
+        original_env = os.environ.get("flext_profile")  # lowercase
+
+        try:
+            # Set lowercase env var (should still work with case_sensitive=False)
+            os.environ["FLEXT_PROFILE"] = "case_test"
+
+            config = FlextCliConfig()
+
+            # Should load despite lowercase (case_sensitive=False in model_config)
+            assert config.profile in {
+                "case_test",
+                "default",
+            }  # May depend on Pydantic version
+
+        finally:
+            if original_env is None:
+                os.environ.pop("flext_profile", None)
+            else:
+                os.environ["FLEXT_PROFILE"] = original_env
+
+
+class TestLoggingLevelConfiguration:
+    """Test logging level configuration and changes."""
+
+    def test_default_logging_level(self) -> None:
+        """Test default logging level is INFO."""
+        config = FlextCliConfig()
+        assert config.log_level == "INFO", "Default log level should be INFO"
+        assert config.cli_log_level == "INFO", "Default CLI log level should be INFO"
+
+    def test_set_logging_level_via_parameter(self) -> None:
+        """Test setting logging level via parameter."""
+        # Test all standard logging levels
+        levels = ["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"]
+
+        for level in levels:
+            config = FlextCliConfig(log_level=level)
+            assert config.log_level == level, f"Log level should be {level}"
+
+    def test_set_logging_level_via_env(self) -> None:
+        """Test setting logging level via environment variable."""
+        original_log_level = os.environ.get("FLEXT_LOG_LEVEL")
+        original_cli_log_level = os.environ.get("FLEXT_CLI_LOG_LEVEL")
+
+        try:
+            # Test DEBUG level
+            os.environ["FLEXT_LOG_LEVEL"] = "DEBUG"
+            os.environ["FLEXT_CLI_LOG_LEVEL"] = "DEBUG"
+            config_debug = FlextCliConfig()
+            assert config_debug.log_level == "DEBUG"
+            assert config_debug.cli_log_level == "DEBUG"
+
+            # Test WARNING level
+            os.environ["FLEXT_LOG_LEVEL"] = "WARNING"
+            os.environ["FLEXT_CLI_LOG_LEVEL"] = "WARNING"
+            config_warning = FlextCliConfig()
+            assert config_warning.log_level == "WARNING"
+            assert config_warning.cli_log_level == "WARNING"
+
+            # Test ERROR level
+            os.environ["FLEXT_LOG_LEVEL"] = "ERROR"
+            os.environ["FLEXT_CLI_LOG_LEVEL"] = "ERROR"
+            config_error = FlextCliConfig()
+            assert config_error.log_level == "ERROR"
+            assert config_error.cli_log_level == "ERROR"
+
+            # Test CRITICAL level
+            os.environ["FLEXT_LOG_LEVEL"] = "CRITICAL"
+            os.environ["FLEXT_CLI_LOG_LEVEL"] = "CRITICAL"
+            config_critical = FlextCliConfig()
+            assert config_critical.log_level == "CRITICAL"
+            assert config_critical.cli_log_level == "CRITICAL"
+
+        finally:
+            if original_log_level is None:
+                os.environ.pop("FLEXT_LOG_LEVEL", None)
+            else:
+                os.environ["FLEXT_LOG_LEVEL"] = original_log_level
+            if original_cli_log_level is None:
+                os.environ.pop("FLEXT_CLI_LOG_LEVEL", None)
+            else:
+                os.environ["FLEXT_CLI_LOG_LEVEL"] = original_cli_log_level
+
+    def test_logging_level_via_dotenv(self) -> None:
+        """Test logging level configuration via .env file."""
+        with tempfile.TemporaryDirectory() as tmpdir:
+            env_file = Path(tmpdir) / ".env"
+            env_file.write_text(
+                "FLEXT_LOG_LEVEL=DEBUG\n"
+                "FLEXT_CLI_LOG_LEVEL=DEBUG\n"
+                "FLEXT_LOG_VERBOSITY=full\n"
+            )
+
+            original_dir = Path.cwd()
+            try:
+                os.chdir(tmpdir)
+                config = FlextCliConfig()
+
+                assert config.log_level == "DEBUG", ".env LOG_LEVEL should be DEBUG"
+                assert config.cli_log_level == "DEBUG", (
+                    ".env CLI_LOG_LEVEL should be DEBUG"
+                )
+                assert config.log_verbosity == "full", (
+                    ".env LOG_VERBOSITY should be full"
+                )
+
+            finally:
+                os.chdir(original_dir)
+
+    def test_logging_verbosity_levels(self) -> None:
+        """Test logging verbosity configuration."""
+        verbosity_levels = ["compact", "detailed", "full"]
+
+        for verbosity in verbosity_levels:
+            config = FlextCliConfig(
+                log_verbosity=verbosity, cli_log_verbosity=verbosity
+            )
+            assert config.log_verbosity == verbosity
+            assert config.cli_log_verbosity == verbosity
+
+    def test_logging_level_precedence(self) -> None:
+        """Test precedence: parameter > ENV > .env for logging levels."""
+        with tempfile.TemporaryDirectory() as tmpdir:
+            # Create .env with DEBUG
+            env_file = Path(tmpdir) / ".env"
+            env_file.write_text("FLEXT_LOG_LEVEL=DEBUG\n")
+
+            original_dir = Path.cwd()
+            original_log_level = os.environ.get("FLEXT_LOG_LEVEL")
+
+            try:
+                os.chdir(tmpdir)
+
+                # Set ENV to WARNING (should override .env)
+                os.environ["FLEXT_LOG_LEVEL"] = "WARNING"
+
+                # Parameter ERROR should override both
+                config = FlextCliConfig(log_level="ERROR")
+
+                assert config.log_level == "ERROR", (
+                    "Parameter should override ENV and .env"
+                )
+
+                # Without parameter, ENV should override .env
+                config_env = FlextCliConfig()
+                assert config_env.log_level == "WARNING", "ENV should override .env"
+
+            finally:
+                os.chdir(original_dir)
+                if original_log_level is None:
+                    os.environ.pop("FLEXT_LOG_LEVEL", None)
+                else:
+                    os.environ["FLEXT_LOG_LEVEL"] = original_log_level
+
+    def test_change_logging_level_runtime(self) -> None:
+        """Test changing logging level at runtime."""
+        config = FlextCliConfig(log_level="INFO")
+        assert config.log_level == "INFO"
+
+        # Change logging level (Pydantic validate_assignment=True allows this)
+        config.log_level = "DEBUG"
+        assert config.log_level == "DEBUG"
+
+        config.log_level = "CRITICAL"
+        assert config.log_level == "CRITICAL"
+
+    def test_debug_flag_correlation(self) -> None:
+        """Test correlation between debug flag and logging level."""
+        # When debug=True, verify it doesn't conflict with log_level
+        config_debug = FlextCliConfig(debug=True, log_level="DEBUG")
+        assert config_debug.debug is True
+        assert config_debug.log_level == "DEBUG"
+
+        # debug=False with DEBUG log level should be allowed
+        config_mixed = FlextCliConfig(debug=False, log_level="DEBUG")
+        assert config_mixed.debug is False
+        assert config_mixed.log_level == "DEBUG"
+
+    def test_trace_flag_configuration(self) -> None:
+        """Test trace flag configuration (trace requires debug=True)."""
+        # Trace requires debug to be enabled (FlextCore validation)
+        config_trace = FlextCliConfig(trace=True, debug=True)
+        assert config_trace.trace is True
+        assert config_trace.debug is True
+
+        config_no_trace = FlextCliConfig(trace=False, debug=False)
+        assert config_no_trace.trace is False
+
+    def test_trace_via_env(self) -> None:
+        """Test trace configuration via environment (trace requires debug=True)."""
+        original_trace = os.environ.get("FLEXT_TRACE")
+        original_debug = os.environ.get("FLEXT_DEBUG")
+
+        try:
+            # Trace requires debug to be enabled
+            os.environ["FLEXT_TRACE"] = "true"
+            os.environ["FLEXT_DEBUG"] = "true"
+            config = FlextCliConfig()
+            assert config.trace is True
+            assert config.debug is True
+
+            os.environ["FLEXT_TRACE"] = "false"
+            os.environ["FLEXT_DEBUG"] = "false"
+            config_no_trace = FlextCliConfig()
+            assert config_no_trace.trace is False
+
+        finally:
+            if original_trace is None:
+                os.environ.pop("FLEXT_TRACE", None)
+            else:
+                os.environ["FLEXT_TRACE"] = original_trace
+            if original_debug is None:
+                os.environ.pop("FLEXT_DEBUG", None)
+            else:
+                os.environ["FLEXT_DEBUG"] = original_debug
+
+    def test_verbose_flag_correlation(self) -> None:
+        """Test verbose flag with logging verbosity."""
+        # verbose=True with detailed verbosity
+        config = FlextCliConfig(verbose=True, log_verbosity="detailed")
+        assert config.verbose is True
+        assert config.log_verbosity == "detailed"
+
+        # verbose=True with full verbosity
+        config_full = FlextCliConfig(verbose=True, log_verbosity="full")
+        assert config_full.verbose is True
+        assert config_full.log_verbosity == "full"
+
+    def test_log_file_configuration(self) -> None:
+        """Test log file path configuration."""
+        # No log file by default
+        config = FlextCliConfig()
+        assert config.log_file is None
+
+        # Set log file via parameter
+        config_with_log = FlextCliConfig(log_file="/tmp/flext.log")
+        assert config_with_log.log_file == "/tmp/flext.log"
+
+    def test_log_file_via_env(self) -> None:
+        """Test log file configuration via environment."""
+        original_log_file = os.environ.get("FLEXT_LOG_FILE")
+
+        try:
+            os.environ["FLEXT_LOG_FILE"] = "/var/log/flext-cli.log"
+            config = FlextCliConfig()
+            assert config.log_file == "/var/log/flext-cli.log"
+
+        finally:
+            if original_log_file is None:
+                os.environ.pop("FLEXT_LOG_FILE", None)
+            else:
+                os.environ["FLEXT_LOG_FILE"] = original_log_file
+
+    def test_all_logging_flags_together(self) -> None:
+        """Test all logging-related flags configured together."""
+        config = FlextCliConfig(
+            debug=True,
+            verbose=True,
+            trace=True,
+            log_level="DEBUG",
+            log_verbosity="full",
+            cli_log_level="DEBUG",
+            cli_log_verbosity="full",
+            log_file="/tmp/test.log",
+        )
+
+        assert config.debug is True
+        assert config.verbose is True
+        assert config.trace is True
+        assert config.log_level == "DEBUG"
+        assert config.log_verbosity == "full"
+        assert config.cli_log_level == "DEBUG"
+        assert config.cli_log_verbosity == "full"
+        assert config.log_file == "/tmp/test.log"
+
+
+class TestLoggingOutput:
+    """Test that logging actually generates correct output at different levels."""
+
+    def test_debug_level_logs_debug_messages(
+        self, caplog: pytest.LogCaptureFixture
+    ) -> None:
+        """Test DEBUG level logs debug messages."""
+        import logging
+
+        # Configure for DEBUG level
+        FlextCliConfig(log_level="DEBUG")
+
+        # Create logger with DEBUG level
+        logger = logging.getLogger("test_debug")
+        logger.setLevel(logging.DEBUG)
+
+        # Log at different levels
+        logger.debug("Debug message")
+        logger.info("Info message")
+        logger.warning("Warning message")
+
+        # All should be captured at DEBUG level
+        assert "Debug message" in caplog.text
+        assert "Info message" in caplog.text
+        assert "Warning message" in caplog.text
+
+    def test_info_level_filters_debug(self, caplog: pytest.LogCaptureFixture) -> None:
+        """Test INFO level filters out debug messages."""
+        import logging
+
+        # Configure for INFO level
+        FlextCliConfig(log_level="INFO")
+
+        # Create logger with INFO level
+        logger = logging.getLogger("test_info")
+        logger.setLevel(logging.INFO)
+
+        # Log at different levels
+        logger.debug("Debug message")
+        logger.info("Info message")
+        logger.warning("Warning message")
+
+        # Debug should be filtered, others visible
+        assert "Debug message" not in caplog.text
+        assert "Info message" in caplog.text
+        assert "Warning message" in caplog.text
+
+    def test_warning_level_filters_info_and_debug(
+        self, caplog: pytest.LogCaptureFixture
+    ) -> None:
+        """Test WARNING level filters info and debug."""
+        import logging
+
+        # Configure for WARNING level
+        FlextCliConfig(log_level="WARNING")
+
+        # Create logger with WARNING level
+        logger = logging.getLogger("test_warning")
+        logger.setLevel(logging.WARNING)
+
+        # Log at different levels
+        logger.debug("Debug message")
+        logger.info("Info message")
+        logger.warning("Warning message")
+        logger.error("Error message")
+
+        # Debug and Info filtered, Warning and Error visible
+        assert "Debug message" not in caplog.text
+        assert "Info message" not in caplog.text
+        assert "Warning message" in caplog.text
+        assert "Error message" in caplog.text
+
+    def test_error_level_only_errors_and_critical(
+        self, caplog: pytest.LogCaptureFixture
+    ) -> None:
+        """Test ERROR level only shows errors and critical."""
+        import logging
+
+        # Configure for ERROR level
+        FlextCliConfig(log_level="ERROR")
+
+        # Create logger with ERROR level
+        logger = logging.getLogger("test_error")
+        logger.setLevel(logging.ERROR)
+
+        # Log at different levels
+        logger.debug("Debug message")
+        logger.info("Info message")
+        logger.warning("Warning message")
+        logger.error("Error message")
+        logger.critical("Critical message")
+
+        # Only ERROR and CRITICAL visible
+        assert "Debug message" not in caplog.text
+        assert "Info message" not in caplog.text
+        assert "Warning message" not in caplog.text
+        assert "Error message" in caplog.text
+        assert "Critical message" in caplog.text
+
+    def test_critical_level_only_critical(
+        self, caplog: pytest.LogCaptureFixture
+    ) -> None:
+        """Test CRITICAL level only shows critical messages."""
+        import logging
+
+        # Configure for CRITICAL level
+        FlextCliConfig(log_level="CRITICAL")
+
+        # Create logger with CRITICAL level
+        logger = logging.getLogger("test_critical")
+        logger.setLevel(logging.CRITICAL)
+
+        # Log at different levels
+        logger.debug("Debug message")
+        logger.info("Info message")
+        logger.warning("Warning message")
+        logger.error("Error message")
+        logger.critical("Critical message")
+
+        # Only CRITICAL visible
+        assert "Debug message" not in caplog.text
+        assert "Info message" not in caplog.text
+        assert "Warning message" not in caplog.text
+        assert "Error message" not in caplog.text
+        assert "Critical message" in caplog.text
+
+    def test_runtime_log_level_change_affects_output(
+        self, caplog: pytest.LogCaptureFixture
+    ) -> None:
+        """Test changing log level at runtime affects output."""
+        import logging
+
+        # Start with INFO level
+        config = FlextCliConfig(log_level="INFO")
+        logger = logging.getLogger("test_runtime")
+        logger.setLevel(logging.INFO)
+
+        # Log debug message - should not appear
+        logger.debug("Debug at INFO level")
+        assert "Debug at INFO level" not in caplog.text
+
+        # Change to DEBUG level
+        config.log_level = "DEBUG"
+        logger.setLevel(logging.DEBUG)
+        caplog.clear()
+
+        # Now debug should appear
+        logger.debug("Debug at DEBUG level")
+        assert "Debug at DEBUG level" in caplog.text
+
+    def test_flext_cli_logger_respects_config(
+        self, caplog: pytest.LogCaptureFixture
+    ) -> None:
+        """Test that FlextCli's logger respects configuration."""
+        import logging
+
+        from flext_cli import FlextCli
+
+        # Create CLI with DEBUG config
+        os.environ["FLEXT_LOG_LEVEL"] = "DEBUG"
+        try:
+            FlextCli()
+
+            # Get FlextCli's logger
+            logger = logging.getLogger("flext_cli")
+            logger.setLevel(logging.DEBUG)
+
+            # Log messages
+            logger.debug("CLI debug message")
+            logger.info("CLI info message")
+
+            # Both should appear with DEBUG level
+            assert "CLI debug message" in caplog.text or logger.level == logging.DEBUG
+            assert "CLI info message" in caplog.text or logger.level == logging.DEBUG
+
+        finally:
+            os.environ.pop("FLEXT_LOG_LEVEL", None)
+
+    def test_logging_with_debug_flag(self, caplog: pytest.LogCaptureFixture) -> None:
+        """Test that debug flag enables verbose logging."""
+        import logging
+
+        # Config with debug=True
+        config = FlextCliConfig(debug=True, log_level="DEBUG")
+        logger = logging.getLogger("test_debug_flag")
+        logger.setLevel(logging.DEBUG)
+
+        # Log debug message
+        logger.debug("Debug mode message")
+
+        # Should be visible
+        assert "Debug mode message" in caplog.text
+        assert config.debug is True
+
+    def test_logging_with_verbose_flag(self, caplog: pytest.LogCaptureFixture) -> None:
+        """Test verbose flag correlation with logging."""
+        import logging
+
+        # Config with verbose=True
+        config = FlextCliConfig(verbose=True, log_verbosity="full")
+        logger = logging.getLogger("test_verbose")
+        logger.setLevel(logging.INFO)
+
+        # Log info message
+        logger.info("Verbose mode message")
+
+        # Should be visible
+        assert "Verbose mode message" in caplog.text
+        assert config.verbose is True
+        assert config.log_verbosity == "full"

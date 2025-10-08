@@ -31,7 +31,6 @@ from pydantic_settings import SettingsConfigDict
 from flext_cli.constants import FlextCliConstants
 from flext_cli.typings import FlextCliTypes
 
-# Module-level logger for use in validators and static methods
 logger = FlextCore.Logger(__name__)
 
 
@@ -116,14 +115,33 @@ class FlextCliConfig(FlextCore.Config):
     )
 
     # CLI behavior configuration (flattened from previous nested classes)
-    verbose: bool = Field(default=False, description="Enable verbose output")
-    debug: bool = Field(default=False, description="Enable debug mode")
-    app_name: str = Field(default="flext-cli", description="Application name")
-    version: str = Field(default="2.0.0", description="Application version")
-    quiet: bool = Field(default=False, description="Enable quiet mode")
-    interactive: bool = Field(default=True, description="Enable interactive mode")
+    verbose: bool = Field(
+        default=FlextCliConstants.CliDefaults.DEFAULT_VERBOSE,
+        description="Enable verbose output",
+    )
+    debug: bool = Field(
+        default=FlextCliConstants.CliDefaults.DEFAULT_DEBUG,
+        description="Enable debug mode",
+    )
+    app_name: str = Field(
+        default=FlextCliConstants.CliDefaults.DEFAULT_APP_NAME,
+        description="Application name",
+    )
+    version: str = Field(
+        default=FlextCliConstants.CliDefaults.DEFAULT_VERSION,
+        description="Application version",
+    )
+    quiet: bool = Field(
+        default=FlextCliConstants.CliDefaults.DEFAULT_QUIET,
+        description="Enable quiet mode",
+    )
+    interactive: bool = Field(
+        default=FlextCliConstants.CliDefaults.DEFAULT_INTERACTIVE,
+        description="Enable interactive mode",
+    )
     environment: str = Field(
-        default="development", description="Deployment environment"
+        default=FlextCliConstants.CliDefaults.DEFAULT_ENVIRONMENT,
+        description="Deployment environment",
     )
 
     max_width: int = Field(
@@ -178,17 +196,14 @@ class FlextCliConfig(FlextCore.Config):
         description="Optional log file path for persistent logging",
     )
 
-    def __init__(self, trace: FlextCore.Logger | None = None, **data: object) -> None:
-        """Initialize FlextCliConfig with optional trace logger.
+    def __init__(self, **data: object) -> None:
+        """Initialize FlextCliConfig with Pydantic Settings.
 
         Args:
-            trace: Optional logger for tracing operations
             **data: Additional configuration data
 
         """
-        if trace is None:
-            trace = logger
-        super().__init__(trace=trace, **data)
+        super().__init__(**data)
 
     # Pydantic 2.11 field validators
     @field_validator("output_format")
@@ -255,7 +270,7 @@ class FlextCliConfig(FlextCore.Config):
     @classmethod
     def validate_environment(cls, v: str) -> str:
         """Validate environment is one of the allowed values."""
-        valid_environments = {"development", "staging", "production"}
+        valid_environments = {"development", "staging", "production", "test"}
         env_lower = v.lower()
         if env_lower not in valid_environments:
             msg = f"Invalid environment '{v}'. Must be one of: {', '.join(valid_environments)}"
@@ -717,12 +732,6 @@ class FlextCliConfig(FlextCore.Config):
 
         except Exception as e:
             return FlextResult[None].fail(f"Business rules validation failed: {e}")
-
-
-# Merged into FlextCliConfig - removed redundant class
-
-
-# Service functionality merged into FlextCliConfig - removed redundant class
 
 
 __all__ = [

@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import getpass
+import os
 import re
 
 from flext_core import FlextCore, FlextResult
@@ -80,6 +81,21 @@ class FlextCliPrompts(FlextCore.Service[FlextCliTypes.Data.CliDataDict]):
 
         """
         return self._default_timeout
+
+    def _is_test_environment(self) -> bool:
+        """Check if running in a test environment.
+
+        Detects test environment to avoid FlextCore.Config CLI parsing issues.
+
+        Returns:
+            bool: True if in test environment
+
+        """
+        return (
+            os.environ.get("PYTEST_CURRENT_TEST") is not None
+            or "pytest" in os.environ.get("_", "").lower()
+            or os.environ.get("CI") == "true"
+        )
 
     @property
     def prompt_history(self) -> FlextCore.Types.StringList:

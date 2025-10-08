@@ -233,7 +233,9 @@ class FlextCliDebug(FlextCore.Service[str]):
             else:
                 comprehensive_info["debug_error"] = debug_result.error
 
-            return FlextResult[Types.Data.DebugInfoData].ok(comprehensive_info)
+            return FlextResult[Types.Data.DebugInfoData].ok(
+                cast("Types.Data.DebugInfoData", comprehensive_info)
+            )
 
         except Exception as e:
             return FlextResult[Types.Data.DebugInfoData].fail(

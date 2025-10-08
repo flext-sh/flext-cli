@@ -17,9 +17,6 @@ from typing import cast, override
 
 import yaml
 from flext_core import FlextCore, FlextResult
-from rich.console import Console
-from rich.table import Table as RichTable
-from rich.tree import Tree
 
 from flext_cli.constants import FlextCliConstants
 from flext_cli.formatters import FlextCliFormatters
@@ -242,21 +239,21 @@ class FlextCliOutput(FlextCore.Service[object]):
 
     def table_to_string(
         self,
-        table: object,  # RichTable but avoiding direct import
+        table: object,
         width: int | None = None,
     ) -> FlextResult[str]:
-        """Convert Rich table to string using FlextCliFormatters.
+        """Convert table to string using FlextCliFormatters.
 
         Args:
-            table: Rich table object
+            table: Table object from formatters
             width: Optional width for console
 
         Returns:
             FlextResult[str]: Table as string or error
 
         """
-        # Delegate to formatters for Rich operations
-        return self._formatters.render_table_to_string(cast("RichTable", table), width)
+        # Delegate to formatters for rendering
+        return self._formatters.render_table_to_string(table, width)  # type: ignore[arg-type]
 
     # =========================================================================
     # ASCII TABLE CREATION (Delegates to FlextCliTables)
@@ -732,38 +729,38 @@ class FlextCliOutput(FlextCore.Service[object]):
         """Build tree recursively (helper for format_as_tree).
 
         Args:
-            tree: Rich Tree object
+            tree: Tree object from formatters
             data: Data to build tree from
 
         """
-        tree_obj = cast("Tree", tree)
+        tree_obj = tree
         if isinstance(data, dict):
             for key, value in data.items():
                 if isinstance(value, dict):
-                    branch = tree_obj.add(str(key))
+                    branch = tree_obj.add(str(key))  # type: ignore[attr-defined]
                     self._build_tree(branch, value)
                 elif isinstance(value, list):
-                    branch = tree_obj.add(f"{key} (list)")
+                    branch = tree_obj.add(f"{key} (list)")  # type: ignore[attr-defined]
                     for item in value:
                         self._build_tree(branch, item)
                 else:
-                    tree_obj.add(f"{key}: {value}")
+                    tree_obj.add(f"{key}: {value}")  # type: ignore[attr-defined]
         elif isinstance(data, list):
             for item in data:
                 self._build_tree(tree, item)
         else:
-            tree_obj.add(str(data))
+            tree_obj.add(str(data))  # type: ignore[attr-defined]
 
     # =========================================================================
     # CONSOLE ACCESS (Delegates to FlextCliFormatters)
     # =========================================================================
 
     @property
-    def console(self) -> Console:
-        """Get console instance from FlextCliFormatters (Rich Console abstraction).
+    def console(self) -> object:
+        """Get console instance from FlextCliFormatters.
 
         Returns:
-            Console instance (Rich Console wrapped)
+            Console instance from formatters
 
         Example:
             >>> output = FlextCliOutput()
@@ -773,11 +770,11 @@ class FlextCliOutput(FlextCore.Service[object]):
         """
         return self._formatters.console
 
-    def get_console(self) -> Console:
+    def get_console(self) -> object:
         """Get the console instance from FlextCliFormatters (method form).
 
         Returns:
-            Console instance (Rich Console wrapped)
+            Console instance from formatters
 
         Example:
             >>> output = FlextCliOutput()

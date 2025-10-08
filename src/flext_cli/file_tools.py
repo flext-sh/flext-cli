@@ -200,7 +200,7 @@ class FlextCliFileTools(FlextCore.Service[FlextCore.Types.Dict]):
 
     @staticmethod
     def write_json_file(
-        file_path: str | Path, data: object, **kwargs: dict[str, object]
+        file_path: str | Path, data: object, **kwargs: object
     ) -> FlextResult[None]:
         """Write data to JSON file.
 
@@ -233,8 +233,8 @@ class FlextCliFileTools(FlextCore.Service[FlextCore.Types.Dict]):
             with Path(file_path).open(
                 "w", encoding=FlextCliConstants.Encoding.UTF8
             ) as f:
-                # Cast dump_kwargs to avoid type checker issues with **kwargs
-                json.dump(data, f, indent=2, **dump_kwargs)
+                # Use type: ignore to avoid type checker issues with **kwargs
+                json.dump(data, f, indent=2, **dump_kwargs)  # type: ignore[arg-type]
             return FlextResult[None].ok(None)
         except Exception as e:
             return FlextResult[None].fail(
@@ -255,7 +255,7 @@ class FlextCliFileTools(FlextCore.Service[FlextCore.Types.Dict]):
 
     @staticmethod
     def write_yaml_file(
-        file_path: str | Path, data: object, **kwargs: dict[str, object]
+        file_path: str | Path, data: object, **kwargs: object
     ) -> FlextResult[None]:
         """Write data to YAML file.
 
@@ -292,8 +292,8 @@ class FlextCliFileTools(FlextCore.Service[FlextCore.Types.Dict]):
             with Path(file_path).open(
                 "w", encoding=FlextCliConstants.Encoding.UTF8
             ) as f:
-                # Cast dump_kwargs to avoid type checker issues with **kwargs
-                yaml.safe_dump(data, f, **dump_kwargs)
+                # Use type: ignore to avoid type checker issues with **kwargs
+                yaml.safe_dump(data, f, **dump_kwargs)  # type: ignore[arg-type]
             return FlextResult[None].ok(None)
         except Exception as e:
             return FlextResult[None].fail(
@@ -609,7 +609,7 @@ class FlextCliFileTools(FlextCore.Service[FlextCore.Types.Dict]):
 
         @staticmethod
         def detect_format(
-            supported_formats: FlextCore.Types.NestedDict, file_path: str | Path
+            supported_formats: dict[str, dict[str, list[str]]], file_path: str | Path
         ) -> FlextResult[str]:
             """Detect file format from extension."""
             path = Path(file_path)

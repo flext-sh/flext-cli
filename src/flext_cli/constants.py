@@ -10,9 +10,21 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 from enum import StrEnum
-from typing import Final
+from typing import Final, Literal
 
 from flext_core import FlextCore
+
+# Literal types for CLI constants - must be defined at module level for class access
+CommandResultStatusLiteral = Literal["success", "failure", "error"]
+CliProjectTypeLiteral = Literal[
+    "cli-tool",
+    "console-app",
+    "terminal-ui",
+    "command-runner",
+    "interactive-cli",
+    "batch-processor",
+    "cli-wrapper",
+]
 
 
 class FlextCliConstants(FlextCore.Constants):
@@ -43,29 +55,40 @@ class FlextCliConstants(FlextCore.Constants):
         COMPLETED = "completed"
         FAILED = "failed"
 
+    # Output formats - using FlextCore.Types.Output.OutputFormat Literal type
+    # CLI adds "plain" format on top of standard formats
     class OutputFormats(StrEnum):
-        """Output format options for CLI operations."""
+        """CLI output format enum - extends FlextCore standard formats."""
 
-        JSON = "json"
-        YAML = "yaml"
-        CSV = "csv"
-        TABLE = "table"
-        PLAIN = "plain"
+        JSON = "json"  # Standard format from FlextCore
+        YAML = "yaml"  # Standard format from FlextCore
+        CSV = "csv"  # Standard format from FlextCore
+        TABLE = "table"  # Standard format from FlextCore
+        PLAIN = "plain"  # CLI-specific format
+        TEXT = "text"  # Alias for plain (FlextCore compatibility)
 
     # Terminal width thresholds for format selection
     TERMINAL_WIDTH_NARROW: Final[int] = 80
     TERMINAL_WIDTH_MEDIUM: Final[int] = 120
 
+    # Error codes - CLI-specific strings following FlextCore.Constants.Errors pattern
     class ErrorCodes(StrEnum):
-        """CLI error codes."""
+        """CLI error codes following FlextCore.Constants.Errors pattern.
 
+        CLI-specific error codes with CLI_ prefix to distinguish from FlextCore.
+        Follows same categorization as FlextCore.Constants.Errors without duplication.
+        """
+
+        # Standard error categories with CLI prefix
         CLI_ERROR = "CLI_ERROR"
-        VALIDATION_ERROR = "CLI_VALIDATION_ERROR"
-        CONFIGURATION_ERROR = "CLI_CONFIGURATION_ERROR"
-        CONNECTION_ERROR = "CLI_CONNECTION_ERROR"
-        AUTHENTICATION_ERROR = "CLI_AUTHENTICATION_ERROR"
+        CLI_VALIDATION_ERROR = "CLI_VALIDATION_ERROR"
+        CLI_CONFIGURATION_ERROR = "CLI_CONFIGURATION_ERROR"
+        CLI_CONNECTION_ERROR = "CLI_CONNECTION_ERROR"
+        CLI_AUTHENTICATION_ERROR = "CLI_AUTHENTICATION_ERROR"
+        CLI_TIMEOUT_ERROR = "CLI_TIMEOUT_ERROR"
+
+        # CLI-specific error codes
         COMMAND_ERROR = "CLI_COMMAND_ERROR"
-        TIMEOUT_ERROR = "CLI_TIMEOUT_ERROR"
         FORMAT_ERROR = "CLI_FORMAT_ERROR"
 
     class ExitCodes:
@@ -99,6 +122,9 @@ class FlextCliConstants(FlextCore.Constants):
         DEFAULT_DEBUG: Final[bool] = False
         DEFAULT_QUIET: Final[bool] = False
         DEFAULT_INTERACTIVE: Final[bool] = True
+
+        # Environment defaults
+        DEFAULT_ENVIRONMENT: Final[str] = "development"
 
         # Log level defaults
         DEFAULT_LOG_LEVEL: Final[str] = "INFO"
@@ -141,6 +167,7 @@ class FlextCliConstants(FlextCore.Constants):
         OutputFormats.CSV.value,
         OutputFormats.TABLE.value,
         OutputFormats.PLAIN.value,
+        OutputFormats.TEXT.value,
     ]
 
     LOG_LEVELS_LIST: Final[FlextCore.Types.StringList] = [
@@ -160,12 +187,12 @@ class FlextCliConstants(FlextCore.Constants):
 
     ERROR_CODES_LIST: Final[FlextCore.Types.StringList] = [
         ErrorCodes.CLI_ERROR.value,
-        ErrorCodes.VALIDATION_ERROR.value,
-        ErrorCodes.CONFIGURATION_ERROR.value,
-        ErrorCodes.CONNECTION_ERROR.value,
-        ErrorCodes.AUTHENTICATION_ERROR.value,
+        ErrorCodes.CLI_VALIDATION_ERROR.value,
+        ErrorCodes.CLI_CONFIGURATION_ERROR.value,
+        ErrorCodes.CLI_CONNECTION_ERROR.value,
+        ErrorCodes.CLI_AUTHENTICATION_ERROR.value,
         ErrorCodes.COMMAND_ERROR.value,
-        ErrorCodes.TIMEOUT_ERROR.value,
+        ErrorCodes.CLI_TIMEOUT_ERROR.value,
         ErrorCodes.FORMAT_ERROR.value,
     ]
 
@@ -177,6 +204,14 @@ class FlextCliConstants(FlextCore.Constants):
         DEBUG: Final[str] = "debug"
         FORMAT: Final[str] = "format"
         EXPORT: Final[str] = "export"
+
+    class CliCommandResult:
+        """CLI command result type definitions."""
+
+        # Core command result types
+        CommandResultData = dict[str, FlextCore.Types.JsonValue]
+        CommandResultStatus = CommandResultStatusLiteral
+        CommandResultMetadata = dict[str, str | int | bool]
 
     class Shell:
         """Shell-specific constants."""
@@ -225,6 +260,7 @@ class FlextCliConstants(FlextCore.Constants):
 
         API: Final[str] = "api"
         FORMATTER: Final[str] = "formatter"
+        FORMATTERS: Final[str] = "formatters"  # Plural form for consistency
         AUTH: Final[str] = "auth"
 
     class Protocols:
@@ -452,6 +488,14 @@ class FlextCliConstants(FlextCore.Constants):
         CERTIFICATE_NOT_EXIST: Final[str] = "Certificate file does not exist"
         CERTIFICATE_AUTH_FAILED: Final[str] = (
             "Certificate authentication failed: {error}"
+        )
+        CERTIFICATE_INVALID_FORMAT: Final[str] = (
+            "Certificate has invalid format: {error}"
+        )
+        CERTIFICATE_NOT_YET_VALID: Final[str] = "Certificate is not yet valid"
+        CERTIFICATE_EXPIRED: Final[str] = "Certificate has expired"
+        CERTIFICATE_MISSING_SUBJECT: Final[str] = (
+            "Certificate is missing required subject information"
         )
         HASHED_PASSWORD_EMPTY: Final[str] = "Hashed password cannot be empty"
         PASSWORD_EMPTY: Final[str] = "Password cannot be empty"
@@ -777,6 +821,26 @@ class FlextCliConstants(FlextCore.Constants):
         """Configuration file names."""
 
         CLI_CONFIG_JSON: Final[str] = "cli_config.json"
+
+    class Project:
+        """CLI-specific project types extending FlextCore.Types.Project.
+
+        Adds CLI-specific project types while inheriting generic types from FlextCore.Types.
+        Follows domain separation principle: CLI domain owns CLI-specific types.
+        """
+
+        # CLI-specific project types
+        CliProjectType = CliProjectTypeLiteral
+
+        # CLI-specific project configurations
+        CliProjectConfig = dict[str, FlextCore.Types.ConfigValue]
+        CommandLineConfig = dict[str, str | int | bool | FlextCore.Types.StringList]
+        InteractiveConfig = dict[
+            str, bool | str | dict[str, FlextCore.Types.ConfigValue]
+        ]
+        OutputConfig = dict[
+            str, FlextCore.Types.Output.OutputFormat | FlextCore.Types.ConfigValue
+        ]
 
     # Table formats for tabulate integration
     TABLE_FORMATS: Final[FlextCore.Types.StringDict] = {
