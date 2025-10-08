@@ -12,6 +12,7 @@ from __future__ import annotations
 import importlib
 import inspect
 from pathlib import Path
+from typing import cast
 
 from flext_core import FlextCore, FlextResult
 
@@ -299,8 +300,8 @@ class FlextCliPlugins(FlextCore.Service[object]):
                         )
                     )
 
-                plugin: FlextCliProtocols.Extensions.CliPlugin = FlextCore.cast(
-                    FlextCliProtocols.Extensions.CliPlugin, load_result.unwrap()
+                plugin: FlextCliProtocols.Extensions.CliPlugin = cast(
+                    "FlextCliProtocols.Extensions.CliPlugin", load_result.unwrap()
                 )
 
                 # Initialize plugin

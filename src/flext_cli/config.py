@@ -122,6 +122,9 @@ class FlextCliConfig(FlextCore.Config):
     version: str = Field(default="2.0.0", description="Application version")
     quiet: bool = Field(default=False, description="Enable quiet mode")
     interactive: bool = Field(default=True, description="Enable interactive mode")
+    environment: str = Field(
+        default="development", description="Deployment environment"
+    )
 
     max_width: int = Field(
         default=FlextCliConstants.CliDefaults.DEFAULT_MAX_WIDTH,
@@ -248,6 +251,17 @@ class FlextCliConfig(FlextCore.Config):
             raise ValueError(msg)
         return verbosity_lower
 
+    @field_validator("environment")
+    @classmethod
+    def validate_environment(cls, v: str) -> str:
+        """Validate environment is one of the allowed values."""
+        valid_environments = {"development", "staging", "production"}
+        env_lower = v.lower()
+        if env_lower not in valid_environments:
+            msg = f"Invalid environment '{v}'. Must be one of: {', '.join(valid_environments)}"
+            raise ValueError(msg)
+        return env_lower
+
     @model_validator(mode="after")
     def validate_configuration(self) -> FlextCliConfig:
         """Validate configuration and auto-propagate to FlextCore.Context/FlextCore.Container.
@@ -345,11 +359,7 @@ class FlextCliConfig(FlextCore.Config):
 
         """
         # Check if user explicitly disabled colors in config
-        if self.no_color:
-            return False
-
-        # Default to color support (can be overridden by config)
-        return True
+        return not self.no_color
 
     @computed_field
     def auto_verbosity(self) -> str:
@@ -473,8 +483,6 @@ class FlextCliConfig(FlextCore.Config):
                     config_dict[key] = str(value)
 
             # Save using JSON directly for proper control
-            import json
-
             path = Path(config_path)
             path.parent.mkdir(parents=True, exist_ok=True)
 

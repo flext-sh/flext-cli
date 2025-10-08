@@ -737,7 +737,7 @@ class FlextCliFormatters(FlextCore.Service[object]):
             style if isinstance(style, (str, Style)) else "rule.line"
         )
         align_str: Literal["left", "center", "right"] = (
-            align  # type: ignore[assignment]
+            align
             if isinstance(align, str) and align in {"left", "center", "right"}
             else "center"
         )
