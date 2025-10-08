@@ -1,7 +1,7 @@
 """FLEXT CLI - Rich Abstraction Layer.
 
 This file contains ALL Rich imports for the FLEXT CLI ecosystem.
-All Rich functionality is wrapped here and exposed through FlextCore.Result-based APIs.
+All Rich functionality is wrapped here and exposed through FlextResult-based APIs.
 
 ZERO TOLERANCE ENFORCEMENT: No other file may import Rich directly except this one.
 
@@ -16,7 +16,7 @@ from io import StringIO
 from types import ModuleType
 from typing import Literal
 
-from flext_core import FlextCore
+from flext_core import FlextCore, FlextResult
 from rich.align import Align, AlignMethod, VerticalAlignMethod
 from rich.console import Console, JustifyMethod, OverflowMethod, RenderableType
 from rich.layout import Layout
@@ -47,7 +47,7 @@ class FlextCliFormatters(FlextCore.Service[object]):
     r"""Complete Rich abstraction layer.
 
     This class wraps ALL Rich functionality to prevent direct Rich imports
-    across the FLEXT ecosystem. Provides FlextCore.Result-based APIs for:
+    across the FLEXT ecosystem. Provides FlextResult-based APIs for:
 
     - Console operations (output, styling, emoji, hyperlinks)
     - Panels and containers
@@ -81,8 +81,7 @@ class FlextCliFormatters(FlextCore.Service[object]):
     def __init__(self) -> None:
         """Initialize Rich formatters layer with Phase 1 context enrichment."""
         super().__init__()
-        # Initialize logger (inherited from FlextCore.Service)
-        self.logger = FlextCore.Logger(__name__)
+        # Logger is automatically provided by FlextMixins.Logging mixin
         self._console: Console | None = None
 
     @property
@@ -124,7 +123,7 @@ class FlextCliFormatters(FlextCore.Service[object]):
         width: int | None = None,
         crop: bool = True,
         soft_wrap: bool = False,
-    ) -> FlextCore.Result[None]:
+    ) -> FlextResult[None]:
         """Print to console with Rich formatting.
 
         Args:
@@ -143,7 +142,7 @@ class FlextCliFormatters(FlextCore.Service[object]):
             soft_wrap: Enable soft wrap
 
         Returns:
-            FlextCore.Result[None]
+            FlextResult[None]
 
         """
         try:
@@ -162,11 +161,11 @@ class FlextCliFormatters(FlextCore.Service[object]):
                 crop=crop,
                 soft_wrap=soft_wrap,
             )
-            return FlextCore.Result[None].ok(None)
+            return FlextResult[None].ok(None)
         except Exception as e:
             error_msg = f"Failed to print to console: {e}"
             self.logger.exception(error_msg)
-            return FlextCore.Result[None].fail(error_msg)
+            return FlextResult[None].fail(error_msg)
 
     # =========================================================================
     # PANELS
@@ -184,7 +183,7 @@ class FlextCliFormatters(FlextCore.Service[object]):
         *,
         expand: bool = True,
         width: int | None = None,
-    ) -> FlextCore.Result[Panel]:
+    ) -> FlextResult[Panel]:
         """Create Rich panel with borders.
 
         Args:
@@ -199,7 +198,7 @@ class FlextCliFormatters(FlextCore.Service[object]):
             width: Fixed width
 
         Returns:
-            FlextCore.Result containing Rich Panel
+            FlextResult containing Rich Panel
 
         Example:
             >>> formatters = FlextCliFormatters()
@@ -221,18 +220,18 @@ class FlextCliFormatters(FlextCore.Service[object]):
                 width=width,
             )
             self.logger.debug("Created Rich panel", extra={"title": title})
-            return FlextCore.Result[Panel].ok(panel)
+            return FlextResult[Panel].ok(panel)
         except Exception as e:
             error_msg = f"Failed to create panel: {e}"
             self.logger.exception(error_msg)
-            return FlextCore.Result[Panel].fail(error_msg)
+            return FlextResult[Panel].fail(error_msg)
 
     def display_panel(
         self,
         content: str | Text,
         title: str | None = None,
         border_style: str = "blue",
-    ) -> FlextCore.Result[None]:
+    ) -> FlextResult[None]:
         """Create and display panel in one operation.
 
         Args:
@@ -241,7 +240,7 @@ class FlextCliFormatters(FlextCore.Service[object]):
             border_style: Border style
 
         Returns:
-            FlextCore.Result[None]
+            FlextResult[None]
 
         """
         panel_result = self.create_panel(
@@ -250,7 +249,7 @@ class FlextCliFormatters(FlextCore.Service[object]):
             border_style=border_style,
         )
         if panel_result.is_failure:
-            return FlextCore.Result[None].fail(panel_result.error)
+            return FlextResult[None].fail(panel_result.error)
 
         return self.print(panel_result.unwrap())
 
@@ -264,7 +263,7 @@ class FlextCliFormatters(FlextCore.Service[object]):
         size: int | None = None,
         minimum_size: int = 1,
         ratio: int = 1,
-    ) -> FlextCore.Result[Layout]:
+    ) -> FlextResult[Layout]:
         """Create Rich layout for complex arrangements.
 
         Args:
@@ -274,7 +273,7 @@ class FlextCliFormatters(FlextCore.Service[object]):
             ratio: Size ratio relative to siblings
 
         Returns:
-            FlextCore.Result containing Rich Layout
+            FlextResult containing Rich Layout
 
         Example:
             >>> formatters = FlextCliFormatters()
@@ -295,11 +294,11 @@ class FlextCliFormatters(FlextCore.Service[object]):
                 ratio=ratio,
             )
             self.logger.debug("Created Rich layout", extra={"layout_name": name})
-            return FlextCore.Result[Layout].ok(layout)
+            return FlextResult[Layout].ok(layout)
         except Exception as e:
             error_msg = f"Failed to create layout: {e}"
             self.logger.exception(error_msg)
-            return FlextCore.Result[Layout].fail(error_msg)
+            return FlextResult[Layout].fail(error_msg)
 
     # =========================================================================
     # LIVE DISPLAYS
@@ -311,7 +310,7 @@ class FlextCliFormatters(FlextCore.Service[object]):
         *,
         auto_refresh: bool = True,
         transient: bool = False,
-    ) -> FlextCore.Result[Live]:
+    ) -> FlextResult[Live]:
         """Create Rich Live display for real-time updates.
 
         Args:
@@ -320,7 +319,7 @@ class FlextCliFormatters(FlextCore.Service[object]):
             transient: Remove display when done
 
         Returns:
-            FlextCore.Result containing Rich Live instance
+            FlextResult containing Rich Live instance
 
         Example:
             >>> formatters = FlextCliFormatters()
@@ -338,11 +337,11 @@ class FlextCliFormatters(FlextCore.Service[object]):
                 console=self.console,
             )
             self.logger.debug("Created Live display")
-            return FlextCore.Result[Live].ok(live)
+            return FlextResult[Live].ok(live)
         except Exception as e:
             error_msg = f"Failed to create Live display: {e}"
             self.logger.exception(error_msg)
-            return FlextCore.Result[Live].fail(error_msg)
+            return FlextResult[Live].fail(error_msg)
 
     # =========================================================================
     # SPINNERS AND STATUS
@@ -353,7 +352,7 @@ class FlextCliFormatters(FlextCore.Service[object]):
         spinner_name: str = "dots",
         text: str = "",
         style: str = "cyan",
-    ) -> FlextCore.Result[Spinner]:
+    ) -> FlextResult[Spinner]:
         """Create Rich spinner.
 
         Args:
@@ -362,7 +361,7 @@ class FlextCliFormatters(FlextCore.Service[object]):
             style: Spinner style
 
         Returns:
-            FlextCore.Result containing Rich Spinner
+            FlextResult containing Rich Spinner
 
         Example:
             >>> formatters = FlextCliFormatters()
@@ -374,18 +373,18 @@ class FlextCliFormatters(FlextCore.Service[object]):
         try:
             spinner = Spinner(spinner_name, text=text, style=style)
             self.logger.debug("Created spinner", extra={"spinner_type": spinner_name})
-            return FlextCore.Result[Spinner].ok(spinner)
+            return FlextResult[Spinner].ok(spinner)
         except Exception as e:
             error_msg = f"Failed to create spinner: {e}"
             self.logger.exception(error_msg)
-            return FlextCore.Result[Spinner].fail(error_msg)
+            return FlextResult[Spinner].fail(error_msg)
 
     def create_status(
         self,
         status: str,
         spinner: str = "dots",
         spinner_style: str = "cyan",
-    ) -> FlextCore.Result[Status]:
+    ) -> FlextResult[Status]:
         """Create Rich status with spinner.
 
         Args:
@@ -394,7 +393,7 @@ class FlextCliFormatters(FlextCore.Service[object]):
             spinner_style: Spinner style
 
         Returns:
-            FlextCore.Result containing Rich Status
+            FlextResult containing Rich Status
 
         Example:
             >>> formatters = FlextCliFormatters()
@@ -413,11 +412,11 @@ class FlextCliFormatters(FlextCore.Service[object]):
                 console=self.console,
             )
             self.logger.debug("Created status", extra={"status_message": status})
-            return FlextCore.Result[Status].ok(status_obj)
+            return FlextResult[Status].ok(status_obj)
         except Exception as e:
             error_msg = f"Failed to create status: {e}"
             self.logger.exception(error_msg)
-            return FlextCore.Result[Status].fail(error_msg)
+            return FlextResult[Status].fail(error_msg)
 
     # =========================================================================
     # PROGRESS BARS
@@ -433,7 +432,7 @@ class FlextCliFormatters(FlextCore.Service[object]):
         | SpinnerColumn,
         transient: bool = False,
         expand: bool = False,
-    ) -> FlextCore.Result[Progress]:
+    ) -> FlextResult[Progress]:
         """Create Rich progress bar.
 
         Args:
@@ -442,7 +441,7 @@ class FlextCliFormatters(FlextCore.Service[object]):
             expand: Expand to full width
 
         Returns:
-            FlextCore.Result containing Rich Progress
+            FlextResult containing Rich Progress
 
         Example:
             >>> formatters = FlextCliFormatters()
@@ -472,11 +471,11 @@ class FlextCliFormatters(FlextCore.Service[object]):
                 console=self.console,
             )
             self.logger.debug("Created progress bar")
-            return FlextCore.Result[Progress].ok(progress)
+            return FlextResult[Progress].ok(progress)
         except Exception as e:
             error_msg = f"Failed to create progress bar: {e}"
             self.logger.exception(error_msg)
-            return FlextCore.Result[Progress].fail(error_msg)
+            return FlextResult[Progress].fail(error_msg)
 
     # =========================================================================
     # MARKDOWN RENDERING
@@ -487,7 +486,7 @@ class FlextCliFormatters(FlextCore.Service[object]):
         markdown_text: str,
         code_theme: str = "monokai",
         inline_code_lexer: str | None = None,
-    ) -> FlextCore.Result[Markdown]:
+    ) -> FlextResult[Markdown]:
         r"""Render markdown with Rich.
 
         Args:
@@ -496,7 +495,7 @@ class FlextCliFormatters(FlextCore.Service[object]):
             inline_code_lexer: Lexer for inline code
 
         Returns:
-            FlextCore.Result containing Rich Markdown
+            FlextResult containing Rich Markdown
 
         Example:
             >>> formatters = FlextCliFormatters()
@@ -512,17 +511,17 @@ class FlextCliFormatters(FlextCore.Service[object]):
                 inline_code_lexer=inline_code_lexer,
             )
             self.logger.debug("Rendered markdown")
-            return FlextCore.Result[Markdown].ok(markdown)
+            return FlextResult[Markdown].ok(markdown)
         except Exception as e:
             error_msg = f"Failed to render markdown: {e}"
             self.logger.exception(error_msg)
-            return FlextCore.Result[Markdown].fail(error_msg)
+            return FlextResult[Markdown].fail(error_msg)
 
     def display_markdown(
         self,
         markdown_text: str,
         **kwargs: object,
-    ) -> FlextCore.Result[None]:
+    ) -> FlextResult[None]:
         """Render and display markdown in one operation.
 
         Args:
@@ -530,7 +529,7 @@ class FlextCliFormatters(FlextCore.Service[object]):
             **kwargs: Additional markdown options
 
         Returns:
-            FlextCore.Result[None]
+            FlextResult[None]
 
         """
         # Type narrowing for markdown options
@@ -549,7 +548,7 @@ class FlextCliFormatters(FlextCore.Service[object]):
             inline_code_lexer=inline_code_lexer_str,
         )
         if md_result.is_failure:
-            return FlextCore.Result[None].fail(md_result.error)
+            return FlextResult[None].fail(md_result.error)
 
         return self.print(md_result.unwrap())
 
@@ -568,7 +567,7 @@ class FlextCliFormatters(FlextCore.Service[object]):
         line_range: tuple[int, int] | None = None,
         highlight_lines: set[int] | None = None,
         code_width: int | None = None,
-    ) -> FlextCore.Result[Syntax]:
+    ) -> FlextResult[Syntax]:
         """Syntax highlight code with Rich.
 
         Args:
@@ -582,7 +581,7 @@ class FlextCliFormatters(FlextCore.Service[object]):
             code_width: Fixed width
 
         Returns:
-            FlextCore.Result containing Rich Syntax
+            FlextResult containing Rich Syntax
 
         Example:
             >>> formatters = FlextCliFormatters()
@@ -605,18 +604,18 @@ class FlextCliFormatters(FlextCore.Service[object]):
             self.logger.debug(
                 "Created syntax highlighting", extra={"language": language}
             )
-            return FlextCore.Result[Syntax].ok(syntax)
+            return FlextResult[Syntax].ok(syntax)
         except Exception as e:
             error_msg = f"Failed to create syntax highlighting: {e}"
             self.logger.exception(error_msg)
-            return FlextCore.Result[Syntax].fail(error_msg)
+            return FlextResult[Syntax].fail(error_msg)
 
     def display_code(
         self,
         code: str,
         language: str = "python",
         **kwargs: object,
-    ) -> FlextCore.Result[None]:
+    ) -> FlextResult[None]:
         """Highlight and display code in one operation.
 
         Args:
@@ -625,7 +624,7 @@ class FlextCliFormatters(FlextCore.Service[object]):
             **kwargs: Additional syntax options
 
         Returns:
-            FlextCore.Result[None]
+            FlextResult[None]
 
         """
         # Type narrowing for syntax highlighting options
@@ -667,7 +666,7 @@ class FlextCliFormatters(FlextCore.Service[object]):
             code_width=code_width_int,
         )
         if syntax_result.is_failure:
-            return FlextCore.Result[None].fail(syntax_result.error)
+            return FlextResult[None].fail(syntax_result.error)
 
         return self.print(syntax_result.unwrap())
 
@@ -681,7 +680,7 @@ class FlextCliFormatters(FlextCore.Service[object]):
         characters: str = "─",
         style: str | Style = "rule.line",
         align: Literal["left", "center", "right"] = "center",
-    ) -> FlextCore.Result[Rule]:
+    ) -> FlextResult[Rule]:
         """Create Rich rule/divider.
 
         Args:
@@ -691,7 +690,7 @@ class FlextCliFormatters(FlextCore.Service[object]):
             align: Title alignment (left, center, right)
 
         Returns:
-            FlextCore.Result containing Rich Rule
+            FlextResult containing Rich Rule
 
         Example:
             >>> formatters = FlextCliFormatters()
@@ -706,17 +705,17 @@ class FlextCliFormatters(FlextCore.Service[object]):
                 align=align,
             )
             self.logger.debug("Created rule", extra={"rule_title": title})
-            return FlextCore.Result[Rule].ok(rule)
+            return FlextResult[Rule].ok(rule)
         except Exception as e:
             error_msg = f"Failed to create rule: {e}"
             self.logger.exception(error_msg)
-            return FlextCore.Result[Rule].fail(error_msg)
+            return FlextResult[Rule].fail(error_msg)
 
     def display_rule(
         self,
         title: str = "",
         **kwargs: object,
-    ) -> FlextCore.Result[None]:
+    ) -> FlextResult[None]:
         """Create and display rule in one operation.
 
         Args:
@@ -724,7 +723,7 @@ class FlextCliFormatters(FlextCore.Service[object]):
             **kwargs: Additional rule options
 
         Returns:
-            FlextCore.Result[None]
+            FlextResult[None]
 
         """
         # Type narrowing for rule options
@@ -738,7 +737,7 @@ class FlextCliFormatters(FlextCore.Service[object]):
             style if isinstance(style, (str, Style)) else "rule.line"
         )
         align_str: Literal["left", "center", "right"] = (
-            align
+            align  # type: ignore[assignment]
             if isinstance(align, str) and align in {"left", "center", "right"}
             else "center"
         )
@@ -747,7 +746,7 @@ class FlextCliFormatters(FlextCore.Service[object]):
             title, characters=characters_str, style=style_obj, align=align_str
         )
         if rule_result.is_failure:
-            return FlextCore.Result[None].fail(rule_result.error)
+            return FlextResult[None].fail(rule_result.error)
 
         return self.print(rule_result.unwrap())
 
@@ -764,7 +763,7 @@ class FlextCliFormatters(FlextCore.Service[object]):
         *,
         no_wrap: bool | None = None,
         end: str = "\n",
-    ) -> FlextCore.Result[Text]:
+    ) -> FlextResult[Text]:
         """Create Rich Text object with styling.
 
         Args:
@@ -776,7 +775,7 @@ class FlextCliFormatters(FlextCore.Service[object]):
             end: End character
 
         Returns:
-            FlextCore.Result containing Rich Text
+            FlextResult containing Rich Text
 
         """
         try:
@@ -803,11 +802,11 @@ class FlextCliFormatters(FlextCore.Service[object]):
                 end=end,
             )
             self.logger.debug("Created Rich text")
-            return FlextCore.Result[Text].ok(text_obj)
+            return FlextResult[Text].ok(text_obj)
         except Exception as e:
             error_msg = f"Failed to create text: {e}"
             self.logger.exception(error_msg)
-            return FlextCore.Result[Text].fail(error_msg)
+            return FlextResult[Text].fail(error_msg)
 
     def align_text(
         self,
@@ -816,7 +815,7 @@ class FlextCliFormatters(FlextCore.Service[object]):
         vertical: str = "top",
         width: int | None = None,
         height: int | None = None,
-    ) -> FlextCore.Result[Align]:
+    ) -> FlextResult[Align]:
         """Align content.
 
         Args:
@@ -827,7 +826,7 @@ class FlextCliFormatters(FlextCore.Service[object]):
             height: Fixed height
 
         Returns:
-            FlextCore.Result containing Rich Align
+            FlextResult containing Rich Align
 
         """
         try:
@@ -851,11 +850,11 @@ class FlextCliFormatters(FlextCore.Service[object]):
                 height=height,
             )
             self.logger.debug("Created alignment")
-            return FlextCore.Result[Align].ok(aligned)
+            return FlextResult[Align].ok(aligned)
         except Exception as e:
             error_msg = f"Failed to create alignment: {e}"
             self.logger.exception(error_msg)
-            return FlextCore.Result[Align].fail(error_msg)
+            return FlextResult[Align].fail(error_msg)
 
     # =========================================================================
     # TABLES AND TREES
@@ -871,7 +870,7 @@ class FlextCliFormatters(FlextCore.Service[object]):
         show_edge: bool = True,
         expand: bool = False,
         padding: tuple[int, int] = (0, 1),
-    ) -> FlextCore.Result[RichTable]:
+    ) -> FlextResult[RichTable]:
         """Create Rich table.
 
         Args:
@@ -884,7 +883,7 @@ class FlextCliFormatters(FlextCore.Service[object]):
             padding: Cell padding
 
         Returns:
-            FlextCore.Result containing Rich Table
+            FlextResult containing Rich Table
 
         Example:
             >>> formatters = FlextCliFormatters()
@@ -907,17 +906,17 @@ class FlextCliFormatters(FlextCore.Service[object]):
                 padding=padding,
             )
             self.logger.debug("Created Rich table", extra={"table_title": title})
-            return FlextCore.Result[RichTable].ok(table)
+            return FlextResult[RichTable].ok(table)
         except Exception as e:
             error_msg = f"Failed to create table: {e}"
             self.logger.exception(error_msg)
-            return FlextCore.Result[RichTable].fail(error_msg)
+            return FlextResult[RichTable].fail(error_msg)
 
     def create_tree(
         self,
         label: str,
         guide_style: str = "tree.line",
-    ) -> FlextCore.Result[Tree]:
+    ) -> FlextResult[Tree]:
         """Create Rich tree structure.
 
         Args:
@@ -925,7 +924,7 @@ class FlextCliFormatters(FlextCore.Service[object]):
             guide_style: Guide line style
 
         Returns:
-            FlextCore.Result containing Rich Tree
+            FlextResult containing Rich Tree
 
         Example:
             >>> formatters = FlextCliFormatters()
@@ -939,11 +938,11 @@ class FlextCliFormatters(FlextCore.Service[object]):
         try:
             tree = Tree(label, guide_style=guide_style)
             self.logger.debug("Created tree", extra={"tree_label": label})
-            return FlextCore.Result[Tree].ok(tree)
+            return FlextResult[Tree].ok(tree)
         except Exception as e:
             error_msg = f"Failed to create tree: {e}"
             self.logger.exception(error_msg)
-            return FlextCore.Result[Tree].fail(error_msg)
+            return FlextResult[Tree].fail(error_msg)
 
     # =========================================================================
     # TRACEBACK FORMATTING
@@ -958,7 +957,7 @@ class FlextCliFormatters(FlextCore.Service[object]):
         show_locals: bool = False,
         word_wrap: bool = False,
         suppress: Iterable[str | type] = (),
-    ) -> FlextCore.Result[Traceback]:
+    ) -> FlextResult[Traceback]:
         """Format exception with Rich traceback.
 
         Args:
@@ -970,7 +969,7 @@ class FlextCliFormatters(FlextCore.Service[object]):
             suppress: Modules/exceptions to suppress
 
         Returns:
-            FlextCore.Result containing Rich Traceback
+            FlextResult containing Rich Traceback
 
         Example:
             >>> formatters = FlextCliFormatters()
@@ -996,11 +995,11 @@ class FlextCliFormatters(FlextCore.Service[object]):
                 else (),
             )
             self.logger.debug("Created Rich traceback")
-            return FlextCore.Result[Traceback].ok(traceback)
+            return FlextResult[Traceback].ok(traceback)
         except Exception as e:
             error_msg = f"Failed to create traceback: {e}"
             self.logger.exception(error_msg)
-            return FlextCore.Result[Traceback].fail(error_msg)
+            return FlextResult[Traceback].fail(error_msg)
 
     # =========================================================================
     # INTERACTIVE FEATURES
@@ -1013,7 +1012,7 @@ class FlextCliFormatters(FlextCore.Service[object]):
         *,
         password: bool = False,
         show_default: bool = True,
-    ) -> FlextCore.Result[str]:
+    ) -> FlextResult[str]:
         """Prompt user for input with Rich styling.
 
         Args:
@@ -1023,7 +1022,7 @@ class FlextCliFormatters(FlextCore.Service[object]):
             show_default: Show default value in prompt
 
         Returns:
-            FlextCore.Result containing user input string
+            FlextResult containing user input string
 
         Example:
             >>> formatters = FlextCliFormatters()
@@ -1043,11 +1042,11 @@ class FlextCliFormatters(FlextCore.Service[object]):
             self.logger.debug(
                 "Prompted user for input", extra={"prompt_msg": prompt_text}
             )
-            return FlextCore.Result[str].ok(str(value))
+            return FlextResult[str].ok(str(value))
         except Exception as e:
             error_msg = f"Failed to prompt user: {e}"
             self.logger.exception(error_msg)
-            return FlextCore.Result[str].fail(error_msg)
+            return FlextResult[str].fail(error_msg)
 
     def confirm(
         self,
@@ -1055,7 +1054,7 @@ class FlextCliFormatters(FlextCore.Service[object]):
         *,
         default: bool = False,
         show_default: bool = True,
-    ) -> FlextCore.Result[bool]:
+    ) -> FlextResult[bool]:
         """Ask user for yes/no confirmation with Rich styling.
 
         Args:
@@ -1064,7 +1063,7 @@ class FlextCliFormatters(FlextCore.Service[object]):
             show_default: Show default in prompt
 
         Returns:
-            FlextCore.Result containing boolean confirmation
+            FlextResult containing boolean confirmation
 
         Example:
             >>> formatters = FlextCliFormatters()
@@ -1083,18 +1082,18 @@ class FlextCliFormatters(FlextCore.Service[object]):
             self.logger.debug(
                 "Asked user for confirmation", extra={"confirm_question": question}
             )
-            return FlextCore.Result[bool].ok(result)
+            return FlextResult[bool].ok(result)
         except Exception as e:
             error_msg = f"Failed to confirm: {e}"
             self.logger.exception(error_msg)
-            return FlextCore.Result[bool].fail(error_msg)
+            return FlextResult[bool].fail(error_msg)
 
     def prompt_choice(
         self,
         prompt_text: str,
         choices: FlextCore.Types.StringList,
         default: str | None = None,
-    ) -> FlextCore.Result[str]:
+    ) -> FlextResult[str]:
         """Prompt user to select from a list of choices.
 
         Args:
@@ -1103,7 +1102,7 @@ class FlextCliFormatters(FlextCore.Service[object]):
             default: Default choice
 
         Returns:
-            FlextCore.Result containing selected choice
+            FlextResult containing selected choice
 
         Example:
             >>> formatters = FlextCliFormatters()
@@ -1123,17 +1122,17 @@ class FlextCliFormatters(FlextCore.Service[object]):
                 "Prompted user for choice",
                 extra={"prompt_msg": prompt_text, "choice_count": len(choices)},
             )
-            return FlextCore.Result[str].ok(str(value))
+            return FlextResult[str].ok(str(value))
         except Exception as e:
             error_msg = f"Failed to prompt for choice: {e}"
             self.logger.exception(error_msg)
-            return FlextCore.Result[str].fail(error_msg)
+            return FlextResult[str].fail(error_msg)
 
     def prompt_int(
         self,
         prompt_text: str,
         default: int | None = None,
-    ) -> FlextCore.Result[int]:
+    ) -> FlextResult[int]:
         """Prompt user for integer input.
 
         Args:
@@ -1141,7 +1140,7 @@ class FlextCliFormatters(FlextCore.Service[object]):
             default: Default value
 
         Returns:
-            FlextCore.Result containing integer input
+            FlextResult containing integer input
 
         Example:
             >>> formatters = FlextCliFormatters()
@@ -1155,15 +1154,15 @@ class FlextCliFormatters(FlextCore.Service[object]):
                 console=self.console,
             )
             if value is None:
-                return FlextCore.Result[int].fail("No integer value provided")
+                return FlextResult[int].fail("No integer value provided")
             self.logger.debug(
                 "Prompted user for integer", extra={"prompt_msg": prompt_text}
             )
-            return FlextCore.Result[int].ok(value)
+            return FlextResult[int].ok(value)
         except Exception as e:
             error_msg = f"Failed to prompt for integer: {e}"
             self.logger.exception(error_msg)
-            return FlextCore.Result[int].fail(error_msg)
+            return FlextResult[int].fail(error_msg)
 
     def create_live_display_with_renderable(
         self,
@@ -1171,7 +1170,7 @@ class FlextCliFormatters(FlextCore.Service[object]):
         refresh_per_second: float = 4,
         *,
         transient: bool = False,
-    ) -> FlextCore.Result[Live]:
+    ) -> FlextResult[Live]:
         """Create Rich Live display with initial renderable content.
 
         Args:
@@ -1180,7 +1179,7 @@ class FlextCliFormatters(FlextCore.Service[object]):
             transient: Clear display when exiting
 
         Returns:
-            FlextCore.Result containing Live display context manager
+            FlextResult containing Live display context manager
 
         Example:
             >>> formatters = FlextCliFormatters()
@@ -1204,11 +1203,11 @@ class FlextCliFormatters(FlextCore.Service[object]):
             self.logger.debug(
                 "Created live display", extra={"refresh_rate": refresh_per_second}
             )
-            return FlextCore.Result[Live].ok(live)
+            return FlextResult[Live].ok(live)
         except Exception as e:
             error_msg = f"Failed to create live display: {e}"
             self.logger.exception(error_msg)
-            return FlextCore.Result[Live].fail(error_msg)
+            return FlextResult[Live].fail(error_msg)
 
     # =========================================================================
     # RENDERING METHODS - Convert Rich objects to strings
@@ -1218,7 +1217,7 @@ class FlextCliFormatters(FlextCore.Service[object]):
         self,
         table: RichTable,
         width: int | None = None,
-    ) -> FlextCore.Result[str]:
+    ) -> FlextResult[str]:
         """Render Rich table to string using console.
 
         Args:
@@ -1226,7 +1225,7 @@ class FlextCliFormatters(FlextCore.Service[object]):
             width: Optional console width
 
         Returns:
-            FlextCore.Result[str]: Table as string or error
+            FlextResult[str]: Table as string or error
 
         Example:
             >>> formatters = FlextCliFormatters()
@@ -1243,17 +1242,17 @@ class FlextCliFormatters(FlextCore.Service[object]):
                 file=string_io, width=width or 80, force_terminal=False
             )
             temp_console.print(table)
-            return FlextCore.Result[str].ok(string_io.getvalue())
+            return FlextResult[str].ok(string_io.getvalue())
         except Exception as e:
             error_msg = f"Failed to render table to string: {e}"
             self.logger.exception(error_msg)
-            return FlextCore.Result[str].fail(error_msg)
+            return FlextResult[str].fail(error_msg)
 
     def render_tree_to_string(
         self,
         tree: Tree,
         width: int | None = None,
-    ) -> FlextCore.Result[str]:
+    ) -> FlextResult[str]:
         """Render Rich tree to string using console.
 
         Args:
@@ -1261,7 +1260,7 @@ class FlextCliFormatters(FlextCore.Service[object]):
             width: Optional console width
 
         Returns:
-            FlextCore.Result[str]: Tree as string or error
+            FlextResult[str]: Tree as string or error
 
         Example:
             >>> formatters = FlextCliFormatters()
@@ -1280,11 +1279,11 @@ class FlextCliFormatters(FlextCore.Service[object]):
                 force_terminal=False,
             )
             temp_console.print(tree)
-            return FlextCore.Result[str].ok(string_io.getvalue())
+            return FlextResult[str].ok(string_io.getvalue())
         except Exception as e:
             error_msg = f"Failed to render tree to string: {e}"
             self.logger.exception(error_msg)
-            return FlextCore.Result[str].fail(error_msg)
+            return FlextResult[str].fail(error_msg)
 
     # =========================================================================
     # RENDERING METHODS - Print Rich objects directly
@@ -1306,7 +1305,7 @@ class FlextCliFormatters(FlextCore.Service[object]):
         crop: bool = True,
         soft_wrap: bool | None = None,
         new_line_start: bool = False,
-    ) -> FlextCore.Result[None]:
+    ) -> FlextResult[None]:
         """Print Rich renderable directly to console.
 
         Args:
@@ -1325,7 +1324,7 @@ class FlextCliFormatters(FlextCore.Service[object]):
             new_line_start: Start with new line
 
         Returns:
-            FlextCore.Result[None]: Success or error
+            FlextResult[None]: Success or error
 
         Example:
             >>> formatters = FlextCliFormatters()
@@ -1350,39 +1349,39 @@ class FlextCliFormatters(FlextCore.Service[object]):
                 soft_wrap=soft_wrap,
                 new_line_start=new_line_start,
             )
-            return FlextCore.Result[None].ok(None)
+            return FlextResult[None].ok(None)
         except Exception as e:
             error_msg = f"Failed to print renderable: {e}"
             self.logger.exception(error_msg)
-            return FlextCore.Result[None].fail(error_msg)
+            return FlextResult[None].fail(error_msg)
 
     # =========================================================================
     # UTILITY METHODS
     # =========================================================================
 
-    def clear(self) -> FlextCore.Result[None]:
+    def clear(self) -> FlextResult[None]:
         """Clear the console.
 
         Returns:
-            FlextCore.Result[None]: Success or error result
+            FlextResult[None]: Success or error result
 
         """
         try:
             self.console.clear()
-            return FlextCore.Result[None].ok(None)
+            return FlextResult[None].ok(None)
         except Exception as e:
             error_msg = f"Failed to clear console: {e}"
             self.logger.exception(error_msg)
-            return FlextCore.Result[None].fail(error_msg)
+            return FlextResult[None].fail(error_msg)
 
-    def execute(self) -> FlextCore.Result[object]:
+    def execute(self) -> FlextResult[object]:
         """Execute Rich formatters layer operations.
 
         Returns:
-            FlextCore.Result[object]: Success result
+            FlextResult[object]: Success result
 
         """
-        return FlextCore.Result[object].ok(None)
+        return FlextResult[object].ok(None)
 
 
 __all__ = [

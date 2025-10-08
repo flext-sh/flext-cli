@@ -26,7 +26,7 @@ import zipfile
 from pathlib import Path
 
 import yaml
-from flext_core import FlextCore
+from flext_core import FlextCore, FlextResult
 
 from flext_cli.constants import FlextCliConstants
 
@@ -50,15 +50,15 @@ class FlextCliFileTools(FlextCore.Service[FlextCore.Types.Dict]):
 
     # Attributes initialized in __init__
 
-    def execute(self) -> FlextCore.Result[FlextCore.Types.Dict]:
+    def execute(self) -> FlextResult[FlextCore.Types.Dict]:
         """Execute file tools service - FlextCore.Service interface.
 
         Returns:
-            FlextCore.Result with True (file tools service is ready)
+            FlextResult with status dict (file tools service is ready)
 
         """
-        # Return True to indicate service is ready (matches test expectations)
-        return FlextCore.Result[bool].ok(True)
+        # Return dict to indicate service is ready (matches service interface)
+        return FlextResult[FlextCore.Types.Dict].ok({"status": "ready"})
 
     # ==========================================================================
     # PUBLIC API - File operations exposed to ecosystem
@@ -66,7 +66,7 @@ class FlextCliFileTools(FlextCore.Service[FlextCore.Types.Dict]):
 
     def write_json(
         self, data: object, path: str | Path, **kwargs: object
-    ) -> FlextCore.Result[None]:
+    ) -> FlextResult[None]:
         """Write JSON data to file (alias for write_json_file).
 
         Args:
@@ -75,26 +75,26 @@ class FlextCliFileTools(FlextCore.Service[FlextCore.Types.Dict]):
             **kwargs: Additional options
 
         Returns:
-            FlextCore.Result[None]: Success or failure
+            FlextResult[None]: Success or failure
 
         """
-        return self.write_json_file(path, data, **kwargs)
+        return self.write_json_file(path, data, **kwargs)  # type: ignore[arg-type]
 
-    def read_json(self, path: str | Path) -> FlextCore.Result[object]:
+    def read_json(self, path: str | Path) -> FlextResult[object]:
         """Read JSON data from file (alias for read_json_file).
 
         Args:
             path: File path
 
         Returns:
-            FlextCore.Result[object]: Parsed data or error
+            FlextResult[object]: Parsed data or error
 
         """
         return self.read_json_file(path)
 
     def write_yaml(
         self, data: object, path: str | Path, **kwargs: object
-    ) -> FlextCore.Result[None]:
+    ) -> FlextResult[None]:
         """Write YAML data to file (alias for write_yaml_file).
 
         Args:
@@ -103,46 +103,46 @@ class FlextCliFileTools(FlextCore.Service[FlextCore.Types.Dict]):
             **kwargs: Additional options
 
         Returns:
-            FlextCore.Result[None]: Success or failure
+            FlextResult[None]: Success or failure
 
         """
-        return self.write_yaml_file(path, data, **kwargs)
+        return self.write_yaml_file(path, data, **kwargs)  # type: ignore[arg-type]
 
-    def read_yaml(self, path: str | Path) -> FlextCore.Result[object]:
+    def read_yaml(self, path: str | Path) -> FlextResult[object]:
         """Read YAML data from file (alias for read_yaml_file).
 
         Args:
             path: File path
 
         Returns:
-            FlextCore.Result[object]: Parsed data or error
+            FlextResult[object]: Parsed data or error
 
         """
         return self.read_yaml_file(path)
 
-    def read_text_file(self, file_path: str | Path) -> FlextCore.Result[str]:
+    def read_text_file(self, file_path: str | Path) -> FlextResult[str]:
         """Read text file.
 
         Args:
             file_path: Path to text file
 
         Returns:
-            FlextCore.Result containing file content as string
+            FlextResult containing file content as string
 
         """
         try:
             content = Path(file_path).read_text(
                 encoding=FlextCliConstants.Encoding.UTF8
             )
-            return FlextCore.Result[str].ok(content)
+            return FlextResult[str].ok(content)
         except Exception as e:
-            return FlextCore.Result[str].fail(
+            return FlextResult[str].fail(
                 FlextCliConstants.ErrorMessages.TEXT_FILE_READ_FAILED.format(error=e)
             )
 
     def write_text_file(
         self, file_path: str | Path, content: str, **kwargs: object
-    ) -> FlextCore.Result[None]:
+    ) -> FlextResult[None]:
         """Write text content to file.
 
         Args:
@@ -151,7 +151,7 @@ class FlextCliFileTools(FlextCore.Service[FlextCore.Types.Dict]):
             **kwargs: Additional options (encoding, etc.)
 
         Returns:
-            FlextCore.Result[None] indicating success or failure
+            FlextResult[None] indicating success or failure
 
         """
         try:
@@ -159,15 +159,15 @@ class FlextCliFileTools(FlextCore.Service[FlextCore.Types.Dict]):
             if not isinstance(encoding, str):
                 encoding = FlextCliConstants.Encoding.UTF8
             Path(file_path).write_text(content, encoding=encoding)
-            return FlextCore.Result[None].ok(None)
+            return FlextResult[None].ok(None)
         except Exception as e:
-            return FlextCore.Result[None].fail(
+            return FlextResult[None].fail(
                 FlextCliConstants.ErrorMessages.TEXT_FILE_WRITE_FAILED.format(error=e)
             )
 
     def copy_file(
         self, source_path: str | Path, destination_path: str | Path
-    ) -> FlextCore.Result[bool]:
+    ) -> FlextResult[bool]:
         """Copy file from source to destination.
 
         Args:
@@ -175,25 +175,25 @@ class FlextCliFileTools(FlextCore.Service[FlextCore.Types.Dict]):
             destination_path: Destination file path
 
         Returns:
-            FlextCore.Result[bool] indicating success or failure
+            FlextResult[bool] indicating success or failure
 
         """
         try:
             shutil.copy2(str(source_path), str(destination_path))
-            return FlextCore.Result[bool].ok(True)
+            return FlextResult[bool].ok(True)
         except Exception as e:
-            return FlextCore.Result[bool].fail(
+            return FlextResult[bool].fail(
                 FlextCliConstants.ErrorMessages.FILE_COPY_FAILED.format(error=e)
             )
 
-    def read_json_file(self, file_path: str | Path) -> FlextCore.Result[object]:
+    def read_json_file(self, file_path: str | Path) -> FlextResult[object]:
         """Read JSON file using internal loader.
 
         Args:
             file_path: Path to JSON file
 
         Returns:
-            FlextCore.Result containing parsed JSON data
+            FlextResult containing parsed JSON data
 
         """
         return self._FileLoader.load_json(str(file_path))
@@ -201,7 +201,7 @@ class FlextCliFileTools(FlextCore.Service[FlextCore.Types.Dict]):
     @staticmethod
     def write_json_file(
         file_path: str | Path, data: object, **kwargs: dict[str, object]
-    ) -> FlextCore.Result[None]:
+    ) -> FlextResult[None]:
         """Write data to JSON file.
 
         Args:
@@ -210,7 +210,7 @@ class FlextCliFileTools(FlextCore.Service[FlextCore.Types.Dict]):
             **kwargs: Additional JSON dump options
 
         Returns:
-            FlextCore.Result[None] indicating success or failure
+            FlextResult[None] indicating success or failure
 
         """
         try:
@@ -234,21 +234,21 @@ class FlextCliFileTools(FlextCore.Service[FlextCore.Types.Dict]):
                 "w", encoding=FlextCliConstants.Encoding.UTF8
             ) as f:
                 # Cast dump_kwargs to avoid type checker issues with **kwargs
-                json.dump(data, f, indent=2, **dump_kwargs)
-            return FlextCore.Result[None].ok(None)
+                json.dump(data, f, indent=2, **dump_kwargs)  # type: ignore[misc]
+            return FlextResult[None].ok(None)
         except Exception as e:
-            return FlextCore.Result[None].fail(
+            return FlextResult[None].fail(
                 FlextCliConstants.ErrorMessages.JSON_WRITE_FAILED.format(error=e)
             )
 
-    def read_yaml_file(self, file_path: str | Path) -> FlextCore.Result[object]:
+    def read_yaml_file(self, file_path: str | Path) -> FlextResult[object]:
         """Read YAML file using internal loader.
 
         Args:
             file_path: Path to YAML file
 
         Returns:
-            FlextCore.Result containing parsed YAML data
+            FlextResult containing parsed YAML data
 
         """
         return self._FileLoader.load_yaml(str(file_path))
@@ -256,7 +256,7 @@ class FlextCliFileTools(FlextCore.Service[FlextCore.Types.Dict]):
     @staticmethod
     def write_yaml_file(
         file_path: str | Path, data: object, **kwargs: dict[str, object]
-    ) -> FlextCore.Result[None]:
+    ) -> FlextResult[None]:
         """Write data to YAML file.
 
         Args:
@@ -265,7 +265,7 @@ class FlextCliFileTools(FlextCore.Service[FlextCore.Types.Dict]):
             **kwargs: Additional YAML dump options
 
         Returns:
-            FlextCore.Result[None] indicating success or failure
+            FlextResult[None] indicating success or failure
 
         """
         try:
@@ -294,35 +294,33 @@ class FlextCliFileTools(FlextCore.Service[FlextCore.Types.Dict]):
             ) as f:
                 # Cast dump_kwargs to avoid type checker issues with **kwargs
                 yaml.safe_dump(data, f, **dump_kwargs)
-            return FlextCore.Result[None].ok(None)
+            return FlextResult[None].ok(None)
         except Exception as e:
-            return FlextCore.Result[None].fail(
+            return FlextResult[None].fail(
                 FlextCliConstants.ErrorMessages.YAML_WRITE_FAILED.format(error=e)
             )
 
     # === PUBLIC API METHODS ===
 
-    def file_exists(self, file_path: str | Path) -> FlextCore.Result[bool]:
+    def file_exists(self, file_path: str | Path) -> FlextResult[bool]:
         """Check if file exists."""
         return self._FileSystemOps.file_exists(str(file_path))
 
-    def detect_file_format(self, file_path: str | Path) -> FlextCore.Result[str]:
+    def detect_file_format(self, file_path: str | Path) -> FlextResult[str]:
         """Detect file format from extension."""
         supported_formats = {
             "json": {"extensions": ["json"]},
             "yaml": {"extensions": ["yaml", "yml"]},
         }
-        return self._FormatDetector.detect_format(
-            FlextCore.Types.NestedDict(supported_formats), file_path
-        )
+        return self._FormatDetector.detect_format(supported_formats, file_path)
 
     def load_file_auto_detect(
         self, file_path: str | Path, **kwargs: object
-    ) -> FlextCore.Result[object]:
+    ) -> FlextResult[object]:
         """Load file with automatic format detection."""
         format_result = self.detect_file_format(file_path)
         if format_result.is_failure:
-            return FlextCore.Result[object].fail(
+            return FlextResult[object].fail(
                 format_result.error
                 or FlextCliConstants.ErrorMessages.FORMAT_DETECTION_FAILED
             )
@@ -333,7 +331,7 @@ class FlextCliFileTools(FlextCore.Service[FlextCore.Types.Dict]):
         if file_format == "yaml":
             return self._FileLoader.load_yaml(str(file_path), **kwargs)
 
-        return FlextCore.Result[object].fail(
+        return FlextResult[object].fail(
             FlextCliConstants.ErrorMessages.UNSUPPORTED_FORMAT.format(
                 format=file_format
             )
@@ -341,29 +339,29 @@ class FlextCliFileTools(FlextCore.Service[FlextCore.Types.Dict]):
 
     def save_file(
         self, file_path: str | Path, data: object, **kwargs: object
-    ) -> FlextCore.Result[None]:
+    ) -> FlextResult[None]:
         """Save data to file with automatic format detection."""
         return self._FileSaver.save_file(file_path, data, **kwargs)
 
-    def read_binary_file(self, file_path: str | Path) -> FlextCore.Result[bytes]:
+    def read_binary_file(self, file_path: str | Path) -> FlextResult[bytes]:
         """Read binary file content."""
         try:
             content = Path(file_path).read_bytes()
-            return FlextCore.Result[bytes].ok(content)
+            return FlextResult[bytes].ok(content)
         except Exception as e:
-            return FlextCore.Result[bytes].fail(f"Binary read failed: {e}")
+            return FlextResult[bytes].fail(f"Binary read failed: {e}")
 
     def write_binary_file(
         self, file_path: str | Path, content: bytes
-    ) -> FlextCore.Result[None]:
+    ) -> FlextResult[None]:
         """Write binary content to file."""
         try:
             Path(file_path).write_bytes(content)
-            return FlextCore.Result[None].ok(None)
+            return FlextResult[None].ok(None)
         except Exception as e:
-            return FlextCore.Result[None].fail(f"Binary write failed: {e}")
+            return FlextResult[None].fail(f"Binary write failed: {e}")
 
-    def read_csv_file(self, file_path: str | Path) -> FlextCore.Result[list[list[str]]]:
+    def read_csv_file(self, file_path: str | Path) -> FlextResult[list[list[str]]]:
         """Read CSV file content."""
         try:
             with Path(file_path).open(
@@ -371,13 +369,13 @@ class FlextCliFileTools(FlextCore.Service[FlextCore.Types.Dict]):
             ) as f:
                 reader = csv.reader(f)
                 data = list(reader)
-            return FlextCore.Result[list[list[str]]].ok(data)
+            return FlextResult[list[list[str]]].ok(data)
         except Exception as e:
-            return FlextCore.Result[list[list[str]]].fail(f"CSV read failed: {e}")
+            return FlextResult[list[list[str]]].fail(f"CSV read failed: {e}")
 
     def write_csv_file(
         self, file_path: str | Path, data: list[list[str]]
-    ) -> FlextCore.Result[None]:
+    ) -> FlextResult[None]:
         """Write CSV file content."""
         try:
             with Path(file_path).open(
@@ -385,13 +383,13 @@ class FlextCliFileTools(FlextCore.Service[FlextCore.Types.Dict]):
             ) as f:
                 writer = csv.writer(f)
                 writer.writerows(data)
-            return FlextCore.Result[None].ok(None)
+            return FlextResult[None].ok(None)
         except Exception as e:
-            return FlextCore.Result[None].fail(f"CSV write failed: {e}")
+            return FlextResult[None].fail(f"CSV write failed: {e}")
 
     def read_csv_file_with_headers(
         self, file_path: str | Path
-    ) -> FlextCore.Result[list[dict[str, str]]]:
+    ) -> FlextResult[list[dict[str, str]]]:
         """Read CSV file with headers."""
         try:
             with Path(file_path).open(
@@ -399,185 +397,185 @@ class FlextCliFileTools(FlextCore.Service[FlextCore.Types.Dict]):
             ) as f:
                 reader = csv.DictReader(f)
                 data = list(reader)
-            return FlextCore.Result[list[dict[str, str]]].ok(data)
+            return FlextResult[list[dict[str, str]]].ok(data)
         except Exception as e:
-            return FlextCore.Result[list[dict[str, str]]].fail(f"CSV read failed: {e}")
+            return FlextResult[list[dict[str, str]]].fail(f"CSV read failed: {e}")
 
-    def delete_file(self, file_path: str | Path) -> FlextCore.Result[None]:
+    def delete_file(self, file_path: str | Path) -> FlextResult[None]:
         """Delete file."""
         try:
             Path(file_path).unlink()
-            return FlextCore.Result[None].ok(None)
+            return FlextResult[None].ok(None)
         except Exception as e:
-            return FlextCore.Result[None].fail(f"File deletion failed: {e}")
+            return FlextResult[None].fail(f"File deletion failed: {e}")
 
     def move_file(
         self, source: str | Path, destination: str | Path
-    ) -> FlextCore.Result[None]:
+    ) -> FlextResult[None]:
         """Move file to new location."""
         try:
             shutil.move(str(source), str(destination))
-            return FlextCore.Result[None].ok(None)
+            return FlextResult[None].ok(None)
         except Exception as e:
-            return FlextCore.Result[None].fail(f"File move failed: {e}")
+            return FlextResult[None].fail(f"File move failed: {e}")
 
-    def create_directory(self, dir_path: str | Path) -> FlextCore.Result[None]:
+    def create_directory(self, dir_path: str | Path) -> FlextResult[None]:
         """Create directory."""
         try:
             Path(dir_path).mkdir(parents=True, exist_ok=True)
-            return FlextCore.Result[None].ok(None)
+            return FlextResult[None].ok(None)
         except Exception as e:
-            return FlextCore.Result[None].fail(f"Directory creation failed: {e}")
+            return FlextResult[None].fail(f"Directory creation failed: {e}")
 
-    def directory_exists(self, dir_path: str | Path) -> FlextCore.Result[bool]:
+    def directory_exists(self, dir_path: str | Path) -> FlextResult[bool]:
         """Check if directory exists."""
         try:
             exists = Path(dir_path).is_dir()
-            return FlextCore.Result[bool].ok(exists)
+            return FlextResult[bool].ok(exists)
         except Exception as e:
-            return FlextCore.Result[bool].fail(f"Directory check failed: {e}")
+            return FlextResult[bool].fail(f"Directory check failed: {e}")
 
-    def delete_directory(self, dir_path: str | Path) -> FlextCore.Result[None]:
+    def delete_directory(self, dir_path: str | Path) -> FlextResult[None]:
         """Delete directory."""
         try:
             shutil.rmtree(str(dir_path))
-            return FlextCore.Result[None].ok(None)
+            return FlextResult[None].ok(None)
         except Exception as e:
-            return FlextCore.Result[None].fail(f"Directory deletion failed: {e}")
+            return FlextResult[None].fail(f"Directory deletion failed: {e}")
 
-    def list_directory(self, dir_path: str | Path) -> FlextCore.Result[list[str]]:
+    def list_directory(self, dir_path: str | Path) -> FlextResult[list[str]]:
         """List directory contents."""
         try:
             items = [str(p.name) for p in Path(dir_path).iterdir()]
-            return FlextCore.Result[list[str]].ok(items)
+            return FlextResult[list[str]].ok(items)
         except Exception as e:
-            return FlextCore.Result[list[str]].fail(f"Directory listing failed: {e}")
+            return FlextResult[list[str]].fail(f"Directory listing failed: {e}")
 
-    def get_file_size(self, file_path: str | Path) -> FlextCore.Result[int]:
+    def get_file_size(self, file_path: str | Path) -> FlextResult[int]:
         """Get file size in bytes."""
         try:
             size = Path(file_path).stat().st_size
-            return FlextCore.Result[int].ok(size)
+            return FlextResult[int].ok(size)
         except Exception as e:
-            return FlextCore.Result[int].fail(f"File size check failed: {e}")
+            return FlextResult[int].fail(f"File size check failed: {e}")
 
-    def get_file_modified_time(self, file_path: str | Path) -> FlextCore.Result[float]:
+    def get_file_modified_time(self, file_path: str | Path) -> FlextResult[float]:
         """Get file modification time."""
         try:
             mtime = Path(file_path).stat().st_mtime
-            return FlextCore.Result[float].ok(mtime)
+            return FlextResult[float].ok(mtime)
         except Exception as e:
-            return FlextCore.Result[float].fail(f"File time check failed: {e}")
+            return FlextResult[float].fail(f"File time check failed: {e}")
 
     def calculate_file_hash(
         self, file_path: str | Path, algorithm: str = "sha256"
-    ) -> FlextCore.Result[str]:
+    ) -> FlextResult[str]:
         """Calculate file hash."""
         try:
             hash_obj = hashlib.new(algorithm)
             with Path(file_path).open("rb") as f:
                 for chunk in iter(lambda: f.read(4096), b""):
                     hash_obj.update(chunk)
-            return FlextCore.Result[str].ok(hash_obj.hexdigest())
+            return FlextResult[str].ok(hash_obj.hexdigest())
         except Exception as e:
-            return FlextCore.Result[str].fail(f"Hash calculation failed: {e}")
+            return FlextResult[str].fail(f"Hash calculation failed: {e}")
 
     def verify_file_hash(
         self, file_path: str | Path, expected_hash: str, algorithm: str = "sha256"
-    ) -> FlextCore.Result[bool]:
+    ) -> FlextResult[bool]:
         """Verify file hash."""
         hash_result = self.calculate_file_hash(file_path, algorithm)
         if hash_result.is_failure:
-            return FlextCore.Result[bool].fail(
+            return FlextResult[bool].fail(
                 hash_result.error or "Hash calculation failed"
             )
 
         matches = hash_result.unwrap() == expected_hash
-        return FlextCore.Result[bool].ok(matches)
+        return FlextResult[bool].ok(matches)
 
-    def get_file_permissions(self, file_path: str | Path) -> FlextCore.Result[int]:
+    def get_file_permissions(self, file_path: str | Path) -> FlextResult[int]:
         """Get file permissions."""
         try:
             mode = Path(file_path).stat().st_mode
             permissions = stat.S_IMODE(mode)
-            return FlextCore.Result[int].ok(permissions)
+            return FlextResult[int].ok(permissions)
         except Exception as e:
-            return FlextCore.Result[int].fail(f"Permission check failed: {e}")
+            return FlextResult[int].fail(f"Permission check failed: {e}")
 
     def set_file_permissions(
         self, file_path: str | Path, permissions: int
-    ) -> FlextCore.Result[None]:
+    ) -> FlextResult[None]:
         """Set file permissions."""
         try:
             Path(file_path).chmod(permissions)
-            return FlextCore.Result[None].ok(None)
+            return FlextResult[None].ok(None)
         except Exception as e:
-            return FlextCore.Result[None].fail(f"Permission set failed: {e}")
+            return FlextResult[None].fail(f"Permission set failed: {e}")
 
-    def create_temp_file(self) -> FlextCore.Result[str]:
+    def create_temp_file(self) -> FlextResult[str]:
         """Create temporary file."""
         try:
             fd, path = tempfile.mkstemp()
 
             os.close(fd)
-            return FlextCore.Result[str].ok(path)
+            return FlextResult[str].ok(path)
         except Exception as e:
-            return FlextCore.Result[str].fail(f"Temp file creation failed: {e}")
+            return FlextResult[str].fail(f"Temp file creation failed: {e}")
 
-    def create_temp_directory(self) -> FlextCore.Result[str]:
+    def create_temp_directory(self) -> FlextResult[str]:
         """Create temporary directory."""
         try:
             path = tempfile.mkdtemp()
-            return FlextCore.Result[str].ok(path)
+            return FlextResult[str].ok(path)
         except Exception as e:
-            return FlextCore.Result[str].fail(f"Temp directory creation failed: {e}")
+            return FlextResult[str].fail(f"Temp directory creation failed: {e}")
 
     def create_zip_archive(
         self, archive_path: str | Path, files: list[str]
-    ) -> FlextCore.Result[None]:
+    ) -> FlextResult[None]:
         """Create zip archive."""
         try:
             with zipfile.ZipFile(archive_path, "w") as zipf:
                 for file in files:
                     zipf.write(file, Path(file).name)
-            return FlextCore.Result[None].ok(None)
+            return FlextResult[None].ok(None)
         except Exception as e:
-            return FlextCore.Result[None].fail(f"Zip creation failed: {e}")
+            return FlextResult[None].fail(f"Zip creation failed: {e}")
 
     def extract_zip_archive(
         self, archive_path: str | Path, extract_to: str | Path
-    ) -> FlextCore.Result[None]:
+    ) -> FlextResult[None]:
         """Extract zip archive."""
         try:
             with zipfile.ZipFile(archive_path, "r") as zipf:
                 zipf.extractall(extract_to)
-            return FlextCore.Result[None].ok(None)
+            return FlextResult[None].ok(None)
         except Exception as e:
-            return FlextCore.Result[None].fail(f"Zip extraction failed: {e}")
+            return FlextResult[None].fail(f"Zip extraction failed: {e}")
 
     def find_files_by_pattern(
         self, directory: str | Path, pattern: str
-    ) -> FlextCore.Result[list[str]]:
+    ) -> FlextResult[list[str]]:
         """Find files by glob pattern."""
         try:
             files = [str(p) for p in Path(directory).glob(pattern)]
-            return FlextCore.Result[list[str]].ok(files)
+            return FlextResult[list[str]].ok(files)
         except Exception as e:
-            return FlextCore.Result[list[str]].fail(f"File search failed: {e}")
+            return FlextResult[list[str]].fail(f"File search failed: {e}")
 
     def find_files_by_name(
         self, directory: str | Path, name: str
-    ) -> FlextCore.Result[list[str]]:
+    ) -> FlextResult[list[str]]:
         """Find files by name."""
         try:
             files = [str(p) for p in Path(directory).rglob("*") if p.name == name]
-            return FlextCore.Result[list[str]].ok(files)
+            return FlextResult[list[str]].ok(files)
         except Exception as e:
-            return FlextCore.Result[list[str]].fail(f"File search failed: {e}")
+            return FlextResult[list[str]].fail(f"File search failed: {e}")
 
     def find_files_by_content(
         self, directory: str | Path, content: str
-    ) -> FlextCore.Result[list[str]]:
+    ) -> FlextResult[list[str]]:
         """Find files containing specific content."""
         try:
             matches = []
@@ -591,16 +589,16 @@ class FlextCliFileTools(FlextCore.Service[FlextCore.Types.Dict]):
                             matches.append(str(file_path))
                     except (UnicodeDecodeError, PermissionError):
                         continue
-            return FlextCore.Result[list[str]].ok(matches)
+            return FlextResult[list[str]].ok(matches)
         except Exception as e:
-            return FlextCore.Result[list[str]].fail(f"Content search failed: {e}")
+            return FlextResult[list[str]].fail(f"Content search failed: {e}")
 
-    def get_supported_formats(self) -> FlextCore.Result[list[str]]:
+    def get_supported_formats(self) -> FlextResult[list[str]]:
         """Get list of supported file formats."""
         formats = ["json", "yaml", "yml", "txt", "csv"]
-        return FlextCore.Result[list[str]].ok(formats)
+        return FlextResult[list[str]].ok(formats)
 
-    def create_directories(self, dir_path: str | Path) -> FlextCore.Result[None]:
+    def create_directories(self, dir_path: str | Path) -> FlextResult[None]:
         """Create directories (alias for create_directory)."""
         return self.create_directory(dir_path)
 
@@ -612,7 +610,7 @@ class FlextCliFileTools(FlextCore.Service[FlextCore.Types.Dict]):
         @staticmethod
         def detect_format(
             supported_formats: FlextCore.Types.NestedDict, file_path: str | Path
-        ) -> FlextCore.Result[str]:
+        ) -> FlextResult[str]:
             """Detect file format from extension."""
             path = Path(file_path)
             extension = path.suffix.lower().lstrip(".")
@@ -624,36 +622,36 @@ class FlextCliFileTools(FlextCore.Service[FlextCore.Types.Dict]):
                     and isinstance(format_info["extensions"], (list, tuple))
                     and extension in format_info["extensions"]
                 ):
-                    return FlextCore.Result[str].ok(format_name)
+                    return FlextResult[str].ok(format_name)
 
-            return FlextCore.Result[str].fail(f"Unsupported file format: {extension}")
+            return FlextResult[str].fail(f"Unsupported file format: {extension}")
 
     class _FileLoader:
         """Nested helper for file loading operations."""
 
         @staticmethod
-        def load_json(file_path: str, **_kwargs: object) -> FlextCore.Result[object]:
+        def load_json(file_path: str, **_kwargs: object) -> FlextResult[object]:
             """Load JSON file."""
             try:
                 with Path(file_path).open(
                     encoding=FlextCliConstants.Encoding.UTF8
                 ) as f:
                     data = json.load(f)
-                return FlextCore.Result[object].ok(data)
+                return FlextResult[object].ok(data)
             except Exception as e:
-                return FlextCore.Result[object].fail(f"JSON load failed: {e}")
+                return FlextResult[object].fail(f"JSON load failed: {e}")
 
         @staticmethod
-        def load_yaml(file_path: str, **_kwargs: object) -> FlextCore.Result[object]:
+        def load_yaml(file_path: str, **_kwargs: object) -> FlextResult[object]:
             """Load YAML file."""
             try:
                 with Path(file_path).open(
                     encoding=FlextCliConstants.Encoding.UTF8
                 ) as f:
                     data = yaml.safe_load(f)
-                return FlextCore.Result[object].ok(data)
+                return FlextResult[object].ok(data)
             except Exception as e:
-                return FlextCore.Result[object].fail(f"YAML load failed: {e}")
+                return FlextResult[object].fail(f"YAML load failed: {e}")
 
     class _FileSaver:
         """Nested helper for file saving operations."""
@@ -663,7 +661,7 @@ class FlextCliFileTools(FlextCore.Service[FlextCore.Types.Dict]):
             file_path: str | Path,
             data: object,
             **kwargs: object,
-        ) -> FlextCore.Result[None]:
+        ) -> FlextResult[None]:
             """Save data to file with automatic format detection.
 
             Args:
@@ -672,7 +670,7 @@ class FlextCliFileTools(FlextCore.Service[FlextCore.Types.Dict]):
                 **kwargs: Additional options for the specific format
 
             Returns:
-                FlextCore.Result[bool] indicating success or failure
+                FlextResult[bool] indicating success or failure
 
             """
             path = Path(file_path)
@@ -680,10 +678,10 @@ class FlextCliFileTools(FlextCore.Service[FlextCore.Types.Dict]):
 
             # Detect format and delegate to appropriate saver
             if extension == ".json":
-                return FlextCliFileTools.write_json_file(file_path, data, **kwargs)
+                return FlextCliFileTools.write_json_file(file_path, data, **kwargs)  # type: ignore[arg-type]
             if extension in {".yaml", ".yml"}:
-                return FlextCliFileTools.write_yaml_file(file_path, data, **kwargs)
-            return FlextCore.Result[None].fail(
+                return FlextCliFileTools.write_yaml_file(file_path, data, **kwargs)  # type: ignore[arg-type]
+            return FlextResult[None].fail(
                 f"Unsupported file format: {extension}. Supported: .json, .yaml, .yml"
             )
 
@@ -691,13 +689,13 @@ class FlextCliFileTools(FlextCore.Service[FlextCore.Types.Dict]):
         """Nested helper for file system operations."""
 
         @staticmethod
-        def file_exists(file_path: str) -> FlextCore.Result[bool]:
+        def file_exists(file_path: str) -> FlextResult[bool]:
             """Check if file exists."""
             try:
                 exists = Path(file_path).exists()
-                return FlextCore.Result[bool].ok(exists)
+                return FlextResult[bool].ok(exists)
             except Exception as e:
-                return FlextCore.Result[bool].fail(f"File existence check failed: {e}")
+                return FlextResult[bool].fail(f"File existence check failed: {e}")
 
 
 __all__ = ["FlextCliFileTools"]

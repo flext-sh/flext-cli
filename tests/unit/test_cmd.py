@@ -267,7 +267,7 @@ class TestFlextCliCmd:
                 test_error_msg = "Test error"
                 raise self.TestingException(test_error_msg)
 
-        cmd._ConfigHelper = cast("type[cmd._ConfigHelper]", FailingHelper)
+        cmd._ConfigHelper = cast("type", FailingHelper)
         try:
             result = cmd.show_config_paths()
             assert result.is_failure
@@ -288,7 +288,7 @@ class TestFlextCliCmd:
                 test_error_msg = "Test error"
                 raise self.TestingException(test_error_msg)
 
-        cmd._ConfigHelper = cast("type[cmd._ConfigHelper]", FailingHelper)
+        cmd._ConfigHelper = cast("type", FailingHelper)
         try:
             result = cmd.validate_config()
             assert result.is_failure
@@ -312,7 +312,7 @@ class TestFlextCliCmd:
                 test_error_msg = "Test error"
                 raise TestingException(test_error_msg)
 
-        cmd._ConfigHelper = cast("type[cmd._ConfigHelper]", FailingHelper)
+        cmd._ConfigHelper = cast("type", FailingHelper)
         try:
             result = cmd.get_config_info()
             assert result.is_failure
@@ -328,11 +328,8 @@ class TestFlextCliCmd:
         original_file_tools = cmd._file_tools
 
         class FailingFileTools(FlextCliFileTools):
-            def __init__(self) -> None:
-                super().__init__()
-
             @staticmethod
-            def write_json_file(
+            def write_json_file(  # type: ignore[unused-argument]
                 _file_path: str | Path, _data: object, **_kwargs: dict[str, object]
             ) -> FlextResult[None]:
                 return FlextResult[None].fail("Test file error")
@@ -353,10 +350,8 @@ class TestFlextCliCmd:
         original_file_tools = cmd._file_tools
 
         class FailingFileTools(FlextCliFileTools):
-            def __init__(self) -> None:
-                super().__init__()
-
-            def read_json_file(self, file_path: str | Path) -> FlextResult[object]:
+            @staticmethod
+            def read_json_file(_file_path: str | Path) -> FlextResult[object]:
                 return FlextResult[object].fail("Test load error")
 
         cmd._file_tools = FailingFileTools()
@@ -394,7 +389,7 @@ class TestFlextCliCmd:
                 test_error_msg = "Test config info error"
                 raise self.TestingException(test_error_msg)
 
-        cmd._ConfigHelper = cast("type[cmd._ConfigHelper]", FailingHelper)
+        cmd._ConfigHelper = cast("type", FailingHelper)
         try:
             result = cmd.show_config()
             assert result.is_failure
@@ -410,11 +405,12 @@ class TestFlextCliCmd:
         original_file_tools = cmd._file_tools
 
         class FailingFileTools(FlextCliFileTools):
-            def read_json_file(self, file_path: str | Path) -> FlextResult[object]:
+            @staticmethod
+            def read_json_file(_file_path: str | Path) -> FlextResult[object]:
                 return FlextResult[object].fail("Test load error")
 
             @staticmethod
-            def write_json_file(
+            def write_json_file(  # type: ignore[unused-argument]
                 _file_path: str | Path, _data: object, **_kwargs: dict[str, object]
             ) -> FlextResult[None]:
                 return FlextResult[None].ok(None)
@@ -442,7 +438,7 @@ class TestFlextCliCmd:
 
         logger.info = failing_info
         try:
-            result = FlextCliCmd._ConfigDisplayHelper.show_config(None)
+            result = FlextCliCmd._ConfigDisplayHelper.show_config(logger)
             assert result.is_failure
             assert isinstance(result.error, str)
             assert result.error is not None and "Test logger error" in result.error
@@ -468,7 +464,7 @@ class TestFlextCliCmd:
 
         class FailingFileTools(FlextCliFileTools):
             @staticmethod
-            def write_json_file(
+            def write_json_file(  # type: ignore[unused-argument]
                 _file_path: str | Path, _data: object, **_kwargs: dict[str, object]
             ) -> FlextResult[None]:
                 return FlextResult[None].fail("Test create default error")

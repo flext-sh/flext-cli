@@ -11,7 +11,6 @@ from __future__ import annotations
 import contextlib
 import pathlib
 import tempfile
-from typing import cast
 
 from flext_cli import FlextCli
 
@@ -31,7 +30,7 @@ def demonstrate_file_io() -> None:
 
     try:
         # Auto-formatting based on file extension
-        write_result = cli.file_tools.write_json(tmp_path, cast("object", test_data))
+        write_result = cli.file_tools.write_json(test_data, tmp_path)
         if write_result.is_success:
             cli.output.print_success("File written with auto-formatting")
 

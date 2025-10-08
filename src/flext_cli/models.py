@@ -14,7 +14,7 @@ from collections.abc import Callable
 from datetime import UTC, datetime
 from typing import Self, get_args, get_origin, override
 
-from flext_core import FlextCore
+from flext_core import FlextCore, FlextResult
 from pydantic import (
     BaseModel,
     ConfigDict,
@@ -110,9 +110,9 @@ class FlextCliModels(FlextCore.Models):
         # Ensure all required nested classes are properly defined
         # Note: FormatOptions and CliPipeline removed - delegated to specialized services
         required_nested_classes = [
-            "_BaseEntity",
-            "_BaseValidatedModel",
-            "_BaseConfig",
+            "BaseEntity",
+            "BaseValidatedModel",
+            "BaseConfig",
             "CliCommand",
             "DebugInfo",
             "CliSession",
@@ -139,9 +139,9 @@ class FlextCliModels(FlextCore.Models):
             },
         }
 
-    def execute(self) -> FlextCore.Result[object]:
+    def execute(self) -> FlextResult[object]:
         """Execute model operations - placeholder for testing."""
-        return FlextCore.Result[object].ok(None)
+        return FlextResult[object].ok(None)
 
     # ========================================================================
     # CLI MODEL SUBCLASSES - Specialized CLI Models
@@ -265,7 +265,7 @@ class FlextCliModels(FlextCore.Models):
         @staticmethod
         def field_to_cli_param(
             field_name: str, field_info: fields.FieldInfo
-        ) -> FlextCore.Result[dict[str, object]]:
+        ) -> FlextResult[dict[str, object]]:
             """Convert Pydantic Field to comprehensive CLI parameter specification.
 
             Args:
@@ -273,7 +273,7 @@ class FlextCliModels(FlextCore.Models):
                 field_info: Pydantic FieldInfo object
 
             Returns:
-                FlextCore.Result containing CLI parameter specification dict with:
+                FlextResult containing CLI parameter specification dict with:
                 - name: CLI parameter name (--field-name)
                 - type: Python type for the parameter
                 - click_type: Click type specification
@@ -288,7 +288,7 @@ class FlextCliModels(FlextCore.Models):
                 # Extract field metadata
                 field_type = field_info.annotation
                 if field_type is None:
-                    return FlextCore.Result[dict[str, object]].fail(
+                    return FlextResult[dict[str, object]].fail(
                         f"Field {field_name} has no type annotation"
                     )
 
@@ -331,23 +331,23 @@ class FlextCliModels(FlextCore.Models):
                     "metadata": metadata,
                 }
 
-                return FlextCore.Result[dict[str, object]].ok(cli_param)
+                return FlextResult[dict[str, object]].ok(cli_param)
             except Exception as e:
-                return FlextCore.Result[dict[str, object]].fail(
+                return FlextResult[dict[str, object]].fail(
                     f"Failed to convert field {field_name}: {e}"
                 )
 
         @staticmethod
         def model_to_cli_params(
             model_class: type[BaseModel],
-        ) -> FlextCore.Result[list[dict[str, object]]]:
+        ) -> FlextResult[list[dict[str, object]]]:
             """Extract all fields from Pydantic model and convert to CLI parameters.
 
             Args:
                 model_class: Pydantic model class to convert
 
             Returns:
-                FlextCore.Result containing list of comprehensive CLI parameter specifications
+                FlextResult containing list of comprehensive CLI parameter specifications
 
             """
             try:
@@ -368,16 +368,16 @@ class FlextCliModels(FlextCore.Models):
 
                     cli_params.append(param_result.unwrap())
 
-                return FlextCore.Result[list[dict[str, object]]].ok(cli_params)
+                return FlextResult[list[dict[str, object]]].ok(cli_params)
             except Exception as e:
-                return FlextCore.Result[list[dict[str, object]]].fail(
+                return FlextResult[list[dict[str, object]]].fail(
                     f"Failed to convert model {model_class.__name__}: {e}"
                 )
 
         @staticmethod
         def model_to_click_options(
             model_class: type[BaseModel],
-        ) -> FlextCore.Result[list[dict[str, object]]]:
+        ) -> FlextResult[list[dict[str, object]]]:
             """Generate Click option specifications from Pydantic model.
 
             Creates complete Click option definitions that can be used to
@@ -387,7 +387,7 @@ class FlextCliModels(FlextCore.Models):
                 model_class: Pydantic model class to convert
 
             Returns:
-                FlextCore.Result containing list of Click option specifications with:
+                FlextResult containing list of Click option specifications with:
                 - option_name: Full option name with dashes (e.g., '--field-name')
                 - param_decls: List of parameter declarations
                 - type: Click type object
@@ -402,7 +402,7 @@ class FlextCliModels(FlextCore.Models):
                     model_class
                 )
                 if params_result.is_failure:
-                    return FlextCore.Result[list[dict[str, object]]].fail(
+                    return FlextResult[list[dict[str, object]]].fail(
                         params_result.error
                     )
 
@@ -423,9 +423,9 @@ class FlextCliModels(FlextCore.Models):
 
                     click_options.append(click_option)
 
-                return FlextCore.Result[list[dict[str, object]]].ok(click_options)
+                return FlextResult[list[dict[str, object]]].ok(click_options)
             except Exception as e:
-                return FlextCore.Result[list[dict[str, object]]].fail(
+                return FlextResult[list[dict[str, object]]].fail(
                     f"Failed to generate Click options for {model_class.__name__}: {e}"
                 )
 
@@ -433,7 +433,7 @@ class FlextCliModels(FlextCore.Models):
         def cli_args_to_model(
             model_class: type[BaseModel],
             cli_args: dict[str, object],
-        ) -> FlextCore.Result[BaseModel]:
+        ) -> FlextResult[BaseModel]:
             """Convert CLI arguments dictionary to Pydantic model instance.
 
             Validates CLI input against model constraints and creates a validated
@@ -444,7 +444,7 @@ class FlextCliModels(FlextCore.Models):
                 cli_args: Dictionary of CLI argument name/value pairs
 
             Returns:
-                FlextCore.Result containing validated model instance
+                FlextResult containing validated model instance
 
             """
             try:
@@ -456,16 +456,16 @@ class FlextCliModels(FlextCore.Models):
                 # Create and validate model instance
                 model_instance = model_class(**model_args)
 
-                return FlextCore.Result[BaseModel].ok(model_instance)
+                return FlextResult[BaseModel].ok(model_instance)
             except Exception as e:
-                return FlextCore.Result[BaseModel].fail(
+                return FlextResult[BaseModel].fail(
                     f"Failed to create {model_class.__name__} from CLI args: {e}"
                 )
 
         @staticmethod
         def model_to_cli_dict(
             model_instance: BaseModel,
-        ) -> FlextCore.Result[dict[str, object]]:
+        ) -> FlextResult[dict[str, object]]:
             """Convert Pydantic model instance to CLI arguments dictionary.
 
             Useful for converting model instances back to CLI-compatible format
@@ -475,7 +475,7 @@ class FlextCliModels(FlextCore.Models):
                 model_instance: Pydantic model instance
 
             Returns:
-                FlextCore.Result containing dictionary with CLI-style argument names (dashes)
+                FlextResult containing dictionary with CLI-style argument names (dashes)
 
             """
             try:
@@ -487,9 +487,9 @@ class FlextCliModels(FlextCore.Models):
                     key.replace("_", "-"): value for key, value in model_dict.items()
                 }
 
-                return FlextCore.Result[dict[str, object]].ok(cli_dict)
+                return FlextResult[dict[str, object]].ok(cli_dict)
             except Exception as e:
-                return FlextCore.Result[dict[str, object]].fail(
+                return FlextResult[dict[str, object]].fail(
                     f"Failed to convert model to CLI dict: {e}"
                 )
 
@@ -497,7 +497,7 @@ class FlextCliModels(FlextCore.Models):
         def validate_cli_input(
             model_class: type[BaseModel],
             cli_args: dict[str, object],
-        ) -> FlextCore.Result[dict[str, object]]:
+        ) -> FlextResult[dict[str, object]]:
             """Validate CLI input against Pydantic model constraints.
 
             Performs validation without creating a model instance, returning
@@ -508,7 +508,7 @@ class FlextCliModels(FlextCore.Models):
                 cli_args: Dictionary of CLI argument name/value pairs
 
             Returns:
-                FlextCore.Result containing validated arguments dict or validation errors
+                FlextResult containing validated arguments dict or validation errors
 
             """
             try:
@@ -518,12 +518,12 @@ class FlextCliModels(FlextCore.Models):
                 )
 
                 if model_result.is_failure:
-                    return FlextCore.Result[dict[str, object]].fail(model_result.error)
+                    return FlextResult[dict[str, object]].fail(model_result.error)
 
                 # Return validated args
-                return FlextCore.Result[dict[str, object]].ok(cli_args)
+                return FlextResult[dict[str, object]].ok(cli_args)
             except Exception as e:
-                return FlextCore.Result[dict[str, object]].fail(
+                return FlextResult[dict[str, object]].fail(
                     f"CLI input validation failed: {e}"
                 )
 
@@ -532,7 +532,7 @@ class FlextCliModels(FlextCore.Models):
             model_class: type[BaseModel],
             command_name: str,
             command_help: str | None = None,
-        ) -> FlextCore.Result[dict[str, object]]:
+        ) -> FlextResult[dict[str, object]]:
             """Generate complete Click command specification from Pydantic model.
 
             Creates a comprehensive command specification that includes all metadata
@@ -544,7 +544,7 @@ class FlextCliModels(FlextCore.Models):
                 command_help: Help text for the command (defaults to model docstring)
 
             Returns:
-                FlextCore.Result containing complete command specification with:
+                FlextResult containing complete command specification with:
                 - name: Command name
                 - help: Command help text
                 - options: List of Click option specifications
@@ -559,9 +559,7 @@ class FlextCliModels(FlextCore.Models):
                     FlextCliModels.CliModelConverter.model_to_click_options(model_class)
                 )
                 if options_result.is_failure:
-                    return FlextCore.Result[dict[str, object]].fail(
-                        options_result.error
-                    )
+                    return FlextResult[dict[str, object]].fail(options_result.error)
 
                 options = options_result.unwrap()
 
@@ -588,9 +586,9 @@ class FlextCliModels(FlextCore.Models):
                     ],
                 }
 
-                return FlextCore.Result[dict[str, object]].ok(command_spec)
+                return FlextResult[dict[str, object]].ok(command_spec)
             except Exception as e:
-                return FlextCore.Result[dict[str, object]].fail(
+                return FlextResult[dict[str, object]].fail(
                     f"Failed to generate command spec for {command_name}: {e}"
                 )
 
@@ -636,8 +634,8 @@ class FlextCliModels(FlextCore.Models):
 
             def decorator(func: Callable[..., object]) -> Callable[..., object]:
                 # Store model metadata on function for CLI builder inspection
-                func.__cli_model__ = model_class
-                func.__cli_command_name__ = command_name or func.__name__
+                setattr(func, "__cli_model__", model_class)
+                setattr(func, "__cli_command_name__", command_name or func.__name__)
 
                 def wrapper(**cli_kwargs: object) -> object:
                     # Validate CLI input with Pydantic model
@@ -649,7 +647,7 @@ class FlextCliModels(FlextCore.Models):
 
                     if validation_result.is_failure:
                         # Return error result
-                        return FlextCore.Result[object].fail(
+                        return FlextResult[object].fail(
                             f"Invalid input: {validation_result.error}"
                         )
 
@@ -685,8 +683,8 @@ class FlextCliModels(FlextCore.Models):
 
             def decorator(func: Callable[..., object]) -> Callable[..., object]:
                 # Store multiple models metadata
-                func.__cli_models__ = model_classes
-                func.__cli_command_name__ = command_name or func.__name__
+                setattr(func, "__cli_models__", model_classes)
+                setattr(func, "__cli_command_name__", command_name or func.__name__)
 
                 def wrapper(**cli_kwargs: object) -> object:
                     validated_models: list[BaseModel] = []
@@ -700,7 +698,7 @@ class FlextCliModels(FlextCore.Models):
                         )
 
                         if validation_result.is_failure:
-                            return FlextCore.Result[object].fail(
+                            return FlextResult[object].fail(
                                 f"Validation failed for {model_class.__name__}: {validation_result.error}"
                             )
 
@@ -714,7 +712,7 @@ class FlextCliModels(FlextCore.Models):
             return decorator
 
     # Base classes for common functionality - using flext-core patterns
-    class _BaseEntity(FlextCore.Models.Entity, FlextCliMixins.ValidationMixin):
+    class BaseEntity(FlextCore.Models.Entity, FlextCliMixins.ValidationMixin):
         """Base entity with common fields for entities with id, timestamps, and status."""
 
         model_config = ConfigDict(
@@ -751,7 +749,7 @@ class FlextCliModels(FlextCore.Models):
             """Update the updated_at timestamp."""
             self.updated_at = datetime.now(UTC)
 
-    class _BaseValidatedModel(
+    class BaseValidatedModel(
         FlextCore.Models.StrictArbitraryTypesModel, FlextCliMixins.ValidationMixin
     ):
         """Base model with common validation patterns."""
@@ -761,7 +759,7 @@ class FlextCliModels(FlextCore.Models):
             """Computed field returning the model type name."""
             return self.__class__.__name__
 
-    class _BaseConfig(_BaseValidatedModel):
+    class BaseConfig(BaseValidatedModel):
         """Base configuration model with common config validation patterns."""
 
         @model_validator(mode="after")
@@ -770,7 +768,7 @@ class FlextCliModels(FlextCore.Models):
             # Base validation for all config models
             return self
 
-    class CliCommand(_BaseEntity, FlextCliMixins.BusinessRulesMixin):
+    class CliCommand(BaseEntity, FlextCliMixins.BusinessRulesMixin):
         """CLI command model extending _BaseEntity."""
 
         command_line: str = Field(min_length=1)
@@ -841,25 +839,25 @@ class FlextCliModels(FlextCore.Models):
         @classmethod
         def validate_command_input(
             cls, data: FlextCliTypes.Data.CliCommandData | None
-        ) -> FlextCore.Result[FlextCliTypes.Data.CliCommandData | None]:
+        ) -> FlextResult[FlextCliTypes.Data.CliCommandData | None]:
             """Validate and normalize command input data using railway pattern.
 
             Args:
                 data: Command input data to validate
 
             Returns:
-                FlextCore.Result with validated and normalized data
+                FlextResult with validated and normalized data
 
             """
             # Extract command from data - ensure it's a string
             if not isinstance(data, dict):
-                return FlextCore.Result[FlextCliTypes.Data.CliCommandData | None].fail(
+                return FlextResult[FlextCliTypes.Data.CliCommandData | None].fail(
                     "Command data must be a dictionary"
                 )
 
             command = data.pop("command")
             if not isinstance(command, str):
-                return FlextCore.Result[FlextCliTypes.Data.CliCommandData | None].fail(
+                return FlextResult[FlextCliTypes.Data.CliCommandData | None].fail(
                     "Command must be a string"
                 )
 
@@ -870,7 +868,7 @@ class FlextCliModels(FlextCore.Models):
                 **{k: v for k, v in data.items() if k != "command"},
             }
 
-            return FlextCore.Result[FlextCliTypes.Data.CliCommandData | None].ok(
+            return FlextResult[FlextCliTypes.Data.CliCommandData | None].ok(
                 normalized_data
             )
 
@@ -886,7 +884,7 @@ class FlextCliModels(FlextCore.Models):
             # Pydantic will automatically convert types as needed
             super().__init__(**data)
 
-        def validate_business_rules(self) -> FlextCore.Result[None]:
+        def validate_business_rules(self) -> FlextResult[None]:
             """Validate command business rules."""
             # Use mixin validation methods
             command_result = FlextCliMixins.ValidationMixin.validate_not_empty(
@@ -899,9 +897,9 @@ class FlextCliModels(FlextCore.Models):
             if not status_result.is_success:
                 return status_result
 
-            return FlextCore.Result[None].ok(None)
+            return FlextResult[None].ok(None)
 
-        def start_execution(self) -> FlextCore.Result[None]:
+        def start_execution(self) -> FlextResult[None]:
             """Start command execution."""
             state_result = (
                 FlextCliMixins.BusinessRulesMixin.validate_command_execution_state(
@@ -914,11 +912,11 @@ class FlextCliModels(FlextCore.Models):
                 return state_result
 
             self.status = FlextCliConstants.CommandStatus.RUNNING.value
-            return FlextCore.Result[None].ok(None)
+            return FlextResult[None].ok(None)
 
         def complete_execution(
             self, exit_code: int, output: str = ""
-        ) -> FlextCore.Result[None]:
+        ) -> FlextResult[None]:
             """Complete command execution."""
             state_result = (
                 FlextCliMixins.BusinessRulesMixin.validate_command_execution_state(
@@ -933,9 +931,9 @@ class FlextCliModels(FlextCore.Models):
             self.exit_code = exit_code
             self.output = output
             self.status = FlextCliConstants.CommandStatus.COMPLETED.value
-            return FlextCore.Result[None].ok(None)
+            return FlextResult[None].ok(None)
 
-    class DebugInfo(_BaseValidatedModel):
+    class DebugInfo(BaseValidatedModel):
         """Debug information model extending _BaseValidatedModel."""
 
         service: str = Field(default="FlextCliDebug")
@@ -988,7 +986,7 @@ class FlextCliModels(FlextCore.Models):
                 for k, v in value.items()
             }
 
-        def validate_business_rules(self) -> FlextCore.Result[None]:
+        def validate_business_rules(self) -> FlextResult[None]:
             """Validate debug info business rules."""
             # Use mixin validation methods
             service_result = FlextCliMixins.ValidationMixin.validate_not_empty(
@@ -1005,7 +1003,7 @@ class FlextCliModels(FlextCore.Models):
             if not level_result.is_success:
                 return level_result
 
-            return FlextCore.Result[None].ok(None)
+            return FlextResult[None].ok(None)
 
     class CliSession(
         FlextCore.Models.Entity,
@@ -1160,7 +1158,7 @@ class FlextCliModels(FlextCore.Models):
             if session_id is not None:
                 self.session_id = session_id
 
-        def validate_business_rules(self) -> FlextCore.Result[None]:
+        def validate_business_rules(self) -> FlextResult[None]:
             """Validate session business rules."""
             # Use mixin validation methods
             session_id_result = FlextCliMixins.ValidationMixin.validate_not_empty(
@@ -1171,7 +1169,7 @@ class FlextCliModels(FlextCore.Models):
 
             # Validate user_id if provided
             if self.user_id is not None and not self.user_id.strip():
-                return FlextCore.Result[None].fail(
+                return FlextResult[None].fail(
                     FlextCliConstants.ErrorMessages.USER_ID_EMPTY
                 )
 
@@ -1182,18 +1180,16 @@ class FlextCliModels(FlextCore.Models):
             if not status_result.is_success:
                 return status_result
 
-            return FlextCore.Result[None].ok(None)
+            return FlextResult[None].ok(None)
 
-        def add_command(
-            self, command: FlextCliModels.CliCommand
-        ) -> FlextCore.Result[None]:
+        def add_command(self, command: FlextCliModels.CliCommand) -> FlextResult[None]:
             """Add a command to the session.
 
             Args:
                 command: Command to add to the session
 
             Returns:
-                FlextCore.Result[None]: Success if command added, failure otherwise
+                FlextResult[None]: Success if command added, failure otherwise
 
             """
             try:
@@ -1203,11 +1199,9 @@ class FlextCliModels(FlextCore.Models):
                 # Update commands executed count
                 self.commands_executed = len(self.commands)
 
-                return FlextCore.Result[None].ok(None)
+                return FlextResult[None].ok(None)
             except Exception as e:
-                return FlextCore.Result[None].fail(
-                    f"Failed to add command to session: {e}"
-                )
+                return FlextResult[None].fail(f"Failed to add command to session: {e}")
 
     # REMOVED: Unused models CliFormatters and CliPipeline
     # These models were not used anywhere in the codebase
@@ -1265,7 +1259,7 @@ class FlextCliModels(FlextCore.Models):
 
         Manages CLI execution context with enhanced type safety using FlextCliTypes
         instead of generic FlextCore.Types types. Provides CLI-specific context with domain types
-        and uses FlextCore.Result railway pattern for all operations.
+        and uses FlextResult railway pattern for all operations.
 
         CRITICAL: Moved from context.py to follow FLEXT standards requiring
         ALL models to be declared only in FlextCliModels class.
@@ -1396,129 +1390,115 @@ class FlextCliModels(FlextCore.Models):
             """Check if context is currently active."""
             return self._is_active
 
-        def activate(self) -> FlextCore.Result[None]:
+        def activate(self) -> FlextResult[None]:
             """Activate CLI context for execution."""
             try:
                 if self._is_active:
-                    return FlextCore.Result[None].fail("Context is already active")
+                    return FlextResult[None].fail("Context is already active")
 
                 self._is_active = True
-                return FlextCore.Result[None].ok(None)
+                return FlextResult[None].ok(None)
             except Exception as e:
-                return FlextCore.Result[None].fail(f"Context activation failed: {e}")
+                return FlextResult[None].fail(f"Context activation failed: {e}")
 
-        def deactivate(self) -> FlextCore.Result[None]:
+        def deactivate(self) -> FlextResult[None]:
             """Deactivate CLI context."""
             try:
                 if not self._is_active:
-                    return FlextCore.Result[None].fail(
-                        "Context is not currently active"
-                    )
+                    return FlextResult[None].fail("Context is not currently active")
 
                 self._is_active = False
-                return FlextCore.Result[None].ok(None)
+                return FlextResult[None].ok(None)
             except Exception as e:
-                return FlextCore.Result[None].fail(f"Context deactivation failed: {e}")
+                return FlextResult[None].fail(f"Context deactivation failed: {e}")
 
-        def get_environment_variable(self, name: str) -> FlextCore.Result[str]:
+        def get_environment_variable(self, name: str) -> FlextResult[str]:
             """Get specific environment variable value."""
             if not name or not isinstance(name, str):
-                return FlextCore.Result[str].fail(
-                    "Variable name must be a non-empty string"
-                )
+                return FlextResult[str].fail("Variable name must be a non-empty string")
 
             try:
                 if name in self._environment_variables:
                     value = self._environment_variables[name]
-                    return FlextCore.Result[str].ok(str(value))
-                return FlextCore.Result[str].fail(
-                    f"Environment variable '{name}' not found"
-                )
+                    return FlextResult[str].ok(str(value))
+                return FlextResult[str].fail(f"Environment variable '{name}' not found")
             except Exception as e:
-                return FlextCore.Result[str].fail(
+                return FlextResult[str].fail(
                     f"Environment variable retrieval failed: {e}"
                 )
 
-        def set_environment_variable(
-            self, name: str, value: str
-        ) -> FlextCore.Result[None]:
+        def set_environment_variable(self, name: str, value: str) -> FlextResult[None]:
             """Set environment variable value."""
             if not name or not isinstance(name, str):
-                return FlextCore.Result[None].fail(
+                return FlextResult[None].fail(
                     "Variable name must be a non-empty string"
                 )
 
             if not isinstance(value, str):
-                return FlextCore.Result[None].fail("Variable value must be a string")
+                return FlextResult[None].fail("Variable value must be a string")
 
             try:
                 self._environment_variables[name] = value
-                return FlextCore.Result[None].ok(None)
+                return FlextResult[None].ok(None)
             except Exception as e:
-                return FlextCore.Result[None].fail(
+                return FlextResult[None].fail(
                     f"Environment variable setting failed: {e}"
                 )
 
-        def add_argument(self, argument: str) -> FlextCore.Result[None]:
+        def add_argument(self, argument: str) -> FlextResult[None]:
             """Add command line argument."""
             if not argument or not isinstance(argument, str):
-                return FlextCore.Result[None].fail(
-                    "Argument must be a non-empty string"
-                )
+                return FlextResult[None].fail("Argument must be a non-empty string")
 
             try:
                 self._arguments.append(argument)
-                return FlextCore.Result[None].ok(None)
+                return FlextResult[None].ok(None)
             except Exception as e:
-                return FlextCore.Result[None].fail(f"Argument addition failed: {e}")
+                return FlextResult[None].fail(f"Argument addition failed: {e}")
 
-        def remove_argument(self, argument: str) -> FlextCore.Result[None]:
+        def remove_argument(self, argument: str) -> FlextResult[None]:
             """Remove command line argument."""
             if not argument or not isinstance(argument, str):
-                return FlextCore.Result[None].fail(
-                    "Argument must be a non-empty string"
-                )
+                return FlextResult[None].fail("Argument must be a non-empty string")
 
             try:
                 if argument in self._arguments:
                     self._arguments.remove(argument)
-                    return FlextCore.Result[None].ok(None)
-                return FlextCore.Result[None].fail(f"Argument '{argument}' not found")
+                    return FlextResult[None].ok(None)
+                return FlextResult[None].fail(f"Argument '{argument}' not found")
             except Exception as e:
-                return FlextCore.Result[None].fail(f"Argument removal failed: {e}")
+                return FlextResult[None].fail(f"Argument removal failed: {e}")
 
         def set_metadata(
             self, key: str, value: FlextCore.Types.JsonValue
-        ) -> FlextCore.Result[None]:
+        ) -> FlextResult[None]:
             """Set context metadata using CLI-specific data types."""
             if not key or not isinstance(key, str):
-                return FlextCore.Result[None].fail(
-                    "Metadata key must be a non-empty string"
-                )
+                return FlextResult[None].fail("Metadata key must be a non-empty string")
 
             try:
                 self._context_metadata[key] = value
-                return FlextCore.Result[None].ok(None)
+                return FlextResult[None].ok(None)
             except Exception as e:
-                return FlextCore.Result[None].fail(f"Metadata setting failed: {e}")
+                return FlextResult[None].fail(f"Metadata setting failed: {e}")
 
-        def get_metadata(self, key: str) -> FlextCore.Result[object]:
+        def get_metadata(self, key: str) -> FlextResult[object]:
             """Get context metadata value."""
             if not key or not isinstance(key, str):
-                return FlextCore.Result[object].fail(
+                return FlextResult[object].fail(
                     "Metadata key must be a non-empty string"
                 )
 
             try:
                 if key in self._context_metadata:
-                    return FlextCore.Result[object].ok(self._context_metadata[key])
-                return FlextCore.Result[object].fail(f"Metadata key '{key}' not found")
+                    return FlextResult[object].ok(self._context_metadata[key])
+                return FlextResult[object].fail(f"Metadata key '{key}' not found")
             except Exception as e:
-                return FlextCore.Result[object].fail(f"Metadata retrieval failed: {e}")
+                return FlextResult[object].fail(f"Metadata retrieval failed: {e}")
 
         def get_context_summary(
             self,
-        ) -> FlextCore.Result[FlextCliTypes.Data.CliDataDict]:
+        ) -> FlextResult[FlextCliTypes.Data.CliDataDict]:
             """Get comprehensive context summary using CLI-specific data types."""
             try:
                 summary: FlextCliTypes.Data.CliDataDict = {
@@ -1534,23 +1514,23 @@ class FlextCliModels(FlextCore.Models):
                     "metadata_count": len(self._context_metadata),
                 }
 
-                return FlextCore.Result[FlextCliTypes.Data.CliDataDict].ok(summary)
+                return FlextResult[FlextCliTypes.Data.CliDataDict].ok(summary)
             except Exception as e:
-                return FlextCore.Result[FlextCliTypes.Data.CliDataDict].fail(
+                return FlextResult[FlextCliTypes.Data.CliDataDict].fail(
                     f"Context summary generation failed: {e}",
                 )
 
-        def execute(self) -> FlextCore.Result[FlextCore.Types.Dict]:
+        def execute(self) -> FlextResult[FlextCore.Types.Dict]:
             """Execute the CLI context."""
             try:
-                return FlextCore.Result[FlextCore.Types.Dict].ok({
+                return FlextResult[FlextCore.Types.Dict].ok({
                     "context_executed": True,
                     "command": self._command,
                     "arguments_count": len(self._arguments) if self._arguments else 0,
                     "timestamp": FlextCore.Utilities.Generators.generate_timestamp(),
                 })
             except Exception as e:
-                return FlextCore.Result[FlextCore.Types.Dict].fail(
+                return FlextResult[FlextCore.Types.Dict].fail(
                     f"Context execution failed: {e}"
                 )
 
@@ -1602,9 +1582,9 @@ try:
     FlextCore.Models.Entity.model_rebuild(_types_namespace=_namespace)
 
     # 2. Rebuild FlextCliModels base classes that extend FlextCore
-    FlextCliModels._BaseEntity.model_rebuild(_types_namespace=_namespace)  # type: ignore[attr-defined]  # noqa: SLF001
-    FlextCliModels._BaseValidatedModel.model_rebuild(_types_namespace=_namespace)  # type: ignore[attr-defined]  # noqa: SLF001
-    FlextCliModels._BaseConfig.model_rebuild(_types_namespace=_namespace)  # type: ignore[attr-defined]  # noqa: SLF001
+    FlextCliModels.BaseEntity.model_rebuild(_types_namespace=_namespace)
+    FlextCliModels.BaseValidatedModel.model_rebuild(_types_namespace=_namespace)
+    FlextCliModels.BaseConfig.model_rebuild(_types_namespace=_namespace)
 
     # 3. Finally rebuild all nested CLI models that depend on base classes
     FlextCliModels.CliCommand.model_rebuild(_types_namespace=_namespace)

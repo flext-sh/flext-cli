@@ -43,6 +43,7 @@ class ComprehensiveCliApplication:
         self.container = FlextContainer.get_global()
         self.api_client = FlextCli()
         self.cli_api = FlextCli()
+        self.cli = self.cli_api  # Alias for convenience
 
         # Application state
         self.current_session = None
@@ -300,9 +301,7 @@ python = "^3.13"
         if not url:
             return FlextResult[None].fail("Service URL is required")
 
-        self.cli.output.print_message(
-            f"Checking health of service: {url}", message_type="info"
-        )
+        self.cli.output.print_message(f"Checking health of service: {url}")
 
         # Simulate health check (in real implementation, would make HTTP request)
         health_status = "healthy"
@@ -344,9 +343,7 @@ python = "^3.13"
         output = kwargs.get("output")
 
         if not profile and not output:
-            self.cli.output.print_message(
-                "No configuration changes specified", message_type="warning"
-            )
+            self.cli.output.print_warning("No configuration changes specified")
             return FlextResult[None].ok(None)
 
         changes: FlextTypes.StringList = []
@@ -359,17 +356,16 @@ python = "^3.13"
             self.user_preferences["default_output_format"] = output
             changes.append(f"Output format: {output}")
 
-        self.cli.output.print_message("Configuration updated", message_type="success")
+        self.cli.output.print_success("Configuration updated")
         for change in changes:
-            self.cli.output.print_message(f"  • {change}", message_type="info")
+            self.cli.output.print_message(f"  • {change}")
 
         return FlextResult[None].ok(None)
 
     def _handle_interactive_wizard(self, **_kwargs: object) -> FlextResult[None]:
         """Handle interactive setup wizard."""
         self.cli.output.print_message(
-            "This wizard will guide you through CLI configuration...",
-            message_type="info",
+            "This wizard will guide you through CLI configuration..."
         )
 
         # In a real implementation, would use flext-cli interactive features
@@ -385,9 +381,7 @@ python = "^3.13"
         self.cli.output.print_message("Wizard config: " + str(wizard_config))
 
         self.user_preferences.update(wizard_config)
-        self.cli.output.print_message(
-            "Configuration saved successfully!", message_type="success"
-        )
+        self.cli.output.print_success("Configuration saved successfully!")
 
         return FlextResult[None].ok(None)
 
@@ -401,17 +395,13 @@ def main() -> None:
         # Initialize application
         init_result = app.initialize_application()
         if init_result.is_failure:
-            app.cli.output.print_message(
-                f"Initialization failed: {init_result.error}", message_type="error"
-            )
+            app.cli.output.print_error(f"Initialization failed: {init_result.error}")
             sys.exit(1)
 
         # Create CLI interface
         cli_result = app.create_cli_interface()
         if cli_result.is_failure:
-            app.cli.output.print_message(
-                f"CLI creation failed: {cli_result.error}", message_type="error"
-            )
+            app.cli.output.print_error(f"CLI creation failed: {cli_result.error}")
             sys.exit(1)
 
         # Run CLI
@@ -419,8 +409,8 @@ def main() -> None:
         execution_result = cli_main.execute()
 
         if execution_result.is_failure:
-            app.cli.output.print_message(
-                f"CLI execution failed: {execution_result.error}", message_type="error"
+            app.cli.output.print_error(
+                f"CLI execution failed: {execution_result.error}"
             )
             sys.exit(1)
 

@@ -43,7 +43,7 @@ def demonstrate_complete_workflow() -> FlextResult[dict]:
         tmp_path = tmp_file.name
 
     try:
-        cli.file_tools.write_json(tmp_path, cast("object", test_data))
+        cli.file_tools.write_json(test_data, tmp_path)
 
         # Read with auto-validation
         read_result = cli.file_tools.read_json(tmp_path)
@@ -82,8 +82,8 @@ def demonstrate_railway_pattern() -> None:
         # Chain operations with automatic error propagation
         result = (
             cli.file_tools.read_json(tmp_path)
-            .map(lambda d: {**d, "processed": True})
-            .map(lambda d: {**d, "validated": True})
+            .map(lambda d: dict(**(d if isinstance(d, dict) else {}), processed=True))
+            .map(lambda d: dict(**(d if isinstance(d, dict) else {}), validated=True))
         )
 
         if result.is_success:
