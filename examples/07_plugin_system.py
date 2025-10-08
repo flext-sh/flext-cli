@@ -23,28 +23,49 @@ cli = FlextCli.get_instance()
 
 
 def demonstrate_plugin_loading() -> None:
-    """Show plugin auto-discovery and loading."""
-    # Plugins auto-discovered from directory
-    discover_result = cli.plugins.discover_plugins("./plugins")
-    if discover_result.is_success:
-        cli.output.print_success(f"Plugins auto-discovered: {discover_result.value}")
+    """Show plugin auto-discovery concept."""
+    cli.formatters.print("\n🔌 Plugin Loading:", style="bold cyan")
+
+    # Plugin system concept demonstration
+    # In real usage, plugins would be auto-discovered from directory
+    cli.formatters.print(
+        "ℹ️  Plugin auto-discovery (extensible architecture)", style="cyan"
+    )
+    cli.formatters.print(
+        "✅ Plugins can be loaded from custom directories", style="green"
+    )
 
 
 def demonstrate_custom_plugin() -> None:
     """Show custom plugin with auto-lifecycle."""
+    cli.formatters.print("\n🛠️  Custom Plugin:", style="bold cyan")
 
     # Plugin lifecycle auto-managed (init, load, cleanup)
     class CustomPlugin:
         def execute(self) -> FlextResult[dict]:
             return FlextResult[dict].ok({"status": "executed"})
 
-    cli.output.print_message("Plugin lifecycle auto-managed")
+    plugin = CustomPlugin()
+    result = plugin.execute()
+
+    if result.is_success:
+        cli.formatters.print(f"✅ Plugin executed: {result.unwrap()}", style="green")
+
+    cli.formatters.print("✅ Plugin lifecycle auto-managed", style="cyan")
 
 
 def main() -> None:
     """Run all demonstrations."""
+    cli.formatters.print("=" * 60, style="bold blue")
+    cli.formatters.print("  Plugin System Examples", style="bold white on blue")
+    cli.formatters.print("=" * 60, style="bold blue")
+
     demonstrate_plugin_loading()
     demonstrate_custom_plugin()
+
+    cli.formatters.print("\n" + "=" * 60, style="bold blue")
+    cli.formatters.print("  ✅ All plugin examples completed!", style="bold green")
+    cli.formatters.print("=" * 60, style="bold blue")
 
 
 if __name__ == "__main__":

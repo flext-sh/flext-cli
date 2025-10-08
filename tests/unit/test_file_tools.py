@@ -49,8 +49,8 @@ class TestFlextCliFileTools:
         assert result.is_success
 
         data = result.unwrap()
-        assert isinstance(data, bool)
-        assert data is True
+        assert isinstance(data, dict)
+        assert data.get("status") == "ready"
 
     # ========================================================================
     # BASIC FILE OPERATIONS
@@ -840,8 +840,8 @@ class TestFlextCliFileTools:
         assert result.is_success
 
         data = result.unwrap()
-        assert isinstance(data, bool)
-        assert data is True
+        assert isinstance(data, dict)
+        assert data.get("status") == "ready"
 
     # ========================================================================
     # ADDITIONAL COVERAGE TESTS

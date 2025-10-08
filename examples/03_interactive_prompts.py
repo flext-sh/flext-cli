@@ -20,7 +20,7 @@ def demonstrate_basic_prompts() -> None:
     """Basic prompts - auto-configured for terminal."""
     # Prompts auto-detect terminal capabilities
     # Example: cli.prompts.confirm("Continue?", default=True)
-    cli.output.print_message("Prompts auto-configured for terminal")
+    cli.formatters.print("✅ Prompts auto-configured for terminal", style="cyan")
 
 
 def demonstrate_validation() -> None:
@@ -31,9 +31,15 @@ def demonstrate_validation() -> None:
             return FlextResult[str].fail("Invalid email")
         return FlextResult[str].ok(email)
 
+    cli.formatters.print("\n🔍 Email Validation:", style="bold cyan")
+
     result = validate_email("user@example.com")
     if result.is_success:
-        cli.output.print_success(f"Valid: {result.value}")
+        cli.formatters.print(f"✅ Valid: {result.unwrap()}", style="green")
+
+    result_invalid = validate_email("invalid-email")
+    if result_invalid.is_failure:
+        cli.formatters.print(f"❌ Invalid: {result_invalid.error}", style="red")
 
 
 def demonstrate_interactive_workflow() -> None:
@@ -42,15 +48,23 @@ def demonstrate_interactive_workflow() -> None:
     # name = cli.prompts.prompt("Project name:")
     # env = cli.prompts.select("Environment:", choices=["dev", "prod"])
     # if cli.prompts.confirm(f"Create {name}?"):
-    #     cli.output.print_success(f"Creating {name} in {env}")
-    cli.output.print_message("Interactive workflows auto-configured")
+    #     cli.formatters.print(f"Creating {name} in {env}", style="green")
+    cli.formatters.print("\n🔄 Interactive workflows auto-configured", style="cyan")
 
 
 def main() -> None:
     """Run all demonstrations."""
+    cli.formatters.print("=" * 60, style="bold blue")
+    cli.formatters.print("  Interactive Prompts Examples", style="bold white on blue")
+    cli.formatters.print("=" * 60, style="bold blue")
+
     demonstrate_basic_prompts()
     demonstrate_validation()
     demonstrate_interactive_workflow()
+
+    cli.formatters.print("\n" + "=" * 60, style="bold blue")
+    cli.formatters.print("  ✅ All prompt examples completed!", style="bold green")
+    cli.formatters.print("=" * 60, style="bold blue")
 
 
 if __name__ == "__main__":

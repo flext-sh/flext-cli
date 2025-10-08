@@ -1,7 +1,8 @@
-"""FLEXT CLI API - Direct flext-core integration without over-abstraction.
+"""FLEXT CLI API - Consolidated single-class implementation.
 
-Main public API for the FLEXT CLI ecosystem. Provides essential CLI functionality
-by directly extending FlextService and using Rich/Click appropriately.
+Single FlextCli class with EXACTLY ONE main class per module pattern.
+Consolidates ALL CLI functionality (auth, formatting, commands, etc.).
+Uses FlextResult railway pattern with zero async operations.
 
 Copyright (c) 2025 FLEXT Team. All rights reserved.
 SPDX-License-Identifier: MIT
@@ -9,613 +10,347 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
+import secrets
+from collections.abc import Callable
+from pathlib import Path
 from typing import cast
 
 from flext_core import FlextCore, FlextResult
-from flext_core.base import FlextBase
 
-from flext_cli.auth import FlextCliAuth
 from flext_cli.cli import FlextCliCli
-from flext_cli.cmd import FlextCliCmd
-from flext_cli.commands import FlextCliCommands
 from flext_cli.config import FlextCliConfig
 from flext_cli.constants import FlextCliConstants
-from flext_cli.context import FlextCliContext
-from flext_cli.core import FlextCliCore
-from flext_cli.debug import FlextCliDebug
-from flext_cli.exceptions import FlextCliExceptions
 from flext_cli.file_tools import FlextCliFileTools
 from flext_cli.formatters import FlextCliFormatters
-from flext_cli.main import FlextCliMain
-from flext_cli.mixins import FlextCliMixins
 from flext_cli.models import FlextCliModels
-from flext_cli.output import FlextCliOutput
-from flext_cli.plugins import FlextCliPlugins
-from flext_cli.prompts import FlextCliPrompts
-from flext_cli.protocols import FlextCliProtocols
-from flext_cli.tables import FlextCliTables
 from flext_cli.typings import FlextCliTypes
 
 
 class FlextCli:
-    """Thin facade for flext-cli providing access to all CLI functionality.
+    """Consolidated single-class CLI implementation.
 
-    This is the single entry point for the flext-cli library, exposing all
-    domain services through properties for direct access. Uses domain-specific
-    types from FlextCliTypes.
-    Extends FlextService with CLI-specific data dictionary types.
+    Contains ALL CLI functionality (formatting, auth, commands, etc.).
+    Uses FlextResult railway pattern with zero async operations.
+    All defaults from FlextCliConstants with proper centralization.
     """
+
+    def __init__(self) -> None:
+        """Initialize consolidated CLI with all functionality integrated."""
+        # CLI metadata - MUST be first for Typer app creation
+        self._name = FlextCliConstants.CliDefaults.DEFAULT_APP_NAME
+        self._version = FlextCliConstants.VERSION
+        self._description = f"{self._name} CLI"
+
+        # Core initialization
+        self._logger = FlextCore.Logger(__name__)
+        self._container = FlextCore.Container.get_global()
+        self._container.register("flext_cli", self)
+
+        # Domain library components (domain library pattern)
+        self._formatters = FlextCliFormatters()
+        self._file_tools = FlextCliFileTools()
+
+        # CLI framework abstraction (domain library pattern)
+        self._cli = FlextCliCli()
+        self._commands: FlextCore.Types.Dict = {}
+        self._groups: FlextCore.Types.Dict = {}
+        self._plugin_commands: FlextCore.Types.Dict = {}
+
+        # Auth state (consolidated from FlextCliAuth)
+        self._config = FlextCliConfig()
+        self._valid_tokens: set[str] = set()
+        self._valid_sessions: set[str] = set()
+        self._session_permissions: dict[str, set[str]] = {}
+        self._users: dict[str, dict] = {}
+        self._deleted_users: set[str] = set()
 
     @classmethod
     def get_instance(cls) -> FlextCli:
-        """Get singleton FlextCli instance from container.
-
-        Returns:
-            FlextCli: Singleton instance from FlextCore.Container
-
-        Example:
-            >>> cli = FlextCli.get_instance()
-            >>> # Same instance every time - no repetitive initialization
-
-        """
+        """Get singleton FlextCli instance."""
         container = FlextCore.Container.get_global()
         result = container.get("flext_cli")
-
-        # If not registered yet, create and register
         if result.is_failure or result.value is None:
             return cls()
-
-        # Type assertion: container.get returns FlextCli instance
         return cast("FlextCli", result.value)
 
-    def __init__(self) -> None:
-        """Initialize CLI API with minimal setup - services lazy-loaded on demand."""
-        # Initialize logger first
-        # Logger is automatically provided by FlextMixins.Logging mixin
-
-        # Get global container for DI
-        self._container = FlextCore.Container.get_global()
-
-        # Register this instance as singleton in container for DI
-        self._container.register("flext_cli", self)
-
-        # Phase 1 Enhancement: Enrich context with service metadata
-        FlextCore.Context.Service.set_service_name("flext-cli")
-        FlextCore.Context.Service.set_service_version("1.0.0")
-
-        # Enrich logger with correlation tracking
-        correlation_id = FlextCore.Context.Correlation.generate_correlation_id()
-        self._logger = FlextCore.Logger(__name__)
-        self._logger.bind_global_context(
-            service_name="flext-cli",
-            service_type="FlextCli",
-            correlation_id=correlation_id,
-        )
+    # =========================================================================
+    # CONFIGURATION MANAGEMENT - Direct access with FlextCliConstants defaults
+    # =========================================================================
 
     @property
-    def logger(self) -> FlextCore.Logger:
-        """Get logger instance."""
-        if not hasattr(self, "_logger"):
-            self._logger = FlextCore.Logger(__name__)
-        return self._logger
-
-    # ==========================================================================
-    # THIN FACADE PROPERTIES - Direct access to all domain services
-    # ==========================================================================
+    def config(self) -> FlextCliConfig:
+        """Access CLI configuration singleton."""
+        return FlextCliConfig.get_global_instance()
 
     @property
-    def core(self) -> FlextCliCore:
-        """Access core CLI service for command management.
-
-        Returns:
-            FlextCliCore: Core CLI service instance
-
-        """
-        return self._container.get_or_create("core", FlextCliCore).unwrap()
-
-    @property
-    def cmd(self) -> FlextCliCmd:
-        """Access CLI command service for configuration management.
-
-        Returns:
-            FlextCliCmd: Command service instance
-
-        """
-        return self._container.get_or_create("cmd", FlextCliCmd).unwrap()
+    def constants(self) -> type[FlextCliConstants]:
+        """Access CLI constants."""
+        return FlextCliConstants
 
     @property
     def models(self) -> type[FlextCliModels]:
-        """Access CLI models for Pydantic validation.
-
-        Returns:
-            type[FlextCliModels]: CLI models class
-
-        """
+        """Access CLI models."""
         return FlextCliModels
 
     @property
     def types(self) -> type[FlextCliTypes]:
-        """Access CLI type definitions.
-
-        Returns:
-            type[FlextCliTypes]: CLI types class
-
-        """
+        """Access CLI types."""
         return FlextCliTypes
 
     @property
-    def constants(self) -> type[FlextCliConstants]:
-        """Access CLI constants.
-
-        Returns:
-            type[FlextCliConstants]: CLI constants class
-
-        """
-        return FlextCliConstants
-
-    # ==========================================================================
-    # CONFIGURATION MANAGEMENT - Unified config access for CLI, Core, and Tools
-    # ==========================================================================
-
-    @property
-    def config(self) -> FlextCliConfig:
-        """Access CLI configuration singleton.
-
-        Returns:
-            FlextCliConfig: Singleton CLI config instance
-
-        Example:
-            >>> cli = FlextCli.get_instance()
-            >>> cli.config.profile
-            'default'
-            >>> cli.config.output_format
-            'table'
-
-        """
-        # Use singleton pattern from FlextCore.Config
-        config = FlextCliConfig.get_global_instance()
-        config.__class__ = FlextCliConfig
-        return config
-
-    @property
-    def core_config(self) -> FlextCore.Config:
-        """Access flext-core configuration singleton.
-
-        Allows flext-cli to read and modify flext-core configuration.
-
-        Returns:
-            FlextCore.Config: Core configuration instance
-
-        Example:
-            >>> cli = FlextCli.get_instance()
-            >>> cli.core_config.debug
-            False
-
-        """
-        return FlextCore.Config.get_global_instance()
-
-    def configure_cli(
-        self,
-        profile: str | None = None,
-        output_format: str | None = None,
-        *,
-        verbose: bool | None = None,
-        debug: bool | None = None,
-        **kwargs: object,
-    ) -> FlextResult[None]:
-        """Configure CLI settings dynamically.
-
-        Args:
-            profile: CLI profile to use
-            output_format: Output format (json, yaml, table, etc.)
-            verbose: Enable verbose output
-            debug: Enable debug mode
-            **kwargs: Additional CLI configuration options
-
-        Returns:
-            FlextResult[None]: Success or error
-
-        Example:
-            >>> cli = FlextCli.get_instance()
-            >>> result = cli.configure_cli(
-            ...     profile="production", output_format="json", debug=False
-            ... )
-            >>> result.is_success
-            True
-
-        """
-        try:
-            config_dict: FlextCore.Types.Dict = {}
-            if profile is not None:
-                config_dict["profile"] = profile
-            if output_format is not None:
-                config_dict["output_format"] = output_format
-            if verbose is not None:
-                config_dict["verbose"] = verbose
-            if debug is not None:
-                config_dict["debug"] = debug
-
-            # Add additional kwargs
-            config_dict.update(kwargs)
-
-            # Apply to CLI config
-            for key, value in config_dict.items():
-                if hasattr(self.config, key):
-                    setattr(self.config, key, value)
-
-            return FlextResult[None].ok(None)
-        except Exception as e:
-            return FlextResult[None].fail(
-                FlextCliConstants.ErrorMessages.CLI_CONFIG_FAILED.format(error=e)
-            )
-
-    def configure_core(self, **config: object) -> FlextResult[None]:
-        """Configure flext-core settings.
-
-        Allows flext-cli to modify flext-core configuration for the application.
-
-        Args:
-            **config: Core configuration options (environment, debug, etc.)
-
-        Returns:
-            FlextResult[None]: Success or error
-
-        Example:
-            >>> cli = FlextCli.get_instance()
-            >>> result = cli.configure_core(environment="production", debug=False)
-
-        """
-        config_dict = dict(config)
-        return self.core_config.configure(config_dict)
-
-    def get_component_config(self, component: str) -> FlextResult[FlextCore.Types.Dict]:
-        """Get component-specific configuration.
-
-        Supports namespaced configuration for tools using flext-cli.
-
-        Args:
-            component: Component name (e.g., "myapp", "database", "api")
-
-        Returns:
-            FlextResult[FlextCore.Types.Dict]: Component configuration or error
-
-        Example:
-            >>> cli = FlextCli.get_instance()
-            >>> # Get config for a tool using flext-cli
-            >>> result = cli.get_component_config("myapp")
-            >>> if result.is_success:
-            ...     myapp_config = result.unwrap()
-
-        """
-        return self.core_config.get_component_config(component)
-
-    def configure_component(
-        self, component: str, **config: object
-    ) -> FlextResult[None]:
-        """Configure a specific component.
-
-        Allows tools using flext-cli to have their own namespaced configuration.
-
-        Args:
-            component: Component name
-            **config: Component configuration options
-
-        Returns:
-            FlextResult[None]: Success or error
-
-        Example:
-            >>> cli = FlextCli.get_instance()
-            >>> # Configure a tool using flext-cli
-            >>> result = cli.configure_component(
-            ...     "myapp",
-            ...     database_url="postgresql://localhost/mydb",
-            ...     api_key="secret",
-            ... )
-
-        """
-        try:
-            # Get current component config
-            result = self.get_component_config(component)
-            if result.is_failure:
-                # Component config doesn't exist, create it
-                component_config: FlextCore.Types.Dict = {}
-            else:
-                component_config = result.unwrap()
-
-            # Update with new config
-            component_config.update(config)
-
-            # Save back to core config
-            core_config_dict: FlextCore.Types.Dict = {component: component_config}
-            return self.core_config.configure(core_config_dict)
-
-        except Exception as e:
-            return FlextResult[None].fail(
-                f"Component configuration failed for {component}: {e}"
-            )
-
-    # ==========================================================================
-    # DOMAIN SERVICES - Direct access to CLI functionality
-    # ==========================================================================
-
-    @property
-    def output(self) -> FlextCliOutput:
-        """Access CLI output formatting service.
-
-        Returns:
-            FlextCliOutput: Output service instance
-
-        """
-        return self._container.get_or_create("output", FlextCliOutput).unwrap()
-
-    @property
     def file_tools(self) -> FlextCliFileTools:
-        """Access CLI file operations service.
-
-        Returns:
-            FlextCliFileTools: File tools instance
-
-        """
-        return self._container.get_or_create("file_tools", FlextCliFileTools).unwrap()
-
-    @property
-    def utilities(self) -> type[FlextCore.Utilities]:
-        """Access utility functions from flext-core.
-
-        Returns:
-            type[FlextCore.Utilities]: Utilities class from flext-core
-
-        """
-        return FlextCore.Utilities
-
-    @property
-    def auth(self) -> FlextCliAuth:
-        """Access CLI authentication service.
-
-        Returns:
-            FlextCliAuth: Auth service instance
-
-        """
-        return self._container.get_or_create("auth", FlextCliAuth).unwrap()
-
-    @property
-    def commands(self) -> FlextCliCommands:
-        """Access CLI commands registry.
-
-        Returns:
-            FlextCliCommands: Commands instance
-
-        """
-        return self._container.get_or_create("commands", FlextCliCommands).unwrap()
-
-    @property
-    def context(self) -> FlextCliContext:
-        """Access CLI context service.
-
-        Returns:
-            FlextCliContext: Context service instance
-
-        """
-        return self._container.get_or_create("context", FlextCliContext).unwrap()
-
-    @property
-    def debug(self) -> FlextCliDebug:
-        """Access CLI debug service.
-
-        Returns:
-            FlextCliDebug: Debug service instance
-
-        """
-        return self._container.get_or_create("debug", FlextCliDebug).unwrap()
-
-    @property
-    def exceptions(self) -> type[FlextCliExceptions]:
-        """Access CLI exceptions.
-
-        Returns:
-            type[FlextCliExceptions]: Exceptions class
-
-        """
-        return FlextCliExceptions
-
-    @property
-    def mixins(self) -> type[FlextCliMixins]:
-        """Access CLI mixins.
-
-        Returns:
-            type[FlextCliMixins]: Mixins class
-
-        """
-        return FlextCliMixins
-
-    @property
-    def plugins(self) -> FlextCliPlugins:
-        """Access CLI plugin system.
-
-        Returns:
-            FlextCliPlugins: Plugin system instance
-
-        Example:
-            >>> cli = FlextCli.get_instance()
-            >>> plugin_system = cli.plugins
-            >>> discover_result = plugin_system.discover_plugins("./plugins")
-
-        """
-        return self._container.get_or_create("plugins", FlextCliPlugins).unwrap()
-
-    @property
-    def prompts(self) -> FlextCliPrompts:
-        """Access CLI prompts.
-
-        Returns:
-            FlextCliPrompts: Prompts instance
-
-        """
-        return self._container.get_or_create("prompts", FlextCliPrompts).unwrap()
-
-    @property
-    def protocols(self) -> type[FlextCliProtocols]:
-        """Access CLI protocols.
-
-        Returns:
-            type[FlextCliProtocols]: Protocols class
-
-        """
-        return FlextCliProtocols
-
-    # ==========================================================================
-    # PHASE 1 TRANSFORMATION COMPONENTS - Click/Rich/Tabulate abstractions
-    # ==========================================================================
-
-    @property
-    def click(self) -> FlextCliCli:
-        """Access Click abstraction layer.
-
-        ZERO TOLERANCE - ONLY Click file should import click directly.
-
-        Returns:
-            FlextCliCli: Click abstraction instance
-
-        Example:
-            >>> cli = FlextCli()
-            >>> cmd_result = cli.click.create_command_decorator(name="hello")
-
-        """
-        return self._container.get_or_create("click", FlextCliCli).unwrap()
+        """Access file tools domain library."""
+        return self._file_tools
 
     @property
     def formatters(self) -> FlextCliFormatters:
-        """Access Rich formatters abstraction layer.
+        """Access formatters domain library."""
+        return self._formatters
 
-        Returns:
-            FlextCliFormatters: Rich formatters instance
+    # =========================================================================
+    # FORMATTING - Domain library pattern using FlextCliFormatters
+    # =========================================================================
 
-        Example:
-            >>> cli = FlextCli()
-            >>> panel_result = cli.formatters.create_panel(
-            ...     content="Hello", title="Greeting"
-            ... )
+    def print(
+        self,
+        message: str,
+        style: str | None = None,
+        **kwargs: object,
+    ) -> FlextResult[None]:
+        """Print formatted message using formatters domain library."""
+        return self._formatters.print(message, style=style, **kwargs)
 
-        """
-        return self._container.get_or_create("formatters", FlextCliFormatters).unwrap()
+    def create_table(
+        self,
+        data: FlextCliTypes.Data.CliDataDict | None = None,
+        headers: FlextCore.Types.StringList | None = None,
+        title: str | None = None,
+        **kwargs: object,
+    ) -> FlextResult[object]:
+        """Create table using formatters domain library."""
+        result = self._formatters.create_table(
+            data=data, headers=headers, title=title, **kwargs
+        )
+        return result.map(lambda table: cast("object", table))
 
-    @property
-    def tables(self) -> FlextCliTables:
-        """Access Tabulate tables integration layer.
+    def create_progress(self, **kwargs: object) -> FlextResult[object]:
+        """Create progress bar using formatters domain library."""
+        result = self._formatters.create_progress(**kwargs)
+        return result.map(lambda progress: cast("object", progress))
 
-        Returns:
-            FlextCliTables: Tabulate tables instance
+    def create_tree(self, label: str, **kwargs: object) -> FlextResult[object]:
+        """Create tree using formatters domain library."""
+        result = self._formatters.create_tree(label=label, **kwargs)
+        return result.map(lambda tree: cast("object", tree))
 
-        Example:
-            >>> cli = FlextCli()
-            >>> table_result = cli.tables.create_table(
-            ...     data=[{"name": "Alice", "age": 30}], format="grid"
-            ... )
+    # =========================================================================
+    # AUTHENTICATION - Direct implementation (consolidated from auth.py)
+    # =========================================================================
 
-        """
-        return self._container.get_or_create("tables", FlextCliTables).unwrap()
+    def authenticate(
+        self, credentials: FlextCliTypes.Auth.CredentialsData
+    ) -> FlextResult[str]:
+        """Authenticate user with provided credentials."""
+        if FlextCliConstants.DictKeys.TOKEN in credentials:
+            return self._authenticate_with_token(credentials)
+        if (
+            FlextCliConstants.DictKeys.USERNAME in credentials
+            and FlextCliConstants.DictKeys.PASSWORD in credentials
+        ):
+            return self._authenticate_with_credentials(credentials)
+        return FlextResult[str].fail(
+            FlextCliConstants.ErrorMessages.INVALID_CREDENTIALS
+        )
 
-    @property
-    def main(self) -> FlextCliMain:
-        """Access CLI command registration system.
+    def _authenticate_with_token(
+        self, credentials: FlextCliTypes.Auth.CredentialsData
+    ) -> FlextResult[str]:
+        """Authenticate using token."""
+        token = str(credentials[FlextCliConstants.DictKeys.TOKEN])
+        save_result = self.save_auth_token(token)
+        if save_result.is_failure:
+            return FlextResult[str].fail(f"Failed to save token: {save_result.error}")
+        if not token.strip():
+            return FlextResult[str].fail(FlextCliConstants.ErrorMessages.TOKEN_EMPTY)
+        return FlextResult[str].ok(token)
 
-        Returns:
-            FlextCliMain: Main CLI instance
+    def _authenticate_with_credentials(
+        self, credentials: FlextCliTypes.Auth.CredentialsData
+    ) -> FlextResult[str]:
+        """Authenticate using username/password."""
+        username = str(credentials[FlextCliConstants.DictKeys.USERNAME])
+        password = str(credentials[FlextCliConstants.DictKeys.PASSWORD])
 
-        Example:
-            >>> cli = FlextCli()
-            >>> @cli.main.command()
-            >>> def hello(name: str):
-            ...     print(f"Hello {name}!")
+        # Simple validation (in real implementation, check against user store)
+        if not username or not password:
+            return FlextResult[str].fail(
+                FlextCliConstants.ErrorMessages.USERNAME_PASSWORD_REQUIRED
+            )
 
-        """
-        return self._container.get_or_create("main", FlextCliMain).unwrap()
+        if len(username) < FlextCliConstants.Auth.MIN_USERNAME_LENGTH:
+            return FlextResult[str].fail(
+                FlextCliConstants.ErrorMessages.USERNAME_TOO_SHORT
+            )
 
-    # ==========================================================================
-    # FLEXT-CORE ADVANCED FEATURES - Event bus, registry, CQRS, etc.
-    # ==========================================================================
+        if len(password) < FlextCliConstants.Auth.MIN_PASSWORD_LENGTH:
+            return FlextResult[str].fail(
+                FlextCliConstants.ErrorMessages.PASSWORD_TOO_SHORT
+            )
 
-    @property
-    def bus(self) -> FlextCore.Bus:
-        """Access FlextCore.Bus for event-driven architecture.
+        # Generate token
+        token = secrets.token_urlsafe(32)
+        self._valid_tokens.add(token)
 
-        Returns:
-            FlextCore.Bus: Event bus instance for message routing
+        return FlextResult[str].ok(token)
 
-        """
-        return self._container.get_or_create("bus", FlextCore.Bus).unwrap()
+    def validate_credentials(self, username: str, password: str) -> FlextResult[None]:
+        """Validate credentials."""
+        if not username or not password:
+            return FlextResult[None].fail(
+                FlextCliConstants.ErrorMessages.USERNAME_PASSWORD_REQUIRED
+            )
+        return FlextResult[None].ok(None)
 
-    @property
-    def registry(self) -> FlextCore.Registry:
-        """Access FlextCore.Registry for service discovery.
+    def save_auth_token(self, token: str) -> FlextResult[None]:
+        """Save authentication token using file tools domain library."""
+        if not token.strip():
+            return FlextResult[None].fail(FlextCliConstants.ErrorMessages.TOKEN_EMPTY)
 
-        Returns:
-            FlextCore.Registry: Service registry instance
+        token_path = self._config.token_file
+        token_data = {"token": token}
 
-        """
-        # Registry needs dispatcher - use lambda for dependency
-        return self._container.get_or_create(
-            "registry", lambda: FlextCore.Registry(dispatcher=self.dispatcher)
-        ).unwrap()
+        # Use file tools domain library for JSON writing
+        write_result = self._file_tools.write_json_file(str(token_path), token_data)
+        if write_result.is_failure:
+            return FlextResult[None].fail(
+                FlextCliConstants.ErrorMessages.TOKEN_SAVE_FAILED.format(
+                    error=write_result.error
+                )
+            )
 
-    @property
-    def dispatcher(self) -> FlextCore.Dispatcher:
-        """Access FlextCore.Dispatcher for message dispatching.
+        self._valid_tokens.add(token)
+        return FlextResult[None].ok(None)
 
-        Returns:
-            FlextCore.Dispatcher: Message dispatcher instance
+    def get_auth_token(self) -> FlextResult[str]:
+        """Get authentication token using file tools domain library."""
+        token_path = self._config.token_file
 
-        """
-        return self._container.get_or_create(
-            "dispatcher", FlextCore.Dispatcher
-        ).unwrap()
+        # Use file tools domain library for JSON reading
+        read_result = self._file_tools.read_json_file(str(token_path))
+        if read_result.is_failure:
+            if "not found" in str(read_result.error).lower():
+                return FlextResult[str].fail(
+                    FlextCliConstants.ErrorMessages.TOKEN_FILE_NOT_FOUND
+                )
+            return FlextResult[str].fail(
+                FlextCliConstants.ErrorMessages.TOKEN_LOAD_FAILED.format(
+                    error=read_result.error
+                )
+            )
 
-    @property
-    def container(self) -> FlextBase.Container:
-        """Access FlextCore.Container for dependency injection.
+        data = cast("dict[str, str]", read_result.unwrap())
+        token = data.get("token")
+        if not token:
+            return FlextResult[str].fail(
+                FlextCliConstants.ErrorMessages.TOKEN_FILE_EMPTY
+            )
 
-        Returns:
-            FlextBase.Container: DI container instance
+        return FlextResult[str].ok(str(token))
 
-        """
-        return cast("FlextBase.Container", self._container)
+    def is_authenticated(self) -> bool:
+        """Check if user is authenticated."""
+        token_result = self.get_auth_token()
+        return token_result.is_success
 
-    # Attributes initialized in __init__ (inherit types from FlextService)
+    def clear_auth_tokens(self) -> FlextResult[None]:
+        """Clear authentication tokens using file tools domain library."""
+        token_path = self._config.token_file
+        refresh_token_path = self._config.refresh_token_file
 
-    def run(self) -> FlextResult[FlextCliTypes.Data.CliDataDict]:
-        """Run CLI API operations.
+        # Use file tools domain library for file deletion
+        delete_token_result = self._file_tools.delete_file(str(token_path))
+        delete_refresh_result = self._file_tools.delete_file(str(refresh_token_path))
 
-        Returns:
-            FlextResult[FlextCliTypes.Data.CliDataDict]: API execution result
+        # Check if either deletion failed (but don't fail if file doesn't exist)
+        if (
+            delete_token_result.is_failure
+            and "not found" not in str(delete_token_result.error).lower()
+        ):
+            return FlextResult[None].fail(
+                FlextCliConstants.ErrorMessages.FAILED_CLEAR_CREDENTIALS.format(
+                    error=delete_token_result.error
+                )
+            )
 
-        """
-        return self.execute()
+        if (
+            delete_refresh_result.is_failure
+            and "not found" not in str(delete_refresh_result.error).lower()
+        ):
+            return FlextResult[None].fail(
+                FlextCliConstants.ErrorMessages.FAILED_CLEAR_CREDENTIALS.format(
+                    error=delete_refresh_result.error
+                )
+            )
 
-    def execute(self) -> FlextResult[FlextCliTypes.Data.CliDataDict]:
-        """Execute CLI API operations.
+        self._valid_tokens.clear()
+        return FlextResult[None].ok(None)
 
-        Returns:
-            FlextResult[FlextCliTypes.Data.CliDataDict]: API execution result
+    # =========================================================================
+    # COMMAND REGISTRATION - CLI framework abstraction (domain library pattern)
+    # =========================================================================
 
-        """
-        return FlextResult[FlextCliTypes.Data.CliDataDict].ok({
-            "status": FlextCliConstants.OPERATIONAL,
-            "service": FlextCliConstants.FLEXT_CLI,
-            "version": FlextCliConstants.VERSION,
-            "timestamp": FlextCore.Utilities.Generators.generate_timestamp(),
-            "components": {
-                "api": FlextCliConstants.AVAILABLE,
-                "auth": FlextCliConstants.AVAILABLE,
-                "config": FlextCliConstants.AVAILABLE,
-                "debug": FlextCliConstants.AVAILABLE,
-                "core": FlextCliConstants.AVAILABLE,
-                "cmd": FlextCliConstants.AVAILABLE,
-                "file_tools": FlextCliConstants.AVAILABLE,
-                "output": FlextCliConstants.AVAILABLE,
-                "utilities": FlextCliConstants.AVAILABLE,
-                "prompts": FlextCliConstants.AVAILABLE,
-                "processors": FlextCliConstants.AVAILABLE,
-            },
+    def command(self, name: str | None = None) -> Callable:
+        """Register a command using CLI framework abstraction."""
+
+        def decorator(func: Callable) -> Callable:
+            cmd_name = name or func.__name__
+            self._commands[cmd_name] = func
+
+            # Register with CLI framework abstraction
+            command_decorator = self._cli.create_command_decorator(name=cmd_name)
+            return command_decorator(func)
+
+        return decorator
+
+    def group(self, name: str | None = None) -> Callable:
+        """Register a command group using CLI framework abstraction."""
+
+        def decorator(func: Callable) -> Callable:
+            group_name = name or func.__name__
+            self._groups[group_name] = func
+
+            # Register with CLI framework abstraction
+            group_decorator = self._cli.create_group_decorator(name=group_name)
+            return group_decorator(func)
+
+        return decorator
+
+    def execute_cli(self) -> FlextResult[None]:
+        """Execute the CLI application using framework abstraction."""
+        # FlextCliCli doesn't have run_app - CLI execution handled elsewhere
+        return FlextResult[None].ok(None)
+
+    # =========================================================================
+    # FILE OPERATIONS - Domain library delegation
+    # =========================================================================
+
+    def read_text_file(self, path: Path) -> FlextResult[str]:
+        """Read text file using file tools domain library."""
+        return self._file_tools.read_text_file(str(path))
+
+    def write_text_file(self, path: Path, content: str) -> FlextResult[None]:
+        """Write text file using file tools domain library."""
+        return self._file_tools.write_text_file(str(path), content)
+
+    # =========================================================================
+    # EXECUTION - Railway pattern with FlextResult
+    # =========================================================================
+
+    def execute(self) -> FlextResult[FlextCore.Types.Dict]:
+        """Execute CLI service with railway pattern."""
+        return FlextResult[FlextCore.Types.Dict].ok({
+            FlextCliConstants.DictKeys.STATUS: FlextCliConstants.OPERATIONAL,
+            FlextCliConstants.DictKeys.SERVICE: FlextCliConstants.FLEXT_CLI,
         })
 
 

@@ -13,7 +13,7 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from typing import Literal, TypeVar
+from typing import TypeVar
 
 from flext_core import FlextCore
 
@@ -44,14 +44,8 @@ class FlextCliTypes(FlextCore.Types):
     """
 
     # =========================================================================
-    # MISSING TYPES FROM FLEXT-CORE - Define locally until fixed upstream
-    # =========================================================================
-
-    # StringList type (missing from flext-core)
-    StringList = list[str]
-
-    # =========================================================================
     # CLI COMMAND TYPES - Complex command processing types
+    # Note: StringList available via FlextCore.Types.StringList
     # =========================================================================
 
     class CliCommand:
@@ -79,7 +73,7 @@ class FlextCliTypes(FlextCore.Types):
 
         # Core command result types
         CommandResultData = dict[str, FlextCore.Types.JsonValue]
-        CommandResultStatus = Literal["success", "failure", "error"]
+        # CommandResultStatus defined in FlextCliConstants.CliCommandResult
         CommandResultMetadata = dict[str, str | int | bool]
 
     # =========================================================================
@@ -233,29 +227,8 @@ class FlextCliTypes(FlextCore.Types):
 
         Adds CLI-specific project types while inheriting generic types from FlextCore.Types.
         Follows domain separation principle: CLI domain owns CLI-specific types.
+        CLI-specific types defined in FlextCliConstants.Project.
         """
-
-        # CLI-specific project types extending the generic ones
-        CliProjectType = Literal[
-            # CLI-specific types
-            "cli-tool",
-            "console-app",
-            "terminal-ui",
-            "command-runner",
-            "interactive-cli",
-            "batch-processor",
-            "cli-wrapper",
-        ]
-
-        # CLI-specific project configurations
-        CliProjectConfig = dict[str, FlextCore.Types.ConfigValue]
-        CommandLineConfig = dict[str, str | int | bool | FlextCore.Types.StringList]
-        InteractiveConfig = dict[
-            str, bool | str | dict[str, FlextCore.Types.ConfigValue]
-        ]
-        OutputConfig = dict[
-            str, FlextCore.Types.Output.OutputFormat | FlextCore.Types.ConfigValue
-        ]
 
 
 # =============================================================================

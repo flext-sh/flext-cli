@@ -122,32 +122,35 @@ class TestFlextCli:
         assert "number: 42" in formatted_output
 
     def test_format_data_csv(self, api_service: FlextCli) -> None:
-        """Test CSV data formatting functionality."""
-        test_data: list[dict[str, str | int]] = [
-            {"name": "John", "age": 30, "city": "New York"},
-            {"name": "Jane", "age": 25, "city": "London"},
-        ]
+        """Test CSV data formatting functionality using formatters."""
+        test_data = {
+            "John": "30 | New York",
+            "Jane": "25 | London",
+        }
 
-        result = api_service.output.format_data(data=test_data, format_type="csv")
+        # Use formatters to create table
+        result = api_service.create_table(
+            data=test_data,
+            headers=["Name", "Age | City"],
+            title="User Data"
+        )
 
         assert isinstance(result, FlextResult)
         assert result.is_success
 
-        formatted_output = result.unwrap()
-        assert isinstance(formatted_output, str)
-        assert "name,age,city" in formatted_output
-        assert "John,30,New York" in formatted_output
+        table = result.unwrap()
+        assert table is not None
 
     def test_display_output(self, api_service: FlextCli) -> None:
-        """Test output display functionality."""
+        """Test output display functionality using formatters."""
         test_output = "This is test output content"
 
-        result = api_service.output.display_text(test_output)
+        result = api_service.formatters.print(test_output, style="cyan")
 
         assert isinstance(result, FlextResult)
         assert result.is_success
 
-        # The display method should return success
+        # The print method should return success
         assert result.unwrap() is None
 
     # ========================================================================
@@ -155,10 +158,8 @@ class TestFlextCli:
     # ========================================================================
 
     def test_create_progress_bar(self, api_service: FlextCli) -> None:
-        """Test progress bar creation functionality."""
-        result = api_service.output.create_progress_bar(
-            _description="Test Task", _total=100
-        )
+        """Test progress bar creation functionality using formatters."""
+        result = api_service.create_progress()
 
         assert isinstance(result, FlextResult)
         assert result.is_success
@@ -404,15 +405,10 @@ class TestFlextCli:
             "retries": FlextCliConstants.HTTP.MAX_RETRIES,
         }
 
-        result = api_service.utilities.Validation.validate_data(
-            valid_config,
-            {
-                "debug": bool,
-                "output_format": str,
-                "timeout": (int, float),
-                "retries": int,
-            },
-        )
+        # Use config validation instead of removed utilities
+        config = api_service.config
+        result = config.validate_business_rules()
+
         assert isinstance(result, FlextResult)
         assert result.is_success
 

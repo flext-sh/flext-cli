@@ -22,30 +22,44 @@ cli = FlextCli.get_instance()
 
 def demonstrate_output_capture() -> None:
     """Show automatic output capture."""
+    cli.formatters.print("\n📝 Output Capture:", style="bold cyan")
+
     # Output auto-captured in test context
     # No manual setup needed
-    cli.output.print_success("Output auto-captured for assertions")
+    cli.formatters.print("✅ Output auto-captured for assertions", style="green")
 
 
 def demonstrate_mock_interactions() -> None:
     """Show auto-mocking of prompts."""
+    cli.formatters.print("\n🎭 Mock Interactions:", style="bold cyan")
+
     # Prompts auto-mocked with test data
     # No manual mock setup required
-    cli.output.print_message("Prompts auto-mocked in test context")
+    cli.formatters.print("✅ Prompts auto-mocked in test context", style="cyan")
 
 
 def demonstrate_test_scenarios() -> None:
     """Show test scenario auto-validation."""
+    cli.formatters.print("\n✔️  Test Scenarios:", style="bold cyan")
+
     # Scenarios auto-validated against expected results
     # Assertions auto-generated from schema
-    cli.output.print_message("Test scenarios auto-validated")
+    cli.formatters.print("✅ Test scenarios auto-validated", style="cyan")
 
 
 def main() -> None:
     """Run all demonstrations."""
+    cli.formatters.print("=" * 60, style="bold blue")
+    cli.formatters.print("  Testing Utilities Examples", style="bold white on blue")
+    cli.formatters.print("=" * 60, style="bold blue")
+
     demonstrate_output_capture()
     demonstrate_mock_interactions()
     demonstrate_test_scenarios()
+
+    cli.formatters.print("\n" + "=" * 60, style="bold blue")
+    cli.formatters.print("  ✅ All testing examples completed!", style="bold green")
+    cli.formatters.print("=" * 60, style="bold blue")
 
 
 if __name__ == "__main__":

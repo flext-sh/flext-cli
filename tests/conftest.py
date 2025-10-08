@@ -20,7 +20,6 @@ from click.testing import CliRunner
 from flext_core import FlextCore
 
 from flext_cli.api import FlextCli
-from flext_cli.auth import FlextCliAuth
 from flext_cli.cmd import FlextCliCmd
 from flext_cli.commands import FlextCliCommands
 from flext_cli.config import FlextCliConfig
@@ -106,12 +105,6 @@ def temp_csv_file(temp_dir: Path) -> Path:
 def flext_cli_api() -> FlextCli:
     """Create FlextCli instance for testing."""
     return FlextCli()
-
-
-@pytest.fixture
-def flext_cli_auth() -> FlextCliAuth:
-    """Create FlextCliAuth instance for testing."""
-    return FlextCliAuth()
 
 
 @pytest.fixture

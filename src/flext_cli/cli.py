@@ -106,8 +106,8 @@ class FlextCliCli:
 
         """
         command_kwargs: dict[str, object] = {"name": name}
-        command_kwargs.update(kwargs)
-        # Cast to object to avoid type checking issues with Click's dynamic kwargs
+        command_kwargs.update(kwargs)  # type: ignore[arg-type]
+        # Use type: ignore to avoid type checking issues with Click's dynamic kwargs
         decorator = click.command(**command_kwargs)  # type: ignore[arg-type]
         self.logger.debug(
             "Created command decorator",
@@ -139,8 +139,8 @@ class FlextCliCli:
 
         """
         group_kwargs: dict[str, object] = {"name": name}
-        group_kwargs.update(kwargs)
-        # Cast to object to avoid type checking issues with Click's dynamic kwargs
+        group_kwargs.update(kwargs)  # type: ignore[arg-type]
+        # Use type: ignore to avoid type checking issues with Click's dynamic kwargs
         decorator = click.group(**group_kwargs)  # type: ignore[arg-type]
         self.logger.debug(
             "Created group decorator",
@@ -173,7 +173,7 @@ class FlextCliCli:
             ... )
 
         """
-        # Cast to object to avoid type checking issues with Click's dynamic kwargs
+        # Use type: ignore to avoid type checking issues with Click's dynamic kwargs
         decorator = click.option(*param_decls, **attrs)  # type: ignore[arg-type]
         self.logger.debug(
             "Created option decorator",
@@ -202,7 +202,7 @@ class FlextCliCli:
             ... )
 
         """
-        # Cast to object to avoid type checking issues with Click's dynamic kwargs
+        # Use type: ignore to avoid type checking issues with Click's dynamic kwargs
         decorator = click.argument(*param_decls, **attrs)  # type: ignore[arg-type]
         self.logger.debug(
             "Created argument decorator",

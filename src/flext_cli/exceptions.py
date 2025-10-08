@@ -174,7 +174,7 @@ class FlextCliExceptions(FlextCore.Exceptions):
             # Call parent with complete error information
             super().__init__(
                 message,
-                error_code=FlextCliConstants.ErrorCodes.VALIDATION_ERROR,
+                error_code=FlextCliConstants.ErrorCodes.CLI_VALIDATION_ERROR,
                 context=context,
                 correlation_id=correlation_id,
             )
@@ -202,7 +202,7 @@ class FlextCliExceptions(FlextCore.Exceptions):
             # Call parent with complete error information
             super().__init__(
                 message,
-                error_code=FlextCliConstants.ErrorCodes.CONFIGURATION_ERROR,
+                error_code=FlextCliConstants.ErrorCodes.CLI_CONFIGURATION_ERROR,
                 context=context,
                 correlation_id=correlation_id,
             )
@@ -230,7 +230,7 @@ class FlextCliExceptions(FlextCore.Exceptions):
             # Call parent with complete error information
             super().__init__(
                 message,
-                error_code=FlextCliConstants.ErrorCodes.CONNECTION_ERROR,
+                error_code=FlextCliConstants.ErrorCodes.CLI_CONNECTION_ERROR,
                 context=context,
                 correlation_id=correlation_id,
             )
@@ -258,7 +258,7 @@ class FlextCliExceptions(FlextCore.Exceptions):
             # Call parent with complete error information
             super().__init__(
                 message,
-                error_code=FlextCliConstants.ErrorCodes.AUTHENTICATION_ERROR,
+                error_code=FlextCliConstants.ErrorCodes.CLI_AUTHENTICATION_ERROR,
                 context=context,
                 correlation_id=correlation_id,
             )
@@ -314,7 +314,7 @@ class FlextCliExceptions(FlextCore.Exceptions):
             # Call parent with complete error information
             super().__init__(
                 message,
-                error_code=FlextCliConstants.ErrorCodes.TIMEOUT_ERROR,
+                error_code=FlextCliConstants.ErrorCodes.CLI_TIMEOUT_ERROR,
                 context=context,
                 correlation_id=correlation_id,
             )
