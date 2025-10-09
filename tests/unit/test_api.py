@@ -758,3 +758,195 @@ nested:
 
         tree = result.unwrap()
         assert tree is not None
+
+    # ========================================================================
+    # COVERAGE COMPLETION TESTS - Missing Lines in api.py
+    # ========================================================================
+
+    def test_get_instance_container_failure(self, monkeypatch: pytest.MonkeyPatch) -> None:
+        """Test get_instance when container.get() fails (line 87)."""
+        from unittest.mock import Mock
+
+        # Mock container.get to return failure
+        mock_container = Mock()
+        mock_container.get = Mock(return_value=FlextResult[object].fail("Container error"))
+        monkeypatch.setattr("flext_cli.api.FlextCore.Container.get_global", lambda: mock_container)
+
+        # This should trigger line 87 - return cls()
+        instance = FlextCli.get_instance()
+        assert instance is not None
+        assert isinstance(instance, FlextCli)
+
+    def test_authenticate_with_token_save_failure(self, api_service: FlextCli, monkeypatch: pytest.MonkeyPatch) -> None:
+        """Test authenticate with token when save_auth_token fails (line 223)."""
+        from unittest.mock import Mock
+
+        from flext_cli.file_tools import FlextCliFileTools
+
+        # Mock file_tools.write_json_file to fail
+        mock_file_tools = Mock(spec=FlextCliFileTools)
+        mock_file_tools.write_json_file = Mock(return_value=FlextResult[None].fail("Write failed"))
+        api_service._file_tools = mock_file_tools
+
+        credentials = {"token": "test_token"}
+        result = api_service.authenticate(credentials)
+
+        assert result.is_failure
+        assert result.error is not None
+        assert "failed to save token" in result.error.lower()
+
+    def test_authenticate_with_token_empty_string(self, api_service: FlextCli, monkeypatch: pytest.MonkeyPatch) -> None:
+        """Test authenticate with empty token string (line 225)."""
+        from unittest.mock import Mock
+
+        # Mock save_auth_token to succeed so we reach the empty check on line 225
+        original_save = api_service.save_auth_token
+        api_service.save_auth_token = Mock(return_value=FlextResult[None].ok(None))
+
+        credentials = {"token": "   "}  # Whitespace-only token
+        result = api_service.authenticate(credentials)
+
+        # Restore original method
+        api_service.save_auth_token = original_save
+
+        assert result.is_failure
+        assert result.error is not None
+        assert "token" in result.error.lower() or "empty" in result.error.lower()
+
+    def test_authenticate_with_credentials_empty_username_password(self, api_service: FlextCli) -> None:
+        """Test authenticate with empty username/password (line 237)."""
+        credentials = {"username": "", "password": ""}
+        result = api_service.authenticate(credentials)
+
+        assert result.is_failure
+        assert result.error is not None
+        assert "username" in result.error.lower() or "password" in result.error.lower()
+
+    def test_authenticate_with_credentials_short_username(self, api_service: FlextCli) -> None:
+        """Test authenticate with short username (line 242)."""
+        credentials = {"username": "ab", "password": "validpassword123"}  # Username too short
+        result = api_service.authenticate(credentials)
+
+        assert result.is_failure
+        assert result.error is not None
+        assert "username" in result.error.lower()
+
+    def test_authenticate_with_credentials_short_password(self, api_service: FlextCli) -> None:
+        """Test authenticate with short password (line 247)."""
+        credentials = {"username": "validuser", "password": "short"}  # Password too short
+        result = api_service.authenticate(credentials)
+
+        assert result.is_failure
+        assert result.error is not None
+        assert "password" in result.error.lower()
+
+    def test_save_auth_token_write_failure(self, api_service: FlextCli, monkeypatch: pytest.MonkeyPatch) -> None:
+        """Test save_auth_token when write_json_file fails (line 276)."""
+        from unittest.mock import Mock
+
+        from flext_cli.file_tools import FlextCliFileTools
+
+        # Mock file_tools.write_json_file to fail
+        mock_file_tools = Mock(spec=FlextCliFileTools)
+        mock_file_tools.write_json_file = Mock(return_value=FlextResult[None].fail("Write error"))
+        api_service._file_tools = mock_file_tools
+
+        result = api_service.save_auth_token("test_token")
+
+        assert result.is_failure
+        assert result.error is not None
+        assert "save" in result.error.lower() or "failed" in result.error.lower()
+
+    def test_get_auth_token_file_not_found(self, api_service: FlextCli, monkeypatch: pytest.MonkeyPatch) -> None:
+        """Test get_auth_token when file not found (lines 292-295)."""
+        from unittest.mock import Mock
+
+        from flext_cli.file_tools import FlextCliFileTools
+
+        # Mock file_tools.read_json_file to return "not found" error
+        mock_file_tools = Mock(spec=FlextCliFileTools)
+        mock_file_tools.read_json_file = Mock(return_value=FlextResult[object].fail("Token file not found"))
+        api_service._file_tools = mock_file_tools
+
+        result = api_service.get_auth_token()
+
+        assert result.is_failure
+        assert result.error is not None
+        # Check for the expected "Token file not found" error message
+        error_msg = result.error.lower() if result.error else ""
+        assert "not found" in error_msg or "token" in error_msg
+
+    def test_get_auth_token_read_failure(self, api_service: FlextCli, monkeypatch) -> None:
+        """Test get_auth_token when read fails (line 296)."""
+        from unittest.mock import Mock
+
+        from flext_cli.file_tools import FlextCliFileTools
+
+        # Mock file_tools.read_json_file to return generic error
+        mock_file_tools = Mock(spec=FlextCliFileTools)
+        mock_file_tools.read_json_file = Mock(return_value=FlextResult[object].fail("Read error"))
+        api_service._file_tools = mock_file_tools
+
+        result = api_service.get_auth_token()
+
+        assert result.is_failure
+        assert result.error is not None
+        assert "load" in result.error.lower() or "failed" in result.error.lower()
+
+    def test_get_auth_token_empty_file(self, api_service: FlextCli, monkeypatch) -> None:
+        """Test get_auth_token when token file is empty (line 305)."""
+        from unittest.mock import Mock
+
+        from flext_cli.file_tools import FlextCliFileTools
+
+        # Mock file_tools.read_json_file to return empty token
+        mock_file_tools = Mock(spec=FlextCliFileTools)
+        mock_file_tools.read_json_file = Mock(return_value=FlextResult[object].ok({}))
+        api_service._file_tools = mock_file_tools
+
+        result = api_service.get_auth_token()
+
+        assert result.is_failure
+        assert result.error is not None
+        assert "empty" in result.error.lower() or "token" in result.error.lower()
+
+    def test_clear_auth_tokens_delete_failure(self, api_service: FlextCli, monkeypatch) -> None:
+        """Test clear_auth_tokens when delete fails (line 330)."""
+        from unittest.mock import Mock
+
+        from flext_cli.file_tools import FlextCliFileTools
+
+        # Mock file_tools.delete_file to fail with non-"not found" error
+        mock_file_tools = Mock(spec=FlextCliFileTools)
+        mock_file_tools.delete_file = Mock(return_value=FlextResult[None].fail("Permission denied"))
+        api_service._file_tools = mock_file_tools
+
+        result = api_service.clear_auth_tokens()
+
+        assert result.is_failure
+        assert result.error is not None
+        assert "clear" in result.error.lower() or "failed" in result.error.lower()
+
+    def test_clear_auth_tokens_success_path(self, api_service: FlextCli, monkeypatch) -> None:
+        """Test clear_auth_tokens success path (lines 346-347)."""
+        from unittest.mock import Mock
+
+        from flext_cli.file_tools import FlextCliFileTools
+
+        # Mock file_tools.delete_file to succeed (simulate successful deletion)
+        mock_file_tools = Mock(spec=FlextCliFileTools)
+        mock_file_tools.delete_file = Mock(return_value=FlextResult[None].ok(None))
+        api_service._file_tools = mock_file_tools
+
+        # Add token to valid tokens set
+        api_service._valid_tokens.add("test_token_1")
+        api_service._valid_tokens.add("test_token_2")
+        assert len(api_service._valid_tokens) > 0
+
+        # Clear should succeed
+        result = api_service.clear_auth_tokens()
+
+        # Should succeed since delete_file is mocked to succeed
+        assert result.is_success
+        # Verify valid tokens were cleared (line 346)
+        assert len(api_service._valid_tokens) == 0

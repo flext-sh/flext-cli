@@ -289,9 +289,9 @@ class TestFlextCliCmd:
         class FailingFileTools(FlextCliFileTools):
             @staticmethod
             def write_json_file(
-                file_path: str | Path,
-                data: object,
-                **kwargs: object,
+                _file_path: str | Path,
+                _data: object,
+                **_kwargs: object,
             ) -> FlextResult[None]:
                 return FlextResult[None].fail("Test file error")
 
@@ -369,9 +369,9 @@ class TestFlextCliCmd:
 
             @staticmethod
             def write_json_file(
-                file_path: str | Path,
-                data: object,
-                **kwargs: object,
+                _file_path: str | Path,
+                _data: object,
+                **_kwargs: object,
             ) -> FlextResult[None]:
                 return FlextResult[None].ok(None)
 
@@ -453,3 +453,112 @@ class TestFlextCliCmd:
                 Path(temp_file).unlink()
         finally:
             cmd._file_tools = original_file_tools
+
+    # ========================================================================
+    # EXCEPTION HANDLER COVERAGE TESTS
+    # ========================================================================
+
+    def test_cmd_validate_config_structure_main_dir_missing(self) -> None:
+        """Test _validate_config_structure when main dir is missing (line 85)."""
+        cmd = FlextCliCmd()
+
+        # Mock config_dir to point to non-existent location
+        original_config_dir = cmd.config.config_dir
+        cmd.config.config_dir = Path("/non/existent/path")
+
+        try:
+            results = cmd._validate_config_structure()
+            assert isinstance(results, list)
+            assert any("Main config directory missing" in r for r in results)
+        finally:
+            cmd.config.config_dir = original_config_dir
+
+    def test_cmd_get_config_value_not_dict_data(self) -> None:
+        """Test get_config_value when config data is not a dict (line 209)."""
+        cmd = FlextCliCmd()
+        original_file_tools = cmd._file_tools
+
+        class MockFileTools(FlextCliFileTools):
+            def read_json_file(self, file_path: str | Path) -> FlextResult[object]:
+                # Return a list instead of dict
+                return FlextResult[object].ok([1, 2, 3])
+
+        cmd._file_tools = MockFileTools()
+
+        # Create fake config file
+        config_dir = Path.home() / ".flext"
+        config_dir.mkdir(exist_ok=True)
+        config_file = config_dir / "cli_config.json"
+
+        try:
+            config_file.write_text("[]", encoding="utf-8")
+
+            result = cmd.get_config_value("test_key")
+            assert result.is_failure
+            assert "not a valid dictionary" in str(result.error)
+        finally:
+            cmd._file_tools = original_file_tools
+            if config_file.exists():
+                config_file.unlink()
+
+    def test_cmd_get_config_value_key_found_in_file(self) -> None:
+        """Test get_config_value success path when key is found (lines 219-224)."""
+        cmd = FlextCliCmd()
+        original_file_tools = cmd._file_tools
+
+        class MockFileTools(FlextCliFileTools):
+            def read_json_file(self, file_path: str | Path) -> FlextResult[object]:
+                return FlextResult[object].ok({"found_key": "found_value"})
+
+        cmd._file_tools = MockFileTools()
+
+        # Create fake config file
+        config_dir = Path.home() / ".flext"
+        config_dir.mkdir(exist_ok=True)
+        config_file = config_dir / "cli_config.json"
+
+        try:
+            config_file.write_text('{"found_key": "found_value"}', encoding="utf-8")
+
+            result = cmd.get_config_value("found_key")
+            assert result.is_success
+            data = result.unwrap()
+            assert data["key"] == "found_key"
+            assert data["value"] == "found_value"
+            assert "timestamp" in data
+        finally:
+            cmd._file_tools = original_file_tools
+            if config_file.exists():
+                config_file.unlink()
+
+    def test_cmd_edit_config_not_dict_data(self) -> None:
+        """Test edit_config when config data is not a dict (line 301)."""
+        cmd = FlextCliCmd()
+        original_file_tools = cmd._file_tools
+
+        class MockFileTools(FlextCliFileTools):
+            def read_json_file(self, file_path: str | Path) -> FlextResult[object]:
+                # Return a string instead of dict
+                return FlextResult[object].ok("not a dict")
+
+            @staticmethod
+            def write_json_file(file_path: str | Path, data: object, **kwargs: object) -> FlextResult[None]:
+                return FlextResult[None].ok(None)
+
+        cmd._file_tools = MockFileTools()
+
+        # Create fake config file
+        config_dir = Path.home() / ".flext"
+        config_dir.mkdir(exist_ok=True)
+        config_file = config_dir / "cli_config.json"
+
+        try:
+            config_file.write_text('"not a dict"', encoding="utf-8")
+
+            result = cmd.edit_config()
+            assert result.is_failure
+            assert "not a valid dictionary" in str(result.error)
+        finally:
+            cmd._file_tools = original_file_tools
+            if config_file.exists():
+                config_file.unlink()

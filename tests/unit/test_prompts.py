@@ -997,3 +997,128 @@ class TestFlextCliPrompts:
             result = prompts.with_progress([1, 2, 3], "Test")
             assert result.is_failure
             assert result.error is not None
+
+    def test_prompt_text_exception_handling_coverage(self, monkeypatch) -> None:
+        """Test prompt_text exception handler (lines 166-167)."""
+        prompts = FlextCliPrompts(interactive_mode=True)
+        # Mock re.match to raise exception during validation
+        import re
+        original_match = re.match
+
+        def failing_match(*args, **kwargs):
+            raise RuntimeError('Regex failed')
+        monkeypatch.setattr(re, 'match', failing_match)
+
+        result = prompts.prompt_text('Test prompt', default='test', validation_pattern='.*')
+        assert result.is_failure
+        assert result.error is not None
+        assert 'text prompt failed' in (result.error or '').lower()
+
+    def test_prompt_confirmation_exception_handling_coverage(self) -> None:
+        """Test prompt_confirmation exception handler (lines 204-205)."""
+        from collections import UserList
+
+        prompts = FlextCliPrompts(interactive_mode=True)
+
+        # Replace _prompt_history with a custom class that raises on append
+        class FailingList(UserList):
+            def append(self, item):
+                raise RuntimeError('History append failed')
+
+        prompts._prompt_history = FailingList()
+
+        result = prompts.prompt_confirmation('Test confirmation')
+        assert result.is_failure
+        assert result.error is not None
+        assert 'confirmation prompt failed' in (result.error or '').lower()
+
+    def test_prompt_choice_exception_handling_coverage(self, mocker) -> None:
+        """Test prompt_choice exception handler (lines 262-263)."""
+        prompts = FlextCliPrompts(interactive_mode=True)
+        # Mock enumerate to raise exception
+        mocker.patch('builtins.enumerate', side_effect=RuntimeError('Enumerate failed'))
+
+        result = prompts.prompt_choice('Test choice', ['option1', 'option2'])
+        assert result.is_failure
+        assert result.error is not None
+        assert 'choice prompt failed' in (result.error or '').lower()
+
+    def test_prompt_non_interactive_default_return(self, monkeypatch) -> None:
+        """Test prompt returns default in non-interactive mode (lines 383-384)."""
+        # Set quiet=False to skip line 380 and hit line 384
+        prompts = FlextCliPrompts(interactive_mode=False, quiet=False)
+        result = prompts.prompt('Test prompt', default='default_value')
+        assert result.is_success
+        assert result.unwrap() == 'default_value'
+
+    def test_prompt_logging_in_test_environment(self, monkeypatch) -> None:
+        """Test prompt skips logging in test environment (lines 396-397)."""
+        prompts = FlextCliPrompts(interactive_mode=True, quiet=False)
+        # Ensure we're in test environment
+        monkeypatch.setenv('PYTEST_CURRENT_TEST', 'test_session')
+        monkeypatch.setattr('builtins.input', lambda prompt: 'test_input')
+
+        result = prompts.prompt('Test prompt')
+        assert result.is_success
+        assert result.unwrap() == 'test_input'
+
+    def test_confirm_non_interactive_default_return(self, monkeypatch) -> None:
+        """Test confirm returns default in non-interactive mode (lines 419-420)."""
+        # Set quiet=False to skip line 416 and hit line 420
+        prompts = FlextCliPrompts(interactive_mode=False, quiet=False)
+        result = prompts.confirm('Test confirm', default=True)
+        assert result.is_success
+        assert result.unwrap() is True
+
+    def test_select_from_options_empty_input_continue(self, monkeypatch) -> None:
+        """Test select_from_options continues on empty input (line 474)."""
+        prompts = FlextCliPrompts(interactive_mode=True, quiet=False)
+        options = ['opt1', 'opt2']
+
+        # Mock input to return empty string first, then valid choice
+        inputs = iter(['', '1'])
+        monkeypatch.setattr('builtins.input', lambda prompt: next(inputs))
+
+        result = prompts.select_from_options(options, 'Choose:')
+        assert result.is_success
+
+    def test_execute_exception_handling_coverage(self) -> None:
+        """Test execute exception handler (lines 358-359)."""
+        from collections import UserDict
+        
+        prompts = FlextCliPrompts(quiet=True)
+        
+        # Replace internal data with something that raises on access
+        class FailingDict(UserDict):
+            def __bool__(self):
+                raise RuntimeError('Dict access failed')
+        
+        # Since execute is very simple, we need to trigger an exception somehow
+        # Let's patch FlextResult.ok to raise when called
+        original_ok = FlextResult.ok
+
+        def failing_ok(*args, **kwargs):
+            raise RuntimeError('FlextResult creation failed')
+        
+        with patch('flext_cli.prompts.FlextResult.ok', side_effect=failing_ok):
+            result = prompts.execute()
+            assert result.is_failure
+            assert result.error is not None
+            assert 'execution failed' in (result.error or '').lower()
+
+    def test_prompt_logging_non_test_environment(self, monkeypatch) -> None:
+        """Test prompt logging in non-test environment (line 397)."""
+        prompts = FlextCliPrompts(interactive_mode=True, quiet=False)
+        
+        # Unset test environment variables
+        monkeypatch.delenv('PYTEST_CURRENT_TEST', raising=False)
+        monkeypatch.setenv('_', 'python')  # Not pytest
+        monkeypatch.setenv('CI', 'false')   # Not CI
+        
+        # Mock input
+        monkeypatch.setattr('builtins.input', lambda prompt: 'test_input')
+        
+        # This should trigger logging on line 397
+        result = prompts.prompt('Test prompt')
+        assert result.is_success
+        assert result.unwrap() == 'test_input'

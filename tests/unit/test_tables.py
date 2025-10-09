@@ -430,7 +430,7 @@ class TestFlextCliTables:
         assert "Alice" in table_str
 
     def test_create_table_exception_handling(
-        self, tables: FlextCliTables, sample_data: list[FlextTypes.Dict], monkeypatch
+        self, tables: FlextCliTables, sample_data: list[FlextTypes.Dict], monkeypatch: pytest.MonkeyPatch
     ) -> None:
         """Test create_table exception handler (lines 181-184)."""
         from unittest.mock import Mock
@@ -449,7 +449,7 @@ class TestFlextCliTables:
         assert "Tabulate internal error" in (result.error or "")
 
     def test_print_available_formats_exception_handling(
-        self, tables: FlextCliTables, monkeypatch
+        self, tables: FlextCliTables, monkeypatch: pytest.MonkeyPatch
     ) -> None:
         """Test print_available_formats exception handler (lines 408-411)."""
         from unittest.mock import Mock
