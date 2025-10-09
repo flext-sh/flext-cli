@@ -58,13 +58,15 @@ def generate_constant_name(string: str, category: str) -> str:
     return f"{prefix}{name}"
 
 
-def collect_strings_to_migrate():
+def collect_strings_to_migrate() -> dict[str, list[dict[str, str | int]]]:
     """Collect all strings that should be migrated to constants."""
     with Path(ANALYSIS_FILE).open(encoding="utf-8") as f:
         data = json.load(f)
 
     # Group strings by category
-    strings_by_category = defaultdict(list)
+    strings_by_category: defaultdict[str, list[dict[str, str | int]]] = defaultdict(
+        list
+    )
 
     for module, strings in data["strings_by_file"].items():
         for s in strings:
@@ -80,10 +82,12 @@ def collect_strings_to_migrate():
     return strings_by_category
 
 
-def generate_constants_additions(strings_by_category):
+def generate_constants_additions(
+    strings_by_category: dict[str, list[dict[str, str | int]]],
+) -> tuple[dict[str, list[str]], dict[str, str]]:
     """Generate constant definitions to add to constants.py."""
-    additions = {}
-    constant_names = {}
+    additions: dict[str, list[str]] = {}
+    constant_names: dict[str, str] = {}
 
     for category, strings in strings_by_category.items():
         category_constants = []
@@ -96,7 +100,7 @@ def generate_constants_additions(strings_by_category):
             if string_val not in unique_strings:
                 unique_strings[string_val] = s
 
-        for string_val, s in unique_strings.items():
+        for string_val in unique_strings:
             # Generate constant name
             const_name = generate_constant_name(string_val, category)
 

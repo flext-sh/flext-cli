@@ -17,6 +17,17 @@ from typer.testing import CliRunner
 
 from flext_cli import FlextCliCommonParams, FlextCliConfig
 
+# Module-level defaults to avoid B008
+DEFAULT_VERBOSE = FlextCliCommonParams.verbose_option()
+DEFAULT_QUIET = FlextCliCommonParams.quiet_option()
+DEFAULT_DEBUG = FlextCliCommonParams.debug_option()
+DEFAULT_TRACE = FlextCliCommonParams.trace_option()
+DEFAULT_LOG_LEVEL = FlextCliCommonParams.log_level_option()
+DEFAULT_LOG_FORMAT = FlextCliCommonParams.log_format_option()
+DEFAULT_OUTPUT_FORMAT = FlextCliCommonParams.output_format_option()
+DEFAULT_NO_COLOR = FlextCliCommonParams.no_color_option()
+DEFAULT_CONFIG_FILE = FlextCliCommonParams.config_file_option()
+
 
 class TestFlextCliCommonParams:
     """Test FlextCliCommonParams class."""
@@ -92,7 +103,8 @@ class TestFlextCliCommonParams:
 
         # Should fail because debug is not enabled
         assert result.is_failure
-        assert "trace mode requires debug mode" in result.error.lower()
+        error_msg = result.error or ""
+        assert "trace mode requires debug mode" in error_msg.lower()
 
     def test_apply_to_config_trace_with_debug(self) -> None:
         """Test applying trace with debug enabled."""
@@ -176,24 +188,18 @@ class TestFlextCliCommonParams:
 
     def test_configure_logger_debug_level(self) -> None:
         """Test configuring logger with DEBUG level."""
-        from flext_core import FlextCore
-
-        logger = FlextCore.Logger(__name__)
         config = FlextCliConfig(log_level="DEBUG")
 
-        result = FlextCliCommonParams.configure_logger(logger, config)
+        result = FlextCliCommonParams.configure_logger(config)
 
         assert result.is_success
         # FlextCore.Logger uses structlog - level is managed via FlextConfig
 
     def test_configure_logger_info_level(self) -> None:
         """Test configuring logger with INFO level."""
-        from flext_core import FlextCore
-
-        logger = FlextCore.Logger(__name__)
         config = FlextCliConfig(log_level="INFO")
 
-        result = FlextCliCommonParams.configure_logger(logger, config)
+        result = FlextCliCommonParams.configure_logger(config)
 
         assert result.is_success
         # FlextCore.Logger uses structlog - level managed via config
@@ -201,12 +207,9 @@ class TestFlextCliCommonParams:
 
     def test_configure_logger_warning_level(self) -> None:
         """Test configuring logger with WARNING level."""
-        from flext_core import FlextCore
-
-        logger = FlextCore.Logger(__name__)
         config = FlextCliConfig(log_level="WARNING")
 
-        result = FlextCliCommonParams.configure_logger(logger, config)
+        result = FlextCliCommonParams.configure_logger(config)
 
         assert result.is_success
         # FlextCore.Logger uses structlog - level managed via config
@@ -214,12 +217,9 @@ class TestFlextCliCommonParams:
 
     def test_configure_logger_error_level(self) -> None:
         """Test configuring logger with ERROR level."""
-        from flext_core import FlextCore
-
-        logger = FlextCore.Logger(__name__)
         config = FlextCliConfig(log_level="ERROR")
 
-        result = FlextCliCommonParams.configure_logger(logger, config)
+        result = FlextCliCommonParams.configure_logger(config)
 
         assert result.is_success
         # FlextCore.Logger uses structlog - level managed via config
@@ -227,12 +227,9 @@ class TestFlextCliCommonParams:
 
     def test_configure_logger_critical_level(self) -> None:
         """Test configuring logger with CRITICAL level."""
-        from flext_core import FlextCore
-
-        logger = FlextCore.Logger(__name__)
         config = FlextCliConfig(log_level="CRITICAL")
 
-        result = FlextCliCommonParams.configure_logger(logger, config)
+        result = FlextCliCommonParams.configure_logger(config)
 
         assert result.is_success
         # FlextCore.Logger uses structlog - level managed via config
@@ -250,15 +247,15 @@ class TestCommonCliParamsDecorator:
         @FlextCliCommonParams.create_decorator()
         def test_command(
             name: str,
-            verbose: bool = FlextCliCommonParams.verbose_option(),
-            quiet: bool = FlextCliCommonParams.quiet_option(),
-            debug: bool = FlextCliCommonParams.debug_option(),
-            trace: bool = FlextCliCommonParams.trace_option(),
-            log_level: str = FlextCliCommonParams.log_level_option(),
-            log_format: str = FlextCliCommonParams.log_format_option(),
-            output_format: str = FlextCliCommonParams.output_format_option(),
-            no_color: bool = FlextCliCommonParams.no_color_option(),
-            config_file: str | None = FlextCliCommonParams.config_file_option(),
+            verbose: bool = DEFAULT_VERBOSE,
+            quiet: bool = DEFAULT_QUIET,
+            debug: bool = DEFAULT_DEBUG,
+            trace: bool = DEFAULT_TRACE,
+            log_level: str = DEFAULT_LOG_LEVEL,
+            log_format: str = DEFAULT_LOG_FORMAT,
+            output_format: str = DEFAULT_OUTPUT_FORMAT,
+            no_color: bool = DEFAULT_NO_COLOR,
+            config_file: Path | None = DEFAULT_CONFIG_FILE,
         ) -> None:
             """Test command with all common parameters."""
             typer.echo(f"Name: {name}")
@@ -288,15 +285,15 @@ class TestCommonCliParamsDecorator:
         @FlextCliCommonParams.create_decorator()
         def test_command(
             name: str,
-            verbose: bool = FlextCliCommonParams.verbose_option(),
-            quiet: bool = FlextCliCommonParams.quiet_option(),
-            debug: bool = FlextCliCommonParams.debug_option(),
-            trace: bool = FlextCliCommonParams.trace_option(),
-            log_level: str = FlextCliCommonParams.log_level_option(),
-            log_format: str = FlextCliCommonParams.log_format_option(),
-            output_format: str = FlextCliCommonParams.output_format_option(),
-            no_color: bool = FlextCliCommonParams.no_color_option(),
-            config_file: str | None = FlextCliCommonParams.config_file_option(),
+            verbose: bool = DEFAULT_VERBOSE,
+            quiet: bool = DEFAULT_QUIET,
+            debug: bool = DEFAULT_DEBUG,
+            trace: bool = DEFAULT_TRACE,
+            log_level: str = DEFAULT_LOG_LEVEL,
+            log_format: str = DEFAULT_LOG_FORMAT,
+            output_format: str = DEFAULT_OUTPUT_FORMAT,
+            no_color: bool = DEFAULT_NO_COLOR,
+            config_file: Path | None = DEFAULT_CONFIG_FILE,
         ) -> None:
             """Test command."""
             if verbose:
@@ -317,15 +314,15 @@ class TestCommonCliParamsDecorator:
         @FlextCliCommonParams.create_decorator()
         def test_command(
             name: str,
-            verbose: bool = FlextCliCommonParams.verbose_option(),
-            quiet: bool = FlextCliCommonParams.quiet_option(),
-            debug: bool = FlextCliCommonParams.debug_option(),
-            trace: bool = FlextCliCommonParams.trace_option(),
-            log_level: str = FlextCliCommonParams.log_level_option(),
-            log_format: str = FlextCliCommonParams.log_format_option(),
-            output_format: str = FlextCliCommonParams.output_format_option(),
-            no_color: bool = FlextCliCommonParams.no_color_option(),
-            config_file: str | None = FlextCliCommonParams.config_file_option(),
+            verbose: bool = DEFAULT_VERBOSE,
+            quiet: bool = DEFAULT_QUIET,
+            debug: bool = DEFAULT_DEBUG,
+            trace: bool = DEFAULT_TRACE,
+            log_level: str = DEFAULT_LOG_LEVEL,
+            log_format: str = DEFAULT_LOG_FORMAT,
+            output_format: str = DEFAULT_OUTPUT_FORMAT,
+            no_color: bool = DEFAULT_NO_COLOR,
+            config_file: Path | None = DEFAULT_CONFIG_FILE,
         ) -> None:
             """Test command."""
             if debug:
@@ -346,15 +343,15 @@ class TestCommonCliParamsDecorator:
         @FlextCliCommonParams.create_decorator()
         def test_command(
             name: str,
-            verbose: bool = FlextCliCommonParams.verbose_option(),
-            quiet: bool = FlextCliCommonParams.quiet_option(),
-            debug: bool = FlextCliCommonParams.debug_option(),
-            trace: bool = FlextCliCommonParams.trace_option(),
-            log_level: str = FlextCliCommonParams.log_level_option(),
-            log_format: str = FlextCliCommonParams.log_format_option(),
-            output_format: str = FlextCliCommonParams.output_format_option(),
-            no_color: bool = FlextCliCommonParams.no_color_option(),
-            config_file: str | None = FlextCliCommonParams.config_file_option(),
+            verbose: bool = DEFAULT_VERBOSE,
+            quiet: bool = DEFAULT_QUIET,
+            debug: bool = DEFAULT_DEBUG,
+            trace: bool = DEFAULT_TRACE,
+            log_level: str = DEFAULT_LOG_LEVEL,
+            log_format: str = DEFAULT_LOG_FORMAT,
+            output_format: str = DEFAULT_OUTPUT_FORMAT,
+            no_color: bool = DEFAULT_NO_COLOR,
+            config_file: Path | None = DEFAULT_CONFIG_FILE,
         ) -> None:
             """Test command."""
             typer.echo(f"Log level: {log_level}")
@@ -373,15 +370,15 @@ class TestCommonCliParamsDecorator:
         @FlextCliCommonParams.create_decorator()
         def test_command(
             name: str,
-            verbose: bool = FlextCliCommonParams.verbose_option(),
-            quiet: bool = FlextCliCommonParams.quiet_option(),
-            debug: bool = FlextCliCommonParams.debug_option(),
-            trace: bool = FlextCliCommonParams.trace_option(),
-            log_level: str = FlextCliCommonParams.log_level_option(),
-            log_format: str = FlextCliCommonParams.log_format_option(),
-            output_format: str = FlextCliCommonParams.output_format_option(),
-            no_color: bool = FlextCliCommonParams.no_color_option(),
-            config_file: str | None = FlextCliCommonParams.config_file_option(),
+            verbose: bool = DEFAULT_VERBOSE,
+            quiet: bool = DEFAULT_QUIET,
+            debug: bool = DEFAULT_DEBUG,
+            trace: bool = DEFAULT_TRACE,
+            log_level: str = DEFAULT_LOG_LEVEL,
+            log_format: str = DEFAULT_LOG_FORMAT,
+            output_format: str = DEFAULT_OUTPUT_FORMAT,
+            no_color: bool = DEFAULT_NO_COLOR,
+            config_file: Path | None = DEFAULT_CONFIG_FILE,
         ) -> None:
             """Test command."""
             typer.echo(f"Output format: {output_format}")
@@ -400,15 +397,15 @@ class TestCommonCliParamsDecorator:
         @FlextCliCommonParams.create_decorator()
         def test_command(
             name: str,
-            verbose: bool = FlextCliCommonParams.verbose_option(),
-            quiet: bool = FlextCliCommonParams.quiet_option(),
-            debug: bool = FlextCliCommonParams.debug_option(),
-            trace: bool = FlextCliCommonParams.trace_option(),
-            log_level: str = FlextCliCommonParams.log_level_option(),
-            log_format: str = FlextCliCommonParams.log_format_option(),
-            output_format: str = FlextCliCommonParams.output_format_option(),
-            no_color: bool = FlextCliCommonParams.no_color_option(),
-            config_file: str | None = FlextCliCommonParams.config_file_option(),
+            verbose: bool = DEFAULT_VERBOSE,
+            quiet: bool = DEFAULT_QUIET,
+            debug: bool = DEFAULT_DEBUG,
+            trace: bool = DEFAULT_TRACE,
+            log_level: str = DEFAULT_LOG_LEVEL,
+            log_format: str = DEFAULT_LOG_FORMAT,
+            output_format: str = DEFAULT_OUTPUT_FORMAT,
+            no_color: bool = DEFAULT_NO_COLOR,
+            config_file: Path | None = DEFAULT_CONFIG_FILE,
         ) -> None:
             """Test command with config integration."""
             # Create config and apply CLI params
@@ -524,10 +521,12 @@ class TestLoggerIntegration:
         assert result.is_success
         updated_config = result.unwrap()
 
-        # Configure logger
-        logger = FlextCore.Logger("test_cli_params")
-        logger_result = FlextCliCommonParams.configure_logger(logger, updated_config)
+        # Configure logger (validates config only)
+        logger_result = FlextCliCommonParams.configure_logger(updated_config)
         assert logger_result.is_success
+
+        # Create logger with validated config
+        logger = FlextCore.Logger("test_cli_params")
 
         # Test logging
         logger.debug("Debug message")
@@ -545,9 +544,9 @@ class TestLoggerIntegration:
 
         # Start with INFO
         config = FlextCliConfig(log_level="INFO")
-        logger = FlextCore.Logger("test_runtime")
-        FlextCliCommonParams.configure_logger(logger, config)
+        FlextCliCommonParams.configure_logger(config)
 
+        logger = FlextCore.Logger("test_runtime")
         logger.info("Info at INFO level")
         captured = capsys.readouterr()
         assert "Info at INFO level" in captured.out
@@ -557,7 +556,7 @@ class TestLoggerIntegration:
         assert result.is_success
         updated_config = result.unwrap()
 
-        FlextCliCommonParams.configure_logger(logger, updated_config)
+        FlextCliCommonParams.configure_logger(updated_config)
 
         # Note: structlog configuration is global and set at initialization
         # Runtime level changes require logger re-initialization

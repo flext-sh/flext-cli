@@ -88,7 +88,9 @@ class TestFlextCliFormattersCore:
     def test_create_table_with_data(self) -> None:
         """Test create_table() with data."""
         formatters = FlextCliFormatters()
-        data = {"key1": "value1", "key2": "value2"}
+        data: dict[
+            str, str | int | float | bool | list[object] | dict[str, object] | None
+        ] = {"key1": "value1", "key2": "value2"}
         result = formatters.create_table(data=data, headers=["Key", "Value"])
         assert result.is_success
         table = result.unwrap()
@@ -177,7 +179,9 @@ class TestFlextCliFormattersIntegration:
         formatters = FlextCliFormatters()
 
         # Create table with data
-        data = {"Name": "Alice", "Age": "30", "City": "NYC"}
+        data: dict[
+            str, str | int | float | bool | list[object] | dict[str, object] | None
+        ] = {"Name": "Alice", "Age": "30", "City": "NYC"}
         table_result = formatters.create_table(
             data=data, headers=["Key", "Value"], title="User Info"
         )
@@ -225,3 +229,71 @@ class TestFlextCliFormattersIntegration:
         # Should work with print
         result = formatters.print("Test")
         assert result.is_success
+
+    def test_create_status(self) -> None:
+        """Test create_status() method (lines 246-253)."""
+        formatters = FlextCliFormatters()
+        result = formatters.create_status("Processing...")
+        assert result.is_success
+        status = result.unwrap()
+        assert status is not None
+
+    def test_create_status_with_spinner(self) -> None:
+        """Test create_status() with custom spinner."""
+        formatters = FlextCliFormatters()
+        result = formatters.create_status("Loading...", spinner="dots")
+        assert result.is_success
+        status = result.unwrap()
+        assert status is not None
+
+    def test_create_live(self) -> None:
+        """Test create_live() method (lines 268-277)."""
+        formatters = FlextCliFormatters()
+        result = formatters.create_live()
+        assert result.is_success
+        live = result.unwrap()
+        assert live is not None
+
+    def test_create_live_with_refresh_rate(self) -> None:
+        """Test create_live() with custom refresh rate."""
+        formatters = FlextCliFormatters()
+        result = formatters.create_live(refresh_per_second=10)
+        assert result.is_success
+        live = result.unwrap()
+        assert live is not None
+
+    def test_create_layout(self) -> None:
+        """Test create_layout() method (lines 289-294)."""
+        formatters = FlextCliFormatters()
+        result = formatters.create_layout()
+        assert result.is_success
+        layout = result.unwrap()
+        assert layout is not None
+
+    def test_create_panel(self) -> None:
+        """Test create_panel() method (lines 315-325)."""
+        formatters = FlextCliFormatters()
+        result = formatters.create_panel("Test content")
+        assert result.is_success
+        panel = result.unwrap()
+        assert panel is not None
+
+    def test_create_panel_with_title(self) -> None:
+        """Test create_panel() with title and border."""
+        formatters = FlextCliFormatters()
+        result = formatters.create_panel("Content", title="Test Panel", border_style="green")
+        assert result.is_success
+        panel = result.unwrap()
+        assert panel is not None
+
+    def test_create_table_dict_without_headers(self) -> None:
+        """Test create_table() with dict data but no headers (lines 133-134)."""
+        formatters = FlextCliFormatters()
+        data: dict[
+            str, str | int | float | bool | list[object] | dict[str, object] | None
+        ] = {"key1": "value1", "key2": "value2", "key3": "value3"}
+        # No headers - will use else branch at line 131
+        result = formatters.create_table(data=data)
+        assert result.is_success
+        table = result.unwrap()
+        assert isinstance(table, RichTable)

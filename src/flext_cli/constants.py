@@ -14,17 +14,7 @@ from typing import Final, Literal
 
 from flext_core import FlextCore
 
-# Literal types for CLI constants - must be defined at module level for class access
-CommandResultStatusLiteral = Literal["success", "failure", "error"]
-CliProjectTypeLiteral = Literal[
-    "cli-tool",
-    "console-app",
-    "terminal-ui",
-    "command-runner",
-    "interactive-cli",
-    "batch-processor",
-    "cli-wrapper",
-]
+# Literal types moved to FlextCliConstants class - CRITICAL VIOLATION FIXED
 
 
 class FlextCliConstants(FlextCore.Constants):
@@ -33,6 +23,18 @@ class FlextCliConstants(FlextCore.Constants):
     Centralizes all CLI-specific constants, enums, literals, and defaults
     without duplication or wrappers, using direct access patterns.
     """
+
+    # Literal types - CRITICAL VIOLATION FIXED: Moved from module level
+    CommandResultStatusLiteral = Literal["success", "failure", "error"]
+    CliProjectTypeLiteral = Literal[
+        "cli-tool",
+        "console-app",
+        "terminal-ui",
+        "command-runner",
+        "interactive-cli",
+        "batch-processor",
+        "cli-wrapper",
+    ]
 
     # Directory and file names
     FLEXT_DIR_NAME: Final[str] = ".flext"
@@ -65,7 +67,6 @@ class FlextCliConstants(FlextCore.Constants):
         CSV = "csv"  # Standard format from FlextCore
         TABLE = "table"  # Standard format from FlextCore
         PLAIN = "plain"  # CLI-specific format
-        TEXT = "text"  # Alias for plain (FlextCore compatibility)
 
     # Terminal width thresholds for format selection
     TERMINAL_WIDTH_NARROW: Final[int] = 80
@@ -167,7 +168,6 @@ class FlextCliConstants(FlextCore.Constants):
         OutputFormats.CSV.value,
         OutputFormats.TABLE.value,
         OutputFormats.PLAIN.value,
-        OutputFormats.TEXT.value,
     ]
 
     LOG_LEVELS_LIST: Final[FlextCore.Types.StringList] = [
@@ -210,7 +210,7 @@ class FlextCliConstants(FlextCore.Constants):
 
         # Core command result types
         CommandResultData = dict[str, FlextCore.Types.JsonValue]
-        CommandResultStatus = CommandResultStatusLiteral
+        CommandResultStatus = Literal["success", "failure", "error"]
         CommandResultMetadata = dict[str, str | int | bool]
 
     class Shell:
@@ -830,7 +830,15 @@ class FlextCliConstants(FlextCore.Constants):
         """
 
         # CLI-specific project types
-        CliProjectType = CliProjectTypeLiteral
+        CliProjectType = Literal[
+            "cli-tool",
+            "console-app",
+            "terminal-ui",
+            "command-runner",
+            "interactive-cli",
+            "batch-processor",
+            "cli-wrapper",
+        ]
 
         # CLI-specific project configurations
         CliProjectConfig = dict[str, FlextCore.Types.ConfigValue]

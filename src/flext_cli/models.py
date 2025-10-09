@@ -3,6 +3,11 @@
 Provides CLI-specific Pydantic models using flext-core standardization.
 Single FlextCliModels class with nested model subclasses following FLEXT pattern.
 
+EXPECTED MYPY ISSUES (documented for awareness):
+- Unreachable statement in CliContext.set_environment_variable method:
+  This is defensive validation that mypy proves is unnecessary at compile time
+  due to type analysis, but is kept for runtime safety.
+
 Copyright (c) 2025 FLEXT Team. All rights reserved.
 SPDX-License-Identifier: MIT
 """
@@ -12,7 +17,7 @@ from __future__ import annotations
 import uuid
 from collections.abc import Callable
 from datetime import UTC, datetime
-from typing import Self, cast, get_args, get_origin, override
+from typing import Any, Self, cast, get_args, get_origin, override
 
 from flext_core import FlextCore, FlextResult
 from pydantic import (
@@ -874,18 +879,6 @@ class FlextCliModels(FlextCore.Models):
                 normalized_data
             )
 
-        @override
-        def __init__(self, **data: object) -> None:
-            """Initialize CLI command with Pydantic validation.
-
-            Args:
-                **data: Command data including command_line, status, etc.
-
-            """
-            # Call parent Pydantic __init__ which handles all field validation
-            # Pydantic will automatically convert types as needed
-            super().__init__(**data)
-
         def validate_business_rules(self) -> FlextResult[None]:
             """Validate command business rules."""
             # Use mixin validation methods
@@ -1093,7 +1086,7 @@ class FlextCliModels(FlextCore.Models):
             session_id: str | None = None,
             user_id: str | None = None,
             start_time: str | datetime | None = None,
-            **data: object,
+            **data: Any,
         ) -> None:
             """Initialize CLI session with proper type handling.
 
@@ -1153,7 +1146,9 @@ class FlextCliModels(FlextCore.Models):
                 version=version_value,
                 created_at=created_at_value,
                 updated_at=updated_at_value,
-                domain_events=domain_events_value,
+                domain_events=cast(
+                    "list[FlextCore.Models.DomainEvent]", domain_events_value
+                ),
             )
 
             # Set session identifier (auto-generate if not provided)
@@ -1273,7 +1268,7 @@ class FlextCliModels(FlextCore.Models):
             arguments: FlextCore.Types.StringList | None = None,
             environment_variables: FlextCliTypes.Data.CliConfigData | None = None,
             working_directory: str | None = None,
-            **data: object,
+            **data: Any,
         ) -> None:
             """Initialize CLI context with enhanced type safety.
 
@@ -1323,7 +1318,9 @@ class FlextCliModels(FlextCore.Models):
                 version=version_value,
                 created_at=created_at_value,
                 updated_at=updated_at_value,
-                domain_events=domain_events_value,
+                domain_events=cast(
+                    "list[FlextCore.Models.DomainEvent]", domain_events_value
+                ),
             )
 
             # CLI context initialization with domain-specific types

@@ -213,7 +213,7 @@ class TestFlextCliOutput:
     ) -> None:
         """Test formatting table."""
         # Convert dict to list format expected by format_table
-        sample_list: list[dict[str, str | int | float]] = [sample_data]
+        sample_list: list[dict[str, object]] = [sample_data]
         result = output.format_table(sample_list)
 
         assert isinstance(result, FlextResult)
@@ -262,7 +262,7 @@ class TestFlextCliOutput:
         assert csv_result.is_success
 
         # Step 3: Format table (may fail for complex data)
-        sample_list: list[dict[str, str | int | float]] = [sample_data]
+        sample_list: list[dict[str, object]] = [sample_data]
         table_result = output.format_table(sample_list)
         assert isinstance(table_result, FlextResult)
 
@@ -307,7 +307,7 @@ class TestFlextCliOutput:
 
         # Test table formatting - cast to expected type
         table_result = output.format_table(
-            cast("FlextTypes.Dict | list[FlextTypes.Dict] | None", real_data)
+            cast("FlextTypes.Dict | list[FlextTypes.Dict]", real_data)
         )
         assert table_result.is_success
         table_str = table_result.unwrap()
@@ -316,7 +316,7 @@ class TestFlextCliOutput:
     def test_output_edge_cases(self, output: FlextCliOutput) -> None:
         """Test edge cases and error conditions."""
         # Test with empty data
-        empty_data = {}
+        empty_data: dict[str, object] = {}
         result = output.format_data(empty_data, "json")
         assert isinstance(result, FlextResult)
 
@@ -379,7 +379,7 @@ class TestFlextCliOutput:
     def test_output_error_handling(self, output: FlextCliOutput) -> None:
         """Test output error handling."""
         # Test with circular reference data
-        circular_data = {}
+        circular_data: dict[str, object] = {}
         circular_data["self"] = circular_data
 
         result = output.format_data(circular_data, "json")
@@ -427,3 +427,125 @@ class TestFlextCliOutput:
         result = output.format_data(sample_data, "custom")
         assert isinstance(result, FlextResult)
         # Should handle gracefully
+
+    # =========================================================================
+    # COVERAGE COMPLETION TESTS - Missing Methods
+    # =========================================================================
+
+    def test_create_rich_table_with_data(self, output: FlextCliOutput) -> None:
+        """Test create_rich_table with real data (lines 205-247)."""
+        data = [
+            {"name": "Alice", "age": 30, "city": "NYC"},
+            {"name": "Bob", "age": 25, "city": "LA"},
+        ]
+        result = output.create_rich_table(
+            data=data,
+            headers=["name", "age", "city"],
+            title="User Data"
+        )
+        assert isinstance(result, FlextResult)
+        assert result.is_success
+        table = result.unwrap()
+        assert table is not None
+
+    def test_create_rich_table_no_data_fails(self, output: FlextCliOutput) -> None:
+        """Test create_rich_table with no data fails (line 205)."""
+        result = output.create_rich_table(data=[])
+        assert isinstance(result, FlextResult)
+        assert result.is_failure
+        assert result.error is not None
+        assert "No data provided" in result.error
+
+    def test_create_rich_table_with_options(self, output: FlextCliOutput) -> None:
+        """Test create_rich_table with all options (lines 215-222)."""
+        data = [{"key": "value"}]
+        result = output.create_rich_table(
+            data=data,
+            title="Test Table",
+            show_header=True,
+            show_lines=True,
+            show_edge=True,
+            expand=False,
+            padding=(0, 1)
+        )
+        assert isinstance(result, FlextResult)
+        assert result.is_success
+
+    def test_display_message_simple(self, output: FlextCliOutput) -> None:
+        """Test display_message with simple message (lines 481-506)."""
+        result = output.display_message("Test message")
+        assert isinstance(result, FlextResult)
+        assert result.is_success
+
+    def test_display_message_with_title(self, output: FlextCliOutput) -> None:
+        """Test display_message with title and style."""
+        result = output.display_message(
+            "Test message",
+            title="Important",
+            message_type="info",
+            style="bold blue"
+        )
+        assert isinstance(result, FlextResult)
+        assert result.is_success
+
+    def test_display_data_dict(self, output: FlextCliOutput) -> None:
+        """Test display_data with dictionary (lines 530-549)."""
+        data = {"name": "Alice", "age": 30}
+        result = output.display_data(data, format_type="json")
+        assert isinstance(result, FlextResult)
+        assert result.is_success
+
+    def test_display_data_list(self, output: FlextCliOutput) -> None:
+        """Test display_data with list."""
+        data = [1, 2, 3, 4, 5]
+        result = output.display_data(data, format_type="json")
+        assert isinstance(result, FlextResult)
+        assert result.is_success
+
+    def test_display_data_table_format(self, output: FlextCliOutput) -> None:
+        """Test display_data with table format."""
+        data = [
+            {"name": "Alice", "age": 30},
+            {"name": "Bob", "age": 25}
+        ]
+        result = output.display_data(data, format_type="table")
+        assert isinstance(result, FlextResult)
+        assert result.is_success
+
+    def test_table_to_string(self, output: FlextCliOutput) -> None:
+        """Test table_to_string method (lines 248-264)."""
+        # First create a table
+        data = [{"key": "value"}]
+        table_result = output.create_rich_table(data=data)
+        assert table_result.is_success
+        table = table_result.unwrap()
+
+        # Now convert to string
+        string_result = output.table_to_string(table)
+        assert isinstance(string_result, FlextResult)
+        assert string_result.is_success
+        table_str = string_result.unwrap()
+        assert isinstance(table_str, str)
+        assert len(table_str) > 0
+
+    def test_create_ascii_table_with_data(self, output: FlextCliOutput) -> None:
+        """Test create_ascii_table (lines 270-315)."""
+        data = [
+            {"name": "Alice", "age": 30},
+            {"name": "Bob", "age": 25}
+        ]
+        result = output.create_ascii_table(data=data)
+        assert isinstance(result, FlextResult)
+        assert result.is_success
+        table_str = result.unwrap()
+        assert isinstance(table_str, str)
+        assert "Alice" in table_str
+
+    def test_create_ascii_table_with_format(self, output: FlextCliOutput) -> None:
+        """Test create_ascii_table with different format."""
+        data = [{"key": "value"}]
+        result = output.create_ascii_table(data=data, table_format="grid")
+        assert isinstance(result, FlextResult)
+        assert result.is_success
+        table_str = result.unwrap()
+        assert isinstance(table_str, str)

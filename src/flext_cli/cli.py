@@ -17,7 +17,7 @@ from __future__ import annotations
 import shutil
 from collections.abc import Callable, Sequence
 from pathlib import Path
-from typing import IO
+from typing import IO, Any, cast
 
 import click
 import typer
@@ -106,9 +106,9 @@ class FlextCliCli:
 
         """
         command_kwargs: dict[str, object] = {"name": name}
-        command_kwargs.update(kwargs)  # type: ignore[arg-type]
-        # Use type: ignore to avoid type checking issues with Click's dynamic kwargs
-        decorator = click.command(**command_kwargs)  # type: ignore[arg-type]
+        command_kwargs.update(kwargs)
+        # Cast to Any for Click API compatibility - explicit library interop
+        decorator = click.command(**cast("Any", command_kwargs))
         self.logger.debug(
             "Created command decorator",
             extra={"command_name": name, "options": kwargs},
@@ -139,9 +139,9 @@ class FlextCliCli:
 
         """
         group_kwargs: dict[str, object] = {"name": name}
-        group_kwargs.update(kwargs)  # type: ignore[arg-type]
-        # Use type: ignore to avoid type checking issues with Click's dynamic kwargs
-        decorator = click.group(**group_kwargs)  # type: ignore[arg-type]
+        group_kwargs.update(kwargs)
+        # Cast to Any for Click API compatibility - explicit library interop
+        decorator = click.group(**cast("Any", group_kwargs))
         self.logger.debug(
             "Created group decorator",
             extra={"group_name": name, "options": kwargs},
@@ -156,7 +156,7 @@ class FlextCliCli:
         self,
         *param_decls: str,
         **attrs: object,
-    ) -> object:
+    ) -> Callable[[Callable[..., object]], Callable[..., object]]:
         """Create Click option decorator.
 
         Args:
@@ -173,8 +173,8 @@ class FlextCliCli:
             ... )
 
         """
-        # Use type: ignore to avoid type checking issues with Click's dynamic kwargs
-        decorator = click.option(*param_decls, **attrs)  # type: ignore[arg-type]
+        # Cast to Any for Click API compatibility - explicit library interop
+        decorator = click.option(*param_decls, **cast("Any", attrs))
         self.logger.debug(
             "Created option decorator",
             extra={"param_decls": param_decls, "attrs": attrs},
@@ -185,7 +185,7 @@ class FlextCliCli:
         self,
         *param_decls: str,
         **attrs: object,
-    ) -> object:
+    ) -> Callable[[Callable[..., object]], Callable[..., object]]:
         """Create Click argument decorator.
 
         Args:
@@ -202,8 +202,8 @@ class FlextCliCli:
             ... )
 
         """
-        # Use type: ignore to avoid type checking issues with Click's dynamic kwargs
-        decorator = click.argument(*param_decls, **attrs)  # type: ignore[arg-type]
+        # Cast to Any for Click API compatibility - explicit library interop
+        decorator = click.argument(*param_decls, **cast("Any", attrs))
         self.logger.debug(
             "Created argument decorator",
             extra={"param_decls": param_decls, "attrs": attrs},
@@ -216,7 +216,7 @@ class FlextCliCli:
 
     def get_choice_type(
         self, choices: Sequence[str], *, case_sensitive: bool = True
-    ) -> click.Choice:
+    ) -> click.Choice[str]:
         """Get Click Choice parameter type.
 
         Args:

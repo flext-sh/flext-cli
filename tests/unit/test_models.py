@@ -14,6 +14,7 @@ import operator
 import re
 import threading
 import time
+from typing import cast
 
 import pytest
 from flext_core import FlextTypes
@@ -174,33 +175,6 @@ class TestFlextCliModels:
         assert data["level"] == "debug"
 
     # ========================================================================
-    # FormatOptions Model Tests
-    # ========================================================================
-
-    @pytest.mark.skip(
-        reason="FormatOptions/CliPipeline models removed - functionality delegated to specialized services"
-    )
-    def test_format_options_creation(self) -> None:
-        """Test FormatOptions model creation."""
-        format_options = FlextCliModels.FormatOptions(
-            title="Test Title", headers=["col1", "col2"], show_lines=True
-        )
-        assert format_options.title == "Test Title"
-        assert format_options.headers == ["col1", "col2"]
-        assert format_options.show_lines is True
-
-    @pytest.mark.skip(
-        reason="FormatOptions/CliPipeline models removed - functionality delegated to specialized services"
-    )
-    def test_format_options_serialization(self) -> None:
-        """Test FormatOptions model serialization."""
-        format_options = FlextCliModels.FormatOptions(title="Test", show_lines=False)
-        data = format_options.model_dump()
-        assert isinstance(data, dict)
-        assert data["title"] == "Test"
-        assert data["show_lines"] is False
-
-    # ========================================================================
     # LoggingConfig Model Tests
     # ========================================================================
 
@@ -220,37 +194,6 @@ class TestFlextCliModels:
         data = config.model_dump()
         assert isinstance(data, dict)
         assert data["log_level"] == "INFO"
-
-    # ========================================================================
-    # CliPipeline Model Tests
-    # ========================================================================
-
-    @pytest.mark.skip(
-        reason="FormatOptions/CliPipeline models removed - functionality delegated to specialized services"
-    )
-    def test_cli_pipeline_creation(self) -> None:
-        """Test CliPipeline model creation."""
-        # Test basic pipeline creation
-        pipeline = FlextCliModels.CliPipeline(name="test-pipeline")
-        assert pipeline.name == "test-pipeline"
-        assert not pipeline.description
-        assert pipeline.steps == []
-        assert pipeline.config == {}
-        assert pipeline.status == "pending"
-
-    @pytest.mark.skip(
-        reason="FormatOptions/CliPipeline models removed - functionality delegated to specialized services"
-    )
-    def test_cli_pipeline_serialization(self) -> None:
-        """Test CliPipeline model serialization."""
-        # Test pipeline serialization
-        pipeline = FlextCliModels.CliPipeline(
-            name="test-pipeline", description="Test pipeline", steps=[{"step": "test"}]
-        )
-        data = pipeline.model_dump()
-        assert data["name"] == "test-pipeline"
-        assert data["description"] == "Test pipeline"
-        assert data["steps"] == [{"step": "test"}]
 
     # ========================================================================
     # FlextCliModels Class Method Tests
@@ -348,30 +291,6 @@ class TestFlextCliModels:
         assert "service" in summary
         assert summary["service"] == "TestService"
 
-    @pytest.mark.skip(
-        reason="FormatOptions/CliPipeline models removed - functionality delegated to specialized services"
-    )
-    def test_format_options_computed_fields(self) -> None:
-        """Test FormatOptions computed fields."""
-        format_options = FlextCliModels.FormatOptions(
-            title="Test", headers=["col1", "col2"], show_lines=True
-        )
-        summary = format_options.format_summary
-        assert isinstance(summary, dict)
-        assert summary["has_title"] is True
-        assert summary["headers_count"] == 2
-
-    @pytest.mark.skip(
-        reason="FormatOptions.max_width field removed - validation no longer applicable"
-    )
-    def test_format_options_validation(self) -> None:
-        """Test FormatOptions validation with invalid max_width."""
-        with pytest.raises(Exception):
-            FlextCliModels.FormatOptions(
-                title="Test",
-                max_width=-1,  # Invalid - should be positive
-            )
-
     def test_cli_session_validation(self) -> None:
         """Test CliSession validation."""
         session = FlextCliModels.CliSession(session_id="test-session", status="active")
@@ -437,17 +356,6 @@ class TestFlextCliModels:
         assert isinstance(summary, dict)
         assert "level" in summary
 
-    @pytest.mark.skip(
-        reason="FlextCliModels is a Pydantic BaseModel, not a service - no execute() method"
-    )
-    def test_models_execute_method(self, models_service: FlextCliModels) -> None:
-        """Test FlextCliModels execute method."""
-        result = models_service.execute()
-        assert result.is_success
-        data = result.unwrap()
-        assert isinstance(data, dict)
-        assert "status" in data
-
     # ========================================================================
     # Additional Coverage Tests - Targeting Missing Lines
     # ========================================================================
@@ -485,21 +393,6 @@ class TestFlextCliModels:
                 level="invalid_level",  # Invalid level
                 message="Test",
             )
-
-    @pytest.mark.skip(
-        reason="FormatOptions/CliPipeline models removed - functionality delegated to specialized services"
-    )
-    def test_format_options_edge_cases(self) -> None:
-        """Test FormatOptions with edge cases."""
-        # Test with None values
-        options = FlextCliModels.FormatOptions()
-        assert options.title is None
-        assert options.headers is None
-
-        # Test format_summary with no title
-        summary = options.format_summary
-        assert summary["has_title"] is False
-        assert summary["headers_count"] == 0
 
     def test_cli_command_serialization_methods(self) -> None:
         """Test CliCommand serialization methods."""
@@ -626,16 +519,6 @@ class TestFlextCliModels:
             assert session2 is not None
         except ValueError:
             pass  # Expected for invalid data
-
-    @pytest.mark.skip(
-        reason="FlextCliModels is a Pydantic BaseModel, not a service - no execute() method"
-    )
-    def test_models_execute(self, models_service: FlextCliModels) -> None:
-        """Test execute method."""
-        result = models_service.execute()
-        assert result.is_success
-        data = result.unwrap()
-        assert isinstance(data, dict)
 
     def test_deserialize_data_model(self) -> None:
         """Test data model deserialization functionality."""
@@ -888,7 +771,8 @@ class TestFlextCliModels:
             category: str = str(category_value)
             if category not in grouped:
                 grouped[category] = []
-            grouped[category].append(model)
+            # Cast to match list type annotation
+            grouped[category].append(cast("dict[str, int | str]", model))
 
         assert len(grouped["A"]) == 2
         assert len(grouped["B"]) == 2
@@ -1031,7 +915,7 @@ class TestFlextCliModels:
         assert models_service is not None
 
         # Test with empty data
-        empty_data = {}
+        empty_data: dict[str, object] = {}
         assert len(empty_data) == 0
 
         # Test with malformed JSON
@@ -1082,7 +966,8 @@ class TestFlextCliModels:
                     "timestamp": time.time(),
                     "data": f"Worker {worker_id} data",
                 }
-                results.append(test_data)
+                # Cast to match list type annotation
+                results.append(cast("dict[str, int | float | str]", test_data))
             except Exception as e:
                 errors.append(e)
 
@@ -1153,7 +1038,7 @@ class TestFlextCliModels:
 
         # 2. Validate data
         valid_data: list[dict[str, int | str]] = [
-            item
+            cast("dict[str, int | str]", item)
             for item in raw_data
             if isinstance(item["price"], (int, float))
             and item["price"] > 0
@@ -1250,10 +1135,19 @@ class TestFlextCliModels:
             time.sleep(0.001)
             return [item for item in data if item.get("active", True)]
 
-        test_data = [
-            {"id": 1, "name": "Item 1", "active": True},
-            {"id": 2, "name": "Item 2", "active": False},
-            {"id": 3, "name": "Item 3", "active": True},
+        test_data: list[dict[str, int | str | bool]] = [
+            cast(
+                "dict[str, int | str | bool]",
+                {"id": 1, "name": "Item 1", "active": True},
+            ),
+            cast(
+                "dict[str, int | str | bool]",
+                {"id": 2, "name": "Item 2", "active": False},
+            ),
+            cast(
+                "dict[str, int | str | bool]",
+                {"id": 3, "name": "Item 3", "active": True},
+            ),
         ]
 
         processed_data = process_data(test_data)

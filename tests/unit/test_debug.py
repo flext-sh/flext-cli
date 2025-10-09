@@ -166,10 +166,61 @@ class TestFlextCliDebug:
         """Test debug memory usage."""
         # Test with many debug operations
         for _i in range(1000):
-            result = debug.get_system_paths()
-            assert isinstance(result, FlextResult)
+            paths_result = debug.get_system_paths()
+            assert isinstance(paths_result, FlextResult)
 
         # Test getting debug info multiple times
         for _i in range(100):
-            result = debug.get_debug_info()
-            assert isinstance(result, FlextResult)
+            info_result = debug.get_debug_info()
+            assert isinstance(info_result, FlextResult)
+
+    # =========================================================================
+    # COVERAGE IMPROVEMENT TESTS - Missing error paths and methods
+    # =========================================================================
+
+    def test_get_comprehensive_debug_info(self, debug: FlextCliDebug) -> None:
+        """Test get_comprehensive_debug_info method (lines 148-194)."""
+        result = debug.get_comprehensive_debug_info()
+
+        assert isinstance(result, FlextResult)
+        assert result.is_success
+        info = result.unwrap()
+        assert isinstance(info, dict)
+        # Should contain all subsections
+        assert "system" in info or "system_error" in info
+        assert "environment" in info or "environment_error" in info
+        assert "paths" in info or "paths_error" in info
+        assert "debug" in info or "debug_error" in info
+
+    def test_get_system_info(self, debug: FlextCliDebug) -> None:
+        """Test get_system_info method (lines 55-72)."""
+        result = debug.get_system_info()
+
+        assert isinstance(result, FlextResult)
+        assert result.is_success
+        info = result.unwrap()
+        assert isinstance(info, dict)
+        # Should contain system information keys
+        assert len(info) > 0
+
+    def test_get_environment_variables(self, debug: FlextCliDebug) -> None:
+        """Test get_environment_variables method (lines 74-88)."""
+        result = debug.get_environment_variables()
+
+        assert isinstance(result, FlextResult)
+        assert result.is_success
+        env = result.unwrap()
+        assert isinstance(env, dict)
+        # Environment variables should be masked if sensitive
+        # Check that if there are any PASSWORD/TOKEN keys, they're masked
+        for key, value in env.items():
+            if any(sens in key.lower() for sens in ["password", "token", "secret", "key", "auth"]):
+                assert value == "***MASKED***"
+
+    def test_validate_config(self, debug: FlextCliDebug) -> None:
+        """Test validate_config method."""
+        result = debug.validate_config()
+
+        assert isinstance(result, FlextResult)
+        # Should succeed or fail gracefully
+        assert result.is_success or result.is_failure

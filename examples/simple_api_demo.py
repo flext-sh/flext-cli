@@ -1,85 +1,217 @@
-"""Simple API Demo - Flext CLI Optimized API.
+"""Simple API Demo - Quick Reference for flext-cli.
 
-This example demonstrates the optimized flext-cli API using direct access
-to formatters, file_tools, and other services.
+A quick reference showing common flext-cli patterns in one place.
+
+WHEN TO USE flext-cli:
+- Building any Python CLI application
+- Need styled terminal output (colors, tables, progress)
+- Want error handling without exceptions (FlextResult)
+- Need file I/O (JSON, YAML) with validation
+- Building interactive CLI tools
+
+QUICK START:
+```python
+from flext_cli import FlextCli, FlextCliTables
+from flext_core import FlextResult
+
+cli = FlextCli.get_instance()
+
+# Styled output
+cli.formatters.print("Hello!", style="green")
+
+# Tables
+cli.create_table(data={"key": "value"}, headers=["Field", "Value"])
+
+# File I/O
+cli.file_tools.write_json_file(path, data)
+```
 
 Copyright (c) 2025 FLEXT Team. All rights reserved.
 SPDX-License-Identifier: MIT
 """
 
+from __future__ import annotations
+
+import os
+import platform
 import tempfile
 from pathlib import Path
+from typing import cast
 
-from flext_cli import FlextCli
+from flext_core import FlextResult
+
+from flext_cli import FlextCli, FlextCliTables
+from flext_cli.typings import FlextCliTypes
+
+cli = FlextCli.get_instance()
 
 
 def main() -> None:
-    """Demonstrate all convenience methods in the optimized API."""
-    cli = FlextCli.get_instance()
+    """Quick reference of flext-cli patterns."""
+    cli.formatters.print("=" * 70, style="bold blue")
+    cli.formatters.print("  FLEXT-CLI Quick Reference", style="bold white on blue")
+    cli.formatters.print("=" * 70, style="bold blue")
 
-    # =========================================================================
-    # OUTPUT MESSAGES - Simple styled messages using formatters
-    # =========================================================================
-    cli.formatters.print("Operation completed successfully!", style="bold green")
-    cli.formatters.print("Something went wrong!", style="bold red")
-    cli.formatters.print("This is a warning message", style="bold yellow")
-    cli.formatters.print("Informational message", style="cyan")
+    # 1. STYLED OUTPUT
+    cli.formatters.print("\n1️⃣  Styled Output (replace print):", style="bold cyan")
+    cli.formatters.print("   ✅ Success message", style="green")
+    cli.formatters.print("   ❌ Error message", style="bold red")
+    cli.formatters.print("   ⚠️  Warning message", style="yellow")
+    cli.formatters.print("   ℹ️  Info message", style="cyan")
 
-    # =========================================================================
-    # TABLE DISPLAY - Automatic table formatting
-    # =========================================================================
-    users = {
-        "Alice": "30 | Admin",
-        "Bob": "25 | User",
-        "Charlie": "35 | Manager",
-    }
+    # 2. TABLES (Rich)
+    cli.formatters.print("\n2️⃣  Rich Tables (terminal display):", style="bold cyan")
+    system_info: FlextCliTypes.Data.CliDataDict = cast(
+        "FlextCliTypes.Data.CliDataDict",
+        {
+            "Platform": platform.system(),
+            "Python": platform.python_version(),
+            "Machine": platform.machine(),
+        },
+    )
 
-    cli.formatters.print("\n--- User Table ---", style="bold cyan")
     table_result = cli.create_table(
-        data=users, headers=["Name", "Age | Role"], title="User Information"
+        data=system_info, headers=["Property", "Value"], title="💻 System Info"
     )
     if table_result.is_success:
         cli.formatters.console.print(table_result.unwrap())
 
-    # =========================================================================
-    # FILE OPERATIONS - Simple JSON read/write using file_tools
-    # =========================================================================
-    cli.formatters.print("\n--- File Operations ---", style="bold cyan")
+    # 3. ASCII TABLES (for logs/files)
+    cli.formatters.print("\n3️⃣  ASCII Tables (logs/files):", style="bold cyan")
 
-    # Create temporary directory for safe file operations
-    with tempfile.TemporaryDirectory() as temp_dir:
-        temp_path = Path(temp_dir)
+    tables = FlextCliTables()
 
-        # Write JSON
-        json_file = temp_path / "test_config.json"
-        test_data = {"app": "flext-cli", "version": "2.0.0", "count": 3}
-        write_result = cli.file_tools.write_json(test_data, str(json_file))
-        if write_result.is_success:
-            cli.formatters.print(f"✅ Written JSON to {json_file}", style="green")
+    # Type annotation for table data - list of dicts with object values
+    table_data: list[dict[str, object]] = cast(
+        "list[dict[str, object]]",
+        [{"metric": "CPU", "value": "85%"}, {"metric": "Memory", "value": "12GB"}],
+    )
+    ascii_result = tables.create_table(table_data, table_format="grid")
+    if ascii_result.is_success:
+        cli.formatters.print(ascii_result.unwrap(), style="white")
 
-        # Read JSON
-        loaded_result = cli.file_tools.read_json(str(json_file))
-        if loaded_result.is_success:
-            loaded_data = loaded_result.unwrap()
-            if isinstance(loaded_data, dict):
-                cli.formatters.print(
-                    f"✅ Loaded JSON: {loaded_data.get('app')} v{loaded_data.get('version')}",
-                    style="green",
-                )
-        else:
+    # 4. FILE I/O
+    cli.formatters.print("\n4️⃣  File Operations (JSON/YAML):", style="bold cyan")
+    temp_file = Path(tempfile.gettempdir()) / "demo.json"
+
+    # Write
+    test_data = {
+        "app": "demo",
+        "user": os.getenv("USER", "unknown"),
+        "pid": os.getpid(),
+    }
+    write_result = cli.file_tools.write_json_file(temp_file, test_data)
+    if write_result.is_success:
+        size = temp_file.stat().st_size
+        cli.formatters.print(
+            f"   ✅ Wrote {size} bytes to {temp_file.name}", style="green"
+        )
+
+    # Read
+    read_result = cli.file_tools.read_json_file(temp_file)
+    if read_result.is_success:
+        # Narrow type - we know it's a dict from our write operation
+        read_data = read_result.unwrap()
+        if isinstance(read_data, dict):
             cli.formatters.print(
-                f"❌ Failed to load JSON: {loaded_result.error}", style="red"
+                f"   ✅ Read data back: user={read_data.get('user', 'unknown')}",
+                style="green",
             )
 
-    # =========================================================================
-    # SUMMARY
-    # =========================================================================
-    cli.formatters.print("\n--- Demo Complete ---", style="bold cyan")
+    temp_file.unlink(missing_ok=True)
+
+    # 5. DIRECTORY TREE
     cli.formatters.print(
-        "✅ All optimized API methods demonstrated!", style="bold green"
+        "\n5️⃣  Directory Tree (hierarchical display):", style="bold cyan"
+    )
+    cwd = Path.cwd()
+    tree_result = cli.create_tree(f"📁 {cwd.name}")
+    if tree_result.is_success:
+        tree = tree_result.unwrap()
+        for item in sorted(cwd.iterdir())[:7]:
+            if item.is_dir():
+                tree.add(f"📂 {item.name}/")
+            else:
+                tree.add(f"📄 {item.name}")
+        cli.formatters.console.print(tree)
+
+    # 6. ERROR HANDLING
+    cli.formatters.print(
+        "\n6️⃣  Error Handling (FlextResult pattern):", style="bold cyan"
+    )
+
+    # Success case
+    result = cli.file_tools.read_json_file(temp_file)
+    if result.is_failure:
+        # Safe string slicing with None check
+        error_msg = result.error or "Unknown error"
+        cli.formatters.print(
+            f"   ℹ️  File not found (expected): {error_msg[:50]}...", style="cyan"
+        )
+
+    # Validation example
+
+    def validate_positive(n: int) -> FlextResult[int]:
+        if n < 0:
+            return FlextResult[int].fail("Must be positive")
+        return FlextResult[int].ok(n * 2)
+
+    valid = validate_positive(10)
+    if valid.is_success:
+        cli.formatters.print(f"   ✅ Valid: {valid.unwrap()}", style="green")
+
+    invalid = validate_positive(-5)
+    if invalid.is_failure:
+        cli.formatters.print(f"   ℹ️  Invalid: {invalid.error}", style="yellow")
+
+    cli.formatters.print("\n" + "=" * 70, style="bold blue")
+    cli.formatters.print("  ✅ Quick Reference Complete!", style="bold green")
+    cli.formatters.print("=" * 70, style="bold blue")
+
+    # Usage summary
+    cli.formatters.print("\n📚 Common Patterns:", style="bold cyan")
+    cli.formatters.print(
+        """
+  # Initialize (once)
+  from flext_cli import FlextCli
+  cli = FlextCli.get_instance()
+
+  # Styled output
+  cli.formatters.print("message", style="green")
+
+  # Tables (terminal)
+  cli.create_table(data={...}, headers=[...], title="...")
+
+  # Tables (files/logs)
+  from flext_cli import FlextCliTables
+  tables = FlextCliTables()
+  tables.create_table(data=[...], table_format="grid")
+
+  # File I/O
+  cli.file_tools.write_json_file(path, data)
+  result = cli.file_tools.read_json_file(path)
+
+  # Error handling
+  if result.is_success:
+      data = result.unwrap()
+  else:
+      print(result.error)
+    """,
+        style="white",
+    )
+
+    cli.formatters.print("\n💡 Next Steps:", style="bold cyan")
+    cli.formatters.print(
+        "  • See examples/01_getting_started.py for basics", style="white"
     )
     cli.formatters.print(
-        "📚 Using: cli.formatters, cli.create_table(), cli.file_tools", style="cyan"
+        "  • See examples/02_output_formatting.py for output patterns", style="white"
+    )
+    cli.formatters.print(
+        "  • See examples/03_interactive_prompts.py for user input", style="white"
+    )
+    cli.formatters.print(
+        "  • See examples/11_complete_integration.py for full apps", style="white"
     )
 
 

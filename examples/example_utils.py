@@ -1,7 +1,7 @@
 """Common utilities for FLEXT CLI examples.
 
 Eliminates code duplication across example files by providing shared patterns
-and common functionality.
+and common functionality using ONLY FlextCli wrappers - NO direct Rich imports!
 
 Copyright (c) 2025 FLEXT Team. All rights reserved.
 SPDX-License-Identifier: MIT
@@ -11,51 +11,46 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 from flext_core import FlextResult, FlextTypes
-from rich.console import Console
-from rich.panel import Panel
+
+from flext_cli import FlextCli
 
 
 def print_demo_completion(
-    console: Console,
+    cli: FlextCli,
     demo_name: str,
     features: FlextTypes.StringList,
     *,
-    border_style: str = "green",
+    style: str = "green",
 ) -> None:
-    """Print standardized demo completion panel.
+    """Print standardized demo completion message using FlextCli.
 
     Args:
-        console: Rich console instance
+        cli: FlextCli instance
         demo_name: Name of the completed demo
         features: List of features demonstrated
-        border_style: Panel border style
+        style: Message style
 
     """
-    features_text = "\n".join(f"• {feature}" for feature in features)
-
-    console.print(
-        Panel(
-            f"[bold green]✅ {demo_name} Completed![/bold green]\n\n"
-            f"[cyan]Key Features Demonstrated:[/cyan]\n"
-            f"{features_text}\n\n"
-            "[yellow]All operations used FlextResult pattern for error handling![/yellow]",
-            title=f"🎉 {demo_name} Complete",
-            border_style=border_style,
-            expand=False,
-        )
+    cli.formatters.print(f"\n🎉 {demo_name} Complete", style=f"bold {style}")
+    cli.formatters.print(f"✅ {demo_name} Completed!", style=style)
+    cli.formatters.print("\nKey Features Demonstrated:", style="cyan")
+    for feature in features:
+        cli.formatters.print(f"  • {feature}", style="white")
+    cli.formatters.print(
+        "\nAll operations used FlextResult pattern for error handling!", style="yellow"
     )
 
 
 def handle_command_result(
-    console: Console,
+    cli: FlextCli,
     result: FlextResult[FlextTypes.Dict],
     action: str,
     success_fields: FlextTypes.StringList | None = None,
 ) -> None:
-    """Generic handler for CQRS command results to eliminate code duplication.
+    """Generic handler for CQRS command results using FlextCli.
 
     Args:
-        console: Rich console instance
+        cli: FlextCli instance
         result: FlextResult from command operation
         action: Action being performed (e.g., "create project", "change status")
         success_fields: Fields to display on success (defaults to ['id', 'status'])
@@ -65,38 +60,36 @@ def handle_command_result(
 
     if result.is_success:
         data = result.value
-        console.print(f"[green]✅ {action.title()} successful[/green]")
+        cli.formatters.print(f"✅ {action.title()} successful", style="green")
 
         for field in success_fields:
             if field in data:
                 display_name = field.replace("_", " ").title()
-                console.print(f"{display_name}: {data[field]}")
+                cli.formatters.print(f"{display_name}: {data[field]}")
     else:
-        console.print(f"[red]❌ Failed to {action}: {result.error}[/red]")
+        cli.formatters.print(f"❌ Failed to {action}: {result.error}", style="red")
 
 
 def print_demo_error(
-    console: Console, demo_name: str, error: str, *, border_style: str = "red"
+    cli: FlextCli, demo_name: str, error: str, *, style: str = "red"
 ) -> None:
-    """Print standardized demo error panel.
+    """Print standardized demo error message.
 
     Args:
-        console: Rich console instance
+        cli: FlextCli instance
         demo_name: Name of the failed demo
         error: Error message
-        border_style: Panel border style
+        style: Message style
 
     """
-    console.print(
-        Panel(
-            f"[bold red]❌ {demo_name} failed: {error}[/bold red]\n\n"
-            "[yellow]This failure demonstrates FlextResult error handling![/yellow]\n"
-            "The error was caught and wrapped in a FlextResult for clean handling.",
-            title="⚠️ Error Handling Demo",
-            border_style=border_style,
-            expand=False,
-        )
+    cli.formatters.print(f"❌ {demo_name} failed: {error}", style=f"bold {style}")
+    cli.formatters.print(
+        "This failure demonstrates FlextResult error handling!", style="yellow"
+    )
+    cli.formatters.print(
+        "The error was caught and wrapped in a FlextResult for clean handling.",
+        style="white",
     )
 
 
-__all__ = ["print_demo_completion", "print_demo_error"]
+__all__ = ["handle_command_result", "print_demo_completion", "print_demo_error"]

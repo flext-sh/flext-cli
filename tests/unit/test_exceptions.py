@@ -793,6 +793,22 @@ class TestFlextCliExceptionsSubclasses:
         assert "error_code='TEST_CODE'" in repr_str
         assert "context=" in repr_str
 
+    def test_base_error_non_string_correlation_id(self) -> None:
+        """Test BaseError with non-string correlation_id (line 139)."""
+        # Pass integer correlation_id to trigger str() conversion
+        error = FlextCliExceptions.BaseError(
+            "Test error", correlation_id=12345  # Non-string value
+        )
+        assert error.correlation_id == "12345"  # Should be converted to string
+        assert isinstance(error.correlation_id, str)
+
+        # Test with float correlation_id
+        error2 = FlextCliExceptions.BaseError(
+            "Test error", correlation_id=123.45
+        )
+        assert error2.correlation_id == "123.45"
+        assert isinstance(error2.correlation_id, str)
+
     # ========================================================================
     # Exception inheritance tests
     # ========================================================================

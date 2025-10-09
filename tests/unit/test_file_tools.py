@@ -429,7 +429,7 @@ class TestFlextCliFileTools:
         """Test nested directory creation functionality."""
         nested_dir = temp_dir / "level1" / "level2" / "level3"
 
-        result = file_tools.create_directories(str(nested_dir))
+        result = file_tools.create_directory(str(nested_dir))
 
         assert isinstance(result, FlextResult)
         assert result.is_success

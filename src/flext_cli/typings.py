@@ -17,6 +17,29 @@ from typing import TypeVar
 
 from flext_core import FlextCore
 
+# Rich library imports - centralized at module top for PLC0415 compliance
+from rich.layout import Layout as RichLayoutImport
+from rich.live import Live as RichLiveImport
+from rich.panel import Panel as RichPanelImport
+from rich.progress import (
+    BarColumn as BarColumnImport,
+    Progress as ProgressImport,
+    SpinnerColumn as SpinnerColumnImport,
+    TextColumn as TextColumnImport,
+    TimeRemainingColumn as TimeRemainingColumnImport,
+)
+from rich.status import Status as RichStatusImport
+from rich.table import Table as RichTableImport
+from rich.tree import Tree as RichTreeImport
+
+# Type aliases for module-level types (used outside class definitions)
+type CsvData = list[FlextCore.Types.StringDict]
+type ErrorList = FlextCore.Types.StringList
+type ConnectivityInfo = FlextCore.Types.StringDict
+type FileList = FlextCore.Types.StringList
+type TableHeaders = FlextCore.Types.StringList
+type CommandArgs = FlextCore.Types.StringList
+
 # =============================================================================
 # CLI-SPECIFIC TYPE VARIABLES - Domain-specific TypeVars for CLI operations
 # =============================================================================
@@ -51,22 +74,22 @@ class FlextCliTypes(FlextCore.Types):
     class CliCommand:
         """CLI command-specific complex types."""
 
-        CommandDefinition = dict[
+        type CommandDefinition = dict[
             str, str | FlextCore.Types.StringList | dict[str, FlextCore.Types.JsonValue]
         ]
-        CommandPipeline = list[dict[str, FlextCore.Types.JsonValue]]
-        CommandRegistry = dict[
+        type CommandPipeline = list[dict[str, FlextCore.Types.JsonValue]]
+        type CommandRegistry = dict[
             str,
             dict[
                 str,
                 str | FlextCore.Types.StringList | dict[str, FlextCore.Types.JsonValue],
             ],
         ]
-        CommandContext = dict[str, FlextCore.Types.JsonValue]
-        CommandResult = FlextCore.Types.Dict
-        CommandMetadata = dict[str, str | int | FlextCore.Types.StringList]
-        CommandArgs = FlextCore.Types.StringList
-        CommandNames = FlextCore.Types.StringList
+        type CommandContext = dict[str, FlextCore.Types.JsonValue]
+        type CommandResult = FlextCore.Types.Dict
+        type CommandMetadata = dict[str, str | int | FlextCore.Types.StringList]
+        type CommandArgs = FlextCore.Types.StringList
+        type CommandNames = FlextCore.Types.StringList
 
     class CliCommandResult:
         """CLI command result type definitions."""
@@ -83,12 +106,12 @@ class FlextCliTypes(FlextCore.Types):
     class Configuration:
         """CLI configuration complex types."""
 
-        CliConfigSchema = dict[str, dict[str, FlextCore.Types.ConfigValue]]
-        ProfileConfiguration = FlextCore.Types.Dict
-        EnvironmentConfig = dict[
+        type CliConfigSchema = dict[str, dict[str, FlextCore.Types.ConfigValue]]
+        type ProfileConfiguration = FlextCore.Types.Dict
+        type EnvironmentConfig = dict[
             str, FlextCore.Types.ConfigValue | dict[str, FlextCore.Types.ConfigValue]
         ]
-        SessionConfiguration = dict[
+        type SessionConfiguration = dict[
             str,
             str
             | int
@@ -98,8 +121,10 @@ class FlextCliTypes(FlextCore.Types):
             | FlextCore.Types.Dict
             | None,
         ]
-        AuthenticationConfig = dict[str, str | int | bool | FlextCore.Types.StringList]
-        LogConfig = dict[str, str | None]
+        type AuthenticationConfig = dict[
+            str, str | int | bool | FlextCore.Types.StringList
+        ]
+        type LogConfig = dict[str, str | None]
 
     # =========================================================================
     # CLI OUTPUT TYPES - Complex output formatting types
@@ -230,13 +255,91 @@ class FlextCliTypes(FlextCore.Types):
         CLI-specific types defined in FlextCliConstants.Project.
         """
 
+    # =========================================================================
+    # CLI DISPLAY TYPES - Rich visual component type aliases
+    # =========================================================================
+
+    class Display:
+        """Rich visual component type aliases for CLI display.
+
+        Type aliases for Rich library visual components - re-exported from formatters.
+        Follows ZERO TOLERANCE principle: NO direct Rich imports in user code.
+        """
+
+        # Type aliases from module-level imports
+        RichPanel = RichPanelImport
+        RichTable = RichTableImport
+        RichTree = RichTreeImport
+
+    class Layout:
+        """Rich layout component type aliases for CLI layout.
+
+        Type aliases for Rich library layout components - re-exported from formatters.
+        Follows ZERO TOLERANCE principle: NO direct Rich imports in user code.
+        """
+
+        # Type alias from module-level import
+        RichLayout = RichLayoutImport
+
+    class Interactive:
+        """Rich interactive component type aliases for CLI interaction.
+
+        Type aliases for Rich library interactive components - re-exported from formatters.
+        Follows ZERO TOLERANCE principle: NO direct Rich imports in user code.
+        """
+
+        # Type aliases from module-level imports
+        RichLive = RichLiveImport
+        Progress = ProgressImport
+        RichStatus = RichStatusImport
+
+    class ProgressColumns:
+        """Rich progress column type aliases for CLI progress tracking.
+
+        Type aliases for Rich library progress column components - re-exported from formatters.
+        Follows ZERO TOLERANCE principle: NO direct Rich imports in user code.
+        """
+
+        # Type aliases from module-level imports
+        BarColumn = BarColumnImport
+        SpinnerColumn = SpinnerColumnImport
+        TextColumn = TextColumnImport
+        TimeRemainingColumn = TimeRemainingColumnImport
+
+
+# =============================================================================
+# MODULE-LEVEL ALIASES - For convenient imports from flext_cli
+# =============================================================================
+
+# Re-export Rich components from FlextCliTypes nested classes
+RichTable = FlextCliTypes.Display.RichTable
+RichTree = FlextCliTypes.Display.RichTree
+RichPanel = FlextCliTypes.Display.RichPanel
+RichLayout = FlextCliTypes.Layout.RichLayout
+RichLive = FlextCliTypes.Interactive.RichLive
+RichStatus = FlextCliTypes.Interactive.RichStatus
+Progress = FlextCliTypes.Interactive.Progress
+BarColumn = FlextCliTypes.ProgressColumns.BarColumn
+SpinnerColumn = FlextCliTypes.ProgressColumns.SpinnerColumn
+TextColumn = FlextCliTypes.ProgressColumns.TextColumn
+TimeRemainingColumn = FlextCliTypes.ProgressColumns.TimeRemainingColumn
 
 # =============================================================================
 # PUBLIC API EXPORTS - CLI TypeVars and types
 # =============================================================================
 
 __all__: FlextCore.Types.StringList = [
+    "BarColumn",
     "FlextCliTypes",
+    "Progress",
+    "RichLayout",
+    "RichLive",
+    "RichPanel",
+    "RichStatus",
+    # Rich component type aliases from FlextCliTypes nested classes
+    "RichTable",
+    "RichTree",
+    "SpinnerColumn",
     "TCliCommand",
     "TCliConfig",
     "TCliContext",
@@ -245,4 +348,6 @@ __all__: FlextCore.Types.StringList = [
     "TCliPlugin",
     "TCliResult",
     "TCliSession",
+    "TextColumn",
+    "TimeRemainingColumn",
 ]

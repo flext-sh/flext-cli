@@ -271,7 +271,9 @@ class TestFlextCliTables:
     def test_create_table_single_row(self, tables: FlextCliTables) -> None:
         """Test table with single row."""
         single_row = [{"name": "Alice", "age": 30}]
-        result = tables.create_table(data=single_row, table_format="simple")
+        result = tables.create_table(
+            data=single_row, table_format="simple"
+        )
 
         assert result.is_success
         assert "Alice" in result.unwrap()
@@ -364,3 +366,103 @@ class TestFlextCliTables:
             table_str = result.unwrap()
             assert "Alice" in table_str
             assert len(table_str) > 0
+
+    # =========================================================================
+    # COVERAGE COMPLETION TESTS (Missing Lines)
+    # =========================================================================
+
+    def test_create_table_with_colalign_list(
+        self, tables: FlextCliTables, sample_data: list[FlextTypes.Dict]
+    ) -> None:
+        """Test table creation with colalign as list (line 157)."""
+        # colalign as list triggers line 157
+        result = tables.create_table(
+            data=sample_data,
+            table_format="simple",
+            colalign=["left", "right", "center", "left"]
+        )
+
+        assert result.is_success
+        assert "Alice" in result.unwrap()
+
+    def test_create_table_with_align_as_list(
+        self, tables: FlextCliTables, sample_data: list[FlextTypes.Dict]
+    ) -> None:
+        """Test table creation with align as list (line 164)."""
+        # When colalign is None but align is a list, triggers line 164
+        result = tables.create_table(
+            data=sample_data,
+            table_format="simple",
+            align=["left", "right", "center", "left"]  # List triggers line 164
+        )
+
+        assert result.is_success
+        assert "Alice" in result.unwrap()
+
+    def test_create_latex_table_longtable_true(
+        self, tables: FlextCliTables, sample_data: list[FlextTypes.Dict]
+    ) -> None:
+        """Test LaTeX table with longtable=True (line 325)."""
+        result = tables.create_latex_table(data=sample_data, longtable=True)
+
+        assert result.is_success
+        table_str = result.unwrap()
+        assert "Alice" in table_str
+
+    def test_create_latex_table_longtable_false(
+        self, tables: FlextCliTables, sample_data: list[FlextTypes.Dict]
+    ) -> None:
+        """Test LaTeX table with longtable=False and default format."""
+        result = tables.create_latex_table(data=sample_data, longtable=False)
+
+        assert result.is_success
+        table_str = result.unwrap()
+        assert "Alice" in table_str
+
+    def test_create_latex_table_booktabs_true(
+        self, tables: FlextCliTables, sample_data: list[FlextTypes.Dict]
+    ) -> None:
+        """Test LaTeX table with booktabs=True (line 327)."""
+        result = tables.create_latex_table(data=sample_data, booktabs=True, longtable=False)
+
+        assert result.is_success
+        table_str = result.unwrap()
+        assert "Alice" in table_str
+
+    def test_create_table_exception_handling(
+        self, tables: FlextCliTables, sample_data: list[FlextTypes.Dict], monkeypatch
+    ) -> None:
+        """Test create_table exception handler (lines 181-184)."""
+        from unittest.mock import Mock
+
+        # Create a mock that raises an exception when called
+        mock_tabulate = Mock(side_effect=RuntimeError("Tabulate internal error"))
+
+        # Patch tabulate to raise exception
+        monkeypatch.setattr("flext_cli.tables.tabulate", mock_tabulate)
+
+        # This should trigger the exception handler
+        result = tables.create_table(data=sample_data, table_format="simple")
+
+        assert result.is_failure
+        assert "Failed to create table" in (result.error or "")
+        assert "Tabulate internal error" in (result.error or "")
+
+    def test_print_available_formats_exception_handling(
+        self, tables: FlextCliTables, monkeypatch
+    ) -> None:
+        """Test print_available_formats exception handler (lines 408-411)."""
+        from unittest.mock import Mock
+
+        # Create a mock that raises an exception when called
+        mock_tabulate = Mock(side_effect=RuntimeError("Tabulate print error"))
+
+        # Patch tabulate to raise exception
+        monkeypatch.setattr("flext_cli.tables.tabulate", mock_tabulate)
+
+        # This should trigger the exception handler
+        result = tables.print_available_formats()
+
+        assert result.is_failure
+        assert "Failed to print formats" in (result.error or "")
+        assert "Tabulate print error" in (result.error or "")

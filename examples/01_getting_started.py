@@ -1,12 +1,25 @@
-"""Getting Started - Basic FlextCli Usage.
+"""Getting Started - Using flext-cli as a Library in YOUR Code.
 
-Demonstrates the fundamentals of using flext-cli as a library with optimized API.
+WHAT IS flext-cli?
+A CLI foundation library that provides:
+- Styled console output (Rich integration)
+- Table formatting (Rich + Tabulate)
+- File I/O (JSON, YAML, CSV)
+- Error handling (FlextResult pattern)
+- Configuration management
+- User prompts
 
-Key Features:
-- Singleton pattern with module-level instance (zero repetition)
-- Direct formatters access for output operations
-- FlextResult railway pattern for error handling
-- Zero manual configuration required
+WHEN TO USE:
+- Building a Python CLI application
+- Need styled console output
+- Want easy table formatting
+- Need file I/O with error handling
+- Building interactive CLI tools
+
+HOW TO INTEGRATE INTO YOUR PROJECT:
+1. Install: pip install flext-cli
+2. Import: from flext_cli import FlextCli
+3. Use: cli = FlextCli.get_instance()
 
 Copyright (c) 2025 FLEXT Team. All rights reserved.
 SPDX-License-Identifier: MIT
@@ -14,95 +27,155 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from flext_core import FlextResult
+import tempfile
+from pathlib import Path
 
 from flext_cli import FlextCli
 
-# Module-level singleton - ONE TIME initialization
+# Initialize once - reuse everywhere
 cli = FlextCli.get_instance()
 
 
-def demonstrate_singleton_pattern() -> None:
-    """Singleton pattern - auto-configured, reusable."""
-    # Direct formatters access - optimized API
-    cli.formatters.print(
-        "✅ Singleton pattern - zero repetitive initialization", style="bold green"
-    )
-
-    # Verify same instance everywhere
-    cli2 = FlextCli.get_instance()
-    if cli is cli2:
-        cli.formatters.print("✅ Singleton verified - same instance", style="green")
-    else:
-        cli.formatters.print("❌ Singleton pattern failed", style="bold red")
+# ============================================================================
+# PATTERN 1: Replace print() with styled output
+# ============================================================================
 
 
-def demonstrate_auto_configuration() -> None:
-    """Auto-configuration - zero manual setup."""
-    # Everything auto-configured by library
-    cli.formatters.print("\\n📋 Table Example:", style="bold cyan")
+def your_function_before() -> None:
+    """Your old code using print()."""
+    print("Operation completed")
+    print("ERROR: Something failed")
 
-    users = {"Alice": "30", "Bob": "25", "Charlie": "35"}
+
+def your_function_after() -> None:
+    """Your new code using flext-cli."""
+    cli.formatters.print("Operation completed", style="green")
+    cli.formatters.print("ERROR: Something failed", style="bold red")
+
+
+# ============================================================================
+# PATTERN 2: Display data as tables
+# ============================================================================
+
+
+def display_user_data(user: dict) -> None:
+    """Show how to display YOUR data as a table."""
+    # Your data (from database, API, etc.)
     table_result = cli.create_table(
-        data=users, headers=["Name", "Age"], title="User Information"
+        data=user, headers=["Field", "Value"], title="User Information"
     )
 
     if table_result.is_success:
         cli.formatters.console.print(table_result.unwrap())
 
 
-def demonstrate_basic_output() -> None:
-    """Basic output operations using optimized API."""
-    cli.formatters.print("\\n🎨 Output Styles:", style="bold cyan")
-    cli.formatters.print("✅ Success: Operation completed!", style="bold green")
-    cli.formatters.print("❌ Error: Something went wrong", style="bold red")
-    cli.formatters.print("⚠️  Warning: Proceed with caution", style="bold yellow")
-    cli.formatters.print("ℹ️  Info: General information", style="cyan")
+# ============================================================================
+# PATTERN 3: File I/O with error handling
+# ============================================================================
 
 
-def demonstrate_flext_result_pattern() -> None:
-    """FlextResult railway-oriented programming."""
+def save_config(config: dict, filepath: str) -> bool:
+    """Save YOUR config to JSON with proper error handling."""
+    write_result = cli.file_tools.write_json_file(Path(filepath), config)
 
-    def process_data(data: dict) -> FlextResult[dict]:
-        if not data:
-            return FlextResult[dict].fail("Data cannot be empty")
-        return FlextResult[dict].ok({"original": data, "processed": True})
+    if write_result.is_failure:
+        cli.formatters.print(f"Failed to save: {write_result.error}", style="bold red")
+        return False
 
-    # Railway pattern - chain operations
-    cli.formatters.print("\\n🚂 FlextResult Railway Pattern:", style="bold cyan")
+    cli.formatters.print(f"✅ Saved to {filepath}", style="green")
+    return True
 
-    result = (
-        process_data({"key": "value"})
-        .map(lambda d: {**d, "chained": True})
-        .map(lambda d: {**d, "final": "processed"})
-    )
+
+def load_config(filepath: str) -> dict | None:
+    """Load YOUR config from JSON with error handling."""
+    read_result = cli.file_tools.read_json_file(Path(filepath))
+
+    if read_result.is_failure:
+        cli.formatters.print(f"Failed to load: {read_result.error}", style="bold red")
+        return None
+
+    # Type narrowing: ensure we return a dict
+    data = read_result.unwrap()
+    if isinstance(data, dict):
+        return data
+    return None
+
+
+# ============================================================================
+# PATTERN 4: Error handling without exceptions
+# ============================================================================
+
+
+def process_data_with_flext_result() -> None:
+    """Use FlextResult pattern in YOUR code - no try/except needed."""
+    # This won't throw an exception even if file doesn't exist
+    nonexistent_file = Path(tempfile.gettempdir()) / "nonexistent.json"
+    result = cli.file_tools.read_json_file(nonexistent_file)
 
     if result.is_success:
-        cli.formatters.print(
-            f"✅ Processed successfully: {result.unwrap()}", style="green"
-        )
+        result.unwrap()
+        # Process your data
+        cli.formatters.print("Data loaded successfully", style="green")
     else:
-        cli.formatters.print(f"❌ Processing failed: {result.error}", style="bold red")
+        # Handle error gracefully
+        cli.formatters.print(f"Error: {result.error}", style="yellow")
+        # Continue execution - no crash!
+
+
+# ============================================================================
+# REAL USAGE EXAMPLE
+# ============================================================================
 
 
 def main() -> None:
-    """Run all demonstrations."""
-    cli.formatters.print("=" * 60, style="bold blue")
-    cli.formatters.print(
-        "  FLEXT-CLI Getting Started Examples", style="bold white on blue"
-    )
-    cli.formatters.print("=" * 60, style="bold blue")
+    """Example of how YOU would use flext-cli in your project."""
+    cli.formatters.print("=" * 70, style="bold blue")
+    cli.formatters.print("  Using flext-cli in YOUR Code", style="bold white")
+    cli.formatters.print("=" * 70, style="bold blue")
 
-    demonstrate_singleton_pattern()
-    demonstrate_auto_configuration()
-    demonstrate_basic_output()
-    demonstrate_flext_result_pattern()
+    # Example 1: Styled output
+    cli.formatters.print("\n1. Styled Console Output:", style="bold cyan")
+    cli.formatters.print("   Replace print() with styled output:")
+    your_function_after()
 
-    cli.formatters.print("\\n" + "=" * 60, style="bold blue")
+    # Example 2: Tables
+    cli.formatters.print("\n2. Display Data as Tables:", style="bold cyan")
+    user_data = {"name": "Alice", "email": "alice@example.com", "role": "admin"}
+    display_user_data(user_data)
+
+    # Example 3: File I/O
+    cli.formatters.print("\n3. File Operations:", style="bold cyan")
+    temp_file = Path(tempfile.gettempdir()) / "my_config.json"
+    config = {"app": "my-cli-tool", "version": "1.0.0"}
+
+    save_config(config, str(temp_file))
+    loaded = load_config(str(temp_file))
+
+    if loaded:
+        cli.formatters.print(f"   Loaded: {loaded}", style="cyan")
+
+    temp_file.unlink(missing_ok=True)
+
+    # Example 4: Error handling
+    cli.formatters.print("\n4. Error Handling (No Exceptions):", style="bold cyan")
+    process_data_with_flext_result()
+
+    cli.formatters.print("\n" + "=" * 70, style="bold blue")
+    cli.formatters.print("  ✅ Integration Examples Complete", style="bold green")
+    cli.formatters.print("=" * 70, style="bold blue")
+
+    # Show how to integrate into YOUR code
+    cli.formatters.print("\n📚 Integration Steps:", style="bold cyan")
+    cli.formatters.print("  1. Import: from flext_cli import FlextCli", style="white")
+    cli.formatters.print("  2. Init:   cli = FlextCli.get_instance()", style="white")
     cli.formatters.print(
-        "  ✅ All examples completed successfully!", style="bold green"
+        "  3. Use:    cli.formatters.print(), cli.file_tools.write_json_file(), etc.",
+        style="white",
     )
-    cli.formatters.print("=" * 60, style="bold blue")
+    cli.formatters.print(
+        "\n💡 All methods return FlextResult for error handling without exceptions!",
+        style="yellow",
+    )
 
 
 if __name__ == "__main__":

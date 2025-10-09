@@ -508,53 +508,6 @@ nested:
     # NETWORK OPERATIONS
     # ========================================================================
 
-    @pytest.mark.skip(reason="HTTP operations removed from core CLI")
-    def test_make_http_request(self, core_service: FlextCliCore) -> None:
-        """Test HTTP request functionality."""
-        # Test with a simple GET request to a reliable endpoint
-        result = core_service.make_http_request(
-            "GET", "https://httpbin.org/get", timeout=10
-        )
-
-        assert isinstance(result, FlextResult)
-        # HTTP requests may fail due to network issues, but should return proper result
-        if result.is_success:
-            response = result.unwrap()
-            assert isinstance(response, (str, dict))
-        else:
-            # If request fails, should have proper error message
-            assert isinstance(result.error, str)
-            assert len(result.error) > 0
-
-    @pytest.mark.skip(reason="HTTP operations removed from core CLI")
-    def test_make_http_request_post(self, core_service: FlextCliCore) -> None:
-        """Test HTTP POST request functionality."""
-        test_data: FlextTypes.Dict = {"key": "value", "test": True}
-
-        result = core_service.make_http_request(
-            "POST", "https://httpbin.org/post", data=test_data, timeout=10
-        )
-
-        assert isinstance(result, FlextResult)
-        # HTTP requests may fail due to network issues, but should return proper result
-        if result.is_success:
-            response = result.unwrap()
-            assert isinstance(response, (str, dict))
-        else:
-            # If request fails, should have proper error message
-            assert isinstance(result.error, str)
-            assert len(result.error) > 0
-
-    @pytest.mark.skip(reason="HTTP operations removed from core CLI")
-    def test_make_http_request_invalid_url(self, core_service: FlextCliCore) -> None:
-        """Test HTTP request with invalid URL."""
-        result = core_service.make_http_request(
-            "GET", "invalid-url-that-should-fail", timeout=5
-        )
-
-        assert isinstance(result, FlextResult)
-        assert result.is_failure
-
     # ========================================================================
     # UTILITY FUNCTIONS
     # ========================================================================
@@ -846,7 +799,9 @@ class TestFlextCliCoreExtended:
 
     def test_get_command_invalid_name_type(self, core_service: FlextCliCore) -> None:
         """Test getting command with invalid name type."""
-        result = core_service.get_command(None)
+        result = core_service.get_command(
+            None
+        )
 
         assert result.is_failure
         assert result.error is not None and "non-empty string" in result.error
@@ -875,8 +830,13 @@ class TestFlextCliCoreExtended:
 
         assert result.is_success
         command_result = result.unwrap()
+        if not isinstance(command_result, dict):
+            return
         assert "context" in command_result
-        assert command_result["context"]["args"] == ["arg1", "arg2"]
+        # Type narrowing for dict access
+        context_value = command_result.get("context")
+        if isinstance(context_value, dict):
+            assert context_value.get("args") == ["arg1", "arg2"]
 
     def test_execute_command_with_context_dict(
         self, core_service: FlextCliCore, sample_command: FlextCliModels.CliCommand
@@ -884,7 +844,9 @@ class TestFlextCliCoreExtended:
         """Test executing command with dict context."""
         core_service.register_command(sample_command)
 
-        context = {"option": "value", "flag": True}
+        context: dict[
+            str, str | int | float | bool | list[object] | dict[str, object] | None
+        ] = {"option": "value", "flag": True}
         result = core_service.execute_command("test-cmd", context=context)
 
         assert result.is_success
@@ -1085,7 +1047,12 @@ class TestFlextCliCoreExtended:
 
     def test_update_configuration_success(self, core_service: FlextCliCore) -> None:
         """Test updating configuration."""
-        config = {"theme": "dark", "verbose": True}
+        config: dict[
+            str,
+            dict[
+                str, str | int | float | bool | list[object] | dict[str, object] | None
+            ],
+        ] = {"theme": {"value": "dark"}, "verbose": {"value": True}}
 
         result = core_service.update_configuration(config)
 
@@ -1103,7 +1070,7 @@ class TestFlextCliCoreExtended:
 
     def test_create_profile_success(self, core_service: FlextCliCore) -> None:
         """Test creating configuration profile."""
-        profile_config = {"color": "blue", "size": "large"}
+        profile_config: dict[str, object] = {"color": "blue", "size": "large"}
 
         result = core_service.create_profile("test-profile", profile_config)
 
@@ -1146,7 +1113,9 @@ class TestFlextCliCoreExtended:
             config_path = str(Path(temp_dir) / "config.json")
             config = {"setting1": "value1", "setting2": 42}
 
-            result = core_service.save_configuration(config_path, config)
+            result = core_service.save_configuration(
+                config_path, config
+            )
 
             assert isinstance(result, FlextResult)
             assert result.is_success
@@ -1250,7 +1219,16 @@ class TestFlextCliCoreExtended:
     def test_configuration_workflow(self, core_service: FlextCliCore) -> None:
         """Test configuration management workflow."""
         # Step 1: Update configuration
-        config = {"theme": "dark", "verbose": True, "timeout": 30}
+        config: dict[
+            str,
+            dict[
+                str, str | int | float | bool | list[object] | dict[str, object] | None
+            ],
+        ] = {
+            "theme": {"value": "dark"},
+            "verbose": {"value": True},
+            "timeout": {"value": 30},
+        }
         update_result = core_service.update_configuration(config)
         assert update_result.is_success
 
@@ -1267,7 +1245,12 @@ class TestFlextCliCoreExtended:
         # Step 4: Save configuration
         with tempfile.TemporaryDirectory() as temp_dir:
             config_path = str(Path(temp_dir) / "config.json")
-            save_result = core_service.save_configuration(config_path, config)
+            simple_config: dict[str, object] = {
+                "theme": "dark",
+                "verbose": True,
+                "timeout": 30,
+            }
+            save_result = core_service.save_configuration(config_path, simple_config)
             assert save_result.is_success
 
             # Step 5: Load configuration

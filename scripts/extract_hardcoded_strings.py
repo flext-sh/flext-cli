@@ -48,8 +48,17 @@ def should_exclude(string: str) -> bool:
     return any(re.match(pattern, string, re.IGNORECASE) for pattern in EXCLUDE_PATTERNS)
 
 
-def categorize_string(string: str, context: str) -> str:
-    """Categorize a string based on its content and context."""
+def categorize_string(string: str, _context: str) -> str:
+    """Categorize a string based on its content and context.
+
+    Args:
+        string: The string to categorize.
+        _context: The line context (currently unused, reserved for future enhancement).
+
+    Returns:
+        The category name.
+
+    """
     string_lower = string.lower()
 
     # Check each category
@@ -128,7 +137,7 @@ def main() -> None:
 
     # Extract strings from all files
     all_strings = {}
-    category_counts = defaultdict(int)
+    category_counts: defaultdict[str, int] = defaultdict(int)
     total_strings = 0
 
     for py_file in py_files:

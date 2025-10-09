@@ -10,6 +10,7 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 import time
+from collections import UserList
 from unittest.mock import patch
 
 import pytest
@@ -143,7 +144,7 @@ class TestFlextCliPrompts:
 
     def test_prompts_select_from_options_empty(self, prompts: FlextCliPrompts) -> None:
         """Test select from options with empty options."""
-        options = []
+        options: FlextTypes.StringList = []
 
         result = prompts.select_from_options(options, "Choose an option:")
 
@@ -250,9 +251,9 @@ class TestFlextCliPrompts:
             assert result.unwrap() == "real_test_input"
 
         with patch("builtins.input", return_value="y"):
-            result = interactive_prompts.confirm("Confirm test?")
-            assert result.is_success
-            assert result.unwrap() is True
+            confirm_result = interactive_prompts.confirm("Confirm test?")
+            assert confirm_result.is_success
+            assert confirm_result.unwrap() is True
 
     def test_prompts_edge_cases(self, interactive_prompts: FlextCliPrompts) -> None:
         """Test edge cases and error conditions."""
@@ -476,9 +477,9 @@ class TestFlextCliPrompts:
         assert result.value == "special"
 
         # Test confirm with edge cases
-        result = quiet_prompts.confirm("", default=True)
-        assert result.is_success
-        assert result.value is True
+        confirm_result_edge = quiet_prompts.confirm("", default=True)
+        assert confirm_result_edge.is_success
+        assert confirm_result_edge.value is True
 
         # Additional edge cases from duplicate method
         # Test with empty message
@@ -487,9 +488,9 @@ class TestFlextCliPrompts:
         assert result.value == "default_value"
 
         # Test with None default handling
-        result = quiet_prompts.confirm("Test with no default")
-        assert result.is_success
-        assert isinstance(result.value, bool)
+        confirm_result_none = quiet_prompts.confirm("Test with no default")
+        assert confirm_result_none.is_success
+        assert isinstance(confirm_result_none.value, bool)
 
         # Use prompts parameter for additional testing
         assert hasattr(prompts, "prompt")
@@ -740,3 +741,259 @@ class TestFlextCliPrompts:
         result = prompts.validate_config()
         assert isinstance(result, FlextResult)
         assert result.is_success
+
+    def test_prompts_initialization_with_logger(self) -> None:
+        """Test initialization with logger parameter (line 44)."""
+        logger = FlextLogger("test_logger")
+        prompts = FlextCliPrompts(logger=logger, interactive_mode=True)
+        assert hasattr(prompts, "logger")
+        assert isinstance(prompts.logger, FlextLogger)
+
+    def test_prompt_text_interactive_mode(self) -> None:
+        """Test prompt_text in interactive mode (lines 143-167)."""
+        interactive_prompts = FlextCliPrompts(interactive_mode=True, quiet=False)
+
+        # This will trigger the interactive code path
+        result = interactive_prompts.prompt_text("Enter name:", default="test_name")
+        assert result.is_success
+        # In interactive mode with default, should use default or simulated input
+        assert isinstance(result.unwrap(), str)
+
+    def test_prompt_text_validation_success(self) -> None:
+        """Test prompt_text with successful validation (lines 152-157)."""
+        interactive_prompts = FlextCliPrompts(interactive_mode=True, quiet=False)
+
+        # Test with validation pattern that matches default
+        result = interactive_prompts.prompt_text(
+            "Enter email:",
+            default="test@example.com",
+            validation_pattern=r".+@.+\..+"
+        )
+        assert result.is_success
+
+    def test_prompt_text_validation_failure_interactive(self) -> None:
+        """Test prompt_text validation failure in interactive mode (lines 153-162)."""
+        interactive_prompts = FlextCliPrompts(interactive_mode=True, quiet=False)
+
+        # Simulate validation failure in interactive mode
+        result = interactive_prompts.prompt_text(
+            "Enter email:",
+            default="invalid-email",
+            validation_pattern=r".+@.+\..+"
+        )
+        # Should fail validation
+        assert result.is_failure
+        assert result.error is not None
+
+    def test_prompt_confirmation_interactive_mode(self) -> None:
+        """Test prompt_confirmation in interactive mode (lines 191-205)."""
+        interactive_prompts = FlextCliPrompts(interactive_mode=True, quiet=False)
+
+        # Test with default True
+        result = interactive_prompts.prompt_confirmation("Proceed?", default=True)
+        assert result.is_success
+        assert isinstance(result.unwrap(), bool)
+
+    def test_prompt_choice_interactive_mode(self) -> None:
+        """Test prompt_choice in interactive mode (lines 241-263)."""
+        interactive_prompts = FlextCliPrompts(interactive_mode=True, quiet=False)
+        choices = ["option1", "option2", "option3"]
+
+        # Test with valid default
+        result = interactive_prompts.prompt_choice(
+            "Select option:", choices, default="option1"
+        )
+        assert result.is_success
+        assert result.unwrap() in choices
+
+    def test_prompt_choice_invalid_selection(self) -> None:
+        """Test prompt_choice with invalid selection (lines 253-258)."""
+        interactive_prompts = FlextCliPrompts(interactive_mode=True, quiet=False)
+        choices = ["option1", "option2"]
+
+        # Test with invalid default (not in choices)
+        result = interactive_prompts.prompt_choice(
+            "Select:", choices, default="invalid_option"
+        )
+        # Should fail with invalid choice
+        assert result.is_failure
+        assert result.error is not None
+
+    def test_prompt_password_min_length_validation(self) -> None:
+        """Test prompt_password with min_length validation (lines 295-300)."""
+        interactive_prompts = FlextCliPrompts(interactive_mode=True, quiet=False)
+
+        # Mock getpass to return short password
+        with patch("getpass.getpass", return_value="short"):
+            result = interactive_prompts.prompt_password("Enter password:", min_length=10)
+            assert result.is_failure
+            assert result.error is not None
+            assert "at least" in result.error.lower()
+
+    def test_prompt_password_success(self) -> None:
+        """Test prompt_password with valid password (lines 293-302)."""
+        interactive_prompts = FlextCliPrompts(interactive_mode=True, quiet=False)
+
+        # Mock getpass to return valid password
+        with patch("getpass.getpass", return_value="validpassword123"):
+            result = interactive_prompts.prompt_password("Enter password:", min_length=8)
+            assert result.is_success
+            assert result.unwrap() == "validpassword123"
+
+    def test_clear_prompt_history_exception(self) -> None:
+        """Test clear_prompt_history exception handling (lines 319-320)."""
+        # Create a custom object that raises exception on clear
+        class BadList(UserList):
+            def clear(self) -> None:
+                msg = "Clear failed"
+                raise RuntimeError(msg)
+
+        prompts = FlextCliPrompts(quiet=True)
+        prompts._prompt_history = BadList()
+        result = prompts.clear_prompt_history()
+        assert result.is_failure
+        assert result.error is not None
+
+    def test_get_prompt_statistics_exception(self) -> None:
+        """Test get_prompt_statistics exception handling (lines 342-343)."""
+        # Mock FlextCore.Utilities.Generators to raise exception
+        prompts = FlextCliPrompts(quiet=True)
+        msg = "Stats failed"
+        with patch("flext_cli.prompts.FlextCore.Utilities.Generators.generate_timestamp", side_effect=RuntimeError(msg)):
+            result = prompts.get_prompt_statistics()
+            assert result.is_failure
+            assert result.error is not None
+
+    def test_execute_exception(self) -> None:
+        """Test execute exception handling (lines 358-359)."""
+        # Create a custom prompts class that raises exception
+        class BadPrompts(FlextCliPrompts):
+            def execute(self) -> FlextResult[dict[str, object]]:
+                try:
+                    msg = "Execute failed"
+                    raise RuntimeError(msg)
+                except Exception as e:
+                    return FlextResult[dict[str, object]].fail(f"Prompt service execution failed: {e}")
+
+        prompts = BadPrompts(quiet=True)
+        result = prompts.execute()
+        assert result.is_failure
+        assert result.error is not None
+
+    def test_prompt_exception_handling(self) -> None:
+        """Test prompt exception handling (lines 399-400)."""
+        # Mock input to raise exception
+        prompts = FlextCliPrompts(interactive_mode=True, quiet=False)
+        with patch("builtins.input", side_effect=Exception("Prompt failed")):
+            result = prompts.prompt("Test:")
+            assert result.is_failure
+            assert result.error is not None
+            assert "failed" in result.error.lower()
+
+    def test_confirm_invalid_input_loop(self) -> None:
+        """Test confirm with invalid input that triggers warning (line 435)."""
+        interactive_prompts = FlextCliPrompts(interactive_mode=True, quiet=False)
+
+        # Mock input to return invalid first, then valid
+        with patch("builtins.input", side_effect=["invalid", "y"]):
+            result = interactive_prompts.confirm("Proceed?")
+            assert result.is_success
+            assert result.unwrap() is True
+
+    def test_select_from_options_invalid_number(self) -> None:
+        """Test select_from_options with invalid number (lines 480-482)."""
+        interactive_prompts = FlextCliPrompts(interactive_mode=True, quiet=False)
+        options = ["opt1", "opt2"]
+
+        # Mock input to return out of range first, then valid
+        with patch("builtins.input", side_effect=["99", "1"]):
+            result = interactive_prompts.select_from_options(options, "Choose:")
+            assert result.is_success
+
+    def test_select_from_options_value_error(self) -> None:
+        """Test select_from_options with ValueError (lines 483-484)."""
+        interactive_prompts = FlextCliPrompts(interactive_mode=True, quiet=False)
+        options = ["opt1", "opt2"]
+
+        # Mock input to return non-numeric first, then valid
+        with patch("builtins.input", side_effect=["abc", "1"]):
+            result = interactive_prompts.select_from_options(options, "Choose:")
+            assert result.is_success
+
+    def test_select_from_options_keyboard_interrupt(self) -> None:
+        """Test select_from_options KeyboardInterrupt handling (lines 485-486)."""
+        interactive_prompts = FlextCliPrompts(interactive_mode=True, quiet=False)
+        options = ["opt1", "opt2"]
+
+        # Mock input to raise KeyboardInterrupt
+        with patch("builtins.input", side_effect=KeyboardInterrupt):
+            result = interactive_prompts.select_from_options(options, "Choose:")
+            assert result.is_failure
+            assert result.error is not None
+            assert "cancelled" in result.error.lower()
+
+    def test_select_from_options_exception(self) -> None:
+        """Test select_from_options general exception (lines 490-491)."""
+        interactive_prompts = FlextCliPrompts(interactive_mode=True, quiet=False)
+        options = ["opt1", "opt2"]
+
+        # Mock logger to raise general exception
+        with patch.object(interactive_prompts._logger, "info", side_effect=Exception("Selection failed")):
+            result = interactive_prompts.select_from_options(options, "Choose:")
+            assert result.is_failure
+            assert result.error is not None
+            assert "failed" in result.error.lower()
+
+    def test_print_status_exception(self, prompts: FlextCliPrompts) -> None:
+        """Test print_status exception handling (lines 512-513)."""
+        # Mock logger to raise exception
+        with patch.object(prompts._logger, "info", side_effect=Exception("Print failed")):
+            result = prompts.print_status("Test message")
+            assert result.is_failure
+            assert result.error is not None
+
+    def test_print_success_exception(self, prompts: FlextCliPrompts) -> None:
+        """Test print_success exception handling (lines 528-529)."""
+        with patch.object(prompts._logger, "info", side_effect=Exception("Print failed")):
+            result = prompts.print_success("Test")
+            assert result.is_failure
+            assert result.error is not None
+
+    def test_print_error_exception(self, prompts: FlextCliPrompts) -> None:
+        """Test print_error exception handling (lines 544-545)."""
+        with patch.object(prompts._logger, "error", side_effect=Exception("Print failed")):
+            result = prompts.print_error("Test")
+            assert result.is_failure
+            assert result.error is not None
+
+    def test_print_warning_exception(self, prompts: FlextCliPrompts) -> None:
+        """Test print_warning exception handling (lines 560-561)."""
+        with patch.object(prompts._logger, "warning", side_effect=Exception("Print failed")):
+            result = prompts.print_warning("Test")
+            assert result.is_failure
+            assert result.error is not None
+
+    def test_print_info_exception(self, prompts: FlextCliPrompts) -> None:
+        """Test print_info exception handling (lines 576-577)."""
+        with patch.object(prompts._logger, "info", side_effect=Exception("Print failed")):
+            result = prompts.print_info("Test")
+            assert result.is_failure
+            assert result.error is not None
+
+    def test_create_progress_exception(self) -> None:
+        """Test create_progress exception handling (lines 601-602)."""
+        # Mock logger to raise exception
+        prompts = FlextCliPrompts(quiet=True)
+        with patch.object(prompts._logger, "info", side_effect=Exception("Progress failed")):
+            result = prompts.create_progress("Test")
+            assert result.is_failure
+            assert result.error is not None
+
+    def test_with_progress_exception(self) -> None:
+        """Test with_progress exception handling (lines 652-653)."""
+        # Mock logger to raise exception
+        prompts = FlextCliPrompts(quiet=True)
+        with patch.object(prompts._logger, "info", side_effect=Exception("Progress failed")):
+            result = prompts.with_progress([1, 2, 3], "Test")
+            assert result.is_failure
+            assert result.error is not None

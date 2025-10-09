@@ -4,6 +4,11 @@ Single responsibility debug service eliminating ALL loose functions and
 wrapper patterns. Uses flext-core utilities directly with SOURCE OF TRUTH
 principle for all configurations and metadata.
 
+EXPECTED MYPY ISSUES (documented for awareness):
+- Unreachable statement in get_environment_variables method:
+  This is defensive type checking that mypy proves is unnecessary at compile time
+  due to type analysis, but is kept for runtime safety.
+
 Copyright (c) 2025 FLEXT Team. All rights reserved.
 SPDX-License-Identifier: MIT
 """
@@ -72,13 +77,10 @@ class FlextCliDebug(FlextCore.Service[str]):
         """Get environment variables with sensitive data masked."""
         try:
             env_info = self._get_environment_info()
-            # Convert to more specific type for better type safety
+            # _get_environment_info returns dict[str, str], so values are strings
             typed_env_info: FlextCliTypes.Data.CliDataDict = {}
             for key, value in env_info.items():
-                if isinstance(value, (str, int, float, bool, type(None))):
-                    typed_env_info[key] = value
-                else:
-                    typed_env_info[key] = str(value)
+                typed_env_info[key] = value  # value is str, which is JsonValue
             return FlextResult[FlextCliTypes.Data.CliDataDict].ok(typed_env_info)
         except Exception as e:
             return FlextResult[FlextCliTypes.Data.CliDataDict].fail(
@@ -109,19 +111,19 @@ class FlextCliDebug(FlextCore.Service[str]):
 
     def validate_environment_setup(
         self,
-    ) -> FlextResult[FlextCliTypes.Data.ErrorList]:
+    ) -> FlextResult[FlextCore.Types.StringList]:
         """Validate environment setup and dependencies."""
         try:
             results = self._validate_filesystem_permissions()
-            return FlextResult[FlextCliTypes.Data.ErrorList].ok(results)
+            return FlextResult[FlextCore.Types.StringList].ok(results)
         except Exception as e:
-            return FlextResult[FlextCliTypes.Data.ErrorList].fail(
+            return FlextResult[FlextCore.Types.StringList].fail(
                 f"Environment validation failed: {e}"
             )
 
     def test_connectivity(
         self,
-    ) -> FlextResult[FlextCliTypes.Data.ConnectivityInfo]:
+    ) -> FlextResult[FlextCore.Types.StringDict]:
         """Test basic connectivity and service status."""
         try:
             connectivity_info = {
@@ -130,11 +132,9 @@ class FlextCliDebug(FlextCore.Service[str]):
                 "service": str(FlextCliDebug),
                 "connectivity": FlextCliConstants.OPERATIONAL,
             }
-            return FlextResult[FlextCliTypes.Data.ConnectivityInfo].ok(
-                connectivity_info
-            )
+            return FlextResult[FlextCore.Types.StringDict].ok(connectivity_info)
         except Exception as e:
-            return FlextResult[FlextCliTypes.Data.ConnectivityInfo].fail(
+            return FlextResult[FlextCore.Types.StringDict].fail(
                 f"Connectivity test failed: {e}"
             )
 
@@ -155,7 +155,7 @@ class FlextCliDebug(FlextCore.Service[str]):
             )
 
     def execute_trace(
-        self, args: Types.CliCommand.CommandArgs
+        self, args: FlextCore.Types.StringList
     ) -> FlextResult[Types.Data.DebugInfoData]:
         """Execute trace operation with provided arguments."""
         try:
@@ -256,7 +256,7 @@ class FlextCliDebug(FlextCore.Service[str]):
             "hostname": platform.node(),
         }
 
-    def _get_environment_info(self) -> dict[str, object]:
+    def _get_environment_info(self) -> dict[str, str]:
         """Get environment variables with sensitive data masked."""
         env_info = {}
         sensitive_keys = {
@@ -290,7 +290,7 @@ class FlextCliDebug(FlextCore.Service[str]):
 
         return paths
 
-    def _validate_filesystem_permissions(self) -> FlextCliTypes.Data.ErrorList:
+    def _validate_filesystem_permissions(self) -> FlextCore.Types.StringList:
         """Validate filesystem permissions and setup."""
         errors = []
 

@@ -10,11 +10,17 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 from io import StringIO
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any, cast
 
 from flext_core import FlextCore, FlextResult
 from rich.console import Console
-from rich.progress import Progress
+from rich.layout import Layout as RichLayout
+from rich.live import Live as RichLive
+from rich.panel import Panel as RichPanel
+from rich.progress import (
+    Progress,
+)
+from rich.status import Status as RichStatus
 from rich.table import Table as RichTable
 from rich.tree import Tree as RichTree
 
@@ -80,7 +86,8 @@ class FlextCliFormatters:
 
         """
         try:
-            self.console.print(message, style=style, **kwargs)  # type: ignore[arg-type]
+            # Cast to Any for Rich API compatibility - explicit library interop
+            self.console.print(message, style=style, **cast("Any", kwargs))
             return FlextResult[None].ok(None)
         except Exception as e:
             return FlextResult[None].fail(f"Print failed: {e}")
@@ -105,8 +112,8 @@ class FlextCliFormatters:
 
         """
         try:
-            # Create Rich table directly
-            table = RichTable(title=title, **kwargs)  # type: ignore[arg-type]
+            # Create Rich table directly - cast to Any for Rich API compatibility
+            table = RichTable(title=title, **cast("Any", kwargs))
 
             # Add columns if headers provided
             if headers:
@@ -170,7 +177,8 @@ class FlextCliFormatters:
 
         """
         try:
-            progress = Progress(**kwargs)  # type: ignore[arg-type]
+            # Cast to Any for Rich API compatibility - explicit library interop
+            progress = Progress(**cast("Any", kwargs))
             return FlextResult[Progress].ok(progress)
         except Exception as e:
             return FlextResult[Progress].fail(f"Progress creation failed: {e}")
@@ -187,7 +195,8 @@ class FlextCliFormatters:
 
         """
         try:
-            tree = RichTree(label, **kwargs)  # type: ignore[arg-type]
+            # Cast to Any for Rich API compatibility - explicit library interop
+            tree = RichTree(label, **cast("Any", kwargs))
             return FlextResult[RichTree].ok(tree)
         except Exception as e:
             return FlextResult[RichTree].fail(f"Tree creation failed: {e}")
@@ -216,5 +225,106 @@ class FlextCliFormatters:
         except Exception as e:
             return FlextResult[str].fail(f"Tree rendering failed: {e}")
 
+    # =========================================================================
+    # ADVANCED RICH WRAPPERS - Status, Live, Layout, Panel
+    # =========================================================================
 
-__all__ = ["FlextCliFormatters"]
+    def create_status(
+        self, message: str, spinner: str = "dots", **kwargs: object
+    ) -> FlextResult[RichStatus]:
+        """Create Rich status spinner - direct delegation.
+
+        Args:
+            message: Status message
+            spinner: Spinner style (e.g., "dots", "line", "arrow")
+            **kwargs: Additional Rich Status() kwargs
+
+        Returns:
+            FlextResult[RichStatus]: Rich Status instance or error
+
+        """
+        try:
+            # Cast to Any for Rich API compatibility - explicit library interop
+            status = RichStatus(
+                message, spinner=spinner, console=self.console, **cast("Any", kwargs)
+            )
+            return FlextResult[RichStatus].ok(status)
+        except Exception as e:
+            return FlextResult[RichStatus].fail(f"Status creation failed: {e}")
+
+    def create_live(
+        self, refresh_per_second: float = 4, **kwargs: object
+    ) -> FlextResult[RichLive]:
+        """Create Rich live display - direct delegation.
+
+        Args:
+            refresh_per_second: Refresh rate for live updates
+            **kwargs: Additional Rich Live() kwargs
+
+        Returns:
+            FlextResult[RichLive]: Rich Live instance or error
+
+        """
+        try:
+            # Cast to Any for Rich API compatibility - explicit library interop
+            live = RichLive(
+                refresh_per_second=refresh_per_second,
+                console=self.console,
+                **cast("Any", kwargs),
+            )
+            return FlextResult[RichLive].ok(live)
+        except Exception as e:
+            return FlextResult[RichLive].fail(f"Live creation failed: {e}")
+
+    def create_layout(self, **kwargs: object) -> FlextResult[RichLayout]:
+        """Create Rich layout - direct delegation.
+
+        Args:
+            **kwargs: Additional Rich Layout() kwargs
+
+        Returns:
+            FlextResult[RichLayout]: Rich Layout instance or error
+
+        """
+        try:
+            # Cast to Any for Rich API compatibility - explicit library interop
+            layout = RichLayout(**cast("Any", kwargs))
+            return FlextResult[RichLayout].ok(layout)
+        except Exception as e:
+            return FlextResult[RichLayout].fail(f"Layout creation failed: {e}")
+
+    def create_panel(
+        self,
+        content: object,
+        title: str | None = None,
+        border_style: str = "blue",
+        **kwargs: object,
+    ) -> FlextResult[RichPanel]:
+        """Create Rich panel - direct delegation.
+
+        Args:
+            content: Panel content
+            title: Optional panel title
+            border_style: Border style (e.g., "blue", "green", "red")
+            **kwargs: Additional Rich Panel() kwargs
+
+        Returns:
+            FlextResult[RichPanel]: Rich Panel instance or error
+
+        """
+        try:
+            # Cast to Any for Rich API compatibility - explicit library interop
+            panel = RichPanel(
+                cast("Any", content),
+                title=title,
+                border_style=border_style,
+                **cast("Any", kwargs),
+            )
+            return FlextResult[RichPanel].ok(panel)
+        except Exception as e:
+            return FlextResult[RichPanel].fail(f"Panel creation failed: {e}")
+
+
+__all__ = [
+    "FlextCliFormatters",
+]

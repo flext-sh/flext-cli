@@ -24,11 +24,15 @@ import stat
 import tempfile
 import zipfile
 from pathlib import Path
+from typing import Any
 
 import yaml
 from flext_core import FlextCore, FlextResult
 
 from flext_cli.constants import FlextCliConstants
+
+# Type alias for JSON/YAML data structures
+JsonData = dict[str, object] | list[object] | str | int | float | bool | None
 
 # ============================================================================
 # SPECIALIZED INTERNAL SERVICES - Better separation of concerns
@@ -63,62 +67,6 @@ class FlextCliFileTools(FlextCore.Service[FlextCore.Types.Dict]):
     # ==========================================================================
     # PUBLIC API - File operations exposed to ecosystem
     # ==========================================================================
-
-    def write_json(
-        self, data: object, path: str | Path, **kwargs: object
-    ) -> FlextResult[None]:
-        """Write JSON data to file (alias for write_json_file).
-
-        Args:
-            data: Data to write
-            path: File path
-            **kwargs: Additional options
-
-        Returns:
-            FlextResult[None]: Success or failure
-
-        """
-        return self.write_json_file(path, data, **kwargs)
-
-    def read_json(self, path: str | Path) -> FlextResult[object]:
-        """Read JSON data from file (alias for read_json_file).
-
-        Args:
-            path: File path
-
-        Returns:
-            FlextResult[object]: Parsed data or error
-
-        """
-        return self.read_json_file(path)
-
-    def write_yaml(
-        self, data: object, path: str | Path, **kwargs: object
-    ) -> FlextResult[None]:
-        """Write YAML data to file (alias for write_yaml_file).
-
-        Args:
-            data: Data to write
-            path: File path
-            **kwargs: Additional options
-
-        Returns:
-            FlextResult[None]: Success or failure
-
-        """
-        return self.write_yaml_file(path, data, **kwargs)
-
-    def read_yaml(self, path: str | Path) -> FlextResult[object]:
-        """Read YAML data from file (alias for read_yaml_file).
-
-        Args:
-            path: File path
-
-        Returns:
-            FlextResult[object]: Parsed data or error
-
-        """
-        return self.read_yaml_file(path)
 
     def read_text_file(self, file_path: str | Path) -> FlextResult[str]:
         """Read text file.
@@ -186,7 +134,11 @@ class FlextCliFileTools(FlextCore.Service[FlextCore.Types.Dict]):
                 FlextCliConstants.ErrorMessages.FILE_COPY_FAILED.format(error=e)
             )
 
-    def read_json_file(self, file_path: str | Path) -> FlextResult[object]:
+    def read_json_file(
+        self, file_path: str | Path
+    ) -> FlextResult[
+        dict[str, object] | list[object] | str | int | float | bool | None
+    ]:
         """Read JSON file using internal loader.
 
         Args:
@@ -226,22 +178,25 @@ class FlextCliFileTools(FlextCore.Service[FlextCore.Types.Dict]):
                 "default",
                 FlextCliConstants.JsonOptions.SORT_KEYS,
             }
-            dump_kwargs: dict[str, object] = {
+            dump_kwargs: dict[str, Any] = {
                 key: value for key, value in kwargs.items() if key in valid_keys
             }
 
             with Path(file_path).open(
                 "w", encoding=FlextCliConstants.Encoding.UTF8
             ) as f:
-                # Use type: ignore to avoid type checker issues with **kwargs
-                json.dump(data, f, indent=2, **dump_kwargs)  # type: ignore[arg-type]
+                json.dump(data, f, indent=2, **dump_kwargs)
             return FlextResult[None].ok(None)
         except Exception as e:
             return FlextResult[None].fail(
                 FlextCliConstants.ErrorMessages.JSON_WRITE_FAILED.format(error=e)
             )
 
-    def read_yaml_file(self, file_path: str | Path) -> FlextResult[object]:
+    def read_yaml_file(
+        self, file_path: str | Path
+    ) -> FlextResult[
+        dict[str, object] | list[object] | str | int | float | bool | None
+    ]:
         """Read YAML file using internal loader.
 
         Args:
@@ -285,15 +240,14 @@ class FlextCliFileTools(FlextCore.Service[FlextCore.Types.Dict]):
                 "tags",
                 FlextCliConstants.JsonOptions.SORT_KEYS,
             }
-            dump_kwargs: dict[str, object] = {
+            dump_kwargs: dict[str, Any] = {
                 key: value for key, value in kwargs.items() if key in valid_keys
             }
 
             with Path(file_path).open(
                 "w", encoding=FlextCliConstants.Encoding.UTF8
             ) as f:
-                # Use type: ignore to avoid type checker issues with **kwargs
-                yaml.safe_dump(data, f, **dump_kwargs)  # type: ignore[arg-type]
+                yaml.safe_dump(data, f, **dump_kwargs)
             return FlextResult[None].ok(None)
         except Exception as e:
             return FlextResult[None].fail(
@@ -316,11 +270,15 @@ class FlextCliFileTools(FlextCore.Service[FlextCore.Types.Dict]):
 
     def load_file_auto_detect(
         self, file_path: str | Path, **kwargs: object
-    ) -> FlextResult[object]:
+    ) -> FlextResult[
+        dict[str, object] | list[object] | str | int | float | bool | None
+    ]:
         """Load file with automatic format detection."""
         format_result = self.detect_file_format(file_path)
         if format_result.is_failure:
-            return FlextResult[object].fail(
+            return FlextResult[
+                dict[str, object] | list[object] | str | int | float | bool | None
+            ].fail(
                 format_result.error
                 or FlextCliConstants.ErrorMessages.FORMAT_DETECTION_FAILED
             )
@@ -331,7 +289,9 @@ class FlextCliFileTools(FlextCore.Service[FlextCore.Types.Dict]):
         if file_format == "yaml":
             return self._FileLoader.load_yaml(str(file_path), **kwargs)
 
-        return FlextResult[object].fail(
+        return FlextResult[
+            dict[str, object] | list[object] | str | int | float | bool | None
+        ].fail(
             FlextCliConstants.ErrorMessages.UNSUPPORTED_FORMAT.format(
                 format=file_format
             )
@@ -598,10 +558,6 @@ class FlextCliFileTools(FlextCore.Service[FlextCore.Types.Dict]):
         formats = ["json", "yaml", "yml", "txt", "csv"]
         return FlextResult[list[str]].ok(formats)
 
-    def create_directories(self, dir_path: str | Path) -> FlextResult[None]:
-        """Create directories (alias for create_directory)."""
-        return self.create_directory(dir_path)
-
     # === NESTED HELPER CLASSES ===
 
     class _FormatDetector:
@@ -630,28 +586,28 @@ class FlextCliFileTools(FlextCore.Service[FlextCore.Types.Dict]):
         """Nested helper for file loading operations."""
 
         @staticmethod
-        def load_json(file_path: str, **_kwargs: object) -> FlextResult[object]:
+        def load_json(file_path: str, **_kwargs: object) -> FlextResult[JsonData]:
             """Load JSON file."""
             try:
                 with Path(file_path).open(
                     encoding=FlextCliConstants.Encoding.UTF8
                 ) as f:
-                    data = json.load(f)
-                return FlextResult[object].ok(data)
+                    data: JsonData = json.load(f)
+                return FlextResult[JsonData].ok(data)
             except Exception as e:
-                return FlextResult[object].fail(f"JSON load failed: {e}")
+                return FlextResult[JsonData].fail(f"JSON load failed: {e}")
 
         @staticmethod
-        def load_yaml(file_path: str, **_kwargs: object) -> FlextResult[object]:
+        def load_yaml(file_path: str, **_kwargs: object) -> FlextResult[JsonData]:
             """Load YAML file."""
             try:
                 with Path(file_path).open(
                     encoding=FlextCliConstants.Encoding.UTF8
                 ) as f:
-                    data = yaml.safe_load(f)
-                return FlextResult[object].ok(data)
+                    data: JsonData = yaml.safe_load(f)
+                return FlextResult[JsonData].ok(data)
             except Exception as e:
-                return FlextResult[object].fail(f"YAML load failed: {e}")
+                return FlextResult[JsonData].fail(f"YAML load failed: {e}")
 
     class _FileSaver:
         """Nested helper for file saving operations."""
