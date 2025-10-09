@@ -10,7 +10,7 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 from collections.abc import Iterable, Sequence
-from typing import cast
+from typing import Any, cast
 
 from flext_core import FlextCore, FlextResult
 from tabulate import tabulate
@@ -69,7 +69,8 @@ class FlextCliTables(FlextCore.Service[object]):
     def __init__(self) -> None:
         """Initialize Tabulate tables layer with Phase 1 context enrichment."""
         super().__init__()
-        # Logger and container inherited from FlextCore.Service via FlextCore.Mixins
+        # Initialize logger - inherited from FlextCore.Service via FlextCore.Mixins
+        self._logger = FlextCore.Logger(__name__)
 
     # =========================================================================
     # TABLE CREATION
@@ -139,8 +140,8 @@ class FlextCliTables(FlextCore.Service[object]):
             )
 
         try:
-            # Build tabulate kwargs
-            kwargs: FlextCore.Types.Dict = {
+            # Build tabulate kwargs - use object for tabulate compatibility
+            kwargs: dict[str, object] = {
                 "tablefmt": table_format,
                 "headers": headers,
                 "floatfmt": floatfmt,
@@ -162,10 +163,10 @@ class FlextCliTables(FlextCore.Service[object]):
                 else:
                     kwargs["colalign"] = align
 
-            # Generate table
-            table_str = tabulate(data, **cast("dict", kwargs))
+            # Generate table - cast to Any for tabulate API compatibility
+            table_str = tabulate(data, **cast("Any", kwargs))
 
-            self.logger.debug(
+            self._logger.debug(
                 "Created table",
                 extra={
                     "table_format": table_format,
@@ -179,7 +180,7 @@ class FlextCliTables(FlextCore.Service[object]):
 
         except Exception as e:
             error_msg = f"Failed to create table: {e}"
-            self.logger.exception(error_msg)
+            self._logger.exception(error_msg)
             return FlextResult[str].fail(error_msg)
 
     def create_simple_table(
@@ -406,7 +407,7 @@ class FlextCliTables(FlextCore.Service[object]):
 
         except Exception as e:
             error_msg = f"Failed to print formats: {e}"
-            self.logger.exception(error_msg)
+            self._logger.exception(error_msg)
             return FlextResult[None].fail(error_msg)
 
     def execute(self) -> FlextResult[object]:

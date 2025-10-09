@@ -29,13 +29,10 @@ from flext_cli.prompts import FlextCliPrompts
 from flext_cli.protocols import FlextCliProtocols
 from flext_cli.tables import FlextCliTables
 from flext_cli.typings import FlextCliTypes
-from flext_cli.version import VERSION
-
-__version__: str = FlextCliConstants.VERSION
-__version_info__: tuple[int | str, ...] = VERSION.version_info
+from flext_cli.__version__ import __version__
+from flext_cli.__version__ import __version_info__
 
 __all__ = [
-    "VERSION",
     "FlextCli",
     "FlextCliCli",
     "FlextCliCmd",

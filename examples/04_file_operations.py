@@ -1,6 +1,29 @@
-"""File Operations - Auto-Validated File/Path Handling.
+"""File Operations - Using flext-cli for File I/O in YOUR Code.
 
-Demonstrates file operations with FlextResult validation and auto-formatting.
+WHEN TO USE THIS:
+- Building CLI tools that read/write config files
+- Need to save/load data in JSON, YAML, CSV formats
+- Want structured error handling for file operations
+- Need to validate file contents
+- Building data export/import features
+- Working with CSV files with proper headers
+- Handling binary files (images, PDFs, etc.)
+- Auto-detecting file formats
+
+FLEXT-CLI PROVIDES:
+- file_tools.read_json_file() / write_json() - JSON file operations
+- file_tools.read_yaml_file() / write_yaml() - YAML config files
+- file_tools.read_csv_file_with_headers() / write_csv_file() - CSV with headers
+- file_tools.read_binary_file() / write_binary_file() - Binary operations
+- file_tools.detect_file_format() / load_file_auto() - Auto-format detection
+- FlextResult error handling - No try/except needed
+- Automatic path handling with pathlib integration
+
+HOW TO USE IN YOUR CLI:
+Replace open() and json.load() with flext-cli file_tools for better error handling
+Use CSV operations for structured data with headers
+Use binary operations for images, PDFs, etc.
+Use auto-detection for flexible file loading
 
 Copyright (c) 2025 FLEXT Team. All rights reserved.
 SPDX-License-Identifier: MIT
@@ -8,76 +31,612 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-import contextlib
-import pathlib
+import hashlib
+import platform
+import shutil
 import tempfile
+from pathlib import Path
+from typing import cast
 
-from flext_cli import FlextCli
+from flext_core import FlextResult
 
-# Module-level singleton
+from flext_cli import FlextCli, FlextCliTables
+from flext_cli.typings import FlextCliTypes
+
 cli = FlextCli.get_instance()
+tables = FlextCliTables()
 
 
-def demonstrate_file_io() -> None:
-    """File I/O with auto-validation and formatting."""
-    test_data = {"name": "example", "value": 42}
-
-    cli.formatters.print("\n📁 File I/O Operations:", style="bold cyan")
-
-    # Use secure temporary file instead of hardcoded path
-    with tempfile.NamedTemporaryFile(
-        encoding="utf-8", mode="w", suffix=".json", delete=False
-    ) as tmp_file:
-        tmp_path = tmp_file.name
-
-    try:
-        # Auto-formatting based on file extension
-        write_result = cli.file_tools.write_json(test_data, tmp_path)
-        if write_result.is_success:
-            cli.formatters.print("✅ File written with auto-formatting", style="green")
-
-        read_result = cli.file_tools.read_json(tmp_path)
-        if read_result.is_success:
-            cli.formatters.print(f"✅ Read: {read_result.unwrap()}", style="green")
-    finally:
-        # Clean up temporary file
-        with contextlib.suppress(OSError):
-            pathlib.Path(tmp_path).unlink()
+# ============================================================================
+# PATTERN 1: JSON config files in YOUR application
+# ============================================================================
 
 
-def demonstrate_path_operations() -> None:
-    """Path operations with auto-validation."""
-    cli.formatters.print("\n🛤️  Path Operations:", style="bold cyan")
-    # Path validation happens automatically during file operations
+def save_user_preferences(preferences: dict, config_dir: Path) -> bool:
+    """Save user preferences to JSON in YOUR app."""
+    config_file = config_dir / "preferences.json"
+
+    # Instead of:
+    # with open(config_file, 'w') as f:
+    #     json.dump(preferences, f)
+
+    write_result = cli.file_tools.write_json_file(config_file, preferences)
+
+    if write_result.is_failure:
+        cli.formatters.print(
+            f"❌ Failed to save: {write_result.error}", style="bold red"
+        )
+        return False
+
+    cli.formatters.print(f"✅ Saved preferences to {config_file.name}", style="green")
+    return True
+
+
+def load_user_preferences(config_dir: Path) -> dict | None:
+    """Load user preferences from JSON in YOUR app."""
+    config_file = config_dir / "preferences.json"
+
+    # Instead of:
+    # with open(config_file) as f:
+    #     return json.load(f)
+
+    read_result = cli.file_tools.read_json_file(config_file)
+
+    if read_result.is_failure:
+        cli.formatters.print(f"⚠️  Could not load: {read_result.error}", style="yellow")
+        return None
+
+    preferences = read_result.unwrap()
+    if not isinstance(preferences, dict):
+        return None
     cli.formatters.print(
-        "✅ Path validation automatic in file operations", style="cyan"
+        f"✅ Loaded preferences from {config_file.name}", style="green"
+    )
+    return preferences
+
+
+# ============================================================================
+# PATTERN 2: YAML configuration in YOUR deployment tool
+# ============================================================================
+
+
+def save_deployment_config(config: dict, config_file: Path) -> bool:
+    """Save deployment config to YAML in YOUR tool."""
+    # Instead of:
+    # with open(config_file, 'w') as f:
+    #     yaml.dump(config, f)
+
+    write_result = cli.file_tools.write_yaml_file(config_file, config)
+
+    if write_result.is_failure:
+        cli.formatters.print(
+            f"❌ Config save failed: {write_result.error}", style="bold red"
+        )
+        return False
+
+    cli.formatters.print("✅ Saved deployment config", style="green")
+    return True
+
+
+def load_deployment_config(config_file: Path) -> dict | None:
+    """Load deployment config from YAML in YOUR tool."""
+    read_result = cli.file_tools.read_yaml_file(config_file)
+
+    if read_result.is_failure:
+        cli.formatters.print(
+            f"❌ Config load failed: {read_result.error}", style="bold red"
+        )
+        return None
+
+    config = read_result.unwrap()
+    if not isinstance(config, dict):
+        return None
+    cli.formatters.print("✅ Loaded deployment config", style="green")
+    return config
+
+
+# ============================================================================
+# PATTERN 3: Export data as tables in YOUR reporting tool
+# ============================================================================
+
+
+def export_database_report(
+    records: list[dict], output_file: Path, format_type: str = "grid"
+) -> bool | None:
+    """Export database query results in YOUR reporting tool."""
+    # Create ASCII table (for logs, emails, markdown docs)
+    table_result = tables.create_table(records, table_format=format_type)
+
+    if table_result.is_failure:
+        cli.formatters.print(
+            f"❌ Table creation failed: {table_result.error}", style="bold red"
+        )
+        return False
+
+    # Save to file
+    ascii_table = table_result.unwrap()
+    try:
+        output_file.write_text(ascii_table, encoding="utf-8")
+        cli.formatters.print(f"✅ Report exported to {output_file}", style="green")
+        return True
+    except Exception as e:
+        cli.formatters.print(f"❌ Export failed: {e}", style="bold red")
+        return False
+
+
+# ============================================================================
+# PATTERN 4: Directory operations in YOUR file manager CLI
+# ============================================================================
+
+
+def list_project_files(project_dir: Path) -> None:
+    """List files with metadata in YOUR file manager."""
+    if not project_dir.exists():
+        cli.formatters.print(f"❌ Directory not found: {project_dir}", style="bold red")
+        return
+
+    # Collect file metadata
+    files_data = [
+        {
+            "Name": item.name[:40],
+            "Type": "📂 dir" if item.is_dir() else "📄 file",
+            "Size": f"{item.stat().st_size:,}" if item.is_file() else "-",
+        }
+        for item in sorted(project_dir.iterdir())
+    ]
+
+    # Display as table
+    if files_data:
+        sample_data: list[dict[str, object]] = cast(
+            "list[dict[str, object]]", files_data[:20]
+        )
+        table_result = tables.create_table(sample_data, table_format="grid")
+        if table_result.is_success:
+            cli.formatters.print(
+                f"\n📁 Directory: {project_dir.name}", style="bold cyan"
+            )
+            cli.formatters.console.print(table_result.unwrap())
+
+
+def show_directory_tree(root_path: Path, max_items: int = 15) -> None:
+    """Display directory tree in YOUR file browser."""
+    if not root_path.exists():
+        cli.formatters.print(f"❌ Path not found: {root_path}", style="bold red")
+        return
+
+    tree_result = cli.create_tree(f"📁 {root_path.name}")
+
+    if tree_result.is_failure:
+        cli.formatters.print(
+            f"❌ Tree creation failed: {tree_result.error}", style="bold red"
+        )
+        return
+
+    tree = tree_result.unwrap()
+    items = list(root_path.iterdir())[:max_items]
+
+    for item in sorted(items):
+        if item.is_dir():
+            tree.add(f"📂 {item.name}/")
+        else:
+            size = item.stat().st_size
+            tree.add(f"📄 {item.name} ({size:,} bytes)")
+
+    cli.formatters.console.print(tree)
+
+
+# ============================================================================
+# PATTERN 5: Data validation workflow in YOUR ETL tool
+# ============================================================================
+
+
+def validate_and_import_data(input_file: Path) -> dict | None:
+    """Validate and import data in YOUR ETL pipeline."""
+    # Step 1: Read file
+    read_result = cli.file_tools.read_json_file(input_file)
+
+    if read_result.is_failure:
+        cli.formatters.print(f"❌ Read failed: {read_result.error}", style="bold red")
+        return None
+
+    data = read_result.unwrap()
+
+    # Step 2: Validate structure
+    def validate_structure(data: dict) -> FlextResult[dict]:
+        """Your validation logic."""
+        required_fields = ["id", "name", "value"]
+        for field in required_fields:
+            if field not in data:
+                return FlextResult[dict].fail(f"Missing required field: {field}")
+        return FlextResult[dict].ok(data)
+
+    # Chain validation using FlextResult - type narrowing needed
+    if not isinstance(data, dict):
+        cli.formatters.print("❌ Data is not a dictionary", style="bold red")
+        return None
+
+    validated = validate_structure(data)
+
+    if validated.is_failure:
+        cli.formatters.print(
+            f"❌ Validation failed: {validated.error}", style="bold red"
+        )
+        return None
+
+    cli.formatters.print("✅ Data validated successfully", style="green")
+    return validated.unwrap()
+
+
+# ============================================================================
+# PATTERN 6: Backup and restore in YOUR backup tool
+# ============================================================================
+
+
+def backup_config_files(source_dir: Path, backup_dir: Path) -> list[str]:
+    """Backup configuration files in YOUR backup tool."""
+    backup_dir.mkdir(parents=True, exist_ok=True)
+
+    config_files = list(source_dir.glob("*.json")) + list(source_dir.glob("*.yaml"))
+
+    backed_up = []
+    for config_file in config_files:
+        # Read original
+        if config_file.suffix == ".json":
+            read_result = cli.file_tools.read_json_file(config_file)
+        else:
+            read_result = cli.file_tools.read_yaml_file(config_file)
+
+        if read_result.is_failure:
+            cli.formatters.print(
+                f"⚠️  Skipped {config_file.name}: {read_result.error}", style="yellow"
+            )
+            continue
+
+        # Write backup
+        backup_file = backup_dir / config_file.name
+        if config_file.suffix == ".json":
+            write_result = cli.file_tools.write_json_file(
+                backup_file, read_result.unwrap()
+            )
+        else:
+            write_result = cli.file_tools.write_yaml_file(
+                backup_file, read_result.unwrap()
+            )
+
+        if write_result.is_success:
+            backed_up.append(config_file.name)
+
+    cli.formatters.print(
+        f"✅ Backed up {len(backed_up)} files to {backup_dir}", style="green"
+    )
+    return backed_up
+
+
+# ============================================================================
+# PATTERN 7: CSV export/import with headers in YOUR data tool
+# ============================================================================
+
+
+def export_to_csv(data: list[dict], output_file: Path) -> bool:
+    """Export data to CSV with proper headers in YOUR reporting tool."""
+    if not data:
+        cli.formatters.print("⚠️  No data to export", style="yellow")
+        return False
+
+    cli.formatters.print(f"📊 Exporting {len(data)} rows to CSV...", style="cyan")
+
+    # Extract headers from first row
+    headers = list(data[0].keys())
+
+    # Prepare rows (headers as first row, then data)
+    rows = [headers]  # First row is headers
+    rows.extend([[str(row.get(header, "")) for header in headers] for row in data])
+
+    # Write CSV (headers included as first row)
+    write_result = cli.file_tools.write_csv_file(output_file, rows)
+
+    if write_result.is_failure:
+        cli.formatters.print(
+            f"❌ CSV export failed: {write_result.error}", style="bold red"
+        )
+        return False
+
+    size = output_file.stat().st_size
+    cli.formatters.print(
+        f"✅ Exported to {output_file.name} ({size} bytes)", style="green"
+    )
+    return True
+
+
+def import_from_csv(input_file: Path) -> list[dict] | None:
+    """Import data from CSV with headers in YOUR data tool."""
+    cli.formatters.print(f"📥 Importing from {input_file.name}...", style="cyan")
+
+    # Read CSV with headers
+    read_result = cli.file_tools.read_csv_file_with_headers(input_file)
+
+    if read_result.is_failure:
+        cli.formatters.print(
+            f"❌ CSV import failed: {read_result.error}", style="bold red"
+        )
+        return None
+
+    rows = read_result.unwrap()
+    cli.formatters.print(f"✅ Imported {len(rows)} rows from CSV", style="green")
+
+    # Display sample
+    if rows:
+        sample_rows: list[dict[str, object]] = cast("list[dict[str, object]]", rows[:5])
+        table_result = tables.create_table(sample_rows, table_format="grid")
+        if table_result.is_success:
+            cli.formatters.print("\n📋 Sample Data:", style="yellow")
+            print(table_result.unwrap())
+
+    return rows
+
+
+# ============================================================================
+# PATTERN 8: Binary file operations in YOUR file processor
+# ============================================================================
+
+
+def process_binary_file(input_file: Path, output_file: Path) -> bool:
+    """Read and write binary files in YOUR file processor."""
+    cli.formatters.print(f"🔧 Processing binary file: {input_file.name}", style="cyan")
+
+    # Read binary file
+    read_result = cli.file_tools.read_binary_file(input_file)
+
+    if read_result.is_failure:
+        cli.formatters.print(f"❌ Read failed: {read_result.error}", style="bold red")
+        return False
+
+    data = read_result.unwrap()
+    cli.formatters.print(f"✅ Read {len(data)} bytes", style="green")
+
+    # Calculate checksum
+    checksum = hashlib.sha256(data).hexdigest()
+    cli.formatters.print(f"   SHA256: {checksum}", style="cyan")
+
+    # Process data (example: simple copy)
+    processed_data = data
+
+    # Write binary file
+    write_result = cli.file_tools.write_binary_file(output_file, processed_data)
+
+    if write_result.is_failure:
+        cli.formatters.print(f"❌ Write failed: {write_result.error}", style="bold red")
+        return False
+
+    cli.formatters.print(
+        f"✅ Wrote {len(processed_data)} bytes to {output_file.name}", style="green"
+    )
+    return True
+
+
+# ============================================================================
+# PATTERN 9: Auto-format detection in YOUR config loader
+# ============================================================================
+
+
+def load_config_auto_detect(config_file: Path) -> dict | None:
+    """Load config from ANY format with auto-detection."""
+    cli.formatters.print(f"🔍 Auto-detecting format: {config_file.name}", style="cyan")
+
+    # Detect format from extension
+    format_result = cli.file_tools.detect_file_format(config_file)
+
+    if format_result.is_failure:
+        cli.formatters.print(
+            f"❌ Format detection failed: {format_result.error}", style="bold red"
+        )
+        return None
+
+    detected_format = format_result.unwrap()
+    cli.formatters.print(
+        f"✅ Detected format: {detected_format.upper()}", style="green"
     )
 
+    # Load with auto-detection
+    load_result = cli.file_tools.load_file_auto_detect(config_file)
 
-def demonstrate_temp_files() -> None:
-    """Temporary files with auto-cleanup."""
-    cli.formatters.print("\n🗂️  Temporary Files:", style="bold cyan")
-    # Temp file creation with auto-cleanup
-    temp_result = cli.file_tools.create_temp_file()
-    if temp_result.is_success:
-        cli.formatters.print("✅ Temp file created with auto-cleanup", style="green")
+    if load_result.is_failure:
+        cli.formatters.print(f"❌ Load failed: {load_result.error}", style="bold red")
+        return None
+
+    data = load_result.unwrap()
+    cli.formatters.print("✅ Config loaded successfully", style="green")
+
+    # Display loaded data
+    if isinstance(data, dict):
+        display_data: FlextCliTypes.Data.CliDataDict = cast(
+            "FlextCliTypes.Data.CliDataDict", data
+        )
+        table_result = cli.create_table(
+            data=display_data,
+            headers=["Key", "Value"],
+            title=f"Config from {detected_format.upper()}",
+        )
+        if table_result.is_success:
+            cli.formatters.console.print(table_result.unwrap())
+        return data
+
+    return None
+
+
+# ============================================================================
+# PATTERN 10: Multi-format export in YOUR export tool
+# ============================================================================
+
+
+def export_multi_format(data: dict | list[dict], base_path: Path) -> dict:
+    """Export same data to multiple formats (JSON, YAML, CSV)."""
+    cli.formatters.print(f"💾 Multi-format export: {base_path.stem}", style="cyan")
+
+    export_results = {}
+
+    # Export to JSON
+    json_path = base_path.with_suffix(".json")
+    json_result = cli.file_tools.write_json_file(json_path, data, indent=2)
+    if json_result.is_success:
+        size = json_path.stat().st_size
+        export_results["JSON"] = f"{size} bytes"
+        cli.formatters.print(f"✅ JSON: {json_path.name} ({size} bytes)", style="green")
+
+    # Export to YAML
+    yaml_path = base_path.with_suffix(".yaml")
+    yaml_result = cli.file_tools.write_yaml_file(yaml_path, data)
+    if yaml_result.is_success:
+        size = yaml_path.stat().st_size
+        export_results["YAML"] = f"{size} bytes"
+        cli.formatters.print(f"✅ YAML: {yaml_path.name} ({size} bytes)", style="green")
+
+    # Export to CSV (if data is list of dicts)
+    if isinstance(data, list) and data and isinstance(data[0], dict):
+        csv_path = base_path.with_suffix(".csv")
+        headers = list(data[0].keys())
+        # Prepend headers as first row
+        rows = [headers]
+        rows.extend([[str(row.get(h, "")) for h in headers] for row in data])
+
+        csv_result = cli.file_tools.write_csv_file(csv_path, rows)
+        if csv_result.is_success:
+            size = csv_path.stat().st_size
+            export_results["CSV"] = f"{size} bytes"
+            cli.formatters.print(
+                f"✅ CSV: {csv_path.name} ({size} bytes)", style="green"
+            )
+
+    cli.formatters.print(
+        f"\n📊 Exported to {len(export_results)} formats", style="bold green"
+    )
+    return export_results
+
+
+# ============================================================================
+# REAL USAGE EXAMPLES
+# ============================================================================
 
 
 def main() -> None:
-    """Run all demonstrations."""
-    cli.formatters.print("=" * 60, style="bold blue")
-    cli.formatters.print("  File Operations Examples", style="bold white on blue")
-    cli.formatters.print("=" * 60, style="bold blue")
+    """Examples of using file operations in YOUR code."""
+    cli.formatters.print("=" * 70, style="bold blue")
+    cli.formatters.print("  File Operations Library Usage", style="bold white")
+    cli.formatters.print("=" * 70, style="bold blue")
 
-    demonstrate_file_io()
-    demonstrate_path_operations()
-    demonstrate_temp_files()
+    # Setup temp directories
+    temp_dir = Path(tempfile.gettempdir()) / "flext_demo"
+    temp_dir.mkdir(exist_ok=True)
 
-    cli.formatters.print("\n" + "=" * 60, style="bold blue")
+    # Example 1: JSON preferences
     cli.formatters.print(
-        "  ✅ All file operation examples completed!", style="bold green"
+        "\n1. JSON Config Files (user preferences):", style="bold cyan"
     )
-    cli.formatters.print("=" * 60, style="bold blue")
+    prefs = {"theme": "dark", "font_size": 14, "auto_save": True}
+    save_user_preferences(prefs, temp_dir)
+    load_user_preferences(temp_dir)
+
+    # Example 2: YAML deployment config
+    cli.formatters.print("\n2. YAML Configuration (deployment):", style="bold cyan")
+    deploy_config = {
+        "environment": "staging",
+        "host": "staging.example.com",
+        "platform": platform.system(),
+    }
+    yaml_file = temp_dir / "deploy.yaml"
+    save_deployment_config(deploy_config, yaml_file)
+    load_deployment_config(yaml_file)
+
+    # Example 3: Table export
+    cli.formatters.print("\n3. Data Export (table format):", style="bold cyan")
+    sample_data = [
+        {"id": 1, "name": "Alice", "status": "active"},
+        {"id": 2, "name": "Bob", "status": "inactive"},
+    ]
+    report_file = temp_dir / "report.txt"
+    export_database_report(sample_data, report_file, format_type="grid")
+
+    # Example 4: Directory listing
+    cli.formatters.print("\n4. Directory Operations (file browser):", style="bold cyan")
+    list_project_files(Path.cwd())
+
+    # Example 5: Directory tree
+    cli.formatters.print("\n5. Directory Tree (structure view):", style="bold cyan")
+    show_directory_tree(Path.cwd(), max_items=10)
+
+    # Example 6: Data validation
+    cli.formatters.print("\n6. Data Validation (ETL pipeline):", style="bold cyan")
+    test_data = {"id": 1, "name": "test", "value": 100}
+    test_file = temp_dir / "test_data.json"
+    cli.file_tools.write_json_file(test_file, test_data)
+    validate_and_import_data(test_file)
+
+    # Example 7: CSV export/import
+    cli.formatters.print("\n7. CSV Export/Import (with headers):", style="bold cyan")
+    csv_data = [
+        {"employee_id": 101, "name": "Alice Smith", "department": "Engineering"},
+        {"employee_id": 102, "name": "Bob Jones", "department": "Sales"},
+        {"employee_id": 103, "name": "Carol White", "department": "Marketing"},
+    ]
+    csv_file = temp_dir / "employees.csv"
+    export_to_csv(csv_data, csv_file)
+    import_from_csv(csv_file)
+
+    # Example 8: Binary file operations
+    cli.formatters.print("\n8. Binary File Operations:", style="bold cyan")
+    binary_input = temp_dir / "input.bin"
+    binary_output = temp_dir / "output.bin"
+    binary_input.write_bytes(b"Binary data content example" * 50)
+    process_binary_file(binary_input, binary_output)
+
+    # Example 9: Auto-format detection
+    cli.formatters.print("\n9. Auto-Format Detection:", style="bold cyan")
+    auto_config = {"app": "demo", "version": "1.0", "enabled": True}
+    auto_json = temp_dir / "auto_config.json"
+    auto_yaml = temp_dir / "auto_config.yaml"
+    cli.file_tools.write_json_file(auto_json, auto_config)
+    cli.file_tools.write_yaml_file(auto_yaml, auto_config)
+    load_config_auto_detect(auto_json)
+    load_config_auto_detect(auto_yaml)
+
+    # Example 10: Multi-format export
+    cli.formatters.print("\n10. Multi-Format Export:", style="bold cyan")
+    multi_data = [
+        {"metric": "CPU", "value": "75%", "status": "OK"},
+        {"metric": "Memory", "value": "82%", "status": "Warning"},
+    ]
+    export_multi_format(multi_data, temp_dir / "metrics")
+
+    # Cleanup
+    shutil.rmtree(temp_dir, ignore_errors=True)
+
+    cli.formatters.print("\n" + "=" * 70, style="bold blue")
+    cli.formatters.print("  ✅ File Operations Complete", style="bold green")
+    cli.formatters.print("=" * 70, style="bold blue")
+
+    # Integration guide
+    cli.formatters.print("\n💡 Integration Tips:", style="bold cyan")
+    cli.formatters.print(
+        "  • JSON: Use file_tools.read_json_file() / write_json()", style="white"
+    )
+    cli.formatters.print(
+        "  • YAML: Use file_tools.read_yaml_file() / write_yaml()", style="white"
+    )
+    cli.formatters.print(
+        "  • CSV: Use read_csv_file_with_headers() for structured data", style="white"
+    )
+    cli.formatters.print(
+        "  • Binary: Use read_binary_file() for images, PDFs, etc.", style="white"
+    )
+    cli.formatters.print(
+        "  • Auto-detect: Use load_file_auto() for flexible loading", style="white"
+    )
+    cli.formatters.print(
+        "  • Tables: Use FlextCliTables for ASCII table export", style="white"
+    )
+    cli.formatters.print(
+        "  • All methods return FlextResult for error handling", style="white"
+    )
 
 
 if __name__ == "__main__":

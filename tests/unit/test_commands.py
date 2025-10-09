@@ -186,3 +186,186 @@ class TestFlextCliCommands:
         # Test invalid command execution
         invalid_result = commands.execute_command("invalid_cmd")
         assert invalid_result.is_failure
+
+    # ========================================================================
+    # COVERAGE IMPROVEMENT TESTS - Missing error paths and edge cases
+    # ========================================================================
+
+    def test_unregister_command_not_found(self) -> None:
+        """Test unregister_command when command doesn't exist (lines 105-115)."""
+        commands = FlextCliCommands()
+
+        # Try to unregister non-existent command
+        result = commands.unregister_command("non_existent")
+        assert result.is_failure
+        assert result.error is not None
+        assert "not found" in result.error.lower()
+
+    def test_unregister_command_success(self) -> None:
+        """Test successful command unregistration."""
+        commands = FlextCliCommands()
+
+        # Register then unregister
+        commands.register_command("temp_cmd", lambda: "temp")
+        result = commands.unregister_command("temp_cmd")
+        assert result.is_success
+
+        # Verify command is gone
+        exec_result = commands.execute_command("temp_cmd")
+        assert exec_result.is_failure
+
+    def test_create_command_group(self) -> None:
+        """Test create_command_group method (lines 138-146)."""
+        commands = FlextCliCommands()
+
+        # Create command group
+        result = commands.create_command_group(
+            "test_group",
+            description="Test group",
+            commands={"cmd1": {"handler": lambda: "test"}}
+        )
+        assert result.is_success
+        group = result.unwrap()
+        assert hasattr(group, "name")
+        assert group.name == "test_group"
+        assert hasattr(group, "description")
+        assert hasattr(group, "commands")
+
+    def test_run_cli_with_invalid_command(self) -> None:
+        """Test run_cli with invalid command in args (lines 166-192)."""
+        commands = FlextCliCommands()
+        commands.register_command("valid", lambda: "ok")
+
+        # Run with invalid command
+        result = commands.run_cli(["invalid_command"])
+        assert result.is_failure
+        assert result.error is not None
+        assert "not found" in result.error.lower()
+
+    def test_run_cli_with_options(self) -> None:
+        """Test run_cli skips option arguments (lines 166-192)."""
+        commands = FlextCliCommands()
+
+        # Run with options (should skip --* args)
+        result = commands.run_cli(["--help", "--version"])
+        assert result.is_success
+
+    def test_run_cli_success(self) -> None:
+        """Test run_cli successful execution (lines 166-192)."""
+        commands = FlextCliCommands()
+        commands.register_command("test", lambda: "ok")
+
+        # Run with valid command
+        result = commands.run_cli(["test"])
+        assert result.is_success
+
+    def test_get_click_group(self) -> None:
+        """Test get_click_group method (line 203)."""
+        commands = FlextCliCommands()
+
+        # Get Click group
+        group = commands.get_click_group()
+        assert group is not None
+        assert hasattr(group, "name")
+        assert hasattr(group, "commands")
+
+    def test_execute_command_with_args(self) -> None:
+        """Test execute_command with args parameter (lines 237-241)."""
+        commands = FlextCliCommands()
+
+        # Register command that accepts args
+        def cmd_with_args(args: list[str]) -> str:
+            return f"args: {len(args)}"
+
+        commands.register_command("with_args", cmd_with_args)
+
+        # Execute with args
+        result = commands.execute_command("with_args", args=["arg1", "arg2"])
+        assert result.is_success
+        assert "args: 2" in str(result.unwrap())
+
+    def test_execute_command_handler_without_args(self) -> None:
+        """Test execute_command with handler that doesn't accept args (lines 237-241)."""
+        commands = FlextCliCommands()
+
+        # Register command without args
+        commands.register_command("no_args", lambda: "no args")
+
+        # Execute with args (should fallback to calling without args)
+        result = commands.execute_command("no_args", args=["arg1"])
+        assert result.is_success
+        assert result.unwrap() == "no args"
+
+    def test_execute_command_invalid_structure(self) -> None:
+        """Test execute_command with invalid command structure (lines 245-252)."""
+        commands = FlextCliCommands()
+
+        # Manually add invalid command structure
+        commands._commands["bad_cmd"] = {"invalid": "structure"}
+
+        result = commands.execute_command("bad_cmd")
+        assert result.is_failure
+        assert "Invalid command structure" in str(result.error) or "not callable" in str(result.error)
+
+    def test_get_commands(self) -> None:
+        """Test get_commands method (line 263)."""
+        commands = FlextCliCommands()
+        commands.register_command("cmd1", lambda: "1")
+        commands.register_command("cmd2", lambda: "2")
+
+        # Get commands
+        cmds = commands.get_commands()
+        assert isinstance(cmds, dict)
+        assert len(cmds) == 2
+        assert "cmd1" in cmds
+        assert "cmd2" in cmds
+
+    def test_clear_commands(self) -> None:
+        """Test clear_commands method (lines 272-278)."""
+        commands = FlextCliCommands()
+        commands.register_command("cmd1", lambda: "1")
+        commands.register_command("cmd2", lambda: "2")
+
+        # Clear commands
+        result = commands.clear_commands()
+        assert result.is_success
+        assert result.unwrap() == 2  # Should return count of cleared commands
+
+        # Verify commands are cleared
+        cmds = commands.get_commands()
+        assert len(cmds) == 0
+
+    def test_list_commands(self) -> None:
+        """Test list_commands method (lines 289-293)."""
+        commands = FlextCliCommands()
+        commands.register_command("alpha", lambda: "a")
+        commands.register_command("beta", lambda: "b")
+
+        # List commands
+        result = commands.list_commands()
+        assert result.is_success
+        cmd_list = result.unwrap()
+        assert isinstance(cmd_list, list)
+        assert len(cmd_list) == 2
+        assert "alpha" in cmd_list
+        assert "beta" in cmd_list
+
+    def test_create_main_cli(self) -> None:
+        """Test create_main_cli method (line 304)."""
+        commands = FlextCliCommands(name="test_cli", description="Test CLI")
+
+        # Create main CLI
+        main_cli = commands.create_main_cli()
+        assert isinstance(main_cli, FlextCliCommands)
+        assert main_cli._name == "test_cli"
+        assert main_cli._description == "Test CLI"
+
+    def test_execute_command_with_timeout(self) -> None:
+        """Test execute_command with timeout parameter (lines 223-226)."""
+        commands = FlextCliCommands()
+        commands.register_command("timed", lambda: "done")
+
+        # Execute with custom timeout
+        result = commands.execute_command("timed", timeout=60)
+        assert result.is_success
+        assert result.unwrap() == "done"

@@ -3,6 +3,11 @@
 COMPLETELY REFACTORED: This module delegates ALL Rich functionality to formatters.py.
 ZERO direct Rich imports - all Rich operations go through FlextCliFormatters abstraction.
 
+EXPECTED MYPY ISSUES (documented for awareness):
+- Unreachable statement in format_table method:
+  This is defensive error handling that mypy proves is unnecessary at compile time
+  due to type analysis, but is kept for runtime safety.
+
 Copyright (c) 2025 FLEXT Team. All rights reserved.
 SPDX-License-Identifier: MIT
 """
@@ -13,7 +18,7 @@ import csv
 import json
 from collections.abc import Sequence
 from io import StringIO
-from typing import cast, override
+from typing import TYPE_CHECKING, cast, override
 
 import yaml
 from flext_core import FlextCore, FlextResult
@@ -21,6 +26,10 @@ from flext_core import FlextCore, FlextResult
 from flext_cli.constants import FlextCliConstants
 from flext_cli.formatters import FlextCliFormatters
 from flext_cli.tables import FlextCliTables
+
+if TYPE_CHECKING:
+    from rich.table import Table as RichTable
+    from rich.tree import Tree as RichTree
 
 
 class FlextCliOutput(FlextCore.Service[object]):
@@ -239,7 +248,7 @@ class FlextCliOutput(FlextCore.Service[object]):
 
     def table_to_string(
         self,
-        table: object,
+        table: RichTable,
         width: int | None = None,
     ) -> FlextResult[str]:
         """Convert table to string using FlextCliFormatters.
@@ -253,7 +262,7 @@ class FlextCliOutput(FlextCore.Service[object]):
 
         """
         # Delegate to formatters for rendering
-        return self._formatters.render_table_to_string(table, width)  # type: ignore[arg-type]
+        return self._formatters.render_table_to_string(table, width)
 
     # =========================================================================
     # ASCII TABLE CREATION (Delegates to FlextCliTables)
@@ -644,6 +653,9 @@ class FlextCliOutput(FlextCore.Service[object]):
 
         """
         try:
+            # Prepare data for tabulate - type annotation helps MyPy track the union type
+            table_data: list[dict[str, str | object]]
+
             # Prepare data for tabulate
             if isinstance(data, dict):
                 table_data = [{"Key": k, "Value": str(v)} for k, v in data.items()]
@@ -664,7 +676,7 @@ class FlextCliOutput(FlextCore.Service[object]):
 
             # Create table using FlextCliTables
             table_result = self._tables.create_table(
-                data=cast("list[FlextCore.Types.Dict]", table_data),
+                data=table_data,
                 headers=table_headers,
                 table_format="grid",
             )
@@ -725,7 +737,7 @@ class FlextCliOutput(FlextCore.Service[object]):
             tree, width=FlextCliConstants.CliDefaults.DEFAULT_MAX_WIDTH
         )
 
-    def _build_tree(self, tree: object, data: object) -> None:
+    def _build_tree(self, tree: RichTree, data: object) -> None:
         """Build tree recursively (helper for format_as_tree).
 
         Args:
@@ -733,23 +745,22 @@ class FlextCliOutput(FlextCore.Service[object]):
             data: Data to build tree from
 
         """
-        tree_obj = tree
         if isinstance(data, dict):
             for key, value in data.items():
                 if isinstance(value, dict):
-                    branch = tree_obj.add(str(key))  # type: ignore[attr-defined]
+                    branch = tree.add(str(key))
                     self._build_tree(branch, value)
                 elif isinstance(value, list):
-                    branch = tree_obj.add(f"{key} (list)")  # type: ignore[attr-defined]
+                    branch = tree.add(f"{key} (list)")
                     for item in value:
                         self._build_tree(branch, item)
                 else:
-                    tree_obj.add(f"{key}: {value}")  # type: ignore[attr-defined]
+                    tree.add(f"{key}: {value}")
         elif isinstance(data, list):
             for item in data:
                 self._build_tree(tree, item)
         else:
-            tree_obj.add(str(data))  # type: ignore[attr-defined]
+            tree.add(str(data))
 
     # =========================================================================
     # CONSOLE ACCESS (Delegates to FlextCliFormatters)

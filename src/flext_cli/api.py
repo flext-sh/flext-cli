@@ -13,9 +13,10 @@ from __future__ import annotations
 import secrets
 from collections.abc import Callable
 from pathlib import Path
-from typing import cast
+from typing import TYPE_CHECKING, cast
 
 from flext_core import FlextCore, FlextResult
+from rich.tree import Tree
 
 from flext_cli.cli import FlextCliCli
 from flext_cli.config import FlextCliConfig
@@ -24,6 +25,19 @@ from flext_cli.file_tools import FlextCliFileTools
 from flext_cli.formatters import FlextCliFormatters
 from flext_cli.models import FlextCliModels
 from flext_cli.typings import FlextCliTypes
+
+# TYPE_CHECKING imports for lazy-loaded types (avoid circular imports)
+if TYPE_CHECKING:
+    from flext_cli.cmd import FlextCliCmd
+    from flext_cli.core import FlextCliCore
+    from flext_cli.output import FlextCliOutput
+    from flext_cli.prompts import FlextCliPrompts
+else:
+    # Runtime imports for lazy-loading - must be at module top to avoid PLC0415
+    from flext_cli.cmd import FlextCliCmd
+    from flext_cli.core import FlextCliCore
+    from flext_cli.output import FlextCliOutput
+    from flext_cli.prompts import FlextCliPrompts
 
 
 class FlextCli:
@@ -61,7 +75,7 @@ class FlextCli:
         self._valid_tokens: set[str] = set()
         self._valid_sessions: set[str] = set()
         self._session_permissions: dict[str, set[str]] = {}
-        self._users: dict[str, dict] = {}
+        self._users: dict[str, dict[str, object]] = {}
         self._deleted_users: set[str] = set()
 
     @classmethod
@@ -107,6 +121,44 @@ class FlextCli:
         """Access formatters domain library."""
         return self._formatters
 
+    @property
+    def output(self) -> FlextCliOutput:
+        """Access output formatting service (lazy-loaded)."""
+        if not hasattr(self, "_output"):
+            self._output = FlextCliOutput()
+        return self._output
+
+    @property
+    def utilities(self) -> type[FlextCore.Utilities]:
+        """Access core utilities for validation and data processing."""
+        return FlextCore.Utilities
+
+    @property
+    def logger(self) -> FlextCore.Logger:
+        """Access logger instance."""
+        return self._logger
+
+    @property
+    def core(self) -> FlextCliCore:
+        """Access core CLI service (lazy-loaded)."""
+        if not hasattr(self, "_core"):
+            self._core = FlextCliCore()
+        return self._core
+
+    @property
+    def prompts(self) -> FlextCliPrompts:
+        """Access prompts service (lazy-loaded)."""
+        if not hasattr(self, "_prompts"):
+            self._prompts = FlextCliPrompts()
+        return self._prompts
+
+    @property
+    def cmd(self) -> FlextCliCmd:
+        """Access command service (lazy-loaded)."""
+        if not hasattr(self, "_cmd"):
+            self._cmd = FlextCliCmd()
+        return self._cmd
+
     # =========================================================================
     # FORMATTING - Domain library pattern using FlextCliFormatters
     # =========================================================================
@@ -138,10 +190,9 @@ class FlextCli:
         result = self._formatters.create_progress(**kwargs)
         return result.map(lambda progress: cast("object", progress))
 
-    def create_tree(self, label: str, **kwargs: object) -> FlextResult[object]:
+    def create_tree(self, label: str, **kwargs: object) -> FlextResult[Tree]:
         """Create tree using formatters domain library."""
-        result = self._formatters.create_tree(label=label, **kwargs)
-        return result.map(lambda tree: cast("object", tree))
+        return self._formatters.create_tree(label=label, **kwargs)
 
     # =========================================================================
     # AUTHENTICATION - Direct implementation (consolidated from auth.py)
@@ -299,10 +350,12 @@ class FlextCli:
     # COMMAND REGISTRATION - CLI framework abstraction (domain library pattern)
     # =========================================================================
 
-    def command(self, name: str | None = None) -> Callable:
+    def command(
+        self, name: str | None = None
+    ) -> Callable[[Callable[..., object]], Callable[..., object]]:
         """Register a command using CLI framework abstraction."""
 
-        def decorator(func: Callable) -> Callable:
+        def decorator(func: Callable[..., object]) -> Callable[..., object]:
             cmd_name = name or func.__name__
             self._commands[cmd_name] = func
 
@@ -312,10 +365,12 @@ class FlextCli:
 
         return decorator
 
-    def group(self, name: str | None = None) -> Callable:
+    def group(
+        self, name: str | None = None
+    ) -> Callable[[Callable[..., object]], Callable[..., object]]:
         """Register a command group using CLI framework abstraction."""
 
-        def decorator(func: Callable) -> Callable:
+        def decorator(func: Callable[..., object]) -> Callable[..., object]:
             group_name = name or func.__name__
             self._groups[group_name] = func
 

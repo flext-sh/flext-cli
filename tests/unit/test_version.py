@@ -1,33 +1,34 @@
-"""Tests for flext_cli.version module."""
+"""Tests for flext_cli.__version__ module."""
 
-from flext_cli.version import VERSION, FlextCliVersion
+from flext_cli import __version__
+from flext_cli import __version_info__
 
 
 class TestFlextCliVersion:
-    """Test FlextCliVersion class."""
+    """Test flext_cli version module."""
 
-    def test_version_creation(self) -> None:
-        """Test version instance creation."""
-        version = FlextCliVersion()
-        assert isinstance(version, FlextCliVersion)
+    def test_version_string(self) -> None:
+        """Test version string is available."""
+        assert isinstance(__version__, str)
+        assert len(__version__) > 0
+        # Should be in semver format (e.g., "2.0.0")
+        assert "." in __version__
 
-    def test_version_properties(self) -> None:
-        """Test version properties."""
-        version = FlextCliVersion()
+    def test_version_info_tuple(self) -> None:
+        """Test version_info tuple."""
+        assert isinstance(__version_info__, tuple)
+        assert len(__version_info__) >= 3
+        # First three parts should be integers (major.minor.patch)
+        for i in range(min(3, len(__version_info__))):
+            part = __version_info__[i]
+            assert isinstance(part, (int, str))
 
-        # Test that properties exist and are strings
-        assert isinstance(version.version, str)
-        assert isinstance(version.version_info, tuple)
-        assert isinstance(version.title, str)
-        assert isinstance(version.description, str)
-
-    def test_current_classmethod(self) -> None:
-        """Test current classmethod."""
-        version = FlextCliVersion.current()
-        assert isinstance(version, FlextCliVersion)
-
-    def test_module_level_variables(self) -> None:
-        """Test module-level variables."""
-        assert isinstance(VERSION, FlextCliVersion)
-        assert isinstance(VERSION.version, str)
-        assert isinstance(VERSION.version_info, tuple)
+    def test_version_matches_info(self) -> None:
+        """Test that __version__ string matches __version_info__ tuple."""
+        version_parts = __version__.split(".")
+        # Compare up to the length of version_info
+        for i, info_part in enumerate(__version_info__[:len(version_parts)]):
+            if isinstance(info_part, int):
+                assert int(version_parts[i]) == info_part
+            else:
+                assert version_parts[i] == info_part

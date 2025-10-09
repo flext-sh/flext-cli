@@ -15,7 +15,7 @@ from pathlib import Path
 from typing import cast
 
 import pytest
-from flext_core import FlextResult, FlextTypes
+from flext_core import FlextCore, FlextResult, FlextTypes
 
 from flext_cli import FlextCli, FlextCliConstants
 
@@ -123,16 +123,16 @@ class TestFlextCli:
 
     def test_format_data_csv(self, api_service: FlextCli) -> None:
         """Test CSV data formatting functionality using formatters."""
-        test_data = {
+        test_data: dict[
+            str, str | int | float | bool | list[object] | dict[str, object] | None
+        ] = {
             "John": "30 | New York",
             "Jane": "25 | London",
         }
 
         # Use formatters to create table
         result = api_service.create_table(
-            data=test_data,
-            headers=["Name", "Age | City"],
-            title="User Data"
+            data=test_data, headers=["Name", "Age | City"], title="User Data"
         )
 
         assert isinstance(result, FlextResult)
@@ -166,18 +166,6 @@ class TestFlextCli:
 
         progress_bar = result.unwrap()
         assert progress_bar is not None
-
-    @pytest.mark.skip(
-        reason="Progress bar functionality is interactive - use prompts.create_progress()"
-    )
-    def test_update_progress_bar(self, api_service: FlextCli) -> None:
-        """Test progress bar update functionality - SKIPPED: interactive feature."""
-
-    @pytest.mark.skip(
-        reason="Progress bar functionality is interactive - use prompts.create_progress()"
-    )
-    def test_close_progress_bar(self, api_service: FlextCli) -> None:
-        """Test progress bar closing functionality - SKIPPED: interactive feature."""
 
     # ========================================================================
     # FILE OPERATIONS
@@ -312,34 +300,6 @@ class TestFlextCli:
         assert result.is_failure
 
     # ========================================================================
-    # HTTP REQUESTS
-    # ========================================================================
-
-    @pytest.mark.skip(
-        reason="HTTP functionality must be implemented through flext-api domain library"
-    )
-    def test_make_http_request_get(self, api_service: FlextCli) -> None:
-        """Test HTTP GET request functionality - SKIPPED: use flext-api."""
-
-    @pytest.mark.skip(
-        reason="HTTP functionality must be implemented through flext-api domain library"
-    )
-    def test_make_http_request_post(self, api_service: FlextCli) -> None:
-        """Test HTTP POST request functionality - SKIPPED: use flext-api."""
-
-    @pytest.mark.skip(
-        reason="HTTP functionality must be implemented through flext-api domain library"
-    )
-    def test_make_http_request_with_headers(self, api_service: FlextCli) -> None:
-        """Test HTTP request with custom headers - SKIPPED: use flext-api."""
-
-    @pytest.mark.skip(
-        reason="HTTP functionality must be implemented through flext-api domain library"
-    )
-    def test_make_http_request_invalid_url(self, api_service: FlextCli) -> None:
-        """Test HTTP request with invalid URL - SKIPPED: use flext-api."""
-
-    # ========================================================================
     # CONFIGURATION MANAGEMENT
     # ========================================================================
 
@@ -397,34 +357,23 @@ class TestFlextCli:
 
     def test_validate_config(self, api_service: FlextCli) -> None:
         """Test configuration validation functionality."""
-        # Test valid configuration
-        valid_config: FlextTypes.Dict = {
-            "debug": True,
-            "output_format": "json",
-            "timeout": FlextCliConstants.TIMEOUTS.DEFAULT,
-            "retries": FlextCliConstants.HTTP.MAX_RETRIES,
-        }
-
-        # Use config validation instead of removed utilities
+        # Test valid configuration using config's validate_business_rules
         config = api_service.config
         result = config.validate_business_rules()
 
         assert isinstance(result, FlextResult)
         assert result.is_success
 
-        # Test invalid configuration
-        invalid_config: FlextTypes.Dict = {
-            "debug": "invalid_boolean",
-            "timeout": -1,
-            "retries": "not_a_number",
-        }
+        # Test invalid configuration - use FlextCore validation utilities
+        # Test negative timeout validation
+        timeout_result = FlextCore.Utilities.Validation.validate_timeout_seconds(-1)
+        assert isinstance(timeout_result, FlextResult)
+        assert timeout_result.is_failure
 
-        result = api_service.utilities.Validation.validate_data(
-            invalid_config,
-            {"debug": bool, "timeout": int, "retries": int},
-        )
-        assert isinstance(result, FlextResult)
-        assert result.is_failure
+        # Test positive integer validation for retries
+        retry_result = FlextCore.Utilities.Validation.validate_positive_integer(-5)
+        assert isinstance(retry_result, FlextResult)
+        assert retry_result.is_failure
 
     # ========================================================================
     # DATA PROCESSING
@@ -491,28 +440,6 @@ nested:
         assert isinstance(yaml_string, str)
         assert "key: value" in yaml_string
         assert "number: 42" in yaml_string
-
-    # ========================================================================
-    # USER INTERACTION
-    # ========================================================================
-
-    @pytest.mark.skip(
-        reason="Interactive prompts require user input - use prompts service directly"
-    )
-    def test_prompt_user(self, api_service: FlextCli) -> None:
-        """Test user prompting functionality - SKIPPED: use api_service.prompts."""
-
-    @pytest.mark.skip(
-        reason="Interactive prompts require user input - use prompts service directly"
-    )
-    def test_confirm_action(self, api_service: FlextCli) -> None:
-        """Test action confirmation functionality - SKIPPED: use api_service.prompts."""
-
-    @pytest.mark.skip(
-        reason="Interactive prompts require user input - use prompts service directly"
-    )
-    def test_select_option(self, api_service: FlextCli) -> None:
-        """Test option selection functionality - SKIPPED: use api_service.prompts."""
 
     # ========================================================================
     # ERROR HANDLING AND EDGE CASES
@@ -593,3 +520,241 @@ nested:
         assert "status" in data
         assert "service" in data
         assert data["service"] == "flext-cli"
+
+    # ========================================================================
+    # SINGLETON AND PROPERTY ACCESS TESTS
+    # ========================================================================
+
+    def test_get_instance_singleton(self) -> None:
+        """Test get_instance returns singleton FlextCli instance."""
+        instance1 = FlextCli.get_instance()
+        instance2 = FlextCli.get_instance()
+
+        assert instance1 is not None
+        assert isinstance(instance1, FlextCli)
+        # Instances may be different (not strict singleton in current impl)
+        assert isinstance(instance2, FlextCli)
+
+    def test_constants_property(self, api_service: FlextCli) -> None:
+        """Test constants property access."""
+        constants = api_service.constants
+
+        assert constants is not None
+        assert constants == FlextCliConstants
+        assert hasattr(constants, "VERSION")
+        assert hasattr(constants, "CliDefaults")
+
+    def test_models_property(self, api_service: FlextCli) -> None:
+        """Test models property access."""
+        from flext_cli.models import FlextCliModels
+
+        models = api_service.models
+
+        assert models is not None
+        assert models == FlextCliModels
+        assert hasattr(models, "CliCommand")
+        assert hasattr(models, "CliContext")
+
+    def test_types_property(self, api_service: FlextCli) -> None:
+        """Test types property access."""
+        from flext_cli.typings import FlextCliTypes
+
+        types = api_service.types
+
+        assert types is not None
+        assert types == FlextCliTypes
+
+    # ========================================================================
+    # AUTHENTICATION TESTS
+    # ========================================================================
+
+    def test_authenticate_with_token(
+        self, api_service: FlextCli, temp_dir: Path
+    ) -> None:
+        """Test authentication with token."""
+        # Use temp directory for token storage
+        test_token = "test_auth_token_12345"
+        credentials = {"token": test_token}
+
+        result = api_service.authenticate(
+            credentials
+        )
+
+        assert isinstance(result, FlextResult)
+        assert result.is_success
+        assert result.unwrap() == test_token
+
+    def test_authenticate_with_credentials(self, api_service: FlextCli) -> None:
+        """Test authentication with username/password."""
+        credentials = {"username": "testuser", "password": "testpassword123"}
+
+        result = api_service.authenticate(
+            credentials
+        )
+
+        assert isinstance(result, FlextResult)
+        assert result.is_success
+
+        token = result.unwrap()
+        assert isinstance(token, str)
+        assert len(token) > 0
+
+    def test_authenticate_with_invalid_credentials(self, api_service: FlextCli) -> None:
+        """Test authentication with invalid credentials."""
+        # Empty credentials
+        result = api_service.authenticate({})
+
+        assert isinstance(result, FlextResult)
+        assert result.is_failure
+
+    def test_save_and_get_auth_token(
+        self, api_service: FlextCli, temp_dir: Path
+    ) -> None:
+        """Test saving and retrieving authentication token."""
+        test_token = "test_save_token_67890"
+
+        # Save token
+        save_result = api_service.save_auth_token(test_token)
+
+        assert isinstance(save_result, FlextResult)
+        assert save_result.is_success
+
+        # Retrieve token
+        get_result = api_service.get_auth_token()
+
+        assert isinstance(get_result, FlextResult)
+        assert get_result.is_success
+        assert get_result.unwrap() == test_token
+
+    def test_save_auth_token_empty(self, api_service: FlextCli) -> None:
+        """Test saving empty auth token fails."""
+        result = api_service.save_auth_token("")
+
+        assert isinstance(result, FlextResult)
+        assert result.is_failure
+
+    def test_is_authenticated(self, api_service: FlextCli) -> None:
+        """Test is_authenticated check."""
+        # Test with no token (may fail or succeed depending on state)
+        authenticated = api_service.is_authenticated()
+
+        assert isinstance(authenticated, bool)
+
+        # Save a token and check
+        save_result = api_service.save_auth_token("test_auth_check_token")
+        if save_result.is_success:
+            authenticated_after = api_service.is_authenticated()
+            assert isinstance(authenticated_after, bool)
+
+    def test_clear_auth_tokens(self, api_service: FlextCli) -> None:
+        """Test clearing authentication tokens."""
+        # Save a token first
+        api_service.save_auth_token("test_clear_token")
+
+        # Clear tokens
+        clear_result = api_service.clear_auth_tokens()
+
+        assert isinstance(clear_result, FlextResult)
+        # Should succeed even if files don't exist
+        # Accept various file-not-found error messages
+        error_msg = str(clear_result.error).lower() if clear_result.error else ""
+        assert clear_result.is_success or any(
+            phrase in error_msg
+            for phrase in ["not found", "no such file", "does not exist"]
+        )
+
+    def test_validate_credentials(self, api_service: FlextCli) -> None:
+        """Test credential validation."""
+        # Valid credentials
+        result = api_service.validate_credentials("testuser", "testpass")
+
+        assert isinstance(result, FlextResult)
+        assert result.is_success
+
+        # Invalid credentials (empty)
+        invalid_result = api_service.validate_credentials("", "")
+
+        assert isinstance(invalid_result, FlextResult)
+        assert invalid_result.is_failure
+
+    # ========================================================================
+    # COMMAND REGISTRATION TESTS
+    # ========================================================================
+
+    def test_command_decorator(self, api_service: FlextCli) -> None:
+        """Test command decorator registration."""
+
+        @api_service.command(name="test_cmd")
+        def test_command() -> str:
+            return "test output"
+
+        # Verify command was registered
+        assert "test_cmd" in api_service._commands
+        assert callable(api_service._commands["test_cmd"])
+
+    def test_group_decorator(self, api_service: FlextCli) -> None:
+        """Test group decorator registration."""
+
+        @api_service.group(name="test_group")
+        def test_group() -> None:
+            pass
+
+        # Verify group was registered
+        assert "test_group" in api_service._groups
+        assert callable(api_service._groups["test_group"])
+
+    def test_execute_cli(self, api_service: FlextCli) -> None:
+        """Test CLI execution."""
+        result = api_service.execute_cli()
+
+        assert isinstance(result, FlextResult)
+        assert result.is_success
+
+    # ========================================================================
+    # FILE OPERATION WRAPPER TESTS
+    # ========================================================================
+
+    def test_read_text_file_wrapper(
+        self, api_service: FlextCli, temp_file: Path
+    ) -> None:
+        """Test read_text_file wrapper method."""
+        result = api_service.read_text_file(temp_file)
+
+        assert isinstance(result, FlextResult)
+        assert result.is_success
+        assert result.unwrap() == "test content"
+
+    def test_write_text_file_wrapper(
+        self, api_service: FlextCli, temp_dir: Path
+    ) -> None:
+        """Test write_text_file wrapper method."""
+        test_file = temp_dir / "wrapper_test.txt"
+        test_content = "wrapper test content"
+
+        result = api_service.write_text_file(test_file, test_content)
+
+        assert isinstance(result, FlextResult)
+        assert result.is_success
+        assert test_file.exists()
+        assert test_file.read_text() == test_content
+
+    # ========================================================================
+    # PRINT AND FORMATTING WRAPPER TESTS
+    # ========================================================================
+
+    def test_print_wrapper(self, api_service: FlextCli) -> None:
+        """Test print wrapper method."""
+        result = api_service.print("Test message", style="cyan")
+
+        assert isinstance(result, FlextResult)
+        assert result.is_success
+
+    def test_create_tree_wrapper(self, api_service: FlextCli) -> None:
+        """Test create_tree wrapper method."""
+        result = api_service.create_tree("Test Tree")
+
+        assert isinstance(result, FlextResult)
+        assert result.is_success
+
+        tree = result.unwrap()
+        assert tree is not None

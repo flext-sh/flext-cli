@@ -9,12 +9,14 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
+import json
 import os
 import tempfile
 import time
 from pathlib import Path
 
 import pytest
+import yaml
 
 from flext_cli import FlextCli, FlextCliConfig, FlextCliModels
 
@@ -318,7 +320,18 @@ class TestFlextCliConfigService:
 class TestPydanticSettingsAutoLoading:
     """Test Pydantic 2 Settings auto-loading with .env and environment variables."""
 
-    def test_env_file_auto_loading(self) -> None:
+    @pytest.fixture(autouse=True)
+    def _clear_flext_env_vars(self, monkeypatch: pytest.MonkeyPatch) -> None:
+        """Auto-clear all FLEXT_ environment variables before each test for isolation."""
+        # Clear all FLEXT_ environment variables to ensure test isolation
+        for key in list(os.environ.keys()):
+            if key.startswith("FLEXT_"):
+                monkeypatch.delenv(key, raising=False)
+
+        # Clear Pydantic Settings cache to ensure fresh loading
+        FlextCliConfig.reset_global_instance()
+
+    def test_env_file_auto_loading(self, monkeypatch: pytest.MonkeyPatch) -> None:
         """Test automatic .env file loading via Pydantic Settings."""
         with tempfile.TemporaryDirectory() as tmpdir:
             # Create .env file
@@ -332,10 +345,13 @@ class TestPydanticSettingsAutoLoading:
                 "FLEXT_MAX_RETRIES=5\n"
             )
 
-            # Change to temp directory for .env loading
+            # Change to temp directory for .env loading using monkeypatch
             original_dir = Path.cwd()
             try:
-                os.chdir(tmpdir)
+                monkeypatch.chdir(tmpdir)
+
+                # Clear cache before creating config to ensure .env is loaded
+                FlextCliConfig.reset_global_instance()
 
                 # Create config - should auto-load .env
                 config = FlextCliConfig()
@@ -350,6 +366,7 @@ class TestPydanticSettingsAutoLoading:
 
             finally:
                 os.chdir(original_dir)
+                FlextCliConfig.reset_global_instance()
 
     def test_environment_variable_loading(self) -> None:
         """Test environment variable loading with FLEXT_ prefix."""
@@ -538,37 +555,40 @@ class TestPydanticSettingsAutoLoading:
 class TestFlextCliConfigIntegration:
     """Test FlextCli integration with FlextCliConfig."""
 
-    def test_flext_cli_uses_config_from_env(self) -> None:
+    @pytest.fixture(autouse=True)
+    def _clear_flext_env_vars(self, monkeypatch: pytest.MonkeyPatch) -> None:
+        """Auto-clear all FLEXT_ environment variables before each test for isolation."""
+        # Clear all FLEXT_ environment variables to ensure test isolation
+        for key in list(os.environ.keys()):
+            if key.startswith("FLEXT_"):
+                monkeypatch.delenv(key, raising=False)
+
+        # Clear Pydantic Settings cache to ensure fresh loading
+        FlextCliConfig.reset_global_instance()
+
+    def test_flext_cli_uses_config_from_env(
+        self, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
         """Test that FlextCli uses config loaded from environment."""
-        original_env = {
-            "FLEXT_DEBUG": os.environ.get("FLEXT_DEBUG"),
-            "FLEXT_PROFILE": os.environ.get("FLEXT_PROFILE"),
-        }
+        # Set test environment using monkeypatch for proper isolation
+        monkeypatch.setenv("FLEXT_DEBUG", "true")
+        monkeypatch.setenv("FLEXT_PROFILE", "cli_integration_test")
 
-        try:
-            # Set test environment
-            os.environ["FLEXT_DEBUG"] = "true"
-            os.environ["FLEXT_PROFILE"] = "cli_integration_test"
+        # Clear cache to ensure fresh loading from environment
+        FlextCliConfig.reset_global_instance()
 
-            # Create FlextCli instance
-            cli = FlextCli()
+        # Create FlextCli instance
+        cli = FlextCli()
 
-            # Access config
-            config = cli.config
+        # Access config
+        config = cli.config
 
-            # Verify config is FlextCliConfig with ENV values
-            assert isinstance(config, FlextCliConfig), "Config should be FlextCliConfig"
-            assert config.debug is True, "FlextCli should use config from ENV"
-            assert config.profile == "cli_integration_test", (
-                "FlextCli should use config from ENV"
-            )
-
-        finally:
-            for var, value in original_env.items():
-                if value is None:
-                    os.environ.pop(var, None)
-                else:
-                    os.environ[var] = value
+        # Verify config is FlextCliConfig with ENV values
+        assert isinstance(config, FlextCliConfig), "Config should be FlextCliConfig"
+        assert config.debug is True, "FlextCli should use config from ENV"
+        assert config.profile == "cli_integration_test", (
+            "FlextCli should use config from ENV"
+        )
 
     def test_flext_cli_config_singleton(self) -> None:
         """Test that FlextCli uses global config instance."""
@@ -652,7 +672,7 @@ class TestConfigValidationConstraints:
 
     def test_case_insensitive_env_vars(self) -> None:
         """Test case-insensitive environment variable loading."""
-        original_env = os.environ.get("flext_profile")  # lowercase
+        original_env = os.environ.get("FLEXT_PROFILE")  # lowercase
 
         try:
             # Set lowercase env var (should still work with case_sensitive=False)
@@ -1138,3 +1158,158 @@ class TestLoggingOutput:
         assert "Verbose mode message" in caplog.text
         assert config.verbose is True
         assert config.log_verbosity == "full"
+
+
+class TestConfigValidation:
+    """Test Pydantic validation error paths."""
+
+    def test_invalid_output_format_validation(self) -> None:
+        """Test invalid output format validation error (lines 205-209)."""
+        with pytest.raises(ValueError) as exc_info:
+            FlextCliConfig(output_format="invalid_format")
+
+        assert "invalid_format" in str(exc_info.value).lower()
+        assert "must be one of" in str(exc_info.value).lower()
+
+    def test_empty_profile_validation(self) -> None:
+        """Test empty profile validation error (lines 217-218)."""
+        with pytest.raises(ValueError) as exc_info:
+            FlextCliConfig(profile="")
+
+        assert "profile" in str(exc_info.value).lower()
+        assert "empty" in str(exc_info.value).lower()
+
+    def test_whitespace_only_profile_validation(self) -> None:
+        """Test whitespace-only profile validation error (lines 217-218)."""
+        with pytest.raises(ValueError) as exc_info:
+            FlextCliConfig(profile="   ")
+
+        assert "profile" in str(exc_info.value).lower()
+
+    def test_invalid_api_url_validation(self) -> None:
+        """Test invalid API URL validation error (lines 226-231)."""
+        with pytest.raises(ValueError) as exc_info:
+            FlextCliConfig(api_url="invalid-url-without-protocol")
+
+        assert "api_url" in str(exc_info.value).lower() or "invalid" in str(exc_info.value).lower()
+        assert "http" in str(exc_info.value).lower()
+
+    def test_invalid_log_level_validation(self) -> None:
+        """Test invalid log level validation error (lines 241-244)."""
+        with pytest.raises(ValueError) as exc_info:
+            FlextCliConfig(log_level="INVALID_LEVEL")
+
+        assert "log_level" in str(exc_info.value).lower() or "invalid" in str(exc_info.value).lower()
+
+    def test_invalid_cli_log_level_validation(self) -> None:
+        """Test invalid CLI log level validation error (lines 241-244)."""
+        with pytest.raises(ValueError) as exc_info:
+            FlextCliConfig(cli_log_level="TRACE")
+
+        assert "log_level" in str(exc_info.value).lower() or "trace" in str(exc_info.value).lower()
+
+    def test_invalid_log_verbosity_validation(self) -> None:
+        """Test invalid log verbosity validation error (lines 254-257)."""
+        with pytest.raises(ValueError) as exc_info:
+            FlextCliConfig(log_verbosity="invalid_verbosity")
+
+        assert "verbosity" in str(exc_info.value).lower() or "invalid" in str(exc_info.value).lower()
+
+    def test_invalid_cli_log_verbosity_validation(self) -> None:
+        """Test invalid CLI log verbosity validation error (lines 254-257)."""
+        with pytest.raises(ValueError) as exc_info:
+            FlextCliConfig(cli_log_verbosity="extreme")
+
+        assert "verbosity" in str(exc_info.value).lower()
+
+    def test_invalid_environment_validation(self) -> None:
+        """Test invalid environment validation error (lines 267-268)."""
+        with pytest.raises(ValueError) as exc_info:
+            FlextCliConfig(environment="invalid_env")
+
+        assert "environment" in str(exc_info.value).lower() or "invalid" in str(exc_info.value).lower()
+
+    def test_valid_output_formats(self) -> None:
+        """Test all valid output formats pass validation."""
+        # Only formats supported by both field validator AND business rules validator
+        valid_formats = ["table", "json", "yaml", "csv"]
+
+        for fmt in valid_formats:
+            config = FlextCliConfig(output_format=fmt)
+            assert config.output_format == fmt
+
+    def test_valid_api_urls(self) -> None:
+        """Test valid API URLs pass validation."""
+        valid_urls = [
+            "http://localhost:8000",
+            "https://api.example.com",
+            "http://127.0.0.1",
+            "https://api.example.com/v1",
+        ]
+
+        for url in valid_urls:
+            config = FlextCliConfig(api_url=url)
+            assert config.api_url == url
+
+    def test_valid_log_levels(self) -> None:
+        """Test all valid log levels pass validation."""
+        valid_levels = ["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"]
+
+        for level in valid_levels:
+            config = FlextCliConfig(log_level=level, cli_log_level=level)
+            assert config.log_level == level
+            assert config.cli_log_level == level
+
+    def test_valid_log_verbosities(self) -> None:
+        """Test all valid verbosities pass validation."""
+        valid_verbosities = ["compact", "detailed", "full"]
+
+        for verbosity in valid_verbosities:
+            config = FlextCliConfig(
+                log_verbosity=verbosity, cli_log_verbosity=verbosity
+            )
+            assert config.log_verbosity == verbosity
+            assert config.cli_log_verbosity == verbosity
+
+    def test_valid_environments(self) -> None:
+        """Test all valid environments pass validation."""
+        valid_envs = ["development", "staging", "production", "test"]
+
+        for env in valid_envs:
+            config = FlextCliConfig(environment=env)
+            assert config.environment == env
+
+
+@pytest.fixture
+def temp_dir() -> Path:
+    """Create temporary directory for testing."""
+    with tempfile.TemporaryDirectory() as tmpdir:
+        yield Path(tmpdir)
+
+
+@pytest.fixture
+def temp_json_file(temp_dir: Path) -> Path:
+    """Create temporary JSON config file."""
+    json_file = temp_dir / "config.json"
+    config_data = {
+        "debug": True,
+        "verbose": False,
+        "profile": "test",
+        "output_format": "json",
+    }
+    json_file.write_text(json.dumps(config_data))
+    return json_file
+
+
+@pytest.fixture
+def temp_yaml_file(temp_dir: Path) -> Path:
+    """Create temporary YAML config file."""
+    yaml_file = temp_dir / "config.yaml"
+    config_data = {
+        "debug": False,
+        "verbose": True,
+        "profile": "yaml_test",
+        "output_format": "yaml",
+    }
+    yaml_file.write_text(yaml.dump(config_data))
+    return yaml_file

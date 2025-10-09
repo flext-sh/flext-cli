@@ -302,13 +302,13 @@ class FlextCliCmd(FlextCore.Service[FlextCore.Types.Dict]):
                     "Configuration data is not a valid dictionary"
                 )
 
-            config_data: dict[str, object] = load_result.value
+            loaded_config_data: dict[str, object] = load_result.value
 
             # For now, return success with config info
             # In a real implementation, this would open an editor
             config_info = {
                 "config_file": str(config_path),
-                "config_data": config_data,
+                "config_data": loaded_config_data,
                 "message": FlextCliConstants.ServiceMessages.CONFIG_LOADED_SUCCESSFULLY,
             }
 

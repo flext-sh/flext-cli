@@ -196,15 +196,6 @@ class FlextCliConfig(FlextCore.Config):
         description="Optional log file path for persistent logging",
     )
 
-    def __init__(self, **data: object) -> None:
-        """Initialize FlextCliConfig with Pydantic Settings.
-
-        Args:
-            **data: Additional configuration data
-
-        """
-        super().__init__(**data)
-
     # Pydantic 2.11 field validators
     @field_validator("output_format")
     @classmethod

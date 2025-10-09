@@ -13,13 +13,17 @@ from __future__ import annotations
 
 import sys
 from collections.abc import Callable
-from typing import Any, ClassVar, get_args, get_origin
+from pathlib import Path
+from typing import Any, ClassVar, TypeVar, cast, get_args, get_origin
 
 import typer
-from flext_core import FlextCore, FlextResult
+from flext_core import FlextResult
 
 from flext_cli.config import FlextCliConfig
 from flext_cli.constants import FlextCliConstants
+
+# Type variable for create_option method return type
+T = TypeVar("T")
 
 
 class FlextCliCommonParams:
@@ -112,7 +116,7 @@ class FlextCliCommonParams:
         return FlextResult[None].ok(None)
 
     @classmethod
-    def create_option(cls, field_name: str) -> Any:
+    def create_option(cls, field_name: str) -> object:
         """Create typer.Option() from FlextCliConfig field metadata.
 
         Auto-generates typer.Option() with all metadata from Pydantic Field:
@@ -212,49 +216,49 @@ class FlextCliCommonParams:
         return typer.Option(default_value, *param_decls, **option_kwargs)
 
     @classmethod
-    def verbose_option(cls) -> Any:
+    def verbose_option(cls) -> bool:
         """Create --verbose/-v option from FlextConfig.verbose field metadata."""
-        return cls.create_option("verbose")
+        return cast("bool", cls.create_option("verbose"))
 
     @classmethod
-    def quiet_option(cls) -> Any:
+    def quiet_option(cls) -> bool:
         """Create --quiet/-q option from FlextConfig.quiet field metadata."""
-        return cls.create_option("quiet")
+        return cast("bool", cls.create_option("quiet"))
 
     @classmethod
-    def debug_option(cls) -> Any:
+    def debug_option(cls) -> bool:
         """Create --debug/-d option from FlextConfig.debug field metadata."""
-        return cls.create_option("debug")
+        return cast("bool", cls.create_option("debug"))
 
     @classmethod
-    def trace_option(cls) -> Any:
+    def trace_option(cls) -> bool:
         """Create --trace/-t option from FlextConfig.trace field metadata."""
-        return cls.create_option("trace")
+        return cast("bool", cls.create_option("trace"))
 
     @classmethod
-    def log_level_option(cls) -> Any:
+    def log_level_option(cls) -> str:
         """Create --log-level/-L option from FlextConfig.log_level field metadata."""
-        return cls.create_option("log_level")
+        return cast("str", cls.create_option("log_level"))
 
     @classmethod
-    def log_format_option(cls) -> Any:
+    def log_format_option(cls) -> str:
         """Create --log-format option from FlextConfig.log_verbosity field metadata."""
-        return cls.create_option("log_verbosity")
+        return cast("str", cls.create_option("log_verbosity"))
 
     @classmethod
-    def output_format_option(cls) -> Any:
+    def output_format_option(cls) -> str:
         """Create --output-format/-o option from FlextConfig.output_format field metadata."""
-        return cls.create_option("output_format")
+        return cast("str", cls.create_option("output_format"))
 
     @classmethod
-    def no_color_option(cls) -> Any:
+    def no_color_option(cls) -> bool:
         """Create --no-color option from FlextConfig.no_color field metadata."""
-        return cls.create_option("no_color")
+        return cast("bool", cls.create_option("no_color"))
 
     @classmethod
-    def config_file_option(cls) -> Any:
+    def config_file_option(cls) -> Path | None:
         """Create --config-file/-c option from FlextConfig.config_file field metadata."""
-        return cls.create_option("config_file")
+        return cast("Path | None", cls.create_option("config_file"))
 
     @classmethod
     def get_all_common_params(cls) -> dict[str, Any]:
@@ -367,7 +371,6 @@ class FlextCliCommonParams:
     @classmethod
     def configure_logger(
         cls,
-        logger: FlextCore.Logger,
         config: FlextCliConfig,
     ) -> FlextResult[None]:
         """Configure FlextLogger based on config parameters.
@@ -377,7 +380,6 @@ class FlextCliCommonParams:
         This method validates the configuration but doesn't modify the logger directly.
 
         Args:
-            logger: FlextCore.Logger instance to validate
             config: FlextCliConfig with logging configuration
 
         Returns:
@@ -404,17 +406,7 @@ class FlextCliCommonParams:
     @classmethod
     def create_decorator(
         cls,
-        *,
-        include_verbose: bool = True,
-        include_quiet: bool = True,
-        include_debug: bool = True,
-        include_trace: bool = True,
-        include_log_level: bool = True,
-        include_log_format: bool = True,
-        include_output_format: bool = True,
-        include_no_color: bool = True,
-        include_config_file: bool = True,
-    ) -> Callable:
+    ) -> Callable[[Callable[..., object]], Callable[..., object]]:
         """Create decorator to validate common CLI parameters are used.
 
         By default, ALL parameters are included and this is MANDATORY.
@@ -423,17 +415,6 @@ class FlextCliCommonParams:
         NOTE: This decorator validates parameter enforcement.
         The decorated function MUST include common parameters in its signature using
         the *_option() methods:
-
-        Args:
-            include_verbose: Include --verbose/-v parameter
-            include_quiet: Include --quiet/-q parameter
-            include_debug: Include --debug/-d parameter
-            include_trace: Include --trace/-t parameter
-            include_log_level: Include --log-level/-L parameter
-            include_log_format: Include --log-format parameter
-            include_output_format: Include --output-format/-o parameter
-            include_no_color: Include --no-color parameter
-            include_config_file: Include --config-file/-c parameter
 
         Returns:
             Callable: Decorator function
@@ -466,7 +447,7 @@ class FlextCliCommonParams:
 
         """
 
-        def decorator(func: Callable) -> Callable:
+        def decorator(func: Callable[..., object]) -> Callable[..., object]:
             # Validate enforcement
             validation = cls.validate_enabled()
             if validation.is_failure and cls._enforcement_mode:

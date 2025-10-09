@@ -3,6 +3,11 @@
 Production-ready CLI service that uses flext-core services directly without
 duplication. Implements standardized architecture patterns.
 
+EXPECTED MYPY ISSUES (documented for awareness):
+- Unreachable statements in update_configuration, get_configuration, create_profile methods:
+  These are defensive runtime type checks that mypy proves are unnecessary at compile time
+  due to type analysis, but are kept for runtime safety and robustness.
+
 Copyright (c) 2025 FLEXT Team. All rights reserved.
 SPDX-License-Identifier: MIT
 """
@@ -12,6 +17,7 @@ from __future__ import annotations
 import json
 from datetime import UTC, datetime
 from pathlib import Path
+from typing import cast
 
 from flext_core import FlextCore, FlextResult
 
@@ -150,9 +156,14 @@ class FlextCliCore(FlextCore.Service[FlextCliTypes.Data.CliDataDict]):
 
         try:
             # Execute command with CLI-specific context handling
+
+            execution_context: FlextCliTypes.CliCommand.CommandContext
             if isinstance(context, list):
                 # Convert list of strings to context dict
-                execution_context = {FlextCliConstants.DictKeys.ARGS: context}
+                execution_context = cast(
+                    "FlextCliTypes.CliCommand.CommandContext",
+                    {FlextCliConstants.DictKeys.ARGS: context},
+                )
             else:
                 execution_context = context or {}
 
