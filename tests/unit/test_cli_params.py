@@ -731,11 +731,10 @@ class TestCliParamsCoverageCompletion:
                 @decorator
                 def test_func() -> None:
                     """Test function."""
-                    pass
 
                 # If we get here without SystemExit, test fails
                 assert False, "Expected SystemExit but got none"
-            except SystemExit as e:
+            except SystemExit:
                 # Expected - sys.exit was called
                 assert len(exit_called) > 0
                 assert exit_called[0] == 1
