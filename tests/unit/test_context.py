@@ -295,4 +295,3 @@ class TestFlextCliContext:
             # Get metadata with same prefix
             metadata_result = context_service.get_model_metadata(context, prefix="test_prefix")
             assert metadata_result.is_success or metadata_result.is_failure
-
