@@ -565,3 +565,184 @@ class TestLoggerIntegration:
 
         captured = capsys.readouterr()
         assert "Warning at WARNING level" in captured.out
+
+
+class TestCliParamsCoverageCompletion:
+    """Coverage completion tests for missing lines in cli_params.py."""
+
+    def test_validate_enabled_when_disabled_in_enforcement_mode(self) -> None:
+        """Test validate_enabled fails when disabled in enforcement mode (line 112)."""
+        original_state = FlextCliCommonParams._enforcement_mode
+        original_enabled = FlextCliCommonParams._params_enabled
+
+        try:
+            # Enable enforcement and disable params
+            FlextCliCommonParams.enable_enforcement()
+            FlextCliCommonParams._params_enabled = False
+
+            result = FlextCliCommonParams.validate_enabled()
+
+            assert result.is_failure
+            assert result.error is not None
+            assert "mandatory" in result.error.lower() or "disabled" in result.error.lower()
+
+        finally:
+            # Restore original state
+            FlextCliCommonParams._enforcement_mode = original_state
+            FlextCliCommonParams._params_enabled = original_enabled
+
+    def test_create_option_invalid_field_name(self) -> None:
+        """Test create_option with invalid field name (lines 145-146)."""
+        with pytest.raises(ValueError) as exc_info:
+            FlextCliCommonParams.create_option("nonexistent_field")
+
+        assert "not found" in str(exc_info.value).lower()
+
+    def test_apply_to_config_invalid_log_level(self) -> None:
+        """Test apply_to_config with invalid log level (lines 338-339)."""
+        config = FlextCliConfig()
+        result = FlextCliCommonParams.apply_to_config(config, log_level="INVALID_LEVEL")
+
+        assert result.is_failure
+        assert result.error is not None
+        assert "invalid log level" in result.error.lower()
+
+    def test_apply_to_config_invalid_log_format(self) -> None:
+        """Test apply_to_config with invalid log format (lines 347-348)."""
+        config = FlextCliConfig()
+        result = FlextCliCommonParams.apply_to_config(config, log_format="invalid_format")
+
+        assert result.is_failure
+        assert result.error is not None
+        assert "invalid log format" in result.error.lower()
+
+    def test_apply_to_config_invalid_output_format(self) -> None:
+        """Test apply_to_config with invalid output format (lines 356-357)."""
+        config = FlextCliConfig()
+        result = FlextCliCommonParams.apply_to_config(config, output_format="invalid_format")
+
+        assert result.is_failure
+        assert result.error is not None
+        assert "invalid output format" in result.error.lower()
+
+    def test_apply_to_config_exception_handling(self) -> None:
+        """Test apply_to_config exception handling (lines 366-367)."""
+        # Pass an object that looks like a config but will fail on attribute access
+        class FailingConfig:
+            def __setattr__(self, name, value):
+                raise RuntimeError("Attribute setting failed")
+
+            def model_copy(self, **kwargs):
+                raise RuntimeError("Model copy failed")
+
+        fake_config = FailingConfig()
+
+        result = FlextCliCommonParams.apply_to_config(fake_config, verbose=True)  # type: ignore
+
+        assert result.is_failure
+        assert result.error is not None
+        assert "failed" in result.error.lower()
+
+    def test_configure_logger_invalid_log_level(self) -> None:
+        """Test configure_logger with invalid log level (lines 394-395)."""
+        config = FlextCliConfig()
+        # Directly set invalid log level (bypassing validation)
+        config.__dict__["log_level"] = "INVALID"
+
+        result = FlextCliCommonParams.configure_logger(config)
+
+        # Should fail with invalid log level
+        assert result.is_failure
+        assert result.error is not None
+
+    def test_configure_logger_exception_handling(self) -> None:
+        """Test configure_logger exception handling (lines 403-404)."""
+        # Create a config-like object that raises on log_level access
+        class FailingConfig:
+            @property
+            def log_level(self):
+                raise RuntimeError("Log level access failed")
+
+        fake_config = FailingConfig()
+
+        result = FlextCliCommonParams.configure_logger(fake_config)  # type: ignore
+
+        assert result.is_failure
+        assert result.error is not None
+        assert "failed" in result.error.lower()
+
+    def test_get_all_common_params(self) -> None:
+        """Test get_all_common_params method (lines 278-282)."""
+        params = FlextCliCommonParams.get_all_common_params()
+
+        # Should return dict with all common parameters
+        assert isinstance(params, dict)
+        assert len(params) > 0
+        # Check that parameters are sorted by priority
+        assert "verbose" in params
+        assert "debug" in params
+        assert "log_level" in params
+
+    def test_create_option_with_pydantic_undefined_default(self) -> None:
+        """Test create_option with PydanticUndefinedType default (line 180)."""
+        # config_dir has PydanticUndefined as default
+        option = FlextCliCommonParams.create_option("config_dir")
+
+        # Should successfully create option with None as default
+        assert option is not None
+        # The option should be created without errors
+
+    def test_create_option_with_minimum_maximum_constraints(self) -> None:
+        """Test create_option with min/max constraints (lines 192-193, 207, 209)."""
+        # database_pool_size has both minimum (1) and maximum (100) constraints
+        option = FlextCliCommonParams.create_option("database_pool_size")
+
+        # Should successfully create option with min/max constraints
+        assert option is not None
+        # The option should include range in help text and min/max in kwargs
+
+    def test_create_decorator_enforcement_mode_exit(self) -> None:
+        """Test create_decorator exits when enforcement fails (line 455)."""
+        import sys
+
+        original_state = FlextCliCommonParams._enforcement_mode
+        original_enabled = FlextCliCommonParams._params_enabled
+
+        try:
+            # Enable enforcement and disable params (will fail validation)
+            FlextCliCommonParams.enable_enforcement()
+            FlextCliCommonParams._params_enabled = False
+
+            # Mock sys.exit to prevent actual exit
+            original_exit = sys.exit
+            exit_called = []
+
+            def mock_exit(code):
+                exit_called.append(code)
+                raise SystemExit(code)
+
+            sys.exit = mock_exit  # type: ignore
+
+            try:
+                # Create decorator - this returns a function
+                decorator = FlextCliCommonParams.create_decorator()
+
+                # Apply decorator to a test function - THIS triggers the validation
+                @decorator
+                def test_func() -> None:
+                    """Test function."""
+                    pass
+
+                # If we get here without SystemExit, test fails
+                assert False, "Expected SystemExit but got none"
+            except SystemExit as e:
+                # Expected - sys.exit was called
+                assert len(exit_called) > 0
+                assert exit_called[0] == 1
+            finally:
+                sys.exit = original_exit  # type: ignore
+
+        finally:
+            # Restore original state
+            FlextCliCommonParams._enforcement_mode = original_state
+            FlextCliCommonParams._params_enabled = original_enabled

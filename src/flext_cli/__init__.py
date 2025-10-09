@@ -9,6 +9,7 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
+from flext_cli.__version__ import __version__, __version_info__
 from flext_cli.api import FlextCli
 from flext_cli.cli import FlextCliCli
 from flext_cli.cli_params import FlextCliCommonParams
@@ -29,8 +30,6 @@ from flext_cli.prompts import FlextCliPrompts
 from flext_cli.protocols import FlextCliProtocols
 from flext_cli.tables import FlextCliTables
 from flext_cli.typings import FlextCliTypes
-from flext_cli.__version__ import __version__
-from flext_cli.__version__ import __version_info__
 
 __all__ = [
     "FlextCli",

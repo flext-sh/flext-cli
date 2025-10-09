@@ -12,6 +12,8 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
+import pytest
+
 from flext_cli.constants import FlextCliConstants
 from flext_cli.mixins import FlextCliMixins
 from flext_cli.typings import FlextCliTypes
@@ -104,7 +106,7 @@ class TestFlextCliMixinsValidation:
         assert result.error is not None
         assert result.error is not None and "cannot be empty" in result.error.lower()
 
-    def test_validate_url_exception_handling(self, monkeypatch) -> None:
+    def test_validate_url_exception_handling(self, monkeypatch: pytest.MonkeyPatch) -> None:
         """Test validate_url exception handler (lines 85-86)."""
         from unittest.mock import Mock
 

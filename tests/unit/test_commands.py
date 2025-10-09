@@ -369,3 +369,33 @@ class TestFlextCliCommands:
         result = commands.execute_command("timed", timeout=60)
         assert result.is_success
         assert result.unwrap() == "done"
+
+    # ========================================================================
+    # EXCEPTION HANDLER COVERAGE TESTS
+    # ========================================================================
+
+    def test_execute_command_handler_not_callable(self) -> None:
+        """Test execute_command with non-callable handler (line 245)."""
+        commands = FlextCliCommands()
+
+        # Manually insert non-callable handler
+        commands._commands["bad"] = {"handler": "not_callable"}
+
+        result = commands.execute_command("bad")
+
+        assert result.is_failure
+        assert "not callable" in str(result.error).lower()
+
+    def test_execute_command_execution_exception(self) -> None:
+        """Test execute_command when handler raises exception (lines 251-252)."""
+        commands = FlextCliCommands()
+
+        def failing_handler():
+            raise RuntimeError("Handler execution error")
+
+        commands.register_command("failing", failing_handler)
+
+        result = commands.execute_command("failing")
+
+        assert result.is_failure
+        assert result.error is not None

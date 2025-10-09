@@ -1,7 +1,6 @@
 """Tests for flext_cli.__version__ module."""
 
-from flext_cli import __version__
-from flext_cli import __version_info__
+from flext_cli import __version__, __version_info__
 
 
 class TestFlextCliVersion:
