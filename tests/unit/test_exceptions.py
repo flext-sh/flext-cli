@@ -797,15 +797,14 @@ class TestFlextCliExceptionsSubclasses:
         """Test BaseError with non-string correlation_id (line 139)."""
         # Pass integer correlation_id to trigger str() conversion
         error = FlextCliExceptions.BaseError(
-            "Test error", correlation_id=12345  # Non-string value
+            "Test error",
+            correlation_id=12345,  # Non-string value
         )
         assert error.correlation_id == "12345"  # Should be converted to string
         assert isinstance(error.correlation_id, str)
 
         # Test with float correlation_id
-        error2 = FlextCliExceptions.BaseError(
-            "Test error", correlation_id=123.45
-        )
+        error2 = FlextCliExceptions.BaseError("Test error", correlation_id=123.45)
         assert error2.correlation_id == "123.45"
         assert isinstance(error2.correlation_id, str)
 

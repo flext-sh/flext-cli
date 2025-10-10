@@ -20,6 +20,7 @@ from datetime import UTC, datetime
 from typing import Any, Self, cast, get_args, get_origin, override
 
 from flext_core import FlextCore, FlextResult
+from flext_core.models import FlextModels
 from pydantic import (
     BaseModel,
     ConfigDict,
@@ -81,39 +82,10 @@ class FlextCliModels(FlextCore.Models):
         },
     )
 
-    @computed_field
-    def active_models_count(self) -> int:
-        """Computed field returning the number of active CLI model types."""
-        # Count all nested model classes
-        # Note: FormatOptions and CliPipeline removed - delegated to specialized services
-        model_classes = [
-            "CliCommand",
-            "DebugInfo",
-            "CliSession",
-            "CliFormatters",
-            "LoggingConfig",
-            "PipelineConfig",
-        ]
-        return len(model_classes)
-
-    @computed_field
-    def model_summary(self) -> FlextCore.Types.StringDict:
-        """Computed field returning a summary of all available models."""
-        # Note: FormatOptions and CliPipeline removed - delegated to specialized services
-        return {
-            "CliCommand": "Command execution model with status tracking",
-            "DebugInfo": "Debug information model with system details",
-            "CliSession": "User session tracking model",
-            "CliFormatters": "Available output formatters",
-            "LoggingConfig": "Logging configuration model",
-            "PipelineConfig": "Pipeline configuration model",
-        }
-
     @model_validator(mode="after")
     def validate_cli_models_consistency(self) -> Self:
         """Cross-model validation ensuring CLI models consistency."""
         # Ensure all required nested classes are properly defined
-        # Note: FormatOptions and CliPipeline removed - delegated to specialized services
         required_nested_classes = [
             "BaseEntity",
             "BaseValidatedModel",
@@ -149,23 +121,6 @@ class FlextCliModels(FlextCore.Models):
         return FlextResult[object].ok(None)
 
     # ========================================================================
-    # CLI MODEL SUBCLASSES - Specialized CLI Models
-    # ========================================================================
-
-    class FormatOptions(BaseModel):
-        """Table formatting options for CLI output."""
-
-        title: str | None = None
-        headers: list[str] | None = None
-        show_lines: bool = True
-
-    class CliPipeline(BaseModel):
-        """CLI pipeline configuration."""
-
-        name: str
-        steps: list[str] = Field(default_factory=list)
-
-    # ========================================================================
     # CLI MODEL INTEGRATION UTILITIES - Pydantic → CLI Conversion
     # ========================================================================
 
@@ -188,8 +143,6 @@ class FlextCliModels(FlextCore.Models):
         - model_to_click_options: Generate Click option decorators
         - cli_args_to_model: Validate and convert CLI args to model instance
         - generate_command_spec: Complete command specification with all metadata
-        - model_to_cli_dict: Convert model instance to CLI argument dictionary
-        - validate_cli_input: Validate CLI input against model constraints
 
         USAGE:
             # Extract CLI parameters
@@ -465,138 +418,6 @@ class FlextCliModels(FlextCore.Models):
             except Exception as e:
                 return FlextResult[BaseModel].fail(
                     f"Failed to create {model_class.__name__} from CLI args: {e}"
-                )
-
-        @staticmethod
-        def model_to_cli_dict(
-            model_instance: BaseModel,
-        ) -> FlextResult[dict[str, object]]:
-            """Convert Pydantic model instance to CLI arguments dictionary.
-
-            Useful for converting model instances back to CLI-compatible format
-            for display, logging, or passing to other CLI commands.
-
-            Args:
-                model_instance: Pydantic model instance
-
-            Returns:
-                FlextResult containing dictionary with CLI-style argument names (dashes)
-
-            """
-            try:
-                # Get model dict
-                model_dict = model_instance.model_dump()
-
-                # Convert field names to CLI format (dashes instead of underscores)
-                cli_dict = {
-                    key.replace("_", "-"): value for key, value in model_dict.items()
-                }
-
-                return FlextResult[dict[str, object]].ok(cli_dict)
-            except Exception as e:
-                return FlextResult[dict[str, object]].fail(
-                    f"Failed to convert model to CLI dict: {e}"
-                )
-
-        @staticmethod
-        def validate_cli_input(
-            model_class: type[BaseModel],
-            cli_args: dict[str, object],
-        ) -> FlextResult[dict[str, object]]:
-            """Validate CLI input against Pydantic model constraints.
-
-            Performs validation without creating a model instance, returning
-            validation errors or the validated argument dictionary.
-
-            Args:
-                model_class: Pydantic model class for validation
-                cli_args: Dictionary of CLI argument name/value pairs
-
-            Returns:
-                FlextResult containing validated arguments dict or validation errors
-
-            """
-            try:
-                # Convert to model to validate
-                model_result = FlextCliModels.CliModelConverter.cli_args_to_model(
-                    model_class, cli_args
-                )
-
-                if model_result.is_failure:
-                    return FlextResult[dict[str, object]].fail(model_result.error)
-
-                # Return validated args
-                return FlextResult[dict[str, object]].ok(cli_args)
-            except Exception as e:
-                return FlextResult[dict[str, object]].fail(
-                    f"CLI input validation failed: {e}"
-                )
-
-        @staticmethod
-        def generate_command_spec(
-            model_class: type[BaseModel],
-            command_name: str,
-            command_help: str | None = None,
-        ) -> FlextResult[dict[str, object]]:
-            """Generate complete Click command specification from Pydantic model.
-
-            Creates a comprehensive command specification that includes all metadata
-            needed to programmatically create a complete Click command with options.
-
-            Args:
-                model_class: Pydantic model class defining command parameters
-                command_name: Name of the command
-                command_help: Help text for the command (defaults to model docstring)
-
-            Returns:
-                FlextResult containing complete command specification with:
-                - name: Command name
-                - help: Command help text
-                - options: List of Click option specifications
-                - model_class: Reference to the Pydantic model class
-                - param_count: Number of parameters
-                - required_params: List of required parameter names
-
-            """
-            try:
-                # Get Click options
-                options_result = (
-                    FlextCliModels.CliModelConverter.model_to_click_options(model_class)
-                )
-                if options_result.is_failure:
-                    return FlextResult[dict[str, object]].fail(options_result.error)
-
-                options = options_result.unwrap()
-
-                # Extract required parameters
-                required_params = [
-                    opt["option_name"] for opt in options if opt["required"]
-                ]
-
-                # Use model docstring if no help provided
-                if command_help is None:
-                    command_help = model_class.__doc__ or f"{command_name} command"
-
-                # Build complete command specification
-                command_spec = {
-                    "name": command_name,
-                    "help": command_help,
-                    "options": options,
-                    "model_class": model_class,
-                    "model_name": model_class.__name__,
-                    "param_count": len(options),
-                    "required_params": required_params,
-                    "optional_params": [
-                        opt["option_name"] for opt in options if not opt["required"]
-                    ],
-                }
-
-                return FlextResult[dict[str, object]].ok(
-                    cast("dict[str, object]", command_spec)
-                )
-            except Exception as e:
-                return FlextResult[dict[str, object]].fail(
-                    f"Failed to generate command spec for {command_name}: {e}"
                 )
 
     class CliModelDecorators:
@@ -1200,57 +1021,6 @@ class FlextCliModels(FlextCore.Models):
             except Exception as e:
                 return FlextResult[None].fail(f"Failed to add command to session: {e}")
 
-    # REMOVED: Unused models CliFormatters and CliPipeline
-    # These models were not used anywhere in the codebase
-
-    # REMOVED: FlextCliConfig moved to config.py following FLEXT standards
-    # Use: from flext_cli.config import FlextCliConfig
-
-    class LoggingConfig(FlextCore.Models.Configuration):
-        """Logging configuration model - consolidated from scattered definition.
-
-        This model extends FlextCore.Models.Configuration for logging-specific settings
-        while maintaining the consolidated [Project]Models pattern.
-        """
-
-        log_level: str = Field(default="INFO", description="Logging level")
-        log_format: str = Field(
-            default="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
-            description="Log format string",
-        )
-        console_output: bool = Field(default=True, description="Enable console output")
-        log_file: str | None = Field(default=None, description="Log file path")
-        log_level_source: str = Field(
-            default="default", description="Source of log level"
-        )
-
-        @computed_field
-        def logging_summary(self) -> FlextCore.Types.Dict:
-            """Computed field for logging configuration summary."""
-            return {
-                "level": self.log_level,
-                "console_enabled": self.console_output,
-                "file_logging": self.log_file is not None,
-                "format_length": len(self.log_format),
-                "source": self.log_level_source,
-            }
-
-        @model_validator(mode="after")
-        def validate_logging_config(self) -> Self:
-            """Validate logging configuration consistency."""
-            valid_levels = {"DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"}
-            if self.log_level not in valid_levels:
-                msg = f"Invalid log level: {self.log_level}"
-                raise ValueError(msg)
-            return self
-
-        @field_serializer("log_file")
-        def serialize_log_file(self, value: str | None, _info: object) -> str | None:
-            """Serialize log file path with safety checks."""
-            if value and "secret" in value.lower():
-                return "***SENSITIVE_PATH***"
-            return value
-
     class CliContext(FlextCore.Models.Entity):
         """CLI execution context model extending FlextCore.Models.Entity.
 
@@ -1555,51 +1325,23 @@ class FlextCliModels(FlextCore.Models):
                 "timeout_seconds": self.timeout_seconds,
             }
 
-    # REMOVED: PipelineConfig, AdvancedServicePattern, ServiceOrchestrator,
-    # CentralizedValidation, and AdvancedServiceOrchestrator classes.
-    # These were over-engineered patterns not used anywhere in the codebase.
-    # Total removed: ~1,016 lines of unused code
+    class LoggingConfig(BaseValidatedModel):
+        """Logging configuration model for CLI operations."""
 
+        log_level: str = Field(...)
+        log_format: str = Field(...)
+        console_output: bool = Field(default=False)
+        log_file: str | None = Field(default=None)
 
-# Rebuild Pydantic models to resolve forward references
-# CRITICAL: Must rebuild FlextCore models and base entities first, then nested classes
-try:
-    # Import FlextModels from flext-core to provide namespace for forward references
-    from flext_core.models import FlextModels
-
-    # Create namespace dict with all required types for forward reference resolution
-    _namespace = {
-        "FlextModels": FlextModels,
-        "FlextCore": FlextCore,
-        "FlextCliModels": FlextCliModels,
-        "FlextCliConstants": FlextCliConstants,
-        "FlextCliTypes": FlextCliTypes,
-        "FlextCliMixins": FlextCliMixins,
-    }
-
-    # 1. Rebuild FlextCore parent models first with namespace
-    FlextCore.Models.Entity.model_rebuild(_types_namespace=_namespace)
-
-    # 2. Rebuild FlextCliModels base classes that extend FlextCore
-    FlextCliModels.BaseEntity.model_rebuild(_types_namespace=_namespace)
-    FlextCliModels.BaseValidatedModel.model_rebuild(_types_namespace=_namespace)
-    FlextCliModels.BaseConfig.model_rebuild(_types_namespace=_namespace)
-
-    # 3. Finally rebuild all nested CLI models that depend on base classes
-    FlextCliModels.CliCommand.model_rebuild(_types_namespace=_namespace)
-    FlextCliModels.DebugInfo.model_rebuild(_types_namespace=_namespace)
-    FlextCliModels.CliSession.model_rebuild(_types_namespace=_namespace)
-    FlextCliModels.LoggingConfig.model_rebuild(_types_namespace=_namespace)
-    FlextCliModels.CliContext.model_rebuild(_types_namespace=_namespace)
-except Exception as e:
-    # Log but don't fail - models will be rebuilt on first use
-    # This is safe as models will rebuild on first access if needed
-    import logging
-
-    logging.getLogger(__name__).warning(
-        f"Failed to rebuild Pydantic models at import time: {e}. "
-        "Models will be rebuilt on first use."
-    )
+        @computed_field
+        def logging_summary(self) -> dict[str, object]:
+            """Computed field returning summary of logging configuration."""
+            return {
+                "level": self.log_level,
+                "format": self.log_format,
+                "console_output": self.console_output,
+                "log_file": self.log_file,
+            }
 
 __all__ = [
     "FlextCliModels",

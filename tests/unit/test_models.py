@@ -199,19 +199,6 @@ class TestFlextCliModels:
     # FlextCliModels Class Method Tests
     # ========================================================================
 
-    def test_models_active_models_count(self, models_service: FlextCliModels) -> None:
-        """Test active_models_count computed property."""
-        count = models_service.active_models_count
-        assert isinstance(count, int)
-        assert count > 0
-
-    def test_models_model_summary(self, models_service: FlextCliModels) -> None:
-        """Test model_summary computed property."""
-        summary = models_service.model_summary
-        assert isinstance(summary, dict)
-        assert len(summary) > 0
-        assert "CliCommand" in summary
-
     def test_models_validate_cli_models_consistency(
         self, models_service: FlextCliModels
     ) -> None:
@@ -225,7 +212,6 @@ class TestFlextCliModels:
         self, models_service: FlextCliModels
     ) -> None:
         """Test serialize_model_summary - check if it exists and is a method."""
-        # FlextCliModels is not a BaseModel, so no model_dump()
         # serialize_model_summary is a @field_serializer decorator
         assert hasattr(models_service, "serialize_model_summary")
         assert callable(models_service.serialize_model_summary)
@@ -484,22 +470,6 @@ class TestFlextCliModels:
         # validate_command_consistency is a Pydantic model validator, not directly callable
         # It's automatically invoked during model validation
         assert isinstance(command, FlextCliModels.CliCommand)
-
-    def test_models_class_methods_complete(
-        self, models_service: FlextCliModels
-    ) -> None:
-        """Test FlextCliModels class methods comprehensively."""
-        # Test active_models_count
-        # Note: FormatOptions and CliPipeline removed - delegated to specialized services
-        count = models_service.active_models_count
-        assert isinstance(count, int)
-        assert count == 6  # Expected number of models (was 8, removed 2)
-
-        # Test model_summary
-        summary = models_service.model_summary
-        assert isinstance(summary, dict)
-        assert len(summary) == 6  # Expected number of models (was 8, removed 2)
-        assert all(isinstance(v, str) for v in summary.values())
 
     def test_cli_session_edge_cases_comprehensive(self) -> None:
         """Test CliSession comprehensive edge cases."""

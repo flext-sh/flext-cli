@@ -10,6 +10,7 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 import time
+from typing import Never
 
 from flext_cli.commands import FlextCliCommands
 from flext_cli.constants import FlextCliConstants
@@ -222,7 +223,7 @@ class TestFlextCliCommands:
         result = commands.create_command_group(
             "test_group",
             description="Test group",
-            commands={"cmd1": {"handler": lambda: "test"}}
+            commands={"cmd1": {"handler": lambda: "test"}},
         )
         assert result.is_success
         group = result.unwrap()
@@ -305,7 +306,9 @@ class TestFlextCliCommands:
 
         result = commands.execute_command("bad_cmd")
         assert result.is_failure
-        assert "Invalid command structure" in str(result.error) or "not callable" in str(result.error)
+        assert "Invalid command structure" in str(
+            result.error
+        ) or "not callable" in str(result.error)
 
     def test_get_commands(self) -> None:
         """Test get_commands method (line 263)."""
@@ -390,8 +393,9 @@ class TestFlextCliCommands:
         """Test execute_command when handler raises exception (lines 251-252)."""
         commands = FlextCliCommands()
 
-        def failing_handler():
-            raise RuntimeError("Handler execution error")
+        def failing_handler() -> Never:
+            msg = "Handler execution error"
+            raise RuntimeError(msg)
 
         commands.register_command("failing", failing_handler)
 

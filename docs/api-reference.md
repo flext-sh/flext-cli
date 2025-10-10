@@ -6,93 +6,112 @@ This document provides comprehensive API documentation for FLEXT CLI components 
 
 ## 🎯 Essential Imports
 
+All imports should use the unified flext_cli package:
+
 ```python
-# Core CLI components (from main flext package)
-from flext.cli import FlextCliCommands
+# Main consolidated API (recommended entry point)
+from flext_cli import FlextCli
 
-# Or import directly from flext_cli module
-from flext_cli.main import FlextCliMain
-from flext_cli.cli import FlextCliClick
-from flext_cli.commands import FlextCliCommands
-from flext_cli.config import FlextCliConfig
-from flext_cli.output import FlextCliOutput
-from flext_cli.context import FlextCliContext
+# Core components (19 exports available)
+from flext_cli import (
+    FlextCliCli,           # Click abstraction (NOT FlextCliClick)
+    FlextCliCmd,           # Command execution
+    FlextCliCommands,      # Command management
+    FlextCliCommonParams,  # Reusable CLI parameters
+    FlextCliConfig,        # Configuration singleton
+    FlextCliConstants,     # System constants
+    FlextCliContext,       # Execution context
+    FlextCliCore,          # Core service
+    FlextCliDebug,         # Debug utilities
+    FlextCliExceptions,    # Exception hierarchy
+    FlextCliFileTools,     # File operations (JSON/YAML/CSV)
+    FlextCliFormatters,    # Rich abstraction
+    FlextCliMixins,        # Reusable mixins
+    FlextCliModels,        # ALL Pydantic models
+    FlextCliOutput,        # Output service
+    FlextCliPrompts,       # Interactive prompts
+    FlextCliProtocols,     # Structural typing
+    FlextCliTables,        # Table formatting (NOT FlextCliTable)
+    FlextCliTypes,         # Type definitions
+)
 
-# CLI utilities
-from flext_cli.tables import FlextCliTable
-from flext_cli.formatters import FlextCliFormatters
-from flext_cli.prompts import FlextCliPrompts
-from flext_cli.shell import FlextCliShell
-
-# CLI patterns
-from flext_cli.core import FlextCliCore
-from flext_cli.api import FlextCli
-from flext_cli.auth import FlextCliAuth
+# Import from flext-core for patterns
+from flext_core import FlextResult, FlextCore
 ```
 
-## 🏗️ FlextCliMain - Command Registration System
+**Note**: `FlextCliAuth` and `FlextCliMain` mentioned in older documentation are not part of current exports. Use `FlextCli` as the main API entry point.
 
-Central hub for CLI command registration, discovery, and execution.
+## 🏗️ FlextCli - Main Consolidated API
+
+The `FlextCli` class is the primary entry point providing a unified facade over all CLI functionality.
 
 ### Basic Usage
 
 ```python
-from flext_cli.main import FlextCliMain
+from flext_cli import FlextCli
 from flext_core import FlextResult
 
-# Create CLI application
-main = FlextCliMain(
-    name="myapp",
-    version="1.0.0",
-    description="My awesome CLI application"
+# Create CLI instance (consolidated API)
+cli = FlextCli()
+
+# Configuration access (singleton pattern)
+config = cli.config
+debug_mode = config.debug
+output_format = config.output_format
+
+# Output operations
+cli.print("Success!", style="green")
+cli.print("[bold red]Error message[/bold red]")
+
+# Table display
+users = [
+    {"name": "Alice", "age": 30, "role": "Admin"},
+    {"name": "Bob", "age": 25, "role": "User"},
+]
+table_result = cli.create_table(
+    data={"users": users},
+    headers=["Name", "Age", "Role"],
+    title="Active Users"
 )
-
-# Register a simple command
-@main.command()
-def hello(name: str):
-    """Say hello to someone."""
-    print(f"Hello {name}!")
-
-# Register a command group
-@main.group()
-def config():
-    """Configuration commands."""
-    pass
-
-# Register subcommand
-@config.command()
-def show():
-    """Show configuration."""
-    print("Configuration...")
-
-# Execute CLI
-result = main.execute_cli()
 ```
 
-### Advanced Features
+### File Operations
 
 ```python
-# Register command programmatically
-def custom_command(value: str):
-    """Custom command with validation."""
-    print(f"Processing: {value}")
+from pathlib import Path
 
-result = main.register_command(
-    custom_command,
-    name="custom",
-    help="Process a value"
+# Read/write text files
+content_result = cli.read_text_file(Path("config.txt"))
+if content_result.is_success:
+    content = content_result.unwrap()
+
+write_result = cli.write_text_file(Path("output.txt"), "Hello World")
+
+# JSON operations (via file_tools)
+json_result = cli.file_tools.read_json_file("config.json")
+if json_result.is_success:
+    config_data = json_result.unwrap()
+
+write_json_result = cli.file_tools.write_json_file(
+    "data.json",
+    {"key": "value"}
 )
+```
 
-# Load plugin commands
-plugin_result = main.load_plugin_commands("myapp.plugins")
-if plugin_result.is_success:
-    loaded_commands = plugin_result.unwrap()
+### Interactive Prompts
 
-# List available commands
-commands_result = main.list_commands()
-if commands_result.is_success:
-    commands = commands_result.unwrap()
-    print(f"Available commands: {commands}")
+```python
+# Confirmation dialogs
+if cli.confirm("Continue with operation?", default=True):
+    # User confirmed
+    name = cli.prompt_text("Enter your name:", default="Guest")
+    cli.success(f"Hello, {name}!")
+
+# Various prompt types via prompts
+choice_result = cli.prompts.select(
+    "Choose option:",
+    choices=["option1", "option2", "option3"]
+)
 ```
 
 ## 🎨 FlextCliOutput - Rich Output Formatting
@@ -167,24 +186,35 @@ choice_result = prompts.select(
 
 ## ⚙️ FlextCliConfig - Configuration Management
 
-Environment-aware configuration for CLI applications.
+Singleton configuration with environment variable support.
 
 ```python
-from flext_cli.config import FlextCliConfig
-from flext_core import FlextConfig
+from flext_cli import FlextCliConfig
 
-class MyCliConfig(FlextCliConfig):
-    api_url: str = "https://api.example.com"
-    timeout: int = 30
-    debug: bool = False
+# Get singleton instance (creates if needed)
+config = FlextCliConfig.get_global_instance()
 
-    model_config = {"env_prefix": "MYCLI_"}
+# Configuration is read-only properties
+debug = config.debug                    # FLEXT_DEBUG env var
+output_format = config.output_format    # FLEXT_OUTPUT_FORMAT env var
+no_color = config.no_color             # FLEXT_NO_COLOR env var
+profile = config.profile               # FLEXT_PROFILE env var
+timeout = config.timeout               # FLEXT_TIMEOUT env var
+token_file = config.token_file         # ~/.flext/auth/token.json
 
-# Usage
-config = MyCliConfig()
-print(f"API URL: {config.api_url}")
-print(f"Timeout: {config.timeout}")
+# Access via FlextCli
+from flext_cli import FlextCli
+cli = FlextCli()
+config = cli.config  # Same singleton instance
 ```
+
+**Environment Variables:**
+- `FLEXT_DEBUG` - Enable debug mode (true/false)
+- `FLEXT_OUTPUT_FORMAT` - Output format (json/table/yaml)
+- `FLEXT_NO_COLOR` - Disable colors (true/false)
+- `FLEXT_PROFILE` - Configuration profile name
+- `FLEXT_TIMEOUT` - Default timeout in seconds
+- `FLEXT_RETRIES` - Max retry attempts
 
 ## 🔧 FlextCliContext - Context Management
 
@@ -203,96 +233,111 @@ with context:
 
 ## 🧪 Testing Patterns
 
-### Testing CLI Commands
+### Testing CLI Components
 
 ```python
 import pytest
-from flext_cli.main import FlextCliMain
+from flext_cli import FlextCli, FlextCliFileTools
 from flext_core import FlextResult
+from pathlib import Path
 
-def test_hello_command():
-    """Test hello command functionality."""
-    main = FlextCliMain()
+def test_cli_output(flext_cli_api: FlextCli):
+    """Test CLI output operations using fixture."""
+    result = flext_cli_api.print("Test message", style="green")
+    assert result is None  # Print operations return None
 
-    @main.command()
-    def hello(name: str) -> str:
-        return f"Hello {name}!"
+def test_file_operations(flext_cli_file_tools: FlextCliFileTools, temp_dir: Path):
+    """Test file operations."""
+    test_file = temp_dir / "test.txt"
+    content = "Hello, World!"
 
-    # Test command execution
-    result = main.execute_cli(["hello", "World"])
-    assert result.is_success
+    # Write file
+    write_result = flext_cli_file_tools.write_text_file(test_file, content)
+    assert write_result.is_success
 
-def test_command_registration():
-    """Test command registration."""
-    main = FlextCliMain()
+    # Read file
+    read_result = flext_cli_file_tools.read_text_file(test_file)
+    assert read_result.is_success
+    assert read_result.unwrap() == content
 
-    def test_cmd(value: str) -> str:
-        return f"Processed: {value}"
-
-    result = main.register_command(test_cmd, name="test")
-    assert result.is_success
-
-    # Verify command is registered
-    commands_result = main.list_commands()
-    assert "test" in commands_result.unwrap()
+def test_json_operations(flext_cli_api: FlextCli, temp_json_file: Path):
+    """Test JSON file operations."""
+    json_result = flext_cli_api.file_tools.read_json_file(str(temp_json_file))
+    assert json_result.is_success
+    data = json_result.unwrap()
+    assert "key" in data
 ```
 
-## 📋 CLI Command Patterns
+**Available Test Fixtures** (from `tests/conftest.py`):
+- `flext_cli_api` - FlextCli instance
+- `flext_cli_file_tools` - FlextCliFileTools instance
+- `temp_dir` - Temporary directory
+- `temp_file`, `temp_json_file`, `temp_yaml_file` - Temporary files
+- `sample_config_data` - Sample configuration dict
+- `mock_env_vars` - Mock environment variables
 
-### Standard Command Structure
+## 📋 CLI Usage Patterns
+
+### Using FlextCli Facade
+
+The recommended approach is to use `FlextCli` as the unified API:
 
 ```python
-from flext_cli.main import FlextCliMain
+from flext_cli import FlextCli
 from flext_core import FlextResult
+from pathlib import Path
 
-class MyCliApp(FlextCliMain):
-    def __init__(self):
-        super().__init__(
-            name="myapp",
-            version="1.0.0"
-        )
+def process_command(input_file: str, output_file: str = "output.txt") -> FlextResult[str]:
+    """Process input file and save to output."""
+    cli = FlextCli()
 
-    @FlextCliMain.command()
-    def process(
-        self,
-        input_file: str,
-        output_file: str = "output.txt",
-        verbose: bool = False
-    ) -> None:
-        """Process input file and save to output."""
-        # Command implementation
-        pass
+    # Read input file
+    read_result = cli.read_text_file(Path(input_file))
+    if read_result.is_failure:
+        return FlextResult[str].fail(f"Failed to read input: {read_result.error}")
 
-    @FlextCliMain.group()
-    def config(self):
-        """Configuration management."""
-        pass
+    # Process content
+    content = read_result.unwrap()
+    processed = content.upper()  # Example processing
 
-    @config.command()
-    def show(self):
-        """Show current configuration."""
-        # Subcommand implementation
-        pass
+    # Write output file
+    write_result = cli.write_text_file(Path(output_file), processed)
+    if write_result.is_failure:
+        return FlextResult[str].fail(f"Failed to write output: {write_result.error}")
+
+    cli.success(f"Processed {input_file} -> {output_file}")
+    return FlextResult[str].ok("Processing complete")
 ```
 
-### Error Handling in Commands
+### Railway-Oriented Error Handling
+
+Always use `FlextResult[T]` for operations that can fail:
 
 ```python
-@FlextCliMain.command()
-def risky_operation(file_path: str) -> None:
-    """Perform operation that might fail."""
-    try:
-        # Operation that might fail
-        result = process_file(file_path)
+from flext_cli import FlextCli, FlextCliFileTools
+from flext_core import FlextResult
 
-        if result.is_failure:
-            # Use flext-core error handling
-            raise click.ClickException(result.error)
+def risky_operation(file_path: str) -> FlextResult[dict]:
+    """Operation with proper error handling."""
+    file_tools = FlextCliFileTools()
 
-    except Exception as e:
-        # Convert to FlextResult pattern
-        error_result = FlextResult[None].fail(str(e))
-        raise click.ClickException(error_result.error)
+    # Chain operations with railway pattern
+    return (
+        file_tools.read_json_file(file_path)
+        .flat_map(lambda data: validate_data(data))
+        .map(lambda data: transform_data(data))
+        .map_error(lambda err: f"Operation failed: {err}")
+    )
+
+def validate_data(data: dict) -> FlextResult[dict]:
+    """Validation step."""
+    if "required_field" not in data:
+        return FlextResult[dict].fail("Missing required field")
+    return FlextResult[dict].ok(data)
+
+def transform_data(data: dict) -> dict:
+    """Transformation step (can't fail)."""
+    return {**data, "processed": True}
 ```
 
 ## 🛠️ CLI Utilities
@@ -313,15 +358,15 @@ if content_result.is_success:
 write_result = file_tools.write_file("output.txt", "Hello, World!")
 ```
 
-### Shell Integration
+### Command Execution
 
 ```python
-from flext_cli.shell import FlextCliShell
+from flext_cli import FlextCliCmd
 
-shell = FlextCliShell()
+cmd = FlextCliCmd()
 
-# Execute shell command
-result = shell.execute("ls -la")
+# Execute system command safely
+result = cmd.execute_command("ls -la")
 if result.is_success:
     output = result.unwrap()
     print(f"Command output: {output}")
@@ -353,56 +398,73 @@ if result.is_success:
 4. **Support multiple configuration sources**
 5. **Document all configuration options**
 
-## 🔗 Integration Examples
+## 🔗 Integration with FLEXT Ecosystem
 
-### With Other FLEXT Domains
+### Using flext-cli with flext-core Patterns
 
 ```python
-# Use flext-api for HTTP operations
-from flext_api import FlextApiClient
-from flext_cli.main import FlextCliMain
+from flext_cli import FlextCli
+from flext_core import FlextResult, FlextCore
 
-class ApiCliApp(FlextCliMain):
-    def __init__(self):
-        super().__init__(name="api-cli")
-        self._api = FlextApiClient()
+# All operations return FlextResult[T]
+def process_with_cli(data: dict) -> FlextResult[str]:
+    """Example integration with flext-core patterns."""
+    cli = FlextCli()
 
-    @FlextCliMain.command()
-    def get_user(self, user_id: int) -> None:
-        """Get user information from API."""
-        result = self._api.get(f"/users/{user_id}")
+    # Use FlextResult railway pattern
+    return (
+        validate_input(data)
+        .map(lambda d: process_data(d))
+        .map(lambda result: format_output(result, cli))
+    )
 
-        if result.is_success:
-            user_data = result.unwrap()
-            self._output.display_json(user_data)
-        else:
-            raise click.ClickException(result.error)
+def validate_input(data: dict) -> FlextResult[dict]:
+    """Validate with FlextResult."""
+    if not data:
+        return FlextResult[dict].fail("Data cannot be empty")
+    return FlextResult[dict].ok(data)
+
+def process_data(data: dict) -> dict:
+    """Process data."""
+    return {**data, "processed": True}
+
+def format_output(data: dict, cli: FlextCli) -> str:
+    """Format and display output."""
+    cli.success("Processing complete!")
+    cli.print(f"Result: {data}")
+    return "done"
 ```
 
 ### Custom Output Formats
 
 ```python
-from flext_cli.output import FlextCliOutput
+from flext_cli import FlextCli, FlextCliFormatters
 
-class CustomFormatter(FlextCliOutput):
-    def format_user_data(self, users: list) -> str:
-        """Custom formatting for user data."""
-        output = []
-        for user in users:
-            output.append(f"👤 {user['name']} ({user['id']})")
+def format_user_data(users: list[dict]) -> str:
+    """Custom formatting for user data."""
+    output = []
+    for user in users:
+        output.append(f"👤 {user['name']} ({user['id']})")
+    return "\n".join(output)
 
-        return "\n".join(output)
+def display_users() -> None:
+    """Display users with custom formatting."""
+    cli = FlextCli()
+    users = [
+        {"name": "Alice", "id": 1},
+        {"name": "Bob", "id": 2}
+    ]
 
-# Use in command
-@main.command()
-def list_users():
-    """List users with custom formatting."""
-    users = get_users_from_api()
-    formatter = CustomFormatter()
-    formatted = formatter.format_user_data(users)
-    print(formatted)
+    # Format and display
+    formatted = format_user_data(users)
+    cli.print(formatted)
+
+    # Or use Rich directly via formatters
+    cli.formatters.print_text(formatted, style="bold blue")
 ```
 
 ---
 
-_This API reference is based on actual implementation analysis and provides working examples for all documented patterns._
+**Last Updated**: 2025-10-10 | **Version**: 0.9.0
+
+_This API reference reflects the actual current implementation in flext-cli 0.9.0. All examples use the 19 exported classes from `src/flext_cli/__init__.py`._

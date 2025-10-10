@@ -271,9 +271,7 @@ class TestFlextCliTables:
     def test_create_table_single_row(self, tables: FlextCliTables) -> None:
         """Test table with single row."""
         single_row = [{"name": "Alice", "age": 30}]
-        result = tables.create_table(
-            data=single_row, table_format="simple"
-        )
+        result = tables.create_table(data=single_row, table_format="simple")
 
         assert result.is_success
         assert "Alice" in result.unwrap()
@@ -379,7 +377,7 @@ class TestFlextCliTables:
         result = tables.create_table(
             data=sample_data,
             table_format="simple",
-            colalign=["left", "right", "center", "left"]
+            colalign=["left", "right", "center", "left"],
         )
 
         assert result.is_success
@@ -393,7 +391,7 @@ class TestFlextCliTables:
         result = tables.create_table(
             data=sample_data,
             table_format="simple",
-            align=["left", "right", "center", "left"]  # List triggers line 164
+            align=["left", "right", "center", "left"],  # List triggers line 164
         )
 
         assert result.is_success
@@ -423,14 +421,19 @@ class TestFlextCliTables:
         self, tables: FlextCliTables, sample_data: list[FlextTypes.Dict]
     ) -> None:
         """Test LaTeX table with booktabs=True (line 327)."""
-        result = tables.create_latex_table(data=sample_data, booktabs=True, longtable=False)
+        result = tables.create_latex_table(
+            data=sample_data, booktabs=True, longtable=False
+        )
 
         assert result.is_success
         table_str = result.unwrap()
         assert "Alice" in table_str
 
     def test_create_table_exception_handling(
-        self, tables: FlextCliTables, sample_data: list[FlextTypes.Dict], monkeypatch: pytest.MonkeyPatch
+        self,
+        tables: FlextCliTables,
+        sample_data: list[FlextTypes.Dict],
+        monkeypatch: pytest.MonkeyPatch,
     ) -> None:
         """Test create_table exception handler (lines 181-184)."""
         from unittest.mock import Mock

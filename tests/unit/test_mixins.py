@@ -106,7 +106,9 @@ class TestFlextCliMixinsValidation:
         assert result.error is not None
         assert result.error is not None and "cannot be empty" in result.error.lower()
 
-    def test_validate_url_exception_handling(self, monkeypatch: pytest.MonkeyPatch) -> None:
+    def test_validate_url_exception_handling(
+        self, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
         """Test validate_url exception handler (lines 85-86)."""
         from unittest.mock import Mock
 
@@ -117,7 +119,9 @@ class TestFlextCliMixinsValidation:
         monkeypatch.setattr("flext_cli.mixins.urlparse", mock_urlparse)
 
         # This should trigger the exception handler
-        result = FlextCliMixins.ValidationMixin.validate_url("api_url", "http://example.com")
+        result = FlextCliMixins.ValidationMixin.validate_url(
+            "api_url", "http://example.com"
+        )
 
         assert result.is_failure
         assert result.error is not None

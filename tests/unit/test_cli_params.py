@@ -10,6 +10,7 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 from pathlib import Path
+from typing import Never
 
 import pytest
 import typer
@@ -584,7 +585,10 @@ class TestCliParamsCoverageCompletion:
 
             assert result.is_failure
             assert result.error is not None
-            assert "mandatory" in result.error.lower() or "disabled" in result.error.lower()
+            assert (
+                "mandatory" in result.error.lower()
+                or "disabled" in result.error.lower()
+            )
 
         finally:
             # Restore original state
@@ -610,7 +614,9 @@ class TestCliParamsCoverageCompletion:
     def test_apply_to_config_invalid_log_format(self) -> None:
         """Test apply_to_config with invalid log format (lines 347-348)."""
         config = FlextCliConfig()
-        result = FlextCliCommonParams.apply_to_config(config, log_format="invalid_format")
+        result = FlextCliCommonParams.apply_to_config(
+            config, log_format="invalid_format"
+        )
 
         assert result.is_failure
         assert result.error is not None
@@ -619,7 +625,9 @@ class TestCliParamsCoverageCompletion:
     def test_apply_to_config_invalid_output_format(self) -> None:
         """Test apply_to_config with invalid output format (lines 356-357)."""
         config = FlextCliConfig()
-        result = FlextCliCommonParams.apply_to_config(config, output_format="invalid_format")
+        result = FlextCliCommonParams.apply_to_config(
+            config, output_format="invalid_format"
+        )
 
         assert result.is_failure
         assert result.error is not None
@@ -627,17 +635,20 @@ class TestCliParamsCoverageCompletion:
 
     def test_apply_to_config_exception_handling(self) -> None:
         """Test apply_to_config exception handling (lines 366-367)."""
+
         # Pass an object that looks like a config but will fail on attribute access
         class FailingConfig:
-            def __setattr__(self, name, value):
-                raise RuntimeError("Attribute setting failed")
+            def __setattr__(self, name, value) -> None:
+                msg = "Attribute setting failed"
+                raise RuntimeError(msg)
 
-            def model_copy(self, **kwargs):
-                raise RuntimeError("Model copy failed")
+            def model_copy(self, **kwargs) -> Never:
+                msg = "Model copy failed"
+                raise RuntimeError(msg)
 
         fake_config = FailingConfig()
 
-        result = FlextCliCommonParams.apply_to_config(fake_config, verbose=True)  # type: ignore
+        result = FlextCliCommonParams.apply_to_config(fake_config, verbose=True)
 
         assert result.is_failure
         assert result.error is not None
@@ -657,15 +668,17 @@ class TestCliParamsCoverageCompletion:
 
     def test_configure_logger_exception_handling(self) -> None:
         """Test configure_logger exception handling (lines 403-404)."""
+
         # Create a config-like object that raises on log_level access
         class FailingConfig:
             @property
-            def log_level(self):
-                raise RuntimeError("Log level access failed")
+            def log_level(self) -> Never:
+                msg = "Log level access failed"
+                raise RuntimeError(msg)
 
         fake_config = FailingConfig()
 
-        result = FlextCliCommonParams.configure_logger(fake_config)  # type: ignore
+        result = FlextCliCommonParams.configure_logger(fake_config)
 
         assert result.is_failure
         assert result.error is not None
@@ -717,11 +730,11 @@ class TestCliParamsCoverageCompletion:
             original_exit = sys.exit
             exit_called = []
 
-            def mock_exit(code):
+            def mock_exit(code) -> Never:
                 exit_called.append(code)
                 raise SystemExit(code)
 
-            sys.exit = mock_exit  # type: ignore
+            sys.exit = mock_exit
 
             try:
                 # Create decorator - this returns a function
@@ -733,13 +746,14 @@ class TestCliParamsCoverageCompletion:
                     """Test function."""
 
                 # If we get here without SystemExit, test fails
-                assert False, "Expected SystemExit but got none"
+                msg = "Expected SystemExit but got none"
+                raise AssertionError(msg)
             except SystemExit:
                 # Expected - sys.exit was called
                 assert len(exit_called) > 0
                 assert exit_called[0] == 1
             finally:
-                sys.exit = original_exit  # type: ignore
+                sys.exit = original_exit
 
         finally:
             # Restore original state
