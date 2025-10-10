@@ -41,7 +41,7 @@ class FlextCliCommands(FlextCore.Service[FlextCore.Types.Dict]):
     ) -> None:
         """Initialize CLI commands manager with Phase 1 context enrichment."""
         super().__init__(**data)
-        # Logger is automatically provided by FlextMixins.Logging mixin
+        # Logger is automatically provided by FlextMixins mixin
         self._name = name
         self._description = description
         self._commands: FlextCore.Types.NestedDict = {}

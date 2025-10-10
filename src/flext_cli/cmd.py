@@ -34,7 +34,7 @@ class FlextCliCmd(FlextCore.Service[FlextCore.Types.Dict]):
     def __init__(self) -> None:
         """Initialize command service with flext-core integration and Phase 1 context enrichment."""
         super().__init__()
-        # Logger is automatically provided by FlextMixins.Logging mixin
+        # Logger is automatically provided by FlextMixins mixin
         self._command_bus_service: FlextCliCmd | None = None
         self._file_tools = FlextCliFileTools()
 
