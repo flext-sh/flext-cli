@@ -214,7 +214,10 @@ class TestFlextCliDebug:
         # Environment variables should be masked if sensitive
         # Check that if there are any PASSWORD/TOKEN keys, they're masked
         for key, value in env.items():
-            if any(sens in key.lower() for sens in ["password", "token", "secret", "key", "auth"]):
+            if any(
+                sens in key.lower()
+                for sens in ["password", "token", "secret", "key", "auth"]
+            ):
                 assert value == "***MASKED***"
 
     def test_validate_config(self, debug: FlextCliDebug) -> None:
@@ -224,3 +227,272 @@ class TestFlextCliDebug:
         assert isinstance(result, FlextResult)
         # Should succeed or fail gracefully
         assert result.is_success or result.is_failure
+
+
+class TestFlextCliDebugExceptionHandlers:
+    """Exception handler tests for debug methods."""
+
+    def test_get_system_info_exception(self, monkeypatch: object) -> None:
+        """Test get_system_info exception handler (lines 69-70)."""
+        debug = FlextCliDebug()
+        monkeypatch.setattr(
+            debug,
+            "_get_system_info",
+            lambda: (_ for _ in ()).throw(RuntimeError("Test error")),
+        )
+        result = debug.get_system_info()
+        assert result.is_failure and "System info failed" in str(result.error)
+
+    def test_get_environment_variables_exception(self, monkeypatch: object) -> None:
+        """Test get_environment_variables exception handler (lines 85-86)."""
+        debug = FlextCliDebug()
+        monkeypatch.setattr(
+            debug,
+            "_get_environment_info",
+            lambda: (_ for _ in ()).throw(RuntimeError("Test error")),
+        )
+        result = debug.get_environment_variables()
+        assert result.is_failure and "Environment info failed" in str(result.error)
+
+    def test_get_system_paths_exception(self, monkeypatch: object) -> None:
+        """Test get_system_paths exception handler (lines 107-108)."""
+        debug = FlextCliDebug()
+        monkeypatch.setattr(
+            debug,
+            "_get_path_info",
+            lambda: (_ for _ in ()).throw(RuntimeError("Test error")),
+        )
+        result = debug.get_system_paths()
+        assert result.is_failure and "Path info failed" in str(result.error)
+
+    def test_validate_environment_setup_exception(self, monkeypatch: object) -> None:
+        """Test validate_environment_setup exception handler (lines 119-120)."""
+        debug = FlextCliDebug()
+        monkeypatch.setattr(
+            debug,
+            "_validate_filesystem_permissions",
+            lambda: (_ for _ in ()).throw(RuntimeError("Test error")),
+        )
+        result = debug.validate_environment_setup()
+        assert result.is_failure and "Environment validation failed" in str(
+            result.error
+        )
+
+    def test_test_connectivity_exception(self, monkeypatch: object) -> None:
+        """Test test_connectivity exception handler (lines 136-137)."""
+        import flext_cli.debug
+
+        original_datetime = flext_cli.debug.datetime
+        monkeypatch.setattr(
+            "flext_cli.debug.datetime",
+            type(
+                "MockDatetime",
+                (),
+                {
+                    "now": staticmethod(
+                        lambda *_: (_ for _ in ()).throw(RuntimeError("Test error"))
+                    )
+                },
+            ),
+        )
+        debug = FlextCliDebug()
+        result = debug.test_connectivity()
+        monkeypatch.setattr("flext_cli.debug.datetime", original_datetime)
+        assert result.is_failure and "Connectivity test failed" in str(result.error)
+
+    def test_execute_health_check_exception(self, monkeypatch: object) -> None:
+        """Test execute_health_check exception handler (lines 152-153)."""
+        monkeypatch.setattr(
+            "flext_cli.debug.uuid.uuid4",
+            lambda: (_ for _ in ()).throw(RuntimeError("Test error")),
+        )
+        debug = FlextCliDebug()
+        result = debug.execute_health_check()
+        assert result.is_failure and "Health check failed" in str(result.error)
+
+    def test_execute_trace_exception(self, monkeypatch: object) -> None:
+        """Test execute_trace exception handler (lines 170-171)."""
+        import flext_cli.debug
+
+        original_datetime = flext_cli.debug.datetime
+        monkeypatch.setattr(
+            "flext_cli.debug.datetime",
+            type(
+                "MockDatetime",
+                (),
+                {
+                    "now": staticmethod(
+                        lambda *_: (_ for _ in ()).throw(RuntimeError("Test error"))
+                    )
+                },
+            ),
+        )
+        debug = FlextCliDebug()
+        result = debug.execute_trace([])
+        monkeypatch.setattr("flext_cli.debug.datetime", original_datetime)
+        assert result.is_failure and "Trace execution failed" in str(result.error)
+
+    def test_get_debug_info_exception(self, monkeypatch: object) -> None:
+        """Test get_debug_info exception handler (lines 192-193)."""
+        debug = FlextCliDebug()
+        monkeypatch.setattr(
+            debug,
+            "_get_system_info",
+            lambda: (_ for _ in ()).throw(RuntimeError("Test error")),
+        )
+        result = debug.get_debug_info()
+        assert result.is_failure and "Debug info collection failed" in str(result.error)
+
+    def test_get_comprehensive_debug_info_exception(self, monkeypatch: object) -> None:
+        """Test get_comprehensive_debug_info exception handler (line 209)."""
+        debug = FlextCliDebug()
+        # Mock _get_system_info to cause exception in nested call
+        monkeypatch.setattr(
+            debug,
+            "_get_system_info",
+            lambda: (_ for _ in ()).throw(RuntimeError("Test error")),
+        )
+        result = debug.get_comprehensive_debug_info()
+        # Should complete but with error in system info section
+        assert result.is_success or result.is_failure
+
+    def test_get_system_paths_with_non_basic_types(self) -> None:
+        """Test get_system_paths with non-basic type values (line 104)."""
+        debug = FlextCliDebug()
+
+        # Mock _get_path_info to return path dict with tuple (non-basic type)
+        def mock_path_info() -> list[dict[str, object]]:
+            return [
+                {
+                    "index": 0,
+                    "path": "/test/path",
+                    "exists": True,
+                    "is_dir": True,
+                    "extra_data": (
+                        "tuple",
+                        "value",
+                    ),  # Non-basic type - will trigger line 104
+                }
+            ]
+
+        import pytest
+
+        monkeypatch = pytest.MonkeyPatch()
+        monkeypatch.setattr(debug, "_get_path_info", mock_path_info)
+
+        result = debug.get_system_paths()
+
+        assert result.is_success
+        paths = result.unwrap()
+        assert len(paths) == 1
+        # extra_data should be converted to string
+        assert isinstance(paths[0].get("extra_data"), str)
+
+        monkeypatch.undo()
+
+    def test_get_comprehensive_debug_info_environment_error(
+        self, monkeypatch: object
+    ) -> None:
+        """Test get_comprehensive_debug_info when get_environment_variables fails (line 218)."""
+        debug = FlextCliDebug()
+
+        # Mock _get_environment_info to raise exception - causes get_environment_variables to fail
+        monkeypatch.setattr(
+            debug,
+            "_get_environment_info",
+            lambda: (_ for _ in ()).throw(RuntimeError("Environment error")),
+        )
+
+        result = debug.get_comprehensive_debug_info()
+
+        # Should succeed with environment_error in result
+        assert result.is_success
+        info = result.unwrap()
+        assert "environment_error" in info
+
+    def test_get_comprehensive_debug_info_paths_error(
+        self, monkeypatch: object
+    ) -> None:
+        """Test get_comprehensive_debug_info when get_system_paths fails (line 227)."""
+        debug = FlextCliDebug()
+
+        # Mock _get_path_info to raise exception - causes get_system_paths to fail
+        monkeypatch.setattr(
+            debug,
+            "_get_path_info",
+            lambda: (_ for _ in ()).throw(RuntimeError("Paths error")),
+        )
+
+        result = debug.get_comprehensive_debug_info()
+
+        # Should succeed with paths_error in result
+        assert result.is_success
+        info = result.unwrap()
+        assert "paths_error" in info
+
+    def test_get_comprehensive_debug_info_outer_exception(
+        self, monkeypatch: object
+    ) -> None:
+        """Test get_comprehensive_debug_info outer exception handler (lines 240-241)."""
+        debug = FlextCliDebug()
+
+        # Mock cast to raise exception - triggers outer exception handler
+        def mock_cast_raises(*args: object, **kwargs: object) -> object:
+            msg = "Cast exception"
+            raise RuntimeError(msg)
+
+        monkeypatch.setattr("flext_cli.debug.cast", mock_cast_raises)
+
+        result = debug.get_comprehensive_debug_info()
+
+        # Should catch exception and return failure
+        assert result.is_failure
+        assert "Comprehensive debug info collection failed" in str(result.error)
+
+    def test_validate_filesystem_permissions_oserror(self, monkeypatch: object) -> None:
+        """Test _validate_filesystem_permissions OSError handler (lines 312-317)."""
+        import pathlib
+
+        debug = FlextCliDebug()
+
+        # Mock pathlib.Path.open to raise OSError
+        original_open = pathlib.Path.open
+
+        def mock_open_raises(*args: object, **kwargs: object) -> object:
+            msg = "Permission denied"
+            raise OSError(msg)
+
+        monkeypatch.setattr("pathlib.Path.open", mock_open_raises)
+
+        result = debug.validate_environment_setup()
+
+        # Should succeed with error message about write permission
+        assert result.is_success
+        errors = result.unwrap()
+        assert isinstance(errors, list)
+        # Should contain error about cannot write to current directory
+        assert len(errors) >= 1
+
+        monkeypatch.setattr("pathlib.Path.open", original_open)
+
+    def test_validate_filesystem_permissions_general_exception(
+        self, monkeypatch: object
+    ) -> None:
+        """Test _validate_filesystem_permissions general exception handler (lines 319-324)."""
+        debug = FlextCliDebug()
+
+        # Mock tempfile.NamedTemporaryFile to raise exception
+        def mock_temp_raises(*args: object, **kwargs: object) -> object:
+            msg = "Temp file error"
+            raise RuntimeError(msg)
+
+        monkeypatch.setattr("tempfile.NamedTemporaryFile", mock_temp_raises)
+
+        result = debug.validate_environment_setup()
+
+        # Should succeed with error message about filesystem validation
+        assert result.is_success
+        errors = result.unwrap()
+        assert isinstance(errors, list)
+        # Should contain error about filesystem validation failure
+        assert len(errors) >= 1

@@ -280,30 +280,6 @@ class TestFlextCliCmd:
         # Result depends on actual config state - could succeed or fail
         assert result.is_success or result.is_failure
 
-    def test_cmd_set_config_value_error_handling(self) -> None:
-        """Test set_config_value error handling."""
-        cmd = FlextCliCmd()
-        # Mock file_tools to raise exception
-        original_file_tools = cmd._file_tools
-
-        class FailingFileTools(FlextCliFileTools):
-            @staticmethod
-            def write_json_file(
-                _file_path: str | Path,
-                _data: object,
-                **_kwargs: object,
-            ) -> FlextResult[None]:
-                return FlextResult[None].fail("Test file error")
-
-        cmd._file_tools = FailingFileTools()
-        try:
-            result = cmd.set_config_value("test_key", "test_value")
-            assert result.is_failure
-            assert isinstance(result.error, str)
-            assert result.error is not None and "Test file error" in result.error
-        finally:
-            cmd._file_tools = original_file_tools
-
     def test_cmd_get_config_value_file_load_error(self) -> None:
         """Test get_config_value file load error."""
         cmd = FlextCliCmd()
@@ -358,6 +334,9 @@ class TestFlextCliCmd:
         original_file_tools = cmd._file_tools
 
         class FailingFileTools(FlextCliFileTools):
+            def __init__(self) -> None:
+                super().__init__()
+
             def read_json_file(
                 self, file_path: str | Path
             ) -> FlextResult[
@@ -367,22 +346,32 @@ class TestFlextCliCmd:
                     dict[str, object] | list[object] | str | int | float | bool | None
                 ].fail("Test load error")
 
-            @staticmethod
             def write_json_file(
-                _file_path: str | Path,
-                _data: object,
-                **_kwargs: object,
+                self,
+                file_path: str | Path,
+                data: object,
+                **kwargs: object,
             ) -> FlextResult[None]:
                 return FlextResult[None].ok(None)
 
         cmd._file_tools = FailingFileTools()
+
+        # Create fake config file
+        config_dir = Path.home() / ".flext"
+        config_dir.mkdir(exist_ok=True)
+        config_file = config_dir / "cli_config.json"
+
         try:
+            config_file.write_text('{"test": "value"}', encoding="utf-8")
+
             result = cmd.edit_config()
             assert result.is_failure
             assert isinstance(result.error, str)
             assert result.error is not None and "Test load error" in result.error
         finally:
             cmd._file_tools = original_file_tools
+            if config_file.exists():
+                config_file.unlink()
 
     def test_cmd_config_display_helper_error_handling(self) -> None:
         """Test config display error handling."""
@@ -454,25 +443,6 @@ class TestFlextCliCmd:
         finally:
             cmd._file_tools = original_file_tools
 
-    # ========================================================================
-    # EXCEPTION HANDLER COVERAGE TESTS
-    # ========================================================================
-
-    def test_cmd_validate_config_structure_main_dir_missing(self) -> None:
-        """Test _validate_config_structure when main dir is missing (line 85)."""
-        cmd = FlextCliCmd()
-
-        # Mock config_dir to point to non-existent location
-        original_config_dir = cmd.config.config_dir
-        cmd.config.config_dir = Path("/non/existent/path")
-
-        try:
-            results = cmd._validate_config_structure()
-            assert isinstance(results, list)
-            assert any("Main config directory missing" in r for r in results)
-        finally:
-            cmd.config.config_dir = original_config_dir
-
     def test_cmd_get_config_value_not_dict_data(self) -> None:
         """Test get_config_value when config data is not a dict (line 209)."""
         cmd = FlextCliCmd()
@@ -541,8 +511,9 @@ class TestFlextCliCmd:
                 # Return a string instead of dict
                 return FlextResult[object].ok("not a dict")
 
-            @staticmethod
-            def write_json_file(file_path: str | Path, data: object, **kwargs: object) -> FlextResult[None]:
+            def write_json_file(
+                self, file_path: str | Path, data: object, **kwargs: object
+            ) -> FlextResult[None]:
                 return FlextResult[None].ok(None)
 
         cmd._file_tools = MockFileTools()

@@ -1,760 +1,537 @@
-# FLEXT-CLI CLAUDE.MD
+# CLAUDE.md
 
-**The CLI Foundation Library for FLEXT Ecosystem**
-**Version**: 2.3.0 | **Authority**: CLI FOUNDATION | **Updated**: 2025-10-01
-**Status**: 99% functional (Transformation Complete) · Production-Ready · 1.0.0 Release Preparation
-
-**References**: See [../CLAUDE.md](../CLAUDE.md) for FLEXT ecosystem standards and [README.md](README.md) for project overview.
-
-**Hierarchy**: This document provides project-specific standards based on workspace-level patterns defined in [../CLAUDE.md](../CLAUDE.md). For architectural principles, quality gates, and MCP server usage, reference the main workspace standards.
-
-## 🔗 MCP SERVER INTEGRATION
-
-| MCP Server              | Purpose                                                   | Status     |
-| ----------------------- | --------------------------------------------------------- | ---------- |
-| **serena**              | CLI codebase analysis and command-line interface patterns | **ACTIVE** |
-| **sequential-thinking** | CLI architecture and user interface problem solving       | **ACTIVE** |
-| **github**              | CLI ecosystem integration and interface PRs               | **ACTIVE** |
-
-**Usage**: `claude mcp list` for available servers, leverage for CLI-specific development patterns and command-line interface analysis.
+This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
 ---
 
-## 🎯 FLEXT-CLI MISSION (CLI ECOSYSTEM AUTHORITY)
+## Project Overview
 
-**CRITICAL ROLE**: flext-cli is the CLI FOUNDATION for the entire FLEXT ecosystem. ALL CLI functionality across 32+ projects MUST flow through this library. ZERO TOLERANCE for direct Click/Rich imports in CLI projects.
+**flext-cli** is the CLI foundation library for the FLEXT ecosystem, providing a unified command-line interface abstraction layer over Click and Rich. It serves 32+ projects with standardized CLI patterns, configuration management, and output formatting.
 
-**CLI AUTHORITY RESPONSIBILITIES**:
+**Key Architecture:**
+- Single consolidated API class: `FlextCli`
+- Wraps Click (CLI framework) and Rich (terminal UI) internally
+- Uses flext-core patterns: `FlextResult[T]` railway pattern, `FlextCore.Service`
+- Python 3.13+ exclusive with strict type safety
+- Poetry-based dependency management
 
-- ✅ **Universal CLI Interface**: ALL CLI projects use flext-cli exclusively
-- ✅ **Output Standardization**: ALL data output, tables, progress bars through flext-cli
-- ✅ **Click/Rich Abstraction**: Provide comprehensive wrapper layer over Click/Rich
-- ✅ **CLI Configuration**: Unified configuration management for all CLI tools
-- ✅ **Zero Direct Imports**: NO direct Click/Rich imports allowed in ecosystem
-- ✅ **Foundation Quality**: Set CLI quality standards for entire ecosystem
+**CRITICAL CONSTRAINT - ZERO TOLERANCE:**
+- **cli.py** is the ONLY file that may import Click directly
+- **formatters.py** and **typings.py** are the ONLY files that may import Rich directly
+- ALL other code must use the abstraction layers
+- Breaking this constraint violates the foundation library's core purpose
 
-**ECOSYSTEM CLI IMPACT** (ALL CLI Projects Depend on This):
+---
 
-- **Core CLI Projects**: flext-cli (self), client-a-oud-mig CLI, client-b-meltano-native CLI
-- **Infrastructure CLIs**: Database management tools, deployment CLIs
-- **Data Integration CLIs**: ETL command interfaces, pipeline management
-- **Development Tools**: Build scripts, testing utilities, deployment automation
+## Essential Commands
 
-**CLI QUALITY IMPERATIVES** (ZERO TOLERANCE ENFORCEMENT):
-
-- 🔴 **ZERO direct Click imports** in ANY ecosystem CLI project
-- 🔴 **ZERO direct Rich imports** for output/formatting in ANY CLI project
-- 🟢 **75%+ test coverage** with REAL CLI functionality tests
-- 🟢 **Complete Click/Rich wrapper** coverage for all common CLI needs
-- 🟢 **Zero errors** in MyPy strict mode, PyRight, and Ruff
-- 🟢 **Comprehensive CLI API** documentation with examples
-
-## CLI ARCHITECTURE INSIGHTS (ECOSYSTEM CLI FOUNDATION)
-
-**CLI Abstraction Layer**: Complete wrapper over Click and Rich, providing unified CLI experience across entire FLEXT ecosystem with ZERO direct Click/Rich imports required.
-
-**flext-core Integration**: Deep integration with foundation library using FlextResult railway patterns, FlextContainer dependency injection, and FlextDomainService architecture.
-
-**Zero Tolerance CLI Policy**: ABSOLUTE prohibition of direct Click/Rich imports anywhere in ecosystem - ALL CLI functionality flows through flext-cli wrappers only.
-
-**Modern Python 3.13+ CLI Patterns**: Advanced pattern matching, functional programming, comprehensive type annotations specifically for CLI development contexts.
-
-**Quality Leadership**: Sets CLI quality standards for entire ecosystem with zero-compromise approach to CLI infrastructure.
-
-## FLEXT-CLI DEVELOPMENT WORKFLOW (CLI FOUNDATION QUALITY)
-
-### Essential CLI Development Workflow (MANDATORY FOR CLI FOUNDATION)
+### Development Workflow
 
 ```bash
-# Complete validation pipeline (run before commits)
-make validate                 # lint + type-check + security + test (90% coverage)
-
-# Quick development checks
-make check                   # lint + type-check only
-make lint                    # Ruff linting
-make type-check              # MyPy strict mode
-make test                    # pytest with coverage
-make format                  # Auto-format code
-make security               # Bandit security scan
-```
-
-### Setup Commands
-
-```bash
+# Setup and installation
 make setup                   # Complete setup with pre-commit hooks
 make install                 # Install dependencies with Poetry
 make install-dev             # Install with dev dependencies
-make clean                   # Clean build artifacts
-make reset                   # Complete reset (clean + setup)
-```
 
-### Testing Commands
+# Quality gates (run before commits)
+make validate                # Full validation: lint + type-check + security + test
+make check                   # Quick check: lint + type-check only
+make lint                    # Ruff linting
+make type-check              # Pyrefly type checking
+make security                # Bandit security scan
+make format                  # Auto-format code with Ruff
 
-```bash
-make test                    # Full test suite with 90% coverage requirement
+# Testing
+make test                    # Full test suite with coverage
 make test-unit               # Unit tests only
 make test-integration        # Integration tests only
 make test-fast               # Tests without coverage
 make coverage-html           # Generate HTML coverage report
 
-# Test specific modules
-pytest tests/test_core.py -v
-pytest tests/test_commands_auth.py -v
+# Specific test execution
+PYTHONPATH=src poetry run pytest tests/unit/test_api.py -v
+PYTHONPATH=src poetry run pytest tests/unit/test_config.py::TestFlextCliConfig -v
+PYTHONPATH=src poetry run pytest -m unit -v
+
+# Build and maintenance
+make build                   # Build package
+make clean                   # Clean build artifacts
+make reset                   # Complete reset (clean + setup)
+
+# Diagnostics
+make diagnose                # Show Python, Poetry, environment info
+make doctor                  # Full health check
 ```
 
-### CLI Foundation Testing (ECOSYSTEM CRITICAL)
+### Running Single Tests
 
 ```bash
-# CRITICAL: CLI foundation testing - affects entire ecosystem
-make cli-test                # Basic CLI import test
-poetry run flext --help     # Test main CLI
-poetry run flext auth --help # Test auth commands
-poetry run flext config --help # Test config commands
-poetry run flext debug --help  # Test debug commands
+# Run specific test file
+PYTHONPATH=src poetry run pytest tests/unit/test_api.py -v
 
-# CLI FOUNDATION VALIDATION (ZERO TOLERANCE)
-echo "=== CLI FOUNDATION VALIDATION ==="
+# Run specific test class
+PYTHONPATH=src poetry run pytest tests/unit/test_config.py::TestFlextCliConfig -v
 
-# 1. Verify NO direct Click imports in codebase
-echo "Checking for forbidden Click imports..."
-grep -r "import click" src/ && echo "❌ CRITICAL: Direct Click imports found" && exit 1
-grep -r "from click" src/ && echo "❌ CRITICAL: Click component imports found" && exit 1
+# Run specific test function
+PYTHONPATH=src poetry run pytest tests/unit/test_api.py::test_flext_cli_init -v
 
-# 2. Verify NO direct Rich imports for output
-echo "Checking for forbidden Rich imports..."
-grep -r "import rich" src/ && echo "❌ CRITICAL: Direct Rich imports found" && exit 1
-grep -r "from rich" src/ && echo "❌ CRITICAL: Rich component imports found" && exit 1
-
-# 3. Verify flext-cli wrapper APIs are available
-python -c "
-from flext_cli import FlextCliApi, FlextCliMain, FlextCliConfigs
-api = FlextCliApi()
-main = FlextCliMain()
-config = FlextCliConfigs()
-print('✅ CLI Foundation APIs available')
-"
-
-echo "✅ CLI Foundation validation completed"
+# Run with markers
+PYTHONPATH=src poetry run pytest -m unit              # Unit tests only
+PYTHONPATH=src poetry run pytest -m integration       # Integration tests
+PYTHONPATH=src poetry run pytest -m "not slow"        # Skip slow tests
 ```
-
-## CLI FOUNDATION ARCHITECTURE (ECOSYSTEM CLI LAYER)
-
-### CLI Foundation Structure (ABSTRACTION AUTHORITY)
-
-```
-src/flext_cli/
-├── cli.py                   # Main CLI entry point (Click abstraction layer)
-├── api.py                   # HIGH-LEVEL CLI API (ecosystem interface)
-├── main.py                  # FlextCliMain (command registration system)
-├── config.py                # FlextCliConfigs (unified CLI configuration)
-├── constants.py             # FlextCliConstants (CLI system constants)
-├── formatters.py            # OUTPUT ABSTRACTION (Rich wrapper layer)
-├── context.py               # CLI execution context management
-├── exceptions.py            # CLI-specific exception hierarchy
-├── models.py                # CLI domain models (Pydantic-based)
-├── services.py              # CLI business logic services
-├── client.py                # HTTP client integration
-├── core.py                  # Core CLI service implementation
-├── auth.py                  # Authentication command group
-├── cmd.py                   # Configuration commands
-├── debug.py                 # Debug/diagnostic commands
-└── data_processing.py       # Data processing for CLI operations
-```
-
-### CLI Abstraction Layers (ZERO TOLERANCE ENFORCEMENT)
-
-**Layer 1: Click Abstraction** (INTERNAL ONLY)
-
-- `cli.py` - Contains ALL Click imports (ONLY file allowed to import Click)
-- `main.py` - FlextCliMain wrapper around Click commands
-- NO other file in ecosystem allowed to import Click directly
-
-**Layer 2: Rich Abstraction** (INTERNAL ONLY)
-
-- `formatters.py` - Contains ALL Rich imports (ONLY file allowed to import Rich)
-- Provides complete wrapper API for tables, progress bars, styling
-- NO other file in ecosystem allowed to import Rich directly
-
-**Layer 3: Ecosystem API** (PUBLIC INTERFACE)
-
-- `api.py` - FlextCliApi for programmatic CLI access
-- `config.py` - FlextCliConfigs for configuration management
-- `constants.py` - FlextCliConstants for CLI constants
-- ALL ecosystem CLI projects use ONLY these public APIs
-
-## CLI FOUNDATION DEVELOPMENT PATTERNS (ZERO TOLERANCE ENFORCEMENT)
-
-### CLI Foundation Patterns (ECOSYSTEM AUTHORITY)
-
-**CRITICAL**: These patterns demonstrate how flext-cli provides CLI foundation for entire ecosystem while maintaining ZERO TOLERANCE for direct Click/Rich imports.
-
-### FlextResult CLI Pattern (CLI-SPECIFIC ERROR HANDLING)
-
-```python
-# ✅ CORRECT - CLI operations with FlextResult from flext-core
-from flext_core import FlextResult, FlextLogger
-from flext_cli import FlextCliApi, FlextCliConfigs
-
-def cli_save_config(config_data: dict) -> FlextResult[None]:
-    """CLI operation with proper error handling - NO try/except fallbacks."""
-    # Input validation with early return
-    if not config_data:
-        return FlextResult[None].fail("Configuration data cannot be empty")
-
-    # Use flext-cli API exclusively - NO direct Click usage
-    cli_api = FlextCliApi()
-
-    # Configuration validation through flext-cli
-    config_result = cli_api.validate_config(config_data)
-    if config_result.is_failure:
-        return FlextResult[None].fail(f"Config validation failed: {config_result.error}")
-
-    # Save through flext-cli API
-    save_result = cli_api.save_config(config_result.unwrap())
-    if save_result.is_failure:
-        return FlextResult[None].fail(f"Config save failed: {save_result.error}")
-
-    return FlextResult[None].ok(None)
-
-# ❌ ABSOLUTELY FORBIDDEN - Direct Click usage in CLI projects
-# import click  # ZERO TOLERANCE VIOLATION
-# @click.command()  # FORBIDDEN - use flext-cli wrappers
-```
-
-### CLI Output Abstraction Pattern (ZERO TOLERANCE FOR DIRECT RICH)
-
-```python
-# ✅ CORRECT - ALL output through flext-cli wrappers
-from flext_core import FlextResult
-from flext_cli import FlextCliApi
-
-def display_cli_data(data: dict, output_format: str = "table") -> FlextResult[None]:
-    """Display data using flext-cli output wrappers - NO direct Rich usage."""
-    cli_api = FlextCliApi()
-
-    # Format data through flext-cli (abstracts Rich internally)
-    format_result = cli_api.format_output(
-        data=data,
-        format_type=output_format,
-        headers=list(data.keys()) if isinstance(data, dict) else None,
-        title="CLI Data Display"
-    )
-
-    if format_result.is_failure:
-        return FlextResult[None].fail(f"Data formatting failed: {format_result.error}")
-
-    # Display through flext-cli (abstracts Rich internally)
-    display_result = cli_api.display_output(format_result.unwrap())
-    if display_result.is_failure:
-        return FlextResult[None].fail(f"Data display failed: {display_result.error}")
-
-    return FlextResult[None].ok(None)
-
-def show_cli_progress(task_name: str, total: int) -> FlextResult[None]:
-    """Show progress using flext-cli progress wrappers - NO direct Rich."""
-    cli_api = FlextCliApi()
-
-    # Create progress bar through flext-cli abstraction
-    progress_result = cli_api.create_progress_bar(
-        task_name=task_name,
-        total=total,
-        show_percentage=True,
-        show_eta=True
-    )
-
-    if progress_result.is_failure:
-        return FlextResult[None].fail(f"Progress bar creation failed: {progress_result.error}")
-
-    return FlextResult[None].ok(None)
-
-# ❌ ABSOLUTELY FORBIDDEN - Direct Rich usage in CLI projects
-# from rich.console import Console  # ZERO TOLERANCE VIOLATION
-# from rich.table import Table      # FORBIDDEN - use flext-cli wrappers
-# from rich.progress import Progress # FORBIDDEN - use flext-cli wrappers
-```
-
-### CLI Command Registration Pattern (FLEXT-CLI FOUNDATION)
-
-```python
-# ✅ CORRECT - Command registration through flext-cli system
-from flext_core import FlextResult
-from flext_cli import FlextCliMain, FlextCliApi
-
-class ProjectCliService:
-    """Project CLI service using flext-cli foundation exclusively."""
-
-    def __init__(self) -> None:
-        self._cli_api = FlextCliApi()
-
-    def create_project_cli(self) -> FlextResult[FlextCliMain]:
-        """Create project CLI using flext-cli foundation - NO Click imports."""
-        # Initialize CLI through flext-cli (abstracts Click internally)
-        cli_main = FlextCliMain(
-            name="project-cli",
-            description="Project CLI using flext-cli foundation"
-        )
-
-        # Register command groups through flext-cli abstraction
-        data_commands_result = cli_main.register_command_group(
-            name="data",
-            commands=self._create_data_commands(),
-            description="Data management commands"
-        )
-
-        if data_commands_result.is_failure:
-            return FlextResult[FlextCliMain].fail(f"Data commands registration failed: {data_commands_result.error}")
-
-        return FlextResult[FlextCliMain].ok(cli_main)
-
-    def _create_data_commands(self) -> dict:
-        """Create data commands using flext-cli command builders."""
-        return {
-            "list": self._cli_api.create_command(
-                name="list",
-                description="List data entries",
-                handler=self._handle_data_list,
-                output_format="table"  # flext-cli handles formatting
-            ),
-            "export": self._cli_api.create_command(
-                name="export",
-                description="Export data",
-                handler=self._handle_data_export,
-                output_format="json"   # flext-cli handles formatting
-            )
-        }
-
-# ❌ ABSOLUTELY FORBIDDEN - Direct Click command creation
-# @click.group()      # ZERO TOLERANCE VIOLATION
-# @click.command()    # FORBIDDEN - use flext-cli command builders
-```
-
-### CLI Configuration Pattern (UNIFIED ECOSYSTEM CONFIG)
-
-```python
-# ✅ CORRECT - Configuration through flext-cli system
-from flext_core import FlextResult
-from flext_cli import FlextCliConfigs, FlextCliConstants
-
-class ProjectCliConfig:
-    """Project CLI configuration using flext-cli foundation."""
-
-    def __init__(self) -> None:
-        # Use flext-cli configuration system
-        self._cli_config = FlextCliConfigs(
-            profile="project",
-            debug_mode=False,
-            output_format="table",
-            no_color=False
-        )
-
-    def load_project_config(self) -> FlextResult[FlextCliConfigs]:
-        """Load configuration using flext-cli config management."""
-        # Configuration validation through flext-cli
-        validation_result = self._cli_config.validate_business_rules()
-        if validation_result.is_failure:
-            return FlextResult[FlextCliConfigs].fail(f"Config validation failed: {validation_result.error}")
-
-        return FlextResult[FlextCliConfigs].ok(self._cli_config)
-
-    def get_output_format(self) -> str:
-        """Get output format from CLI configuration."""
-        return self._cli_config.output_format
-
-    def is_debug_mode(self) -> bool:
-        """Check if debug mode is enabled."""
-        return bool(self._cli_config.debug_mode)
-```
-
-## CLI FOUNDATION DEPENDENCIES (ABSTRACTION MANAGEMENT)
-
-### Foundation Dependencies (CLI ABSTRACTION LAYER)
-
-**CRITICAL**: flext-cli manages ALL CLI dependencies for the ecosystem. Other projects should NOT import these directly.
-
-- **flext-core**: Foundation library (FlextResult, FlextContainer, FlextDomainService)
-- **Click 8.2+**: CLI framework (INTERNAL ABSTRACTION - not exposed to ecosystem)
-- **Rich 14.0+**: Terminal UI (INTERNAL ABSTRACTION - not exposed to ecosystem)
-- **Pydantic 2.11+**: Data validation and configuration management
-- **httpx**: HTTP client for API integrations
-
-### Ecosystem CLI Integration
-
-**ZERO TOLERANCE POLICY**: These projects MUST use flext-cli exclusively for CLI functionality:
-
-- **client-a-oud-mig**: client-a project CLI (MUST use flext-cli, NO direct Click/Rich)
-- **client-b-meltano-native**: client-b CLI (MUST use flext-cli, NO direct Click/Rich)
-- **flext-api**: API CLI tools (MUST use flext-cli wrappers)
-- **flext-observability**: Monitoring CLI (MUST use flext-cli for all output)
-- **flext-meltano**: Meltano CLI integration (MUST use flext-cli abstraction)
-
-## CLI FOUNDATION QUALITY STANDARDS (ECOSYSTEM CLI AUTHORITY)
-
-### CLI Foundation Requirements (ZERO TOLERANCE ENFORCEMENT)
-
-**CRITICAL**: As the CLI foundation, flext-cli must achieve the highest standards while enforcing ecosystem-wide CLI compliance.
-
-- **Zero Direct Imports**: ZERO tolerance for direct Click/Rich imports anywhere in ecosystem
-- **Test Coverage**: 96% test pass rate (620/657 tests passing) with real CLI functionality tests
-- **CLI API Coverage**: Complete wrapper coverage for ALL common CLI/output operations
-- **Type Safety**: MyPy strict mode enabled with ZERO errors in src/
-- **CLI Documentation**: ALL public CLI APIs documented with complete examples
-- **Abstraction Completeness**: NO gaps in Click/Rich abstraction layer
-
-### CLI Foundation Quality Gates (MANDATORY FOR ALL COMMITS)
-
-```bash
-# PHASE 1: CLI Foundation Quality (ZERO TOLERANCE)
-make lint                    # Ruff: ZERO violations in src/
-make type-check              # MyPy strict: ZERO errors in src/
-make security                # Bandit: ZERO critical vulnerabilities
-
-# PHASE 2: CLI Abstraction Validation (ECOSYSTEM PROTECTION)
-echo "=== CLI ABSTRACTION VALIDATION ==="
-
-# Verify Click imports are contained
-click_imports=$(find src/ -name "*.py" -exec grep -l "import click\|from click" {} \;)
-if [ $(echo "$click_imports" | grep -v "src/flext_cli/cli.py" | wc -l) -gt 0 ]; then
-    echo "❌ CRITICAL: Click imports outside cli.py found"
-    echo "$click_imports" | grep -v "src/flext_cli/cli.py"
-    exit 1
-fi
-
-# Verify Rich imports are contained
-rich_imports=$(find src/ -name "*.py" -exec grep -l "import rich\|from rich" {} \;)
-if [ $(echo "$rich_imports" | grep -v "src/flext_cli/formatters.py" | wc -l) -gt 0 ]; then
-    echo "❌ CRITICAL: Rich imports outside formatters.py found"
-    echo "$rich_imports" | grep -v "src/flext_cli/formatters.py"
-    exit 1
-fi
-
-echo "✅ CLI abstraction boundaries maintained"
-
-# PHASE 3: CLI Foundation Test Coverage
-make test                    # 75%+ coverage with REAL CLI tests
-pytest tests/ --cov=src/flext_cli --cov-fail-under=75
-
-# PHASE 4: CLI API Completeness Validation
-python -c "
-from flext_cli import FlextCliApi, FlextCliMain, FlextCliConfigs, FlextCliConstants
-api = FlextCliApi()
-main = FlextCliMain()
-config = FlextCliConfigs()
-print('✅ CLI Foundation APIs complete and importable')
-"
-```
-
-### CLI Foundation Development Standards (ECOSYSTEM LEADERSHIP)
-
-**ABSOLUTELY FORBIDDEN IN FLEXT-CLI**:
-
-- ❌ **Exposing Click/Rich directly** - all abstractions must be complete
-- ❌ **Incomplete abstraction layers** - every CLI/output need must have wrapper
-- ❌ **Try/except fallbacks** - CLI operations must use explicit FlextResult patterns
-- ❌ **Multiple classes per module** - single responsibility with unified classes
-- ❌ **Breaking ecosystem CLI contracts** - maintain API compatibility
-
-**MANDATORY IN FLEXT-CLI**:
-
-- ✅ **Complete Click abstraction** - no CLI operation should require direct Click import
-- ✅ **Complete Rich abstraction** - no output operation should require direct Rich import
-- ✅ **Comprehensive CLI API** - FlextCliApi covers all common CLI development needs
-- ✅ **Zero tolerance enforcement** - detect and prevent direct Click/Rich imports in ecosystem
-- ✅ **Professional CLI documentation** - every wrapper API fully documented with examples
-
-## CLI FOUNDATION TESTING STRATEGY (REAL CLI FUNCTIONALITY)
-
-### CLI Foundation Testing Requirements
-
-**CRITICAL**: CLI foundation tests must validate REAL CLI functionality and abstraction layer completeness.
-
-**CLI-Specific Test Requirements**:
-
-- ✅ **Real CLI execution tests** - test actual command registration and execution
-- ✅ **Abstraction layer tests** - validate Click/Rich wrappers work correctly
-- ✅ **API completeness tests** - verify all common CLI needs are covered
-- ✅ **Output formatting tests** - test all supported output formats (table, JSON, YAML)
-- ✅ **Configuration tests** - validate CLI config management
-- ✅ **Error handling tests** - test CLI error scenarios with FlextResult patterns
-
-### CLI Foundation Test Files
-
-- `tests/test_api.py` - FlextCliApi functionality (ecosystem interface)
-- `tests/test_main.py` - FlextCliMain command registration system
-- `tests/test_config.py` - FlextCliConfigs management
-- `tests/test_formatters.py` - Rich abstraction layer functionality
-- `tests/test_commands_auth.py` - Authentication commands
-- `tests/test_commands_config.py` - Configuration commands
-- `tests/test_commands_debug.py` - Debug commands
-- `tests/conftest.py` - CLI test fixtures and utilities
-
-## ADDING NEW CLI FUNCTIONALITY (ECOSYSTEM FOUNDATION)
-
-### Extending CLI Foundation (ZERO TOLERANCE COMPLIANCE)
-
-**CRITICAL**: When adding CLI functionality, maintain ZERO TOLERANCE for direct Click/Rich exposure to ecosystem.
-
-### 1. Adding New Command Groups
-
-```python
-# ✅ CORRECT - New command module following CLI foundation patterns
-# File: src/flext_cli/data.py
-
-from flext_core import FlextResult, FlextLogger
-from flext_cli import FlextCliApi, FlextCliConfigs
-
-class DataCommands:
-    """Data management commands using CLI foundation - NO Click imports."""
-
-    def __init__(self) -> None:
-        self._logger = FlextLogger(__name__)
-        self._cli_api = FlextCliApi()
-
-    def create_data_command_group(self) -> FlextResult[dict]:
-        \"\"\"Create data command group using flext-cli builders.\"\"\"
-        commands = {
-            "list": self._cli_api.create_command(
-                name="list",
-                description="List data entries",
-                handler=self._handle_data_list,
-                arguments=["--format", "--filter"],
-                output_format="table"
-            ),
-            "import": self._cli_api.create_command(
-                name="import",
-                description="Import data from file",
-                handler=self._handle_data_import,
-                arguments=["--file", "--format"],
-                output_format="json"
-            )
-        }
-        return FlextResult[dict].ok(commands)
-
-    def _handle_data_list(self, **kwargs: object) -> FlextResult[None]:
-        \"\"\"Handle data list command using CLI foundation.\"\"\"
-        # Get data (business logic)
-        data = {"entries": [{"id": 1, "name": "example"}]}
-
-        # Display using flext-cli abstraction - NO direct Rich
-        display_result = self._cli_api.display_output(
-            data=data,
-            format_type=str(kwargs.get("format", "table")),
-            title="Data Entries"
-        )
-
-        if display_result.is_failure:
-            return FlextResult[None].fail(f"Display failed: {display_result.error}")
-
-        return FlextResult[None].ok(None)
-
-# ❌ ABSOLUTELY FORBIDDEN - Direct Click usage
-# import click  # ZERO TOLERANCE VIOLATION
-# @click.group()  # FORBIDDEN - use flext-cli command builders
-```
-
-### 2. Registration in CLI Foundation
-
-```python
-# File: src/flext_cli/cli.py (ONLY file allowed to import Click)
-import click  # ONLY THIS FILE can import Click
-from flext_cli.data import DataCommands
-
-class FlextCliMain:
-    \"\"\"Main CLI class - abstracts Click for ecosystem.\"\"\"
-
-    def register_data_commands(self) -> FlextResult[None]:
-        \"\"\"Register data commands through CLI foundation.\"\"\"
-        data_commands = DataCommands()
-        commands_result = data_commands.create_data_command_group()
-
-        if commands_result.is_failure:
-            return FlextResult[None].fail(f"Data commands creation failed: {commands_result.error}")
-
-        # Register with internal Click system (abstracted from ecosystem)
-        for name, command in commands_result.unwrap().items():
-            self._register_click_command(name, command)  # Internal abstraction
-
-        return FlextResult[None].ok(None)
-```
-
-### 3. Adding New Output Formats
-
-```python
-# File: src/flext_cli/formatters.py (ONLY file allowed to import Rich)
-from rich.console import Console  # ONLY THIS FILE can import Rich
-from rich.table import Table
-from flext_core import FlextResult
-
-class FlextCliFormatters:
-    \"\"\"Output formatters - abstracts Rich for ecosystem.\"\"\"
-
-    def __init__(self) -> None:
-        self._console = Console()  # Internal Rich usage
-
-    def format_as_custom_table(self, data: dict, **options: object) -> FlextResult[str]:
-        \"\"\"Add new table format while maintaining Rich abstraction.\"\"\"
-        try:
-            # Internal Rich usage - NOT exposed to ecosystem
-            table = Table(title=str(options.get("title", "")))
-
-            # Add table formatting logic
-            for key in data.keys():
-                table.add_column(str(key))
-
-            # Return formatted result WITHOUT exposing Rich objects
-            return FlextResult[str].ok("formatted_output")
-
-        except Exception as e:
-            return FlextResult[str].fail(f"Custom table formatting failed: {e}")
-```
-
-### CLI Foundation Extension Requirements
-
-**MANDATORY STEPS** for extending CLI foundation:
-
-1. **Abstraction Completeness**: New functionality MUST be fully abstracted - no Click/Rich exposure
-2. **API Coverage**: Add to FlextCliApi if needed for ecosystem consumption
-3. **Documentation**: Complete API documentation with ecosystem usage examples
-4. **Testing**: Real functionality tests with 75%+ coverage
-5. **Zero Tolerance Validation**: Ensure no direct Click/Rich imports in new code
-
-## CLI FOUNDATION STATUS & ECOSYSTEM IMPACT
-
-### Current CLI Foundation Status (96% FUNCTIONAL - ARCHITECTURE REFACTORED)
-
-**RECENT REFACTORING** (2025-10-07):
-- ✅ **API Thin Facade**: Removed 193 lines of convenience wrappers from api.py
-- ✅ **Zero Duplication**: Eliminated all convenience method duplication
-- ✅ **Direct API Only**: Enforced property-based service access pattern
-- ✅ **Backward Compatibility**: Removed FlextCliApi alias and PROJECT_VERSION
-- ✅ **Clean Architecture**: True thin facade with zero business logic
-- 📊 **Metrics**: -197 lines total, -94% public methods, -100% wrappers
-
-**COMPLETE CLI INFRASTRUCTURE** (✅ 96%):
-
-- ✅ CLI abstraction layer architecture (Click/Rich containment)
-- ✅ Authentication commands (`flext auth`) - ecosystem ready
-- ✅ Configuration management (`flext config`) - ecosystem ready
-- ✅ Debug/diagnostic tools (`flext debug`) - ecosystem ready
-- ✅ FlextResult CLI error handling patterns
-- ✅ Complete CLI API structure (FlextCliApi, FlextCliMain, FlextCliConfigs)
-- ✅ Plugin system (FlextCliPlugin, FlextCliPluginManager)
-- ✅ Async/await support (FlextCliAsyncRunner, @async_command)
-- ✅ Performance optimizations (caching, lazy loading, memoization)
-- ✅ Interactive shell (FlextCliShell with REPL)
-- ✅ Comprehensive Tabulate integration (22+ table formats)
-- ✅ Complete Click abstraction coverage
-- ✅ Complete Rich abstraction coverage
-- ✅ Testing utilities (FlextCliTestRunner, FlextCliMockScenarios)
-
-**QUALITY ASSURANCE STATUS** (Phase 5 Complete):
-
-- ✅ **Ruff Linting**: 216 violations (mostly CLI design-appropriate patterns)
-- ✅ **Pyrefly Type Check**: 13 errors (81% reduction from 70)
-- ✅ **Pytest Tests**: 620/657 passing (96% pass rate)
-- ✅ **Test Infrastructure**: Fully operational
-- 🟡 **Remaining Work**: output.py API refactoring (13 type errors)
-
-### Ecosystem CLI Enforcement Status
-
-**ZERO TOLERANCE ENFORCEMENT** (🔴 CRITICAL):
-
-- client-a-oud-mig: NOT COMPLIANT - has direct Click imports (VIOLATION)
-- client-b-meltano-native: NOT COMPLIANT - has direct Rich imports (VIOLATION)
-- flext-api CLI tools: PARTIALLY COMPLIANT - mixed usage patterns
-- flext-observability: NOT VALIDATED - unknown CLI compliance status
-
-**IMMEDIATE ACTION REQUIRED**: All ecosystem CLI violations must be corrected.
-
-## CLI FOUNDATION TROUBLESHOOTING (ECOSYSTEM CRITICAL)
-
-### CLI Abstraction Validation
-
-```bash
-# CRITICAL: Validate CLI abstraction boundaries
-echo "=== CLI FOUNDATION BOUNDARY VALIDATION ==="
-
-# 1. Verify Click imports are properly contained
-echo "Checking Click import containment..."
-click_violations=$(find ../flext-* -name "*.py" -exec grep -l "import click\|from click" {} \; 2>/dev/null | grep -v "flext-cli")
-if [ -n "$click_violations" ]; then
-    echo "❌ ECOSYSTEM VIOLATION: Direct Click imports found:"
-    echo "$click_violations"
-    echo "RESOLUTION: Refactor to use flext-cli CLI foundation"
-fi
-
-# 2. Verify Rich imports are properly contained
-rich_violations=$(find ../flext-* -name "*.py" -exec grep -l "import rich\|from rich" {} \; 2>/dev/null | grep -v "flext-cli")
-if [ -n "$rich_violations" ]; then
-    echo "❌ ECOSYSTEM VIOLATION: Direct Rich imports found:"
-    echo "$rich_violations"
-    echo "RESOLUTION: Refactor to use flext-cli output wrappers"
-fi
-
-# 3. Validate CLI foundation APIs are available
-python -c "
-try:
-    from flext_cli import FlextCliApi, FlextCliMain, FlextCliConfigs, FlextCliConstants
-    api = FlextCliApi()
-    main = FlextCliMain()
-    config = FlextCliConfigs()
-    print('✅ CLI Foundation APIs available')
-except Exception as e:
-    print(f'❌ CLI Foundation APIs incomplete: {e}')
-    exit(1)
-"
-
-echo "✅ CLI foundation boundary validation completed"
-```
-
-### CLI Foundation Development Issues
-
-**Common CLI Foundation Issues**:
-
-1. **Incomplete Abstraction Coverage**
-
-   ```bash
-   # Check for missing wrapper coverage
-   grep -r "TODO.*Click\|TODO.*Rich" src/flext_cli/
-   ```
-
-2. **CLI API Completeness Gaps**
-
-   ```bash
-   # Test CLI API coverage
-   python -c "
-   from flext_cli import FlextCliApi
-   api = FlextCliApi()
-   methods = [m for m in dir(api) if not m.startswith('_')]
-   print(f'CLI API methods: {len(methods)}')
-   print('Coverage areas:', methods[:10])
-   "
-   ```
-
-3. **Ecosystem CLI Compliance**
-
-   ```bash
-   # Run ecosystem CLI compliance check
-   ./scripts/validate_ecosystem_cli_compliance.sh
-   ```
-
-## CLI FOUNDATION DEVELOPMENT SUMMARY
-
-**CLI ECOSYSTEM AUTHORITY**: flext-cli is the CLI foundation for the entire FLEXT ecosystem
-**ZERO TOLERANCE ENFORCEMENT**: NO direct Click/Rich imports allowed anywhere in ecosystem
-**ABSTRACTION COMPLETENESS**: ALL CLI and output needs must be covered by flext-cli wrappers
-**ECOSYSTEM PROTECTION**: Every CLI change validated against dependent project compliance
-**FOUNDATION QUALITY**: Sets CLI standards for all ecosystem projects with comprehensive abstraction
-
-**DEVELOPMENT PRIORITIES**:
-
-1. **Complete Click/Rich Abstraction**: Fill all wrapper gaps for 100% ecosystem coverage
-2. **Ecosystem CLI Compliance**: Fix ALL direct Click/Rich imports in dependent projects
-3. **Test Coverage Improvement**: Achieve 75% with REAL CLI functionality tests
-4. **API Documentation**: Complete ecosystem usage examples for all CLI patterns
-5. **Quality Leadership**: Maintain zero-compromise CLI infrastructure standards
 
 ---
 
-**FLEXT-CLI AUTHORITY**: These guidelines are specific to CLI foundation development
-**ECOSYSTEM CLI STANDARDS**: ALL CLI projects must follow these zero tolerance patterns
-**EVIDENCE-BASED**: All patterns verified against 96% functional status with comprehensive QA validation
+## Architecture Overview
+
+### Module Structure and Responsibilities
+
+```
+src/flext_cli/
+├── __init__.py          # Public API exports (19 classes)
+├── __version__.py       # Version information
+├── py.typed             # PEP 561 type marker
+│
+├── api.py               # FlextCli - main facade API (16K lines)
+├── cli.py               # FlextCliCli - Click abstraction (ONLY Click import) (22K)
+├── cli_params.py        # FlextCliCommonParams - reusable CLI parameters (17K)
+│
+├── formatters.py        # FlextCliFormatters - Rich abstraction (ONLY Rich import) (11K)
+├── tables.py            # FlextCliTables - Tabulate integration (22+ formats) (14K)
+├── output.py            # FlextCliOutput - output management service (26K)
+│
+├── prompts.py           # FlextCliPrompts - interactive user input (22K)
+├── file_tools.py        # FlextCliFileTools - JSON/YAML/CSV operations (24K)
+│
+├── config.py            # FlextCliConfig - singleton configuration (26K)
+├── constants.py         # FlextCliConstants - all system constants (34K)
+├── models.py            # FlextCliModels - ALL Pydantic models (55K)
+├── typings.py           # FlextCliTypes - type aliases and definitions (13K)
+├── protocols.py         # FlextCliProtocols - structural typing (4K)
+├── exceptions.py        # FlextCliExceptions - exception hierarchy (12K)
+│
+├── core.py              # FlextCliCore - extends FlextCore.Service (29K)
+├── cmd.py               # FlextCliCmd - command execution (12K)
+├── commands.py          # FlextCliCommands - command registration (10K)
+├── context.py           # FlextCliContext - execution context (10K)
+├── debug.py             # FlextCliDebug - debug utilities (12K)
+└── mixins.py            # FlextCliMixins - reusable mixins (10K)
+
+Total: 24 files, ~370K lines of production code
+```
+
+**Key Module Dependencies:**
+- `api.py` → Main entry point, imports most other modules
+- `cli.py` → ONLY file that imports Click (ZERO TOLERANCE)
+- `formatters.py` + `typings.py` → ONLY files that import Rich (ZERO TOLERANCE)
+- `models.py` → Contains ALL Pydantic models (55K lines, largest module)
+- `constants.py` → No external dependencies, used everywhere
+- All modules → Extend or use `flext_core` patterns
+
+### Core Classes (Actual Exports)
+
+```python
+from flext_cli import (
+    FlextCli,              # Main consolidated API (NOT FlextCliApi)
+    FlextCliConfig,        # Configuration (NOT FlextCliConfigs)
+    FlextCliConstants,     # Constants
+    FlextCliFormatters,    # Rich formatting abstraction
+    FlextCliTables,        # Table formatting
+    FlextCliOutput,        # Output service
+    FlextCliPrompts,       # Interactive prompts
+    FlextCliFileTools,     # File operations
+    FlextCliCore,          # Core service
+    FlextCliCmd,           # Command execution
+    FlextCliDebug,         # Debug utilities
+    FlextCliCommands,      # Command management
+    FlextCliContext,       # Execution context
+    FlextCliModels,        # Pydantic models
+    FlextCliTypes,         # Type definitions
+    FlextCliProtocols,     # Protocols
+    FlextCliMixins,        # Mixins
+    FlextCliExceptions,    # Exceptions
+)
+```
+
+### Design Patterns
+
+**Railway-Oriented Programming:**
+All operations return `FlextResult[T]` for composable error handling:
+
+```python
+from flext_cli import FlextCli
+from flext_core import FlextResult
+
+cli = FlextCli()
+
+# All operations return FlextResult
+result = cli.authenticate({"token": "abc123"})
+if result.is_success:
+    token = result.unwrap()
+else:
+    print(f"Auth failed: {result.error}")
+```
+
+**Domain Library Pattern:**
+Each module follows the unified class pattern from flext-core:
+
+```python
+class FlextCliFormatters:
+    """Single class per module - domain library pattern."""
+    # All formatting functionality consolidated here
+```
+
+**flext-core Integration:**
+Extends core services and uses core patterns:
+
+```python
+from flext_core import FlextCore
+
+class FlextCliCore(FlextCore.Service[FlextCliTypes.Data.CliDataDict]):
+    """Extends FlextCore.Service with CLI-specific functionality."""
+```
+
+---
+
+## Architectural Patterns (Critical for Understanding)
+
+### Unified Class Pattern (Domain Library)
+
+Every module exports exactly ONE class containing all functionality:
+
+```python
+# ✅ CORRECT - Each module has single unified class
+from flext_cli import FlextCliFormatters  # NOT FlextCliFormatter (singular)
+from flext_cli import FlextCliTables      # NOT FlextCliTable (singular)
+from flext_cli import FlextCliModels      # Contains ALL Pydantic models
+
+# Access nested classes/types
+config_model = FlextCliModels.CommandExecutionConfig
+logging_model = FlextCliModels.LoggingConfig
+```
+
+### FlextResult[T] Railway Pattern (Mandatory)
+
+ALL operations that can fail MUST return `FlextResult[T]`:
+
+```python
+from flext_core import FlextResult
+from flext_cli import FlextCliFileTools
+
+file_tools = FlextCliFileTools()
+
+# Chain operations with flat_map and map
+result = (
+    file_tools.read_json_file("config.json")
+    .flat_map(lambda data: validate_config(data))
+    .map(lambda config: apply_defaults(config))
+    .map_error(lambda err: log_error(err))
+)
+
+# Safe unwrapping
+if result.is_success:
+    config = result.unwrap()
+else:
+    print(f"Error: {result.error}")
+```
+
+### Configuration Singleton Pattern
+
+Configuration uses global singleton with environment variable support:
+
+```python
+from flext_cli import FlextCliConfig
+
+# Get singleton instance (creates if needed)
+config = FlextCliConfig.get_global_instance()
+
+# All configuration is read-only properties
+debug = config.debug               # FLEXT_DEBUG env var
+output_format = config.output_format  # FLEXT_OUTPUT_FORMAT
+token_file = config.token_file     # ~/.flext/auth/token.json
+```
+
+### Click/Rich Abstraction Pattern
+
+Never import Click or Rich directly except in designated files:
+
+```python
+# ❌ FORBIDDEN in most files
+import click
+from rich.console import Console
+
+# ✅ CORRECT - Use abstraction layers
+from flext_cli import FlextCli, FlextCliFormatters, FlextCliTables
+
+cli = FlextCli()
+cli.print("Success!", style="green")  # Rich abstraction
+table = cli.create_table(...)          # Table abstraction
+```
+
+---
+
+## Testing Strategy
+
+### Test Structure
+
+```
+tests/
+├── unit/                    # Unit tests for individual components
+│   ├── test_api.py         # FlextCli tests
+│   ├── test_config.py      # FlextCliConfig tests
+│   ├── test_formatters.py  # FlextCliFormatters tests
+│   ├── test_tables.py      # FlextCliTables tests
+│   └── ...
+├── integration/            # Integration tests
+└── conftest.py            # Shared fixtures
+```
+
+### Test Fixtures
+
+Common fixtures available in all tests (from `conftest.py`):
+
+```python
+# Service fixtures (all 19 modules have fixtures)
+flext_cli_api          # FlextCli instance
+flext_cli_cmd          # FlextCliCmd instance
+flext_cli_commands     # FlextCliCommands instance
+flext_cli_config       # FlextCliConfig instance
+flext_cli_constants    # FlextCliConstants instance
+flext_cli_context      # FlextCliContext instance
+flext_cli_core         # FlextCliCore instance
+flext_cli_debug        # FlextCliDebug instance
+flext_cli_file_tools   # FlextCliFileTools instance
+flext_cli_mixins       # FlextCliMixins instance
+flext_cli_models       # FlextCliModels instance
+flext_cli_output       # FlextCliOutput instance
+flext_cli_prompts      # FlextCliPrompts instance
+flext_cli_protocols    # FlextCliProtocols instance
+flext_cli_types        # FlextCliTypes instance
+flext_cli_utilities    # FlextCore.Utilities class
+
+# Utility fixtures
+cli_runner             # Click CLI runner
+temp_dir               # Temporary directory (Generator)
+temp_file              # Temporary text file
+temp_json_file         # Temporary JSON file
+temp_yaml_file         # Temporary YAML file
+temp_csv_file          # Temporary CSV file
+sample_config_data     # Sample configuration dict
+sample_file_data       # Sample file data dict
+sample_command_data    # Sample command data dict
+mock_env_vars          # Mock environment variables
+clean_flext_container  # Fresh FlextCore.Container state
+
+# Fixture data loaders
+fixture_config_file    # Path to test config JSON
+fixture_data_json      # Path to test data JSON
+fixture_data_csv       # Path to test data CSV
+load_fixture_config    # Loaded config data
+load_fixture_data      # Loaded test data
+```
+
+### Writing Tests
+
+Follow these patterns for CLI tests:
+
+```python
+import pytest
+from flext_cli import FlextCli
+
+def test_cli_operation(flext_cli_api: FlextCli):
+    """Test CLI operation with fixture."""
+    result = flext_cli_api.authenticate({"token": "test"})
+    assert result.is_success
+    assert result.unwrap() == "test"
+
+def test_with_temp_file(temp_file, flext_cli_api: FlextCli):
+    """Test file operations."""
+    result = flext_cli_api.read_text_file(temp_file)
+    assert result.is_success
+    assert "test content" in result.unwrap()
+
+@pytest.mark.integration
+def test_integration_scenario(flext_cli_api: FlextCli):
+    """Integration test with marker."""
+    # Test complete workflow
+    pass
+```
+
+---
+
+## Code Quality Standards
+
+### Type Safety
+
+- **MyPy strict mode** required for all `src/` code
+- **100% type annotations** - no `Any` types allowed
+- Use `FlextCore.Types` for common type aliases
+- All return types must be explicit
+
+```python
+from flext_core import FlextResult, FlextCore
+
+def process_data(data: dict[str, object]) -> FlextResult[str]:
+    """Explicit type annotations required."""
+    return FlextResult[str].ok("processed")
+```
+
+### Linting and Formatting
+
+- **Ruff** for linting and formatting (replaces Black, isort, flake8)
+- **Line length**: 88 characters (Ruff default)
+- **Import organization**: Ruff handles automatically
+- Run `make format` before committing
+
+### Error Handling
+
+Always use `FlextResult[T]` pattern - **no bare exceptions** in business logic:
+
+```python
+# ✅ CORRECT - Railway pattern
+def operation() -> FlextResult[str]:
+    if not valid:
+        return FlextResult[str].fail("Invalid input")
+    return FlextResult[str].ok("success")
+
+# ❌ WRONG - Don't raise exceptions for business logic
+def operation() -> str:
+    if not valid:
+        raise ValueError("Invalid input")  # Don't do this
+    return "success"
+```
+
+---
+
+## Dependencies
+
+### Core Dependencies
+
+- **flext-core** - Foundation library (FlextResult, FlextCore.Service, FlextCore.Container)
+- **Click 8.2+** - CLI framework (abstracted internally)
+- **Rich 14.0+** - Terminal UI (abstracted internally)
+- **Pydantic 2.11+** - Data validation and configuration
+- **Tabulate 0.9+** - Table formatting
+- **Typer 0.12+** - CLI builder (uses Click internally)
+- **PyYAML 6.0+** - YAML support
+
+### Dev Dependencies
+
+- **Ruff 0.12+** - Linting and formatting
+- **Pyrefly 0.34+** - Type checking
+- **Pytest 8.4+** - Testing framework
+- **Bandit 1.8+** - Security scanning
+
+---
+
+## Common Issues and Solutions
+
+### Import Errors
+
+```bash
+# If you get "ModuleNotFoundError: No module named 'flext_cli'"
+PYTHONPATH=src poetry run python -c "from flext_cli import FlextCli"
+
+# Always set PYTHONPATH when running tests or scripts
+PYTHONPATH=src poetry run pytest tests/
+```
+
+### Type Check Failures
+
+```bash
+# Run type check to see errors
+make type-check
+
+# Note: Some import errors in examples/ are expected
+# Focus on errors in src/flext_cli/
+```
+
+### Test Recursion Errors
+
+If you encounter recursion errors in tests (particularly in `test_config.py`), this is a known issue with Pydantic `isinstance()` checks in mocked scenarios. Solutions:
+
+1. Avoid mocking `hasattr` on Pydantic models
+2. Use actual instances instead of mocks where possible
+3. Skip problematic edge case tests if they don't test real functionality
+
+### Circular Import Errors
+
+If you encounter circular imports:
+
+```bash
+# Usually caused by incorrect import order in __init__.py or api.py
+# Check the dependency chain:
+api.py → Should not import from modules that import api.py
+cli.py → Should only import from constants, types, exceptions
+config.py → Should only import from constants, models, exceptions
+```
+
+**Solution**: Move shared types to `typings.py`, shared constants to `constants.py`
+
+### Missing FlextResult Methods
+
+If you see `AttributeError` on FlextResult operations:
+
+```python
+# ❌ WRONG - Old API (deprecated)
+result.data  # May not exist
+
+# ✅ CORRECT - Current API
+result.value  # Use value instead
+result.unwrap()  # Safe extraction
+```
+
+### Build Issues
+
+```bash
+# Clean everything and rebuild
+make clean
+make setup
+make build
+
+# Check Poetry environment
+poetry env info
+poetry show --tree
+```
+
+---
+
+## Integration with FLEXT Ecosystem
+
+This project is part of the FLEXT monorepo workspace. Key integration points:
+
+- **Depends on**: flext-core (foundation library)
+- **Used by**: client-a-oud-mig, client-b-meltano-native, flext-api, flext-observability, flext-meltano
+- **Architecture**: Follows workspace-level patterns defined in `../CLAUDE.md`
+- **Quality Gates**: Must pass workspace-level validation before commits
+
+See `../CLAUDE.md` for workspace-level standards and `README.md` for project overview.
+
+### Documentation Resources
+
+Additional documentation is available in `docs/`:
+
+- **[docs/README.md](docs/README.md)** - Documentation index and structure
+- **[docs/getting-started.md](docs/getting-started.md)** - Installation and quick start
+- **[docs/api-reference.md](docs/api-reference.md)** - API examples (Note: Some examples reference older patterns, verify against current `src/`)
+- **[docs/architecture.md](docs/architecture.md)** - Architecture overview (Note: References some components that may have evolved)
+- **[docs/development.md](docs/development.md)** - Contributing guidelines
+
+**Important**: The docs/ directory contains user-facing documentation that may reference earlier designs. Always verify against:
+1. Current source code in `src/flext_cli/`
+2. Actual exports in `__init__.py`
+3. Test patterns in `tests/conftest.py`
+4. This CLAUDE.md file for authoritative architecture
+
+---
+
+## Key Principles
+
+1. **Use FlextResult[T]** for all operations that can fail
+2. **Single class per module** following domain library pattern
+3. **Type safety first** - 100% type annotations required
+4. **Test real functionality** - avoid excessive mocking
+5. **Railway-oriented programming** - compose operations with FlextResult
+6. **Use actual API names** - FlextCli, FlextCliConfig (not outdated aliases)
+7. **Run quality gates** before every commit: `make validate`

@@ -26,7 +26,7 @@ class TestFlextCliVersion:
         """Test that __version__ string matches __version_info__ tuple."""
         version_parts = __version__.split(".")
         # Compare up to the length of version_info
-        for i, info_part in enumerate(__version_info__[:len(version_parts)]):
+        for i, info_part in enumerate(__version_info__[: len(version_parts)]):
             if isinstance(info_part, int):
                 assert int(version_parts[i]) == info_part
             else:

@@ -46,6 +46,17 @@ class TestFlextCliCli:
         assert data["service"] == "flext-cli"
         assert data["status"] == "operational"
 
+    def test_logger_property_defensive_check(self) -> None:
+        """Test logger property creates logger if missing (line 77)."""
+        cli = FlextCliCli()
+        # Delete the _logger attribute to trigger defensive check
+        delattr(cli, "_logger")
+
+        # Access logger property - should recreate it
+        logger = cli.logger
+        assert logger is not None
+        assert hasattr(cli, "_logger")
+
     # =========================================================================
     # COMMAND AND GROUP CREATION TESTS
     # =========================================================================
@@ -223,6 +234,17 @@ class TestFlextCliCli:
 
         assert isinstance(datetime_type, click.DateTime)
 
+    def test_get_datetime_type_default_formats(self, cli_cli: FlextCliCli) -> None:
+        """Test get_datetime_type with default formats (line 380)."""
+        # Call without formats parameter - should use defaults
+        datetime_type = cli_cli.get_datetime_type()
+
+        assert isinstance(datetime_type, click.DateTime)
+        # Verify default formats are set
+        assert "%Y-%m-%d" in datetime_type.formats
+        assert "%Y-%m-%dT%H:%M:%S" in datetime_type.formats
+        assert "%Y-%m-%d %H:%M:%S" in datetime_type.formats
+
     def test_get_tuple_type(self, cli_cli: FlextCliCli) -> None:
         """Test getting Click Tuple type."""
         tuple_type = cli_cli.get_tuple_type([str, int, float])
@@ -311,6 +333,129 @@ class TestFlextCliCli:
         # Just check the method exists and returns FlextResult
         assert hasattr(cli_cli, "confirm")
         # Can't test actual confirmation without user input
+
+    def test_confirm_success(
+        self, cli_cli: FlextCliCli, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        """Test confirm success path (line 575)."""
+
+        # Mock typer.confirm to return True
+        def mock_confirm(*args: object, **kwargs: object) -> bool:
+            return True
+
+        monkeypatch.setattr("typer.confirm", mock_confirm)
+
+        # Call confirm - should return success with True
+        result = cli_cli.confirm("Proceed?")
+
+        assert isinstance(result, FlextResult)
+        assert result.is_success
+        assert result.unwrap() is True
+
+    def test_confirm_abort_exception(
+        self, cli_cli: FlextCliCli, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        """Test confirm handles typer.Abort exception (lines 566-577)."""
+        import typer
+
+        # Mock typer.confirm to raise Abort
+        def mock_confirm(*args: object, **kwargs: object) -> bool:
+            raise typer.Abort
+
+        monkeypatch.setattr("typer.confirm", mock_confirm)
+
+        # Call confirm - should catch Abort and return failure
+        result = cli_cli.confirm("Proceed?")
+
+        assert isinstance(result, FlextResult)
+        assert result.is_failure
+        assert "abort" in str(result.error).lower()
+
+    def test_prompt_success(
+        self, cli_cli: FlextCliCli, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        """Test prompt success path (line 631)."""
+
+        # Mock typer.prompt to return a value
+        def mock_prompt(*args: object, **kwargs: object) -> str:
+            return "test_value"
+
+        monkeypatch.setattr("typer.prompt", mock_prompt)
+
+        # Call prompt - should return success with value
+        result = cli_cli.prompt("Enter name:")
+
+        assert isinstance(result, FlextResult)
+        assert result.is_success
+        assert result.unwrap() == "test_value"
+
+    def test_prompt_abort_exception(
+        self, cli_cli: FlextCliCli, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        """Test prompt handles typer.Abort exception (lines 618-633)."""
+        import typer
+
+        # Mock typer.prompt to raise Abort
+        def mock_prompt(*args: object, **kwargs: object) -> str:
+            raise typer.Abort
+
+        monkeypatch.setattr("typer.prompt", mock_prompt)
+
+        # Call prompt - should catch Abort and return failure
+        result = cli_cli.prompt("Enter name:")
+
+        assert isinstance(result, FlextResult)
+        assert result.is_failure
+        assert "abort" in str(result.error).lower()
+
+    def test_format_filename(self, cli_cli: FlextCliCli) -> None:
+        """Test format_filename utility method (line 695)."""
+        from pathlib import Path
+
+        # Test with string filename
+        formatted = cli_cli.format_filename("/path/to/file.txt")
+        assert isinstance(formatted, str)
+        assert "file.txt" in formatted
+
+        # Test with Path object
+        path = Path("/path/to/another_file.txt")
+        formatted = cli_cli.format_filename(path, shorten=True)
+        assert isinstance(formatted, str)
+
+    def test_get_terminal_size(self, cli_cli: FlextCliCli) -> None:
+        """Test get_terminal_size utility method (lines 704-705)."""
+        size = cli_cli.get_terminal_size()
+
+        # Should return tuple of (width, height)
+        assert isinstance(size, tuple)
+        assert len(size) == 2
+        assert isinstance(size[0], int)  # width
+        assert isinstance(size[1], int)  # height
+
+    def test_clear_screen(self, cli_cli: FlextCliCli) -> None:
+        """Test clear_screen utility method (lines 714-715)."""
+        result = cli_cli.clear_screen()
+
+        assert isinstance(result, FlextResult)
+        assert result.is_success
+
+    def test_pause(self, cli_cli: FlextCliCli, monkeypatch: pytest.MonkeyPatch) -> None:
+        """Test pause utility method (lines 727-728)."""
+        # Mock click.pause to avoid blocking in tests
+        pause_called = False
+
+        def mock_pause(info: str = "") -> None:
+            nonlocal pause_called
+            pause_called = True
+
+        monkeypatch.setattr("click.pause", mock_pause)
+
+        # Call pause
+        result = cli_cli.pause(info="Press any key...")
+
+        assert isinstance(result, FlextResult)
+        assert result.is_success
+        assert pause_called
 
     # =========================================================================
     # INTEGRATION TESTS

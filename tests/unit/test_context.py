@@ -223,7 +223,9 @@ class TestFlextCliContext:
 
         # This test verifies the method works correctly
         # Error paths (lines 132, 141, 146-147) are defensive - hard to trigger without mocking
-        result = context_service.create_context_from_model(model_instance, command="test")
+        result = context_service.create_context_from_model(
+            model_instance, command="test"
+        )
 
         # Should succeed in normal case
         assert result.is_success or result.is_failure  # Accept both outcomes
@@ -293,5 +295,338 @@ class TestFlextCliContext:
 
         if attach_result.is_success:
             # Get metadata with same prefix
-            metadata_result = context_service.get_model_metadata(context, prefix="test_prefix")
+            metadata_result = context_service.get_model_metadata(
+                context, prefix="test_prefix"
+            )
             assert metadata_result.is_success or metadata_result.is_failure
+
+
+class TestFlextCliContextExceptionHandlers:
+    """Exception handler tests for context methods."""
+
+    def test_create_context_exception(self, monkeypatch: object) -> None:
+        """Test create_context exception handler (lines 63-64)."""
+        context_service = FlextCliContext()
+
+        # Mock _model_class to raise exception
+        def mock_model_class_raises(*args: object, **kwargs: object) -> object:
+            msg = "Model creation error"
+            raise RuntimeError(msg)
+
+        monkeypatch.setattr(context_service, "_model_class", mock_model_class_raises)
+
+        result = context_service.create_context(command="test")
+
+        assert result.is_failure
+        assert "Failed to create context" in str(result.error)
+
+    def test_validate_context_exception(self, monkeypatch: object) -> None:
+        """Test validate_context exception handler (lines 90-91)."""
+        context_service = FlextCliContext()
+
+        # Create context first
+        create_result = context_service.create_context(command="test")
+        assert create_result.is_success
+        context = create_result.unwrap()
+
+        # Mock context.command property to raise exception
+        monkeypatch.setattr(
+            type(context),
+            "command",
+            property(lambda self: (_ for _ in ()).throw(RuntimeError("Command error"))),
+        )
+
+        result = context_service.validate_context(context)
+
+        assert result.is_failure
+        assert "Context validation failed" in str(result.error)
+
+    def test_create_context_from_model_set_metadata_failure(self) -> None:
+        """Test create_context_from_model when set_metadata fails (lines 132, 141)."""
+        from unittest import mock
+
+        context_service = FlextCliContext()
+
+        # Create model
+        model_instance = FlextCliModels.CliContext(
+            command="test",
+            arguments=["arg1"],
+            environment_variables={},
+            working_directory=None,
+        )
+
+        # Mock set_metadata to return failure
+        with mock.patch.object(
+            FlextCliModels.CliContext,
+            "set_metadata",
+            return_value=FlextResult[None].fail("Metadata failed"),
+        ):
+            result = context_service.create_context_from_model(
+                model_instance, command="test"
+            )
+
+            # Should fail when trying to set metadata
+            assert result.is_failure
+            assert "Failed to attach model data" in str(
+                result.error
+            ) or "Failed to store model class" in str(result.error)
+
+    def test_create_context_from_model_model_class_failure(
+        self, monkeypatch: object
+    ) -> None:
+        """Test create_context_from_model when storing model class fails (line 141)."""
+        context_service = FlextCliContext()
+
+        # Create model
+        model_instance = FlextCliModels.CliContext(
+            command="test",
+            arguments=["arg1"],
+            environment_variables={},
+            working_directory=None,
+        )
+
+        # Create a mock set_metadata that only fails for "model_class" key
+        call_count = [0]
+
+        def selective_set_metadata(key: str, value: object) -> FlextResult[None]:
+            call_count[0] += 1
+            if key == "model_class":
+                return FlextResult[None].fail("Model class failed")
+            return FlextResult[None].ok(None)
+
+        # We need to patch the context instance created inside create_context_from_model
+        original_model_class = context_service._model_class
+
+        def patched_model_class(
+            *args: object, **kwargs: object
+        ) -> FlextCliModels.CliContext:
+            ctx = original_model_class(*args, **kwargs)
+            ctx.__dict__["set_metadata"] = selective_set_metadata
+            return ctx
+
+        monkeypatch.setattr(context_service, "_model_class", patched_model_class)
+
+        result = context_service.create_context_from_model(
+            model_instance, command="test"
+        )
+
+        monkeypatch.undo()
+
+        # Should fail when trying to store model class
+        assert result.is_failure
+        assert "Failed to store model class" in str(result.error)
+
+    def test_create_context_from_model_exception(self) -> None:
+        """Test create_context_from_model exception handler (lines 146-147)."""
+        from unittest import mock
+
+        context_service = FlextCliContext()
+
+        # Create model
+        model_instance = FlextCliModels.CliContext(
+            command="test",
+            arguments=["arg1"],
+            environment_variables={},
+            working_directory=None,
+        )
+
+        # Mock model_dump at class level to raise exception
+        with mock.patch.object(
+            FlextCliModels.CliContext,
+            "model_dump",
+            side_effect=RuntimeError("Dump error"),
+        ):
+            result = context_service.create_context_from_model(
+                model_instance, command="test"
+            )
+
+            assert result.is_failure
+            assert "Context creation from model failed" in str(result.error)
+
+    def test_attach_model_to_context_set_metadata_failure(
+        self, monkeypatch: object
+    ) -> None:
+        """Test attach_model_to_context when set_metadata fails (lines 177, 186)."""
+        context_service = FlextCliContext()
+
+        # Create context
+        create_result = context_service.create_context(command="test")
+        assert create_result.is_success
+        context = create_result.unwrap()
+
+        # Create model
+        model_instance = FlextCliModels.CliContext(
+            command="test_model",
+            arguments=["arg1"],
+            environment_variables={},
+            working_directory=None,
+        )
+
+        # Store original set_metadata method
+        original_set_metadata = context.set_metadata
+
+        # Replace with a method that fails
+        def mock_set_metadata(key: str, value: object) -> FlextResult[None]:
+            return FlextResult[None].fail(f"Metadata failed for {key}")
+
+        # Use __dict__ to bypass Pydantic's __setattr__
+        context.__dict__["set_metadata"] = mock_set_metadata
+
+        result = context_service.attach_model_to_context(context, model_instance)
+
+        # Restore original method
+        context.__dict__["set_metadata"] = original_set_metadata
+
+        assert result.is_failure
+        assert "Failed to attach" in str(
+            result.error
+        ) or "Failed to store model class" in str(result.error)
+
+    def test_attach_model_to_context_model_class_failure(
+        self, monkeypatch: object
+    ) -> None:
+        """Test attach_model_to_context when storing model class fails (line 186)."""
+        context_service = FlextCliContext()
+
+        # Create context
+        create_result = context_service.create_context(command="test")
+        assert create_result.is_success
+        context = create_result.unwrap()
+
+        # Create model
+        model_instance = FlextCliModels.CliContext(
+            command="test_model",
+            arguments=["arg1"],
+            environment_variables={},
+            working_directory=None,
+        )
+
+        # Store original set_metadata method
+        original_set_metadata = context.set_metadata
+
+        # Create a selective mock that only fails for "model_class" key
+        def selective_set_metadata(key: str, value: object) -> FlextResult[None]:
+            if key == "model_class":
+                return FlextResult[None].fail("Model class failed")
+            return FlextResult[None].ok(None)
+
+        # Use __dict__ to bypass Pydantic's __setattr__
+        context.__dict__["set_metadata"] = selective_set_metadata
+
+        result = context_service.attach_model_to_context(context, model_instance)
+
+        # Restore original method
+        context.__dict__["set_metadata"] = original_set_metadata
+
+        assert result.is_failure
+        assert "Failed to store model class" in str(result.error)
+
+    def test_attach_model_to_context_exception(self) -> None:
+        """Test attach_model_to_context exception handler (lines 191-192)."""
+        from unittest import mock
+
+        context_service = FlextCliContext()
+
+        # Create context
+        create_result = context_service.create_context(command="test")
+        assert create_result.is_success
+        context = create_result.unwrap()
+
+        # Create model
+        model_instance = FlextCliModels.CliContext(
+            command="test_model",
+            arguments=["arg1"],
+            environment_variables={},
+            working_directory=None,
+        )
+
+        # Mock model_dump at class level to raise exception
+        with mock.patch.object(
+            FlextCliModels.CliContext,
+            "model_dump",
+            side_effect=RuntimeError("Dump error"),
+        ):
+            result = context_service.attach_model_to_context(context, model_instance)
+
+            assert result.is_failure
+            assert "Model attachment failed" in str(result.error)
+
+    def test_extract_model_from_context_exception(self, monkeypatch: object) -> None:
+        """Test extract_model_from_context exception handler (lines 229-230)."""
+        context_service = FlextCliContext()
+
+        # Create context
+        create_result = context_service.create_context(command="test")
+        assert create_result.is_success
+        context = create_result.unwrap()
+
+        # Mock model_class.model_fields to raise exception
+        monkeypatch.setattr(
+            FlextCliModels.CliContext,
+            "model_fields",
+            property(lambda self: (_ for _ in ()).throw(RuntimeError("Fields error"))),
+        )
+
+        result = context_service.extract_model_from_context(
+            context, FlextCliModels.CliContext
+        )
+
+        assert result.is_failure
+        assert "Model extraction failed" in str(result.error)
+
+    def test_get_model_metadata_get_context_summary_failure(
+        self, monkeypatch: object
+    ) -> None:
+        """Test get_model_metadata when get_context_summary fails (line 253)."""
+        context_service = FlextCliContext()
+
+        # Create context
+        create_result = context_service.create_context(command="test")
+        assert create_result.is_success
+        context = create_result.unwrap()
+
+        # Store original method
+        original_get_summary = context.get_context_summary
+
+        # Replace with a method that fails
+        def mock_get_summary() -> FlextResult[dict]:
+            return FlextResult[dict].fail("Summary failed")
+
+        # Use __dict__ to bypass Pydantic's __setattr__
+        context.__dict__["get_context_summary"] = mock_get_summary
+
+        result = context_service.get_model_metadata(context)
+
+        # Restore original method
+        context.__dict__["get_context_summary"] = original_get_summary
+
+        assert result.is_failure
+        assert "Failed to get context summary" in str(result.error)
+
+    def test_get_model_metadata_exception(self, monkeypatch: object) -> None:
+        """Test get_model_metadata exception handler (lines 274-275)."""
+        context_service = FlextCliContext()
+
+        # Create context
+        create_result = context_service.create_context(command="test")
+        assert create_result.is_success
+        context = create_result.unwrap()
+
+        # Store original method
+        original_get_summary = context.get_context_summary
+
+        # Replace with a method that raises exception
+        def mock_get_summary_raises() -> object:
+            msg = "Summary exception"
+            raise RuntimeError(msg)
+
+        # Use __dict__ to bypass Pydantic's __setattr__
+        context.__dict__["get_context_summary"] = mock_get_summary_raises
+
+        result = context_service.get_model_metadata(context)
+
+        # Restore original method
+        context.__dict__["get_context_summary"] = original_get_summary
+
+        assert result.is_failure
+        assert "Metadata retrieval failed" in str(result.error)

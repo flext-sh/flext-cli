@@ -439,9 +439,7 @@ class TestFlextCliOutput:
             {"name": "Bob", "age": 25, "city": "LA"},
         ]
         result = output.create_rich_table(
-            data=data,
-            headers=["name", "age", "city"],
-            title="User Data"
+            data=data, headers=["name", "age", "city"], title="User Data"
         )
         assert isinstance(result, FlextResult)
         assert result.is_success
@@ -466,7 +464,7 @@ class TestFlextCliOutput:
             show_lines=True,
             show_edge=True,
             expand=False,
-            padding=(0, 1)
+            padding=(0, 1),
         )
         assert isinstance(result, FlextResult)
         assert result.is_success
@@ -480,10 +478,7 @@ class TestFlextCliOutput:
     def test_display_message_with_title(self, output: FlextCliOutput) -> None:
         """Test display_message with title and style."""
         result = output.display_message(
-            "Test message",
-            title="Important",
-            message_type="info",
-            style="bold blue"
+            "Test message", title="Important", message_type="info", style="bold blue"
         )
         assert isinstance(result, FlextResult)
         assert result.is_success
@@ -504,10 +499,7 @@ class TestFlextCliOutput:
 
     def test_display_data_table_format(self, output: FlextCliOutput) -> None:
         """Test display_data with table format."""
-        data = [
-            {"name": "Alice", "age": 30},
-            {"name": "Bob", "age": 25}
-        ]
+        data = [{"name": "Alice", "age": 30}, {"name": "Bob", "age": 25}]
         result = output.display_data(data, format_type="table")
         assert isinstance(result, FlextResult)
         assert result.is_success
@@ -530,10 +522,7 @@ class TestFlextCliOutput:
 
     def test_create_ascii_table_with_data(self, output: FlextCliOutput) -> None:
         """Test create_ascii_table (lines 270-315)."""
-        data = [
-            {"name": "Alice", "age": 30},
-            {"name": "Bob", "age": 25}
-        ]
+        data = [{"name": "Alice", "age": 30}, {"name": "Bob", "age": 25}]
         result = output.create_ascii_table(data=data)
         assert isinstance(result, FlextResult)
         assert result.is_success
@@ -549,3 +538,289 @@ class TestFlextCliOutput:
         assert result.is_success
         table_str = result.unwrap()
         assert isinstance(table_str, str)
+
+    # =========================================================================
+    # EXCEPTION HANDLER AND EDGE CASE TESTS
+    # =========================================================================
+
+    def test_format_data_plain(self, output: FlextCliOutput) -> None:
+        """Test format_data with plain format (line 138)."""
+        data = {"test": "value"}
+        result = output.format_data(data, format_type="plain")
+        assert isinstance(result, FlextResult)
+        assert result.is_success
+        assert "test" in result.unwrap()
+
+    def test_create_formatter_exception(
+        self, output: FlextCliOutput, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        """Test create_formatter exception handler (lines 166-167)."""
+        # Use a simpler approach - mock the list directly to cause an exception when accessed
+        import flext_cli.output as output_module
+
+        original_formats_list = output_module.FlextCliConstants.OUTPUT_FORMATS_LIST
+
+        # Create a mock that raises exception
+        class RaisingList:
+            def __contains__(self, item: object) -> bool:
+                msg = "Test error"
+                raise RuntimeError(msg)
+
+        monkeypatch.setattr(
+            output_module.FlextCliConstants, "OUTPUT_FORMATS_LIST", RaisingList()
+        )
+
+        result = output.create_formatter("json")
+        assert result.is_failure
+        assert "Failed to create formatter" in str(result.error)
+
+        # Restore original
+        monkeypatch.setattr(
+            output_module.FlextCliConstants,
+            "OUTPUT_FORMATS_LIST",
+            original_formats_list,
+        )
+
+    def test_create_rich_table_formatter_failure(
+        self, output: FlextCliOutput, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        """Test create_rich_table when formatters.create_table fails (line 225)."""
+        from flext_core import FlextResult
+
+        def mock_create_table(*args: object, **kwargs: object) -> FlextResult[object]:
+            return FlextResult[object].fail("Table creation failed")
+
+        monkeypatch.setattr(output._formatters, "create_table", mock_create_table)
+
+        data = [{"key": "value"}]
+        result = output.create_rich_table(data=data)
+        assert result.is_failure
+        assert "Failed to create Rich table" in str(result.error)
+
+    def test_create_rich_table_exception_handler(
+        self, output: FlextCliOutput, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        """Test create_rich_table exception handler (lines 242-247)."""
+        data = [{"key": "value"}]
+
+        # Mock formatters to raise exception during create_table
+        def mock_create_table_raises(*args: object, **kwargs: object) -> object:
+            msg = "Test exception"
+            raise RuntimeError(msg)
+
+        monkeypatch.setattr(
+            output._formatters, "create_table", mock_create_table_raises
+        )
+
+        result = output.create_rich_table(data=data)
+        assert result.is_failure
+        assert "Failed to create Rich table" in str(result.error)
+
+    def test_print_warning(self, output: FlextCliOutput) -> None:
+        """Test print_warning method (line 429)."""
+        result = output.print_warning("Test warning")
+        assert isinstance(result, FlextResult)
+        assert result.is_success
+
+    def test_display_message_with_highlight_not_bool(
+        self, output: FlextCliOutput
+    ) -> None:
+        """Test display_message when highlight is not bool (lines 504-505)."""
+        result = output.display_message(
+            "Test", message_type="info", highlight="not_bool"
+        )
+        assert isinstance(result, FlextResult)
+        assert result.is_success
+
+    def test_display_data_title_not_string(self, output: FlextCliOutput) -> None:
+        """Test display_data when title is not string (lines 531-532)."""
+        data = {"key": "value"}
+        result = output.display_data(data, format_type="json", title=123)
+        assert isinstance(result, FlextResult)
+        assert result.is_success
+
+    def test_display_data_headers_not_list(self, output: FlextCliOutput) -> None:
+        """Test display_data when headers is not list (lines 534-535)."""
+        data = [{"key": "value"}]
+        result = output.display_data(data, format_type="table", headers="not_list")
+        assert isinstance(result, FlextResult)
+        assert result.is_success
+
+    def test_display_data_format_failure(
+        self, output: FlextCliOutput, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        """Test display_data when format_data fails (lines 541-543)."""
+        from flext_core import FlextResult
+
+        def mock_format_data(*args: object, **kwargs: object) -> FlextResult[str]:
+            return FlextResult[str].fail("Format failed")
+
+        # Store original method
+        original_format_data = output.format_data
+
+        # Use __dict__ to bypass Pydantic validation
+        output.__dict__["format_data"] = mock_format_data
+
+        try:
+            data = {"key": "value"}
+            result = output.display_data(data, format_type="json")
+            assert result.is_failure
+            assert "Failed to format data" in str(result.error)
+        finally:
+            # Restore original method
+            output.__dict__["format_data"] = original_format_data
+
+    def test_format_yaml_exception(
+        self, output: FlextCliOutput, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        """Test format_yaml exception handler (lines 592-595)."""
+
+        def mock_dump_raises(*args: object, **kwargs: object) -> str:
+            msg = "YAML dump failed"
+            raise RuntimeError(msg)
+
+        monkeypatch.setattr("yaml.dump", mock_dump_raises)
+
+        data = {"key": "value"}
+        result = output.format_yaml(data)
+        assert result.is_failure
+        assert "YAML formatting failed" in str(result.error)
+
+    def test_format_csv_list_of_dicts_success(self, output: FlextCliOutput) -> None:
+        """Test format_csv with list of dicts (lines 612-618)."""
+        data = [{"name": "Alice", "age": 30}, {"name": "Bob", "age": 25}]
+        result = output.format_csv(data)
+        assert result.is_success
+        csv_str = result.unwrap()
+        assert "name" in csv_str
+        assert "Alice" in csv_str
+
+    def test_format_csv_single_dict_success(self, output: FlextCliOutput) -> None:
+        """Test format_csv with single dict (lines 619-625)."""
+        data = {"name": "Alice", "age": 30}
+        result = output.format_csv(data)
+        assert result.is_success
+        csv_str = result.unwrap()
+        assert "name" in csv_str
+        assert "Alice" in csv_str
+
+    def test_format_csv_fallback_to_json(self, output: FlextCliOutput) -> None:
+        """Test format_csv fallback to JSON for non-dict data (line 626)."""
+        data = "simple string"
+        result = output.format_csv(data)
+        assert result.is_success
+        # Should use JSON as fallback
+        assert isinstance(result.unwrap(), str)
+
+    def test_format_csv_exception_handler(
+        self, output: FlextCliOutput, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        """Test format_csv exception handler (lines 627-630)."""
+
+        def mock_dictwriter_raises(*args: object, **kwargs: object) -> object:
+            msg = "CSV writer failed"
+            raise RuntimeError(msg)
+
+        monkeypatch.setattr("csv.DictWriter", mock_dictwriter_raises)
+
+        data = [{"key": "value"}]
+        result = output.format_csv(data)
+        assert result.is_failure
+        assert "CSV formatting failed" in str(result.error)
+
+    def test_format_table_list_not_list_type(self, output: FlextCliOutput) -> None:
+        """Test format_table when data is not dict or list (line 666)."""
+        data = "not_a_dict_or_list"
+        result = output.format_table(data)
+        assert result.is_failure
+        assert "Table format requires dict or list of dicts" in str(result.error)
+
+    def test_format_table_formatters_failure(
+        self, output: FlextCliOutput, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        """Test format_table when _tables.create_table fails (lines 684-686)."""
+        from flext_core import FlextResult
+
+        def mock_create_table_fail(*args: object, **kwargs: object) -> FlextResult[str]:
+            return FlextResult[str].fail("Table creation failed")
+
+        # Store original method
+        original_create_table = output._tables.create_table
+
+        # Use __dict__ to bypass Pydantic validation
+        output._tables.__dict__["create_table"] = mock_create_table_fail
+
+        try:
+            data = {"key": "value"}
+            result = output.format_table(data)
+            assert result.is_failure
+            assert "Failed to create table" in str(result.error)
+        finally:
+            # Restore original method
+            output._tables.__dict__["create_table"] = original_create_table
+
+    def test_format_table_with_title(self, output: FlextCliOutput) -> None:
+        """Test format_table with title (lines 692-693)."""
+        data = {"key": "value"}
+        result = output.format_table(data, title="Test Title")
+        assert result.is_success
+        table_str = result.unwrap()
+        assert "Test Title" in table_str
+
+    def test_format_table_exception_handler(
+        self, output: FlextCliOutput, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        """Test format_table exception handler (lines 697-700)."""
+
+        def mock_create_table_raises(*args: object, **kwargs: object) -> object:
+            msg = "Table format failed"
+            raise RuntimeError(msg)
+
+        # Store original method
+        original_create_table = output._tables.create_table
+
+        # Use __dict__ to bypass Pydantic validation
+        output._tables.__dict__["create_table"] = mock_create_table_raises
+
+        try:
+            data = {"key": "value"}
+            result = output.format_table(data)
+            assert result.is_failure
+            assert "Failed to format table" in str(result.error)
+        finally:
+            # Restore original method
+            output._tables.__dict__["create_table"] = original_create_table
+
+    def test_format_as_tree_formatters_failure(
+        self, output: FlextCliOutput, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        """Test format_as_tree when formatters.create_tree fails (line 728)."""
+        from flext_core import FlextResult
+
+        def mock_create_tree_fail(
+            *args: object, **kwargs: object
+        ) -> FlextResult[object]:
+            return FlextResult[object].fail("Tree creation failed")
+
+        monkeypatch.setattr(output._formatters, "create_tree", mock_create_tree_fail)
+
+        data = {"key": "value"}
+        result = output.format_as_tree(data)
+        assert result.is_failure
+        assert "Failed to create tree" in str(result.error)
+
+    def test_build_tree_with_list(self, output: FlextCliOutput) -> None:
+        """Test _build_tree with list data (lines 759-761)."""
+        # Create a tree through formatters
+        tree_result = output._formatters.create_tree(label="Test")
+        assert tree_result.is_success
+        tree = tree_result.unwrap()
+
+        # Test building tree with list data
+        data = [{"name": "item1"}, {"name": "item2"}]
+        output._build_tree(tree, data)  # Should not raise
+
+    def test_console_property(self, output: FlextCliOutput) -> None:
+        """Test console property (line 782)."""
+        console = output.console
+        assert console is not None
