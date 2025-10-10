@@ -66,7 +66,7 @@ class FlextCliCli:
     def __init__(self) -> None:
         """Initialize CLI abstraction layer with Typer backend."""
         super().__init__()
-        # Logger is automatically provided by FlextMixins.Logging mixin
+        # Logger is automatically provided by FlextMixins mixin
         self._container = FlextCore.Container()
         self._logger = FlextCore.Logger(__name__)
 
