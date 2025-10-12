@@ -17,7 +17,7 @@ FLEXT-CLI PROVIDES:
 - Rich Prompt.ask() - Advanced prompts with built-in validation
 - Rich Confirm.ask() - Boolean confirmations with defaults
 - Rich IntPrompt/FloatPrompt - Type-safe numeric input
-- FlextResult error handling - No try/except needed
+- FlextCore.Result error handling - No try/except needed
 
 HOW TO USE IN YOUR CLI:
 Replace input() calls with FlextCliPrompts for better UX and error handling
@@ -31,7 +31,7 @@ from __future__ import annotations
 
 from typing import cast
 
-from flext_core import FlextResult
+from flext_core import FlextCore
 
 from flext_cli import FlextCli, FlextCliPrompts
 from flext_cli.typings import FlextCliTypes
@@ -203,23 +203,23 @@ def database_setup_wizard() -> dict[str, str | int | bool | float] | None:
 
 
 # ============================================================================
-# PATTERN 6: Input validation with FlextResult in YOUR CLI
+# PATTERN 6: Input validation with FlextCore.Result in YOUR CLI
 # ============================================================================
 
 
 def validate_email_input() -> str | None:
     """Email validation pattern for YOUR user input."""
 
-    def is_valid_email(email: str) -> FlextResult[str]:
+    def is_valid_email(email: str) -> FlextCore.Result[str]:
         """Your validation function."""
         if not email or "@" not in email or "." not in email:
-            return FlextResult[str].fail("Invalid email format")
-        return FlextResult[str].ok(email)
+            return FlextCore.Result[str].fail("Invalid email format")
+        return FlextCore.Result[str].ok(email)
 
     # Get input and validate
     email_result = prompts.prompt("Enter email address:")
 
-    # Validate manually (FlextResult doesn't have and_then in flext-core)
+    # Validate manually (FlextCore.Result doesn't have and_then in flext-core)
     if email_result.is_failure:
         cli.formatters.print(
             f"❌ Prompt failed: {email_result.error}", style="bold red"
@@ -267,16 +267,16 @@ def flext_prompt_with_validation() -> int | None:
         cli.formatters.print(f"❌ Error: {env_result.error}", style="red")
         return None
 
-    # Prompt with custom validation using FlextResult
-    def validate_port(value: str) -> FlextResult[int]:
-        """Validate port number using FlextResult pattern."""
+    # Prompt with custom validation using FlextCore.Result
+    def validate_port(value: str) -> FlextCore.Result[int]:
+        """Validate port number using FlextCore.Result pattern."""
         try:
             port = int(value)
             if not 1024 <= port <= 65535:
-                return FlextResult[int].fail("Port must be between 1024 and 65535")
-            return FlextResult[int].ok(port)
+                return FlextCore.Result[int].fail("Port must be between 1024 and 65535")
+            return FlextCore.Result[int].ok(port)
         except ValueError:
-            return FlextResult[int].fail("Port must be a valid number")
+            return FlextCore.Result[int].fail("Port must be a valid number")
 
     port_result = prompts.prompt("Enter port number", default="8080")
     if port_result.is_success:
@@ -333,17 +333,17 @@ def flext_numeric_prompts() -> dict[str, int | float]:
     # Integer prompt with validation
     def validate_int(
         value: str, min_val: int | None = None, max_val: int | None = None
-    ) -> FlextResult[int]:
+    ) -> FlextCore.Result[int]:
         """Validate and convert to integer."""
         try:
             num = int(value)
             if min_val is not None and num < min_val:
-                return FlextResult[int].fail(f"Value must be >= {min_val}")
+                return FlextCore.Result[int].fail(f"Value must be >= {min_val}")
             if max_val is not None and num > max_val:
-                return FlextResult[int].fail(f"Value must be <= {max_val}")
-            return FlextResult[int].ok(num)
+                return FlextCore.Result[int].fail(f"Value must be <= {max_val}")
+            return FlextCore.Result[int].ok(num)
         except ValueError:
-            return FlextResult[int].fail("Value must be a valid integer")
+            return FlextCore.Result[int].fail("Value must be a valid integer")
 
     # Initialize variables at function scope
     workers = 4
@@ -363,12 +363,12 @@ def flext_numeric_prompts() -> dict[str, int | float]:
             )
 
     # Get CPU limit (float)
-    def validate_float(value: str) -> FlextResult[float]:
+    def validate_float(value: str) -> FlextCore.Result[float]:
         """Validate and convert to float."""
         try:
-            return FlextResult[float].ok(float(value))
+            return FlextCore.Result[float].ok(float(value))
         except ValueError:
-            return FlextResult[float].fail("Value must be a valid number")
+            return FlextCore.Result[float].fail("Value must be a valid number")
 
     cpu_result = prompts.prompt("CPU limit (cores)", default="2.5")
     if cpu_result.is_success:
@@ -426,14 +426,14 @@ def flext_configuration_wizard() -> dict[str, str | int | bool | float] | None:
     config["environment"] = env_result.unwrap()
 
     # Port (type-safe integer)
-    def validate_port(value: str) -> FlextResult[int]:
+    def validate_port(value: str) -> FlextCore.Result[int]:
         try:
             port = int(value)
             if not 1024 <= port <= 65535:
-                return FlextResult[int].fail("Port must be between 1024-65535")
-            return FlextResult[int].ok(port)
+                return FlextCore.Result[int].fail("Port must be between 1024-65535")
+            return FlextCore.Result[int].ok(port)
         except ValueError:
-            return FlextResult[int].fail("Port must be a number")
+            return FlextCore.Result[int].fail("Port must be a number")
 
     port_result = prompts.prompt("Port number", default="8080")
     if port_result.is_success:
@@ -560,10 +560,10 @@ def main() -> None:
         "  • Use prompts.prompt_choice() for validated selections", style="white"
     )
     cli.formatters.print(
-        "  • Combine with FlextResult for robust validation", style="white"
+        "  • Combine with FlextCore.Result for robust validation", style="white"
     )
     cli.formatters.print(
-        "  • All methods return FlextResult - no try/except needed", style="white"
+        "  • All methods return FlextCore.Result - no try/except needed", style="white"
     )
     cli.formatters.print(
         "  • NEVER import rich/click directly - use FlextCli wrappers!", style="white"

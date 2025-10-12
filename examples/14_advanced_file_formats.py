@@ -31,6 +31,8 @@ import tempfile
 from pathlib import Path
 from typing import cast
 
+from flext_core import FlextCore
+
 from flext_cli import FlextCli, FlextCliTables
 from flext_cli.typings import FlextCliTypes
 
@@ -94,7 +96,9 @@ def import_from_csv(input_file: Path) -> list[dict] | None:
     if rows:
         cli.formatters.print("\n📋 Sample Data:", style="yellow")
         # Cast to expected type
-        sample_rows: list[dict[str, object]] = cast("list[dict[str, object]]", rows[:5])
+        sample_rows: list[FlextCore.Types.Dict] = cast(
+            "list[FlextCore.Types.Dict]", rows[:5]
+        )
         table_result = tables.create_table(sample_rows, table_format="grid")
         if table_result.is_success:
             print(table_result.unwrap())

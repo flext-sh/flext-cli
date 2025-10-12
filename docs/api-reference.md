@@ -36,7 +36,7 @@ from flext_cli import (
 )
 
 # Import from flext-core for patterns
-from flext_core import FlextResult, FlextCore
+from flext_core import FlextCore, FlextCore
 ```
 
 **Note**: `FlextCliAuth` and `FlextCliMain` mentioned in older documentation are not part of current exports. Use `FlextCli` as the main API entry point.
@@ -49,7 +49,7 @@ The `FlextCli` class is the primary entry point providing a unified facade over 
 
 ```python
 from flext_cli import FlextCli
-from flext_core import FlextResult
+from flext_core import FlextCore
 
 # Create CLI instance (consolidated API)
 cli = FlextCli()
@@ -238,7 +238,7 @@ with context:
 ```python
 import pytest
 from flext_cli import FlextCli, FlextCliFileTools
-from flext_core import FlextResult
+from flext_core import FlextCore
 from pathlib import Path
 
 def test_cli_output(flext_cli_api: FlextCli):
@@ -284,17 +284,17 @@ The recommended approach is to use `FlextCli` as the unified API:
 
 ```python
 from flext_cli import FlextCli
-from flext_core import FlextResult
+from flext_core import FlextCore
 from pathlib import Path
 
-def process_command(input_file: str, output_file: str = "output.txt") -> FlextResult[str]:
+def process_command(input_file: str, output_file: str = "output.txt") -> FlextCore.Result[str]:
     """Process input file and save to output."""
     cli = FlextCli()
 
     # Read input file
     read_result = cli.read_text_file(Path(input_file))
     if read_result.is_failure:
-        return FlextResult[str].fail(f"Failed to read input: {read_result.error}")
+        return FlextCore.Result[str].fail(f"Failed to read input: {read_result.error}")
 
     # Process content
     content = read_result.unwrap()
@@ -303,21 +303,21 @@ def process_command(input_file: str, output_file: str = "output.txt") -> FlextRe
     # Write output file
     write_result = cli.write_text_file(Path(output_file), processed)
     if write_result.is_failure:
-        return FlextResult[str].fail(f"Failed to write output: {write_result.error}")
+        return FlextCore.Result[str].fail(f"Failed to write output: {write_result.error}")
 
     cli.success(f"Processed {input_file} -> {output_file}")
-    return FlextResult[str].ok("Processing complete")
+    return FlextCore.Result[str].ok("Processing complete")
 ```
 
 ### Railway-Oriented Error Handling
 
-Always use `FlextResult[T]` for operations that can fail:
+Always use `FlextCore.Result[T]` for operations that can fail:
 
 ```python
 from flext_cli import FlextCli, FlextCliFileTools
-from flext_core import FlextResult
+from flext_core import FlextCore
 
-def risky_operation(file_path: str) -> FlextResult[dict]:
+def risky_operation(file_path: str) -> FlextCore.Result[dict]:
     """Operation with proper error handling."""
     file_tools = FlextCliFileTools()
 
@@ -329,11 +329,11 @@ def risky_operation(file_path: str) -> FlextResult[dict]:
         .map_error(lambda err: f"Operation failed: {err}")
     )
 
-def validate_data(data: dict) -> FlextResult[dict]:
+def validate_data(data: dict) -> FlextCore.Result[dict]:
     """Validation step."""
     if "required_field" not in data:
-        return FlextResult[dict].fail("Missing required field")
-    return FlextResult[dict].ok(data)
+        return FlextCore.Result[dict].fail("Missing required field")
+    return FlextCore.Result[dict].ok(data)
 
 def transform_data(data: dict) -> dict:
     """Transformation step (can't fail)."""
@@ -376,7 +376,7 @@ if result.is_success:
 
 ### Command Design
 
-1. **Use FlextResult for all operations**
+1. **Use FlextCore.Result for all operations**
 2. **Provide clear help text and descriptions**
 3. **Validate inputs early**
 4. **Use consistent naming conventions**
@@ -404,25 +404,25 @@ if result.is_success:
 
 ```python
 from flext_cli import FlextCli
-from flext_core import FlextResult, FlextCore
+from flext_core import FlextCore, FlextCore
 
-# All operations return FlextResult[T]
-def process_with_cli(data: dict) -> FlextResult[str]:
+# All operations return FlextCore.Result[T]
+def process_with_cli(data: dict) -> FlextCore.Result[str]:
     """Example integration with flext-core patterns."""
     cli = FlextCli()
 
-    # Use FlextResult railway pattern
+    # Use FlextCore.Result railway pattern
     return (
         validate_input(data)
         .map(lambda d: process_data(d))
         .map(lambda result: format_output(result, cli))
     )
 
-def validate_input(data: dict) -> FlextResult[dict]:
-    """Validate with FlextResult."""
+def validate_input(data: dict) -> FlextCore.Result[dict]:
+    """Validate with FlextCore.Result."""
     if not data:
-        return FlextResult[dict].fail("Data cannot be empty")
-    return FlextResult[dict].ok(data)
+        return FlextCore.Result[dict].fail("Data cannot be empty")
+    return FlextCore.Result[dict].ok(data)
 
 def process_data(data: dict) -> dict:
     """Process data."""

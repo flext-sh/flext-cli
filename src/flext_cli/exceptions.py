@@ -36,7 +36,7 @@ class FlextCliExceptions(FlextCore.Exceptions):
         """
 
         # Add context attribute for CLI-specific usage
-        context: dict[str, object]
+        context: FlextCore.Types.Dict
 
         @override
         def __init__(
@@ -110,16 +110,16 @@ class FlextCliExceptions(FlextCore.Exceptions):
             return str(self.error_code) == error_code
 
         def _extract_common_kwargs(
-            self, kwargs: dict[str, object]
-        ) -> tuple[dict[str, object], str | None, dict[str, object]]:
+            self, kwargs: FlextCore.Types.Dict
+        ) -> tuple[FlextCore.Types.Dict, str | None, FlextCore.Types.Dict]:
             """Extract common kwargs for exception initialization.
 
             If context is provided as a dict, use it as base context.
             If context is provided as a non-dict value, treat it as a regular kwarg.
             """
             context = kwargs.get("context")
-            base_context: dict[str, object] = {}
-            remaining: dict[str, object] = {}
+            base_context: FlextCore.Types.Dict = {}
+            remaining: FlextCore.Types.Dict = {}
 
             # If context is a dict, use it as base context
             if isinstance(context, dict):
@@ -142,9 +142,9 @@ class FlextCliExceptions(FlextCore.Exceptions):
 
         def _build_context(
             self,
-            base_context: dict[str, object],
-            remaining: dict[str, object] | None = None,
-        ) -> dict[str, object]:
+            base_context: FlextCore.Types.Dict,
+            remaining: FlextCore.Types.Dict | None = None,
+        ) -> FlextCore.Types.Dict:
             """Build complete context dictionary merging base and remaining kwargs."""
             result = base_context.copy()
             if remaining:

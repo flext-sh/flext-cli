@@ -3,7 +3,7 @@
 Tests cover:
 - ValidationMixin: All validation methods with success/failure/edge cases
 - BusinessRulesMixin: All business rule validation methods
-- FlextResult patterns throughout
+- FlextCore.Result patterns throughout
 - No mocks, only real functionality tests
 
 Copyright (c) 2025 FLEXT Team. All rights reserved.

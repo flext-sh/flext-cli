@@ -16,7 +16,7 @@ FLEXT-CLI PROVIDES:
 - file_tools.read_csv_file_with_headers() / write_csv_file() - CSV with headers
 - file_tools.read_binary_file() / write_binary_file() - Binary operations
 - file_tools.detect_file_format() / load_file_auto() - Auto-format detection
-- FlextResult error handling - No try/except needed
+- FlextCore.Result error handling - No try/except needed
 - Automatic path handling with pathlib integration
 
 HOW TO USE IN YOUR CLI:
@@ -38,7 +38,7 @@ import tempfile
 from pathlib import Path
 from typing import cast
 
-from flext_core import FlextResult
+from flext_core import FlextCore
 
 from flext_cli import FlextCli, FlextCliTables
 from flext_cli.typings import FlextCliTypes
@@ -187,8 +187,8 @@ def list_project_files(project_dir: Path) -> None:
 
     # Display as table
     if files_data:
-        sample_data: list[dict[str, object]] = cast(
-            "list[dict[str, object]]", files_data[:20]
+        sample_data: list[FlextCore.Types.Dict] = cast(
+            "list[FlextCore.Types.Dict]", files_data[:20]
         )
         table_result = tables.create_table(sample_data, table_format="grid")
         if table_result.is_success:
@@ -242,15 +242,15 @@ def validate_and_import_data(input_file: Path) -> dict | None:
     data = read_result.unwrap()
 
     # Step 2: Validate structure
-    def validate_structure(data: dict) -> FlextResult[dict]:
+    def validate_structure(data: dict) -> FlextCore.Result[dict]:
         """Your validation logic."""
         required_fields = ["id", "name", "value"]
         for field in required_fields:
             if field not in data:
-                return FlextResult[dict].fail(f"Missing required field: {field}")
-        return FlextResult[dict].ok(data)
+                return FlextCore.Result[dict].fail(f"Missing required field: {field}")
+        return FlextCore.Result[dict].ok(data)
 
-    # Chain validation using FlextResult - type narrowing needed
+    # Chain validation using FlextCore.Result - type narrowing needed
     if not isinstance(data, dict):
         cli.formatters.print("❌ Data is not a dictionary", style="bold red")
         return None
@@ -272,7 +272,9 @@ def validate_and_import_data(input_file: Path) -> dict | None:
 # ============================================================================
 
 
-def backup_config_files(source_dir: Path, backup_dir: Path) -> list[str]:
+def backup_config_files(
+    source_dir: Path, backup_dir: Path
+) -> FlextCore.Types.StringList:
     """Backup configuration files in YOUR backup tool."""
     backup_dir.mkdir(parents=True, exist_ok=True)
 
@@ -366,7 +368,9 @@ def import_from_csv(input_file: Path) -> list[dict] | None:
 
     # Display sample
     if rows:
-        sample_rows: list[dict[str, object]] = cast("list[dict[str, object]]", rows[:5])
+        sample_rows: list[FlextCore.Types.Dict] = cast(
+            "list[FlextCore.Types.Dict]", rows[:5]
+        )
         table_result = tables.create_table(sample_rows, table_format="grid")
         if table_result.is_success:
             cli.formatters.print("\n📋 Sample Data:", style="yellow")
@@ -635,7 +639,7 @@ def main() -> None:
         "  • Tables: Use FlextCliTables for ASCII table export", style="white"
     )
     cli.formatters.print(
-        "  • All methods return FlextResult for error handling", style="white"
+        "  • All methods return FlextCore.Result for error handling", style="white"
     )
 
 

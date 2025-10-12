@@ -25,8 +25,9 @@ from __future__ import annotations
 
 import os
 import time
+from typing import cast
 
-from flext_core import FlextResult
+from flext_core import FlextCore
 
 from flext_cli import FlextCli
 
@@ -38,7 +39,7 @@ cli = FlextCli.get_instance()
 # ============================================================================
 
 
-def handle_status_command() -> FlextResult[dict]:
+def handle_status_command() -> FlextCore.Result[dict]:
     """Status command in YOUR interactive CLI."""
     status = {
         "status": "running",
@@ -50,10 +51,10 @@ def handle_status_command() -> FlextResult[dict]:
     cli.formatters.print(f"   User: {status['user']}", style="cyan")
     cli.formatters.print(f"   Time: {status['timestamp']}", style="cyan")
 
-    return FlextResult[dict].ok(status)
+    return FlextCore.Result[dict].ok(status)
 
 
-def handle_list_command(filter_text: str = "") -> FlextResult[list]:
+def handle_list_command(filter_text: str = "") -> FlextCore.Result[list]:
     """List command with filtering in YOUR CLI."""
     items = ["item1", "item2", "item3", "test_item"]
 
@@ -62,23 +63,23 @@ def handle_list_command(filter_text: str = "") -> FlextResult[list]:
         cli.formatters.print(
             f"📋 Found {len(filtered)} items matching '{filter_text}'", style="cyan"
         )
-        return FlextResult[list].ok(filtered)
+        return FlextCore.Result[list].ok(filtered)
 
     cli.formatters.print(f"📋 Total items: {len(items)}", style="cyan")
-    return FlextResult[list].ok(items)
+    return FlextCore.Result[list].ok(items)
 
 
-def handle_config_command(key: str = "", value: str = "") -> FlextResult[str]:
+def handle_config_command(key: str = "", value: str = "") -> FlextCore.Result[str]:
     """Config management in YOUR interactive CLI."""
     if key and value:
         cli.formatters.print(f"✅ Set {key}={value}", style="green")
-        return FlextResult[str].ok(f"Set {key}={value}")
+        return FlextCore.Result[str].ok(f"Set {key}={value}")
     if key:
         # Get config value
         cli.formatters.print(f"📖 Reading {key}...", style="cyan")
-        return FlextResult[str].ok("value")
+        return FlextCore.Result[str].ok("value")
     cli.formatters.print("⚠️  Usage: config <key> [value]", style="yellow")
-    return FlextResult[str].fail("Missing key")
+    return FlextCore.Result[str].fail("Missing key")
 
 
 # ============================================================================
@@ -100,41 +101,41 @@ class InteractiveShell:
         }
         self.running = False
 
-    def show_help(self) -> FlextResult[None]:
+    def show_help(self) -> FlextCore.Result[None]:
         """Show available commands."""
         cli.formatters.print("\n📚 Available Commands:", style="bold cyan")
         for cmd in self.commands:
             cli.formatters.print(f"   • {cmd}", style="white")
-        return FlextResult[None].ok(None)
+        return FlextCore.Result[None].ok(None)
 
-    def exit_shell(self) -> FlextResult[None]:
+    def exit_shell(self) -> FlextCore.Result[None]:
         """Exit interactive shell."""
         cli.formatters.print("👋 Goodbye!", style="cyan")
         self.running = False
-        return FlextResult[None].ok(None)
+        return FlextCore.Result[None].ok(None)
 
-    def execute_command(self, command_line: str) -> FlextResult[object]:
+    def execute_command(self, command_line: str) -> FlextCore.Result[object]:
         """Execute command from user input."""
         parts = command_line.strip().split()
         if not parts:
-            return FlextResult[object].fail("Empty command")
+            return FlextCore.Result[object].fail("Empty command")
 
         cmd_name = parts[0]
         args = parts[1:] if len(parts) > 1 else []
 
         if cmd_name not in self.commands:
-            return FlextResult[object].fail(f"Unknown command: {cmd_name}")
+            return FlextCore.Result[object].fail(f"Unknown command: {cmd_name}")
 
         handler = self.commands[cmd_name]
 
         try:
             # Call handler with args - type narrowing
             if callable(handler):
-                result: FlextResult[object] = handler(*args) if args else handler()
-                return result
-            return FlextResult[object].fail("Handler is not callable")
+                result = handler(*args) if args else handler()
+                return cast("FlextCore.Result[object]", result)
+            return FlextCore.Result[object].fail("Handler is not callable")
         except Exception as e:
-            return FlextResult[object].fail(f"Command error: {e}")
+            return FlextCore.Result[object].fail(f"Command error: {e}")
 
 
 # ============================================================================
@@ -142,7 +143,7 @@ class InteractiveShell:
 # ============================================================================
 
 
-def handle_multiline_input(lines: list[str]) -> str:
+def handle_multiline_input(lines: FlextCore.Types.StringList) -> str:
     """Process multi-line input in YOUR interactive CLI."""
     combined = "\n".join(lines)
     cli.formatters.print(f"📝 Processing {len(lines)} lines...", style="cyan")
@@ -160,7 +161,7 @@ class CommandHistory:
 
     def __init__(self, max_size: int = 100) -> None:
         """Initialize command history with maximum size limit."""
-        self.history: list[str] = []
+        self.history: FlextCore.Types.StringList = []
         self.max_size = max_size
 
     def add(self, command: str) -> None:
@@ -169,7 +170,7 @@ class CommandHistory:
         if len(self.history) > self.max_size:
             self.history.pop(0)
 
-    def get_recent(self, count: int = 10) -> list[str]:
+    def get_recent(self, count: int = 10) -> FlextCore.Types.StringList:
         """Get recent commands."""
         return self.history[-count:]
 
@@ -239,7 +240,7 @@ def main() -> None:
     # Integration guide
     cli.formatters.print("\n💡 Integration Tips:", style="bold cyan")
     cli.formatters.print(
-        "  • Create command handlers with FlextResult returns", style="white"
+        "  • Create command handlers with FlextCore.Result returns", style="white"
     )
     cli.formatters.print(
         "  • Build command dispatcher to route user input", style="white"

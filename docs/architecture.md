@@ -16,7 +16,7 @@ flext-cli provides a **CLI foundation library** for the FLEXT ecosystem using a 
 
 - **ZERO TOLERANCE Framework Isolation** - Click/Rich imports strictly controlled
 - **Unified Class Pattern** - Single class per module following domain library design
-- **Railway-Oriented Programming** - All operations return `FlextResult[T]`
+- **Railway-Oriented Programming** - All operations return `FlextCore.Result[T]`
 - **Type Safety First** - Python 3.13+ with 100% type annotations
 - **Singleton Configuration** - Global configuration with environment variable support
 
@@ -100,12 +100,12 @@ class FlextCliModels:
     # All 50+ models defined as nested classes
 ```
 
-### FlextResult[T] Railway Pattern
+### FlextCore.Result[T] Railway Pattern
 
-ALL operations that can fail must return `FlextResult[T]`:
+ALL operations that can fail must return `FlextCore.Result[T]`:
 
 ```python
-from flext_core import FlextResult
+from flext_core import FlextCore
 from flext_cli import FlextCliFileTools
 
 file_tools = FlextCliFileTools()
@@ -135,7 +135,7 @@ graph TD
     C -->|File I/O| E[FlextCliFileTools]
     C -->|Command| F[FlextCliCmd]
     D --> G[Rich Library - Abstracted]
-    E --> H[FlextResult Return]
+    E --> H[FlextCore.Result Return]
     F --> H
     H --> I[User Code]
 ```
@@ -232,10 +232,10 @@ cli.tables.create_table(data, format="fancy_grid")
 
    ```python
    # In api.py, add new methods to FlextCli class
-   from flext_core import FlextResult
+   from flext_core import FlextCore
 
    class FlextCli:
-       def new_operation(self, data: dict) -> FlextResult[str]:
+       def new_operation(self, data: dict) -> FlextCore.Result[str]:
            """New CLI operation."""
            # Use existing services
            result = self.file_tools.read_json_file("data.json")
@@ -247,10 +247,10 @@ cli.tables.create_table(data, format="fancy_grid")
    ```python
    # In file_tools.py, cmd.py, output.py, etc.
    class FlextCliFileTools:
-       def new_file_operation(self, path: Path) -> FlextResult[str]:
+       def new_file_operation(self, path: Path) -> FlextCore.Result[str]:
            """New file operation."""
-           # Implementation using FlextResult
-           return FlextResult[str].ok("success")
+           # Implementation using FlextCore.Result
+           return FlextCore.Result[str].ok("success")
    ```
 
 3. **Update Models if Needed**
@@ -278,16 +278,16 @@ cli.tables.create_table(data, format="fancy_grid")
 
 ```python
 from flext_cli import FlextCli
-from flext_core import FlextResult
+from flext_core import FlextCore
 
 class MyProjectCli(FlextCli):
     """Custom CLI for your project."""
 
-    def custom_command(self, args: dict) -> FlextResult[str]:
+    def custom_command(self, args: dict) -> FlextCore.Result[str]:
         """Project-specific command."""
         # Use inherited CLI functionality
         self.print("Running custom command...")
-        return FlextResult[str].ok("complete")
+        return FlextCore.Result[str].ok("complete")
 ```
 
 ---
@@ -304,7 +304,7 @@ class MyProjectCli(FlextCli):
 
 - **Type Safety** - MyPy strict mode compliance
 - **Code Quality** - Ruff linting standards
-- **Error Handling** - FlextResult pattern usage
+- **Error Handling** - FlextCore.Result pattern usage
 - **Documentation** - All public APIs documented
 
 ---
@@ -343,7 +343,7 @@ class MyProjectCli(FlextCli):
 
 | Package | Role | Integration Point |
 |---------|------|-------------------|
-| **flext-core** | Foundation patterns | FlextResult, FlextCore.Service, FlextCore.Container |
+| **flext-core** | Foundation patterns | FlextCore.Result, FlextCore.Service, FlextCore.Container |
 | **flext-api** | HTTP operations | Optional integration for API CLIs |
 | **flext-observability** | Monitoring | Optional logging/metrics integration |
 | **32+ projects** | Consumers | All use flext-cli for CLI functionality |

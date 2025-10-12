@@ -12,7 +12,7 @@ from __future__ import annotations
 import time
 
 import pytest
-from flext_core import FlextResult
+from flext_core import FlextCore
 
 # Test utilities removed from flext-core production exports
 from flext_cli.debug import FlextCliDebug
@@ -36,7 +36,7 @@ class TestFlextCliDebug:
         """Test debug execute method."""
         result = debug.execute()
 
-        assert isinstance(result, FlextResult)
+        assert isinstance(result, FlextCore.Result)
         assert result.is_success
         assert isinstance(result.unwrap(), str)
 
@@ -44,14 +44,14 @@ class TestFlextCliDebug:
         """Test debug config validation."""
         result = debug.validate_config()
 
-        assert isinstance(result, FlextResult)
+        assert isinstance(result, FlextCore.Result)
         assert result.is_success
 
     def test_debug_get_system_paths(self, debug: FlextCliDebug) -> None:
         """Test getting system paths."""
         result = debug.get_system_paths()
 
-        assert isinstance(result, FlextResult)
+        assert isinstance(result, FlextCore.Result)
         assert result.is_success
         assert isinstance(result.unwrap(), list)
 
@@ -59,7 +59,7 @@ class TestFlextCliDebug:
         """Test validating environment setup."""
         result = debug.validate_environment_setup()
 
-        assert isinstance(result, FlextResult)
+        assert isinstance(result, FlextCore.Result)
         assert result.is_success
         assert isinstance(result.unwrap(), list)
 
@@ -67,7 +67,7 @@ class TestFlextCliDebug:
         """Test connectivity testing."""
         result = debug.test_connectivity()
 
-        assert isinstance(result, FlextResult)
+        assert isinstance(result, FlextCore.Result)
         assert result.is_success
         assert isinstance(result.unwrap(), dict)
 
@@ -75,7 +75,7 @@ class TestFlextCliDebug:
         """Test executing health check."""
         result = debug.execute_health_check()
 
-        assert isinstance(result, FlextResult)
+        assert isinstance(result, FlextCore.Result)
         assert result.is_success
         assert isinstance(result.unwrap(), dict)
 
@@ -83,7 +83,7 @@ class TestFlextCliDebug:
         """Test executing trace."""
         result = debug.execute_trace(["test", "args"])
 
-        assert isinstance(result, FlextResult)
+        assert isinstance(result, FlextCore.Result)
         assert result.is_success
         assert isinstance(result.unwrap(), dict)
 
@@ -91,7 +91,7 @@ class TestFlextCliDebug:
         """Test getting debug information."""
         result = debug.get_debug_info()
 
-        assert isinstance(result, FlextResult)
+        assert isinstance(result, FlextCore.Result)
         assert result.is_success
         assert isinstance(result.unwrap(), dict)
 
@@ -137,11 +137,11 @@ class TestFlextCliDebug:
         """Test edge cases and error conditions."""
         # Test with empty trace args
         result = debug.execute_trace([])
-        assert isinstance(result, FlextResult)
+        assert isinstance(result, FlextCore.Result)
 
         # Test with various trace args
         result = debug.execute_trace(["arg1", "arg2", "arg3"])
-        assert isinstance(result, FlextResult)
+        assert isinstance(result, FlextCore.Result)
 
         # Test with special characters in trace args
         result = debug.execute_trace([
@@ -149,7 +149,7 @@ class TestFlextCliDebug:
             "arg-with-dashes",
             "arg_with_underscores",
         ])
-        assert isinstance(result, FlextResult)
+        assert isinstance(result, FlextCore.Result)
 
     def test_debug_performance(self, debug: FlextCliDebug) -> None:
         """Test debug performance."""
@@ -167,12 +167,12 @@ class TestFlextCliDebug:
         # Test with many debug operations
         for _i in range(1000):
             paths_result = debug.get_system_paths()
-            assert isinstance(paths_result, FlextResult)
+            assert isinstance(paths_result, FlextCore.Result)
 
         # Test getting debug info multiple times
         for _i in range(100):
             info_result = debug.get_debug_info()
-            assert isinstance(info_result, FlextResult)
+            assert isinstance(info_result, FlextCore.Result)
 
     # =========================================================================
     # COVERAGE IMPROVEMENT TESTS - Missing error paths and methods
@@ -182,7 +182,7 @@ class TestFlextCliDebug:
         """Test get_comprehensive_debug_info method (lines 148-194)."""
         result = debug.get_comprehensive_debug_info()
 
-        assert isinstance(result, FlextResult)
+        assert isinstance(result, FlextCore.Result)
         assert result.is_success
         info = result.unwrap()
         assert isinstance(info, dict)
@@ -196,7 +196,7 @@ class TestFlextCliDebug:
         """Test get_system_info method (lines 55-72)."""
         result = debug.get_system_info()
 
-        assert isinstance(result, FlextResult)
+        assert isinstance(result, FlextCore.Result)
         assert result.is_success
         info = result.unwrap()
         assert isinstance(info, dict)
@@ -207,7 +207,7 @@ class TestFlextCliDebug:
         """Test get_environment_variables method (lines 74-88)."""
         result = debug.get_environment_variables()
 
-        assert isinstance(result, FlextResult)
+        assert isinstance(result, FlextCore.Result)
         assert result.is_success
         env = result.unwrap()
         assert isinstance(env, dict)
@@ -224,7 +224,7 @@ class TestFlextCliDebug:
         """Test validate_config method."""
         result = debug.validate_config()
 
-        assert isinstance(result, FlextResult)
+        assert isinstance(result, FlextCore.Result)
         # Should succeed or fail gracefully
         assert result.is_success or result.is_failure
 
@@ -361,7 +361,7 @@ class TestFlextCliDebugExceptionHandlers:
         debug = FlextCliDebug()
 
         # Mock _get_path_info to return path dict with tuple (non-basic type)
-        def mock_path_info() -> list[dict[str, object]]:
+        def mock_path_info() -> list[FlextCore.Types.Dict]:
             return [
                 {
                     "index": 0,

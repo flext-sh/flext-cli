@@ -26,7 +26,7 @@ flext-cli is a production-ready Python library that provides:
 1. **[01_getting_started.py](01_getting_started.py)** - Start here!
    - Basic FlextCli initialization
    - Accessing domain services
-   - FlextResult railway pattern
+   - FlextCore.Result railway pattern
    - Core operations
 
 2. **[02_output_formatting.py](02_output_formatting.py)** - Rich output
@@ -155,8 +155,8 @@ flext-cli follows the FLEXT ecosystem architecture:
 
 - **FlextCli** - Main facade providing unified access
 - **Domain Services** - Specialized modules (Output, Formatters, Tables, etc.)
-- **FlextResult** - Railway-oriented error handling (from flext-core)
-- **FlextConfig** - Pydantic-based configuration
+- **FlextCore.Result** - Railway-oriented error handling (from flext-core)
+- **FlextCore.Config** - Pydantic-based configuration
 - **Type Safety** - Complete type hints throughout
 
 ## 💡 Usage Patterns
@@ -179,22 +179,22 @@ output = FlextCliOutput()
 output.error("Something went wrong")
 ```
 
-### Pattern 3: With FlextResult
+### Pattern 3: With FlextCore.Result
 
 ```python
 from flext_cli import FlextCli
-from flext_core import FlextResult
+from flext_core import FlextCore
 
-def process_data(data: dict) -> FlextResult[dict]:
+def process_data(data: dict) -> FlextCore.Result[dict]:
     cli = FlextCli()
 
     if not data:
-        return FlextResult[dict].fail("Data is empty")
+        return FlextCore.Result[dict].fail("Data is empty")
 
     cli.output.info("Processing...")
     # ... processing logic ...
 
-    return FlextResult[dict].ok(processed_data)
+    return FlextCore.Result[dict].ok(processed_data)
 ```
 
 ### Pattern 4: With Configuration
@@ -227,9 +227,9 @@ cli.output.info(f"Debug mode: {config.debug}")
 
 ## 📝 Key Concepts
 
-### 1. FlextResult Railway Pattern
+### 1. FlextCore.Result Railway Pattern
 
-All operations return `FlextResult` for type-safe error handling:
+All operations return `FlextCore.Result` for type-safe error handling:
 
 ```python
 result = cli.file_tools.read_json("config.json")
@@ -267,9 +267,9 @@ Complete type hints for IDE support:
 
 ```python
 from flext_cli import FlextCli
-from flext_core import FlextResult
+from flext_core import FlextCore
 
-def typed_operation(data: dict) -> FlextResult[dict]:
+def typed_operation(data: dict) -> FlextCore.Result[dict]:
     cli = FlextCli()
     return cli.file_tools.write_json("output.json", data)
 ```
@@ -301,15 +301,15 @@ if __name__ == "__main__":
 
 ```python
 from flext_cli import FlextCli
-from flext_core import FlextResult
+from flext_core import FlextCore
 
-def process_pipeline(input_file: str) -> FlextResult[dict]:
+def process_pipeline(input_file: str) -> FlextCore.Result[dict]:
     cli = FlextCli()
 
     # Read input
     data_result = cli.file_tools.read_json(input_file)
     if data_result.is_failure:
-        return FlextResult[dict].fail(f"Read failed: {data_result.error}")
+        return FlextCore.Result[dict].fail(f"Read failed: {data_result.error}")
 
     # Process
     cli.output.info("Processing data...")
@@ -318,10 +318,10 @@ def process_pipeline(input_file: str) -> FlextResult[dict]:
     # Write output
     write_result = cli.file_tools.write_json("output.json", processed)
     if write_result.is_failure:
-        return FlextResult[dict].fail(f"Write failed: {write_result.error}")
+        return FlextCore.Result[dict].fail(f"Write failed: {write_result.error}")
 
     cli.output.success("Pipeline complete!")
-    return FlextResult[dict].ok(processed)
+    return FlextCore.Result[dict].ok(processed)
 ```
 
 ### Interactive Tool
@@ -363,10 +363,10 @@ def interactive_tool():
 
 ## ✅ Best Practices
 
-1. **Use FlextResult** for all operations
+1. **Use FlextCore.Result** for all operations
 2. **Initialize FlextCli once** and reuse
 3. **Access services via properties** (cli.output, cli.tables)
-4. **Handle errors explicitly** with FlextResult patterns
+4. **Handle errors explicitly** with FlextCore.Result patterns
 5. **Use type hints** for better IDE support
 6. **Configure via FlextCliConfig** for environment-specific settings
 7. **Combine modules** for complete functionality

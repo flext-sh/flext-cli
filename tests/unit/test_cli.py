@@ -12,7 +12,7 @@ from __future__ import annotations
 import click
 import pytest
 from click.testing import CliRunner
-from flext_core import FlextResult
+from flext_core import FlextCore
 
 from flext_cli.cli import FlextCliCli
 
@@ -39,7 +39,7 @@ class TestFlextCliCli:
         """Test execute method returns operational status."""
         result = cli_cli.execute()
 
-        assert isinstance(result, FlextResult)
+        assert isinstance(result, FlextCore.Result)
         assert result.is_success
         data = result.unwrap()
         assert isinstance(data, dict)
@@ -67,7 +67,7 @@ class TestFlextCliCli:
             name="test_cmd", help="Test command"
         )
 
-        # Decorator is a callable, not FlextResult
+        # Decorator is a callable, not FlextCore.Result
         assert callable(decorator)
 
         @decorator
@@ -81,7 +81,7 @@ class TestFlextCliCli:
         """Test creating command decorator without explicit name."""
         decorator = cli_cli.create_command_decorator(help="Auto-named command")
 
-        # Decorator is a callable, not FlextResult
+        # Decorator is a callable, not FlextCore.Result
         assert callable(decorator)
 
         @decorator
@@ -96,7 +96,7 @@ class TestFlextCliCli:
         """Test creating Click group decorator."""
         decorator = cli_cli.create_group_decorator(name="test_group", help="Test group")
 
-        # Decorator is a callable, not FlextResult
+        # Decorator is a callable, not FlextCore.Result
         assert callable(decorator)
 
         @decorator
@@ -110,7 +110,7 @@ class TestFlextCliCli:
         """Test group decorator without name uses function name."""
         decorator = cli_cli.create_group_decorator()
 
-        # Decorator is a callable, not FlextResult
+        # Decorator is a callable, not FlextCore.Result
         assert callable(decorator)
 
         @decorator
@@ -131,7 +131,7 @@ class TestFlextCliCli:
             "--count", "-c", default=1, help="Number of items"
         )
 
-        # Decorator is a callable, not FlextResult
+        # Decorator is a callable, not FlextCore.Result
         assert callable(decorator)
 
         # Apply decorator to function
@@ -148,7 +148,7 @@ class TestFlextCliCli:
             "--verbose", "-v", is_flag=True, help="Verbose output"
         )
 
-        # Decorator is a callable, not FlextResult
+        # Decorator is a callable, not FlextCore.Result
         assert callable(decorator)
 
         @decorator
@@ -162,7 +162,7 @@ class TestFlextCliCli:
         """Test creating Click argument decorator."""
         decorator = cli_cli.create_argument_decorator("filename")
 
-        # Decorator is a callable, not FlextResult
+        # Decorator is a callable, not FlextCore.Result
         assert callable(decorator)
 
         @decorator
@@ -281,7 +281,7 @@ class TestFlextCliCli:
 
     def test_get_current_context_no_context(self, cli_cli: FlextCliCli) -> None:
         """Test getting current context when none exists."""
-        # FIXED: Returns None when no context, not FlextResult
+        # FIXED: Returns None when no context, not FlextCore.Result
         context = cli_cli.get_current_context()
 
         # Context is None when not in a Click command
@@ -301,8 +301,8 @@ class TestFlextCliCli:
         """Test creating CLI runner."""
         result = cli_cli.create_cli_runner()
 
-        # Returns FlextResult, not direct CliRunner
-        assert isinstance(result, FlextResult)
+        # Returns FlextCore.Result, not direct CliRunner
+        assert isinstance(result, FlextCore.Result)
         assert result.is_success
         runner = result.unwrap()
         assert isinstance(runner, CliRunner)
@@ -311,7 +311,7 @@ class TestFlextCliCli:
         """Test creating CLI runner for testing commands."""
         # Create runner
         runner_result = cli_cli.create_cli_runner()
-        assert isinstance(runner_result, FlextResult)
+        assert isinstance(runner_result, FlextCore.Result)
         assert runner_result.is_success
 
         # Verify runner can be used (actual command invocation requires Typer app)
@@ -325,12 +325,12 @@ class TestFlextCliCli:
     def test_echo(self, cli_cli: FlextCliCli) -> None:
         """Test echo utility."""
         result = cli_cli.echo("Test message")
-        assert isinstance(result, FlextResult)
+        assert isinstance(result, FlextCore.Result)
         assert result.is_success
 
     def test_confirm(self, cli_cli: FlextCliCli) -> None:
-        """Test confirm method returns FlextResult."""
-        # Just check the method exists and returns FlextResult
+        """Test confirm method returns FlextCore.Result."""
+        # Just check the method exists and returns FlextCore.Result
         assert hasattr(cli_cli, "confirm")
         # Can't test actual confirmation without user input
 
@@ -348,7 +348,7 @@ class TestFlextCliCli:
         # Call confirm - should return success with True
         result = cli_cli.confirm("Proceed?")
 
-        assert isinstance(result, FlextResult)
+        assert isinstance(result, FlextCore.Result)
         assert result.is_success
         assert result.unwrap() is True
 
@@ -367,7 +367,7 @@ class TestFlextCliCli:
         # Call confirm - should catch Abort and return failure
         result = cli_cli.confirm("Proceed?")
 
-        assert isinstance(result, FlextResult)
+        assert isinstance(result, FlextCore.Result)
         assert result.is_failure
         assert "abort" in str(result.error).lower()
 
@@ -385,7 +385,7 @@ class TestFlextCliCli:
         # Call prompt - should return success with value
         result = cli_cli.prompt("Enter name:")
 
-        assert isinstance(result, FlextResult)
+        assert isinstance(result, FlextCore.Result)
         assert result.is_success
         assert result.unwrap() == "test_value"
 
@@ -404,7 +404,7 @@ class TestFlextCliCli:
         # Call prompt - should catch Abort and return failure
         result = cli_cli.prompt("Enter name:")
 
-        assert isinstance(result, FlextResult)
+        assert isinstance(result, FlextCore.Result)
         assert result.is_failure
         assert "abort" in str(result.error).lower()
 
@@ -436,7 +436,7 @@ class TestFlextCliCli:
         """Test clear_screen utility method (lines 714-715)."""
         result = cli_cli.clear_screen()
 
-        assert isinstance(result, FlextResult)
+        assert isinstance(result, FlextCore.Result)
         assert result.is_success
 
     def test_pause(self, cli_cli: FlextCliCli, monkeypatch: pytest.MonkeyPatch) -> None:
@@ -453,7 +453,7 @@ class TestFlextCliCli:
         # Call pause
         result = cli_cli.pause(info="Press any key...")
 
-        assert isinstance(result, FlextResult)
+        assert isinstance(result, FlextCore.Result)
         assert result.is_success
         assert pause_called
 
@@ -463,7 +463,7 @@ class TestFlextCliCli:
 
     def test_complete_cli_workflow(self, cli_cli: FlextCliCli) -> None:
         """Test complete CLI workflow with group, command, options."""
-        # FIXED: Decorators are returned directly, not FlextResult
+        # FIXED: Decorators are returned directly, not FlextCore.Result
         group_decorator = cli_cli.create_group_decorator(name="myapp")
 
         @group_decorator
@@ -490,7 +490,7 @@ class TestFlextCliCli:
 
     def test_cli_with_options_and_arguments(self, cli_cli: FlextCliCli) -> None:
         """Test CLI with both options and arguments."""
-        # FIXED: Decorators are returned directly, not FlextResult
+        # FIXED: Decorators are returned directly, not FlextCore.Result
         command_decorator = cli_cli.create_command_decorator(name="process")
         argument_decorator = cli_cli.create_argument_decorator("filename")
         option_decorator = cli_cli.create_option_decorator("--verbose", is_flag=True)
@@ -511,7 +511,7 @@ class TestFlextCliCli:
 
     def test_command_with_choice_validation(self, cli_cli: FlextCliCli) -> None:
         """Test command with choice type."""
-        # FIXED: Decorators are returned directly, not FlextResult
+        # FIXED: Decorators are returned directly, not FlextCore.Result
         command_decorator = cli_cli.create_command_decorator(name="select")
         option_decorator = cli_cli.create_option_decorator(
             "--format",
@@ -531,7 +531,7 @@ class TestFlextCliCli:
 
     def test_multiple_decorators_order(self, cli_cli: FlextCliCli) -> None:
         """Test decorator application order."""
-        # FIXED: Decorators are returned directly, not FlextResult
+        # FIXED: Decorators are returned directly, not FlextCore.Result
         command_decorator = cli_cli.create_command_decorator(name="multi")
         opt1 = cli_cli.create_option_decorator("--first", default="1")
         opt2 = cli_cli.create_option_decorator("--second", default="2")

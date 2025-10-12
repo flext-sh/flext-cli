@@ -13,7 +13,7 @@ import tempfile
 import time
 from pathlib import Path
 
-from flext_core import FlextResult
+from flext_core import FlextCore
 
 from flext_cli import FlextCliCmd, FlextCliConfig, FlextCliFileTools
 
@@ -289,11 +289,23 @@ class TestFlextCliCmd:
         class FailingFileTools(FlextCliFileTools):
             def read_json_file(
                 self, file_path: str | Path
-            ) -> FlextResult[
-                dict[str, object] | list[object] | str | int | float | bool | None
+            ) -> FlextCore.Result[
+                FlextCore.Types.Dict
+                | FlextCore.Types.List
+                | str
+                | int
+                | float
+                | bool
+                | None
             ]:
-                return FlextResult[
-                    dict[str, object] | list[object] | str | int | float | bool | None
+                return FlextCore.Result[
+                    FlextCore.Types.Dict
+                    | FlextCore.Types.List
+                    | str
+                    | int
+                    | float
+                    | bool
+                    | None
                 ].fail("Test load error")
 
         cmd._file_tools = FailingFileTools()
@@ -339,11 +351,23 @@ class TestFlextCliCmd:
 
             def read_json_file(
                 self, file_path: str | Path
-            ) -> FlextResult[
-                dict[str, object] | list[object] | str | int | float | bool | None
+            ) -> FlextCore.Result[
+                FlextCore.Types.Dict
+                | FlextCore.Types.List
+                | str
+                | int
+                | float
+                | bool
+                | None
             ]:
-                return FlextResult[
-                    dict[str, object] | list[object] | str | int | float | bool | None
+                return FlextCore.Result[
+                    FlextCore.Types.Dict
+                    | FlextCore.Types.List
+                    | str
+                    | int
+                    | float
+                    | bool
+                    | None
                 ].fail("Test load error")
 
             def write_json_file(
@@ -351,8 +375,8 @@ class TestFlextCliCmd:
                 file_path: str | Path,
                 data: object,
                 **kwargs: object,
-            ) -> FlextResult[None]:
-                return FlextResult[None].ok(None)
+            ) -> FlextCore.Result[None]:
+                return FlextCore.Result[None].ok(None)
 
         cmd._file_tools = FailingFileTools()
 
@@ -410,11 +434,23 @@ class TestFlextCliCmd:
 
             def read_json_file(
                 self, file_path: str | Path
-            ) -> FlextResult[
-                dict[str, object] | list[object] | str | int | float | bool | None
+            ) -> FlextCore.Result[
+                FlextCore.Types.Dict
+                | FlextCore.Types.List
+                | str
+                | int
+                | float
+                | bool
+                | None
             ]:
-                return FlextResult[
-                    dict[str, object] | list[object] | str | int | float | bool | None
+                return FlextCore.Result[
+                    FlextCore.Types.Dict
+                    | FlextCore.Types.List
+                    | str
+                    | int
+                    | float
+                    | bool
+                    | None
                 ].ok({"other_key": "value"})
 
         cmd._file_tools = MockFileTools()
@@ -449,9 +485,11 @@ class TestFlextCliCmd:
         original_file_tools = cmd._file_tools
 
         class MockFileTools(FlextCliFileTools):
-            def read_json_file(self, file_path: str | Path) -> FlextResult[object]:
+            def read_json_file(
+                self, file_path: str | Path
+            ) -> FlextCore.Result[FlextCore.Types.JsonValue]:
                 # Return a list instead of dict
-                return FlextResult[object].ok([1, 2, 3])
+                return FlextCore.Result[FlextCore.Types.JsonValue].ok([1, 2, 3])
 
         cmd._file_tools = MockFileTools()
 
@@ -477,8 +515,12 @@ class TestFlextCliCmd:
         original_file_tools = cmd._file_tools
 
         class MockFileTools(FlextCliFileTools):
-            def read_json_file(self, file_path: str | Path) -> FlextResult[object]:
-                return FlextResult[object].ok({"found_key": "found_value"})
+            def read_json_file(
+                self, file_path: str | Path
+            ) -> FlextCore.Result[FlextCore.Types.JsonValue]:
+                return FlextCore.Result[FlextCore.Types.JsonValue].ok({
+                    "found_key": "found_value"
+                })
 
         cmd._file_tools = MockFileTools()
 
@@ -507,14 +549,16 @@ class TestFlextCliCmd:
         original_file_tools = cmd._file_tools
 
         class MockFileTools(FlextCliFileTools):
-            def read_json_file(self, file_path: str | Path) -> FlextResult[object]:
+            def read_json_file(
+                self, file_path: str | Path
+            ) -> FlextCore.Result[FlextCore.Types.JsonValue]:
                 # Return a string instead of dict
-                return FlextResult[object].ok("not a dict")
+                return FlextCore.Result[FlextCore.Types.JsonValue].ok("not a dict")
 
             def write_json_file(
                 self, file_path: str | Path, data: object, **kwargs: object
-            ) -> FlextResult[None]:
-                return FlextResult[None].ok(None)
+            ) -> FlextCore.Result[None]:
+                return FlextCore.Result[None].ok(None)
 
         cmd._file_tools = MockFileTools()
 

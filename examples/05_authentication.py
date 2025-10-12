@@ -12,7 +12,7 @@ FLEXT-CLI PROVIDES:
 - get_auth_token() - Retrieve saved token
 - validate_credentials() - Credential validation
 - authenticate() - Full auth flow
-- FlextResult error handling - No try/except needed
+- FlextCore.Result error handling - No try/except needed
 
 HOW TO USE IN YOUR CLI:
 Add authentication to YOUR CLI tool using flext-cli's built-in auth functions

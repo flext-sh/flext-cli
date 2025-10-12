@@ -1,7 +1,7 @@
 """FLEXT CLI Common Parameters Tests - Comprehensive testing of mandatory CLI parameter group.
 
 Tests for FlextCliCommonParams and common_cli_params decorator with real functionality
-testing integrated with FlextConfig and FlextLogger.
+testing integrated with FlextCore.Config and FlextCore.Logger.
 
 Copyright (c) 2025 FLEXT Team. All rights reserved.
 SPDX-License-Identifier: MIT
@@ -194,7 +194,7 @@ class TestFlextCliCommonParams:
         result = FlextCliCommonParams.configure_logger(config)
 
         assert result.is_success
-        # FlextCore.Logger uses structlog - level is managed via FlextConfig
+        # FlextCore.Logger uses structlog - level is managed via FlextCore.Config
 
     def test_configure_logger_info_level(self) -> None:
         """Test configuring logger with INFO level."""
@@ -391,7 +391,7 @@ class TestCommonCliParamsDecorator:
         assert result.exit_code == 0
 
     def test_decorator_with_config_integration(self) -> None:
-        """Test decorator with FlextConfig integration."""
+        """Test decorator with FlextCore.Config integration."""
         app = typer.Typer()
 
         @app.command()
@@ -506,7 +506,7 @@ class TestCLIParametersPrecedence:
 
 
 class TestLoggerIntegration:
-    """Test integration with FlextLogger."""
+    """Test integration with FlextCore.Logger."""
 
     def test_logger_configured_with_cli_params(
         self, capsys: pytest.CaptureFixture[str]
@@ -638,11 +638,11 @@ class TestCliParamsCoverageCompletion:
 
         # Pass an object that looks like a config but will fail on attribute access
         class FailingConfig:
-            def __setattr__(self, name, value) -> None:
+            def __setattr__(self, name: str, value: object) -> None:
                 msg = "Attribute setting failed"
                 raise RuntimeError(msg)
 
-            def model_copy(self, **kwargs) -> Never:
+            def model_copy(self, **kwargs: object) -> Never:
                 msg = "Model copy failed"
                 raise RuntimeError(msg)
 
@@ -730,7 +730,7 @@ class TestCliParamsCoverageCompletion:
             original_exit = sys.exit
             exit_called = []
 
-            def mock_exit(code) -> Never:
+            def mock_exit(code: int | str | None = None) -> Never:
                 exit_called.append(code)
                 raise SystemExit(code)
 

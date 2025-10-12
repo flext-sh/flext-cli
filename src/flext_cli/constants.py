@@ -363,7 +363,7 @@ class FlextCliConstants(FlextCore.Constants):
     TSV: Final[str] = "tsv"
 
     # File formats configuration
-    FILE_FORMATS: Final[dict[str, dict[str, list[str]]]] = {
+    FILE_FORMATS: Final[dict[str, dict[str, FlextCore.Types.StringList]]] = {
         "json": {"extensions": ["json"]},
         "yaml": {"extensions": ["yaml", "yml"]},
         "csv": {"extensions": ["csv"]},
@@ -376,7 +376,7 @@ class FlextCliConstants(FlextCore.Constants):
     FLEXT_CLI_FILE_TOOLS: Final[str] = "flext-cli-file-tools"
 
     # Version constants
-    VERSION: Final[str] = "2.0.0"
+    CLI_VERSION: Final[str] = "2.0.0"
 
     class ErrorMessages:
         """Centralized error message templates for CLI operations."""
