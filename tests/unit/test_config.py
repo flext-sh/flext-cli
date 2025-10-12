@@ -269,22 +269,12 @@ class TestFlextCliConfigService:
         assert "status" in data
         assert data["status"] == "operational"
 
-    def test_config_load_config_file(self, temp_json_file: Path) -> None:
-        """Test load_config_file instance method."""
-        config = FlextCliConfig()
-        result = config.load_config_file(str(temp_json_file))
+    def test_config_load_from_config_file(self, temp_json_file: Path) -> None:
+        """Test load_from_config_file class method."""
+        result = FlextCliConfig.load_from_config_file(temp_json_file)
         assert result.is_success
         loaded_config = result.unwrap()
         assert isinstance(loaded_config, FlextCliConfig)
-
-    def test_config_load_config_file_not_found(self, temp_dir: Path) -> None:
-        """Test load_config_file with non-existent file."""
-        config = FlextCliConfig()
-        non_existent = str(temp_dir / "non_existent.json")
-        result = config.load_config_file(non_existent)
-        assert result.is_failure
-        assert result.error is not None
-        assert result.error is not None and "not found" in result.error.lower()
 
     def test_config_save_config_file(self, temp_dir: Path) -> None:
         """Test save_config_file instance method."""

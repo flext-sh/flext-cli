@@ -21,7 +21,7 @@ from typing import cast
 
 from flext_core import FlextCore
 
-from flext_cli.config import FlextCliConfig
+# FlextCliConfig moved to FlextCliModels.CliConfig
 from flext_cli.constants import FlextCliConstants
 from flext_cli.models import FlextCliModels
 from flext_cli.typings import FlextCliTypes
@@ -755,7 +755,9 @@ class FlextCliCore(FlextCore.Service[FlextCliTypes.Data.CliDataDict]):
         except Exception as e:
             return FlextCore.Result[None].fail(f"Save configuration failed: {e}")
 
-    def validate_configuration(self, _config: FlextCliConfig) -> FlextCore.Result[None]:
+    def validate_configuration(
+        self, _config: FlextCliModels.CliConfig
+    ) -> FlextCore.Result[None]:
         """Validate configuration using FlextCliConfig Pydantic model.
 
         Args:

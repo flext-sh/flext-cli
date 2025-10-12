@@ -10,11 +10,11 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 import uuid
-from typing import ClassVar
 
 from flext_core import FlextCore
 
-from flext_cli.config import FlextCliConfig
+# FlextCliConfig moved to FlextCliModels.CliConfig
+from flext_cli.models import FlextCliModels
 from flext_cli.typings import FlextCliTypes
 
 
@@ -32,10 +32,10 @@ class FlextCliContext(FlextCore.Service[FlextCliTypes.Data.CliDataDict]):
     # Direct attributes - no properties needed
     id: str = ""
     command: str | None = None
-    arguments: ClassVar[FlextCore.Types.StringList] = []
-    environment_variables: ClassVar[FlextCore.Types.Dict] = {}
+    arguments: FlextCore.Types.StringList = []
+    environment_variables: FlextCore.Types.Dict = {}
     working_directory: str | None = None
-    context_metadata: ClassVar[FlextCore.Types.Dict] = {}
+    context_metadata: FlextCore.Types.Dict = {}
 
     # Context state
     is_active: bool = False
@@ -83,7 +83,7 @@ class FlextCliContext(FlextCore.Service[FlextCliTypes.Data.CliDataDict]):
     @property
     def timeout_seconds(self) -> int:
         """Get the timeout in seconds from config singleton."""
-        return FlextCliConfig.get_global_instance().timeout_seconds
+        return FlextCliModels.CliConfig.get_global_instance().timeout_seconds
 
     def activate(self) -> FlextCore.Result[None]:
         """Activate CLI context for execution."""

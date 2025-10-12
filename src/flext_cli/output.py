@@ -79,13 +79,13 @@ class FlextCliOutput(FlextCore.Service[object]):
     def _formatters(self) -> FlextCliFormatters:
         """Get formatters instance via container."""
         result = self.container.get_or_create("formatters", FlextCliFormatters)
-        return result.unwrap()  # type: ignore
+        return result.unwrap()  # type: ignore[misc]
 
     @property
     def _tables(self) -> FlextCliTables:
         """Get tables instance via container."""
         result = self.container.get_or_create("tables", FlextCliTables)
-        return result.unwrap()  # type: ignore
+        return result.unwrap()  # type: ignore[misc]
 
     @override
     def execute(self) -> FlextCore.Result[object]:

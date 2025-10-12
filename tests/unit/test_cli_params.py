@@ -648,7 +648,7 @@ class TestCliParamsCoverageCompletion:
 
         fake_config = FailingConfig()
 
-        result = FlextCliCommonParams.apply_to_config(fake_config, verbose=True)
+        result = FlextCliCommonParams.apply_to_config(fake_config, verbose=True)  # type: ignore[arg-type]
 
         assert result.is_failure
         assert result.error is not None
@@ -678,7 +678,7 @@ class TestCliParamsCoverageCompletion:
 
         fake_config = FailingConfig()
 
-        result = FlextCliCommonParams.configure_logger(fake_config)
+        result = FlextCliCommonParams.configure_logger(fake_config)  # type: ignore[arg-type]
 
         assert result.is_failure
         assert result.error is not None

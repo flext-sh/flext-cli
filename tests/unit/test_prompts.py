@@ -19,6 +19,7 @@ from flext_core import FlextCore
 
 # Test utilities removed from flext-core production exports
 from flext_cli.prompts import FlextCliPrompts
+from flext_cli.typings import FlextCliTypes
 
 
 class TestFlextCliPrompts:
@@ -861,12 +862,12 @@ class TestFlextCliPrompts:
 
         # Create a custom prompts class that raises exception
         class BadPrompts(FlextCliPrompts):
-            def execute(self) -> FlextCore.Result[FlextCore.Types.Dict]:
+            def execute(self) -> FlextCore.Result[FlextCliTypes.Data.CliDataDict]:
                 try:
                     msg = "Execute failed"
                     raise RuntimeError(msg)
                 except Exception as e:
-                    return FlextCore.Result[FlextCore.Types.Dict].fail(
+                    return FlextCore.Result[FlextCliTypes.Data.CliDataDict].fail(
                         f"Prompt service execution failed: {e}"
                     )
 
