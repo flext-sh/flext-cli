@@ -209,8 +209,9 @@ config = cli.config  # Same singleton instance
 ```
 
 **Environment Variables:**
+
 - `FLEXT_DEBUG` - Enable debug mode (true/false)
-- `FLEXT_OUTPUT_FORMAT` - Output format (json/table/yaml)
+- `FLEXT_OUTPUT_FORMAT` - Output format (JSON/table/YAML)
 - `FLEXT_NO_COLOR` - Disable colors (true/false)
 - `FLEXT_PROFILE` - Configuration profile name
 - `FLEXT_TIMEOUT` - Default timeout in seconds
@@ -269,6 +270,7 @@ def test_json_operations(flext_cli_api: FlextCli, temp_json_file: Path):
 ```
 
 **Available Test Fixtures** (from `tests/conftest.py`):
+
 - `flext_cli_api` - FlextCli instance
 - `flext_cli_file_tools` - FlextCliFileTools instance
 - `temp_dir` - Temporary directory

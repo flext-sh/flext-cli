@@ -189,6 +189,7 @@ formatters.print_text("Hello", style="green")
 ```
 
 **Purpose**: Isolates framework dependencies, enabling:
+
 - Framework version upgrades without ecosystem-wide changes
 - Potential migration to alternatives (e.g., Typer) in future
 - Consistent API across 32+ dependent projects
@@ -341,12 +342,12 @@ class MyProjectCli(FlextCli):
 
 ### FLEXT Ecosystem Integration
 
-| Package | Role | Integration Point |
-|---------|------|-------------------|
-| **flext-core** | Foundation patterns | FlextCore.Result, FlextCore.Service, FlextCore.Container |
-| **flext-api** | HTTP operations | Optional integration for API CLIs |
-| **flext-observability** | Monitoring | Optional logging/metrics integration |
-| **32+ projects** | Consumers | All use flext-cli for CLI functionality |
+| Package                 | Role                | Integration Point                                        |
+| ----------------------- | ------------------- | -------------------------------------------------------- |
+| **flext-core**          | Foundation patterns | FlextCore.Result, FlextCore.Service, FlextCore.Container |
+| **flext-api**           | HTTP operations     | Optional integration for API CLIs                        |
+| **flext-observability** | Monitoring          | Optional logging/metrics integration                     |
+| **32+ projects**        | Consumers           | All use flext-cli for CLI functionality                  |
 
 ---
 
