@@ -11,7 +11,7 @@ from __future__ import annotations
 
 from typing import Protocol, runtime_checkable
 
-from flext_core import FlextCore, FlextResult
+from flext_core import FlextCore
 
 from flext_cli.typings import FlextCliTypes
 
@@ -36,7 +36,7 @@ class FlextCliProtocols(FlextCore.Protocols):
                 self,
                 data: FlextCliTypes.Data.CliFormatData,
                 **options: FlextCliTypes.Data.CliConfigData,
-            ) -> FlextResult[str]:
+            ) -> FlextCore.Result[str]:
                 """Format data for CLI output."""
                 ...
 
@@ -49,14 +49,14 @@ class FlextCliProtocols(FlextCore.Protocols):
 
             def load_config(
                 self: object,
-            ) -> FlextResult[FlextCliTypes.Data.CliConfigData]:
+            ) -> FlextCore.Result[FlextCliTypes.Data.CliConfigData]:
                 """Load CLI configuration."""
                 ...
 
             def save_config(
                 self,
                 config: FlextCliTypes.Data.CliConfigData,
-            ) -> FlextResult[None]:
+            ) -> FlextCore.Result[None]:
                 """Save CLI configuration."""
                 ...
 
@@ -67,11 +67,11 @@ class FlextCliProtocols(FlextCore.Protocols):
             def authenticate(
                 self,
                 credentials: FlextCliTypes.Data.AuthConfigData,
-            ) -> FlextResult[str]:
+            ) -> FlextCore.Result[str]:
                 """Authenticate and return token."""
                 ...
 
-            def validate_token(self, token: str) -> FlextResult[bool]:
+            def validate_token(self, token: str) -> FlextCore.Result[bool]:
                 """Validate authentication token."""
                 ...
 
@@ -84,7 +84,7 @@ class FlextCliProtocols(FlextCore.Protocols):
 
             def get_debug_info(
                 self: object,
-            ) -> FlextResult[FlextCliTypes.Data.DebugInfoData]:
+            ) -> FlextCore.Result[FlextCliTypes.Data.DebugInfoData]:
                 """Get debug information."""
                 ...
 
@@ -95,11 +95,11 @@ class FlextCliProtocols(FlextCore.Protocols):
             name: str
             version: str
 
-            def initialize(self, cli_main: object) -> FlextResult[None]:
+            def initialize(self, cli_main: object) -> FlextCore.Result[None]:
                 """Initialize plugin with CLI context."""
                 ...
 
-            def register_commands(self, cli_main: object) -> FlextResult[None]:
+            def register_commands(self, cli_main: object) -> FlextCore.Result[None]:
                 """Register plugin commands with CLI."""
                 ...
 
@@ -113,7 +113,7 @@ class FlextCliProtocols(FlextCore.Protocols):
             def __call__(
                 self,
                 **kwargs: FlextCliTypes.Data.CliCommandArgs,
-            ) -> FlextResult[FlextCliTypes.Data.CliCommandResult]:
+            ) -> FlextCore.Result[FlextCliTypes.Data.CliCommandResult]:
                 """Execute CLI command with arguments."""
                 ...
 

@@ -37,6 +37,8 @@ import time
 from pathlib import Path
 from typing import cast
 
+from flext_core import FlextCore
+
 from flext_cli import FlextCli, FlextCliTables
 from flext_cli.typings import FlextCliTypes
 
@@ -216,7 +218,7 @@ def monitor_live_metrics() -> None:
         requests = 150 + (i * 10)
 
         # Create metrics data as ASCII table using FlextCliTables
-        metrics_data: list[dict[str, object]] = [
+        metrics_data: list[FlextCore.Types.Dict] = [
             {
                 "Metric": "CPU Usage",
                 "Value": f"{cpu}%",
@@ -364,7 +366,7 @@ def main() -> None:
         "  • Organization: Use cli.formatters.print() with sections", style="white"
     )
     cli.formatters.print(
-        "  • All methods return FlextResult for error handling", style="white"
+        "  • All methods return FlextCore.Result for error handling", style="white"
     )
     cli.formatters.print(
         "  • NEVER import rich/click/tabulate directly - use FlextCli!", style="white"

@@ -185,16 +185,16 @@ test: add integration tests for config module
 1. Create command handler:
 
 ```python
-from flext_core import FlextResult, FlextService
+from flext_core import FlextCore
 from flext_cli import FlextCli
 
-class DataCommands(FlextService):
+class DataCommands(FlextCore.Service):
     """Data management commands."""
 
-    def handle_export(self, **kwargs) -> FlextResult[None]:
+    def handle_export(self, **kwargs) -> FlextCore.Result[None]:
         """Handle data export command."""
         # Implementation
-        return FlextResult[None].ok(None)
+        return FlextCore.Result[None].ok(None)
 ```
 
 2. Register with CLI:
@@ -228,10 +228,10 @@ from flext_cli import FlextCliOutput
 class ProjectFormatters(FlextCliOutput):
     """Project-specific output formatters."""
 
-    def format_project_data(self, data: dict) -> FlextResult[str]:
+    def format_project_data(self, data: dict) -> FlextCore.Result[str]:
         """Format project-specific data."""
         # Custom formatting logic
-        return FlextResult[str].ok("formatted_output")
+        return FlextCore.Result[str].ok("formatted_output")
 ```
 
 ---

@@ -11,7 +11,7 @@ FLEXT-CLI PROVIDES:
 - Complete CLI foundation library
 - All features work seamlessly together
 - Singleton pattern for consistency
-- FlextResult railway pattern throughout
+- FlextCore.Result railway pattern throughout
 - Professional CLI development toolkit
 
 HOW TO USE IN YOUR CLI:
@@ -26,7 +26,7 @@ from __future__ import annotations
 import tempfile
 from pathlib import Path
 
-from flext_core import FlextResult
+from flext_core import FlextCore
 
 from flext_cli import FlextCli, FlextCliPrompts
 
@@ -52,7 +52,7 @@ class DataManagerCLI:
         self.cli.formatters.print("  📊 Data Manager CLI", style="bold white on blue")
         self.cli.formatters.print("=" * 70, style="bold blue")
 
-    def save_data(self, data: dict) -> FlextResult[None]:
+    def save_data(self, data: dict) -> FlextCore.Result[None]:
         """Save data with proper error handling."""
         write_result = self.cli.file_tools.write_json_file(self.data_file, data)
 
@@ -60,17 +60,17 @@ class DataManagerCLI:
             self.cli.formatters.print(
                 f"❌ Save failed: {write_result.error}", style="bold red"
             )
-            return FlextResult[None].fail(write_result.error)
+            return FlextCore.Result[None].fail(write_result.error)
 
         self.cli.formatters.print(
             f"✅ Data saved to {self.data_file.name}", style="green"
         )
-        return FlextResult[None].ok(None)
+        return FlextCore.Result[None].ok(None)
 
-    def load_data(self) -> FlextResult[dict]:
+    def load_data(self) -> FlextCore.Result[dict]:
         """Load data with error handling."""
         if not self.data_file.exists():
-            return FlextResult[dict].fail("No data file found")
+            return FlextCore.Result[dict].fail("No data file found")
 
         read_result = self.cli.file_tools.read_json_file(self.data_file)
 
@@ -78,14 +78,14 @@ class DataManagerCLI:
             self.cli.formatters.print(
                 f"❌ Load failed: {read_result.error}", style="bold red"
             )
-            return FlextResult[dict].fail(read_result.error)
+            return FlextCore.Result[dict].fail(read_result.error)
 
         # Type narrowing: ensure we return a dict
         data = read_result.unwrap()
         if not isinstance(data, dict):
-            return FlextResult[dict].fail("Data is not a dictionary")
+            return FlextCore.Result[dict].fail("Data is not a dictionary")
         self.cli.formatters.print("✅ Data loaded successfully", style="green")
-        return FlextResult[dict].ok(data)
+        return FlextCore.Result[dict].ok(data)
 
     def display_data(self, data: dict) -> None:
         """Display data as formatted table."""
@@ -100,29 +100,29 @@ class DataManagerCLI:
         if table_result.is_success:
             self.cli.formatters.console.print(table_result.unwrap())
 
-    def add_entry(self) -> FlextResult[dict]:
+    def add_entry(self) -> FlextCore.Result[dict]:
         """Add new entry with user prompts."""
         prompts = FlextCliPrompts(interactive_mode=False)
 
         # Get key
         key_result = prompts.prompt("Enter key:", default="sample_key")
         if key_result.is_failure:
-            return FlextResult[dict].fail(f"Prompt failed: {key_result.error}")
+            return FlextCore.Result[dict].fail(f"Prompt failed: {key_result.error}")
 
         key = key_result.unwrap()
 
         # Get value
         value_result = prompts.prompt("Enter value:", default="sample_value")
         if value_result.is_failure:
-            return FlextResult[dict].fail(f"Prompt failed: {value_result.error}")
+            return FlextCore.Result[dict].fail(f"Prompt failed: {value_result.error}")
 
         value = value_result.unwrap()
 
         entry = {key: value}
         self.cli.formatters.print(f"✅ Created entry: {key} = {value}", style="green")
-        return FlextResult[dict].ok(entry)
+        return FlextCore.Result[dict].ok(entry)
 
-    def run_workflow(self) -> FlextResult[None]:
+    def run_workflow(self) -> FlextCore.Result[None]:
         """Complete workflow integrating all features."""
         # Step 1: Welcome
         self.display_welcome()
@@ -146,7 +146,9 @@ class DataManagerCLI:
         entry_result = self.add_entry()
 
         if entry_result.is_failure:
-            return FlextResult[None].fail(f"Add entry failed: {entry_result.error}")
+            return FlextCore.Result[None].fail(
+                f"Add entry failed: {entry_result.error}"
+            )
 
         new_entry = entry_result.unwrap()
         current_data.update(new_entry)
@@ -156,13 +158,13 @@ class DataManagerCLI:
         save_result = self.save_data(current_data)
 
         if save_result.is_failure:
-            return FlextResult[None].fail(f"Save failed: {save_result.error}")
+            return FlextCore.Result[None].fail(f"Save failed: {save_result.error}")
 
         # Step 6: Display final result
         self.cli.formatters.print("\n✨ Final Result:", style="bold cyan")
         self.display_data(current_data)
 
-        return FlextResult[None].ok(None)
+        return FlextCore.Result[None].ok(None)
 
 
 # ============================================================================
@@ -170,14 +172,14 @@ class DataManagerCLI:
 # ============================================================================
 
 
-def process_with_railway_pattern(input_data: dict) -> FlextResult[dict]:
+def process_with_railway_pattern(input_data: dict) -> FlextCore.Result[dict]:
     """Show railway pattern chaining operations."""
     # Removed unused temp_file variable
 
-    # Chain operations using FlextResult
+    # Chain operations using FlextCore.Result
     result = (
         # Step 1: Validate
-        FlextResult[dict]
+        FlextCore.Result[dict]
         .ok(input_data)
         .map(lambda d: {**d, "validated": True})
         # Step 2: Transform
@@ -233,10 +235,10 @@ def main() -> None:
     # Example 3: Error handling showcase
     cli.formatters.print("\n3. Error Handling Showcase:", style="bold cyan")
 
-    def safe_operation(value: int) -> FlextResult[int]:
+    def safe_operation(value: int) -> FlextCore.Result[int]:
         if value < 0:
-            return FlextResult[int].fail("Negative values not allowed")
-        return FlextResult[int].ok(value * 2)
+            return FlextCore.Result[int].fail("Negative values not allowed")
+        return FlextCore.Result[int].ok(value * 2)
 
     # Success case
     result = safe_operation(10)
@@ -264,7 +266,9 @@ def main() -> None:
     cli.formatters.print(
         "  • Use FlextCli.get_instance() for singleton access", style="white"
     )
-    cli.formatters.print("  • Chain operations with FlextResult.map()", style="white")
+    cli.formatters.print(
+        "  • Chain operations with FlextCore.Result.map()", style="white"
+    )
     cli.formatters.print(
         "  • Handle errors gracefully with is_success/is_failure", style="white"
     )
@@ -280,7 +284,7 @@ def main() -> None:
         "User Input": "FlextCliPrompts",
         "Config": "cli.config",
         "Auth": "cli.save/get_auth_token()",
-        "Error Handling": "FlextResult pattern",
+        "Error Handling": "FlextCore.Result pattern",
     }
 
     for component, usage in architecture.items():

@@ -12,7 +12,7 @@ from __future__ import annotations
 from io import StringIO
 from typing import TYPE_CHECKING, Any, cast
 
-from flext_core import FlextCore, FlextResult
+from flext_core import FlextCore
 from rich.console import Console
 from rich.layout import Layout as RichLayout
 from rich.live import Live as RichLive
@@ -57,9 +57,9 @@ class FlextCliFormatters:
         """Get console instance - same as property."""
         return self.console
 
-    def execute(self) -> FlextResult[FlextCore.Types.Dict]:
+    def execute(self) -> FlextCore.Result[FlextCore.Types.Dict]:
         """Execute service - required by FlextCore.Service."""
-        return FlextResult[FlextCore.Types.Dict].ok({
+        return FlextCore.Result[FlextCore.Types.Dict].ok({
             FlextCliConstants.DictKeys.STATUS: FlextCliConstants.OPERATIONAL,
             FlextCliConstants.DictKeys.SERVICE: FlextCliConstants.Services.FORMATTERS,
         })
@@ -73,7 +73,7 @@ class FlextCliFormatters:
         message: str,
         style: str | None = None,
         **kwargs: object,
-    ) -> FlextResult[None]:
+    ) -> FlextCore.Result[None]:
         """Print formatted message using Rich - direct delegation.
 
         Args:
@@ -82,15 +82,15 @@ class FlextCliFormatters:
             **kwargs: Additional Rich console.print() kwargs
 
         Returns:
-            FlextResult[None]: Success or error
+            FlextCore.Result[None]: Success or error
 
         """
         try:
             # Cast to Any for Rich API compatibility - explicit library interop
             self.console.print(message, style=style, **cast("Any", kwargs))
-            return FlextResult[None].ok(None)
+            return FlextCore.Result[None].ok(None)
         except Exception as e:
-            return FlextResult[None].fail(f"Print failed: {e}")
+            return FlextCore.Result[None].fail(f"Print failed: {e}")
 
     def create_table(
         self,
@@ -98,7 +98,7 @@ class FlextCliFormatters:
         headers: FlextCore.Types.StringList | None = None,
         title: str | None = None,
         **kwargs: object,
-    ) -> FlextResult[RichTable]:
+    ) -> FlextCore.Result[RichTable]:
         """Create Rich table - direct delegation to Rich.Table.
 
         Args:
@@ -108,7 +108,7 @@ class FlextCliFormatters:
             **kwargs: Additional Rich Table() kwargs
 
         Returns:
-            FlextResult[RichTable]: Rich Table instance or error
+            FlextCore.Result[RichTable]: Rich Table instance or error
 
         """
         try:
@@ -133,14 +133,14 @@ class FlextCliFormatters:
                     for key, value in data.items():
                         table.add_row(str(key), str(value))
 
-            return FlextResult[RichTable].ok(table)
+            return FlextCore.Result[RichTable].ok(table)
 
         except Exception as e:
-            return FlextResult[RichTable].fail(f"Table creation failed: {e}")
+            return FlextCore.Result[RichTable].fail(f"Table creation failed: {e}")
 
     def render_table_to_string(
         self, table: RichTable, width: int | None = None
-    ) -> FlextResult[str]:
+    ) -> FlextCore.Result[str]:
         """Render Rich table to string.
 
         Args:
@@ -148,7 +148,7 @@ class FlextCliFormatters:
             width: Optional console width
 
         Returns:
-            FlextResult[str]: Rendered table string or error
+            FlextCore.Result[str]: Rendered table string or error
 
         """
         try:
@@ -161,29 +161,29 @@ class FlextCliFormatters:
             temp_console.print(table)
             output = buffer.getvalue()
 
-            return FlextResult[str].ok(output)
+            return FlextCore.Result[str].ok(output)
 
         except Exception as e:
-            return FlextResult[str].fail(f"Table rendering failed: {e}")
+            return FlextCore.Result[str].fail(f"Table rendering failed: {e}")
 
-    def create_progress(self, **kwargs: object) -> FlextResult[Progress]:
+    def create_progress(self, **kwargs: object) -> FlextCore.Result[Progress]:
         """Create Rich progress bar - direct delegation.
 
         Args:
             **kwargs: Rich Progress() kwargs
 
         Returns:
-            FlextResult[Progress]: Rich Progress instance or error
+            FlextCore.Result[Progress]: Rich Progress instance or error
 
         """
         try:
             # Cast to Any for Rich API compatibility - explicit library interop
             progress = Progress(**cast("Any", kwargs))
-            return FlextResult[Progress].ok(progress)
+            return FlextCore.Result[Progress].ok(progress)
         except Exception as e:
-            return FlextResult[Progress].fail(f"Progress creation failed: {e}")
+            return FlextCore.Result[Progress].fail(f"Progress creation failed: {e}")
 
-    def create_tree(self, label: str, **kwargs: object) -> FlextResult[RichTree]:
+    def create_tree(self, label: str, **kwargs: object) -> FlextCore.Result[RichTree]:
         """Create Rich tree - direct delegation.
 
         Args:
@@ -191,19 +191,19 @@ class FlextCliFormatters:
             **kwargs: Rich Tree() kwargs
 
         Returns:
-            FlextResult[RichTree]: Rich Tree instance or error
+            FlextCore.Result[RichTree]: Rich Tree instance or error
 
         """
         try:
             # Cast to Any for Rich API compatibility - explicit library interop
             tree = RichTree(label, **cast("Any", kwargs))
-            return FlextResult[RichTree].ok(tree)
+            return FlextCore.Result[RichTree].ok(tree)
         except Exception as e:
-            return FlextResult[RichTree].fail(f"Tree creation failed: {e}")
+            return FlextCore.Result[RichTree].fail(f"Tree creation failed: {e}")
 
     def render_tree_to_string(
         self, tree: RichTree, width: int | None = None
-    ) -> FlextResult[str]:
+    ) -> FlextCore.Result[str]:
         """Render Rich tree to string.
 
         Args:
@@ -211,7 +211,7 @@ class FlextCliFormatters:
             width: Optional console width
 
         Returns:
-            FlextResult[str]: Rendered tree string or error
+            FlextCore.Result[str]: Rendered tree string or error
 
         """
         try:
@@ -220,10 +220,10 @@ class FlextCliFormatters:
             temp_console.print(tree)
             output = buffer.getvalue()
 
-            return FlextResult[str].ok(output)
+            return FlextCore.Result[str].ok(output)
 
         except Exception as e:
-            return FlextResult[str].fail(f"Tree rendering failed: {e}")
+            return FlextCore.Result[str].fail(f"Tree rendering failed: {e}")
 
     # =========================================================================
     # ADVANCED RICH WRAPPERS - Status, Live, Layout, Panel
@@ -231,7 +231,7 @@ class FlextCliFormatters:
 
     def create_status(
         self, message: str, spinner: str = "dots", **kwargs: object
-    ) -> FlextResult[RichStatus]:
+    ) -> FlextCore.Result[RichStatus]:
         """Create Rich status spinner - direct delegation.
 
         Args:
@@ -240,7 +240,7 @@ class FlextCliFormatters:
             **kwargs: Additional Rich Status() kwargs
 
         Returns:
-            FlextResult[RichStatus]: Rich Status instance or error
+            FlextCore.Result[RichStatus]: Rich Status instance or error
 
         """
         try:
@@ -248,13 +248,13 @@ class FlextCliFormatters:
             status = RichStatus(
                 message, spinner=spinner, console=self.console, **cast("Any", kwargs)
             )
-            return FlextResult[RichStatus].ok(status)
+            return FlextCore.Result[RichStatus].ok(status)
         except Exception as e:
-            return FlextResult[RichStatus].fail(f"Status creation failed: {e}")
+            return FlextCore.Result[RichStatus].fail(f"Status creation failed: {e}")
 
     def create_live(
         self, refresh_per_second: float = 4, **kwargs: object
-    ) -> FlextResult[RichLive]:
+    ) -> FlextCore.Result[RichLive]:
         """Create Rich live display - direct delegation.
 
         Args:
@@ -262,7 +262,7 @@ class FlextCliFormatters:
             **kwargs: Additional Rich Live() kwargs
 
         Returns:
-            FlextResult[RichLive]: Rich Live instance or error
+            FlextCore.Result[RichLive]: Rich Live instance or error
 
         """
         try:
@@ -272,26 +272,26 @@ class FlextCliFormatters:
                 console=self.console,
                 **cast("Any", kwargs),
             )
-            return FlextResult[RichLive].ok(live)
+            return FlextCore.Result[RichLive].ok(live)
         except Exception as e:
-            return FlextResult[RichLive].fail(f"Live creation failed: {e}")
+            return FlextCore.Result[RichLive].fail(f"Live creation failed: {e}")
 
-    def create_layout(self, **kwargs: object) -> FlextResult[RichLayout]:
+    def create_layout(self, **kwargs: object) -> FlextCore.Result[RichLayout]:
         """Create Rich layout - direct delegation.
 
         Args:
             **kwargs: Additional Rich Layout() kwargs
 
         Returns:
-            FlextResult[RichLayout]: Rich Layout instance or error
+            FlextCore.Result[RichLayout]: Rich Layout instance or error
 
         """
         try:
             # Cast to Any for Rich API compatibility - explicit library interop
             layout = RichLayout(**cast("Any", kwargs))
-            return FlextResult[RichLayout].ok(layout)
+            return FlextCore.Result[RichLayout].ok(layout)
         except Exception as e:
-            return FlextResult[RichLayout].fail(f"Layout creation failed: {e}")
+            return FlextCore.Result[RichLayout].fail(f"Layout creation failed: {e}")
 
     def create_panel(
         self,
@@ -299,7 +299,7 @@ class FlextCliFormatters:
         title: str | None = None,
         border_style: str = "blue",
         **kwargs: object,
-    ) -> FlextResult[RichPanel]:
+    ) -> FlextCore.Result[RichPanel]:
         """Create Rich panel - direct delegation.
 
         Args:
@@ -309,7 +309,7 @@ class FlextCliFormatters:
             **kwargs: Additional Rich Panel() kwargs
 
         Returns:
-            FlextResult[RichPanel]: Rich Panel instance or error
+            FlextCore.Result[RichPanel]: Rich Panel instance or error
 
         """
         try:
@@ -320,9 +320,9 @@ class FlextCliFormatters:
                 border_style=border_style,
                 **cast("Any", kwargs),
             )
-            return FlextResult[RichPanel].ok(panel)
+            return FlextCore.Result[RichPanel].ok(panel)
         except Exception as e:
-            return FlextResult[RichPanel].fail(f"Panel creation failed: {e}")
+            return FlextCore.Result[RichPanel].fail(f"Panel creation failed: {e}")
 
 
 __all__ = [

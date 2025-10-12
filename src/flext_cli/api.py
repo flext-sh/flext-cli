@@ -2,7 +2,7 @@
 
 Single FlextCli class with EXACTLY ONE main class per module pattern.
 Consolidates ALL CLI functionality (auth, formatting, commands, etc.).
-Uses FlextResult railway pattern with zero async operations.
+Uses FlextCore.Result railway pattern with zero async operations.
 
 Copyright (c) 2025 FLEXT Team. All rights reserved.
 SPDX-License-Identifier: MIT
@@ -15,7 +15,7 @@ from collections.abc import Callable
 from pathlib import Path
 from typing import TYPE_CHECKING, cast
 
-from flext_core import FlextCore, FlextResult
+from flext_core import FlextCore
 from rich.tree import Tree
 
 from flext_cli.cli import FlextCliCli
@@ -44,7 +44,7 @@ class FlextCli:
     """Consolidated single-class CLI implementation.
 
     Contains ALL CLI functionality (formatting, auth, commands, etc.).
-    Uses FlextResult railway pattern with zero async operations.
+    Uses FlextCore.Result railway pattern with zero async operations.
     All defaults from FlextCliConstants with proper centralization.
     """
 
@@ -52,7 +52,7 @@ class FlextCli:
         """Initialize consolidated CLI with all functionality integrated."""
         # CLI metadata - MUST be first for Typer app creation
         self._name = FlextCliConstants.CliDefaults.DEFAULT_APP_NAME
-        self._version = FlextCliConstants.VERSION
+        self._version = FlextCliConstants.CLI_VERSION
         self._description = f"{self._name} CLI"
 
         # Core initialization
@@ -75,7 +75,7 @@ class FlextCli:
         self._valid_tokens: set[str] = set()
         self._valid_sessions: set[str] = set()
         self._session_permissions: dict[str, set[str]] = {}
-        self._users: dict[str, dict[str, object]] = {}
+        self._users: dict[str, FlextCore.Types.Dict] = {}
         self._deleted_users: set[str] = set()
 
     @classmethod
@@ -168,7 +168,7 @@ class FlextCli:
         message: str,
         style: str | None = None,
         **kwargs: object,
-    ) -> FlextResult[None]:
+    ) -> FlextCore.Result[None]:
         """Print formatted message using formatters domain library."""
         return self._formatters.print(message, style=style, **kwargs)
 
@@ -178,19 +178,19 @@ class FlextCli:
         headers: FlextCore.Types.StringList | None = None,
         title: str | None = None,
         **kwargs: object,
-    ) -> FlextResult[object]:
+    ) -> FlextCore.Result[object]:
         """Create table using formatters domain library."""
         result = self._formatters.create_table(
             data=data, headers=headers, title=title, **kwargs
         )
         return result.map(lambda table: cast("object", table))
 
-    def create_progress(self, **kwargs: object) -> FlextResult[object]:
+    def create_progress(self, **kwargs: object) -> FlextCore.Result[object]:
         """Create progress bar using formatters domain library."""
         result = self._formatters.create_progress(**kwargs)
         return result.map(lambda progress: cast("object", progress))
 
-    def create_tree(self, label: str, **kwargs: object) -> FlextResult[Tree]:
+    def create_tree(self, label: str, **kwargs: object) -> FlextCore.Result[Tree]:
         """Create tree using formatters domain library."""
         return self._formatters.create_tree(label=label, **kwargs)
 
@@ -200,7 +200,7 @@ class FlextCli:
 
     def authenticate(
         self, credentials: FlextCliTypes.Auth.CredentialsData
-    ) -> FlextResult[str]:
+    ) -> FlextCore.Result[str]:
         """Authenticate user with provided credentials."""
         if FlextCliConstants.DictKeys.TOKEN in credentials:
             return self._authenticate_with_token(credentials)
@@ -209,42 +209,46 @@ class FlextCli:
             and FlextCliConstants.DictKeys.PASSWORD in credentials
         ):
             return self._authenticate_with_credentials(credentials)
-        return FlextResult[str].fail(
+        return FlextCore.Result[str].fail(
             FlextCliConstants.ErrorMessages.INVALID_CREDENTIALS
         )
 
     def _authenticate_with_token(
         self, credentials: FlextCliTypes.Auth.CredentialsData
-    ) -> FlextResult[str]:
+    ) -> FlextCore.Result[str]:
         """Authenticate using token."""
         token = str(credentials[FlextCliConstants.DictKeys.TOKEN])
         save_result = self.save_auth_token(token)
         if save_result.is_failure:
-            return FlextResult[str].fail(f"Failed to save token: {save_result.error}")
+            return FlextCore.Result[str].fail(
+                f"Failed to save token: {save_result.error}"
+            )
         if not token.strip():
-            return FlextResult[str].fail(FlextCliConstants.ErrorMessages.TOKEN_EMPTY)
-        return FlextResult[str].ok(token)
+            return FlextCore.Result[str].fail(
+                FlextCliConstants.ErrorMessages.TOKEN_EMPTY
+            )
+        return FlextCore.Result[str].ok(token)
 
     def _authenticate_with_credentials(
         self, credentials: FlextCliTypes.Auth.CredentialsData
-    ) -> FlextResult[str]:
+    ) -> FlextCore.Result[str]:
         """Authenticate using username/password."""
         username = str(credentials[FlextCliConstants.DictKeys.USERNAME])
         password = str(credentials[FlextCliConstants.DictKeys.PASSWORD])
 
         # Simple validation (in real implementation, check against user store)
         if not username or not password:
-            return FlextResult[str].fail(
+            return FlextCore.Result[str].fail(
                 FlextCliConstants.ErrorMessages.USERNAME_PASSWORD_REQUIRED
             )
 
         if len(username) < FlextCliConstants.Auth.MIN_USERNAME_LENGTH:
-            return FlextResult[str].fail(
+            return FlextCore.Result[str].fail(
                 FlextCliConstants.ErrorMessages.USERNAME_TOO_SHORT
             )
 
         if len(password) < FlextCliConstants.Auth.MIN_PASSWORD_LENGTH:
-            return FlextResult[str].fail(
+            return FlextCore.Result[str].fail(
                 FlextCliConstants.ErrorMessages.PASSWORD_TOO_SHORT
             )
 
@@ -252,20 +256,24 @@ class FlextCli:
         token = secrets.token_urlsafe(32)
         self._valid_tokens.add(token)
 
-        return FlextResult[str].ok(token)
+        return FlextCore.Result[str].ok(token)
 
-    def validate_credentials(self, username: str, password: str) -> FlextResult[None]:
+    def validate_credentials(
+        self, username: str, password: str
+    ) -> FlextCore.Result[None]:
         """Validate credentials."""
         if not username or not password:
-            return FlextResult[None].fail(
+            return FlextCore.Result[None].fail(
                 FlextCliConstants.ErrorMessages.USERNAME_PASSWORD_REQUIRED
             )
-        return FlextResult[None].ok(None)
+        return FlextCore.Result[None].ok(None)
 
-    def save_auth_token(self, token: str) -> FlextResult[None]:
+    def save_auth_token(self, token: str) -> FlextCore.Result[None]:
         """Save authentication token using file tools domain library."""
         if not token.strip():
-            return FlextResult[None].fail(FlextCliConstants.ErrorMessages.TOKEN_EMPTY)
+            return FlextCore.Result[None].fail(
+                FlextCliConstants.ErrorMessages.TOKEN_EMPTY
+            )
 
         token_path = self._config.token_file
         token_data = {"token": token}
@@ -273,16 +281,16 @@ class FlextCli:
         # Use file tools domain library for JSON writing
         write_result = self._file_tools.write_json_file(str(token_path), token_data)
         if write_result.is_failure:
-            return FlextResult[None].fail(
+            return FlextCore.Result[None].fail(
                 FlextCliConstants.ErrorMessages.TOKEN_SAVE_FAILED.format(
                     error=write_result.error
                 )
             )
 
         self._valid_tokens.add(token)
-        return FlextResult[None].ok(None)
+        return FlextCore.Result[None].ok(None)
 
-    def get_auth_token(self) -> FlextResult[str]:
+    def get_auth_token(self) -> FlextCore.Result[str]:
         """Get authentication token using file tools domain library."""
         token_path = self._config.token_file
 
@@ -290,10 +298,10 @@ class FlextCli:
         read_result = self._file_tools.read_json_file(str(token_path))
         if read_result.is_failure:
             if "not found" in str(read_result.error).lower():
-                return FlextResult[str].fail(
+                return FlextCore.Result[str].fail(
                     FlextCliConstants.ErrorMessages.TOKEN_FILE_NOT_FOUND
                 )
-            return FlextResult[str].fail(
+            return FlextCore.Result[str].fail(
                 FlextCliConstants.ErrorMessages.TOKEN_LOAD_FAILED.format(
                     error=read_result.error
                 )
@@ -302,18 +310,18 @@ class FlextCli:
         data = cast("dict[str, str]", read_result.unwrap())
         token = data.get("token")
         if not token:
-            return FlextResult[str].fail(
+            return FlextCore.Result[str].fail(
                 FlextCliConstants.ErrorMessages.TOKEN_FILE_EMPTY
             )
 
-        return FlextResult[str].ok(str(token))
+        return FlextCore.Result[str].ok(str(token))
 
     def is_authenticated(self) -> bool:
         """Check if user is authenticated."""
         token_result = self.get_auth_token()
         return token_result.is_success
 
-    def clear_auth_tokens(self) -> FlextResult[None]:
+    def clear_auth_tokens(self) -> FlextCore.Result[None]:
         """Clear authentication tokens using file tools domain library."""
         token_path = self._config.token_file
         refresh_token_path = self._config.refresh_token_file
@@ -327,7 +335,7 @@ class FlextCli:
             delete_token_result.is_failure
             and "not found" not in str(delete_token_result.error).lower()
         ):
-            return FlextResult[None].fail(
+            return FlextCore.Result[None].fail(
                 FlextCliConstants.ErrorMessages.FAILED_CLEAR_CREDENTIALS.format(
                     error=delete_token_result.error
                 )
@@ -337,14 +345,14 @@ class FlextCli:
             delete_refresh_result.is_failure
             and "not found" not in str(delete_refresh_result.error).lower()
         ):
-            return FlextResult[None].fail(
+            return FlextCore.Result[None].fail(
                 FlextCliConstants.ErrorMessages.FAILED_CLEAR_CREDENTIALS.format(
                     error=delete_refresh_result.error
                 )
             )
 
         self._valid_tokens.clear()
-        return FlextResult[None].ok(None)
+        return FlextCore.Result[None].ok(None)
 
     # =========================================================================
     # COMMAND REGISTRATION - CLI framework abstraction (domain library pattern)
@@ -380,30 +388,30 @@ class FlextCli:
 
         return decorator
 
-    def execute_cli(self) -> FlextResult[None]:
+    def execute_cli(self) -> FlextCore.Result[None]:
         """Execute the CLI application using framework abstraction."""
         # FlextCliCli doesn't have run_app - CLI execution handled elsewhere
-        return FlextResult[None].ok(None)
+        return FlextCore.Result[None].ok(None)
 
     # =========================================================================
     # FILE OPERATIONS - Domain library delegation
     # =========================================================================
 
-    def read_text_file(self, path: Path) -> FlextResult[str]:
+    def read_text_file(self, path: Path) -> FlextCore.Result[str]:
         """Read text file using file tools domain library."""
         return self._file_tools.read_text_file(str(path))
 
-    def write_text_file(self, path: Path, content: str) -> FlextResult[None]:
+    def write_text_file(self, path: Path, content: str) -> FlextCore.Result[None]:
         """Write text file using file tools domain library."""
         return self._file_tools.write_text_file(str(path), content)
 
     # =========================================================================
-    # EXECUTION - Railway pattern with FlextResult
+    # EXECUTION - Railway pattern with FlextCore.Result
     # =========================================================================
 
-    def execute(self) -> FlextResult[FlextCore.Types.Dict]:
+    def execute(self) -> FlextCore.Result[FlextCore.Types.Dict]:
         """Execute CLI service with railway pattern."""
-        return FlextResult[FlextCore.Types.Dict].ok({
+        return FlextCore.Result[FlextCore.Types.Dict].ok({
             FlextCliConstants.DictKeys.STATUS: FlextCliConstants.OPERATIONAL,
             FlextCliConstants.DictKeys.SERVICE: FlextCliConstants.FLEXT_CLI,
         })

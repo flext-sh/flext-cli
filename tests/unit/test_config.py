@@ -78,13 +78,17 @@ class TestLoggingConfig:
 
     def test_logging_config_initialization(self) -> None:
         """Test LoggingConfig initialization."""
-        logging_config = FlextCliModels.LoggingConfig()
+        logging_config = FlextCliModels.LoggingConfig(
+            log_level="INFO", log_format="json"
+        )
         assert logging_config is not None
         assert isinstance(logging_config, FlextCliModels.LoggingConfig)
 
     def test_logging_config_default_values(self) -> None:
         """Test logging config default values."""
-        logging_config = FlextCliModels.LoggingConfig()
+        logging_config = FlextCliModels.LoggingConfig(
+            log_level="DEBUG", log_format="text"
+        )
 
         # Test that logging config has expected default values
         assert logging_config.log_level is not None
@@ -1337,11 +1341,11 @@ class TestFlextCliConfigExceptionHandlers:
         self, monkeypatch: pytest.MonkeyPatch
     ) -> None:
         """Test validate_configuration when business rules fail (lines 285-290)."""
-        from flext_core import FlextResult
+        from flext_core import FlextCore
 
         # Mock validate_business_rules to return failure
-        def mock_validate_failure(self) -> FlextResult[None]:
-            return FlextResult[None].fail("Business rule validation failed")
+        def mock_validate_failure(self: object) -> FlextCore.Result[None]:
+            return FlextCore.Result[None].fail("Business rule validation failed")
 
         monkeypatch.setattr(
             FlextCliConfig, "validate_business_rules", mock_validate_failure
@@ -1603,7 +1607,7 @@ class TestFlextCliConfigExceptionHandlers:
         config = FlextCliConfig()
 
         # Mock model_dump to raise exception
-        def mock_model_dump_raises(self) -> object:
+        def mock_model_dump_raises(self: object) -> object:
             msg = "Model dump error"
             raise RuntimeError(msg)
 
@@ -1637,7 +1641,8 @@ class TestFlextCliConfigExceptionHandlers:
         original_hasattr = hasattr
 
         def mock_hasattr_raises(obj: object, name: str) -> bool:
-            if isinstance(obj, FlextCliConfig):
+            # Check type by name to avoid recursion with Pydantic isinstance
+            if type(obj).__name__ == "FlextCliConfig":
                 msg = "Hasattr error"
                 raise RuntimeError(msg)
             return original_hasattr(obj, name)
@@ -1653,7 +1658,7 @@ class TestFlextCliConfigExceptionHandlers:
         config = FlextCliConfig()
 
         # Mock model_dump to raise exception
-        def mock_model_dump_raises(self) -> object:
+        def mock_model_dump_raises(self: object) -> object:
             msg = "Model dump error"
             raise RuntimeError(msg)
 
@@ -1734,7 +1739,7 @@ class TestFlextCliConfigExceptionHandlers:
         # Mock __getattribute__ to raise exception when accessing profile
         original_getattribute = FlextCliConfig.__getattribute__
 
-        def mock_getattribute_raises(self, name: str) -> object:
+        def mock_getattribute_raises(self: object, name: str) -> object:
             if name == "profile":
                 msg = "Profile error"
                 raise RuntimeError(msg)

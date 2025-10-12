@@ -10,7 +10,7 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from flext_core import FlextResult, FlextTypes
+from flext_core import FlextCore
 
 from flext_cli import FlextCli
 
@@ -18,7 +18,7 @@ from flext_cli import FlextCli
 def print_demo_completion(
     cli: FlextCli,
     demo_name: str,
-    features: FlextTypes.StringList,
+    features: FlextCore.Types.StringList,
     *,
     style: str = "green",
 ) -> None:
@@ -37,21 +37,22 @@ def print_demo_completion(
     for feature in features:
         cli.formatters.print(f"  • {feature}", style="white")
     cli.formatters.print(
-        "\nAll operations used FlextResult pattern for error handling!", style="yellow"
+        "\nAll operations used FlextCore.Result pattern for error handling!",
+        style="yellow",
     )
 
 
 def handle_command_result(
     cli: FlextCli,
-    result: FlextResult[FlextTypes.Dict],
+    result: FlextCore.Result[FlextCore.Types.Dict],
     action: str,
-    success_fields: FlextTypes.StringList | None = None,
+    success_fields: FlextCore.Types.StringList | None = None,
 ) -> None:
     """Generic handler for CQRS command results using FlextCli.
 
     Args:
         cli: FlextCli instance
-        result: FlextResult from command operation
+        result: FlextCore.Result from command operation
         action: Action being performed (e.g., "create project", "change status")
         success_fields: Fields to display on success (defaults to ['id', 'status'])
 
@@ -84,10 +85,10 @@ def print_demo_error(
     """
     cli.formatters.print(f"❌ {demo_name} failed: {error}", style=f"bold {style}")
     cli.formatters.print(
-        "This failure demonstrates FlextResult error handling!", style="yellow"
+        "This failure demonstrates FlextCore.Result error handling!", style="yellow"
     )
     cli.formatters.print(
-        "The error was caught and wrapped in a FlextResult for clean handling.",
+        "The error was caught and wrapped in a FlextCore.Result for clean handling.",
         style="white",
     )
 

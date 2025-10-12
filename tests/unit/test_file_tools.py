@@ -17,7 +17,7 @@ from pathlib import Path
 
 import pytest
 import yaml
-from flext_core import FlextResult, FlextTypes
+from flext_core import FlextCore
 
 # Test utilities removed from flext-core production exports
 from flext_cli.file_tools import FlextCliFileTools
@@ -39,13 +39,13 @@ class TestFlextCliFileTools:
         """Test file tools initialization and basic properties."""
         assert file_tools is not None
         assert hasattr(file_tools, "logger")
-        assert hasattr(file_tools, "container")  # Property from FlextService
+        assert hasattr(file_tools, "container")  # Property from FlextCore.Service
 
     def test_file_tools_execute_method(self, file_tools: FlextCliFileTools) -> None:
         """Test file tools execute method with real functionality."""
         result = file_tools.execute()
 
-        assert isinstance(result, FlextResult)
+        assert isinstance(result, FlextCore.Result)
         assert result.is_success
 
         data = result.unwrap()
@@ -62,7 +62,7 @@ class TestFlextCliFileTools:
         """Test reading text file functionality."""
         result = file_tools.read_text_file(str(temp_file))
 
-        assert isinstance(result, FlextResult)
+        assert isinstance(result, FlextCore.Result)
         assert result.is_success
 
         content = result.unwrap()
@@ -73,7 +73,7 @@ class TestFlextCliFileTools:
         """Test reading nonexistent text file."""
         result = file_tools.read_text_file("/nonexistent/file.txt")
 
-        assert isinstance(result, FlextResult)
+        assert isinstance(result, FlextCore.Result)
         assert result.is_failure
 
     def test_write_text_file(
@@ -85,7 +85,7 @@ class TestFlextCliFileTools:
 
         result = file_tools.write_text_file(str(test_file), test_content)
 
-        assert isinstance(result, FlextResult)
+        assert isinstance(result, FlextCore.Result)
         assert result.is_success
 
         # Verify file was created and contains correct content
@@ -103,7 +103,7 @@ class TestFlextCliFileTools:
 
         result = file_tools.read_binary_file(str(binary_file))
 
-        assert isinstance(result, FlextResult)
+        assert isinstance(result, FlextCore.Result)
         assert result.is_success
 
         content = result.unwrap()
@@ -119,7 +119,7 @@ class TestFlextCliFileTools:
 
         result = file_tools.write_binary_file(str(test_file), test_content)
 
-        assert isinstance(result, FlextResult)
+        assert isinstance(result, FlextCore.Result)
         assert result.is_success
 
         # Verify file was created and contains correct content
@@ -136,7 +136,7 @@ class TestFlextCliFileTools:
         """Test reading JSON file functionality."""
         result = file_tools.read_json_file(str(temp_json_file))
 
-        assert isinstance(result, FlextResult)
+        assert isinstance(result, FlextCore.Result)
         assert result.is_success
 
         data = result.unwrap()
@@ -150,7 +150,7 @@ class TestFlextCliFileTools:
     ) -> None:
         """Test writing JSON file functionality."""
         test_file = temp_dir / "test_write.json"
-        test_data: FlextTypes.Dict = {
+        test_data: FlextCore.Types.Dict = {
             "name": "test",
             "value": 123,
             "nested": {"inner": "data"},
@@ -159,7 +159,7 @@ class TestFlextCliFileTools:
 
         result = file_tools.write_json_file(str(test_file), test_data)
 
-        assert isinstance(result, FlextResult)
+        assert isinstance(result, FlextCore.Result)
         assert result.is_success
 
         # Verify file was created and contains correct data
@@ -176,7 +176,7 @@ class TestFlextCliFileTools:
 
         result = file_tools.read_json_file(str(invalid_json_file))
 
-        assert isinstance(result, FlextResult)
+        assert isinstance(result, FlextCore.Result)
         assert result.is_failure
 
     # ========================================================================
@@ -189,7 +189,7 @@ class TestFlextCliFileTools:
         """Test reading YAML file functionality."""
         result = file_tools.read_yaml_file(str(temp_yaml_file))
 
-        assert isinstance(result, FlextResult)
+        assert isinstance(result, FlextCore.Result)
         assert result.is_success
 
         data = result.unwrap()
@@ -203,7 +203,7 @@ class TestFlextCliFileTools:
     ) -> None:
         """Test writing YAML file functionality."""
         test_file = temp_dir / "test_write.yaml"
-        test_data: FlextTypes.Dict = {
+        test_data: FlextCore.Types.Dict = {
             "name": "test",
             "value": 123,
             "nested": {"inner": "data"},
@@ -212,7 +212,7 @@ class TestFlextCliFileTools:
 
         result = file_tools.write_yaml_file(str(test_file), test_data)
 
-        assert isinstance(result, FlextResult)
+        assert isinstance(result, FlextCore.Result)
         assert result.is_success
 
         # Verify file was created and contains correct data
@@ -229,7 +229,7 @@ class TestFlextCliFileTools:
 
         result = file_tools.read_yaml_file(str(invalid_yaml_file))
 
-        assert isinstance(result, FlextResult)
+        assert isinstance(result, FlextCore.Result)
         assert result.is_failure
 
     # ========================================================================
@@ -242,7 +242,7 @@ class TestFlextCliFileTools:
         """Test reading CSV file functionality."""
         result = file_tools.read_csv_file(str(temp_csv_file))
 
-        assert isinstance(result, FlextResult)
+        assert isinstance(result, FlextCore.Result)
         assert result.is_success
 
         data = result.unwrap()
@@ -267,7 +267,7 @@ class TestFlextCliFileTools:
 
         result = file_tools.write_csv_file(str(test_file), test_data)
 
-        assert isinstance(result, FlextResult)
+        assert isinstance(result, FlextCore.Result)
         assert result.is_success
 
         # Verify file was created and contains correct data
@@ -287,7 +287,7 @@ class TestFlextCliFileTools:
 
         result = file_tools.read_csv_file_with_headers(str(csv_file))
 
-        assert isinstance(result, FlextResult)
+        assert isinstance(result, FlextCore.Result)
         assert result.is_success
 
         data = result.unwrap()
@@ -309,7 +309,7 @@ class TestFlextCliFileTools:
 
         result = file_tools.copy_file(str(temp_file), str(destination))
 
-        assert isinstance(result, FlextResult)
+        assert isinstance(result, FlextCore.Result)
         assert result.is_success
 
         # Verify file was copied correctly
@@ -325,7 +325,7 @@ class TestFlextCliFileTools:
 
         result = file_tools.move_file(str(temp_file), str(destination))
 
-        assert isinstance(result, FlextResult)
+        assert isinstance(result, FlextCore.Result)
         assert result.is_success
 
         # Verify file was moved correctly
@@ -339,7 +339,7 @@ class TestFlextCliFileTools:
 
         result = file_tools.delete_file(str(temp_file))
 
-        assert isinstance(result, FlextResult)
+        assert isinstance(result, FlextCore.Result)
         assert result.is_success
 
         # Verify file was deleted
@@ -349,13 +349,13 @@ class TestFlextCliFileTools:
         """Test file existence checking functionality."""
         # Test existing file
         result = file_tools.file_exists(str(temp_file))
-        assert isinstance(result, FlextResult)
+        assert isinstance(result, FlextCore.Result)
         assert result.is_success
         assert result.unwrap() is True
 
         # Test nonexistent file
         result = file_tools.file_exists("/nonexistent/file.txt")
-        assert isinstance(result, FlextResult)
+        assert isinstance(result, FlextCore.Result)
         assert result.is_success
         assert result.unwrap() is False
 
@@ -365,7 +365,7 @@ class TestFlextCliFileTools:
         """Test file size getting functionality."""
         result = file_tools.get_file_size(str(temp_file))
 
-        assert isinstance(result, FlextResult)
+        assert isinstance(result, FlextCore.Result)
         assert result.is_success
 
         size = result.unwrap()
@@ -379,7 +379,7 @@ class TestFlextCliFileTools:
         """Test file modified time getting functionality."""
         result = file_tools.get_file_modified_time(str(temp_file))
 
-        assert isinstance(result, FlextResult)
+        assert isinstance(result, FlextCore.Result)
         assert result.is_success
 
         modified_time = result.unwrap()
@@ -401,7 +401,7 @@ class TestFlextCliFileTools:
 
         result = file_tools.list_directory(str(temp_dir))
 
-        assert isinstance(result, FlextResult)
+        assert isinstance(result, FlextCore.Result)
         assert result.is_success
 
         files = result.unwrap()
@@ -416,7 +416,7 @@ class TestFlextCliFileTools:
 
         result = file_tools.create_directory(str(new_dir))
 
-        assert isinstance(result, FlextResult)
+        assert isinstance(result, FlextCore.Result)
         assert result.is_success
 
         # Verify directory was created
@@ -431,7 +431,7 @@ class TestFlextCliFileTools:
 
         result = file_tools.create_directory(str(nested_dir))
 
-        assert isinstance(result, FlextResult)
+        assert isinstance(result, FlextCore.Result)
         assert result.is_success
 
         # Verify all directories were created
@@ -452,7 +452,7 @@ class TestFlextCliFileTools:
 
         result = file_tools.delete_directory(str(test_dir))
 
-        assert isinstance(result, FlextResult)
+        assert isinstance(result, FlextCore.Result)
         assert result.is_success
 
         # Verify directory was deleted
@@ -464,13 +464,13 @@ class TestFlextCliFileTools:
         """Test directory existence checking functionality."""
         # Test existing directory
         result = file_tools.directory_exists(str(temp_dir))
-        assert isinstance(result, FlextResult)
+        assert isinstance(result, FlextCore.Result)
         assert result.is_success
         assert result.unwrap() is True
 
         # Test nonexistent directory
         result = file_tools.directory_exists("/nonexistent/directory")
-        assert isinstance(result, FlextResult)
+        assert isinstance(result, FlextCore.Result)
         assert result.is_success
         assert result.unwrap() is False
 
@@ -493,7 +493,7 @@ class TestFlextCliFileTools:
 
         result = file_tools.create_zip_archive(str(archive_path), files_to_archive)
 
-        assert isinstance(result, FlextResult)
+        assert isinstance(result, FlextCore.Result)
         assert result.is_success
 
         # Verify archive was created
@@ -523,7 +523,7 @@ class TestFlextCliFileTools:
 
         result = file_tools.extract_zip_archive(str(archive_path), str(extract_dir))
 
-        assert isinstance(result, FlextResult)
+        assert isinstance(result, FlextCore.Result)
         assert result.is_success
 
         # Verify file was extracted
@@ -547,7 +547,7 @@ class TestFlextCliFileTools:
 
         result = file_tools.find_files_by_pattern(str(temp_dir), "*.txt")
 
-        assert isinstance(result, FlextResult)
+        assert isinstance(result, FlextCore.Result)
         assert result.is_success
 
         files = result.unwrap()
@@ -568,7 +568,7 @@ class TestFlextCliFileTools:
 
         result = file_tools.find_files_by_name(str(temp_dir), "target_file.txt")
 
-        assert isinstance(result, FlextResult)
+        assert isinstance(result, FlextCore.Result)
         assert result.is_success
 
         files = result.unwrap()
@@ -586,7 +586,7 @@ class TestFlextCliFileTools:
 
         result = file_tools.find_files_by_content(str(temp_dir), "target word")
 
-        assert isinstance(result, FlextResult)
+        assert isinstance(result, FlextCore.Result)
         assert result.is_success
 
         files = result.unwrap()
@@ -603,7 +603,7 @@ class TestFlextCliFileTools:
         """Test file hash calculation functionality."""
         result = file_tools.calculate_file_hash(str(temp_file), "sha256")
 
-        assert isinstance(result, FlextResult)
+        assert isinstance(result, FlextCore.Result)
         assert result.is_success
 
         hash_value = result.unwrap()
@@ -622,7 +622,7 @@ class TestFlextCliFileTools:
         # Verify hash
         result = file_tools.verify_file_hash(str(temp_file), expected_hash, "sha256")
 
-        assert isinstance(result, FlextResult)
+        assert isinstance(result, FlextCore.Result)
         assert result.is_success
         assert result.unwrap() is True
 
@@ -634,7 +634,7 @@ class TestFlextCliFileTools:
 
         result = file_tools.verify_file_hash(str(temp_file), invalid_hash, "sha256")
 
-        assert isinstance(result, FlextResult)
+        assert isinstance(result, FlextCore.Result)
         assert result.is_success
         assert result.unwrap() is False
 
@@ -648,7 +648,7 @@ class TestFlextCliFileTools:
         """Test getting file permissions functionality."""
         result = file_tools.get_file_permissions(str(temp_file))
 
-        assert isinstance(result, FlextResult)
+        assert isinstance(result, FlextCore.Result)
         assert result.is_success
 
         permissions = result.unwrap()
@@ -661,7 +661,7 @@ class TestFlextCliFileTools:
         """Test setting file permissions functionality."""
         result = file_tools.set_file_permissions(str(temp_file), 0o644)  # Integer mode
 
-        assert isinstance(result, FlextResult)
+        assert isinstance(result, FlextCore.Result)
         assert result.is_success
 
         # Verify permissions were set
@@ -678,7 +678,7 @@ class TestFlextCliFileTools:
         """Test temporary file creation functionality."""
         result = file_tools.create_temp_file()  # No parameters - simple signature
 
-        assert isinstance(result, FlextResult)
+        assert isinstance(result, FlextCore.Result)
         assert result.is_success
 
         temp_file_path = result.unwrap()
@@ -695,7 +695,7 @@ class TestFlextCliFileTools:
         """Test temporary directory creation functionality."""
         result = file_tools.create_temp_directory()
 
-        assert isinstance(result, FlextResult)
+        assert isinstance(result, FlextCore.Result)
         assert result.is_success
 
         temp_dir_path = result.unwrap()
@@ -719,12 +719,12 @@ class TestFlextCliFileTools:
         """Test error handling with various invalid inputs."""
         # Test with None input
         result = file_tools.read_text_file("")
-        assert isinstance(result, FlextResult)
+        assert isinstance(result, FlextCore.Result)
         assert result.is_failure
 
         # Test with empty string
         result = file_tools.read_text_file("")
-        assert isinstance(result, FlextResult)
+        assert isinstance(result, FlextCore.Result)
         assert result.is_failure
 
     def test_error_handling_with_permission_denied(
@@ -733,7 +733,7 @@ class TestFlextCliFileTools:
         """Test error handling with permission denied scenarios."""
         # Try to write to a directory that should be read-only
         result = file_tools.write_text_file("/proc/test_file", "test content")
-        assert isinstance(result, FlextResult)
+        assert isinstance(result, FlextCore.Result)
         assert result.is_failure
 
     def test_concurrent_file_operations(
@@ -768,7 +768,7 @@ class TestFlextCliFileTools:
         assert len(errors) == 0, f"Errors occurred: {errors}"
         assert len(results) == 5
         for result in results:
-            assert isinstance(result, FlextResult)
+            assert isinstance(result, FlextCore.Result)
             assert result.is_success
 
     # ========================================================================
@@ -780,7 +780,7 @@ class TestFlextCliFileTools:
     ) -> None:
         """Test complete file workflow integration."""
         # 1. Create test data
-        test_data: FlextTypes.Dict = {
+        test_data: FlextCore.Types.Dict = {
             "name": "integration_test",
             "value": 42,
             "nested": {"inner": "data"},
@@ -836,7 +836,7 @@ class TestFlextCliFileTools:
         """Test file workflow integration (execute now sync)."""
         # Test execute (now sync, delegates to execute)
         result = file_tools.execute()
-        assert isinstance(result, FlextResult)
+        assert isinstance(result, FlextCore.Result)
         assert result.is_success
 
         data = result.unwrap()
@@ -1085,7 +1085,7 @@ class TestFlextCliFileTools:
         # Test with permission denied scenario
         result = file_tools.find_files_by_content("/proc", "test content")
         # Should handle permission errors gracefully
-        assert isinstance(result, FlextResult)
+        assert isinstance(result, FlextCore.Result)
 
     def test_find_files_by_content_file_read_error(
         self, file_tools: FlextCliFileTools, temp_dir: Path

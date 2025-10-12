@@ -8,7 +8,7 @@ WHEN TO USE THIS:
 - Building testable CLI tools
 
 FLEXT-CLI PROVIDES:
-- FlextResult pattern for testable code
+- FlextCore.Result pattern for testable code
 - Output capture via formatters
 - Mockable prompt system
 - File operation testing utilities
@@ -30,7 +30,7 @@ from __future__ import annotations
 import tempfile
 from pathlib import Path
 
-from flext_core import FlextResult
+from flext_core import FlextCore
 
 from flext_cli import FlextCli, FlextCliPrompts
 
@@ -38,18 +38,18 @@ cli = FlextCli.get_instance()
 
 
 # ============================================================================
-# PATTERN 1: Test CLI command with FlextResult
+# PATTERN 1: Test CLI command with FlextCore.Result
 # ============================================================================
 
 
-def my_cli_command(name: str) -> FlextResult[str]:
+def my_cli_command(name: str) -> FlextCore.Result[str]:
     """Example CLI command to test."""
     if not name:
-        return FlextResult[str].fail("Name cannot be empty")
+        return FlextCore.Result[str].fail("Name cannot be empty")
 
     result = f"Hello, {name}!"
     cli.formatters.print(result, style="green")
-    return FlextResult[str].ok(result)
+    return FlextCore.Result[str].ok(result)
 
 
 def test_cli_command() -> None:
@@ -75,15 +75,15 @@ def test_cli_command() -> None:
 # ============================================================================
 
 
-def save_config_command(config: dict) -> FlextResult[None]:
+def save_config_command(config: dict) -> FlextCore.Result[None]:
     """CLI command that saves config."""
     temp_file = Path(tempfile.gettempdir()) / "test_config.json"
 
     write_result = cli.file_tools.write_json_file(temp_file, config)
     if write_result.is_failure:
-        return FlextResult[None].fail(f"Save failed: {write_result.error}")
+        return FlextCore.Result[None].fail(f"Save failed: {write_result.error}")
 
-    return FlextResult[None].ok(None)
+    return FlextCore.Result[None].ok(None)
 
 
 def test_file_operations() -> None:
@@ -118,7 +118,7 @@ def test_file_operations() -> None:
 # ============================================================================
 
 
-def interactive_command() -> FlextResult[str]:
+def interactive_command() -> FlextCore.Result[str]:
     """Command with user prompts to test."""
     prompts = FlextCliPrompts(interactive_mode=False)  # Non-interactive for tests
 
@@ -126,10 +126,10 @@ def interactive_command() -> FlextResult[str]:
     name_result = prompts.prompt("Enter name:", default="TestUser")
 
     if name_result.is_failure:
-        return FlextResult[str].fail(f"Prompt failed: {name_result.error}")
+        return FlextCore.Result[str].fail(f"Prompt failed: {name_result.error}")
 
     name = name_result.unwrap()
-    return FlextResult[str].ok(f"Hello, {name}!")
+    return FlextCore.Result[str].ok(f"Hello, {name}!")
 
 
 def test_interactive_command() -> None:
@@ -149,15 +149,15 @@ def test_interactive_command() -> None:
 # ============================================================================
 
 
-def risky_operation(value: int) -> FlextResult[int]:
+def risky_operation(value: int) -> FlextCore.Result[int]:
     """Operation that might fail."""
     if value < 0:
-        return FlextResult[int].fail("Value must be positive")
+        return FlextCore.Result[int].fail("Value must be positive")
 
     if value > 100:
-        return FlextResult[int].fail("Value too large")
+        return FlextCore.Result[int].fail("Value too large")
 
-    return FlextResult[int].ok(value * 2)
+    return FlextCore.Result[int].ok(value * 2)
 
 
 def test_error_scenarios() -> None:
@@ -190,7 +190,7 @@ def test_error_scenarios() -> None:
 # ============================================================================
 
 
-def full_workflow_command() -> FlextResult[dict]:
+def full_workflow_command() -> FlextCore.Result[dict]:
     """Complete workflow to test."""
     # Step 1: Create data
     data = {"status": "processing", "items": [1, 2, 3]}
@@ -200,20 +200,20 @@ def full_workflow_command() -> FlextResult[dict]:
     write_result = cli.file_tools.write_json_file(temp_file, data)
 
     if write_result.is_failure:
-        return FlextResult[dict].fail(f"Write failed: {write_result.error}")
+        return FlextCore.Result[dict].fail(f"Write failed: {write_result.error}")
 
     # Step 3: Read back
     read_result = cli.file_tools.read_json_file(temp_file)
 
     if read_result.is_failure:
         temp_file.unlink(missing_ok=True)
-        return FlextResult[dict].fail(f"Read failed: {read_result.error}")
+        return FlextCore.Result[dict].fail(f"Read failed: {read_result.error}")
 
     # Step 4: Process - type narrowing needed
     loaded = read_result.unwrap()
     if not isinstance(loaded, dict):
         temp_file.unlink(missing_ok=True)
-        return FlextResult[dict].fail("Data is not a dictionary")
+        return FlextCore.Result[dict].fail("Data is not a dictionary")
 
     loaded["status"] = "completed"
     loaded["processed"] = True
@@ -221,7 +221,7 @@ def full_workflow_command() -> FlextResult[dict]:
     # Cleanup
     temp_file.unlink(missing_ok=True)
 
-    return FlextResult[dict].ok(loaded)
+    return FlextCore.Result[dict].ok(loaded)
 
 
 def test_integration() -> None:
@@ -263,7 +263,7 @@ def main() -> None:
     # Testing guide
     cli.formatters.print("\n💡 Testing Tips:", style="bold cyan")
     cli.formatters.print(
-        "  • Use FlextResult returns for testable commands", style="white"
+        "  • Use FlextCore.Result returns for testable commands", style="white"
     )
     cli.formatters.print("  • Test both success and failure cases", style="white")
     cli.formatters.print("  • Use non-interactive prompts in tests", style="white")

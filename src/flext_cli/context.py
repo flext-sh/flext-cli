@@ -1,7 +1,7 @@
 """FLEXT CLI Context - CLI execution context management.
 
-Provides CLI execution context with type-safe operations and FlextResult patterns.
-Follows FLEXT standards with single FlextCliContext class per module.
+Provides CLI execution context with type-safe operations and FlextCore.Result patterns.
+Follows FLEXT standards with single CliContext class per module.
 
 Copyright (c) 2025 FLEXT Team. All rights reserved.
 SPDX-License-Identifier: MIT
@@ -9,284 +9,242 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from flext_core import FlextCore, FlextResult
-from pydantic import BaseModel
+import uuid
+from typing import ClassVar
 
-from flext_cli.constants import FlextCliConstants
-from flext_cli.models import FlextCliModels
+from flext_core import FlextCore
+
+from flext_cli.config import FlextCliConfig
 from flext_cli.typings import FlextCliTypes
 
 
 class FlextCliContext(FlextCore.Service[FlextCliTypes.Data.CliDataDict]):
-    """CLI execution context management service.
+    """CLI execution context model extending FlextCore.Service.
 
-    Provides type-safe CLI context operations with FlextResult railway patterns.
-    Wraps CliContext model from FlextCliModels for service-level operations.
+    Manages CLI execution context with enhanced type safety using FlextCliTypes
+    instead of generic FlextCore.Types types. Provides CLI-specific context with domain types
+    and uses FlextCore.Result railway pattern for all operations.
+
+    CRITICAL: Moved from models.py to follow FLEXT standards requiring
+    service classes to be in appropriate modules, not mixed with data models.
     """
 
-    def __init__(self, **data: object) -> None:
-        """Initialize CLI context service with Phase 1 context enrichment."""
-        super().__init__(**data)
-        # Logger and container inherited from FlextCore.Service via FlextMixins
-        self._model_class = FlextCliModels.CliContext
+    # Direct attributes - no properties needed
+    id: str = ""
+    command: str | None = None
+    arguments: ClassVar[FlextCore.Types.StringList] = []
+    environment_variables: ClassVar[FlextCore.Types.Dict] = {}
+    working_directory: str | None = None
+    context_metadata: ClassVar[FlextCore.Types.Dict] = {}
 
-    def create_context(
+    # Context state
+    is_active: bool = False
+    created_at: str = ""
+
+    def __init__(
         self,
         command: str | None = None,
         arguments: FlextCore.Types.StringList | None = None,
-        environment_variables: FlextCliTypes.Data.CliConfigData | None = None,
+        environment_variables: FlextCore.Types.Dict | None = None,
         working_directory: str | None = None,
         **data: object,
-    ) -> FlextResult[FlextCliModels.CliContext]:
-        """Create a new CLI context instance.
+    ) -> None:
+        """Initialize CLI context with enhanced type safety.
 
         Args:
-            command: CLI command to execute
-            arguments: Command arguments
-            environment_variables: Environment variables
-            working_directory: Working directory
-            **data: Additional context data
-
-        Returns:
-            FlextResult[FlextCliModels.CliContext]: Created context instance
+            command: Command being executed
+            arguments: Command line arguments
+            environment_variables: Environment variables using CLI-specific config data types
+            working_directory: Current working directory
+            **data: Additional entity initialization data
 
         """
+        # Generate id if not provided
+        if "id" not in data:
+            data["id"] = str(uuid.uuid4())
+
+        # Initialize parent FlextCore.Service
+        super().__init__(**data)
+
+        # Set id from data or generated
+        self.id = str(data.get("id", str(uuid.uuid4())))
+
+        # Set CLI context attributes directly
+        self.command = command
+        self.arguments = arguments or []
+        self.environment_variables = environment_variables or {}
+        self.working_directory = working_directory
+        self.context_metadata = {}
+
+        # Context state
+        self.is_active = False
+        self.created_at = FlextCore.Utilities.Generators.generate_timestamp()
+
+    @property
+    def timeout_seconds(self) -> int:
+        """Get the timeout in seconds from config singleton."""
+        return FlextCliConfig.get_global_instance().timeout_seconds
+
+    def activate(self) -> FlextCore.Result[None]:
+        """Activate CLI context for execution."""
         try:
-            context = self._model_class(
-                command=command,
-                arguments=arguments,
-                environment_variables=environment_variables,
-                working_directory=working_directory,
-                **data,
-            )
-            return FlextResult[FlextCliModels.CliContext].ok(context)
+            if self.is_active:
+                return FlextCore.Result[None].fail("Context is already active")
+
+            self.is_active = True
+            return FlextCore.Result[None].ok(None)
         except Exception as e:
-            return FlextResult[FlextCliModels.CliContext].fail(
-                f"Failed to create context: {e}"
+            return FlextCore.Result[None].fail(f"Context activation failed: {e}")
+
+    def deactivate(self) -> FlextCore.Result[None]:
+        """Deactivate CLI context."""
+        try:
+            if not self.is_active:
+                return FlextCore.Result[None].fail("Context is not currently active")
+
+            self.is_active = False
+            return FlextCore.Result[None].ok(None)
+        except Exception as e:
+            return FlextCore.Result[None].fail(f"Context deactivation failed: {e}")
+
+    def get_environment_variable(self, name: str) -> FlextCore.Result[str]:
+        """Get specific environment variable value."""
+        if not name or not isinstance(name, str):
+            return FlextCore.Result[str].fail(
+                "Variable name must be a non-empty string"
             )
 
-    def validate_context(
+        try:
+            if name in self.environment_variables:
+                value = self.environment_variables[name]
+                return FlextCore.Result[str].ok(str(value))
+            return FlextCore.Result[str].fail(
+                f"Environment variable '{name}' not found"
+            )
+        except Exception as e:
+            return FlextCore.Result[str].fail(
+                f"Environment variable retrieval failed: {e}"
+            )
+
+    def set_environment_variable(self, name: str, value: str) -> FlextCore.Result[None]:
+        """Set environment variable value."""
+        if not name or not isinstance(name, str):
+            return FlextCore.Result[None].fail(
+                "Variable name must be a non-empty string"
+            )
+
+        if not isinstance(value, str):
+            return FlextCore.Result[None].fail("Variable value must be a string")
+
+        try:
+            self.environment_variables[name] = value
+            return FlextCore.Result[None].ok(None)
+        except Exception as e:
+            return FlextCore.Result[None].fail(
+                f"Environment variable setting failed: {e}"
+            )
+
+    def add_argument(self, argument: str) -> FlextCore.Result[None]:
+        """Add command line argument."""
+        if not argument or not isinstance(argument, str):
+            return FlextCore.Result[None].fail("Argument must be a non-empty string")
+
+        try:
+            self.arguments.append(argument)
+            return FlextCore.Result[None].ok(None)
+        except Exception as e:
+            return FlextCore.Result[None].fail(f"Argument addition failed: {e}")
+
+    def remove_argument(self, argument: str) -> FlextCore.Result[None]:
+        """Remove command line argument."""
+        if not argument or not isinstance(argument, str):
+            return FlextCore.Result[None].fail("Argument must be a non-empty string")
+
+        try:
+            if argument in self.arguments:
+                self.arguments.remove(argument)
+                return FlextCore.Result[None].ok(None)
+            return FlextCore.Result[None].fail(f"Argument '{argument}' not found")
+        except Exception as e:
+            return FlextCore.Result[None].fail(f"Argument removal failed: {e}")
+
+    def set_metadata(self, key: str, value: object) -> FlextCore.Result[None]:
+        """Set context metadata using CLI-specific data types."""
+        if not key or not isinstance(key, str):
+            return FlextCore.Result[None].fail(
+                "Metadata key must be a non-empty string"
+            )
+
+        try:
+            self.context_metadata[key] = value
+            return FlextCore.Result[None].ok(None)
+        except Exception as e:
+            return FlextCore.Result[None].fail(f"Metadata setting failed: {e}")
+
+    def get_metadata(self, key: str) -> FlextCore.Result[object]:
+        """Get context metadata value."""
+        if not key or not isinstance(key, str):
+            return FlextCore.Result[object].fail(
+                "Metadata key must be a non-empty string"
+            )
+
+        try:
+            if key in self.context_metadata:
+                return FlextCore.Result[object].ok(self.context_metadata[key])
+            return FlextCore.Result[object].fail(f"Metadata key '{key}' not found")
+        except Exception as e:
+            return FlextCore.Result[object].fail(f"Metadata retrieval failed: {e}")
+
+    def get_context_summary(
         self,
-        context: FlextCliModels.CliContext,
-    ) -> FlextResult[None]:
-        """Validate CLI context instance.
-
-        Args:
-            context: Context to validate
-
-        Returns:
-            FlextResult[None]: Validation result
-
-        """
+    ) -> FlextCore.Result[FlextCore.Types.Dict]:
+        """Get comprehensive context summary using CLI-specific data types."""
         try:
-            # Validation is automatic via Pydantic in the model
-            # This method provides explicit validation interface
-            if not context.command and not context.arguments:
-                return FlextResult[None].fail(
-                    "Context must have either command or arguments"
-                )
+            summary: FlextCore.Types.Dict = {
+                "context_id": self.id,
+                "command": self.command or "none",
+                "arguments_count": len(self.arguments),
+                "arguments": list(self.arguments),
+                "environment_variables_count": len(self.environment_variables),
+                "working_directory": self.working_directory or "not_set",
+                "is_active": self.is_active,
+                "created_at": self.created_at,
+                "metadata_keys": list(self.context_metadata.keys()),
+                "metadata_count": len(self.context_metadata),
+            }
 
-            return FlextResult[None].ok(None)
+            return FlextCore.Result[FlextCore.Types.Dict].ok(summary)
         except Exception as e:
-            return FlextResult[None].fail(
-                FlextCliConstants.ErrorMessages.CONTEXT_VALIDATION_FAILED.format(
-                    error=e
-                )
+            return FlextCore.Result[FlextCore.Types.Dict].fail(
+                f"Context summary generation failed: {e}",
             )
 
-    # ========================================================================
-    # MODEL CONTEXT PROPAGATION - Attach/retrieve models from context
-    # ========================================================================
-
-    def create_context_from_model(
-        self,
-        model: BaseModel,
-        command: str | None = None,
-    ) -> FlextResult[FlextCliModels.CliContext]:
-        """Create CLI context from Pydantic model instance.
-
-        Args:
-            model: Pydantic model instance to attach to context
-            command: Optional command name
-
-        Returns:
-            FlextResult[FlextCliModels.CliContext]: Context with attached model
-
-        """
+    def execute(self) -> FlextCore.Result[FlextCliTypes.Data.CliDataDict]:
+        """Execute the CLI context."""
         try:
-            # Convert model to dict for context metadata
-            model_data = model.model_dump()
-
-            # Create context
-            context = self._model_class(
-                command=command,
-                arguments=[],
-                environment_variables={},
-                working_directory=None,
-            )
-
-            # Attach model data to context metadata
-            for key, value in model_data.items():
-                set_result = context.set_metadata(f"model_{key}", value)
-                if set_result.is_failure:
-                    return FlextResult[FlextCliModels.CliContext].fail(
-                        f"Failed to attach model data: {set_result.error}"
-                    )
-
-            # Store model class name
-            model_class_result = context.set_metadata(
-                "model_class", model.__class__.__name__
-            )
-            if model_class_result.is_failure:
-                return FlextResult[FlextCliModels.CliContext].fail(
-                    f"Failed to store model class: {model_class_result.error}"
-                )
-
-            return FlextResult[FlextCliModels.CliContext].ok(context)
+            result: FlextCliTypes.Data.CliDataDict = {
+                "context_executed": True,
+                "command": self.command,
+                "arguments_count": len(self.arguments) if self.arguments else 0,
+                "timestamp": FlextCore.Utilities.Generators.generate_timestamp(),
+            }
+            return FlextCore.Result[FlextCliTypes.Data.CliDataDict].ok(result)
         except Exception as e:
-            return FlextResult[FlextCliModels.CliContext].fail(
-                f"Context creation from model failed: {e}"
+            return FlextCore.Result[FlextCliTypes.Data.CliDataDict].fail(
+                f"Context execution failed: {e}"
             )
 
-    def attach_model_to_context(
-        self,
-        context: FlextCliModels.CliContext,
-        model: BaseModel,
-        prefix: str = "model",
-    ) -> FlextResult[None]:
-        """Attach Pydantic model instance to existing context.
-
-        Args:
-            context: CLI context to attach model to
-            model: Pydantic model instance
-            prefix: Prefix for model data keys in context metadata
-
-        Returns:
-            FlextResult[None]: Success or error
-
-        """
-        try:
-            # Convert model to dict
-            model_data = model.model_dump()
-
-            # Attach each field to context metadata
-            for key, value in model_data.items():
-                metadata_key = f"{prefix}_{key}"
-                set_result = context.set_metadata(metadata_key, value)
-                if set_result.is_failure:
-                    return FlextResult[None].fail(
-                        f"Failed to attach {key}: {set_result.error}"
-                    )
-
-            # Store model class information
-            class_result = context.set_metadata(
-                f"{prefix}_class", model.__class__.__name__
-            )
-            if class_result.is_failure:
-                return FlextResult[None].fail(
-                    f"Failed to store model class: {class_result.error}"
-                )
-
-            return FlextResult[None].ok(None)
-        except Exception as e:
-            return FlextResult[None].fail(
-                FlextCliConstants.ErrorMessages.MODEL_ATTACHMENT_FAILED.format(error=e)
-            )
-
-    def extract_model_from_context(
-        self,
-        context: FlextCliModels.CliContext,
-        model_class: type[BaseModel],
-        prefix: str = "model",
-    ) -> FlextResult[BaseModel]:
-        """Extract Pydantic model instance from context metadata.
-
-        Args:
-            context: CLI context containing model data
-            model_class: Pydantic model class to instantiate
-            prefix: Prefix used when attaching model data
-
-        Returns:
-            FlextResult[BaseModel]: Reconstructed model instance or error
-
-        """
-        try:
-            # Extract model fields from context metadata
-            model_data: dict[str, object] = {}
-
-            # Get all model fields
-            for field_name in model_class.model_fields:
-                metadata_key = f"{prefix}_{field_name}"
-                field_result = context.get_metadata(metadata_key)
-
-                if field_result.is_success:
-                    model_data[field_name] = field_result.unwrap()
-
-            # Reconstruct model from extracted data
-            model_instance = model_class(**model_data)
-
-            return FlextResult[BaseModel].ok(model_instance)
-        except Exception as e:
-            return FlextResult[BaseModel].fail(
-                FlextCliConstants.ErrorMessages.MODEL_EXTRACTION_FAILED.format(error=e)
-            )
-
-    def get_model_metadata(
-        self,
-        context: FlextCliModels.CliContext,
-        prefix: str = "model",
-    ) -> FlextResult[dict[str, object]]:
-        """Get all model-related metadata from context.
-
-        Args:
-            context: CLI context
-            prefix: Prefix for model data keys
-
-        Returns:
-            FlextResult containing dictionary of model metadata
-
-        """
-        try:
-            # Get context summary to access metadata
-            summary_result = context.get_context_summary()
-            if summary_result.is_failure:
-                return FlextResult[dict[str, object]].fail(
-                    f"Failed to get context summary: {summary_result.error}"
-                )
-
-            summary = summary_result.unwrap()
-            metadata_keys = summary.get("metadata_keys", [])
-
-            # Filter for model-prefixed keys
-            model_metadata: dict[str, object] = {}
-
-            # Ensure metadata_keys is a list before iterating
-            if isinstance(metadata_keys, list):
-                for key in metadata_keys:
-                    if isinstance(key, str) and key.startswith(f"{prefix}_"):
-                        value_result = context.get_metadata(key)
-                        if value_result.is_success:
-                            # Remove prefix from key for cleaner output
-                            clean_key = key[len(f"{prefix}_") :]
-                            model_metadata[clean_key] = value_result.unwrap()
-
-            return FlextResult[dict[str, object]].ok(model_metadata)
-        except Exception as e:
-            return FlextResult[dict[str, object]].fail(
-                f"Metadata retrieval failed: {e}"
-            )
-
-    def execute(self) -> FlextResult[FlextCliTypes.Data.CliDataDict]:
-        """Execute context service operations.
-
-        Returns:
-            FlextResult[FlextCliTypes.Data.CliDataDict]: Service execution result
-
-        """
-        return FlextResult[FlextCliTypes.Data.CliDataDict].ok({
-            "service": "FlextCliContext",
-            "status": "operational",
-        })
+    def to_dict(self) -> FlextCore.Types.Dict:
+        """Convert context to dictionary."""
+        return {
+            "id": self.id,
+            "command": self.command,
+            "arguments": self.arguments or [],
+            "environment_variables": self.environment_variables or {},
+            "working_directory": self.working_directory,
+            "created_at": self.created_at,
+            "timeout_seconds": self.timeout_seconds,
+        }
 
 
 __all__ = [

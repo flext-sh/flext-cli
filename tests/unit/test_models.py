@@ -17,7 +17,7 @@ import time
 from typing import cast
 
 import pytest
-from flext_core import FlextTypes
+from flext_core import FlextCore
 
 # Test utilities removed from flext-core production exports
 from flext_cli.models import FlextCliModels
@@ -634,7 +634,7 @@ class TestFlextCliModels:
             "items": "not_a_list",  # Should be list
         }
 
-        type_errors: FlextTypes.StringList = []
+        type_errors: FlextCore.Types.StringList = []
         for field, expected_type in expected_types.items():
             if field in invalid_data and not isinstance(
                 invalid_data[field], expected_type
@@ -760,7 +760,7 @@ class TestFlextCliModels:
         assert sums["C"] == 30
 
         # Calculate average by category
-        averages: FlextTypes.FloatDict = {}
+        averages: FlextCore.Types.FloatDict = {}
         for category, items in grouped.items():
             numeric_values = [
                 item["value"] for item in items if isinstance(item["value"], int)
@@ -885,7 +885,7 @@ class TestFlextCliModels:
         assert models_service is not None
 
         # Test with empty data
-        empty_data: dict[str, object] = {}
+        empty_data: FlextCore.Types.Dict = {}
         assert len(empty_data) == 0
 
         # Test with malformed JSON

@@ -12,6 +12,8 @@ from __future__ import annotations
 import time
 from typing import Never
 
+from flext_core import FlextCore
+
 from flext_cli.commands import FlextCliCommands
 from flext_cli.constants import FlextCliConstants
 
@@ -275,7 +277,7 @@ class TestFlextCliCommands:
         commands = FlextCliCommands()
 
         # Register command that accepts args
-        def cmd_with_args(args: list[str]) -> str:
+        def cmd_with_args(args: FlextCore.Types.StringList) -> str:
             return f"args: {len(args)}"
 
         commands.register_command("with_args", cmd_with_args)

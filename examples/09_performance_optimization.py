@@ -28,6 +28,8 @@ import tempfile
 import time
 from functools import lru_cache
 
+from flext_core import FlextCore
+
 from flext_cli import FlextCli, FlextCliTables
 
 cli = FlextCli.get_instance()
@@ -91,10 +93,10 @@ class LazyDataLoader:
 
     def __init__(self) -> None:
         """Initialize lazy data loader with deferred data loading."""
-        self._data: list[int] | None = None  # Not loaded yet
+        self._data: FlextCore.Types.IntList | None = None  # Not loaded yet
 
     @property
-    def data(self) -> list[int]:
+    def data(self) -> FlextCore.Types.IntList:
         """Load data only when needed."""
         if self._data is None:
             cli.formatters.print(

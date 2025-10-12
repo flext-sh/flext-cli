@@ -48,7 +48,7 @@ from flext_cli import FlextCli, FlextCliMain, FlextCliFormatters
 
 ### **Integration Points**
 
-- **[flext-core](../flext-core/README.md)** → FlextResult, FlextService, FlextContainer patterns
+- **[flext-core](../flext-core/README.md)** → FlextCore.Result, FlextCore.Service, FlextCore.Container patterns
 - **All FLEXT Projects** → Universal CLI foundation (NO direct Click/Rich)
 - **Ecosystem CLIs** → algar-oud-mig, gruponos-meltano-native, flext-api tools
 
@@ -71,9 +71,9 @@ from flext_cli import FlextCli, FlextCliMain, FlextCliFormatters
 
 | Pattern            | Status  | Implementation                   |
 | ------------------ | ------- | -------------------------------- |
-| **FlextResult<T>** | 🟢 100% | Railway pattern throughout       |
-| **FlextService**   | 🟢 100% | All services extend FlextService |
-| **FlextContainer** | 🟢 100% | Complete dependency injection    |
+| **FlextCore.Result<T>** | 🟢 100% | Railway pattern throughout       |
+| **FlextCore.Service**   | 🟢 100% | All services extend FlextCore.Service |
+| **FlextCore.Container** | 🟢 100% | Complete dependency injection    |
 | **Type Safety**    | 🟢 100% | Comprehensive type hints         |
 
 ### **Architecture Layers**
@@ -91,9 +91,9 @@ graph TB
     C --> J[shell.py - Interactive REPL]
 
     B --> K[flext-core Foundation]
-    K --> L[FlextResult]
-    K --> M[FlextService]
-    K --> N[FlextContainer]
+    K --> L[FlextCore.Result]
+    K --> M[FlextCore.Service]
+    K --> N[FlextCore.Container]
 ```
 
 ### **Quality Assurance Status** (Phase 5) ✅
@@ -311,7 +311,7 @@ make check                  # Lint + type-check only
 - **Type Safety**: 100% type hints, MyPy strict mode passing
 - **Code Quality**: Ruff linting with ZERO tolerance
 - **Test Coverage**: 75%+ with real functionality tests
-- **FLEXT-Core Compliance**: 100% FlextResult pattern usage
+- **FLEXT-Core Compliance**: 100% FlextCore.Result pattern usage
 - **ZERO TOLERANCE**: No Click/Rich imports in ecosystem
 
 ---
@@ -486,9 +486,9 @@ config = mock.mock_user_config(profile="test").unwrap()
 
 ### **FLEXT-Core Compliance**
 
-- ✅ All operations use FlextResult[T]
-- ✅ Services extend FlextService
-- ✅ Dependency injection via FlextContainer
+- ✅ All operations use FlextCore.Result[T]
+- ✅ Services extend FlextCore.Service
+- ✅ Dependency injection via FlextCore.Container
 - ✅ Comprehensive type annotations
 
 ### **ZERO TOLERANCE Enforcement**
@@ -563,7 +563,7 @@ MIT License - see [LICENSE](LICENSE) for details.
 - **Plugin architecture** for extensibility
 - **Modern capabilities** (, performance, REPL)
 - **Type-safe** throughout (100% type hints)
-- **Railway-oriented** programming (FlextResult)
+- **Railway-oriented** programming (FlextCore.Result)
 
 **Date Completed**: October 1, 2025
 **Status**: ✅ Production Ready

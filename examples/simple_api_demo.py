@@ -5,14 +5,14 @@ A quick reference showing common flext-cli patterns in one place.
 WHEN TO USE flext-cli:
 - Building any Python CLI application
 - Need styled terminal output (colors, tables, progress)
-- Want error handling without exceptions (FlextResult)
+- Want error handling without exceptions (FlextCore.Result)
 - Need file I/O (JSON, YAML) with validation
 - Building interactive CLI tools
 
 QUICK START:
 ```python
 from flext_cli import FlextCli, FlextCliTables
-from flext_core import FlextResult
+from flext_core import FlextCore
 
 cli = FlextCli.get_instance()
 
@@ -38,7 +38,7 @@ import tempfile
 from pathlib import Path
 from typing import cast
 
-from flext_core import FlextResult
+from flext_core import FlextCore
 
 from flext_cli import FlextCli, FlextCliTables
 from flext_cli.typings import FlextCliTypes
@@ -82,8 +82,8 @@ def main() -> None:
     tables = FlextCliTables()
 
     # Type annotation for table data - list of dicts with object values
-    table_data: list[dict[str, object]] = cast(
-        "list[dict[str, object]]",
+    table_data: list[FlextCore.Types.Dict] = cast(
+        "list[FlextCore.Types.Dict]",
         [{"metric": "CPU", "value": "85%"}, {"metric": "Memory", "value": "12GB"}],
     )
     ascii_result = tables.create_table(table_data, table_format="grid")
@@ -137,7 +137,7 @@ def main() -> None:
 
     # 6. ERROR HANDLING
     cli.formatters.print(
-        "\n6️⃣  Error Handling (FlextResult pattern):", style="bold cyan"
+        "\n6️⃣  Error Handling (FlextCore.Result pattern):", style="bold cyan"
     )
 
     # Success case
@@ -151,10 +151,10 @@ def main() -> None:
 
     # Validation example
 
-    def validate_positive(n: int) -> FlextResult[int]:
+    def validate_positive(n: int) -> FlextCore.Result[int]:
         if n < 0:
-            return FlextResult[int].fail("Must be positive")
-        return FlextResult[int].ok(n * 2)
+            return FlextCore.Result[int].fail("Must be positive")
+        return FlextCore.Result[int].ok(n * 2)
 
     valid = validate_positive(10)
     if valid.is_success:

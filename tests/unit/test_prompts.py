@@ -15,8 +15,7 @@ from typing import Never
 from unittest.mock import patch
 
 import pytest
-from flext_core import FlextLogger, FlextResult, FlextTypes
-from flext_core.loggings import FlextLogger
+from flext_core import FlextCore
 
 # Test utilities removed from flext-core production exports
 from flext_cli.prompts import FlextCliPrompts
@@ -45,7 +44,7 @@ class TestFlextCliPrompts:
         """Test prompts execute method."""
         result = prompts.execute()
 
-        assert isinstance(result, FlextResult)
+        assert isinstance(result, FlextCore.Result)
         assert result.is_success
         assert result.unwrap() == {}  # Returns empty dict, not None
 
@@ -53,7 +52,7 @@ class TestFlextCliPrompts:
         """Test prompts execute method (now sync, delegates to execute)."""
         result = prompts.execute()
 
-        assert isinstance(result, FlextResult)
+        assert isinstance(result, FlextCore.Result)
         assert result.is_success
         assert isinstance(result.unwrap(), dict)
 
@@ -62,7 +61,7 @@ class TestFlextCliPrompts:
         with patch("builtins.input", return_value="test_input"):
             result = interactive_prompts.prompt("Enter text:")
 
-            assert isinstance(result, FlextResult)
+            assert isinstance(result, FlextCore.Result)
             assert result.is_success
             assert result.unwrap() == "test_input"
 
@@ -73,7 +72,7 @@ class TestFlextCliPrompts:
         with patch("builtins.input", return_value=""):
             result = interactive_prompts.prompt("Enter text:", default="default_value")
 
-            assert isinstance(result, FlextResult)
+            assert isinstance(result, FlextCore.Result)
             assert result.is_success
             assert result.unwrap() == "default_value"
 
@@ -82,7 +81,7 @@ class TestFlextCliPrompts:
         with patch("builtins.input", return_value="y"):
             result = interactive_prompts.confirm("Are you sure?")
 
-            assert isinstance(result, FlextResult)
+            assert isinstance(result, FlextCore.Result)
             assert result.is_success
             assert result.unwrap() is True
 
@@ -91,7 +90,7 @@ class TestFlextCliPrompts:
         with patch("builtins.input", return_value="n"):
             result = interactive_prompts.confirm("Are you sure?")
 
-            assert isinstance(result, FlextResult)
+            assert isinstance(result, FlextCore.Result)
             assert result.is_success
             assert result.unwrap() is False
 
@@ -102,7 +101,7 @@ class TestFlextCliPrompts:
         with patch("builtins.input", return_value=""):
             result = interactive_prompts.confirm("Are you sure?", default=True)
 
-            assert isinstance(result, FlextResult)
+            assert isinstance(result, FlextCore.Result)
             assert result.is_success
             assert result.unwrap() is True
 
@@ -110,14 +109,14 @@ class TestFlextCliPrompts:
         self, interactive_prompts: FlextCliPrompts
     ) -> None:
         """Test select from options functionality."""
-        options: FlextTypes.StringList = ["option1", "option2", "option3"]
+        options: FlextCore.Types.StringList = ["option1", "option2", "option3"]
 
         with patch("builtins.input", return_value="1"):
             result = interactive_prompts.select_from_options(
                 options, "Choose an option:"
             )
 
-            assert isinstance(result, FlextResult)
+            assert isinstance(result, FlextCore.Result)
             assert result.is_success
             # The method returns the character at the selected index, not the option
             assert isinstance(result.unwrap(), str)
@@ -133,17 +132,17 @@ class TestFlextCliPrompts:
                 options, "Choose an option:"
             )
 
-            assert isinstance(result, FlextResult)
+            assert isinstance(result, FlextCore.Result)
             # Should handle valid input
             assert result.is_success
 
     def test_prompts_select_from_options_empty(self, prompts: FlextCliPrompts) -> None:
         """Test select from options with empty options."""
-        options: FlextTypes.StringList = []
+        options: FlextCore.Types.StringList = []
 
         result = prompts.select_from_options(options, "Choose an option:")
 
-        assert isinstance(result, FlextResult)
+        assert isinstance(result, FlextCore.Result)
         # May fail with empty options
         # Just check that it returns a result
 
@@ -151,59 +150,59 @@ class TestFlextCliPrompts:
         """Test print status functionality."""
         result = prompts.print_status("Test status")
 
-        assert isinstance(result, FlextResult)
+        assert isinstance(result, FlextCore.Result)
         assert result.is_success
 
     def test_prompts_print_status_with_type(self, prompts: FlextCliPrompts) -> None:
         """Test print status with specific status type."""
         result = prompts.print_status("Test status", status="warning")
 
-        assert isinstance(result, FlextResult)
+        assert isinstance(result, FlextCore.Result)
         assert result.is_success
 
     def test_prompts_print_success(self, prompts: FlextCliPrompts) -> None:
         """Test print success functionality."""
         result = prompts.print_success("Success message")
 
-        assert isinstance(result, FlextResult)
+        assert isinstance(result, FlextCore.Result)
         assert result.is_success
 
     def test_prompts_print_error(self, prompts: FlextCliPrompts) -> None:
         """Test print error functionality."""
         result = prompts.print_error("Error message")
 
-        assert isinstance(result, FlextResult)
+        assert isinstance(result, FlextCore.Result)
         assert result.is_success
 
     def test_prompts_print_warning(self, prompts: FlextCliPrompts) -> None:
         """Test print warning functionality."""
         result = prompts.print_warning("Warning message")
 
-        assert isinstance(result, FlextResult)
+        assert isinstance(result, FlextCore.Result)
         assert result.is_success
 
     def test_prompts_print_info(self, prompts: FlextCliPrompts) -> None:
         """Test print info functionality."""
         result = prompts.print_info("Info message")
 
-        assert isinstance(result, FlextResult)
+        assert isinstance(result, FlextCore.Result)
         assert result.is_success
 
     def test_prompts_create_progress(self, prompts: FlextCliPrompts) -> None:
         """Test create progress functionality."""
         result = prompts.create_progress("Test progress")
 
-        assert isinstance(result, FlextResult)
+        assert isinstance(result, FlextCore.Result)
         assert result.is_success
         assert isinstance(result.unwrap(), str)
 
     def test_prompts_with_progress(self, prompts: FlextCliPrompts) -> None:
         """Test with progress functionality."""
         # with_progress expects a list of items, not a function
-        test_items: FlextTypes.List = ["item1", "item2", "item3"]
+        test_items: FlextCore.Types.List = ["item1", "item2", "item3"]
         result = prompts.with_progress(test_items, "Processing...")
 
-        assert isinstance(result, FlextResult)
+        assert isinstance(result, FlextCore.Result)
         # May fail if function doesn't have len() method
         # Just check that it returns a result
 
@@ -255,19 +254,19 @@ class TestFlextCliPrompts:
         # Test with empty message
         with patch("builtins.input", return_value="test"):
             result = interactive_prompts.prompt("")
-            assert isinstance(result, FlextResult)
+            assert isinstance(result, FlextCore.Result)
 
         # Test with very long message
         long_message = "x" * 1000
         with patch("builtins.input", return_value="test"):
             result = interactive_prompts.prompt(long_message)
-            assert isinstance(result, FlextResult)
+            assert isinstance(result, FlextCore.Result)
 
         # Test with special characters in message
         special_message = "Enter data: !@#$%^&*()_+-=[]{}|;':\",./<>?"
         with patch("builtins.input", return_value="test"):
             result = interactive_prompts.prompt(special_message)
-            assert isinstance(result, FlextResult)
+            assert isinstance(result, FlextCore.Result)
 
     def test_prompts_performance(self, interactive_prompts: FlextCliPrompts) -> None:
         """Test prompts performance."""
@@ -315,7 +314,7 @@ class TestFlextCliPrompts:
         result = interactive_prompts.confirm(
             "Test with prompts parameter", default=True
         )
-        assert isinstance(result, FlextResult)
+        assert isinstance(result, FlextCore.Result)
 
     def test_prompts_prompt_functionality(self, prompts: FlextCliPrompts) -> None:
         """Test prompt functionality comprehensively."""
@@ -329,7 +328,7 @@ class TestFlextCliPrompts:
         # Test with prompts parameter usage
         assert hasattr(prompts, "prompt")
         result = prompts.prompt("Test with prompts parameter", default="test_value")
-        assert isinstance(result, FlextResult)
+        assert isinstance(result, FlextCore.Result)
 
     def test_prompts_print_functionality(self, prompts: FlextCliPrompts) -> None:
         """Test print functionality comprehensively."""
@@ -354,7 +353,7 @@ class TestFlextCliPrompts:
         assert hasattr(prompts, "print_info")
 
         result = prompts.print_success("Test with prompts parameter")
-        assert isinstance(result, FlextResult)
+        assert isinstance(result, FlextCore.Result)
 
     def test_prompts_progress_functionality(self, prompts: FlextCliPrompts) -> None:
         """Test progress functionality comprehensively."""
@@ -491,12 +490,12 @@ class TestFlextCliPrompts:
         assert hasattr(prompts, "prompt")
         assert hasattr(prompts, "confirm")
         edge_result = prompts.prompt("Edge case test", default="edge_value")
-        assert isinstance(edge_result, FlextResult)
+        assert isinstance(edge_result, FlextCore.Result)
 
     def test_prompts_behavior(self, prompts: FlextCliPrompts) -> None:
         """Test prompts execute method (now sync, delegates to execute)."""
         result = prompts.execute()
-        assert isinstance(result, FlextResult)
+        assert isinstance(result, FlextCore.Result)
 
     def test_prompts_error_scenarios(self, prompts: FlextCliPrompts) -> None:
         """Test prompts error scenarios."""
@@ -505,12 +504,12 @@ class TestFlextCliPrompts:
 
         # These should handle None gracefully - use False as default instead of None
         result = quiet_prompts.confirm("Test", default=False)
-        assert isinstance(result, FlextResult)
+        assert isinstance(result, FlextCore.Result)
 
         # Test with prompts parameter usage in error scenarios
         assert hasattr(prompts, "confirm")
         error_result = prompts.confirm("Error test", default=True)
-        assert isinstance(error_result, FlextResult)
+        assert isinstance(error_result, FlextCore.Result)
 
     def test_prompt_text_functionality(self) -> None:
         """Test prompt_text method with various scenarios."""
@@ -592,7 +591,7 @@ class TestFlextCliPrompts:
         # Test with interactive mode
         interactive_prompts = FlextCliPrompts(quiet=False, interactive_mode=True)
         result = interactive_prompts.prompt_password("Enter password:", min_length=8)
-        assert isinstance(result, FlextResult)
+        assert isinstance(result, FlextCore.Result)
 
     def test_clear_prompt_history(self, prompts: FlextCliPrompts) -> None:
         """Test clear_prompt_history method."""
@@ -663,12 +662,12 @@ class TestFlextCliPrompts:
         prompts = FlextCliPrompts(interactive_mode=False)
         assert prompts.interactive_mode is False
 
-        # Test with custom logger (FlextService may create its own logger)
-        logger = FlextLogger("test_logger")
+        # Test with custom logger (FlextCore.Service may create its own logger)
+        logger = FlextCore.Logger("test_logger")
         prompts = FlextCliPrompts(logger_instance=logger)
-        # Logger exists (FlextService creates its own, doesn't preserve instance)
+        # Logger exists (FlextCore.Service creates its own, doesn't preserve instance)
         assert hasattr(prompts, "logger")
-        assert isinstance(prompts.logger, FlextLogger)
+        assert isinstance(prompts.logger, FlextCore.Logger)
 
     def test_print_status_with_custom_status(self, prompts: FlextCliPrompts) -> None:
         """Test print_status with various status types."""
@@ -682,7 +681,7 @@ class TestFlextCliPrompts:
     def test_with_progress_large_dataset(self, prompts: FlextCliPrompts) -> None:
         """Test with_progress with large item count."""
         # Test with many items to trigger progress reporting
-        large_items: FlextTypes.List = list(range(100))
+        large_items: FlextCore.Types.List = list(range(100))
         result = prompts.with_progress(large_items, "Processing large dataset")
 
         assert result.is_success
@@ -690,7 +689,7 @@ class TestFlextCliPrompts:
 
     def test_with_progress_small_dataset(self, prompts: FlextCliPrompts) -> None:
         """Test with_progress with small item count."""
-        small_items: FlextTypes.List = [1, 2, 3]
+        small_items: FlextCore.Types.List = [1, 2, 3]
         result = prompts.with_progress(small_items, "Processing small dataset")
 
         assert result.is_success
@@ -733,10 +732,10 @@ class TestFlextCliPrompts:
 
     def test_prompts_initialization_with_logger(self) -> None:
         """Test initialization with logger parameter (line 44)."""
-        logger: FlextLogger = FlextLogger("test_logger")
+        logger: FlextCore.Logger = FlextCore.Logger("test_logger")
         prompts = FlextCliPrompts(logger=logger, interactive_mode=True)
         assert hasattr(prompts, "logger")
-        assert isinstance(prompts.logger, FlextLogger)
+        assert isinstance(prompts.logger, FlextCore.Logger)
 
     def test_prompt_text_interactive_mode(self) -> None:
         """Test prompt_text in interactive mode (lines 143-167)."""
@@ -862,12 +861,12 @@ class TestFlextCliPrompts:
 
         # Create a custom prompts class that raises exception
         class BadPrompts(FlextCliPrompts):
-            def execute(self) -> FlextResult[dict[str, object]]:
+            def execute(self) -> FlextCore.Result[FlextCore.Types.Dict]:
                 try:
                     msg = "Execute failed"
                     raise RuntimeError(msg)
                 except Exception as e:
-                    return FlextResult[dict[str, object]].fail(
+                    return FlextCore.Result[FlextCore.Types.Dict].fail(
                         f"Prompt service execution failed: {e}"
                     )
 
@@ -1012,13 +1011,13 @@ class TestFlextCliPrompts:
             assert result.is_failure
             assert result.error is not None
 
-    def test_prompt_text_exception_handling_coverage(self, monkeypatch) -> None:
+    def test_prompt_text_exception_handling_coverage(self, monkeypatch: object) -> None:
         """Test prompt_text exception handler (lines 166-167)."""
         prompts = FlextCliPrompts(interactive_mode=True)
         # Mock re.match to raise exception during validation
         import re
 
-        def failing_match(*args, **kwargs) -> Never:
+        def failing_match(*args: object, **kwargs: object) -> Never:
             msg = "Regex failed"
             raise RuntimeError(msg)
 
@@ -1039,7 +1038,7 @@ class TestFlextCliPrompts:
 
         # Replace _prompt_history with a custom class that raises on append
         class FailingList(UserList):
-            def append(self, item) -> Never:
+            def append(self, item: object) -> Never:
                 msg = "History append failed"
                 raise RuntimeError(msg)
 
@@ -1050,7 +1049,7 @@ class TestFlextCliPrompts:
         assert result.error is not None
         assert "confirmation prompt failed" in (result.error or "").lower()
 
-    def test_prompt_choice_exception_handling_coverage(self, mocker) -> None:
+    def test_prompt_choice_exception_handling_coverage(self, mocker: object) -> None:
         """Test prompt_choice exception handler (lines 262-263)."""
         prompts = FlextCliPrompts(interactive_mode=True)
         # Mock enumerate to raise exception
@@ -1061,7 +1060,7 @@ class TestFlextCliPrompts:
         assert result.error is not None
         assert "choice prompt failed" in (result.error or "").lower()
 
-    def test_prompt_non_interactive_default_return(self, monkeypatch) -> None:
+    def test_prompt_non_interactive_default_return(self, monkeypatch: object) -> None:
         """Test prompt returns default in non-interactive mode (lines 383-384)."""
         # Set quiet=False to skip line 380 and hit line 384
         prompts = FlextCliPrompts(interactive_mode=False, quiet=False)
@@ -1069,7 +1068,7 @@ class TestFlextCliPrompts:
         assert result.is_success
         assert result.unwrap() == "default_value"
 
-    def test_prompt_logging_in_test_environment(self, monkeypatch) -> None:
+    def test_prompt_logging_in_test_environment(self, monkeypatch: object) -> None:
         """Test prompt skips logging in test environment (lines 396-397)."""
         prompts = FlextCliPrompts(interactive_mode=True, quiet=False)
         # Ensure we're in test environment
@@ -1080,7 +1079,7 @@ class TestFlextCliPrompts:
         assert result.is_success
         assert result.unwrap() == "test_input"
 
-    def test_confirm_non_interactive_default_return(self, monkeypatch) -> None:
+    def test_confirm_non_interactive_default_return(self, monkeypatch: object) -> None:
         """Test confirm returns default in non-interactive mode (lines 419-420)."""
         # Set quiet=False to skip line 416 and hit line 420
         prompts = FlextCliPrompts(interactive_mode=False, quiet=False)
@@ -1088,7 +1087,9 @@ class TestFlextCliPrompts:
         assert result.is_success
         assert result.unwrap() is True
 
-    def test_select_from_options_empty_input_continue(self, monkeypatch) -> None:
+    def test_select_from_options_empty_input_continue(
+        self, monkeypatch: object
+    ) -> None:
         """Test select_from_options continues on empty input (line 474)."""
         prompts = FlextCliPrompts(interactive_mode=True, quiet=False)
         options = ["opt1", "opt2"]
@@ -1113,19 +1114,19 @@ class TestFlextCliPrompts:
                 raise RuntimeError(msg)
 
         # Since execute is very simple, we need to trigger an exception somehow
-        # Let's patch FlextResult.ok to raise when called
+        # Let's patch FlextCore.Result.ok to raise when called
 
-        def failing_ok(*args, **kwargs) -> Never:
-            msg = "FlextResult creation failed"
+        def failing_ok(*args: object, **kwargs: object) -> Never:
+            msg = "FlextCore.Result creation failed"
             raise RuntimeError(msg)
 
-        with patch("flext_cli.prompts.FlextResult.ok", side_effect=failing_ok):
+        with patch("flext_cli.prompts.FlextCore.Result.ok", side_effect=failing_ok):
             result = prompts.execute()
             assert result.is_failure
             assert result.error is not None
             assert "execution failed" in (result.error or "").lower()
 
-    def test_prompt_logging_non_test_environment(self, monkeypatch) -> None:
+    def test_prompt_logging_non_test_environment(self, monkeypatch: object) -> None:
         """Test prompt logging in non-test environment (line 397)."""
         prompts = FlextCliPrompts(interactive_mode=True, quiet=False)
 
