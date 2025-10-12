@@ -19,7 +19,8 @@ from flext_core import FlextCore
 from rich.tree import Tree
 
 from flext_cli.cli import FlextCliCli
-from flext_cli.config import FlextCliConfig
+
+# FlextCliConfig moved to FlextCliModels.CliConfig
 from flext_cli.constants import FlextCliConstants
 from flext_cli.file_tools import FlextCliFileTools
 from flext_cli.formatters import FlextCliFormatters
@@ -71,7 +72,7 @@ class FlextCli:
         self._plugin_commands: FlextCore.Types.Dict = {}
 
         # Auth state (consolidated from FlextCliAuth)
-        self._config = FlextCliConfig()
+        self._config = FlextCliModels.CliConfig()
         self._valid_tokens: set[str] = set()
         self._valid_sessions: set[str] = set()
         self._session_permissions: dict[str, set[str]] = {}
@@ -92,9 +93,9 @@ class FlextCli:
     # =========================================================================
 
     @property
-    def config(self) -> FlextCliConfig:
+    def config(self) -> FlextCliModels.CliConfig:
         """Access CLI configuration singleton."""
-        return FlextCliConfig.get_global_instance()
+        return FlextCliModels.CliConfig.get_global_instance()
 
     @property
     def constants(self) -> type[FlextCliConstants]:

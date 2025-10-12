@@ -16,9 +16,10 @@ from typing import override
 
 from flext_core import FlextCore
 
-from flext_cli.config import FlextCliConfig
+# FlextCliConfig moved to FlextCliModels.CliConfig
 from flext_cli.constants import FlextCliConstants
 from flext_cli.file_tools import FlextCliFileTools
+from flext_cli.models import FlextCliModels
 
 
 class FlextCliCmd(FlextCore.Service[FlextCore.Types.Dict]):
@@ -157,7 +158,7 @@ class FlextCliCmd(FlextCore.Service[FlextCore.Types.Dict]):
 
             # Save to file using FlextCliFileTools
             config_path = (
-                FlextCliConfig().config_dir
+                FlextCliModels.CliConfig().config_dir
                 / FlextCliConstants.ConfigFiles.CLI_CONFIG_JSON
             )
             save_result = self._file_tools.write_json_file(
@@ -185,7 +186,7 @@ class FlextCliCmd(FlextCore.Service[FlextCore.Types.Dict]):
 
             # Load configuration from file
             config_path = (
-                FlextCliConfig().config_dir
+                FlextCliModels.CliConfig().config_dir
                 / FlextCliConstants.ConfigFiles.CLI_CONFIG_JSON
             )
 
@@ -255,7 +256,7 @@ class FlextCliCmd(FlextCore.Service[FlextCore.Types.Dict]):
 
             # Get configuration file path
             config_path = (
-                FlextCliConfig().config_dir
+                FlextCliModels.CliConfig().config_dir
                 / FlextCliConstants.ConfigFiles.CLI_CONFIG_JSON
             )
 
