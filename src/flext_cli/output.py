@@ -18,18 +18,17 @@ import csv
 import json
 from collections.abc import Sequence
 from io import StringIO
-from typing import TYPE_CHECKING, cast, override
+from typing import override
 
 import yaml
 from flext_core import FlextCore
+from rich.progress import Progress
+from rich.table import Table as RichTable
+from rich.tree import Tree as RichTree
 
 from flext_cli.constants import FlextCliConstants
 from flext_cli.formatters import FlextCliFormatters
 from flext_cli.tables import FlextCliTables
-
-if TYPE_CHECKING:
-    from rich.table import Table as RichTable
-    from rich.tree import Tree as RichTree
 
 
 class FlextCliOutput(FlextCore.Service[object]):
@@ -71,23 +70,14 @@ class FlextCliOutput(FlextCore.Service[object]):
 
     @override
     def __init__(self) -> None:
-        """Initialize CLI output - formatters lazy-loaded via properties."""
+        """Initialize CLI output with direct formatter and table instances."""
         super().__init__()
         # Logger and container inherited from FlextCore.Service via FlextCore.Mixins
 
-    @property
-    def _formatters(self) -> FlextCliFormatters:
-        """Get formatters instance via container."""
-        result = self.container.get_or_create("formatters", FlextCliFormatters)
-        return result.unwrap()  # type: ignore[misc]
+        # Domain library components - direct initialization (no properties)
+        self._formatters = FlextCliFormatters()
+        self._tables = FlextCliTables()
 
-    @property
-    def _tables(self) -> FlextCliTables:
-        """Get tables instance via container."""
-        result = self.container.get_or_create("tables", FlextCliTables)
-        return result.unwrap()  # type: ignore[misc]
-
-    @override
     def execute(self) -> FlextCore.Result[object]:
         """Execute the main domain service operation - required by FlextCore.Service."""
         return FlextCore.Result[object].ok("FlextCliOutput operational")
@@ -325,7 +315,7 @@ class FlextCliOutput(FlextCore.Service[object]):
         self,
         _description: str = "Processing...",
         _total: int = 100,
-    ) -> FlextCore.Result[object]:
+    ) -> FlextCore.Result[Progress]:
         """Create a Rich progress bar using FlextCliFormatters.
 
         Args:
@@ -333,7 +323,7 @@ class FlextCliOutput(FlextCore.Service[object]):
             _total: Total number of steps (reserved for future use)
 
         Returns:
-            FlextCore.Result containing Progress object
+            FlextCore.Result[Progress]: Rich Progress wrapped in Result
 
         Example:
             >>> output = FlextCliOutput()
@@ -342,9 +332,7 @@ class FlextCliOutput(FlextCore.Service[object]):
             ... )
 
         """
-        progress_result = self._formatters.create_progress()
-        # Cast to object type to match return type
-        return cast("FlextCore.Result[object]", progress_result)
+        return self._formatters.create_progress()
 
     # =========================================================================
     # STYLED PRINTING (Delegates to FlextCliFormatters)
@@ -769,21 +757,6 @@ class FlextCliOutput(FlextCore.Service[object]):
     # =========================================================================
     # CONSOLE ACCESS (Delegates to FlextCliFormatters)
     # =========================================================================
-
-    @property
-    def console(self) -> object:
-        """Get console instance from FlextCliFormatters.
-
-        Returns:
-            Console instance from formatters
-
-        Example:
-            >>> output = FlextCliOutput()
-            >>> console = output.console
-            >>> # Use through formatters abstraction
-
-        """
-        return self._formatters.console
 
     def get_console(self) -> object:
         """Get the console instance from FlextCliFormatters (method form).

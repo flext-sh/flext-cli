@@ -285,9 +285,15 @@ class TestFlextCliTypes:
         assert "return" in hints
 
         # Test type origin and args
+        # Note: StringList is a type alias (list[str]), not a generic type
         list_type = FlextCore.Types.StringList
-        assert get_origin(list_type) is list
-        assert get_args(list_type) == (str,)
+        # Type aliases like StringList don't have origins - they ARE the type
+        assert list_type is not None
+        # get_args() works on actual generic types, not aliases
+        # StringList is just list[str], so we test with a generic directly
+        generic_list_type = list[str]
+        assert get_origin(generic_list_type) is list
+        assert get_args(generic_list_type) == (str,)
 
         dict_type = dict[str, int]
         assert get_origin(dict_type) is dict

@@ -16,10 +16,9 @@ from typing import override
 
 from flext_core import FlextCore
 
-# FlextCliConfig moved to FlextCliModels.CliConfig
+from flext_cli.config import FlextCliConfig
 from flext_cli.constants import FlextCliConstants
 from flext_cli.file_tools import FlextCliFileTools
-from flext_cli.models import FlextCliModels
 
 
 class FlextCliCmd(FlextCore.Service[FlextCore.Types.Dict]):
@@ -36,23 +35,14 @@ class FlextCliCmd(FlextCore.Service[FlextCore.Types.Dict]):
         """Initialize command service with flext-core integration and Phase 1 context enrichment."""
         super().__init__()
         # Logger is automatically provided by FlextCore.Mixins mixin
-        self._command_bus_service: FlextCliCmd | None = None
         self._file_tools = FlextCliFileTools()
 
-    @override
     def execute(self) -> FlextCore.Result[FlextCore.Types.Dict]:
         """Execute command service - required by FlextCore.Service."""
         return FlextCore.Result[FlextCore.Types.Dict].ok({
             "status": "operational",
             "service": "FlextCliCmd",
         })
-
-    @property
-    def command_bus_service(self) -> FlextCliCmd:
-        """Get command bus service with lazy loading."""
-        if self._command_bus_service is None:
-            self._command_bus_service = FlextCliCmd()
-        return self._command_bus_service
 
     @classmethod
     def create_instance(cls) -> FlextCliCmd:
@@ -158,7 +148,7 @@ class FlextCliCmd(FlextCore.Service[FlextCore.Types.Dict]):
 
             # Save to file using FlextCliFileTools
             config_path = (
-                FlextCliModels.CliConfig().config_dir
+                FlextCliConfig().config_dir
                 / FlextCliConstants.ConfigFiles.CLI_CONFIG_JSON
             )
             save_result = self._file_tools.write_json_file(
@@ -186,7 +176,7 @@ class FlextCliCmd(FlextCore.Service[FlextCore.Types.Dict]):
 
             # Load configuration from file
             config_path = (
-                FlextCliModels.CliConfig().config_dir
+                FlextCliConfig().config_dir
                 / FlextCliConstants.ConfigFiles.CLI_CONFIG_JSON
             )
 
@@ -256,7 +246,7 @@ class FlextCliCmd(FlextCore.Service[FlextCore.Types.Dict]):
 
             # Get configuration file path
             config_path = (
-                FlextCliModels.CliConfig().config_dir
+                FlextCliConfig().config_dir
                 / FlextCliConstants.ConfigFiles.CLI_CONFIG_JSON
             )
 

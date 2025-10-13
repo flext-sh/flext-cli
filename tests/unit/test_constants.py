@@ -45,7 +45,7 @@ class TestFlextCliConstants:
     def test_constants_values(self, constants_service: FlextCliConstants) -> None:
         """Test constants values are correct."""
         # Test project name
-        assert constants_service.PROJECT_NAME == "flext-core"
+        assert constants_service.PROJECT_NAME == "flext-cli"
         assert isinstance(constants_service.PROJECT_NAME, str)
         assert len(constants_service.PROJECT_NAME) > 0
 
@@ -155,7 +155,7 @@ class TestFlextCliConstants:
         }
 
         # Verify configuration uses constants correctly
-        assert config["project_name"] == "flext-core"
+        assert config["project_name"] == "flext-cli"
         assert config["data_directory"] == ".flext"
         assert config["token_file"] == "token.json"
         assert config["refresh_token_file"] == "refresh_token.json"
@@ -336,13 +336,13 @@ class TestFlextCliConstants:
     ) -> None:
         """Test that constants have expected values."""
         # Test that constants have the expected values
-        assert constants_service.PROJECT_NAME == "flext-core"
+        assert constants_service.PROJECT_NAME == "flext-cli"
         assert constants_service.FLEXT_DIR_NAME == ".flext"
         assert constants_service.TOKEN_FILE_NAME == "token.json"
         assert constants_service.REFRESH_TOKEN_FILE_NAME == "refresh_token.json"
 
         # Test that constants are accessible as class attributes
-        assert FlextCliConstants.PROJECT_NAME == "flext-core"
+        assert FlextCliConstants.PROJECT_NAME == "flext-cli"
         assert FlextCliConstants.FLEXT_DIR_NAME == ".flext"
         assert FlextCliConstants.TOKEN_FILE_NAME == "token.json"
         assert FlextCliConstants.REFRESH_TOKEN_FILE_NAME == "refresh_token.json"

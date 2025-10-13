@@ -270,7 +270,9 @@ class TestFlextCliTables:
 
     def test_create_table_single_row(self, tables: FlextCliTables) -> None:
         """Test table with single row."""
-        single_row = [{"name": "Alice", "age": 30}]
+        from typing import cast
+
+        single_row = cast("list[dict[str, object]]", [{"name": "Alice", "age": 30}])
         result = tables.create_table(data=single_row, table_format="simple")
 
         assert result.is_success

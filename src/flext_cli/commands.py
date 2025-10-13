@@ -51,7 +51,6 @@ class FlextCliCommands(FlextCore.Service[FlextCore.Types.Dict]):
             commands={},
         )
 
-    @override
     def execute(self) -> FlextCore.Result[FlextCore.Types.Dict]:
         """Execute the main domain service operation - required by FlextCore.Service."""
         return FlextCore.Result[FlextCore.Types.Dict].ok({

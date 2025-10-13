@@ -435,22 +435,10 @@ class TestFlextCliCmd:
             def read_json_file(
                 self, file_path: str | Path
             ) -> FlextCore.Result[
-                FlextCore.Types.Dict
-                | FlextCore.Types.List
-                | str
-                | int
-                | float
-                | bool
-                | None
+                bool | dict[str, object] | float | int | list[object] | str | None
             ]:
                 return FlextCore.Result[
-                    FlextCore.Types.Dict
-                    | FlextCore.Types.List
-                    | str
-                    | int
-                    | float
-                    | bool
-                    | None
+                    bool | dict[str, object] | float | int | list[object] | str | None
                 ].ok({"other_key": "value"})
 
         cmd._file_tools = MockFileTools()

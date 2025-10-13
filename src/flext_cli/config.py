@@ -1,7 +1,5 @@
-"""FLEXT CLI Configuration - Single unified class following FLEXT standards.
+"""FLEXT CLI Config - Single flat Pydantic 2 Settings class for flext-cli.
 
-Provides unified configuration management for the FLEXT CLI ecosystem
-using Pydantic Settings for environment variable support.
 Single FlextCliConfig class with nested configuration subclasses following FLEXT pattern.
 
 Copyright (c) 2025 FLEXT Team. All rights reserved.
@@ -15,8 +13,8 @@ import os
 import shutil
 from datetime import UTC, datetime
 from pathlib import Path
+from typing import Any
 
-import yaml
 from flext_core import FlextCore
 from pydantic import (
     Field,
@@ -81,7 +79,7 @@ class FlextCliConfig(FlextCore.Config):
     )
 
     project_name: str = Field(
-        default="flext-cli",
+        default=FlextCliConstants.PROJECT_NAME,
         description="Project name for CLI operations",
     )
 
@@ -436,6 +434,8 @@ class FlextCliConfig(FlextCore.Config):
                 ) as f:
                     data = json.load(f)
             elif config_file.suffix.lower() in {".yml", ".yaml"}:
+                import yaml
+
                 with config_file.open(
                     "r", encoding=FlextCliConstants.Encoding.UTF8
                 ) as f:
@@ -468,7 +468,7 @@ class FlextCliConfig(FlextCore.Config):
             "config": self.model_dump(),
         })
 
-    def update_from_cli_args(self, **kwargs: object) -> FlextCore.Result[None]:
+    def update_from_cli_args(self, **kwargs: Any) -> FlextCore.Result[None]:
         """Update configuration from CLI arguments with validation.
 
         Allows CLI commands to override configuration values dynamically.
@@ -551,7 +551,7 @@ class FlextCliConfig(FlextCore.Config):
             )
 
     def validate_cli_overrides(
-        self, **overrides: object
+        self, **overrides: Any
     ) -> FlextCore.Result[FlextCore.Types.Dict]:
         """Validate CLI overrides without applying them.
 

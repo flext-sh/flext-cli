@@ -17,7 +17,7 @@ from __future__ import annotations
 import shutil
 from collections.abc import Callable, Sequence
 from pathlib import Path
-from typing import IO, Any, cast
+from typing import IO
 
 import click
 import typer
@@ -66,16 +66,9 @@ class FlextCliCli:
     def __init__(self) -> None:
         """Initialize CLI abstraction layer with Typer backend."""
         super().__init__()
-        # Logger is automatically provided by FlextCore.Mixins mixin
-        self._container = FlextCore.Container()
-        self._logger = FlextCore.Logger(__name__)
-
-    @property
-    def logger(self) -> FlextCore.Logger:
-        """Get logger instance."""
-        if not hasattr(self, "_logger"):
-            self._logger = FlextCore.Logger(__name__)
-        return self._logger
+        # Direct initialization - no @property wrapper
+        self.container = FlextCore.Container()
+        self.logger = FlextCore.Logger(__name__)
 
     # =========================================================================
     # COMMAND AND GROUP CREATION
@@ -107,8 +100,8 @@ class FlextCliCli:
         """
         command_kwargs: FlextCore.Types.Dict = {"name": name}
         command_kwargs.update(kwargs)
-        # Cast to Any for Click API compatibility - explicit library interop
-        decorator = click.command(**cast("Any", command_kwargs))
+        # Duck typing for Click API compatibility - explicit library interop
+        decorator = click.command(**command_kwargs)  # type: ignore[arg-type]
         self.logger.debug(
             "Created command decorator",
             extra={"command_name": name, "options": kwargs},
@@ -140,8 +133,8 @@ class FlextCliCli:
         """
         group_kwargs: FlextCore.Types.Dict = {"name": name}
         group_kwargs.update(kwargs)
-        # Cast to Any for Click API compatibility - explicit library interop
-        decorator = click.group(**cast("Any", group_kwargs))
+        # Duck typing for Click API compatibility - explicit library interop
+        decorator = click.group(**group_kwargs)  # type: ignore[arg-type]
         self.logger.debug(
             "Created group decorator",
             extra={"group_name": name, "options": kwargs},
@@ -173,8 +166,8 @@ class FlextCliCli:
             ... )
 
         """
-        # Cast to Any for Click API compatibility - explicit library interop
-        decorator = click.option(*param_decls, **cast("Any", attrs))
+        # Duck typing for Click API compatibility - explicit library interop
+        decorator = click.option(*param_decls, **attrs)  # type: ignore[arg-type]
         self.logger.debug(
             "Created option decorator",
             extra={"param_decls": param_decls, "attrs": attrs},
@@ -202,8 +195,8 @@ class FlextCliCli:
             ... )
 
         """
-        # Cast to Any for Click API compatibility - explicit library interop
-        decorator = click.argument(*param_decls, **cast("Any", attrs))
+        # Duck typing for Click API compatibility - explicit library interop
+        decorator = click.argument(*param_decls, **attrs)  # type: ignore[arg-type]
         self.logger.debug(
             "Created argument decorator",
             extra={"param_decls": param_decls, "attrs": attrs},

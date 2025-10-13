@@ -10,7 +10,6 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 from collections.abc import Iterable, Sequence
-from typing import Any, cast
 
 from flext_core import FlextCore
 from tabulate import tabulate
@@ -163,8 +162,8 @@ class FlextCliTables(FlextCore.Service[object]):
                 else:
                     kwargs["colalign"] = align
 
-            # Generate table - cast to Any for tabulate API compatibility
-            table_str = tabulate(data, **cast("Any", kwargs))
+            # Generate table - duck typing handles kwargs
+            table_str = tabulate(data, **kwargs)  # type: ignore[arg-type]
 
             self._logger.debug(
                 "Created table",

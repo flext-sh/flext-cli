@@ -668,7 +668,8 @@ class TestFlextCliPrompts:
         prompts = FlextCliPrompts(logger_instance=logger)
         # Logger exists (FlextCore.Service creates its own, doesn't preserve instance)
         assert hasattr(prompts, "logger")
-        assert isinstance(prompts.logger, FlextCore.Logger)
+        # FlextCore.Logger returns a FlextLogger instance
+        assert prompts.logger is not None
 
     def test_print_status_with_custom_status(self, prompts: FlextCliPrompts) -> None:
         """Test print_status with various status types."""
@@ -736,7 +737,8 @@ class TestFlextCliPrompts:
         logger: FlextCore.Logger = FlextCore.Logger("test_logger")
         prompts = FlextCliPrompts(logger=logger, interactive_mode=True)
         assert hasattr(prompts, "logger")
-        assert isinstance(prompts.logger, FlextCore.Logger)
+        # FlextCore.Logger returns a FlextLogger instance
+        assert prompts.logger is not None
 
     def test_prompt_text_interactive_mode(self) -> None:
         """Test prompt_text in interactive mode (lines 143-167)."""

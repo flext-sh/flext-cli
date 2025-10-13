@@ -12,9 +12,9 @@ from __future__ import annotations
 import uuid
 
 from flext_core import FlextCore
+from pydantic import Field
 
-# FlextCliConfig moved to FlextCliModels.CliConfig
-from flext_cli.models import FlextCliModels
+from flext_cli.config import FlextCliConfig
 from flext_cli.typings import FlextCliTypes
 
 
@@ -32,10 +32,10 @@ class FlextCliContext(FlextCore.Service[FlextCliTypes.Data.CliDataDict]):
     # Direct attributes - no properties needed
     id: str = ""
     command: str | None = None
-    arguments: FlextCore.Types.StringList = []
-    environment_variables: FlextCore.Types.Dict = {}
+    arguments: FlextCore.Types.StringList = Field(default_factory=list)
+    environment_variables: FlextCore.Types.Dict = Field(default_factory=dict)
     working_directory: str | None = None
-    context_metadata: FlextCore.Types.Dict = {}
+    context_metadata: FlextCore.Types.Dict = Field(default_factory=dict)
 
     # Context state
     is_active: bool = False
@@ -79,11 +79,7 @@ class FlextCliContext(FlextCore.Service[FlextCliTypes.Data.CliDataDict]):
         # Context state
         self.is_active = False
         self.created_at = FlextCore.Utilities.Generators.generate_timestamp()
-
-    @property
-    def timeout_seconds(self) -> int:
-        """Get the timeout in seconds from config singleton."""
-        return FlextCliModels.CliConfig.get_global_instance().timeout_seconds
+        self.timeout_seconds = FlextCliConfig.get_global_instance().timeout_seconds
 
     def activate(self) -> FlextCore.Result[None]:
         """Activate CLI context for execution."""

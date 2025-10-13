@@ -68,17 +68,9 @@ class TestFlextCliContext:
 
     def test_create_context_with_environment(self) -> None:
         """Test creating context with environment variables."""
-        env: dict[
-            str,
-            str
-            | int
-            | float
-            | bool
-            | FlextCore.Types.List
-            | FlextCore.Types.Dict
-            | None,
-        ] = {"KEY": "value", "DEBUG": "true"}
-        context = FlextCliContext(environment_variables=env)
+        from typing import cast
+        env = cast("dict[str, object]", {"KEY": "value", "DEBUG": "true"})
+        context = FlextCliContext(environment_variables=env)  # type: ignore[arg-type]
 
         assert isinstance(context, FlextCliContext)
         assert context.environment_variables == env

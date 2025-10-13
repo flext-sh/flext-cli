@@ -14,7 +14,7 @@ from __future__ import annotations
 import sys
 from collections.abc import Callable
 from pathlib import Path
-from typing import Any, ClassVar, TypeVar, cast, get_args, get_origin
+from typing import Any, ClassVar, TypeVar, get_args, get_origin
 
 import typer
 from flext_core import FlextCore
@@ -218,47 +218,47 @@ class FlextCliCommonParams:
     @classmethod
     def verbose_option(cls) -> bool:
         """Create --verbose/-v option from FlextCore.Config.verbose field metadata."""
-        return cast("bool", cls.create_option("verbose"))
+        return cls.create_option("verbose")  # type: ignore[return-value]
 
     @classmethod
     def quiet_option(cls) -> bool:
         """Create --quiet/-q option from FlextCore.Config.quiet field metadata."""
-        return cast("bool", cls.create_option("quiet"))
+        return cls.create_option("quiet")  # type: ignore[return-value]
 
     @classmethod
     def debug_option(cls) -> bool:
         """Create --debug/-d option from FlextCore.Config.debug field metadata."""
-        return cast("bool", cls.create_option("debug"))
+        return cls.create_option("debug")  # type: ignore[return-value]
 
     @classmethod
     def trace_option(cls) -> bool:
         """Create --trace/-t option from FlextCore.Config.trace field metadata."""
-        return cast("bool", cls.create_option("trace"))
+        return cls.create_option("trace")  # type: ignore[return-value]
 
     @classmethod
     def log_level_option(cls) -> str:
         """Create --log-level/-L option from FlextCore.Config.log_level field metadata."""
-        return cast("str", cls.create_option("log_level"))
+        return cls.create_option("log_level")  # type: ignore[return-value]
 
     @classmethod
     def log_format_option(cls) -> str:
         """Create --log-format option from FlextCore.Config.log_verbosity field metadata."""
-        return cast("str", cls.create_option("log_verbosity"))
+        return cls.create_option("log_verbosity")  # type: ignore[return-value]
 
     @classmethod
     def output_format_option(cls) -> str:
         """Create --output-format/-o option from FlextCore.Config.output_format field metadata."""
-        return cast("str", cls.create_option("output_format"))
+        return cls.create_option("output_format")  # type: ignore[return-value]
 
     @classmethod
     def no_color_option(cls) -> bool:
         """Create --no-color option from FlextCore.Config.no_color field metadata."""
-        return cast("bool", cls.create_option("no_color"))
+        return cls.create_option("no_color")  # type: ignore[return-value]
 
     @classmethod
     def config_file_option(cls) -> Path | None:
         """Create --config-file/-c option from FlextCore.Config.config_file field metadata."""
-        return cast("Path | None", cls.create_option("config_file"))
+        return cls.create_option("config_file")  # type: ignore[return-value]
 
     @classmethod
     def get_all_common_params(cls) -> dict[str, Any]:

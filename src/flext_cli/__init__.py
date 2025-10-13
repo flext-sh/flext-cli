@@ -15,8 +15,7 @@ from flext_cli.cli import FlextCliCli
 from flext_cli.cli_params import FlextCliCommonParams
 from flext_cli.cmd import FlextCliCmd
 from flext_cli.commands import FlextCliCommands
-
-# FlextCliConfig moved to FlextCliModels.CliConfig
+from flext_cli.config import FlextCliConfig
 from flext_cli.constants import FlextCliConstants
 from flext_cli.context import FlextCliContext
 from flext_cli.core import FlextCliCore
