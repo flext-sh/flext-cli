@@ -46,42 +46,12 @@ class FlextCliPrompts(FlextCore.Service[FlextCliTypes.Data.CliDataDict]):
         # Initialize logger - inherited from FlextCore.Service via FlextCore.Mixins
         self._logger = logger or FlextCore.Logger(__name__)
 
-        # Prompts-specific configuration
+        # Prompts-specific configuration - direct access (no @property wrappers)
         # If quiet mode is enabled, disable interactive mode
-        self._interactive_mode = interactive_mode and not quiet
-        self._quiet = quiet
-        self._default_timeout = default_timeout
-        self._prompt_history: FlextCore.Types.StringList = []
-
-    @property
-    def interactive_mode(self) -> bool:
-        """Check if interactive mode is enabled.
-
-        Returns:
-            bool: True if interactive mode is enabled
-
-        """
-        return self._interactive_mode
-
-    @property
-    def quiet(self) -> bool:
-        """Check if quiet mode is enabled.
-
-        Returns:
-            bool: True if quiet mode is enabled
-
-        """
-        return self._quiet
-
-    @property
-    def default_timeout(self) -> int:
-        """Get default timeout for prompt operations.
-
-        Returns:
-            int: Default timeout in seconds
-
-        """
-        return self._default_timeout
+        self.interactive_mode = interactive_mode and not quiet
+        self.quiet = quiet
+        self.default_timeout = default_timeout
+        self.prompt_history: FlextCore.Types.StringList = []
 
     def _is_test_environment(self) -> bool:
         """Check if running in a test environment.
@@ -97,16 +67,6 @@ class FlextCliPrompts(FlextCore.Service[FlextCliTypes.Data.CliDataDict]):
             or "pytest" in os.environ.get("_", "").lower()
             or os.environ.get("CI") == "true"
         )
-
-    @property
-    def prompt_history(self) -> FlextCore.Types.StringList:
-        """Get prompt history.
-
-        Returns:
-            FlextCore.Types.StringList: List of previous prompts
-
-        """
-        return self._prompt_history.copy()
 
     def prompt_text(
         self,
@@ -126,7 +86,7 @@ class FlextCliPrompts(FlextCore.Service[FlextCliTypes.Data.CliDataDict]):
             FlextCore.Result[str]: User input or error
 
         """
-        if not self._interactive_mode:
+        if not self.interactive_mode:
             if default:
                 # Validate default value if pattern provided
                 if validation_pattern and not re.match(validation_pattern, default):
@@ -142,7 +102,7 @@ class FlextCliPrompts(FlextCore.Service[FlextCliTypes.Data.CliDataDict]):
 
         try:
             # Record prompt for history
-            self._prompt_history.append(message)
+            self.prompt_history.append(message)
 
             # Use input with timeout if available
 
@@ -185,12 +145,12 @@ class FlextCliPrompts(FlextCore.Service[FlextCliTypes.Data.CliDataDict]):
             FlextCore.Result[bool]: User confirmation or error
 
         """
-        if not self._interactive_mode:
+        if not self.interactive_mode:
             return FlextCore.Result[bool].ok(default)
 
         try:
             # Record prompt for history
-            self._prompt_history.append(f"{message} (y/n)")
+            self.prompt_history.append(f"{message} (y/n)")
 
             # Use input with timeout if available
 
@@ -231,7 +191,7 @@ class FlextCliPrompts(FlextCore.Service[FlextCliTypes.Data.CliDataDict]):
                 FlextCliConstants.ErrorMessages.NO_CHOICES_PROVIDED
             )
 
-        if not self._interactive_mode:
+        if not self.interactive_mode:
             if default and default in choices:
                 return FlextCore.Result[str].ok(default)
             return FlextCore.Result[str].fail(
@@ -243,7 +203,7 @@ class FlextCliPrompts(FlextCore.Service[FlextCliTypes.Data.CliDataDict]):
             choice_list = ", ".join(
                 f"{i + 1}. {choice}" for i, choice in enumerate(choices)
             )
-            self._prompt_history.append(f"{message}\n{choice_list}")
+            self.prompt_history.append(f"{message}\n{choice_list}")
 
             # Use input with timeout if available
 
@@ -280,14 +240,14 @@ class FlextCliPrompts(FlextCore.Service[FlextCliTypes.Data.CliDataDict]):
             FlextCore.Result[str]: Password input or error
 
         """
-        if not self._interactive_mode:
+        if not self.interactive_mode:
             return FlextCore.Result[str].fail(
                 FlextCliConstants.ErrorMessages.INTERACTIVE_MODE_DISABLED_PASSWORD
             )
 
         try:
             # Record prompt for history (without showing actual password)
-            self._prompt_history.append(f"{message} [password hidden]")
+            self.prompt_history.append(f"{message} [password hidden]")
 
             # Use getpass for secure password input
             password = getpass.getpass(prompt=message + " ")
@@ -314,7 +274,7 @@ class FlextCliPrompts(FlextCore.Service[FlextCliTypes.Data.CliDataDict]):
 
         """
         try:
-            self._prompt_history.clear()
+            self.prompt_history.clear()
             return FlextCore.Result[None].ok(None)
         except Exception as e:
             return FlextCore.Result[None].fail(
@@ -330,10 +290,10 @@ class FlextCliPrompts(FlextCore.Service[FlextCliTypes.Data.CliDataDict]):
         """
         try:
             stats: FlextCliTypes.Data.CliDataDict = {
-                FlextCliConstants.DictKeys.PROMPTS_EXECUTED: len(self._prompt_history),
-                FlextCliConstants.DictKeys.INTERACTIVE_MODE: self._interactive_mode,
-                "default_timeout": self._default_timeout,
-                "history_size": len(self._prompt_history),
+                FlextCliConstants.DictKeys.PROMPTS_EXECUTED: len(self.prompt_history),
+                FlextCliConstants.DictKeys.INTERACTIVE_MODE: self.interactive_mode,
+                "default_timeout": self.default_timeout,
+                "history_size": len(self.prompt_history),
                 "timestamp": FlextCore.Utilities.Generators.generate_timestamp(),
             }
 
@@ -373,14 +333,14 @@ class FlextCliPrompts(FlextCore.Service[FlextCliTypes.Data.CliDataDict]):
         """
         try:
             # Store prompt for history
-            self._prompt_history.append(message)
+            self.prompt_history.append(message)
 
             # Handle quiet mode - return default (even if empty)
-            if self._quiet:
+            if self.quiet:
                 return FlextCore.Result[str].ok(default)
 
             # Handle non-interactive mode - return default (even if empty)
-            if not self._interactive_mode:
+            if not self.interactive_mode:
                 return FlextCore.Result[str].ok(default)
 
             # Get actual user input
@@ -412,11 +372,11 @@ class FlextCliPrompts(FlextCore.Service[FlextCliTypes.Data.CliDataDict]):
         """
         try:
             # Handle quiet mode - return default
-            if self._quiet:
+            if self.quiet:
                 return FlextCore.Result[bool].ok(default)
 
             # Handle non-interactive mode - return default
-            if not self._interactive_mode:
+            if not self.interactive_mode:
                 return FlextCore.Result[bool].ok(default)
 
             # Prepare the confirmation prompt
@@ -455,7 +415,7 @@ class FlextCliPrompts(FlextCore.Service[FlextCliTypes.Data.CliDataDict]):
         """
         try:
             # Store selection prompt for history
-            self._prompt_history.append(f"{message}: {options}")
+            self.prompt_history.append(f"{message}: {options}")
 
             # Display options to user
             if not options:
@@ -590,7 +550,7 @@ class FlextCliPrompts(FlextCore.Service[FlextCliTypes.Data.CliDataDict]):
         """
         try:
             # Store progress creation for history
-            self._prompt_history.append(f"Progress: {description}")
+            self.prompt_history.append(f"Progress: {description}")
 
             # Create a simple progress indicator
             self._logger.info(f"Starting progress: {description}")
@@ -616,7 +576,7 @@ class FlextCliPrompts(FlextCore.Service[FlextCliTypes.Data.CliDataDict]):
         """
         try:
             # Store progress operation for history
-            self._prompt_history.append(
+            self.prompt_history.append(
                 f"Progress operation: {description} ({len(items)} items)"
             )
 

@@ -10,7 +10,7 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 from io import StringIO
-from typing import TYPE_CHECKING, Any, cast
+from typing import TYPE_CHECKING
 
 from flext_core import FlextCore
 from rich.console import Console
@@ -38,23 +38,12 @@ class FlextCliFormatters:
     """
 
     def __init__(self) -> None:
-        """Initialize Rich formatters - console lazy-loaded."""
-        self._console: Console | None = None
-
-    @property
-    def console(self) -> Console:
-        """Get Rich console instance (lazy-loaded).
-
-        Returns:
-            Console: Rich console
-
-        """
-        if self._console is None:
-            self._console = Console()
-        return self._console
+        """Initialize Rich formatters with direct console initialization."""
+        # Direct initialization - no lazy loading, no @property wrapper
+        self.console: Console = Console()
 
     def get_console(self) -> Console:
-        """Get console instance - same as property."""
+        """Get console instance - direct access."""
         return self.console
 
     def execute(self) -> FlextCore.Result[FlextCore.Types.Dict]:
@@ -86,8 +75,8 @@ class FlextCliFormatters:
 
         """
         try:
-            # Cast to Any for Rich API compatibility - explicit library interop
-            self.console.print(message, style=style, **cast("Any", kwargs))
+            # Direct delegation to Rich - duck typing handles kwargs
+            self.console.print(message, style=style, **kwargs)  # type: ignore[arg-type]
             return FlextCore.Result[None].ok(None)
         except Exception as e:
             return FlextCore.Result[None].fail(f"Print failed: {e}")
@@ -112,8 +101,8 @@ class FlextCliFormatters:
 
         """
         try:
-            # Create Rich table directly - cast to Any for Rich API compatibility
-            table = RichTable(title=title, **cast("Any", kwargs))
+            # Create Rich table directly - duck typing handles kwargs
+            table = RichTable(title=title, **kwargs)  # type: ignore[arg-type]
 
             # Add columns if headers provided
             if headers:
@@ -177,8 +166,8 @@ class FlextCliFormatters:
 
         """
         try:
-            # Cast to Any for Rich API compatibility - explicit library interop
-            progress = Progress(**cast("Any", kwargs))
+            # Direct delegation to Rich - duck typing handles kwargs
+            progress = Progress(**kwargs)  # type: ignore[arg-type]
             return FlextCore.Result[Progress].ok(progress)
         except Exception as e:
             return FlextCore.Result[Progress].fail(f"Progress creation failed: {e}")
@@ -195,8 +184,8 @@ class FlextCliFormatters:
 
         """
         try:
-            # Cast to Any for Rich API compatibility - explicit library interop
-            tree = RichTree(label, **cast("Any", kwargs))
+            # Direct delegation to Rich - duck typing handles kwargs
+            tree = RichTree(label, **kwargs)  # type: ignore[arg-type]
             return FlextCore.Result[RichTree].ok(tree)
         except Exception as e:
             return FlextCore.Result[RichTree].fail(f"Tree creation failed: {e}")
@@ -244,9 +233,9 @@ class FlextCliFormatters:
 
         """
         try:
-            # Cast to Any for Rich API compatibility - explicit library interop
+            # Direct delegation to Rich - duck typing handles kwargs
             status = RichStatus(
-                message, spinner=spinner, console=self.console, **cast("Any", kwargs)
+                message, spinner=spinner, console=self.console, **kwargs  # type: ignore[arg-type]
             )
             return FlextCore.Result[RichStatus].ok(status)
         except Exception as e:
@@ -266,11 +255,11 @@ class FlextCliFormatters:
 
         """
         try:
-            # Cast to Any for Rich API compatibility - explicit library interop
+            # Direct delegation to Rich - duck typing handles kwargs
             live = RichLive(
                 refresh_per_second=refresh_per_second,
                 console=self.console,
-                **cast("Any", kwargs),
+                **kwargs,  # type: ignore[arg-type]
             )
             return FlextCore.Result[RichLive].ok(live)
         except Exception as e:
@@ -287,8 +276,8 @@ class FlextCliFormatters:
 
         """
         try:
-            # Cast to Any for Rich API compatibility - explicit library interop
-            layout = RichLayout(**cast("Any", kwargs))
+            # Direct delegation to Rich - duck typing handles kwargs
+            layout = RichLayout(**kwargs)  # type: ignore[arg-type]
             return FlextCore.Result[RichLayout].ok(layout)
         except Exception as e:
             return FlextCore.Result[RichLayout].fail(f"Layout creation failed: {e}")
@@ -313,12 +302,12 @@ class FlextCliFormatters:
 
         """
         try:
-            # Cast to Any for Rich API compatibility - explicit library interop
+            # Direct delegation to Rich - duck typing handles kwargs
             panel = RichPanel(
-                cast("Any", content),
+                content,  # type: ignore[arg-type]
                 title=title,
                 border_style=border_style,
-                **cast("Any", kwargs),
+                **kwargs,  # type: ignore[arg-type]
             )
             return FlextCore.Result[RichPanel].ok(panel)
         except Exception as e:

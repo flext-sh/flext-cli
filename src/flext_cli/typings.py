@@ -16,8 +16,6 @@ from __future__ import annotations
 from typing import TypeVar
 
 from flext_core import FlextCore
-
-# Rich library imports - centralized at module top for PLC0415 compliance
 from rich.layout import Layout as RichLayoutImport
 from rich.live import Live as RichLiveImport
 from rich.panel import Panel as RichPanelImport

@@ -22,7 +22,7 @@ import sys
 import tempfile
 import uuid
 from datetime import UTC, datetime
-from typing import cast, override
+from typing import override
 
 from flext_core import FlextCore
 
@@ -45,7 +45,6 @@ class FlextCliDebug(FlextCore.Service[str]):
         super().__init__()
         # Logger and container inherited from FlextCore.Service via FlextCore.Mixins
 
-    @override
     def execute(self) -> FlextCore.Result[str]:
         """Execute debug service - required by FlextCore.Service."""
         return FlextCore.Result[str].ok(
@@ -213,18 +212,14 @@ class FlextCliDebug(FlextCore.Service[str]):
             # Collect environment info
             env_result = self.get_environment_variables()
             if env_result.is_success:
-                comprehensive_info["environment"] = cast(
-                    "Types.Data.DebugInfoData", env_result.value
-                )
+                comprehensive_info["environment"] = env_result.value
             else:
                 comprehensive_info["environment_error"] = env_result.error
 
             # Collect paths info
             paths_result = self.get_system_paths()
             if paths_result.is_success:
-                comprehensive_info["paths"] = cast(
-                    "Types.Data.DebugInfoData", paths_result.value
-                )
+                comprehensive_info["paths"] = paths_result.value
             else:
                 comprehensive_info["paths_error"] = paths_result.error
 
@@ -235,8 +230,10 @@ class FlextCliDebug(FlextCore.Service[str]):
             else:
                 comprehensive_info["debug_error"] = debug_result.error
 
+            # Type narrowing: comprehensive_info is FlextCore.Types.Dict which is compatible with DebugInfoData
+            typed_comprehensive_info: Types.Data.DebugInfoData = comprehensive_info  # type: ignore[assignment]
             return FlextCore.Result[Types.Data.DebugInfoData].ok(
-                cast("Types.Data.DebugInfoData", comprehensive_info)
+                typed_comprehensive_info
             )
 
         except Exception as e:

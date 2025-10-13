@@ -13,32 +13,26 @@ from __future__ import annotations
 import secrets
 from collections.abc import Callable
 from pathlib import Path
-from typing import TYPE_CHECKING, cast
+from typing import TYPE_CHECKING
 
 from flext_core import FlextCore
+from rich.progress import Progress
+from rich.table import Table
 from rich.tree import Tree
 
 from flext_cli.cli import FlextCliCli
-
-# FlextCliConfig moved to FlextCliModels.CliConfig
+from flext_cli.config import FlextCliConfig
 from flext_cli.constants import FlextCliConstants
 from flext_cli.file_tools import FlextCliFileTools
 from flext_cli.formatters import FlextCliFormatters
-from flext_cli.models import FlextCliModels
 from flext_cli.typings import FlextCliTypes
 
 # TYPE_CHECKING imports for lazy-loaded types (avoid circular imports)
 if TYPE_CHECKING:
-    from flext_cli.cmd import FlextCliCmd
-    from flext_cli.core import FlextCliCore
-    from flext_cli.output import FlextCliOutput
-    from flext_cli.prompts import FlextCliPrompts
+    pass
 else:
     # Runtime imports for lazy-loading - must be at module top to avoid PLC0415
-    from flext_cli.cmd import FlextCliCmd
-    from flext_cli.core import FlextCliCore
-    from flext_cli.output import FlextCliOutput
-    from flext_cli.prompts import FlextCliPrompts
+    pass
 
 
 class FlextCli:
@@ -72,7 +66,7 @@ class FlextCli:
         self._plugin_commands: FlextCore.Types.Dict = {}
 
         # Auth state (consolidated from FlextCliAuth)
-        self._config = FlextCliModels.CliConfig()
+        self._config = FlextCliConfig()
         self._valid_tokens: set[str] = set()
         self._valid_sessions: set[str] = set()
         self._session_permissions: dict[str, set[str]] = {}
@@ -86,79 +80,17 @@ class FlextCli:
         result = container.get("flext_cli")
         if result.is_failure or result.value is None:
             return cls()
-        return cast("FlextCli", result.value)
+        # Type guard: container.get returns FlextCli when registered with "flext_cli" key
+        instance = result.value
+        if not isinstance(instance, cls):
+            return cls()
+        return instance
 
     # =========================================================================
-    # CONFIGURATION MANAGEMENT - Direct access with FlextCliConstants defaults
+    # DIRECT ATTRIBUTE ACCESS - No property wrappers
+    # Users access: cli._file_tools, cli._formatters, cli._logger directly
+    # Or call: FlextCliConfig.get_global_instance(), FlextCliConstants.*, etc.
     # =========================================================================
-
-    @property
-    def config(self) -> FlextCliModels.CliConfig:
-        """Access CLI configuration singleton."""
-        return FlextCliModels.CliConfig.get_global_instance()
-
-    @property
-    def constants(self) -> type[FlextCliConstants]:
-        """Access CLI constants."""
-        return FlextCliConstants
-
-    @property
-    def models(self) -> type[FlextCliModels]:
-        """Access CLI models."""
-        return FlextCliModels
-
-    @property
-    def types(self) -> type[FlextCliTypes]:
-        """Access CLI types."""
-        return FlextCliTypes
-
-    @property
-    def file_tools(self) -> FlextCliFileTools:
-        """Access file tools domain library."""
-        return self._file_tools
-
-    @property
-    def formatters(self) -> FlextCliFormatters:
-        """Access formatters domain library."""
-        return self._formatters
-
-    @property
-    def output(self) -> FlextCliOutput:
-        """Access output formatting service (lazy-loaded)."""
-        if not hasattr(self, "_output"):
-            self._output = FlextCliOutput()
-        return self._output
-
-    @property
-    def utilities(self) -> type[FlextCore.Utilities]:
-        """Access core utilities for validation and data processing."""
-        return FlextCore.Utilities
-
-    @property
-    def logger(self) -> FlextCore.Logger:
-        """Access logger instance."""
-        return self._logger
-
-    @property
-    def core(self) -> FlextCliCore:
-        """Access core CLI service (lazy-loaded)."""
-        if not hasattr(self, "_core"):
-            self._core = FlextCliCore()
-        return self._core
-
-    @property
-    def prompts(self) -> FlextCliPrompts:
-        """Access prompts service (lazy-loaded)."""
-        if not hasattr(self, "_prompts"):
-            self._prompts = FlextCliPrompts()
-        return self._prompts
-
-    @property
-    def cmd(self) -> FlextCliCmd:
-        """Access command service (lazy-loaded)."""
-        if not hasattr(self, "_cmd"):
-            self._cmd = FlextCliCmd()
-        return self._cmd
 
     # =========================================================================
     # FORMATTING - Domain library pattern using FlextCliFormatters
@@ -179,17 +111,25 @@ class FlextCli:
         headers: FlextCore.Types.StringList | None = None,
         title: str | None = None,
         **kwargs: object,
-    ) -> FlextCore.Result[object]:
-        """Create table using formatters domain library."""
-        result = self._formatters.create_table(
+    ) -> FlextCore.Result[Table]:
+        """Create table using formatters domain library.
+
+        Returns:
+            FlextCore.Result[Table]: Rich Table wrapped in Result
+
+        """
+        return self._formatters.create_table(
             data=data, headers=headers, title=title, **kwargs
         )
-        return result.map(lambda table: cast("object", table))
 
-    def create_progress(self, **kwargs: object) -> FlextCore.Result[object]:
-        """Create progress bar using formatters domain library."""
-        result = self._formatters.create_progress(**kwargs)
-        return result.map(lambda progress: cast("object", progress))
+    def create_progress(self, **kwargs: object) -> FlextCore.Result[Progress]:
+        """Create progress bar using formatters domain library.
+
+        Returns:
+            FlextCore.Result[Progress]: Rich Progress wrapped in Result
+
+        """
+        return self._formatters.create_progress(**kwargs)
 
     def create_tree(self, label: str, **kwargs: object) -> FlextCore.Result[Tree]:
         """Create tree using formatters domain library."""
@@ -308,14 +248,25 @@ class FlextCli:
                 )
             )
 
-        data = cast("dict[str, str]", read_result.unwrap())
+        # Type guard: validate data is dict with "token" key
+        data = read_result.unwrap()
+        if not isinstance(data, dict):
+            return FlextCore.Result[str].fail(
+                "Token file must contain a JSON object"
+            )
+
         token = data.get("token")
         if not token:
             return FlextCore.Result[str].fail(
                 FlextCliConstants.ErrorMessages.TOKEN_FILE_EMPTY
             )
 
-        return FlextCore.Result[str].ok(str(token))
+        if not isinstance(token, str):
+            return FlextCore.Result[str].fail(
+                "Token must be a string"
+            )
+
+        return FlextCore.Result[str].ok(token)
 
     def is_authenticated(self) -> bool:
         """Check if user is authenticated."""

@@ -13,6 +13,7 @@ import json
 import os
 import tempfile
 import time
+from collections.abc import Generator
 from pathlib import Path
 
 import pytest
@@ -276,11 +277,12 @@ class TestFlextCliConfigService:
         loaded_config = result.unwrap()
         assert isinstance(loaded_config, FlextCliConfig)
 
-    def test_config_save_config_file(self, temp_dir: Path) -> None:
-        """Test save_config_file instance method."""
+    def test_config_save_config(self) -> None:
+        """Test save_config instance method."""
         config = FlextCliConfig(debug=True, verbose=True)
-        save_path = str(temp_dir / "saved_config.json")
-        result = config.save_config_file(save_path)
+        from flext_cli.typings import FlextCliTypes
+        config_data: FlextCliTypes.Data.CliConfigData = {"debug": True, "verbose": True, "output_format": "json"}
+        result = config.save_config(config_data)
         assert result.is_success
 
     def test_config_load_config(self) -> None:
@@ -293,7 +295,7 @@ class TestFlextCliConfigService:
         assert config_data["debug"] is True
         assert config_data["verbose"] is False
 
-    def test_config_save_config(self) -> None:
+    def test_config_save_config_protocol(self) -> None:
         """Test save_config protocol method."""
         from flext_cli.typings import FlextCliTypes
 
@@ -1290,7 +1292,7 @@ class TestConfigValidation:
 
 
 @pytest.fixture
-def temp_dir() -> Path:
+def temp_dir() -> Generator[Path]:
     """Create temporary directory for testing."""
     with tempfile.TemporaryDirectory() as tmpdir:
         yield Path(tmpdir)
@@ -1552,24 +1554,6 @@ class TestFlextCliConfigExceptionHandlers:
         result = FlextCliConfig.load_from_config_file(json_file)
         assert result.is_failure
         assert "failed" in str(result.error).lower()
-
-    def test_save_config_file_exception(
-        self, temp_dir: Path, monkeypatch: pytest.MonkeyPatch
-    ) -> None:
-        """Test save_config_file exception handler (lines 499-502)."""
-        config = FlextCliConfig()
-        save_path = str(temp_dir / "test.json")
-
-        # Mock json.dump to raise exception
-        def mock_json_dump_raises(*args: object, **kwargs: object) -> None:
-            msg = "JSON dump error"
-            raise RuntimeError(msg)
-
-        monkeypatch.setattr("json.dump", mock_json_dump_raises)
-
-        result = config.save_config_file(save_path)
-        assert result.is_failure
-        assert "save failed" in str(result.error).lower()
 
     def test_update_from_cli_args_exception(
         self, monkeypatch: pytest.MonkeyPatch

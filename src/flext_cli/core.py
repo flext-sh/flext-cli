@@ -17,11 +17,10 @@ from __future__ import annotations
 import json
 from datetime import UTC, datetime
 from pathlib import Path
-from typing import cast
 
 from flext_core import FlextCore
 
-# FlextCliConfig moved to FlextCliModels.CliConfig
+from flext_cli.config import FlextCliConfig
 from flext_cli.constants import FlextCliConstants
 from flext_cli.models import FlextCliModels
 from flext_cli.typings import FlextCliTypes
@@ -160,10 +159,7 @@ class FlextCliCore(FlextCore.Service[FlextCliTypes.Data.CliDataDict]):
             execution_context: FlextCliTypes.CliCommand.CommandContext
             if isinstance(context, list):
                 # Convert list of strings to context dict
-                execution_context = cast(
-                    "FlextCliTypes.CliCommand.CommandContext",
-                    {FlextCliConstants.DictKeys.ARGS: context},
-                )
+                execution_context = {FlextCliConstants.DictKeys.ARGS: context}  # type: ignore[typeddict-item]
             else:
                 execution_context = context or {}
 
@@ -755,9 +751,7 @@ class FlextCliCore(FlextCore.Service[FlextCliTypes.Data.CliDataDict]):
         except Exception as e:
             return FlextCore.Result[None].fail(f"Save configuration failed: {e}")
 
-    def validate_configuration(
-        self, _config: FlextCliModels.CliConfig
-    ) -> FlextCore.Result[None]:
+    def validate_configuration(self, _config: FlextCliConfig) -> FlextCore.Result[None]:
         """Validate configuration using FlextCliConfig Pydantic model.
 
         Args:

@@ -36,6 +36,9 @@ class FlextCliConstants(FlextCore.Constants):
         "cli-wrapper",
     ]
 
+    # Project identification
+    PROJECT_NAME: Final[str] = "flext-cli"
+
     # Directory and file names
     FLEXT_DIR_NAME: Final[str] = ".flext"
     AUTH_DIR_NAME: Final[str] = "auth"

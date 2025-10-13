@@ -434,10 +434,15 @@ class TestFlextCliOutput:
 
     def test_create_rich_table_with_data(self, output: FlextCliOutput) -> None:
         """Test create_rich_table with real data (lines 205-247)."""
-        data = [
-            {"name": "Alice", "age": 30, "city": "NYC"},
-            {"name": "Bob", "age": 25, "city": "LA"},
-        ]
+        from typing import cast
+
+        data = cast(
+            "list[dict[str, object]]",
+            [
+                {"name": "Alice", "age": 30, "city": "NYC"},
+                {"name": "Bob", "age": 25, "city": "LA"},
+            ],
+        )
         result = output.create_rich_table(
             data=data, headers=["name", "age", "city"], title="User Data"
         )
@@ -456,7 +461,9 @@ class TestFlextCliOutput:
 
     def test_create_rich_table_with_options(self, output: FlextCliOutput) -> None:
         """Test create_rich_table with all options (lines 215-222)."""
-        data = [{"key": "value"}]
+        from typing import cast
+
+        data = cast("list[dict[str, object]]", [{"key": "value"}])
         result = output.create_rich_table(
             data=data,
             title="Test Table",
@@ -499,7 +506,12 @@ class TestFlextCliOutput:
 
     def test_display_data_table_format(self, output: FlextCliOutput) -> None:
         """Test display_data with table format."""
-        data = [{"name": "Alice", "age": 30}, {"name": "Bob", "age": 25}]
+        from typing import cast
+
+        data = cast(
+            "list[dict[str, object]]",
+            [{"name": "Alice", "age": 30}, {"name": "Bob", "age": 25}],
+        )
         result = output.display_data(data, format_type="table")
         assert isinstance(result, FlextCore.Result)
         assert result.is_success
@@ -507,13 +519,19 @@ class TestFlextCliOutput:
     def test_table_to_string(self, output: FlextCliOutput) -> None:
         """Test table_to_string method (lines 248-264)."""
         # First create a table
-        data = [{"key": "value"}]
+        from typing import cast
+
+        data = cast("list[dict[str, object]]", [{"key": "value"}])
         table_result = output.create_rich_table(data=data)
         assert table_result.is_success
         table = table_result.unwrap()
 
         # Now convert to string
-        string_result = output.table_to_string(table)
+        from typing import cast
+
+        from flext_cli.typings import RichTable
+
+        string_result = output.table_to_string(cast("RichTable", table))
         assert isinstance(string_result, FlextCore.Result)
         assert string_result.is_success
         table_str = string_result.unwrap()
@@ -522,7 +540,12 @@ class TestFlextCliOutput:
 
     def test_create_ascii_table_with_data(self, output: FlextCliOutput) -> None:
         """Test create_ascii_table (lines 270-315)."""
-        data = [{"name": "Alice", "age": 30}, {"name": "Bob", "age": 25}]
+        from typing import cast
+
+        data = cast(
+            "list[dict[str, object]]",
+            [{"name": "Alice", "age": 30}, {"name": "Bob", "age": 25}],
+        )
         result = output.create_ascii_table(data=data)
         assert isinstance(result, FlextCore.Result)
         assert result.is_success
@@ -532,7 +555,9 @@ class TestFlextCliOutput:
 
     def test_create_ascii_table_with_format(self, output: FlextCliOutput) -> None:
         """Test create_ascii_table with different format."""
-        data = [{"key": "value"}]
+        from typing import cast
+
+        data = cast("list[dict[str, object]]", [{"key": "value"}])
         result = output.create_ascii_table(data=data, table_format="grid")
         assert isinstance(result, FlextCore.Result)
         assert result.is_success
@@ -594,7 +619,9 @@ class TestFlextCliOutput:
 
         monkeypatch.setattr(output._formatters, "create_table", mock_create_table)
 
-        data = [{"key": "value"}]
+        from typing import cast
+
+        data = cast("list[dict[str, object]]", [{"key": "value"}])
         result = output.create_rich_table(data=data)
         assert result.is_failure
         assert "Failed to create Rich table" in str(result.error)
@@ -603,7 +630,9 @@ class TestFlextCliOutput:
         self, output: FlextCliOutput, monkeypatch: pytest.MonkeyPatch
     ) -> None:
         """Test create_rich_table exception handler (lines 242-247)."""
-        data = [{"key": "value"}]
+        from typing import cast
+
+        data = cast("list[dict[str, object]]", [{"key": "value"}])
 
         # Mock formatters to raise exception during create_table
         def mock_create_table_raises(*args: object, **kwargs: object) -> object:
@@ -643,7 +672,9 @@ class TestFlextCliOutput:
 
     def test_display_data_headers_not_list(self, output: FlextCliOutput) -> None:
         """Test display_data when headers is not list (lines 534-535)."""
-        data = [{"key": "value"}]
+        from typing import cast
+
+        data = cast("list[dict[str, object]]", [{"key": "value"}])
         result = output.display_data(data, format_type="table", headers="not_list")
         assert isinstance(result, FlextCore.Result)
         assert result.is_success
@@ -725,7 +756,9 @@ class TestFlextCliOutput:
 
         monkeypatch.setattr("csv.DictWriter", mock_dictwriter_raises)
 
-        data = [{"key": "value"}]
+        from typing import cast
+
+        data = cast("list[dict[str, object]]", [{"key": "value"}])
         result = output.format_csv(data)
         assert result.is_failure
         assert "CSV formatting failed" in str(result.error)
