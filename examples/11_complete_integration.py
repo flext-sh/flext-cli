@@ -33,8 +33,6 @@ from flext_core import FlextCore
 from flext_cli import FlextCli, FlextCliPrompts
 from flext_cli.typings import FlextCliTypes
 
-# Use FlextCliTypes.Data.CliDataDict directly throughout the file
-
 cli = FlextCli.get_instance()
 
 
@@ -91,9 +89,9 @@ class DataManagerCLI:
                 "Data is not a dictionary"
             )
         self.cli.print("✅ Data loaded successfully", style="green")
-        # Cast to expected type (runtime type is compatible)
-        typed_data = cast("FlextCliTypes.Data.CliDataDict", data)
-        return FlextCore.Result[FlextCliTypes.Data.CliDataDict].ok(typed_data)
+        return FlextCore.Result[FlextCliTypes.Data.CliDataDict].ok(
+            cast("FlextCliTypes.Data.CliDataDict", data)
+        )
 
     def display_data(self, data: FlextCliTypes.Data.CliDataDict) -> None:
         """Display data as formatted table."""
@@ -132,9 +130,9 @@ class DataManagerCLI:
 
         entry = {key: value}
         self.cli.print(f"✅ Created entry: {key} = {value}", style="green")
-        # Cast to expected type (runtime type is compatible)
-        typed_entry = cast("FlextCliTypes.Data.CliDataDict", entry)
-        return FlextCore.Result[FlextCliTypes.Data.CliDataDict].ok(typed_entry)
+        return FlextCore.Result[FlextCliTypes.Data.CliDataDict].ok(
+            cast("FlextCliTypes.Data.CliDataDict", entry)
+        )
 
     def run_workflow(self) -> FlextCore.Result[None]:
         """Complete workflow integrating all features."""
@@ -147,14 +145,13 @@ class DataManagerCLI:
         current_data: FlextCliTypes.Data.CliDataDict = {}
 
         if load_result.is_success:
+            # Load existing data for update operations
             current_data = load_result.unwrap()
         else:
             self.cli.print("   Creating new dataset", style="yellow")
-            # Cast to expected type (runtime type is compatible)
 
         # Step 3: Display current data
         self.cli.print("\n📊 Current Data:", style="bold cyan")
-        # Cast to expected type for display function
         self.display_data(current_data)
 
         # Step 4: Add new entry
@@ -197,7 +194,7 @@ def process_with_railway_pattern(
     # Removed unused temp_file variable
 
     # Chain operations using FlextCore.Result
-    result = (
+    result: FlextCore.Result[FlextCliTypes.Data.CliDataDict] = (
         # Step 1: Validate
         FlextCore.Result[FlextCliTypes.Data.CliDataDict]
         .ok(input_data)
@@ -240,9 +237,9 @@ def main() -> None:
     # Example 2: Railway pattern
     cli.print("\n2. Railway Pattern (chained operations):", style="bold cyan")
     test_data_raw = {"id": 1, "name": "test"}
-    # Cast to expected type (runtime type is compatible)
-    test_data = cast("FlextCliTypes.Data.CliDataDict", test_data_raw)
-    pipeline_result = process_with_railway_pattern(test_data)
+    pipeline_result = process_with_railway_pattern(
+        cast("FlextCliTypes.Data.CliDataDict", test_data_raw)
+    )
 
     if pipeline_result.is_success:
         final_data = pipeline_result.unwrap()

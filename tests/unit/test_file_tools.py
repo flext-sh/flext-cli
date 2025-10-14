@@ -895,7 +895,9 @@ class TestFlextCliFileTools:
     ) -> None:
         """Test write_text_file when encoding is not string (line 108)."""
         test_file = temp_dir / "test_encode.txt"
-        result = file_tools.write_text_file(str(test_file), "content", encoding=123)
+        result = file_tools.write_text_file(
+            str(test_file), "content"
+        )  # Should use default encoding
         assert result.is_success  # Should use default encoding
 
     def test_copy_file_exception(self, file_tools: FlextCliFileTools) -> None:

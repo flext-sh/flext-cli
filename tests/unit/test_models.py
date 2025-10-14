@@ -15,7 +15,6 @@ import operator
 import re
 import threading
 import time
-from typing import cast
 
 import pytest
 from flext_core import FlextCore
@@ -746,8 +745,7 @@ class TestFlextCliModels:
             category: str = str(category_value)
             if category not in grouped:
                 grouped[category] = []
-            # Cast to match list type annotation
-            grouped[category].append(cast("dict[str, int | str]", model))
+            grouped[category].append(model)
 
         assert len(grouped["A"]) == 2
         assert len(grouped["B"]) == 2
@@ -941,8 +939,7 @@ class TestFlextCliModels:
                     "timestamp": time.time(),
                     "data": f"Worker {worker_id} data",
                 }
-                # Cast to match list type annotation
-                results.append(cast("dict[str, int | float | str]", test_data))
+                results.append(test_data)
             except Exception as e:
                 errors.append(e)
 
@@ -1013,7 +1010,7 @@ class TestFlextCliModels:
 
         # 2. Validate data
         valid_data: list[dict[str, int | str]] = [
-            cast("dict[str, int | str]", item)
+            item
             for item in raw_data
             if isinstance(item["price"], (int, float))
             and item["price"] > 0
@@ -1111,18 +1108,9 @@ class TestFlextCliModels:
             return [item for item in data if item.get("active", True)]
 
         test_data: list[dict[str, int | str | bool]] = [
-            cast(
-                "dict[str, int | str | bool]",
-                {"id": 1, "name": "Item 1", "active": True},
-            ),
-            cast(
-                "dict[str, int | str | bool]",
-                {"id": 2, "name": "Item 2", "active": False},
-            ),
-            cast(
-                "dict[str, int | str | bool]",
-                {"id": 3, "name": "Item 3", "active": True},
-            ),
+            {"id": 1, "name": "Item 1", "active": True},
+            {"id": 2, "name": "Item 2", "active": False},
+            {"id": 3, "name": "Item 3", "active": True},
         ]
 
         processed_data = process_data(test_data)

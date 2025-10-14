@@ -82,11 +82,11 @@ def main() -> None:
 
     tables = FlextCliTables()
 
-    # Type annotation for table data - list of dicts with object values
-    table_data: list[FlextCore.Types.Dict] = cast(
-        "list[FlextCore.Types.Dict]",
-        [{"metric": "CPU", "value": "85%"}, {"metric": "Memory", "value": "12GB"}],
-    )
+    # Table data - list of dicts for demonstration
+    table_data: list[dict[str, FlextCore.Types.JsonValue]] = [
+        {"metric": "CPU", "value": "85%"},
+        {"metric": "Memory", "value": "12GB"},
+    ]
     ascii_result = tables.create_table(table_data, table_format="grid")
     if ascii_result.is_success:
         cli.print(ascii_result.unwrap(), style="white")

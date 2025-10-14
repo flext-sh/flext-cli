@@ -11,7 +11,7 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 from pathlib import Path
-from typing import Never
+from typing import Never, cast
 
 import pytest
 import typer
@@ -19,16 +19,18 @@ from typer.testing import CliRunner
 
 from flext_cli import FlextCliCommonParams, FlextCliConfig
 
-# Module-level defaults to avoid B008
-DEFAULT_VERBOSE = FlextCliCommonParams.verbose_option().default
-DEFAULT_QUIET = FlextCliCommonParams.quiet_option().default
-DEFAULT_DEBUG = FlextCliCommonParams.debug_option().default
-DEFAULT_TRACE = FlextCliCommonParams.trace_option().default
-DEFAULT_LOG_LEVEL = FlextCliCommonParams.log_level_option().default
-DEFAULT_LOG_FORMAT = FlextCliCommonParams.log_format_option().default
-DEFAULT_OUTPUT_FORMAT = FlextCliCommonParams.output_format_option().default
-DEFAULT_NO_COLOR = FlextCliCommonParams.no_color_option().default
-DEFAULT_CONFIG_FILE = FlextCliCommonParams.config_file_option().default
+# Module-level defaults to avoid B008 - use cast() for type-safe defaults
+DEFAULT_VERBOSE: bool = cast("bool", FlextCliCommonParams.verbose_option().default)
+DEFAULT_QUIET: bool = cast("bool", FlextCliCommonParams.quiet_option().default)
+DEFAULT_DEBUG: bool = cast("bool", FlextCliCommonParams.debug_option().default)
+DEFAULT_TRACE: bool = cast("bool", FlextCliCommonParams.trace_option().default)
+DEFAULT_LOG_LEVEL: str = cast("str", FlextCliCommonParams.log_level_option().default)
+DEFAULT_LOG_FORMAT: str = cast("str", FlextCliCommonParams.log_format_option().default)
+DEFAULT_OUTPUT_FORMAT: str = cast(
+    "str", FlextCliCommonParams.output_format_option().default
+)
+DEFAULT_NO_COLOR: bool = cast("bool", FlextCliCommonParams.no_color_option().default)
+DEFAULT_CONFIG_FILE: Path | None = FlextCliCommonParams.config_file_option().default
 
 
 class TestFlextCliCommonParams:
@@ -634,32 +636,43 @@ class TestCliParamsCoverageCompletion:
         assert result.error is not None
         assert "invalid output format" in result.error.lower()
 
-    @pytest.mark.xfail(
-        reason="Pydantic validate_assignment=True prevents method assignment"
-    )
     def test_apply_to_config_exception_handling(self) -> None:
-        """Test apply_to_config exception handling (lines 366-367)."""
-        # Use a valid config but patch methods to raise exceptions
+        """Test apply_to_config exception handling with actual validation errors."""
+        # Test with invalid log level that should trigger validation error
         config = FlextCliConfig()
-
-        # Patch the config's model_copy method to raise an exception
-        original_copy = config.model_copy
-
-        def failing_copy(**kwargs: object) -> Never:
-            msg = "Model copy failed"
-            raise RuntimeError(msg)
-
-        config.model_copy = failing_copy
-
-        try:
-            result = FlextCliCommonParams.apply_to_config(config, verbose=True)
-        finally:
-            # Restore original method
-            config.model_copy = original_copy
+        result = FlextCliCommonParams.apply_to_config(config, log_level="INVALID_LEVEL")
 
         assert result.is_failure
         assert result.error is not None
-        assert "failed" in result.error.lower()
+        assert "invalid log level" in result.error.lower()
+
+        # Test with invalid log format that should trigger validation error
+        config = FlextCliConfig()
+        result = FlextCliCommonParams.apply_to_config(
+            config, log_format="invalid_format"
+        )
+
+        assert result.is_failure
+        assert result.error is not None
+        assert "invalid log format" in result.error.lower()
+
+        # Test with invalid output format that should trigger validation error
+        config = FlextCliConfig()
+        result = FlextCliCommonParams.apply_to_config(
+            config, output_format="invalid_format"
+        )
+
+        assert result.is_failure
+        assert result.error is not None
+        assert "invalid output format" in result.error.lower()
+
+        # Test trace without debug (business rule validation)
+        config = FlextCliConfig(debug=False)
+        result = FlextCliCommonParams.apply_to_config(config, trace=True)
+
+        assert result.is_failure
+        assert result.error is not None
+        assert "trace mode requires debug mode" in result.error.lower()
 
     def test_configure_logger_invalid_log_level(self) -> None:
         """Test configure_logger with invalid log level (lines 394-395)."""

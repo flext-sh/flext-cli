@@ -78,7 +78,7 @@ class FlextCliTables(FlextCore.Service[object]):
 
     def create_table(
         self,
-        data: Iterable[Sequence[object] | FlextCore.Types.Dict],
+        data: Iterable[Sequence[object] | dict[str, FlextCore.Types.JsonValue]],
         headers: str | Sequence[str] = "keys",
         *,
         table_format: str = "simple",
@@ -149,10 +149,22 @@ class FlextCliTables(FlextCore.Service[object]):
                 final_colalign = align
             # If align is a string, final_colalign stays None (applied to all columns)
 
+            # Handle headers for different data types
+            tabulate_headers = headers
+            if (
+                isinstance(data, list)
+                and data
+                and isinstance(data[0], dict)
+                and isinstance(headers, (list, tuple))
+            ):
+                # For list of dicts with sequence headers, use "keys"
+                tabulate_headers = "keys"
+            # Otherwise keep as-is (string or None)
+
             # Call tabulate directly with explicit parameters (type-safe)
             table_str = tabulate(
                 data,
-                headers=headers,
+                headers=tabulate_headers,
                 tablefmt=table_format,
                 floatfmt=floatfmt,
                 numalign=numalign,
@@ -182,7 +194,7 @@ class FlextCliTables(FlextCore.Service[object]):
 
     def create_simple_table(
         self,
-        data: Iterable[Sequence[object] | FlextCore.Types.Dict],
+        data: Iterable[Sequence[object] | dict[str, FlextCore.Types.JsonValue]],
         headers: Sequence[str] | None = None,
     ) -> FlextCore.Result[str]:
         """Create simple ASCII table with minimal formatting.
@@ -207,7 +219,7 @@ class FlextCliTables(FlextCore.Service[object]):
 
     def create_grid_table(
         self,
-        data: Iterable[Sequence[object] | FlextCore.Types.Dict],
+        data: Iterable[Sequence[object] | dict[str, FlextCore.Types.JsonValue]],
         headers: Sequence[str] | None = None,
         *,
         fancy: bool = False,
@@ -234,7 +246,7 @@ class FlextCliTables(FlextCore.Service[object]):
 
     def create_markdown_table(
         self,
-        data: Iterable[Sequence[object] | FlextCore.Types.Dict],
+        data: Iterable[Sequence[object] | dict[str, FlextCore.Types.JsonValue]],
         headers: Sequence[str] | None = None,
     ) -> FlextCore.Result[str]:
         """Create Markdown pipe table.
@@ -266,7 +278,7 @@ class FlextCliTables(FlextCore.Service[object]):
 
     def create_html_table(
         self,
-        data: Iterable[Sequence[object] | FlextCore.Types.Dict],
+        data: Iterable[Sequence[object] | dict[str, FlextCore.Types.JsonValue]],
         headers: Sequence[str] | None = None,
         *,
         escape: bool = True,
@@ -293,7 +305,7 @@ class FlextCliTables(FlextCore.Service[object]):
 
     def create_latex_table(
         self,
-        data: Iterable[Sequence[object] | FlextCore.Types.Dict],
+        data: Iterable[Sequence[object] | dict[str, FlextCore.Types.JsonValue]],
         headers: Sequence[str] | None = None,
         *,
         booktabs: bool = False,
@@ -329,7 +341,7 @@ class FlextCliTables(FlextCore.Service[object]):
 
     def create_rst_table(
         self,
-        data: Iterable[Sequence[object] | FlextCore.Types.Dict],
+        data: Iterable[Sequence[object] | dict[str, FlextCore.Types.JsonValue]],
         headers: Sequence[str] | None = None,
     ) -> FlextCore.Result[str]:
         """Create reStructuredText grid table.

@@ -157,6 +157,7 @@ class FlextCliFileTools(FlextCore.Service[FlextCore.Types.Dict]):
         file_path: str | Path,
         data: object,
         indent: int = 2,
+        *,
         sort_keys: bool = False,
         ensure_ascii: bool = True,
     ) -> FlextCore.Result[None]:
@@ -210,6 +211,7 @@ class FlextCliFileTools(FlextCore.Service[FlextCore.Types.Dict]):
     def write_yaml_file(
         file_path: str | Path,
         data: object,
+        *,
         default_flow_style: bool | None = None,
         sort_keys: bool = False,
         allow_unicode: bool = True,

@@ -445,6 +445,9 @@ class FlextCliConstants(FlextCore.Constants):
         TABLE_FORMAT_REQUIRED_DICT: Final[str] = (
             "Table format requires dict[str, object] or list of dicts"
         )
+        TABLE_HEADERS_MUST_BE_LIST: Final[str] = (
+            "Table headers must be a list for list of dicts data"
+        )
         UNSUPPORTED_FORMAT_TYPE: Final[str] = "Unsupported format type: {format_type}"
         CREATE_FORMATTER_FAILED: Final[str] = "Failed to create formatter: {error}"
         CREATE_RICH_TABLE_FAILED: Final[str] = "Failed to create Rich table: {error}"

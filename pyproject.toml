@@ -177,7 +177,7 @@
             types-toml       = "^0.10.8.20240310"
 
     [tool.pytest.ini_options]
-        addopts = "-ra -q --strict-markers --strict-config"
+        addopts = "-ra -q --strict-markers --strict-config -p no:sugar"
         markers = [
             " marks tests as tests",
             "auth: marks tests as authentication tests",
@@ -210,25 +210,6 @@
             known-first-party = [
                 "flext_cli",
             ]
-
-        [tool.ruff.lint.per-file-ignores]
-            # FBT001/FBT002: Boolean parameters match standard library signatures (json.dump, yaml.dump)
-            # S105: False positives for token/password in constant string names (not actual secrets)
-            # PLC0415: Lazy import in config.py is intentional
-            "src/flext_cli/file_tools.py" = ["FBT001", "FBT002"]
-            "src/flext_cli/constants.py" = ["S105"]
-            "src/flext_cli/config.py" = ["PLC0415"]
-            # Examples: Demo code - allow print, magic numbers, missing __init__.py, hardcoded values
-            "examples/*.py" = ["T201", "PLR2004", "INP001", "S105"]
-            "examples/**/*.py" = ["T201", "PLR2004", "INP001", "S105"]
-            # Tests: Test code - allow asserts, magic numbers, missing __init__.py, hardcoded passwords in test data,
-            # lazy imports, unused arguments (fixtures), private member access, broad pytest.raises,
-            # boolean parameters in test functions, exception naming, /tmp paths in tests
-            "tests/*.py" = ["S101", "S105", "S106", "S108", "PLR2004", "INP001", "PLC0415", "ARG001", "ARG002", "ARG005", "SLF001", "PT011", "FBT001", "FBT002", "N818"]
-            "tests/**/*.py" = ["S101", "S105", "S106", "S108", "PLR2004", "INP001", "PLC0415", "ARG001", "ARG002", "ARG005", "SLF001", "PT011", "FBT001", "FBT002", "N818"]
-            # Scripts: Utility scripts - allow magic numbers, shebang without executable, unused loop vars
-            "scripts/*.py" = ["PLR2004", "EXE001", "B007"]
-
 	[tool.pyrefly]
 		# NOTE: Pyrefly (MyPy successor) with Pydantic plugin properly handles:
 		#   - @computed_field + @property pattern (Pydantic 2.11+)

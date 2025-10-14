@@ -11,6 +11,8 @@ from __future__ import annotations
 import logging
 import traceback
 
+from flext_core import FlextCore
+
 from flext_cli import FlextCli
 
 
@@ -35,9 +37,29 @@ def main() -> None:
             # Use flext-cli API for testing instead of direct Click
             # This maintains abstraction and zero tolerance policy
             logger.info("Testing operation: %s", operation)
-            # Note: This script needs updating - FlextCli does not have .main.run_command()
-            # For now, just log what would be tested
-            FlextCli().run_cli_operation(operation)
+
+            cli = FlextCli()
+
+            # Route operations to appropriate methods
+            if operation == ["config", "show"]:
+                result = cli.cmd.show_config_paths()
+            elif operation == ["config", "validate"]:
+                result = cli.cmd.validate_config()
+            elif operation == ["auth", "status"]:
+                # Test authentication status
+                is_authenticated = cli.is_authenticated()
+                result = FlextCore.Result[None].ok(None) if is_authenticated else FlextCore.Result[None].fail("Not authenticated")
+            elif operation == ["debug", "check"]:
+                # Test debug functionality - check if services are operational
+                result = cli.execute()
+            else:
+                result = FlextCore.Result[None].fail(f"Unknown operation: {operation}")
+
+            if result.is_success:
+                logger.info("Operation %s completed successfully", operation)
+            else:
+                logger.error("Operation %s failed: %s", operation, result.error)
+
         except Exception:
             logger.exception("Command %s raised exception", operation)
             traceback.print_exc()

@@ -1446,13 +1446,18 @@ class TestFlextCliConfigExceptionHandlers:
         self, monkeypatch: pytest.MonkeyPatch
     ) -> None:
         """Test auto_output_format with narrow terminal (lines 346-347)."""
+
         # Mock terminal size to be narrow (< 60)
-        monkeypatch.setattr(
-            "shutil.get_terminal_size",
-            lambda fallback: type("Size", (), {"columns": 50})(),
-        )
+        def mock_get_terminal_size(fallback: tuple[int, int]) -> object:
+            return type("Size", (), {"columns": 50})()
+
+        monkeypatch.setattr("shutil.get_terminal_size", mock_get_terminal_size)
         # Mock os.isatty to return True (is a terminal)
-        monkeypatch.setattr("os.isatty", lambda fd: True)
+
+        def mock_isatty(fd: int) -> bool:
+            return True
+
+        monkeypatch.setattr("os.isatty", mock_isatty)
 
         config = FlextCliConfig()
         assert config.auto_output_format == "plain"
@@ -1461,13 +1466,18 @@ class TestFlextCliConfigExceptionHandlers:
         self, monkeypatch: pytest.MonkeyPatch
     ) -> None:
         """Test auto_output_format with wide terminal and color support (lines 350-351)."""
+
         # Mock terminal size to be wide (>= 60)
-        monkeypatch.setattr(
-            "shutil.get_terminal_size",
-            lambda fallback: type("Size", (), {"columns": 120})(),
-        )
+        def mock_get_terminal_size(fallback: tuple[int, int]) -> object:
+            return type("Size", (), {"columns": 120})()
+
+        monkeypatch.setattr("shutil.get_terminal_size", mock_get_terminal_size)
         # Mock os.isatty to return True (is a terminal)
-        monkeypatch.setattr("os.isatty", lambda fd: True)
+
+        def mock_isatty(fd: int) -> bool:
+            return True
+
+        monkeypatch.setattr("os.isatty", mock_isatty)
 
         config = FlextCliConfig(no_color=False)  # Enable color support
         assert config.auto_output_format == "table"
@@ -1476,13 +1486,18 @@ class TestFlextCliConfigExceptionHandlers:
         self, monkeypatch: pytest.MonkeyPatch
     ) -> None:
         """Test auto_output_format fallback to JSON (lines 353-354)."""
+
         # Mock terminal size to be wide but disable color
-        monkeypatch.setattr(
-            "shutil.get_terminal_size",
-            lambda fallback: type("Size", (), {"columns": 120})(),
-        )
+        def mock_get_terminal_size(fallback: tuple[int, int]) -> object:
+            return type("Size", (), {"columns": 120})()
+
+        monkeypatch.setattr("shutil.get_terminal_size", mock_get_terminal_size)
         # Mock os.isatty to return True (is a terminal)
-        monkeypatch.setattr("os.isatty", lambda fd: True)
+
+        def mock_isatty(fd: int) -> bool:
+            return True
+
+        monkeypatch.setattr("os.isatty", mock_isatty)
 
         config = FlextCliConfig(no_color=True)  # Disable color support
         assert config.auto_output_format == "json"
@@ -1499,33 +1514,36 @@ class TestFlextCliConfigExceptionHandlers:
 
     def test_optimal_table_format_narrow(self, monkeypatch: pytest.MonkeyPatch) -> None:
         """Test optimal_table_format for narrow terminal (lines 398-399)."""
+
         # Mock terminal size to be narrow (< 60)
-        monkeypatch.setattr(
-            "shutil.get_terminal_size",
-            lambda fallback: type("Size", (), {"columns": 50})(),
-        )
+        def mock_get_terminal_size(fallback: tuple[int, int]) -> object:
+            return type("Size", (), {"columns": 50})()
+
+        monkeypatch.setattr("shutil.get_terminal_size", mock_get_terminal_size)
 
         config = FlextCliConfig()
         assert config.optimal_table_format == "simple"
 
     def test_optimal_table_format_medium(self, monkeypatch: pytest.MonkeyPatch) -> None:
         """Test optimal_table_format for medium terminal (lines 402-403)."""
+
         # Mock terminal size to be medium (60-100)
-        monkeypatch.setattr(
-            "shutil.get_terminal_size",
-            lambda fallback: type("Size", (), {"columns": 80})(),
-        )
+        def mock_get_terminal_size(fallback: tuple[int, int]) -> object:
+            return type("Size", (), {"columns": 80})()
+
+        monkeypatch.setattr("shutil.get_terminal_size", mock_get_terminal_size)
 
         config = FlextCliConfig()
         assert config.optimal_table_format == "github"
 
     def test_optimal_table_format_wide(self, monkeypatch: pytest.MonkeyPatch) -> None:
         """Test optimal_table_format for wide terminal (lines 406)."""
+
         # Mock terminal size to be wide (>= 100)
-        monkeypatch.setattr(
-            "shutil.get_terminal_size",
-            lambda fallback: type("Size", (), {"columns": 150})(),
-        )
+        def mock_get_terminal_size(fallback: tuple[int, int]) -> object:
+            return type("Size", (), {"columns": 150})()
+
+        monkeypatch.setattr("shutil.get_terminal_size", mock_get_terminal_size)
 
         config = FlextCliConfig()
         assert config.optimal_table_format == "grid"

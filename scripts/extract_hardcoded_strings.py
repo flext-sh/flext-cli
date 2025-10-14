@@ -78,7 +78,7 @@ def categorize_string(string: str, _context: str) -> str:
     return "misc"
 
 
-def extract_strings_from_file(file_path: Path) -> list[dict]:
+def extract_strings_from_file(file_path: Path) -> list[dict[str, str | int]]:
     """Extract all hard-coded strings from a Python file."""
     try:
         with Path(file_path).open(encoding="utf-8") as f:
@@ -145,7 +145,7 @@ def main() -> None:
 
             # Count categories
             for s in strings:
-                category_counts[s["category"]] += 1
+                category_counts[str(s["category"])] += 1
 
     # Generate analysis report
     report = {

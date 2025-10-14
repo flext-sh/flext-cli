@@ -12,8 +12,8 @@ from __future__ import annotations
 
 import time
 from collections import UserList
-from typing import Never
-from unittest.mock import patch
+from typing import Never, cast
+from unittest.mock import MagicMock, patch
 
 import pytest
 from flext_core import FlextCore
@@ -585,13 +585,18 @@ class TestFlextCliPrompts:
         result = quiet_prompts.prompt_password("Enter password:")
         assert result.is_failure
         assert result.error is not None
-        assert result.error is not None
         assert "interactive mode disabled" in result.error.lower()
 
-        # Test with interactive mode
+        # Test with interactive mode and mocked getpass
         interactive_prompts = FlextCliPrompts(quiet=False, interactive_mode=True)
-        result = interactive_prompts.prompt_password("Enter password:", min_length=8)
-        assert isinstance(result, FlextCore.Result)
+
+        # Mock getpass to return a valid password
+        with patch("getpass.getpass", return_value="testpassword123"):
+            result = interactive_prompts.prompt_password(
+                "Enter password:", min_length=8
+            )
+            assert result.is_success
+            assert result.unwrap() == "testpassword123"
 
     def test_clear_prompt_history(self, prompts: FlextCliPrompts) -> None:
         """Test clear_prompt_history method."""
@@ -664,7 +669,7 @@ class TestFlextCliPrompts:
 
         # Test with custom logger (FlextCore.Service may create its own logger)
         logger = FlextCore.Logger("test_logger")
-        prompts = FlextCliPrompts(logger_instance=logger)
+        prompts = FlextCliPrompts(logger=logger)
         # Logger exists (FlextCore.Service creates its own, doesn't preserve instance)
         assert hasattr(prompts, "logger")
         # FlextCore.Logger returns a FlextLogger instance
@@ -836,13 +841,13 @@ class TestFlextCliPrompts:
         """Test clear_prompt_history exception handling (lines 319-320)."""
 
         # Create a custom object that raises exception on clear
-        class BadList(UserList):
+        class BadList(UserList[str]):
             def clear(self) -> None:
                 msg = "Clear failed"
                 raise RuntimeError(msg)
 
         prompts = FlextCliPrompts(quiet=True)
-        prompts._prompt_history = BadList()
+        prompts._prompt_history = cast("list[str]", BadList())
         result = prompts.clear_prompt_history()
         assert result.is_failure
         assert result.error is not None
@@ -1043,19 +1048,19 @@ class TestFlextCliPrompts:
         prompts = FlextCliPrompts(interactive_mode=True)
 
         # Replace _prompt_history with a custom class that raises on append
-        class FailingList(UserList):
-            def append(self, item: object) -> Never:
+        class FailingList(UserList[str]):
+            def append(self, item: str) -> Never:
                 msg = "History append failed"
                 raise RuntimeError(msg)
 
-        prompts._prompt_history = FailingList()
+        prompts._prompt_history = cast("list[str]", FailingList())
 
         result = prompts.prompt_confirmation("Test confirmation")
         assert result.is_failure
         assert result.error is not None
         assert "confirmation prompt failed" in (result.error or "").lower()
 
-    def test_prompt_choice_exception_handling_coverage(self, mocker: object) -> None:
+    def test_prompt_choice_exception_handling_coverage(self, mocker: MagicMock) -> None:
         """Test prompt_choice exception handler (lines 262-263)."""
         prompts = FlextCliPrompts(interactive_mode=True)
         # Mock enumerate to raise exception
@@ -1115,15 +1120,7 @@ class TestFlextCliPrompts:
 
     def test_execute_exception_handling_coverage(self) -> None:
         """Test execute exception handler (lines 358-359)."""
-        from collections import UserDict
-
         prompts = FlextCliPrompts(quiet=True)
-
-        # Replace internal data with something that raises on access
-        class FailingDict(UserDict):
-            def __bool__(self) -> bool:
-                msg = "Dict access failed"
-                raise RuntimeError(msg)
 
         # Since execute is very simple, we need to trigger an exception somehow
         # Let's patch FlextCore.Result.ok to raise when called
