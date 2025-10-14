@@ -5,6 +5,7 @@ Targets 90%+ coverage with actual table generation validation.
 
 Copyright (c) 2025 FLEXT Team. All rights reserved.
 SPDX-License-Identifier: MIT
+
 """
 
 from __future__ import annotations

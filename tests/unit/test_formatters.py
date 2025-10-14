@@ -6,8 +6,10 @@ Test business logic only.
 
 Copyright (c) 2025 FLEXT Team. All rights reserved.
 SPDX-License-Identifier: MIT
+
 """
 
+import pytest
 from flext_core import FlextCore
 from rich.progress import Progress
 from rich.table import Table as RichTable
@@ -328,7 +330,7 @@ class TestFlextCliFormattersIntegration:
 class TestFlextCliFormattersExceptionHandlers:
     """Test exception handlers for formatters methods."""
 
-    def test_print_exception_handler(self, monkeypatch: object) -> None:
+    def test_print_exception_handler(self, monkeypatch: pytest.MonkeyPatch) -> None:
         """Test print() exception handler (lines 92-93)."""
         formatters = FlextCliFormatters()
 
@@ -345,7 +347,9 @@ class TestFlextCliFormattersExceptionHandlers:
         assert result.is_failure
         assert "Print failed" in str(result.error)
 
-    def test_create_table_exception_handler(self, monkeypatch: object) -> None:
+    def test_create_table_exception_handler(
+        self, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
         """Test create_table() exception handler (lines 138-139)."""
         formatters = FlextCliFormatters()
 
@@ -363,7 +367,7 @@ class TestFlextCliFormattersExceptionHandlers:
         assert "Table creation failed" in str(result.error)
 
     def test_render_table_to_string_exception_handler(
-        self, monkeypatch: object
+        self, monkeypatch: pytest.MonkeyPatch
     ) -> None:
         """Test render_table_to_string() exception handler (lines 166-167)."""
         formatters = FlextCliFormatters()
@@ -386,7 +390,9 @@ class TestFlextCliFormattersExceptionHandlers:
         assert result.is_failure
         assert "Table rendering failed" in str(result.error)
 
-    def test_create_progress_exception_handler(self, monkeypatch: object) -> None:
+    def test_create_progress_exception_handler(
+        self, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
         """Test create_progress() exception handler (lines 183-184)."""
         formatters = FlextCliFormatters()
 
@@ -403,7 +409,9 @@ class TestFlextCliFormattersExceptionHandlers:
         assert result.is_failure
         assert "Progress creation failed" in str(result.error)
 
-    def test_create_tree_exception_handler(self, monkeypatch: object) -> None:
+    def test_create_tree_exception_handler(
+        self, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
         """Test create_tree() exception handler (lines 201-202)."""
         formatters = FlextCliFormatters()
 
@@ -420,7 +428,9 @@ class TestFlextCliFormattersExceptionHandlers:
         assert result.is_failure
         assert "Tree creation failed" in str(result.error)
 
-    def test_render_tree_to_string_exception_handler(self, monkeypatch: object) -> None:
+    def test_render_tree_to_string_exception_handler(
+        self, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
         """Test render_tree_to_string() exception handler (lines 225-226)."""
         formatters = FlextCliFormatters()
 
@@ -442,7 +452,9 @@ class TestFlextCliFormattersExceptionHandlers:
         assert result.is_failure
         assert "Tree rendering failed" in str(result.error)
 
-    def test_create_status_exception_handler(self, monkeypatch: object) -> None:
+    def test_create_status_exception_handler(
+        self, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
         """Test create_status() exception handler (lines 252-253)."""
         formatters = FlextCliFormatters()
 
@@ -459,7 +471,9 @@ class TestFlextCliFormattersExceptionHandlers:
         assert result.is_failure
         assert "Status creation failed" in str(result.error)
 
-    def test_create_live_exception_handler(self, monkeypatch: object) -> None:
+    def test_create_live_exception_handler(
+        self, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
         """Test create_live() exception handler (lines 276-277)."""
         formatters = FlextCliFormatters()
 
@@ -476,7 +490,9 @@ class TestFlextCliFormattersExceptionHandlers:
         assert result.is_failure
         assert "Live creation failed" in str(result.error)
 
-    def test_create_layout_exception_handler(self, monkeypatch: object) -> None:
+    def test_create_layout_exception_handler(
+        self, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
         """Test create_layout() exception handler (lines 293-294)."""
         formatters = FlextCliFormatters()
 
@@ -493,7 +509,9 @@ class TestFlextCliFormattersExceptionHandlers:
         assert result.is_failure
         assert "Layout creation failed" in str(result.error)
 
-    def test_create_panel_exception_handler(self, monkeypatch: object) -> None:
+    def test_create_panel_exception_handler(
+        self, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
         """Test create_panel() exception handler (lines 324-325)."""
         formatters = FlextCliFormatters()
 

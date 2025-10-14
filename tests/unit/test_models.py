@@ -5,6 +5,7 @@ integration, comprehensive model operations, and targeting 90%+ coverage.
 
 Copyright (c) 2025 FLEXT Team. All rights reserved.
 SPDX-License-Identifier: MIT
+
 """
 
 from __future__ import annotations
@@ -273,9 +274,10 @@ class TestFlextCliModels:
             service="TestService", level="debug", message="Debug message"
         )
         summary = debug_info.debug_summary
-        assert isinstance(summary, dict)
-        assert "service" in summary
-        assert summary["service"] == "TestService"
+        # debug_summary returns CliDebugData Pydantic model (better type safety than dict)
+        assert isinstance(summary, FlextCliModels.CliDebugData)
+        assert hasattr(summary, "service")
+        assert summary.service == "TestService"
 
     def test_cli_session_validation(self) -> None:
         """Test CliSession validation."""
@@ -297,9 +299,10 @@ class TestFlextCliModels:
         """Test CliSession computed fields."""
         session = FlextCliModels.CliSession(session_id="test-session", status="active")
         summary = session.session_summary
-        assert isinstance(summary, dict)
-        assert "session_id" in summary
-        assert summary["session_id"] == "test-session"
+        # session_summary returns CliSessionData Pydantic model (better type safety than dict)
+        assert isinstance(summary, FlextCliModels.CliSessionData)
+        assert hasattr(summary, "session_id")
+        assert summary.session_id == "test-session"
 
     def test_cli_session_commands_by_status(self) -> None:
         """Test CliSession commands_by_status computed field."""
@@ -339,8 +342,9 @@ class TestFlextCliModels:
         )
         # Use actual computed field: logging_summary
         summary = logging_config.logging_summary
-        assert isinstance(summary, dict)
-        assert "level" in summary
+        # logging_summary returns CliLoggingData Pydantic model (better type safety than dict)
+        assert isinstance(summary, FlextCliModels.CliLoggingData)
+        assert hasattr(summary, "level")
 
     # ========================================================================
     # Additional Coverage Tests - Targeting Missing Lines
@@ -451,8 +455,9 @@ class TestFlextCliModels:
 
         # Test logging_summary
         summary = config.logging_summary
-        assert isinstance(summary, dict)
-        assert summary["level"] == "DEBUG"
+        # logging_summary returns CliLoggingData Pydantic model (better type safety than dict)
+        assert isinstance(summary, FlextCliModels.CliLoggingData)
+        assert summary.level == "DEBUG"
 
     def test_cli_command_validation_complete(self) -> None:
         """Test CliCommand complete validation."""

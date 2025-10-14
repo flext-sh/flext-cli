@@ -1,4 +1,11 @@
-"""Tests for flext_cli.__version__ module."""
+"""Tests for flext_cli.__version__ module.
+
+Copyright (c) 2025 FLEXT Team. All rights reserved.
+SPDX-License-Identifier: MIT
+
+"""
+
+from __future__ import annotations
 
 from flext_cli import __version__, __version_info__
 

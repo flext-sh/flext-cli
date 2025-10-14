@@ -5,6 +5,7 @@ integration, comprehensive file operations, and targeting 90%+ coverage.
 
 Copyright (c) 2025 FLEXT Team. All rights reserved.
 SPDX-License-Identifier: MIT
+
 """
 
 from __future__ import annotations
@@ -19,7 +20,6 @@ import pytest
 import yaml
 from flext_core import FlextCore
 
-# Test utilities removed from flext-core production exports
 from flext_cli.file_tools import FlextCliFileTools
 
 
@@ -895,7 +895,7 @@ class TestFlextCliFileTools:
     ) -> None:
         """Test write_text_file when encoding is not string (line 108)."""
         test_file = temp_dir / "test_encode.txt"
-        result = file_tools.write_text_file(str(test_file), "content", encoding=123)  # type: ignore[arg-type]
+        result = file_tools.write_text_file(str(test_file), "content", encoding=123)
         assert result.is_success  # Should use default encoding
 
     def test_copy_file_exception(self, file_tools: FlextCliFileTools) -> None:
@@ -1053,7 +1053,7 @@ class TestFlextCliFileTools:
     ) -> None:
         """Test find_files_by_pattern exception handler (lines 523-524)."""
 
-        def mock_glob_raises(*args: object, **kwargs: object) -> list:
+        def mock_glob_raises(*args: object, **kwargs: object) -> list[object]:
             msg = "glob failed"
             raise RuntimeError(msg)
 
@@ -1068,7 +1068,7 @@ class TestFlextCliFileTools:
     ) -> None:
         """Test find_files_by_name exception handler (lines 533-534)."""
 
-        def mock_rglob_raises(*args: object, **kwargs: object) -> list:
+        def mock_rglob_raises(*args: object, **kwargs: object) -> list[object]:
             msg = "rglob failed"
             raise RuntimeError(msg)
 

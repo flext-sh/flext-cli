@@ -5,6 +5,7 @@ integration, comprehensive protocol validation, and targeting 90%+ coverage.
 
 Copyright (c) 2025 FLEXT Team. All rights reserved.
 SPDX-License-Identifier: MIT
+
 """
 
 from __future__ import annotations
@@ -15,7 +16,6 @@ from typing import Protocol, runtime_checkable
 
 import pytest
 
-# Test utilities removed from flext-core production exports
 from flext_cli.protocols import FlextCliProtocols
 
 
@@ -322,7 +322,7 @@ class TestFlextCliProtocols:
         # Test method annotations (may be empty for protocols)
         annotations = InspectionProtocol.__annotations__
         # Protocols may not have annotations in __annotations__, so we just verify it exists
-        assert isinstance(annotations, dict[str, object])
+        assert isinstance(annotations, dict)
 
     # ========================================================================
     # PROTOCOL SCENARIOS
