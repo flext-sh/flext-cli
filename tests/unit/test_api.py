@@ -5,6 +5,7 @@ integration, comprehensive API operations, and targeting 90%+ coverage.
 
 Copyright (c) 2025 FLEXT Team. All rights reserved.
 SPDX-License-Identifier: MIT
+
 """
 
 from __future__ import annotations
@@ -950,7 +951,7 @@ nested:
         assert "not found" in error_msg or "token" in error_msg
 
     def test_get_auth_token_read_failure(
-        self, api_service: FlextCli, monkeypatch: object
+        self, api_service: FlextCli, monkeypatch: pytest.MonkeyPatch
     ) -> None:
         """Test get_auth_token when read fails (line 296)."""
         from unittest.mock import Mock
@@ -971,7 +972,7 @@ nested:
         assert "load" in result.error.lower() or "failed" in result.error.lower()
 
     def test_get_auth_token_empty_file(
-        self, api_service: FlextCli, monkeypatch: object
+        self, api_service: FlextCli, monkeypatch: pytest.MonkeyPatch
     ) -> None:
         """Test get_auth_token when token file is empty (line 305)."""
         from unittest.mock import Mock
@@ -992,7 +993,7 @@ nested:
         assert "empty" in result.error.lower() or "token" in result.error.lower()
 
     def test_clear_auth_tokens_delete_failure(
-        self, api_service: FlextCli, monkeypatch: object
+        self, api_service: FlextCli, monkeypatch: pytest.MonkeyPatch
     ) -> None:
         """Test clear_auth_tokens when delete fails (line 330)."""
         from unittest.mock import Mock
@@ -1013,7 +1014,7 @@ nested:
         assert "clear" in result.error.lower() or "failed" in result.error.lower()
 
     def test_clear_auth_tokens_success_path(
-        self, api_service: FlextCli, monkeypatch: object
+        self, api_service: FlextCli, monkeypatch: pytest.MonkeyPatch
     ) -> None:
         """Test clear_auth_tokens success path (lines 346-347)."""
         from unittest.mock import Mock

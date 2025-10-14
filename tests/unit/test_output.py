@@ -5,6 +5,7 @@ integration, comprehensive output operations, and targeting 90%+ coverage.
 
 Copyright (c) 2025 FLEXT Team. All rights reserved.
 SPDX-License-Identifier: MIT
+
 """
 
 from __future__ import annotations
@@ -18,7 +19,6 @@ from typing import cast
 import pytest
 from flext_core import FlextCore
 
-# Test utilities removed from flext-core production exports
 from flext_cli.output import FlextCliOutput
 
 

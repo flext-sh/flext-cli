@@ -5,6 +5,7 @@ integration, Docker support, and comprehensive coverage targeting 90%+.
 
 Copyright (c) 2025 FLEXT Team. All rights reserved.
 SPDX-License-Identifier: MIT
+
 """
 
 from __future__ import annotations
@@ -20,7 +21,6 @@ import pytest
 import yaml
 from flext_core import FlextCore
 
-# Test utilities removed from flext-core production exports
 from flext_cli import (
     FlextCli,
     FlextCliConfig,

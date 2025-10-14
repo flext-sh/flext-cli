@@ -5,6 +5,7 @@ integration, comprehensive exception handling, and targeting 90%+ coverage.
 
 Copyright (c) 2025 FLEXT Team. All rights reserved.
 SPDX-License-Identifier: MIT
+
 """
 
 from __future__ import annotations
@@ -16,7 +17,6 @@ import time
 
 import pytest
 
-# Test utilities removed from flext-core production exports
 from flext_cli.constants import FlextCliConstants
 from flext_cli.exceptions import FlextCliExceptions
 

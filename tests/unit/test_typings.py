@@ -5,6 +5,7 @@ integration, comprehensive type validation, and targeting 90%+ coverage.
 
 Copyright (c) 2025 FLEXT Team. All rights reserved.
 SPDX-License-Identifier: MIT
+
 """
 
 from __future__ import annotations
@@ -28,7 +29,6 @@ from typing import (
 import pytest
 from flext_core import FlextCore
 
-# Test utilities removed from flext-core production exports
 from flext_cli.constants import FlextCliConstants
 from flext_cli.typings import FlextCliTypes
 

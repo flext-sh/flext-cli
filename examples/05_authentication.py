@@ -19,6 +19,7 @@ Add authentication to YOUR CLI tool using flext-cli's built-in auth functions
 
 Copyright (c) 2025 FLEXT Team. All rights reserved.
 SPDX-License-Identifier: MIT
+
 """
 
 from __future__ import annotations

@@ -5,6 +5,7 @@ integration, comprehensive prompt operations, and targeting 90%+ coverage.
 
 Copyright (c) 2025 FLEXT Team. All rights reserved.
 SPDX-License-Identifier: MIT
+
 """
 
 from __future__ import annotations
@@ -17,7 +18,6 @@ from unittest.mock import patch
 import pytest
 from flext_core import FlextCore
 
-# Test utilities removed from flext-core production exports
 from flext_cli.prompts import FlextCliPrompts
 from flext_cli.typings import FlextCliTypes
 
@@ -1015,7 +1015,9 @@ class TestFlextCliPrompts:
             assert result.is_failure
             assert result.error is not None
 
-    def test_prompt_text_exception_handling_coverage(self, monkeypatch: object) -> None:
+    def test_prompt_text_exception_handling_coverage(
+        self, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
         """Test prompt_text exception handler (lines 166-167)."""
         prompts = FlextCliPrompts(interactive_mode=True)
         # Mock re.match to raise exception during validation
@@ -1064,7 +1066,9 @@ class TestFlextCliPrompts:
         assert result.error is not None
         assert "choice prompt failed" in (result.error or "").lower()
 
-    def test_prompt_non_interactive_default_return(self, monkeypatch: object) -> None:
+    def test_prompt_non_interactive_default_return(
+        self, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
         """Test prompt returns default in non-interactive mode (lines 383-384)."""
         # Set quiet=False to skip line 380 and hit line 384
         prompts = FlextCliPrompts(interactive_mode=False, quiet=False)
@@ -1072,7 +1076,9 @@ class TestFlextCliPrompts:
         assert result.is_success
         assert result.unwrap() == "default_value"
 
-    def test_prompt_logging_in_test_environment(self, monkeypatch: object) -> None:
+    def test_prompt_logging_in_test_environment(
+        self, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
         """Test prompt skips logging in test environment (lines 396-397)."""
         prompts = FlextCliPrompts(interactive_mode=True, quiet=False)
         # Ensure we're in test environment
@@ -1083,7 +1089,9 @@ class TestFlextCliPrompts:
         assert result.is_success
         assert result.unwrap() == "test_input"
 
-    def test_confirm_non_interactive_default_return(self, monkeypatch: object) -> None:
+    def test_confirm_non_interactive_default_return(
+        self, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
         """Test confirm returns default in non-interactive mode (lines 419-420)."""
         # Set quiet=False to skip line 416 and hit line 420
         prompts = FlextCliPrompts(interactive_mode=False, quiet=False)
@@ -1092,7 +1100,7 @@ class TestFlextCliPrompts:
         assert result.unwrap() is True
 
     def test_select_from_options_empty_input_continue(
-        self, monkeypatch: object
+        self, monkeypatch: pytest.MonkeyPatch
     ) -> None:
         """Test select_from_options continues on empty input (line 474)."""
         prompts = FlextCliPrompts(interactive_mode=True, quiet=False)
@@ -1130,7 +1138,9 @@ class TestFlextCliPrompts:
             assert result.error is not None
             assert "execution failed" in (result.error or "").lower()
 
-    def test_prompt_logging_non_test_environment(self, monkeypatch: object) -> None:
+    def test_prompt_logging_non_test_environment(
+        self, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
         """Test prompt logging in non-test environment (line 397)."""
         prompts = FlextCliPrompts(interactive_mode=True, quiet=False)
 

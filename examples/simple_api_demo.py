@@ -28,6 +28,7 @@ cli.file_tools.write_json_file(path, data)
 
 Copyright (c) 2025 FLEXT Team. All rights reserved.
 SPDX-License-Identifier: MIT
+
 """
 
 from __future__ import annotations
