@@ -220,7 +220,8 @@ class TestFlextCliCmd:
         # Should fail because config file doesn't exist
         assert result.is_failure
         assert isinstance(result.error, str)
-        assert result.error is not None and "not found" in result.error.lower()
+        assert result.error is not None
+        assert "not found" in result.error.lower()
 
     def test_cmd_show_config(self) -> None:
         """Test show_config method."""
@@ -391,7 +392,8 @@ class TestFlextCliCmd:
             result = cmd.edit_config()
             assert result.is_failure
             assert isinstance(result.error, str)
-            assert result.error is not None and "Test load error" in result.error
+            assert result.error is not None
+            assert "Test load error" in result.error
         finally:
             cmd._file_tools = original_file_tools
             if config_file.exists():
@@ -457,9 +459,8 @@ class TestFlextCliCmd:
                     result = cmd.get_config_value("missing_key")
                     assert result.is_failure
                     assert isinstance(result.error, str)
-                    assert (
-                        result.error is not None and "not found" in result.error.lower()
-                    )
+                    assert result.error is not None
+                    assert "not found" in result.error.lower()
                 finally:
                     FlextCliConfig().config_dir = original_config_dir
             finally:

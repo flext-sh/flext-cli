@@ -271,33 +271,55 @@ class TestFlextCli:
 
     def test_execute_command(self, api_service: FlextCli) -> None:
         """Test command execution functionality."""
-        # Test with a simple command that should work on most systems
-        result = api_service.core.execute_command("python --version")
+        # Register a test command first
+        from flext_cli.models import FlextCliModels
+
+        test_command = FlextCliModels.CliCommand(
+            name="test_command",
+            command_line="test_command",
+            args=["--test"],
+            status="pending",
+        )
+
+        register_result = api_service.core.register_command(test_command)
+        assert register_result.is_success
+
+        # Now execute the registered command
+        result = api_service.core.execute_command("test_command")
 
         assert isinstance(result, FlextCore.Result)
-        # Command execution may fail due to environment, but should return proper result
-        if result.is_success:
-            output = result.unwrap()
-            assert isinstance(output, (str, dict))
-        else:
-            # If command fails, should have proper error message
-            assert isinstance(result.error, str)
-            assert len(result.error) > 0
+        # Command execution should succeed for registered commands
+        assert result.is_success
+        output = result.unwrap()
+        assert isinstance(output, dict)
+        assert output[FlextCliConstants.DictKeys.COMMAND] == "test_command"
+        assert output[FlextCliConstants.DictKeys.STATUS] is True
 
     def test_execute_command_with_timeout(self, api_service: FlextCli) -> None:
         """Test command execution with timeout."""
-        # Test with a command that should complete quickly
-        result = api_service.core.execute_command("python --version")
+        # Register a test command first
+        from flext_cli.models import FlextCliModels
+
+        test_command = FlextCliModels.CliCommand(
+            name="test_timeout_command",
+            command_line="test_timeout_command",
+            args=["--timeout-test"],
+            status="pending",
+        )
+
+        register_result = api_service.core.register_command(test_command)
+        assert register_result.is_success
+
+        # Execute with timeout
+        result = api_service.core.execute_command("test_timeout_command", timeout=5.0)
 
         assert isinstance(result, FlextCore.Result)
-        # Command execution may fail due to environment, but should return proper result
-        if result.is_success:
-            output = result.unwrap()
-            assert isinstance(output, (str, dict))
-        else:
-            # If command fails, should have proper error message
-            assert isinstance(result.error, str)
-            assert len(result.error) > 0
+        # Command execution should succeed for registered commands
+        assert result.is_success
+        output = result.unwrap()
+        assert isinstance(output, dict)
+        assert output[FlextCliConstants.DictKeys.COMMAND] == "test_timeout_command"
+        assert output[FlextCliConstants.DictKeys.TIMEOUT] == 5.0
 
     def test_execute_command_nonexistent(self, api_service: FlextCli) -> None:
         """Test command execution with nonexistent command."""

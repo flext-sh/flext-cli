@@ -24,8 +24,6 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from typing import Any
-
 from flext_core import FlextCore
 from pydantic import BaseModel, Field, field_validator
 
@@ -82,7 +80,7 @@ class DeployConfig(BaseModel):
 
 def demonstrate_auto_cli_generation() -> None:
     """Show auto-generated CLI parameters from Pydantic model."""
-    cli.formatters.print("\n🔧 Auto-Generated CLI Parameters:", style="bold cyan")
+    cli.print("\n🔧 Auto-Generated CLI Parameters:", style="bold cyan")
 
     # Extract CLI parameters from Pydantic model
     params_result = FlextCliModels.CliModelConverter.model_to_cli_params(DeployConfig)
@@ -90,20 +88,20 @@ def demonstrate_auto_cli_generation() -> None:
     if params_result.is_success:
         params = params_result.unwrap()
 
-        cli.formatters.print(
+        cli.print(
             f"✅ Generated {len(params)} CLI parameters from DeployConfig:",
             style="green",
         )
 
         for param in params:
-            cli.formatters.print(
+            cli.print(
                 f"   --{param['name']:<20} {param['help']:<50} (type: {param['click_type']}, default: {param['default']})",
                 style="cyan",
             )
 
     # Show what the CLI would look like
-    cli.formatters.print("\n📝 Example CLI usage:", style="bold cyan")
-    cli.formatters.print(
+    cli.print("\n📝 Example CLI usage:", style="bold cyan")
+    cli.print(
         "   python app.py deploy --environment production --workers 8 --enable-cache",
         style="white",
     )
@@ -116,13 +114,13 @@ def demonstrate_auto_cli_generation() -> None:
 
 def execute_deploy_from_cli(cli_args: dict) -> None:
     """Convert CLI arguments to validated Pydantic model instance."""
-    cli.formatters.print("\n🚀 Deploying with CLI Arguments:", style="bold cyan")
+    cli.print("\n🚀 Deploying with CLI Arguments:", style="bold cyan")
 
     try:
         # Pydantic automatically validates ALL constraints
         config = DeployConfig(**cli_args)
 
-        cli.formatters.print("✅ Valid configuration:", style="green")
+        cli.print("✅ Valid configuration:", style="green")
 
         # Display validated config
         config_dict = config.model_dump()
@@ -133,18 +131,18 @@ def execute_deploy_from_cli(cli_args: dict) -> None:
         )
 
         if table_result.is_success:
-            cli.formatters.console.print(table_result.unwrap())
+            cli.print_table(table_result.unwrap())
 
         # Use validated config in your application
         deploy_result = deploy_application(config)
 
         if deploy_result.is_success:
-            cli.formatters.print(
+            cli.print(
                 f"✅ Deployment successful to {config.environment}!", style="bold green"
             )
 
     except Exception as e:
-        cli.formatters.print(f"❌ Validation failed: {e}", style="bold red")
+        cli.print(f"❌ Validation failed: {e}", style="bold red")
 
 
 def deploy_application(config: DeployConfig) -> FlextCore.Result[str]:
@@ -160,10 +158,8 @@ def deploy_application(config: DeployConfig) -> FlextCore.Result[str]:
 
 def show_common_cli_params() -> None:
     """Show auto-generated common CLI parameters."""
-    cli.formatters.print(
-        "\n⚙️  Auto-Generated Common CLI Parameters:", style="bold cyan"
-    )
-    cli.formatters.print(
+    cli.print("\n⚙️  Auto-Generated Common CLI Parameters:", style="bold cyan")
+    cli.print(
         "These are AUTOMATICALLY available in ALL flext-cli commands:\n", style="yellow"
     )
 
@@ -181,9 +177,7 @@ def show_common_cli_params() -> None:
     }
 
     for param, description in common_params.items():
-        cli.formatters.print(
-            f"   --{param.replace('_', '-'):<20} {description}", style="cyan"
-        )
+        cli.print(f"   --{param.replace('_', '-'):<20} {description}", style="cyan")
 
 
 # ============================================================================
@@ -210,7 +204,7 @@ class AppConfig(BaseModel):
 
 def demonstrate_nested_models() -> None:
     """Show CLI generation from nested Pydantic models."""
-    cli.formatters.print("\n🏗️  Nested Model CLI Generation:", style="bold cyan")
+    cli.print("\n🏗️  Nested Model CLI Generation:", style="bold cyan")
 
     # Extract parameters from nested model
     db_params_result = FlextCliModels.CliModelConverter.model_to_cli_params(
@@ -220,17 +214,15 @@ def demonstrate_nested_models() -> None:
     if db_params_result.is_success:
         db_params = db_params_result.unwrap()
 
-        cli.formatters.print("Database config parameters:", style="green")
+        cli.print("Database config parameters:", style="green")
         for param in db_params:
-            cli.formatters.print(
-                f"   --db-{param['name']}: {param['help']}", style="cyan"
-            )
+            cli.print(f"   --db-{param['name']}: {param['help']}", style="cyan")
 
     # In real usage, you'd flatten nested models or use prefixes
-    cli.formatters.print("\n💡 Tip: Use prefixes for nested models:", style="yellow")
-    cli.formatters.print("   --database-host localhost", style="white")
-    cli.formatters.print("   --database-port 5432", style="white")
-    cli.formatters.print("   --database-name myapp", style="white")
+    cli.print("\n💡 Tip: Use prefixes for nested models:", style="yellow")
+    cli.print("   --database-host localhost", style="white")
+    cli.print("   --database-port 5432", style="white")
+    cli.print("   --database-name myapp", style="white")
 
 
 # ============================================================================
@@ -240,15 +232,15 @@ def demonstrate_nested_models() -> None:
 
 def main() -> None:
     """Examples of Pydantic-driven CLI in YOUR code."""
-    cli.formatters.print("=" * 70, style="bold blue")
-    cli.formatters.print("  Pydantic-Driven CLI Library Usage", style="bold white")
-    cli.formatters.print("=" * 70, style="bold blue")
+    cli.print("=" * 70, style="bold blue")
+    cli.print("  Pydantic-Driven CLI Library Usage", style="bold white")
+    cli.print("=" * 70, style="bold blue")
 
     # Example 1: Auto-generate CLI params
     demonstrate_auto_cli_generation()
 
     # Example 2: Execute with CLI args (simulated)
-    cli.formatters.print("\n" + "=" * 70, style="bold blue")
+    cli.print("\n" + "=" * 70, style="bold blue")
     test_args = {
         "environment": "production",
         "workers": 8,
@@ -258,22 +250,20 @@ def main() -> None:
     execute_deploy_from_cli(test_args)
 
     # Example 3: Show common CLI params
-    cli.formatters.print("\n" + "=" * 70, style="bold blue")
+    cli.print("\n" + "=" * 70, style="bold blue")
     show_common_cli_params()
 
     # Example 4: Nested models
-    cli.formatters.print("\n" + "=" * 70, style="bold blue")
+    cli.print("\n" + "=" * 70, style="bold blue")
     demonstrate_nested_models()
 
     # Example 5: Validation demonstration
-    cli.formatters.print("\n" + "=" * 70, style="bold blue")
-    cli.formatters.print(
-        "\n❌ Validation Demo - Invalid Environment:", style="bold cyan"
-    )
+    cli.print("\n" + "=" * 70, style="bold blue")
+    cli.print("\n❌ Validation Demo - Invalid Environment:", style="bold cyan")
 
-    # Intentional invalid args to demonstrate validation - use Any for flexible testing
+    # Intentional invalid args to demonstrate validation - use object for flexible testing
 
-    invalid_args: dict[str, Any] = {
+    invalid_args: dict[str, object] = {
         "environment": "invalid_env",  # Will fail validation!
         "workers": 4,
         "enable_cache": True,
@@ -283,28 +273,24 @@ def main() -> None:
     try:
         DeployConfig(**invalid_args)
     except Exception as e:
-        cli.formatters.print(f"   Caught validation error: {e}", style="yellow")
+        cli.print(f"   Caught validation error: {e}", style="yellow")
 
-    cli.formatters.print("\n" + "=" * 70, style="bold blue")
-    cli.formatters.print("  ✅ Pydantic CLI Examples Complete", style="bold green")
-    cli.formatters.print("=" * 70, style="bold blue")
+    cli.print("\n" + "=" * 70, style="bold blue")
+    cli.print("  ✅ Pydantic CLI Examples Complete", style="bold green")
+    cli.print("=" * 70, style="bold blue")
 
     # Integration guide
-    cli.formatters.print("\n💡 Integration Tips:", style="bold cyan")
-    cli.formatters.print(
-        "  • Define Pydantic models with Field() descriptions", style="white"
-    )
-    cli.formatters.print(
+    cli.print("\n💡 Integration Tips:", style="bold cyan")
+    cli.print("  • Define Pydantic models with Field() descriptions", style="white")
+    cli.print(
         "  • Use CliModelConverter.model_to_cli_params() to extract params",
         style="white",
     )
-    cli.formatters.print(
-        "  • Add field_validator() for custom validation", style="white"
-    )
-    cli.formatters.print(
+    cli.print("  • Add field_validator() for custom validation", style="white")
+    cli.print(
         "  • Constraints (ge, le) become CLI validation automatically", style="white"
     )
-    cli.formatters.print(
+    cli.print(
         "  • Model → CLI → validated instance = type-safe workflow!", style="white"
     )
 

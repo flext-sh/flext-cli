@@ -13,7 +13,6 @@ from __future__ import annotations
 import secrets
 from collections.abc import Callable
 from pathlib import Path
-from typing import TYPE_CHECKING
 
 from flext_core import FlextCore
 from rich.progress import Progress
@@ -21,18 +20,16 @@ from rich.table import Table
 from rich.tree import Tree
 
 from flext_cli.cli import FlextCliCli
+from flext_cli.cmd import FlextCliCmd
 from flext_cli.config import FlextCliConfig
 from flext_cli.constants import FlextCliConstants
+from flext_cli.core import FlextCliCore
 from flext_cli.file_tools import FlextCliFileTools
 from flext_cli.formatters import FlextCliFormatters
+from flext_cli.models import FlextCliModels
+from flext_cli.output import FlextCliOutput
+from flext_cli.prompts import FlextCliPrompts
 from flext_cli.typings import FlextCliTypes
-
-# TYPE_CHECKING imports for lazy-loaded types (avoid circular imports)
-if TYPE_CHECKING:
-    pass
-else:
-    # Runtime imports for lazy-loading - must be at module top to avoid PLC0415
-    pass
 
 
 class FlextCli:
@@ -42,6 +39,9 @@ class FlextCli:
     Uses FlextCore.Result railway pattern with zero async operations.
     All defaults from FlextCliConstants with proper centralization.
     """
+
+    _instance: FlextCli | None = None
+    _lock = __import__("threading").Lock()
 
     def __init__(self) -> None:
         """Initialize consolidated CLI with all functionality integrated."""
@@ -58,6 +58,10 @@ class FlextCli:
         # Domain library components (domain library pattern)
         self._formatters = FlextCliFormatters()
         self._file_tools = FlextCliFileTools()
+        self._output = FlextCliOutput()
+        self._core = FlextCliCore()
+        self._cmd = FlextCliCmd()
+        self._prompts = FlextCliPrompts()
 
         # CLI framework abstraction (domain library pattern)
         self._cli = FlextCliCli()
@@ -75,42 +79,27 @@ class FlextCli:
 
     @classmethod
     def get_instance(cls) -> FlextCli:
-        """Get singleton FlextCli instance."""
-        container = FlextCore.Container.get_global()
-        result = container.get("flext_cli")
-        if result.is_failure or result.value is None:
-            return cls()
-        # Type guard: container.get returns FlextCli when registered with "flext_cli" key
-        instance = result.value
-        if not isinstance(instance, cls):
-            return cls()
-        return instance
-
-    # =========================================================================
-    # DIRECT ATTRIBUTE ACCESS - No property wrappers
-    # Users access: cli._file_tools, cli._formatters, cli._logger directly
-    # Or call: FlextCliConfig.get_global_instance(), FlextCliConstants.*, etc.
-    # =========================================================================
-
-    # =========================================================================
-    # FORMATTING - Domain library pattern using FlextCliFormatters
-    # =========================================================================
+        """Get singleton FlextCli instance using class-level singleton pattern."""
+        if cls._instance is None:
+            with cls._lock:
+                # Double-check locking pattern
+                if cls._instance is None:
+                    cls._instance = cls()
+        return cls._instance
 
     def print(
         self,
         message: str,
         style: str | None = None,
-        **kwargs: object,
     ) -> FlextCore.Result[None]:
         """Print formatted message using formatters domain library."""
-        return self._formatters.print(message, style=style, **kwargs)
+        return self._formatters.print(message, style=style)
 
     def create_table(
         self,
         data: FlextCliTypes.Data.CliDataDict | None = None,
         headers: FlextCore.Types.StringList | None = None,
         title: str | None = None,
-        **kwargs: object,
     ) -> FlextCore.Result[Table]:
         """Create table using formatters domain library.
 
@@ -118,22 +107,97 @@ class FlextCli:
             FlextCore.Result[Table]: Rich Table wrapped in Result
 
         """
-        return self._formatters.create_table(
-            data=data, headers=headers, title=title, **kwargs
-        )
+        return self._formatters.create_table(data=data, headers=headers, title=title)
 
-    def create_progress(self, **kwargs: object) -> FlextCore.Result[Progress]:
+    def create_progress(self) -> FlextCore.Result[Progress]:
         """Create progress bar using formatters domain library.
 
         Returns:
             FlextCore.Result[Progress]: Rich Progress wrapped in Result
 
         """
-        return self._formatters.create_progress(**kwargs)
+        return self._formatters.create_progress()
 
-    def create_tree(self, label: str, **kwargs: object) -> FlextCore.Result[Tree]:
+    def create_tree(self, label: str) -> FlextCore.Result[Tree]:
         """Create tree using formatters domain library."""
-        return self._formatters.create_tree(label=label, **kwargs)
+        return self._formatters.create_tree(label=label)
+
+    @property
+    def config(self) -> FlextCliConfig:
+        """Get CLI configuration instance."""
+        return self._config
+
+    @property
+    def output(self) -> FlextCliOutput:
+        """Get CLI output service instance."""
+        return self._output
+
+    @property
+    def formatters(self) -> FlextCliFormatters:
+        """Get CLI formatters instance."""
+        return self._formatters
+
+    @property
+    def file_tools(self) -> FlextCliFileTools:
+        """Get CLI file tools instance."""
+        return self._file_tools
+
+    @property
+    def core(self) -> FlextCliCore:
+        """Get CLI core service instance."""
+        return self._core
+
+    @property
+    def constants(self) -> type[FlextCliConstants]:
+        """Get CLI constants class."""
+        return FlextCliConstants
+
+    @property
+    def models(self) -> type[FlextCliModels]:
+        """Get CLI models class."""
+        return FlextCliModels
+
+    @property
+    def types(self) -> type[FlextCliTypes]:
+        """Get CLI types class."""
+        return FlextCliTypes
+
+    @property
+    def logger(self) -> FlextCore.Logger:
+        """Get CLI logger instance."""
+        return self._logger
+
+    @property
+    def cmd(self) -> FlextCliCmd:
+        """Get CLI command service instance."""
+        return self._cmd
+
+    @property
+    def prompts(self) -> FlextCliPrompts:
+        """Get prompts instance - direct access."""
+        return self._prompts
+
+    @property
+    def utilities(self) -> object:
+        """Get CLI utilities instance."""
+        # For now, return self as utilities - this might need to be expanded later
+        return self
+
+    def print_table(self, table: Table) -> FlextCore.Result[None]:
+        """Print a Rich Table object using formatters domain library.
+
+        Args:
+            table: Rich Table object to print
+
+        Returns:
+            FlextCore.Result[None]: Success if printed, failure with details
+
+        """
+        try:
+            self._formatters.get_console().print(table)
+            return FlextCore.Result[None].ok(None)
+        except Exception as e:
+            return FlextCore.Result[None].fail(f"Failed to print table: {e}")
 
     # =========================================================================
     # AUTHENTICATION - Direct implementation (consolidated from auth.py)
@@ -251,9 +315,7 @@ class FlextCli:
         # Type guard: validate data is dict with "token" key
         data = read_result.unwrap()
         if not isinstance(data, dict):
-            return FlextCore.Result[str].fail(
-                "Token file must contain a JSON object"
-            )
+            return FlextCore.Result[str].fail("Token file must contain a JSON object")
 
         token = data.get("token")
         if not token:
@@ -262,9 +324,7 @@ class FlextCli:
             )
 
         if not isinstance(token, str):
-            return FlextCore.Result[str].fail(
-                "Token must be a string"
-            )
+            return FlextCore.Result[str].fail("Token must be a string")
 
         return FlextCore.Result[str].ok(token)
 

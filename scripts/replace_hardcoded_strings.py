@@ -572,7 +572,6 @@ def replace_strings_in_file(file_path: Path) -> tuple[int, int]:
             if content != before:
                 count = len(re.findall(pattern, before))
                 replacements_made += count
-                print(f"  [{file_path.name}] Replaced {count}x: {pattern[:50]}...")
 
         if content != original_content:
             file_path.write_text(content, encoding="utf-8")
@@ -586,8 +585,7 @@ def replace_strings_in_file(file_path: Path) -> tuple[int, int]:
 
         return (0, 0)
 
-    except Exception as e:
-        print(f"ERROR processing {file_path}: {e}")
+    except Exception:
         return (0, 0)
 
 
@@ -606,23 +604,12 @@ def main() -> None:
     total_replacements = 0
     total_files_modified = 0
 
-    print("🔧 ZERO TOLERANCE STRING REPLACEMENT")
-    print("=" * 60)
-
     for py_file in sorted(py_files):
-        print(f"\nProcessing: {py_file.name}")
         replacements, _lines = replace_strings_in_file(py_file)
 
         if replacements > 0:
             total_replacements += replacements
             total_files_modified += 1
-            print(f"  ✅ {replacements} replacements in {py_file.name}")
-
-    print("\n" + "=" * 60)
-    print(
-        f"✅ COMPLETE: {total_replacements} replacements across {total_files_modified} files"
-    )
-    print("=" * 60)
 
 
 if __name__ == "__main__":

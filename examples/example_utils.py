@@ -31,12 +31,12 @@ def print_demo_completion(
         style: Message style
 
     """
-    cli.formatters.print(f"\n🎉 {demo_name} Complete", style=f"bold {style}")
-    cli.formatters.print(f"✅ {demo_name} Completed!", style=style)
-    cli.formatters.print("\nKey Features Demonstrated:", style="cyan")
+    cli.print(f"\n🎉 {demo_name} Complete", style=f"bold {style}")
+    cli.print(f"✅ {demo_name} Completed!", style=style)
+    cli.print("\nKey Features Demonstrated:", style="cyan")
     for feature in features:
-        cli.formatters.print(f"  • {feature}", style="white")
-    cli.formatters.print(
+        cli.print(f"  • {feature}", style="white")
+    cli.print(
         "\nAll operations used FlextCore.Result pattern for error handling!",
         style="yellow",
     )
@@ -61,14 +61,14 @@ def handle_command_result(
 
     if result.is_success:
         data = result.value
-        cli.formatters.print(f"✅ {action.title()} successful", style="green")
+        cli.print(f"✅ {action.title()} successful", style="green")
 
         for field in success_fields:
             if field in data:
                 display_name = field.replace("_", " ").title()
-                cli.formatters.print(f"{display_name}: {data[field]}")
+                cli.print(f"{display_name}: {data[field]}")
     else:
-        cli.formatters.print(f"❌ Failed to {action}: {result.error}", style="red")
+        cli.print(f"❌ Failed to {action}: {result.error}", style="red")
 
 
 def print_demo_error(
@@ -83,11 +83,11 @@ def print_demo_error(
         style: Message style
 
     """
-    cli.formatters.print(f"❌ {demo_name} failed: {error}", style=f"bold {style}")
-    cli.formatters.print(
+    cli.print(f"❌ {demo_name} failed: {error}", style=f"bold {style}")
+    cli.print(
         "This failure demonstrates FlextCore.Result error handling!", style="yellow"
     )
-    cli.formatters.print(
+    cli.print(
         "The error was caught and wrapped in a FlextCore.Result for clean handling.",
         style="white",
     )

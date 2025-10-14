@@ -15,7 +15,7 @@ from __future__ import annotations
 import uuid
 from collections.abc import Callable
 from datetime import UTC, datetime
-from typing import Any, Self, get_args, get_origin, override
+from typing import Self, cast, get_args, get_origin, override
 
 from flext_core import FlextCore
 from pydantic import (
@@ -209,7 +209,7 @@ class FlextCliModels(FlextCore.Models):
                 str: Click type specification (e.g., 'STRING', 'INT', 'FLOAT', 'BOOL')
 
             """
-            type_map: dict[type[Any], str] = {
+            type_map: dict[type[object], str] = {
                 str: "STRING",
                 int: "INT",
                 float: "FLOAT",
@@ -367,7 +367,7 @@ class FlextCliModels(FlextCore.Models):
                 for param in params_result.unwrap():
                     option_name = f"--{param['name']}"
 
-                    click_option: dict[str, Any] = {
+                    click_option: dict[str, object] = {
                         "option_name": option_name,
                         "param_decls": [option_name],
                         "type": param["click_type"],
@@ -748,14 +748,16 @@ class FlextCliModels(FlextCore.Models):
                 )
 
             # Normalize command data
-            normalized_data: dict[str, Any] = {
+            normalized_data: dict[str, object] = {
                 "command": command,
                 "execution_time": data.get("execution_time"),
                 **{k: v for k, v in data.items() if k != "command"},
             }
 
+            # Type-safe cast: normalized_data contains JSON-compatible values
+            typed_normalized_data = cast("FlextCliTypes.Data.CliCommandData", normalized_data)
             return FlextCore.Result[FlextCliTypes.Data.CliCommandData | None].ok(
-                normalized_data
+                typed_normalized_data
             )
 
         def validate_business_rules(self) -> FlextCore.Result[None]:
@@ -1096,7 +1098,7 @@ class FlextCliModels(FlextCore.Models):
             session_id: str | None = None,
             user_id: str | None = None,
             start_time: str | datetime | None = None,
-            **data: Any,
+            **data: object,
         ) -> None:
             """Initialize CLI session with proper type handling.
 
@@ -1149,7 +1151,7 @@ class FlextCliModels(FlextCore.Models):
             domain_events_obj = data.get("domain_events", [])
             # Type guard: isinstance check ensures correct type
             if isinstance(domain_events_obj, list):
-                domain_events_value: list[Any] = domain_events_obj
+                domain_events_value: list[object] = domain_events_obj
             else:
                 domain_events_value = []
 
@@ -1280,16 +1282,3 @@ class FlextCliModels(FlextCore.Models):
 __all__ = [
     "FlextCliModels",
 ]
-
-# Rebuild models for Pydantic v2 forward references
-# Import FlextModels into namespace for forward reference resolution
-try:
-    from flext_core.models import FlextModels  # noqa: F401 - needed for forward refs
-
-    FlextCliModels.CliCommand.model_rebuild()
-    FlextCliModels.DebugInfo.model_rebuild()
-    FlextCliModels.CliSession.model_rebuild()
-    FlextCliModels.LoggingConfig.model_rebuild()
-except Exception as e:
-    import warnings
-    warnings.warn(f"Model rebuild failed: {e}", stacklevel=2)

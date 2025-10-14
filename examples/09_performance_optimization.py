@@ -47,9 +47,7 @@ def efficient_cli_usage() -> None:
 
     # ✅ FAST: Reuse singleton instance
     cli = FlextCli.get_instance()  # Zero overhead
-    cli.formatters.print(
-        "✅ Using singleton - no re-initialization overhead", style="green"
-    )
+    cli.print("✅ Using singleton - no re-initialization overhead", style="green")
 
 
 # ============================================================================
@@ -66,7 +64,7 @@ def expensive_calculation(n: int) -> int:
 
 def demonstrate_caching() -> None:
     """Show caching pattern for performance."""
-    cli.formatters.print("\n⚡ Caching Performance:", style="bold cyan")
+    cli.print("\n⚡ Caching Performance:", style="bold cyan")
 
     # First call - slow
     start = time.time()
@@ -78,9 +76,9 @@ def demonstrate_caching() -> None:
     expensive_calculation(1000000)
     time2 = time.time() - start
 
-    cli.formatters.print(f"   First call: {time1 * 1000:.2f}ms", style="yellow")
-    cli.formatters.print(f"   Cached call: {time2 * 1000:.2f}ms", style="green")
-    cli.formatters.print(f"   Speedup: {time1 / time2:.0f}x faster", style="bold green")
+    cli.print(f"   First call: {time1 * 1000:.2f}ms", style="yellow")
+    cli.print(f"   Cached call: {time2 * 1000:.2f}ms", style="green")
+    cli.print(f"   Speedup: {time1 / time2:.0f}x faster", style="bold green")
 
 
 # ============================================================================
@@ -99,9 +97,7 @@ class LazyDataLoader:
     def data(self) -> FlextCore.Types.IntList:
         """Load data only when needed."""
         if self._data is None:
-            cli.formatters.print(
-                "   📦 Loading data (first access only)...", style="cyan"
-            )
+            cli.print("   📦 Loading data (first access only)...", style="cyan")
             # Simulate loading
             self._data = list(range(10000))
         return self._data
@@ -109,21 +105,19 @@ class LazyDataLoader:
 
 def demonstrate_lazy_loading() -> None:
     """Show lazy loading pattern."""
-    cli.formatters.print("\n🚀 Lazy Loading:", style="bold cyan")
+    cli.print("\n🚀 Lazy Loading:", style="bold cyan")
 
     # Fast startup - data not loaded
     loader = LazyDataLoader()
-    cli.formatters.print(
-        "   ✅ Loader created instantly (no data loaded)", style="green"
-    )
+    cli.print("   ✅ Loader created instantly (no data loaded)", style="green")
 
     # Data loaded only when accessed
     _ = loader.data
-    cli.formatters.print("   ✅ Data loaded on first access", style="green")
+    cli.print("   ✅ Data loaded on first access", style="green")
 
     # Subsequent access is fast
     _ = loader.data
-    cli.formatters.print("   ✅ Subsequent access - already loaded", style="green")
+    cli.print("   ✅ Subsequent access - already loaded", style="green")
 
 
 # ============================================================================
@@ -137,7 +131,7 @@ def efficient_table_display(large_dataset: list[dict]) -> None:
     preview_size = 10
     total = len(large_dataset)
 
-    cli.formatters.print(
+    cli.print(
         f"\n📊 Efficient Table (showing {preview_size}/{total} rows):", style="cyan"
     )
 
@@ -148,10 +142,7 @@ def efficient_table_display(large_dataset: list[dict]) -> None:
     table_result = tables.create_table(preview_data, table_format="simple")
 
     if table_result.is_success:
-        print(table_result.unwrap())
-        cli.formatters.print(
-            f"   ... ({total - preview_size} more rows)", style="yellow"
-        )
+        cli.print(f"   ... ({total - preview_size} more rows)", style="yellow")
 
 
 # ============================================================================
@@ -161,9 +152,7 @@ def efficient_table_display(large_dataset: list[dict]) -> None:
 
 def process_large_dataset(items: list, batch_size: int = 100) -> None:
     """Process large datasets in batches in YOUR CLI."""
-    cli.formatters.print(
-        f"\n🔄 Batch Processing ({len(items)} items):", style="bold cyan"
-    )
+    cli.print(f"\n🔄 Batch Processing ({len(items)} items):", style="bold cyan")
 
     total_batches = (len(items) + batch_size - 1) // batch_size
 
@@ -174,7 +163,7 @@ def process_large_dataset(items: list, batch_size: int = 100) -> None:
         # Process batch
         # Your batch processing logic here
 
-        cli.formatters.print(
+        cli.print(
             f"   ✅ Processed batch {batch_num}/{total_batches} ({len(batch)} items)",
             style="green",
         )
@@ -187,7 +176,7 @@ def process_large_dataset(items: list, batch_size: int = 100) -> None:
 
 def stream_large_file(filepath: str) -> None:
     """Stream large files efficiently in YOUR CLI."""
-    cli.formatters.print("\n📄 Streaming File (memory-efficient):", style="bold cyan")
+    cli.print("\n📄 Streaming File (memory-efficient):", style="bold cyan")
 
     # ❌ SLOW: Load entire file
     # with open(filepath) as f:
@@ -201,11 +190,9 @@ def stream_large_file(filepath: str) -> None:
                 line_count += 1
                 # Process line
 
-        cli.formatters.print(
-            f"   ✅ Processed {line_count} lines (streamed)", style="green"
-        )
+        cli.print(f"   ✅ Processed {line_count} lines (streamed)", style="green")
     except FileNotFoundError:
-        cli.formatters.print(f"   ℹ️  Demo: Would stream {filepath}", style="cyan")
+        cli.print(f"   ℹ️  Demo: Would stream {filepath}", style="cyan")
 
 
 # ============================================================================
@@ -215,52 +202,48 @@ def stream_large_file(filepath: str) -> None:
 
 def main() -> None:
     """Examples of performance optimization in YOUR code."""
-    cli.formatters.print("=" * 70, style="bold blue")
-    cli.formatters.print("  Performance Optimization Library Usage", style="bold white")
-    cli.formatters.print("=" * 70, style="bold blue")
+    cli.print("=" * 70, style="bold blue")
+    cli.print("  Performance Optimization Library Usage", style="bold white")
+    cli.print("=" * 70, style="bold blue")
 
     # Example 1: Singleton pattern
-    cli.formatters.print("\n1. Singleton Pattern (zero overhead):", style="bold cyan")
+    cli.print("\n1. Singleton Pattern (zero overhead):", style="bold cyan")
     efficient_cli_usage()
 
     # Example 2: Caching
-    cli.formatters.print("\n2. Caching Expensive Operations:", style="bold cyan")
+    cli.print("\n2. Caching Expensive Operations:", style="bold cyan")
     demonstrate_caching()
 
     # Example 3: Lazy loading
     demonstrate_lazy_loading()
 
     # Example 4: Efficient tables
-    cli.formatters.print("\n4. Efficient Table Display:", style="bold cyan")
+    cli.print("\n4. Efficient Table Display:", style="bold cyan")
     large_data = [{"id": i, "name": f"Item {i}"} for i in range(1000)]
     efficient_table_display(large_data)
 
     # Example 5: Batch processing
-    cli.formatters.print("\n5. Batch Processing:", style="bold cyan")
+    cli.print("\n5. Batch Processing:", style="bold cyan")
     items = list(range(500))
     process_large_dataset(items, batch_size=100)
 
     # Example 6: File streaming
-    cli.formatters.print("\n6. Memory-Efficient File Streaming:", style="bold cyan")
+    cli.print("\n6. Memory-Efficient File Streaming:", style="bold cyan")
     demo_file = pathlib.Path(tempfile.gettempdir()) / "large_file.txt"
     stream_large_file(str(demo_file))
 
-    cli.formatters.print("\n" + "=" * 70, style="bold blue")
-    cli.formatters.print("  ✅ Performance Examples Complete", style="bold green")
-    cli.formatters.print("=" * 70, style="bold blue")
+    cli.print("\n" + "=" * 70, style="bold blue")
+    cli.print("  ✅ Performance Examples Complete", style="bold green")
+    cli.print("=" * 70, style="bold blue")
 
     # Integration guide
-    cli.formatters.print("\n💡 Performance Tips:", style="bold cyan")
-    cli.formatters.print(
-        "  • Always use FlextCli.get_instance() (singleton)", style="white"
-    )
-    cli.formatters.print(
-        "  • Cache expensive operations with @lru_cache", style="white"
-    )
-    cli.formatters.print("  • Use lazy loading for large datasets", style="white")
-    cli.formatters.print("  • Display only necessary table rows", style="white")
-    cli.formatters.print("  • Process large datasets in batches", style="white")
-    cli.formatters.print("  • Stream files instead of loading all", style="white")
+    cli.print("\n💡 Performance Tips:", style="bold cyan")
+    cli.print("  • Always use FlextCli.get_instance() (singleton)", style="white")
+    cli.print("  • Cache expensive operations with @lru_cache", style="white")
+    cli.print("  • Use lazy loading for large datasets", style="white")
+    cli.print("  • Display only necessary table rows", style="white")
+    cli.print("  • Process large datasets in batches", style="white")
+    cli.print("  • Stream files instead of loading all", style="white")
 
 
 if __name__ == "__main__":

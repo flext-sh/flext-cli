@@ -49,9 +49,7 @@ class DataExportPlugin:
         """Execute plugin logic in YOUR application."""
         if output_format == "json":
             output = json.dumps(data, indent=2)
-            cli.formatters.print(
-                f"✅ Exported data as JSON ({len(output)} chars)", style="green"
-            )
+            cli.print(f"✅ Exported data as JSON ({len(output)} chars)", style="green")
             return FlextCore.Result[str].ok(output)
         return FlextCore.Result[str].fail(f"Unsupported format: {format}")
 
@@ -75,9 +73,7 @@ class ReportGeneratorPlugin:
             )
 
         report = table_result.unwrap()
-        cli.formatters.print(
-            f"✅ Generated report ({len(report)} chars)", style="green"
-        )
+        cli.print(f"✅ Generated report ({len(report)} chars)", style="green")
         return FlextCore.Result[str].ok(report)
 
 
@@ -97,7 +93,7 @@ class MyAppPluginManager:
         """Register plugin in YOUR CLI."""
         plugin_name = getattr(plugin, "name", plugin.__class__.__name__)
         self.plugins[plugin_name] = plugin
-        cli.formatters.print(f"🔌 Registered plugin: {plugin_name}", style="cyan")
+        cli.print(f"🔌 Registered plugin: {plugin_name}", style="cyan")
 
     def execute_plugin(
         self, plugin_name: str, **kwargs: object
@@ -122,7 +118,7 @@ class MyAppPluginManager:
     def list_plugins(self) -> None:
         """List all registered plugins in YOUR CLI."""
         if not self.plugins:
-            cli.formatters.print("⚠️  No plugins registered", style="yellow")
+            cli.print("⚠️  No plugins registered", style="yellow")
             return
 
         plugin_data = {
@@ -135,7 +131,7 @@ class MyAppPluginManager:
         )
 
         if table_result.is_success:
-            cli.formatters.console.print(table_result.unwrap())
+            cli.print_table(table_result.unwrap())
 
 
 # ============================================================================
@@ -147,12 +143,10 @@ def load_plugins_from_directory(plugin_dir: Path) -> MyAppPluginManager:
     """Load plugins from directory in YOUR CLI."""
     manager = MyAppPluginManager()
 
-    cli.formatters.print(f"🔍 Scanning for plugins in: {plugin_dir}", style="cyan")
+    cli.print(f"🔍 Scanning for plugins in: {plugin_dir}", style="cyan")
 
     if not plugin_dir.exists():
-        cli.formatters.print(
-            f"⚠️  Plugin directory not found: {plugin_dir}", style="yellow"
-        )
+        cli.print(f"⚠️  Plugin directory not found: {plugin_dir}", style="yellow")
         return manager
 
     # In real usage, you would:
@@ -165,7 +159,7 @@ def load_plugins_from_directory(plugin_dir: Path) -> MyAppPluginManager:
     manager.register_plugin(DataExportPlugin())
     manager.register_plugin(ReportGeneratorPlugin())
 
-    cli.formatters.print(f"✅ Loaded {len(manager.plugins)} plugins", style="green")
+    cli.print(f"✅ Loaded {len(manager.plugins)} plugins", style="green")
     return manager
 
 
@@ -184,7 +178,7 @@ class ConfigurablePlugin:
 
     def execute(self) -> FlextCore.Result[dict]:
         """Execute with configuration in YOUR CLI."""
-        cli.formatters.print(f"🔧 Plugin config: {self.config}", style="cyan")
+        cli.print(f"🔧 Plugin config: {self.config}", style="cyan")
 
         # Your plugin logic using config
         result_data = {"plugin": self.name, "config_applied": True, **self.config}
@@ -207,7 +201,7 @@ class LifecyclePlugin:
 
     def initialize(self) -> FlextCore.Result[None]:
         """Initialize plugin resources."""
-        cli.formatters.print(f"🚀 Initializing {self.name}...", style="cyan")
+        cli.print(f"🚀 Initializing {self.name}...", style="cyan")
         # Your initialization logic
         self.initialized = True
         return FlextCore.Result[None].ok(None)
@@ -218,12 +212,12 @@ class LifecyclePlugin:
             return FlextCore.Result[str].fail("Plugin not initialized")
 
         processed = data.upper()  # Your processing logic
-        cli.formatters.print(f"✅ Processed: {processed}", style="green")
+        cli.print(f"✅ Processed: {processed}", style="green")
         return FlextCore.Result[str].ok(processed)
 
     def cleanup(self) -> FlextCore.Result[None]:
         """Cleanup plugin resources."""
-        cli.formatters.print(f"🧹 Cleaning up {self.name}...", style="cyan")
+        cli.print(f"🧹 Cleaning up {self.name}...", style="cyan")
         # Your cleanup logic
         self.initialized = False
         return FlextCore.Result[None].ok(None)
@@ -236,31 +230,31 @@ class LifecyclePlugin:
 
 def main() -> None:
     """Examples of using plugin system in YOUR code."""
-    cli.formatters.print("=" * 70, style="bold blue")
-    cli.formatters.print("  Plugin System Library Usage", style="bold white")
-    cli.formatters.print("=" * 70, style="bold blue")
+    cli.print("=" * 70, style="bold blue")
+    cli.print("  Plugin System Library Usage", style="bold white")
+    cli.print("=" * 70, style="bold blue")
 
     # Example 1: Simple plugin registration
-    cli.formatters.print("\n1. Plugin Registration (basic):", style="bold cyan")
+    cli.print("\n1. Plugin Registration (basic):", style="bold cyan")
     manager = MyAppPluginManager()
     manager.register_plugin(DataExportPlugin())
     manager.register_plugin(ReportGeneratorPlugin())
 
     # Example 2: List plugins
-    cli.formatters.print("\n2. List Plugins (inventory):", style="bold cyan")
+    cli.print("\n2. List Plugins (inventory):", style="bold cyan")
     manager.list_plugins()
 
     # Example 3: Execute plugin
-    cli.formatters.print("\n3. Execute Plugin (data export):", style="bold cyan")
+    cli.print("\n3. Execute Plugin (data export):", style="bold cyan")
     test_data = {"id": 1, "name": "Test", "status": "active"}
     export_result = manager.execute_plugin("data-export", data=test_data, format="json")
     if export_result.is_success:
         result_value = export_result.unwrap()
         output_preview = str(result_value)[:100] if result_value else ""
-        cli.formatters.print(f"   Output: {output_preview}...", style="white")
+        cli.print(f"   Output: {output_preview}...", style="white")
 
     # Example 4: Report plugin
-    cli.formatters.print("\n4. Report Plugin (table generation):", style="bold cyan")
+    cli.print("\n4. Report Plugin (table generation):", style="bold cyan")
     report_data = [
         {"metric": "Users", "value": "1,234"},
         {"metric": "Orders", "value": "567"},
@@ -268,47 +262,35 @@ def main() -> None:
     manager.execute_plugin("report-generator", data=report_data)
 
     # Example 5: Plugin with config
-    cli.formatters.print("\n5. Configurable Plugin:", style="bold cyan")
+    cli.print("\n5. Configurable Plugin:", style="bold cyan")
     config = {"theme": "dark", "verbose": True}
     config_plugin = ConfigurablePlugin(config)
     config_result = config_plugin.execute()
     if config_result.is_success:
-        cli.formatters.print(f"   Result: {config_result.unwrap()}", style="green")
+        cli.print(f"   Result: {config_result.unwrap()}", style="green")
 
     # Example 6: Lifecycle management
-    cli.formatters.print(
-        "\n6. Plugin Lifecycle (init/execute/cleanup):", style="bold cyan"
-    )
+    cli.print("\n6. Plugin Lifecycle (init/execute/cleanup):", style="bold cyan")
     lifecycle_plugin = LifecyclePlugin()
     lifecycle_plugin.initialize()
     lifecycle_plugin.execute("hello world")
     lifecycle_plugin.cleanup()
 
     # Example 7: Load from directory
-    cli.formatters.print(
-        "\n7. Load from Directory (dynamic discovery):", style="bold cyan"
-    )
+    cli.print("\n7. Load from Directory (dynamic discovery):", style="bold cyan")
     plugin_dir = Path.home() / ".myapp" / "plugins"
     load_plugins_from_directory(plugin_dir)
 
-    cli.formatters.print("\n" + "=" * 70, style="bold blue")
-    cli.formatters.print("  ✅ Plugin Examples Complete", style="bold green")
-    cli.formatters.print("=" * 70, style="bold blue")
+    cli.print("\n" + "=" * 70, style="bold blue")
+    cli.print("  ✅ Plugin Examples Complete", style="bold green")
+    cli.print("=" * 70, style="bold blue")
 
     # Integration guide
-    cli.formatters.print("\n💡 Integration Tips:", style="bold cyan")
-    cli.formatters.print(
-        "  • Create plugin classes with execute() method", style="white"
-    )
-    cli.formatters.print(
-        "  • Use plugin manager to register and execute plugins", style="white"
-    )
-    cli.formatters.print(
-        "  • Add lifecycle hooks (initialize, cleanup) as needed", style="white"
-    )
-    cli.formatters.print(
-        "  • Use FlextCore.Result for plugin error handling", style="white"
-    )
+    cli.print("\n💡 Integration Tips:", style="bold cyan")
+    cli.print("  • Create plugin classes with execute() method", style="white")
+    cli.print("  • Use plugin manager to register and execute plugins", style="white")
+    cli.print("  • Add lifecycle hooks (initialize, cleanup) as needed", style="white")
+    cli.print("  • Use FlextCore.Result for plugin error handling", style="white")
 
 
 if __name__ == "__main__":

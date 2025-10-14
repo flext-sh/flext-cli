@@ -12,12 +12,13 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 import sys
+import types
 from collections.abc import Callable
-from pathlib import Path
-from typing import Any, ClassVar, TypeVar, get_args, get_origin
+from typing import ClassVar, TypeVar, get_args, get_origin
 
 import typer
 from flext_core import FlextCore
+from typer.models import OptionInfo
 
 from flext_cli.config import FlextCliConfig
 from flext_cli.constants import FlextCliConstants
@@ -52,7 +53,7 @@ class FlextCliCommonParams:
 
     # CLI Parameter Metadata Registry
     # Maps field names to CLI-specific metadata (short flags, choices, priority)
-    CLI_PARAM_REGISTRY: ClassVar[dict[str, dict[str, Any]]] = {
+    CLI_PARAM_REGISTRY: ClassVar[dict[str, dict[str, object]]] = {
         "verbose": {"short": "v", "priority": 1},
         "quiet": {"short": "q", "priority": 2},
         "debug": {"short": "d", "priority": 3},
@@ -116,7 +117,7 @@ class FlextCliCommonParams:
         return FlextCore.Result[None].ok(None)
 
     @classmethod
-    def create_option(cls, field_name: str) -> object:
+    def create_option(cls, field_name: str) -> OptionInfo:
         """Create typer.Option() from FlextCliConfig field metadata.
 
         Auto-generates typer.Option() with all metadata from Pydantic Field:
@@ -153,20 +154,25 @@ class FlextCliCommonParams:
         field_type = field_info.annotation
         origin = get_origin(field_type)
 
-        if origin is type(None) or (
-            hasattr(field_type, "__args__") and type(None) in get_args(field_type)
+        if origin is types.NoneType or (
+            hasattr(field_type, "__args__") and types.NoneType in get_args(field_type)
         ):
             # Extract non-None type from Optional
-            args = [a for a in get_args(field_type) if a is not type(None)]
+            args = [a for a in get_args(field_type) if a is not types.NoneType]
             field_type = args[0] if args else str
 
         # Build parameter declarations (--param-name, -short)
-        cli_name = param_meta.get("field_name_override", field_name)
+        cli_name_raw = param_meta.get("field_name_override", field_name)
+        # Type narrowing: must be str (from field_name or registry)
+        cli_name = str(cli_name_raw) if cli_name_raw != field_name else field_name
         option_name = f"--{cli_name.replace('_', '-')}"
         param_decls = [option_name]
 
         if "short" in param_meta:
-            param_decls.insert(0, f"-{param_meta['short']}")
+            short_val = param_meta["short"]
+            # Type narrowing: must be str
+            if isinstance(short_val, str):
+                param_decls.insert(0, f"-{short_val}")
 
         # Get default value
         default_value = field_info.default
@@ -184,8 +190,11 @@ class FlextCliCommonParams:
 
         # Enhance help text with choices
         if "choices" in param_meta:
-            choices_str = ", ".join(str(c) for c in param_meta["choices"])
-            help_text += f" (choices: {choices_str})"
+            choices_val = param_meta["choices"]
+            # Type narrowing: must be sequence
+            if isinstance(choices_val, (list, tuple)):
+                choices_str = ", ".join(str(c) for c in choices_val)
+                help_text += f" (choices: {choices_str})"
 
         # Enhance help text with constraints
         if "minimum" in field_schema and "maximum" in field_schema:
@@ -193,75 +202,84 @@ class FlextCliCommonParams:
                 f" [range: {field_schema['minimum']}-{field_schema['maximum']}]"
             )
 
-        # Build typer.Option kwargs
-        option_kwargs: dict[str, Any] = {
-            "help": help_text,
-        }
-
-        # Add case sensitivity
+        # Build typer.Option parameters explicitly (type-safe)
+        # Extract optional parameters with proper types
+        case_sensitive_val: bool | None = None
         if "case_sensitive" in param_meta:
-            option_kwargs["case_sensitive"] = param_meta["case_sensitive"]
+            cs_raw = param_meta["case_sensitive"]
+            case_sensitive_val = bool(cs_raw) if isinstance(cs_raw, bool) else None
 
-        # Add numeric constraints
+        min_val: float | int | None = None
+        max_val: float | int | None = None
         if "minimum" in field_schema:
-            option_kwargs["min"] = field_schema["minimum"]
+            min_raw = field_schema["minimum"]
+            min_val = min_raw if isinstance(min_raw, (int, float)) else None
         if "maximum" in field_schema:
-            option_kwargs["max"] = field_schema["maximum"]
+            max_raw = field_schema["maximum"]
+            max_val = max_raw if isinstance(max_raw, (int, float)) else None
 
-        # Add show_default for non-None defaults
-        if default_value is not None:
-            option_kwargs["show_default"] = True
+        show_default_val = default_value is not None
 
-        # Create and return typer.Option with param_decls and default
-        return typer.Option(default_value, *param_decls, **option_kwargs)
+        # Create and return typer.Option with explicit parameters (type-safe)
+        return typer.Option(
+            default_value,
+            *param_decls,
+            help=help_text,
+            case_sensitive=case_sensitive_val if case_sensitive_val is not None else True,
+            min=min_val,
+            max=max_val,
+            show_default=show_default_val,
+        )
 
     @classmethod
-    def verbose_option(cls) -> bool:
+    def verbose_option(cls) -> OptionInfo:
         """Create --verbose/-v option from FlextCore.Config.verbose field metadata."""
-        return cls.create_option("verbose")  # type: ignore[return-value]
+        return cls.create_option("verbose")
 
     @classmethod
-    def quiet_option(cls) -> bool:
+    def quiet_option(cls) -> OptionInfo:
         """Create --quiet/-q option from FlextCore.Config.quiet field metadata."""
-        return cls.create_option("quiet")  # type: ignore[return-value]
+        return cls.create_option("quiet")
 
     @classmethod
-    def debug_option(cls) -> bool:
+    def debug_option(cls) -> OptionInfo:
         """Create --debug/-d option from FlextCore.Config.debug field metadata."""
-        return cls.create_option("debug")  # type: ignore[return-value]
+        return cls.create_option("debug")
 
     @classmethod
-    def trace_option(cls) -> bool:
+    def trace_option(cls) -> OptionInfo:
         """Create --trace/-t option from FlextCore.Config.trace field metadata."""
-        return cls.create_option("trace")  # type: ignore[return-value]
+        return cls.create_option("trace")
 
     @classmethod
-    def log_level_option(cls) -> str:
+    def log_level_option(cls) -> OptionInfo:
         """Create --log-level/-L option from FlextCore.Config.log_level field metadata."""
-        return cls.create_option("log_level")  # type: ignore[return-value]
+        return cls.create_option("log_level")
 
     @classmethod
-    def log_format_option(cls) -> str:
+    def log_format_option(cls) -> OptionInfo:
         """Create --log-format option from FlextCore.Config.log_verbosity field metadata."""
-        return cls.create_option("log_verbosity")  # type: ignore[return-value]
+        return cls.create_option("log_verbosity")
 
     @classmethod
-    def output_format_option(cls) -> str:
+    def output_format_option(
+        cls,
+    ) -> OptionInfo:
         """Create --output-format/-o option from FlextCore.Config.output_format field metadata."""
-        return cls.create_option("output_format")  # type: ignore[return-value]
+        return cls.create_option("output_format")
 
     @classmethod
-    def no_color_option(cls) -> bool:
+    def no_color_option(cls) -> OptionInfo:
         """Create --no-color option from FlextCore.Config.no_color field metadata."""
-        return cls.create_option("no_color")  # type: ignore[return-value]
+        return cls.create_option("no_color")
 
     @classmethod
-    def config_file_option(cls) -> Path | None:
+    def config_file_option(cls) -> OptionInfo:
         """Create --config-file/-c option from FlextCore.Config.config_file field metadata."""
-        return cls.create_option("config_file")  # type: ignore[return-value]
+        return cls.create_option("config_file")
 
     @classmethod
-    def get_all_common_params(cls) -> dict[str, Any]:
+    def get_all_common_params(cls) -> dict[str, object]:
         """Get all common CLI parameters as typer.Option objects.
 
         Returns dict mapping parameter names to typer.Option objects auto-generated

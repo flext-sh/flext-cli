@@ -393,10 +393,8 @@ class TestFlextCliOutput:
         assert result.is_failure
         assert result.error is not None
         assert isinstance(result.error, str)
-        assert (
-            result.error is not None
-            and "Table format requires dict or list of dicts" in result.error
-        )
+        assert result.error is not None
+        assert "Table format requires dict or list of dicts" in result.error
 
     def test_get_formatter_unsupported_format(self, output: FlextCliOutput) -> None:
         """Test create_formatter with unsupported format."""
@@ -405,10 +403,8 @@ class TestFlextCliOutput:
         assert result.is_failure
         assert result.error is not None
         assert isinstance(result.error, str)
-        assert (
-            result.error is not None
-            and "Unsupported format type: unsupported" in result.error
-        )
+        assert result.error is not None
+        assert "Unsupported format type: unsupported" in result.error
 
     def test_format_table_no_data(self, output: FlextCliOutput) -> None:
         """Test format_table with no data."""
@@ -417,7 +413,8 @@ class TestFlextCliOutput:
         assert result.is_failure
         assert result.error is not None
         assert isinstance(result.error, str)
-        assert result.error is not None and "No data provided for table" in result.error
+        assert result.error is not None
+        assert "No data provided for table" in result.error
 
     def test_output_custom_format(
         self, output: FlextCliOutput, sample_data: dict

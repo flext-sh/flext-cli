@@ -46,11 +46,11 @@ def get_cli_settings() -> FlextCliConfig:
     # debug = os.getenv('DEBUG', 'false').lower() == 'true'
     # log_level = os.getenv('LOG_LEVEL', 'INFO')
 
-    cli.formatters.print("📋 Current Configuration:", style="bold cyan")
-    cli.formatters.print(f"   Debug Mode: {config.debug}", style="cyan")
-    cli.formatters.print(f"   Log Level: {config.log_level}", style="cyan")
-    cli.formatters.print(f"   Environment: {config.environment}", style="cyan")
-    cli.formatters.print(f"   Profile: {config.profile}", style="cyan")
+    cli.print("📋 Current Configuration:", style="bold cyan")
+    cli.print(f"   Debug Mode: {config.debug}", style="cyan")
+    cli.print(f"   Log Level: {config.log_level}", style="cyan")
+    cli.print(f"   Environment: {config.environment}", style="cyan")
+    cli.print(f"   Profile: {config.profile}", style="cyan")
 
     return config
 
@@ -68,23 +68,17 @@ def load_environment_config() -> dict[str, str]:
     environment = config.environment
 
     if environment == "production":
-        cli.formatters.print(
-            "🚀 Production mode - using production settings", style="bold red"
-        )
+        cli.print("🚀 Production mode - using production settings", style="bold red")
         # Your production config
         api_url = "https://api.production.example.com"
         max_retries = 5
     elif environment == "staging":
-        cli.formatters.print(
-            "🔧 Staging mode - using staging settings", style="bold yellow"
-        )
+        cli.print("🔧 Staging mode - using staging settings", style="bold yellow")
         # Your staging config
         api_url = "https://api.staging.example.com"
         max_retries = 3
     else:
-        cli.formatters.print(
-            "💻 Development mode - using dev settings", style="bold cyan"
-        )
+        cli.print("💻 Development mode - using dev settings", style="bold cyan")
         # Your dev config
         api_url = "http://localhost:8000"
         max_retries = 1
@@ -104,7 +98,7 @@ def load_environment_config() -> dict[str, str]:
     )
 
     if table_result.is_success:
-        cli.formatters.console.print(table_result.unwrap())
+        cli.print_table(table_result.unwrap())
 
     return settings
 
@@ -119,6 +113,7 @@ class MyAppConfig:
 
     def __init__(self) -> None:
         """Initialize custom configuration with environment variables."""
+        super().__init__()
         # Inherit from flext-cli config
         self.base_config = cli.config
 
@@ -131,14 +126,14 @@ class MyAppConfig:
     def validate(self) -> bool:
         """Validate YOUR app configuration."""
         if not self.api_key:
-            cli.formatters.print("❌ API_KEY not configured", style="bold red")
+            cli.print("❌ API_KEY not configured", style="bold red")
             return False
 
         if self.max_workers < 1:
-            cli.formatters.print("❌ MAX_WORKERS must be >= 1", style="bold red")
+            cli.print("❌ MAX_WORKERS must be >= 1", style="bold red")
             return False
 
-        cli.formatters.print("✅ Configuration valid", style="green")
+        cli.print("✅ Configuration valid", style="green")
         return True
 
     def display(self) -> None:
@@ -162,7 +157,7 @@ class MyAppConfig:
         )
 
         if table_result.is_success:
-            cli.formatters.console.print(table_result.unwrap())
+            cli.print(table_result.unwrap())
 
 
 # ============================================================================
@@ -195,7 +190,7 @@ def show_config_locations() -> dict[str, str]:
     )
 
     if table_result.is_success:
-        cli.formatters.console.print(table_result.unwrap())
+        cli.print_table(table_result.unwrap())
 
     return locations
 
@@ -207,7 +202,7 @@ def show_config_locations() -> dict[str, str]:
 
 def load_profile_config(profile_name: str = "default") -> FlextCliConfig | None:
     """Load profile-specific config in YOUR tool."""
-    cli.formatters.print(f"📋 Loading profile: {profile_name}", style="bold cyan")
+    cli.print(f"📋 Loading profile: {profile_name}", style="bold cyan")
 
     # You can create different FlextCliConfig instances for different profiles
     profile_config = FlextCliConfig(
@@ -220,14 +215,12 @@ def load_profile_config(profile_name: str = "default") -> FlextCliConfig | None:
     validate_result = profile_config.validate_business_rules()
 
     if validate_result.is_failure:
-        cli.formatters.print(
+        cli.print(
             f"❌ Profile validation failed: {validate_result.error}", style="bold red"
         )
         return None
 
-    cli.formatters.print(
-        f"✅ Profile '{profile_name}' loaded successfully", style="green"
-    )
+    cli.print(f"✅ Profile '{profile_name}' loaded successfully", style="green")
 
     # Display profile settings
     profile_data: FlextCliTypes.Data.CliDataDict = cast(
@@ -247,7 +240,7 @@ def load_profile_config(profile_name: str = "default") -> FlextCliConfig | None:
     )
 
     if table_result.is_success:
-        cli.formatters.console.print(table_result.unwrap())
+        cli.print_table(table_result.unwrap())
 
     return profile_config
 
@@ -259,7 +252,7 @@ def load_profile_config(profile_name: str = "default") -> FlextCliConfig | None:
 
 def show_environment_variables() -> None:
     """Display available environment variables for YOUR CLI."""
-    cli.formatters.print("🌍 Environment Variables", style="bold cyan")
+    cli.print("🌍 Environment Variables", style="bold cyan")
 
     # Built-in flext-cli env vars
     env_vars = {
@@ -271,15 +264,15 @@ def show_environment_variables() -> None:
     }
 
     # Display current values
-    cli.formatters.print("\n📊 Current Environment Variables:", style="yellow")
+    cli.print("\n📊 Current Environment Variables:", style="yellow")
     for key, value in env_vars.items():
-        cli.formatters.print(f"   {key}={value}", style="cyan")
+        cli.print(f"   {key}={value}", style="cyan")
 
     # Show how to set them
-    cli.formatters.print("\n💡 How to set environment variables:", style="bold cyan")
-    cli.formatters.print("   export FLEXT_DEBUG=true", style="white")
-    cli.formatters.print("   export FLEXT_ENVIRONMENT=production", style="white")
-    cli.formatters.print("   export FLEXT_LOG_LEVEL=DEBUG", style="white")
+    cli.print("\n💡 How to set environment variables:", style="bold cyan")
+    cli.print("   export FLEXT_DEBUG=true", style="white")
+    cli.print("   export FLEXT_ENVIRONMENT=production", style="white")
+    cli.print("   export FLEXT_LOG_LEVEL=DEBUG", style="white")
 
 
 # ============================================================================
@@ -289,38 +282,36 @@ def show_environment_variables() -> None:
 
 def validate_app_config() -> bool:
     """Validate configuration in YOUR application startup."""
-    cli.formatters.print("🔍 Validating Configuration...", style="bold cyan")
+    cli.print("🔍 Validating Configuration...", style="bold cyan")
 
     # Step 1: Validate base config
-    cli.formatters.print("\n1. Validating base configuration...", style="cyan")
+    cli.print("\n1. Validating base configuration...", style="cyan")
     config = cli.config
     validate_result = config.validate_business_rules()
 
     if validate_result.is_failure:
-        cli.formatters.print(
+        cli.print(
             f"   ❌ Base config invalid: {validate_result.error}", style="bold red"
         )
         return False
 
-    cli.formatters.print("   ✅ Base config valid", style="green")
+    cli.print("   ✅ Base config valid", style="green")
 
     # Step 2: Validate custom settings
-    cli.formatters.print("\n2. Validating custom settings...", style="cyan")
+    cli.print("\n2. Validating custom settings...", style="cyan")
     app_config = MyAppConfig()
 
     if not app_config.validate():
-        cli.formatters.print("   ❌ Custom config invalid", style="bold red")
+        cli.print("   ❌ Custom config invalid", style="bold red")
         return False
 
-    cli.formatters.print("   ✅ Custom config valid", style="green")
+    cli.print("   ✅ Custom config valid", style="green")
 
     # Step 3: Display complete config
-    cli.formatters.print("\n3. Configuration summary:", style="cyan")
+    cli.print("\n3. Configuration summary:", style="cyan")
     app_config.display()
 
-    cli.formatters.print(
-        "\n✅ All configuration validated successfully!", style="bold green"
-    )
+    cli.print("\n✅ All configuration validated successfully!", style="bold green")
     return True
 
 
@@ -331,66 +322,50 @@ def validate_app_config() -> bool:
 
 def main() -> None:
     """Examples of using configuration in YOUR code."""
-    cli.formatters.print("=" * 70, style="bold blue")
-    cli.formatters.print("  Configuration Management Library Usage", style="bold white")
-    cli.formatters.print("=" * 70, style="bold blue")
+    cli.print("=" * 70, style="bold blue")
+    cli.print("  Configuration Management Library Usage", style="bold white")
+    cli.print("=" * 70, style="bold blue")
 
     # Example 1: Access built-in config
-    cli.formatters.print(
-        "\n1. Built-in Configuration (access settings):", style="bold cyan"
-    )
+    cli.print("\n1. Built-in Configuration (access settings):", style="bold cyan")
     get_cli_settings()
 
     # Example 2: Environment-based config
-    cli.formatters.print(
-        "\n2. Environment Config (deployment settings):", style="bold cyan"
-    )
+    cli.print("\n2. Environment Config (deployment settings):", style="bold cyan")
     load_environment_config()
 
     # Example 3: Custom config class
-    cli.formatters.print("\n3. Custom Config Class (app-specific):", style="bold cyan")
+    cli.print("\n3. Custom Config Class (app-specific):", style="bold cyan")
     app_config = MyAppConfig()
     app_config.validate()
     app_config.display()
 
     # Example 4: Config locations
-    cli.formatters.print("\n4. Config Locations (file paths):", style="bold cyan")
+    cli.print("\n4. Config Locations (file paths):", style="bold cyan")
     show_config_locations()
 
     # Example 5: Profile-based config
-    cli.formatters.print(
-        "\n5. Profile-Based Config (multi-environment):", style="bold cyan"
-    )
+    cli.print("\n5. Profile-Based Config (multi-environment):", style="bold cyan")
     load_profile_config("production")
 
     # Example 6: Environment variables
-    cli.formatters.print(
-        "\n6. Environment Variables (configuration guide):", style="bold cyan"
-    )
+    cli.print("\n6. Environment Variables (configuration guide):", style="bold cyan")
     show_environment_variables()
 
     # Example 7: Config validation
-    cli.formatters.print("\n7. Config Validation (startup check):", style="bold cyan")
+    cli.print("\n7. Config Validation (startup check):", style="bold cyan")
     validate_app_config()
 
-    cli.formatters.print("\n" + "=" * 70, style="bold blue")
-    cli.formatters.print("  ✅ Configuration Examples Complete", style="bold green")
-    cli.formatters.print("=" * 70, style="bold blue")
+    cli.print("\n" + "=" * 70, style="bold blue")
+    cli.print("  ✅ Configuration Examples Complete", style="bold green")
+    cli.print("=" * 70, style="bold blue")
 
     # Integration guide
-    cli.formatters.print("\n💡 Integration Tips:", style="bold cyan")
-    cli.formatters.print(
-        "  • Access config: Use cli.config for built-in settings", style="white"
-    )
-    cli.formatters.print(
-        "  • Custom config: Extend FlextCliConfig for your app", style="white"
-    )
-    cli.formatters.print(
-        "  • Validation: Use config.validate_business_rules()", style="white"
-    )
-    cli.formatters.print(
-        "  • Environment: Use FLEXT_* env vars for configuration", style="white"
-    )
+    cli.print("\n💡 Integration Tips:", style="bold cyan")
+    cli.print("  • Access config: Use cli.config for built-in settings", style="white")
+    cli.print("  • Custom config: Extend FlextCliConfig for your app", style="white")
+    cli.print("  • Validation: Use config.validate_business_rules()", style="white")
+    cli.print("  • Environment: Use FLEXT_* env vars for configuration", style="white")
 
 
 if __name__ == "__main__":

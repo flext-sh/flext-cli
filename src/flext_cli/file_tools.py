@@ -24,7 +24,6 @@ import stat
 import tempfile
 import zipfile
 from pathlib import Path
-from typing import Any
 
 import yaml
 from flext_core import FlextCore
@@ -89,23 +88,23 @@ class FlextCliFileTools(FlextCore.Service[FlextCore.Types.Dict]):
             )
 
     def write_text_file(
-        self, file_path: str | Path, content: str, **kwargs: object
+        self,
+        file_path: str | Path,
+        content: str,
+        encoding: str = FlextCliConstants.Encoding.UTF8,
     ) -> FlextCore.Result[None]:
         """Write text content to file.
 
         Args:
             file_path: Path to text file
             content: Content to write
-            **kwargs: Additional options (encoding, etc.)
+            encoding: Text encoding (default: UTF-8)
 
         Returns:
             FlextCore.Result[None] indicating success or failure
 
         """
         try:
-            encoding = kwargs.get("encoding", FlextCliConstants.Encoding.UTF8)
-            if not isinstance(encoding, str):
-                encoding = FlextCliConstants.Encoding.UTF8
             Path(file_path).write_text(content, encoding=encoding)
             return FlextCore.Result[None].ok(None)
         except Exception as e:
@@ -152,40 +151,36 @@ class FlextCliFileTools(FlextCore.Service[FlextCore.Types.Dict]):
 
     @staticmethod
     def write_json_file(
-        file_path: str | Path, data: object, **kwargs: object
+        file_path: str | Path,
+        data: object,
+        indent: int = 2,
+        sort_keys: bool = False,
+        ensure_ascii: bool = True,
     ) -> FlextCore.Result[None]:
-        """Write data to JSON file.
+        """Write data to JSON file with explicit common parameters.
 
         Args:
             file_path: Path to JSON file
             data: Data to write
-            **kwargs: Additional JSON dump options
+            indent: Indentation level (default: 2)
+            sort_keys: Sort keys alphabetically (default: False)
+            ensure_ascii: Escape non-ASCII characters (default: True)
 
         Returns:
             FlextCore.Result[None] indicating success or failure
 
         """
         try:
-            # Filter kwargs to only valid json.dump parameters
-            valid_keys = {
-                FlextCliConstants.JsonOptions.SKIPKEYS,
-                FlextCliConstants.JsonOptions.ENSURE_ASCII,
-                FlextCliConstants.JsonOptions.CHECK_CIRCULAR,
-                FlextCliConstants.JsonOptions.ALLOW_NAN,
-                FlextCliConstants.JsonOptions.CLS,
-                FlextCliConstants.JsonOptions.INDENT,
-                FlextCliConstants.JsonOptions.SEPARATORS,
-                "default",
-                FlextCliConstants.JsonOptions.SORT_KEYS,
-            }
-            dump_kwargs: dict[str, Any] = {
-                key: value for key, value in kwargs.items() if key in valid_keys
-            }
-
             with Path(file_path).open(
                 "w", encoding=FlextCliConstants.Encoding.UTF8
             ) as f:
-                json.dump(data, f, indent=2, **dump_kwargs)
+                json.dump(
+                    data,
+                    f,
+                    indent=indent,
+                    sort_keys=sort_keys,
+                    ensure_ascii=ensure_ascii,
+                )
             return FlextCore.Result[None].ok(None)
         except Exception as e:
             return FlextCore.Result[None].fail(
@@ -210,44 +205,36 @@ class FlextCliFileTools(FlextCore.Service[FlextCore.Types.Dict]):
 
     @staticmethod
     def write_yaml_file(
-        file_path: str | Path, data: object, **kwargs: object
+        file_path: str | Path,
+        data: object,
+        default_flow_style: bool | None = None,
+        sort_keys: bool = False,
+        allow_unicode: bool = True,
     ) -> FlextCore.Result[None]:
-        """Write data to YAML file.
+        """Write data to YAML file with explicit common parameters.
 
         Args:
             file_path: Path to YAML file
             data: Data to write
-            **kwargs: Additional YAML dump options
+            default_flow_style: Use flow style (None=auto, True=flow, False=block)
+            sort_keys: Sort keys alphabetically (default: False)
+            allow_unicode: Output Unicode characters (default: True)
 
         Returns:
             FlextCore.Result[None] indicating success or failure
 
         """
         try:
-            # Filter kwargs to only valid yaml.safe_dump parameters
-            valid_keys = {
-                "default_style",
-                "default_flow_style",
-                "canonical",
-                FlextCliConstants.JsonOptions.INDENT,
-                "width",
-                "allow_unicode",
-                "line_break",
-                "encoding",
-                "explicit_start",
-                "explicit_end",
-                "version",
-                "tags",
-                FlextCliConstants.JsonOptions.SORT_KEYS,
-            }
-            dump_kwargs: dict[str, Any] = {
-                key: value for key, value in kwargs.items() if key in valid_keys
-            }
-
             with Path(file_path).open(
                 "w", encoding=FlextCliConstants.Encoding.UTF8
             ) as f:
-                yaml.safe_dump(data, f, **dump_kwargs)
+                yaml.safe_dump(
+                    data,
+                    f,
+                    default_flow_style=default_flow_style,
+                    sort_keys=sort_keys,
+                    allow_unicode=allow_unicode,
+                )
             return FlextCore.Result[None].ok(None)
         except Exception as e:
             return FlextCore.Result[None].fail(
@@ -269,7 +256,7 @@ class FlextCliFileTools(FlextCore.Service[FlextCore.Types.Dict]):
         return self._FormatDetector.detect_format(supported_formats, file_path)
 
     def load_file_auto_detect(
-        self, file_path: str | Path, **kwargs: object
+        self, file_path: str | Path
     ) -> FlextCore.Result[
         FlextCore.Types.Dict | FlextCore.Types.List | str | int | float | bool | None
     ]:
@@ -291,9 +278,9 @@ class FlextCliFileTools(FlextCore.Service[FlextCore.Types.Dict]):
 
         file_format = format_result.unwrap()
         if file_format == "json":
-            return self._FileLoader.load_json(str(file_path), **kwargs)
+            return self._FileLoader.load_json(str(file_path))
         if file_format == "yaml":
-            return self._FileLoader.load_yaml(str(file_path), **kwargs)
+            return self._FileLoader.load_yaml(str(file_path))
 
         return FlextCore.Result[
             FlextCore.Types.Dict
@@ -309,11 +296,15 @@ class FlextCliFileTools(FlextCore.Service[FlextCore.Types.Dict]):
             )
         )
 
-    def save_file(
-        self, file_path: str | Path, data: object, **kwargs: object
-    ) -> FlextCore.Result[None]:
-        """Save data to file with automatic format detection."""
-        return self._FileSaver.save_file(file_path, data, **kwargs)
+    def save_file(self, file_path: str | Path, data: object) -> FlextCore.Result[None]:
+        """Save data to file with automatic format detection.
+
+        Note:
+            Uses default parameters for JSON/YAML writing.
+            For custom formatting options, use write_json_file() or write_yaml_file() directly.
+
+        """
+        return self._FileSaver.save_file(file_path, data)
 
     def read_binary_file(self, file_path: str | Path) -> FlextCore.Result[bytes]:
         """Read binary file content."""
@@ -613,7 +604,7 @@ class FlextCliFileTools(FlextCore.Service[FlextCore.Types.Dict]):
         """Nested helper for file loading operations."""
 
         @staticmethod
-        def load_json(file_path: str, **_kwargs: object) -> FlextCore.Result[JsonData]:
+        def load_json(file_path: str) -> FlextCore.Result[JsonData]:
             """Load JSON file."""
             try:
                 with Path(file_path).open(
@@ -625,7 +616,7 @@ class FlextCliFileTools(FlextCore.Service[FlextCore.Types.Dict]):
                 return FlextCore.Result[JsonData].fail(f"JSON load failed: {e}")
 
         @staticmethod
-        def load_yaml(file_path: str, **_kwargs: object) -> FlextCore.Result[JsonData]:
+        def load_yaml(file_path: str) -> FlextCore.Result[JsonData]:
             """Load YAML file."""
             try:
                 with Path(file_path).open(
@@ -643,17 +634,19 @@ class FlextCliFileTools(FlextCore.Service[FlextCore.Types.Dict]):
         def save_file(
             file_path: str | Path,
             data: object,
-            **kwargs: object,
         ) -> FlextCore.Result[None]:
             """Save data to file with automatic format detection.
 
             Args:
                 file_path: Path to save file
                 data: Data to save
-                **kwargs: Additional options for the specific format
 
             Returns:
-                FlextCore.Result[bool] indicating success or failure
+                FlextCore.Result[None] indicating success or failure
+
+            Note:
+                Uses default parameters for JSON/YAML writing.
+                For custom formatting, use write_json_file() or write_yaml_file() directly.
 
             """
             path = Path(file_path)
@@ -661,9 +654,9 @@ class FlextCliFileTools(FlextCore.Service[FlextCore.Types.Dict]):
 
             # Detect format and delegate to appropriate saver
             if extension == ".json":
-                return FlextCliFileTools.write_json_file(file_path, data, **kwargs)
+                return FlextCliFileTools.write_json_file(file_path, data)
             if extension in {".yaml", ".yml"}:
-                return FlextCliFileTools.write_yaml_file(file_path, data, **kwargs)
+                return FlextCliFileTools.write_yaml_file(file_path, data)
             return FlextCore.Result[None].fail(
                 f"Unsupported file format: {extension}. Supported: .json, .yaml, .yml"
             )

@@ -56,12 +56,12 @@ def login_to_service(username: str, password: str) -> bool:
     auth_result = cli.authenticate(credentials)
 
     if auth_result.is_failure:
-        cli.formatters.print(f"❌ Login failed: {auth_result.error}", style="bold red")
+        cli.print(f"❌ Login failed: {auth_result.error}", style="bold red")
         return False
 
     auth_result.unwrap()
-    cli.formatters.print("✅ Login successful!", style="green")
-    cli.formatters.print(f"   Token saved to: {cli.config.token_file}", style="cyan")
+    cli.print("✅ Login successful!", style="green")
+    cli.print(f"   Token saved to: {cli.config.token_file}", style="cyan")
     return True
 
 
@@ -74,9 +74,7 @@ def get_saved_token() -> str | None:
     token_result = cli.get_auth_token()
 
     if token_result.is_failure:
-        cli.formatters.print(
-            f"⚠️  Not authenticated: {token_result.error}", style="yellow"
-        )
+        cli.print(f"⚠️  Not authenticated: {token_result.error}", style="yellow")
         return None
 
     return token_result.unwrap()
@@ -93,9 +91,7 @@ def call_authenticated_api(endpoint: str) -> dict[str, str] | None:
     token_result = cli.get_auth_token()
 
     if token_result.is_failure:
-        cli.formatters.print(
-            "❌ Authentication required. Please login first.", style="bold red"
-        )
+        cli.print("❌ Authentication required. Please login first.", style="bold red")
         return None
 
     token = token_result.unwrap()
@@ -105,13 +101,13 @@ def call_authenticated_api(endpoint: str) -> dict[str, str] | None:
 
     try:
         # Your API call logic
-        cli.formatters.print(f"📡 Calling {endpoint}...", style="cyan")
-        cli.formatters.print(f"   Using token: {token[:20]}...", style="white")
+        cli.print(f"📡 Calling {endpoint}...", style="cyan")
+        cli.print(f"   Using token: {token[:20]}...", style="white")
         # response = httpx.get(endpoint, headers=headers)
-        cli.formatters.print("✅ API call successful", style="green")
+        cli.print("✅ API call successful", style="green")
         return {"status": "success"}
     except Exception as e:
-        cli.formatters.print(f"❌ API call failed: {e}", style="bold red")
+        cli.print(f"❌ API call failed: {e}", style="bold red")
         return None
 
 
@@ -125,30 +121,30 @@ def validate_current_token() -> bool:
     token_result = cli.get_auth_token()
 
     if token_result.is_failure:
-        cli.formatters.print("⚠️  No token found", style="yellow")
+        cli.print("⚠️  No token found", style="yellow")
         return False
 
     token = token_result.unwrap()
 
     # Your token validation logic
     if len(token) < 20:  # Simple validation
-        cli.formatters.print("❌ Invalid token format", style="bold red")
+        cli.print("❌ Invalid token format", style="bold red")
         return False
 
-    cli.formatters.print("✅ Token is valid", style="green")
-    cli.formatters.print(f"   Token: {token[:30]}...", style="cyan")
+    cli.print("✅ Token is valid", style="green")
+    cli.print(f"   Token: {token[:30]}...", style="cyan")
     return True
 
 
 def refresh_token_if_needed() -> None:
     """Auto-refresh token in YOUR long-running CLI."""
     if not validate_current_token():
-        cli.formatters.print("🔄 Token refresh required...", style="yellow")
+        cli.print("🔄 Token refresh required...", style="yellow")
         # Your token refresh logic
         new_token = secrets.token_urlsafe(32)
         save_result = cli.save_auth_token(new_token)
         if save_result.is_success:
-            cli.formatters.print("✅ Token refreshed successfully", style="green")
+            cli.print("✅ Token refreshed successfully", style="green")
 
 
 # ============================================================================
@@ -165,10 +161,10 @@ def validate_user_credentials(username: str, password: str) -> bool:
     validate_result = cli.validate_credentials(username, password)
 
     if validate_result.is_failure:
-        cli.formatters.print(f"❌ {validate_result.error}", style="bold red")
+        cli.print(f"❌ {validate_result.error}", style="bold red")
         return False
 
-    cli.formatters.print(f"✅ Credentials valid for user: {username}", style="green")
+    cli.print(f"✅ Credentials valid for user: {username}", style="green")
     return True
 
 
@@ -183,7 +179,7 @@ def show_session_info() -> None:
     token_result = cli.get_auth_token()
 
     if token_result.is_failure:
-        cli.formatters.print("❌ Not authenticated", style="bold red")
+        cli.print("❌ Not authenticated", style="bold red")
         return
 
     token = token_result.unwrap()
@@ -213,7 +209,7 @@ def show_session_info() -> None:
     )
 
     if table_result.is_success:
-        cli.formatters.console.print(table_result.unwrap())
+        cli.print_table(table_result.unwrap())
 
 
 def logout() -> None:
@@ -221,15 +217,15 @@ def logout() -> None:
     token_file = Path(cli.config.token_file)
 
     if not token_file.exists():
-        cli.formatters.print("⚠️  No active session", style="yellow")
+        cli.print("⚠️  No active session", style="yellow")
         return
 
     try:
         token_file.unlink()
-        cli.formatters.print("✅ Logged out successfully", style="green")
-        cli.formatters.print(f"   Token removed from: {token_file}", style="cyan")
+        cli.print("✅ Logged out successfully", style="green")
+        cli.print(f"   Token removed from: {token_file}", style="cyan")
     except Exception as e:
-        cli.formatters.print(f"❌ Logout failed: {e}", style="bold red")
+        cli.print(f"❌ Logout failed: {e}", style="bold red")
 
 
 # ============================================================================
@@ -239,39 +235,39 @@ def logout() -> None:
 
 def complete_auth_workflow() -> bool:
     """Complete authentication workflow for YOUR application."""
-    cli.formatters.print("🔐 Authentication Workflow", style="bold cyan")
+    cli.print("🔐 Authentication Workflow", style="bold cyan")
 
     # Step 1: Check existing auth
-    cli.formatters.print("\n1. Checking existing authentication...", style="cyan")
+    cli.print("\n1. Checking existing authentication...", style="cyan")
     token_result = cli.get_auth_token()
 
     if token_result.is_success:
-        cli.formatters.print("   ✅ Already authenticated", style="green")
+        cli.print("   ✅ Already authenticated", style="green")
         return True
 
     # Step 2: Generate new token (simulated auth)
-    cli.formatters.print("\n2. Generating new authentication token...", style="cyan")
+    cli.print("\n2. Generating new authentication token...", style="cyan")
     new_token = secrets.token_urlsafe(32)
 
     # Step 3: Save token
-    cli.formatters.print("\n3. Saving authentication token...", style="cyan")
+    cli.print("\n3. Saving authentication token...", style="cyan")
     save_result = cli.save_auth_token(new_token)
 
     if save_result.is_failure:
-        cli.formatters.print(f"   ❌ Failed: {save_result.error}", style="bold red")
+        cli.print(f"   ❌ Failed: {save_result.error}", style="bold red")
         return False
 
-    cli.formatters.print("   ✅ Token saved successfully", style="green")
+    cli.print("   ✅ Token saved successfully", style="green")
 
     # Step 4: Verify
-    cli.formatters.print("\n4. Verifying authentication...", style="cyan")
+    cli.print("\n4. Verifying authentication...", style="cyan")
     verify_result = cli.get_auth_token()
 
     if verify_result.is_success:
-        cli.formatters.print("   ✅ Authentication complete!", style="green")
+        cli.print("   ✅ Authentication complete!", style="green")
         return True
 
-    cli.formatters.print("   ❌ Verification failed", style="bold red")
+    cli.print("   ❌ Verification failed", style="bold red")
     return False
 
 
@@ -282,60 +278,56 @@ def complete_auth_workflow() -> bool:
 
 def main() -> None:
     """Examples of using authentication in YOUR code."""
-    cli.formatters.print("=" * 70, style="bold blue")
-    cli.formatters.print("  Authentication Library Usage", style="bold white")
-    cli.formatters.print("=" * 70, style="bold blue")
+    cli.print("=" * 70, style="bold blue")
+    cli.print("  Authentication Library Usage", style="bold white")
+    cli.print("=" * 70, style="bold blue")
 
     # Example 1: Login flow
-    cli.formatters.print("\n1. Login Flow (save token):", style="bold cyan")
+    cli.print("\n1. Login Flow (save token):", style="bold cyan")
     username = os.getenv("USER", "demo_user")
     password = secrets.token_urlsafe(16)
     login_to_service(username, password)
 
     # Example 2: Get saved token
-    cli.formatters.print("\n2. Token Retrieval (for API calls):", style="bold cyan")
+    cli.print("\n2. Token Retrieval (for API calls):", style="bold cyan")
     token = get_saved_token()
     if token:
-        cli.formatters.print(f"   Retrieved token: {token[:30]}...", style="green")
+        cli.print(f"   Retrieved token: {token[:30]}...", style="green")
 
     # Example 3: API call with token
-    cli.formatters.print("\n3. Authenticated API Call:", style="bold cyan")
+    cli.print("\n3. Authenticated API Call:", style="bold cyan")
     call_authenticated_api("https://api.example.com/data")
 
     # Example 4: Token validation
-    cli.formatters.print("\n4. Token Validation:", style="bold cyan")
+    cli.print("\n4. Token Validation:", style="bold cyan")
     validate_current_token()
 
     # Example 5: Session info
-    cli.formatters.print("\n5. Session Information:", style="bold cyan")
+    cli.print("\n5. Session Information:", style="bold cyan")
     show_session_info()
 
     # Example 6: Complete workflow
-    cli.formatters.print("\n6. Complete Auth Workflow:", style="bold cyan")
+    cli.print("\n6. Complete Auth Workflow:", style="bold cyan")
     complete_auth_workflow()
 
     # Example 7: Logout
-    cli.formatters.print("\n7. Logout (clear token):", style="bold cyan")
+    cli.print("\n7. Logout (clear token):", style="bold cyan")
     logout()
 
-    cli.formatters.print("\n" + "=" * 70, style="bold blue")
-    cli.formatters.print("  ✅ Authentication Examples Complete", style="bold green")
-    cli.formatters.print("=" * 70, style="bold blue")
+    cli.print("\n" + "=" * 70, style="bold blue")
+    cli.print("  ✅ Authentication Examples Complete", style="bold green")
+    cli.print("=" * 70, style="bold blue")
 
     # Integration guide
-    cli.formatters.print("\n💡 Integration Tips:", style="bold cyan")
-    cli.formatters.print(
-        "  • Login: Use cli.authenticate() to save tokens", style="white"
-    )
-    cli.formatters.print(
+    cli.print("\n💡 Integration Tips:", style="bold cyan")
+    cli.print("  • Login: Use cli.authenticate() to save tokens", style="white")
+    cli.print(
         "  • API Calls: Use cli.get_auth_token() to retrieve tokens", style="white"
     )
-    cli.formatters.print(
+    cli.print(
         "  • Validation: Use cli.validate_credentials() for user input", style="white"
     )
-    cli.formatters.print(
-        "  • Logout: Delete token file at cli.config.token_file", style="white"
-    )
+    cli.print("  • Logout: Delete token file at cli.config.token_file", style="white")
 
 
 if __name__ == "__main__":
