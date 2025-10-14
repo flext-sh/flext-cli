@@ -53,7 +53,7 @@ class FlextCliCore(FlextCore.Service[FlextCliTypes.Data.CliDataDict]):
         # Logger and container are inherited from FlextCore.Service via FlextCore.Mixins
 
         # Type-safe configuration initialization
-        # Use dict type for internal config management
+        # Use dict[str, object] type for internal config management
         self._config: FlextCliTypes.Configuration.CliConfigSchema = (
             config if config is not None else {}
         )
@@ -227,7 +227,7 @@ class FlextCliCore(FlextCore.Service[FlextCliTypes.Data.CliDataDict]):
 
         try:
             # Merge with existing configuration
-            # Type guard: _config is always initialized as dict in __init__
+            # Type guard: _config is always initialized as dict[str, object] in __init__
             if isinstance(self._config, dict):
                 self._config.update(config)
                 self.logger.info(FlextCliConstants.LogMessages.CLI_CONFIG_UPDATED)
@@ -250,7 +250,7 @@ class FlextCliCore(FlextCore.Service[FlextCliTypes.Data.CliDataDict]):
 
         """
         try:
-            # Type guard: _config is always initialized as dict in __init__
+            # Type guard: _config is always initialized as dict[str, object] in __init__
             if isinstance(self._config, dict):
                 return FlextCore.Result[FlextCliTypes.Configuration.CliConfigSchema].ok(
                     self._config,
@@ -289,7 +289,7 @@ class FlextCliCore(FlextCore.Service[FlextCliTypes.Data.CliDataDict]):
             )
 
         try:
-            # Type guard: _config is always initialized as dict in __init__
+            # Type guard: _config is always initialized as dict[str, object] in __init__
             if not isinstance(self._config, dict):
                 return FlextCore.Result[None].fail(
                     FlextCliConstants.ErrorMessages.CONFIG_NOT_INITIALIZED
@@ -599,7 +599,7 @@ class FlextCliCore(FlextCore.Service[FlextCliTypes.Data.CliDataDict]):
         """
         try:
             return FlextCore.Result[FlextCore.Types.Dict].ok(
-                dict(self._config) if self._config else {}
+                dict[str, object](self._config) if self._config else {}
             )
         except Exception as e:
             return FlextCore.Result[FlextCore.Types.Dict].fail(

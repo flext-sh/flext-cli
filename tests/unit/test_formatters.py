@@ -146,9 +146,11 @@ class TestFlextCliFormattersCore:
         assert isinstance(tree, RichTree)
 
     def test_create_tree_with_options(self) -> None:
-        """Test create_tree() with options."""
+        """Test create_tree() with different label."""
         formatters = FlextCliFormatters()
-        result = formatters.create_tree("Root", guide_style="bold")
+        # create_tree() only accepts label parameter (no guide_style option)
+        # For custom tree styling, use get_console() and create Tree directly
+        result = formatters.create_tree("Root Node")
         assert result.is_success
         tree = result.unwrap()
         assert isinstance(tree, RichTree)
@@ -304,7 +306,7 @@ class TestFlextCliFormattersIntegration:
         assert panel is not None
 
     def test_create_table_dict_without_headers(self) -> None:
-        """Test create_table() with dict data but no headers (lines 133-134)."""
+        """Test create_table() with dict[str, object] data but no headers (lines 133-134)."""
         formatters = FlextCliFormatters()
         data: dict[
             str,

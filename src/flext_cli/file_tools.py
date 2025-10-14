@@ -57,10 +57,10 @@ class FlextCliFileTools(FlextCore.Service[FlextCore.Types.Dict]):
         """Execute file tools service - FlextCore.Service interface.
 
         Returns:
-            FlextCore.Result with status dict (file tools service is ready)
+            FlextCore.Result with status dict[str, object] (file tools service is ready)
 
         """
-        # Return dict to indicate service is ready (matches service interface)
+        # Return dict[str, object] to indicate service is ready (matches service interface)
         return FlextCore.Result[FlextCore.Types.Dict].ok({"status": "ready"})
 
     # ==========================================================================
@@ -105,6 +105,9 @@ class FlextCliFileTools(FlextCore.Service[FlextCore.Types.Dict]):
 
         """
         try:
+            # If encoding is not a string, use default (graceful degradation)
+            if not isinstance(encoding, str):
+                encoding = FlextCliConstants.Encoding.UTF8
             Path(file_path).write_text(content, encoding=encoding)
             return FlextCore.Result[None].ok(None)
         except Exception as e:

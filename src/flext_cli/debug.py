@@ -161,7 +161,7 @@ class FlextCliDebug(FlextCore.Service[str]):
         """
         try:
             info = self._get_system_info()
-            # Type-safe cast: _get_system_info returns dict with JSON-compatible values
+            # Type-safe cast: _get_system_info returns dict[str, object] with JSON-compatible values
             # (str, tuple of str) which are valid JsonValue types
             typed_info = cast("FlextCliTypes.Data.CliDataDict", info)
             return FlextCore.Result[FlextCliTypes.Data.CliDataDict].ok(typed_info)
@@ -224,7 +224,9 @@ class FlextCliDebug(FlextCore.Service[str]):
                 comprehensive_info["debug_error"] = debug_result.error
 
             # Type-safe cast: comprehensive_info contains only JSON-compatible values
-            typed_comprehensive_info = cast("Types.Data.DebugInfoData", comprehensive_info)
+            typed_comprehensive_info = cast(
+                "Types.Data.DebugInfoData", comprehensive_info
+            )
             return FlextCore.Result[Types.Data.DebugInfoData].ok(
                 typed_comprehensive_info
             )

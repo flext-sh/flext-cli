@@ -225,7 +225,9 @@ class FlextCliCommonParams:
             default_value,
             *param_decls,
             help=help_text,
-            case_sensitive=case_sensitive_val if case_sensitive_val is not None else True,
+            case_sensitive=case_sensitive_val
+            if case_sensitive_val is not None
+            else True,
             min=min_val,
             max=max_val,
             show_default=show_default_val,
@@ -282,7 +284,7 @@ class FlextCliCommonParams:
     def get_all_common_params(cls) -> dict[str, object]:
         """Get all common CLI parameters as typer.Option objects.
 
-        Returns dict mapping parameter names to typer.Option objects auto-generated
+        Returns dict[str, object] mapping parameter names to typer.Option objects auto-generated
         from FlextCliConfig field metadata. Sorted by priority from CLI_PARAM_REGISTRY.
 
         Returns:

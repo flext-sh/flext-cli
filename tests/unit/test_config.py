@@ -59,7 +59,7 @@ class TestFlextCliConfig:
         """Test config serialization."""
         config = FlextCliConfig(debug=True, verbose=False)
 
-        # Test dict conversion
+        # Test dict[str, object] conversion
         config_dict = config.model_dump()
         assert isinstance(config_dict, dict)
         assert config_dict["debug"] is True

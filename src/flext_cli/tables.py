@@ -95,7 +95,7 @@ class FlextCliTables(FlextCore.Service[object]):
         Args:
             data: Table data (list of dicts, list of lists, etc.)
             headers: Column headers
-                - "keys" (default): Use dict keys as headers
+                - "keys" (default): Use dict[str, object] keys as headers
                 - "firstrow": Use first row as headers
                 - Sequence: Custom headers
                 - "" or []: No headers

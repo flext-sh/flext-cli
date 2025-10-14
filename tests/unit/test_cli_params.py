@@ -19,15 +19,15 @@ from typer.testing import CliRunner
 from flext_cli import FlextCliCommonParams, FlextCliConfig
 
 # Module-level defaults to avoid B008
-DEFAULT_VERBOSE = FlextCliCommonParams.verbose_option()
-DEFAULT_QUIET = FlextCliCommonParams.quiet_option()
-DEFAULT_DEBUG = FlextCliCommonParams.debug_option()
-DEFAULT_TRACE = FlextCliCommonParams.trace_option()
-DEFAULT_LOG_LEVEL = FlextCliCommonParams.log_level_option()
-DEFAULT_LOG_FORMAT = FlextCliCommonParams.log_format_option()
-DEFAULT_OUTPUT_FORMAT = FlextCliCommonParams.output_format_option()
-DEFAULT_NO_COLOR = FlextCliCommonParams.no_color_option()
-DEFAULT_CONFIG_FILE = FlextCliCommonParams.config_file_option()
+DEFAULT_VERBOSE = FlextCliCommonParams.verbose_option().default
+DEFAULT_QUIET = FlextCliCommonParams.quiet_option().default
+DEFAULT_DEBUG = FlextCliCommonParams.debug_option().default
+DEFAULT_TRACE = FlextCliCommonParams.trace_option().default
+DEFAULT_LOG_LEVEL = FlextCliCommonParams.log_level_option().default
+DEFAULT_LOG_FORMAT = FlextCliCommonParams.log_format_option().default
+DEFAULT_OUTPUT_FORMAT = FlextCliCommonParams.output_format_option().default
+DEFAULT_NO_COLOR = FlextCliCommonParams.no_color_option().default
+DEFAULT_CONFIG_FILE = FlextCliCommonParams.config_file_option().default
 
 
 class TestFlextCliCommonParams:
@@ -680,7 +680,7 @@ class TestCliParamsCoverageCompletion:
         # Patch the log_level property to raise an exception
         original_log_level = config.log_level
 
-        def failing_log_level() -> Never:
+        def failing_log_level(self: object) -> Never:
             msg = "Log level access failed"
             raise RuntimeError(msg)
 
@@ -701,7 +701,7 @@ class TestCliParamsCoverageCompletion:
         """Test get_all_common_params method (lines 278-282)."""
         params = FlextCliCommonParams.get_all_common_params()
 
-        # Should return dict with all common parameters
+        # Should return dict[str, object] with all common parameters
         assert isinstance(params, dict)
         assert len(params) > 0
         # Check that parameters are sorted by priority

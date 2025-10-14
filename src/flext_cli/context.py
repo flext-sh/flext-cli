@@ -40,6 +40,7 @@ class FlextCliContext(FlextCore.Service[FlextCliTypes.Data.CliDataDict]):
     # Context state
     is_active: bool = False
     created_at: str = ""
+    timeout_seconds: int = Field(default=30)
 
     def __init__(
         self,

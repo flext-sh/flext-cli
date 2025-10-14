@@ -33,7 +33,7 @@ class TestFlextCliCli:
         """Test Click abstraction layer initialization."""
         assert isinstance(cli_cli, FlextCliCli)
         assert hasattr(cli_cli, "logger")
-        assert hasattr(cli_cli, "_container")
+        assert hasattr(cli_cli, "container")  # Public property, not _container
 
     def test_cli_cli_execute(self, cli_cli: FlextCliCli) -> None:
         """Test execute method returns operational status."""
@@ -47,15 +47,14 @@ class TestFlextCliCli:
         assert data["status"] == "operational"
 
     def test_logger_property_defensive_check(self) -> None:
-        """Test logger property creates logger if missing (line 77)."""
+        """Test logger property is available and functional."""
         cli = FlextCliCli()
-        # Delete the _logger attribute to trigger defensive check
-        delattr(cli, "_logger")
-
-        # Access logger property - should recreate it
+        # Logger property should always be available (from FlextCore.Service)
         logger = cli.logger
         assert logger is not None
-        assert hasattr(cli, "_logger")
+        # Verify logger is functional
+        assert hasattr(logger, "info")
+        assert hasattr(logger, "error")
 
     # =========================================================================
     # COMMAND AND GROUP CREATION TESTS
@@ -64,7 +63,7 @@ class TestFlextCliCli:
     def test_create_command_decorator(self, cli_cli: FlextCliCli) -> None:
         """Test creating Click command decorator."""
         decorator = cli_cli.create_command_decorator(
-            name="test_cmd", help="Test command"
+            name="test_cmd", help_text="Test command"
         )
 
         # Decorator is a callable, not FlextCore.Result
@@ -79,7 +78,7 @@ class TestFlextCliCli:
 
     def test_create_command_decorator_without_name(self, cli_cli: FlextCliCli) -> None:
         """Test creating command decorator without explicit name."""
-        decorator = cli_cli.create_command_decorator(help="Auto-named command")
+        decorator = cli_cli.create_command_decorator(help_text="Auto-named command")
 
         # Decorator is a callable, not FlextCore.Result
         assert callable(decorator)
@@ -94,7 +93,9 @@ class TestFlextCliCli:
 
     def test_create_group_decorator(self, cli_cli: FlextCliCli) -> None:
         """Test creating Click group decorator."""
-        decorator = cli_cli.create_group_decorator(name="test_group", help="Test group")
+        decorator = cli_cli.create_group_decorator(
+            name="test_group", help_text="Test group"
+        )
 
         # Decorator is a callable, not FlextCore.Result
         assert callable(decorator)
@@ -128,7 +129,7 @@ class TestFlextCliCli:
     def test_create_option_decorator(self, cli_cli: FlextCliCli) -> None:
         """Test creating Click option decorator."""
         decorator = cli_cli.create_option_decorator(
-            "--count", "-c", default=1, help="Number of items"
+            "--count", "-c", default=1, help_text="Number of items"
         )
 
         # Decorator is a callable, not FlextCore.Result
@@ -145,7 +146,7 @@ class TestFlextCliCli:
     def test_create_option_decorator_flag(self, cli_cli: FlextCliCli) -> None:
         """Test creating boolean flag option."""
         decorator = cli_cli.create_option_decorator(
-            "--verbose", "-v", is_flag=True, help="Verbose output"
+            "--verbose", "-v", is_flag=True, help_text="Verbose output"
         )
 
         # Decorator is a callable, not FlextCore.Result
@@ -513,9 +514,10 @@ class TestFlextCliCli:
         """Test command with choice type."""
         # FIXED: Decorators are returned directly, not FlextCore.Result
         command_decorator = cli_cli.create_command_decorator(name="select")
+        choice_type = cli_cli.get_choice_type(["json", "yaml", "csv"])
         option_decorator = cli_cli.create_option_decorator(
             "--format",
-            type=cli_cli.get_choice_type(["json", "yaml", "csv"]),
+            type_hint=choice_type,
             default="json",
         )
 

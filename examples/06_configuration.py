@@ -157,7 +157,8 @@ class MyAppConfig:
         )
 
         if table_result.is_success:
-            cli.print(table_result.unwrap())
+            # cli.create_table returns Rich Table, use print_table
+            cli.print_table(table_result.unwrap())
 
 
 # ============================================================================

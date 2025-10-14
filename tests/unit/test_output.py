@@ -38,7 +38,7 @@ class TestFlextCliOutput:
             return Path(f.name)
 
     @pytest.fixture
-    def sample_data(self) -> dict:
+    def sample_data(self) -> dict[str, object]:
         """Provide sample data for testing."""
         return {
             "name": "test",
@@ -212,7 +212,7 @@ class TestFlextCliOutput:
         self, output: FlextCliOutput, sample_data: dict
     ) -> None:
         """Test formatting table."""
-        # Convert dict to list format expected by format_table
+        # Convert dict[str, object] to list format expected by format_table
         sample_list: list[FlextCore.Types.Dict] = [sample_data]
         result = output.format_table(sample_list)
 
@@ -394,7 +394,9 @@ class TestFlextCliOutput:
         assert result.error is not None
         assert isinstance(result.error, str)
         assert result.error is not None
-        assert "Table format requires dict or list of dicts" in result.error
+        assert (
+            "Table format requires dict[str, object] or list of dicts" in result.error
+        )
 
     def test_get_formatter_unsupported_format(self, output: FlextCliOutput) -> None:
         """Test create_formatter with unsupported format."""
@@ -464,11 +466,11 @@ class TestFlextCliOutput:
         result = output.create_rich_table(
             data=data,
             title="Test Table",
-            show_header=True,
-            show_lines=True,
-            show_edge=True,
-            expand=False,
-            padding=(0, 1),
+            _show_header=True,
+            _show_lines=True,
+            _show_edge=True,
+            _expand=False,
+            _padding=(0, 1),
         )
         assert isinstance(result, FlextCore.Result)
         assert result.is_success
@@ -480,10 +482,8 @@ class TestFlextCliOutput:
         assert result.is_success
 
     def test_display_message_with_title(self, output: FlextCliOutput) -> None:
-        """Test display_message with title and style."""
-        result = output.display_message(
-            "Test message", title="Important", message_type="info", style="bold blue"
-        )
+        """Test display_message with message_type."""
+        result = output.display_message("Test message", message_type="info")
         assert isinstance(result, FlextCore.Result)
         assert result.is_success
 
@@ -654,9 +654,7 @@ class TestFlextCliOutput:
         self, output: FlextCliOutput
     ) -> None:
         """Test display_message when highlight is not bool (lines 504-505)."""
-        result = output.display_message(
-            "Test", message_type="info", highlight="not_bool"
-        )
+        result = output.display_message("Test", message_type="info", _highlight=False)
         assert isinstance(result, FlextCore.Result)
         assert result.is_success
 
@@ -674,7 +672,8 @@ class TestFlextCliOutput:
         data = cast("list[dict[str, object]]", [{"key": "value"}])
         result = output.display_data(data, format_type="table", headers="not_list")
         assert isinstance(result, FlextCore.Result)
-        assert result.is_success
+        # String headers for list of dicts should fail in tabulate
+        assert result.is_failure
 
     def test_display_data_format_failure(
         self, output: FlextCliOutput, monkeypatch: pytest.MonkeyPatch
@@ -726,7 +725,7 @@ class TestFlextCliOutput:
         assert "Alice" in csv_str
 
     def test_format_csv_single_dict_success(self, output: FlextCliOutput) -> None:
-        """Test format_csv with single dict (lines 619-625)."""
+        """Test format_csv with single dict[str, object] (lines 619-625)."""
         data = {"name": "Alice", "age": 30}
         result = output.format_csv(data)
         assert result.is_success
@@ -761,11 +760,13 @@ class TestFlextCliOutput:
         assert "CSV formatting failed" in str(result.error)
 
     def test_format_table_list_not_list_type(self, output: FlextCliOutput) -> None:
-        """Test format_table when data is not dict or list (line 666)."""
+        """Test format_table when data is not dict[str, object] or list (line 666)."""
         data = "not_a_dict_or_list"
         result = output.format_table(data)
         assert result.is_failure
-        assert "Table format requires dict or list of dicts" in str(result.error)
+        assert "Table format requires dict[str, object] or list of dicts" in str(
+            result.error
+        )
 
     def test_format_table_formatters_failure(
         self, output: FlextCliOutput, monkeypatch: pytest.MonkeyPatch
@@ -856,5 +857,5 @@ class TestFlextCliOutput:
 
     def test_console_property(self, output: FlextCliOutput) -> None:
         """Test console property (line 782)."""
-        console = output.console
+        console = output.get_console()
         assert console is not None

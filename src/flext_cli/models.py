@@ -15,9 +15,9 @@ from __future__ import annotations
 import uuid
 from collections.abc import Callable
 from datetime import UTC, datetime
-from typing import Self, cast, get_args, get_origin, override
+from typing import Self, get_args, get_origin, override
 
-from flext_core import FlextCore
+from flext_core import FlextCore, FlextResult
 from pydantic import (
     BaseModel,
     ConfigDict,
@@ -56,19 +56,23 @@ class FlextCliModels(FlextCore.Models):
     name: str = Field(default="FlextCliModels")
 
     # Advanced Pydantic 2.11 configuration for comprehensive model behavior
+    # PHASE 7-8: Runtime type & Pydantic enforcement with strict validation
     model_config = ConfigDict(
-        validate_assignment=True,
+        validate_assignment=True,  # Validate on field assignment
+        validate_return=True,  # Validate return values
+        validate_default=True,  # Phase 8: Validate default values
+        strict=True,  # Strict type coercion (Phase 7 - no implicit conversions)
+        str_strip_whitespace=True,  # Phase 8: Auto-strip whitespace from strings
         use_enum_values=True,
         arbitrary_types_allowed=True,
-        extra="forbid",
+        extra="forbid",  # No extra fields allowed
         frozen=False,
-        validate_return=True,
         ser_json_timedelta="iso8601",
         ser_json_bytes="base64",
         hide_input_in_errors=True,
         json_schema_extra={
             "title": "FlextCliModels",
-            "description": "Comprehensive CLI domain models with advanced Pydantic 2.11 features",
+            "description": "Comprehensive CLI domain models with enhanced runtime validation (Phases 7-8)",
             "examples": [
                 {
                     "cli_command": {
@@ -115,9 +119,9 @@ class FlextCliModels(FlextCore.Models):
             },
         }
 
-    def execute(self) -> FlextCore.Result[object]:
+    def execute(self) -> FlextResult[object]:
         """Execute model operations - placeholder for testing."""
-        return FlextCore.Result[object].ok(None)
+        return FlextResult[object].ok(None)
 
     # ========================================================================
     # CLI MODEL INTEGRATION UTILITIES - Pydantic → CLI Conversion
@@ -209,7 +213,7 @@ class FlextCliModels(FlextCore.Models):
                 str: Click type specification (e.g., 'STRING', 'INT', 'FLOAT', 'BOOL')
 
             """
-            type_map: dict[type[object], str] = {
+            type_map: dict[type, str] = {
                 str: "STRING",
                 int: "INT",
                 float: "FLOAT",
@@ -222,7 +226,7 @@ class FlextCliModels(FlextCore.Models):
         @staticmethod
         def field_to_cli_param(
             field_name: str, field_info: fields.FieldInfo
-        ) -> FlextCore.Result[FlextCore.Types.Dict]:
+        ) -> FlextResult[FlextCliModels.CliParameterSpec]:
             """Convert Pydantic Field to comprehensive CLI parameter specification.
 
             Args:
@@ -230,7 +234,7 @@ class FlextCliModels(FlextCore.Models):
                 field_info: Pydantic FieldInfo object
 
             Returns:
-                FlextCore.Result containing CLI parameter specification dict with:
+                FlextCore.Result containing CLI parameter specification dict[str, object] with:
                 - name: CLI parameter name (--field-name)
                 - type: Python type for the parameter
                 - click_type: Click type specification
@@ -245,7 +249,7 @@ class FlextCliModels(FlextCore.Models):
                 # Extract field metadata
                 field_type = field_info.annotation
                 if field_type is None:
-                    return FlextCore.Result[FlextCore.Types.Dict].fail(
+                    return FlextResult[FlextCore.Types.Dict].fail(
                         f"Field {field_name} has no type annotation"
                     )
 
@@ -276,28 +280,28 @@ class FlextCliModels(FlextCore.Models):
                             metadata.update(meta_item.__dict__)
 
                 # Build comprehensive CLI parameter spec
-                cli_param: FlextCore.Types.Dict = {
-                    "name": field_name.replace("_", "-"),  # CLI convention: dashes
-                    "field_name": field_name,  # Original Python field name
-                    "type": python_type,
-                    "click_type": click_type,
-                    "required": is_required,
-                    "default": default_value,
-                    "help": description,
-                    "validators": validators,
-                    "metadata": metadata,
-                }
+                cli_param = FlextCliModels.CliParameterSpec(
+                    name=field_name.replace("_", "-"),  # CLI convention: dashes
+                    field_name=field_name,  # Original Python field name
+                    param_type=python_type,
+                    click_type=click_type,
+                    required=is_required,
+                    default=default_value,
+                    help=description,
+                    validators=validators,
+                    metadata=metadata,
+                )
 
-                return FlextCore.Result[FlextCore.Types.Dict].ok(cli_param)
+                return FlextResult[FlextCliModels.CliParameterSpec].ok(cli_param)
             except Exception as e:
-                return FlextCore.Result[FlextCore.Types.Dict].fail(
+                return FlextResult[FlextCliModels.CliParameterSpec].fail(
                     f"Failed to convert field {field_name}: {e}"
                 )
 
         @staticmethod
         def model_to_cli_params(
             model_class: type[BaseModel],
-        ) -> FlextCore.Result[list[FlextCore.Types.Dict]]:
+        ) -> FlextResult[list[FlextCliModels.CliParameterSpec]]:
             """Extract all fields from Pydantic model and convert to CLI parameters.
 
             Args:
@@ -308,7 +312,7 @@ class FlextCliModels(FlextCore.Models):
 
             """
             try:
-                cli_params: list[FlextCore.Types.Dict] = []
+                cli_params: list[FlextCliModels.CliParameterSpec] = []
 
                 # Get model fields
                 model_fields = model_class.model_fields
@@ -325,16 +329,16 @@ class FlextCliModels(FlextCore.Models):
 
                     cli_params.append(param_result.unwrap())
 
-                return FlextCore.Result[list[FlextCore.Types.Dict]].ok(cli_params)
+                return FlextResult[list[FlextCliModels.CliParameterSpec]].ok(cli_params)
             except Exception as e:
-                return FlextCore.Result[list[FlextCore.Types.Dict]].fail(
+                return FlextResult[list[FlextCliModels.CliParameterSpec]].fail(
                     f"Failed to convert model {model_class.__name__}: {e}"
                 )
 
         @staticmethod
         def model_to_click_options(
             model_class: type[BaseModel],
-        ) -> FlextCore.Result[list[FlextCore.Types.Dict]]:
+        ) -> FlextResult[list[FlextCliModels.CliOptionSpec]]:
             """Generate Click option specifications from Pydantic model.
 
             Creates complete Click option definitions that can be used to
@@ -359,30 +363,31 @@ class FlextCliModels(FlextCore.Models):
                     model_class
                 )
                 if params_result.is_failure:
-                    return FlextCore.Result[list[FlextCore.Types.Dict]].fail(
+                    return FlextResult[list[FlextCliModels.CliOptionSpec]].fail(
                         params_result.error
                     )
 
-                click_options: list[FlextCore.Types.Dict] = []
+                click_options: list[FlextCliModels.CliOptionSpec] = []
                 for param in params_result.unwrap():
-                    option_name = f"--{param['name']}"
+                    option_name = f"--{param.name}"
 
-                    click_option: dict[str, object] = {
-                        "option_name": option_name,
-                        "param_decls": [option_name],
-                        "type": param["click_type"],
-                        "default": param["default"],
-                        "help": param["help"],
-                        "required": param["required"],
-                        "show_default": not param["required"],
-                        "metadata": param.get("metadata", {}),
-                    }
+                    # Create CliOptionSpec instance
+                    click_option = FlextCliModels.CliOptionSpec(
+                        option_name=option_name,
+                        param_decls=[option_name],
+                        type=param.click_type,
+                        default=param.default,
+                        help=param.help,
+                        required=param.required,
+                        show_default=not param.required,
+                        metadata=param.metadata,
+                    )
 
                     click_options.append(click_option)
 
-                return FlextCore.Result[list[FlextCore.Types.Dict]].ok(click_options)
+                return FlextResult[list[FlextCliModels.CliOptionSpec]].ok(click_options)
             except Exception as e:
-                return FlextCore.Result[list[FlextCore.Types.Dict]].fail(
+                return FlextResult[list[FlextCliModels.CliOptionSpec]].fail(
                     f"Failed to generate Click options for {model_class.__name__}: {e}"
                 )
 
@@ -590,11 +595,11 @@ class FlextCliModels(FlextCore.Models):
             description="Command execution time in seconds",
             examples=[0.123, 5.678, 120.5],
         )
-        result: dict[str, object] | None = Field(
+        result: FlextCliTypes.Data.CliDataDict | None = Field(
             default=None,
             description="Structured result data from command execution",
         )
-        kwargs: dict[str, object] = Field(
+        kwargs: FlextCliTypes.Data.CliDataDict = Field(
             default_factory=dict,
             description="Additional keyword arguments passed to command",
         )
@@ -673,7 +678,7 @@ class FlextCliModels(FlextCore.Models):
 
         @computed_field
         @property
-        def command_summary(self) -> dict[str, object]:
+        def command_summary(self) -> FlextCliTypes.Data.CliDataDict:
             """Comprehensive command execution summary."""
             return {
                 "command": self.command_line,
@@ -748,16 +753,15 @@ class FlextCliModels(FlextCore.Models):
                 )
 
             # Normalize command data
-            normalized_data: dict[str, object] = {
+            normalized_data: FlextCliTypes.Data.CliDataDict = {
                 "command": command,
                 "execution_time": data.get("execution_time"),
                 **{k: v for k, v in data.items() if k != "command"},
             }
 
-            # Type-safe cast: normalized_data contains JSON-compatible values
-            typed_normalized_data = cast("FlextCliTypes.Data.CliCommandData", normalized_data)
+            # Return normalized data (type is already correct)
             return FlextCore.Result[FlextCliTypes.Data.CliCommandData | None].ok(
-                typed_normalized_data
+                normalized_data
             )
 
         def validate_business_rules(self) -> FlextCore.Result[None]:
@@ -837,11 +841,11 @@ class FlextCliModels(FlextCore.Models):
             default_factory=lambda: datetime.now(UTC),
             description="Timestamp when debug info was captured (UTC)",
         )
-        system_info: dict[str, str] = Field(
+        system_info: FlextCore.Types.StringDict = Field(
             default_factory=dict,
             description="System information and environment details",
         )
-        config_info: dict[str, str] = Field(
+        config_info: FlextCore.Types.StringDict = Field(
             default_factory=dict,
             description="Configuration information (sensitive data masked)",
         )
@@ -887,18 +891,18 @@ class FlextCliModels(FlextCore.Models):
 
         @computed_field
         @property
-        def debug_summary(self) -> dict[str, object]:
+        def debug_summary(self) -> FlextCliModels.CliDebugData:
             """Comprehensive debug information summary."""
-            return {
-                "service": self.service,
-                "level": self.level,
-                "status": self.status,
-                "has_system_info": bool(self.system_info),
-                "has_config_info": bool(self.config_info),
-                "total_stats": self.total_stats,
-                "message_length": len(self.message),
-                "age_seconds": self.age_seconds,
-            }
+            return FlextCliModels.CliDebugData(
+                service=self.service,
+                level=self.level,
+                status=self.status,
+                has_system_info=bool(self.system_info),
+                has_config_info=bool(self.config_info),
+                total_stats=self.total_stats,
+                message_length=len(self.message),
+                age_seconds=self.age_seconds,
+            )
 
         @model_validator(mode="after")
         def validate_debug_consistency(self) -> Self:
@@ -1032,21 +1036,21 @@ class FlextCliModels(FlextCore.Models):
             return self.status == "active"
 
         @computed_field
-        def session_summary(self) -> FlextCore.Types.Dict:
+        def session_summary(self) -> FlextCliModels.CliSessionData:
             """Computed field for session activity summary."""
-            return {
-                "session_id": self.session_id,
-                "is_active": self.status == "active",
-                "commands_count": len(self.commands),
-                "duration_minutes": round(self.duration_seconds / 60, 2),
-                "has_user": self.user_id is not None,
-                "last_activity_age": self._calculate_activity_age(),
-            }
+            return FlextCliModels.CliSessionData(
+                session_id=self.session_id,
+                is_active=self.status == "active",
+                commands_count=len(self.commands),
+                duration_minutes=round(self.duration_seconds / 60, 2),
+                has_user=self.user_id is not None,
+                last_activity_age=self._calculate_activity_age(),
+            )
 
         @computed_field
-        def commands_by_status(self) -> dict[str, int]:
+        def commands_by_status(self) -> FlextCore.Types.IntDict:
             """Computed field grouping commands by status."""
-            status_counts: dict[str, int] = {}
+            status_counts: FlextCore.Types.IntDict = {}
             for command in self.commands:
                 status = command.status
                 status_counts[status] = status_counts.get(status, 0) + 1
@@ -1265,18 +1269,118 @@ class FlextCliModels(FlextCore.Models):
 
         @computed_field
         @property
-        def logging_summary(self) -> dict[str, object]:
+        def logging_summary(self) -> FlextCliModels.CliLoggingData:
             """Comprehensive logging configuration summary."""
-            return {
-                "level": self.log_level,
-                "format": self.log_format,
-                "console_output": self.console_output,
-                "log_file": self.log_file,
-                "has_file_output": self.has_file_output,
-            }
+            return FlextCliModels.CliLoggingData(
+                level=self.log_level,
+                format=self.log_format,
+                console_output=self.console_output,
+                log_file=self.log_file,
+                has_file_output=self.has_file_output,
+            )
 
     # NOTE: CliConfig has been moved to config.py as FlextCliConfig
     # Import from flext_cli.config instead of using this duplicate
+
+    # ========================================================================
+    # DICT REPLACEMENT MODELS - Replace dict/Dict usage with proper Pydantic models
+    # ========================================================================
+
+    class CliParameterSpec(FlextCore.Models.StrictArbitraryTypesModel):
+        """CLI parameter specification model - replaces dict[str, object] in CLI parameter handling.
+
+        Provides structured validation for CLI parameter specifications used in
+        model-to-CLI conversion utilities.
+        """
+
+        name: str = Field(description="CLI parameter name (e.g., '--field-name')")
+        field_name: str = Field(description="Original Python field name")
+        param_type: type = Field(description="Python type for the parameter")
+        click_type: str = Field(description="Click type specification")
+        required: bool = Field(description="Whether the parameter is required")
+        default: object | None = Field(default=None, description="Default value if any")
+        help: str = Field(description="Help text from field description")
+        validators: list[object] = Field(
+            default_factory=list, description="List of validation functions"
+        )
+        metadata: dict[str, object] = Field(
+            default_factory=dict, description="Additional Pydantic metadata"
+        )
+
+    class CliOptionSpec(FlextCore.Models.StrictArbitraryTypesModel):
+        """Click option specification model - replaces dict[str, object] in Click option generation.
+
+        Provides structured validation for Click option specifications generated
+        from Pydantic model fields.
+        """
+
+        option_name: str = Field(description="Full option name with dashes")
+        param_decls: list[str] = Field(description="Parameter declarations")
+        type: str = Field(description="Click type object")
+        default: object | None = Field(default=None, description="Default value")
+        help: str = Field(description="Help text")
+        required: bool = Field(description="Whether option is required")
+        show_default: bool = Field(description="Whether to show default in help")
+        metadata: dict[str, object] = Field(
+            default_factory=dict, description="Additional metadata"
+        )
+
+    class CliCommandResult(FlextCore.Models.StrictArbitraryTypesModel):
+        """CLI command result model - replaces dict[str, object] in command execution results.
+
+        Provides structured validation for command execution results and metadata.
+        """
+
+        id: str = Field(description="Command unique identifier")
+        command_line: str = Field(description="Full command line executed")
+        status: str = Field(description="Command execution status")
+        exit_code: int | None = Field(default=None, description="Process exit code")
+        created_at: str = Field(description="Command creation timestamp")
+        execution_time: float | None = Field(
+            default=None, description="Execution time in seconds"
+        )
+
+    class CliDebugData(FlextCore.Models.StrictArbitraryTypesModel):
+        """CLI debug data model - replaces dict[str, object] in debug information.
+
+        Provides structured validation for debug information and diagnostic data.
+        """
+
+        service: str = Field(description="Service name generating debug info")
+        level: str = Field(description="Debug information level")
+        status: str = Field(description="Current operational status")
+        has_system_info: bool = Field(description="Whether system info is available")
+        has_config_info: bool = Field(description="Whether config info is available")
+        total_stats: int = Field(description="Total count of diagnostic statistics")
+        message_length: int = Field(description="Length of debug message")
+        age_seconds: float = Field(description="Age of debug info in seconds")
+
+    class CliSessionData(FlextCore.Models.StrictArbitraryTypesModel):
+        """CLI session data model - replaces dict[str, object] in session summaries.
+
+        Provides structured validation for session summary information.
+        """
+
+        session_id: str = Field(description="Unique session identifier")
+        is_active: bool = Field(description="Whether session is active")
+        commands_count: int = Field(description="Number of commands executed")
+        duration_minutes: float = Field(description="Session duration in minutes")
+        has_user: bool = Field(description="Whether session has associated user")
+        last_activity_age: float | None = Field(
+            default=None, description="Time since last activity"
+        )
+
+    class CliLoggingData(FlextCore.Models.ArbitraryTypesModel):
+        """CLI logging data model - replaces dict[str, object] in logging summaries.
+
+        Provides structured validation for logging configuration summaries.
+        """
+
+        level: str = Field(description="Logging level")
+        format: str = Field(description="Log message format")
+        console_output: bool = Field(description="Console output enabled")
+        log_file: str | None = Field(default=None, description="Log file path")
+        has_file_output: bool = Field(description="File logging enabled")
 
 
 __all__ = [

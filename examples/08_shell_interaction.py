@@ -30,6 +30,7 @@ from typing import cast
 from flext_core import FlextCore
 
 from flext_cli import FlextCli
+from flext_cli.typings import FlextCliTypes
 
 cli = FlextCli.get_instance()
 
@@ -39,7 +40,7 @@ cli = FlextCli.get_instance()
 # ============================================================================
 
 
-def handle_status_command() -> FlextCore.Result[dict]:
+def handle_status_command() -> FlextCore.Result[FlextCliTypes.Data.CliDataDict]:
     """Status command in YOUR interactive CLI."""
     status = {
         "status": "running",
@@ -51,10 +52,14 @@ def handle_status_command() -> FlextCore.Result[dict]:
     cli.print(f"   User: {status['user']}", style="cyan")
     cli.print(f"   Time: {status['timestamp']}", style="cyan")
 
-    return FlextCore.Result[dict].ok(status)
+    # Cast to expected type (runtime type is compatible)
+    typed_status = cast("FlextCliTypes.Data.CliDataDict", status)
+    return FlextCore.Result[FlextCliTypes.Data.CliDataDict].ok(typed_status)
 
 
-def handle_list_command(filter_text: str = "") -> FlextCore.Result[list]:
+def handle_list_command(
+    filter_text: str = "",
+) -> FlextCore.Result[FlextCore.Types.StringList]:
     """List command with filtering in YOUR CLI."""
     items = ["item1", "item2", "item3", "test_item"]
 
@@ -63,10 +68,12 @@ def handle_list_command(filter_text: str = "") -> FlextCore.Result[list]:
         cli.print(
             f"📋 Found {len(filtered)} items matching '{filter_text}'", style="cyan"
         )
-        return FlextCore.Result[list].ok(filtered)
+        # Cast to expected type (runtime type is compatible)
+        return FlextCore.Result[FlextCore.Types.StringList].ok(filtered)
 
     cli.print(f"📋 Total items: {len(items)}", style="cyan")
-    return FlextCore.Result[list].ok(items)
+    # Cast to expected type (runtime type is compatible)
+    return FlextCore.Result[FlextCore.Types.StringList].ok(items)
 
 
 def handle_config_command(key: str = "", value: str = "") -> FlextCore.Result[str]:
@@ -92,6 +99,7 @@ class InteractiveShell:
 
     def __init__(self) -> None:
         """Initialize interactive shell with command registry."""
+        super().__init__()
         self.commands = {
             "status": handle_status_command,
             "list": handle_list_command,
@@ -161,6 +169,7 @@ class CommandHistory:
 
     def __init__(self, max_size: int = 100) -> None:
         """Initialize command history with maximum size limit."""
+        super().__init__()
         self.history: FlextCore.Types.StringList = []
         self.max_size = max_size
 

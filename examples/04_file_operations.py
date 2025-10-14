@@ -52,7 +52,9 @@ tables = FlextCliTables()
 # ============================================================================
 
 
-def save_user_preferences(preferences: dict, config_dir: Path) -> bool:
+def save_user_preferences(
+    preferences: FlextCliTypes.Data.CliDataDict, config_dir: Path
+) -> bool:
     """Save user preferences to JSON in YOUR app."""
     config_file = config_dir / "preferences.json"
 
@@ -70,7 +72,7 @@ def save_user_preferences(preferences: dict, config_dir: Path) -> bool:
     return True
 
 
-def load_user_preferences(config_dir: Path) -> dict | None:
+def load_user_preferences(config_dir: Path) -> FlextCliTypes.Data.CliDataDict | None:
     """Load user preferences from JSON in YOUR app."""
     config_file = config_dir / "preferences.json"
 
@@ -88,7 +90,8 @@ def load_user_preferences(config_dir: Path) -> dict | None:
     if not isinstance(preferences, dict):
         return None
     cli.print(f"✅ Loaded preferences from {config_file.name}", style="green")
-    return preferences
+    # Cast to expected type (runtime type is compatible)
+    return cast("FlextCliTypes.Data.CliDataDict", preferences)
 
 
 # ============================================================================
@@ -96,7 +99,9 @@ def load_user_preferences(config_dir: Path) -> dict | None:
 # ============================================================================
 
 
-def save_deployment_config(config: dict, config_file: Path) -> bool:
+def save_deployment_config(
+    config: FlextCliTypes.Data.CliDataDict, config_file: Path
+) -> bool:
     """Save deployment config to YAML in YOUR tool."""
     # Instead of:
     # with open(config_file, 'w') as f:
@@ -112,7 +117,7 @@ def save_deployment_config(config: dict, config_file: Path) -> bool:
     return True
 
 
-def load_deployment_config(config_file: Path) -> dict | None:
+def load_deployment_config(config_file: Path) -> FlextCliTypes.Data.CliDataDict | None:
     """Load deployment config from YAML in YOUR tool."""
     read_result = cli.file_tools.read_yaml_file(config_file)
 
@@ -124,7 +129,8 @@ def load_deployment_config(config_file: Path) -> dict | None:
     if not isinstance(config, dict):
         return None
     cli.print("✅ Loaded deployment config", style="green")
-    return config
+    # Cast to expected type (runtime type is compatible)
+    return cast("FlextCliTypes.Data.CliDataDict", config)
 
 
 # ============================================================================
@@ -133,10 +139,13 @@ def load_deployment_config(config_file: Path) -> dict | None:
 
 
 def export_database_report(
-    records: list[dict], output_file: Path, format_type: str = "grid"
+    records: list[FlextCliTypes.Data.CliDataDict],
+    output_file: Path,
+    format_type: str = "grid",
 ) -> bool | None:
     """Export database query results in YOUR reporting tool."""
     # Create ASCII table (for logs, emails, markdown docs)
+    # Cast to expected type for table creation
     table_result = tables.create_table(records, table_format=format_type)
 
     if table_result.is_failure:
@@ -166,7 +175,7 @@ def list_project_files(project_dir: Path) -> None:
         return
 
     # Collect file metadata
-    files_data = [
+    files_data: list[FlextCliTypes.Data.CliDataDict] = [
         {
             "Name": item.name[:40],
             "Type": "📂 dir" if item.is_dir() else "📄 file",
@@ -177,13 +186,14 @@ def list_project_files(project_dir: Path) -> None:
 
     # Display as table
     if files_data:
-        sample_data: list[FlextCore.Types.Dict] = cast(
-            "list[FlextCore.Types.Dict]", files_data[:20]
-        )
+        # files_data is already properly typed
+        sample_data: list[FlextCliTypes.Data.CliDataDict] = files_data[:20]
+        # Cast to expected type for table creation
         table_result = tables.create_table(sample_data, table_format="grid")
         if table_result.is_success:
             cli.print(f"\n📁 Directory: {project_dir.name}", style="bold cyan")
-            cli.print_table(table_result.unwrap())
+            # tables.create_table returns string, use cli.print
+            cli.print(table_result.unwrap())
 
 
 def show_directory_tree(root_path: Path, max_items: int = 15) -> None:
@@ -208,9 +218,8 @@ def show_directory_tree(root_path: Path, max_items: int = 15) -> None:
             size = item.stat().st_size
             tree.add(f"📄 {item.name} ({size:,} bytes)")
 
-    cli.print_table(tree) if hasattr(
-        tree, "__rich__"
-    ) else cli.formatters.get_console().print(tree)
+    # Tree is Rich Tree object, use console.print directly
+    cli.formatters.get_console().print(tree)
 
 
 # ============================================================================
@@ -218,7 +227,7 @@ def show_directory_tree(root_path: Path, max_items: int = 15) -> None:
 # ============================================================================
 
 
-def validate_and_import_data(input_file: Path) -> dict | None:
+def validate_and_import_data(input_file: Path) -> FlextCliTypes.Data.CliDataDict | None:
     """Validate and import data in YOUR ETL pipeline."""
     # Step 1: Read file
     read_result = cli.file_tools.read_json_file(input_file)
@@ -230,19 +239,24 @@ def validate_and_import_data(input_file: Path) -> dict | None:
     data = read_result.unwrap()
 
     # Step 2: Validate structure
-    def validate_structure(data: dict) -> FlextCore.Result[dict]:
+    def validate_structure(
+        data: FlextCliTypes.Data.CliDataDict,
+    ) -> FlextCore.Result[FlextCliTypes.Data.CliDataDict]:
         """Your validation logic."""
         required_fields = ["id", "name", "value"]
         for field in required_fields:
             if field not in data:
-                return FlextCore.Result[dict].fail(f"Missing required field: {field}")
-        return FlextCore.Result[dict].ok(data)
+                return FlextCore.Result[FlextCliTypes.Data.CliDataDict].fail(
+                    f"Missing required field: {field}"
+                )
+        return FlextCore.Result[FlextCliTypes.Data.CliDataDict].ok(data)
 
     # Chain validation using FlextCore.Result - type narrowing needed
     if not isinstance(data, dict):
         cli.print("❌ Data is not a dictionary", style="bold red")
         return None
 
+    # Cast to expected type for validation function
     validated = validate_structure(data)
 
     if validated.is_failure:
@@ -303,7 +317,9 @@ def backup_config_files(
 # ============================================================================
 
 
-def export_to_csv(data: list[dict], output_file: Path) -> bool:
+def export_to_csv(
+    data: list[FlextCliTypes.Data.CliDataDict], output_file: Path
+) -> bool:
     """Export data to CSV with proper headers in YOUR reporting tool."""
     if not data:
         cli.print("⚠️  No data to export", style="yellow")
@@ -330,7 +346,7 @@ def export_to_csv(data: list[dict], output_file: Path) -> bool:
     return True
 
 
-def import_from_csv(input_file: Path) -> list[dict] | None:
+def import_from_csv(input_file: Path) -> list[FlextCliTypes.Data.CliDataDict] | None:
     """Import data from CSV with headers in YOUR data tool."""
     cli.print(f"📥 Importing from {input_file.name}...", style="cyan")
 
@@ -346,14 +362,16 @@ def import_from_csv(input_file: Path) -> list[dict] | None:
 
     # Display sample
     if rows:
-        sample_rows: list[FlextCore.Types.Dict] = cast(
-            "list[FlextCore.Types.Dict]", rows[:5]
+        sample_rows: list[FlextCliTypes.Data.CliDataDict] = cast(
+            "list[FlextCliTypes.Data.CliDataDict]", rows[:5]
         )
+        # Cast to expected type for table creation
         table_result = tables.create_table(sample_rows, table_format="grid")
         if table_result.is_success:
             cli.print("\n📋 Sample Data:", style="yellow")
 
-    return rows
+    # Cast to expected type (runtime type is compatible)
+    return cast("list[FlextCliTypes.Data.CliDataDict]", rows)
 
 
 # ============================================================================
@@ -400,7 +418,7 @@ def process_binary_file(input_file: Path, output_file: Path) -> bool:
 # ============================================================================
 
 
-def load_config_auto_detect(config_file: Path) -> dict | None:
+def load_config_auto_detect(config_file: Path) -> FlextCliTypes.Data.CliDataDict | None:
     """Load config from ANY format with auto-detection."""
     cli.print(f"🔍 Auto-detecting format: {config_file.name}", style="cyan")
 
@@ -438,7 +456,8 @@ def load_config_auto_detect(config_file: Path) -> dict | None:
         )
         if table_result.is_success:
             cli.print_table(table_result.unwrap())
-        return data
+        # Cast to expected type (runtime type is compatible)
+        return cast("FlextCliTypes.Data.CliDataDict", data)
 
     return None
 
@@ -448,11 +467,14 @@ def load_config_auto_detect(config_file: Path) -> dict | None:
 # ============================================================================
 
 
-def export_multi_format(data: dict | list[dict], base_path: Path) -> dict:
+def export_multi_format(
+    data: FlextCliTypes.Data.CliDataDict | list[FlextCliTypes.Data.CliDataDict],
+    base_path: Path,
+) -> FlextCliTypes.Data.CliDataDict:
     """Export same data to multiple formats (JSON, YAML, CSV)."""
     cli.print(f"💾 Multi-format export: {base_path.stem}", style="cyan")
 
-    export_results = {}
+    export_results: FlextCliTypes.Data.CliDataDict = {}
 
     # Export to JSON
     json_path = base_path.with_suffix(".json")
@@ -505,13 +527,17 @@ def main() -> None:
 
     # Example 1: JSON preferences
     cli.print("\n1. JSON Config Files (user preferences):", style="bold cyan")
-    prefs = {"theme": "dark", "font_size": 14, "auto_save": True}
+    prefs: FlextCliTypes.Data.CliDataDict = {
+        "theme": "dark",
+        "font_size": 14,
+        "auto_save": True,
+    }
     save_user_preferences(prefs, temp_dir)
     load_user_preferences(temp_dir)
 
     # Example 2: YAML deployment config
     cli.print("\n2. YAML Configuration (deployment):", style="bold cyan")
-    deploy_config = {
+    deploy_config: FlextCliTypes.Data.CliDataDict = {
         "environment": "staging",
         "host": "staging.example.com",
         "platform": platform.system(),
@@ -522,7 +548,7 @@ def main() -> None:
 
     # Example 3: Table export
     cli.print("\n3. Data Export (table format):", style="bold cyan")
-    sample_data = [
+    sample_data: list[FlextCliTypes.Data.CliDataDict] = [
         {"id": 1, "name": "Alice", "status": "active"},
         {"id": 2, "name": "Bob", "status": "inactive"},
     ]
@@ -539,14 +565,14 @@ def main() -> None:
 
     # Example 6: Data validation
     cli.print("\n6. Data Validation (ETL pipeline):", style="bold cyan")
-    test_data = {"id": 1, "name": "test", "value": 100}
+    test_data: FlextCliTypes.Data.CliDataDict = {"id": 1, "name": "test", "value": 100}
     test_file = temp_dir / "test_data.json"
     cli.file_tools.write_json_file(test_file, test_data)
     validate_and_import_data(test_file)
 
     # Example 7: CSV export/import
     cli.print("\n7. CSV Export/Import (with headers):", style="bold cyan")
-    csv_data = [
+    csv_data: list[FlextCliTypes.Data.CliDataDict] = [
         {"employee_id": 101, "name": "Alice Smith", "department": "Engineering"},
         {"employee_id": 102, "name": "Bob Jones", "department": "Sales"},
         {"employee_id": 103, "name": "Carol White", "department": "Marketing"},
@@ -564,7 +590,11 @@ def main() -> None:
 
     # Example 9: Auto-format detection
     cli.print("\n9. Auto-Format Detection:", style="bold cyan")
-    auto_config = {"app": "demo", "version": "1.0", "enabled": True}
+    auto_config: FlextCliTypes.Data.CliDataDict = {
+        "app": "demo",
+        "version": "1.0",
+        "enabled": True,
+    }
     auto_json = temp_dir / "auto_config.json"
     auto_yaml = temp_dir / "auto_config.yaml"
     cli.file_tools.write_json_file(auto_json, auto_config)
@@ -574,7 +604,7 @@ def main() -> None:
 
     # Example 10: Multi-format export
     cli.print("\n10. Multi-Format Export:", style="bold cyan")
-    multi_data = [
+    multi_data: list[FlextCliTypes.Data.CliDataDict] = [
         {"metric": "CPU", "value": "75%", "status": "OK"},
         {"metric": "Memory", "value": "82%", "status": "Warning"},
     ]
