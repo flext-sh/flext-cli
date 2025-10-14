@@ -217,7 +217,8 @@ class TestFlextCliConfigService:
         result = FlextCliConfig.load_from_config_file(non_existent)
         assert result.is_failure
         assert result.error is not None
-        assert result.error is not None and "not found" in result.error.lower()
+        assert result.error is not None
+        assert "not found" in result.error.lower()
 
     def test_config_load_from_config_file_unsupported_format(
         self, temp_dir: Path
@@ -228,7 +229,8 @@ class TestFlextCliConfigService:
         result = FlextCliConfig.load_from_config_file(unsupported_file)
         assert result.is_failure
         assert result.error is not None
-        assert result.error is not None and "unsupported" in result.error.lower()
+        assert result.error is not None
+        assert "unsupported" in result.error.lower()
 
     def test_config_get_global_instance(self) -> None:
         """Test get_global_instance class method."""
@@ -281,7 +283,12 @@ class TestFlextCliConfigService:
         """Test save_config instance method."""
         config = FlextCliConfig(debug=True, verbose=True)
         from flext_cli.typings import FlextCliTypes
-        config_data: FlextCliTypes.Data.CliConfigData = {"debug": True, "verbose": True, "output_format": "json"}
+
+        config_data: FlextCliTypes.Data.CliConfigData = {
+            "debug": True,
+            "verbose": True,
+            "output_format": "json",
+        }
         result = config.save_config(config_data)
         assert result.is_success
 
@@ -1713,7 +1720,7 @@ class TestFlextCliConfigExceptionHandlers:
         # Mock __getattribute__ to raise exception when accessing profile
         original_getattribute = FlextCliConfig.__getattribute__
 
-        def mock_getattribute_raises(self: object, name: str) -> object:
+        def mock_getattribute_raises(self: FlextCliConfig, name: str) -> object:
             if name == "profile":
                 msg = "Profile error"
                 raise RuntimeError(msg)

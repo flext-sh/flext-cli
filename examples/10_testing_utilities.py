@@ -48,26 +48,26 @@ def my_cli_command(name: str) -> FlextCore.Result[str]:
         return FlextCore.Result[str].fail("Name cannot be empty")
 
     result = f"Hello, {name}!"
-    cli.formatters.print(result, style="green")
+    cli.print(result, style="green")
     return FlextCore.Result[str].ok(result)
 
 
 def test_cli_command() -> None:
     """Test CLI command in YOUR test suite."""
-    cli.formatters.print("\n🧪 Testing CLI Command:", style="bold cyan")
+    cli.print("\n🧪 Testing CLI Command:", style="bold cyan")
 
     # Test success case
     result = my_cli_command("World")
     assert result.is_success, "Command should succeed"
     assert result.unwrap() == "Hello, World!", "Unexpected output"
-    cli.formatters.print("   ✅ Success case passed", style="green")
+    cli.print("   ✅ Success case passed", style="green")
 
     # Test failure case
     result = my_cli_command("")
     assert result.is_failure, "Command should fail with empty name"
     error_msg = result.error or ""
     assert "empty" in error_msg.lower(), "Unexpected error message"
-    cli.formatters.print("   ✅ Failure case passed", style="green")
+    cli.print("   ✅ Failure case passed", style="green")
 
 
 # ============================================================================
@@ -88,14 +88,14 @@ def save_config_command(config: dict) -> FlextCore.Result[None]:
 
 def test_file_operations() -> None:
     """Test file operations in YOUR test suite."""
-    cli.formatters.print("\n📄 Testing File Operations:", style="bold cyan")
+    cli.print("\n📄 Testing File Operations:", style="bold cyan")
 
     # Test save
     config = {"test": True, "value": 123}
     result = save_config_command(config)
 
     assert result.is_success, "Config save should succeed"
-    cli.formatters.print("   ✅ File save test passed", style="green")
+    cli.print("   ✅ File save test passed", style="green")
 
     # Verify file contents
 
@@ -107,7 +107,7 @@ def test_file_operations() -> None:
     # Type narrowing for dict access
     if isinstance(loaded, dict):
         assert loaded.get("test") is True, "Config value mismatch"
-    cli.formatters.print("   ✅ File read test passed", style="green")
+    cli.print("   ✅ File read test passed", style="green")
 
     # Cleanup
     temp_file.unlink(missing_ok=True)
@@ -134,14 +134,14 @@ def interactive_command() -> FlextCore.Result[str]:
 
 def test_interactive_command() -> None:
     """Test interactive commands in YOUR test suite."""
-    cli.formatters.print("\n🎭 Testing Interactive Commands:", style="bold cyan")
+    cli.print("\n🎭 Testing Interactive Commands:", style="bold cyan")
 
     # Test with non-interactive prompts
     result = interactive_command()
 
     assert result.is_success, "Interactive command should succeed"
     assert "TestUser" in result.unwrap(), "Should use default value"
-    cli.formatters.print("   ✅ Interactive command test passed", style="green")
+    cli.print("   ✅ Interactive command test passed", style="green")
 
 
 # ============================================================================
@@ -162,27 +162,27 @@ def risky_operation(value: int) -> FlextCore.Result[int]:
 
 def test_error_scenarios() -> None:
     """Test error handling in YOUR test suite."""
-    cli.formatters.print("\n❌ Testing Error Scenarios:", style="bold cyan")
+    cli.print("\n❌ Testing Error Scenarios:", style="bold cyan")
 
     # Test negative value
     result = risky_operation(-1)
     assert result.is_failure, "Should fail with negative value"
     error_msg = result.error or ""
     assert "positive" in error_msg, "Unexpected error message"
-    cli.formatters.print("   ✅ Negative value test passed", style="green")
+    cli.print("   ✅ Negative value test passed", style="green")
 
     # Test too large value
     result = risky_operation(200)
     assert result.is_failure, "Should fail with large value"
     error_msg = result.error or ""
     assert "too large" in error_msg.lower(), "Unexpected error message"
-    cli.formatters.print("   ✅ Large value test passed", style="green")
+    cli.print("   ✅ Large value test passed", style="green")
 
     # Test valid value
     result = risky_operation(10)
     assert result.is_success, "Should succeed with valid value"
     assert result.unwrap() == 20, "Unexpected result"
-    cli.formatters.print("   ✅ Valid value test passed", style="green")
+    cli.print("   ✅ Valid value test passed", style="green")
 
 
 # ============================================================================
@@ -226,7 +226,7 @@ def full_workflow_command() -> FlextCore.Result[dict]:
 
 def test_integration() -> None:
     """Integration test for YOUR CLI workflow."""
-    cli.formatters.print("\n🔄 Testing Integration Workflow:", style="bold cyan")
+    cli.print("\n🔄 Testing Integration Workflow:", style="bold cyan")
 
     result = full_workflow_command()
 
@@ -235,7 +235,7 @@ def test_integration() -> None:
     data = result.unwrap()
     assert data["status"] == "completed", "Status should be updated"
     assert data["processed"] is True, "Should be marked as processed"
-    cli.formatters.print("   ✅ Integration test passed", style="green")
+    cli.print("   ✅ Integration test passed", style="green")
 
 
 # ============================================================================
@@ -245,9 +245,9 @@ def test_integration() -> None:
 
 def main() -> None:
     """Examples of testing patterns for YOUR code."""
-    cli.formatters.print("=" * 70, style="bold blue")
-    cli.formatters.print("  Testing Utilities Library Usage", style="bold white")
-    cli.formatters.print("=" * 70, style="bold blue")
+    cli.print("=" * 70, style="bold blue")
+    cli.print("  Testing Utilities Library Usage", style="bold white")
+    cli.print("=" * 70, style="bold blue")
 
     # Run all tests
     test_cli_command()
@@ -256,23 +256,21 @@ def main() -> None:
     test_error_scenarios()
     test_integration()
 
-    cli.formatters.print("\n" + "=" * 70, style="bold blue")
-    cli.formatters.print("  ✅ All Tests Passed!", style="bold green")
-    cli.formatters.print("=" * 70, style="bold blue")
+    cli.print("\n" + "=" * 70, style="bold blue")
+    cli.print("  ✅ All Tests Passed!", style="bold green")
+    cli.print("=" * 70, style="bold blue")
 
     # Testing guide
-    cli.formatters.print("\n💡 Testing Tips:", style="bold cyan")
-    cli.formatters.print(
-        "  • Use FlextCore.Result returns for testable commands", style="white"
-    )
-    cli.formatters.print("  • Test both success and failure cases", style="white")
-    cli.formatters.print("  • Use non-interactive prompts in tests", style="white")
-    cli.formatters.print("  • Clean up temp files after tests", style="white")
-    cli.formatters.print("  • Write integration tests for workflows", style="white")
+    cli.print("\n💡 Testing Tips:", style="bold cyan")
+    cli.print("  • Use FlextCore.Result returns for testable commands", style="white")
+    cli.print("  • Test both success and failure cases", style="white")
+    cli.print("  • Use non-interactive prompts in tests", style="white")
+    cli.print("  • Clean up temp files after tests", style="white")
+    cli.print("  • Write integration tests for workflows", style="white")
 
     # pytest example
-    cli.formatters.print("\n📝 pytest Example:", style="bold cyan")
-    cli.formatters.print(
+    cli.print("\n📝 pytest Example:", style="bold cyan")
+    cli.print(
         """
 def test_my_command():
     from flext_cli import FlextCli

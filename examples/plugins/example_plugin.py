@@ -9,8 +9,6 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from typing import Any
-
 from flext_core import FlextCore
 
 
@@ -33,9 +31,9 @@ class ExamplePlugin:
     def __init__(self) -> None:
         """Initialize plugin."""
         self._initialized = False
-        self._config: dict[str, Any] = {}
+        self._config: dict[str, object] = {}
 
-    def initialize(self, _cli_main: Any) -> FlextCore.Result[None]:
+    def initialize(self, _cli_main: object) -> FlextCore.Result[None]:
         """Initialize the plugin.
 
         Args:
@@ -60,7 +58,7 @@ class ExamplePlugin:
         except Exception as e:
             return FlextCore.Result[None].fail(f"Plugin initialization failed: {e}")
 
-    def register_commands(self, cli_main: Any) -> FlextCore.Result[None]:
+    def register_commands(self, cli_main: object) -> FlextCore.Result[None]:
         """Register plugin commands.
 
         Args:
@@ -114,9 +112,9 @@ class DataProcessorPlugin:
 
     def __init__(self) -> None:
         """Initialize data processor plugin."""
-        self._processors: dict[str, Any] = {}
+        self._processors: dict[str, object] = {}
 
-    def initialize(self, _cli_main: Any) -> FlextCore.Result[None]:
+    def initialize(self, _cli_main: object) -> FlextCore.Result[None]:
         """Initialize the plugin.
 
         Args:
@@ -139,7 +137,7 @@ class DataProcessorPlugin:
         except Exception as e:
             return FlextCore.Result[None].fail(f"Initialization failed: {e}")
 
-    def register_commands(self, cli_main: Any) -> FlextCore.Result[None]:
+    def register_commands(self, cli_main: object) -> FlextCore.Result[None]:
         """Register data processing commands.
 
         Args:

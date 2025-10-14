@@ -241,7 +241,8 @@ class TestFlextCliDebugExceptionHandlers:
             lambda: (_ for _ in ()).throw(RuntimeError("Test error")),
         )
         result = debug.get_system_info()
-        assert result.is_failure and "System info failed" in str(result.error)
+        assert result.is_failure
+        assert "System info failed" in str(result.error)
 
     def test_get_environment_variables_exception(self, monkeypatch: object) -> None:
         """Test get_environment_variables exception handler (lines 85-86)."""
@@ -252,7 +253,8 @@ class TestFlextCliDebugExceptionHandlers:
             lambda: (_ for _ in ()).throw(RuntimeError("Test error")),
         )
         result = debug.get_environment_variables()
-        assert result.is_failure and "Environment info failed" in str(result.error)
+        assert result.is_failure
+        assert "Environment info failed" in str(result.error)
 
     def test_get_system_paths_exception(self, monkeypatch: object) -> None:
         """Test get_system_paths exception handler (lines 107-108)."""
@@ -263,7 +265,8 @@ class TestFlextCliDebugExceptionHandlers:
             lambda: (_ for _ in ()).throw(RuntimeError("Test error")),
         )
         result = debug.get_system_paths()
-        assert result.is_failure and "Path info failed" in str(result.error)
+        assert result.is_failure
+        assert "Path info failed" in str(result.error)
 
     def test_validate_environment_setup_exception(self, monkeypatch: object) -> None:
         """Test validate_environment_setup exception handler (lines 119-120)."""
@@ -274,9 +277,8 @@ class TestFlextCliDebugExceptionHandlers:
             lambda: (_ for _ in ()).throw(RuntimeError("Test error")),
         )
         result = debug.validate_environment_setup()
-        assert result.is_failure and "Environment validation failed" in str(
-            result.error
-        )
+        assert result.is_failure
+        assert "Environment validation failed" in str(result.error)
 
     def test_test_connectivity_exception(self, monkeypatch: object) -> None:
         """Test test_connectivity exception handler (lines 136-137)."""
@@ -298,7 +300,8 @@ class TestFlextCliDebugExceptionHandlers:
         debug = FlextCliDebug()
         result = debug.test_connectivity()
         monkeypatch.setattr("flext_cli.debug.datetime", original_datetime)
-        assert result.is_failure and "Connectivity test failed" in str(result.error)
+        assert result.is_failure
+        assert "Connectivity test failed" in str(result.error)
 
     def test_execute_health_check_exception(self, monkeypatch: object) -> None:
         """Test execute_health_check exception handler (lines 152-153)."""
@@ -308,7 +311,8 @@ class TestFlextCliDebugExceptionHandlers:
         )
         debug = FlextCliDebug()
         result = debug.execute_health_check()
-        assert result.is_failure and "Health check failed" in str(result.error)
+        assert result.is_failure
+        assert "Health check failed" in str(result.error)
 
     def test_execute_trace_exception(self, monkeypatch: object) -> None:
         """Test execute_trace exception handler (lines 170-171)."""
@@ -330,7 +334,8 @@ class TestFlextCliDebugExceptionHandlers:
         debug = FlextCliDebug()
         result = debug.execute_trace([])
         monkeypatch.setattr("flext_cli.debug.datetime", original_datetime)
-        assert result.is_failure and "Trace execution failed" in str(result.error)
+        assert result.is_failure
+        assert "Trace execution failed" in str(result.error)
 
     def test_get_debug_info_exception(self, monkeypatch: object) -> None:
         """Test get_debug_info exception handler (lines 192-193)."""
@@ -341,7 +346,8 @@ class TestFlextCliDebugExceptionHandlers:
             lambda: (_ for _ in ()).throw(RuntimeError("Test error")),
         )
         result = debug.get_debug_info()
-        assert result.is_failure and "Debug info collection failed" in str(result.error)
+        assert result.is_failure
+        assert "Debug info collection failed" in str(result.error)
 
     def test_get_comprehensive_debug_info_exception(self, monkeypatch: object) -> None:
         """Test get_comprehensive_debug_info exception handler (line 209)."""

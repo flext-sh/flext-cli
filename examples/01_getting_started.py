@@ -43,14 +43,12 @@ cli = FlextCli.get_instance()
 
 def your_function_before() -> None:
     """Your old code using print()."""
-    print("Operation completed")
-    print("ERROR: Something failed")
 
 
 def your_function_after() -> None:
     """Your new code using flext-cli."""
-    cli.formatters.print("Operation completed", style="green")
-    cli.formatters.print("ERROR: Something failed", style="bold red")
+    cli.print("Operation completed", style="green")
+    cli.print("ERROR: Something failed", style="bold red")
 
 
 # ============================================================================
@@ -66,7 +64,7 @@ def display_user_data(user: dict) -> None:
     )
 
     if table_result.is_success:
-        cli.formatters.console.print(table_result.unwrap())
+        cli.print_table(table_result.unwrap())
 
 
 # ============================================================================
@@ -76,22 +74,22 @@ def display_user_data(user: dict) -> None:
 
 def save_config(config: dict, filepath: str) -> bool:
     """Save YOUR config to JSON with proper error handling."""
-    write_result = cli.file_tools.write_json_file(Path(filepath), config)
+    write_result = cli.file_tools.write_json_file(filepath, config)
 
     if write_result.is_failure:
-        cli.formatters.print(f"Failed to save: {write_result.error}", style="bold red")
+        cli.print(f"Failed to save: {write_result.error}", style="bold red")
         return False
 
-    cli.formatters.print(f"✅ Saved to {filepath}", style="green")
+    cli.print(f"✅ Saved to {filepath}", style="green")
     return True
 
 
 def load_config(filepath: str) -> dict | None:
     """Load YOUR config from JSON with error handling."""
-    read_result = cli.file_tools.read_json_file(Path(filepath))
+    read_result = cli.file_tools.read_json_file(filepath)
 
     if read_result.is_failure:
-        cli.formatters.print(f"Failed to load: {read_result.error}", style="bold red")
+        cli.print(f"Failed to load: {read_result.error}", style="bold red")
         return None
 
     # Type narrowing: ensure we return a dict
@@ -109,16 +107,16 @@ def load_config(filepath: str) -> dict | None:
 def process_data_with_flext_result() -> None:
     """Use FlextCore.Result pattern in YOUR code - no try/except needed."""
     # This won't throw an exception even if file doesn't exist
-    nonexistent_file = Path(tempfile.gettempdir()) / "nonexistent.json"
+    nonexistent_file = str(Path(tempfile.gettempdir()) / "nonexistent.json")
     result = cli.file_tools.read_json_file(nonexistent_file)
 
     if result.is_success:
         result.unwrap()
         # Process your data
-        cli.formatters.print("Data loaded successfully", style="green")
+        cli.print("Data loaded successfully", style="green")
     else:
         # Handle error gracefully
-        cli.formatters.print(f"Error: {result.error}", style="yellow")
+        cli.print(f"Error: {result.error}", style="yellow")
         # Continue execution - no crash!
 
 
@@ -129,22 +127,22 @@ def process_data_with_flext_result() -> None:
 
 def main() -> None:
     """Example of how YOU would use flext-cli in your project."""
-    cli.formatters.print("=" * 70, style="bold blue")
-    cli.formatters.print("  Using flext-cli in YOUR Code", style="bold white")
-    cli.formatters.print("=" * 70, style="bold blue")
+    cli.print("=" * 70, style="bold blue")
+    cli.print("  Using flext-cli in YOUR Code", style="bold white")
+    cli.print("=" * 70, style="bold blue")
 
     # Example 1: Styled output
-    cli.formatters.print("\n1. Styled Console Output:", style="bold cyan")
-    cli.formatters.print("   Replace print() with styled output:")
+    cli.print("\n1. Styled Console Output:", style="bold cyan")
+    cli.print("   Replace print() with styled output:")
     your_function_after()
 
     # Example 2: Tables
-    cli.formatters.print("\n2. Display Data as Tables:", style="bold cyan")
+    cli.print("\n2. Display Data as Tables:", style="bold cyan")
     user_data = {"name": "Alice", "email": "alice@example.com", "role": "REDACTED_LDAP_BIND_PASSWORD"}
     display_user_data(user_data)
 
     # Example 3: File I/O
-    cli.formatters.print("\n3. File Operations:", style="bold cyan")
+    cli.print("\n3. File Operations:", style="bold cyan")
     temp_file = Path(tempfile.gettempdir()) / "my_config.json"
     config = {"app": "my-cli-tool", "version": "1.0.0"}
 
@@ -152,27 +150,27 @@ def main() -> None:
     loaded = load_config(str(temp_file))
 
     if loaded:
-        cli.formatters.print(f"   Loaded: {loaded}", style="cyan")
+        cli.print(f"   Loaded: {loaded}", style="cyan")
 
     temp_file.unlink(missing_ok=True)
 
     # Example 4: Error handling
-    cli.formatters.print("\n4. Error Handling (No Exceptions):", style="bold cyan")
+    cli.print("\n4. Error Handling (No Exceptions):", style="bold cyan")
     process_data_with_flext_result()
 
-    cli.formatters.print("\n" + "=" * 70, style="bold blue")
-    cli.formatters.print("  ✅ Integration Examples Complete", style="bold green")
-    cli.formatters.print("=" * 70, style="bold blue")
+    cli.print("\n" + "=" * 70, style="bold blue")
+    cli.print("  ✅ Integration Examples Complete", style="bold green")
+    cli.print("=" * 70, style="bold blue")
 
     # Show how to integrate into YOUR code
-    cli.formatters.print("\n📚 Integration Steps:", style="bold cyan")
-    cli.formatters.print("  1. Import: from flext_cli import FlextCli", style="white")
-    cli.formatters.print("  2. Init:   cli = FlextCli.get_instance()", style="white")
-    cli.formatters.print(
-        "  3. Use:    cli.formatters.print(), cli.file_tools.write_json_file(), etc.",
+    cli.print("\n📚 Integration Steps:", style="bold cyan")
+    cli.print("  1. Import: from flext_cli import FlextCli", style="white")
+    cli.print("  2. Init:   cli = FlextCli.get_instance()", style="white")
+    cli.print(
+        "  3. Use:    cli.print(), cli.file_tools.write_json_file(), etc.",
         style="white",
     )
-    cli.formatters.print(
+    cli.print(
         "\n💡 All methods return FlextCore.Result for error handling without exceptions!",
         style="yellow",
     )

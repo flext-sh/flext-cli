@@ -159,7 +159,9 @@ class FlextCliCore(FlextCore.Service[FlextCliTypes.Data.CliDataDict]):
             execution_context: FlextCliTypes.CliCommand.CommandContext
             if isinstance(context, list):
                 # Convert list of strings to context dict
-                execution_context = {FlextCliConstants.DictKeys.ARGS: context}  # type: ignore[typeddict-item]
+                # Type-safe: explicitly create CommandContext dict
+                args_list: FlextCore.Types.List = list(context)  # Widen to general List
+                execution_context = {FlextCliConstants.DictKeys.ARGS: args_list}
             else:
                 execution_context = context or {}
 

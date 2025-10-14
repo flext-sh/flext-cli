@@ -10,24 +10,19 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 from io import StringIO
-from typing import TYPE_CHECKING
 
 from flext_core import FlextCore
 from rich.console import Console
 from rich.layout import Layout as RichLayout
 from rich.live import Live as RichLive
 from rich.panel import Panel as RichPanel
-from rich.progress import (
-    Progress,
-)
+from rich.progress import Progress
 from rich.status import Status as RichStatus
 from rich.table import Table as RichTable
 from rich.tree import Tree as RichTree
 
 from flext_cli.constants import FlextCliConstants
-
-if TYPE_CHECKING:
-    from flext_cli.typings import FlextCliTypes
+from flext_cli.typings import FlextCliTypes
 
 
 class FlextCliFormatters:
@@ -38,9 +33,9 @@ class FlextCliFormatters:
     """
 
     def __init__(self) -> None:
-        """Initialize Rich formatters with direct console initialization."""
-        # Direct initialization - no lazy loading, no @property wrapper
-        self.console: Console = Console()
+        """Initialize Rich formatters with direct Rich imports."""
+        # Use Rich directly (formatters.py is ONE OF TWO files that may import Rich)
+        self.console = Console()
 
     def get_console(self) -> Console:
         """Get console instance - direct access."""
@@ -61,22 +56,22 @@ class FlextCliFormatters:
         self,
         message: str,
         style: str | None = None,
-        **kwargs: object,
     ) -> FlextCore.Result[None]:
-        """Print formatted message using Rich - direct delegation.
+        """Print formatted message using Rich.
 
         Args:
             message: Message to print
             style: Rich style string (e.g., "bold red")
-            **kwargs: Additional Rich console.print() kwargs
 
         Returns:
             FlextCore.Result[None]: Success or error
 
+        Note:
+            For advanced Rich features, use get_console() to access Rich Console directly.
+
         """
         try:
-            # Direct delegation to Rich - duck typing handles kwargs
-            self.console.print(message, style=style, **kwargs)  # type: ignore[arg-type]
+            self.console.print(message, style=style)
             return FlextCore.Result[None].ok(None)
         except Exception as e:
             return FlextCore.Result[None].fail(f"Print failed: {e}")
@@ -86,23 +81,24 @@ class FlextCliFormatters:
         data: FlextCliTypes.Data.CliDataDict | None = None,
         headers: FlextCore.Types.StringList | None = None,
         title: str | None = None,
-        **kwargs: object,
     ) -> FlextCore.Result[RichTable]:
-        """Create Rich table - direct delegation to Rich.Table.
+        """Create Rich table with basic formatting.
 
         Args:
             data: Optional data dictionary for table
             headers: Optional column headers
             title: Optional table title
-            **kwargs: Additional Rich Table() kwargs
 
         Returns:
             FlextCore.Result[RichTable]: Rich Table instance or error
 
+        Note:
+            For advanced Rich table features (box styles, padding, etc),
+            use get_console() and create Rich tables directly.
+
         """
         try:
-            # Create Rich table directly - duck typing handles kwargs
-            table = RichTable(title=title, **kwargs)  # type: ignore[arg-type]
+            table = RichTable(title=title)
 
             # Add columns if headers provided
             if headers:
@@ -155,37 +151,38 @@ class FlextCliFormatters:
         except Exception as e:
             return FlextCore.Result[str].fail(f"Table rendering failed: {e}")
 
-    def create_progress(self, **kwargs: object) -> FlextCore.Result[Progress]:
-        """Create Rich progress bar - direct delegation.
-
-        Args:
-            **kwargs: Rich Progress() kwargs
+    def create_progress(self) -> FlextCore.Result[Progress]:
+        """Create Rich progress bar with default settings.
 
         Returns:
             FlextCore.Result[Progress]: Rich Progress instance or error
 
+        Note:
+            For custom progress bars (columns, styles), use get_console()
+            and create Progress objects directly.
+
         """
         try:
-            # Direct delegation to Rich - duck typing handles kwargs
-            progress = Progress(**kwargs)  # type: ignore[arg-type]
+            progress = Progress()
             return FlextCore.Result[Progress].ok(progress)
         except Exception as e:
             return FlextCore.Result[Progress].fail(f"Progress creation failed: {e}")
 
-    def create_tree(self, label: str, **kwargs: object) -> FlextCore.Result[RichTree]:
-        """Create Rich tree - direct delegation.
+    def create_tree(self, label: str) -> FlextCore.Result[RichTree]:
+        """Create Rich tree with default settings.
 
         Args:
             label: Tree root label
-            **kwargs: Rich Tree() kwargs
 
         Returns:
             FlextCore.Result[RichTree]: Rich Tree instance or error
 
+        Note:
+            For custom tree styling, use get_console() and create Tree objects directly.
+
         """
         try:
-            # Direct delegation to Rich - duck typing handles kwargs
-            tree = RichTree(label, **kwargs)  # type: ignore[arg-type]
+            tree = RichTree(label)
             return FlextCore.Result[RichTree].ok(tree)
         except Exception as e:
             return FlextCore.Result[RichTree].fail(f"Tree creation failed: {e}")
@@ -219,95 +216,96 @@ class FlextCliFormatters:
     # =========================================================================
 
     def create_status(
-        self, message: str, spinner: str = "dots", **kwargs: object
+        self, message: str, spinner: str = "dots"
     ) -> FlextCore.Result[RichStatus]:
-        """Create Rich status spinner - direct delegation.
+        """Create Rich status spinner.
 
         Args:
             message: Status message
             spinner: Spinner style (e.g., "dots", "line", "arrow")
-            **kwargs: Additional Rich Status() kwargs
 
         Returns:
             FlextCore.Result[RichStatus]: Rich Status instance or error
 
+        Note:
+            For custom spinners, use get_console() and create Status objects directly.
+
         """
         try:
-            # Direct delegation to Rich - duck typing handles kwargs
             status = RichStatus(
-                message, spinner=spinner, console=self.console, **kwargs  # type: ignore[arg-type]
+                message,
+                spinner=spinner,
+                console=self.console,
             )
             return FlextCore.Result[RichStatus].ok(status)
         except Exception as e:
             return FlextCore.Result[RichStatus].fail(f"Status creation failed: {e}")
 
-    def create_live(
-        self, refresh_per_second: float = 4, **kwargs: object
-    ) -> FlextCore.Result[RichLive]:
-        """Create Rich live display - direct delegation.
+    def create_live(self, refresh_per_second: float = 4) -> FlextCore.Result[RichLive]:
+        """Create Rich live display.
 
         Args:
             refresh_per_second: Refresh rate for live updates
-            **kwargs: Additional Rich Live() kwargs
 
         Returns:
             FlextCore.Result[RichLive]: Rich Live instance or error
 
+        Note:
+            For custom live displays, use get_console() and create Live objects directly.
+
         """
         try:
-            # Direct delegation to Rich - duck typing handles kwargs
             live = RichLive(
                 refresh_per_second=refresh_per_second,
                 console=self.console,
-                **kwargs,  # type: ignore[arg-type]
             )
             return FlextCore.Result[RichLive].ok(live)
         except Exception as e:
             return FlextCore.Result[RichLive].fail(f"Live creation failed: {e}")
 
-    def create_layout(self, **kwargs: object) -> FlextCore.Result[RichLayout]:
-        """Create Rich layout - direct delegation.
-
-        Args:
-            **kwargs: Additional Rich Layout() kwargs
+    def create_layout(self) -> FlextCore.Result[RichLayout]:
+        """Create Rich layout with default settings.
 
         Returns:
             FlextCore.Result[RichLayout]: Rich Layout instance or error
 
+        Note:
+            For custom layouts (named regions, sizes), use get_console()
+            and create Layout objects directly.
+
         """
         try:
-            # Direct delegation to Rich - duck typing handles kwargs
-            layout = RichLayout(**kwargs)  # type: ignore[arg-type]
+            layout = RichLayout()
             return FlextCore.Result[RichLayout].ok(layout)
         except Exception as e:
             return FlextCore.Result[RichLayout].fail(f"Layout creation failed: {e}")
 
     def create_panel(
         self,
-        content: object,
+        content: str,
         title: str | None = None,
         border_style: str = "blue",
-        **kwargs: object,
     ) -> FlextCore.Result[RichPanel]:
-        """Create Rich panel - direct delegation.
+        """Create Rich panel with text content.
 
         Args:
-            content: Panel content
+            content: Panel content (text)
             title: Optional panel title
             border_style: Border style (e.g., "blue", "green", "red")
-            **kwargs: Additional Rich Panel() kwargs
 
         Returns:
             FlextCore.Result[RichPanel]: Rich Panel instance or error
 
+        Note:
+            For panels with complex content (Rich renderables), use get_console()
+            and create Panel objects directly.
+
         """
         try:
-            # Direct delegation to Rich - duck typing handles kwargs
             panel = RichPanel(
-                content,  # type: ignore[arg-type]
+                content,
                 title=title,
                 border_style=border_style,
-                **kwargs,  # type: ignore[arg-type]
             )
             return FlextCore.Result[RichPanel].ok(panel)
         except Exception as e:

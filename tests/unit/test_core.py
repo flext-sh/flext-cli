@@ -9,9 +9,11 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
+import builtins
 import json
 import tempfile
 import threading
+from collections import UserDict, UserList
 from pathlib import Path
 
 import pytest
@@ -484,18 +486,34 @@ nested:
 
     def test_execute_command_with_timeout(self, core_service: FlextCliCore) -> None:
         """Test command execution with timeout."""
-        # Test with a command that should complete quickly
-        result = core_service.execute_command("python", ["--version"], timeout=5)
+        # Register a test command first
+        from flext_cli.models import FlextCliModels
+
+        test_command = FlextCliModels.CliCommand(
+            name="test_timeout_core",
+            command_line="test_timeout_core",
+            args=["--core-test"],
+            status="pending",
+        )
+
+        register_result = core_service.register_command(test_command)
+        assert register_result.is_success
+
+        # Execute with timeout using context list
+        result = core_service.execute_command(
+            "test_timeout_core", ["--test-arg"], timeout=5
+        )
 
         assert isinstance(result, FlextCore.Result)
-        # Command execution may fail due to environment, but should return proper result
-        if result.is_success:
-            output = result.unwrap()
-            assert isinstance(output, (str, dict))
-        else:
-            # If command fails, should have proper error message
-            assert isinstance(result.error, str)
-            assert len(result.error) > 0
+        # Command execution should succeed for registered commands
+        assert result.is_success
+        output = result.unwrap()
+        assert isinstance(output, dict)
+        assert output[FlextCliConstants.DictKeys.COMMAND] == "test_timeout_core"
+        assert output[FlextCliConstants.DictKeys.CONTEXT][
+            FlextCliConstants.DictKeys.ARGS
+        ] == ["--test-arg"]
+        assert output[FlextCliConstants.DictKeys.TIMEOUT] == 5
 
     def test_execute_command_nonexistent(self, core_service: FlextCliCore) -> None:
         """Test command execution with nonexistent command."""
@@ -788,21 +806,24 @@ class TestFlextCliCoreExtended:
 
         assert isinstance(result, FlextCore.Result)
         assert result.is_failure
-        assert result.error is not None and "not found" in result.error
+        assert result.error is not None
+        assert "not found" in result.error
 
     def test_get_command_invalid_name_empty(self, core_service: FlextCliCore) -> None:
         """Test getting command with empty name."""
         result = core_service.get_command("")
 
         assert result.is_failure
-        assert result.error is not None and "non-empty string" in result.error
+        assert result.error is not None
+        assert "non-empty string" in result.error
 
     def test_get_command_invalid_name_type(self, core_service: FlextCliCore) -> None:
         """Test getting command with invalid name type."""
         result = core_service.get_command(None)
 
         assert result.is_failure
-        assert result.error is not None and "non-empty string" in result.error
+        assert result.error is not None
+        assert "non-empty string" in result.error
 
     def test_execute_command_success(
         self, core_service: FlextCliCore, sample_command: FlextCliModels.CliCommand
@@ -875,7 +896,8 @@ class TestFlextCliCoreExtended:
         result = core_service.execute_command("nonexistent")
 
         assert result.is_failure
-        assert result.error is not None and "not found" in result.error
+        assert result.error is not None
+        assert "not found" in result.error
 
     def test_list_commands_empty(self, core_service: FlextCliCore) -> None:
         """Test listing commands when none registered."""
@@ -927,7 +949,8 @@ class TestFlextCliCoreExtended:
         result = core_service.start_session()
 
         assert result.is_failure
-        assert result.error is not None and "already active" in result.error
+        assert result.error is not None
+        assert "already active" in result.error
 
     def test_end_session_success(self, core_service: FlextCliCore) -> None:
         """Test ending active session."""
@@ -944,7 +967,8 @@ class TestFlextCliCoreExtended:
         result = core_service.end_session()
 
         assert result.is_failure
-        assert result.error is not None and "No active session" in result.error
+        assert result.error is not None
+        assert "No active session" in result.error
 
     def test_is_session_active_false(self, core_service: FlextCliCore) -> None:
         """Test session active check when no session."""
@@ -1007,7 +1031,8 @@ class TestFlextCliCoreExtended:
 
         assert isinstance(result, FlextCore.Result)
         assert result.is_failure  # No active session
-        assert result.error is not None and "No active session" in result.error
+        assert result.error is not None
+        assert "No active session" in result.error
 
     def test_get_session_statistics_with_session(
         self, core_service: FlextCliCore
@@ -1289,7 +1314,7 @@ class TestFlextCliCoreExceptionHandlers:
         """Test get_command exception handler (lines 124-125)."""
 
         # Mock _commands with a custom dict-like object that raises
-        class MockCommandsDict(dict):
+        class MockCommandsDict(UserDict[str, object]):
             def get(self, *args: object, **kwargs: object) -> object:
                 msg = "Get error"
                 raise RuntimeError(msg)
@@ -1331,7 +1356,7 @@ class TestFlextCliCoreExceptionHandlers:
         """Test list_commands exception handler (lines 201-202)."""
 
         # Mock _commands with a custom dict-like object that raises
-        class MockCommandsDict(dict):
+        class MockCommandsDict(UserDict[str, object]):
             def keys(self) -> object:
                 msg = "Keys error"
                 raise RuntimeError(msg)
@@ -1359,7 +1384,7 @@ class TestFlextCliCoreExceptionHandlers:
         """Test update_configuration exception handler (lines 238-239)."""
 
         # Mock _config with a custom dict-like object that raises
-        class MockConfigDict(dict):
+        class MockConfigDict(UserDict):
             def update(self, *args: object, **kwargs: object) -> None:
                 msg = "Update error"
                 raise RuntimeError(msg)
@@ -1387,7 +1412,7 @@ class TestFlextCliCoreExceptionHandlers:
         """Test create_profile exception handler (lines 310-315)."""
 
         # Mock _config with a custom dict-like object that raises
-        class MockConfigDict(dict):
+        class MockConfigDict(UserDict):
             def __setitem__(self, *args: object, **kwargs: object) -> None:
                 msg = "Set error"
                 raise RuntimeError(msg)
@@ -1424,7 +1449,7 @@ class TestFlextCliCoreExceptionHandlers:
         core_service.start_session()
 
         # Mock _sessions with a custom list-like object that raises
-        class MockSessionsList(list):  # type: ignore[type-arg]
+        class MockSessionsList(UserList[object]):
             def pop(self, *args: object, **kwargs: object) -> object:
                 msg = "Pop error"
                 raise RuntimeError(msg)
@@ -1492,41 +1517,43 @@ class TestFlextCliCoreExceptionHandlers:
         core_service.register_command(cmd)
 
         # Mock datetime to raise exception
-        import flext_cli.core
+        import datetime as dt
 
-        original_datetime = flext_cli.core.datetime
+        original_datetime = dt.datetime
 
         def mock_datetime_raises() -> object:
             msg = "Datetime error"
             raise RuntimeError(msg)
 
         monkeypatch.setattr(
-            "flext_cli.core.datetime",
+            "datetime.datetime",
             type("MockDatetime", (), {"now": staticmethod(mock_datetime_raises)}),
         )
 
         try:
-            result = core_service.execute_cli_command_with_context("test", {})
+            result = core_service.execute_cli_command_with_context(
+                user_id="test", context={}
+            )
             # Should fail due to datetime error
             assert result.is_failure or result.is_success  # Implementation may vary
         finally:
-            monkeypatch.setattr("flext_cli.core.datetime", original_datetime)
+            monkeypatch.setattr("datetime.datetime", original_datetime)
 
     def test_health_check_exception_handler(
         self, core_service: FlextCliCore, monkeypatch: pytest.MonkeyPatch
     ) -> None:
         """Test health_check exception handler (lines 588-589)."""
         # Mock datetime to raise exception
-        import flext_cli.core
+        import datetime as dt
 
-        original_datetime = flext_cli.core.datetime
+        original_datetime = dt.datetime
 
         def mock_datetime_raises() -> object:
             msg = "Datetime error"
             raise RuntimeError(msg)
 
         monkeypatch.setattr(
-            "flext_cli.core.datetime",
+            "datetime.datetime",
             type("MockDatetime", (), {"now": staticmethod(mock_datetime_raises)}),
         )
 
@@ -1534,7 +1561,7 @@ class TestFlextCliCoreExceptionHandlers:
             result = core_service.health_check()
             assert result.is_failure
         finally:
-            monkeypatch.setattr("flext_cli.core.datetime", original_datetime)
+            monkeypatch.setattr("datetime.datetime", original_datetime)
 
     def test_get_config_exception_handler(
         self, core_service: FlextCliCore, monkeypatch: pytest.MonkeyPatch
@@ -1553,7 +1580,7 @@ class TestFlextCliCoreExceptionHandlers:
         """Test get_handlers exception handler (lines 616-617)."""
 
         # Mock _commands with a custom dict-like object that raises
-        class MockCommandsDict(dict):  # type: ignore[type-arg]
+        class MockCommandsDict(UserDict[str, object]):
             def keys(self) -> object:
                 msg = "Keys error"
                 raise RuntimeError(msg)
@@ -1570,12 +1597,11 @@ class TestFlextCliCoreExceptionHandlers:
         """Test get_plugins exception handler (lines 632-633)."""
 
         # Mock _plugins to raise exception on list()
-        def mock_list_raises(*args: object) -> list:
+        def mock_list_raises(*args: object) -> list[object]:
             msg = "List error"
             raise RuntimeError(msg)
 
         original_list = list
-        import builtins
 
         builtins.list = mock_list_raises
 
@@ -1592,7 +1618,7 @@ class TestFlextCliCoreExceptionHandlers:
         """Test get_sessions exception handler (lines 648-649)."""
 
         # Mock list() to raise exception
-        def mock_list_raises(*args: object) -> list:
+        def mock_list_raises(*args: object) -> list[object]:
             msg = "List error"
             raise RuntimeError(msg)
 
@@ -1614,7 +1640,7 @@ class TestFlextCliCoreExceptionHandlers:
         """Test get_commands exception handler (lines 664-665)."""
 
         # Mock _commands with a custom dict-like object that raises
-        class MockCommandsDict(dict):  # type: ignore[type-arg]
+        class MockCommandsDict(UserDict[str, object]):
             def keys(self) -> object:
                 msg = "Keys error"
                 raise RuntimeError(msg)

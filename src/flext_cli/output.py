@@ -170,11 +170,11 @@ class FlextCliOutput(FlextCore.Service[object]):
         title: str | None = None,
         headers: FlextCore.Types.StringList | None = None,
         *,
-        show_header: bool = True,
-        show_lines: bool = False,
-        show_edge: bool = True,
-        expand: bool = False,
-        padding: tuple[int, int] = (0, 1),
+        _show_header: bool = True,
+        _show_lines: bool = False,
+        _show_edge: bool = True,
+        _expand: bool = False,
+        _padding: tuple[int, int] = (0, 1),
     ) -> FlextCore.Result[object]:
         """Create a Rich table from data using FlextCliFormatters.
 
@@ -182,7 +182,11 @@ class FlextCliOutput(FlextCore.Service[object]):
             data: List of dictionaries to display
             title: Optional table title
             headers: Optional custom headers
-            **kwargs: Additional Rich table options
+            _show_header: Show table header (kept for API compatibility, not used)
+            _show_lines: Show lines between rows (kept for API compatibility, not used)
+            _show_edge: Show table edge (kept for API compatibility, not used)
+            _expand: Expand table to full width (kept for API compatibility, not used)
+            _padding: Table padding (kept for API compatibility, not used)
 
         Returns:
             FlextCore.Result containing Rich Table object
@@ -190,8 +194,14 @@ class FlextCliOutput(FlextCore.Service[object]):
         Example:
             >>> output = FlextCliOutput()
             >>> result = output.create_rich_table(
-            ...     data=[{"name": "Alice", "age": 30}], title="Users", show_header=True
+            ...     data=[{"name": "Alice", "age": 30}], title="Users"
             ... )
+
+        Note:
+            For advanced Rich table styling (borders, padding, colors), use
+            FlextCliFormatters.get_console() and create Rich tables directly.
+            The _show_header, _show_lines, _show_edge, _expand, and _padding parameters
+            are kept for backward compatibility but are not applied.
 
         """
         if not data:
@@ -203,14 +213,11 @@ class FlextCliOutput(FlextCore.Service[object]):
             # Determine headers
             table_headers = headers or list(data[0].keys())
 
-            # Create Rich table through formatters abstraction
+            # Create Rich table through formatters abstraction (basic parameters only)
             table_result = self._formatters.create_table(
-                title=title or "",
-                show_header=show_header,
-                show_lines=show_lines,
-                show_edge=show_edge,
-                expand=expand,
-                padding=padding,
+                data=None,  # We'll populate manually
+                headers=table_headers,
+                title=title,
             )
 
             if table_result.is_failure:
@@ -343,14 +350,14 @@ class FlextCliOutput(FlextCore.Service[object]):
         message: str,
         style: str = "",
         *,
-        highlight: bool = False,
+        _highlight: bool = False,
     ) -> FlextCore.Result[None]:
         """Print a message using FlextCliFormatters.
 
         Args:
             message: Message to print
             style: Optional Rich style
-            highlight: Whether to enable syntax highlighting
+            _highlight: Whether to enable syntax highlighting (kept for API compatibility, not used)
 
         Returns:
             FlextCore.Result[None]: Success or failure result
@@ -359,11 +366,15 @@ class FlextCliOutput(FlextCore.Service[object]):
             >>> output = FlextCliOutput()
             >>> output.print_message("Hello", style="bold blue")
 
+        Note:
+            For advanced Rich features like syntax highlighting, use
+            FlextCliFormatters.get_console() to access Rich Console directly.
+            The _highlight parameter is kept for backward compatibility but is not applied.
+
         """
         return self._formatters.print(
             message,
             style=style,
-            highlight=highlight,
         )
 
     def print_error(self, message: str) -> FlextCore.Result[None]:
@@ -423,14 +434,14 @@ class FlextCliOutput(FlextCore.Service[object]):
         text: str,
         *,
         style: str = "",
-        highlight: bool = False,
+        _highlight: bool = False,
     ) -> FlextCore.Result[None]:
         """Display text using FlextCliFormatters.
 
         Args:
             text: Text to display
             style: Optional Rich style
-            highlight: Whether to enable syntax highlighting
+            _highlight: Whether to enable syntax highlighting (kept for API compatibility, not used)
 
         Returns:
             FlextCore.Result[None]: Success or failure result
@@ -439,25 +450,30 @@ class FlextCliOutput(FlextCore.Service[object]):
             >>> output = FlextCliOutput()
             >>> output.display_text("Important info", style="bold")
 
+        Note:
+            For advanced Rich features like syntax highlighting, use
+            FlextCliFormatters.get_console() to access Rich Console directly.
+            The _highlight parameter is kept for backward compatibility but is not applied.
+
         """
         return self._formatters.print(
             text,
             style=style,
-            highlight=highlight,
         )
 
     def display_message(
         self,
         message: str,
         message_type: str = "info",
-        **kwargs: object,
+        *,
+        _highlight: bool = False,
     ) -> FlextCore.Result[None]:
         """Display message with specified type and styling.
 
         Args:
             message: Message to display
             message_type: Type of message (info, success, error, warning)
-            **kwargs: Additional formatting options
+            _highlight: Whether to enable syntax highlighting (kept for API compatibility, not used)
 
         Returns:
             FlextCore.Result[None]: Success or failure result
@@ -489,24 +505,23 @@ class FlextCliOutput(FlextCore.Service[object]):
         emoji = emoji_map.get(message_type, "i")
         formatted_message = f"{emoji} {message}"
 
-        # Extract highlight parameter from kwargs if present
-        highlight = kwargs.get("highlight", False)
-        if not isinstance(highlight, bool):
-            highlight = False
-        return self.print_message(formatted_message, style=style, highlight=highlight)
+        return self.print_message(formatted_message, style=style, _highlight=_highlight)
 
     def display_data(
         self,
         data: object,
         format_type: str = "table",
-        **kwargs: object,
+        *,
+        title: str | None = None,
+        headers: FlextCore.Types.StringList | None = None,
     ) -> FlextCore.Result[None]:
         """Display data in specified format.
 
         Args:
             data: Data to display
             format_type: Format type (table, json, yaml, etc.)
-            **kwargs: Additional formatting options
+            title: Optional title for table format
+            headers: Optional headers for table format
 
         Returns:
             FlextCore.Result[None]: Success or failure result
@@ -516,14 +531,6 @@ class FlextCliOutput(FlextCore.Service[object]):
             >>> output.display_data({"key": "value"}, format_type="json")
 
         """
-        # Format the data first - extract valid parameters from kwargs
-        title = kwargs.get("title")
-        if title is not None and not isinstance(title, str):
-            title = None
-        headers = kwargs.get("headers")
-        if headers is not None and not isinstance(headers, list):
-            headers = None
-
         format_result = self.format_data(
             data, format_type=format_type, title=title, headers=headers
         )

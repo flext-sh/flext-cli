@@ -129,26 +129,20 @@ def generate_constants_additions(
 
 def main() -> None:
     """Main migration process."""
-    print("🔄 Starting automated string migration to constants.py...")
-    print(f"Reading analysis from: {ANALYSIS_FILE}\n")
-
     # Collect strings
     strings_by_category = collect_strings_to_migrate()
 
-    total_strings = sum(len(strings) for strings in strings_by_category.values())
-    print(f"📊 Found {total_strings} critical strings to migrate:")
-    for category, strings in sorted(
+    sum(len(strings) for strings in strings_by_category.values())
+    for _category, _strings in sorted(
         strings_by_category.items(), key=lambda x: -len(x[1])
     ):
-        print(f"   {category:25s}: {len(strings):4d} strings")
+        pass
 
     # Generate constants
-    print("\n🔨 Generating constant definitions...")
     additions, constant_names = generate_constants_additions(strings_by_category)
 
     # Count unique constants
-    total_constants = sum(len(consts) for consts in additions.values())
-    print(f"✅ Generated {total_constants} unique constant definitions")
+    sum(len(consts) for consts in additions.values())
 
     # Save to file for manual review
     output_file = "constants_to_add.txt"
@@ -161,19 +155,10 @@ def main() -> None:
                 f.write(f"\n# {category.upper().replace('_', ' ')}\n")
                 f.writelines(f"{const_def}\n" for const_def in additions[category])
 
-    print(f"\n💾 Constant definitions saved to: {output_file}")
-    print("\n⚠️  MANUAL STEPS REQUIRED:")
-    print("1. Review constants_to_add.txt")
-    print("2. Add constants to appropriate sections in constants.py")
-    print("3. Run string replacement script to update source files")
-    print(f"\n📝 Unique strings to map: {len(constant_names)}")
-
     # Save mapping for replacement
     mapping_file = "string_to_constant_mapping.json"
     with Path(mapping_file).open("w", encoding="utf-8") as f:
         json.dump(constant_names, f, indent=2)
-
-    print(f"💾 String-to-constant mapping saved to: {mapping_file}")
 
 
 if __name__ == "__main__":

@@ -13,7 +13,6 @@ import os
 import shutil
 from datetime import UTC, datetime
 from pathlib import Path
-from typing import Any
 
 from flext_core import FlextCore
 from pydantic import (
@@ -468,7 +467,7 @@ class FlextCliConfig(FlextCore.Config):
             "config": self.model_dump(),
         })
 
-    def update_from_cli_args(self, **kwargs: Any) -> FlextCore.Result[None]:
+    def update_from_cli_args(self, **kwargs: object) -> FlextCore.Result[None]:
         """Update configuration from CLI arguments with validation.
 
         Allows CLI commands to override configuration values dynamically.
@@ -551,7 +550,7 @@ class FlextCliConfig(FlextCore.Config):
             )
 
     def validate_cli_overrides(
-        self, **overrides: Any
+        self, **overrides: object
     ) -> FlextCore.Result[FlextCore.Types.Dict]:
         """Validate CLI overrides without applying them.
 

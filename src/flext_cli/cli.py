@@ -77,67 +77,71 @@ class FlextCliCli:
     def create_command_decorator(
         self,
         name: str | None = None,
-        **kwargs: object,
+        help_text: str | None = None,
     ) -> Callable[[Callable[..., object]], click.Command]:
-        """Create Click command decorator without exposing Click.
+        """Create Click command decorator.
 
         Args:
             name: Command name (optional, uses function name if None)
-            **kwargs: Click command options (help, context_settings, etc.)
+            help_text: Help text for command
 
         Returns:
             Command decorator function
 
+        Note:
+            For advanced Click command options (context_settings, etc),
+            import Click directly in cli.py only.
+
         Example:
             >>> cli = FlextCliCli()
             >>> decorator = cli.create_command_decorator(
-            ...     name="hello", help="Greet someone"
+            ...     name="hello", help_text="Greet someone"
             ... )
             >>> @decorator
             ... def hello():
-            ...     click.echo("Hello!")
+            ...     typer.echo("Hello!")
 
         """
-        command_kwargs: FlextCore.Types.Dict = {"name": name}
-        command_kwargs.update(kwargs)
-        # Duck typing for Click API compatibility - explicit library interop
-        decorator = click.command(**command_kwargs)  # type: ignore[arg-type]
+        # Use Click directly (cli.py is ONLY file that may import Click)
+        decorator = click.command(name=name, help=help_text)
         self.logger.debug(
             "Created command decorator",
-            extra={"command_name": name, "options": kwargs},
+            extra={"command_name": name, "help": help_text},
         )
         return decorator
 
     def create_group_decorator(
         self,
         name: str | None = None,
-        **kwargs: object,
+        help_text: str | None = None,
     ) -> Callable[[Callable[..., object]], click.Group]:
         """Create Click group decorator for command groups.
 
         Args:
             name: Group name (optional, uses function name if None)
-            **kwargs: Click group options
+            help_text: Help text for group
 
         Returns:
             Group decorator function
 
+        Note:
+            For advanced Click group options, import Click directly in cli.py only.
+
         Example:
             >>> cli = FlextCliCli()
-            >>> group = cli.create_group_decorator(name="db")
+            >>> group = cli.create_group_decorator(
+            ...     name="db", help_text="Database commands"
+            ... )
             >>> @group
             ... def db():
-            ...     '''Database commands'''
             ...     pass
 
         """
-        group_kwargs: FlextCore.Types.Dict = {"name": name}
-        group_kwargs.update(kwargs)
-        # Duck typing for Click API compatibility - explicit library interop
-        decorator = click.group(**group_kwargs)  # type: ignore[arg-type]
+        # Use Click directly (cli.py is ONLY file that may import Click)
+        decorator = click.group(name=name, help=help_text)
         self.logger.debug(
             "Created group decorator",
-            extra={"group_name": name, "options": kwargs},
+            extra={"group_name": name, "help": help_text},
         )
         return decorator
 
@@ -148,58 +152,100 @@ class FlextCliCli:
     def create_option_decorator(
         self,
         *param_decls: str,
-        **attrs: object,
+        default: object | None = None,
+        type_hint: click.ParamType | type[object] | None = None,
+        required: bool = False,
+        help_text: str | None = None,
+        is_flag: bool = False,
+        flag_value: object | None = None,
+        multiple: bool = False,
+        count: bool = False,
+        show_default: bool = False,
     ) -> Callable[[Callable[..., object]], Callable[..., object]]:
-        """Create Click option decorator.
+        """Create Click option decorator with explicit parameters.
 
         Args:
             *param_decls: Parameter declarations (e.g., "--count", "-c")
-            **attrs: Option attributes (default, help, type, required, etc.)
+            default: Default value
+            type_hint: Parameter type (Click type or Python type)
+            required: Whether option is required
+            help_text: Help text for option
+            is_flag: Whether this is a boolean flag
+            flag_value: Value when flag is set
+            multiple: Allow multiple values
+            count: Count occurrences
+            show_default: Show default in help
 
         Returns:
             Option decorator
 
+        Note:
+            For advanced Click options, import Click directly in cli.py only.
+
         Example:
             >>> cli = FlextCliCli()
             >>> option = cli.create_option_decorator(
-            ...     "--verbose", "-v", is_flag=True, help="Enable verbose output"
+            ...     "--verbose", "-v", is_flag=True, help_text="Enable verbose output"
             ... )
 
         """
-        # Duck typing for Click API compatibility - explicit library interop
-        decorator = click.option(*param_decls, **attrs)  # type: ignore[arg-type]
+        # Use Click directly (cli.py is ONLY file that may import Click)
+        decorator = click.option(
+            *param_decls,
+            default=default,
+            type=type_hint,
+            required=required,
+            help=help_text,
+            is_flag=is_flag,
+            flag_value=flag_value,
+            multiple=multiple,
+            count=count,
+            show_default=show_default,
+        )
         self.logger.debug(
             "Created option decorator",
-            extra={"param_decls": param_decls, "attrs": attrs},
+            extra={"param_decls": param_decls, "required": required},
         )
         return decorator
 
     def create_argument_decorator(
         self,
         *param_decls: str,
-        **attrs: object,
+        type_hint: click.ParamType | type[object] | None = None,
+        required: bool = True,
+        nargs: int = 1,
     ) -> Callable[[Callable[..., object]], Callable[..., object]]:
-        """Create Click argument decorator.
+        """Create Click argument decorator with explicit parameters.
 
         Args:
             *param_decls: Parameter declarations (e.g., "filename")
-            **attrs: Argument attributes (type, required, nargs, etc.)
+            type_hint: Parameter type (Click type or Python type)
+            required: Whether argument is required
+            nargs: Number of arguments (1, -1 for unlimited)
 
         Returns:
             Argument decorator
 
+        Note:
+            For advanced Click arguments, import Click directly in cli.py only.
+
         Example:
             >>> cli = FlextCliCli()
             >>> argument = cli.create_argument_decorator(
-            ...     "filename", type=cli.get_path_type()
+            ...     "filename", type_hint=cli.get_path_type()
             ... )
 
         """
-        # Duck typing for Click API compatibility - explicit library interop
-        decorator = click.argument(*param_decls, **attrs)  # type: ignore[arg-type]
+        # Use Click directly (cli.py is ONLY file that may import Click)
+        decorator = click.argument(
+            *param_decls,
+            type=type_hint,
+            required=required,
+            nargs=nargs,
+        )
         self.logger.debug(
             "Created argument decorator",
-            extra={"param_decls": param_decls, "attrs": attrs},
+            extra={"param_decls": param_decls, "required": required},
         )
         return decorator
 

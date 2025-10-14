@@ -139,31 +139,28 @@ class FlextCliTables(FlextCore.Service[object]):
             )
 
         try:
-            # Build tabulate kwargs - use object for tabulate compatibility
-            kwargs: FlextCore.Types.Dict = {
-                "tablefmt": table_format,
-                "headers": headers,
-                "floatfmt": floatfmt,
-                "numalign": numalign,
-                "stralign": stralign,
-                "missingval": missingval,
-                "showindex": showindex,
-                "disable_numparse": disable_numparse,
-            }
-
-            # Add column alignment if specified
+            # Determine column alignment parameter
+            final_colalign: Sequence[str] | None = None
             if colalign is not None:
-                kwargs["colalign"] = colalign
-            elif align is not None:
-                # Convert single align to list if needed
-                if isinstance(align, str):
-                    # Will be applied to all columns
-                    kwargs["colalign"] = None
-                else:
-                    kwargs["colalign"] = align
+                final_colalign = colalign
+            elif align is not None and not isinstance(align, str):
+                # align is a sequence, use it directly
+                final_colalign = align
+            # If align is a string, final_colalign stays None (applied to all columns)
 
-            # Generate table - duck typing handles kwargs
-            table_str = tabulate(data, **kwargs)  # type: ignore[arg-type]
+            # Call tabulate directly with explicit parameters (type-safe)
+            table_str = tabulate(
+                data,
+                headers=headers,
+                tablefmt=table_format,
+                floatfmt=floatfmt,
+                numalign=numalign,
+                stralign=stralign,
+                missingval=missingval,
+                showindex=showindex,
+                disable_numparse=disable_numparse,
+                colalign=final_colalign,
+            )
 
             self._logger.debug(
                 "Created table",
@@ -395,12 +392,14 @@ class FlextCliTables(FlextCore.Service[object]):
                 for name, desc in FlextCliConstants.TABLE_FORMATS.items()
             ]
 
-            # Use tabulate to print the formats table
-            tabulate(
+            # Use tabulate directly to create the formats table
+            table_str = tabulate(
                 formats_data,
                 headers="keys",
                 tablefmt="grid",
             )
+            # Output through logger instead of print (linting requirement)
+            self._logger.info(table_str)
 
             return FlextCore.Result[None].ok(None)
 

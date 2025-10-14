@@ -48,12 +48,10 @@ tables = FlextCliTables()
 def export_to_csv(data: list[dict], output_file: Path) -> None:
     """Export data to CSV with proper headers."""
     if not data:
-        cli.formatters.print("⚠️  No data to export", style="yellow")
+        cli.print("⚠️  No data to export", style="yellow")
         return
 
-    cli.formatters.print(
-        f"\n📊 Exporting to CSV: {output_file.name}", style="bold cyan"
-    )
+    cli.print(f"\n📊 Exporting to CSV: {output_file.name}", style="bold cyan")
 
     # Extract headers from first row
     headers = list(data[0].keys())
@@ -67,41 +65,35 @@ def export_to_csv(data: list[dict], output_file: Path) -> None:
 
     if write_result.is_success:
         size = output_file.stat().st_size
-        cli.formatters.print(
-            f"✅ Exported {len(data)} rows to CSV ({size} bytes)", style="green"
-        )
+        cli.print(f"✅ Exported {len(data)} rows to CSV ({size} bytes)", style="green")
     else:
-        cli.formatters.print(
-            f"❌ Export failed: {write_result.error}", style="bold red"
-        )
+        cli.print(f"❌ Export failed: {write_result.error}", style="bold red")
 
 
 def import_from_csv(input_file: Path) -> list[dict] | None:
     """Import data from CSV with headers."""
-    cli.formatters.print(
-        f"\n📥 Importing from CSV: {input_file.name}", style="bold cyan"
-    )
+    cli.print(f"\n📥 Importing from CSV: {input_file.name}", style="bold cyan")
 
     # Read CSV with headers
     read_result = cli.file_tools.read_csv_file_with_headers(input_file)
 
     if read_result.is_failure:
-        cli.formatters.print(f"❌ Import failed: {read_result.error}", style="bold red")
+        cli.print(f"❌ Import failed: {read_result.error}", style="bold red")
         return []
 
     rows = read_result.unwrap()
-    cli.formatters.print(f"✅ Imported {len(rows)} rows from CSV", style="green")
+    cli.print(f"✅ Imported {len(rows)} rows from CSV", style="green")
 
     # Display sample rows
     if rows:
-        cli.formatters.print("\n📋 Sample Data:", style="yellow")
+        cli.print("\n📋 Sample Data:", style="yellow")
         # Cast to expected type
         sample_rows: list[FlextCore.Types.Dict] = cast(
             "list[FlextCore.Types.Dict]", rows[:5]
         )
         table_result = tables.create_table(sample_rows, table_format="grid")
         if table_result.is_success:
-            print(table_result.unwrap())
+            pass
 
     return rows
 
@@ -113,23 +105,21 @@ def import_from_csv(input_file: Path) -> list[dict] | None:
 
 def process_binary_file(input_file: Path, output_file: Path) -> None:
     """Read, process, and write binary files."""
-    cli.formatters.print(
-        f"\n🔧 Processing Binary File: {input_file.name}", style="bold cyan"
-    )
+    cli.print(f"\n🔧 Processing Binary File: {input_file.name}", style="bold cyan")
 
     # Read binary file
     read_result = cli.file_tools.read_binary_file(input_file)
 
     if read_result.is_failure:
-        cli.formatters.print(f"❌ Read failed: {read_result.error}", style="bold red")
+        cli.print(f"❌ Read failed: {read_result.error}", style="bold red")
         return
 
     data = read_result.unwrap()
-    cli.formatters.print(f"✅ Read {len(data)} bytes", style="green")
+    cli.print(f"✅ Read {len(data)} bytes", style="green")
 
     # Calculate checksum
     checksum = hashlib.sha256(data).hexdigest()
-    cli.formatters.print(f"   MD5 checksum: {checksum}", style="cyan")
+    cli.print(f"   MD5 checksum: {checksum}", style="cyan")
 
     # Process data (example: simple transformation)
     # In real usage: compress, encrypt, resize image, etc.
@@ -139,11 +129,11 @@ def process_binary_file(input_file: Path, output_file: Path) -> None:
     write_result = cli.file_tools.write_binary_file(output_file, processed_data)
 
     if write_result.is_success:
-        cli.formatters.print(
+        cli.print(
             f"✅ Wrote {len(processed_data)} bytes to {output_file.name}", style="green"
         )
     else:
-        cli.formatters.print(f"❌ Write failed: {write_result.error}", style="bold red")
+        cli.print(f"❌ Write failed: {write_result.error}", style="bold red")
 
 
 # ============================================================================
@@ -153,37 +143,33 @@ def process_binary_file(input_file: Path, output_file: Path) -> None:
 
 def load_any_format_file(file_path: Path) -> dict | None:
     """Load config from ANY format - automatically detected."""
-    cli.formatters.print(
-        f"\n🔍 Auto-Detecting Format: {file_path.name}", style="bold cyan"
-    )
+    cli.print(f"\n🔍 Auto-Detecting Format: {file_path.name}", style="bold cyan")
 
     # Detect format from extension
     format_result = cli.file_tools.detect_file_format(file_path)
 
     if format_result.is_failure:
-        cli.formatters.print(
+        cli.print(
             f"❌ Format detection failed: {format_result.error}", style="bold red"
         )
         return None
 
     detected_format = format_result.unwrap()
-    cli.formatters.print(
-        f"✅ Detected format: {detected_format.upper()}", style="green"
-    )
+    cli.print(f"✅ Detected format: {detected_format.upper()}", style="green")
 
     # Load with auto-detection
     load_result = cli.file_tools.load_file_auto_detect(file_path)
 
     if load_result.is_failure:
-        cli.formatters.print(f"❌ Load failed: {load_result.error}", style="bold red")
+        cli.print(f"❌ Load failed: {load_result.error}", style="bold red")
         return None
 
     data = load_result.unwrap()
-    cli.formatters.print("✅ Loaded data successfully", style="green")
+    cli.print("✅ Loaded data successfully", style="green")
 
     # Type narrowing: ensure we have a dict
     if not isinstance(data, dict):
-        cli.formatters.print(
+        cli.print(
             f"⚠️  Loaded data is not a dict (type: {type(data).__name__})",
             style="yellow",
         )
@@ -200,7 +186,7 @@ def load_any_format_file(file_path: Path) -> dict | None:
         title=f"Loaded from {detected_format.upper()}",
     )
     if table_result.is_success:
-        cli.formatters.console.print(table_result.unwrap())
+        cli.print_table(table_result.unwrap())
 
     return data
 
@@ -214,9 +200,7 @@ def export_data_multi_format(
     data: dict | list[dict], base_path: Path
 ) -> dict[str, str]:
     """Export same data to multiple formats (JSON, YAML, CSV)."""
-    cli.formatters.print(
-        f"\n💾 Multi-Format Export: {base_path.stem}", style="bold cyan"
-    )
+    cli.print(f"\n💾 Multi-Format Export: {base_path.stem}", style="bold cyan")
 
     export_results = {}
 
@@ -226,7 +210,7 @@ def export_data_multi_format(
     if json_result.is_success:
         size = json_path.stat().st_size
         export_results["JSON"] = f"{size} bytes"
-        cli.formatters.print(f"✅ JSON: {json_path.name} ({size} bytes)", style="green")
+        cli.print(f"✅ JSON: {json_path.name} ({size} bytes)", style="green")
 
     # Export to YAML
     yaml_path = base_path.with_suffix(".yaml")
@@ -234,7 +218,7 @@ def export_data_multi_format(
     if yaml_result.is_success:
         size = yaml_path.stat().st_size
         export_results["YAML"] = f"{size} bytes"
-        cli.formatters.print(f"✅ YAML: {yaml_path.name} ({size} bytes)", style="green")
+        cli.print(f"✅ YAML: {yaml_path.name} ({size} bytes)", style="green")
 
     # Export to CSV (if data is list of dicts)
     if isinstance(data, list) and data and isinstance(data[0], dict):
@@ -248,14 +232,10 @@ def export_data_multi_format(
         if csv_result.is_success:
             size = csv_path.stat().st_size
             export_results["CSV"] = f"{size} bytes"
-            cli.formatters.print(
-                f"✅ CSV: {csv_path.name} ({size} bytes)", style="green"
-            )
+            cli.print(f"✅ CSV: {csv_path.name} ({size} bytes)", style="green")
 
     # Summary
-    cli.formatters.print(
-        f"\n📊 Exported to {len(export_results)} formats", style="bold green"
-    )
+    cli.print(f"\n📊 Exported to {len(export_results)} formats", style="bold green")
     return export_results
 
 
@@ -266,21 +246,19 @@ def export_data_multi_format(
 
 def process_text_file(input_file: Path, output_file: Path) -> None:
     """Read and write text files with proper encoding."""
-    cli.formatters.print(
-        f"\n📝 Processing Text File: {input_file.name}", style="bold cyan"
-    )
+    cli.print(f"\n📝 Processing Text File: {input_file.name}", style="bold cyan")
 
     # Read text file
     read_result = cli.file_tools.read_text_file(input_file)
 
     if read_result.is_failure:
-        cli.formatters.print(f"❌ Read failed: {read_result.error}", style="bold red")
+        cli.print(f"❌ Read failed: {read_result.error}", style="bold red")
         return
 
     content = read_result.unwrap()
-    cli.formatters.print(f"✅ Read {len(content)} characters", style="green")
-    cli.formatters.print(f"   Lines: {content.count(chr(10)) + 1}", style="cyan")
-    cli.formatters.print(f"   Words: {len(content.split())}", style="cyan")
+    cli.print(f"✅ Read {len(content)} characters", style="green")
+    cli.print(f"   Lines: {content.count(chr(10)) + 1}", style="cyan")
+    cli.print(f"   Words: {len(content.split())}", style="cyan")
 
     # Process content (example: uppercase)
     processed = content.upper()
@@ -289,7 +267,7 @@ def process_text_file(input_file: Path, output_file: Path) -> None:
     write_result = cli.file_tools.write_text_file(output_file, processed)
 
     if write_result.is_success:
-        cli.formatters.print(
+        cli.print(
             f"✅ Wrote {len(processed)} characters to {output_file.name}", style="green"
         )
 
@@ -301,37 +279,33 @@ def process_text_file(input_file: Path, output_file: Path) -> None:
 
 def copy_file_with_verification(source: Path, destination: Path) -> bool:
     """Copy file and verify integrity."""
-    cli.formatters.print(
+    cli.print(
         f"\n📋 Copying File: {source.name} → {destination.name}", style="bold cyan"
     )
 
     # Calculate source checksum
     source_data = source.read_bytes()
     source_hash = hashlib.sha256(source_data).hexdigest()
-    cli.formatters.print(f"   Source MD5: {source_hash}", style="cyan")
+    cli.print(f"   Source MD5: {source_hash}", style="cyan")
 
     # Copy file
     copy_result = cli.file_tools.copy_file(source, destination)
 
     if copy_result.is_failure:
-        cli.formatters.print(f"❌ Copy failed: {copy_result.error}", style="bold red")
+        cli.print(f"❌ Copy failed: {copy_result.error}", style="bold red")
         return False
 
-    cli.formatters.print("✅ File copied successfully", style="green")
+    cli.print("✅ File copied successfully", style="green")
 
     # Verify copy
     dest_data = destination.read_bytes()
     dest_hash = hashlib.sha256(dest_data).hexdigest()
-    cli.formatters.print(f"   Dest MD5: {dest_hash}", style="cyan")
+    cli.print(f"   Dest MD5: {dest_hash}", style="cyan")
 
     if source_hash == dest_hash:
-        cli.formatters.print(
-            "✅ Integrity verified - checksums match!", style="bold green"
-        )
+        cli.print("✅ Integrity verified - checksums match!", style="bold green")
         return True
-    cli.formatters.print(
-        "❌ Integrity check failed - checksums differ!", style="bold red"
-    )
+    cli.print("❌ Integrity check failed - checksums differ!", style="bold red")
     return False
 
 
@@ -342,17 +316,17 @@ def copy_file_with_verification(source: Path, destination: Path) -> bool:
 
 def main() -> None:
     """Examples of advanced file format operations in YOUR code."""
-    cli.formatters.print("=" * 70, style="bold blue")
-    cli.formatters.print("  Advanced File Formats Library Usage", style="bold white")
-    cli.formatters.print("=" * 70, style="bold blue")
+    cli.print("=" * 70, style="bold blue")
+    cli.print("  Advanced File Formats Library Usage", style="bold white")
+    cli.print("=" * 70, style="bold blue")
 
     # Setup temp directory
     temp_dir = Path(tempfile.gettempdir()) / "flext_advanced_files"
     temp_dir.mkdir(exist_ok=True)
 
     # Example 1: CSV operations
-    cli.formatters.print("\n" + "=" * 70, style="bold blue")
-    cli.formatters.print("1. CSV Export/Import:", style="bold cyan")
+    cli.print("\n" + "=" * 70, style="bold blue")
+    cli.print("1. CSV Export/Import:", style="bold cyan")
 
     sample_data = [
         {"id": 1, "name": "Alice", "department": "Engineering", "salary": "100000"},
@@ -365,8 +339,8 @@ def main() -> None:
     import_from_csv(csv_file)
 
     # Example 2: Binary files
-    cli.formatters.print("\n" + "=" * 70, style="bold blue")
-    cli.formatters.print("2. Binary File Processing:", style="bold cyan")
+    cli.print("\n" + "=" * 70, style="bold blue")
+    cli.print("2. Binary File Processing:", style="bold cyan")
 
     # Create a sample binary file
     binary_input = temp_dir / "input.bin"
@@ -376,8 +350,8 @@ def main() -> None:
     process_binary_file(binary_input, binary_output)
 
     # Example 3: Auto-format detection
-    cli.formatters.print("\n" + "=" * 70, style="bold blue")
-    cli.formatters.print("3. Auto-Format Detection:", style="bold cyan")
+    cli.print("\n" + "=" * 70, style="bold blue")
+    cli.print("3. Auto-Format Detection:", style="bold cyan")
 
     # Create test files in different formats
     test_config = {"app": "test", "version": "1.0", "debug": True}
@@ -392,8 +366,8 @@ def main() -> None:
     load_any_format_file(yaml_file)
 
     # Example 4: Multi-format export
-    cli.formatters.print("\n" + "=" * 70, style="bold blue")
-    cli.formatters.print("4. Multi-Format Export:", style="bold cyan")
+    cli.print("\n" + "=" * 70, style="bold blue")
+    cli.print("4. Multi-Format Export:", style="bold cyan")
 
     multi_data = [
         {"metric": "CPU", "value": "75%", "status": "OK"},
@@ -404,8 +378,8 @@ def main() -> None:
     export_data_multi_format(multi_data, temp_dir / "metrics")
 
     # Example 5: Text file processing
-    cli.formatters.print("\n" + "=" * 70, style="bold blue")
-    cli.formatters.print("5. Text File Processing:", style="bold cyan")
+    cli.print("\n" + "=" * 70, style="bold blue")
+    cli.print("5. Text File Processing:", style="bold cyan")
 
     text_input = temp_dir / "input.txt"
     text_output = temp_dir / "output.txt"
@@ -414,8 +388,8 @@ def main() -> None:
     process_text_file(text_input, text_output)
 
     # Example 6: File copy with verification
-    cli.formatters.print("\n" + "=" * 70, style="bold blue")
-    cli.formatters.print("6. File Copy with Verification:", style="bold cyan")
+    cli.print("\n" + "=" * 70, style="bold blue")
+    cli.print("6. File Copy with Verification:", style="bold cyan")
 
     # Recreate json_file for copy verification demo
     demo_config = {"app": "demo", "version": "2.0", "enabled": True}
@@ -428,27 +402,23 @@ def main() -> None:
 
     shutil.rmtree(temp_dir, ignore_errors=True)
 
-    cli.formatters.print("\n" + "=" * 70, style="bold blue")
-    cli.formatters.print(
-        "  ✅ Advanced File Format Examples Complete", style="bold green"
-    )
-    cli.formatters.print("=" * 70, style="bold blue")
+    cli.print("\n" + "=" * 70, style="bold blue")
+    cli.print("  ✅ Advanced File Format Examples Complete", style="bold green")
+    cli.print("=" * 70, style="bold blue")
 
     # Integration guide
-    cli.formatters.print("\n💡 Integration Tips:", style="bold cyan")
-    cli.formatters.print(
+    cli.print("\n💡 Integration Tips:", style="bold cyan")
+    cli.print(
         "  • CSV: Use read_csv_file_with_headers() for structured data", style="white"
     )
-    cli.formatters.print(
+    cli.print(
         "  • Binary: Use read_binary_file() for images, PDFs, etc.", style="white"
     )
-    cli.formatters.print(
-        "  • Auto-detect: Use load_file_auto() for flexible input", style="white"
-    )
-    cli.formatters.print(
+    cli.print("  • Auto-detect: Use load_file_auto() for flexible input", style="white")
+    cli.print(
         "  • Multi-format: Export to JSON, YAML, CSV simultaneously", style="white"
     )
-    cli.formatters.print(
+    cli.print(
         "  • Verification: Calculate checksums for integrity checks", style="white"
     )
 

@@ -82,8 +82,7 @@ def extract_strings_from_file(file_path: Path) -> list[dict]:
     try:
         with Path(file_path).open(encoding="utf-8") as f:
             content = f.read()
-    except Exception as e:
-        print(f"Error reading {file_path}: {e}")
+    except Exception:
         return []
 
     # Pattern to match string literals (handles both ' and " and escapes)
@@ -127,10 +126,6 @@ def extract_strings_from_file(file_path: Path) -> list[dict]:
 
 def main() -> None:
     """Main extraction process."""
-    print("🔍 Scanning flext-cli source code for hard-coded strings...")
-    print(f"Source directory: {SRC_DIR}")
-    print(f"Excluding: {', '.join(EXCLUDE_FILES)}\n")
-
     # Get all Python files
     py_files = sorted(SRC_DIR.glob("*.py"))
     py_files = [f for f in py_files if f.name not in EXCLUDE_FILES]
@@ -141,7 +136,6 @@ def main() -> None:
     total_strings = 0
 
     for py_file in py_files:
-        print(f"Scanning {py_file.name}...")
         strings = extract_strings_from_file(py_file)
 
         if strings:
@@ -169,16 +163,8 @@ def main() -> None:
         json.dump(report, f, indent=2, ensure_ascii=False)
 
     # Print summary
-    print("\n✅ Extraction complete!")
-    print("📊 Results:")
-    print(f"   Total files scanned: {len(py_files)}")
-    print(f"   Files with strings: {len(all_strings)}")
-    print(f"   Total strings found: {total_strings}")
-    print("\n📁 Category breakdown:")
-    for category, count in sorted(category_counts.items(), key=lambda x: -x[1]):
-        print(f"   {category:20s}: {count:4d} strings")
-    print(f"\n💾 Detailed analysis saved to: {output_path}")
-    print("\n⚠️  These strings MUST be moved to constants.py or typings.py!")
+    for _category, _count in sorted(category_counts.items(), key=lambda x: -x[1]):
+        pass
 
 
 if __name__ == "__main__":

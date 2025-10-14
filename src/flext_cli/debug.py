@@ -22,7 +22,7 @@ import sys
 import tempfile
 import uuid
 from datetime import UTC, datetime
-from typing import override
+from typing import cast, override
 
 from flext_core import FlextCore
 
@@ -51,25 +51,6 @@ class FlextCliDebug(FlextCore.Service[str]):
             FlextCliConstants.ServiceMessages.FLEXT_CLI_DEBUG_OPERATIONAL
         )
 
-    def get_system_info(
-        self,
-    ) -> FlextCore.Result[FlextCliTypes.Data.CliDataDict]:
-        """Get system information for debugging."""
-        try:
-            info = self._get_system_info()
-            # Convert to more specific type for better type safety
-            typed_info: FlextCliTypes.Data.CliDataDict = {}
-            for key, value in info.items():
-                if isinstance(value, (str, int, float, bool, type(None))):
-                    typed_info[key] = value
-                else:
-                    typed_info[key] = str(value)
-            return FlextCore.Result[FlextCliTypes.Data.CliDataDict].ok(typed_info)
-        except Exception as e:
-            return FlextCore.Result[FlextCliTypes.Data.CliDataDict].fail(
-                f"System info failed: {e}"
-            )
-
     def get_environment_variables(
         self,
     ) -> FlextCore.Result[FlextCliTypes.Data.CliDataDict]:
@@ -84,30 +65,6 @@ class FlextCliDebug(FlextCore.Service[str]):
         except Exception as e:
             return FlextCore.Result[FlextCliTypes.Data.CliDataDict].fail(
                 f"Environment info failed: {e}"
-            )
-
-    def get_system_paths(
-        self,
-    ) -> FlextCore.Result[list[FlextCliTypes.Data.CliDataDict]]:
-        """Get system path information."""
-        try:
-            paths = self._get_path_info()
-            # Convert to more specific type for better type safety
-            typed_paths: list[FlextCliTypes.Data.CliDataDict] = []
-            for path_dict in paths:
-                typed_path: FlextCliTypes.Data.CliDataDict = {}
-                for key, value in path_dict.items():
-                    if isinstance(value, (str, int, float, bool, type(None))):
-                        typed_path[key] = value
-                    else:
-                        typed_path[key] = str(value)
-                typed_paths.append(typed_path)
-            return FlextCore.Result[list[FlextCliTypes.Data.CliDataDict]].ok(
-                typed_paths
-            )
-        except Exception as e:
-            return FlextCore.Result[list[FlextCliTypes.Data.CliDataDict]].fail(
-                f"Path info failed: {e}"
             )
 
     def validate_environment_setup(
@@ -195,6 +152,42 @@ class FlextCliDebug(FlextCore.Service[str]):
                 f"Debug info collection failed: {e}"
             )
 
+    def get_system_info(self) -> FlextCore.Result[FlextCliTypes.Data.CliDataDict]:
+        """Get system information - public API method.
+
+        Returns:
+            FlextCore.Result[FlextCliTypes.Data.CliDataDict]: System information or error
+
+        """
+        try:
+            info = self._get_system_info()
+            # Type-safe cast: _get_system_info returns dict with JSON-compatible values
+            # (str, tuple of str) which are valid JsonValue types
+            typed_info = cast("FlextCliTypes.Data.CliDataDict", info)
+            return FlextCore.Result[FlextCliTypes.Data.CliDataDict].ok(typed_info)
+        except Exception as e:
+            return FlextCore.Result[FlextCliTypes.Data.CliDataDict].fail(
+                f"System info collection failed: {e}"
+            )
+
+    def get_system_paths(self) -> FlextCore.Result[FlextCliTypes.Data.CliDataDict]:
+        """Get system paths - public API method.
+
+        Returns:
+            FlextCore.Result[FlextCliTypes.Data.CliDataDict]: System paths or error
+
+        """
+        try:
+            paths = self._get_path_info()
+            # Type-safe cast: paths is list[dict] with JSON-compatible values
+            paths_list = cast("list[object]", paths)
+            typed_paths: FlextCliTypes.Data.CliDataDict = {"paths": paths_list}
+            return FlextCore.Result[FlextCliTypes.Data.CliDataDict].ok(typed_paths)
+        except Exception as e:
+            return FlextCore.Result[FlextCliTypes.Data.CliDataDict].fail(
+                f"System paths collection failed: {e}"
+            )
+
     def get_comprehensive_debug_info(
         self,
     ) -> FlextCore.Result[Types.Data.DebugInfoData]:
@@ -230,8 +223,8 @@ class FlextCliDebug(FlextCore.Service[str]):
             else:
                 comprehensive_info["debug_error"] = debug_result.error
 
-            # Type narrowing: comprehensive_info is FlextCore.Types.Dict which is compatible with DebugInfoData
-            typed_comprehensive_info: Types.Data.DebugInfoData = comprehensive_info  # type: ignore[assignment]
+            # Type-safe cast: comprehensive_info contains only JSON-compatible values
+            typed_comprehensive_info = cast("Types.Data.DebugInfoData", comprehensive_info)
             return FlextCore.Result[Types.Data.DebugInfoData].ok(
                 typed_comprehensive_info
             )
