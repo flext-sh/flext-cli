@@ -152,7 +152,7 @@ def main() -> None:
             "total_files_scanned": len(py_files),
             "files_with_strings": len(all_strings),
             "total_strings": total_strings,
-            "category_breakdown": dict(category_counts),
+            "category_breakdown": dict[str, object](category_counts),
         },
         "strings_by_file": all_strings,
     }

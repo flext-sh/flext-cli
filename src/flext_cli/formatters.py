@@ -107,7 +107,7 @@ class FlextCliFormatters:
 
             # Add rows if data provided
             if data and isinstance(data, dict):
-                # Simple dict to table conversion - key-value pairs for 2-column tables
+                # Simple dict[str, object] to table conversion - key-value pairs for 2-column tables
                 table_key_value_columns = 2
                 if headers and len(headers) == table_key_value_columns:
                     # Key-value pairs

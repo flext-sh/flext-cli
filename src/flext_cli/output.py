@@ -22,13 +22,11 @@ from typing import override
 
 import yaml
 from flext_core import FlextCore
-from rich.progress import Progress
-from rich.table import Table as RichTable
-from rich.tree import Tree as RichTree
 
 from flext_cli.constants import FlextCliConstants
 from flext_cli.formatters import FlextCliFormatters
 from flext_cli.tables import FlextCliTables
+from flext_cli.typings import FlextCliTypes
 
 
 class FlextCliOutput(FlextCore.Service[object]):
@@ -247,7 +245,7 @@ class FlextCliOutput(FlextCore.Service[object]):
 
     def table_to_string(
         self,
-        table: RichTable,
+        table: FlextCliTypes.Display.RichTable,
         width: int | None = None,
     ) -> FlextCore.Result[str]:
         """Convert table to string using FlextCliFormatters.
@@ -322,7 +320,7 @@ class FlextCliOutput(FlextCore.Service[object]):
         self,
         _description: str = "Processing...",
         _total: int = 100,
-    ) -> FlextCore.Result[Progress]:
+    ) -> FlextCore.Result[FlextCliTypes.Interactive.Progress]:
         """Create a Rich progress bar using FlextCliFormatters.
 
         Args:
@@ -736,7 +734,7 @@ class FlextCliOutput(FlextCore.Service[object]):
             tree, width=FlextCliConstants.CliDefaults.DEFAULT_MAX_WIDTH
         )
 
-    def _build_tree(self, tree: RichTree, data: object) -> None:
+    def _build_tree(self, tree: FlextCliTypes.Display.RichTree, data: object) -> None:
         """Build tree recursively (helper for format_as_tree).
 
         Args:

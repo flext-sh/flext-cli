@@ -9,7 +9,16 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
+from collections.abc import Callable
+from typing import Any, cast
+
 from flext_core import FlextCore
+
+from flext_cli.typings import FlextCliTypes
+
+# Type definitions for processor functions
+type DataProcessor = Callable[[str], str]
+type ProcessorRegistry = dict[str, DataProcessor]
 
 
 class ExamplePlugin:
@@ -31,7 +40,7 @@ class ExamplePlugin:
     def __init__(self) -> None:
         """Initialize plugin."""
         self._initialized = False
-        self._config: dict[str, object] = {}
+        self._config: FlextCliTypes.Data.CliDataDict = {}
 
     def initialize(self, _cli_main: object) -> FlextCore.Result[None]:
         """Initialize the plugin.
@@ -69,8 +78,11 @@ class ExamplePlugin:
 
         """
         try:
+            # Cast cli_main to Any for decorator usage (runtime type is correct)
+            cli_main_typed = cast("Any", cli_main)
+
             # Register command group
-            @cli_main.group()
+            @cli_main_typed.group()
             def example() -> None:
                 """Example plugin commands."""
 
@@ -112,7 +124,7 @@ class DataProcessorPlugin:
 
     def __init__(self) -> None:
         """Initialize data processor plugin."""
-        self._processors: dict[str, object] = {}
+        self._processors: ProcessorRegistry = {}
 
     def initialize(self, _cli_main: object) -> FlextCore.Result[None]:
         """Initialize the plugin.
@@ -148,8 +160,10 @@ class DataProcessorPlugin:
 
         """
         try:
+            # Cast cli_main to Any for decorator usage (runtime type is correct)
+            cli_main_typed = cast("Any", cli_main)
 
-            @cli_main.group()
+            @cli_main_typed.group()
             def data() -> None:
                 """Data processing commands."""
 
@@ -163,7 +177,9 @@ class DataProcessorPlugin:
 
                 """
                 if format_type in self._processors:
-                    self._processors[format_type](input_data)
+                    # Processor is already properly typed
+                    processor: DataProcessor = self._processors[format_type]
+                    processor(input_data)
 
             @data.command()
             def formats() -> None:

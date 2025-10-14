@@ -29,8 +29,10 @@ from __future__ import annotations
 
 import tempfile
 from pathlib import Path
+from typing import cast
 
 from flext_cli import FlextCli
+from flext_cli.typings import FlextCliTypes
 
 # Initialize once - reuse everywhere
 cli = FlextCli.get_instance()
@@ -56,11 +58,14 @@ def your_function_after() -> None:
 # ============================================================================
 
 
-def display_user_data(user: dict) -> None:
+def display_user_data(user: FlextCliTypes.Data.CliDataDict) -> None:
     """Show how to display YOUR data as a table."""
     # Your data (from database, API, etc.)
+    # Cast to expected type for table creation
     table_result = cli.create_table(
-        data=user, headers=["Field", "Value"], title="User Information"
+        data=user,
+        headers=["Field", "Value"],
+        title="User Information",
     )
 
     if table_result.is_success:
@@ -72,7 +77,7 @@ def display_user_data(user: dict) -> None:
 # ============================================================================
 
 
-def save_config(config: dict, filepath: str) -> bool:
+def save_config(config: FlextCliTypes.Data.CliDataDict, filepath: str) -> bool:
     """Save YOUR config to JSON with proper error handling."""
     write_result = cli.file_tools.write_json_file(filepath, config)
 
@@ -84,7 +89,7 @@ def save_config(config: dict, filepath: str) -> bool:
     return True
 
 
-def load_config(filepath: str) -> dict | None:
+def load_config(filepath: str) -> FlextCliTypes.Data.CliDataDict | None:
     """Load YOUR config from JSON with error handling."""
     read_result = cli.file_tools.read_json_file(filepath)
 
@@ -95,7 +100,8 @@ def load_config(filepath: str) -> dict | None:
     # Type narrowing: ensure we return a dict
     data = read_result.unwrap()
     if isinstance(data, dict):
-        return data
+        # Cast to expected type (runtime type is compatible)
+        return cast("FlextCliTypes.Data.CliDataDict", data)
     return None
 
 
@@ -138,13 +144,17 @@ def main() -> None:
 
     # Example 2: Tables
     cli.print("\n2. Display Data as Tables:", style="bold cyan")
-    user_data = {"name": "Alice", "email": "alice@example.com", "role": "REDACTED_LDAP_BIND_PASSWORD"}
+    user_data: FlextCliTypes.Data.CliDataDict = {
+        "name": "Alice",
+        "email": "alice@example.com",
+        "role": "REDACTED_LDAP_BIND_PASSWORD",
+    }
     display_user_data(user_data)
 
     # Example 3: File I/O
     cli.print("\n3. File Operations:", style="bold cyan")
     temp_file = Path(tempfile.gettempdir()) / "my_config.json"
-    config = {"app": "my-cli-tool", "version": "1.0.0"}
+    config: FlextCliTypes.Data.CliDataDict = {"app": "my-cli-tool", "version": "1.0.0"}
 
     save_config(config, str(temp_file))
     loaded = load_config(str(temp_file))

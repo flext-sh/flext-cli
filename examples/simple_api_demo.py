@@ -108,7 +108,7 @@ def main() -> None:
     # Read
     read_result = cli.file_tools.read_json_file(temp_file)
     if read_result.is_success:
-        # Narrow type - we know it's a dict from our write operation
+        # Narrow type - we know it's a dict[str, object] from our write operation
         read_data = read_result.unwrap()
         if isinstance(read_data, dict):
             cli.print(

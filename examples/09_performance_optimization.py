@@ -27,10 +27,12 @@ import pathlib
 import tempfile
 import time
 from functools import lru_cache
+from typing import cast
 
 from flext_core import FlextCore
 
 from flext_cli import FlextCli, FlextCliTables
+from flext_cli.typings import FlextCliTypes
 
 cli = FlextCli.get_instance()
 
@@ -91,6 +93,7 @@ class LazyDataLoader:
 
     def __init__(self) -> None:
         """Initialize lazy data loader with deferred data loading."""
+        super().__init__()
         self._data: FlextCore.Types.IntList | None = None  # Not loaded yet
 
     @property
@@ -125,7 +128,9 @@ def demonstrate_lazy_loading() -> None:
 # ============================================================================
 
 
-def efficient_table_display(large_dataset: list[dict]) -> None:
+def efficient_table_display(
+    large_dataset: list[FlextCliTypes.Data.CliDataDict],
+) -> None:
     """Display large tables efficiently in YOUR CLI."""
     # ✅ Show only necessary rows
     preview_size = 10
@@ -139,7 +144,9 @@ def efficient_table_display(large_dataset: list[dict]) -> None:
     preview_data = large_dataset[:preview_size]
 
     tables = FlextCliTables()
-    table_result = tables.create_table(preview_data, table_format="simple")
+    # Cast to expected type for table creation
+    preview_for_table = cast("list[dict[str, object]]", preview_data)
+    table_result = tables.create_table(preview_for_table, table_format="simple")
 
     if table_result.is_success:
         cli.print(f"   ... ({total - preview_size} more rows)", style="yellow")
@@ -150,7 +157,7 @@ def efficient_table_display(large_dataset: list[dict]) -> None:
 # ============================================================================
 
 
-def process_large_dataset(items: list, batch_size: int = 100) -> None:
+def process_large_dataset(items: list[int], batch_size: int = 100) -> None:
     """Process large datasets in batches in YOUR CLI."""
     cli.print(f"\n🔄 Batch Processing ({len(items)} items):", style="bold cyan")
 
@@ -219,12 +226,14 @@ def main() -> None:
 
     # Example 4: Efficient tables
     cli.print("\n4. Efficient Table Display:", style="bold cyan")
-    large_data = [{"id": i, "name": f"Item {i}"} for i in range(1000)]
+    large_data: list[FlextCliTypes.Data.CliDataDict] = [
+        {"id": i, "name": f"Item {i}"} for i in range(1000)
+    ]
     efficient_table_display(large_data)
 
     # Example 5: Batch processing
     cli.print("\n5. Batch Processing:", style="bold cyan")
-    items = list(range(500))
+    items: list[int] = list(range(500))
     process_large_dataset(items, batch_size=100)
 
     # Example 6: File streaming

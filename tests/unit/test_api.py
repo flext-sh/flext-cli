@@ -66,7 +66,7 @@ class TestFlextCli:
 
     def test_format_data_table(self, api_service: FlextCli) -> None:
         """Test table data formatting functionality."""
-        test_data: list[dict[str, str | int]] = [
+        test_data: list[FlextCliTypes.Data.CliDataDict] = [
             {"name": "John", "age": 30, "city": "New York"},
             {"name": "Jane", "age": 25, "city": "London"},
             {"name": "Bob", "age": 35, "city": "Paris"},
@@ -85,7 +85,7 @@ class TestFlextCli:
 
     def test_format_data_json(self, api_service: FlextCli) -> None:
         """Test JSON data formatting functionality."""
-        test_data: dict[str, str | int | FlextCore.Types.IntList] = {
+        test_data: FlextCliTypes.Data.CliDataDict = {
             "key": "value",
             "number": 42,
             "list": [1, 2, 3],
@@ -105,7 +105,7 @@ class TestFlextCli:
 
     def test_format_data_yaml(self, api_service: FlextCli) -> None:
         """Test YAML data formatting functionality."""
-        test_data: dict[str, str | int | FlextCore.Types.IntList] = {
+        test_data: FlextCliTypes.Data.CliDataDict = {
             "key": "value",
             "number": 42,
             "list": [1, 2, 3],
@@ -336,7 +336,7 @@ class TestFlextCli:
         """Test configuration loading functionality."""
         # Create test config file
         config_file = temp_dir / "test_config.json"
-        test_config: dict[str, bool | str | int] = {
+        test_config: FlextCliTypes.Data.CliDataDict = {
             "debug": True,
             "output_format": "json",
             "timeout": FlextCliConstants.TIMEOUTS.DEFAULT,
@@ -445,7 +445,7 @@ nested:
 
     def test_serialize_yaml(self, api_service: FlextCli, temp_dir: Path) -> None:
         """Test YAML serialization functionality."""
-        test_data: dict[str, str | int | FlextCore.Types.IntList | dict[str, str]] = {
+        test_data: FlextCliTypes.Data.CliDataDict = {
             "key": "value",
             "number": 42,
             "list": [1, 2, 3],

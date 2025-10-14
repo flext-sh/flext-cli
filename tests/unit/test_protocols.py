@@ -11,7 +11,7 @@ from __future__ import annotations
 
 import threading
 import time
-from typing import Protocol, TypeVar, runtime_checkable
+from typing import Protocol, runtime_checkable
 
 import pytest
 
@@ -128,14 +128,14 @@ class TestFlextCliProtocols:
         @runtime_checkable
         class ValidationProtocol(Protocol):
             def validate_input(self, data: str) -> bool: ...
-            def process_data(self, data: str) -> dict: ...
+            def process_data(self, data: str) -> dict[str, object]: ...
 
         # Compliant implementation
         class CompliantImplementation:
             def validate_input(self, data: str) -> bool:
                 return len(data) > 0
 
-            def process_data(self, data: str) -> dict:
+            def process_data(self, data: str) -> dict[str, object]:
                 return {"processed": data, "length": len(data)}
 
         # Non-compliant implementation (missing method)
@@ -159,14 +159,14 @@ class TestFlextCliProtocols:
         @runtime_checkable
         class SignatureProtocol(Protocol):
             def calculate(self, a: int, b: int) -> int: ...
-            def format_data(self, data: dict) -> str: ...
+            def format_data(self, data: dict[str, object]) -> str: ...
 
         # Correct implementation
         class CorrectImplementation:
             def calculate(self, a: int, b: int) -> int:
                 return a + b
 
-            def format_data(self, data: dict) -> str:
+            def format_data(self, data: dict[str, object]) -> str:
                 return str(data)
 
         # Incorrect implementation (wrong signature)
@@ -174,7 +174,7 @@ class TestFlextCliProtocols:
             def calculate(self, a: str, b: str) -> str:  # Wrong types
                 return a + b
 
-            def format_data(self, data: list) -> str:  # Wrong type
+            def format_data(self, data: list[object]) -> str:  # Wrong type
                 return str(data)
 
         # Test signature validation
@@ -248,13 +248,6 @@ class TestFlextCliProtocols:
 
     def test_generic_protocols(self) -> None:
         """Test generic protocols functionality."""
-        T = TypeVar("T")
-
-        # Define generic protocol
-        @runtime_checkable
-        class GenericProtocol(Protocol[T]):
-            def get_value(self) -> T: ...
-            def set_value(self, value: T) -> None: ...
 
         # Implement generic protocol with specific type
         class StringImplementation:
@@ -316,7 +309,7 @@ class TestFlextCliProtocols:
         class InspectionProtocol(Protocol):
             def method1(self) -> str: ...
             def method2(self, param: int) -> bool: ...
-            def method3(self, data: dict) -> list: ...
+            def method3(self, data: dict[str, object]) -> list: ...
 
         # Test protocol inspection
         # __protocol_attrs__ may not exist in all Python versions
@@ -329,7 +322,7 @@ class TestFlextCliProtocols:
         # Test method annotations (may be empty for protocols)
         annotations = InspectionProtocol.__annotations__
         # Protocols may not have annotations in __annotations__, so we just verify it exists
-        assert isinstance(annotations, dict)
+        assert isinstance(annotations, dict[str, object])
 
     # ========================================================================
     # PROTOCOL SCENARIOS
@@ -386,9 +379,13 @@ class TestFlextCliProtocols:
         # Define API client protocol
         @runtime_checkable
         class ApiClientProtocol(Protocol):
-            def get(self, endpoint: str) -> dict: ...
-            def post(self, endpoint: str, data: dict) -> dict: ...
-            def put(self, endpoint: str, data: dict) -> dict: ...
+            def get(self, endpoint: str) -> dict[str, object]: ...
+            def post(
+                self, endpoint: str, data: dict[str, object]
+            ) -> dict[str, object]: ...
+            def put(
+                self, endpoint: str, data: dict[str, object]
+            ) -> dict[str, object]: ...
             def delete(self, endpoint: str) -> bool: ...
 
         # Implement API client
@@ -396,10 +393,10 @@ class TestFlextCliProtocols:
             def __init__(self, base_url: str) -> None:
                 self.base_url = base_url
 
-            def get(self, endpoint: str) -> dict:
+            def get(self, endpoint: str) -> dict[str, object]:
                 return {"method": "GET", "endpoint": endpoint, "status": "success"}
 
-            def post(self, endpoint: str, data: dict) -> dict:
+            def post(self, endpoint: str, data: dict[str, object]) -> dict[str, object]:
                 return {
                     "method": "POST",
                     "endpoint": endpoint,
@@ -407,7 +404,7 @@ class TestFlextCliProtocols:
                     "status": "success",
                 }
 
-            def put(self, endpoint: str, data: dict) -> dict:
+            def put(self, endpoint: str, data: dict[str, object]) -> dict[str, object]:
                 return {
                     "method": "PUT",
                     "endpoint": endpoint,
@@ -438,23 +435,23 @@ class TestFlextCliProtocols:
         # Define data processor protocol
         @runtime_checkable
         class DataProcessorProtocol(Protocol):
-            def validate_input(self, data: dict) -> bool: ...
-            def transform_data(self, data: dict) -> dict: ...
-            def save_result(self, data: dict) -> bool: ...
+            def validate_input(self, data: dict[str, object]) -> bool: ...
+            def transform_data(self, data: dict[str, object]) -> dict[str, object]: ...
+            def save_result(self, data: dict[str, object]) -> bool: ...
 
         # Implement data processor
         class DataProcessor:
-            def validate_input(self, data: dict) -> bool:
+            def validate_input(self, data: dict[str, object]) -> bool:
                 return "id" in data and "name" in data
 
-            def transform_data(self, data: dict) -> dict:
+            def transform_data(self, data: dict[str, object]) -> dict[str, object]:
                 return {
                     "id": data["id"],
                     "name": data["name"].upper(),
                     "processed_at": "2025-01-01T00:00:00Z",
                 }
 
-            def save_result(self, data: dict) -> bool:
+            def save_result(self, data: dict[str, object]) -> bool:
                 return len(data) > 0
 
         # Test data processor protocol
@@ -645,15 +642,15 @@ class TestFlextCliProtocols:
         # 1. Define multiple related protocols
         @runtime_checkable
         class DataSourceProtocol(Protocol):
-            def read_data(self) -> dict: ...
+            def read_data(self) -> dict[str, object]: ...
 
         @runtime_checkable
         class DataTransformerProtocol(Protocol):
-            def transform(self, data: dict) -> dict: ...
+            def transform(self, data: dict[str, object]) -> dict[str, object]: ...
 
         @runtime_checkable
         class DataSinkProtocol(Protocol):
-            def write_data(self, data: dict) -> bool: ...
+            def write_data(self, data: dict[str, object]) -> bool: ...
 
         # 2. Compose protocols
         @runtime_checkable
@@ -667,16 +664,16 @@ class TestFlextCliProtocols:
             def __init__(self) -> None:
                 self._data = {"raw": "data"}
 
-            def read_data(self) -> dict:
+            def read_data(self) -> dict[str, object]:
                 return self._data
 
-            def transform(self, data: dict) -> dict:
+            def transform(self, data: dict[str, object]) -> dict[str, object]:
                 return {
                     "processed": data["raw"].upper(),
                     "timestamp": "2025-01-01T00:00:00Z",
                 }
 
-            def write_data(self, data: dict) -> bool:
+            def write_data(self, data: dict[str, object]) -> bool:
                 return "processed" in data
 
             def run_pipeline(self) -> bool:

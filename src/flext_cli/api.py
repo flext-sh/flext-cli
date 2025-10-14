@@ -15,9 +15,6 @@ from collections.abc import Callable
 from pathlib import Path
 
 from flext_core import FlextCore
-from rich.progress import Progress
-from rich.table import Table
-from rich.tree import Tree
 
 from flext_cli.cli import FlextCliCli
 from flext_cli.cmd import FlextCliCmd
@@ -100,16 +97,16 @@ class FlextCli:
         data: FlextCliTypes.Data.CliDataDict | None = None,
         headers: FlextCore.Types.StringList | None = None,
         title: str | None = None,
-    ) -> FlextCore.Result[Table]:
+    ) -> FlextCore.Result[FlextCliTypes.Display.RichTable]:
         """Create table using formatters domain library.
 
         Returns:
-            FlextCore.Result[Table]: Rich Table wrapped in Result
+            FlextCore.Result[RichTable]: Rich Table wrapped in Result
 
         """
         return self._formatters.create_table(data=data, headers=headers, title=title)
 
-    def create_progress(self) -> FlextCore.Result[Progress]:
+    def create_progress(self) -> FlextCore.Result[FlextCliTypes.Interactive.Progress]:
         """Create progress bar using formatters domain library.
 
         Returns:
@@ -118,7 +115,9 @@ class FlextCli:
         """
         return self._formatters.create_progress()
 
-    def create_tree(self, label: str) -> FlextCore.Result[Tree]:
+    def create_tree(
+        self, label: str
+    ) -> FlextCore.Result[FlextCliTypes.Display.RichTree]:
         """Create tree using formatters domain library."""
         return self._formatters.create_tree(label=label)
 
@@ -183,7 +182,9 @@ class FlextCli:
         # For now, return self as utilities - this might need to be expanded later
         return self
 
-    def print_table(self, table: Table) -> FlextCore.Result[None]:
+    def print_table(
+        self, table: FlextCliTypes.Display.RichTable
+    ) -> FlextCore.Result[None]:
         """Print a Rich Table object using formatters domain library.
 
         Args:
@@ -312,7 +313,7 @@ class FlextCli:
                 )
             )
 
-        # Type guard: validate data is dict with "token" key
+        # Type guard: validate data is dict[str, object] with "token" key
         data = read_result.unwrap()
         if not isinstance(data, dict):
             return FlextCore.Result[str].fail("Token file must contain a JSON object")

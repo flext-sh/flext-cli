@@ -29,6 +29,7 @@ from pydantic import BaseModel, Field, field_validator
 
 from flext_cli import FlextCli
 from flext_cli.models import FlextCliModels
+from flext_cli.typings import FlextCliTypes
 
 cli = FlextCli.get_instance()
 
@@ -112,18 +113,20 @@ def demonstrate_auto_cli_generation() -> None:
 # ============================================================================
 
 
-def execute_deploy_from_cli(cli_args: dict) -> None:
+def execute_deploy_from_cli(cli_args: dict[str, str | int | bool]) -> None:
     """Convert CLI arguments to validated Pydantic model instance."""
     cli.print("\n🚀 Deploying with CLI Arguments:", style="bold cyan")
 
     try:
         # Pydantic automatically validates ALL constraints
+        # DeployConfig constructor handles type conversion and validation
         config = DeployConfig(**cli_args)
 
         cli.print("✅ Valid configuration:", style="green")
 
         # Display validated config
         config_dict = config.model_dump()
+        # Cast to expected type for table creation
         table_result = cli.create_table(
             data=config_dict,
             headers=["Parameter", "Value"],
@@ -164,7 +167,7 @@ def show_common_cli_params() -> None:
     )
 
     # These come from FlextCliConfig Pydantic fields
-    common_params = {
+    common_params: FlextCliTypes.Data.CliDataDict = {
         "verbose": "Enable verbose output (-v)",
         "quiet": "Suppress non-error output (-q)",
         "debug": "Enable debug mode (-d)",
@@ -241,12 +244,13 @@ def main() -> None:
 
     # Example 2: Execute with CLI args (simulated)
     cli.print("\n" + "=" * 70, style="bold blue")
-    test_args = {
+    test_args: dict[str, str | int | bool] = {
         "environment": "production",
         "workers": 8,
         "enable_cache": True,
         "timeout": 60,
     }
+    # test_args is already properly typed for the function
     execute_deploy_from_cli(test_args)
 
     # Example 3: Show common CLI params
@@ -263,7 +267,8 @@ def main() -> None:
 
     # Intentional invalid args to demonstrate validation - use object for flexible testing
 
-    invalid_args: dict[str, object] = {
+    # Use proper types for the invalid args to demonstrate validation
+    invalid_args: dict[str, str | int | bool] = {
         "environment": "invalid_env",  # Will fail validation!
         "workers": 4,
         "enable_cache": True,
@@ -271,6 +276,7 @@ def main() -> None:
     }
 
     try:
+        # DeployConfig constructor handles type conversion and validation
         DeployConfig(**invalid_args)
     except Exception as e:
         cli.print(f"   Caught validation error: {e}", style="yellow")

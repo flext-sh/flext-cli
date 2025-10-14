@@ -157,7 +157,7 @@ REPLACEMENTS = [
         "FlextCliConstants.ErrorMessages.NO_DATA_PROVIDED",
     ),
     (
-        r'"Table format requires dict or list of dicts"',
+        r'"Table format requires dict[str, object] or list of dicts"',
         "FlextCliConstants.ErrorMessages.TABLE_FORMAT_REQUIRED_DICT",
     ),
     (

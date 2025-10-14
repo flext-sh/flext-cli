@@ -337,7 +337,7 @@ def validate_data(data: dict) -> FlextCore.Result[dict]:
         return FlextCore.Result[dict].fail("Missing required field")
     return FlextCore.Result[dict].ok(data)
 
-def transform_data(data: dict) -> dict:
+def transform_data(data: dict) -> dict[str, object]:
     """Transformation step (can't fail)."""
     return {**data, "processed": True}
 ```
@@ -426,7 +426,7 @@ def validate_input(data: dict) -> FlextCore.Result[dict]:
         return FlextCore.Result[dict].fail("Data cannot be empty")
     return FlextCore.Result[dict].ok(data)
 
-def process_data(data: dict) -> dict:
+def process_data(data: dict) -> dict[str, object]:
     """Process data."""
     return {**data, "processed": True}
 

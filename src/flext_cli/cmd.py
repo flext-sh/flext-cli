@@ -289,7 +289,7 @@ class FlextCliCmd(FlextCore.Service[FlextCore.Types.Dict]):
                     f"Failed to load config: {load_result.error}"
                 )
 
-            # Ensure config_data is a dict with type guard
+            # Ensure config_data is a dict[str, object] with type guard
             if not isinstance(load_result.value, dict):
                 return FlextCore.Result[str].fail(
                     "Configuration data is not a valid dictionary"

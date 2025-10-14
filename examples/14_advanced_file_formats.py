@@ -31,8 +31,6 @@ import tempfile
 from pathlib import Path
 from typing import cast
 
-from flext_core import FlextCore
-
 from flext_cli import FlextCli, FlextCliTables
 from flext_cli.typings import FlextCliTypes
 
@@ -45,7 +43,9 @@ tables = FlextCliTables()
 # ============================================================================
 
 
-def export_to_csv(data: list[dict], output_file: Path) -> None:
+def export_to_csv(
+    data: list[FlextCliTypes.Data.CliDataDict], output_file: Path
+) -> None:
     """Export data to CSV with proper headers."""
     if not data:
         cli.print("⚠️  No data to export", style="yellow")
@@ -70,7 +70,7 @@ def export_to_csv(data: list[dict], output_file: Path) -> None:
         cli.print(f"❌ Export failed: {write_result.error}", style="bold red")
 
 
-def import_from_csv(input_file: Path) -> list[dict] | None:
+def import_from_csv(input_file: Path) -> list[FlextCliTypes.Data.CliDataDict] | None:
     """Import data from CSV with headers."""
     cli.print(f"\n📥 Importing from CSV: {input_file.name}", style="bold cyan")
 
@@ -88,14 +88,16 @@ def import_from_csv(input_file: Path) -> list[dict] | None:
     if rows:
         cli.print("\n📋 Sample Data:", style="yellow")
         # Cast to expected type
-        sample_rows: list[FlextCore.Types.Dict] = cast(
-            "list[FlextCore.Types.Dict]", rows[:5]
+        sample_rows: list[FlextCliTypes.Data.CliDataDict] = cast(
+            "list[FlextCliTypes.Data.CliDataDict]", rows[:5]
         )
+        # Cast to expected type for table creation
         table_result = tables.create_table(sample_rows, table_format="grid")
         if table_result.is_success:
             pass
 
-    return rows
+    # Cast to expected return type (runtime type is compatible)
+    return cast("list[FlextCliTypes.Data.CliDataDict]", rows)
 
 
 # ============================================================================
@@ -141,7 +143,7 @@ def process_binary_file(input_file: Path, output_file: Path) -> None:
 # ============================================================================
 
 
-def load_any_format_file(file_path: Path) -> dict | None:
+def load_any_format_file(file_path: Path) -> FlextCliTypes.Data.CliDataDict | None:
     """Load config from ANY format - automatically detected."""
     cli.print(f"\n🔍 Auto-Detecting Format: {file_path.name}", style="bold cyan")
 
@@ -170,7 +172,7 @@ def load_any_format_file(file_path: Path) -> dict | None:
     # Type narrowing: ensure we have a dict
     if not isinstance(data, dict):
         cli.print(
-            f"⚠️  Loaded data is not a dict (type: {type(data).__name__})",
+            f"⚠️  Loaded data is not a dict[str, object] (type: {type(data).__name__})",
             style="yellow",
         )
         return None
@@ -188,7 +190,8 @@ def load_any_format_file(file_path: Path) -> dict | None:
     if table_result.is_success:
         cli.print_table(table_result.unwrap())
 
-    return data
+    # Cast to expected return type (runtime type is compatible)
+    return cast("FlextCliTypes.Data.CliDataDict", data)
 
 
 # ============================================================================
@@ -197,7 +200,8 @@ def load_any_format_file(file_path: Path) -> dict | None:
 
 
 def export_data_multi_format(
-    data: dict | list[dict], base_path: Path
+    data: FlextCliTypes.Data.CliDataDict | list[FlextCliTypes.Data.CliDataDict],
+    base_path: Path,
 ) -> dict[str, str]:
     """Export same data to multiple formats (JSON, YAML, CSV)."""
     cli.print(f"\n💾 Multi-Format Export: {base_path.stem}", style="bold cyan")
@@ -335,7 +339,9 @@ def main() -> None:
     ]
 
     csv_file = temp_dir / "employees.csv"
-    export_to_csv(sample_data, csv_file)
+    # Cast to expected type for export function
+    typed_sample_data = cast("list[FlextCliTypes.Data.CliDataDict]", sample_data)
+    export_to_csv(typed_sample_data, csv_file)
     import_from_csv(csv_file)
 
     # Example 2: Binary files
@@ -369,12 +375,13 @@ def main() -> None:
     cli.print("\n" + "=" * 70, style="bold blue")
     cli.print("4. Multi-Format Export:", style="bold cyan")
 
-    multi_data = [
+    multi_data: list[FlextCliTypes.Data.CliDataDict] = [
         {"metric": "CPU", "value": "75%", "status": "OK"},
         {"metric": "Memory", "value": "82%", "status": "Warning"},
         {"metric": "Disk", "value": "45%", "status": "OK"},
     ]
 
+    # multi_data is already properly typed
     export_data_multi_format(multi_data, temp_dir / "metrics")
 
     # Example 5: Text file processing

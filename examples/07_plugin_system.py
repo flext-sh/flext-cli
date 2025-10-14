@@ -24,10 +24,12 @@ from __future__ import annotations
 
 import json
 from pathlib import Path
+from typing import cast
 
 from flext_core import FlextCore
 
 from flext_cli import FlextCli, FlextCliTables
+from flext_cli.typings import FlextCliTypes
 
 cli = FlextCli.get_instance()
 
@@ -42,10 +44,13 @@ class DataExportPlugin:
 
     def __init__(self) -> None:
         """Initialize data export plugin with name and version."""
+        super().__init__()
         self.name = "data-export"
         self.version = "1.0.0"
 
-    def execute(self, data: dict, output_format: str = "json") -> FlextCore.Result[str]:
+    def execute(
+        self, data: FlextCliTypes.Data.CliDataDict, output_format: str = "json"
+    ) -> FlextCore.Result[str]:
         """Execute plugin logic in YOUR application."""
         if output_format == "json":
             output = json.dumps(data, indent=2)
@@ -59,13 +64,18 @@ class ReportGeneratorPlugin:
 
     def __init__(self) -> None:
         """Initialize report generator plugin with name and version."""
+        super().__init__()
         self.name = "report-generator"
         self.version = "1.0.0"
 
-    def execute(self, data: list[dict]) -> FlextCore.Result[str]:
+    def execute(
+        self, data: list[FlextCliTypes.Data.CliDataDict]
+    ) -> FlextCore.Result[str]:
         """Generate report from data in YOUR CLI."""
         tables = FlextCliTables()
-        table_result = tables.create_table(data, table_format="grid")
+        # Cast to expected type for table creation
+        data_for_table = cast("list[dict[str, object]]", data)
+        table_result = tables.create_table(data_for_table, table_format="grid")
 
         if table_result.is_failure:
             return FlextCore.Result[str].fail(
@@ -87,6 +97,7 @@ class MyAppPluginManager:
 
     def __init__(self) -> None:
         """Initialize plugin manager with empty plugin registry."""
+        super().__init__()
         self.plugins: FlextCore.Types.Dict = {}
 
     def register_plugin(self, plugin: object) -> None:
@@ -121,11 +132,12 @@ class MyAppPluginManager:
             cli.print("⚠️  No plugins registered", style="yellow")
             return
 
-        plugin_data = {
+        plugin_data: FlextCliTypes.Data.CliDataDict = {
             name: getattr(plugin, "version", "1.0.0")
             for name, plugin in self.plugins.items()
         }
 
+        # Cast to expected type for table creation
         table_result = cli.create_table(
             data=plugin_data, headers=["Plugin", "Version"], title="Registered Plugins"
         )
@@ -171,19 +183,25 @@ def load_plugins_from_directory(plugin_dir: Path) -> MyAppPluginManager:
 class ConfigurablePlugin:
     """Example of configurable plugin for YOUR CLI."""
 
-    def __init__(self, config: dict) -> None:
+    def __init__(self, config: FlextCliTypes.Data.CliDataDict) -> None:
         """Initialize configurable plugin with configuration dictionary."""
+        super().__init__()
         self.name = "configurable-plugin"
         self.config = config
 
-    def execute(self) -> FlextCore.Result[dict]:
+    def execute(self) -> FlextCore.Result[FlextCliTypes.Data.CliDataDict]:
         """Execute with configuration in YOUR CLI."""
         cli.print(f"🔧 Plugin config: {self.config}", style="cyan")
 
         # Your plugin logic using config
-        result_data = {"plugin": self.name, "config_applied": True, **self.config}
+        result_data: FlextCliTypes.Data.CliDataDict = {
+            "plugin": self.name,
+            "config_applied": True,
+        }
+        result_data.update(self.config)
 
-        return FlextCore.Result[dict].ok(result_data)
+        # Cast to expected type (runtime type is compatible)
+        return FlextCore.Result[FlextCliTypes.Data.CliDataDict].ok(result_data)
 
 
 # ============================================================================
@@ -196,6 +214,7 @@ class LifecyclePlugin:
 
     def __init__(self) -> None:
         """Initialize lifecycle plugin with initialization state tracking."""
+        super().__init__()
         self.name = "lifecycle-plugin"
         self.initialized = False
 
@@ -246,7 +265,11 @@ def main() -> None:
 
     # Example 3: Execute plugin
     cli.print("\n3. Execute Plugin (data export):", style="bold cyan")
-    test_data = {"id": 1, "name": "Test", "status": "active"}
+    test_data: FlextCliTypes.Data.CliDataDict = {
+        "id": 1,
+        "name": "Test",
+        "status": "active",
+    }
     export_result = manager.execute_plugin("data-export", data=test_data, format="json")
     if export_result.is_success:
         result_value = export_result.unwrap()
@@ -255,7 +278,7 @@ def main() -> None:
 
     # Example 4: Report plugin
     cli.print("\n4. Report Plugin (table generation):", style="bold cyan")
-    report_data = [
+    report_data: list[FlextCliTypes.Data.CliDataDict] = [
         {"metric": "Users", "value": "1,234"},
         {"metric": "Orders", "value": "567"},
     ]
@@ -263,7 +286,7 @@ def main() -> None:
 
     # Example 5: Plugin with config
     cli.print("\n5. Configurable Plugin:", style="bold cyan")
-    config = {"theme": "dark", "verbose": True}
+    config: FlextCliTypes.Data.CliDataDict = {"theme": "dark", "verbose": True}
     config_plugin = ConfigurablePlugin(config)
     config_result = config_plugin.execute()
     if config_result.is_success:

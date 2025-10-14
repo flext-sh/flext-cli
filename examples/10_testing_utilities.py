@@ -29,10 +29,12 @@ from __future__ import annotations
 
 import tempfile
 from pathlib import Path
+from typing import cast
 
 from flext_core import FlextCore
 
 from flext_cli import FlextCli, FlextCliPrompts
+from flext_cli.typings import FlextCliTypes
 
 cli = FlextCli.get_instance()
 
@@ -75,7 +77,9 @@ def test_cli_command() -> None:
 # ============================================================================
 
 
-def save_config_command(config: dict) -> FlextCore.Result[None]:
+def save_config_command(
+    config: FlextCliTypes.Data.CliDataDict,
+) -> FlextCore.Result[None]:
     """CLI command that saves config."""
     temp_file = Path(tempfile.gettempdir()) / "test_config.json"
 
@@ -91,7 +95,9 @@ def test_file_operations() -> None:
     cli.print("\n📄 Testing File Operations:", style="bold cyan")
 
     # Test save
-    config = {"test": True, "value": 123}
+    config_data = {"test": True, "value": 123}
+    # Cast to expected type (runtime type is compatible)
+    config = cast("FlextCliTypes.Data.CliDataDict", config_data)
     result = save_config_command(config)
 
     assert result.is_success, "Config save should succeed"
@@ -104,7 +110,7 @@ def test_file_operations() -> None:
 
     assert read_result.is_success, "Config read should succeed"
     loaded = read_result.unwrap()
-    # Type narrowing for dict access
+    # Type narrowing for dict[str, object] access
     if isinstance(loaded, dict):
         assert loaded.get("test") is True, "Config value mismatch"
     cli.print("   ✅ File read test passed", style="green")
@@ -190,30 +196,36 @@ def test_error_scenarios() -> None:
 # ============================================================================
 
 
-def full_workflow_command() -> FlextCore.Result[dict]:
+def full_workflow_command() -> FlextCore.Result[FlextCliTypes.Data.CliDataDict]:
     """Complete workflow to test."""
     # Step 1: Create data
-    data = {"status": "processing", "items": [1, 2, 3]}
+    data: FlextCliTypes.Data.CliDataDict = {"status": "processing", "items": [1, 2, 3]}
 
     # Step 2: Save to file
     temp_file = Path(tempfile.gettempdir()) / "workflow_test.json"
     write_result = cli.file_tools.write_json_file(temp_file, data)
 
     if write_result.is_failure:
-        return FlextCore.Result[dict].fail(f"Write failed: {write_result.error}")
+        return FlextCore.Result[FlextCliTypes.Data.CliDataDict].fail(
+            f"Write failed: {write_result.error}"
+        )
 
     # Step 3: Read back
     read_result = cli.file_tools.read_json_file(temp_file)
 
     if read_result.is_failure:
         temp_file.unlink(missing_ok=True)
-        return FlextCore.Result[dict].fail(f"Read failed: {read_result.error}")
+        return FlextCore.Result[FlextCliTypes.Data.CliDataDict].fail(
+            f"Read failed: {read_result.error}"
+        )
 
     # Step 4: Process - type narrowing needed
     loaded = read_result.unwrap()
     if not isinstance(loaded, dict):
         temp_file.unlink(missing_ok=True)
-        return FlextCore.Result[dict].fail("Data is not a dictionary")
+        return FlextCore.Result[FlextCliTypes.Data.CliDataDict].fail(
+            "Data is not a dictionary"
+        )
 
     loaded["status"] = "completed"
     loaded["processed"] = True
@@ -221,7 +233,9 @@ def full_workflow_command() -> FlextCore.Result[dict]:
     # Cleanup
     temp_file.unlink(missing_ok=True)
 
-    return FlextCore.Result[dict].ok(loaded)
+    # Cast to expected type (runtime type is compatible)
+    typed_data = cast("FlextCliTypes.Data.CliDataDict", loaded)
+    return FlextCore.Result[FlextCliTypes.Data.CliDataDict].ok(typed_data)
 
 
 def test_integration() -> None:

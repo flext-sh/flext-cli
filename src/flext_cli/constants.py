@@ -442,7 +442,7 @@ class FlextCliConstants(FlextCore.Constants):
         # Validation errors
         NO_DATA_PROVIDED: Final[str] = "No data provided for table"
         TABLE_FORMAT_REQUIRED_DICT: Final[str] = (
-            "Table format requires dict or list of dicts"
+            "Table format requires dict[str, object] or list of dicts"
         )
         UNSUPPORTED_FORMAT_TYPE: Final[str] = "Unsupported format type: {format_type}"
         CREATE_FORMATTER_FAILED: Final[str] = "Failed to create formatter: {error}"

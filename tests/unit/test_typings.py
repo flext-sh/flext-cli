@@ -129,6 +129,7 @@ class TestFlextCliTypes:
         # Define generic classes
         class Container(Generic[t]):
             def __init__(self, value: t) -> None:
+                super().__init__()
                 self.value = value
 
             def get_value(self) -> t:
@@ -139,6 +140,7 @@ class TestFlextCliTypes:
 
         class KeyValueStore(Generic[k, v]):
             def __init__(self) -> None:
+                super().__init__()
                 self._store: dict[k, v] = {}
 
             def set(self, key: k, value: v) -> None:
@@ -373,7 +375,7 @@ class TestFlextCliTypes:
         user_response = create_user_response(user_data)
         assert isinstance(user_response, dict)
         assert user_response.get("status") == "success"
-        data = cast("UserData | list[UserData]", user_response.get("data", {}))
+        data = user_response.get("data", {})
         assert isinstance(data, dict)
         assert data.get("name") == "John Doe"
         assert user_response.get("message") == "User created successfully"
@@ -387,14 +389,7 @@ class TestFlextCliTypes:
 
     def test_data_processing_type_scenario(self) -> None:
         """Test data processing type scenario."""
-        t = TypeVar("t")
-
         # Define data processing protocol
-        @runtime_checkable
-        class DataProcessor(Protocol[t]):
-            def validate(self, data: t) -> bool: ...
-            def transform(self, data: t) -> t: ...
-            def process(self, data: t) -> t: ...
 
         # Implement data processor
         class StringProcessor:
@@ -659,7 +654,7 @@ class TestFlextCliTypes:
         result = handle_edge_cases(math.pi)
         assert result.startswith("3.14")
         assert handle_edge_cases([]) == "Empty"  # Empty list is falsy
-        assert handle_edge_cases({}) == "Empty"  # Empty dict is falsy
+        assert handle_edge_cases({}) == "Empty"  # Empty dict[str, object] is falsy
 
     def test_type_concurrent_access(self) -> None:
         """Test type concurrent access."""
@@ -705,14 +700,9 @@ class TestFlextCliTypes:
             value: str | int | float
             active: bool
 
-        @runtime_checkable
-        class DataProcessor(Protocol[T]):
-            def validate(self, data: T) -> bool: ...
-            def transform(self, data: T) -> T: ...
-            def process(self, data: T) -> T: ...
-
         class DataContainer(Generic[T]):
             def __init__(self, data: T) -> None:
+                super().__init__()
                 self.data = data
 
             def get_data(self) -> T:
