@@ -64,13 +64,12 @@ class FlextCliPrompts(FlextCore.Service[FlextCliTypes.Data.CliDataDict]):
         data["quiet"] = quiet
         data["default_timeout"] = default_timeout
 
-        # Pass logger to parent via logger_instance parameter if provided
-        if logger:
-            data[FlextCliConstants.DictKeys.LOGGER_INSTANCE] = logger
+        # Do NOT add logger_instance to data - Pydantic strict mode rejects it
+        # FlextCore.Service creates its own logger internally
 
         super().__init__(**data)
 
-        # Initialize logger - inherited from FlextCore.Service via FlextCore.Mixins
+        # Initialize logger - use provided logger or create new one
         self._logger = logger or FlextCore.Logger(__name__)
 
         # Initialize private prompt history (PrivateAttr default_factory handles this automatically)

@@ -93,7 +93,10 @@ def import_from_csv(input_file: Path) -> list[FlextCliTypes.Data.CliDataDict] | 
             "list[FlextCliTypes.Data.CliDataDict]", rows[:5]
         )
         # Cast to expected type for table creation
-        table_result = tables.create_table(sample_rows, table_format="grid")
+        table_result = tables.create_table(
+            sample_rows,
+            table_format="grid",
+        )
         if table_result.is_success:
             pass
 
@@ -173,7 +176,7 @@ def load_any_format_file(file_path: Path) -> FlextCliTypes.Data.CliDataDict | No
     # Type narrowing: ensure we have a dict
     if not isinstance(data, dict):
         cli.print(
-            f"⚠️  Loaded data is not a dict[str, object] (type: {type(data).__name__})",
+            f"⚠️  Loaded data is not a dict[str, FlextCore.Types.JsonValue] (type: {type(data).__name__})",
             style="yellow",
         )
         return None

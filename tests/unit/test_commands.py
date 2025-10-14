@@ -230,7 +230,7 @@ class TestFlextCliCommands:
         )
         assert result.is_success
         group = result.unwrap()
-        assert hasattr(group, "name")
+        assert isinstance(group, FlextCliCommands._CliGroup)
         assert group.name == "test_group"
         assert hasattr(group, "description")
         assert hasattr(group, "commands")

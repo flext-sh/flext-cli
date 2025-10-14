@@ -147,7 +147,10 @@ def export_database_report(
     """Export database query results in YOUR reporting tool."""
     # Create ASCII table (for logs, emails, markdown docs)
     # Cast to expected type for table creation
-    table_result = tables.create_table(records, table_format=format_type)
+    table_result = tables.create_table(
+        records,
+        table_format=format_type,
+    )
 
     if table_result.is_failure:
         cli.print(f"❌ Table creation failed: {table_result.error}", style="bold red")
@@ -190,7 +193,10 @@ def list_project_files(project_dir: Path) -> None:
         # files_data is already properly typed
         sample_data: list[FlextCliTypes.Data.CliDataDict] = files_data[:20]
         # Cast to expected type for table creation
-        table_result = tables.create_table(sample_data, table_format="grid")
+        table_result = tables.create_table(
+            sample_data,
+            table_format="grid",
+        )
         if table_result.is_success:
             cli.print(f"\n📁 Directory: {project_dir.name}", style="bold cyan")
             # tables.create_table returns string, use cli.print
@@ -258,7 +264,7 @@ def validate_and_import_data(input_file: Path) -> FlextCliTypes.Data.CliDataDict
         return None
 
     # Cast to expected type for validation function
-    validated = validate_structure(data)
+    validated = validate_structure(cast("FlextCliTypes.Data.CliDataDict", data))
 
     if validated.is_failure:
         cli.print(f"❌ Validation failed: {validated.error}", style="bold red")
@@ -367,7 +373,10 @@ def import_from_csv(input_file: Path) -> list[FlextCliTypes.Data.CliDataDict] | 
             "list[FlextCliTypes.Data.CliDataDict]", rows[:5]
         )
         # Cast to expected type for table creation
-        table_result = tables.create_table(sample_rows, table_format="grid")
+        table_result = tables.create_table(
+            sample_rows,
+            table_format="grid",
+        )
         if table_result.is_success:
             cli.print("\n📋 Sample Data:", style="yellow")
 

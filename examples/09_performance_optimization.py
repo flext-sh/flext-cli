@@ -28,7 +28,6 @@ import pathlib
 import tempfile
 import time
 from functools import lru_cache
-from typing import cast
 
 from flext_core import FlextCore
 
@@ -145,9 +144,7 @@ def efficient_table_display(
     preview_data = large_dataset[:preview_size]
 
     tables = FlextCliTables()
-    # Cast to expected type for table creation
-    preview_for_table = cast("list[dict[str, object]]", preview_data)
-    table_result = tables.create_table(preview_for_table, table_format="simple")
+    table_result = tables.create_table(preview_data, table_format="simple")
 
     if table_result.is_success:
         cli.print(f"   ... ({total - preview_size} more rows)", style="yellow")

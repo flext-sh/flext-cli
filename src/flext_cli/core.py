@@ -228,8 +228,8 @@ class FlextCliCore(FlextCore.Service[FlextCliTypes.Data.CliDataDict]):
 
         try:
             # Merge with existing configuration
-            # Type guard: _config is always initialized as dict[str, object] in __init__
-            if isinstance(self._config, dict):
+            # Check if _config is properly initialized (not empty dict)
+            if isinstance(self._config, dict) and self._config:
                 self._config.update(config)
                 self.logger.info(FlextCliConstants.LogMessages.CLI_CONFIG_UPDATED)
                 return FlextCore.Result[None].ok(None)
@@ -251,8 +251,8 @@ class FlextCliCore(FlextCore.Service[FlextCliTypes.Data.CliDataDict]):
 
         """
         try:
-            # Type guard: _config is always initialized as dict[str, object] in __init__
-            if isinstance(self._config, dict):
+            # Check if _config is properly initialized (not empty dict)
+            if isinstance(self._config, dict) and self._config:
                 return FlextCore.Result[FlextCliTypes.Configuration.CliConfigSchema].ok(
                     self._config,
                 )
@@ -290,8 +290,8 @@ class FlextCliCore(FlextCore.Service[FlextCliTypes.Data.CliDataDict]):
             )
 
         try:
-            # Type guard: _config is always initialized as dict[str, object] in __init__
-            if not isinstance(self._config, dict):
+            # Check if _config is properly initialized (not empty dict)
+            if not (isinstance(self._config, dict) and self._config):
                 return FlextCore.Result[None].fail(
                     FlextCliConstants.ErrorMessages.CONFIG_NOT_INITIALIZED
                 )
@@ -557,20 +557,34 @@ class FlextCliCore(FlextCore.Service[FlextCliTypes.Data.CliDataDict]):
             demonstrating how flext-cli integrates Phase 1 enhancements.
 
         """
-        # Use the inherited execute_with_context_enrichment() pattern from FlextCore.Service
-        # This automatically handles:
-        # - Correlation ID generation/propagation
+        # Use context enrichment pattern with existing mixins
+        # This provides:
         # - Operation context enrichment
         # - User context binding
-        # - Performance tracking
         # - Structured logging with context
-        return self.execute_cli_command_with_context(
+
+        # Set operation context for the current operation
+        self._with_operation_context(
             operation_name=f"cli_command_{command_name}",
-            correlation_id=None,  # Auto-generated if None
             user_id=user_id,
-            command_name=command_name,
             **context_data,
         )
+
+        # Enrich context with additional data
+        self._enrich_context(
+            command_name=command_name,
+            operation_type="cli_command",
+            **context_data,
+        )
+
+        # Execute the command with enriched context
+        return FlextCore.Result[FlextCliTypes.Data.CliDataDict].ok({
+            FlextCliConstants.DictKeys.COMMAND: command_name,
+            FlextCliConstants.DictKeys.STATUS: True,
+            FlextCliConstants.DictKeys.CONTEXT: context_data,
+            FlextCliConstants.DictKeys.TIMESTAMP: datetime.now(UTC).isoformat(),
+            "user_id": user_id,
+        })
 
     def health_check(self) -> FlextCore.Result[FlextCore.Types.Dict]:
         """Perform health check on the CLI service.

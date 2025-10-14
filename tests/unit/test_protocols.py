@@ -251,15 +251,23 @@ class TestFlextCliProtocols:
 
         # Implement generic protocol with specific type
         class StringImplementation:
+            def __init__(self) -> None:
+                self._value: str = ""
+                self._initialized_value = "test"
+
             def get_value(self) -> str:
-                return "test"
+                return self._initialized_value
 
             def set_value(self, value: str) -> None:
                 self._value = value
 
         class IntImplementation:
+            def __init__(self) -> None:
+                self._value: int = 0
+                self._initialized_value = 42
+
             def get_value(self) -> int:
-                return 42
+                return self._initialized_value
 
             def set_value(self, value: int) -> None:
                 self._value = value
@@ -309,7 +317,7 @@ class TestFlextCliProtocols:
         class InspectionProtocol(Protocol):
             def method1(self) -> str: ...
             def method2(self, param: int) -> bool: ...
-            def method3(self, data: dict[str, object]) -> list: ...
+            def method3(self, data: dict[str, object]) -> list[object]: ...
 
         # Test protocol inspection
         # __protocol_attrs__ may not exist in all Python versions
@@ -425,7 +433,11 @@ class TestFlextCliProtocols:
 
         post_result = client.post("/users", {"name": "John"})
         assert post_result["method"] == "POST"
-        assert post_result["data"]["name"] == "John"
+        # Cast to narrow type for dict access
+        from typing import cast
+
+        data = cast("dict[str, object]", post_result["data"])
+        assert data["name"] == "John"
 
         assert client.delete("/users/1") is True
 
@@ -445,9 +457,11 @@ class TestFlextCliProtocols:
                 return "id" in data and "name" in data
 
             def transform_data(self, data: dict[str, object]) -> dict[str, object]:
+                from typing import cast
+
                 return {
                     "id": data["id"],
-                    "name": data["name"].upper(),
+                    "name": cast("str", data["name"]).upper(),
                     "processed_at": "2025-01-01T00:00:00Z",
                 }
 
@@ -455,12 +469,14 @@ class TestFlextCliProtocols:
                 return len(data) > 0
 
         # Test data processor protocol
+        from typing import cast
+
         processor = DataProcessor()
         assert isinstance(processor, DataProcessorProtocol)
 
         # Test validation
-        valid_data = {"id": 1, "name": "test"}
-        invalid_data = {"id": 1}  # Missing name
+        valid_data = cast("dict[str, object]", {"id": 1, "name": "test"})
+        invalid_data = cast("dict[str, object]", {"id": 1})  # Missing name
 
         assert processor.validate_input(valid_data) is True
         assert processor.validate_input(invalid_data) is False
@@ -662,16 +678,21 @@ class TestFlextCliProtocols:
         # 3. Implement composed protocol
         class DataPipeline:
             def __init__(self) -> None:
-                self._data = {"raw": "data"}
+                self._data: dict[str, object] = {"raw": "data"}
 
             def read_data(self) -> dict[str, object]:
                 return self._data
 
             def transform(self, data: dict[str, object]) -> dict[str, object]:
-                return {
-                    "processed": data["raw"].upper(),
-                    "timestamp": "2025-01-01T00:00:00Z",
-                }
+                from typing import cast
+
+                return cast(
+                    "dict[str, object]",
+                    {
+                        "processed": cast("str", data["raw"]).upper(),
+                        "timestamp": "2025-01-01T00:00:00Z",
+                    },
+                )
 
             def write_data(self, data: dict[str, object]) -> bool:
                 return "processed" in data

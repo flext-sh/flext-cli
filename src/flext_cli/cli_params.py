@@ -297,7 +297,8 @@ class FlextCliCommonParams:
 
         """
         param_fields = sorted(
-            cls.CLI_PARAM_REGISTRY.items(), key=lambda x: x[1].get("priority", 999)
+            cls.CLI_PARAM_REGISTRY.items(),
+            key=lambda x: int(str(x[1].get("priority", 999))),
         )
 
         return {

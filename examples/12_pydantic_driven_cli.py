@@ -25,6 +25,8 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
+from typing import cast
+
 from flext_core import FlextCore
 from pydantic import BaseModel, Field, field_validator
 
@@ -97,7 +99,7 @@ def demonstrate_auto_cli_generation() -> None:
 
         for param in params:
             cli.print(
-                f"   --{param['name']:<20} {param['help']:<50} (type: {param['click_type']}, default: {param['default']})",
+                f"   --{param.name:<20} {param.help:<50} (type: {param.click_type}, default: {param.default})",
                 style="cyan",
             )
 
@@ -119,15 +121,24 @@ def execute_deploy_from_cli(cli_args: dict[str, str | int | bool]) -> None:
     cli.print("\n🚀 Deploying with CLI Arguments:", style="bold cyan")
 
     try:
+        # Cast to proper CLI data type for type safety
+        typed_args = cast("FlextCliTypes.Data.CliDataDict", cli_args)
+
         # Pydantic automatically validates ALL constraints
         # DeployConfig constructor handles type conversion and validation
-        config = DeployConfig(**cli_args)
+        # Cast JsonValue types to specific types expected by DeployConfig
+        config = DeployConfig(
+            environment=str(typed_args.get("environment", "development")),
+            workers=int(str(typed_args.get("workers", 4))),
+            enable_cache=bool(typed_args.get("enable_cache", True)),
+            timeout=int(str(typed_args.get("timeout", 30))),
+        )
 
         cli.print("✅ Valid configuration:", style="green")
 
         # Display validated config
         config_dict = config.model_dump()
-        # Cast to expected type for table creation
+        # Create table for displaying validated config
         table_result = cli.create_table(
             data=config_dict,
             headers=["Parameter", "Value"],
@@ -220,7 +231,7 @@ def demonstrate_nested_models() -> None:
 
         cli.print("Database config parameters:", style="green")
         for param in db_params:
-            cli.print(f"   --db-{param['name']}: {param['help']}", style="cyan")
+            cli.print(f"   --db-{param.name}: {param.help}", style="cyan")
 
     # In real usage, you'd flatten nested models or use prefixes
     cli.print("\n💡 Tip: Use prefixes for nested models:", style="yellow")
@@ -277,8 +288,17 @@ def main() -> None:
     }
 
     try:
+        # Cast to proper CLI data type for type safety
+        typed_invalid_args = cast("FlextCliTypes.Data.CliDataDict", invalid_args)
+
         # DeployConfig constructor handles type conversion and validation
-        DeployConfig(**invalid_args)
+        # Cast JsonValue types to specific types expected by DeployConfig
+        DeployConfig(
+            environment=str(typed_invalid_args.get("environment", "development")),
+            workers=int(str(typed_invalid_args.get("workers", 4))),
+            enable_cache=bool(typed_invalid_args.get("enable_cache", True)),
+            timeout=int(str(typed_invalid_args.get("timeout", 30))),
+        )
     except Exception as e:
         cli.print(f"   Caught validation error: {e}", style="yellow")
 

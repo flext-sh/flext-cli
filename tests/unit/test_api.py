@@ -456,10 +456,7 @@ nested:
         yaml_file = temp_dir / "test_out.yaml"
         result = api_service.file_tools.write_yaml_file(
             str(yaml_file),
-            cast(
-                "dict[str, bool | FlextCore.Types.Dict | float | int | FlextCore.Types.List | str | None]",
-                test_data,
-            ),
+            test_data,
         )
 
         assert isinstance(result, FlextCore.Result)
@@ -721,6 +718,10 @@ nested:
         # Verify command was registered
         assert "test_cmd" in api_service._commands
         assert callable(api_service._commands["test_cmd"])
+
+        # Test that the command function actually works
+        result = api_service._commands["test_cmd"]()
+        assert result == "test output"
 
     def test_group_decorator(self, api_service: FlextCli) -> None:
         """Test group decorator registration."""

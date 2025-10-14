@@ -380,12 +380,15 @@ class TestFlextCliCmd:
 
             @staticmethod
             def write_json_file(
-                _file_path: str | Path,
-                _data: object,
-                _indent: int = 2,
-                _sort_keys: bool = False,
-                _ensure_ascii: bool = True,
+                file_path: str | Path,
+                data: object,
+                indent: int = 2,
+                *,
+                sort_keys: bool = False,
+                ensure_ascii: bool = True,
             ) -> FlextCore.Result[None]:
+                # Mock implementation - parameters unused in test context
+                _ = file_path, data, indent, sort_keys, ensure_ascii
                 return FlextCore.Result[None].ok(None)
 
         cmd._file_tools = FailingFileTools()
@@ -555,12 +558,15 @@ class TestFlextCliCmd:
 
             @staticmethod
             def write_json_file(
-                _file_path: str | Path,
-                _data: object,
-                _indent: int = 2,
-                _sort_keys: bool = False,
-                _ensure_ascii: bool = True,
+                file_path: str | Path,
+                data: object,
+                indent: int = 2,
+                *,
+                sort_keys: bool = False,
+                ensure_ascii: bool = True,
             ) -> FlextCore.Result[None]:
+                # Mock implementation - parameters unused in test context
+                _ = file_path, data, indent, sort_keys, ensure_ascii
                 return FlextCore.Result[None].ok(None)
 
         cmd._file_tools = MockFileTools()

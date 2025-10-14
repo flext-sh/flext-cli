@@ -112,17 +112,17 @@ def export_report(
     # Grid format (default)
     if format_type == "grid":
         # Cast to expected type for table creation
-        result = tables.create_table(data, table_format="grid")
+        result = tables.create_table(list(data), table_format="grid")
 
     # Markdown format (for README files, docs)
     elif format_type == "pipe":
         # Cast to expected type for table creation
-        result = tables.create_table(data, table_format="pipe")
+        result = tables.create_table(list(data), table_format="pipe")
 
     # Simple format (minimal)
     else:
         # Cast to expected type for table creation
-        result = tables.create_table(data, table_format="simple")
+        result = tables.create_table(list(data), table_format="simple")
 
     if result.is_success:
         return result.unwrap()  # Returns string you can save to file
@@ -234,7 +234,7 @@ def monitor_live_metrics() -> None:
 
         # Display using ASCII table (FlextCliTables handles list[dict])
         # Cast to expected type for table creation
-        table_result = tables.create_table(metrics_data, table_format="grid")
+        table_result = tables.create_table(list(metrics_data), table_format="grid")
 
         if table_result.is_success:
             cli.print(f"\n{table_result.unwrap()}", style="white")
@@ -272,7 +272,7 @@ def display_with_panels(data: FlextCliTypes.Data.CliDataDict) -> None:
         cli.print("\n📋 Details:", style="bold green")
         # Use FlextCliTables for list[dict] data
         # Cast to expected type for table creation
-        table_result = tables.create_table(details_data, table_format="grid")
+        table_result = tables.create_table(list(details_data), table_format="grid")
         if table_result.is_success:
             cli.print(f"\n{table_result.unwrap()}", style="white")
 

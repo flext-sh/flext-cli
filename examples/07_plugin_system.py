@@ -25,7 +25,6 @@ from __future__ import annotations
 
 import json
 from pathlib import Path
-from typing import cast
 
 from flext_core import FlextCore
 
@@ -74,9 +73,7 @@ class ReportGeneratorPlugin:
     ) -> FlextCore.Result[str]:
         """Generate report from data in YOUR CLI."""
         tables = FlextCliTables()
-        # Cast to expected type for table creation
-        data_for_table = cast("list[dict[str, object]]", data)
-        table_result = tables.create_table(data_for_table, table_format="grid")
+        table_result = tables.create_table(data, table_format="grid")
 
         if table_result.is_failure:
             return FlextCore.Result[str].fail(
@@ -188,7 +185,7 @@ class ConfigurablePlugin:
         """Initialize configurable plugin with configuration dictionary."""
         super().__init__()
         self.name = "configurable-plugin"
-        self.config = config
+        self.config: FlextCliTypes.Data.CliDataDict = config
 
     def execute(self) -> FlextCore.Result[FlextCliTypes.Data.CliDataDict]:
         """Execute with configuration in YOUR CLI."""
@@ -198,8 +195,8 @@ class ConfigurablePlugin:
         result_data: FlextCliTypes.Data.CliDataDict = {
             "plugin": self.name,
             "config_applied": True,
+            **self.config,  # Unpack config dict instead of using update()
         }
-        result_data.update(self.config)
 
         # Cast to expected type (runtime type is compatible)
         return FlextCore.Result[FlextCliTypes.Data.CliDataDict].ok(result_data)
