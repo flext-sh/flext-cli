@@ -153,16 +153,19 @@ class FlextCliCli:
     def create_option_decorator(
         self,
         *param_decls: str,
-        default: object | None = None,
-        type_hint: click.ParamType | type[object] | None = None,
+        default: FlextCore.Types.JsonValue | None = None,
+        type_hint: click.ParamType | type[FlextCore.Types.JsonValue] | None = None,
         required: bool = False,
         help_text: str | None = None,
         is_flag: bool = False,
-        flag_value: object | None = None,
+        flag_value: FlextCore.Types.JsonValue | None = None,
         multiple: bool = False,
         count: bool = False,
         show_default: bool = False,
-    ) -> Callable[[Callable[..., object]], Callable[..., object]]:
+    ) -> Callable[
+        [Callable[..., FlextCore.Types.JsonValue]],
+        Callable[..., FlextCore.Types.JsonValue],
+    ]:
         """Create Click option decorator with explicit parameters.
 
         Args:
@@ -623,9 +626,9 @@ class FlextCliCli:
     def prompt(
         self,
         text: str,
-        default: object | None = None,
-        type_hint: object | None = None,
-        value_proc: Callable[[str], object] | None = None,
+        default: FlextCore.Types.JsonValue | None = None,
+        type_hint: FlextCore.Types.JsonValue | None = None,
+        value_proc: Callable[[str], FlextCore.Types.JsonValue] | None = None,
         prompt_suffix: str = ": ",
         *,
         hide_input: bool = False,

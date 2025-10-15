@@ -133,12 +133,12 @@ class TestFlextCliExceptionsFlextCliError:
         wrapper_msg = "Wrapper error"
 
         with pytest.raises(FlextCliExceptions.BaseError) as exc_info:
-            raise FlextCliExceptions.BaseError(wrapper_msg, cause=original_error)
+            raise FlextCliExceptions.BaseError(wrapper_msg, cause=str(original_error))
 
         e = exc_info.value
         assert "[CLI_ERROR] Wrapper error" in str(e)
         assert hasattr(e, "context")
-        assert e.context["cause"] == original_error
+        assert e.context["cause"] == str(original_error)
 
     # ========================================================================
     # EXCEPTION CHAINING

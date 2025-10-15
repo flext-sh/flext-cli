@@ -878,10 +878,12 @@ class TestFlextCliFileTools:
 
     def test_save_file(self, file_tools: FlextCliFileTools, temp_dir: Path) -> None:
         """Test saving file."""
+        from typing import cast
+
         test_file = temp_dir / "test_save.json"
         test_data = {"test": "data", "value": 123}
         result = file_tools.save_file(
-            str(test_file), test_data
+            str(test_file), cast("FlextCore.Types.JsonValue", test_data)
         )  # No file_format parameter
         assert result.is_success
         assert test_file.exists()
@@ -1109,7 +1111,7 @@ class TestFlextCliFileTools:
         """Test _FormatDetector exception handler (lines 462-463)."""
 
         # Mock suffix to raise exception
-        def mock_suffix_raises() -> str:
+        def mock_suffix_raises() -> str:  # type: ignore[reportUnusedFunction]
             msg = "suffix failed"
             raise RuntimeError(msg)
 

@@ -30,6 +30,7 @@ class FlextCliCmd(FlextCore.Service[FlextCore.Types.Dict]):
     """
 
     # Attributes initialized in __init__ (inherit types from FlextCore.Service)
+    # Logger is provided by FlextMixins mixin
 
     @override
     def __init__(self) -> None:

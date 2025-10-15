@@ -30,9 +30,6 @@ from flext_core import FlextCore
 
 from flext_cli.constants import FlextCliConstants
 
-# Type alias for JSON/YAML data structures
-JsonData = FlextCore.Types.Dict | FlextCore.Types.List | str | int | float | bool | None
-
 # ============================================================================
 # SPECIALIZED INTERNAL SERVICES - Better separation of concerns
 # ============================================================================
@@ -155,7 +152,7 @@ class FlextCliFileTools(FlextCore.Service[FlextCore.Types.Dict]):
     @staticmethod
     def write_json_file(
         file_path: str | Path,
-        data: object,
+        data: FlextCore.Types.JsonValue,
         indent: int = 2,
         *,
         sort_keys: bool = False,
@@ -210,7 +207,7 @@ class FlextCliFileTools(FlextCore.Service[FlextCore.Types.Dict]):
     @staticmethod
     def write_yaml_file(
         file_path: str | Path,
-        data: object,
+        data: FlextCore.Types.JsonValue,
         *,
         default_flow_style: bool | None = None,
         sort_keys: bool = False,
@@ -301,7 +298,9 @@ class FlextCliFileTools(FlextCore.Service[FlextCore.Types.Dict]):
             )
         )
 
-    def save_file(self, file_path: str | Path, data: object) -> FlextCore.Result[None]:
+    def save_file(
+        self, file_path: str | Path, data: FlextCore.Types.JsonValue
+    ) -> FlextCore.Result[None]:
         """Save data to file with automatic format detection.
 
         Note:
@@ -609,28 +608,32 @@ class FlextCliFileTools(FlextCore.Service[FlextCore.Types.Dict]):
         """Nested helper for file loading operations."""
 
         @staticmethod
-        def load_json(file_path: str) -> FlextCore.Result[JsonData]:
+        def load_json(file_path: str) -> FlextCore.Result[FlextCore.Types.JsonValue]:
             """Load JSON file."""
             try:
                 with Path(file_path).open(
                     encoding=FlextCliConstants.Encoding.UTF8
                 ) as f:
-                    data: JsonData = json.load(f)
-                return FlextCore.Result[JsonData].ok(data)
+                    data: FlextCore.Types.JsonValue = json.load(f)
+                return FlextCore.Result[FlextCore.Types.JsonValue].ok(data)
             except Exception as e:
-                return FlextCore.Result[JsonData].fail(f"JSON load failed: {e}")
+                return FlextCore.Result[FlextCore.Types.JsonValue].fail(
+                    f"JSON load failed: {e}"
+                )
 
         @staticmethod
-        def load_yaml(file_path: str) -> FlextCore.Result[JsonData]:
+        def load_yaml(file_path: str) -> FlextCore.Result[FlextCore.Types.JsonValue]:
             """Load YAML file."""
             try:
                 with Path(file_path).open(
                     encoding=FlextCliConstants.Encoding.UTF8
                 ) as f:
-                    data: JsonData = yaml.safe_load(f)
-                return FlextCore.Result[JsonData].ok(data)
+                    data: FlextCore.Types.JsonValue = yaml.safe_load(f)
+                return FlextCore.Result[FlextCore.Types.JsonValue].ok(data)
             except Exception as e:
-                return FlextCore.Result[JsonData].fail(f"YAML load failed: {e}")
+                return FlextCore.Result[FlextCore.Types.JsonValue].fail(
+                    f"YAML load failed: {e}"
+                )
 
     class _FileSaver:
         """Nested helper for file saving operations."""
@@ -638,7 +641,7 @@ class FlextCliFileTools(FlextCore.Service[FlextCore.Types.Dict]):
         @staticmethod
         def save_file(
             file_path: str | Path,
-            data: object,
+            data: FlextCore.Types.JsonValue,
         ) -> FlextCore.Result[None]:
             """Save data to file with automatic format detection.
 

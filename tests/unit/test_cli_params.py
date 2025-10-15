@@ -249,7 +249,7 @@ class TestCommonCliParamsDecorator:
 
         @app.command()
         @FlextCliCommonParams.create_decorator()
-        def test_command(
+        def decorated_test_command(  # type: ignore[reportUnusedFunction]
             name: str,
             verbose: bool = DEFAULT_VERBOSE,
             quiet: bool = DEFAULT_QUIET,
@@ -287,7 +287,7 @@ class TestCommonCliParamsDecorator:
 
         @app.command()
         @FlextCliCommonParams.create_decorator()
-        def test_command(
+        def decorated_test_command(  # type: ignore[reportUnusedFunction]
             name: str,
             verbose: bool = DEFAULT_VERBOSE,
             quiet: bool = DEFAULT_QUIET,
@@ -316,7 +316,7 @@ class TestCommonCliParamsDecorator:
 
         @app.command()
         @FlextCliCommonParams.create_decorator()
-        def test_command(
+        def decorated_test_command(  # type: ignore[reportUnusedFunction]
             name: str,
             verbose: bool = DEFAULT_VERBOSE,
             quiet: bool = DEFAULT_QUIET,
@@ -345,7 +345,7 @@ class TestCommonCliParamsDecorator:
 
         @app.command()
         @FlextCliCommonParams.create_decorator()
-        def test_command(
+        def decorated_test_command(  # type: ignore[reportUnusedFunction]
             name: str,
             verbose: bool = DEFAULT_VERBOSE,
             quiet: bool = DEFAULT_QUIET,
@@ -372,7 +372,7 @@ class TestCommonCliParamsDecorator:
 
         @app.command()
         @FlextCliCommonParams.create_decorator()
-        def test_command(
+        def decorated_test_command(  # type: ignore[reportUnusedFunction]
             name: str,
             verbose: bool = DEFAULT_VERBOSE,
             quiet: bool = DEFAULT_QUIET,
@@ -399,7 +399,7 @@ class TestCommonCliParamsDecorator:
 
         @app.command()
         @FlextCliCommonParams.create_decorator()
-        def test_command(
+        def decorated_test_command(  # type: ignore[reportUnusedFunction]
             name: str,
             verbose: bool = DEFAULT_VERBOSE,
             quiet: bool = DEFAULT_QUIET,
@@ -769,7 +769,7 @@ class TestCliParamsCoverageCompletion:
 
                 # Apply decorator to a test function - THIS triggers the validation
                 @decorator
-                def test_func() -> None:
+                def decorated_test_function() -> None:  # type: ignore[reportUnusedFunction]
                     """Test function."""
 
                 # If we get here without SystemExit, test fails

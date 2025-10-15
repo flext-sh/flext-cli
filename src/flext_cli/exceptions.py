@@ -10,7 +10,7 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from typing import override
+from typing import cast, override
 
 from flext_core import FlextCore
 
@@ -39,13 +39,17 @@ class FlextCliExceptions(FlextCore.Exceptions):
         # Add context attribute for CLI-specific usage
         context: FlextCore.Types.Dict
 
+        # Explicitly declare inherited attributes for Pyrefly
+        message: str
+        error_code: str | None
+
         @override
         def __init__(
             self,
             message: str,
             *,
             error_code: str | int = FlextCliConstants.ErrorCodes.CLI_ERROR,
-            **kwargs: object,
+            **kwargs: FlextCore.Types.JsonValue,
         ) -> None:
             """Initialize CLI exception with message, error code, and context using helpers.
 
@@ -65,7 +69,7 @@ class FlextCliExceptions(FlextCore.Exceptions):
 
             # Extract common parameters using helper
             base_context, correlation_id, remaining = self._extract_common_kwargs(
-                kwargs
+                cast("FlextCore.Types.Dict", kwargs)
             )
 
             # Build context merging base and remaining kwargs
@@ -102,9 +106,13 @@ class FlextCliExceptions(FlextCore.Exceptions):
                 f"context={self.context})"
             )
 
-        def get_context_value(self, key: str, default: object = None) -> object:
+        def get_context_value(
+            self, key: str, default: FlextCore.Types.JsonValue | None = None
+        ) -> FlextCore.Types.JsonValue:
             """Get context value by key with optional default."""
-            return self.context.get(key, default)
+            from typing import cast
+
+            return cast("FlextCore.Types.JsonValue", self.context.get(key, default))
 
         def is_error_code(self, error_code: str) -> bool:
             """Check if exception matches specific error code."""

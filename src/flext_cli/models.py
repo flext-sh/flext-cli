@@ -22,6 +22,7 @@ from pydantic import (
     BaseModel,
     ConfigDict,
     Field,
+    SerializationInfo,
     computed_field,
     field_serializer,
     field_validator,
@@ -107,7 +108,7 @@ class FlextCliModels(FlextCore.Models):
 
     @field_serializer("model_summary")
     def serialize_model_summary(
-        self, value: FlextCore.Types.StringDict, _info: object
+        self, value: FlextCore.Types.StringDict, _info: SerializationInfo
     ) -> dict[str, str | dict[str, str | int]]:
         """Serialize model summary with additional metadata."""
         return {
@@ -271,8 +272,8 @@ class FlextCliModels(FlextCore.Models):
                 description = field_info.description or f"{field_name} parameter"
 
                 # Extract validation constraints from metadata
-                validators: list[object] = []
-                metadata: FlextCore.Types.Dict = {}
+                validators: list[Callable[..., FlextCore.Types.JsonValue]] = []
+                metadata: dict[str, FlextCore.Types.JsonValue] = {}
 
                 if hasattr(field_info, "metadata"):
                     for meta_item in field_info.metadata:
@@ -473,11 +474,15 @@ class FlextCliModels(FlextCore.Models):
                 setattr(func, "__cli_model__", model_class)
                 setattr(func, "__cli_command_name__", command_name or func.__name__)
 
-                def wrapper(**cli_kwargs: object) -> object:
+                def wrapper(
+                    **cli_kwargs: FlextCore.Types.JsonValue,
+                ) -> FlextCore.Types.JsonValue | FlextCore.Result[object]:
                     # Validate CLI input with Pydantic model
+                    from typing import cast
+
                     validation_result = (
                         FlextCliModels.CliModelConverter.cli_args_to_model(
-                            model_class, cli_kwargs
+                            model_class, cast("FlextCore.Types.Dict", cli_kwargs)
                         )
                     )
 
@@ -490,7 +495,9 @@ class FlextCliModels(FlextCore.Models):
                     validated_model = validation_result.unwrap()
 
                     # Call original function with validated model
-                    return func(validated_model)
+                    from typing import cast
+
+                    return cast("FlextCore.Types.JsonValue", func(validated_model))
 
                 return wrapper
 
@@ -522,14 +529,18 @@ class FlextCliModels(FlextCore.Models):
                 setattr(func, "__cli_models__", model_classes)
                 setattr(func, "__cli_command_name__", command_name or func.__name__)
 
-                def wrapper(**cli_kwargs: object) -> object:
+                def wrapper(
+                    **cli_kwargs: FlextCore.Types.JsonValue,
+                ) -> FlextCore.Types.JsonValue | FlextCore.Result[object]:
                     validated_models: list[BaseModel] = []
 
                     # Validate with each model
                     for model_class in model_classes:
+                        from typing import cast
+
                         validation_result = (
                             FlextCliModels.CliModelConverter.cli_args_to_model(
-                                model_class, cli_kwargs
+                                model_class, cast("FlextCore.Types.Dict", cli_kwargs)
                             )
                         )
 
@@ -541,7 +552,9 @@ class FlextCliModels(FlextCore.Models):
                         validated_models.append(validation_result.unwrap())
 
                     # Call with validated models
-                    return func(*validated_models)
+                    from typing import cast
+
+                    return cast("FlextCore.Types.JsonValue", func(*validated_models))
 
                 return wrapper
 
@@ -712,7 +725,7 @@ class FlextCliModels(FlextCore.Models):
             return self
 
         @field_serializer("command_line")
-        def serialize_command_line(self, value: str, _info: object) -> str:
+        def serialize_command_line(self, value: str, _info: SerializationInfo) -> str:
             """Serialize command line with safety checks for sensitive commands."""
             # Mask potentially sensitive command parts
             sensitive_patterns = [
@@ -913,7 +926,7 @@ class FlextCliModels(FlextCore.Models):
 
         @field_serializer("system_info", "config_info")
         def serialize_sensitive_info(
-            self, value: FlextCore.Types.StringDict, _info: object
+            self, value: FlextCore.Types.StringDict, _info: SerializationInfo
         ) -> FlextCore.Types.StringDict:
             """Serialize system/config info masking sensitive values."""
             sensitive_keys = {
@@ -1069,7 +1082,7 @@ class FlextCliModels(FlextCore.Models):
 
         @field_serializer("commands")
         def serialize_commands(
-            self, value: list[FlextCliModels.CliCommand], _info: object
+            self, value: list[FlextCliModels.CliCommand], _info: SerializationInfo
         ) -> list[FlextCore.Types.Dict]:
             """Serialize commands with summary information."""
             return [
@@ -1099,7 +1112,7 @@ class FlextCliModels(FlextCore.Models):
             session_id: str | None = None,
             user_id: str | None = None,
             start_time: str | datetime | None = None,
-            **data: object,
+            **data: FlextCore.Types.JsonValue,
         ) -> None:
             """Initialize CLI session with proper type handling.
 
@@ -1127,7 +1140,7 @@ class FlextCliModels(FlextCore.Models):
             if "version" not in data:
                 data["version"] = 1
             if "created_at" not in data:
-                data["created_at"] = datetime.now(UTC)
+                data["created_at"] = datetime.now(UTC).isoformat()
             if "updated_at" not in data:
                 data["updated_at"] = None
             if "domain_events" not in data:
@@ -1152,9 +1165,34 @@ class FlextCliModels(FlextCore.Models):
             domain_events_obj = data.get("domain_events", [])
             # Type guard: isinstance check ensures correct type
             if isinstance(domain_events_obj, list):
-                domain_events_value: list[object] = domain_events_obj
+                # Convert JsonValue list to DomainEvent list for parent constructor
+                domain_events_list = []
+                for event_data in domain_events_obj:
+                    if isinstance(event_data, dict):
+                        # Convert JsonValue dict to DomainEvent
+                        try:
+                            domain_event = FlextCore.Models.DomainEvent(
+                                event_type=event_data.get("event_type", "unknown"),
+                                aggregate_id=event_data.get(
+                                    "aggregate_id", str(uuid.uuid4())
+                                ),
+                                data=event_data.get("data", {}),
+                                metadata=event_data.get("metadata", {}),
+                            )
+                            domain_events_list.append(domain_event)
+                        except Exception as e:
+                            # Log and skip invalid domain events
+                            logger.warning(f"Skipping invalid domain event data: {e}")
+                            continue
+                    else:
+                        # Skip non-dict items
+                        continue
+
+                domain_events_value: list[FlextCore.Models.DomainEvent] = (
+                    domain_events_list
+                )
             else:
-                domain_events_value = []
+                domain_events_value: list[FlextCore.Models.DomainEvent] = []
 
             super().__init__(
                 id=str(data.get("id", str(uuid.uuid4()))),
@@ -1295,12 +1333,14 @@ class FlextCliModels(FlextCore.Models):
         param_type: type = Field(description="Python type for the parameter")
         click_type: str = Field(description="Click type specification")
         required: bool = Field(description="Whether the parameter is required")
-        default: object | None = Field(default=None, description="Default value if any")
+        default: FlextCore.Types.JsonValue | None = Field(
+            default=None, description="Default value if any"
+        )
         help: str = Field(description="Help text from field description")
-        validators: list[object] = Field(
+        validators: list[Callable[..., FlextCore.Types.JsonValue]] = Field(
             default_factory=list, description="List of validation functions"
         )
-        metadata: dict[str, object] = Field(
+        metadata: dict[str, FlextCore.Types.JsonValue] = Field(
             default_factory=dict, description="Additional Pydantic metadata"
         )
 
@@ -1314,11 +1354,13 @@ class FlextCliModels(FlextCore.Models):
         option_name: str = Field(description="Full option name with dashes")
         param_decls: list[str] = Field(description="Parameter declarations")
         type: str = Field(description="Click type object")
-        default: object | None = Field(default=None, description="Default value")
+        default: FlextCore.Types.JsonValue | None = Field(
+            default=None, description="Default value"
+        )
         help: str = Field(description="Help text")
         required: bool = Field(description="Whether option is required")
         show_default: bool = Field(description="Whether to show default in help")
-        metadata: dict[str, object] = Field(
+        metadata: dict[str, FlextCore.Types.JsonValue] = Field(
             default_factory=dict, description="Additional metadata"
         )
 

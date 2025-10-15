@@ -214,7 +214,11 @@ def export_data_multi_format(
 
     # Export to JSON
     json_path = base_path.with_suffix(".json")
-    json_result = cli.file_tools.write_json_file(json_path, data, indent=2)
+    # Handle both single dict and list of dicts
+    json_data = data if isinstance(data, dict) else {"data": data}
+    json_result = cli.file_tools.write_json_file(
+        json_path, cast("dict[str, object]", json_data), indent=2
+    )
     if json_result.is_success:
         size = json_path.stat().st_size
         export_results["JSON"] = f"{size} bytes"
@@ -222,7 +226,9 @@ def export_data_multi_format(
 
     # Export to YAML
     yaml_path = base_path.with_suffix(".yaml")
-    yaml_result = cli.file_tools.write_yaml_file(yaml_path, data)
+    yaml_result = cli.file_tools.write_yaml_file(
+        yaml_path, cast("dict[str, object]", data)
+    )
     if yaml_result.is_success:
         size = yaml_path.stat().st_size
         export_results["YAML"] = f"{size} bytes"
@@ -364,7 +370,9 @@ def main() -> None:
     cli.print("3. Auto-Format Detection:", style="bold cyan")
 
     # Create test files in different formats
-    test_config = {"app": "test", "version": "1.0", "debug": True}
+    test_config = cast(
+        "dict[str, object]", {"app": "test", "version": "1.0", "debug": True}
+    )
 
     json_file = temp_dir / "config.json"
     yaml_file = temp_dir / "config.yaml"
@@ -403,7 +411,9 @@ def main() -> None:
     cli.print("6. File Copy with Verification:", style="bold cyan")
 
     # Recreate json_file for copy verification demo
-    demo_config = {"app": "demo", "version": "2.0", "enabled": True}
+    demo_config = cast(
+        "dict[str, object]", {"app": "demo", "version": "2.0", "enabled": True}
+    )
     demo_json = temp_dir / "demo_config.json"
     cli.file_tools.write_json_file(demo_json, demo_config)
 

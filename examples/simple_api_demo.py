@@ -96,11 +96,14 @@ def main() -> None:
     temp_file = Path(tempfile.gettempdir()) / "demo.json"
 
     # Write
-    test_data = {
-        "app": "demo",
-        "user": os.getenv("USER", "unknown"),
-        "pid": os.getpid(),
-    }
+    test_data = cast(
+        "dict[str, object]",
+        {
+            "app": "demo",
+            "user": os.getenv("USER", "unknown"),
+            "pid": os.getpid(),
+        },
+    )
     write_result = cli.file_tools.write_json_file(temp_file, test_data)
     if write_result.is_success:
         size = temp_file.stat().st_size

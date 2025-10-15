@@ -32,8 +32,7 @@ import tempfile
 from pathlib import Path
 from typing import cast
 
-from flext_cli import FlextCli
-from flext_cli.typings import FlextCliTypes
+from flext_cli import FlextCli, FlextCliTypes
 
 # Initialize once - reuse everywhere
 cli = FlextCli.get_instance()
@@ -80,7 +79,9 @@ def display_user_data(user: FlextCliTypes.Data.CliDataDict) -> None:
 
 def save_config(config: FlextCliTypes.Data.CliDataDict, filepath: str) -> bool:
     """Save YOUR config to JSON with proper error handling."""
-    write_result = cli.file_tools.write_json_file(filepath, config)
+    write_result = cli.file_tools.write_json_file(
+        filepath, cast("dict[str, object]", config)
+    )
 
     if write_result.is_failure:
         cli.print(f"Failed to save: {write_result.error}", style="bold red")
@@ -155,7 +156,9 @@ def main() -> None:
     # Example 3: File I/O
     cli.print("\n3. File Operations:", style="bold cyan")
     temp_file = Path(tempfile.gettempdir()) / "my_config.json"
-    config: FlextCliTypes.Data.CliDataDict = {"app": "my-cli-tool", "version": "1.0.0"}
+    config: FlextCliTypes.Data.CliDataDict = cast(
+        "FlextCliTypes.Data.CliDataDict", {"app": "my-cli-tool", "version": "1.0.0"}
+    )
 
     save_config(config, str(temp_file))
     loaded = load_config(str(temp_file))

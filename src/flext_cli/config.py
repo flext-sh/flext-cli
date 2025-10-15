@@ -42,6 +42,11 @@ class FlextCliConfig(FlextCore.Config):
     - All defaults from FlextCliConstants
     - SecretStr for sensitive data
     - Uses FlextCore.Config features for configuration management
+
+    # Explicitly declare Pydantic methods for Pyrefly
+    def model_dump(self, **kwargs) -> dict: ...
+    def model_validate(self, obj) -> FlextCliConfig: ...
+    def model_copy(self, **kwargs) -> FlextCliConfig: ...
     - Uses Python 3.13 + Pydantic 2 features
     """
 
@@ -468,7 +473,9 @@ class FlextCliConfig(FlextCore.Config):
             "config": self.model_dump(),
         })
 
-    def update_from_cli_args(self, **kwargs: object) -> FlextCore.Result[None]:
+    def update_from_cli_args(
+        self, **kwargs: FlextCore.Types.JsonValue
+    ) -> FlextCore.Result[None]:
         """Update configuration from CLI arguments with validation.
 
         Allows CLI commands to override configuration values dynamically.
@@ -551,7 +558,7 @@ class FlextCliConfig(FlextCore.Config):
             )
 
     def validate_cli_overrides(
-        self, **overrides: object
+        self, **overrides: FlextCore.Types.JsonValue
     ) -> FlextCore.Result[FlextCore.Types.Dict]:
         """Validate CLI overrides without applying them.
 
