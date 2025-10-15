@@ -53,7 +53,9 @@ tables = FlextCliTables()
 # ============================================================================
 
 
-def save_user_preferences(preferences: FlextCliTypes.Data.CliDataDict, config_dir: Path) -> bool:
+def save_user_preferences(
+    preferences: FlextCliTypes.Data.CliDataDict, config_dir: Path
+) -> bool:
     """Save user preferences to JSON in YOUR app."""
     config_file = config_dir / "preferences.json"
 
@@ -61,7 +63,9 @@ def save_user_preferences(preferences: FlextCliTypes.Data.CliDataDict, config_di
     # with open(config_file, 'w') as f:
     #     json.dump(preferences, f)
 
-    write_result = cli.file_tools.write_json_file(config_file, cast("dict[str, object]", preferences))
+    write_result = cli.file_tools.write_json_file(
+        config_file, cast("dict[str, object]", preferences)
+    )
 
     if write_result.is_failure:
         cli.print(f"❌ Failed to save: {write_result.error}", style="bold red")
@@ -98,13 +102,17 @@ def load_user_preferences(config_dir: Path) -> FlextCliTypes.Data.CliDataDict | 
 # ============================================================================
 
 
-def save_deployment_config(config: FlextCliTypes.Data.CliDataDict, config_file: Path) -> bool:
+def save_deployment_config(
+    config: FlextCliTypes.Data.CliDataDict, config_file: Path
+) -> bool:
     """Save deployment config to YAML in YOUR tool."""
     # Instead of:
     # with open(config_file, 'w') as f:
     #     yaml.dump(config, f)
 
-    write_result = cli.file_tools.write_yaml_file(config_file, cast("dict[str, object]", config))
+    write_result = cli.file_tools.write_yaml_file(
+        config_file, cast("dict[str, object]", config)
+    )
 
     if write_result.is_failure:
         cli.print(f"❌ Config save failed: {write_result.error}", style="bold red")
