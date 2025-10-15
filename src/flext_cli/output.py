@@ -1,13 +1,5 @@
 """CLI output and formatting tools.
 
-COMPLETELY REFACTORED: This module delegates ALL Rich functionality to formatters.py.
-ZERO direct Rich imports - all Rich operations go through FlextCliFormatters abstraction.
-
-EXPECTED MYPY ISSUES (documented for awareness):
-- Unreachable statement in format_table method:
-  This is defensive error handling that mypy proves is unnecessary at compile time
-  due to type analysis, but is kept for runtime safety.
-
 Copyright (c) 2025 FLEXT Team. All rights reserved.
 SPDX-License-Identifier: MIT
 
