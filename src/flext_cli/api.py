@@ -14,6 +14,7 @@ from __future__ import annotations
 import secrets
 from collections.abc import Callable
 from pathlib import Path
+from typing import Any, cast
 
 from flext_core import FlextCore
 
@@ -178,7 +179,7 @@ class FlextCli:
         return self._prompts
 
     @property
-    def utilities(self) -> object:
+    def utilities(self) -> FlextCli:
         """Get CLI utilities instance."""
         # For now, return self as utilities - this might need to be expanded later
         return self
@@ -283,7 +284,7 @@ class FlextCli:
             )
 
         token_path = self._config.token_file
-        token_data = {"token": token}
+        token_data = cast("dict[str, Any]", {"token": token})
 
         # Use file tools domain library for JSON writing
         write_result = self._file_tools.write_json_file(str(token_path), token_data)

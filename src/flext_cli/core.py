@@ -18,6 +18,7 @@ from __future__ import annotations
 import json
 from datetime import UTC, datetime
 from pathlib import Path
+from typing import Any, cast
 
 from flext_core import FlextCore
 
@@ -35,10 +36,18 @@ class FlextCliCore(FlextCore.Service[FlextCliTypes.Data.CliDataDict]):
     Extends FlextCore.Service with CLI-specific data dictionary types.
     """
 
+    # Logger is provided by FlextMixins mixin
+
+    # Context methods are provided by FlextMixins mixin
+    def _enrich_context(self, **context_data: object) -> None: ...
+    def _with_operation_context(
+        self, operation_name: str, **operation_data: object
+    ) -> None: ...
+
     def __init__(
         self,
         config: FlextCliTypes.Configuration.CliConfigSchema | None = None,
-        **data: object,
+        **data: FlextCore.Types.JsonValue,
     ) -> None:
         """Initialize CLI service with specialized service injection and Phase 1 context enrichment.
 
@@ -526,7 +535,7 @@ class FlextCliCore(FlextCore.Service[FlextCliTypes.Data.CliDataDict]):
         self,
         command_name: str,
         user_id: str | None = None,
-        **context_data: object,
+        **context_data: FlextCore.Types.JsonValue,
     ) -> FlextCore.Result[FlextCliTypes.Data.CliDataDict]:
         """Execute CLI command with automatic context enrichment (Phase 1 pattern).
 
@@ -578,13 +587,17 @@ class FlextCliCore(FlextCore.Service[FlextCliTypes.Data.CliDataDict]):
         )
 
         # Execute the command with enriched context
-        return FlextCore.Result[FlextCliTypes.Data.CliDataDict].ok({
-            FlextCliConstants.DictKeys.COMMAND: command_name,
-            FlextCliConstants.DictKeys.STATUS: True,
-            FlextCliConstants.DictKeys.CONTEXT: context_data,
-            FlextCliConstants.DictKeys.TIMESTAMP: datetime.now(UTC).isoformat(),
-            "user_id": user_id,
-        })
+        result_data = cast(
+            "dict[str, Any]",
+            {
+                FlextCliConstants.DictKeys.COMMAND: command_name,
+                FlextCliConstants.DictKeys.STATUS: True,
+                FlextCliConstants.DictKeys.CONTEXT: context_data,
+                FlextCliConstants.DictKeys.TIMESTAMP: datetime.now(UTC).isoformat(),
+                "user_id": user_id,
+            },
+        )
+        return FlextCore.Result[FlextCliTypes.Data.CliDataDict].ok(result_data)
 
     def health_check(self) -> FlextCore.Result[FlextCore.Types.Dict]:
         """Perform health check on the CLI service.

@@ -41,7 +41,7 @@ class FlextCliDebug(FlextCore.Service[str]):
     """
 
     @override
-    def __init__(self, **_data: object) -> None:
+    def __init__(self, **_data: FlextCore.Types.JsonValue) -> None:
         """Initialize debug service with flext-core integration and Phase 1 context enrichment."""
         super().__init__()
         # Logger and container inherited from FlextCore.Service via FlextCore.Mixins

@@ -49,7 +49,7 @@ class FlextCliProtocols(FlextCore.Protocols):
             """Protocol for CLI configuration providers."""
 
             def load_config(
-                self: object,
+                self,
             ) -> FlextCore.Result[FlextCliTypes.Data.CliConfigData]:
                 """Load CLI configuration."""
                 ...
@@ -84,7 +84,7 @@ class FlextCliProtocols(FlextCore.Protocols):
             """Protocol for CLI debug information providers."""
 
             def get_debug_info(
-                self: object,
+                self,
             ) -> FlextCore.Result[FlextCliTypes.Data.DebugInfoData]:
                 """Get debug information."""
                 ...
@@ -96,11 +96,15 @@ class FlextCliProtocols(FlextCore.Protocols):
             name: str
             version: str
 
-            def initialize(self, cli_main: object) -> FlextCore.Result[None]:
+            def initialize(
+                self, cli_main: FlextCore.Types.JsonValue
+            ) -> FlextCore.Result[None]:
                 """Initialize plugin with CLI context."""
                 ...
 
-            def register_commands(self, cli_main: object) -> FlextCore.Result[None]:
+            def register_commands(
+                self, cli_main: FlextCore.Types.JsonValue
+            ) -> FlextCore.Result[None]:
                 """Register plugin commands with CLI."""
                 ...
 

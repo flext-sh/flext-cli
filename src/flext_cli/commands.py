@@ -11,7 +11,7 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 from collections.abc import Callable
-from typing import override
+from typing import cast, override
 
 from flext_core import FlextCore
 
@@ -24,6 +24,8 @@ class FlextCliCommands(FlextCore.Service[FlextCore.Types.Dict]):
     Provides CLI command registration and management using flext-core patterns.
     Follows FLEXT pattern: one class per module with nested helpers.
     """
+
+    # Logger is provided by FlextMixins mixin
 
     class _CliGroup:
         """Nested helper for CLI group operations."""
@@ -38,7 +40,10 @@ class FlextCliCommands(FlextCore.Service[FlextCore.Types.Dict]):
 
     @override
     def __init__(
-        self, name: str = "flext", description: str = "", **data: object
+        self,
+        name: str = "flext",
+        description: str = "",
+        **data: FlextCore.Types.JsonValue,
     ) -> None:
         """Initialize CLI commands manager with Phase 1 context enrichment."""
         super().__init__(**data)
@@ -193,7 +198,7 @@ class FlextCliCommands(FlextCore.Service[FlextCore.Types.Dict]):
                 FlextCliConstants.ErrorMessages.CLI_EXECUTION_ERROR.format(error=e)
             )
 
-    def get_click_group(self) -> object:
+    def get_click_group(self) -> FlextCliCommands._CliGroup:
         """Get the Click group object.
 
         Returns:
@@ -232,7 +237,10 @@ class FlextCliCommands(FlextCore.Service[FlextCore.Types.Dict]):
 
             command_info = self._commands[command_name]
             if isinstance(command_info, dict) and "handler" in command_info:
-                handler: object = command_info.get("handler")
+                handler = cast(
+                    "Callable[..., FlextCore.Types.JsonValue]",
+                    command_info.get("handler"),
+                )
                 if handler is not None and callable(handler):
                     # Pass args to handler if it accepts them
                     if args:

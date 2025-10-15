@@ -67,13 +67,17 @@ class TestFlextCli:
 
     def test_format_data_table(self, api_service: FlextCli) -> None:
         """Test table data formatting functionality."""
-        test_data: list[FlextCliTypes.Data.CliDataDict] = [
-            {"name": "John", "age": 30, "city": "New York"},
-            {"name": "Jane", "age": 25, "city": "London"},
-            {"name": "Bob", "age": 35, "city": "Paris"},
-        ]
+        test_data: FlextCliTypes.Data.CliDataDict = {
+            "users": [
+                {"name": "John", "age": 30, "city": "New York"},
+                {"name": "Jane", "age": 25, "city": "London"},
+                {"name": "Bob", "age": 35, "city": "Paris"},
+            ]
+        }
 
-        result = api_service.output.format_data(data=test_data, format_type="table")
+        result = api_service.output.format_data(
+            data=cast("FlextCore.Types.JsonValue", test_data), format_type="table"
+        )
 
         assert isinstance(result, FlextCore.Result)
         assert result.is_success
@@ -92,7 +96,9 @@ class TestFlextCli:
             "list": [1, 2, 3],
         }
 
-        result = api_service.output.format_data(data=test_data, format_type="json")
+        result = api_service.output.format_data(
+            data=cast("FlextCore.Types.JsonValue", test_data), format_type="json"
+        )
 
         assert isinstance(result, FlextCore.Result)
         assert result.is_success
@@ -112,7 +118,9 @@ class TestFlextCli:
             "list": [1, 2, 3],
         }
 
-        result = api_service.output.format_data(data=test_data, format_type="yaml")
+        result = api_service.output.format_data(
+            data=cast("FlextCore.Types.JsonValue", test_data), format_type="yaml"
+        )
 
         assert isinstance(result, FlextCore.Result)
         assert result.is_success
@@ -337,12 +345,15 @@ class TestFlextCli:
         """Test configuration loading functionality."""
         # Create test config file
         config_file = temp_dir / "test_config.json"
-        test_config: FlextCliTypes.Data.CliDataDict = {
-            "debug": True,
-            "output_format": "json",
-            "timeout": FlextCliConstants.TIMEOUTS.DEFAULT,
-            "retries": FlextCliConstants.HTTP.MAX_RETRIES,
-        }
+        test_config: FlextCliTypes.Data.CliDataDict = cast(
+            "FlextCliTypes.Data.CliDataDict",
+            {
+                "debug": True,
+                "output_format": "json",
+                "timeout": FlextCliConstants.TIMEOUTS.DEFAULT,
+                "retries": FlextCliConstants.HTTP.MAX_RETRIES,
+            },
+        )
         config_file.write_text(json.dumps(test_config))
 
         # Test loading configuration using file_tools
@@ -361,20 +372,20 @@ class TestFlextCli:
     def test_save_config(self, api_service: FlextCli, temp_dir: Path) -> None:
         """Test configuration saving functionality."""
         config_file = temp_dir / "test_save_config.json"
-        test_config: FlextCore.Types.Dict = {
-            "debug": False,
-            "output_format": "table",
-            "timeout": FlextCliConstants.TIMEOUTS.DEFAULT,
-            "retries": FlextCliConstants.HTTP.MAX_RETRIES,
-        }
+        test_config: FlextCore.Types.Dict = cast(
+            "FlextCore.Types.Dict",
+            {
+                "debug": False,
+                "output_format": "table",
+                "timeout": FlextCliConstants.TIMEOUTS.DEFAULT,
+                "retries": FlextCliConstants.HTTP.MAX_RETRIES,
+            },
+        )
 
         # Test saving configuration using file_tools
         result = api_service.file_tools.write_json_file(
             str(config_file),
-            cast(
-                "dict[str, bool | FlextCore.Types.Dict | float | int | FlextCore.Types.List | str | None]",
-                test_config,
-            ),
+            test_config,
         )
 
         assert isinstance(result, FlextCore.Result)
@@ -456,7 +467,7 @@ nested:
         yaml_file = temp_dir / "test_out.yaml"
         result = api_service.file_tools.write_yaml_file(
             str(yaml_file),
-            test_data,
+            cast("FlextCore.Types.JsonValue", test_data),
         )
 
         assert isinstance(result, FlextCore.Result)
@@ -712,7 +723,7 @@ nested:
         """Test command decorator registration."""
 
         @api_service.command(name="test_cmd")
-        def test_command() -> str:
+        def decorated_test_command() -> str:  # type: ignore[reportUnusedFunction]
             return "test output"
 
         # Verify command was registered
@@ -727,7 +738,7 @@ nested:
         """Test group decorator registration."""
 
         @api_service.group(name="test_group")
-        def test_group() -> None:
+        def decorated_test_group() -> None:  # type: ignore[reportUnusedFunction]
             pass
 
         # Verify group was registered

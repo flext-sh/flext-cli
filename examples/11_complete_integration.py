@@ -58,7 +58,9 @@ class DataManagerCLI:
 
     def save_data(self, data: FlextCliTypes.Data.CliDataDict) -> FlextCore.Result[None]:
         """Save data with proper error handling."""
-        write_result = self.cli.file_tools.write_json_file(self.data_file, data)
+        write_result = self.cli.file_tools.write_json_file(
+            self.data_file, cast("dict[str, object]", data)
+        )
 
         if write_result.is_failure:
             self.cli.print(f"❌ Save failed: {write_result.error}", style="bold red")

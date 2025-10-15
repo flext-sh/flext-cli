@@ -17,9 +17,9 @@ from __future__ import annotations
 
 import csv
 import json
-from collections.abc import Sequence
+from collections.abc import Iterable, Mapping, Sequence
 from io import StringIO
-from typing import override
+from typing import Any, cast, override
 
 import yaml
 from flext_core import FlextCore
@@ -40,6 +40,9 @@ class FlextCliOutput(FlextCore.Service[object]):
     - FlextCliFormatters: Rich-based visual output (tables, progress, styling)
     - FlextCliTables: Tabulate-based ASCII tables (performance, plain text)
     - Built-in: JSON, YAML, CSV formatting
+
+    # Logger is provided by FlextMixins mixin
+    logger: FlextCore.Logger
 
     Examples:
         >>> output = FlextCliOutput()
@@ -87,7 +90,7 @@ class FlextCliOutput(FlextCore.Service[object]):
 
     def format_data(
         self,
-        data: object,
+        data: FlextCore.Types.JsonValue,
         format_type: str = FlextCliConstants.OutputFormats.TABLE.value,
         title: str | None = None,
         headers: FlextCore.Types.StringList | None = None,
@@ -119,7 +122,11 @@ class FlextCliOutput(FlextCore.Service[object]):
         if format_lower == FlextCliConstants.OutputFormats.TABLE.value:
             # Convert object to appropriate type for format_table
             if isinstance(data, (dict, list)):
-                return self.format_table(data, title=title, headers=headers)
+                if isinstance(data, dict):
+                    typed_data = cast("dict[str, Any]", data)
+                else:
+                    typed_data = cast("list[Any]", data)
+                return self.format_table(typed_data, title=title, headers=headers)
             return FlextCore.Result[str].fail(
                 FlextCliConstants.ErrorMessages.TABLE_FORMAT_REQUIRED_DICT
             )
@@ -508,7 +515,7 @@ class FlextCliOutput(FlextCore.Service[object]):
 
     def display_data(
         self,
-        data: object,
+        data: FlextCore.Types.JsonValue,
         format_type: str = "table",
         *,
         title: str | None = None,
@@ -548,7 +555,7 @@ class FlextCliOutput(FlextCore.Service[object]):
     # DATA FORMAT METHODS (Built-in)
     # =========================================================================
 
-    def format_json(self, data: object) -> FlextCore.Result[str]:
+    def format_json(self, data: FlextCore.Types.JsonValue) -> FlextCore.Result[str]:
         """Format data as JSON.
 
         Args:
@@ -569,7 +576,7 @@ class FlextCliOutput(FlextCore.Service[object]):
             self.logger.exception(error_msg)
             return FlextCore.Result[str].fail(error_msg)
 
-    def format_yaml(self, data: object) -> FlextCore.Result[str]:
+    def format_yaml(self, data: FlextCore.Types.JsonValue) -> FlextCore.Result[str]:
         """Format data as YAML.
 
         Args:
@@ -590,7 +597,7 @@ class FlextCliOutput(FlextCore.Service[object]):
             self.logger.exception(error_msg)
             return FlextCore.Result[str].fail(error_msg)
 
-    def format_csv(self, data: object) -> FlextCore.Result[str]:
+    def format_csv(self, data: FlextCore.Types.JsonValue) -> FlextCore.Result[str]:
         """Format data as CSV.
 
         Args:
@@ -610,7 +617,8 @@ class FlextCliOutput(FlextCore.Service[object]):
                 fieldnames = list(data[0].keys())
                 writer = csv.DictWriter(output_buffer, fieldnames=fieldnames)
                 writer.writeheader()
-                writer.writerows(data)
+
+                writer.writerows(cast("Iterable[Mapping[str, Any]]", data))
                 return FlextCore.Result[str].ok(output_buffer.getvalue())
             if isinstance(data, dict):
                 output_buffer = StringIO()
@@ -746,7 +754,9 @@ class FlextCliOutput(FlextCore.Service[object]):
             tree, width=FlextCliConstants.CliDefaults.DEFAULT_MAX_WIDTH
         )
 
-    def _build_tree(self, tree: FlextCliTypes.Display.RichTree, data: object) -> None:
+    def _build_tree(
+        self, tree: FlextCliTypes.Display.RichTree, data: FlextCore.Types.JsonValue
+    ) -> None:
         """Build tree recursively (helper for format_as_tree).
 
         Args:
@@ -762,12 +772,12 @@ class FlextCliOutput(FlextCore.Service[object]):
                 elif isinstance(value, list):
                     branch = tree.add(f"{key} (list)")
                     for item in value:
-                        self._build_tree(branch, item)
+                        self._build_tree(branch, cast("Any", item))
                 else:
                     tree.add(f"{key}: {value}")
         elif isinstance(data, list):
             for item in data:
-                self._build_tree(tree, item)
+                self._build_tree(tree, cast("Any", item))
         else:
             tree.add(str(data))
 
@@ -775,7 +785,7 @@ class FlextCliOutput(FlextCore.Service[object]):
     # CONSOLE ACCESS (Delegates to FlextCliFormatters)
     # =========================================================================
 
-    def get_console(self) -> object:
+    def get_console(self) -> FlextCliTypes.Display.Console:
         """Get the console instance from FlextCliFormatters (method form).
 
         Returns:

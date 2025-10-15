@@ -44,7 +44,7 @@ class FlextCliPrompts(FlextCore.Service[FlextCliTypes.Data.CliDataDict]):
         interactive_mode: bool = True,
         quiet: bool = False,
         logger: FlextCore.Logger | None = None,
-        **data: object,
+        **data: FlextCore.Types.JsonValue,
     ) -> None:
         """Initialize CLI prompts service with enhanced configuration and Phase 1 context enrichment.
 

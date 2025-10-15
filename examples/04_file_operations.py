@@ -53,9 +53,7 @@ tables = FlextCliTables()
 # ============================================================================
 
 
-def save_user_preferences(
-    preferences: FlextCliTypes.Data.CliDataDict, config_dir: Path
-) -> bool:
+def save_user_preferences(preferences: FlextCliTypes.Data.CliDataDict, config_dir: Path) -> bool:
     """Save user preferences to JSON in YOUR app."""
     config_file = config_dir / "preferences.json"
 
@@ -63,7 +61,7 @@ def save_user_preferences(
     # with open(config_file, 'w') as f:
     #     json.dump(preferences, f)
 
-    write_result = cli.file_tools.write_json_file(config_file, preferences)
+    write_result = cli.file_tools.write_json_file(config_file, cast("dict[str, object]", preferences))
 
     if write_result.is_failure:
         cli.print(f"❌ Failed to save: {write_result.error}", style="bold red")
@@ -100,15 +98,13 @@ def load_user_preferences(config_dir: Path) -> FlextCliTypes.Data.CliDataDict | 
 # ============================================================================
 
 
-def save_deployment_config(
-    config: FlextCliTypes.Data.CliDataDict, config_file: Path
-) -> bool:
+def save_deployment_config(config: FlextCliTypes.Data.CliDataDict, config_file: Path) -> bool:
     """Save deployment config to YAML in YOUR tool."""
     # Instead of:
     # with open(config_file, 'w') as f:
     #     yaml.dump(config, f)
 
-    write_result = cli.file_tools.write_yaml_file(config_file, config)
+    write_result = cli.file_tools.write_yaml_file(config_file, cast("dict[str, object]", config))
 
     if write_result.is_failure:
         cli.print(f"❌ Config save failed: {write_result.error}", style="bold red")
@@ -488,7 +484,11 @@ def export_multi_format(
 
     # Export to JSON
     json_path = base_path.with_suffix(".json")
-    json_result = cli.file_tools.write_json_file(json_path, data, indent=2)
+    # Handle both single dict and list of dicts
+    json_data = data if isinstance(data, dict) else {"data": data}
+    json_result = cli.file_tools.write_json_file(
+        json_path, cast("dict[str, object]", json_data), indent=2
+    )
     if json_result.is_success:
         size = json_path.stat().st_size
         export_results["JSON"] = f"{size} bytes"
@@ -496,7 +496,9 @@ def export_multi_format(
 
     # Export to YAML
     yaml_path = base_path.with_suffix(".yaml")
-    yaml_result = cli.file_tools.write_yaml_file(yaml_path, data)
+    yaml_result = cli.file_tools.write_yaml_file(
+        yaml_path, cast("dict[str, object]", data)
+    )
     if yaml_result.is_success:
         size = yaml_path.stat().st_size
         export_results["YAML"] = f"{size} bytes"
@@ -537,21 +539,27 @@ def main() -> None:
 
     # Example 1: JSON preferences
     cli.print("\n1. JSON Config Files (user preferences):", style="bold cyan")
-    prefs: FlextCliTypes.Data.CliDataDict = {
-        "theme": "dark",
-        "font_size": 14,
-        "auto_save": True,
-    }
+    prefs: FlextCliTypes.Data.CliDataDict = cast(
+        "FlextCliTypes.Data.CliDataDict",
+        {
+            "theme": "dark",
+            "font_size": 14,
+            "auto_save": True,
+        },
+    )
     save_user_preferences(prefs, temp_dir)
     load_user_preferences(temp_dir)
 
     # Example 2: YAML deployment config
     cli.print("\n2. YAML Configuration (deployment):", style="bold cyan")
-    deploy_config: FlextCliTypes.Data.CliDataDict = {
-        "environment": "staging",
-        "host": "staging.example.com",
-        "platform": platform.system(),
-    }
+    deploy_config: FlextCliTypes.Data.CliDataDict = cast(
+        "FlextCliTypes.Data.CliDataDict",
+        {
+            "environment": "staging",
+            "host": "staging.example.com",
+            "platform": platform.system(),
+        },
+    )
     yaml_file = temp_dir / "deploy.yaml"
     save_deployment_config(deploy_config, yaml_file)
     load_deployment_config(yaml_file)
@@ -575,9 +583,11 @@ def main() -> None:
 
     # Example 6: Data validation
     cli.print("\n6. Data Validation (ETL pipeline):", style="bold cyan")
-    test_data: FlextCliTypes.Data.CliDataDict = {"id": 1, "name": "test", "value": 100}
+    test_data: FlextCliTypes.Data.CliDataDict = cast(
+        "FlextCliTypes.Data.CliDataDict", {"id": 1, "name": "test", "value": 100}
+    )
     test_file = temp_dir / "test_data.json"
-    cli.file_tools.write_json_file(test_file, test_data)
+    cli.file_tools.write_json_file(test_file, cast("dict[str, object]", test_data))
     validate_and_import_data(test_file)
 
     # Example 7: CSV export/import
@@ -600,15 +610,18 @@ def main() -> None:
 
     # Example 9: Auto-format detection
     cli.print("\n9. Auto-Format Detection:", style="bold cyan")
-    auto_config: FlextCliTypes.Data.CliDataDict = {
-        "app": "demo",
-        "version": "1.0",
-        "enabled": True,
-    }
+    auto_config: FlextCliTypes.Data.CliDataDict = cast(
+        "FlextCliTypes.Data.CliDataDict",
+        {
+            "app": "demo",
+            "version": "1.0",
+            "enabled": True,
+        },
+    )
     auto_json = temp_dir / "auto_config.json"
     auto_yaml = temp_dir / "auto_config.yaml"
-    cli.file_tools.write_json_file(auto_json, auto_config)
-    cli.file_tools.write_yaml_file(auto_yaml, auto_config)
+    cli.file_tools.write_json_file(auto_json, cast("dict[str, object]", auto_config))
+    cli.file_tools.write_yaml_file(auto_yaml, cast("dict[str, object]", auto_config))
     load_config_auto_detect(auto_json)
     load_config_auto_detect(auto_yaml)
 

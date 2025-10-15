@@ -49,7 +49,7 @@ class FlextCliContext(FlextCore.Service[FlextCliTypes.Data.CliDataDict]):
         arguments: FlextCore.Types.StringList | None = None,
         environment_variables: FlextCore.Types.Dict | None = None,
         working_directory: str | None = None,
-        **data: object,
+        **data: FlextCore.Types.JsonValue,
     ) -> None:
         """Initialize CLI context with enhanced type safety.
 
@@ -166,7 +166,9 @@ class FlextCliContext(FlextCore.Service[FlextCliTypes.Data.CliDataDict]):
         except Exception as e:
             return FlextCore.Result[None].fail(f"Argument removal failed: {e}")
 
-    def set_metadata(self, key: str, value: object) -> FlextCore.Result[None]:
+    def set_metadata(
+        self, key: str, value: FlextCore.Types.JsonValue
+    ) -> FlextCore.Result[None]:
         """Set context metadata using CLI-specific data types."""
         if not key or not isinstance(key, str):
             return FlextCore.Result[None].fail(

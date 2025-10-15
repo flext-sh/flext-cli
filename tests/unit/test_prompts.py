@@ -672,7 +672,7 @@ class TestFlextCliPrompts:
         prompts = FlextCliPrompts(logger=logger)
         # Logger exists (FlextCore.Service creates its own, doesn't preserve instance)
         assert hasattr(prompts, "logger")
-        # FlextCore.Logger returns a FlextLogger instance
+        # FlextCore.Logger returns a FlextCore.Logger instance
         assert prompts.logger is not None
 
     def test_print_status_with_custom_status(self, prompts: FlextCliPrompts) -> None:
@@ -743,7 +743,7 @@ class TestFlextCliPrompts:
         logger: FlextCore.Logger = FlextCore.Logger("test_logger")
         prompts = FlextCliPrompts(logger=logger, interactive_mode=True)
         assert hasattr(prompts, "logger")
-        # FlextCore.Logger returns a FlextLogger instance
+        # FlextCore.Logger returns a FlextCore.Logger instance
         assert prompts.logger is not None
 
     def test_prompt_text_interactive_mode(self) -> None:
@@ -1088,7 +1088,12 @@ class TestFlextCliPrompts:
         prompts = FlextCliPrompts(interactive_mode=True, quiet=False)
         # Ensure we're in test environment
         monkeypatch.setenv("PYTEST_CURRENT_TEST", "test_session")
-        monkeypatch.setattr("builtins.input", lambda prompt: "test_input")
+
+        def mock_input(prompt: str) -> str:
+            _ = prompt
+            return "test_input"
+
+        monkeypatch.setattr("builtins.input", mock_input)
 
         result = prompts.prompt("Test prompt")
         assert result.is_success
@@ -1113,7 +1118,12 @@ class TestFlextCliPrompts:
 
         # Mock input to return empty string first, then valid choice
         inputs = iter(["", "1"])
-        monkeypatch.setattr("builtins.input", lambda prompt: next(inputs))
+
+        def mock_input(prompt: str) -> str:
+            _ = prompt
+            return next(inputs)
+
+        monkeypatch.setattr("builtins.input", mock_input)
 
         result = prompts.select_from_options(options, "Choose:")
         assert result.is_success
@@ -1147,7 +1157,11 @@ class TestFlextCliPrompts:
         monkeypatch.setenv("CI", "false")  # Not CI
 
         # Mock input
-        monkeypatch.setattr("builtins.input", lambda prompt: "test_input")
+        def mock_input(prompt: str) -> str:
+            _ = prompt
+            return "test_input"
+
+        monkeypatch.setattr("builtins.input", mock_input)
 
         # This should trigger logging on line 397
         result = prompts.prompt("Test prompt")

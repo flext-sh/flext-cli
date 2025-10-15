@@ -17,6 +17,7 @@ from __future__ import annotations
 from typing import TypeVar
 
 from flext_core import FlextCore
+from rich.console import Console as RichConsoleImport
 from rich.layout import Layout as RichLayoutImport
 from rich.live import Live as RichLiveImport
 from rich.panel import Panel as RichPanelImport
@@ -265,6 +266,7 @@ class FlextCliTypes(FlextCore.Types):
         """
 
         # Type aliases from module-level imports
+        Console = RichConsoleImport
         RichPanel = RichPanelImport
         RichTable = RichTableImport
         RichTree = RichTreeImport

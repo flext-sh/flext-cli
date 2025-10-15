@@ -381,7 +381,7 @@ class TestFlextCliCmd:
             @staticmethod
             def write_json_file(
                 file_path: str | Path,
-                data: object,
+                data: FlextCore.Types.JsonValue,
                 indent: int = 2,
                 *,
                 sort_keys: bool = False,
@@ -559,7 +559,7 @@ class TestFlextCliCmd:
             @staticmethod
             def write_json_file(
                 file_path: str | Path,
-                data: object,
+                data: FlextCore.Types.JsonValue,
                 indent: int = 2,
                 *,
                 sort_keys: bool = False,
