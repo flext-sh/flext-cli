@@ -43,7 +43,7 @@ class FlextCliCmd(FlextService[FlextTypes.Dict]):
         """Execute command service - required by FlextService."""
         return FlextResult[FlextTypes.Dict].ok({
             FlextCliConstants.DictKeys.STATUS: FlextCliConstants.ServiceStatus.OPERATIONAL.value,
-            FlextCliConstants.DictKeys.SERVICE: "FlextCliCmd",
+            FlextCliConstants.DictKeys.SERVICE: FlextCliConstants.CmdDefaults.SERVICE_NAME,
         })
 
     @classmethod
@@ -74,12 +74,13 @@ class FlextCliCmd(FlextService[FlextTypes.Dict]):
         # Check main config directory
         if flext_dir.exists():
             results.append(
-                FlextCliConstants.Symbols.SUCCESS_MARK + " Main config directory exists"
+                FlextCliConstants.Symbols.SUCCESS_MARK
+                + FlextCliConstants.CmdMessages.CONFIG_DIR_EXISTS
             )
         else:
             results.append(
                 FlextCliConstants.Symbols.FAILURE_MARK
-                + " Main config directory missing"
+                + FlextCliConstants.CmdMessages.CONFIG_DIR_MISSING
             )
 
         # Check subdirectories using constants
@@ -87,11 +88,15 @@ class FlextCliCmd(FlextService[FlextTypes.Dict]):
             path = flext_dir / subdir
             if path.exists():
                 results.append(
-                    f"{FlextCliConstants.Symbols.SUCCESS_MARK} {subdir} directory exists"
+                    FlextCliConstants.CmdMessages.SUBDIR_EXISTS.format(
+                        symbol=FlextCliConstants.Symbols.SUCCESS_MARK, subdir=subdir
+                    )
                 )
             else:
                 results.append(
-                    f"{FlextCliConstants.Symbols.FAILURE_MARK} {subdir} directory missing"
+                    FlextCliConstants.CmdMessages.SUBDIR_MISSING.format(
+                        symbol=FlextCliConstants.Symbols.FAILURE_MARK, subdir=subdir
+                    )
                 )
 
         return results
@@ -168,11 +173,17 @@ class FlextCliCmd(FlextService[FlextTypes.Dict]):
 
             if not save_result.is_success:
                 return FlextResult[bool].fail(
-                    f"Config save failed: {save_result.error}"
+                    FlextCliConstants.CmdErrorMessages.CONFIG_SAVE_FAILED.format(
+                        error=save_result.error
+                    )
                 )
 
             if self.logger:
-                self.logger.info(f"Configuration saved: {key} = {value}")
+                self.logger.info(
+                    FlextCliConstants.CmdMessages.CONFIG_SAVED.format(
+                        key=key, value=value
+                    )
+                )
             return FlextResult[bool].ok(True)
 
         except Exception as e:
@@ -194,14 +205,18 @@ class FlextCliCmd(FlextService[FlextTypes.Dict]):
             # Check if config file exists
             if not config_path.exists():
                 return FlextResult[FlextTypes.Dict].fail(
-                    f"Configuration file not found: {config_path}"
+                    FlextCliConstants.CmdErrorMessages.CONFIG_FILE_NOT_FOUND.format(
+                        path=config_path
+                    )
                 )
 
             # Load configuration data using FlextCliFileTools
             load_result = self._file_tools.read_json_file(str(config_path))
             if load_result.is_failure:
                 return FlextResult[FlextTypes.Dict].fail(
-                    f"Config load failed: {load_result.error}"
+                    FlextCliConstants.CmdErrorMessages.CONFIG_LOAD_FAILED.format(
+                        error=load_result.error
+                    )
                 )
 
             config_data = load_result.value
@@ -209,13 +224,15 @@ class FlextCliCmd(FlextService[FlextTypes.Dict]):
             # Ensure config_data is a dict
             if not isinstance(config_data, dict):
                 return FlextResult[FlextTypes.Dict].fail(
-                    "Configuration data is not a valid dictionary"
+                    FlextCliConstants.CmdErrorMessages.CONFIG_NOT_DICT
                 )
 
             # Get the specific key value
             if key not in config_data:
                 return FlextResult[FlextTypes.Dict].fail(
-                    f"Configuration key not found: {key}"
+                    FlextCliConstants.CmdErrorMessages.CONFIG_KEY_NOT_FOUND.format(
+                        key=key
+                    )
                 )
 
             result_data: FlextTypes.Dict = {
@@ -226,7 +243,9 @@ class FlextCliCmd(FlextService[FlextTypes.Dict]):
             return FlextResult[FlextTypes.Dict].ok(result_data)
 
         except Exception as e:
-            return FlextResult[FlextTypes.Dict].fail(f"Get config failed: {e}")
+            return FlextResult[FlextTypes.Dict].fail(
+                FlextCliConstants.CmdErrorMessages.GET_CONFIG_FAILED.format(error=e)
+            )
 
     def show_config(self) -> FlextResult[None]:
         """Show current configuration."""
@@ -234,7 +253,9 @@ class FlextCliCmd(FlextService[FlextTypes.Dict]):
             info_result = self.get_config_info()
             if info_result.is_failure:
                 return FlextResult[None].fail(
-                    f"Show config failed: {info_result.error}"
+                    FlextCliConstants.CmdErrorMessages.SHOW_CONFIG_FAILED.format(
+                        error=info_result.error
+                    )
                 )
 
             if self.logger:
@@ -245,7 +266,7 @@ class FlextCliCmd(FlextService[FlextTypes.Dict]):
             return FlextResult[None].ok(None)
         except Exception as e:
             return FlextResult[None].fail(
-                FlextCliConstants.ErrorMessages.SHOW_CONFIG_FAILED.format(error=e)
+                FlextCliConstants.CmdErrorMessages.SHOW_CONFIG_FAILED.format(error=e)
             )
 
     def edit_config(self) -> FlextResult[str]:
@@ -290,20 +311,24 @@ class FlextCliCmd(FlextService[FlextTypes.Dict]):
                 )
                 if save_result.is_failure:
                     return FlextResult[str].fail(
-                        f"Failed to create default config: {save_result.error}"
+                        FlextCliConstants.CmdErrorMessages.CREATE_DEFAULT_CONFIG_FAILED.format(
+                            error=save_result.error
+                        )
                     )
 
             # Load current configuration
             load_result = self._file_tools.read_json_file(str(config_path))
             if load_result.is_failure:
                 return FlextResult[str].fail(
-                    f"Failed to load config: {load_result.error}"
+                    FlextCliConstants.CmdErrorMessages.CONFIG_LOAD_FAILED.format(
+                        error=load_result.error
+                    )
                 )
 
             # Ensure config_data is a dict[str, object] with type guard
             if not isinstance(load_result.value, dict):
                 return FlextResult[str].fail(
-                    "Configuration data is not a valid dictionary"
+                    FlextCliConstants.CmdErrorMessages.CONFIG_NOT_DICT
                 )
 
             loaded_config_data: FlextTypes.Dict = load_result.value
@@ -317,7 +342,10 @@ class FlextCliCmd(FlextService[FlextTypes.Dict]):
             }
 
             if self.logger:
-                self.logger.info("Configuration edit completed", config=config_info)
+                self.logger.info(
+                    FlextCliConstants.CmdMessages.CONFIG_EDIT_COMPLETED_LOG,
+                    config=config_info,
+                )
             return FlextResult[str].ok(
                 FlextCliConstants.LogMessages.CONFIG_EDIT_COMPLETED
             )

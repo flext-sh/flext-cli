@@ -91,19 +91,46 @@ class FlextCliExceptions(FlextExceptions):
             """Return string representation of the exception."""
             context_str = ""
             if self.context:
-                context_items = [f"{k}={v}" for k, v in self.context.items()]
-                context_str = f" ({', '.join(context_items)})"
+                context_items = [
+                    FlextCliConstants.ExceptionFormatMessages.CONTEXT_ITEM_FORMAT.format(
+                        k=k, v=v
+                    )
+                    for k, v in self.context.items()
+                ]
+                context_str = (
+                    FlextCliConstants.ExceptionFormatMessages.CONTEXT_WRAPPER_PREFIX
+                    + FlextCliConstants.ExceptionFormatMessages.CONTEXT_ITEMS_SEPARATOR.join(
+                        context_items
+                    )
+                    + FlextCliConstants.ExceptionFormatMessages.CONTEXT_WRAPPER_SUFFIX
+                )
 
-            return f"[{self.error_code}] {self.message}{context_str}"
+            return FlextCliConstants.ExceptionFormatMessages.ERROR_STRING_FORMAT.format(
+                error_code=self.error_code,
+                message=self.message,
+                context_str=context_str,
+            )
 
         @override
         def __repr__(self) -> str:
             """Return detailed representation for debugging."""
+            message_part = FlextCliConstants.ExceptionFormatMessages.REPR_FORMAT_MESSAGE.format(
+                message=self.message
+            )
+            error_code_part = (
+                FlextCliConstants.ExceptionFormatMessages.REPR_FORMAT_ERROR_CODE.format(
+                    error_code=self.error_code
+                )
+            )
+            context_part = FlextCliConstants.ExceptionFormatMessages.REPR_FORMAT_CONTEXT.format(
+                context=self.context
+            )
+
+            parts = [message_part, error_code_part, context_part]
             return (
-                f"FlextCliExceptions.BaseError("
-                f"message='{self.message}', "
-                f"error_code='{self.error_code}', "
-                f"context={self.context})"
+                FlextCliConstants.ExceptionFormatMessages.REPR_FORMAT_PREFIX
+                + FlextCliConstants.ExceptionFormatMessages.REPR_ITEMS_SEPARATOR.join(parts)
+                + FlextCliConstants.ExceptionFormatMessages.REPR_FORMAT_SUFFIX
             )
 
         def get_context_value(
@@ -124,7 +151,7 @@ class FlextCliExceptions(FlextExceptions):
             If context is provided as a dict, use it as base context.
             If context is provided as a non-dict value, treat it as a regular kwarg.
             """
-            context = kwargs.get("context")
+            context = kwargs.get(FlextCliConstants.ExceptionDefaults.CONTEXT_KEY)
             base_context: FlextTypes.Dict = {}
             remaining: FlextTypes.Dict = {}
 
@@ -135,13 +162,22 @@ class FlextCliExceptions(FlextExceptions):
                 remaining = {
                     k: v
                     for k, v in kwargs.items()
-                    if k not in {"context", "correlation_id"}
+                    if k not in {
+                        FlextCliConstants.ExceptionDefaults.CONTEXT_KEY,
+                        FlextCliConstants.ExceptionDefaults.CORRELATION_ID_KEY,
+                    }
                 }
             else:
                 # If context is not a dict, treat all kwargs (including context) as remaining
-                remaining = {k: v for k, v in kwargs.items() if k != "correlation_id"}
+                remaining = {
+                    k: v
+                    for k, v in kwargs.items()
+                    if k != FlextCliConstants.ExceptionDefaults.CORRELATION_ID_KEY
+                }
 
-            correlation_id = kwargs.get("correlation_id")
+            correlation_id = kwargs.get(
+                FlextCliConstants.ExceptionDefaults.CORRELATION_ID_KEY
+            )
             if correlation_id is not None and not isinstance(correlation_id, str):
                 correlation_id = str(correlation_id)
 

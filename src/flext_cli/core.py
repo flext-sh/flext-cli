@@ -593,7 +593,9 @@ class FlextCliCore(FlextService[FlextCliTypes.Data.CliDataDict]):
         try:
             stats: FlextCliTypes.Data.CliDataDict = {
                 FlextCliConstants.DictKeys.TOTAL_COMMANDS: len(self._commands),
-                "registered_commands": list(self._commands.keys()),
+                FlextCliConstants.CoreServiceDictKeys.REGISTERED_COMMANDS: list(
+                    self._commands.keys()
+                ),
                 FlextCliConstants.DictKeys.STATUS: self._session_active,
                 FlextCliConstants.DictKeys.TIMESTAMP: datetime.now(UTC).isoformat(),
             }
@@ -617,21 +619,23 @@ class FlextCliCore(FlextService[FlextCliTypes.Data.CliDataDict]):
 
             info_data: FlextTypes.Dict = {
                 FlextCliConstants.DictKeys.SERVICE: FlextCliConstants.FLEXT_CLI,
-                "commands_registered": commands_count,
-                "configuration_sections": config_keys,
+                FlextCliConstants.CoreServiceDictKeys.COMMANDS_REGISTERED: commands_count,
+                FlextCliConstants.CoreServiceDictKeys.CONFIGURATION_SECTIONS: config_keys,
                 FlextCliConstants.DictKeys.STATUS: (
                     FlextCliConstants.ServiceStatus.OPERATIONAL.value
                     if self._session_active
                     else FlextCliConstants.ServiceStatus.AVAILABLE.value
                 ),
-                "service_ready": commands_count > 0,
+                FlextCliConstants.CoreServiceDictKeys.SERVICE_READY: commands_count > 0,
                 FlextCliConstants.DictKeys.TIMESTAMP: datetime.now(UTC).isoformat(),
             }
 
             return info_data
 
         except Exception as e:
-            self.logger.exception("Service info collection failed")
+            self.logger.exception(
+                FlextCliConstants.CoreServiceLogMessages.SERVICE_INFO_COLLECTION_FAILED
+            )
             return {FlextCliConstants.DictKeys.MESSAGE: str(e)}
 
     def get_session_statistics(
@@ -650,7 +654,9 @@ class FlextCliCore(FlextService[FlextCliTypes.Data.CliDataDict]):
 
         try:
             # Calculate session duration if session is active
-            session_duration = 0
+            session_duration = (
+                FlextCliConstants.CoreServiceDefaults.SESSION_DURATION_INIT
+            )
             if hasattr(self, "_session_start_time") and self._session_start_time:
                 current_time = datetime.now(UTC)
                 # Parse ISO format string back to datetime for duration calculation
@@ -660,28 +666,36 @@ class FlextCliCore(FlextService[FlextCliTypes.Data.CliDataDict]):
 
             # Collect session-specific statistics
             statistics: FlextCliTypes.Data.CliDataDict = {
-                "session_active": self._session_active,
-                "session_duration_seconds": session_duration,
-                "commands_available": len(self._commands),
-                "configuration_loaded": bool(self._config),
-                "session_config_keys": (
+                FlextCliConstants.CoreServiceDictKeys.SESSION_ACTIVE: self._session_active,
+                FlextCliConstants.CoreServiceDictKeys.SESSION_DURATION_SECONDS: session_duration,
+                FlextCliConstants.CoreServiceDictKeys.COMMANDS_AVAILABLE: len(
+                    self._commands
+                ),
+                FlextCliConstants.CoreServiceDictKeys.CONFIGURATION_LOADED: bool(
+                    self._config
+                ),
+                FlextCliConstants.CoreServiceDictKeys.SESSION_CONFIG_KEYS: (
                     list(self._session_config.keys())
                     if hasattr(self, "_session_config") and self._session_config
                     else []
                 ),
-                "start_time": (
+                FlextCliConstants.CoreServiceDictKeys.START_TIME: (
                     self._session_start_time
                     if hasattr(self, "_session_start_time")
-                    else "unknown"
+                    else FlextCliConstants.CoreServiceDefaults.UNKNOWN_VALUE
                 ),
-                "current_time": datetime.now(UTC).isoformat(),
+                FlextCliConstants.CoreServiceDictKeys.CURRENT_TIME: datetime.now(
+                    UTC
+                ).isoformat(),
             }
 
             return FlextResult[FlextCliTypes.Data.CliDataDict].ok(statistics)
 
         except Exception as e:
             return FlextResult[FlextCliTypes.Data.CliDataDict].fail(
-                f"Session statistics collection failed: {e}",
+                FlextCliConstants.CoreServiceLogMessages.SESSION_STATS_COLLECTION_FAILED.format(
+                    error=e
+                ),
             )
 
     # ==========================================================================
@@ -706,18 +720,24 @@ class FlextCliCore(FlextService[FlextCliTypes.Data.CliDataDict]):
 
             # Execute service with comprehensive status data
             status_data: FlextCliTypes.Data.CliDataDict = {
-                "service_executed": True,
-                "commands_count": len(self._commands),
-                "session_active": self._session_active,
-                "execution_timestamp": datetime.now(UTC).isoformat(),
-                "service_ready": True,
+                FlextCliConstants.CoreServiceDictKeys.SERVICE_EXECUTED: True,
+                FlextCliConstants.CoreServiceDictKeys.COMMANDS_COUNT: len(
+                    self._commands
+                ),
+                FlextCliConstants.CoreServiceDictKeys.SESSION_ACTIVE: self._session_active,
+                FlextCliConstants.CoreServiceDictKeys.EXECUTION_TIMESTAMP: datetime.now(
+                    UTC
+                ).isoformat(),
+                FlextCliConstants.CoreServiceDictKeys.SERVICE_READY: True,
             }
 
             return FlextResult[FlextCliTypes.Data.CliDataDict].ok(status_data)
 
         except Exception as e:
             return FlextResult[FlextCliTypes.Data.CliDataDict].fail(
-                f"Service execution failed: {e}",
+                FlextCliConstants.CoreServiceLogMessages.SERVICE_EXECUTION_FAILED.format(
+                    error=e
+                ),
             )
 
     def execute_cli_command_with_context(
@@ -763,7 +783,9 @@ class FlextCliCore(FlextService[FlextCliTypes.Data.CliDataDict]):
 
         # Set operation context for the current operation
         self._with_operation_context(
-            operation_name=f"cli_command_{command_name}",
+            operation_name=(
+                f"{FlextCliConstants.CoreServiceDefaults.CLI_COMMAND_PREFIX}{command_name}"
+            ),
             user_id=user_id,
             **context_data,
         )
@@ -771,7 +793,7 @@ class FlextCliCore(FlextService[FlextCliTypes.Data.CliDataDict]):
         # Enrich context with additional data
         self._enrich_context(
             command_name=command_name,
-            operation_type="cli_command",
+            operation_type=FlextCliConstants.CoreServiceDefaults.OPERATION_TYPE_CLI_COMMAND,
             **context_data,
         )
 
@@ -783,7 +805,7 @@ class FlextCliCore(FlextService[FlextCliTypes.Data.CliDataDict]):
                 "FlextTypes.JsonValue", context_data
             ),
             FlextCliConstants.DictKeys.TIMESTAMP: datetime.now(UTC).isoformat(),
-            "user_id": user_id,
+            FlextCliConstants.CoreServiceDictKeys.USER_ID: user_id,
         }
         return FlextResult[FlextCliTypes.Data.CliDataDict].ok(result_data)
 
@@ -797,8 +819,10 @@ class FlextCliCore(FlextService[FlextCliTypes.Data.CliDataDict]):
         try:
             return FlextResult[FlextTypes.Dict].ok({
                 FlextCliConstants.DictKeys.STATUS: FlextCliConstants.ServiceStatus.HEALTHY.value,
-                "commands_count": len(self._commands),
-                "session_active": self._session_active,
+                FlextCliConstants.CoreServiceDictKeys.COMMANDS_COUNT: len(
+                    self._commands
+                ),
+                FlextCliConstants.CoreServiceDictKeys.SESSION_ACTIVE: self._session_active,
                 FlextCliConstants.DictKeys.TIMESTAMP: datetime.now(UTC).isoformat(),
             })
         except Exception as e:
@@ -928,12 +952,15 @@ class FlextCliCore(FlextService[FlextCliTypes.Data.CliDataDict]):
             if not config_file.is_file():
                 return FlextResult[FlextTypes.Dict].fail(
                     FlextCliConstants.ErrorMessages.FAILED_LOAD_CONFIG_FROM_FILE.format(
-                        file=config_path, error="Path is not a file"
+                        file=config_path,
+                        error=FlextCliConstants.ErrorMessages.CONFIG_NOT_DICT,
                     )
                 )
 
             # Read and parse JSON configuration
-            content = config_file.read_text(encoding="utf-8")
+            content = config_file.read_text(
+                encoding=FlextCliConstants.FileIODefaults.ENCODING_DEFAULT
+            )
             config_data = json.loads(content)
 
             if not isinstance(config_data, dict):
@@ -970,8 +997,16 @@ class FlextCliCore(FlextService[FlextCliTypes.Data.CliDataDict]):
         try:
             path = Path(config_path)
             path.parent.mkdir(parents=True, exist_ok=True)
-            with path.open("w", encoding="utf-8") as f:
-                json.dump(config_data, f, indent=2, ensure_ascii=False)
+            with path.open(
+                FlextCliConstants.FileIODefaults.FILE_WRITE_MODE,
+                encoding=FlextCliConstants.FileIODefaults.ENCODING_DEFAULT,
+            ) as f:
+                json.dump(
+                    config_data,
+                    f,
+                    indent=FlextCliConstants.FileIODefaults.JSON_INDENT,
+                    ensure_ascii=FlextCliConstants.FileIODefaults.JSON_ENSURE_ASCII,
+                )
             return FlextResult[None].ok(None)
         except Exception as e:
             return FlextResult[None].fail(

@@ -53,12 +53,20 @@ class FlextCliMixins(FlextMixins):
             # Handle non-string types
             if not isinstance(field_value, str):
                 if not field_value:  # Falsy values (0, False, None, empty collections)
-                    return FlextResult[None].fail(f"{field_name} cannot be empty")
+                    return FlextResult[None].fail(
+                        FlextCliConstants.MixinsValidationMessages.FIELD_CANNOT_BE_EMPTY.format(
+                            field_name=field_name
+                        )
+                    )
                 return FlextResult[None].ok(None)
 
             # Handle string types
             if not field_value or not field_value.strip():
-                return FlextResult[None].fail(f"{field_name} cannot be empty")
+                return FlextResult[None].fail(
+                    FlextCliConstants.MixinsValidationMessages.FIELD_CANNOT_BE_EMPTY.format(
+                        field_name=field_name
+                    )
+                )
             return FlextResult[None].ok(None)
 
         @staticmethod
@@ -75,16 +83,28 @@ class FlextCliMixins(FlextMixins):
             """
             # Validate emptiness first
             if not url_value or not url_value.strip():
-                return FlextResult[None].fail(f"{field_name} cannot be empty")
+                return FlextResult[None].fail(
+                    FlextCliConstants.MixinsValidationMessages.FIELD_CANNOT_BE_EMPTY.format(
+                        field_name=field_name
+                    )
+                )
 
             # Simple URL validation
 
             try:
                 parsed = urlparse(url_value)
                 if not parsed.scheme or not parsed.netloc:
-                    return FlextResult[None].fail(f"{field_name} is not a valid URL")
+                    return FlextResult[None].fail(
+                        FlextCliConstants.MixinsValidationMessages.INVALID_URL.format(
+                            field_name=field_name
+                        )
+                    )
             except Exception as e:
-                return FlextResult[None].fail(f"{field_name} validation failed: {e}")
+                return FlextResult[None].fail(
+                    FlextCliConstants.MixinsValidationMessages.VALIDATION_FAILED.format(
+                        field_name=field_name, error=e
+                    )
+                )
 
             return FlextResult[None].ok(None)
 
@@ -105,7 +125,9 @@ class FlextCliMixins(FlextMixins):
             """
             if field_value not in valid_values:
                 return FlextResult[None].fail(
-                    f"Invalid {field_name}. Valid values: {valid_values}"
+                    FlextCliConstants.MixinsValidationMessages.INVALID_ENUM_VALUE.format(
+                        field_name=field_name, valid_values=valid_values
+                    )
                 )
             return FlextResult[None].ok(None)
 
@@ -124,7 +146,11 @@ class FlextCliMixins(FlextMixins):
 
             """
             if field_value <= 0:
-                return FlextResult[None].fail(f"{field_name} must be positive")
+                return FlextResult[None].fail(
+                    FlextCliConstants.MixinsValidationMessages.MUST_BE_POSITIVE.format(
+                        field_name=field_name
+                    )
+                )
             return FlextResult[None].ok(None)
 
         @staticmethod
@@ -142,7 +168,11 @@ class FlextCliMixins(FlextMixins):
 
             """
             if field_value < 0:
-                return FlextResult[None].fail(f"{field_name} cannot be negative")
+                return FlextResult[None].fail(
+                    FlextCliConstants.MixinsValidationMessages.CANNOT_BE_NEGATIVE.format(
+                        field_name=field_name
+                    )
+                )
             return FlextResult[None].ok(None)
 
         @staticmethod
@@ -157,7 +187,9 @@ class FlextCliMixins(FlextMixins):
 
             """
             return FlextCliMixins.ValidationMixin.validate_enum_value(
-                "output format", format_value, FlextCliConstants.OUTPUT_FORMATS_LIST
+                FlextCliConstants.MixinsFieldNames.OUTPUT_FORMAT,
+                format_value,
+                FlextCliConstants.OUTPUT_FORMATS_LIST,
             )
 
         @staticmethod
@@ -172,7 +204,9 @@ class FlextCliMixins(FlextMixins):
 
             """
             return FlextCliMixins.ValidationMixin.validate_enum_value(
-                "log level", log_level_value, FlextCliConstants.LOG_LEVELS_LIST
+                FlextCliConstants.MixinsFieldNames.LOG_LEVEL,
+                log_level_value,
+                FlextCliConstants.LOG_LEVELS_LIST,
             )
 
         @staticmethod
@@ -187,7 +221,9 @@ class FlextCliMixins(FlextMixins):
 
             """
             return FlextCliMixins.ValidationMixin.validate_enum_value(
-                "status", status_value, FlextCliConstants.COMMAND_STATUSES_LIST
+                FlextCliConstants.MixinsFieldNames.STATUS,
+                status_value,
+                FlextCliConstants.COMMAND_STATUSES_LIST,
             )
 
     # =========================================================================
@@ -223,7 +259,11 @@ class FlextCliMixins(FlextMixins):
             """
             if current_status != required_status:
                 return FlextResult[None].fail(
-                    f"Cannot {operation}: command is in '{current_status}' state, requires '{required_status}'"
+                    FlextCliConstants.MixinsValidationMessages.COMMAND_STATE_INVALID.format(
+                        operation=operation,
+                        current_status=current_status,
+                        required_status=required_status,
+                    )
                 )
             return FlextResult[None].ok(None)
 
@@ -243,7 +283,9 @@ class FlextCliMixins(FlextMixins):
             """
             if current_status not in valid_states:
                 return FlextResult[None].fail(
-                    f"Invalid session status '{current_status}'. Valid states: {valid_states}"
+                    FlextCliConstants.MixinsValidationMessages.SESSION_STATUS_INVALID.format(
+                        current_status=current_status, valid_states=valid_states
+                    )
                 )
             return FlextResult[None].ok(None)
 
@@ -262,14 +304,21 @@ class FlextCliMixins(FlextMixins):
             """
             if not step:
                 return FlextResult[None].fail(
-                    "Pipeline step must be a non-empty dictionary"
+                    FlextCliConstants.MixinsValidationMessages.PIPELINE_STEP_EMPTY
                 )
 
-            if "name" not in step:
-                return FlextResult[None].fail("Pipeline step must have a 'name' field")
+            if FlextCliConstants.MixinsFieldNames.PIPELINE_STEP_NAME not in step:
+                return FlextResult[None].fail(
+                    FlextCliConstants.MixinsValidationMessages.PIPELINE_STEP_NO_NAME
+                )
 
-            if not step["name"] or not str(step["name"]).strip():
-                return FlextResult[None].fail("Pipeline step name cannot be empty")
+            if (
+                not step[FlextCliConstants.MixinsFieldNames.PIPELINE_STEP_NAME]
+                or not str(step[FlextCliConstants.MixinsFieldNames.PIPELINE_STEP_NAME]).strip()
+            ):
+                return FlextResult[None].fail(
+                    FlextCliConstants.MixinsValidationMessages.PIPELINE_STEP_NAME_EMPTY
+                )
 
             return FlextResult[None].ok(None)
 
@@ -295,7 +344,9 @@ class FlextCliMixins(FlextMixins):
             ]
             if missing_fields:
                 return FlextResult[None].fail(
-                    f"Missing required configuration fields: {missing_fields}"
+                    FlextCliConstants.MixinsValidationMessages.CONFIG_MISSING_FIELDS.format(
+                        missing_fields=missing_fields
+                    )
                 )
 
             return FlextResult[None].ok(None)

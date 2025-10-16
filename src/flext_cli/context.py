@@ -16,6 +16,7 @@ from flext_core import FlextResult, FlextService, FlextTypes, FlextUtilities
 from pydantic import Field
 
 from flext_cli.config import FlextCliConfig
+from flext_cli.constants import FlextCliConstants
 from flext_cli.typings import FlextCliTypes
 
 
@@ -87,97 +88,159 @@ class FlextCliContext(FlextService[FlextCliTypes.Data.CliDataDict]):
         """Activate CLI context for execution."""
         try:
             if self.is_active:
-                return FlextResult[None].fail("Context is already active")
+                return FlextResult[None].fail(
+                    FlextCliConstants.ContextErrorMessages.CONTEXT_ALREADY_ACTIVE
+                )
 
             self.is_active = True
             return FlextResult[None].ok(None)
         except Exception as e:
-            return FlextResult[None].fail(f"Context activation failed: {e}")
+            return FlextResult[None].fail(
+                FlextCliConstants.ContextErrorMessages.CONTEXT_ACTIVATION_FAILED.format(
+                    error=e
+                )
+            )
 
     def deactivate(self) -> FlextResult[None]:
         """Deactivate CLI context."""
         try:
             if not self.is_active:
-                return FlextResult[None].fail("Context is not currently active")
+                return FlextResult[None].fail(
+                    FlextCliConstants.ContextErrorMessages.CONTEXT_NOT_CURRENTLY_ACTIVE
+                )
 
             self.is_active = False
             return FlextResult[None].ok(None)
         except Exception as e:
-            return FlextResult[None].fail(f"Context deactivation failed: {e}")
+            return FlextResult[None].fail(
+                FlextCliConstants.ContextErrorMessages.CONTEXT_DEACTIVATION_FAILED.format(
+                    error=e
+                )
+            )
 
     def get_environment_variable(self, name: str) -> FlextResult[str]:
         """Get specific environment variable value."""
         if not name or not isinstance(name, str):
-            return FlextResult[str].fail("Variable name must be a non-empty string")
+            return FlextResult[str].fail(
+                FlextCliConstants.ContextErrorMessages.VARIABLE_NAME_MUST_BE_STRING
+            )
 
         try:
             if name in self.environment_variables:
                 value = self.environment_variables[name]
                 return FlextResult[str].ok(str(value))
-            return FlextResult[str].fail(f"Environment variable '{name}' not found")
+            return FlextResult[str].fail(
+                FlextCliConstants.ContextErrorMessages.ENV_VAR_NOT_FOUND.format(
+                    name=name
+                )
+            )
         except Exception as e:
-            return FlextResult[str].fail(f"Environment variable retrieval failed: {e}")
+            return FlextResult[str].fail(
+                FlextCliConstants.ContextErrorMessages.ENV_VAR_RETRIEVAL_FAILED.format(
+                    error=e
+                )
+            )
 
     def set_environment_variable(self, name: str, value: str) -> FlextResult[None]:
         """Set environment variable value."""
         if not name or not isinstance(name, str):
-            return FlextResult[None].fail("Variable name must be a non-empty string")
+            return FlextResult[None].fail(
+                FlextCliConstants.ContextErrorMessages.VARIABLE_NAME_MUST_BE_STRING
+            )
 
         if not isinstance(value, str):
-            return FlextResult[None].fail("Variable value must be a string")
+            return FlextResult[None].fail(
+                FlextCliConstants.ContextErrorMessages.VARIABLE_VALUE_MUST_BE_STRING
+            )
 
         try:
             self.environment_variables[name] = value
             return FlextResult[None].ok(None)
         except Exception as e:
-            return FlextResult[None].fail(f"Environment variable setting failed: {e}")
+            return FlextResult[None].fail(
+                FlextCliConstants.ContextErrorMessages.ENV_VAR_SETTING_FAILED.format(
+                    error=e
+                )
+            )
 
     def add_argument(self, argument: str) -> FlextResult[None]:
         """Add command line argument."""
         if not argument or not isinstance(argument, str):
-            return FlextResult[None].fail("Argument must be a non-empty string")
+            return FlextResult[None].fail(
+                FlextCliConstants.ContextErrorMessages.ARGUMENT_MUST_BE_STRING
+            )
 
         try:
             self.arguments.append(argument)
             return FlextResult[None].ok(None)
         except Exception as e:
-            return FlextResult[None].fail(f"Argument addition failed: {e}")
+            return FlextResult[None].fail(
+                FlextCliConstants.ContextErrorMessages.ARGUMENT_ADDITION_FAILED.format(
+                    error=e
+                )
+            )
 
     def remove_argument(self, argument: str) -> FlextResult[None]:
         """Remove command line argument."""
         if not argument or not isinstance(argument, str):
-            return FlextResult[None].fail("Argument must be a non-empty string")
+            return FlextResult[None].fail(
+                FlextCliConstants.ContextErrorMessages.ARGUMENT_MUST_BE_STRING
+            )
 
         try:
             if argument in self.arguments:
                 self.arguments.remove(argument)
                 return FlextResult[None].ok(None)
-            return FlextResult[None].fail(f"Argument '{argument}' not found")
+            return FlextResult[None].fail(
+                FlextCliConstants.ContextErrorMessages.ARGUMENT_NOT_FOUND.format(
+                    argument=argument
+                )
+            )
         except Exception as e:
-            return FlextResult[None].fail(f"Argument removal failed: {e}")
+            return FlextResult[None].fail(
+                FlextCliConstants.ContextErrorMessages.ARGUMENT_REMOVAL_FAILED.format(
+                    error=e
+                )
+            )
 
     def set_metadata(self, key: str, value: FlextTypes.JsonValue) -> FlextResult[None]:
         """Set context metadata using CLI-specific data types."""
         if not key or not isinstance(key, str):
-            return FlextResult[None].fail("Metadata key must be a non-empty string")
+            return FlextResult[None].fail(
+                FlextCliConstants.ContextErrorMessages.METADATA_KEY_MUST_BE_STRING
+            )
 
         try:
             self.context_metadata[key] = value
             return FlextResult[None].ok(None)
         except Exception as e:
-            return FlextResult[None].fail(f"Metadata setting failed: {e}")
+            return FlextResult[None].fail(
+                FlextCliConstants.ContextErrorMessages.METADATA_SETTING_FAILED.format(
+                    error=e
+                )
+            )
 
     def get_metadata(self, key: str) -> FlextResult[object]:
         """Get context metadata value."""
         if not key or not isinstance(key, str):
-            return FlextResult[object].fail("Metadata key must be a non-empty string")
+            return FlextResult[object].fail(
+                FlextCliConstants.ContextErrorMessages.METADATA_KEY_MUST_BE_STRING
+            )
 
         try:
             if key in self.context_metadata:
                 return FlextResult[object].ok(self.context_metadata[key])
-            return FlextResult[object].fail(f"Metadata key '{key}' not found")
+            return FlextResult[object].fail(
+                FlextCliConstants.ContextErrorMessages.METADATA_KEY_NOT_FOUND.format(
+                    key=key
+                )
+            )
         except Exception as e:
-            return FlextResult[object].fail(f"Metadata retrieval failed: {e}")
+            return FlextResult[object].fail(
+                FlextCliConstants.ContextErrorMessages.METADATA_RETRIEVAL_FAILED.format(
+                    error=e
+                )
+            )
 
     def get_context_summary(
         self,
@@ -185,37 +248,51 @@ class FlextCliContext(FlextService[FlextCliTypes.Data.CliDataDict]):
         """Get comprehensive context summary using CLI-specific data types."""
         try:
             summary: FlextTypes.Dict = {
-                "context_id": self.id,
-                "command": self.command or "none",
-                "arguments_count": len(self.arguments),
-                "arguments": list(self.arguments),
-                "environment_variables_count": len(self.environment_variables),
-                "working_directory": self.working_directory or "not_set",
-                "is_active": self.is_active,
-                "created_at": self.created_at,
-                "metadata_keys": list(self.context_metadata.keys()),
-                "metadata_count": len(self.context_metadata),
+                FlextCliConstants.ContextDictKeys.CONTEXT_ID: self.id,
+                FlextCliConstants.ContextDictKeys.COMMAND: self.command
+                or FlextCliConstants.ContextDefaults.CONTEXT_NONE,
+                FlextCliConstants.ContextDictKeys.ARGUMENTS_COUNT: len(self.arguments),
+                FlextCliConstants.ContextDictKeys.ARGUMENTS: list(self.arguments),
+                FlextCliConstants.ContextDictKeys.ENVIRONMENT_VARIABLES_COUNT: len(
+                    self.environment_variables
+                ),
+                FlextCliConstants.ContextDictKeys.WORKING_DIRECTORY: self.working_directory
+                or FlextCliConstants.ContextDefaults.CONTEXT_NOT_SET,
+                FlextCliConstants.ContextDictKeys.IS_ACTIVE: self.is_active,
+                FlextCliConstants.ContextDictKeys.CREATED_AT: self.created_at,
+                FlextCliConstants.ContextDictKeys.METADATA_KEYS: list(
+                    self.context_metadata.keys()
+                ),
+                FlextCliConstants.ContextDictKeys.METADATA_COUNT: len(
+                    self.context_metadata
+                ),
             }
 
             return FlextResult[FlextTypes.Dict].ok(summary)
         except Exception as e:
             return FlextResult[FlextTypes.Dict].fail(
-                f"Context summary generation failed: {e}",
+                FlextCliConstants.ContextErrorMessages.CONTEXT_SUMMARY_GENERATION_FAILED.format(
+                    error=e
+                ),
             )
 
     def execute(self) -> FlextResult[FlextCliTypes.Data.CliDataDict]:
         """Execute the CLI context."""
         try:
             result: FlextCliTypes.Data.CliDataDict = {
-                "context_executed": True,
-                "command": self.command,
-                "arguments_count": len(self.arguments) if self.arguments else 0,
-                "timestamp": FlextUtilities.Generators.generate_timestamp(),
+                FlextCliConstants.ContextDictKeys.CONTEXT_EXECUTED: True,
+                FlextCliConstants.ContextDictKeys.COMMAND: self.command,
+                FlextCliConstants.ContextDictKeys.ARGUMENTS_COUNT: len(self.arguments)
+                if self.arguments
+                else 0,
+                FlextCliConstants.DictKeys.TIMESTAMP: FlextUtilities.Generators.generate_timestamp(),
             }
             return FlextResult[FlextCliTypes.Data.CliDataDict].ok(result)
         except Exception as e:
             return FlextResult[FlextCliTypes.Data.CliDataDict].fail(
-                f"Context execution failed: {e}"
+                FlextCliConstants.ContextErrorMessages.CONTEXT_EXECUTION_FAILED.format(
+                    error=e
+                )
             )
 
     def to_dict(self) -> FlextTypes.Dict:

@@ -41,8 +41,8 @@ class FlextCliCommands(FlextService[FlextTypes.Dict]):
     @override
     def __init__(
         self,
-        name: str = "flext",
-        description: str = "",
+        name: str = FlextCliConstants.CommandsDefaults.DEFAULT_CLI_NAME,
+        description: str = FlextCliConstants.CommandsDefaults.DEFAULT_DESCRIPTION,
         **data: FlextTypes.JsonValue,
     ) -> None:
         """Initialize CLI commands manager with Phase 1 context enrichment."""
@@ -60,9 +60,9 @@ class FlextCliCommands(FlextService[FlextTypes.Dict]):
     def execute(self) -> FlextResult[FlextTypes.Dict]:
         """Execute the main domain service operation - required by FlextService."""
         return FlextResult[FlextTypes.Dict].ok({
-            "status": FlextCliConstants.ServiceStatus.OPERATIONAL.value,
-            "service": FlextCliConstants.FLEXT_CLI,
-            "commands": list(self._commands.keys()),
+            FlextCliConstants.CommandsDictKeys.STATUS: FlextCliConstants.ServiceStatus.OPERATIONAL.value,
+            FlextCliConstants.CommandsDictKeys.SERVICE: FlextCliConstants.FLEXT_CLI,
+            FlextCliConstants.CommandsDictKeys.COMMANDS: list(self._commands.keys()),
         })
 
     def register_command(
@@ -70,7 +70,7 @@ class FlextCliCommands(FlextService[FlextTypes.Dict]):
         name: str,
         handler: Callable[[], FlextTypes.JsonValue]
         | Callable[[FlextTypes.StringList], FlextTypes.JsonValue],
-        description: str = "",
+        description: str = FlextCliConstants.CommandsDefaults.DEFAULT_DESCRIPTION,
     ) -> FlextResult[None]:
         """Register a command.
 
@@ -85,9 +85,9 @@ class FlextCliCommands(FlextService[FlextTypes.Dict]):
         """
         try:
             self._commands[name] = {
-                "name": name,
-                "handler": handler,
-                "description": description,
+                FlextCliConstants.CommandsDictKeys.NAME: name,
+                FlextCliConstants.CommandsDictKeys.HANDLER: handler,
+                FlextCliConstants.CommandsDictKeys.DESCRIPTION: description,
             }
             self._cli_group.commands[name] = self._commands[name]
             return FlextResult[None].ok(None)
@@ -173,7 +173,7 @@ class FlextCliCommands(FlextService[FlextTypes.Dict]):
             # Check if args contain invalid commands
             if args:
                 for arg in args:
-                    if arg.startswith("--"):
+                    if arg.startswith(FlextCliConstants.CommandsDefaults.OPTION_PREFIX):
                         continue  # Skip options
                     if arg not in self._commands:
                         return FlextResult[None].fail(
@@ -184,7 +184,9 @@ class FlextCliCommands(FlextService[FlextTypes.Dict]):
 
             # Log CLI execution mode for debugging
             self.logger.debug(
-                f"CLI execution mode: standalone={standalone_mode}, args={args}"
+                FlextCliConstants.CommandsLogMessages.CLI_EXECUTION_MODE.format(
+                    standalone_mode=standalone_mode, args=args
+                )
             )
 
             # For now, just execute the service
@@ -213,7 +215,7 @@ class FlextCliCommands(FlextService[FlextTypes.Dict]):
         command_name: str,
         args: FlextTypes.StringList | None = None,
         timeout: int = FlextCliConstants.TIMEOUTS.DEFAULT,
-    ) -> FlextResult[object]:
+    ) -> FlextResult[FlextTypes.JsonValue]:
         """Execute a specific command.
 
         Args:
@@ -222,23 +224,29 @@ class FlextCliCommands(FlextService[FlextTypes.Dict]):
             timeout: Command timeout in seconds
 
         Returns:
-            FlextResult[object]: Command result
+            FlextResult[FlextTypes.JsonValue]: Command result
 
         """
         try:
             # Log timeout parameter for future use
             self.logger.debug(
-                f"Executing command {command_name} with timeout {timeout}s"
+                FlextCliConstants.CommandsLogMessages.EXECUTING_COMMAND.format(
+                    command_name=command_name, timeout=timeout
+                )
             )
 
             if command_name not in self._commands:
-                return FlextResult[object].fail(f"Command not found: {command_name}")
+                return FlextResult[FlextTypes.JsonValue].fail(
+                    FlextCliConstants.CommandsErrorMessages.COMMAND_NOT_FOUND_DETAIL.format(
+                        command_name=command_name
+                    )
+                )
 
             command_info = self._commands[command_name]
-            if isinstance(command_info, dict) and "handler" in command_info:
+            if isinstance(command_info, dict) and FlextCliConstants.CommandsDictKeys.HANDLER in command_info:
                 handler = cast(
                     "Callable[..., FlextTypes.JsonValue]",
-                    command_info.get("handler"),
+                    command_info.get(FlextCliConstants.CommandsDictKeys.HANDLER),
                 )
                 if handler is not None and callable(handler):
                     # Pass args to handler if it accepts them
@@ -250,15 +258,19 @@ class FlextCliCommands(FlextService[FlextTypes.Dict]):
                             result = handler()
                     else:
                         result = handler()
-                    return FlextResult[object].ok(result)
-                return FlextResult[object].fail(
-                    f"Handler is not callable: {command_name}"
+                    return FlextResult[FlextTypes.JsonValue].ok(result)
+                return FlextResult[FlextTypes.JsonValue].fail(
+                    FlextCliConstants.CommandsErrorMessages.HANDLER_NOT_CALLABLE.format(
+                        command_name=command_name
+                    )
                 )
-            return FlextResult[object].fail(
-                f"Invalid command structure: {command_name}"
+            return FlextResult[FlextTypes.JsonValue].fail(
+                FlextCliConstants.CommandsErrorMessages.INVALID_COMMAND_STRUCTURE.format(
+                    command_name=command_name
+                )
             )
         except Exception as e:
-            return FlextResult[object].fail(
+            return FlextResult[FlextTypes.JsonValue].fail(
                 FlextCliConstants.ErrorMessages.COMMAND_EXECUTION_FAILED.format(error=e)
             )
 
@@ -300,7 +312,9 @@ class FlextCliCommands(FlextService[FlextTypes.Dict]):
             return FlextResult[FlextTypes.StringList].ok(command_names)
         except Exception as e:
             return FlextResult[FlextTypes.StringList].fail(
-                f"Failed to list commands: {e}"
+                FlextCliConstants.CommandsErrorMessages.FAILED_LIST_COMMANDS.format(
+                    error=e
+                )
             )
 
     def create_main_cli(self) -> FlextCliCommands:

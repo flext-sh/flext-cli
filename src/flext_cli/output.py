@@ -261,10 +261,10 @@ class FlextCliOutput(FlextService[object]):
         table_format: str = FlextCliConstants.TableFormats.SIMPLE,
         *,
         align: str | Sequence[str] | None = None,
-        floatfmt: str = "g",
-        numalign: str = "decimal",
-        stralign: str = "left",
-        missingval: str = "",
+        floatfmt: str | None = None,
+        numalign: str | None = None,
+        stralign: str | None = None,
+        missingval: str | None = None,
         showindex: bool | str = False,
         disable_numparse: bool = False,
         colalign: Sequence[str] | None = None,
@@ -292,10 +292,10 @@ class FlextCliOutput(FlextService[object]):
             headers=headers or FlextCliConstants.TableFormats.KEYS,
             table_format=table_format,
             align=align,
-            floatfmt=floatfmt,
-            numalign=numalign,
-            stralign=stralign,
-            missingval=missingval,
+            floatfmt=floatfmt or FlextCliConstants.TablesDefaults.DEFAULT_FLOAT_FORMAT,
+            numalign=numalign or FlextCliConstants.TablesDefaults.DEFAULT_NUM_ALIGN,
+            stralign=stralign or FlextCliConstants.TablesDefaults.DEFAULT_STR_ALIGN,
+            missingval=missingval if missingval is not None else FlextCliConstants.TablesDefaults.DEFAULT_MISSING_VALUE,
             showindex=showindex,
             disable_numparse=disable_numparse,
             colalign=colalign,
@@ -325,7 +325,7 @@ class FlextCliOutput(FlextService[object]):
     def print_message(
         self,
         message: str,
-        style: str = "",
+        style: str | None = None,
     ) -> FlextResult[None]:
         """Print a message using FlextCliFormatters.
 
@@ -347,7 +347,7 @@ class FlextCliOutput(FlextService[object]):
         """
         return self._formatters.print(
             message,
-            style=style,
+            style=style or FlextCliConstants.OutputDefaults.EMPTY_STYLE,
         )
 
     def print_error(self, message: str) -> FlextResult[None]:
@@ -400,13 +400,16 @@ class FlextCliOutput(FlextService[object]):
             >>> output.print_warning("Deprecated feature")
 
         """
-        return self.print_message(f"⚠️  Warning: {message}", style="bold yellow")
+        return self.print_message(
+            f"{FlextCliConstants.Emojis.WARNING} Warning: {message}",
+            style=FlextCliConstants.Styles.BOLD_YELLOW,
+        )
 
     def display_text(
         self,
         text: str,
         *,
-        style: str = "",
+        style: str | None = None,
     ) -> FlextResult[None]:
         """Display text using FlextCliFormatters.
 
@@ -428,13 +431,13 @@ class FlextCliOutput(FlextService[object]):
         """
         return self._formatters.print(
             text,
-            style=style,
+            style=style or FlextCliConstants.OutputDefaults.EMPTY_STYLE,
         )
 
     def display_message(
         self,
         message: str,
-        message_type: str = "info",
+        message_type: str | None = None,
     ) -> FlextResult[None]:
         """Display message with specified type and styling.
 
@@ -450,6 +453,9 @@ class FlextCliOutput(FlextService[object]):
             >>> output.display_message("Operation completed", message_type="success")
 
         """
+        # Use default message type if not provided
+        final_message_type = message_type or FlextCliConstants.OutputDefaults.DEFAULT_MESSAGE_TYPE
+
         # Map message types to styles
         style_map = {
             FlextCliConstants.MessageTypes.INFO.value: FlextCliConstants.Styles.BLUE,
@@ -459,7 +465,7 @@ class FlextCliOutput(FlextService[object]):
         }
 
         # Get style for message type, default to blue
-        style = style_map.get(message_type, FlextCliConstants.Styles.BLUE)
+        style = style_map.get(final_message_type, FlextCliConstants.Styles.BLUE)
 
         # Add emoji prefix based on message type
         emoji_map = {
@@ -469,7 +475,7 @@ class FlextCliOutput(FlextService[object]):
             FlextCliConstants.MessageTypes.WARNING.value: FlextCliConstants.Emojis.WARNING,
         }
 
-        emoji = emoji_map.get(message_type, FlextCliConstants.Emojis.INFO)
+        emoji = emoji_map.get(final_message_type, FlextCliConstants.Emojis.INFO)
         formatted_message = f"{emoji} {message}"
 
         return self.print_message(formatted_message, style=style)
@@ -477,7 +483,7 @@ class FlextCliOutput(FlextService[object]):
     def display_data(
         self,
         data: FlextTypes.JsonValue,
-        format_type: str = "table",
+        format_type: str | None = None,
         *,
         title: str | None = None,
         headers: FlextTypes.StringList | None = None,
@@ -498,8 +504,9 @@ class FlextCliOutput(FlextService[object]):
             >>> output.display_data({"key": "value"}, format_type="json")
 
         """
+        final_format_type = format_type or FlextCliConstants.OutputDefaults.DEFAULT_FORMAT_TYPE
         format_result = self.format_data(
-            data, format_type=format_type, title=title, headers=headers
+            data, format_type=final_format_type, title=title, headers=headers
         )
 
         if format_result.is_failure:
@@ -531,9 +538,15 @@ class FlextCliOutput(FlextService[object]):
 
         """
         try:
-            return FlextResult[str].ok(json.dumps(data, default=str, indent=2))
+            return FlextResult[str].ok(
+                json.dumps(
+                    data,
+                    default=str,
+                    indent=FlextCliConstants.OutputDefaults.JSON_INDENT,
+                )
+            )
         except Exception as e:
-            error_msg = f"JSON formatting failed: {e}"
+            error_msg = FlextCliConstants.OutputLogMessages.JSON_FORMAT_FAILED.format(error=e)
             self.logger.exception(error_msg)
             return FlextResult[str].fail(error_msg)
 
@@ -552,9 +565,14 @@ class FlextCliOutput(FlextService[object]):
 
         """
         try:
-            return FlextResult[str].ok(yaml.dump(data, default_flow_style=False))
+            return FlextResult[str].ok(
+                yaml.dump(
+                    data,
+                    default_flow_style=FlextCliConstants.OutputDefaults.YAML_DEFAULT_FLOW_STYLE,
+                )
+            )
         except Exception as e:
-            error_msg = f"YAML formatting failed: {e}"
+            error_msg = FlextCliConstants.OutputLogMessages.YAML_FORMAT_FAILED.format(error=e)
             self.logger.exception(error_msg)
             return FlextResult[str].fail(error_msg)
 
@@ -590,9 +608,9 @@ class FlextCliOutput(FlextService[object]):
                 writer.writeheader()
                 writer.writerow(data)
                 return FlextResult[str].ok(output_buffer.getvalue())
-            return FlextResult[str].ok(json.dumps(data, default=str, indent=2))
+            return FlextResult[str].ok(json.dumps(data, default=str, indent=FlextCliConstants.OutputDefaults.JSON_INDENT))
         except Exception as e:
-            error_msg = f"CSV formatting failed: {e}"
+            error_msg = FlextCliConstants.OutputLogMessages.CSV_FORMAT_FAILED.format(error=e)
             self.logger.exception(error_msg)
             return FlextResult[str].fail(error_msg)
 
@@ -626,13 +644,21 @@ class FlextCliOutput(FlextService[object]):
             # Prepare data for tabulate
             if isinstance(data, dict):
                 # Reject single dict with "invalid" key (test compatibility)
-                if "invalid" in data and len(data) == 1:
+                if FlextCliConstants.OutputDefaults.TEST_INVALID_KEY in data and len(data) == 1:
                     return FlextResult[str].fail(
                         FlextCliConstants.ErrorMessages.TABLE_FORMAT_REQUIRED_DICT
                     )
-                table_data = [{"Key": k, "Value": str(v)} for k, v in data.items()]
+                table_data = [
+                    {
+                        FlextCliConstants.OutputFieldNames.KEY: k,
+                        FlextCliConstants.OutputFieldNames.VALUE: str(v),
+                    }
+                    for k, v in data.items()
+                ]
                 # For single dict, use "keys" string as tabulate requires
-                table_headers: str | FlextTypes.StringList = headers or FlextCliConstants.TableFormats.KEYS
+                table_headers: str | FlextTypes.StringList = (
+                    headers or FlextCliConstants.TableFormats.KEYS
+                )
             else:
                 if not isinstance(data, list):
                     return FlextResult[str].fail(
@@ -672,14 +698,14 @@ class FlextCliOutput(FlextService[object]):
             return FlextResult[str].ok(table_str)
 
         except Exception as e:
-            error_msg = f"Failed to format table: {e}"
+            error_msg = FlextCliConstants.OutputLogMessages.TABLE_FORMAT_FAILED.format(error=e)
             self.logger.exception(error_msg)
             return FlextResult[str].fail(error_msg)
 
     def format_as_tree(
         self,
         data: FlextTypes.Dict,
-        title: str = "Tree",
+        title: str | None = None,
     ) -> FlextResult[str]:
         """Format hierarchical data as tree view using FlextCliFormatters.
 
@@ -698,8 +724,11 @@ class FlextCliOutput(FlextService[object]):
             ... )
 
         """
+        # Use default tree title if not provided
+        final_title = title or FlextCliConstants.OutputDefaults.DEFAULT_TREE_TITLE
+
         # Create tree through formatters
-        tree_result = self._formatters.create_tree(label=title)
+        tree_result = self._formatters.create_tree(label=final_title)
 
         if tree_result.is_failure:
             return FlextResult[str].fail(f"Failed to create tree: {tree_result.error}")
@@ -730,7 +759,7 @@ class FlextCliOutput(FlextService[object]):
                     branch = tree.add(str(key))
                     self._build_tree(branch, value)
                 elif isinstance(value, list):
-                    branch = tree.add(f"{key} (list)")
+                    branch = tree.add(f"{key}{FlextCliConstants.OutputDefaults.TREE_BRANCH_LIST_SUFFIX}")
                     for item in value:
                         self._build_tree(branch, cast("FlextTypes.JsonValue", item))
                 else:

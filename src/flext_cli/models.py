@@ -53,7 +53,10 @@ class FlextCliModels(FlextModels):
     """
 
     # For test instantiation
-    name: str = Field(default="FlextCliModels")
+    name: str = Field(
+        default=FlextCliConstants.PROJECT_NAME,
+        description=FlextCliConstants.FieldDescriptions.PROJECT_NAME,
+    )
 
     # Advanced Pydantic 2.11 configuration for comprehensive model behavior
     # PHASE 7-8: Runtime type & Pydantic enforcement with strict validation
@@ -71,14 +74,14 @@ class FlextCliModels(FlextModels):
         ser_json_bytes="base64",
         hide_input_in_errors=True,
         json_schema_extra={
-            "title": "FlextCliModels",
-            "description": "Comprehensive CLI domain models with enhanced runtime validation (Phases 7-8)",
+            "title": FlextCliConstants.ModelsJsonSchema.TITLE,
+            "description": FlextCliConstants.ModelsJsonSchema.DESCRIPTION,
             "examples": [
                 {
                     "cli_command": {
-                        "command_line": "flext validate",
-                        "status": "pending",
-                        "args": ["validate"],
+                        "command_line": FlextCliConstants.ModelsJsonSchema.EXAMPLE_COMMAND,
+                        FlextCliConstants.ModelsFieldNames.STATUS: FlextCliConstants.CommandStatus.PENDING.value,
+                        "args": [FlextCliConstants.ModelsJsonSchema.EXAMPLE_ARGS],
                     }
                 }
             ],
@@ -89,7 +92,7 @@ class FlextCliModels(FlextModels):
     def validate_cli_models_consistency(self) -> Self:
         """Cross-model validation ensuring CLI models consistency."""
         # Ensure all required nested classes are properly defined
-        required_nested_classes = [
+        required_nested_classes: list[str] = [
             "BaseEntity",
             "BaseValidatedModel",
             "BaseConfig",
@@ -100,7 +103,9 @@ class FlextCliModels(FlextModels):
 
         for class_name in required_nested_classes:
             if not hasattr(self.__class__, class_name):
-                error_message = f"Required nested class {class_name} not found"
+                error_message = FlextCliConstants.ModelsErrorMessages.REQUIRED_NESTED_CLASS_NOT_FOUND.format(
+                    class_name=class_name
+                )
                 raise ValueError(error_message)
 
         return self
@@ -115,7 +120,7 @@ class FlextCliModels(FlextModels):
             "_metadata": {
                 "generated_at": datetime.now(UTC).isoformat(),
                 "total_models": len(value),
-                "serialization_version": "2.11",
+                "serialization_version": FlextCliConstants.ModelsDefaults.SERIALIZATION_VERSION,
             },
         }
 
@@ -214,14 +219,14 @@ class FlextCliModels(FlextModels):
 
             """
             type_map: dict[type, str] = {
-                str: "STRING",
-                int: "INT",
-                float: "FLOAT",
-                bool: "BOOL",
-                list: "STRING",  # Lists as comma-separated strings
-                dict: "STRING",  # Dicts as JSON strings
+                str: FlextCliConstants.ClickTypes.STRING,
+                int: FlextCliConstants.ClickTypes.INT,
+                float: FlextCliConstants.ClickTypes.FLOAT,
+                bool: FlextCliConstants.ClickTypes.BOOL,
+                list: FlextCliConstants.ClickTypes.STRING,
+                dict: FlextCliConstants.ClickTypes.STRING,
             }
-            return type_map.get(python_type, "STRING")
+            return type_map.get(python_type, FlextCliConstants.ClickTypes.STRING)
 
         @staticmethod
         def field_to_cli_param(
@@ -281,8 +286,11 @@ class FlextCliModels(FlextModels):
 
                 # Build comprehensive CLI parameter spec
                 cli_param = FlextCliModels.CliParameterSpec(
-                    name=field_name.replace("_", "-"),  # CLI convention: dashes
-                    field_name=field_name,  # Original Python field name
+                    name=field_name.replace(
+                        FlextCliConstants.CliParamDefaults.FIELD_NAME_SEPARATOR,
+                        FlextCliConstants.CliParamDefaults.PARAM_NAME_SEPARATOR,
+                    ),
+                    field_name=field_name,
                     param_type=python_type,
                     click_type=click_type,
                     required=is_required,
@@ -369,7 +377,7 @@ class FlextCliModels(FlextModels):
 
                 click_options: list[FlextCliModels.CliOptionSpec] = []
                 for param in params_result.unwrap():
-                    option_name = f"--{param.name}"
+                    option_name = f"{FlextCliConstants.CliParamDefaults.OPTION_PREFIX}{param.name}"
 
                     # Create CliOptionSpec instance
                     click_option = FlextCliModels.CliOptionSpec(
@@ -412,7 +420,11 @@ class FlextCliModels(FlextModels):
             try:
                 # Convert CLI argument names (with dashes) to Python field names (with underscores)
                 model_args = {
-                    key.replace("-", "_"): value for key, value in cli_args.items()
+                    key.replace(
+                        FlextCliConstants.CliParamDefaults.PARAM_NAME_SEPARATOR,
+                        FlextCliConstants.CliParamDefaults.FIELD_NAME_SEPARATOR,
+                    ): value
+                    for key, value in cli_args.items()
                 }
 
                 # Create and validate model instance
@@ -605,12 +617,12 @@ class FlextCliModels(FlextModels):
             examples=[0, 1, 127],
         )
         output: str = Field(
-            default="",
-            description="Standard output captured from command execution",
+            default=FlextCliConstants.CliCommandDefaults.DEFAULT_OUTPUT,
+            description=FlextCliConstants.CliCommandDescriptions.OUTPUT,
         )
         error_output: str = Field(
-            default="",
-            description="Standard error output captured from command execution",
+            default=FlextCliConstants.CliCommandDefaults.DEFAULT_ERROR_OUTPUT,
+            description=FlextCliConstants.CliCommandDescriptions.ERROR_OUTPUT,
         )
         execution_time: float | None = Field(
             default=None,
@@ -731,8 +743,8 @@ class FlextCliModels(FlextModels):
             sensitive_patterns = [
                 FlextCliConstants.DictKeys.PASSWORD,
                 FlextCliConstants.DictKeys.TOKEN,
-                "secret",
-                "key",
+                FlextCliConstants.DictKeys.SECRET,
+                FlextCliConstants.DictKeys.KEY,
             ]
             for pattern in sensitive_patterns:
                 if pattern in value.lower():
@@ -1142,8 +1154,7 @@ class FlextCliModels(FlextModels):
             """Enhanced cross-field validation for debug info consistency."""
             # Level-specific validation using FlextModels.Validation
             if (
-                self.level
-                in FlextCliConstants.CRITICAL_DEBUG_LEVELS_SET
+                self.level in FlextCliConstants.CRITICAL_DEBUG_LEVELS_SET
                 and not self.message
             ):
                 msg = f"Debug level '{self.level}' requires a descriptive message"
@@ -1158,13 +1169,13 @@ class FlextCliModels(FlextModels):
             sensitive_keys = {
                 FlextCliConstants.DictKeys.PASSWORD,
                 FlextCliConstants.DictKeys.TOKEN,
-                "secret",
-                "key",
-                "auth",
+                FlextCliConstants.DictKeys.SECRET,
+                FlextCliConstants.DictKeys.KEY,
+                FlextCliConstants.DictKeys.AUTH,
             }
             return {
                 k: (
-                    "***MASKED***"
+                    FlextCliConstants.CliParamDefaults.MASKED_SENSITIVE
                     if any(sens in k.lower() for sens in sensitive_keys)
                     else v
                 )
