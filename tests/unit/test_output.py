@@ -227,7 +227,7 @@ class TestFlextCliOutput:
 
     def test_output_create_progress_bar(self, output: FlextCliOutput) -> None:
         """Test creating progress bar."""
-        result = output.create_progress_bar("Test task", _total=100)
+        result = output.create_progress_bar()
 
         assert isinstance(result, FlextResult)
         assert result.is_success
@@ -429,6 +429,15 @@ class TestFlextCliOutput:
         assert result.error is not None
         assert "No data provided for table" in result.error
 
+    def test_format_table_invalid_dict_key(self, output: FlextCliOutput) -> None:
+        """Test format_table with dict containing only 'invalid' key (line 630)."""
+        result = output.format_table({"invalid": "test_value"})
+        assert isinstance(result, FlextResult)
+        assert result.is_failure
+        assert result.error is not None
+        assert isinstance(result.error, str)
+        assert "Table format requires dict[str, object] or list of dicts" in result.error
+
     def test_output_custom_format(
         self, output: FlextCliOutput, sample_data: dict[str, FlextTypes.JsonValue]
     ) -> None:
@@ -472,11 +481,7 @@ class TestFlextCliOutput:
         result = output.create_rich_table(
             data=data,
             title="Test Table",
-            _show_header=True,
-            _show_lines=True,
-            _show_edge=True,
-            _expand=False,
-            _padding=(0, 1),
+            headers=["key"],
         )
         assert isinstance(result, FlextResult)
         assert result.is_success
@@ -650,8 +655,8 @@ class TestFlextCliOutput:
     def test_display_message_with_highlight_not_bool(
         self, output: FlextCliOutput
     ) -> None:
-        """Test display_message when highlight is not bool (lines 504-505)."""
-        result = output.display_message("Test", message_type="info", _highlight=False)
+        """Test display_message with different message types."""
+        result = output.display_message("Test", message_type="info")
         assert isinstance(result, FlextResult)
         assert result.is_success
 

@@ -79,7 +79,7 @@ class FlextCliCli:
         self,
         name: str | None = None,
         help_text: str | None = None,
-    ) -> Callable[[Callable[..., object]], click.Command]:
+    ) -> Callable[[Callable[..., FlextTypes.JsonValue]], click.Command]:
         """Create Click command decorator.
 
         Args:
@@ -115,7 +115,7 @@ class FlextCliCli:
         self,
         name: str | None = None,
         help_text: str | None = None,
-    ) -> Callable[[Callable[..., object]], click.Group]:
+    ) -> Callable[[Callable[..., FlextTypes.JsonValue]], click.Group]:
         """Create Click group decorator for command groups.
 
         Args:
@@ -218,7 +218,9 @@ class FlextCliCli:
         type_hint: click.ParamType | type[object] | None = None,
         required: bool = True,
         nargs: int = 1,
-    ) -> Callable[[Callable[..., object]], Callable[..., object]]:
+    ) -> Callable[
+        [Callable[..., FlextTypes.JsonValue]], Callable[..., FlextTypes.JsonValue]
+    ]:
         """Create Click argument decorator with explicit parameters.
 
         Args:
@@ -533,7 +535,9 @@ class FlextCliCli:
 
     def create_pass_context_decorator(
         self,
-    ) -> Callable[[Callable[..., object]], Callable[..., object]]:
+    ) -> Callable[
+        [Callable[..., FlextTypes.JsonValue]], Callable[..., FlextTypes.JsonValue]
+    ]:
         """Create pass_context decorator.
 
         Returns:
@@ -778,8 +782,8 @@ class FlextCliCli:
 
         """
         return FlextResult[object].ok({
-            "service": "flext-cli",
-            "status": "operational",
+            FlextCliConstants.DictKeys.SERVICE: FlextCliConstants.FLEXT_CLI,
+            FlextCliConstants.DictKeys.STATUS: FlextCliConstants.ServiceStatus.OPERATIONAL.value,
         })
 
 

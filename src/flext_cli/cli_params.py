@@ -15,10 +15,10 @@ from __future__ import annotations
 import sys
 import types
 from collections.abc import Callable
-from typing import ClassVar, TypeVar, get_args, get_origin
+from typing import ClassVar, TypeVar, cast, get_args, get_origin
 
 import typer
-from flext_core import FlextResult
+from flext_core import FlextResult, FlextTypes
 from typer.models import OptionInfo
 
 from flext_cli.config import FlextCliConfig
@@ -54,7 +54,7 @@ class FlextCliCommonParams:
 
     # CLI Parameter Metadata Registry
     # Maps field names to CLI-specific metadata (short flags, choices, priority)
-    CLI_PARAM_REGISTRY: ClassVar[dict[str, dict[str, object]]] = {
+    CLI_PARAM_REGISTRY: ClassVar[dict[str, FlextTypes.Dict]] = {
         "verbose": {"short": "v", "priority": 1},
         "quiet": {"short": "q", "priority": 2},
         "debug": {"short": "d", "priority": 3},
@@ -222,16 +222,19 @@ class FlextCliCommonParams:
         show_default_val = default_value is not None
 
         # Create and return typer.Option with explicit parameters (type-safe)
-        return typer.Option(
-            default_value,
-            *param_decls,
-            help=help_text,
-            case_sensitive=case_sensitive_val
-            if case_sensitive_val is not None
-            else True,
-            min=min_val,
-            max=max_val,
-            show_default=show_default_val,
+        return cast(
+            "OptionInfo",
+            typer.Option(
+                default_value,
+                *param_decls,
+                help=help_text,
+                case_sensitive=case_sensitive_val
+                if case_sensitive_val is not None
+                else True,
+                min=min_val,
+                max=max_val,
+                show_default=show_default_val,
+            ),
         )
 
     @classmethod
@@ -282,10 +285,10 @@ class FlextCliCommonParams:
         return cls.create_option("config_file")
 
     @classmethod
-    def get_all_common_params(cls) -> dict[str, object]:
+    def get_all_common_params(cls) -> dict[str, OptionInfo]:
         """Get all common CLI parameters as typer.Option objects.
 
-        Returns dict[str, object] mapping parameter names to typer.Option objects auto-generated
+        Returns dict[str, OptionInfo] mapping parameter names to typer.Option objects auto-generated
         from FlextCliConfig field metadata. Sorted by priority from CLI_PARAM_REGISTRY.
 
         Returns:
@@ -428,7 +431,9 @@ class FlextCliCommonParams:
     @classmethod
     def create_decorator(
         cls,
-    ) -> Callable[[Callable[..., object]], Callable[..., object]]:
+    ) -> Callable[
+        [Callable[..., FlextTypes.JsonValue]], Callable[..., FlextTypes.JsonValue]
+    ]:
         """Create decorator to validate common CLI parameters are used.
 
         By default, ALL parameters are included and this is MANDATORY.
@@ -469,7 +474,9 @@ class FlextCliCommonParams:
 
         """
 
-        def decorator(func: Callable[..., object]) -> Callable[..., object]:
+        def decorator(
+            func: Callable[..., FlextTypes.JsonValue],
+        ) -> Callable[..., FlextTypes.JsonValue]:
             # Validate enforcement
             validation = cls.validate_enabled()
             if validation.is_failure and cls._enforcement_mode:

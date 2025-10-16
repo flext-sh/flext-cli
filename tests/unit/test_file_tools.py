@@ -895,12 +895,17 @@ class TestFlextCliFileTools:
     def test_write_text_file_encoding_not_string(
         self, file_tools: FlextCliFileTools, temp_dir: Path
     ) -> None:
-        """Test write_text_file when encoding is not string (line 108)."""
+        """Test write_text_file when encoding is not string (line 107-108)."""
         test_file = temp_dir / "test_encode.txt"
+        # Pass non-string encoding to trigger the isinstance check
         result = file_tools.write_text_file(
-            str(test_file), "content"
-        )  # Should use default encoding
-        assert result.is_success  # Should use default encoding
+            str(test_file),
+            "content",
+            encoding=123,  # type: ignore[arg-type]
+        )
+        assert result.is_success  # Should use default UTF8 encoding
+        # Verify file was written with correct content
+        assert test_file.read_text(encoding="utf-8") == "content"
 
     def test_copy_file_exception(self, file_tools: FlextCliFileTools) -> None:
         """Test copy_file exception handler (lines 132-133)."""

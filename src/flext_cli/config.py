@@ -465,11 +465,11 @@ class FlextCliConfig(FlextConfig):
     def execute_as_service(self) -> FlextResult[FlextCliTypes.Data.CliDataDict]:
         """Execute config as service operation."""
         return FlextResult[FlextCliTypes.Data.CliDataDict].ok({
-            "status": FlextCliConstants.OPERATIONAL,
-            "service": "flext-cli-config",
+            FlextCliConstants.DictKeys.STATUS: FlextCliConstants.ServiceStatus.OPERATIONAL.value,
+            FlextCliConstants.DictKeys.SERVICE: "flext-cli-config",
             "timestamp": datetime.now(UTC).isoformat(),
             "version": "2.0.0",
-            "config": self.model_dump(),
+            FlextCliConstants.DictKeys.CONFIG: self.model_dump(),
         })
 
     def update_from_cli_args(self, **kwargs: FlextTypes.JsonValue) -> FlextResult[None]:

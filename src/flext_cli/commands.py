@@ -60,7 +60,7 @@ class FlextCliCommands(FlextService[FlextTypes.Dict]):
     def execute(self) -> FlextResult[FlextTypes.Dict]:
         """Execute the main domain service operation - required by FlextService."""
         return FlextResult[FlextTypes.Dict].ok({
-            "status": FlextCliConstants.OPERATIONAL,
+            "status": FlextCliConstants.ServiceStatus.OPERATIONAL.value,
             "service": FlextCliConstants.FLEXT_CLI,
             "commands": list(self._commands.keys()),
         })
@@ -68,7 +68,8 @@ class FlextCliCommands(FlextService[FlextTypes.Dict]):
     def register_command(
         self,
         name: str,
-        handler: Callable[[], object] | Callable[[FlextTypes.StringList], object],
+        handler: Callable[[], FlextTypes.JsonValue]
+        | Callable[[FlextTypes.StringList], FlextTypes.JsonValue],
         description: str = "",
     ) -> FlextResult[None]:
         """Register a command.
@@ -211,7 +212,7 @@ class FlextCliCommands(FlextService[FlextTypes.Dict]):
         self,
         command_name: str,
         args: FlextTypes.StringList | None = None,
-        timeout: int = 30,
+        timeout: int = FlextCliConstants.TIMEOUTS.DEFAULT,
     ) -> FlextResult[object]:
         """Execute a specific command.
 

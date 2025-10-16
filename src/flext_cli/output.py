@@ -11,7 +11,7 @@ import csv
 import json
 from collections.abc import Iterable, Mapping, Sequence
 from io import StringIO
-from typing import Any, cast, override
+from typing import cast, override
 
 import yaml
 from flext_core import FlextResult, FlextService, FlextTypes
@@ -113,12 +113,14 @@ class FlextCliOutput(FlextService[object]):
             return self.format_yaml(data)
         if format_lower == FlextCliConstants.OutputFormats.TABLE.value:
             # Convert object to appropriate type for format_table
-            if isinstance(data, (dict, list)):
-                if isinstance(data, dict):
-                    typed_data = cast("dict[str, Any]", data)
-                else:
-                    typed_data = cast("list[Any]", data)
-                return self.format_table(typed_data, title=title, headers=headers)
+            if isinstance(data, dict):
+                # Cast to the expected dict type for format_table
+                dict_data = cast("dict[str, FlextTypes.JsonValue]", data)
+                return self.format_table(dict_data, title=title, headers=headers)
+            if isinstance(data, list):
+                # Cast to the expected list type for format_table
+                list_data = cast("list[dict[str, FlextTypes.JsonValue]]", data)
+                return self.format_table(list_data, title=title, headers=headers)
             return FlextResult[str].fail(
                 FlextCliConstants.ErrorMessages.TABLE_FORMAT_REQUIRED_DICT
             )
@@ -167,12 +169,6 @@ class FlextCliOutput(FlextService[object]):
         data: list[dict[str, FlextTypes.JsonValue]],
         title: str | None = None,
         headers: FlextTypes.StringList | None = None,
-        *,
-        _show_header: bool = True,
-        _show_lines: bool = False,
-        _show_edge: bool = True,
-        _expand: bool = False,
-        _padding: tuple[int, int] = (0, 1),
     ) -> FlextResult[FlextCliTypes.Display.RichTable]:
         """Create a Rich table from data using FlextCliFormatters.
 
@@ -180,11 +176,6 @@ class FlextCliOutput(FlextService[object]):
             data: List of dictionaries to display
             title: Optional table title
             headers: Optional custom headers
-            _show_header: Show table header (kept for API compatibility, not used)
-            _show_lines: Show lines between rows (kept for API compatibility, not used)
-            _show_edge: Show table edge (kept for API compatibility, not used)
-            _expand: Expand table to full width (kept for API compatibility, not used)
-            _padding: Table padding (kept for API compatibility, not used)
 
         Returns:
             FlextResult containing Rich Table object
@@ -198,8 +189,6 @@ class FlextCliOutput(FlextService[object]):
         Note:
             For advanced Rich table styling (borders, padding, colors), use
             FlextCliFormatters.get_console() and create Rich tables directly.
-            The _show_header, _show_lines, _show_edge, _expand, and _padding parameters
-            are kept for backward compatibility but are not applied.
 
         """
         if not data:
@@ -269,7 +258,7 @@ class FlextCliOutput(FlextService[object]):
         self,
         data: list[dict[str, FlextTypes.JsonValue]],
         headers: FlextTypes.StringList | None = None,
-        table_format: str = "simple",
+        table_format: str = FlextCliConstants.TableFormats.SIMPLE,
         *,
         align: str | Sequence[str] | None = None,
         floatfmt: str = "g",
@@ -300,7 +289,7 @@ class FlextCliOutput(FlextService[object]):
         """
         return self._tables.create_table(
             data=data,
-            headers=headers or "keys",
+            headers=headers or FlextCliConstants.TableFormats.KEYS,
             table_format=table_format,
             align=align,
             floatfmt=floatfmt,
@@ -316,25 +305,15 @@ class FlextCliOutput(FlextService[object]):
     # PROGRESS BARS (Delegates to FlextCliFormatters)
     # =========================================================================
 
-    def create_progress_bar(
-        self,
-        _description: str = "Processing...",
-        _total: int = 100,
-    ) -> FlextResult[FlextCliTypes.Interactive.Progress]:
+    def create_progress_bar(self) -> FlextResult[FlextCliTypes.Interactive.Progress]:
         """Create a Rich progress bar using FlextCliFormatters.
-
-        Args:
-            _description: Progress description (reserved for future use)
-            _total: Total number of steps (reserved for future use)
 
         Returns:
             FlextResult[Progress]: Rich Progress wrapped in Result
 
         Example:
             >>> output = FlextCliOutput()
-            >>> progress_result = output.create_progress_bar(
-            ...     description="Loading", total=100
-            ... )
+            >>> progress_result = output.create_progress_bar()
 
         """
         return self._formatters.create_progress()
@@ -347,15 +326,12 @@ class FlextCliOutput(FlextService[object]):
         self,
         message: str,
         style: str = "",
-        *,
-        _highlight: bool = False,
     ) -> FlextResult[None]:
         """Print a message using FlextCliFormatters.
 
         Args:
             message: Message to print
             style: Optional Rich style
-            _highlight: Whether to enable syntax highlighting (kept for API compatibility, not used)
 
         Returns:
             FlextResult[None]: Success or failure result
@@ -367,7 +343,6 @@ class FlextCliOutput(FlextService[object]):
         Note:
             For advanced Rich features like syntax highlighting, use
             FlextCliFormatters.get_console() to access Rich Console directly.
-            The _highlight parameter is kept for backward compatibility but is not applied.
 
         """
         return self._formatters.print(
@@ -432,14 +407,12 @@ class FlextCliOutput(FlextService[object]):
         text: str,
         *,
         style: str = "",
-        _highlight: bool = False,
     ) -> FlextResult[None]:
         """Display text using FlextCliFormatters.
 
         Args:
             text: Text to display
             style: Optional Rich style
-            _highlight: Whether to enable syntax highlighting (kept for API compatibility, not used)
 
         Returns:
             FlextResult[None]: Success or failure result
@@ -451,7 +424,6 @@ class FlextCliOutput(FlextService[object]):
         Note:
             For advanced Rich features like syntax highlighting, use
             FlextCliFormatters.get_console() to access Rich Console directly.
-            The _highlight parameter is kept for backward compatibility but is not applied.
 
         """
         return self._formatters.print(
@@ -463,15 +435,12 @@ class FlextCliOutput(FlextService[object]):
         self,
         message: str,
         message_type: str = "info",
-        *,
-        _highlight: bool = False,
     ) -> FlextResult[None]:
         """Display message with specified type and styling.
 
         Args:
             message: Message to display
             message_type: Type of message (info, success, error, warning)
-            _highlight: Whether to enable syntax highlighting (kept for API compatibility, not used)
 
         Returns:
             FlextResult[None]: Success or failure result
@@ -483,27 +452,27 @@ class FlextCliOutput(FlextService[object]):
         """
         # Map message types to styles
         style_map = {
-            "info": "blue",
-            "success": "bold green",
-            "error": "bold red",
-            "warning": "bold yellow",
+            FlextCliConstants.MessageTypes.INFO.value: FlextCliConstants.Styles.BLUE,
+            FlextCliConstants.MessageTypes.SUCCESS.value: FlextCliConstants.Styles.BOLD_GREEN,
+            FlextCliConstants.MessageTypes.ERROR.value: FlextCliConstants.Styles.BOLD_RED,
+            FlextCliConstants.MessageTypes.WARNING.value: FlextCliConstants.Styles.BOLD_YELLOW,
         }
 
-        # Get style for message type, default to info
-        style = style_map.get(message_type, "blue")
+        # Get style for message type, default to blue
+        style = style_map.get(message_type, FlextCliConstants.Styles.BLUE)
 
         # Add emoji prefix based on message type
         emoji_map = {
-            "info": "i",
-            "success": "✅",
-            "error": "❌",
-            "warning": "⚠️",
+            FlextCliConstants.MessageTypes.INFO.value: FlextCliConstants.Emojis.INFO,
+            FlextCliConstants.MessageTypes.SUCCESS.value: FlextCliConstants.Emojis.SUCCESS,
+            FlextCliConstants.MessageTypes.ERROR.value: FlextCliConstants.Emojis.ERROR,
+            FlextCliConstants.MessageTypes.WARNING.value: FlextCliConstants.Emojis.WARNING,
         }
 
-        emoji = emoji_map.get(message_type, "i")
+        emoji = emoji_map.get(message_type, FlextCliConstants.Emojis.INFO)
         formatted_message = f"{emoji} {message}"
 
-        return self.print_message(formatted_message, style=style, _highlight=_highlight)
+        return self.print_message(formatted_message, style=style)
 
     def display_data(
         self,
@@ -610,7 +579,9 @@ class FlextCliOutput(FlextService[object]):
                 writer = csv.DictWriter(output_buffer, fieldnames=fieldnames)
                 writer.writeheader()
 
-                writer.writerows(cast("Iterable[Mapping[str, Any]]", data))
+                writer.writerows(
+                    cast("Iterable[Mapping[str, FlextTypes.JsonValue]]", data)
+                )
                 return FlextResult[str].ok(output_buffer.getvalue())
             if isinstance(data, dict):
                 output_buffer = StringIO()
@@ -649,19 +620,19 @@ class FlextCliOutput(FlextService[object]):
 
         """
         try:
-            # Prepare data for tabulate - type annotation helps MyPy track the union type
+            # Prepare data for tabulate (union type for MyPy tracking)
             table_data: list[dict[str, str | FlextTypes.JsonValue]]
 
             # Prepare data for tabulate
             if isinstance(data, dict):
-                # Special case: reject single dict with "invalid" key for test compatibility
+                # Reject single dict with "invalid" key (test compatibility)
                 if "invalid" in data and len(data) == 1:
                     return FlextResult[str].fail(
                         FlextCliConstants.ErrorMessages.TABLE_FORMAT_REQUIRED_DICT
                     )
                 table_data = [{"Key": k, "Value": str(v)} for k, v in data.items()]
                 # For single dict, use "keys" string as tabulate requires
-                table_headers: str | FlextTypes.StringList = headers or "keys"
+                table_headers: str | FlextTypes.StringList = headers or FlextCliConstants.TableFormats.KEYS
             else:
                 if not isinstance(data, list):
                     return FlextResult[str].fail(
@@ -672,19 +643,19 @@ class FlextCliOutput(FlextService[object]):
                     return FlextResult[str].fail(
                         FlextCliConstants.ErrorMessages.NO_DATA_PROVIDED
                     )
-                # For list of dicts, headers must be a list (None defaults to "keys" but string should fail)
+                # List of dicts requires headers as list
                 if headers is not None and not isinstance(headers, list):
                     return FlextResult[str].fail(
                         FlextCliConstants.ErrorMessages.TABLE_HEADERS_MUST_BE_LIST
                     )
-                # For list of dicts, use headers list as tabulate requires (None defaults to "keys")
-                table_headers = headers or "keys"
+                # For list of dicts, use headers list (None defaults to "keys")
+                table_headers = headers or FlextCliConstants.TableFormats.KEYS
 
             # Create table using FlextCliTables
             table_result = self._tables.create_table(
                 data=table_data,
                 headers=table_headers,
-                table_format="grid",
+                table_format=FlextCliConstants.TableFormats.GRID,
             )
 
             if table_result.is_failure:
@@ -761,12 +732,12 @@ class FlextCliOutput(FlextService[object]):
                 elif isinstance(value, list):
                     branch = tree.add(f"{key} (list)")
                     for item in value:
-                        self._build_tree(branch, cast("Any", item))
+                        self._build_tree(branch, cast("FlextTypes.JsonValue", item))
                 else:
                     tree.add(f"{key}: {value}")
         elif isinstance(data, list):
             for item in data:
-                self._build_tree(tree, cast("Any", item))
+                self._build_tree(tree, cast("FlextTypes.JsonValue", item))
         else:
             tree.add(str(data))
 

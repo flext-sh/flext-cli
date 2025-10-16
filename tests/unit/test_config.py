@@ -678,6 +678,17 @@ class TestConfigValidationConstraints:
 class TestLoggingLevelConfiguration:
     """Test logging level configuration and changes."""
 
+    @pytest.fixture(autouse=True)
+    def _clear_flext_env_vars(self, monkeypatch: pytest.MonkeyPatch) -> None:
+        """Auto-clear all FLEXT_ environment variables before each test for isolation."""
+        # Clear all FLEXT_ environment variables to ensure test isolation
+        for key in list(os.environ.keys()):
+            if key.startswith("FLEXT_"):
+                monkeypatch.delenv(key, raising=False)
+
+        # Clear Pydantic Settings cache to ensure fresh loading
+        FlextCliConfig.reset_global_instance()
+
     def test_default_logging_level(self) -> None:
         """Test default logging level is INFO."""
         config = FlextCliConfig()

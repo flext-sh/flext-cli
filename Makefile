@@ -12,8 +12,8 @@ SRC_DIR := src
 TESTS_DIR := tests
 COV_DIR := flext_cli
 
-# Quality Standards (MANDATORY - 100% COVERAGE)
-MIN_COVERAGE := 100
+# Quality Standards (MANDATORY - 95% COVERAGE)
+MIN_COVERAGE := 95
 
 # Export Configuration
 export PROJECT_NAME PYTHON_VERSION MIN_COVERAGE

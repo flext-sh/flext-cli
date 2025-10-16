@@ -14,7 +14,7 @@ from __future__ import annotations
 import secrets
 from collections.abc import Callable
 from pathlib import Path
-from typing import Any, cast
+from typing import cast
 
 from flext_core import FlextContainer, FlextLogger, FlextResult, FlextTypes
 
@@ -30,6 +30,11 @@ from flext_cli.output import FlextCliOutput
 from flext_cli.prompts import FlextCliPrompts
 from flext_cli.typings import FlextCliTypes
 
+# Direct module-level class references (no wrapping)
+__constants__ = FlextCliConstants
+__models__ = FlextCliModels
+__types__ = FlextCliTypes
+
 
 class FlextCli:
     """Consolidated single-class CLI implementation.
@@ -42,6 +47,16 @@ class FlextCli:
     _instance: FlextCli | None = None
     _lock = __import__("threading").Lock()
 
+    # Public service instances (no wrapping needed - direct access)
+    logger: FlextLogger
+    config: FlextCliConfig
+    formatters: FlextCliFormatters
+    file_tools: FlextCliFileTools
+    output: FlextCliOutput
+    core: FlextCliCore
+    cmd: FlextCliCmd
+    prompts: FlextCliPrompts
+
     def __init__(self) -> None:
         """Initialize consolidated CLI with all functionality integrated."""
         # CLI metadata - MUST be first for Typer app creation
@@ -50,17 +65,17 @@ class FlextCli:
         self._description = f"{self._name} CLI"
 
         # Core initialization
-        self._logger = FlextLogger(__name__)
+        self.logger = FlextLogger(__name__)
         self._container = FlextContainer.get_global()
         self._container.register("flext_cli", self)
 
         # Domain library components (domain library pattern)
-        self._formatters = FlextCliFormatters()
-        self._file_tools = FlextCliFileTools()
-        self._output = FlextCliOutput()
-        self._core = FlextCliCore()
-        self._cmd = FlextCliCmd()
-        self._prompts = FlextCliPrompts()
+        self.formatters = FlextCliFormatters()
+        self.file_tools = FlextCliFileTools()
+        self.output = FlextCliOutput()
+        self.core = FlextCliCore()
+        self.cmd = FlextCliCmd()
+        self.prompts = FlextCliPrompts()
 
         # CLI framework abstraction (domain library pattern)
         self._cli = FlextCliCli()
@@ -69,7 +84,7 @@ class FlextCli:
         self._plugin_commands: FlextTypes.Dict = {}
 
         # Auth state (consolidated from FlextCliAuth)
-        self._config = FlextCliConfig()
+        self.config = FlextCliConfig()
         self._valid_tokens: set[str] = set()
         self._valid_sessions: set[str] = set()
         self._session_permissions: dict[str, set[str]] = {}
@@ -92,7 +107,7 @@ class FlextCli:
         style: str | None = None,
     ) -> FlextResult[None]:
         """Print formatted message using formatters domain library."""
-        return self._formatters.print(message, style=style)
+        return self.formatters.print(message, style=style)
 
     def create_table(
         self,
@@ -106,7 +121,7 @@ class FlextCli:
             FlextResult[RichTable]: Rich Table wrapped in Result
 
         """
-        return self._formatters.create_table(data=data, headers=headers, title=title)
+        return self.formatters.create_table(data=data, headers=headers, title=title)
 
     def create_progress(self) -> FlextResult[FlextCliTypes.Interactive.Progress]:
         """Create progress bar using formatters domain library.
@@ -115,71 +130,30 @@ class FlextCli:
             FlextResult[Progress]: Rich Progress wrapped in Result
 
         """
-        return self._formatters.create_progress()
+        return self.formatters.create_progress()
 
     def create_tree(self, label: str) -> FlextResult[FlextCliTypes.Display.RichTree]:
         """Create tree using formatters domain library."""
-        return self._formatters.create_tree(label=label)
-
-    @property
-    def config(self) -> FlextCliConfig:
-        """Get CLI configuration instance."""
-        return self._config
-
-    @property
-    def output(self) -> FlextCliOutput:
-        """Get CLI output service instance."""
-        return self._output
-
-    @property
-    def formatters(self) -> FlextCliFormatters:
-        """Get CLI formatters instance."""
-        return self._formatters
-
-    @property
-    def file_tools(self) -> FlextCliFileTools:
-        """Get CLI file tools instance."""
-        return self._file_tools
-
-    @property
-    def core(self) -> FlextCliCore:
-        """Get CLI core service instance."""
-        return self._core
+        return self.formatters.create_tree(label=label)
 
     @property
     def constants(self) -> type[FlextCliConstants]:
-        """Get CLI constants class."""
-        return FlextCliConstants
+        """Get CLI constants class (direct module reference)."""
+        return __constants__
 
     @property
     def models(self) -> type[FlextCliModels]:
-        """Get CLI models class."""
-        return FlextCliModels
+        """Get CLI models class (direct module reference)."""
+        return __models__
 
     @property
     def types(self) -> type[FlextCliTypes]:
-        """Get CLI types class."""
-        return FlextCliTypes
-
-    @property
-    def logger(self) -> FlextLogger:
-        """Get CLI logger instance."""
-        return self._logger
-
-    @property
-    def cmd(self) -> FlextCliCmd:
-        """Get CLI command service instance."""
-        return self._cmd
-
-    @property
-    def prompts(self) -> FlextCliPrompts:
-        """Get prompts instance - direct access."""
-        return self._prompts
+        """Get CLI types class (direct module reference)."""
+        return __types__
 
     @property
     def utilities(self) -> FlextCli:
-        """Get CLI utilities instance."""
-        # For now, return self as utilities - this might need to be expanded later
+        """Get CLI utilities instance (returns self)."""
         return self
 
     def print_table(self, table: FlextCliTypes.Display.RichTable) -> FlextResult[None]:
@@ -193,7 +167,7 @@ class FlextCli:
 
         """
         try:
-            self._formatters.get_console().print(table)
+            self.formatters.get_console().print(table)
             return FlextResult[None].ok(None)
         except Exception as e:
             return FlextResult[None].fail(f"Failed to print table: {e}")
@@ -222,11 +196,11 @@ class FlextCli:
     ) -> FlextResult[str]:
         """Authenticate using token."""
         token = str(credentials[FlextCliConstants.DictKeys.TOKEN])
+        if not token.strip():
+            return FlextResult[str].fail(FlextCliConstants.ErrorMessages.TOKEN_EMPTY)
         save_result = self.save_auth_token(token)
         if save_result.is_failure:
             return FlextResult[str].fail(f"Failed to save token: {save_result.error}")
-        if not token.strip():
-            return FlextResult[str].fail(FlextCliConstants.ErrorMessages.TOKEN_EMPTY)
         return FlextResult[str].ok(token)
 
     def _authenticate_with_credentials(
@@ -271,11 +245,15 @@ class FlextCli:
         if not token.strip():
             return FlextResult[None].fail(FlextCliConstants.ErrorMessages.TOKEN_EMPTY)
 
-        token_path = self._config.token_file
-        token_data = cast("dict[str, Any]", {"token": token})
+        token_path = self.config.token_file
+        token_data: FlextCliTypes.Auth.CredentialsData = {
+            FlextCliConstants.DictKeys.TOKEN: token
+        }
 
         # Use file tools domain library for JSON writing
-        write_result = self._file_tools.write_json_file(str(token_path), token_data)
+        # Cast to JsonValue to satisfy invariant dict typing
+        json_data: FlextTypes.JsonValue = cast("FlextTypes.JsonValue", token_data)
+        write_result = self.file_tools.write_json_file(str(token_path), json_data)
         if write_result.is_failure:
             return FlextResult[None].fail(
                 FlextCliConstants.ErrorMessages.TOKEN_SAVE_FAILED.format(
@@ -288,10 +266,10 @@ class FlextCli:
 
     def get_auth_token(self) -> FlextResult[str]:
         """Get authentication token using file tools domain library."""
-        token_path = self._config.token_file
+        token_path = self.config.token_file
 
         # Use file tools domain library for JSON reading
-        read_result = self._file_tools.read_json_file(str(token_path))
+        read_result = self.file_tools.read_json_file(str(token_path))
         if read_result.is_failure:
             if "not found" in str(read_result.error).lower():
                 return FlextResult[str].fail(
@@ -303,12 +281,12 @@ class FlextCli:
                 )
             )
 
-        # Type guard: validate data is dict[str, object] with "token" key
+        # Type guard: validate data is dict with token key
         data = read_result.unwrap()
         if not isinstance(data, dict):
             return FlextResult[str].fail("Token file must contain a JSON object")
 
-        token = data.get("token")
+        token = data.get(FlextCliConstants.DictKeys.TOKEN)
         if not token:
             return FlextResult[str].fail(
                 FlextCliConstants.ErrorMessages.TOKEN_FILE_EMPTY
@@ -326,12 +304,12 @@ class FlextCli:
 
     def clear_auth_tokens(self) -> FlextResult[None]:
         """Clear authentication tokens using file tools domain library."""
-        token_path = self._config.token_file
-        refresh_token_path = self._config.refresh_token_file
+        token_path = self.config.token_file
+        refresh_token_path = self.config.refresh_token_file
 
         # Use file tools domain library for file deletion
-        delete_token_result = self._file_tools.delete_file(str(token_path))
-        delete_refresh_result = self._file_tools.delete_file(str(refresh_token_path))
+        delete_token_result = self.file_tools.delete_file(str(token_path))
+        delete_refresh_result = self.file_tools.delete_file(str(refresh_token_path))
 
         # Check if either deletion failed (but don't fail if file doesn't exist)
         if (
@@ -363,10 +341,14 @@ class FlextCli:
 
     def command(
         self, name: str | None = None
-    ) -> Callable[[Callable[..., object]], Callable[..., object]]:
+    ) -> Callable[
+        [Callable[..., FlextCliTypes.JsonValue]], Callable[..., FlextCliTypes.JsonValue]
+    ]:
         """Register a command using CLI framework abstraction."""
 
-        def decorator(func: Callable[..., object]) -> Callable[..., object]:
+        def decorator(
+            func: Callable[..., FlextCliTypes.JsonValue],
+        ) -> Callable[..., FlextCliTypes.JsonValue]:
             cmd_name = name or func.__name__
             self._commands[cmd_name] = func
 
@@ -378,10 +360,14 @@ class FlextCli:
 
     def group(
         self, name: str | None = None
-    ) -> Callable[[Callable[..., object]], Callable[..., object]]:
+    ) -> Callable[
+        [Callable[..., FlextCliTypes.JsonValue]], Callable[..., FlextCliTypes.JsonValue]
+    ]:
         """Register a command group using CLI framework abstraction."""
 
-        def decorator(func: Callable[..., object]) -> Callable[..., object]:
+        def decorator(
+            func: Callable[..., FlextCliTypes.JsonValue],
+        ) -> Callable[..., FlextCliTypes.JsonValue]:
             group_name = name or func.__name__
             self._groups[group_name] = func
 
@@ -402,11 +388,11 @@ class FlextCli:
 
     def read_text_file(self, path: Path) -> FlextResult[str]:
         """Read text file using file tools domain library."""
-        return self._file_tools.read_text_file(str(path))
+        return self.file_tools.read_text_file(str(path))
 
     def write_text_file(self, path: Path, content: str) -> FlextResult[None]:
         """Write text file using file tools domain library."""
-        return self._file_tools.write_text_file(str(path), content)
+        return self.file_tools.write_text_file(str(path), content)
 
     # =========================================================================
     # EXECUTION - Railway pattern with FlextResult
@@ -415,7 +401,7 @@ class FlextCli:
     def execute(self) -> FlextResult[FlextTypes.Dict]:
         """Execute CLI service with railway pattern."""
         return FlextResult[FlextTypes.Dict].ok({
-            FlextCliConstants.DictKeys.STATUS: FlextCliConstants.OPERATIONAL,
+            FlextCliConstants.DictKeys.STATUS: FlextCliConstants.ServiceStatus.OPERATIONAL.value,
             FlextCliConstants.DictKeys.SERVICE: FlextCliConstants.FLEXT_CLI,
         })
 

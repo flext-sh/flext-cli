@@ -37,7 +37,7 @@ class FlextCliPrompts(FlextService[FlextCliTypes.Data.CliDataDict]):
         description="Enable quiet mode (non-interactive)",
     )
     default_timeout: int = Field(
-        default=30,
+        default=FlextCliConstants.TIMEOUTS.DEFAULT,
         description="Default timeout for prompt operations in seconds",
     )
     # Private attribute for internal storage (not part of model schema)
@@ -45,7 +45,7 @@ class FlextCliPrompts(FlextService[FlextCliTypes.Data.CliDataDict]):
 
     def __init__(
         self,
-        default_timeout: int = 30,
+        default_timeout: int = FlextCliConstants.TIMEOUTS.DEFAULT,
         *,
         interactive_mode: bool = True,
         quiet: bool = False,
@@ -267,7 +267,7 @@ class FlextCliPrompts(FlextService[FlextCliTypes.Data.CliDataDict]):
     def prompt_password(
         self,
         message: str = "Password:",
-        min_length: int = 1,
+        min_length: int = FlextCliConstants.FormattingDefaults.MIN_FIELD_LENGTH,
     ) -> FlextResult[str]:
         """Prompt user for password input with hidden text.
 
@@ -625,7 +625,7 @@ class FlextCliPrompts(FlextService[FlextCliTypes.Data.CliDataDict]):
             self._logger.info(f"Processing {total_items} items: {description}")
 
             processed_count = 0
-            progress_report_threshold = 10
+            progress_report_threshold = FlextCliConstants.ProgressDefaults.REPORT_THRESHOLD
             for _ in range(len(items)):
                 # Process the item (placeholder - would do actual work)
                 processed_count += 1
