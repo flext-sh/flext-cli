@@ -69,7 +69,7 @@ class FlextCliExceptions(FlextExceptions):
 
             # Extract common parameters using helper
             base_context, correlation_id, remaining = self._extract_common_kwargs(
-                cast("FlextTypes.Dict", kwargs)
+                kwargs
             )
 
             # Build context merging base and remaining kwargs
@@ -110,8 +110,6 @@ class FlextCliExceptions(FlextExceptions):
             self, key: str, default: FlextTypes.JsonValue | None = None
         ) -> FlextTypes.JsonValue:
             """Get context value by key with optional default."""
-            from typing import cast
-
             return cast("FlextTypes.JsonValue", self.context.get(key, default))
 
         def is_error_code(self, error_code: str) -> bool:
@@ -119,7 +117,7 @@ class FlextCliExceptions(FlextExceptions):
             return str(self.error_code) == error_code
 
         def _extract_common_kwargs(
-            self, kwargs: FlextTypes.Dict
+            self, kwargs: dict[str, FlextTypes.JsonValue]
         ) -> tuple[FlextTypes.Dict, str | None, FlextTypes.Dict]:
             """Extract common kwargs for exception initialization.
 
@@ -164,7 +162,7 @@ class FlextCliExceptions(FlextExceptions):
         """CLI validation error exception."""
 
         @override
-        def __init__(self, message: str, **kwargs: object) -> None:
+        def __init__(self, message: str, **kwargs: FlextTypes.JsonValue) -> None:
             """Initialize validation error with message and context using helpers.
 
             Args:
@@ -192,7 +190,7 @@ class FlextCliExceptions(FlextExceptions):
         """CLI configuration error exception."""
 
         @override
-        def __init__(self, message: str, **kwargs: object) -> None:
+        def __init__(self, message: str, **kwargs: FlextTypes.JsonValue) -> None:
             """Initialize configuration error with message and context using helpers.
 
             Args:
@@ -220,7 +218,7 @@ class FlextCliExceptions(FlextExceptions):
         """CLI connection error exception."""
 
         @override
-        def __init__(self, message: str, **kwargs: object) -> None:
+        def __init__(self, message: str, **kwargs: FlextTypes.JsonValue) -> None:
             """Initialize connection error with message and context using helpers.
 
             Args:
@@ -248,7 +246,7 @@ class FlextCliExceptions(FlextExceptions):
         """CLI authentication error exception."""
 
         @override
-        def __init__(self, message: str, **kwargs: object) -> None:
+        def __init__(self, message: str, **kwargs: FlextTypes.JsonValue) -> None:
             """Initialize authentication error with message and context using helpers.
 
             Args:
@@ -276,7 +274,7 @@ class FlextCliExceptions(FlextExceptions):
         """CLI command error exception."""
 
         @override
-        def __init__(self, message: str, **kwargs: object) -> None:
+        def __init__(self, message: str, **kwargs: FlextTypes.JsonValue) -> None:
             """Initialize command error with message and context using helpers.
 
             Args:
@@ -304,7 +302,7 @@ class FlextCliExceptions(FlextExceptions):
         """CLI timeout error exception."""
 
         @override
-        def __init__(self, message: str, **kwargs: object) -> None:
+        def __init__(self, message: str, **kwargs: FlextTypes.JsonValue) -> None:
             """Initialize timeout error with message and context using helpers.
 
             Args:
@@ -332,7 +330,7 @@ class FlextCliExceptions(FlextExceptions):
         """CLI format error exception."""
 
         @override
-        def __init__(self, message: str, **kwargs: object) -> None:
+        def __init__(self, message: str, **kwargs: FlextTypes.JsonValue) -> None:
             """Initialize format error with message and context using helpers.
 
             Args:

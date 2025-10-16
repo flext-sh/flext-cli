@@ -60,6 +60,37 @@ class FlextCliConstants(FlextConstants):
         RUNNING = "running"
         COMPLETED = "completed"
         FAILED = "failed"
+        CANCELLED = "cancelled"
+
+    class SessionStatus(StrEnum):
+        """Session execution status enum."""
+
+        ACTIVE = "active"
+        COMPLETED = "completed"
+        TERMINATED = "terminated"
+
+    class DebugLevel(StrEnum):
+        """Debug information level enum."""
+
+        DEBUG = "debug"
+        INFO = "info"
+        WARNING = "warning"
+        ERROR = "error"
+        CRITICAL = "critical"
+
+    class ServiceStatus(StrEnum):
+        """Service operational status enum."""
+
+        OPERATIONAL = "operational"
+        AVAILABLE = "available"
+        DEGRADED = "degraded"
+        ERROR = "error"
+        HEALTHY = "healthy"
+        CONNECTED = "connected"
+
+    # Service status constants for direct access
+    HEALTHY: Final[str] = ServiceStatus.HEALTHY.value
+    OPERATIONAL: Final[str] = ServiceStatus.OPERATIONAL.value
 
     # Output formats - using FlextTypes.Output.OutputFormat Literal type
     # CLI adds "plain" format on top of standard formats
@@ -150,6 +181,8 @@ class FlextCliConstants(FlextConstants):
     class NetworkDefaults:
         """Network-related defaults for CLI operations."""
 
+        DEFAULT_HOST: Final[str] = "localhost"
+        DEFAULT_PORT: Final[int] = 8080
         DEFAULT_API_URL: Final[str] = (
             f"http://{FlextConstants.Platform.DEFAULT_HOST}:{FlextConstants.Platform.FLEXT_API_PORT}/api"
         )
@@ -187,6 +220,41 @@ class FlextCliConstants(FlextConstants):
         CommandStatus.RUNNING.value,
         CommandStatus.COMPLETED.value,
         CommandStatus.FAILED.value,
+        CommandStatus.CANCELLED.value,
+    ]
+
+    SESSION_STATUSES_LIST: Final[FlextTypes.StringList] = [
+        SessionStatus.ACTIVE.value,
+        SessionStatus.COMPLETED.value,
+        SessionStatus.TERMINATED.value,
+    ]
+
+    DEBUG_LEVELS_LIST: Final[FlextTypes.StringList] = [
+        DebugLevel.DEBUG.value,
+        DebugLevel.INFO.value,
+        DebugLevel.WARNING.value,
+        DebugLevel.ERROR.value,
+        DebugLevel.CRITICAL.value,
+    ]
+
+    # Critical debug levels that require descriptive messages
+    CRITICAL_DEBUG_LEVELS: Final[FlextTypes.StringList] = [
+        DebugLevel.ERROR.value,
+        DebugLevel.CRITICAL.value,
+    ]
+
+    CRITICAL_DEBUG_LEVELS_SET: Final[set[str]] = {
+        DebugLevel.ERROR.value,
+        DebugLevel.CRITICAL.value,
+    }
+
+    SERVICE_STATUSES_LIST: Final[FlextTypes.StringList] = [
+        ServiceStatus.OPERATIONAL.value,
+        ServiceStatus.AVAILABLE.value,
+        ServiceStatus.DEGRADED.value,
+        ServiceStatus.ERROR.value,
+        ServiceStatus.HEALTHY.value,
+        ServiceStatus.CONNECTED.value,
     ]
 
     ERROR_CODES_LIST: Final[FlextTypes.StringList] = [
@@ -328,10 +396,6 @@ class FlextCliConstants(FlextConstants):
         WRITE: Final[int] = 30
         COMMAND: Final[int] = 300
 
-    # Status constants for service operations
-    OPERATIONAL: Final[str] = "operational"
-    AVAILABLE: Final[str] = "available"
-
     # Service names
     FLEXT_CLI: Final[str] = "flext-cli"
 
@@ -343,8 +407,6 @@ class FlextCliConstants(FlextConstants):
     VALUE: Final[str] = "Value"
 
     # Additional status constants
-    CONNECTED: Final[str] = "connected"
-    HEALTHY: Final[str] = "healthy"
     TRACE: Final[str] = "trace"
 
     # Default values
@@ -743,6 +805,19 @@ class FlextCliConstants(FlextConstants):
         PORT: Final[str] = "port"
         TIMEOUT: Final[str] = "timeout"
 
+        # Data value keys (generic)
+        KEY: Final[str] = "key"
+        VALUE: Final[str] = "value"
+
+        # Configuration data keys
+        PROFILE: Final[str] = "profile"
+        DEBUG: Final[str] = "debug"
+        VERBOSE: Final[str] = "verbose"
+        QUIET: Final[str] = "quiet"
+        OUTPUT_FORMAT: Final[str] = "output_format"
+        CONFIG_FILE: Final[str] = "config_file"
+        CONFIG_DATA: Final[str] = "config_data"
+
     class StatusValues:
         """Additional status values for CLI operations."""
 
@@ -757,6 +832,13 @@ class FlextCliConstants(FlextConstants):
         LOGS: Final[str] = "logs"
         TOKEN: Final[str] = "token"
         REFRESH_TOKEN: Final[str] = "refresh_token"
+
+        # List of subdirectories for iteration
+        STANDARD_SUBDIRS: Final[FlextTypes.StringList] = [
+            CONFIG,
+            CACHE,
+            LOGS,
+        ]
 
     class Symbols:
         """CLI symbols and markers."""
@@ -854,6 +936,79 @@ class FlextCliConstants(FlextConstants):
         OutputConfig = dict[
             str, FlextTypes.Output.OutputFormat | FlextTypes.ConfigValue
         ]
+
+    class Styles:
+        """Rich/Terminal style constants for colored output."""
+
+        BLUE: Final[str] = "blue"
+        GREEN: Final[str] = "green"
+        RED: Final[str] = "red"
+        YELLOW: Final[str] = "yellow"
+        BOLD: Final[str] = "bold"
+        BOLD_GREEN: Final[str] = "bold green"
+        BOLD_RED: Final[str] = "bold red"
+        BOLD_YELLOW: Final[str] = "bold yellow"
+        BOLD_BLUE: Final[str] = "bold blue"
+
+    class Emojis:
+        """Emoji constants for terminal output messages."""
+
+        INFO: Final[str] = "ℹ️"
+        SUCCESS: Final[str] = "✅"
+        ERROR: Final[str] = "❌"
+        WARNING: Final[str] = "⚠️"
+
+    class TableFormats:
+        """Table format constants for tabulate integration."""
+
+        KEYS: Final[str] = "keys"
+        SIMPLE: Final[str] = "simple"
+        GRID: Final[str] = "grid"
+        FANCY_GRID: Final[str] = "fancy_grid"
+        PIPE: Final[str] = "pipe"
+
+    class TokenDefaults:
+        """Token generation and security defaults."""
+
+        URL_SAFE_BYTES: Final[int] = 32
+
+    class TerminalDefaults:
+        """Terminal dimension and display defaults."""
+
+        DEFAULT_WIDTH: Final[int] = 80
+        DEFAULT_HEIGHT: Final[int] = 24
+
+    class PriorityDefaults:
+        """Priority level defaults for task scheduling."""
+
+        DEFAULT_PRIORITY: Final[int] = 999
+
+    class ValidationLimits:
+        """Validation boundary limits for CLI parameters."""
+
+        MIN_MAX_WIDTH: Final[int] = 40
+        MAX_MAX_WIDTH: Final[int] = 200
+        MAX_TIMEOUT_SECONDS: Final[int] = 300
+        MAX_RETRIES: Final[int] = 10
+
+    class DebugServiceNames:
+        """Debug service name constants for diagnostic operations."""
+
+        DEBUG: Final[str] = "FlextCliDebug"
+
+    class ProgressDefaults:
+        """Progress reporting and update defaults."""
+
+        REPORT_THRESHOLD: Final[int] = 10
+        UPDATE_INTERVAL_MS: Final[int] = 100
+
+    class FormattingDefaults:
+        """Text formatting and display defaults."""
+
+        INDENT_WIDTH: Final[int] = 2
+        TAB_WIDTH: Final[int] = 4
+        LINE_BUFFER: Final[int] = 100
+        MIN_FIELD_LENGTH: Final[int] = 1
 
     # Table formats for tabulate integration
     TABLE_FORMATS: Final[FlextTypes.StringDict] = {

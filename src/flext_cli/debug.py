@@ -86,10 +86,10 @@ class FlextCliDebug(FlextService[str]):
         """Test basic connectivity and service status."""
         try:
             connectivity_info = {
-                "status": FlextCliConstants.CONNECTED,
+                "status": FlextCliConstants.ServiceStatus.CONNECTED.value,
                 "timestamp": datetime.now(UTC).isoformat(),
                 "service": str(FlextCliDebug),
-                "connectivity": FlextCliConstants.OPERATIONAL,
+                "connectivity": FlextCliConstants.ServiceStatus.OPERATIONAL.value,
             }
             return FlextResult[FlextTypes.StringDict].ok(connectivity_info)
         except Exception as e:
@@ -101,7 +101,7 @@ class FlextCliDebug(FlextService[str]):
         """Execute comprehensive health check."""
         try:
             health_info: Types.Data.DebugInfoData = {
-                "status": FlextCliConstants.HEALTHY,
+                "status": FlextCliConstants.ServiceStatus.HEALTHY.value,
                 "timestamp": datetime.now(UTC).isoformat(),
                 "service": "FlextCliDebug",
                 "check_id": str(uuid.uuid4()),
@@ -144,8 +144,8 @@ class FlextCliDebug(FlextService[str]):
                 "timestamp": datetime.now(UTC).isoformat(),
                 "debug_id": str(uuid.uuid4()),
                 "system_info": self._get_system_info(),
-                "environment_status": FlextCliConstants.OPERATIONAL,
-                "connectivity_status": FlextCliConstants.CONNECTED,
+                "environment_status": FlextCliConstants.ServiceStatus.OPERATIONAL.value,
+                "connectivity_status": FlextCliConstants.ServiceStatus.CONNECTED.value,
             }
             return FlextResult[Types.Data.DebugInfoData].ok(debug_info)
         except Exception as e:
@@ -249,9 +249,9 @@ class FlextCliDebug(FlextService[str]):
             "hostname": platform.node(),
         }
 
-    def _get_environment_info(self) -> dict[str, str]:
+    def _get_environment_info(self) -> FlextTypes.StringDict:
         """Get environment variables with sensitive data masked."""
-        env_info = {}
+        env_info: FlextTypes.StringDict = {}
         sensitive_keys = {
             FlextCliConstants.DictKeys.PASSWORD,
             FlextCliConstants.DictKeys.TOKEN,

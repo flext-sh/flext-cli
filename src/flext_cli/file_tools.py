@@ -259,15 +259,11 @@ class FlextCliFileTools(FlextService[FlextTypes.Dict]):
 
     def load_file_auto_detect(
         self, file_path: str | Path
-    ) -> FlextResult[
-        FlextTypes.Dict | FlextTypes.List | str | int | float | bool | None
-    ]:
+    ) -> FlextResult[FlextTypes.JsonValue]:
         """Load file with automatic format detection."""
         format_result = self.detect_file_format(file_path)
         if format_result.is_failure:
-            return FlextResult[
-                FlextTypes.Dict | FlextTypes.List | str | int | float | bool | None
-            ].fail(
+            return FlextResult[FlextTypes.JsonValue].fail(
                 format_result.error
                 or FlextCliConstants.ErrorMessages.FORMAT_DETECTION_FAILED
             )
@@ -278,9 +274,7 @@ class FlextCliFileTools(FlextService[FlextTypes.Dict]):
         if file_format == "yaml":
             return self._FileLoader.load_yaml(str(file_path))
 
-        return FlextResult[
-            FlextTypes.Dict | FlextTypes.List | str | int | float | bool | None
-        ].fail(
+        return FlextResult[FlextTypes.JsonValue].fail(
             FlextCliConstants.ErrorMessages.UNSUPPORTED_FORMAT.format(
                 format=file_format
             )
@@ -348,7 +342,7 @@ class FlextCliFileTools(FlextService[FlextTypes.Dict]):
 
     def read_csv_file_with_headers(
         self, file_path: str | Path
-    ) -> FlextResult[list[dict[str, str]]]:
+    ) -> FlextResult[list[FlextTypes.StringDict]]:
         """Read CSV file with headers."""
         try:
             with Path(file_path).open(
@@ -356,9 +350,11 @@ class FlextCliFileTools(FlextService[FlextTypes.Dict]):
             ) as f:
                 reader = csv.DictReader(f)
                 data = list(reader)
-            return FlextResult[list[dict[str, str]]].ok(data)
+            return FlextResult[list[FlextTypes.StringDict]].ok(data)
         except Exception as e:
-            return FlextResult[list[dict[str, str]]].fail(f"CSV read failed: {e}")
+            return FlextResult[list[FlextTypes.StringDict]].fail(
+                f"CSV read failed: {e}"
+            )
 
     def delete_file(self, file_path: str | Path) -> FlextResult[None]:
         """Delete file."""

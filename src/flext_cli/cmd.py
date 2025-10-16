@@ -42,8 +42,8 @@ class FlextCliCmd(FlextService[FlextTypes.Dict]):
     def execute(self) -> FlextResult[FlextTypes.Dict]:
         """Execute command service - required by FlextService."""
         return FlextResult[FlextTypes.Dict].ok({
-            "status": "operational",
-            "service": "FlextCliCmd",
+            FlextCliConstants.DictKeys.STATUS: FlextCliConstants.ServiceStatus.OPERATIONAL.value,
+            FlextCliConstants.DictKeys.SERVICE: "FlextCliCmd",
         })
 
     @classmethod
@@ -59,10 +59,10 @@ class FlextCliCmd(FlextService[FlextTypes.Dict]):
         return [
             str(flext_dir),
             str(flext_dir / FlextCliConstants.DictKeys.CONFIG),
-            str(flext_dir / "cache"),
-            str(flext_dir / "logs"),
+            str(flext_dir / FlextCliConstants.Subdirectories.CACHE),
+            str(flext_dir / FlextCliConstants.Subdirectories.LOGS),
             str(flext_dir / FlextCliConstants.DictKeys.TOKEN),
-            str(flext_dir / "refresh_token"),
+            str(flext_dir / FlextCliConstants.Subdirectories.REFRESH_TOKEN),
         ]
 
     def _validate_config_structure(self) -> FlextTypes.StringList:
@@ -73,17 +73,26 @@ class FlextCliCmd(FlextService[FlextTypes.Dict]):
 
         # Check main config directory
         if flext_dir.exists():
-            results.append("✓ Main config directory exists")
+            results.append(
+                FlextCliConstants.Symbols.SUCCESS_MARK + " Main config directory exists"
+            )
         else:
-            results.append("✗ Main config directory missing")
+            results.append(
+                FlextCliConstants.Symbols.FAILURE_MARK
+                + " Main config directory missing"
+            )
 
-        # Check subdirectories
-        for subdir in [FlextCliConstants.DictKeys.CONFIG, "cache", "logs"]:
+        # Check subdirectories using constants
+        for subdir in FlextCliConstants.Subdirectories.STANDARD_SUBDIRS:
             path = flext_dir / subdir
             if path.exists():
-                results.append(f"✓ {subdir} directory exists")
+                results.append(
+                    f"{FlextCliConstants.Symbols.SUCCESS_MARK} {subdir} directory exists"
+                )
             else:
-                results.append(f"✗ {subdir} directory missing")
+                results.append(
+                    f"{FlextCliConstants.Symbols.FAILURE_MARK} {subdir} directory missing"
+                )
 
         return results
 
@@ -99,7 +108,7 @@ class FlextCliCmd(FlextService[FlextTypes.Dict]):
             and os.access(flext_dir, os.R_OK),
             FlextCliConstants.DictKeys.CONFIG_WRITABLE: flext_dir.exists()
             and os.access(flext_dir, os.W_OK),
-            "timestamp": datetime.now(UTC).isoformat(),
+            FlextCliConstants.DictKeys.TIMESTAMP: datetime.now(UTC).isoformat(),
         }
 
     def show_config_paths(self) -> FlextResult[FlextTypes.StringList]:
@@ -210,9 +219,9 @@ class FlextCliCmd(FlextService[FlextTypes.Dict]):
                 )
 
             result_data: FlextTypes.Dict = {
-                "key": key,
-                "value": config_data[key],
-                "timestamp": datetime.now(UTC).isoformat(),
+                FlextCliConstants.DictKeys.KEY: key,
+                FlextCliConstants.DictKeys.VALUE: config_data[key],
+                FlextCliConstants.DictKeys.TIMESTAMP: datetime.now(UTC).isoformat(),
             }
             return FlextResult[FlextTypes.Dict].ok(result_data)
 
@@ -254,24 +263,26 @@ class FlextCliCmd(FlextService[FlextTypes.Dict]):
             if not config_path.exists():
                 # Create default configuration
                 default_config = {
-                    "host": "localhost",
-                    "port": 8080,
-                    "profile": FlextCliConstants.DEFAULT,
-                    "debug": False,
-                    "verbose": False,
-                    "quiet": False,
-                    "output_format": FlextCliConstants.TABLE,
-                    "timeout": 30,
+                    FlextCliConstants.DictKeys.HOST: FlextCliConstants.NetworkDefaults.DEFAULT_HOST,
+                    FlextCliConstants.DictKeys.PORT: FlextCliConstants.NetworkDefaults.DEFAULT_PORT,
+                    FlextCliConstants.DictKeys.PROFILE: FlextCliConstants.DEFAULT,
+                    FlextCliConstants.DictKeys.DEBUG: False,
+                    FlextCliConstants.DictKeys.VERBOSE: False,
+                    FlextCliConstants.DictKeys.QUIET: False,
+                    FlextCliConstants.DictKeys.OUTPUT_FORMAT: FlextCliConstants.TABLE,
+                    FlextCliConstants.DictKeys.TIMEOUT: FlextCliConstants.TIMEOUTS.DEFAULT,
                 }
 
                 # Save default configuration - convert values to object type
                 config_data: FlextTypes.Dict = {
-                    "host": str(default_config[FlextCliConstants.DictKeys.HOST]),
-                    "port": default_config[
+                    FlextCliConstants.DictKeys.HOST: str(
+                        default_config[FlextCliConstants.DictKeys.HOST]
+                    ),
+                    FlextCliConstants.DictKeys.PORT: default_config[
                         FlextCliConstants.DictKeys.PORT
                     ],  # Already int from default_config
-                    "timeout": default_config[
-                        "timeout"
+                    FlextCliConstants.DictKeys.TIMEOUT: default_config[
+                        FlextCliConstants.DictKeys.TIMEOUT
                     ],  # Already int from default_config
                 }
                 save_result = self._file_tools.write_json_file(
@@ -300,9 +311,9 @@ class FlextCliCmd(FlextService[FlextTypes.Dict]):
             # For now, return success with config info
             # In a real implementation, this would open an editor
             config_info = {
-                "config_file": str(config_path),
-                "config_data": loaded_config_data,
-                "message": FlextCliConstants.ServiceMessages.CONFIG_LOADED_SUCCESSFULLY,
+                FlextCliConstants.DictKeys.CONFIG_FILE: str(config_path),
+                FlextCliConstants.DictKeys.CONFIG_DATA: loaded_config_data,
+                FlextCliConstants.DictKeys.MESSAGE: FlextCliConstants.ServiceMessages.CONFIG_LOADED_SUCCESSFULLY,
             }
 
             if self.logger:

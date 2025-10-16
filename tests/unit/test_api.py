@@ -832,7 +832,7 @@ nested:
         mock_file_tools.write_json_file = Mock(
             return_value=FlextResult[None].fail("Write failed")
         )
-        api_service._file_tools = mock_file_tools
+        api_service.file_tools = mock_file_tools
 
         credentials = cast(
             "FlextCliTypes.Auth.CredentialsData", {"token": "test_token"}
@@ -925,7 +925,7 @@ nested:
         mock_file_tools.write_json_file = Mock(
             return_value=FlextResult[None].fail("Write error")
         )
-        api_service._file_tools = mock_file_tools
+        api_service.file_tools = mock_file_tools
 
         result = api_service.save_auth_token("test_token")
 
@@ -946,7 +946,7 @@ nested:
         mock_file_tools.read_json_file = Mock(
             return_value=FlextResult[object].fail("Token file not found")
         )
-        api_service._file_tools = mock_file_tools
+        api_service.file_tools = mock_file_tools
 
         result = api_service.get_auth_token()
 
@@ -969,7 +969,7 @@ nested:
         mock_file_tools.read_json_file = Mock(
             return_value=FlextResult[object].fail("Read error")
         )
-        api_service._file_tools = mock_file_tools
+        api_service.file_tools = mock_file_tools
 
         result = api_service.get_auth_token()
 
@@ -988,7 +988,7 @@ nested:
         # Mock file_tools.read_json_file to return empty token
         mock_file_tools = Mock(spec=FlextCliFileTools)
         mock_file_tools.read_json_file = Mock(return_value=FlextResult[object].ok({}))
-        api_service._file_tools = mock_file_tools
+        api_service.file_tools = mock_file_tools
 
         result = api_service.get_auth_token()
 
@@ -1009,7 +1009,7 @@ nested:
         mock_file_tools.delete_file = Mock(
             return_value=FlextResult[None].fail("Permission denied")
         )
-        api_service._file_tools = mock_file_tools
+        api_service.file_tools = mock_file_tools
 
         result = api_service.clear_auth_tokens()
 
@@ -1028,7 +1028,7 @@ nested:
         # Mock file_tools.delete_file to succeed (simulate successful deletion)
         mock_file_tools = Mock(spec=FlextCliFileTools)
         mock_file_tools.delete_file = Mock(return_value=FlextResult[None].ok(None))
-        api_service._file_tools = mock_file_tools
+        api_service.file_tools = mock_file_tools
 
         # Add token to valid tokens set
         api_service._valid_tokens.add("test_token_1")
@@ -1043,6 +1043,26 @@ nested:
         # Verify valid tokens were cleared (line 346)
         assert len(api_service._valid_tokens) == 0
 
+    def test_print_table_success(self) -> None:
+        """Test print_table success case (line 171)."""
+        from unittest.mock import Mock
+
+        api_service = FlextCli()
+
+        # Mock formatters.get_console().print to succeed
+        mock_console = Mock()
+        mock_console.print = Mock(return_value=None)
+
+        # Mock formatters.get_console() to return our mock console
+        api_service.formatters.get_console = Mock(return_value=mock_console)
+
+        result = api_service.print_table("mock_table")
+
+        assert result.is_success
+        assert result.unwrap() is None
+        # Verify print was called with the table
+        mock_console.print.assert_called_once_with("mock_table")
+
     def test_print_table_exception(self, monkeypatch: pytest.MonkeyPatch) -> None:
         """Test print_table exception handler (lines 199-203)."""
         from unittest.mock import Mock
@@ -1054,7 +1074,7 @@ nested:
         mock_console.print = Mock(side_effect=RuntimeError("Print failed"))
 
         # Mock formatters.get_console() to return our mock console
-        api_service._formatters.get_console = Mock(return_value=mock_console)
+        api_service.formatters.get_console = Mock(return_value=mock_console)
 
         result = api_service.print_table("mock_table")
 
@@ -1074,7 +1094,7 @@ nested:
         mock_file_tools.read_json_file = Mock(
             return_value=FlextResult[object].ok("not a dict")
         )
-        api_service._file_tools = mock_file_tools
+        api_service.file_tools = mock_file_tools
 
         result = api_service.get_auth_token()
 
@@ -1094,7 +1114,7 @@ nested:
         mock_file_tools.read_json_file = Mock(
             return_value=FlextResult[dict].ok({"token": 12345})
         )
-        api_service._file_tools = mock_file_tools
+        api_service.file_tools = mock_file_tools
 
         result = api_service.get_auth_token()
 

@@ -481,7 +481,7 @@ class TestFlextCliModels:
         """Test CliSession comprehensive edge cases."""
         # Test with valid session
         session = FlextCliModels.CliSession(
-            session_id="edge-test", status="active", duration_seconds=0.0
+            session_id="edge-test", status="active", internal_duration_seconds=0.0
         )
         assert session is not None
         assert session.session_id == "edge-test"
@@ -1345,7 +1345,7 @@ class TestFlextCliModelsExceptionHandlers:
     def test_logging_config_validation_edge_cases(self) -> None:
         """Test LoggingConfig validation with edge cases."""
         # Test with invalid log level
-        with pytest.raises(ValueError, match=r"invalid"):
+        with pytest.raises(ValueError, match=r"Invalid log level"):
             FlextCliModels.LoggingConfig(
                 log_level="INVALID_LEVEL",  # Invalid level
                 log_format="%(message)s",
@@ -1460,7 +1460,7 @@ class TestFlextCliModelsExceptionHandlers:
 
         # Test command_line validator with empty command
         with pytest.raises(
-            ValueError, match=r"string should have at least 1 character"
+            ValueError, match=r"String should have at least 1 character"
         ):
             FlextCliModels.CliCommand(
                 name="test",

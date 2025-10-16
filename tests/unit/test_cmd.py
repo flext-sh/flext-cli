@@ -640,14 +640,23 @@ class TestFlextCliCmd:
 
         class FailingFileTools(FlextCliFileTools):
             @staticmethod
-            def write_json_file(  # type: ignore[override]
+            def write_json_file(
                 file_path: str | Path,
-                data: object,
+                data: FlextTypes.JsonValue,
                 indent: int = 2,
                 *,
                 sort_keys: bool = False,
                 ensure_ascii: bool = True,
             ) -> FlextResult[None]:
+                # Validate parameter types to satisfy linting
+                assert isinstance(file_path, (str, Path))
+                assert (
+                    isinstance(data, (str, int, float, bool, list, dict))
+                    or data is None
+                )
+                assert isinstance(indent, int)
+                assert isinstance(sort_keys, bool)
+                assert isinstance(ensure_ascii, bool)
                 return FlextResult[None].fail("Write failed")
 
         cmd._file_tools = FailingFileTools()

@@ -446,7 +446,10 @@ class FlextCliModels(FlextModels):
         @staticmethod
         def cli_from_model(
             model_class: type[BaseModel], command_name: str | None = None
-        ) -> Callable[[Callable[..., object]], Callable[..., object]]:
+        ) -> Callable[
+            [Callable[..., FlextTypes.JsonValue]],
+            Callable[..., FlextTypes.JsonValue | FlextResult[object]],
+        ]:
             """Decorator that generates CLI command from Pydantic model.
 
             Args:
@@ -464,7 +467,9 @@ class FlextCliModels(FlextModels):
 
             """
 
-            def decorator(func: Callable[..., object]) -> Callable[..., object]:
+            def decorator(
+                func: Callable[..., FlextTypes.JsonValue],
+            ) -> Callable[..., FlextTypes.JsonValue | FlextResult[object]]:
                 # Store model metadata on function for CLI builder inspection
                 setattr(func, "__cli_model__", model_class)
                 setattr(func, "__cli_command_name__", command_name or func.__name__)
@@ -490,9 +495,7 @@ class FlextCliModels(FlextModels):
                     validated_model = validation_result.unwrap()
 
                     # Call original function with validated model
-                    from typing import cast
-
-                    return cast("FlextTypes.JsonValue", func(validated_model))
+                    return func(validated_model)
 
                 return wrapper
 
@@ -501,7 +504,10 @@ class FlextCliModels(FlextModels):
         @staticmethod
         def cli_from_multiple_models(
             *model_classes: type[BaseModel], command_name: str | None = None
-        ) -> Callable[[Callable[..., object]], Callable[..., object]]:
+        ) -> Callable[
+            [Callable[..., FlextTypes.JsonValue]],
+            Callable[..., FlextTypes.JsonValue | FlextResult[object]],
+        ]:
             """Decorator for CLI command with multiple model inputs.
 
             Args:
@@ -519,7 +525,9 @@ class FlextCliModels(FlextModels):
 
             """
 
-            def decorator(func: Callable[..., object]) -> Callable[..., object]:
+            def decorator(
+                func: Callable[..., FlextTypes.JsonValue],
+            ) -> Callable[..., FlextTypes.JsonValue | FlextResult[object]]:
                 # Store multiple models metadata
                 setattr(func, "__cli_models__", model_classes)
                 setattr(func, "__cli_command_name__", command_name or func.__name__)
@@ -547,9 +555,7 @@ class FlextCliModels(FlextModels):
                         validated_models.append(validation_result.unwrap())
 
                     # Call with validated models
-                    from typing import cast
-
-                    return cast("FlextTypes.JsonValue", func(*validated_models))
+                    return func(*validated_models)
 
                 return wrapper
 
@@ -584,9 +590,14 @@ class FlextCliModels(FlextModels):
             examples=[["validate"], ["deploy", "--env", "production"]],
         )
         status: str = Field(
-            default="pending",
+            default=FlextCliConstants.CommandStatus.PENDING.value,
             description="Current execution status of the command",
-            examples=["pending", "running", "completed", "failed"],
+            examples=[
+                FlextCliConstants.CommandStatus.PENDING.value,
+                FlextCliConstants.CommandStatus.RUNNING.value,
+                FlextCliConstants.CommandStatus.COMPLETED.value,
+                FlextCliConstants.CommandStatus.FAILED.value,
+            ],
         )
         exit_code: int | None = Field(
             default=None,
@@ -633,7 +644,7 @@ class FlextCliModels(FlextModels):
             description="Plugin or module entry point for this command",
         )
         plugin_version: str = Field(
-            default="default",
+            default=FlextCliConstants.DEFAULT,
             description="Version of the plugin providing this command",
         )
 
@@ -651,13 +662,7 @@ class FlextCliModels(FlextModels):
         @classmethod
         def validate_status_allowed(cls, v: str) -> str:
             """Validate status is one of the allowed values."""
-            allowed_statuses = {
-                "pending",
-                "running",
-                "completed",
-                "failed",
-                "cancelled",
-            }
+            allowed_statuses = set(FlextCliConstants.COMMAND_STATUSES_LIST)
             if v not in allowed_statuses:
                 msg = f"Invalid status '{v}'. Must be one of: {', '.join(sorted(allowed_statuses))}"
                 raise ValueError(msg)
@@ -667,12 +672,12 @@ class FlextCliModels(FlextModels):
         @computed_field
         def is_completed(self) -> bool:
             """Check if command execution is completed."""
-            return self.status == "completed"
+            return self.status == FlextCliConstants.CommandStatus.COMPLETED.value
 
         @computed_field
         def is_failed(self) -> bool:
             """Check if command execution failed."""
-            return self.status == "failed"
+            return self.status == FlextCliConstants.CommandStatus.FAILED.value
 
         @computed_field
         def has_result(self) -> bool:
@@ -886,7 +891,6 @@ class FlextCliModels(FlextModels):
             default=0.0,
             ge=0.0,
             description="Internal duration tracking field (use duration_seconds computed field)",
-            alias="duration_seconds",
         )
         commands_executed: int = Field(
             default=0,
@@ -898,9 +902,13 @@ class FlextCliModels(FlextModels):
             description="List of commands executed in this session",
         )
         status: str = Field(
-            default="active",
+            default=FlextCliConstants.SessionStatus.ACTIVE.value,
             description="Current session status",
-            examples=["active", "completed", "terminated"],
+            examples=[
+                FlextCliConstants.SessionStatus.ACTIVE.value,
+                FlextCliConstants.SessionStatus.COMPLETED.value,
+                FlextCliConstants.SessionStatus.TERMINATED.value,
+            ],
         )
         user_id: str | None = Field(
             default=None,
@@ -923,16 +931,26 @@ class FlextCliModels(FlextModels):
         @computed_field
         def is_active(self) -> bool:
             """Check if session is currently active."""
-            return self.status == "active"
+            return self.status == FlextCliConstants.SessionStatus.ACTIVE.value
 
         @computed_field
         def session_summary(self) -> FlextCliModels.CliSessionData:
             """Computed field for session activity summary."""
+            # Compute duration the same way as the computed field
+            duration = self.internal_duration_seconds
+            if self.start_time and self.end_time:
+                try:
+                    start = datetime.fromisoformat(self.start_time)
+                    end = datetime.fromisoformat(self.end_time)
+                    duration = (end - start).total_seconds()
+                except (ValueError, AttributeError):
+                    pass
+
             return FlextCliModels.CliSessionData(
                 session_id=self.session_id,
-                is_active=self.status == "active",
+                is_active=self.status == FlextCliConstants.SessionStatus.ACTIVE.value,
                 commands_count=len(self.commands),
-                duration_minutes=round(self.duration_seconds / 60, 2),
+                duration_minutes=round(duration / 60, 2),
                 has_user=self.user_id is not None,
                 last_activity_age=self._calculate_activity_age(),
             )
@@ -954,7 +972,7 @@ class FlextCliModels(FlextModels):
                 self.commands_executed = len(self.commands)
 
             # Duration should be non-negative
-            if self.duration_seconds < 0:
+            if self.internal_duration_seconds < 0:
                 msg = "duration_seconds cannot be negative"
                 raise ValueError(msg)
 
@@ -1001,7 +1019,7 @@ class FlextCliModels(FlextModels):
                     FlextCliConstants.ErrorMessages.USER_ID_EMPTY
                 )
 
-            valid_statuses = ["active", "completed", "terminated"]
+            valid_statuses = FlextCliConstants.SESSION_STATUSES_LIST
             status_result = FlextCliMixins.ValidationMixin.validate_enum_value(
                 "status", self.status, valid_statuses
             )
@@ -1034,14 +1052,18 @@ class FlextCliModels(FlextModels):
         """
 
         service: str = Field(
-            default="FlextCliDebug",
+            default=FlextCliConstants.DebugServiceNames.DEBUG,
             description="Service name generating debug info",
             examples=["FlextCliDebug", "FlextCliCore", "FlextCliCommands"],
         )
         status: str = Field(
-            default="operational",
+            default=FlextCliConstants.ServiceStatus.OPERATIONAL.value,
             description="Current operational status",
-            examples=["operational", "degraded", "error"],
+            examples=[
+                FlextCliConstants.ServiceStatus.OPERATIONAL.value,
+                FlextCliConstants.ServiceStatus.DEGRADED.value,
+                FlextCliConstants.ServiceStatus.ERROR.value,
+            ],
         )
         timestamp: datetime = Field(
             default_factory=lambda: datetime.now(UTC),
@@ -1056,9 +1078,15 @@ class FlextCliModels(FlextModels):
             description="Configuration information (sensitive data masked)",
         )
         level: str = Field(
-            default="info",
+            default=FlextCliConstants.DebugLevel.INFO.value,
             description="Debug information level",
-            examples=["debug", "info", "warning", "error", "critical"],
+            examples=[
+                FlextCliConstants.DebugLevel.DEBUG.value,
+                FlextCliConstants.DebugLevel.INFO.value,
+                FlextCliConstants.DebugLevel.WARNING.value,
+                FlextCliConstants.DebugLevel.ERROR.value,
+                FlextCliConstants.DebugLevel.CRITICAL.value,
+            ],
         )
         message: str = Field(
             default="",
@@ -1070,7 +1098,7 @@ class FlextCliModels(FlextModels):
         @classmethod
         def validate_level_allowed(cls, v: str) -> str:
             """Validate level is one of the allowed values."""
-            valid_levels = {"debug", "info", "warning", "error", "critical"}
+            valid_levels = set(FlextCliConstants.DEBUG_LEVELS_LIST)
             if v not in valid_levels:
                 msg = f"Invalid debug level '{v}'. Must be one of: {', '.join(sorted(valid_levels))}"
                 raise ValueError(msg)
@@ -1113,7 +1141,11 @@ class FlextCliModels(FlextModels):
         def validate_debug_consistency(self) -> Self:
             """Enhanced cross-field validation for debug info consistency."""
             # Level-specific validation using FlextModels.Validation
-            if self.level in {"error", "critical"} and not self.message:
+            if (
+                self.level
+                in FlextCliConstants.CRITICAL_DEBUG_LEVELS_SET
+                and not self.message
+            ):
                 msg = f"Debug level '{self.level}' requires a descriptive message"
                 raise ValueError(msg)
             return self
@@ -1149,7 +1181,7 @@ class FlextCliModels(FlextModels):
                 return service_result
 
             # Validate level
-            valid_levels = ["debug", "info", "warning", "error", "critical"]
+            valid_levels = FlextCliConstants.DEBUG_LEVELS_LIST
             level_result = FlextCliMixins.ValidationMixin.validate_enum_value(
                 "level", self.level, valid_levels
             )
@@ -1157,12 +1189,6 @@ class FlextCliModels(FlextModels):
                 return level_result
 
             return FlextResult[None].ok(None)
-
-    status: str = Field(
-        default="active",
-        description="Current session status",
-        examples=["active", "completed", "terminated"],
-    )
 
     class LoggingConfig(
         FlextModels.ArbitraryTypesModel, FlextCliMixins.ValidationMixin
@@ -1218,7 +1244,7 @@ class FlextCliModels(FlextModels):
                 format=self.log_format,
                 console_output=self.console_output,
                 log_file=self.log_file,
-                has_file_output=self.has_file_output,
+                has_file_output=self.log_file is not None and len(self.log_file) > 0,
             )
 
     # NOTE: CliConfig has been moved to config.py as FlextCliConfig
