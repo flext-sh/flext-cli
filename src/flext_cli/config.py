@@ -64,6 +64,9 @@ class FlextCliConfig(FlextConfig):
         # Inherit enhanced Pydantic 2.11+ features from FlextConfig
         validate_assignment=True,
         str_strip_whitespace=True,
+        # Environment parsing configuration
+        env_parse_enums=True,
+        env_parse_none_str=None,
         json_schema_extra={
             "title": "FLEXT CLI Configuration",
             "description": "Enterprise CLI configuration extending FlextConfig",
@@ -121,7 +124,8 @@ class FlextCliConfig(FlextConfig):
     )
 
     auto_refresh: bool = Field(
-        default=True, description="Automatically refresh authentication tokens"
+        default=FlextCliConstants.ConfigDefaults.AUTO_REFRESH,
+        description="Automatically refresh authentication tokens",
     )
 
     # CLI behavior configuration (flattened from previous nested classes)
@@ -129,6 +133,30 @@ class FlextCliConfig(FlextConfig):
         default=FlextCliConstants.CliDefaults.DEFAULT_VERBOSE,
         description="Enable verbose output",
     )
+    debug: bool = Field(
+        default=FlextCliConstants.CliDefaults.DEFAULT_DEBUG,
+        description="Enable debug mode",
+    )
+
+    @field_validator("debug", "verbose", "no_color", "auto_refresh", "quiet", "interactive", mode="before")
+    @classmethod
+    def parse_bool_strings(cls, v: object) -> object:
+        """Parse string boolean values from environment variables."""
+        if isinstance(v, str):
+            v_lower = v.lower()
+            if v_lower in FlextCliConstants.ConfigParsing.BOOL_TRUE_VALUES:
+                return True
+            if v_lower in FlextCliConstants.ConfigParsing.BOOL_FALSE_VALUES:
+                return False
+        return v
+
+    @field_validator("max_retries", "cli_timeout", "max_width", mode="before")
+    @classmethod
+    def parse_int_strings(cls, v: object) -> object:
+        """Parse string integer values from environment variables."""
+        if isinstance(v, str) and v.isdigit():
+            return int(v)
+        return v
     app_name: str = Field(
         default=FlextCliConstants.CliDefaults.DEFAULT_APP_NAME,
         description="Application name",
@@ -152,8 +180,8 @@ class FlextCliConfig(FlextConfig):
 
     max_width: int = Field(
         default=FlextCliConstants.CliDefaults.DEFAULT_MAX_WIDTH,
-        ge=40,
-        le=200,
+        ge=FlextCliConstants.ValidationLimits.MIN_MAX_WIDTH,
+        le=FlextCliConstants.ValidationLimits.MAX_MAX_WIDTH,
         description="Maximum width for CLI output",
     )
 
@@ -165,30 +193,30 @@ class FlextCliConfig(FlextConfig):
     cli_timeout: int = Field(
         default=FlextCliConstants.NetworkDefaults.DEFAULT_TIMEOUT,
         ge=1,
-        le=300,
+        le=FlextCliConstants.ValidationLimits.MAX_TIMEOUT_SECONDS,
         description="CLI network timeout in seconds",
     )
 
     max_retries: int = Field(
         default=FlextCliConstants.NetworkDefaults.DEFAULT_MAX_RETRIES,
         ge=0,
-        le=10,
+        le=FlextCliConstants.ValidationLimits.MAX_RETRIES,
         description="Maximum number of retry attempts",
     )
 
     # Logging configuration - centralized for all FLEXT projects
     log_verbosity: str = Field(
-        default="detailed",
+        default=FlextCliConstants.CliDefaults.DEFAULT_LOG_VERBOSITY,
         description="Logging verbosity (compact, detailed, full)",
     )
 
     cli_log_level: str = Field(
-        default="INFO",
+        default=FlextCliConstants.CliDefaults.DEFAULT_CLI_LOG_LEVEL,
         description="CLI-specific logging level",
     )
 
     cli_log_verbosity: str = Field(
-        default="detailed",
+        default=FlextCliConstants.CliDefaults.DEFAULT_CLI_LOG_VERBOSITY,
         description="CLI-specific logging verbosity",
     )
 
@@ -223,7 +251,7 @@ class FlextCliConfig(FlextConfig):
     @classmethod
     def validate_api_url(cls, v: str) -> str:
         """Validate API URL format."""
-        if not v.startswith(("http://", "https://")):
+        if not v.startswith(FlextCliConstants.ConfigValidation.URL_PROTOCOLS):
             msg = (
                 FlextCliConstants.ValidationMessages.INVALID_API_URL_MUST_START.format(
                     url=v
@@ -236,11 +264,11 @@ class FlextCliConfig(FlextConfig):
     @classmethod
     def validate_log_level(cls, v: str) -> str:
         """Validate log level is one of the allowed values."""
-        valid_levels = {"DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"}
+        valid_levels = set(FlextCliConstants.LOG_LEVELS_LIST)
         level_upper = v.upper()
         if level_upper not in valid_levels:
             msg = FlextCliConstants.ValidationMessages.INVALID_LOG_LEVEL_MUST_BE.format(
-                level=v, valid_levels=", ".join(valid_levels)
+                level=v, valid_levels=", ".join(sorted(valid_levels))
             )
             raise ValueError(msg)
         return level_upper
@@ -249,11 +277,11 @@ class FlextCliConfig(FlextConfig):
     @classmethod
     def validate_log_verbosity(cls, v: str) -> str:
         """Validate log verbosity is one of the allowed values."""
-        valid_verbosity = {"compact", "detailed", "full"}
+        valid_verbosity = FlextCliConstants.ConfigValidation.LOG_VERBOSITY_VALUES
         verbosity_lower = v.lower()
         if verbosity_lower not in valid_verbosity:
             msg = FlextCliConstants.ValidationMessages.INVALID_LOG_VERBOSITY_MUST_BE.format(
-                verbosity=v, valid_verbosity=", ".join(valid_verbosity)
+                verbosity=v, valid_verbosity=", ".join(sorted(valid_verbosity))
             )
             raise ValueError(msg)
         return verbosity_lower
@@ -262,10 +290,10 @@ class FlextCliConfig(FlextConfig):
     @classmethod
     def validate_environment(cls, v: str) -> str:
         """Validate environment is one of the allowed values."""
-        valid_environments = {"development", "staging", "production", "test"}
+        valid_environments = FlextCliConstants.ConfigValidation.ENVIRONMENT_VALUES
         env_lower = v.lower()
         if env_lower not in valid_environments:
-            msg = f"Invalid environment '{v}'. Must be one of: {', '.join(valid_environments)}"
+            msg = f"Invalid environment '{v}'. Must be one of: {', '.join(sorted(valid_environments))}"
             raise ValueError(msg)
         return env_lower
 
@@ -339,11 +367,16 @@ class FlextCliConfig(FlextConfig):
 
         """
         # Check if output is being piped (non-interactive)
-        if not os.isatty(1):  # stdout is not a terminal
+        if not os.isatty(FlextCliConstants.ConfigValidation.STDOUT_FD):
             return FlextCliConstants.OutputFormats.JSON.value
 
         # Get terminal width
-        terminal_width = shutil.get_terminal_size(fallback=(80, 24)).columns
+        terminal_width = shutil.get_terminal_size(
+            fallback=(
+                FlextCliConstants.ConfigValidation.TERMINAL_FALLBACK_WIDTH,
+                FlextCliConstants.ConfigValidation.TERMINAL_FALLBACK_HEIGHT,
+            )
+        ).columns
 
         # For narrow terminals, use simple format
         if terminal_width < FlextCliConstants.TERMINAL_WIDTH_NARROW:
@@ -380,12 +413,12 @@ class FlextCliConfig(FlextConfig):
         """
         # Check if explicitly set via config
         if self.verbose:
-            return "verbose"
+            return FlextCliConstants.ConfigDefaults.DEFAULT_VERBOSITY
         if self.quiet:
-            return "quiet"
+            return FlextCliConstants.ConfigDefaults.QUIET_VERBOSITY
 
         # Default to normal verbosity
-        return "normal"
+        return FlextCliConstants.ConfigDefaults.NORMAL_VERBOSITY
 
     @computed_field
     def optimal_table_format(self) -> str:
@@ -395,18 +428,23 @@ class FlextCliConfig(FlextConfig):
             str: Optimal tabulate format based on terminal width
 
         """
-        terminal_width = shutil.get_terminal_size(fallback=(80, 24)).columns
+        terminal_width = shutil.get_terminal_size(
+            fallback=(
+                FlextCliConstants.ConfigValidation.TERMINAL_FALLBACK_WIDTH,
+                FlextCliConstants.ConfigValidation.TERMINAL_FALLBACK_HEIGHT,
+            )
+        ).columns
 
         # Narrow terminals: simple format
         if terminal_width < FlextCliConstants.TERMINAL_WIDTH_NARROW:
-            return "simple"
+            return FlextCliConstants.TableFormats.SIMPLE
 
         # Medium terminals: github format
         if terminal_width < FlextCliConstants.TERMINAL_WIDTH_MEDIUM:
             return "github"
 
         # Wide terminals: grid format (most visually appealing)
-        return "grid"
+        return FlextCliConstants.TableFormats.GRID
 
     # CLI-specific methods
 
@@ -437,7 +475,10 @@ class FlextCliConfig(FlextConfig):
                     "r", encoding=FlextCliConstants.Encoding.UTF8
                 ) as f:
                     data = json.load(f)
-            elif config_file.suffix.lower() in {".yml", ".yaml"}:
+            elif (
+                config_file.suffix.lower()
+                in FlextCliConstants.ConfigValidation.YAML_EXTENSIONS
+            ):
                 import yaml
 
                 with config_file.open(
@@ -466,9 +507,9 @@ class FlextCliConfig(FlextConfig):
         """Execute config as service operation."""
         return FlextResult[FlextCliTypes.Data.CliDataDict].ok({
             FlextCliConstants.DictKeys.STATUS: FlextCliConstants.ServiceStatus.OPERATIONAL.value,
-            FlextCliConstants.DictKeys.SERVICE: "flext-cli-config",
+            FlextCliConstants.DictKeys.SERVICE: FlextCliConstants.ConfigDefaults.DEFAULT_SERVICE_NAME,
             "timestamp": datetime.now(UTC).isoformat(),
-            "version": "2.0.0",
+            "version": FlextCliConstants.ConfigDefaults.DEFAULT_VERSION_STRING,
             FlextCliConstants.DictKeys.CONFIG: self.model_dump(),
         })
 
@@ -543,9 +584,16 @@ class FlextCliConfig(FlextConfig):
                     # Value was explicitly set, keep it
                     setattr(env_config, key, value)
 
-            # Copy merged config back
+            # Copy merged config back (skip computed fields)
+            computed_fields = {
+                "auto_output_format",
+                "auto_color_support",
+                "auto_verbosity",
+                "optimal_table_format",
+            }
             for key in current_config:
-                setattr(self, key, getattr(env_config, key))
+                if key not in computed_fields:
+                    setattr(self, key, getattr(env_config, key))
 
             return FlextResult[None].ok(None)
 

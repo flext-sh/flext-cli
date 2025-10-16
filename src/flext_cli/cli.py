@@ -215,7 +215,7 @@ class FlextCliCli:
     def create_argument_decorator(
         self,
         *param_decls: str,
-        type_hint: click.ParamType | type[object] | None = None,
+        type_hint: click.ParamType | type[FlextTypes.JsonValue] | None = None,
         required: bool = True,
         nargs: int = 1,
     ) -> Callable[
@@ -316,9 +316,9 @@ class FlextCliCli:
 
     def get_file_type(
         self,
-        mode: str = "r",
+        mode: str = FlextCliConstants.FileDefaults.DEFAULT_FILE_MODE,
         encoding: str | None = None,
-        errors: str | None = "strict",
+        errors: str | None = FlextCliConstants.FileDefaults.DEFAULT_ERROR_HANDLING,
         *,
         lazy: bool | None = None,
         atomic: bool = False,
@@ -422,7 +422,7 @@ class FlextCliCli:
 
         """
         if formats is None:
-            formats = ["%Y-%m-%d", "%Y-%m-%dT%H:%M:%S", "%Y-%m-%d %H:%M:%S"]
+            formats = FlextCliConstants.FileDefaults.DEFAULT_DATETIME_FORMATS
         return click.DateTime(formats=formats)
 
     def get_uuid_type(self) -> click.ParamType:
@@ -441,7 +441,7 @@ class FlextCliCli:
 
     def get_tuple_type(
         self,
-        types: Sequence[type[object] | click.ParamType],
+        types: Sequence[type[FlextTypes.JsonValue] | click.ParamType],
     ) -> click.Tuple:
         """Get Click Tuple parameter type.
 
@@ -589,7 +589,7 @@ class FlextCliCli:
         *,
         default: bool = False,
         abort: bool = False,
-        prompt_suffix: str = ": ",
+        prompt_suffix: str = FlextCliConstants.UIDefaults.DEFAULT_PROMPT_SUFFIX,
         show_default: bool = True,
         err: bool = False,
     ) -> FlextResult[bool]:
@@ -633,7 +633,7 @@ class FlextCliCli:
         default: FlextTypes.JsonValue | None = None,
         type_hint: FlextTypes.JsonValue | None = None,
         value_proc: Callable[[str], FlextTypes.JsonValue] | None = None,
-        prompt_suffix: str = ": ",
+        prompt_suffix: str = FlextCliConstants.UIDefaults.DEFAULT_PROMPT_SUFFIX,
         *,
         hide_input: bool = False,
         confirmation_prompt: bool = False,
@@ -761,7 +761,9 @@ class FlextCliCli:
         click.clear()
         return FlextResult[None].ok(None)
 
-    def pause(self, info: str = "Press any key to continue...") -> FlextResult[None]:
+    def pause(
+        self, info: str = FlextCliConstants.UIDefaults.DEFAULT_PAUSE_MESSAGE
+    ) -> FlextResult[None]:
         """Pause execution until key press.
 
         Args:

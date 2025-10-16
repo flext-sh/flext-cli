@@ -170,7 +170,9 @@ class FlextCli:
             self.formatters.get_console().print(table)
             return FlextResult[None].ok(None)
         except Exception as e:
-            return FlextResult[None].fail(f"Failed to print table: {e}")
+            return FlextResult[None].fail(
+                FlextCliConstants.APIDefaults.PRINT_TABLE_ERROR_PREFIX.format(error=e)
+            )
 
     # =========================================================================
     # AUTHENTICATION - Direct implementation (consolidated from auth.py)
@@ -200,7 +202,11 @@ class FlextCli:
             return FlextResult[str].fail(FlextCliConstants.ErrorMessages.TOKEN_EMPTY)
         save_result = self.save_auth_token(token)
         if save_result.is_failure:
-            return FlextResult[str].fail(f"Failed to save token: {save_result.error}")
+            return FlextResult[str].fail(
+                FlextCliConstants.ErrorMessages.TOKEN_SAVE_FAILED.format(
+                    error=save_result.error
+                )
+            )
         return FlextResult[str].ok(token)
 
     def _authenticate_with_credentials(
@@ -227,7 +233,9 @@ class FlextCli:
             )
 
         # Generate token
-        token = secrets.token_urlsafe(32)
+        token = secrets.token_urlsafe(
+            FlextCliConstants.APIDefaults.TOKEN_GENERATION_BYTES
+        )
         self._valid_tokens.add(token)
 
         return FlextResult[str].ok(token)
@@ -271,7 +279,10 @@ class FlextCli:
         # Use file tools domain library for JSON reading
         read_result = self.file_tools.read_json_file(str(token_path))
         if read_result.is_failure:
-            if "not found" in str(read_result.error).lower():
+            if (
+                FlextCliConstants.APIDefaults.FILE_ERROR_INDICATOR
+                in str(read_result.error).lower()
+            ):
                 return FlextResult[str].fail(
                     FlextCliConstants.ErrorMessages.TOKEN_FILE_NOT_FOUND
                 )
@@ -284,7 +295,9 @@ class FlextCli:
         # Type guard: validate data is dict with token key
         data = read_result.unwrap()
         if not isinstance(data, dict):
-            return FlextResult[str].fail("Token file must contain a JSON object")
+            return FlextResult[str].fail(
+                FlextCliConstants.APIDefaults.TOKEN_DATA_TYPE_ERROR
+            )
 
         token = data.get(FlextCliConstants.DictKeys.TOKEN)
         if not token:
@@ -293,7 +306,9 @@ class FlextCli:
             )
 
         if not isinstance(token, str):
-            return FlextResult[str].fail("Token must be a string")
+            return FlextResult[str].fail(
+                FlextCliConstants.APIDefaults.TOKEN_VALUE_TYPE_ERROR
+            )
 
         return FlextResult[str].ok(token)
 
@@ -314,7 +329,8 @@ class FlextCli:
         # Check if either deletion failed (but don't fail if file doesn't exist)
         if (
             delete_token_result.is_failure
-            and "not found" not in str(delete_token_result.error).lower()
+            and FlextCliConstants.APIDefaults.FILE_ERROR_INDICATOR
+            not in str(delete_token_result.error).lower()
         ):
             return FlextResult[None].fail(
                 FlextCliConstants.ErrorMessages.FAILED_CLEAR_CREDENTIALS.format(
@@ -324,7 +340,8 @@ class FlextCli:
 
         if (
             delete_refresh_result.is_failure
-            and "not found" not in str(delete_refresh_result.error).lower()
+            and FlextCliConstants.APIDefaults.FILE_ERROR_INDICATOR
+            not in str(delete_refresh_result.error).lower()
         ):
             return FlextResult[None].fail(
                 FlextCliConstants.ErrorMessages.FAILED_CLEAR_CREDENTIALS.format(

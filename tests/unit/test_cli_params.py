@@ -459,8 +459,8 @@ class TestCLIParametersPrecedence:
     ) -> None:
         """Test that CLI parameter overrides environment variable."""
         # Set environment variable
-        monkeypatch.setenv("FLEXT_DEBUG", "false")
-        monkeypatch.setenv("FLEXT_VERBOSE", "false")
+        monkeypatch.setenv("FLEXT_DEBUG", "0")
+        monkeypatch.setenv("FLEXT_VERBOSE", "0")
 
         # Create config (loads from ENV)
         config = FlextCliConfig()
@@ -796,11 +796,19 @@ class TestCliParamsCoverageCompletion:
             msg = "Constants access error"
             raise RuntimeError(msg)
 
+        # Create mock error messages class
+        mock_error_messages = type("MockErrorMessages", (), {
+            "APPLY_PARAMS_FAILED": "Failed to apply CLI parameters to config: {error}"
+        })()
+
         # Create a mock property that raises
         mock_constants = type(
             "MockConstants",
             (),
-            {"LOG_LEVELS_LIST": property(lambda self: mock_log_levels_list_raises())},
+            {
+                "LOG_LEVELS_LIST": property(lambda self: mock_log_levels_list_raises()),
+                "CliParamsErrorMessages": mock_error_messages,
+            },
         )()
 
         monkeypatch.setattr("flext_cli.cli_params.FlextCliConstants", mock_constants)

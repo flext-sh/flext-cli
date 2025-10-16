@@ -67,14 +67,14 @@ class FlextCliCommonParams:
         },
         "log_verbosity": {
             "priority": 6,
-            "choices": ["compact", "detailed", "full"],
+            "choices": FlextCliConstants.CliParamsDefaults.VALID_LOG_FORMATS,
             "case_sensitive": False,
             "field_name_override": "log-format",  # CLI uses --log-format
         },
         "output_format": {
             "short": "o",
             "priority": 7,
-            "choices": ["table", "json", "yaml", "csv", "plain"],
+            "choices": FlextCliConstants.CliParamsDefaults.VALID_OUTPUT_FORMATS,
             "case_sensitive": False,
         },
         "no_color": {"priority": 8},
@@ -112,8 +112,7 @@ class FlextCliCommonParams:
         """
         if not cls._params_enabled and cls._enforcement_mode:
             return FlextResult[None].fail(
-                "Common CLI parameters are mandatory and cannot be disabled. "
-                "All CLI commands must support --verbose, --quiet, --debug, --log-level, etc."
+                FlextCliConstants.CliParamsErrorMessages.PARAMS_MANDATORY
             )
         return FlextResult[None].ok(None)
 
@@ -144,7 +143,9 @@ class FlextCliCommonParams:
         schema = FlextCliConfig.model_json_schema()
 
         if field_name not in fields:
-            msg = f"Field '{field_name}' not found in FlextCliConfig"
+            msg = FlextCliConstants.CliParamsErrorMessages.FIELD_NOT_FOUND.format(
+                field_name=field_name
+            )
             raise ValueError(msg)
 
         field_info = fields[field_name]
@@ -187,7 +188,9 @@ class FlextCliCommonParams:
             default_value = None
 
         # Build help text from field description
-        help_text = field_info.description or f"Set {field_name}"
+        help_text = field_info.description or FlextCliConstants.CliParamsDefaults.DEFAULT_HELP_TEXT_FORMAT.format(
+            field_name=field_name
+        )
 
         # Enhance help text with choices
         if "choices" in param_meta:
@@ -195,12 +198,15 @@ class FlextCliCommonParams:
             # Type narrowing: must be sequence
             if isinstance(choices_val, (list, tuple)):
                 choices_str = ", ".join(str(c) for c in choices_val)
-                help_text += f" (choices: {choices_str})"
+                help_text += FlextCliConstants.CliParamsDefaults.CHOICES_HELP_SUFFIX.format(
+                    choices_str=choices_str
+                )
 
         # Enhance help text with constraints
         if "minimum" in field_schema and "maximum" in field_schema:
-            help_text += (
-                f" [range: {field_schema['minimum']}-{field_schema['maximum']}]"
+            help_text += FlextCliConstants.CliParamsDefaults.RANGE_HELP_SUFFIX.format(
+                minimum=field_schema["minimum"],
+                maximum=field_schema["maximum"]
             )
 
         # Build typer.Option parameters explicitly (type-safe)
@@ -354,7 +360,7 @@ class FlextCliCommonParams:
                 # Validate trace requires debug
                 if trace and not config.debug:
                     return FlextResult[FlextCliConfig].fail(
-                        "Trace mode requires debug mode to be enabled. Use --debug --trace together."
+                        FlextCliConstants.CliParamsErrorMessages.TRACE_REQUIRES_DEBUG
                     )
                 config.trace = trace
             if log_level is not None:
@@ -362,25 +368,32 @@ class FlextCliCommonParams:
                 if log_level.upper() not in FlextCliConstants.LOG_LEVELS_LIST:
                     valid = ", ".join(FlextCliConstants.LOG_LEVELS_LIST)
                     return FlextResult[FlextCliConfig].fail(
-                        f"Invalid log level: {log_level}. Must be one of: {valid}"
+                        FlextCliConstants.CliParamsErrorMessages.INVALID_LOG_LEVEL.format(
+                            log_level=log_level,
+                            valid=valid
+                        )
                     )
                 config.log_level = log_level.upper()
             if log_format is not None:
                 # Validate log format
-                valid_formats = ["compact", "detailed", "full"]
-                if log_format.lower() not in valid_formats:
-                    valid = ", ".join(valid_formats)
+                if log_format.lower() not in FlextCliConstants.CliParamsDefaults.VALID_LOG_FORMATS:
+                    valid = ", ".join(FlextCliConstants.CliParamsDefaults.VALID_LOG_FORMATS)
                     return FlextResult[FlextCliConfig].fail(
-                        f"Invalid log format: {log_format}. Must be one of: {valid}"
+                        FlextCliConstants.CliParamsErrorMessages.INVALID_LOG_FORMAT.format(
+                            log_format=log_format,
+                            valid=valid
+                        )
                     )
                 config.log_verbosity = log_format.lower()
             if output_format is not None:
                 # Validate output format
-                valid_formats = ["table", "json", "yaml", "csv", "plain"]
-                if output_format.lower() not in valid_formats:
-                    valid = ", ".join(valid_formats)
+                if output_format.lower() not in FlextCliConstants.CliParamsDefaults.VALID_OUTPUT_FORMATS:
+                    valid = ", ".join(FlextCliConstants.CliParamsDefaults.VALID_OUTPUT_FORMATS)
                     return FlextResult[FlextCliConfig].fail(
-                        f"Invalid output format: {output_format}. Must be one of: {valid}"
+                        FlextCliConstants.CliParamsErrorMessages.INVALID_OUTPUT_FORMAT.format(
+                            output_format=output_format,
+                            valid=valid
+                        )
                     )
                 config.output_format = output_format.lower()
             if no_color is not None:
@@ -390,7 +403,9 @@ class FlextCliCommonParams:
 
         except Exception as e:
             return FlextResult[FlextCliConfig].fail(
-                f"Failed to apply CLI parameters to config: {e}"
+                FlextCliConstants.CliParamsErrorMessages.APPLY_PARAMS_FAILED.format(
+                    error=e
+                )
             )
 
     @classmethod
@@ -418,7 +433,10 @@ class FlextCliCommonParams:
             if log_level not in FlextCliConstants.LOG_LEVELS_LIST:
                 valid = ", ".join(FlextCliConstants.LOG_LEVELS_LIST)
                 return FlextResult[None].fail(
-                    f"Invalid log level: {log_level}. Must be one of: {valid}"
+                    FlextCliConstants.CliParamsErrorMessages.INVALID_LOG_LEVEL.format(
+                        log_level=log_level,
+                        valid=valid
+                    )
                 )
 
             # FlextLogger configuration is done via FlextConfig at initialization
@@ -426,7 +444,11 @@ class FlextCliCommonParams:
             return FlextResult[None].ok(None)
 
         except Exception as e:
-            return FlextResult[None].fail(f"Failed to configure logger: {e}")
+            return FlextResult[None].fail(
+                FlextCliConstants.CliParamsErrorMessages.CONFIGURE_LOGGER_FAILED.format(
+                    error=e
+                )
+            )
 
     @classmethod
     def create_decorator(

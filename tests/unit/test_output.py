@@ -436,7 +436,9 @@ class TestFlextCliOutput:
         assert result.is_failure
         assert result.error is not None
         assert isinstance(result.error, str)
-        assert "Table format requires dict[str, object] or list of dicts" in result.error
+        assert (
+            "Table format requires dict[str, object] or list of dicts" in result.error
+        )
 
     def test_output_custom_format(
         self, output: FlextCliOutput, sample_data: dict[str, FlextTypes.JsonValue]

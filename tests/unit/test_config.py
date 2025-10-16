@@ -342,8 +342,8 @@ class TestPydanticSettingsAutoLoading:
             # Create .env file
             env_file = Path(tmpdir) / ".env"
             env_lines = [
-                "FLEXT_DEBUG=true",
-                "FLEXT_VERBOSE=true",
+                "FLEXT_DEBUG=1",
+                "FLEXT_VERBOSE=1",
                 "FLEXT_OUTPUT_FORMAT=json",
                 "FLEXT_PROFILE=dotenv_test",
                 "FLEXT_TIMEOUT=60",
@@ -389,8 +389,8 @@ class TestPydanticSettingsAutoLoading:
 
         try:
             # Set environment variables
-            os.environ["FLEXT_DEBUG"] = "true"
-            os.environ["FLEXT_VERBOSE"] = "false"
+            os.environ["FLEXT_DEBUG"] = "1"
+            os.environ["FLEXT_VERBOSE"] = "0"
             os.environ["FLEXT_OUTPUT_FORMAT"] = "yaml"
             os.environ["FLEXT_PROFILE"] = "env_test"
             os.environ["FLEXT_TIMEOUT"] = "90"

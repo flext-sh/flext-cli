@@ -79,14 +79,14 @@ class FlextCliTables(FlextService[object]):
     def create_table(
         self,
         data: Iterable[Sequence[object] | dict[str, FlextTypes.JsonValue]],
-        headers: str | Sequence[str] = "keys",
+        headers: str | Sequence[str] = FlextCliConstants.TableFormats.KEYS,
         *,
-        table_format: str = "simple",
+        table_format: str = FlextCliConstants.TableFormats.SIMPLE,
         align: str | Sequence[str] | None = None,
-        floatfmt: str = "g",
-        numalign: str = "decimal",
-        stralign: str = "left",
-        missingval: str = "",
+        floatfmt: str | None = None,
+        numalign: str | None = None,
+        stralign: str | None = None,
+        missingval: str | None = None,
         showindex: bool | str = False,
         disable_numparse: bool = False,
         colalign: Sequence[str] | None = None,
@@ -132,14 +132,23 @@ class FlextCliTables(FlextService[object]):
 
         """
         if not data:
-            return FlextResult[str].fail("Table data cannot be empty")
+            return FlextResult[str].fail(FlextCliConstants.TablesErrorMessages.TABLE_DATA_EMPTY)
 
         if table_format not in FlextCliConstants.TABLE_FORMATS:
             return FlextResult[str].fail(
-                f"Invalid table format: {table_format}. Available: {', '.join(FlextCliConstants.TABLE_FORMATS.keys())}"
+                FlextCliConstants.TablesErrorMessages.INVALID_TABLE_FORMAT.format(
+                    table_format=table_format,
+                    available_formats=", ".join(FlextCliConstants.TABLE_FORMATS.keys()),
+                )
             )
 
         try:
+            # Use constants for defaults
+            final_floatfmt = floatfmt or FlextCliConstants.TablesDefaults.DEFAULT_FLOAT_FORMAT
+            final_numalign = numalign or FlextCliConstants.TablesDefaults.DEFAULT_NUM_ALIGN
+            final_stralign = stralign or FlextCliConstants.TablesDefaults.DEFAULT_STR_ALIGN
+            final_missingval = missingval if missingval is not None else FlextCliConstants.TablesDefaults.DEFAULT_MISSING_VALUE
+
             # Determine column alignment parameter
             final_colalign: Sequence[str] | None = None
             if colalign is not None:
@@ -158,28 +167,27 @@ class FlextCliTables(FlextService[object]):
                 and isinstance(headers, (list, tuple))
             ):
                 # For list of dicts with sequence headers, use "keys"
-                tabulate_headers = "keys"
-            # Otherwise keep as-is (string or None)
+                tabulate_headers = FlextCliConstants.TableFormats.KEYS
 
             # Call tabulate directly with explicit parameters (type-safe)
             table_str = tabulate(
                 data,
                 headers=tabulate_headers,
                 tablefmt=table_format,
-                floatfmt=floatfmt,
-                numalign=numalign,
-                stralign=stralign,
-                missingval=missingval,
+                floatfmt=final_floatfmt,
+                numalign=final_numalign,
+                stralign=final_stralign,
+                missingval=final_missingval,
                 showindex=showindex,
                 disable_numparse=disable_numparse,
                 colalign=final_colalign,
             )
 
             self._logger.debug(
-                "Created table",
+                FlextCliConstants.TablesLogMessages.TABLE_CREATED,
                 extra={
-                    "table_format": table_format,
-                    "row_count": len(list(data))
+                    FlextCliConstants.TablesLogMessages.TABLE_FORMAT_KEY: table_format,
+                    FlextCliConstants.TablesLogMessages.ROW_COUNT_KEY: len(list(data))
                     if hasattr(data, "__len__")
                     else "unknown",
                 },
@@ -188,7 +196,7 @@ class FlextCliTables(FlextService[object]):
             return FlextResult[str].ok(table_str)
 
         except Exception as e:
-            error_msg = f"Failed to create table: {e}"
+            error_msg = FlextCliConstants.TablesErrorMessages.TABLE_CREATION_FAILED.format(error=e)
             self._logger.exception(error_msg)
             return FlextResult[str].fail(error_msg)
 
@@ -214,8 +222,14 @@ class FlextCliTables(FlextService[object]):
             >>> result = tables.create_simple_table(data, headers=["Name", "Age"])
 
         """
-        header_value: str | Sequence[str] = headers or "keys"
-        return self.create_table(data, headers=header_value, table_format="simple")
+        header_value: str | Sequence[str] = (
+            headers or FlextCliConstants.TableFormats.KEYS
+        )
+        return self.create_table(
+            data,
+            headers=header_value,
+            table_format=FlextCliConstants.TableFormats.SIMPLE,
+        )
 
     def create_grid_table(
         self,
@@ -240,8 +254,14 @@ class FlextCliTables(FlextService[object]):
             >>> result = tables.create_grid_table(data, fancy=True)
 
         """
-        header_value: str | Sequence[str] = headers or "keys"
-        table_format = "fancy_grid" if fancy else "grid"
+        header_value: str | Sequence[str] = (
+            headers or FlextCliConstants.TableFormats.KEYS
+        )
+        table_format = (
+            FlextCliConstants.TableFormats.FANCY_GRID
+            if fancy
+            else FlextCliConstants.TableFormats.GRID
+        )
         return self.create_table(data, headers=header_value, table_format=table_format)
 
     def create_markdown_table(
@@ -273,8 +293,12 @@ class FlextCliTables(FlextService[object]):
             | Simple  | ✅     |
 
         """
-        header_value: str | Sequence[str] = headers or "keys"
-        return self.create_table(data, headers=header_value, table_format="pipe")
+        header_value: str | Sequence[str] = (
+            headers or FlextCliConstants.TableFormats.KEYS
+        )
+        return self.create_table(
+            data, headers=header_value, table_format=FlextCliConstants.TableFormats.PIPE
+        )
 
     def create_html_table(
         self,
@@ -299,8 +323,14 @@ class FlextCliTables(FlextService[object]):
             >>> result = tables.create_html_table(data)
 
         """
-        header_value: str | Sequence[str] = headers or "keys"
-        table_format = "html" if escape else "unsafehtml"
+        header_value: str | Sequence[str] = (
+            headers or FlextCliConstants.TableFormats.KEYS
+        )
+        table_format = (
+            FlextCliConstants.TableFormats.HTML
+            if escape
+            else FlextCliConstants.TableFormats.UNSAFEHTML
+        )
         return self.create_table(data, headers=header_value, table_format=table_format)
 
     def create_latex_table(
@@ -328,14 +358,16 @@ class FlextCliTables(FlextService[object]):
             >>> result = tables.create_latex_table(data, booktabs=True)
 
         """
-        header_value: str | Sequence[str] = headers or "keys"
+        header_value: str | Sequence[str] = (
+            headers or FlextCliConstants.TableFormats.KEYS
+        )
 
         if longtable:
-            table_format = "latex_longtable"
+            table_format = FlextCliConstants.TableFormats.LATEX_LONGTABLE
         elif booktabs:
-            table_format = "latex_booktabs"
+            table_format = FlextCliConstants.TableFormats.LATEX_BOOKTABS
         else:
-            table_format = "latex"
+            table_format = FlextCliConstants.TableFormats.LATEX
 
         return self.create_table(data, headers=header_value, table_format=table_format)
 
@@ -361,8 +393,12 @@ class FlextCliTables(FlextService[object]):
             >>> result = tables.create_rst_table(data)
 
         """
-        header_value: str | Sequence[str] = headers or "keys"
-        return self.create_table(data, headers=header_value, table_format="rst")
+        header_value: str | Sequence[str] = (
+            headers or FlextCliConstants.TableFormats.KEYS
+        )
+        return self.create_table(
+            data, headers=header_value, table_format=FlextCliConstants.TableFormats.RST
+        )
 
     # =========================================================================
     # UTILITY METHODS
@@ -388,7 +424,11 @@ class FlextCliTables(FlextService[object]):
 
         """
         if format_name not in FlextCliConstants.TABLE_FORMATS:
-            return FlextResult[str].fail(f"Unknown format: {format_name}")
+            return FlextResult[str].fail(
+                FlextCliConstants.TablesErrorMessages.UNKNOWN_FORMAT.format(
+                    format_name=format_name
+                )
+            )
 
         return FlextResult[str].ok(FlextCliConstants.TABLE_FORMATS[format_name])
 
@@ -408,8 +448,8 @@ class FlextCliTables(FlextService[object]):
             # Use tabulate directly to create the formats table
             table_str = tabulate(
                 formats_data,
-                headers="keys",
-                tablefmt="grid",
+                headers=FlextCliConstants.TableFormats.KEYS,
+                tablefmt=FlextCliConstants.TableFormats.GRID,
             )
             # Output through logger instead of print (linting requirement)
             self._logger.info(table_str)
@@ -417,7 +457,7 @@ class FlextCliTables(FlextService[object]):
             return FlextResult[None].ok(None)
 
         except Exception as e:
-            error_msg = f"Failed to print formats: {e}"
+            error_msg = FlextCliConstants.TablesErrorMessages.PRINT_FORMATS_FAILED.format(error=e)
             self._logger.exception(error_msg)
             return FlextResult[None].fail(error_msg)
 
