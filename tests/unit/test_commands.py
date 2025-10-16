@@ -13,7 +13,8 @@ from __future__ import annotations
 import time
 from typing import Never
 
-from flext_core import FlextCore
+import pytest
+from flext_core import FlextResult, FlextTypes
 
 from flext_cli.commands import FlextCliCommands
 from flext_cli.constants import FlextCliConstants
@@ -278,7 +279,7 @@ class TestFlextCliCommands:
         commands = FlextCliCommands()
 
         # Register command that accepts args
-        def cmd_with_args(args: FlextCore.Types.StringList) -> str:
+        def cmd_with_args(args: FlextTypes.StringList) -> str:
             return f"args: {len(args)}"
 
         commands.register_command("with_args", cmd_with_args)
@@ -406,3 +407,122 @@ class TestFlextCliCommands:
 
         assert result.is_failure
         assert result.error is not None
+
+    def test_register_command_exception(self) -> None:
+        """Test register_command exception handler (lines 93-94)."""
+        from unittest.mock import MagicMock, patch
+
+        commands = FlextCliCommands()
+
+        # Mock _commands to raise exception on __setitem__
+        mock_dict = MagicMock()
+        mock_dict.__setitem__.side_effect = RuntimeError("Mock registration exception")
+
+        with patch.object(commands, "_commands", mock_dict):
+            result = commands.register_command("test", lambda: "test")
+            assert result.is_failure
+            assert "registration failed" in str(result.error).lower()
+
+    def test_unregister_command_exception(self) -> None:
+        """Test unregister_command exception handler (lines 119-120)."""
+        from unittest.mock import MagicMock, patch
+
+        commands = FlextCliCommands()
+        commands.register_command("test", lambda: "test")
+
+        # Mock _commands to raise exception on __delitem__
+        mock_dict = MagicMock()
+        mock_dict.__contains__.return_value = True  # Make "in" check pass
+        mock_dict.__delitem__.side_effect = RuntimeError(
+            "Mock unregistration exception"
+        )
+
+        with patch.object(commands, "_commands", mock_dict):
+            result = commands.unregister_command("test")
+            assert result.is_failure
+            assert "unregistration failed" in str(result.error).lower()
+
+    def test_create_command_group_exception(
+        self, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        """Test create_command_group exception handler (lines 150-151)."""
+        from unittest.mock import patch
+
+        commands = FlextCliCommands()
+
+        # Mock _CliGroup to raise exception
+        def mock_init(*args: object, **kwargs: object) -> Never:
+            msg = "Mock group creation exception"
+            raise RuntimeError(msg)
+
+        with patch.object(
+            FlextCliCommands._CliGroup, "__init__", side_effect=mock_init
+        ):
+            result = commands.create_command_group("test_group")
+            assert result.is_failure
+            assert "group creation failed" in str(result.error).lower()
+
+    def test_run_cli_execute_failure(self) -> None:
+        """Test run_cli when execute() fails (lines 193-195)."""
+        from unittest.mock import patch
+
+        commands = FlextCliCommands()
+
+        # Mock execute to return failure
+        with patch.object(
+            FlextCliCommands,
+            "execute",
+            return_value=FlextResult[FlextTypes.Dict].fail("Execute failed"),
+        ):
+            result = commands.run_cli()
+            assert result.is_failure
+            assert "execute failed" in str(result.error).lower()
+
+    def test_run_cli_exception(self) -> None:
+        """Test run_cli exception handler (lines 196-197)."""
+        from unittest.mock import patch
+
+        commands = FlextCliCommands()
+
+        # Mock execute to raise exception
+        def mock_execute(self: FlextCliCommands) -> Never:
+            msg = "Mock CLI execution exception"
+            raise RuntimeError(msg)
+
+        with patch.object(FlextCliCommands, "execute", side_effect=mock_execute):
+            result = commands.run_cli()
+            assert result.is_failure
+            assert "cli execution" in str(result.error).lower()
+
+    def test_clear_commands_exception(self) -> None:
+        """Test clear_commands exception handler (lines 287-288)."""
+        from unittest.mock import MagicMock, patch
+
+        commands = FlextCliCommands()
+        commands.register_command("test", lambda: "test")
+
+        # Mock _commands to raise exception on clear
+        mock_dict = MagicMock()
+        mock_dict.__len__.return_value = 1  # Return count before clear
+        mock_dict.clear.side_effect = RuntimeError("Mock clear exception")
+
+        with patch.object(commands, "_commands", mock_dict):
+            result = commands.clear_commands()
+            assert result.is_failure
+            assert "failed" in str(result.error).lower()
+
+    def test_list_commands_exception(self) -> None:
+        """Test list_commands exception handler (lines 302-303)."""
+        from unittest.mock import MagicMock, patch
+
+        commands = FlextCliCommands()
+        commands.register_command("test", lambda: "test")
+
+        # Mock _commands to raise exception on keys()
+        mock_dict = MagicMock()
+        mock_dict.keys.side_effect = RuntimeError("Mock keys exception")
+
+        with patch.object(commands, "_commands", mock_dict):
+            result = commands.list_commands()
+            assert result.is_failure
+            assert "failed" in str(result.error).lower()

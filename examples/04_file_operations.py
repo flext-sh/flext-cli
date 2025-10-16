@@ -16,7 +16,7 @@ FLEXT-CLI PROVIDES:
 - file_tools.read_csv_file_with_headers() / write_csv_file() - CSV with headers
 - file_tools.read_binary_file() / write_binary_file() - Binary operations
 - file_tools.detect_file_format() / load_file_auto() - Auto-format detection
-- FlextCore.Result error handling - No try/except needed
+- FlextResult error handling - No try/except needed
 - Automatic path handling with pathlib integration
 
 HOW TO USE IN YOUR CLI:
@@ -39,7 +39,7 @@ import tempfile
 from pathlib import Path
 from typing import cast
 
-from flext_core import FlextCore
+from flext_core import FlextResult, FlextTypes
 
 from flext_cli import FlextCli, FlextCliTables
 from flext_cli.typings import FlextCliTypes
@@ -252,17 +252,17 @@ def validate_and_import_data(input_file: Path) -> FlextCliTypes.Data.CliDataDict
     # Step 2: Validate structure
     def validate_structure(
         data: FlextCliTypes.Data.CliDataDict,
-    ) -> FlextCore.Result[FlextCliTypes.Data.CliDataDict]:
+    ) -> FlextResult[FlextCliTypes.Data.CliDataDict]:
         """Your validation logic."""
         required_fields = ["id", "name", "value"]
         for field in required_fields:
             if field not in data:
-                return FlextCore.Result[FlextCliTypes.Data.CliDataDict].fail(
+                return FlextResult[FlextCliTypes.Data.CliDataDict].fail(
                     f"Missing required field: {field}"
                 )
-        return FlextCore.Result[FlextCliTypes.Data.CliDataDict].ok(data)
+        return FlextResult[FlextCliTypes.Data.CliDataDict].ok(data)
 
-    # Chain validation using FlextCore.Result - type narrowing needed
+    # Chain validation using FlextResult - type narrowing needed
     if not isinstance(data, dict):
         cli.print("❌ Data is not a dictionary", style="bold red")
         return None
@@ -283,9 +283,7 @@ def validate_and_import_data(input_file: Path) -> FlextCliTypes.Data.CliDataDict
 # ============================================================================
 
 
-def backup_config_files(
-    source_dir: Path, backup_dir: Path
-) -> FlextCore.Types.StringList:
+def backup_config_files(source_dir: Path, backup_dir: Path) -> FlextTypes.StringList:
     """Backup configuration files in YOUR backup tool."""
     backup_dir.mkdir(parents=True, exist_ok=True)
 
@@ -662,9 +660,7 @@ def main() -> None:
         "  • Auto-detect: Use load_file_auto() for flexible loading", style="white"
     )
     cli.print("  • Tables: Use FlextCliTables for ASCII table export", style="white")
-    cli.print(
-        "  • All methods return FlextCore.Result for error handling", style="white"
-    )
+    cli.print("  • All methods return FlextResult for error handling", style="white")
 
 
 if __name__ == "__main__":

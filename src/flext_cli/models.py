@@ -12,12 +12,11 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-import uuid
 from collections.abc import Callable
 from datetime import UTC, datetime
-from typing import Self, cast, get_args, get_origin, override
+from typing import Self, cast, get_args, get_origin
 
-from flext_core import FlextCore
+from flext_core import FlextConfig, FlextLogger, FlextModels, FlextResult, FlextTypes
 from pydantic import (
     BaseModel,
     ConfigDict,
@@ -35,21 +34,21 @@ from flext_cli.constants import FlextCliConstants
 from flext_cli.mixins import FlextCliMixins
 from flext_cli.typings import FlextCliTypes
 
-logger = FlextCore.Logger(__name__)
+logger = FlextLogger(__name__)
 
 
-class FlextCliModels(FlextCore.Models):
+class FlextCliModels(FlextModels):
     """Single unified CLI models class following FLEXT standards.
 
     Contains all Pydantic model subclasses for CLI domain operations.
     Follows FLEXT pattern: one class per module with nested subclasses.
 
     ARCHITECTURAL COMPLIANCE:
-    - Extends FlextCore.Models foundation for ecosystem consistency
-    - Uses centralized validation via FlextCore.Models.Validation
+    - Extends FlextModels foundation for ecosystem consistency
+    - Uses centralized validation via FlextModels.Validation
     - Implements CLI-specific extensions while reusing core functionality
 
-    CRITICAL ARCHITECTURE: ALL model validation is centralized in FlextCore.Models.
+    CRITICAL ARCHITECTURE: ALL model validation is centralized in FlextModels.
     NO inline validation is allowed in service methods.
     """
 
@@ -108,7 +107,7 @@ class FlextCliModels(FlextCore.Models):
 
     @field_serializer("model_summary")
     def serialize_model_summary(
-        self, value: FlextCore.Types.StringDict, _info: SerializationInfo
+        self, value: FlextTypes.StringDict, _info: SerializationInfo
     ) -> dict[str, str | dict[str, str | int]]:
         """Serialize model summary with additional metadata."""
         return {
@@ -120,9 +119,9 @@ class FlextCliModels(FlextCore.Models):
             },
         }
 
-    def execute(self) -> FlextCore.Result[object]:
+    def execute(self) -> FlextResult[object]:
         """Execute model operations - placeholder for testing."""
-        return FlextCore.Result[object].ok(None)
+        return FlextResult[object].ok(None)
 
     # ========================================================================
     # CLI MODEL INTEGRATION UTILITIES - Pydantic → CLI Conversion
@@ -227,7 +226,7 @@ class FlextCliModels(FlextCore.Models):
         @staticmethod
         def field_to_cli_param(
             field_name: str, field_info: fields.FieldInfo
-        ) -> FlextCore.Result[FlextCliModels.CliParameterSpec]:
+        ) -> FlextResult[FlextCliModels.CliParameterSpec]:
             """Convert Pydantic Field to comprehensive CLI parameter specification.
 
             Args:
@@ -235,7 +234,7 @@ class FlextCliModels(FlextCore.Models):
                 field_info: Pydantic FieldInfo object
 
             Returns:
-                FlextCore.Result containing CLI parameter specification dict[str, object] with:
+                FlextResult containing CLI parameter specification dict[str, object] with:
                 - name: CLI parameter name (--field-name)
                 - type: Python type for the parameter
                 - click_type: Click type specification
@@ -250,7 +249,7 @@ class FlextCliModels(FlextCore.Models):
                 # Extract field metadata
                 field_type = field_info.annotation
                 if field_type is None:
-                    return FlextCore.Result[FlextCliModels.CliParameterSpec].fail(
+                    return FlextResult[FlextCliModels.CliParameterSpec].fail(
                         f"Field {field_name} has no type annotation"
                     )
 
@@ -272,8 +271,8 @@ class FlextCliModels(FlextCore.Models):
                 description = field_info.description or f"{field_name} parameter"
 
                 # Extract validation constraints from metadata
-                validators: list[Callable[..., FlextCore.Types.JsonValue]] = []
-                metadata: dict[str, FlextCore.Types.JsonValue] = {}
+                validators: list[Callable[..., FlextTypes.JsonValue]] = []
+                metadata: dict[str, FlextTypes.JsonValue] = {}
 
                 if hasattr(field_info, "metadata"):
                     for meta_item in field_info.metadata:
@@ -293,23 +292,23 @@ class FlextCliModels(FlextCore.Models):
                     metadata=metadata,
                 )
 
-                return FlextCore.Result[FlextCliModels.CliParameterSpec].ok(cli_param)
+                return FlextResult[FlextCliModels.CliParameterSpec].ok(cli_param)
             except Exception as e:
-                return FlextCore.Result[FlextCliModels.CliParameterSpec].fail(
+                return FlextResult[FlextCliModels.CliParameterSpec].fail(
                     f"Failed to convert field {field_name}: {e}"
                 )
 
         @staticmethod
         def model_to_cli_params(
             model_class: type[BaseModel],
-        ) -> FlextCore.Result[list[FlextCliModels.CliParameterSpec]]:
+        ) -> FlextResult[list[FlextCliModels.CliParameterSpec]]:
             """Extract all fields from Pydantic model and convert to CLI parameters.
 
             Args:
                 model_class: Pydantic model class to convert
 
             Returns:
-                FlextCore.Result containing list of comprehensive CLI parameter specifications
+                FlextResult containing list of comprehensive CLI parameter specifications
 
             """
             try:
@@ -330,18 +329,16 @@ class FlextCliModels(FlextCore.Models):
 
                     cli_params.append(param_result.unwrap())
 
-                return FlextCore.Result[list[FlextCliModels.CliParameterSpec]].ok(
-                    cli_params
-                )
+                return FlextResult[list[FlextCliModels.CliParameterSpec]].ok(cli_params)
             except Exception as e:
-                return FlextCore.Result[list[FlextCliModels.CliParameterSpec]].fail(
+                return FlextResult[list[FlextCliModels.CliParameterSpec]].fail(
                     f"Failed to convert model {model_class.__name__}: {e}"
                 )
 
         @staticmethod
         def model_to_click_options(
             model_class: type[BaseModel],
-        ) -> FlextCore.Result[list[FlextCliModels.CliOptionSpec]]:
+        ) -> FlextResult[list[FlextCliModels.CliOptionSpec]]:
             """Generate Click option specifications from Pydantic model.
 
             Creates complete Click option definitions that can be used to
@@ -351,7 +348,7 @@ class FlextCliModels(FlextCore.Models):
                 model_class: Pydantic model class to convert
 
             Returns:
-                FlextCore.Result containing list of Click option specifications with:
+                FlextResult containing list of Click option specifications with:
                 - option_name: Full option name with dashes (e.g., '--field-name')
                 - param_decls: List of parameter declarations
                 - type: Click type object
@@ -366,7 +363,7 @@ class FlextCliModels(FlextCore.Models):
                     model_class
                 )
                 if params_result.is_failure:
-                    return FlextCore.Result[list[FlextCliModels.CliOptionSpec]].fail(
+                    return FlextResult[list[FlextCliModels.CliOptionSpec]].fail(
                         params_result.error
                     )
 
@@ -388,19 +385,17 @@ class FlextCliModels(FlextCore.Models):
 
                     click_options.append(click_option)
 
-                return FlextCore.Result[list[FlextCliModels.CliOptionSpec]].ok(
-                    click_options
-                )
+                return FlextResult[list[FlextCliModels.CliOptionSpec]].ok(click_options)
             except Exception as e:
-                return FlextCore.Result[list[FlextCliModels.CliOptionSpec]].fail(
+                return FlextResult[list[FlextCliModels.CliOptionSpec]].fail(
                     f"Failed to generate Click options for {model_class.__name__}: {e}"
                 )
 
         @staticmethod
         def cli_args_to_model(
             model_class: type[BaseModel],
-            cli_args: FlextCore.Types.Dict,
-        ) -> FlextCore.Result[BaseModel]:
+            cli_args: FlextTypes.Dict,
+        ) -> FlextResult[BaseModel]:
             """Convert CLI arguments dictionary to Pydantic model instance.
 
             Validates CLI input against model constraints and creates a validated
@@ -411,7 +406,7 @@ class FlextCliModels(FlextCore.Models):
                 cli_args: Dictionary of CLI argument name/value pairs
 
             Returns:
-                FlextCore.Result containing validated model instance
+                FlextResult containing validated model instance
 
             """
             try:
@@ -423,9 +418,9 @@ class FlextCliModels(FlextCore.Models):
                 # Create and validate model instance
                 model_instance = model_class(**model_args)
 
-                return FlextCore.Result[BaseModel].ok(model_instance)
+                return FlextResult[BaseModel].ok(model_instance)
             except Exception as e:
-                return FlextCore.Result[BaseModel].fail(
+                return FlextResult[BaseModel].fail(
                     f"Failed to create {model_class.__name__} from CLI args: {e}"
                 )
 
@@ -475,20 +470,20 @@ class FlextCliModels(FlextCore.Models):
                 setattr(func, "__cli_command_name__", command_name or func.__name__)
 
                 def wrapper(
-                    **cli_kwargs: FlextCore.Types.JsonValue,
-                ) -> FlextCore.Types.JsonValue | FlextCore.Result[object]:
+                    **cli_kwargs: FlextTypes.JsonValue,
+                ) -> FlextTypes.JsonValue | FlextResult[object]:
                     # Validate CLI input with Pydantic model
                     from typing import cast
 
                     validation_result = (
                         FlextCliModels.CliModelConverter.cli_args_to_model(
-                            model_class, cast("FlextCore.Types.Dict", cli_kwargs)
+                            model_class, cast("FlextTypes.Dict", cli_kwargs)
                         )
                     )
 
                     if validation_result.is_failure:
                         # Return error result
-                        return FlextCore.Result[object].fail(
+                        return FlextResult[object].fail(
                             f"Invalid input: {validation_result.error}"
                         )
 
@@ -497,7 +492,7 @@ class FlextCliModels(FlextCore.Models):
                     # Call original function with validated model
                     from typing import cast
 
-                    return cast("FlextCore.Types.JsonValue", func(validated_model))
+                    return cast("FlextTypes.JsonValue", func(validated_model))
 
                 return wrapper
 
@@ -530,8 +525,8 @@ class FlextCliModels(FlextCore.Models):
                 setattr(func, "__cli_command_name__", command_name or func.__name__)
 
                 def wrapper(
-                    **cli_kwargs: FlextCore.Types.JsonValue,
-                ) -> FlextCore.Types.JsonValue | FlextCore.Result[object]:
+                    **cli_kwargs: FlextTypes.JsonValue,
+                ) -> FlextTypes.JsonValue | FlextResult[object]:
                     validated_models: list[BaseModel] = []
 
                     # Validate with each model
@@ -540,12 +535,12 @@ class FlextCliModels(FlextCore.Models):
 
                         validation_result = (
                             FlextCliModels.CliModelConverter.cli_args_to_model(
-                                model_class, cast("FlextCore.Types.Dict", cli_kwargs)
+                                model_class, cast("FlextTypes.Dict", cli_kwargs)
                             )
                         )
 
                         if validation_result.is_failure:
-                            return FlextCore.Result[object].fail(
+                            return FlextResult[object].fail(
                                 f"Validation failed for {model_class.__name__}: {validation_result.error}"
                             )
 
@@ -554,20 +549,20 @@ class FlextCliModels(FlextCore.Models):
                     # Call with validated models
                     from typing import cast
 
-                    return cast("FlextCore.Types.JsonValue", func(*validated_models))
+                    return cast("FlextTypes.JsonValue", func(*validated_models))
 
                 return wrapper
 
             return decorator
 
     # =========================================================================
-    # CLI DOMAIN MODELS - Using FlextCore.Models base classes directly
+    # CLI DOMAIN MODELS - Using FlextModels base classes directly
     # =========================================================================
 
-    class CliCommand(FlextCore.Models.Entity, FlextCliMixins.BusinessRulesMixin):
+    class CliCommand(FlextModels.Entity, FlextCliMixins.BusinessRulesMixin):
         """CLI command model with comprehensive CLI execution tracking.
 
-        Extends FlextCore.Models.Entity (provides id, created_at, updated_at, version, domain_events).
+        Extends FlextModels.Entity (provides id, created_at, updated_at, version, domain_events).
         Adds CLI-specific fields for command execution, output tracking, and plugin metadata.
 
         Pydantic 2.11 Features:
@@ -583,7 +578,7 @@ class FlextCliModels(FlextCore.Models):
             description="Full command line string that was executed",
             examples=["flext validate", "flext deploy --env production"],
         )
-        args: FlextCore.Types.StringList = Field(
+        args: FlextTypes.StringList = Field(
             default_factory=list,
             description="Parsed command line arguments as list",
             examples=[["validate"], ["deploy", "--env", "production"]],
@@ -742,25 +737,30 @@ class FlextCliModels(FlextCore.Models):
         @classmethod
         def validate_command_input(
             cls, data: FlextCliTypes.Data.CliCommandData | None
-        ) -> FlextCore.Result[FlextCliTypes.Data.CliCommandData | None]:
+        ) -> FlextResult[FlextCliTypes.Data.CliCommandData | None]:
             """Validate and normalize command input data using railway pattern.
 
             Args:
                 data: Command input data to validate
 
             Returns:
-                FlextCore.Result with validated and normalized data
+                FlextResult with validated and normalized data
 
             """
             # Extract command from data - ensure it's a string
             if not isinstance(data, dict):
-                return FlextCore.Result[FlextCliTypes.Data.CliCommandData | None].fail(
+                return FlextResult[FlextCliTypes.Data.CliCommandData | None].fail(
                     "Command data must be a dictionary"
+                )
+
+            if "command" not in data:
+                return FlextResult[FlextCliTypes.Data.CliCommandData | None].fail(
+                    "Command must be a string"
                 )
 
             command = data.pop("command")
             if not isinstance(command, str):
-                return FlextCore.Result[FlextCliTypes.Data.CliCommandData | None].fail(
+                return FlextResult[FlextCliTypes.Data.CliCommandData | None].fail(
                     "Command must be a string"
                 )
 
@@ -772,11 +772,11 @@ class FlextCliModels(FlextCore.Models):
             }
 
             # Return normalized data (type is already correct)
-            return FlextCore.Result[FlextCliTypes.Data.CliCommandData | None].ok(
+            return FlextResult[FlextCliTypes.Data.CliCommandData | None].ok(
                 normalized_data
             )
 
-        def validate_business_rules(self) -> FlextCore.Result[None]:
+        def validate_business_rules(self) -> FlextResult[None]:
             """Validate command business rules."""
             # Use mixin validation methods
             command_result = FlextCliMixins.ValidationMixin.validate_not_empty(
@@ -789,9 +789,9 @@ class FlextCliModels(FlextCore.Models):
             if not status_result.is_success:
                 return status_result
 
-            return FlextCore.Result[None].ok(None)
+            return FlextResult[None].ok(None)
 
-        def start_execution(self) -> FlextCore.Result[None]:
+        def start_execution(self) -> FlextResult[None]:
             """Start command execution."""
             state_result = (
                 FlextCliMixins.BusinessRulesMixin.validate_command_execution_state(
@@ -804,11 +804,11 @@ class FlextCliModels(FlextCore.Models):
                 return state_result
 
             self.status = FlextCliConstants.CommandStatus.RUNNING.value
-            return FlextCore.Result[None].ok(None)
+            return FlextResult[None].ok(None)
 
         def complete_execution(
             self, exit_code: int, output: str = ""
-        ) -> FlextCore.Result[None]:
+        ) -> FlextResult[None]:
             """Complete command execution."""
             state_result = (
                 FlextCliMixins.BusinessRulesMixin.validate_command_execution_state(
@@ -823,14 +823,208 @@ class FlextCliModels(FlextCore.Models):
             self.exit_code = exit_code
             self.output = output
             self.status = FlextCliConstants.CommandStatus.COMPLETED.value
-            return FlextCore.Result[None].ok(None)
+            return FlextResult[None].ok(None)
+
+    class CliSession(
+        FlextModels.Entity,
+        FlextCliMixins.BusinessRulesMixin,
+    ):
+        """CLI session model with comprehensive session tracking.
+
+        Extends FlextModels.Entity (provides id, created_at, updated_at, version, domain_events).
+        Tracks CLI session lifecycle, command execution history, and user activity.
+
+        Pydantic 2.11 Features:
+        - Annotated fields with rich metadata
+        - computed_field for derived properties
+        - field_validator for business logic validation
+        - model_validator for cross-field validation
+        """
+
+        # Session-specific fields (id, created_at, updated_at inherited from Entity)
+        session_id: str = Field(
+            default_factory=lambda: f"session_{datetime.now(UTC).strftime('%Y%m%d_%H%M%S_%f')}",
+            description="Unique session identifier with timestamp",
+            examples=["session_20250113_143022_123456"],
+        )
+
+        @field_validator("session_id", mode="before")
+        @classmethod
+        def validate_session_id(cls, v: str | None) -> str:
+            """Validate and generate session_id if not provided."""
+            if v is None or not v.strip():
+                return f"session_{datetime.now(UTC).strftime('%Y%m%d_%H%M%S_%f')}"
+            return v
+
+        start_time: str | None = Field(
+            default=None,
+            description="Session start time in ISO 8601 format",
+            examples=["2025-01-13T14:30:22Z"],
+        )
+
+        @field_validator("start_time", mode="before")
+        @classmethod
+        def validate_start_time(cls, v: str | datetime | None) -> str | None:
+            """Convert datetime to ISO string if needed."""
+            if v is None:
+                return None
+            if isinstance(v, datetime):
+                return v.isoformat()
+            return v
+
+        end_time: str | None = Field(
+            default=None,
+            description="Session end time in ISO 8601 format",
+            examples=["2025-01-13T15:45:30Z"],
+        )
+        last_activity: str | None = Field(
+            default=None,
+            description="Last activity timestamp in ISO 8601 format",
+            examples=["2025-01-13T15:30:00Z"],
+        )
+        internal_duration_seconds: float = Field(
+            default=0.0,
+            ge=0.0,
+            description="Internal duration tracking field (use duration_seconds computed field)",
+            alias="duration_seconds",
+        )
+        commands_executed: int = Field(
+            default=0,
+            ge=0,
+            description="Total number of commands executed in this session",
+        )
+        commands: list[FlextCliModels.CliCommand] = Field(
+            default_factory=list,
+            description="List of commands executed in this session",
+        )
+        status: str = Field(
+            default="active",
+            description="Current session status",
+            examples=["active", "completed", "terminated"],
+        )
+        user_id: str | None = Field(
+            default=None,
+            description="User identifier associated with this session",
+        )
+
+        # Pydantic 2.11 computed fields
+        @computed_field
+        def duration_seconds(self) -> float:
+            """Session duration in seconds (computed from start/end time)."""
+            if self.start_time and self.end_time:
+                try:
+                    start = datetime.fromisoformat(self.start_time)
+                    end = datetime.fromisoformat(self.end_time)
+                    return (end - start).total_seconds()
+                except (ValueError, AttributeError):
+                    pass
+            return self.internal_duration_seconds
+
+        @computed_field
+        def is_active(self) -> bool:
+            """Check if session is currently active."""
+            return self.status == "active"
+
+        @computed_field
+        def session_summary(self) -> FlextCliModels.CliSessionData:
+            """Computed field for session activity summary."""
+            return FlextCliModels.CliSessionData(
+                session_id=self.session_id,
+                is_active=self.status == "active",
+                commands_count=len(self.commands),
+                duration_minutes=round(self.duration_seconds / 60, 2),
+                has_user=self.user_id is not None,
+                last_activity_age=self._calculate_activity_age(),
+            )
+
+        @computed_field
+        def commands_by_status(self) -> FlextTypes.IntDict:
+            """Computed field grouping commands by status."""
+            status_counts: FlextTypes.IntDict = {}
+            for command in self.commands:
+                status = command.status
+                status_counts[status] = status_counts.get(status, 0) + 1
+            return status_counts
+
+        @model_validator(mode="after")
+        def validate_session_consistency(self) -> Self:
+            """Cross-field validation for session consistency."""
+            # Commands count should match actual commands list
+            if self.commands_executed != len(self.commands):
+                self.commands_executed = len(self.commands)
+
+            # Duration should be non-negative
+            if self.duration_seconds < 0:
+                msg = "duration_seconds cannot be negative"
+                raise ValueError(msg)
+
+            return self
+
+        @field_serializer("commands")
+        def serialize_commands(
+            self, value: list[FlextCliModels.CliCommand], _info: SerializationInfo
+        ) -> list[FlextTypes.Dict]:
+            """Serialize commands with summary information."""
+            return [
+                {
+                    "id": cmd.id,
+                    "command_line": cmd.command_line,
+                    "status": cmd.status,
+                    "exit_code": cmd.exit_code,
+                    "created_at": cmd.created_at.isoformat(),
+                }
+                for cmd in value
+            ]
+
+        def _calculate_activity_age(self) -> float | None:
+            """Calculate time since last activity in seconds."""
+            if not self.last_activity:
+                return None
+            try:
+                last_time = datetime.fromisoformat(self.last_activity)
+                return (datetime.now(UTC) - last_time).total_seconds()
+            except (ValueError, AttributeError):
+                return None
+
+        def validate_business_rules(self) -> FlextResult[None]:
+            """Validate session business rules."""
+            # Use mixin validation methods
+            session_id_result = FlextCliMixins.ValidationMixin.validate_not_empty(
+                "Session ID", self.session_id
+            )
+            if not session_id_result.is_success:
+                return session_id_result
+
+            # Validate user_id if provided
+            if self.user_id is not None and not self.user_id.strip():
+                return FlextResult[None].fail(
+                    FlextCliConstants.ErrorMessages.USER_ID_EMPTY
+                )
+
+            valid_statuses = ["active", "completed", "terminated"]
+            status_result = FlextCliMixins.ValidationMixin.validate_enum_value(
+                "status", self.status, valid_statuses
+            )
+            if not status_result.is_success:
+                return status_result
+
+            return FlextResult[None].ok(None)
+
+        def add_command(self, command: FlextCliModels.CliCommand) -> FlextResult[None]:
+            """Add a command to the session."""
+            if command in self.commands:
+                return FlextResult[None].fail("Command already exists in session")
+
+            self.commands.append(command)
+            self.commands_executed = len(self.commands)
+            return FlextResult[None].ok(None)
 
     class DebugInfo(
-        FlextCore.Models.StrictArbitraryTypesModel, FlextCliMixins.ValidationMixin
+        FlextModels.StrictArbitraryTypesModel, FlextCliMixins.ValidationMixin
     ):
         """Debug information model with comprehensive diagnostic data.
 
-        Extends FlextCore.Models.StrictArbitraryTypesModel for strict validation.
+        Extends FlextModels.StrictArbitraryTypesModel for strict validation.
 
         Pydantic 2.11 Features:
         - Annotated fields with rich metadata
@@ -853,11 +1047,11 @@ class FlextCliModels(FlextCore.Models):
             default_factory=lambda: datetime.now(UTC),
             description="Timestamp when debug info was captured (UTC)",
         )
-        system_info: FlextCore.Types.StringDict = Field(
+        system_info: FlextTypes.StringDict = Field(
             default_factory=dict,
             description="System information and environment details",
         )
-        config_info: FlextCore.Types.StringDict = Field(
+        config_info: FlextTypes.StringDict = Field(
             default_factory=dict,
             description="Configuration information (sensitive data masked)",
         )
@@ -918,7 +1112,7 @@ class FlextCliModels(FlextCore.Models):
         @model_validator(mode="after")
         def validate_debug_consistency(self) -> Self:
             """Enhanced cross-field validation for debug info consistency."""
-            # Level-specific validation using FlextCore.Models.Validation
+            # Level-specific validation using FlextModels.Validation
             if self.level in {"error", "critical"} and not self.message:
                 msg = f"Debug level '{self.level}' requires a descriptive message"
                 raise ValueError(msg)
@@ -926,8 +1120,8 @@ class FlextCliModels(FlextCore.Models):
 
         @field_serializer("system_info", "config_info")
         def serialize_sensitive_info(
-            self, value: FlextCore.Types.StringDict, _info: SerializationInfo
-        ) -> FlextCore.Types.StringDict:
+            self, value: FlextTypes.StringDict, _info: SerializationInfo
+        ) -> FlextTypes.StringDict:
             """Serialize system/config info masking sensitive values."""
             sensitive_keys = {
                 FlextCliConstants.DictKeys.PASSWORD,
@@ -945,7 +1139,7 @@ class FlextCliModels(FlextCore.Models):
                 for k, v in value.items()
             }
 
-        def validate_business_rules(self) -> FlextCore.Result[None]:
+        def validate_business_rules(self) -> FlextResult[None]:
             """Validate debug info business rules."""
             # Use mixin validation methods
             service_result = FlextCliMixins.ValidationMixin.validate_not_empty(
@@ -962,305 +1156,20 @@ class FlextCliModels(FlextCore.Models):
             if not level_result.is_success:
                 return level_result
 
-            return FlextCore.Result[None].ok(None)
+            return FlextResult[None].ok(None)
 
-    class CliSession(
-        FlextCore.Models.Entity,
-        FlextCliMixins.BusinessRulesMixin,
-    ):
-        """CLI session model with comprehensive session tracking.
-
-        Extends FlextCore.Models.Entity (provides id, created_at, updated_at, version, domain_events).
-        Tracks CLI session lifecycle, command execution history, and user activity.
-
-        Pydantic 2.11 Features:
-        - Annotated fields with rich metadata
-        - computed_field for derived properties
-        - field_validator for business logic validation
-        - model_validator for cross-field validation
-        """
-
-        # Session-specific fields (id, created_at, updated_at inherited from Entity)
-        session_id: str = Field(
-            default_factory=lambda: f"session_{datetime.now(UTC).strftime('%Y%m%d_%H%M%S_%f')}",
-            description="Unique session identifier with timestamp",
-            examples=["session_20250113_143022_123456"],
-        )
-        start_time: str | None = Field(
-            default=None,
-            description="Session start time in ISO 8601 format",
-            examples=["2025-01-13T14:30:22Z"],
-        )
-        end_time: str | None = Field(
-            default=None,
-            description="Session end time in ISO 8601 format",
-            examples=["2025-01-13T15:45:30Z"],
-        )
-        last_activity: str | None = Field(
-            default=None,
-            description="Last activity timestamp in ISO 8601 format",
-            examples=["2025-01-13T15:30:00Z"],
-        )
-        internal_duration_seconds: float = Field(
-            default=0.0,
-            ge=0.0,
-            description="Internal duration tracking field (use duration_seconds computed field)",
-            alias="duration_seconds",
-        )
-        commands_executed: int = Field(
-            default=0,
-            ge=0,
-            description="Total number of commands executed in this session",
-        )
-        commands: list[FlextCliModels.CliCommand] = Field(
-            default_factory=list,
-            description="List of commands executed in this session",
-        )
-        status: str = Field(
-            default="active",
-            description="Current session status",
-            examples=["active", "inactive", "terminated"],
-        )
-        user_id: str | None = Field(
-            default=None,
-            description="User identifier associated with this session",
-        )
-
-        # Pydantic 2.11 computed fields
-        @computed_field
-        @property
-        def duration_seconds(self) -> float:
-            """Session duration in seconds (computed from start/end time)."""
-            if self.start_time and self.end_time:
-                try:
-                    start = datetime.fromisoformat(self.start_time)
-                    end = datetime.fromisoformat(self.end_time)
-                    return (end - start).total_seconds()
-                except (ValueError, AttributeError):
-                    pass
-            return self.internal_duration_seconds
-
-        @computed_field
-        def is_active(self) -> bool:
-            """Check if session is currently active."""
-            return self.status == "active"
-
-        @computed_field
-        def session_summary(self) -> FlextCliModels.CliSessionData:
-            """Computed field for session activity summary."""
-            return FlextCliModels.CliSessionData(
-                session_id=self.session_id,
-                is_active=self.status == "active",
-                commands_count=len(self.commands),
-                duration_minutes=round(self.duration_seconds / 60, 2),
-                has_user=self.user_id is not None,
-                last_activity_age=self._calculate_activity_age(),
-            )
-
-        @computed_field
-        def commands_by_status(self) -> FlextCore.Types.IntDict:
-            """Computed field grouping commands by status."""
-            status_counts: FlextCore.Types.IntDict = {}
-            for command in self.commands:
-                status = command.status
-                status_counts[status] = status_counts.get(status, 0) + 1
-            return status_counts
-
-        @model_validator(mode="after")
-        def validate_session_consistency(self) -> Self:
-            """Cross-field validation for session consistency."""
-            # Commands count should match actual commands list
-            if self.commands_executed != len(self.commands):
-                self.commands_executed = len(self.commands)
-
-            # Duration should be non-negative
-            if self.duration_seconds < 0:
-                msg = "duration_seconds cannot be negative"
-                raise ValueError(msg)
-
-            return self
-
-        @field_serializer("commands")
-        def serialize_commands(
-            self, value: list[FlextCliModels.CliCommand], _info: SerializationInfo
-        ) -> list[FlextCore.Types.Dict]:
-            """Serialize commands with summary information."""
-            return [
-                {
-                    "id": cmd.id,
-                    "command_line": cmd.command_line,
-                    "status": cmd.status,
-                    "exit_code": cmd.exit_code,
-                    "created_at": cmd.created_at.isoformat(),
-                }
-                for cmd in value
-            ]
-
-        def _calculate_activity_age(self) -> float | None:
-            """Calculate time since last activity in seconds."""
-            if not self.last_activity:
-                return None
-            try:
-                last_time = datetime.fromisoformat(self.last_activity)
-                return (datetime.now(UTC) - last_time).total_seconds()
-            except (ValueError, AttributeError):
-                return None
-
-        @override
-        def __init__(
-            self,
-            session_id: str | None = None,
-            user_id: str | None = None,
-            start_time: str | datetime | None = None,
-            **data: FlextCore.Types.JsonValue,
-        ) -> None:
-            """Initialize CLI session with proper type handling.
-
-            Args:
-                session_id: Unique session identifier (optional, auto-generated if None)
-                user_id: User identifier
-                start_time: Session start time
-                **data: Additional session data
-
-            """
-            # Set session-specific fields
-            if user_id is not None:
-                data["user_id"] = user_id
-            if start_time is not None:
-                # Convert datetime to string if needed
-                if isinstance(start_time, datetime):
-                    data["start_time"] = start_time.isoformat()
-                else:
-                    data["start_time"] = start_time
-
-            # Call parent constructor with proper data
-            # Ensure required fields have correct types for parent class
-            if "id" not in data:
-                data["id"] = str(uuid.uuid4())
-            if "version" not in data:
-                data["version"] = 1
-            if "created_at" not in data:
-                data["created_at"] = datetime.now(UTC).isoformat()
-            if "updated_at" not in data:
-                data["updated_at"] = None
-            if "domain_events" not in data:
-                data["domain_events"] = []
-
-            # Create parent class with explicit parameters
-            version_obj = data.get("version", 1)
-            version_value: int = version_obj if isinstance(version_obj, int) else 1
-
-            created_at_obj = data.get("created_at", datetime.now(UTC))
-            created_at_value: datetime = (
-                created_at_obj
-                if isinstance(created_at_obj, datetime)
-                else datetime.now(UTC)
-            )
-
-            updated_at_obj = data.get("updated_at")
-            updated_at_value: datetime | None = (
-                updated_at_obj if isinstance(updated_at_obj, datetime) else None
-            )
-
-            domain_events_obj = data.get("domain_events", [])
-            # Type guard: isinstance check ensures correct type
-            if isinstance(domain_events_obj, list):
-                # Convert JsonValue list to DomainEvent list for parent constructor
-                domain_events_list = []
-                for event_data in domain_events_obj:
-                    if isinstance(event_data, dict):
-                        # Convert JsonValue dict to DomainEvent
-                        try:
-                            domain_event = FlextCore.Models.DomainEvent(
-                                event_type=event_data.get("event_type", "unknown"),
-                                aggregate_id=event_data.get(
-                                    "aggregate_id", str(uuid.uuid4())
-                                ),
-                                data=event_data.get("data", {}),
-                                metadata=event_data.get("metadata", {}),
-                            )
-                            domain_events_list.append(domain_event)
-                        except Exception as e:
-                            # Log and skip invalid domain events
-                            logger.warning(f"Skipping invalid domain event data: {e}")
-                            continue
-                    else:
-                        # Skip non-dict items
-                        continue
-
-                domain_events_value: list[FlextCore.Models.DomainEvent] = (
-                    domain_events_list
-                )
-            else:
-                domain_events_value: list[FlextCore.Models.DomainEvent] = []
-
-            super().__init__(
-                id=str(data.get("id", str(uuid.uuid4()))),
-                version=version_value,
-                created_at=created_at_value,
-                updated_at=updated_at_value,
-                domain_events=domain_events_value,  # Type narrowed by isinstance check above
-            )
-
-            # Set session identifier (auto-generate if not provided)
-            if session_id is not None:
-                self.session_id = session_id
-
-        def validate_business_rules(self) -> FlextCore.Result[None]:
-            """Validate session business rules."""
-            # Use mixin validation methods
-            session_id_result = FlextCliMixins.ValidationMixin.validate_not_empty(
-                "Session ID", self.session_id
-            )
-            if not session_id_result.is_success:
-                return session_id_result
-
-            # Validate user_id if provided
-            if self.user_id is not None and not self.user_id.strip():
-                return FlextCore.Result[None].fail(
-                    FlextCliConstants.ErrorMessages.USER_ID_EMPTY
-                )
-
-            valid_statuses = ["active", "completed", "terminated"]
-            status_result = FlextCliMixins.ValidationMixin.validate_enum_value(
-                "status", self.status, valid_statuses
-            )
-            if not status_result.is_success:
-                return status_result
-
-            return FlextCore.Result[None].ok(None)
-
-        def add_command(
-            self, command: FlextCliModels.CliCommand
-        ) -> FlextCore.Result[None]:
-            """Add a command to the session.
-
-            Args:
-                command: Command to add to the session
-
-            Returns:
-                FlextCore.Result[None]: Success if command added, failure otherwise
-
-            """
-            try:
-                # Add command to the commands list
-                self.commands.append(command)
-
-                # Update commands executed count
-                self.commands_executed = len(self.commands)
-
-                return FlextCore.Result[None].ok(None)
-            except Exception as e:
-                return FlextCore.Result[None].fail(
-                    f"Failed to add command to session: {e}"
-                )
+    status: str = Field(
+        default="active",
+        description="Current session status",
+        examples=["active", "completed", "terminated"],
+    )
 
     class LoggingConfig(
-        FlextCore.Models.ArbitraryTypesModel, FlextCliMixins.ValidationMixin
+        FlextModels.ArbitraryTypesModel, FlextCliMixins.ValidationMixin
     ):
         """Logging configuration model for CLI operations.
 
-        Extends FlextCore.Models.ArbitraryTypesModel for flexible configuration.
+        Extends FlextModels.ArbitraryTypesModel for flexible configuration.
 
         Pydantic 2.11 Features:
         - Annotated fields with rich metadata
@@ -1292,18 +1201,16 @@ class FlextCliModels(FlextCore.Models):
         @field_validator("log_level")
         @classmethod
         def validate_log_level_value(cls, v: str) -> str:
-            """Validate log level using FlextCore.Config reusable validator."""
-            return FlextCore.Config.validate_log_level_field(v)
+            """Validate log level using FlextConfig reusable validator."""
+            return FlextConfig.validate_log_level_field(v)
 
         # Pydantic 2.11 computed fields
         @computed_field
-        @property
         def has_file_output(self) -> bool:
             """Check if file logging is enabled."""
             return self.log_file is not None and len(self.log_file) > 0
 
         @computed_field
-        @property
         def logging_summary(self) -> FlextCliModels.CliLoggingData:
             """Comprehensive logging configuration summary."""
             return FlextCliModels.CliLoggingData(
@@ -1321,7 +1228,7 @@ class FlextCliModels(FlextCore.Models):
     # DICT REPLACEMENT MODELS - Replace dict/Dict usage with proper Pydantic models
     # ========================================================================
 
-    class CliParameterSpec(FlextCore.Models.StrictArbitraryTypesModel):
+    class CliParameterSpec(FlextModels.StrictArbitraryTypesModel):
         """CLI parameter specification model - replaces dict in CLI parameter handling.
 
         Provides structured validation for CLI parameter specifications used in
@@ -1333,18 +1240,18 @@ class FlextCliModels(FlextCore.Models):
         param_type: type = Field(description="Python type for the parameter")
         click_type: str = Field(description="Click type specification")
         required: bool = Field(description="Whether the parameter is required")
-        default: FlextCore.Types.JsonValue | None = Field(
+        default: FlextTypes.JsonValue | None = Field(
             default=None, description="Default value if any"
         )
         help: str = Field(description="Help text from field description")
-        validators: list[Callable[..., FlextCore.Types.JsonValue]] = Field(
+        validators: list[Callable[..., FlextTypes.JsonValue]] = Field(
             default_factory=list, description="List of validation functions"
         )
-        metadata: dict[str, FlextCore.Types.JsonValue] = Field(
+        metadata: dict[str, FlextTypes.JsonValue] = Field(
             default_factory=dict, description="Additional Pydantic metadata"
         )
 
-    class CliOptionSpec(FlextCore.Models.StrictArbitraryTypesModel):
+    class CliOptionSpec(FlextModels.StrictArbitraryTypesModel):
         """Click option specification model - replaces dict[str, object] in Click option generation.
 
         Provides structured validation for Click option specifications generated
@@ -1354,17 +1261,17 @@ class FlextCliModels(FlextCore.Models):
         option_name: str = Field(description="Full option name with dashes")
         param_decls: list[str] = Field(description="Parameter declarations")
         type: str = Field(description="Click type object")
-        default: FlextCore.Types.JsonValue | None = Field(
+        default: FlextTypes.JsonValue | None = Field(
             default=None, description="Default value"
         )
         help: str = Field(description="Help text")
         required: bool = Field(description="Whether option is required")
         show_default: bool = Field(description="Whether to show default in help")
-        metadata: dict[str, FlextCore.Types.JsonValue] = Field(
+        metadata: dict[str, FlextTypes.JsonValue] = Field(
             default_factory=dict, description="Additional metadata"
         )
 
-    class CliCommandResult(FlextCore.Models.StrictArbitraryTypesModel):
+    class CliCommandResult(FlextModels.StrictArbitraryTypesModel):
         """CLI command result model - replaces dict[str, object] in command execution results.
 
         Provides structured validation for command execution results and metadata.
@@ -1379,7 +1286,7 @@ class FlextCliModels(FlextCore.Models):
             default=None, description="Execution time in seconds"
         )
 
-    class CliDebugData(FlextCore.Models.StrictArbitraryTypesModel):
+    class CliDebugData(FlextModels.StrictArbitraryTypesModel):
         """CLI debug data model - replaces dict[str, object] in debug information.
 
         Provides structured validation for debug information and diagnostic data.
@@ -1394,7 +1301,7 @@ class FlextCliModels(FlextCore.Models):
         message_length: int = Field(description="Length of debug message")
         age_seconds: float = Field(description="Age of debug info in seconds")
 
-    class CliSessionData(FlextCore.Models.StrictArbitraryTypesModel):
+    class CliSessionData(FlextModels.StrictArbitraryTypesModel):
         """CLI session data model - replaces dict[str, object] in session summaries.
 
         Provides structured validation for session summary information.
@@ -1409,7 +1316,7 @@ class FlextCliModels(FlextCore.Models):
             default=None, description="Time since last activity"
         )
 
-    class CliLoggingData(FlextCore.Models.ArbitraryTypesModel):
+    class CliLoggingData(FlextModels.ArbitraryTypesModel):
         """CLI logging data model - replaces dict[str, object] in logging summaries.
 
         Provides structured validation for logging configuration summaries.

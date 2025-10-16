@@ -10,7 +10,7 @@ WHEN TO USE THIS:
 FLEXT-CLI PROVIDES:
 - FlextCliPlugin - Base plugin class
 - FlextCliPluginManager - Plugin discovery and management
-- FlextCore.Result integration - Error handling for plugins
+- FlextResult integration - Error handling for plugins
 - Lifecycle hooks - initialize, execute, cleanup
 
 HOW TO USE IN YOUR CLI:
@@ -26,7 +26,7 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
-from flext_core import FlextCore
+from flext_core import FlextResult, FlextTypes
 
 from flext_cli import FlextCli, FlextCliTables
 from flext_cli.typings import FlextCliTypes
@@ -50,13 +50,13 @@ class DataExportPlugin:
 
     def execute(
         self, data: FlextCliTypes.Data.CliDataDict, output_format: str = "json"
-    ) -> FlextCore.Result[str]:
+    ) -> FlextResult[str]:
         """Execute plugin logic in YOUR application."""
         if output_format == "json":
             output = json.dumps(data, indent=2)
             cli.print(f"✅ Exported data as JSON ({len(output)} chars)", style="green")
-            return FlextCore.Result[str].ok(output)
-        return FlextCore.Result[str].fail(f"Unsupported format: {format}")
+            return FlextResult[str].ok(output)
+        return FlextResult[str].fail(f"Unsupported format: {format}")
 
 
 class ReportGeneratorPlugin:
@@ -68,21 +68,19 @@ class ReportGeneratorPlugin:
         self.name = "report-generator"
         self.version = "1.0.0"
 
-    def execute(
-        self, data: list[FlextCliTypes.Data.CliDataDict]
-    ) -> FlextCore.Result[str]:
+    def execute(self, data: list[FlextCliTypes.Data.CliDataDict]) -> FlextResult[str]:
         """Generate report from data in YOUR CLI."""
         tables = FlextCliTables()
         table_result = tables.create_table(data, table_format="grid")
 
         if table_result.is_failure:
-            return FlextCore.Result[str].fail(
+            return FlextResult[str].fail(
                 f"Report generation failed: {table_result.error}"
             )
 
         report = table_result.unwrap()
         cli.print(f"✅ Generated report ({len(report)} chars)", style="green")
-        return FlextCore.Result[str].ok(report)
+        return FlextResult[str].ok(report)
 
 
 # ============================================================================
@@ -96,7 +94,7 @@ class MyAppPluginManager:
     def __init__(self) -> None:
         """Initialize plugin manager with empty plugin registry."""
         super().__init__()
-        self.plugins: FlextCore.Types.Dict = {}
+        self.plugins: FlextTypes.Dict = {}
 
     def register_plugin(self, plugin: object) -> None:
         """Register plugin in YOUR CLI."""
@@ -104,16 +102,14 @@ class MyAppPluginManager:
         self.plugins[plugin_name] = plugin
         cli.print(f"🔌 Registered plugin: {plugin_name}", style="cyan")
 
-    def execute_plugin(
-        self, plugin_name: str, **kwargs: object
-    ) -> FlextCore.Result[object]:
+    def execute_plugin(self, plugin_name: str, **kwargs: object) -> FlextResult[object]:
         """Execute plugin by name in YOUR CLI."""
         if plugin_name not in self.plugins:
-            return FlextCore.Result[object].fail(f"Plugin not found: {plugin_name}")
+            return FlextResult[object].fail(f"Plugin not found: {plugin_name}")
 
         plugin = self.plugins[plugin_name]
         if not hasattr(plugin, "execute"):
-            return FlextCore.Result[object].fail(
+            return FlextResult[object].fail(
                 f"Plugin {plugin_name} does not have execute method"
             )
 
@@ -122,7 +118,7 @@ class MyAppPluginManager:
             execute_method = getattr(plugin, "execute")
             return execute_method(**kwargs)
         except Exception as e:
-            return FlextCore.Result[object].fail(f"Plugin execution failed: {e}")
+            return FlextResult[object].fail(f"Plugin execution failed: {e}")
 
     def list_plugins(self) -> None:
         """List all registered plugins in YOUR CLI."""
@@ -187,7 +183,7 @@ class ConfigurablePlugin:
         self.name = "configurable-plugin"
         self.config: FlextCliTypes.Data.CliDataDict = config
 
-    def execute(self) -> FlextCore.Result[FlextCliTypes.Data.CliDataDict]:
+    def execute(self) -> FlextResult[FlextCliTypes.Data.CliDataDict]:
         """Execute with configuration in YOUR CLI."""
         cli.print(f"🔧 Plugin config: {self.config}", style="cyan")
 
@@ -199,7 +195,7 @@ class ConfigurablePlugin:
         }
 
         # Cast to expected type (runtime type is compatible)
-        return FlextCore.Result[FlextCliTypes.Data.CliDataDict].ok(result_data)
+        return FlextResult[FlextCliTypes.Data.CliDataDict].ok(result_data)
 
 
 # ============================================================================
@@ -216,28 +212,28 @@ class LifecyclePlugin:
         self.name = "lifecycle-plugin"
         self.initialized = False
 
-    def initialize(self) -> FlextCore.Result[None]:
+    def initialize(self) -> FlextResult[None]:
         """Initialize plugin resources."""
         cli.print(f"🚀 Initializing {self.name}...", style="cyan")
         # Your initialization logic
         self.initialized = True
-        return FlextCore.Result[None].ok(None)
+        return FlextResult[None].ok(None)
 
-    def execute(self, data: str) -> FlextCore.Result[str]:
+    def execute(self, data: str) -> FlextResult[str]:
         """Execute plugin logic."""
         if not self.initialized:
-            return FlextCore.Result[str].fail("Plugin not initialized")
+            return FlextResult[str].fail("Plugin not initialized")
 
         processed = data.upper()  # Your processing logic
         cli.print(f"✅ Processed: {processed}", style="green")
-        return FlextCore.Result[str].ok(processed)
+        return FlextResult[str].ok(processed)
 
-    def cleanup(self) -> FlextCore.Result[None]:
+    def cleanup(self) -> FlextResult[None]:
         """Cleanup plugin resources."""
         cli.print(f"🧹 Cleaning up {self.name}...", style="cyan")
         # Your cleanup logic
         self.initialized = False
-        return FlextCore.Result[None].ok(None)
+        return FlextResult[None].ok(None)
 
 
 # ============================================================================
@@ -311,7 +307,7 @@ def main() -> None:
     cli.print("  • Create plugin classes with execute() method", style="white")
     cli.print("  • Use plugin manager to register and execute plugins", style="white")
     cli.print("  • Add lifecycle hooks (initialize, cleanup) as needed", style="white")
-    cli.print("  • Use FlextCore.Result for plugin error handling", style="white")
+    cli.print("  • Use FlextResult for plugin error handling", style="white")
 
 
 if __name__ == "__main__":

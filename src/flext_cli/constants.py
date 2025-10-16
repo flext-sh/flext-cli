@@ -13,12 +13,12 @@ from __future__ import annotations
 from enum import StrEnum
 from typing import Final, Literal
 
-from flext_core import FlextCore
+from flext_core import FlextConstants, FlextTypes
 
 # Literal types moved to FlextCliConstants class - CRITICAL VIOLATION FIXED
 
 
-class FlextCliConstants(FlextCore.Constants):
+class FlextCliConstants(FlextConstants):
     """CLI constants extending flext-core standardization for CLI domain.
 
     Centralizes all CLI-specific constants, enums, literals, and defaults
@@ -61,27 +61,27 @@ class FlextCliConstants(FlextCore.Constants):
         COMPLETED = "completed"
         FAILED = "failed"
 
-    # Output formats - using FlextCore.Types.Output.OutputFormat Literal type
+    # Output formats - using FlextTypes.Output.OutputFormat Literal type
     # CLI adds "plain" format on top of standard formats
     class OutputFormats(StrEnum):
-        """CLI output format enum - extends FlextCore standard formats."""
+        """CLI output format enum - extends Flextstandard formats."""
 
-        JSON = "json"  # Standard format from FlextCore
-        YAML = "yaml"  # Standard format from FlextCore
-        CSV = "csv"  # Standard format from FlextCore
-        TABLE = "table"  # Standard format from FlextCore
+        JSON = "json"  # Standard format
+        YAML = "yaml"  # Standard format
+        CSV = "csv"  # Standard format
+        TABLE = "table"  # Standard format
         PLAIN = "plain"  # CLI-specific format
 
     # Terminal width thresholds for format selection
     TERMINAL_WIDTH_NARROW: Final[int] = 80
     TERMINAL_WIDTH_MEDIUM: Final[int] = 120
 
-    # Error codes - CLI-specific strings following FlextCore.Constants.Errors pattern
+    # Error codes - CLI-specific strings following FlextConstants.Errors pattern
     class ErrorCodes(StrEnum):
-        """CLI error codes following FlextCore.Constants.Errors pattern.
+        """CLI error codes following FlextConstants.Errors pattern.
 
-        CLI-specific error codes with CLI_ prefix to distinguish from FlextCore.
-        Follows same categorization as FlextCore.Constants.Errors without duplication.
+        CLI-specific error codes with CLI_ prefix to distinguish from Flext
+        Follows same categorization as FlextConstants.Errors without duplication.
         """
 
         # Standard error categories with CLI prefix
@@ -151,7 +151,7 @@ class FlextCliConstants(FlextCore.Constants):
         """Network-related defaults for CLI operations."""
 
         DEFAULT_API_URL: Final[str] = (
-            f"http://{FlextCore.Constants.Platform.DEFAULT_HOST}:{FlextCore.Constants.Platform.FLEXT_API_PORT}/api"
+            f"http://{FlextConstants.Platform.DEFAULT_HOST}:{FlextConstants.Platform.FLEXT_API_PORT}/api"
         )
         DEFAULT_TIMEOUT: Final[int] = 30
         DEFAULT_MAX_RETRIES: Final[int] = 3
@@ -166,7 +166,7 @@ class FlextCliConstants(FlextCore.Constants):
         US_PHONE_DIGITS: Final[int] = 10
 
     # Constant lists for validation and iteration
-    OUTPUT_FORMATS_LIST: Final[FlextCore.Types.StringList] = [
+    OUTPUT_FORMATS_LIST: Final[FlextTypes.StringList] = [
         OutputFormats.JSON.value,
         OutputFormats.YAML.value,
         OutputFormats.CSV.value,
@@ -174,7 +174,7 @@ class FlextCliConstants(FlextCore.Constants):
         OutputFormats.PLAIN.value,
     ]
 
-    LOG_LEVELS_LIST: Final[FlextCore.Types.StringList] = [
+    LOG_LEVELS_LIST: Final[FlextTypes.StringList] = [
         "DEBUG",
         "INFO",
         "WARNING",
@@ -182,14 +182,14 @@ class FlextCliConstants(FlextCore.Constants):
         "CRITICAL",
     ]
 
-    COMMAND_STATUSES_LIST: Final[FlextCore.Types.StringList] = [
+    COMMAND_STATUSES_LIST: Final[FlextTypes.StringList] = [
         CommandStatus.PENDING.value,
         CommandStatus.RUNNING.value,
         CommandStatus.COMPLETED.value,
         CommandStatus.FAILED.value,
     ]
 
-    ERROR_CODES_LIST: Final[FlextCore.Types.StringList] = [
+    ERROR_CODES_LIST: Final[FlextTypes.StringList] = [
         ErrorCodes.CLI_ERROR.value,
         ErrorCodes.CLI_VALIDATION_ERROR.value,
         ErrorCodes.CLI_CONFIGURATION_ERROR.value,
@@ -213,7 +213,7 @@ class FlextCliConstants(FlextCore.Constants):
         """CLI command result type definitions."""
 
         # Core command result types
-        CommandResultData = dict[str, FlextCore.Types.JsonValue]
+        CommandResultData = dict[str, FlextTypes.JsonValue]
         CommandResultStatus = Literal["success", "failure", "error"]
         CommandResultMetadata = dict[str, str | int | bool]
 
@@ -231,7 +231,7 @@ class FlextCliConstants(FlextCore.Constants):
         SESSION: Final[str] = "session"
 
         # Shell command list
-        BUILTIN_COMMANDS: Final[FlextCore.Types.StringList] = [
+        BUILTIN_COMMANDS: Final[FlextTypes.StringList] = [
             EXIT,
             QUIT,
             Q,
@@ -292,7 +292,7 @@ class FlextCliConstants(FlextCore.Constants):
         HEAD = "HEAD"
         OPTIONS = "OPTIONS"
 
-    HTTP_METHODS_LIST: Final[FlextCore.Types.StringList] = [
+    HTTP_METHODS_LIST: Final[FlextTypes.StringList] = [
         "GET",
         "POST",
         "PUT",
@@ -311,7 +311,7 @@ class FlextCliConstants(FlextCore.Constants):
         SUCCESS = "success"
         DEBUG = "debug"
 
-    MESSAGE_TYPES_LIST: Final[FlextCore.Types.StringList] = [
+    MESSAGE_TYPES_LIST: Final[FlextTypes.StringList] = [
         MessageTypes.INFO.value,
         MessageTypes.ERROR.value,
         MessageTypes.WARNING.value,
@@ -367,7 +367,7 @@ class FlextCliConstants(FlextCore.Constants):
     TSV: Final[str] = "tsv"
 
     # File formats configuration
-    FILE_FORMATS: Final[dict[str, dict[str, FlextCore.Types.StringList]]] = {
+    FILE_FORMATS: Final[dict[str, dict[str, FlextTypes.StringList]]] = {
         "json": {"extensions": ["json"]},
         "yaml": {"extensions": ["yaml", "yml"]},
         "csv": {"extensions": ["csv"]},
@@ -778,8 +778,8 @@ class FlextCliConstants(FlextCore.Constants):
         ONE: Final[str] = "1"
         ZERO: Final[str] = "0"
 
-        YES_VALUES: Final[FlextCore.Types.StringList] = ["y", "yes", "true", "1"]
-        NO_VALUES: Final[FlextCore.Types.StringList] = ["n", "no", "false", "0"]
+        YES_VALUES: Final[FlextTypes.StringList] = ["y", "yes", "true", "1"]
+        NO_VALUES: Final[FlextTypes.StringList] = ["n", "no", "false", "0"]
 
     class Encoding:
         """Encoding constants."""
@@ -830,9 +830,9 @@ class FlextCliConstants(FlextCore.Constants):
         CLI_CONFIG_JSON: Final[str] = "cli_config.json"
 
     class Project:
-        """CLI-specific project types extending FlextCore.Types.Project.
+        """CLI-specific project types extending FlextTypes.Project.
 
-        Adds CLI-specific project types while inheriting generic types from FlextCore.Types.
+        Adds CLI-specific project types while inheriting generic types from FlextTypes.
         Follows domain separation principle: CLI domain owns CLI-specific types.
         """
 
@@ -848,17 +848,15 @@ class FlextCliConstants(FlextCore.Constants):
         ]
 
         # CLI-specific project configurations
-        CliProjectConfig = dict[str, FlextCore.Types.ConfigValue]
-        CommandLineConfig = dict[str, str | int | bool | FlextCore.Types.StringList]
-        InteractiveConfig = dict[
-            str, bool | str | dict[str, FlextCore.Types.ConfigValue]
-        ]
+        CliProjectConfig = dict[str, FlextTypes.ConfigValue]
+        CommandLineConfig = dict[str, str | int | bool | FlextTypes.StringList]
+        InteractiveConfig = dict[str, bool | str | dict[str, FlextTypes.ConfigValue]]
         OutputConfig = dict[
-            str, FlextCore.Types.Output.OutputFormat | FlextCore.Types.ConfigValue
+            str, FlextTypes.Output.OutputFormat | FlextTypes.ConfigValue
         ]
 
     # Table formats for tabulate integration
-    TABLE_FORMATS: Final[FlextCore.Types.StringDict] = {
+    TABLE_FORMATS: Final[FlextTypes.StringDict] = {
         "plain": "Minimal formatting, no borders",
         "simple": "Simple ASCII borders",
         "grid": "Grid-style ASCII table",

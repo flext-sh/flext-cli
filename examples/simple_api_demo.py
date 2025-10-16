@@ -5,14 +5,33 @@ A quick reference showing common flext-cli patterns in one place.
 WHEN TO USE flext-cli:
 - Building any Python CLI application
 - Need styled terminal output (colors, tables, progress)
-- Want error handling without exceptions (FlextCore.Result)
+- Want error handling without exceptions (FlextResult)
 - Need file I/O (JSON, YAML) with validation
 - Building interactive CLI tools
 
 QUICK START:
 ```python
 from flext_cli import FlextCli, FlextCliTables
-from flext_core import FlextCore
+from flext_core import FlextBus
+from flext_core import FlextConfig
+from flext_core import FlextConstants
+from flext_core import FlextContainer
+from flext_core import FlextContext
+from flext_core import FlextDecorators
+from flext_core import FlextDispatcher
+from flext_core import FlextExceptions
+from flext_core import FlextHandlers
+from flext_core import FlextLogger
+from flext_core import FlextMixins
+from flext_core import FlextModels
+from flext_core import FlextProcessors
+from flext_core import FlextProtocols
+from flext_core import FlextRegistry
+from flext_core import FlextResult
+from flext_core import FlextRuntime
+from flext_core import FlextService
+from flext_core import FlextTypes
+from flext_core import FlextUtilities
 
 cli = FlextCli.get_instance()
 
@@ -39,7 +58,7 @@ import tempfile
 from pathlib import Path
 from typing import cast
 
-from flext_core import FlextCore
+from flext_core import FlextResult, FlextTypes
 
 from flext_cli import FlextCli, FlextCliTables
 from flext_cli.typings import FlextCliTypes
@@ -83,7 +102,7 @@ def main() -> None:
     tables = FlextCliTables()
 
     # Table data - list of dicts for demonstration
-    table_data: list[dict[str, FlextCore.Types.JsonValue]] = [
+    table_data: list[dict[str, FlextTypes.JsonValue]] = [
         {"metric": "CPU", "value": "85%"},
         {"metric": "Memory", "value": "12GB"},
     ]
@@ -136,7 +155,7 @@ def main() -> None:
         cli.formatters.get_console().print(tree)
 
     # 6. ERROR HANDLING
-    cli.print("\n6️⃣  Error Handling (FlextCore.Result pattern):", style="bold cyan")
+    cli.print("\n6️⃣  Error Handling (FlextResult pattern):", style="bold cyan")
 
     # Success case
     result = cli.file_tools.read_json_file(temp_file)
@@ -147,10 +166,10 @@ def main() -> None:
 
     # Validation example
 
-    def validate_positive(n: int) -> FlextCore.Result[int]:
+    def validate_positive(n: int) -> FlextResult[int]:
         if n < 0:
-            return FlextCore.Result[int].fail("Must be positive")
-        return FlextCore.Result[int].ok(n * 2)
+            return FlextResult[int].fail("Must be positive")
+        return FlextResult[int].ok(n * 2)
 
     valid = validate_positive(10)
     if valid.is_success:

@@ -12,32 +12,32 @@ from __future__ import annotations
 
 from typing import cast, override
 
-from flext_core import FlextCore
+from flext_core import FlextExceptions, FlextTypes
 
 from flext_cli.constants import FlextCliConstants
 
 
-class FlextCliExceptions(FlextCore.Exceptions):
+class FlextCliExceptions(FlextExceptions):
     """Single unified CLI exceptions class following FLEXT standards.
 
     Contains all exception subclasses for CLI domain operations.
     Follows FLEXT pattern: one class per module with nested subclasses.
 
     ARCHITECTURAL COMPLIANCE:
-    - Inherits from FlextCore.Exceptions to avoid duplication
-    - Uses centralized exception patterns from FlextCore.Exceptions
+    - Inherits from FlextExceptions to avoid duplication
+    - Uses centralized exception patterns from FlextExceptions
     - Implements CLI-specific extensions while reusing core functionality
     """
 
-    class BaseError(FlextCore.Exceptions.BaseError):
-        """Base CLI exception extending FlextCore.Exceptions.BaseError.
+    class BaseError(FlextExceptions.BaseError):
+        """Base CLI exception extending FlextExceptions.BaseError.
 
         Simple exception class for CLI error scenarios with error categorization
         and contextual information support using standard helper methods.
         """
 
         # Add context attribute for CLI-specific usage
-        context: FlextCore.Types.Dict
+        context: FlextTypes.Dict
 
         # Explicitly declare inherited attributes for Pyrefly
         message: str
@@ -49,7 +49,7 @@ class FlextCliExceptions(FlextCore.Exceptions):
             message: str,
             *,
             error_code: str | int = FlextCliConstants.ErrorCodes.CLI_ERROR,
-            **kwargs: FlextCore.Types.JsonValue,
+            **kwargs: FlextTypes.JsonValue,
         ) -> None:
             """Initialize CLI exception with message, error code, and context using helpers.
 
@@ -69,7 +69,7 @@ class FlextCliExceptions(FlextCore.Exceptions):
 
             # Extract common parameters using helper
             base_context, correlation_id, remaining = self._extract_common_kwargs(
-                cast("FlextCore.Types.Dict", kwargs)
+                cast("FlextTypes.Dict", kwargs)
             )
 
             # Build context merging base and remaining kwargs
@@ -107,28 +107,28 @@ class FlextCliExceptions(FlextCore.Exceptions):
             )
 
         def get_context_value(
-            self, key: str, default: FlextCore.Types.JsonValue | None = None
-        ) -> FlextCore.Types.JsonValue:
+            self, key: str, default: FlextTypes.JsonValue | None = None
+        ) -> FlextTypes.JsonValue:
             """Get context value by key with optional default."""
             from typing import cast
 
-            return cast("FlextCore.Types.JsonValue", self.context.get(key, default))
+            return cast("FlextTypes.JsonValue", self.context.get(key, default))
 
         def is_error_code(self, error_code: str) -> bool:
             """Check if exception matches specific error code."""
             return str(self.error_code) == error_code
 
         def _extract_common_kwargs(
-            self, kwargs: FlextCore.Types.Dict
-        ) -> tuple[FlextCore.Types.Dict, str | None, FlextCore.Types.Dict]:
+            self, kwargs: FlextTypes.Dict
+        ) -> tuple[FlextTypes.Dict, str | None, FlextTypes.Dict]:
             """Extract common kwargs for exception initialization.
 
             If context is provided as a dict, use it as base context.
             If context is provided as a non-dict value, treat it as a regular kwarg.
             """
             context = kwargs.get("context")
-            base_context: FlextCore.Types.Dict = {}
-            remaining: FlextCore.Types.Dict = {}
+            base_context: FlextTypes.Dict = {}
+            remaining: FlextTypes.Dict = {}
 
             # If context is a dict, use it as base context
             if isinstance(context, dict):
@@ -151,9 +151,9 @@ class FlextCliExceptions(FlextCore.Exceptions):
 
         def _build_context(
             self,
-            base_context: FlextCore.Types.Dict,
-            remaining: FlextCore.Types.Dict | None = None,
-        ) -> FlextCore.Types.Dict:
+            base_context: FlextTypes.Dict,
+            remaining: FlextTypes.Dict | None = None,
+        ) -> FlextTypes.Dict:
             """Build complete context dictionary merging base and remaining kwargs."""
             result = base_context.copy()
             if remaining:

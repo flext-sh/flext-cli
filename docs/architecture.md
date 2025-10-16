@@ -16,7 +16,7 @@ flext-cli provides a **CLI foundation library** for the FLEXT ecosystem using a 
 
 - **ZERO TOLERANCE Framework Isolation** - Click/Rich imports strictly controlled
 - **Unified Class Pattern** - Single class per module following domain library design
-- **Railway-Oriented Programming** - All operations return `FlextCore.Result[T]`
+- **Railway-Oriented Programming** - All operations return `FlextResult[T]`
 - **Type Safety First** - Python 3.13+ with 100% type annotations
 - **Singleton Configuration** - Global configuration with environment variable support
 
@@ -59,7 +59,7 @@ src/flext_cli/
 ### Service Layer
 
 ```
-├── core.py              # FlextCliCore - extends FlextCore.Service (29K)
+├── core.py              # FlextCliCore - extends FlextService (29K)
 ├── cmd.py               # FlextCliCmd - command execution (12K)
 ├── commands.py          # FlextCliCommands - command management (10K)
 ├── context.py           # FlextCliContext - execution context (10K)
@@ -100,12 +100,31 @@ class FlextCliModels:
     # All 50+ models defined as nested classes
 ```
 
-### FlextCore.Result[T] Railway Pattern
+### FlextResult[T] Railway Pattern
 
-ALL operations that can fail must return `FlextCore.Result[T]`:
+ALL operations that can fail must return `FlextResult[T]`:
 
 ```python
-from flext_core import FlextCore
+from flext_core import FlextBus
+from flext_core import FlextConfig
+from flext_core import FlextConstants
+from flext_core import FlextContainer
+from flext_core import FlextContext
+from flext_core import FlextDecorators
+from flext_core import FlextDispatcher
+from flext_core import FlextExceptions
+from flext_core import FlextHandlers
+from flext_core import FlextLogger
+from flext_core import FlextMixins
+from flext_core import FlextModels
+from flext_core import FlextProcessors
+from flext_core import FlextProtocols
+from flext_core import FlextRegistry
+from flext_core import FlextResult
+from flext_core import FlextRuntime
+from flext_core import FlextService
+from flext_core import FlextTypes
+from flext_core import FlextUtilities
 from flext_cli import FlextCliFileTools
 
 file_tools = FlextCliFileTools()
@@ -135,7 +154,7 @@ graph TD
     C -->|File I/O| E[FlextCliFileTools]
     C -->|Command| F[FlextCliCmd]
     D --> G[Rich Library - Abstracted]
-    E --> H[FlextCore.Result Return]
+    E --> H[FlextResult Return]
     F --> H
     H --> I[User Code]
 ```
@@ -233,26 +252,47 @@ cli.tables.create_table(data, format="fancy_grid")
 
    ```python
    # In api.py, add new methods to FlextCli class
-   from flext_core import FlextCore
-
-   class FlextCli:
-       def new_operation(self, data: dict) -> FlextCore.Result[str]:
-           """New CLI operation."""
-           # Use existing services
-           result = self.file_tools.read_json_file("data.json")
-           return result.map(lambda d: process_data(d))
+   from flext_core import FlextBus
    ```
+
+from flext_core import FlextConfig
+from flext_core import FlextConstants
+from flext_core import FlextContainer
+from flext_core import FlextContext
+from flext_core import FlextDecorators
+from flext_core import FlextDispatcher
+from flext_core import FlextExceptions
+from flext_core import FlextHandlers
+from flext_core import FlextLogger
+from flext_core import FlextMixins
+from flext_core import FlextModels
+from flext_core import FlextProcessors
+from flext_core import FlextProtocols
+from flext_core import FlextRegistry
+from flext_core import FlextResult
+from flext_core import FlextRuntime
+from flext_core import FlextService
+from flext_core import FlextTypes
+from flext_core import FlextUtilities
+
+class FlextCli:
+def new_operation(self, data: dict) -> FlextResult[str]:
+"""New CLI operation.""" # Use existing services
+result = self.file_tools.read_JSON_file("data.JSON")
+return result.map(lambda d: process_data(d))
+
+````
 
 2. **Add to Appropriate Service Module**
 
-   ```python
-   # In file_tools.py, cmd.py, output.py, etc.
-   class FlextCliFileTools:
-       def new_file_operation(self, path: Path) -> FlextCore.Result[str]:
-           """New file operation."""
-           # Implementation using FlextCore.Result
-           return FlextCore.Result[str].ok("success")
-   ```
+```python
+# In file_tools.py, cmd.py, output.py, etc.
+class FlextCliFileTools:
+    def new_file_operation(self, path: Path) -> FlextResult[str]:
+        """New file operation."""
+        # Implementation using FlextResult
+        return FlextResult[str].ok("success")
+````
 
 3. **Update Models if Needed**
 
@@ -279,16 +319,35 @@ cli.tables.create_table(data, format="fancy_grid")
 
 ```python
 from flext_cli import FlextCli
-from flext_core import FlextCore
+from flext_core import FlextBus
+from flext_core import FlextConfig
+from flext_core import FlextConstants
+from flext_core import FlextContainer
+from flext_core import FlextContext
+from flext_core import FlextDecorators
+from flext_core import FlextDispatcher
+from flext_core import FlextExceptions
+from flext_core import FlextHandlers
+from flext_core import FlextLogger
+from flext_core import FlextMixins
+from flext_core import FlextModels
+from flext_core import FlextProcessors
+from flext_core import FlextProtocols
+from flext_core import FlextRegistry
+from flext_core import FlextResult
+from flext_core import FlextRuntime
+from flext_core import FlextService
+from flext_core import FlextTypes
+from flext_core import FlextUtilities
 
 class MyProjectCli(FlextCli):
     """Custom CLI for your project."""
 
-    def custom_command(self, args: dict) -> FlextCore.Result[str]:
+    def custom_command(self, args: dict) -> FlextResult[str]:
         """Project-specific command."""
         # Use inherited CLI functionality
         self.print("Running custom command...")
-        return FlextCore.Result[str].ok("complete")
+        return FlextResult[str].ok("complete")
 ```
 
 ---
@@ -305,7 +364,7 @@ class MyProjectCli(FlextCli):
 
 - **Type Safety** - MyPy strict mode compliance
 - **Code Quality** - Ruff linting standards
-- **Error Handling** - FlextCore.Result pattern usage
+- **Error Handling** - FlextResult pattern usage
 - **Documentation** - All public APIs documented
 
 ---
@@ -342,12 +401,12 @@ class MyProjectCli(FlextCli):
 
 ### FLEXT Ecosystem Integration
 
-| Package                 | Role                | Integration Point                                        |
-| ----------------------- | ------------------- | -------------------------------------------------------- |
-| **flext-core**          | Foundation patterns | FlextCore.Result, FlextCore.Service, FlextCore.Container |
-| **flext-api**           | HTTP operations     | Optional integration for API CLIs                        |
-| **flext-observability** | Monitoring          | Optional logging/metrics integration                     |
-| **32+ projects**        | Consumers           | All use flext-cli for CLI functionality                  |
+| Package                 | Role                | Integration Point                         |
+| ----------------------- | ------------------- | ----------------------------------------- |
+| **flext-core**          | Foundation patterns | FlextResult, FlextService, FlextContainer |
+| **flext-api**           | HTTP operations     | Optional integration for API CLIs         |
+| **flext-observability** | Monitoring          | Optional logging/metrics integration      |
+| **32+ projects**        | Consumers           | All use flext-cli for CLI functionality   |
 
 ---
 

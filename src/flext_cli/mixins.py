@@ -12,13 +12,13 @@ from __future__ import annotations
 
 from urllib.parse import urlparse
 
-from flext_core import FlextCore
+from flext_core import FlextMixins, FlextResult, FlextTypes
 
 from flext_cli.constants import FlextCliConstants
 from flext_cli.typings import FlextCliTypes
 
 
-class FlextCliMixins(FlextCore.Mixins):
+class FlextCliMixins(FlextMixins):
     """Single unified CLI mixins class following FLEXT standards.
 
     Contains all mixin subclasses for CLI domain operations.
@@ -39,7 +39,7 @@ class FlextCliMixins(FlextCore.Mixins):
         @staticmethod
         def validate_not_empty(
             field_name: str, field_value: str | float | None
-        ) -> FlextCore.Result[None]:
+        ) -> FlextResult[None]:
             """Validate that a field is not empty or whitespace.
 
             Args:
@@ -47,22 +47,22 @@ class FlextCliMixins(FlextCore.Mixins):
                 field_value: Value to validate (string, number, or boolean)
 
             Returns:
-                FlextCore.Result[None]: Success or failure result
+                FlextResult[None]: Success or failure result
 
             """
             # Handle non-string types
             if not isinstance(field_value, str):
                 if not field_value:  # Falsy values (0, False, None, empty collections)
-                    return FlextCore.Result[None].fail(f"{field_name} cannot be empty")
-                return FlextCore.Result[None].ok(None)
+                    return FlextResult[None].fail(f"{field_name} cannot be empty")
+                return FlextResult[None].ok(None)
 
             # Handle string types
             if not field_value or not field_value.strip():
-                return FlextCore.Result[None].fail(f"{field_name} cannot be empty")
-            return FlextCore.Result[None].ok(None)
+                return FlextResult[None].fail(f"{field_name} cannot be empty")
+            return FlextResult[None].ok(None)
 
         @staticmethod
-        def validate_url(field_name: str, url_value: str) -> FlextCore.Result[None]:
+        def validate_url(field_name: str, url_value: str) -> FlextResult[None]:
             """Validate that a URL field has proper format - delegates to FlextCliUtilities.
 
             Args:
@@ -70,32 +70,28 @@ class FlextCliMixins(FlextCore.Mixins):
                 url_value: URL string to validate
 
             Returns:
-                FlextCore.Result[None]: Success or failure result
+                FlextResult[None]: Success or failure result
 
             """
             # Validate emptiness first
             if not url_value or not url_value.strip():
-                return FlextCore.Result[None].fail(f"{field_name} cannot be empty")
+                return FlextResult[None].fail(f"{field_name} cannot be empty")
 
             # Simple URL validation
 
             try:
                 parsed = urlparse(url_value)
                 if not parsed.scheme or not parsed.netloc:
-                    return FlextCore.Result[None].fail(
-                        f"{field_name} is not a valid URL"
-                    )
+                    return FlextResult[None].fail(f"{field_name} is not a valid URL")
             except Exception as e:
-                return FlextCore.Result[None].fail(
-                    f"{field_name} validation failed: {e}"
-                )
+                return FlextResult[None].fail(f"{field_name} validation failed: {e}")
 
-            return FlextCore.Result[None].ok(None)
+            return FlextResult[None].ok(None)
 
         @staticmethod
         def validate_enum_value(
-            field_name: str, field_value: str, valid_values: FlextCore.Types.StringList
-        ) -> FlextCore.Result[None]:
+            field_name: str, field_value: str, valid_values: FlextTypes.StringList
+        ) -> FlextResult[None]:
             """Validate that a field value is in the allowed list.
 
             Args:
@@ -104,19 +100,19 @@ class FlextCliMixins(FlextCore.Mixins):
                 valid_values: List of valid values
 
             Returns:
-                FlextCore.Result[None]: Success or failure result
+                FlextResult[None]: Success or failure result
 
             """
             if field_value not in valid_values:
-                return FlextCore.Result[None].fail(
+                return FlextResult[None].fail(
                     f"Invalid {field_name}. Valid values: {valid_values}"
                 )
-            return FlextCore.Result[None].ok(None)
+            return FlextResult[None].ok(None)
 
         @staticmethod
         def validate_positive_number(
             field_name: str, field_value: int
-        ) -> FlextCore.Result[None]:
+        ) -> FlextResult[None]:
             """Validate that a number field is positive.
 
             Args:
@@ -124,17 +120,17 @@ class FlextCliMixins(FlextCore.Mixins):
                 field_value: Number to validate
 
             Returns:
-                FlextCore.Result[None]: Success or failure result
+                FlextResult[None]: Success or failure result
 
             """
             if field_value <= 0:
-                return FlextCore.Result[None].fail(f"{field_name} must be positive")
-            return FlextCore.Result[None].ok(None)
+                return FlextResult[None].fail(f"{field_name} must be positive")
+            return FlextResult[None].ok(None)
 
         @staticmethod
         def validate_non_negative_number(
             field_name: str, field_value: int
-        ) -> FlextCore.Result[None]:
+        ) -> FlextResult[None]:
             """Validate that a number field is non-negative.
 
             Args:
@@ -142,22 +138,22 @@ class FlextCliMixins(FlextCore.Mixins):
                 field_value: Number to validate
 
             Returns:
-                FlextCore.Result[None]: Success or failure result
+                FlextResult[None]: Success or failure result
 
             """
             if field_value < 0:
-                return FlextCore.Result[None].fail(f"{field_name} cannot be negative")
-            return FlextCore.Result[None].ok(None)
+                return FlextResult[None].fail(f"{field_name} cannot be negative")
+            return FlextResult[None].ok(None)
 
         @staticmethod
-        def validate_output_format(format_value: str) -> FlextCore.Result[None]:
+        def validate_output_format(format_value: str) -> FlextResult[None]:
             """Validate output format against allowed values.
 
             Args:
                 format_value: Output format to validate
 
             Returns:
-                FlextCore.Result[None]: Success or failure result
+                FlextResult[None]: Success or failure result
 
             """
             return FlextCliMixins.ValidationMixin.validate_enum_value(
@@ -165,14 +161,14 @@ class FlextCliMixins(FlextCore.Mixins):
             )
 
         @staticmethod
-        def validate_log_level(log_level_value: str) -> FlextCore.Result[None]:
+        def validate_log_level(log_level_value: str) -> FlextResult[None]:
             """Validate log level against allowed values.
 
             Args:
                 log_level_value: Log level to validate
 
             Returns:
-                FlextCore.Result[None]: Success or failure result
+                FlextResult[None]: Success or failure result
 
             """
             return FlextCliMixins.ValidationMixin.validate_enum_value(
@@ -180,14 +176,14 @@ class FlextCliMixins(FlextCore.Mixins):
             )
 
         @staticmethod
-        def validate_status(status_value: str) -> FlextCore.Result[None]:
+        def validate_status(status_value: str) -> FlextResult[None]:
             """Validate command status against allowed values.
 
             Args:
                 status_value: Status to validate
 
             Returns:
-                FlextCore.Result[None]: Success or failure result
+                FlextResult[None]: Success or failure result
 
             """
             return FlextCliMixins.ValidationMixin.validate_enum_value(
@@ -198,7 +194,7 @@ class FlextCliMixins(FlextCore.Mixins):
     # FACTORY MIXIN - Common factory patterns
     # =========================================================================
 
-    # Removed - use FlextCore.Result[T].ok() and FlextCore.Result[T].fail() directly
+    # Removed - use FlextResult[T].ok() and FlextResult[T].fail() directly
 
     # =========================================================================
     # BUSINESS RULES MIXIN - Common business rule validation patterns
@@ -213,7 +209,7 @@ class FlextCliMixins(FlextCore.Mixins):
         @staticmethod
         def validate_command_execution_state(
             current_status: str, required_status: str, operation: str
-        ) -> FlextCore.Result[None]:
+        ) -> FlextResult[None]:
             """Validate command execution state for operations.
 
             Args:
@@ -222,19 +218,19 @@ class FlextCliMixins(FlextCore.Mixins):
                 operation: Name of the operation being performed
 
             Returns:
-                FlextCore.Result[None]: Validation result
+                FlextResult[None]: Validation result
 
             """
             if current_status != required_status:
-                return FlextCore.Result[None].fail(
+                return FlextResult[None].fail(
                     f"Cannot {operation}: command is in '{current_status}' state, requires '{required_status}'"
                 )
-            return FlextCore.Result[None].ok(None)
+            return FlextResult[None].ok(None)
 
         @staticmethod
         def validate_session_state(
-            current_status: str, valid_states: FlextCore.Types.StringList
-        ) -> FlextCore.Result[None]:
+            current_status: str, valid_states: FlextTypes.StringList
+        ) -> FlextResult[None]:
             """Validate session state.
 
             Args:
@@ -242,48 +238,46 @@ class FlextCliMixins(FlextCore.Mixins):
                 valid_states: List of valid session states
 
             Returns:
-                FlextCore.Result[None]: Validation result
+                FlextResult[None]: Validation result
 
             """
             if current_status not in valid_states:
-                return FlextCore.Result[None].fail(
+                return FlextResult[None].fail(
                     f"Invalid session status '{current_status}'. Valid states: {valid_states}"
                 )
-            return FlextCore.Result[None].ok(None)
+            return FlextResult[None].ok(None)
 
         @staticmethod
         def validate_pipeline_step(
             step: FlextCliTypes.Data.CliDataDict | None,
-        ) -> FlextCore.Result[None]:
+        ) -> FlextResult[None]:
             """Validate pipeline step configuration.
 
             Args:
                 step: Pipeline step dictionary to validate
 
             Returns:
-                FlextCore.Result[None]: Validation result
+                FlextResult[None]: Validation result
 
             """
             if not step:
-                return FlextCore.Result[None].fail(
+                return FlextResult[None].fail(
                     "Pipeline step must be a non-empty dictionary"
                 )
 
             if "name" not in step:
-                return FlextCore.Result[None].fail(
-                    "Pipeline step must have a 'name' field"
-                )
+                return FlextResult[None].fail("Pipeline step must have a 'name' field")
 
             if not step["name"] or not str(step["name"]).strip():
-                return FlextCore.Result[None].fail("Pipeline step name cannot be empty")
+                return FlextResult[None].fail("Pipeline step name cannot be empty")
 
-            return FlextCore.Result[None].ok(None)
+            return FlextResult[None].ok(None)
 
         @staticmethod
         def validate_configuration_consistency(
             config_data: FlextCliTypes.Data.CliDataDict | None,
-            required_fields: FlextCore.Types.StringList,
-        ) -> FlextCore.Result[None]:
+            required_fields: FlextTypes.StringList,
+        ) -> FlextResult[None]:
             """Validate configuration consistency.
 
             Args:
@@ -291,7 +285,7 @@ class FlextCliMixins(FlextCore.Mixins):
                 required_fields: List of required field names
 
             Returns:
-                FlextCore.Result[None]: Validation result
+                FlextResult[None]: Validation result
 
             """
             missing_fields = [
@@ -300,11 +294,11 @@ class FlextCliMixins(FlextCore.Mixins):
                 if config_data and field not in config_data
             ]
             if missing_fields:
-                return FlextCore.Result[None].fail(
+                return FlextResult[None].fail(
                     f"Missing required configuration fields: {missing_fields}"
                 )
 
-            return FlextCore.Result[None].ok(None)
+            return FlextResult[None].ok(None)
 
 
 __all__ = [

@@ -11,7 +11,7 @@ FLEXT-CLI PROVIDES:
 - FlextCliConfig - Configuration management class
 - cli.config - Access to current config settings
 - Environment variable loading (FLEXT_*)
-- Built-in validation with FlextCore.Result
+- Built-in validation with FlextResult
 - Profile-based configuration
 
 HOW TO USE IN YOUR CLI:

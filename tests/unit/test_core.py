@@ -20,7 +20,7 @@ from typing import Never, cast
 
 import pytest
 import yaml
-from flext_core import FlextCore
+from flext_core import FlextResult, FlextTypes, FlextUtilities
 
 from flext_cli import (
     FlextCli,
@@ -59,7 +59,7 @@ class TestFlextCliCore:
         """Test core service initialization and basic properties."""
         assert core_service is not None
         assert hasattr(core_service, "logger")
-        assert hasattr(core_service, "container")  # Property from FlextCore.Service
+        assert hasattr(core_service, "container")  # Property from FlextService
         assert hasattr(core_service, "_config")
         assert hasattr(core_service, "_commands")
         assert hasattr(core_service, "_plugins")
@@ -69,7 +69,7 @@ class TestFlextCliCore:
         """Test core service execute method with real functionality."""
         result = core_service.execute()
 
-        assert isinstance(result, FlextCore.Result)
+        assert isinstance(result, FlextResult)
         # Service execution may fail due to implementation issues, but should return proper result
         if result.is_success:
             data = result.unwrap()
@@ -80,7 +80,7 @@ class TestFlextCliCore:
             assert len(result.error) > 0
             result = core_service.execute()
 
-            assert isinstance(result, FlextCore.Result)
+            assert isinstance(result, FlextResult)
             # execution may fail due to implementation issues, so we check the result type
             assert result.is_success or result.is_failure
 
@@ -95,7 +95,7 @@ class TestFlextCliCore:
         """Test advanced core service methods."""
         # Test health check
         health_result = core_service.health_check()
-        assert isinstance(health_result, FlextCore.Result)
+        assert isinstance(health_result, FlextResult)
 
         # Test get config
         config_result = core_service.get_config()
@@ -103,22 +103,22 @@ class TestFlextCliCore:
 
         # Test get handlers
         handlers_result = core_service.get_handlers()
-        assert isinstance(handlers_result, FlextCore.Result)
+        assert isinstance(handlers_result, FlextResult)
         assert handlers_result.is_success
 
         # Test get plugins
         plugins_result = core_service.get_plugins()
-        assert isinstance(plugins_result, FlextCore.Result)
+        assert isinstance(plugins_result, FlextResult)
         assert plugins_result.is_success
 
         # Test get sessions
         sessions_result = core_service.get_sessions()
-        assert isinstance(sessions_result, FlextCore.Result)
+        assert isinstance(sessions_result, FlextResult)
         assert sessions_result.is_success
 
         # Test get commands
         commands_result = core_service.get_commands()
-        assert isinstance(commands_result, FlextCore.Result)
+        assert isinstance(commands_result, FlextResult)
         assert commands_result.is_success
 
         # Test get formatters
@@ -161,7 +161,7 @@ class TestFlextCliCore:
         # Test loading configuration
         result = core_service.load_configuration(str(config_file))
 
-        assert isinstance(result, FlextCore.Result)
+        assert isinstance(result, FlextResult)
         assert result.is_success
 
         config_data = result.unwrap()
@@ -177,7 +177,7 @@ class TestFlextCliCore:
         """Test configuration loading with nonexistent file."""
         result = core_service.load_configuration("/nonexistent/config.json")
 
-        assert isinstance(result, FlextCore.Result)
+        assert isinstance(result, FlextResult)
         assert result.is_failure
         assert result.error is not None
         assert (
@@ -190,7 +190,7 @@ class TestFlextCliCore:
     ) -> None:
         """Test configuration saving functionality."""
         config_file = temp_dir / "test_save_config.json"
-        test_config: FlextCore.Types.Dict = {
+        test_config: FlextTypes.Dict = {
             "debug": False,
             "output_format": "table",
             "timeout": FlextCliConstants.TIMEOUTS.DEFAULT,
@@ -200,7 +200,7 @@ class TestFlextCliCore:
         # Test saving configuration
         result = core_service.save_configuration(str(config_file), test_config)
 
-        assert isinstance(result, FlextCore.Result)
+        assert isinstance(result, FlextResult)
         assert result.is_success
 
         # Verify file was created and contains correct data
@@ -219,7 +219,7 @@ class TestFlextCliCore:
         )
 
         result = core_service.validate_configuration(valid_config)
-        assert isinstance(result, FlextCore.Result)
+        assert isinstance(result, FlextResult)
         assert result.is_success
 
         # Test invalid configuration - Pydantic will catch validation errors
@@ -239,7 +239,7 @@ class TestFlextCliCore:
         """Test file reading functionality."""
         result = cli_facade.file_tools.read_text_file(str(temp_file))
 
-        assert isinstance(result, FlextCore.Result)
+        assert isinstance(result, FlextResult)
         assert result.is_success
 
         content = result.unwrap()
@@ -250,7 +250,7 @@ class TestFlextCliCore:
         """Test file reading with nonexistent file."""
         result = cli_facade.file_tools.read_text_file("/nonexistent/file.txt")
 
-        assert isinstance(result, FlextCore.Result)
+        assert isinstance(result, FlextResult)
         assert result.is_failure
 
     def test_write_file_content(self, cli_facade: FlextCli, temp_dir: Path) -> None:
@@ -260,7 +260,7 @@ class TestFlextCliCore:
 
         result = cli_facade.file_tools.write_text_file(str(test_file), test_content)
 
-        assert isinstance(result, FlextCore.Result)
+        assert isinstance(result, FlextResult)
         assert result.is_success
 
         # Verify file was created and contains correct content
@@ -275,7 +275,7 @@ class TestFlextCliCore:
 
         result = cli_facade.file_tools.copy_file(str(temp_file), str(destination))
 
-        assert isinstance(result, FlextCore.Result)
+        assert isinstance(result, FlextResult)
         assert result.is_success
 
         # Verify file was copied correctly
@@ -291,7 +291,7 @@ class TestFlextCliCore:
 
         result = cli_facade.file_tools.move_file(str(temp_file), str(destination))
 
-        assert isinstance(result, FlextCore.Result)
+        assert isinstance(result, FlextResult)
         assert result.is_success
 
         # Verify file was moved correctly
@@ -305,7 +305,7 @@ class TestFlextCliCore:
 
         result = cli_facade.file_tools.delete_file(str(temp_file))
 
-        assert isinstance(result, FlextCore.Result)
+        assert isinstance(result, FlextResult)
         assert result.is_success
 
         # Verify file was deleted
@@ -320,7 +320,7 @@ class TestFlextCliCore:
 
         result = cli_facade.file_tools.list_directory(str(temp_dir))
 
-        assert isinstance(result, FlextCore.Result)
+        assert isinstance(result, FlextResult)
         assert result.is_success
 
         files = result.unwrap()
@@ -335,7 +335,7 @@ class TestFlextCliCore:
 
         result = cli_facade.file_tools.create_directory(str(new_dir))
 
-        assert isinstance(result, FlextCore.Result)
+        assert isinstance(result, FlextResult)
         assert result.is_success
 
         # Verify directory was created
@@ -352,7 +352,7 @@ class TestFlextCliCore:
 
         result = cli_facade.file_tools.delete_directory(str(test_dir))
 
-        assert isinstance(result, FlextCore.Result)
+        assert isinstance(result, FlextResult)
         assert result.is_success
 
         # Verify directory was deleted
@@ -368,11 +368,11 @@ class TestFlextCliCore:
 
         try:
             parsed = json.loads(json_data)
-            result = FlextCore.Result[FlextCore.Types.Dict].ok(parsed)
+            result = FlextResult[FlextTypes.Dict].ok(parsed)
         except Exception as e:
-            result = FlextCore.Result[FlextCore.Types.Dict].fail(str(e))
+            result = FlextResult[FlextTypes.Dict].fail(str(e))
 
-        assert isinstance(result, FlextCore.Result)
+        assert isinstance(result, FlextResult)
         assert result.is_success
 
         parsed_data = result.unwrap()
@@ -389,16 +389,16 @@ class TestFlextCliCore:
 
         try:
             parsed = json.loads(invalid_json)
-            result = FlextCore.Result[FlextCore.Types.Dict].ok(parsed)
+            result = FlextResult[FlextTypes.Dict].ok(parsed)
         except Exception as e:
-            result = FlextCore.Result[FlextCore.Types.Dict].fail(str(e))
+            result = FlextResult[FlextTypes.Dict].fail(str(e))
 
-        assert isinstance(result, FlextCore.Result)
+        assert isinstance(result, FlextResult)
         assert result.is_failure
 
     def test_serialize_json_data(self) -> None:
         """Test JSON data serialization functionality."""
-        test_data: FlextCore.Types.Dict = {
+        test_data: FlextTypes.Dict = {
             "key": "value",
             "number": 42,
             "list": [1, 2, 3],
@@ -407,11 +407,11 @@ class TestFlextCliCore:
 
         try:
             json_str = json.dumps(test_data)
-            result = FlextCore.Result[str].ok(json_str)
+            result = FlextResult[str].ok(json_str)
         except Exception as e:
-            result = FlextCore.Result[str].fail(str(e))
+            result = FlextResult[str].fail(str(e))
 
-        assert isinstance(result, FlextCore.Result)
+        assert isinstance(result, FlextResult)
         assert result.is_success
 
         json_string = result.unwrap()
@@ -436,11 +436,11 @@ nested:
 
         try:
             parsed = yaml.safe_load(yaml_data)
-            result = FlextCore.Result[FlextCore.Types.Dict].ok(parsed)
+            result = FlextResult[FlextTypes.Dict].ok(parsed)
         except Exception as e:
-            result = FlextCore.Result[FlextCore.Types.Dict].fail(str(e))
+            result = FlextResult[FlextTypes.Dict].fail(str(e))
 
-        assert isinstance(result, FlextCore.Result)
+        assert isinstance(result, FlextResult)
         assert result.is_success
 
         parsed_data = result.unwrap()
@@ -454,7 +454,7 @@ nested:
 
     def test_serialize_yaml_data(self) -> None:
         """Test YAML data serialization functionality."""
-        test_data: FlextCore.Types.Dict = {
+        test_data: FlextTypes.Dict = {
             "key": "value",
             "number": 42,
             "list": [1, 2, 3],
@@ -463,11 +463,11 @@ nested:
 
         try:
             yaml_str = yaml.dump(test_data)
-            result = FlextCore.Result[str].ok(yaml_str)
+            result = FlextResult[str].ok(yaml_str)
         except Exception as e:
-            result = FlextCore.Result[str].fail(str(e))
+            result = FlextResult[str].fail(str(e))
 
-        assert isinstance(result, FlextCore.Result)
+        assert isinstance(result, FlextResult)
         assert result.is_success
 
         yaml_string = result.unwrap()
@@ -484,7 +484,7 @@ nested:
         # Test with a simple command that should work on most systems
         result = core_service.execute_command("echo", ["Hello, World!"])
 
-        assert isinstance(result, FlextCore.Result)
+        assert isinstance(result, FlextResult)
         # Command execution may fail due to security restrictions, so we check the result type
         assert result.is_success or result.is_failure
 
@@ -512,7 +512,7 @@ nested:
             "test_timeout_core", ["--test-arg"], timeout=5
         )
 
-        assert isinstance(result, FlextCore.Result)
+        assert isinstance(result, FlextResult)
         # Command execution should succeed for registered commands
         assert result.is_success
         output = result.unwrap()
@@ -527,7 +527,7 @@ nested:
         """Test command execution with nonexistent command."""
         result = core_service.execute_command("nonexistent_command_12345", [])
 
-        assert isinstance(result, FlextCore.Result)
+        assert isinstance(result, FlextResult)
         assert result.is_failure
 
     # ========================================================================
@@ -540,7 +540,7 @@ nested:
 
     def test_generate_uuid(self) -> None:
         """Test UUID generation functionality."""
-        uuid_value = FlextCore.Utilities.Generators.generate_uuid()
+        uuid_value = FlextUtilities.Generators.generate_uuid()
 
         assert isinstance(uuid_value, str)
         assert len(uuid_value) == 36  # Standard UUID length
@@ -548,7 +548,7 @@ nested:
 
     def test_format_timestamp(self) -> None:
         """Test timestamp formatting functionality."""
-        timestamp = FlextCore.Utilities.Generators.generate_iso_timestamp()
+        timestamp = FlextUtilities.Generators.generate_iso_timestamp()
 
         assert isinstance(timestamp, str)
         # Check for ISO format timestamp
@@ -558,28 +558,28 @@ nested:
     def test_validate_email(self) -> None:
         """Test email validation functionality."""
         # Test valid email
-        result = FlextCore.Utilities.Validation.validate_email("test@example.com")
-        assert isinstance(result, FlextCore.Result)
+        result = FlextUtilities.Validation.validate_email("test@example.com")
+        assert isinstance(result, FlextResult)
         assert result.is_success
         assert result.unwrap() == "test@example.com"
 
         # Test invalid email
-        result = FlextCore.Utilities.Validation.validate_email("invalid-email")
-        assert isinstance(result, FlextCore.Result)
+        result = FlextUtilities.Validation.validate_email("invalid-email")
+        assert isinstance(result, FlextResult)
         assert result.is_failure
 
     def test_validate_url(self) -> None:
         """Test URL validation functionality."""
-        # Test valid URL - validate_url returns FlextCore.Result[None] (validation pattern)
-        result = FlextCore.Utilities.Validation.validate_url("https://example.com")
-        assert isinstance(result, FlextCore.Result)
+        # Test valid URL - validate_url returns FlextResult[None] (validation pattern)
+        result = FlextUtilities.Validation.validate_url("https://example.com")
+        assert isinstance(result, FlextResult)
         assert result.is_success
         # Validation functions return None on success (validation pattern, not transformation)
         assert result.unwrap() is None
 
         # Test invalid URL
-        result = FlextCore.Utilities.Validation.validate_url("not-a-url")
-        assert isinstance(result, FlextCore.Result)
+        result = FlextUtilities.Validation.validate_url("not-a-url")
+        assert isinstance(result, FlextResult)
         assert result.is_failure
 
     # ========================================================================
@@ -592,12 +592,12 @@ nested:
         """Test error handling with various invalid inputs."""
         # Test with None input
         result = core_service.load_configuration("")
-        assert isinstance(result, FlextCore.Result)
+        assert isinstance(result, FlextResult)
         assert result.is_failure
 
         # Test with empty string
         result = core_service.load_configuration("")
-        assert isinstance(result, FlextCore.Result)
+        assert isinstance(result, FlextResult)
         assert result.is_failure
 
     def test_error_handling_with_permission_denied(self, cli_facade: FlextCli) -> None:
@@ -606,7 +606,7 @@ nested:
         result = cli_facade.file_tools.write_text_file(
             "/proc/test_file", "test content"
         )
-        assert isinstance(result, FlextCore.Result)
+        assert isinstance(result, FlextResult)
         assert result.is_failure
 
     def test_concurrent_operations(self, cli_facade: FlextCli, temp_dir: Path) -> None:
@@ -639,7 +639,7 @@ nested:
         assert len(errors) == 0, f"Errors occurred: {errors}"
         assert len(results) == 5
         for result in results:
-            assert isinstance(result, FlextCore.Result)
+            assert isinstance(result, FlextResult)
             assert result.is_success
 
     # ========================================================================
@@ -651,7 +651,7 @@ nested:
     ) -> None:
         """Test complete workflow integration."""
         # 1. Create configuration
-        config_data: FlextCore.Types.Dict = {
+        config_data: FlextTypes.Dict = {
             "debug": True,
             "output_format": "json",
             "timeout": FlextCliConstants.TIMEOUTS.DEFAULT,
@@ -678,15 +678,15 @@ nested:
         assert validate_result.is_success
 
         # 4. Process data
-        test_data: FlextCore.Types.Dict = {
+        test_data: FlextTypes.Dict = {
             "processed": True,
             "timestamp": "2025-01-01T00:00:00Z",
         }
         try:
             json_str = json.dumps(test_data)
-            json_result = FlextCore.Result[str].ok(json_str)
+            json_result = FlextResult[str].ok(json_str)
         except Exception as e:
-            json_result = FlextCore.Result[str].fail(str(e))
+            json_result = FlextResult[str].fail(str(e))
         assert json_result.is_success
 
         # 5. Save processed data
@@ -705,7 +705,7 @@ nested:
         """Test execute method (now sync, delegates to execute)."""
         # execute is now synchronous, delegates to execute()
         result = core_service.execute()
-        assert isinstance(result, FlextCore.Result)
+        assert isinstance(result, FlextResult)
         # Execution may fail due to implementation issues, so we check the result type
         assert result.is_success or result.is_failure
 
@@ -722,7 +722,7 @@ nested:
         """Test advanced core service methods - consolidated test."""
         # Test health check
         health_result = core_service.health_check()
-        assert isinstance(health_result, FlextCore.Result)
+        assert isinstance(health_result, FlextResult)
 
         # Test get config
         config_result = core_service.get_config()
@@ -730,22 +730,22 @@ nested:
 
         # Test get handlers
         handlers_result = core_service.get_handlers()
-        assert isinstance(handlers_result, FlextCore.Result)
+        assert isinstance(handlers_result, FlextResult)
         assert handlers_result.is_success
 
         # Test get plugins
         plugins_result = core_service.get_plugins()
-        assert isinstance(plugins_result, FlextCore.Result)
+        assert isinstance(plugins_result, FlextResult)
         assert plugins_result.is_success
 
         # Test get sessions
         sessions_result = core_service.get_sessions()
-        assert isinstance(sessions_result, FlextCore.Result)
+        assert isinstance(sessions_result, FlextResult)
         assert sessions_result.is_success
 
         # Test get commands
         commands_result = core_service.get_commands()
-        assert isinstance(commands_result, FlextCore.Result)
+        assert isinstance(commands_result, FlextResult)
         assert commands_result.is_success
 
         # Test get formatters
@@ -791,7 +791,7 @@ class TestFlextCliCoreExtended:
         """Test successful command registration."""
         result = core_service.register_command(sample_command)
 
-        assert isinstance(result, FlextCore.Result)
+        assert isinstance(result, FlextResult)
         assert result.is_success
 
         # Verify command was registered
@@ -809,7 +809,7 @@ class TestFlextCliCoreExtended:
         # Retrieve it
         result = core_service.get_command("test-cmd")
 
-        assert isinstance(result, FlextCore.Result)
+        assert isinstance(result, FlextResult)
         assert result.is_success
         command_def = result.unwrap()
         assert command_def["name"] == "test-cmd"
@@ -818,7 +818,7 @@ class TestFlextCliCoreExtended:
         """Test getting non-existent command."""
         result = core_service.get_command("nonexistent")
 
-        assert isinstance(result, FlextCore.Result)
+        assert isinstance(result, FlextResult)
         assert result.is_failure
         assert result.error is not None
         assert "not found" in result.error
@@ -849,7 +849,7 @@ class TestFlextCliCoreExtended:
 
         result = core_service.execute_command("test-cmd")
 
-        assert isinstance(result, FlextCore.Result)
+        assert isinstance(result, FlextResult)
         assert result.is_success
         command_result = result.unwrap()
         assert command_result["command"] == "test-cmd"
@@ -881,13 +881,7 @@ class TestFlextCliCoreExtended:
 
         context: dict[
             str,
-            str
-            | int
-            | float
-            | bool
-            | FlextCore.Types.List
-            | FlextCore.Types.Dict
-            | None,
+            str | int | float | bool | FlextTypes.List | FlextTypes.Dict | None,
         ] = {"option": "value", "flag": True}
         result = core_service.execute_command("test-cmd", context=context)
 
@@ -919,7 +913,7 @@ class TestFlextCliCoreExtended:
         """Test listing commands when none registered."""
         result = core_service.list_commands()
 
-        assert isinstance(result, FlextCore.Result)
+        assert isinstance(result, FlextResult)
         assert result.is_success
         assert result.unwrap() == []
 
@@ -951,7 +945,7 @@ class TestFlextCliCoreExtended:
         """Test starting new session."""
         result = core_service.start_session()
 
-        assert isinstance(result, FlextCore.Result)
+        assert isinstance(result, FlextResult)
         assert result.is_success
 
         # Verify session is active
@@ -974,7 +968,7 @@ class TestFlextCliCoreExtended:
 
         result = core_service.end_session()
 
-        assert isinstance(result, FlextCore.Result)
+        assert isinstance(result, FlextResult)
         assert result.is_success
         assert not core_service.is_session_active()
 
@@ -1006,7 +1000,7 @@ class TestFlextCliCoreExtended:
         """Test command statistics with no commands."""
         result = core_service.get_command_statistics()
 
-        assert isinstance(result, FlextCore.Result)
+        assert isinstance(result, FlextResult)
         assert result.is_success
         stats = result.unwrap()
         assert stats["total_commands"] == 0
@@ -1045,7 +1039,7 @@ class TestFlextCliCoreExtended:
         """Test session statistics with no sessions."""
         result = core_service.get_session_statistics()
 
-        assert isinstance(result, FlextCore.Result)
+        assert isinstance(result, FlextResult)
         assert result.is_failure  # No active session
         assert result.error is not None
         assert "No active session" in result.error
@@ -1071,7 +1065,7 @@ class TestFlextCliCoreExtended:
         """Test health check returns success."""
         result = core_service.health_check()
 
-        assert isinstance(result, FlextCore.Result)
+        assert isinstance(result, FlextResult)
         assert result.is_success
         health = result.unwrap()
         assert "service_healthy" in health
@@ -1086,7 +1080,7 @@ class TestFlextCliCoreExtended:
         """Test getting configuration."""
         result = core_service.get_config()
 
-        assert isinstance(result, FlextCore.Result)
+        assert isinstance(result, FlextResult)
         assert result.is_success
         config = result.unwrap()
         assert isinstance(config, dict)
@@ -1097,37 +1091,31 @@ class TestFlextCliCoreExtended:
             str,
             dict[
                 str,
-                str
-                | int
-                | float
-                | bool
-                | FlextCore.Types.List
-                | FlextCore.Types.Dict
-                | None,
+                str | int | float | bool | FlextTypes.List | FlextTypes.Dict | None,
             ],
         ] = {"theme": {"value": "dark"}, "verbose": {"value": True}}
 
         result = core_service.update_configuration(config)
 
-        assert isinstance(result, FlextCore.Result)
+        assert isinstance(result, FlextResult)
         assert result.is_success
 
     def test_get_configuration_success(self, core_service: FlextCliCore) -> None:
         """Test getting configuration."""
         result = core_service.get_configuration()
 
-        assert isinstance(result, FlextCore.Result)
+        assert isinstance(result, FlextResult)
         assert result.is_success
         config = result.unwrap()
         assert isinstance(config, dict)
 
     def test_create_profile_success(self, core_service: FlextCliCore) -> None:
         """Test creating configuration profile."""
-        profile_config: FlextCore.Types.Dict = {"color": "blue", "size": "large"}
+        profile_config: FlextTypes.Dict = {"color": "blue", "size": "large"}
 
         result = core_service.create_profile("test-profile", profile_config)
 
-        assert isinstance(result, FlextCore.Result)
+        assert isinstance(result, FlextResult)
         assert result.is_success
 
     def test_load_configuration_valid_file(self, core_service: FlextCliCore) -> None:
@@ -1144,7 +1132,7 @@ class TestFlextCliCoreExtended:
         try:
             result = core_service.load_configuration(config_path)
 
-            assert isinstance(result, FlextCore.Result)
+            assert isinstance(result, FlextResult)
             assert result.is_success
             config = result.unwrap()
             assert config.get("test") == "value"
@@ -1157,7 +1145,7 @@ class TestFlextCliCoreExtended:
         """Test loading configuration from non-existent file."""
         result = core_service.load_configuration("/nonexistent/config.json")
 
-        assert isinstance(result, FlextCore.Result)
+        assert isinstance(result, FlextResult)
         assert result.is_failure
 
     def test_save_configuration_success(self, core_service: FlextCliCore) -> None:
@@ -1170,7 +1158,7 @@ class TestFlextCliCoreExtended:
 
             result = core_service.save_configuration(config_path, config)
 
-            assert isinstance(result, FlextCore.Result)
+            assert isinstance(result, FlextResult)
             assert result.is_success
 
             # Verify file was created
@@ -1184,7 +1172,7 @@ class TestFlextCliCoreExtended:
         """Test getting list of handlers."""
         result = core_service.get_handlers()
 
-        assert isinstance(result, FlextCore.Result)
+        assert isinstance(result, FlextResult)
         assert result.is_success
         handlers = result.unwrap()
         assert isinstance(handlers, list)
@@ -1193,7 +1181,7 @@ class TestFlextCliCoreExtended:
         """Test getting list of plugins."""
         result = core_service.get_plugins()
 
-        assert isinstance(result, FlextCore.Result)
+        assert isinstance(result, FlextResult)
         assert result.is_success
         plugins = result.unwrap()
         assert isinstance(plugins, list)
@@ -1202,7 +1190,7 @@ class TestFlextCliCoreExtended:
         """Test getting list of sessions."""
         result = core_service.get_sessions()
 
-        assert isinstance(result, FlextCore.Result)
+        assert isinstance(result, FlextResult)
         assert result.is_success
         sessions = result.unwrap()
         assert isinstance(sessions, list)
@@ -1211,7 +1199,7 @@ class TestFlextCliCoreExtended:
         """Test getting list of commands."""
         result = core_service.get_commands()
 
-        assert isinstance(result, FlextCore.Result)
+        assert isinstance(result, FlextResult)
         assert result.is_success
         commands = result.unwrap()
         assert isinstance(commands, list)
@@ -1220,7 +1208,7 @@ class TestFlextCliCoreExtended:
         """Test getting list of formatters."""
         result = core_service.get_formatters()
 
-        assert isinstance(result, FlextCore.Result)
+        assert isinstance(result, FlextResult)
         assert result.is_success
         formatters = result.unwrap()
         assert isinstance(formatters, list)
@@ -1276,13 +1264,7 @@ class TestFlextCliCoreExtended:
             str,
             dict[
                 str,
-                str
-                | int
-                | float
-                | bool
-                | FlextCore.Types.List
-                | FlextCore.Types.Dict
-                | None,
+                str | int | float | bool | FlextTypes.List | FlextTypes.Dict | None,
             ],
         ] = {
             "theme": {"value": "dark"},
@@ -1305,7 +1287,7 @@ class TestFlextCliCoreExtended:
         # Step 4: Save configuration
         with tempfile.TemporaryDirectory() as temp_dir:
             config_path = str(Path(temp_dir) / "config.json")
-            simple_config: FlextCore.Types.Dict = {
+            simple_config: FlextTypes.Dict = {
                 "theme": "dark",
                 "verbose": True,
                 "timeout": 30,
@@ -1397,10 +1379,10 @@ class TestFlextCliCoreExceptionHandlers:
         # Set _config to empty dict to trigger the not initialized path
         core_service._config = {}
 
-        config: dict[str, FlextCore.Types.Dict] = {"test": {"value": "data"}}
+        config: dict[str, FlextTypes.Dict] = {"test": {"value": "data"}}
         result = core_service.update_configuration(
             cast(
-                "dict[str, dict[str, str | int | float | bool | FlextCore.Types.List | FlextCore.Types.Dict | None]]",
+                "dict[str, dict[str, str | int | float | bool | FlextTypes.List | FlextTypes.Dict | None]]",
                 config,
             )
         )
@@ -1421,10 +1403,10 @@ class TestFlextCliCoreExceptionHandlers:
 
         monkeypatch.setattr(core_service, "_config", MockConfigDict())
 
-        config: dict[str, FlextCore.Types.Dict] = {"test": {"value": "data"}}
+        config: dict[str, FlextTypes.Dict] = {"test": {"value": "data"}}
         result = core_service.update_configuration(
             cast(
-                "dict[str, dict[str, str | int | float | bool | FlextCore.Types.List | FlextCore.Types.Dict | None]]",
+                "dict[str, dict[str, str | int | float | bool | FlextTypes.List | FlextTypes.Dict | None]]",
                 config,
             )
         )
@@ -1664,7 +1646,7 @@ class TestFlextCliCoreExceptionHandlers:
         """Test get_formatters exception handler (not in missing but completing pattern)."""
         # This method should return a result
         result = core_service.get_formatters()
-        assert isinstance(result, FlextCore.Result)
+        assert isinstance(result, FlextResult)
 
     def test_load_configuration_exception_handler(
         self, core_service: FlextCliCore

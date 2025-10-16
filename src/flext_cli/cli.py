@@ -22,7 +22,7 @@ from typing import IO
 
 import click
 import typer
-from flext_core import FlextCore
+from flext_core import FlextContainer, FlextLogger, FlextResult, FlextTypes
 from typer.testing import CliRunner
 
 from flext_cli.constants import FlextCliConstants
@@ -68,8 +68,8 @@ class FlextCliCli:
         """Initialize CLI abstraction layer with Typer backend."""
         super().__init__()
         # Direct initialization - no @property wrapper
-        self.container = FlextCore.Container()
-        self.logger = FlextCore.Logger(__name__)
+        self.container = FlextContainer()
+        self.logger = FlextLogger(__name__)
 
     # =========================================================================
     # COMMAND AND GROUP CREATION
@@ -153,18 +153,18 @@ class FlextCliCli:
     def create_option_decorator(
         self,
         *param_decls: str,
-        default: FlextCore.Types.JsonValue | None = None,
-        type_hint: click.ParamType | type[FlextCore.Types.JsonValue] | None = None,
+        default: FlextTypes.JsonValue | None = None,
+        type_hint: click.ParamType | type[FlextTypes.JsonValue] | None = None,
         required: bool = False,
         help_text: str | None = None,
         is_flag: bool = False,
-        flag_value: FlextCore.Types.JsonValue | None = None,
+        flag_value: FlextTypes.JsonValue | None = None,
         multiple: bool = False,
         count: bool = False,
         show_default: bool = False,
     ) -> Callable[
-        [Callable[..., FlextCore.Types.JsonValue]],
-        Callable[..., FlextCore.Types.JsonValue],
+        [Callable[..., FlextTypes.JsonValue]],
+        Callable[..., FlextTypes.JsonValue],
     ]:
         """Create Click option decorator with explicit parameters.
 
@@ -562,7 +562,7 @@ class FlextCliCli:
         nl: bool = True,
         err: bool = False,
         color: bool | None = None,
-    ) -> FlextCore.Result[None]:
+    ) -> FlextResult[None]:
         """Output message using Typer.echo (Typer backend).
 
         Args:
@@ -573,11 +573,11 @@ class FlextCliCli:
             color: Force color on/off
 
         Returns:
-            FlextCore.Result[None]: Success or failure of echo operation
+            FlextResult[None]: Success or failure of echo operation
 
         """
         typer.echo(message=message, file=file, nl=nl, err=err, color=color)
-        return FlextCore.Result[None].ok(None)
+        return FlextResult[None].ok(None)
 
     def confirm(
         self,
@@ -588,7 +588,7 @@ class FlextCliCli:
         prompt_suffix: str = ": ",
         show_default: bool = True,
         err: bool = False,
-    ) -> FlextCore.Result[bool]:
+    ) -> FlextResult[bool]:
         """Prompt for confirmation using Typer backend.
 
         Args:
@@ -600,7 +600,7 @@ class FlextCliCli:
             err: Write to stderr
 
         Returns:
-            FlextCore.Result[bool]: Success with confirmation value or failure
+            FlextResult[bool]: Success with confirmation value or failure
 
         Raises:
             typer.Abort: If user aborts
@@ -615,9 +615,9 @@ class FlextCliCli:
                 show_default=show_default,
                 err=err,
             )
-            return FlextCore.Result[bool].ok(result)
+            return FlextResult[bool].ok(result)
         except typer.Abort as e:
-            return FlextCore.Result[bool].fail(
+            return FlextResult[bool].fail(
                 FlextCliConstants.ErrorMessages.USER_ABORTED_CONFIRMATION.format(
                     error=e
                 )
@@ -626,9 +626,9 @@ class FlextCliCli:
     def prompt(
         self,
         text: str,
-        default: FlextCore.Types.JsonValue | None = None,
-        type_hint: FlextCore.Types.JsonValue | None = None,
-        value_proc: Callable[[str], FlextCore.Types.JsonValue] | None = None,
+        default: FlextTypes.JsonValue | None = None,
+        type_hint: FlextTypes.JsonValue | None = None,
+        value_proc: Callable[[str], FlextTypes.JsonValue] | None = None,
         prompt_suffix: str = ": ",
         *,
         hide_input: bool = False,
@@ -636,7 +636,7 @@ class FlextCliCli:
         show_default: bool = True,
         err: bool = False,
         show_choices: bool = True,
-    ) -> FlextCore.Result[object]:
+    ) -> FlextResult[object]:
         """Prompt for input using Typer backend.
 
         Args:
@@ -652,7 +652,7 @@ class FlextCliCli:
             show_choices: Show available choices
 
         Returns:
-            FlextCore.Result[object]: Success with user input or failure
+            FlextResult[object]: Success with user input or failure
 
         Raises:
             typer.Abort: If user aborts
@@ -671,9 +671,9 @@ class FlextCliCli:
                 err=err,
                 show_choices=show_choices,
             )
-            return FlextCore.Result[object].ok(result)
+            return FlextResult[object].ok(result)
         except typer.Abort as e:
-            return FlextCore.Result[object].fail(
+            return FlextResult[object].fail(
                 FlextCliConstants.ErrorMessages.USER_ABORTED_PROMPT.format(error=e)
             )
 
@@ -684,10 +684,10 @@ class FlextCliCli:
     def create_cli_runner(
         self,
         charset: str = FlextCliConstants.Encoding.UTF8,
-        env: FlextCore.Types.StringDict | None = None,
+        env: FlextTypes.StringDict | None = None,
         *,
         echo_stdin: bool = False,
-    ) -> FlextCore.Result[CliRunner]:
+    ) -> FlextResult[CliRunner]:
         """Create Click CliRunner for testing.
 
         Args:
@@ -696,7 +696,7 @@ class FlextCliCli:
             echo_stdin: Echo stdin to output
 
         Returns:
-            FlextCore.Result[CliRunner]: Success with CliRunner instance or failure
+            FlextResult[CliRunner]: Success with CliRunner instance or failure
 
         Example:
             >>> cli = FlextCliCli()
@@ -713,7 +713,7 @@ class FlextCliCli:
             echo_stdin=echo_stdin,
         )
         self.logger.debug("Created CliRunner for testing")
-        return FlextCore.Result[CliRunner].ok(runner)
+        return FlextResult[CliRunner].ok(runner)
 
     # =========================================================================
     # UTILITIES
@@ -747,39 +747,37 @@ class FlextCliCli:
         size = shutil.get_terminal_size()
         return (size.columns, size.lines)
 
-    def clear_screen(self) -> FlextCore.Result[None]:
+    def clear_screen(self) -> FlextResult[None]:
         """Clear terminal screen.
 
         Returns:
-            FlextCore.Result[None]: Success or failure of clear operation
+            FlextResult[None]: Success or failure of clear operation
 
         """
         click.clear()
-        return FlextCore.Result[None].ok(None)
+        return FlextResult[None].ok(None)
 
-    def pause(
-        self, info: str = "Press any key to continue..."
-    ) -> FlextCore.Result[None]:
+    def pause(self, info: str = "Press any key to continue...") -> FlextResult[None]:
         """Pause execution until key press.
 
         Args:
             info: Information message to display
 
         Returns:
-            FlextCore.Result[None]: Success or failure of pause operation
+            FlextResult[None]: Success or failure of pause operation
 
         """
         click.pause(info=info)
-        return FlextCore.Result[None].ok(None)
+        return FlextResult[None].ok(None)
 
-    def execute(self) -> FlextCore.Result[object]:
+    def execute(self) -> FlextResult[object]:
         """Execute Click abstraction layer operations.
 
         Returns:
-            FlextCore.Result[object]: Success with CLI status or failure with error
+            FlextResult[object]: Success with CLI status or failure with error
 
         """
-        return FlextCore.Result[object].ok({
+        return FlextResult[object].ok({
             "service": "flext-cli",
             "status": "operational",
         })

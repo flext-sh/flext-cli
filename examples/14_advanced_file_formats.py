@@ -176,7 +176,7 @@ def load_any_format_file(file_path: Path) -> FlextCliTypes.Data.CliDataDict | No
     # Type narrowing: ensure we have a dict
     if not isinstance(data, dict):
         cli.print(
-            f"⚠️  Loaded data is not a dict[str, FlextCore.Types.JsonValue] (type: {type(data).__name__})",
+            f"⚠️  Loaded data is not a dict[str, FlextTypes.JsonValue] (type: {type(data).__name__})",
             style="yellow",
         )
         return None

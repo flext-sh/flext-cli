@@ -25,7 +25,7 @@ flext-cli serves as the **CLI foundation library** for the FLEXT ecosystem, prov
 
 ### FLEXT Ecosystem Integration
 
-- **[flext-core](../../flext-core/README.md)**: Foundation patterns (FlextCore.Result, FlextCore.Service, FlextCore.Container)
+- **[flext-core](../../flext-core/README.md)**: Foundation patterns (FlextResult, FlextService, FlextContainer)
 - **CLI Standards**: Provides CLI foundation for all FLEXT project command-line tools
 
 ---
@@ -94,7 +94,26 @@ pytest tests/unit/         # Unit tests only
 ```python
 # This development pattern works for extending the library
 from flext_cli import FlextCliService
-from flext_core import FlextCore
+from flext_core import FlextBus
+from flext_core import FlextConfig
+from flext_core import FlextConstants
+from flext_core import FlextContainer
+from flext_core import FlextContext
+from flext_core import FlextDecorators
+from flext_core import FlextDispatcher
+from flext_core import FlextExceptions
+from flext_core import FlextHandlers
+from flext_core import FlextLogger
+from flext_core import FlextMixins
+from flext_core import FlextModels
+from flext_core import FlextProcessors
+from flext_core import FlextProtocols
+from flext_core import FlextRegistry
+from flext_core import FlextResult
+from flext_core import FlextRuntime
+from flext_core import FlextService
+from flext_core import FlextTypes
+from flext_core import FlextUtilities
 
 # Initialize service
 service = FlextCliService()
@@ -115,7 +134,7 @@ config = service.get_config()  # Returns FlextCliConfig | None
 
 - **Authentication System**: 818 lines, OAuth flows, token management (35+ methods)
 - **API Layer**: 862 lines, operation dispatcher, state management
-- **Service Architecture**: Full FlextCore.Service inheritance, dependency injection
+- **Service Architecture**: Full FlextService inheritance, dependency injection
 - **Type System**: Python 3.13+ annotations, TypedDict structures throughout
 - **Configuration Management**: 662 lines, validation and persistence
 
@@ -137,7 +156,26 @@ config = service.get_config()  # Returns FlextCliConfig | None
 ```python
 # This development pattern demonstrates working functionality
 from Flext_cli import FlextCliService, FlextCliAuth, FlextCliConfig
-from flext_core import FlextCore
+from flext_core import FlextBus
+from flext_core import FlextConfig
+from flext_core import FlextConstants
+from flext_core import FlextContainer
+from flext_core import FlextContext
+from flext_core import FlextDecorators
+from flext_core import FlextDispatcher
+from flext_core import FlextExceptions
+from flext_core import FlextHandlers
+from flext_core import FlextLogger
+from flext_core import FlextMixins
+from flext_core import FlextModels
+from flext_core import FlextProcessors
+from flext_core import FlextProtocols
+from flext_core import FlextRegistry
+from flext_core import FlextResult
+from flext_core import FlextRuntime
+from flext_core import FlextService
+from flext_core import FlextTypes
+from flext_core import FlextUtilities
 
 # Service initialization and operation
 service = FlextCliService()

@@ -13,7 +13,7 @@ from __future__ import annotations
 import time
 
 import pytest
-from flext_core import FlextCore
+from flext_core import FlextResult, FlextTypes
 
 from flext_cli.debug import FlextCliDebug
 
@@ -36,7 +36,7 @@ class TestFlextCliDebug:
         """Test debug execute method."""
         result = debug.execute()
 
-        assert isinstance(result, FlextCore.Result)
+        assert isinstance(result, FlextResult)
         assert result.is_success
         assert isinstance(result.unwrap(), str)
 
@@ -44,14 +44,14 @@ class TestFlextCliDebug:
         """Test debug config validation."""
         result = debug.validate_config()
 
-        assert isinstance(result, FlextCore.Result)
+        assert isinstance(result, FlextResult)
         assert result.is_success
 
     def test_debug_get_system_paths(self, debug: FlextCliDebug) -> None:
         """Test getting system paths."""
         result = debug.get_system_paths()
 
-        assert isinstance(result, FlextCore.Result)
+        assert isinstance(result, FlextResult)
         assert result.is_success
         # get_system_paths() returns dict[str, object] with 'paths' key, not list
         paths_dict = result.unwrap()
@@ -62,7 +62,7 @@ class TestFlextCliDebug:
         """Test validating environment setup."""
         result = debug.validate_environment_setup()
 
-        assert isinstance(result, FlextCore.Result)
+        assert isinstance(result, FlextResult)
         assert result.is_success
         assert isinstance(result.unwrap(), list)
 
@@ -70,7 +70,7 @@ class TestFlextCliDebug:
         """Test connectivity testing."""
         result = debug.test_connectivity()
 
-        assert isinstance(result, FlextCore.Result)
+        assert isinstance(result, FlextResult)
         assert result.is_success
         assert isinstance(result.unwrap(), dict)
 
@@ -78,7 +78,7 @@ class TestFlextCliDebug:
         """Test executing health check."""
         result = debug.execute_health_check()
 
-        assert isinstance(result, FlextCore.Result)
+        assert isinstance(result, FlextResult)
         assert result.is_success
         assert isinstance(result.unwrap(), dict)
 
@@ -86,7 +86,7 @@ class TestFlextCliDebug:
         """Test executing trace."""
         result = debug.execute_trace(["test", "args"])
 
-        assert isinstance(result, FlextCore.Result)
+        assert isinstance(result, FlextResult)
         assert result.is_success
         assert isinstance(result.unwrap(), dict)
 
@@ -94,7 +94,7 @@ class TestFlextCliDebug:
         """Test getting debug information."""
         result = debug.get_debug_info()
 
-        assert isinstance(result, FlextCore.Result)
+        assert isinstance(result, FlextResult)
         assert result.is_success
         assert isinstance(result.unwrap(), dict)
 
@@ -142,11 +142,11 @@ class TestFlextCliDebug:
         """Test edge cases and error conditions."""
         # Test with empty trace args
         result = debug.execute_trace([])
-        assert isinstance(result, FlextCore.Result)
+        assert isinstance(result, FlextResult)
 
         # Test with various trace args
         result = debug.execute_trace(["arg1", "arg2", "arg3"])
-        assert isinstance(result, FlextCore.Result)
+        assert isinstance(result, FlextResult)
 
         # Test with special characters in trace args
         result = debug.execute_trace([
@@ -154,7 +154,7 @@ class TestFlextCliDebug:
             "arg-with-dashes",
             "arg_with_underscores",
         ])
-        assert isinstance(result, FlextCore.Result)
+        assert isinstance(result, FlextResult)
 
     def test_debug_performance(self, debug: FlextCliDebug) -> None:
         """Test debug performance."""
@@ -172,12 +172,12 @@ class TestFlextCliDebug:
         # Test with many debug operations
         for _i in range(1000):
             paths_result = debug.get_system_paths()
-            assert isinstance(paths_result, FlextCore.Result)
+            assert isinstance(paths_result, FlextResult)
 
         # Test getting debug info multiple times
         for _i in range(100):
             info_result = debug.get_debug_info()
-            assert isinstance(info_result, FlextCore.Result)
+            assert isinstance(info_result, FlextResult)
 
     # =========================================================================
     # COVERAGE IMPROVEMENT TESTS - Missing error paths and methods
@@ -187,7 +187,7 @@ class TestFlextCliDebug:
         """Test get_comprehensive_debug_info method (lines 148-194)."""
         result = debug.get_comprehensive_debug_info()
 
-        assert isinstance(result, FlextCore.Result)
+        assert isinstance(result, FlextResult)
         assert result.is_success
         info = result.unwrap()
         assert isinstance(info, dict)
@@ -201,7 +201,7 @@ class TestFlextCliDebug:
         """Test get_system_info method (lines 55-72)."""
         result = debug.get_system_info()
 
-        assert isinstance(result, FlextCore.Result)
+        assert isinstance(result, FlextResult)
         assert result.is_success
         info = result.unwrap()
         assert isinstance(info, dict)
@@ -212,7 +212,7 @@ class TestFlextCliDebug:
         """Test get_environment_variables method (lines 74-88)."""
         result = debug.get_environment_variables()
 
-        assert isinstance(result, FlextCore.Result)
+        assert isinstance(result, FlextResult)
         assert result.is_success
         env = result.unwrap()
         assert isinstance(env, dict)
@@ -229,7 +229,7 @@ class TestFlextCliDebug:
         """Test validate_config method."""
         result = debug.validate_config()
 
-        assert isinstance(result, FlextCore.Result)
+        assert isinstance(result, FlextResult)
         # Should succeed or fail gracefully
         assert result.is_success or result.is_failure
 
@@ -292,17 +292,24 @@ class TestFlextCliDebugExceptionHandlers:
         assert "Environment validation failed" in str(result.error)
 
     def test_test_connectivity_exception(self, monkeypatch: pytest.MonkeyPatch) -> None:
-        """Test test_connectivity exception handler with actual error conditions."""
+        """Test test_connectivity exception handler (lines 95-96)."""
+        from flext_cli import debug as debug_module
+
         debug = FlextCliDebug()
 
-        # Test normal operation (should work)
-        result = debug.test_connectivity()
-        assert result.is_success
+        # Create a mock datetime module that raises on .now()
+        class MockDatetime:
+            @staticmethod
+            def now(*_args: object, **_kwargs: object) -> None:
+                msg = "Datetime error"
+                raise RuntimeError(msg)
 
-        # Test with problematic environment that could cause issues
-        # Since the method doesn't have complex error paths, test normal operation
+        # Mock the entire datetime object in the debug module
+        monkeypatch.setattr(debug_module, "datetime", MockDatetime)
+
         result = debug.test_connectivity()
-        assert result.is_success or result.is_failure
+        assert result.is_failure
+        assert "connectivity test failed" in str(result.error).lower()
 
     def test_execute_health_check_exception(
         self, monkeypatch: pytest.MonkeyPatch
@@ -318,20 +325,19 @@ class TestFlextCliDebugExceptionHandlers:
         assert "Health check failed" in str(result.error)
 
     def test_execute_trace_exception(self, monkeypatch: pytest.MonkeyPatch) -> None:
-        """Test execute_trace exception handler with actual error conditions."""
+        """Test execute_trace exception handler (lines 129-130)."""
         debug = FlextCliDebug()
 
-        # Test normal operation (should work)
-        result = debug.execute_trace([])
-        assert result.is_success
+        # Mock uuid.uuid4 to raise exception to trigger lines 129-130
+        def mock_uuid4() -> None:
+            msg = "UUID error"
+            raise RuntimeError(msg)
 
-        # Test with various argument types
+        monkeypatch.setattr("uuid.uuid4", mock_uuid4)
+
         result = debug.execute_trace(["arg1", "arg2"])
-        assert result.is_success
-
-        # Test with special characters
-        result = debug.execute_trace(["arg with spaces", "arg-with-dashes"])
-        assert result.is_success
+        assert result.is_failure
+        assert "trace execution failed" in str(result.error).lower()
 
     def test_get_debug_info_exception(self, monkeypatch: pytest.MonkeyPatch) -> None:
         """Test get_debug_info exception handler (lines 192-193)."""
@@ -367,7 +373,7 @@ class TestFlextCliDebugExceptionHandlers:
         debug = FlextCliDebug()
 
         # Mock _get_path_info to return path dict[str, object] with tuple (non-basic type)
-        def mock_path_info() -> list[FlextCore.Types.Dict]:
+        def mock_path_info() -> list[FlextTypes.Dict]:
             return [
                 {
                     "index": 0,

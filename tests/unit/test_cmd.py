@@ -13,10 +13,12 @@ from __future__ import annotations
 import tempfile
 import time
 from pathlib import Path
+from typing import Never
 
-from flext_core import FlextCore
+import pytest
+from flext_core import FlextResult, FlextTypes
 
-from flext_cli import FlextCliCmd, FlextCliConfig, FlextCliFileTools
+from flext_cli import FlextCliCmd, FlextCliConfig, FlextCliConstants, FlextCliFileTools
 
 
 class TestFlextCliCmd:
@@ -139,7 +141,7 @@ class TestFlextCliCmd:
         # Test that all required properties/methods are accessible
         assert hasattr(cmd, "execute")
         assert hasattr(cmd, "edit_config")
-        # Verify logger and container from FlextCore.Service
+        # Verify logger and container from FlextService
         assert hasattr(cmd, "logger")
         assert hasattr(cmd, "container")
 
@@ -297,23 +299,11 @@ class TestFlextCliCmd:
         class FailingFileTools(FlextCliFileTools):
             def read_json_file(
                 self, file_path: str | Path
-            ) -> FlextCore.Result[
-                FlextCore.Types.Dict
-                | FlextCore.Types.List
-                | str
-                | int
-                | float
-                | bool
-                | None
+            ) -> FlextResult[
+                FlextTypes.Dict | FlextTypes.List | str | int | float | bool | None
             ]:
-                return FlextCore.Result[
-                    FlextCore.Types.Dict
-                    | FlextCore.Types.List
-                    | str
-                    | int
-                    | float
-                    | bool
-                    | None
+                return FlextResult[
+                    FlextTypes.Dict | FlextTypes.List | str | int | float | bool | None
                 ].fail("Test load error")
 
         cmd._file_tools = FailingFileTools()
@@ -359,37 +349,25 @@ class TestFlextCliCmd:
 
             def read_json_file(
                 self, file_path: str | Path
-            ) -> FlextCore.Result[
-                FlextCore.Types.Dict
-                | FlextCore.Types.List
-                | str
-                | int
-                | float
-                | bool
-                | None
+            ) -> FlextResult[
+                FlextTypes.Dict | FlextTypes.List | str | int | float | bool | None
             ]:
-                return FlextCore.Result[
-                    FlextCore.Types.Dict
-                    | FlextCore.Types.List
-                    | str
-                    | int
-                    | float
-                    | bool
-                    | None
+                return FlextResult[
+                    FlextTypes.Dict | FlextTypes.List | str | int | float | bool | None
                 ].fail("Test load error")
 
             @staticmethod
             def write_json_file(
                 file_path: str | Path,
-                data: FlextCore.Types.JsonValue,
+                data: FlextTypes.JsonValue,
                 indent: int = 2,
                 *,
                 sort_keys: bool = False,
                 ensure_ascii: bool = True,
-            ) -> FlextCore.Result[None]:
+            ) -> FlextResult[None]:
                 # Mock implementation - parameters unused in test context
                 _ = file_path, data, indent, sort_keys, ensure_ascii
-                return FlextCore.Result[None].ok(None)
+                return FlextResult[None].ok(None)
 
         cmd._file_tools = FailingFileTools()
 
@@ -448,10 +426,10 @@ class TestFlextCliCmd:
 
             def read_json_file(
                 self, file_path: str | Path
-            ) -> FlextCore.Result[
+            ) -> FlextResult[
                 bool | dict[str, object] | float | int | list[object] | str | None
             ]:
-                return FlextCore.Result[
+                return FlextResult[
                     bool | dict[str, object] | float | int | list[object] | str | None
                 ].ok({"other_key": "value"})
 
@@ -488,9 +466,9 @@ class TestFlextCliCmd:
         class MockFileTools(FlextCliFileTools):
             def read_json_file(
                 self, file_path: str | Path
-            ) -> FlextCore.Result[FlextCore.Types.JsonValue]:
+            ) -> FlextResult[FlextTypes.JsonValue]:
                 # Return a list instead of dict
-                return FlextCore.Result[FlextCore.Types.JsonValue].ok([1, 2, 3])
+                return FlextResult[FlextTypes.JsonValue].ok([1, 2, 3])
 
         cmd._file_tools = MockFileTools()
 
@@ -518,8 +496,8 @@ class TestFlextCliCmd:
         class MockFileTools(FlextCliFileTools):
             def read_json_file(
                 self, file_path: str | Path
-            ) -> FlextCore.Result[FlextCore.Types.JsonValue]:
-                return FlextCore.Result[FlextCore.Types.JsonValue].ok({
+            ) -> FlextResult[FlextTypes.JsonValue]:
+                return FlextResult[FlextTypes.JsonValue].ok({
                     "found_key": "found_value"
                 })
 
@@ -552,22 +530,22 @@ class TestFlextCliCmd:
         class MockFileTools(FlextCliFileTools):
             def read_json_file(
                 self, file_path: str | Path
-            ) -> FlextCore.Result[FlextCore.Types.JsonValue]:
+            ) -> FlextResult[FlextTypes.JsonValue]:
                 # Return a string instead of dict
-                return FlextCore.Result[FlextCore.Types.JsonValue].ok("not a dict")
+                return FlextResult[FlextTypes.JsonValue].ok("not a dict")
 
             @staticmethod
             def write_json_file(
                 file_path: str | Path,
-                data: FlextCore.Types.JsonValue,
+                data: FlextTypes.JsonValue,
                 indent: int = 2,
                 *,
                 sort_keys: bool = False,
                 ensure_ascii: bool = True,
-            ) -> FlextCore.Result[None]:
+            ) -> FlextResult[None]:
                 # Mock implementation - parameters unused in test context
                 _ = file_path, data, indent, sort_keys, ensure_ascii
-                return FlextCore.Result[None].ok(None)
+                return FlextResult[None].ok(None)
 
         cmd._file_tools = MockFileTools()
 
@@ -586,3 +564,197 @@ class TestFlextCliCmd:
             cmd._file_tools = original_file_tools
             if config_file.exists():
                 config_file.unlink()
+
+    def test_cmd_validate_config_structure_missing_dir(
+        self, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        """Test _validate_config_structure when main config directory is missing (line 78)."""
+        cmd = FlextCliCmd()
+
+        # Mock Path.home to return a temp directory that doesn't have .flext
+        import tempfile
+
+        temp_dir = Path(tempfile.mkdtemp())
+        monkeypatch.setattr(Path, "home", lambda: temp_dir)
+
+        try:
+            results = cmd._validate_config_structure()
+            assert any("✗ Main config directory missing" in r for r in results)
+        finally:
+            import shutil
+
+            shutil.rmtree(temp_dir, ignore_errors=True)
+
+    def test_cmd_show_config_paths_exception(
+        self, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        """Test show_config_paths exception handler (lines 110-111)."""
+        cmd = FlextCliCmd()
+
+        # Mock _get_config_paths to raise exception
+        def mock_raise(*args: object, **kwargs: object) -> Never:
+            msg = "Test exception"
+            raise RuntimeError(msg)
+
+        monkeypatch.setattr(cmd, "_get_config_paths", mock_raise)
+        result = cmd.show_config_paths()
+        assert result.is_failure
+        assert "config paths failed" in str(result.error).lower()
+
+    def test_cmd_validate_config_exception(
+        self, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        """Test validate_config exception handler (lines 126-127)."""
+        cmd = FlextCliCmd()
+
+        # Mock _validate_config_structure to raise exception
+        def mock_raise(*args: object, **kwargs: object) -> Never:
+            msg = "Validation exception"
+            raise RuntimeError(msg)
+
+        monkeypatch.setattr(cmd, "_validate_config_structure", mock_raise)
+        result = cmd.validate_config()
+        assert result.is_failure
+        assert "config validation failed" in str(result.error).lower()
+
+    def test_cmd_get_config_info_exception(
+        self, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        """Test get_config_info exception handler (lines 136-137)."""
+        cmd = FlextCliCmd()
+
+        # Mock _get_config_info to raise exception
+        def mock_raise(*args: object, **kwargs: object) -> Never:
+            msg = "Info exception"
+            raise RuntimeError(msg)
+
+        monkeypatch.setattr(cmd, "_get_config_info", mock_raise)
+        result = cmd.get_config_info()
+        assert result.is_failure
+        assert "config info failed" in str(result.error).lower()
+
+    def test_cmd_set_config_value_save_failure(self) -> None:
+        """Test set_config_value save failure (line 161)."""
+        cmd = FlextCliCmd()
+        original_file_tools = cmd._file_tools
+
+        class FailingFileTools(FlextCliFileTools):
+            @staticmethod
+            def write_json_file(  # type: ignore[override]
+                file_path: str | Path,
+                data: object,
+                indent: int = 2,
+                *,
+                sort_keys: bool = False,
+                ensure_ascii: bool = True,
+            ) -> FlextResult[None]:
+                return FlextResult[None].fail("Write failed")
+
+        cmd._file_tools = FailingFileTools()
+        try:
+            result = cmd.set_config_value("key", "value")
+            assert result.is_failure
+            assert "config save failed" in str(result.error).lower()
+        finally:
+            cmd._file_tools = original_file_tools
+
+    def test_cmd_set_config_value_exception(
+        self, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        """Test set_config_value exception handler (lines 169-170)."""
+        cmd = FlextCliCmd()
+
+        # Mock FlextCliConfig to raise exception
+        def mock_raise(*args: object, **kwargs: object) -> Never:
+            msg = "Config exception"
+            raise RuntimeError(msg)
+
+        monkeypatch.setattr("flext_cli.cmd.FlextCliConfig", mock_raise)
+        result = cmd.set_config_value("key", "value")
+        assert result.is_failure
+        assert "set config failed" in str(result.error).lower()
+
+    def test_cmd_get_config_value_exception(
+        self, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        """Test get_config_value exception handler (lines 219-220)."""
+        cmd = FlextCliCmd()
+
+        # Mock FlextCliConfig to raise exception
+        def mock_raise(*args: object, **kwargs: object) -> Never:
+            msg = "Get config exception"
+            raise RuntimeError(msg)
+
+        monkeypatch.setattr("flext_cli.cmd.FlextCliConfig", mock_raise)
+        result = cmd.get_config_value("key")
+        assert result.is_failure
+        assert "get config failed" in str(result.error).lower()
+
+    def test_cmd_show_config_get_info_failure(self) -> None:
+        """Test show_config when get_config_info fails (line 229)."""
+        from unittest.mock import patch
+
+        cmd = FlextCliCmd()
+
+        # Mock get_config_info at class level (not instance) to avoid Pydantic validation issues
+        with patch.object(
+            FlextCliCmd,
+            "get_config_info",
+            return_value=FlextResult[FlextTypes.Dict].fail("Info failed"),
+        ):
+            result = cmd.show_config()
+            assert result.is_failure
+            assert "show config failed" in str(result.error).lower()
+
+    def test_cmd_show_config_exception(self) -> None:
+        """Test show_config exception handler (lines 239-240)."""
+        from unittest.mock import patch
+
+        cmd = FlextCliCmd()
+
+        # Mock get_config_info at class level to raise exception
+        def mock_raise(self: object) -> Never:
+            msg = "Show config exception"
+            raise RuntimeError(msg)
+
+        with patch.object(FlextCliCmd, "get_config_info", side_effect=mock_raise):
+            result = cmd.show_config()
+            assert result.is_failure
+            assert "show config failed" in str(result.error).lower()
+
+    def test_cmd_edit_config_save_failure(self) -> None:
+        """Test edit_config save failure (line 283)."""
+        from unittest.mock import patch
+
+        cmd = FlextCliCmd()
+
+        # Ensure config file doesn't exist so save is attempted
+        config_path = (
+            FlextCliConfig().config_dir / FlextCliConstants.ConfigFiles.CLI_CONFIG_JSON
+        )
+        if config_path.exists():
+            config_path.unlink()
+
+        # Mock write_json_file at class level to return failure
+        with patch.object(
+            FlextCliFileTools,
+            "write_json_file",
+            return_value=FlextResult[None].fail("Save failed"),
+        ):
+            result = cmd.edit_config()
+            assert result.is_failure
+            assert "failed to create default config" in str(result.error).lower()
+
+    def test_cmd_edit_config_exception(self, monkeypatch: pytest.MonkeyPatch) -> None:
+        """Test edit_config exception handler (lines 316-317)."""
+        cmd = FlextCliCmd()
+
+        # Mock FlextCliConfig to raise exception
+        def mock_raise(*args: object, **kwargs: object) -> Never:
+            msg = "Edit config exception"
+            raise RuntimeError(msg)
+
+        monkeypatch.setattr("flext_cli.cmd.FlextCliConfig", mock_raise)
+        result = cmd.edit_config()
+        assert result.is_failure
+        assert "edit config failed" in str(result.error).lower()
