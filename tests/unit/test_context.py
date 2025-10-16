@@ -9,7 +9,7 @@ from __future__ import annotations
 
 from typing import cast
 
-from flext_core import FlextCore
+from flext_core import FlextResult
 
 from flext_cli.context import FlextCliContext
 
@@ -26,7 +26,7 @@ class TestFlextCliContext:
         context = FlextCliContext()
         assert context is not None
         assert hasattr(context, "logger")
-        assert hasattr(context, "container")  # Property from FlextCore.Service
+        assert hasattr(context, "container")  # Property from FlextService
         assert hasattr(context, "command")  # Direct attribute access
         assert hasattr(context, "arguments")  # Direct attribute access
 
@@ -35,7 +35,7 @@ class TestFlextCliContext:
         context = FlextCliContext()
         result = context.execute()
 
-        assert isinstance(result, FlextCore.Result)
+        assert isinstance(result, FlextResult)
         assert result.is_success
 
         data = result.unwrap()

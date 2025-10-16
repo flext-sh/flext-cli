@@ -11,7 +11,7 @@ from __future__ import annotations
 import logging
 import traceback
 
-from flext_core import FlextCore
+from flext_core import FlextResult
 
 from flext_cli import FlextCli
 
@@ -48,12 +48,12 @@ def main() -> None:
             elif operation == ["auth", "status"]:
                 # Test authentication status
                 is_authenticated = cli.is_authenticated()
-                result = FlextCore.Result[None].ok(None) if is_authenticated else FlextCore.Result[None].fail("Not authenticated")
+                result = FlextResult[None].ok(None) if is_authenticated else FlextResult[None].fail("Not authenticated")
             elif operation == ["debug", "check"]:
                 # Test debug functionality - check if services are operational
                 result = cli.execute()
             else:
-                result = FlextCore.Result[None].fail(f"Unknown operation: {operation}")
+                result = FlextResult[None].fail(f"Unknown operation: {operation}")
 
             if result.is_success:
                 logger.info("Operation %s completed successfully", operation)

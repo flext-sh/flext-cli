@@ -15,7 +15,7 @@ import re
 from collections import defaultdict
 from pathlib import Path
 
-from flext_core import FlextCore
+from flext_core import FlextTypes
 
 # Configuration
 ANALYSIS_FILE = "hardcoded_strings_analysis.json"
@@ -87,9 +87,9 @@ def collect_strings_to_migrate() -> dict[str, list[dict[str, str | int]]]:
 
 def generate_constants_additions(
     strings_by_category: dict[str, list[dict[str, str | int]]],
-) -> tuple[dict[str, FlextCore.Types.StringList], dict[str, str]]:
+) -> tuple[dict[str, FlextTypes.StringList], dict[str, str]]:
     """Generate constant definitions to add to constants.py."""
-    additions: dict[str, FlextCore.Types.StringList] = {}
+    additions: dict[str, FlextTypes.StringList] = {}
     constant_names: dict[str, str] = {}
 
     for category, strings in strings_by_category.items():

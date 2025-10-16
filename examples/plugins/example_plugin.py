@@ -13,7 +13,7 @@ from __future__ import annotations
 from collections.abc import Callable
 from typing import Any, cast
 
-from flext_core import FlextCore
+from flext_core import FlextResult
 
 from flext_cli.typings import FlextCliTypes
 
@@ -44,14 +44,14 @@ class ExamplePlugin:
         self._initialized = False
         self._config: FlextCliTypes.Data.CliDataDict = {}
 
-    def initialize(self, _cli_main: object) -> FlextCore.Result[None]:
+    def initialize(self, _cli_main: object) -> FlextResult[None]:
         """Initialize the plugin.
 
         Args:
             _cli_main: FlextCliMain instance
 
         Returns:
-            FlextCore.Result[None] indicating success or failure
+            FlextResult[None] indicating success or failure
 
         """
         try:
@@ -64,19 +64,19 @@ class ExamplePlugin:
 
             self._initialized = True
 
-            return FlextCore.Result[None].ok(None)
+            return FlextResult[None].ok(None)
 
         except Exception as e:
-            return FlextCore.Result[None].fail(f"Plugin initialization failed: {e}")
+            return FlextResult[None].fail(f"Plugin initialization failed: {e}")
 
-    def register_commands(self, cli_main: object) -> FlextCore.Result[None]:
+    def register_commands(self, cli_main: object) -> FlextResult[None]:
         """Register plugin commands.
 
         Args:
             cli_main: FlextCliMain instance for command registration
 
         Returns:
-            FlextCore.Result[None] indicating success or failure
+            FlextResult[None] indicating success or failure
 
         """
         try:
@@ -125,10 +125,10 @@ class ExamplePlugin:
                 """Show plugin status."""
                 status()
 
-            return FlextCore.Result[None].ok(None)
+            return FlextResult[None].ok(None)
 
         except Exception as e:
-            return FlextCore.Result[None].fail(f"Command registration failed: {e}")
+            return FlextResult[None].fail(f"Command registration failed: {e}")
 
 
 # Another example plugin - data processing
@@ -148,14 +148,14 @@ class DataProcessorPlugin:
         super().__init__()
         self._processors: ProcessorRegistry = {}
 
-    def initialize(self, _cli_main: object) -> FlextCore.Result[None]:
+    def initialize(self, _cli_main: object) -> FlextResult[None]:
         """Initialize the plugin.
 
         Args:
             _cli_main: FlextCliMain instance
 
         Returns:
-            FlextCore.Result[None]
+            FlextResult[None]
 
         """
         try:
@@ -166,19 +166,19 @@ class DataProcessorPlugin:
                 "xml": lambda data: f"XML: {data}",
             }
 
-            return FlextCore.Result[None].ok(None)
+            return FlextResult[None].ok(None)
 
         except Exception as e:
-            return FlextCore.Result[None].fail(f"Initialization failed: {e}")
+            return FlextResult[None].fail(f"Initialization failed: {e}")
 
-    def register_commands(self, cli_main: object) -> FlextCore.Result[None]:
+    def register_commands(self, cli_main: object) -> FlextResult[None]:
         """Register data processing commands.
 
         Args:
             cli_main: FlextCliMain instance
 
         Returns:
-            FlextCore.Result[None]
+            FlextResult[None]
 
         """
         try:
@@ -228,10 +228,10 @@ class DataProcessorPlugin:
                 formats_list = list_formats()
                 print(f"Available formats: {', '.join(formats_list)}")
 
-            return FlextCore.Result[None].ok(None)
+            return FlextResult[None].ok(None)
 
         except Exception as e:
-            return FlextCore.Result[None].fail(f"Command registration failed: {e}")
+            return FlextResult[None].fail(f"Command registration failed: {e}")
 
 
 # ============================================================================

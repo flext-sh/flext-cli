@@ -1,7 +1,7 @@
 """FLEXT CLI Common Parameters Tests - Comprehensive testing of mandatory CLI parameter group.
 
 Tests for FlextCliCommonParams and common_cli_params decorator with real functionality
-testing integrated with FlextCore.Config and FlextCore.Logger.
+testing integrated with FlextConfig and FlextLogger.
 
 Copyright (c) 2025 FLEXT Team. All rights reserved.
 SPDX-License-Identifier: MIT
@@ -15,6 +15,7 @@ from typing import Never, cast
 
 import pytest
 import typer
+from flext_core import FlextLogger
 from typer.testing import CliRunner
 
 from flext_cli import FlextCliCommonParams, FlextCliConfig
@@ -197,7 +198,7 @@ class TestFlextCliCommonParams:
         result = FlextCliCommonParams.configure_logger(config)
 
         assert result.is_success
-        # FlextCore.Logger uses structlog - level is managed via FlextCore.Config
+        # FlextLogger uses structlog - level is managed via FlextConfig
 
     def test_configure_logger_info_level(self) -> None:
         """Test configuring logger with INFO level."""
@@ -206,7 +207,7 @@ class TestFlextCliCommonParams:
         result = FlextCliCommonParams.configure_logger(config)
 
         assert result.is_success
-        # FlextCore.Logger uses structlog - level managed via config
+        # FlextLogger uses structlog - level managed via config
         # assert logger.level == logging.INFO
 
     def test_configure_logger_warning_level(self) -> None:
@@ -216,7 +217,7 @@ class TestFlextCliCommonParams:
         result = FlextCliCommonParams.configure_logger(config)
 
         assert result.is_success
-        # FlextCore.Logger uses structlog - level managed via config
+        # FlextLogger uses structlog - level managed via config
         # assert logger.level == logging.WARNING
 
     def test_configure_logger_error_level(self) -> None:
@@ -226,7 +227,7 @@ class TestFlextCliCommonParams:
         result = FlextCliCommonParams.configure_logger(config)
 
         assert result.is_success
-        # FlextCore.Logger uses structlog - level managed via config
+        # FlextLogger uses structlog - level managed via config
         # assert logger.level == logging.ERROR
 
     def test_configure_logger_critical_level(self) -> None:
@@ -236,7 +237,7 @@ class TestFlextCliCommonParams:
         result = FlextCliCommonParams.configure_logger(config)
 
         assert result.is_success
-        # FlextCore.Logger uses structlog - level managed via config
+        # FlextLogger uses structlog - level managed via config
         # assert logger.level == logging.CRITICAL
 
 
@@ -249,7 +250,7 @@ class TestCommonCliParamsDecorator:
 
         @app.command()
         @FlextCliCommonParams.create_decorator()
-        def decorated_test_command(  # type: ignore[reportUnusedFunction]
+        def decorated_test_command(
             name: str,
             verbose: bool = DEFAULT_VERBOSE,
             quiet: bool = DEFAULT_QUIET,
@@ -287,7 +288,7 @@ class TestCommonCliParamsDecorator:
 
         @app.command()
         @FlextCliCommonParams.create_decorator()
-        def decorated_test_command(  # type: ignore[reportUnusedFunction]
+        def decorated_test_command(
             name: str,
             verbose: bool = DEFAULT_VERBOSE,
             quiet: bool = DEFAULT_QUIET,
@@ -316,7 +317,7 @@ class TestCommonCliParamsDecorator:
 
         @app.command()
         @FlextCliCommonParams.create_decorator()
-        def decorated_test_command(  # type: ignore[reportUnusedFunction]
+        def decorated_test_command(
             name: str,
             verbose: bool = DEFAULT_VERBOSE,
             quiet: bool = DEFAULT_QUIET,
@@ -345,7 +346,7 @@ class TestCommonCliParamsDecorator:
 
         @app.command()
         @FlextCliCommonParams.create_decorator()
-        def decorated_test_command(  # type: ignore[reportUnusedFunction]
+        def decorated_test_command(
             name: str,
             verbose: bool = DEFAULT_VERBOSE,
             quiet: bool = DEFAULT_QUIET,
@@ -372,7 +373,7 @@ class TestCommonCliParamsDecorator:
 
         @app.command()
         @FlextCliCommonParams.create_decorator()
-        def decorated_test_command(  # type: ignore[reportUnusedFunction]
+        def decorated_test_command(
             name: str,
             verbose: bool = DEFAULT_VERBOSE,
             quiet: bool = DEFAULT_QUIET,
@@ -394,12 +395,12 @@ class TestCommonCliParamsDecorator:
         assert result.exit_code == 0
 
     def test_decorator_with_config_integration(self) -> None:
-        """Test decorator with FlextCore.Config integration."""
+        """Test decorator with FlextConfig integration."""
         app = typer.Typer()
 
         @app.command()
         @FlextCliCommonParams.create_decorator()
-        def decorated_test_command(  # type: ignore[reportUnusedFunction]
+        def decorated_test_command(
             name: str,
             verbose: bool = DEFAULT_VERBOSE,
             quiet: bool = DEFAULT_QUIET,
@@ -509,14 +510,12 @@ class TestCLIParametersPrecedence:
 
 
 class TestLoggerIntegration:
-    """Test integration with FlextCore.Logger."""
+    """Test integration with FlextLogger."""
 
     def test_logger_configured_with_cli_params(
         self, capsys: pytest.CaptureFixture[str]
     ) -> None:
         """Test that logger is properly configured from CLI parameters."""
-        from flext_core import FlextCore
-
         # Create config with DEBUG level
         config = FlextCliConfig(log_level="INFO")
 
@@ -530,13 +529,13 @@ class TestLoggerIntegration:
         assert logger_result.is_success
 
         # Create logger with validated config
-        logger = FlextCore.Logger("test_cli_params")
+        logger = FlextLogger("test_cli_params")
 
         # Test logging
         logger.debug("Debug message")
         logger.info("Info message")
 
-        # FlextCore.Logger uses structlog - outputs to stdout, not standard logging
+        # FlextLogger uses structlog - outputs to stdout, not standard logging
         captured = capsys.readouterr()
         assert "Info message" in captured.out
 
@@ -544,13 +543,11 @@ class TestLoggerIntegration:
         self, capsys: pytest.CaptureFixture[str]
     ) -> None:
         """Test that logger respects runtime log level changes."""
-        from flext_core import FlextCore
-
         # Start with INFO
         config = FlextCliConfig(log_level="INFO")
         FlextCliCommonParams.configure_logger(config)
 
-        logger = FlextCore.Logger("test_runtime")
+        logger = FlextLogger("test_runtime")
         logger.info("Info at INFO level")
         captured = capsys.readouterr()
         assert "Info at INFO level" in captured.out
@@ -769,7 +766,7 @@ class TestCliParamsCoverageCompletion:
 
                 # Apply decorator to a test function - THIS triggers the validation
                 @decorator
-                def decorated_test_function() -> None:  # type: ignore[reportUnusedFunction]
+                def decorated_test_function() -> None:
                     """Test function."""
 
                 # If we get here without SystemExit, test fails
@@ -786,3 +783,29 @@ class TestCliParamsCoverageCompletion:
             # Restore original state
             FlextCliCommonParams._enforcement_mode = original_state
             FlextCliCommonParams._params_enabled = original_enabled
+
+    def test_apply_to_config_setattr_exception(
+        self, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        """Test apply_to_config exception handler (lines 388-389)."""
+        config = FlextCliConfig()
+
+        # Mock FlextCliConstants.LOG_LEVELS_LIST to raise exception when accessed
+        # This will trigger the exception handler during log_level validation
+        def mock_log_levels_list_raises(*args: object, **kwargs: object) -> None:
+            msg = "Constants access error"
+            raise RuntimeError(msg)
+
+        # Create a mock property that raises
+        mock_constants = type(
+            "MockConstants",
+            (),
+            {"LOG_LEVELS_LIST": property(lambda self: mock_log_levels_list_raises())},
+        )()
+
+        monkeypatch.setattr("flext_cli.cli_params.FlextCliConstants", mock_constants)
+
+        result = FlextCliCommonParams.apply_to_config(config, log_level="INFO")
+
+        assert result.is_failure
+        assert "failed to apply" in str(result.error).lower()

@@ -12,22 +12,25 @@ from __future__ import annotations
 
 from typing import Protocol, runtime_checkable
 
-from flext_core import FlextCore
+from flext_core import FlextProtocols, FlextResult, FlextTypes
 
 from flext_cli.typings import FlextCliTypes
 
 
-class FlextCliProtocols(FlextCore.Protocols):
-    """Single unified CLI protocols class following FLEXT standards."""
+class FlextCliProtocols(FlextProtocols):
+    """Single unified CLI protocols class following FLEXT standards.
 
-    class Foundation(FlextCore.Protocols.Foundation):
-        """Re-export foundation protocols without CLI overrides."""
+    Extends FlextProtocols with CLI-specific protocol definitions.
+    All foundation protocols (Service, Repository, Handler, etc.) are inherited
+    from FlextProtocols and available directly.
+    """
 
-    class Domain(FlextCore.Protocols.Domain):
-        """Domain layer protocols for CLI."""
+    # =========================================================================
+    # CLI-SPECIFIC PROTOCOLS - Domain extension for CLI operations
+    # =========================================================================
 
-    class Application(FlextCore.Protocols.Application):
-        """Application layer protocols for CLI orchestration."""
+    class Cli:
+        """CLI domain-specific protocols."""
 
         @runtime_checkable
         class CliFormatter(Protocol):
@@ -37,12 +40,9 @@ class FlextCliProtocols(FlextCore.Protocols):
                 self,
                 data: FlextCliTypes.Data.CliFormatData,
                 **options: FlextCliTypes.Data.CliConfigData,
-            ) -> FlextCore.Result[str]:
+            ) -> FlextResult[str]:
                 """Format data for CLI output."""
                 ...
-
-    class Infrastructure(FlextCore.Protocols.Infrastructure):
-        """Infrastructure layer protocols for CLI adapters."""
 
         @runtime_checkable
         class CliConfigProvider(Protocol):
@@ -50,14 +50,14 @@ class FlextCliProtocols(FlextCore.Protocols):
 
             def load_config(
                 self,
-            ) -> FlextCore.Result[FlextCliTypes.Data.CliConfigData]:
+            ) -> FlextResult[FlextCliTypes.Data.CliConfigData]:
                 """Load CLI configuration."""
                 ...
 
             def save_config(
                 self,
                 config: FlextCliTypes.Data.CliConfigData,
-            ) -> FlextCore.Result[None]:
+            ) -> FlextResult[None]:
                 """Save CLI configuration."""
                 ...
 
@@ -68,16 +68,13 @@ class FlextCliProtocols(FlextCore.Protocols):
             def authenticate(
                 self,
                 credentials: FlextCliTypes.Data.AuthConfigData,
-            ) -> FlextCore.Result[str]:
+            ) -> FlextResult[str]:
                 """Authenticate and return token."""
                 ...
 
-            def validate_token(self, token: str) -> FlextCore.Result[bool]:
+            def validate_token(self, token: str) -> FlextResult[bool]:
                 """Validate authentication token."""
                 ...
-
-    class Extensions(FlextCore.Protocols.Extensions):
-        """Extension layer protocols for CLI auxiliary services."""
 
         @runtime_checkable
         class CliDebugProvider(Protocol):
@@ -85,7 +82,7 @@ class FlextCliProtocols(FlextCore.Protocols):
 
             def get_debug_info(
                 self,
-            ) -> FlextCore.Result[FlextCliTypes.Data.DebugInfoData]:
+            ) -> FlextResult[FlextCliTypes.Data.DebugInfoData]:
                 """Get debug information."""
                 ...
 
@@ -96,20 +93,15 @@ class FlextCliProtocols(FlextCore.Protocols):
             name: str
             version: str
 
-            def initialize(
-                self, cli_main: FlextCore.Types.JsonValue
-            ) -> FlextCore.Result[None]:
+            def initialize(self, cli_main: FlextTypes.JsonValue) -> FlextResult[None]:
                 """Initialize plugin with CLI context."""
                 ...
 
             def register_commands(
-                self, cli_main: FlextCore.Types.JsonValue
-            ) -> FlextCore.Result[None]:
+                self, cli_main: FlextTypes.JsonValue
+            ) -> FlextResult[None]:
                 """Register plugin commands with CLI."""
                 ...
-
-    class Commands(FlextCore.Protocols.Commands):
-        """Command layer protocols for CLI execution paths."""
 
         @runtime_checkable
         class CliCommandHandler(Protocol):
@@ -118,7 +110,7 @@ class FlextCliProtocols(FlextCore.Protocols):
             def __call__(
                 self,
                 **kwargs: FlextCliTypes.Data.CliCommandArgs,
-            ) -> FlextCore.Result[FlextCliTypes.Data.CliCommandResult]:
+            ) -> FlextResult[FlextCliTypes.Data.CliCommandResult]:
                 """Execute CLI command with arguments."""
                 ...
 

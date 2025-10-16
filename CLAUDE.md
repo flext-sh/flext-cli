@@ -11,7 +11,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 **Key Architecture:**
 - Single consolidated API class: `FlextCli`
 - Wraps Click (CLI framework) and Rich (terminal UI) internally
-- Uses flext-core patterns: `FlextResult[T]` railway pattern, `FlextCore.Service`
+- Uses flext-core patterns: `FlextResult[T]` railway pattern, `FlextService`
 - Python 3.13+ exclusive with strict type safety
 - Poetry-based dependency management
 
@@ -111,7 +111,7 @@ src/flext_cli/
 ├── protocols.py         # FlextCliProtocols - structural typing (4K)
 ├── exceptions.py        # FlextCliExceptions - exception hierarchy (12K)
 │
-├── core.py              # FlextCliCore - extends FlextCore.Service (29K)
+├── core.py              # FlextCliCore - extends FlextService (29K)
 ├── cmd.py               # FlextCliCmd - command execution (12K)
 ├── commands.py          # FlextCliCommands - command registration (10K)
 ├── context.py           # FlextCliContext - execution context (10K)
@@ -188,8 +188,8 @@ Extends core services and uses core patterns:
 ```python
 from flext_core import FlextCore
 
-class FlextCliCore(FlextCore.Service[FlextCliTypes.Data.CliDataDict]):
-    """Extends FlextCore.Service with CLI-specific functionality."""
+class FlextCliCore(FlextService[FlextCliTypes.Data.CliDataDict]):
+    """Extends FlextService with CLI-specific functionality."""
 ```
 
 ---
@@ -308,7 +308,7 @@ flext_cli_output       # FlextCliOutput instance
 flext_cli_prompts      # FlextCliPrompts instance
 flext_cli_protocols    # FlextCliProtocols instance
 flext_cli_types        # FlextCliTypes instance
-flext_cli_utilities    # FlextCore.Utilities class
+flext_cli_utilities    # FlextUtilities class
 
 # Utility fixtures
 cli_runner             # Click CLI runner
@@ -321,7 +321,7 @@ sample_config_data     # Sample configuration dict
 sample_file_data       # Sample file data dict
 sample_command_data    # Sample command data dict
 mock_env_vars          # Mock environment variables
-clean_flext_container  # Fresh FlextCore.Container state
+clean_flext_container  # Fresh FlextContainer state
 
 # Fixture data loaders
 fixture_config_file    # Path to test config JSON
@@ -366,7 +366,7 @@ def test_integration_scenario(flext_cli_api: FlextCli):
 
 - **MyPy strict mode** required for all `src/` code
 - **100% type annotations** - no `Any` types allowed
-- Use `FlextCore.Types` for common type aliases
+- Use `FlextTypes` for common type aliases
 - All return types must be explicit
 
 ```python
@@ -408,7 +408,7 @@ def operation() -> str:
 
 ### Core Dependencies
 
-- **flext-core** - Foundation library (FlextResult, FlextCore.Service, FlextCore.Container)
+- **flext-core** - Foundation library (FlextResult, FlextService, FlextCore.Container)
 - **Click 8.2+** - CLI framework (abstracted internally)
 - **Rich 14.0+** - Terminal UI (abstracted internally)
 - **Pydantic 2.11+** - Data validation and configuration

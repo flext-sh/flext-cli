@@ -13,7 +13,7 @@ from __future__ import annotations
 from typing import cast
 
 import pytest
-from flext_core import FlextCore
+from flext_core import FlextResult, FlextTypes
 
 from flext_cli.tables import FlextCliTables
 
@@ -25,7 +25,7 @@ def tables() -> FlextCliTables:
 
 
 @pytest.fixture
-def sample_data() -> list[dict[str, FlextCore.Types.JsonValue]]:
+def sample_data() -> list[dict[str, FlextTypes.JsonValue]]:
     """Sample table data for testing."""
     return [
         {"name": "Alice", "age": 30, "city": "New York", "salary": 75000.50},
@@ -35,7 +35,7 @@ def sample_data() -> list[dict[str, FlextCore.Types.JsonValue]]:
 
 
 @pytest.fixture
-def sample_list_data() -> list[FlextCore.Types.List]:
+def sample_list_data() -> list[FlextTypes.List]:
     """Sample list-based table data."""
     return [
         ["Alice", 30, "New York", 75000.50],
@@ -55,7 +55,7 @@ class TestFlextCliTables:
         """Test FlextCliTables initialization."""
         assert tables is not None
         assert isinstance(tables, FlextCliTables)
-        # Tables service should have logger and container from FlextCore.Service
+        # Tables service should have logger and container from FlextService
         assert hasattr(tables, "logger")
         assert hasattr(tables, "container")
 
@@ -79,12 +79,12 @@ class TestFlextCliTables:
     def test_create_table_simple_format(
         self,
         tables: FlextCliTables,
-        sample_data: list[dict[str, FlextCore.Types.JsonValue]],
+        sample_data: list[dict[str, FlextTypes.JsonValue]],
     ) -> None:
         """Test creating simple format table."""
         result = tables.create_table(data=sample_data, table_format="simple")
 
-        assert isinstance(result, FlextCore.Result)
+        assert isinstance(result, FlextResult)
         assert result.is_success
         table_str = result.unwrap()
         assert "Alice" in table_str
@@ -96,7 +96,7 @@ class TestFlextCliTables:
     def test_create_table_grid_format(
         self,
         tables: FlextCliTables,
-        sample_data: list[dict[str, FlextCore.Types.JsonValue]],
+        sample_data: list[dict[str, FlextTypes.JsonValue]],
     ) -> None:
         """Test creating grid format table."""
         result = tables.create_table(data=sample_data, table_format="grid")
@@ -110,7 +110,7 @@ class TestFlextCliTables:
     def test_create_table_fancy_grid_format(
         self,
         tables: FlextCliTables,
-        sample_data: list[dict[str, FlextCore.Types.JsonValue]],
+        sample_data: list[dict[str, FlextTypes.JsonValue]],
     ) -> None:
         """Test creating fancy grid format table."""
         result = tables.create_table(data=sample_data, table_format="fancy_grid")
@@ -121,7 +121,7 @@ class TestFlextCliTables:
         assert "Alice" in table_str
 
     def test_create_table_with_custom_headers(
-        self, tables: FlextCliTables, sample_list_data: list[FlextCore.Types.List]
+        self, tables: FlextCliTables, sample_list_data: list[FlextTypes.List]
     ) -> None:
         """Test table creation with custom headers."""
         headers = ["Name", "Age", "City", "Salary"]
@@ -138,7 +138,7 @@ class TestFlextCliTables:
     def test_create_table_with_alignment(
         self,
         tables: FlextCliTables,
-        sample_data: list[dict[str, FlextCore.Types.JsonValue]],
+        sample_data: list[dict[str, FlextTypes.JsonValue]],
     ) -> None:
         """Test table creation with column alignment."""
         result = tables.create_table(
@@ -152,14 +152,14 @@ class TestFlextCliTables:
         """Test that empty data returns failure."""
         result = tables.create_table(data=[], table_format="simple")
 
-        assert isinstance(result, FlextCore.Result)
+        assert isinstance(result, FlextResult)
         assert result.is_failure
         assert "empty" in (result.error or "").lower()
 
     def test_create_table_invalid_format_fails(
         self,
         tables: FlextCliTables,
-        sample_data: list[dict[str, FlextCore.Types.JsonValue]],
+        sample_data: list[dict[str, FlextTypes.JsonValue]],
     ) -> None:
         """Test that invalid format returns failure."""
         result = tables.create_table(data=sample_data, table_format="invalid_format")
@@ -174,7 +174,7 @@ class TestFlextCliTables:
     def test_create_simple_table(
         self,
         tables: FlextCliTables,
-        sample_data: list[dict[str, FlextCore.Types.JsonValue]],
+        sample_data: list[dict[str, FlextTypes.JsonValue]],
     ) -> None:
         """Test create_simple_table convenience method."""
         result = tables.create_simple_table(data=sample_data)
@@ -187,7 +187,7 @@ class TestFlextCliTables:
     def test_create_grid_table(
         self,
         tables: FlextCliTables,
-        sample_data: list[dict[str, FlextCore.Types.JsonValue]],
+        sample_data: list[dict[str, FlextTypes.JsonValue]],
     ) -> None:
         """Test create_grid_table convenience method."""
         result = tables.create_grid_table(data=sample_data)
@@ -201,7 +201,7 @@ class TestFlextCliTables:
     def test_create_markdown_table(
         self,
         tables: FlextCliTables,
-        sample_data: list[dict[str, FlextCore.Types.JsonValue]],
+        sample_data: list[dict[str, FlextTypes.JsonValue]],
     ) -> None:
         """Test create_markdown_table for GitHub/Markdown."""
         result = tables.create_markdown_table(data=sample_data)
@@ -214,7 +214,7 @@ class TestFlextCliTables:
     def test_create_html_table(
         self,
         tables: FlextCliTables,
-        sample_data: list[dict[str, FlextCore.Types.JsonValue]],
+        sample_data: list[dict[str, FlextTypes.JsonValue]],
     ) -> None:
         """Test create_html_table for HTML output."""
         result = tables.create_html_table(data=sample_data)
@@ -227,7 +227,7 @@ class TestFlextCliTables:
     def test_create_latex_table(
         self,
         tables: FlextCliTables,
-        sample_data: list[dict[str, FlextCore.Types.JsonValue]],
+        sample_data: list[dict[str, FlextTypes.JsonValue]],
     ) -> None:
         """Test create_latex_table for LaTeX output."""
         result = tables.create_latex_table(data=sample_data)
@@ -240,7 +240,7 @@ class TestFlextCliTables:
     def test_create_rst_table(
         self,
         tables: FlextCliTables,
-        sample_data: list[dict[str, FlextCore.Types.JsonValue]],
+        sample_data: list[dict[str, FlextTypes.JsonValue]],
     ) -> None:
         """Test create_rst_table for reStructuredText."""
         result = tables.create_rst_table(data=sample_data)
@@ -296,7 +296,7 @@ class TestFlextCliTables:
         from typing import cast
 
         single_row = cast(
-            "list[dict[str, FlextCore.Types.JsonValue]]", [{"name": "Alice", "age": 30}]
+            "list[dict[str, FlextTypes.JsonValue]]", [{"name": "Alice", "age": 30}]
         )
         result = tables.create_table(data=single_row, table_format="simple")
 
@@ -310,7 +310,7 @@ class TestFlextCliTables:
             {"name": "Bob", "age": None, "city": "London"},
         ]
         result = tables.create_table(
-            data=cast("list[dict[str, FlextCore.Types.JsonValue]]", data_with_none),
+            data=cast("list[dict[str, FlextTypes.JsonValue]]", data_with_none),
             table_format="simple",
         )
 
@@ -322,7 +322,7 @@ class TestFlextCliTables:
     def test_create_table_with_float_formatting(
         self,
         tables: FlextCliTables,
-        sample_data: list[dict[str, FlextCore.Types.JsonValue]],
+        sample_data: list[dict[str, FlextTypes.JsonValue]],
     ) -> None:
         """Test table with float number formatting."""
         result = tables.create_table(
@@ -337,7 +337,7 @@ class TestFlextCliTables:
     def test_create_table_with_show_index(
         self,
         tables: FlextCliTables,
-        sample_data: list[dict[str, FlextCore.Types.JsonValue]],
+        sample_data: list[dict[str, FlextTypes.JsonValue]],
     ) -> None:
         """Test table with row index."""
         result = tables.create_table(
@@ -354,10 +354,10 @@ class TestFlextCliTables:
     # =========================================================================
 
     def test_execute_method(self, tables: FlextCliTables) -> None:
-        """Test execute method (FlextCore.Service pattern)."""
+        """Test execute method (FlextService pattern)."""
         result = tables.execute()
 
-        assert isinstance(result, FlextCore.Result)
+        assert isinstance(result, FlextResult)
         assert result.is_success
         assert result.unwrap() is None
 
@@ -368,7 +368,7 @@ class TestFlextCliTables:
     def test_tables_full_workflow(
         self,
         tables: FlextCliTables,
-        sample_data: list[dict[str, FlextCore.Types.JsonValue]],
+        sample_data: list[dict[str, FlextTypes.JsonValue]],
     ) -> None:
         """Test complete workflow: list formats, get description, create table."""
         # List available formats
@@ -389,7 +389,7 @@ class TestFlextCliTables:
     def test_tables_multiple_formats_same_data(
         self,
         tables: FlextCliTables,
-        sample_data: list[dict[str, FlextCore.Types.JsonValue]],
+        sample_data: list[dict[str, FlextTypes.JsonValue]],
     ) -> None:
         """Test creating same data in multiple formats."""
         formats = ["simple", "grid", "pipe", "fancy_grid"]
@@ -408,7 +408,7 @@ class TestFlextCliTables:
     def test_create_table_with_colalign_list(
         self,
         tables: FlextCliTables,
-        sample_data: list[dict[str, FlextCore.Types.JsonValue]],
+        sample_data: list[dict[str, FlextTypes.JsonValue]],
     ) -> None:
         """Test table creation with colalign as list (line 157)."""
         # colalign as list triggers line 157
@@ -424,7 +424,7 @@ class TestFlextCliTables:
     def test_create_table_with_align_as_list(
         self,
         tables: FlextCliTables,
-        sample_data: list[dict[str, FlextCore.Types.JsonValue]],
+        sample_data: list[dict[str, FlextTypes.JsonValue]],
     ) -> None:
         """Test table creation with align as list (line 164)."""
         # When colalign is None but align is a list, triggers line 164
@@ -440,7 +440,7 @@ class TestFlextCliTables:
     def test_create_latex_table_longtable_true(
         self,
         tables: FlextCliTables,
-        sample_data: list[dict[str, FlextCore.Types.JsonValue]],
+        sample_data: list[dict[str, FlextTypes.JsonValue]],
     ) -> None:
         """Test LaTeX table with longtable=True (line 325)."""
         result = tables.create_latex_table(data=sample_data, longtable=True)
@@ -452,7 +452,7 @@ class TestFlextCliTables:
     def test_create_latex_table_longtable_false(
         self,
         tables: FlextCliTables,
-        sample_data: list[dict[str, FlextCore.Types.JsonValue]],
+        sample_data: list[dict[str, FlextTypes.JsonValue]],
     ) -> None:
         """Test LaTeX table with longtable=False and default format."""
         result = tables.create_latex_table(data=sample_data, longtable=False)
@@ -464,7 +464,7 @@ class TestFlextCliTables:
     def test_create_latex_table_booktabs_true(
         self,
         tables: FlextCliTables,
-        sample_data: list[dict[str, FlextCore.Types.JsonValue]],
+        sample_data: list[dict[str, FlextTypes.JsonValue]],
     ) -> None:
         """Test LaTeX table with booktabs=True (line 327)."""
         result = tables.create_latex_table(
@@ -478,7 +478,7 @@ class TestFlextCliTables:
     def test_create_table_exception_handling(
         self,
         tables: FlextCliTables,
-        sample_data: list[dict[str, FlextCore.Types.JsonValue]],
+        sample_data: list[dict[str, FlextTypes.JsonValue]],
         monkeypatch: pytest.MonkeyPatch,
     ) -> None:
         """Test create_table exception handler (lines 181-184)."""
@@ -515,3 +515,24 @@ class TestFlextCliTables:
         assert result.is_failure
         assert "Failed to print formats" in (result.error or "")
         assert "Tabulate print error" in (result.error or "")
+
+    def test_create_table_list_of_dicts_with_sequence_headers(
+        self,
+        tables: FlextCliTables,
+        sample_data: list[dict[str, FlextTypes.JsonValue]],
+    ) -> None:
+        """Test list of dicts with sequence headers uses 'keys' (line 161)."""
+        # This specific case triggers line 161:
+        # isinstance(data, list) and data and isinstance(data[0], dict)
+        # and isinstance(headers, (list, tuple))
+        custom_headers = ["Name", "Age", "City", "Salary"]
+        result = tables.create_table(
+            data=sample_data,
+            headers=custom_headers,  # Sequence headers with list of dicts
+            table_format="simple",
+        )
+
+        assert result.is_success
+        table_str = result.unwrap()
+        # Should still use dict keys internally (line 161 assigns "keys")
+        assert "Alice" in table_str

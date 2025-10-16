@@ -10,7 +10,7 @@ SPDX-License-Identifier: MIT
 """
 
 import pytest
-from flext_core import FlextCore
+from flext_core import FlextTypes
 from rich.progress import Progress
 from rich.table import Table as RichTable
 from rich.tree import Tree as RichTree
@@ -93,13 +93,7 @@ class TestFlextCliFormattersCore:
         formatters = FlextCliFormatters()
         data: dict[
             str,
-            str
-            | int
-            | float
-            | bool
-            | FlextCore.Types.List
-            | FlextCore.Types.Dict
-            | None,
+            str | int | float | bool | FlextTypes.List | FlextTypes.Dict | None,
         ] = {"key1": "value1", "key2": "value2"}
         result = formatters.create_table(data=data, headers=["Key", "Value"])
         assert result.is_success
@@ -193,13 +187,7 @@ class TestFlextCliFormattersIntegration:
         # Create table with data
         data: dict[
             str,
-            str
-            | int
-            | float
-            | bool
-            | FlextCore.Types.List
-            | FlextCore.Types.Dict
-            | None,
+            str | int | float | bool | FlextTypes.List | FlextTypes.Dict | None,
         ] = {"Name": "Alice", "Age": "30", "City": "NYC"}
         table_result = formatters.create_table(
             data=data, headers=["Key", "Value"], title="User Info"
@@ -312,13 +300,7 @@ class TestFlextCliFormattersIntegration:
         formatters = FlextCliFormatters()
         data: dict[
             str,
-            str
-            | int
-            | float
-            | bool
-            | FlextCore.Types.List
-            | FlextCore.Types.Dict
-            | None,
+            str | int | float | bool | FlextTypes.List | FlextTypes.Dict | None,
         ] = {"key1": "value1", "key2": "value2", "key3": "value3"}
         # No headers - will use else branch at line 131
         result = formatters.create_table(data=data)

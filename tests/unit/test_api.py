@@ -16,7 +16,7 @@ from pathlib import Path
 from typing import cast
 
 import pytest
-from flext_core import FlextCore
+from flext_core import FlextResult, FlextTypes, FlextUtilities
 
 from flext_cli import FlextCli, FlextCliConstants, FlextCliTypes
 
@@ -49,7 +49,7 @@ class TestFlextCli:
         """Test API service execute method with real functionality."""
         result = api_service.execute()
 
-        assert isinstance(result, FlextCore.Result)
+        assert isinstance(result, FlextResult)
         assert result.is_success
 
         data = result.unwrap()
@@ -76,10 +76,10 @@ class TestFlextCli:
         }
 
         result = api_service.output.format_data(
-            data=cast("FlextCore.Types.JsonValue", test_data), format_type="table"
+            data=cast("FlextTypes.JsonValue", test_data), format_type="table"
         )
 
-        assert isinstance(result, FlextCore.Result)
+        assert isinstance(result, FlextResult)
         assert result.is_success
 
         formatted_output = result.unwrap()
@@ -97,10 +97,10 @@ class TestFlextCli:
         }
 
         result = api_service.output.format_data(
-            data=cast("FlextCore.Types.JsonValue", test_data), format_type="json"
+            data=cast("FlextTypes.JsonValue", test_data), format_type="json"
         )
 
-        assert isinstance(result, FlextCore.Result)
+        assert isinstance(result, FlextResult)
         assert result.is_success
 
         formatted_output = result.unwrap()
@@ -119,10 +119,10 @@ class TestFlextCli:
         }
 
         result = api_service.output.format_data(
-            data=cast("FlextCore.Types.JsonValue", test_data), format_type="yaml"
+            data=cast("FlextTypes.JsonValue", test_data), format_type="yaml"
         )
 
-        assert isinstance(result, FlextCore.Result)
+        assert isinstance(result, FlextResult)
         assert result.is_success
 
         formatted_output = result.unwrap()
@@ -134,13 +134,7 @@ class TestFlextCli:
         """Test CSV data formatting functionality using formatters."""
         test_data: dict[
             str,
-            str
-            | int
-            | float
-            | bool
-            | FlextCore.Types.List
-            | FlextCore.Types.Dict
-            | None,
+            str | int | float | bool | FlextTypes.List | FlextTypes.Dict | None,
         ] = {
             "John": "30 | New York",
             "Jane": "25 | London",
@@ -151,7 +145,7 @@ class TestFlextCli:
             data=test_data, headers=["Name", "Age | City"], title="User Data"
         )
 
-        assert isinstance(result, FlextCore.Result)
+        assert isinstance(result, FlextResult)
         assert result.is_success
 
         table = result.unwrap()
@@ -163,7 +157,7 @@ class TestFlextCli:
 
         result = api_service.formatters.print(test_output, style="cyan")
 
-        assert isinstance(result, FlextCore.Result)
+        assert isinstance(result, FlextResult)
         assert result.is_success
 
         # The print method should return success
@@ -177,7 +171,7 @@ class TestFlextCli:
         """Test progress bar creation functionality using formatters."""
         result = api_service.create_progress()
 
-        assert isinstance(result, FlextCore.Result)
+        assert isinstance(result, FlextResult)
         assert result.is_success
 
         progress_bar = result.unwrap()
@@ -191,7 +185,7 @@ class TestFlextCli:
         """Test file reading functionality."""
         result = api_service.file_tools.read_text_file(str(temp_file))
 
-        assert isinstance(result, FlextCore.Result)
+        assert isinstance(result, FlextResult)
         assert result.is_success
 
         content = result.unwrap()
@@ -205,7 +199,7 @@ class TestFlextCli:
 
         result = api_service.file_tools.write_text_file(str(test_file), test_content)
 
-        assert isinstance(result, FlextCore.Result)
+        assert isinstance(result, FlextResult)
         assert result.is_success
 
         # Verify file was created and contains correct content
@@ -220,7 +214,7 @@ class TestFlextCli:
 
         result = api_service.file_tools.copy_file(str(temp_file), str(destination))
 
-        assert isinstance(result, FlextCore.Result)
+        assert isinstance(result, FlextResult)
         assert result.is_success
 
         # Verify file was copied correctly
@@ -238,7 +232,7 @@ class TestFlextCli:
 
         result = api_service.file_tools.move_file(str(temp_file), str(destination))
 
-        assert isinstance(result, FlextCore.Result)
+        assert isinstance(result, FlextResult)
         assert result.is_success
 
         # Verify file was moved correctly
@@ -252,7 +246,7 @@ class TestFlextCli:
 
         result = api_service.file_tools.delete_file(str(temp_file))
 
-        assert isinstance(result, FlextCore.Result)
+        assert isinstance(result, FlextResult)
         assert result.is_success
 
         # Verify file was deleted
@@ -267,7 +261,7 @@ class TestFlextCli:
 
         result = api_service.file_tools.list_directory(str(temp_dir))
 
-        assert isinstance(result, FlextCore.Result)
+        assert isinstance(result, FlextResult)
         assert result.is_success
 
         files = result.unwrap()
@@ -296,7 +290,7 @@ class TestFlextCli:
         # Now execute the registered command
         result = api_service.core.execute_command("test_command")
 
-        assert isinstance(result, FlextCore.Result)
+        assert isinstance(result, FlextResult)
         # Command execution should succeed for registered commands
         assert result.is_success
         output = result.unwrap()
@@ -322,7 +316,7 @@ class TestFlextCli:
         # Execute with timeout
         result = api_service.core.execute_command("test_timeout_command", timeout=5.0)
 
-        assert isinstance(result, FlextCore.Result)
+        assert isinstance(result, FlextResult)
         # Command execution should succeed for registered commands
         assert result.is_success
         output = result.unwrap()
@@ -334,7 +328,7 @@ class TestFlextCli:
         """Test command execution with nonexistent command."""
         result = api_service.core.execute_command("nonexistent_command_12345")
 
-        assert isinstance(result, FlextCore.Result)
+        assert isinstance(result, FlextResult)
         assert result.is_failure
 
     # ========================================================================
@@ -359,7 +353,7 @@ class TestFlextCli:
         # Test loading configuration using file_tools
         result = api_service.file_tools.read_json_file(str(config_file))
 
-        assert isinstance(result, FlextCore.Result)
+        assert isinstance(result, FlextResult)
         assert result.is_success
 
         config_data = result.unwrap()
@@ -372,8 +366,8 @@ class TestFlextCli:
     def test_save_config(self, api_service: FlextCli, temp_dir: Path) -> None:
         """Test configuration saving functionality."""
         config_file = temp_dir / "test_save_config.json"
-        test_config: FlextCore.Types.Dict = cast(
-            "FlextCore.Types.Dict",
+        test_config: FlextTypes.Dict = cast(
+            "FlextTypes.Dict",
             {
                 "debug": False,
                 "output_format": "table",
@@ -388,7 +382,7 @@ class TestFlextCli:
             test_config,
         )
 
-        assert isinstance(result, FlextCore.Result)
+        assert isinstance(result, FlextResult)
         assert result.is_success
 
         # Verify file was created and contains correct data
@@ -402,18 +396,18 @@ class TestFlextCli:
         config = api_service.config
         result = config.validate_business_rules()
 
-        assert isinstance(result, FlextCore.Result)
+        assert isinstance(result, FlextResult)
         assert result.is_success
 
-        # Test invalid configuration - use FlextCore validation utilities
+        # Test invalid configuration - use Flextvalidation utilities
         # Test negative timeout validation
-        timeout_result = FlextCore.Utilities.Validation.validate_timeout_seconds(-1)
-        assert isinstance(timeout_result, FlextCore.Result)
+        timeout_result = FlextUtilities.Validation.validate_timeout_seconds(-1)
+        assert isinstance(timeout_result, FlextResult)
         assert timeout_result.is_failure
 
         # Test positive integer validation for retries
-        retry_result = FlextCore.Utilities.Validation.validate_positive_integer(-5)
-        assert isinstance(retry_result, FlextCore.Result)
+        retry_result = FlextUtilities.Validation.validate_positive_integer(-5)
+        assert isinstance(retry_result, FlextResult)
         assert retry_result.is_failure
 
     # ========================================================================
@@ -422,7 +416,7 @@ class TestFlextCli:
 
     # REMOVED: test_parse_json, test_parse_json_invalid, test_serialize_json
     # These tests expected wrapper methods (safe_json_parse, safe_json_stringify)
-    # that don't exist in FlextCore.Utilities and violate Zero Tolerance Law.
+    # that don't exist in FlextUtilities and violate Zero Tolerance Law.
     # Use json.loads() and json.dumps() directly instead of wrappers.
 
     def test_parse_yaml(self, api_service: FlextCli, temp_dir: Path) -> None:
@@ -443,7 +437,7 @@ nested:
 
         result = api_service.file_tools.read_yaml_file(str(yaml_file))
 
-        assert isinstance(result, FlextCore.Result)
+        assert isinstance(result, FlextResult)
         assert result.is_success
 
         parsed_data = result.unwrap()
@@ -467,10 +461,10 @@ nested:
         yaml_file = temp_dir / "test_out.yaml"
         result = api_service.file_tools.write_yaml_file(
             str(yaml_file),
-            cast("FlextCore.Types.JsonValue", test_data),
+            cast("FlextTypes.JsonValue", test_data),
         )
 
-        assert isinstance(result, FlextCore.Result)
+        assert isinstance(result, FlextResult)
         assert result.is_success
 
         # Read back and verify
@@ -487,12 +481,12 @@ nested:
         """Test error handling with various invalid inputs."""
         # Test with empty string input
         result = api_service.file_tools.read_text_file("")
-        assert isinstance(result, FlextCore.Result)
+        assert isinstance(result, FlextResult)
         assert result.is_failure
 
         # Test with non-existent file
         result = api_service.file_tools.read_text_file("/nonexistent/file.txt")
-        assert isinstance(result, FlextCore.Result)
+        assert isinstance(result, FlextResult)
         assert result.is_failure
 
     def test_error_handling_with_permission_denied(self, api_service: FlextCli) -> None:
@@ -501,12 +495,12 @@ nested:
         result = api_service.file_tools.write_text_file(
             "/proc/test_file", "test content"
         )
-        assert isinstance(result, FlextCore.Result)
+        assert isinstance(result, FlextResult)
         assert result.is_failure
 
     def test_concurrent_operations(self, api_service: FlextCli, temp_dir: Path) -> None:
         """Test concurrent operations to ensure thread safety."""
-        results: list[FlextCore.Result[None]] = []
+        results: list[FlextResult[None]] = []
         errors: list[Exception] = []
 
         def worker(worker_id: int) -> None:
@@ -534,7 +528,7 @@ nested:
         assert len(errors) == 0, f"Errors occurred: {errors}"
         assert len(results) == 5
         for result in results:
-            assert isinstance(result, FlextCore.Result)
+            assert isinstance(result, FlextResult)
             assert result.is_success
 
     # ========================================================================
@@ -550,7 +544,7 @@ nested:
         """Test execute method (now sync, delegates to execute)."""
         # execute is now synchronous, delegates to execute()
         result = api_service.execute()
-        assert isinstance(result, FlextCore.Result)
+        assert isinstance(result, FlextResult)
         assert result.is_success
 
         data = result.unwrap()
@@ -617,7 +611,7 @@ nested:
 
         result = api_service.authenticate(credentials)
 
-        assert isinstance(result, FlextCore.Result)
+        assert isinstance(result, FlextResult)
         assert result.is_success
         assert result.unwrap() == test_token
 
@@ -630,7 +624,7 @@ nested:
 
         result = api_service.authenticate(credentials)
 
-        assert isinstance(result, FlextCore.Result)
+        assert isinstance(result, FlextResult)
         assert result.is_success
 
         token = result.unwrap()
@@ -642,7 +636,7 @@ nested:
         # Empty credentials
         result = api_service.authenticate({})
 
-        assert isinstance(result, FlextCore.Result)
+        assert isinstance(result, FlextResult)
         assert result.is_failure
 
     def test_save_and_get_auth_token(
@@ -654,13 +648,13 @@ nested:
         # Save token
         save_result = api_service.save_auth_token(test_token)
 
-        assert isinstance(save_result, FlextCore.Result)
+        assert isinstance(save_result, FlextResult)
         assert save_result.is_success
 
         # Retrieve token
         get_result = api_service.get_auth_token()
 
-        assert isinstance(get_result, FlextCore.Result)
+        assert isinstance(get_result, FlextResult)
         assert get_result.is_success
         assert get_result.unwrap() == test_token
 
@@ -668,7 +662,7 @@ nested:
         """Test saving empty auth token fails."""
         result = api_service.save_auth_token("")
 
-        assert isinstance(result, FlextCore.Result)
+        assert isinstance(result, FlextResult)
         assert result.is_failure
 
     def test_is_authenticated(self, api_service: FlextCli) -> None:
@@ -692,7 +686,7 @@ nested:
         # Clear tokens
         clear_result = api_service.clear_auth_tokens()
 
-        assert isinstance(clear_result, FlextCore.Result)
+        assert isinstance(clear_result, FlextResult)
         # Should succeed even if files don't exist
         # Accept various file-not-found error messages
         error_msg = str(clear_result.error).lower() if clear_result.error else ""
@@ -706,13 +700,13 @@ nested:
         # Valid credentials
         result = api_service.validate_credentials("testuser", "testpass")
 
-        assert isinstance(result, FlextCore.Result)
+        assert isinstance(result, FlextResult)
         assert result.is_success
 
         # Invalid credentials (empty)
         invalid_result = api_service.validate_credentials("", "")
 
-        assert isinstance(invalid_result, FlextCore.Result)
+        assert isinstance(invalid_result, FlextResult)
         assert invalid_result.is_failure
 
     # ========================================================================
@@ -723,7 +717,7 @@ nested:
         """Test command decorator registration."""
 
         @api_service.command(name="test_cmd")
-        def decorated_test_command() -> str:  # type: ignore[reportUnusedFunction]
+        def decorated_test_command() -> str:
             return "test output"
 
         # Verify command was registered
@@ -738,7 +732,7 @@ nested:
         """Test group decorator registration."""
 
         @api_service.group(name="test_group")
-        def decorated_test_group() -> None:  # type: ignore[reportUnusedFunction]
+        def decorated_test_group() -> None:
             pass
 
         # Verify group was registered
@@ -749,7 +743,7 @@ nested:
         """Test CLI execution."""
         result = api_service.execute_cli()
 
-        assert isinstance(result, FlextCore.Result)
+        assert isinstance(result, FlextResult)
         assert result.is_success
 
     # ========================================================================
@@ -762,7 +756,7 @@ nested:
         """Test read_text_file wrapper method."""
         result = api_service.read_text_file(temp_file)
 
-        assert isinstance(result, FlextCore.Result)
+        assert isinstance(result, FlextResult)
         assert result.is_success
         assert result.unwrap() == "test content"
 
@@ -775,7 +769,7 @@ nested:
 
         result = api_service.write_text_file(test_file, test_content)
 
-        assert isinstance(result, FlextCore.Result)
+        assert isinstance(result, FlextResult)
         assert result.is_success
         assert test_file.exists()
         assert test_file.read_text() == test_content
@@ -788,14 +782,14 @@ nested:
         """Test print wrapper method."""
         result = api_service.print("Test message", style="cyan")
 
-        assert isinstance(result, FlextCore.Result)
+        assert isinstance(result, FlextResult)
         assert result.is_success
 
     def test_create_tree_wrapper(self, api_service: FlextCli) -> None:
         """Test create_tree wrapper method."""
         result = api_service.create_tree("Test Tree")
 
-        assert isinstance(result, FlextCore.Result)
+        assert isinstance(result, FlextResult)
         assert result.is_success
 
         tree = result.unwrap()
@@ -814,10 +808,10 @@ nested:
         # Mock container.get to return failure
         mock_container = Mock()
         mock_container.get = Mock(
-            return_value=FlextCore.Result[object].fail("Container error")
+            return_value=FlextResult[object].fail("Container error")
         )
         monkeypatch.setattr(
-            "flext_cli.api.FlextCore.Container.get_global", lambda: mock_container
+            "flext_cli.api.FlextContainer.get_global", lambda: mock_container
         )
 
         # This should trigger line 87 - return cls()
@@ -836,7 +830,7 @@ nested:
         # Mock file_tools.write_json_file to fail
         mock_file_tools = Mock(spec=FlextCliFileTools)
         mock_file_tools.write_json_file = Mock(
-            return_value=FlextCore.Result[None].fail("Write failed")
+            return_value=FlextResult[None].fail("Write failed")
         )
         api_service._file_tools = mock_file_tools
 
@@ -857,7 +851,7 @@ nested:
 
         # Mock save_auth_token to succeed so we reach the empty check on line 225
         original_save = api_service.save_auth_token
-        api_service.save_auth_token = Mock(return_value=FlextCore.Result[None].ok(None))
+        api_service.save_auth_token = Mock(return_value=FlextResult[None].ok(None))
 
         credentials = cast(
             "FlextCliTypes.Auth.CredentialsData", {"token": "   "}
@@ -929,7 +923,7 @@ nested:
         # Mock file_tools.write_json_file to fail
         mock_file_tools = Mock(spec=FlextCliFileTools)
         mock_file_tools.write_json_file = Mock(
-            return_value=FlextCore.Result[None].fail("Write error")
+            return_value=FlextResult[None].fail("Write error")
         )
         api_service._file_tools = mock_file_tools
 
@@ -950,7 +944,7 @@ nested:
         # Mock file_tools.read_json_file to return "not found" error
         mock_file_tools = Mock(spec=FlextCliFileTools)
         mock_file_tools.read_json_file = Mock(
-            return_value=FlextCore.Result[object].fail("Token file not found")
+            return_value=FlextResult[object].fail("Token file not found")
         )
         api_service._file_tools = mock_file_tools
 
@@ -973,7 +967,7 @@ nested:
         # Mock file_tools.read_json_file to return generic error
         mock_file_tools = Mock(spec=FlextCliFileTools)
         mock_file_tools.read_json_file = Mock(
-            return_value=FlextCore.Result[object].fail("Read error")
+            return_value=FlextResult[object].fail("Read error")
         )
         api_service._file_tools = mock_file_tools
 
@@ -993,9 +987,7 @@ nested:
 
         # Mock file_tools.read_json_file to return empty token
         mock_file_tools = Mock(spec=FlextCliFileTools)
-        mock_file_tools.read_json_file = Mock(
-            return_value=FlextCore.Result[object].ok({})
-        )
+        mock_file_tools.read_json_file = Mock(return_value=FlextResult[object].ok({}))
         api_service._file_tools = mock_file_tools
 
         result = api_service.get_auth_token()
@@ -1015,7 +1007,7 @@ nested:
         # Mock file_tools.delete_file to fail with non-"not found" error
         mock_file_tools = Mock(spec=FlextCliFileTools)
         mock_file_tools.delete_file = Mock(
-            return_value=FlextCore.Result[None].fail("Permission denied")
+            return_value=FlextResult[None].fail("Permission denied")
         )
         api_service._file_tools = mock_file_tools
 
@@ -1035,7 +1027,7 @@ nested:
 
         # Mock file_tools.delete_file to succeed (simulate successful deletion)
         mock_file_tools = Mock(spec=FlextCliFileTools)
-        mock_file_tools.delete_file = Mock(return_value=FlextCore.Result[None].ok(None))
+        mock_file_tools.delete_file = Mock(return_value=FlextResult[None].ok(None))
         api_service._file_tools = mock_file_tools
 
         # Add token to valid tokens set
@@ -1050,3 +1042,61 @@ nested:
         assert result.is_success
         # Verify valid tokens were cleared (line 346)
         assert len(api_service._valid_tokens) == 0
+
+    def test_print_table_exception(self, monkeypatch: pytest.MonkeyPatch) -> None:
+        """Test print_table exception handler (lines 199-203)."""
+        from unittest.mock import Mock
+
+        api_service = FlextCli()
+
+        # Mock formatters.get_console().print to raise exception
+        mock_console = Mock()
+        mock_console.print = Mock(side_effect=RuntimeError("Print failed"))
+
+        # Mock formatters.get_console() to return our mock console
+        api_service._formatters.get_console = Mock(return_value=mock_console)
+
+        result = api_service.print_table("mock_table")
+
+        assert result.is_failure
+        assert "failed to print table" in str(result.error).lower()
+
+    def test_get_auth_token_not_dict(
+        self, api_service: FlextCli, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        """Test get_auth_token when data is not dict (line 321)."""
+        from unittest.mock import Mock
+
+        from flext_cli.file_tools import FlextCliFileTools
+
+        # Mock read_json_file to return non-dict (string)
+        mock_file_tools = Mock(spec=FlextCliFileTools)
+        mock_file_tools.read_json_file = Mock(
+            return_value=FlextResult[object].ok("not a dict")
+        )
+        api_service._file_tools = mock_file_tools
+
+        result = api_service.get_auth_token()
+
+        assert result.is_failure
+        assert "json object" in str(result.error).lower()
+
+    def test_get_auth_token_token_not_string(
+        self, api_service: FlextCli, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        """Test get_auth_token when token is not string (line 330)."""
+        from unittest.mock import Mock
+
+        from flext_cli.file_tools import FlextCliFileTools
+
+        # Mock read_json_file to return dict with non-string token
+        mock_file_tools = Mock(spec=FlextCliFileTools)
+        mock_file_tools.read_json_file = Mock(
+            return_value=FlextResult[dict].ok({"token": 12345})
+        )
+        api_service._file_tools = mock_file_tools
+
+        result = api_service.get_auth_token()
+
+        assert result.is_failure
+        assert "token must be a string" in str(result.error).lower()

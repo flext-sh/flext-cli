@@ -1,4 +1,4 @@
-"""FLEXT CLI Common Parameters - Auto-generated from FlextCore.Config properties.
+"""FLEXT CLI Common Parameters - Auto-generated from FlextConfig properties.
 
 Provides standardized CLI parameters that MUST be available in all CLI commands.
 Parameters are auto-generated from FlextCliConfig Pydantic field metadata.
@@ -18,7 +18,7 @@ from collections.abc import Callable
 from typing import ClassVar, TypeVar, get_args, get_origin
 
 import typer
-from flext_core import FlextCore
+from flext_core import FlextResult
 from typer.models import OptionInfo
 
 from flext_cli.config import FlextCliConfig
@@ -29,9 +29,9 @@ T = TypeVar("T")
 
 
 class FlextCliCommonParams:
-    """Common CLI parameters auto-generated from FlextCore.Config field metadata.
+    """Common CLI parameters auto-generated from FlextConfig field metadata.
 
-    Provides standardized parameter group integrated with FlextCore.Config and FlextCore.Logger.
+    Provides standardized parameter group integrated with FlextConfig and FlextLogger.
     These parameters are enabled by default and enforced across all CLI commands.
 
     All parameter definitions are automatically extracted from FlextCliConfig Pydantic fields:
@@ -103,19 +103,19 @@ class FlextCliCommonParams:
         cls._enforcement_mode = True
 
     @classmethod
-    def validate_enabled(cls) -> FlextCore.Result[None]:
+    def validate_enabled(cls) -> FlextResult[None]:
         """Validate that common parameters are enabled.
 
         Returns:
-            FlextCore.Result[None]: Success if enabled, failure if disabled in enforcement mode.
+            FlextResult[None]: Success if enabled, failure if disabled in enforcement mode.
 
         """
         if not cls._params_enabled and cls._enforcement_mode:
-            return FlextCore.Result[None].fail(
+            return FlextResult[None].fail(
                 "Common CLI parameters are mandatory and cannot be disabled. "
                 "All CLI commands must support --verbose, --quiet, --debug, --log-level, etc."
             )
-        return FlextCore.Result[None].ok(None)
+        return FlextResult[None].ok(None)
 
     @classmethod
     def create_option(cls, field_name: str) -> OptionInfo:
@@ -236,49 +236,49 @@ class FlextCliCommonParams:
 
     @classmethod
     def verbose_option(cls) -> OptionInfo:
-        """Create --verbose/-v option from FlextCore.Config.verbose field metadata."""
+        """Create --verbose/-v option from FlextConfig.verbose field metadata."""
         return cls.create_option("verbose")
 
     @classmethod
     def quiet_option(cls) -> OptionInfo:
-        """Create --quiet/-q option from FlextCore.Config.quiet field metadata."""
+        """Create --quiet/-q option from FlextConfig.quiet field metadata."""
         return cls.create_option("quiet")
 
     @classmethod
     def debug_option(cls) -> OptionInfo:
-        """Create --debug/-d option from FlextCore.Config.debug field metadata."""
+        """Create --debug/-d option from FlextConfig.debug field metadata."""
         return cls.create_option("debug")
 
     @classmethod
     def trace_option(cls) -> OptionInfo:
-        """Create --trace/-t option from FlextCore.Config.trace field metadata."""
+        """Create --trace/-t option from FlextConfig.trace field metadata."""
         return cls.create_option("trace")
 
     @classmethod
     def log_level_option(cls) -> OptionInfo:
-        """Create --log-level/-L option from FlextCore.Config.log_level field metadata."""
+        """Create --log-level/-L option from FlextConfig.log_level field metadata."""
         return cls.create_option("log_level")
 
     @classmethod
     def log_format_option(cls) -> OptionInfo:
-        """Create --log-format option from FlextCore.Config.log_verbosity field metadata."""
+        """Create --log-format option from FlextConfig.log_verbosity field metadata."""
         return cls.create_option("log_verbosity")
 
     @classmethod
     def output_format_option(
         cls,
     ) -> OptionInfo:
-        """Create --output-format/-o option from FlextCore.Config.output_format field metadata."""
+        """Create --output-format/-o option from FlextConfig.output_format field metadata."""
         return cls.create_option("output_format")
 
     @classmethod
     def no_color_option(cls) -> OptionInfo:
-        """Create --no-color option from FlextCore.Config.no_color field metadata."""
+        """Create --no-color option from FlextConfig.no_color field metadata."""
         return cls.create_option("no_color")
 
     @classmethod
     def config_file_option(cls) -> OptionInfo:
-        """Create --config-file/-c option from FlextCore.Config.config_file field metadata."""
+        """Create --config-file/-c option from FlextConfig.config_file field metadata."""
         return cls.create_option("config_file")
 
     @classmethod
@@ -318,8 +318,8 @@ class FlextCliCommonParams:
         log_format: str | None = None,
         output_format: str | None = None,
         no_color: bool | None = None,
-    ) -> FlextCore.Result[FlextCliConfig]:
-        """Apply CLI parameter values to FlextCore.Config instance.
+    ) -> FlextResult[FlextCliConfig]:
+        """Apply CLI parameter values to FlextConfig instance.
 
         This method updates the config with CLI parameter values, following precedence:
         CLI parameters > ENV variables > .env file > defaults
@@ -336,7 +336,7 @@ class FlextCliCommonParams:
             no_color: No color flag from CLI
 
         Returns:
-            FlextCore.Result[FlextCliConfig]: Updated config or error
+            FlextResult[FlextCliConfig]: Updated config or error
 
         """
         try:
@@ -350,7 +350,7 @@ class FlextCliCommonParams:
             if trace is not None:
                 # Validate trace requires debug
                 if trace and not config.debug:
-                    return FlextCore.Result[FlextCliConfig].fail(
+                    return FlextResult[FlextCliConfig].fail(
                         "Trace mode requires debug mode to be enabled. Use --debug --trace together."
                     )
                 config.trace = trace
@@ -358,7 +358,7 @@ class FlextCliCommonParams:
                 # Validate log level
                 if log_level.upper() not in FlextCliConstants.LOG_LEVELS_LIST:
                     valid = ", ".join(FlextCliConstants.LOG_LEVELS_LIST)
-                    return FlextCore.Result[FlextCliConfig].fail(
+                    return FlextResult[FlextCliConfig].fail(
                         f"Invalid log level: {log_level}. Must be one of: {valid}"
                     )
                 config.log_level = log_level.upper()
@@ -367,7 +367,7 @@ class FlextCliCommonParams:
                 valid_formats = ["compact", "detailed", "full"]
                 if log_format.lower() not in valid_formats:
                     valid = ", ".join(valid_formats)
-                    return FlextCore.Result[FlextCliConfig].fail(
+                    return FlextResult[FlextCliConfig].fail(
                         f"Invalid log format: {log_format}. Must be one of: {valid}"
                     )
                 config.log_verbosity = log_format.lower()
@@ -376,17 +376,17 @@ class FlextCliCommonParams:
                 valid_formats = ["table", "json", "yaml", "csv", "plain"]
                 if output_format.lower() not in valid_formats:
                     valid = ", ".join(valid_formats)
-                    return FlextCore.Result[FlextCliConfig].fail(
+                    return FlextResult[FlextCliConfig].fail(
                         f"Invalid output format: {output_format}. Must be one of: {valid}"
                     )
                 config.output_format = output_format.lower()
             if no_color is not None:
                 config.no_color = no_color
 
-            return FlextCore.Result[FlextCliConfig].ok(config)
+            return FlextResult[FlextCliConfig].ok(config)
 
         except Exception as e:
-            return FlextCore.Result[FlextCliConfig].fail(
+            return FlextResult[FlextCliConfig].fail(
                 f"Failed to apply CLI parameters to config: {e}"
             )
 
@@ -394,10 +394,10 @@ class FlextCliCommonParams:
     def configure_logger(
         cls,
         config: FlextCliConfig,
-    ) -> FlextCore.Result[None]:
-        """Configure FlextCore.Logger based on config parameters.
+    ) -> FlextResult[None]:
+        """Configure FlextLogger based on config parameters.
 
-        NOTE: FlextCore.Logger uses structlog which configures logging globally.
+        NOTE: FlextLogger uses structlog which configures logging globally.
         The log_level from FlextCliConfig is used during logger initialization.
         This method validates the configuration but doesn't modify the logger directly.
 
@@ -405,7 +405,7 @@ class FlextCliCommonParams:
             config: FlextCliConfig with logging configuration
 
         Returns:
-            FlextCore.Result[None]: Success or error
+            FlextResult[None]: Success or error
 
         """
         try:
@@ -414,16 +414,16 @@ class FlextCliCommonParams:
 
             if log_level not in FlextCliConstants.LOG_LEVELS_LIST:
                 valid = ", ".join(FlextCliConstants.LOG_LEVELS_LIST)
-                return FlextCore.Result[None].fail(
+                return FlextResult[None].fail(
                     f"Invalid log level: {log_level}. Must be one of: {valid}"
                 )
 
-            # FlextCore.Logger configuration is done via FlextCore.Config at initialization
+            # FlextLogger configuration is done via FlextConfig at initialization
             # No runtime modification needed for structlog-based logger
-            return FlextCore.Result[None].ok(None)
+            return FlextResult[None].ok(None)
 
         except Exception as e:
-            return FlextCore.Result[None].fail(f"Failed to configure logger: {e}")
+            return FlextResult[None].fail(f"Failed to configure logger: {e}")
 
     @classmethod
     def create_decorator(

@@ -8,7 +8,7 @@ WHEN TO USE THIS:
 - Building testable CLI tools
 
 FLEXT-CLI PROVIDES:
-- FlextCore.Result pattern for testable code
+- FlextResult pattern for testable code
 - Output capture via formatters
 - Mockable prompt system
 - File operation testing utilities
@@ -31,7 +31,7 @@ import tempfile
 from pathlib import Path
 from typing import cast
 
-from flext_core import FlextCore
+from flext_core import FlextResult
 
 from flext_cli import FlextCli, FlextCliPrompts
 from flext_cli.typings import FlextCliTypes
@@ -40,18 +40,18 @@ cli = FlextCli.get_instance()
 
 
 # ============================================================================
-# PATTERN 1: Test CLI command with FlextCore.Result
+# PATTERN 1: Test CLI command with FlextResult
 # ============================================================================
 
 
-def my_cli_command(name: str) -> FlextCore.Result[str]:
+def my_cli_command(name: str) -> FlextResult[str]:
     """Example CLI command to test."""
     if not name:
-        return FlextCore.Result[str].fail("Name cannot be empty")
+        return FlextResult[str].fail("Name cannot be empty")
 
     result = f"Hello, {name}!"
     cli.print(result, style="green")
-    return FlextCore.Result[str].ok(result)
+    return FlextResult[str].ok(result)
 
 
 def test_cli_command() -> None:
@@ -79,7 +79,7 @@ def test_cli_command() -> None:
 
 def save_config_command(
     config: FlextCliTypes.Data.CliDataDict,
-) -> FlextCore.Result[None]:
+) -> FlextResult[None]:
     """CLI command that saves config."""
     temp_file = Path(tempfile.gettempdir()) / "test_config.json"
 
@@ -87,9 +87,9 @@ def save_config_command(
         temp_file, cast("dict[str, object]", config)
     )
     if write_result.is_failure:
-        return FlextCore.Result[None].fail(f"Save failed: {write_result.error}")
+        return FlextResult[None].fail(f"Save failed: {write_result.error}")
 
-    return FlextCore.Result[None].ok(None)
+    return FlextResult[None].ok(None)
 
 
 def test_file_operations() -> None:
@@ -126,7 +126,7 @@ def test_file_operations() -> None:
 # ============================================================================
 
 
-def interactive_command() -> FlextCore.Result[str]:
+def interactive_command() -> FlextResult[str]:
     """Command with user prompts to test."""
     prompts = FlextCliPrompts(interactive_mode=False)  # Non-interactive for tests
 
@@ -134,10 +134,10 @@ def interactive_command() -> FlextCore.Result[str]:
     name_result = prompts.prompt("Enter name:", default="TestUser")
 
     if name_result.is_failure:
-        return FlextCore.Result[str].fail(f"Prompt failed: {name_result.error}")
+        return FlextResult[str].fail(f"Prompt failed: {name_result.error}")
 
     name = name_result.unwrap()
-    return FlextCore.Result[str].ok(f"Hello, {name}!")
+    return FlextResult[str].ok(f"Hello, {name}!")
 
 
 def test_interactive_command() -> None:
@@ -157,15 +157,15 @@ def test_interactive_command() -> None:
 # ============================================================================
 
 
-def risky_operation(value: int) -> FlextCore.Result[int]:
+def risky_operation(value: int) -> FlextResult[int]:
     """Operation that might fail."""
     if value < 0:
-        return FlextCore.Result[int].fail("Value must be positive")
+        return FlextResult[int].fail("Value must be positive")
 
     if value > 100:
-        return FlextCore.Result[int].fail("Value too large")
+        return FlextResult[int].fail("Value too large")
 
-    return FlextCore.Result[int].ok(value * 2)
+    return FlextResult[int].ok(value * 2)
 
 
 def test_error_scenarios() -> None:
@@ -198,7 +198,7 @@ def test_error_scenarios() -> None:
 # ============================================================================
 
 
-def full_workflow_command() -> FlextCore.Result[FlextCliTypes.Data.CliDataDict]:
+def full_workflow_command() -> FlextResult[FlextCliTypes.Data.CliDataDict]:
     """Complete workflow to test."""
     # Step 1: Create data
     data: FlextCliTypes.Data.CliDataDict = {"status": "processing", "items": [1, 2, 3]}
@@ -210,7 +210,7 @@ def full_workflow_command() -> FlextCore.Result[FlextCliTypes.Data.CliDataDict]:
     )
 
     if write_result.is_failure:
-        return FlextCore.Result[FlextCliTypes.Data.CliDataDict].fail(
+        return FlextResult[FlextCliTypes.Data.CliDataDict].fail(
             f"Write failed: {write_result.error}"
         )
 
@@ -219,7 +219,7 @@ def full_workflow_command() -> FlextCore.Result[FlextCliTypes.Data.CliDataDict]:
 
     if read_result.is_failure:
         temp_file.unlink(missing_ok=True)
-        return FlextCore.Result[FlextCliTypes.Data.CliDataDict].fail(
+        return FlextResult[FlextCliTypes.Data.CliDataDict].fail(
             f"Read failed: {read_result.error}"
         )
 
@@ -227,7 +227,7 @@ def full_workflow_command() -> FlextCore.Result[FlextCliTypes.Data.CliDataDict]:
     loaded = read_result.unwrap()
     if not isinstance(loaded, dict):
         temp_file.unlink(missing_ok=True)
-        return FlextCore.Result[FlextCliTypes.Data.CliDataDict].fail(
+        return FlextResult[FlextCliTypes.Data.CliDataDict].fail(
             "Data is not a dictionary"
         )
 
@@ -239,7 +239,7 @@ def full_workflow_command() -> FlextCore.Result[FlextCliTypes.Data.CliDataDict]:
 
     # Cast to expected type (runtime type is compatible)
     typed_data = cast("FlextCliTypes.Data.CliDataDict", loaded)
-    return FlextCore.Result[FlextCliTypes.Data.CliDataDict].ok(typed_data)
+    return FlextResult[FlextCliTypes.Data.CliDataDict].ok(typed_data)
 
 
 def test_integration() -> None:
@@ -280,7 +280,7 @@ def main() -> None:
 
     # Testing guide
     cli.print("\n💡 Testing Tips:", style="bold cyan")
-    cli.print("  • Use FlextCore.Result returns for testable commands", style="white")
+    cli.print("  • Use FlextResult returns for testable commands", style="white")
     cli.print("  • Test both success and failure cases", style="white")
     cli.print("  • Use non-interactive prompts in tests", style="white")
     cli.print("  • Clean up temp files after tests", style="white")

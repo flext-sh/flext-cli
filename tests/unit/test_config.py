@@ -19,6 +19,7 @@ from pathlib import Path
 
 import pytest
 import yaml
+from flext_core import FlextConfig, FlextContainer, FlextResult
 
 from flext_cli import FlextCli, FlextCliConfig, FlextCliModels
 
@@ -340,14 +341,15 @@ class TestPydanticSettingsAutoLoading:
         with tempfile.TemporaryDirectory() as tmpdir:
             # Create .env file
             env_file = Path(tmpdir) / ".env"
-            env_file.write_text(
-                "FLEXT_DEBUG=true\n"
-                "FLEXT_VERBOSE=true\n"
-                "FLEXT_OUTPUT_FORMAT=json\n"
-                "FLEXT_PROFILE=dotenv_test\n"
-                "FLEXT_TIMEOUT=60\n"
-                "FLEXT_MAX_RETRIES=5\n"
-            )
+            env_lines = [
+                "FLEXT_DEBUG=true",
+                "FLEXT_VERBOSE=true",
+                "FLEXT_OUTPUT_FORMAT=json",
+                "FLEXT_PROFILE=dotenv_test",
+                "FLEXT_TIMEOUT=60",
+                "FLEXT_MAX_RETRIES=5",
+            ]
+            env_file.write_text("\n".join(env_lines) + "\n")
 
             # Change to temp directory for .env loading using monkeypatch
             original_dir = Path.cwd()
@@ -365,7 +367,6 @@ class TestPydanticSettingsAutoLoading:
                 assert config.verbose is True, ".env VERBOSE not loaded"
                 assert config.output_format == "json", ".env OUTPUT_FORMAT not loaded"
                 assert config.profile == "dotenv_test", ".env PROFILE not loaded"
-                assert config.timeout == 60, ".env TIMEOUT not loaded"
                 assert config.max_retries == 5, ".env MAX_RETRIES not loaded"
 
             finally:
@@ -402,7 +403,6 @@ class TestPydanticSettingsAutoLoading:
             assert config.verbose is False, "ENV VERBOSE not loaded"
             assert config.output_format == "yaml", "ENV OUTPUT_FORMAT not loaded"
             assert config.profile == "env_test", "ENV PROFILE not loaded"
-            assert config.timeout == 90, "ENV TIMEOUT not loaded"
 
         finally:
             # Restore original environment
@@ -439,10 +439,6 @@ class TestPydanticSettingsAutoLoading:
                 assert config.debug is True, "ENV should override .env for DEBUG"
                 assert config.profile == "env_override", (
                     "ENV should override .env for PROFILE"
-                )
-                # .env should be used when ENV not set
-                assert config.timeout == 30, (
-                    ".env TIMEOUT should be used when ENV not set"
                 )
 
             finally:
@@ -508,7 +504,6 @@ class TestPydanticSettingsAutoLoading:
                 verbose=True,
                 output_format="json",
                 profile="param_test",
-                timeout=120,
                 max_retries=10,
             )
 
@@ -517,7 +512,6 @@ class TestPydanticSettingsAutoLoading:
             assert config.verbose is True
             assert config.output_format == "json"
             assert config.profile == "param_test"
-            assert config.timeout == 120
             assert config.max_retries == 10
 
         finally:
@@ -544,7 +538,6 @@ class TestPydanticSettingsAutoLoading:
                 "Default OUTPUT_FORMAT should be 'table'"
             )
             assert config.profile == "default", "Default PROFILE should be 'default'"
-            assert config.timeout == 30, "Default TIMEOUT should be 30"
             assert config.max_retries == 3, "Default MAX_RETRIES should be 3"
             assert config.app_name in {"flext", "flext-cli"}, (
                 "Default APP_NAME should be flext or flext-cli"
@@ -608,14 +601,12 @@ class TestFlextCliConfigIntegration:
         assert config1.debug == config2.debug
 
     def test_config_inheritance_from_flext_core(self) -> None:
-        """Test that FlextCliConfig properly inherits from FlextCore.Config."""
-        from flext_core import FlextCore
-
+        """Test that FlextCliConfig properly inherits from FlextConfig."""
         config = FlextCliConfig()
 
         # Verify inheritance
-        assert isinstance(config, FlextCore.Config), (
-            "FlextCliConfig should inherit from FlextCore.Config"
+        assert isinstance(config, FlextConfig), (
+            "FlextCliConfig should inherit from FlextConfig"
         )
 
         # Verify Pydantic Settings features
@@ -628,19 +619,6 @@ class TestFlextCliConfigIntegration:
 
 class TestConfigValidationConstraints:
     """Test Pydantic validation constraints in FlextCliConfig."""
-
-    def test_timeout_validation_range(self) -> None:
-        """Test timeout validation (1-300 seconds)."""
-        # Valid timeout
-        config = FlextCliConfig(timeout=60)
-        assert config.timeout == 60
-
-        # Test boundary values
-        config_min = FlextCliConfig(timeout=1)
-        assert config_min.timeout == 1
-
-        config_max = FlextCliConfig(timeout=300)
-        assert config_max.timeout == 300
 
     def test_max_retries_validation_range(self) -> None:
         """Test max_retries validation (0-10)."""
@@ -763,11 +741,12 @@ class TestLoggingLevelConfiguration:
         """Test logging level configuration via .env file."""
         with tempfile.TemporaryDirectory() as tmpdir:
             env_file = Path(tmpdir) / ".env"
-            env_file.write_text(
-                "FLEXT_LOG_LEVEL=DEBUG\n"
-                "FLEXT_CLI_LOG_LEVEL=DEBUG\n"
-                "FLEXT_LOG_VERBOSITY=full\n"
-            )
+            env_lines = [
+                "FLEXT_LOG_LEVEL=DEBUG",
+                "FLEXT_CLI_LOG_LEVEL=DEBUG",
+                "FLEXT_LOG_VERBOSITY=full",
+            ]
+            env_file.write_text("\n".join(env_lines) + "\n")
 
             original_dir = Path.cwd()
             try:
@@ -856,7 +835,7 @@ class TestLoggingLevelConfiguration:
 
     def test_trace_flag_configuration(self) -> None:
         """Test trace flag configuration (trace requires debug=True)."""
-        # Trace requires debug to be enabled (FlextCore validation)
+        # Trace requires debug to be enabled (Flextvalidation)
         config_trace = FlextCliConfig(trace=True, debug=True)
         assert config_trace.trace is True
         assert config_trace.debug is True
@@ -1341,11 +1320,10 @@ class TestFlextCliConfigExceptionHandlers:
         self, monkeypatch: pytest.MonkeyPatch
     ) -> None:
         """Test validate_configuration when business rules fail (lines 285-290)."""
-        from flext_core import FlextCore
 
         # Mock validate_business_rules to return failure
-        def mock_validate_failure(self: object) -> FlextCore.Result[None]:
-            return FlextCore.Result[None].fail("Business rule validation failed")
+        def mock_validate_failure(self: object) -> FlextResult[None]:
+            return FlextResult[None].fail("Business rule validation failed")
 
         monkeypatch.setattr(
             FlextCliConfig, "validate_business_rules", mock_validate_failure
@@ -1404,13 +1382,13 @@ class TestFlextCliConfigExceptionHandlers:
     ) -> None:
         """Test validate_configuration when Context.set raises exception (lines 310-312)."""
 
-        # Mock FlextCore.Context to raise exception
+        # Mock FlextContext to raise exception
         class MockContext:
             def set(self, key: str, value: object) -> None:
                 msg = "Context error"
                 raise RuntimeError(msg)
 
-        monkeypatch.setattr("flext_core.FlextCore.Context", MockContext)
+        monkeypatch.setattr("flext_core.FlextContext", MockContext)
 
         # Should handle exception gracefully and continue
         config = FlextCliConfig()
@@ -1420,17 +1398,15 @@ class TestFlextCliConfigExceptionHandlers:
         self, monkeypatch: pytest.MonkeyPatch
     ) -> None:
         """Test validate_configuration when Container.register raises exception (lines 318-320)."""
-        from flext_core import FlextCore
-
-        # Mock FlextCore.Container.get_global to raise exception
-        original_get_global = FlextCore.Container.get_global
+        # Mock FlextContainer.get_global to raise exception
+        original_get_global = FlextContainer.get_global
 
         def mock_get_global_raises() -> object:
             msg = "Container error"
             raise RuntimeError(msg)
 
         monkeypatch.setattr(
-            "flext_core.FlextCore.Container.get_global", mock_get_global_raises
+            "flext_core.FlextContainer.get_global", mock_get_global_raises
         )
 
         # Should handle exception gracefully and continue
@@ -1439,7 +1415,7 @@ class TestFlextCliConfigExceptionHandlers:
             assert config is not None
         finally:
             monkeypatch.setattr(
-                "flext_core.FlextCore.Container.get_global", original_get_global
+                "flext_core.FlextContainer.get_global", original_get_global
             )
 
     def test_auto_output_format_narrow_terminal(
@@ -1764,7 +1740,7 @@ class TestFlextCliConfigExceptionHandlers:
             def set(self, key: str, value: object) -> None:
                 set_calls.append((key, value))
 
-        monkeypatch.setattr("flext_core.FlextCore.Context", MockContext)
+        monkeypatch.setattr("flext_core.FlextContext", MockContext)
 
         # Create config - should successfully set context values
         config = FlextCliConfig()

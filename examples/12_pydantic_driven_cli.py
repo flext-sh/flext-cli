@@ -27,7 +27,7 @@ from __future__ import annotations
 
 from typing import cast
 
-from flext_core import FlextCore
+from flext_core import FlextResult
 from pydantic import BaseModel, Field, field_validator
 
 from flext_cli import FlextCli
@@ -160,10 +160,10 @@ def execute_deploy_from_cli(cli_args: dict[str, str | int | bool]) -> None:
         cli.print(f"❌ Validation failed: {e}", style="bold red")
 
 
-def deploy_application(config: DeployConfig) -> FlextCore.Result[str]:
+def deploy_application(config: DeployConfig) -> FlextResult[str]:
     """Deploy application with validated config."""
     # Your deployment logic here - config is already validated!
-    return FlextCore.Result[str].ok(f"Deployed to {config.environment}")
+    return FlextResult[str].ok(f"Deployed to {config.environment}")
 
 
 # ============================================================================

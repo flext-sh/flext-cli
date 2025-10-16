@@ -5,7 +5,7 @@ A CLI foundation library that provides:
 - Styled console output (Rich integration)
 - Table formatting (Rich + Tabulate)
 - File I/O (JSON, YAML, CSV)
-- Error handling (FlextCore.Result pattern)
+- Error handling (FlextResult pattern)
 - Configuration management
 - User prompts
 
@@ -113,7 +113,7 @@ def load_config(filepath: str) -> FlextCliTypes.Data.CliDataDict | None:
 
 
 def process_data_with_flext_result() -> None:
-    """Use FlextCore.Result pattern in YOUR code - no try/except needed."""
+    """Use FlextResult pattern in YOUR code - no try/except needed."""
     # This won't throw an exception even if file doesn't exist
     nonexistent_file = str(Path(tempfile.gettempdir()) / "nonexistent.json")
     result = cli.file_tools.read_json_file(nonexistent_file)
@@ -185,7 +185,7 @@ def main() -> None:
         style="white",
     )
     cli.print(
-        "\n💡 All methods return FlextCore.Result for error handling without exceptions!",
+        "\n💡 All methods return FlextResult for error handling without exceptions!",
         style="yellow",
     )
 
