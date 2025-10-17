@@ -228,7 +228,7 @@ class FlextCliCore(FlextService[FlextCliTypes.Data.CliDataDict]):
     def __init__(
         self,
         config: FlextCliTypes.Configuration.CliConfigSchema | None = None,
-        **data: FlextTypes.JsonValue,
+        **data: object,
     ) -> None:
         """Initialize CLI service with specialized service injection and Phase 1 context enrichment.
 
@@ -290,7 +290,7 @@ class FlextCliCore(FlextService[FlextCliTypes.Data.CliDataDict]):
             FlextResult[FlextCliTypes.CliCommand.CommandDefinition]: Command definition or error
 
         """
-        if not name or not isinstance(name, str):
+        if not name:
             return FlextResult[FlextCliTypes.CliCommand.CommandDefinition].fail(
                 FlextCliConstants.ErrorMessages.COMMAND_NAME_EMPTY,
             )
@@ -409,14 +409,14 @@ class FlextCliCore(FlextService[FlextCliTypes.Data.CliDataDict]):
             FlextResult[None]: Configuration update result
 
         """
-        if not config or not isinstance(config, dict):
+        if not config:
             return FlextResult[None].fail(
                 FlextCliConstants.ErrorMessages.CONFIG_NOT_DICT
             )
 
         try:
             # Merge with existing configuration
-            # Check if _config is properly initialized (not empty dict)
+            # Check if _config is properly initialized as dict (not empty or invalid type)
             if isinstance(self._config, dict) and self._config:
                 self._config.update(config)
                 self.logger.info(FlextCliConstants.LogMessages.CLI_CONFIG_UPDATED)
@@ -439,7 +439,7 @@ class FlextCliCore(FlextService[FlextCliTypes.Data.CliDataDict]):
 
         """
         try:
-            # Check if _config is properly initialized (not empty dict)
+            # Check if _config is properly initialized as dict (not empty or invalid type)
             if isinstance(self._config, dict) and self._config:
                 return FlextResult[FlextCliTypes.Configuration.CliConfigSchema].ok(
                     self._config,
@@ -467,18 +467,18 @@ class FlextCliCore(FlextService[FlextCliTypes.Data.CliDataDict]):
             FlextResult[None]: Profile creation result
 
         """
-        if not name or not isinstance(name, str):
+        if not name:
             return FlextResult[None].fail(
                 FlextCliConstants.ErrorMessages.PROFILE_NAME_EMPTY
             )
 
-        if not profile_config or not isinstance(profile_config, dict):
+        if not profile_config:
             return FlextResult[None].fail(
                 FlextCliConstants.ErrorMessages.PROFILE_CONFIG_NOT_DICT
             )
 
         try:
-            # Check if _config is properly initialized (not empty dict)
+            # Check if _config is properly initialized as dict (not empty or invalid type)
             if not (isinstance(self._config, dict) and self._config):
                 return FlextResult[None].fail(
                     FlextCliConstants.ErrorMessages.CONFIG_NOT_INITIALIZED
@@ -555,10 +555,10 @@ class FlextCliCore(FlextService[FlextCliTypes.Data.CliDataDict]):
 
         try:
             self._session_active = False
-            if hasattr(self, "_session_config"):
-                delattr(self, "_session_config")
-            if hasattr(self, "_session_start_time"):
-                delattr(self, "_session_start_time")
+            if hasattr(self, FlextCliConstants.PrivateAttributes.SESSION_CONFIG):
+                delattr(self, FlextCliConstants.PrivateAttributes.SESSION_CONFIG)
+            if hasattr(self, FlextCliConstants.PrivateAttributes.SESSION_START_TIME):
+                delattr(self, FlextCliConstants.PrivateAttributes.SESSION_START_TIME)
 
             self.logger.info(FlextCliConstants.LogMessages.SESSION_ENDED)
             return FlextResult[None].ok(None)
@@ -657,7 +657,9 @@ class FlextCliCore(FlextService[FlextCliTypes.Data.CliDataDict]):
             session_duration = (
                 FlextCliConstants.CoreServiceDefaults.SESSION_DURATION_INIT
             )
-            if hasattr(self, "_session_start_time") and self._session_start_time:
+            if hasattr(
+                self, FlextCliConstants.PrivateAttributes.SESSION_START_TIME
+            ) and self._session_start_time:
                 current_time = datetime.now(UTC)
                 # Parse ISO format string back to datetime for duration calculation
                 start_time = datetime.fromisoformat(self._session_start_time)
@@ -676,12 +678,15 @@ class FlextCliCore(FlextService[FlextCliTypes.Data.CliDataDict]):
                 ),
                 FlextCliConstants.CoreServiceDictKeys.SESSION_CONFIG_KEYS: (
                     list(self._session_config.keys())
-                    if hasattr(self, "_session_config") and self._session_config
+                    if hasattr(self, FlextCliConstants.PrivateAttributes.SESSION_CONFIG)
+                    and self._session_config
                     else []
                 ),
                 FlextCliConstants.CoreServiceDictKeys.START_TIME: (
                     self._session_start_time
-                    if hasattr(self, "_session_start_time")
+                    if hasattr(
+                        self, FlextCliConstants.PrivateAttributes.SESSION_START_TIME
+                    )
                     else FlextCliConstants.CoreServiceDefaults.UNKNOWN_VALUE
                 ),
                 FlextCliConstants.CoreServiceDictKeys.CURRENT_TIME: datetime.now(
@@ -801,9 +806,7 @@ class FlextCliCore(FlextService[FlextCliTypes.Data.CliDataDict]):
         result_data: FlextCliTypes.Data.CliDataDict = {
             FlextCliConstants.DictKeys.COMMAND: command_name,
             FlextCliConstants.DictKeys.STATUS: True,
-            FlextCliConstants.DictKeys.CONTEXT: cast(
-                "FlextTypes.JsonValue", context_data
-            ),
+            FlextCliConstants.DictKeys.CONTEXT: cast("FlextTypes.JsonValue", context_data),
             FlextCliConstants.DictKeys.TIMESTAMP: datetime.now(UTC).isoformat(),
             FlextCliConstants.CoreServiceDictKeys.USER_ID: user_id,
         }

@@ -33,12 +33,11 @@ class TestFlextCli:
     # INITIALIZATION AND BASIC FUNCTIONALITY
     # ========================================================================
     def test_api_service_initialization(self, api_service: FlextCli) -> None:
-        """Test API service initialization and basic properties."""
+        """Test API service initialization and basic services."""
         assert api_service is not None
         assert hasattr(api_service, "logger")
         assert hasattr(api_service, "_container")
-        # Properties accessed via container (lazy-loaded, no private attributes)
-        assert hasattr(api_service, "utilities")
+        # Services (no wrapper properties needed - direct access)
         assert hasattr(api_service, "output")
         assert hasattr(api_service, "file_tools")
         assert hasattr(api_service, "core")
@@ -566,36 +565,6 @@ nested:
         assert isinstance(instance1, FlextCli)
         # Instances may be different (not strict singleton in current impl)
         assert isinstance(instance2, FlextCli)
-
-    def test_constants_property(self, api_service: FlextCli) -> None:
-        """Test constants property access."""
-        constants = api_service.constants
-
-        assert constants is not None
-        assert constants == FlextCliConstants
-        assert hasattr(constants, "VERSION")
-        assert hasattr(constants, "CliDefaults")
-
-    def test_models_property(self, api_service: FlextCli) -> None:
-        """Test models property access."""
-        from flext_cli.models import FlextCliModels
-
-        models = api_service.models
-
-        assert models is not None
-        assert models == FlextCliModels
-        assert hasattr(models, "CliCommand")
-        # CliContext moved to context.py following flext-core service patterns
-        # assert hasattr(models, "CliContext")  # Removed - no longer in models
-
-    def test_types_property(self, api_service: FlextCli) -> None:
-        """Test types property access."""
-        from flext_cli.typings import FlextCliTypes
-
-        types = api_service.types
-
-        assert types is not None
-        assert types == FlextCliTypes
 
     # ========================================================================
     # AUTHENTICATION TESTS

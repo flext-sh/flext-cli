@@ -365,7 +365,8 @@ class FlextCliOutput(FlextService[object]):
 
         """
         return self.print_message(
-            f"{FlextCliConstants.Symbols.ERROR_PREFIX} {message}", style="bold red"
+            f"{FlextCliConstants.Symbols.ERROR_PREFIX} {message}",
+            style=FlextCliConstants.Styles.BOLD_RED,
         )
 
     def print_success(self, message: str) -> FlextResult[None]:
@@ -383,7 +384,8 @@ class FlextCliOutput(FlextService[object]):
 
         """
         return self.print_message(
-            f"{FlextCliConstants.Symbols.SUCCESS_PREFIX} {message}", style="bold green"
+            f"{FlextCliConstants.Symbols.SUCCESS_PREFIX} {message}",
+            style=FlextCliConstants.Styles.BOLD_GREEN,
         )
 
     def print_warning(self, message: str) -> FlextResult[None]:
@@ -401,7 +403,7 @@ class FlextCliOutput(FlextService[object]):
 
         """
         return self.print_message(
-            f"{FlextCliConstants.Emojis.WARNING} Warning: {message}",
+            f"{FlextCliConstants.Emojis.WARNING} {FlextCliConstants.OutputDefaults.WARNING_PREFIX} {message}",
             style=FlextCliConstants.Styles.BOLD_YELLOW,
         )
 
@@ -693,7 +695,7 @@ class FlextCliOutput(FlextService[object]):
 
             # Add title if provided
             if title:
-                table_str = f"{title}\n{table_str}\n"
+                table_str = f"{title}{FlextCliConstants.OutputDefaults.NEWLINE}{table_str}{FlextCliConstants.OutputDefaults.NEWLINE}"
 
             return FlextResult[str].ok(table_str)
 
@@ -763,7 +765,7 @@ class FlextCliOutput(FlextService[object]):
                     for item in value:
                         self._build_tree(branch, cast("FlextTypes.JsonValue", item))
                 else:
-                    tree.add(f"{key}: {value}")
+                    tree.add(f"{key}{FlextCliConstants.OutputDefaults.TREE_VALUE_SEPARATOR}{value}")
         elif isinstance(data, list):
             for item in data:
                 self._build_tree(tree, cast("FlextTypes.JsonValue", item))

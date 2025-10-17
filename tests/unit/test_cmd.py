@@ -225,6 +225,15 @@ class TestFlextCliCmd:
     def test_cmd_get_config_value_nonexistent_file(self) -> None:
         """Test get_config_value with nonexistent config file."""
         cmd = FlextCliCmd()
+
+        # Ensure config file doesn't exist
+        config_path = (
+            FlextCliConfig().config_dir
+            / FlextCliConstants.ConfigFiles.CLI_CONFIG_JSON
+        )
+        if config_path.exists():
+            config_path.unlink()
+
         result = cmd.get_config_value("nonexistent_key")
         # Should fail because config file doesn't exist
         assert result.is_failure
@@ -767,3 +776,36 @@ class TestFlextCliCmd:
         result = cmd.edit_config()
         assert result.is_failure
         assert "edit config failed" in str(result.error).lower()
+
+    def test_cmd_get_config_value_key_not_in_config_data(self) -> None:
+        """Test get_config_value when key not found in existing config dict (line 232)."""
+        cmd = FlextCliCmd()
+        original_file_tools = cmd._file_tools
+
+        class MockFileTools(FlextCliFileTools):
+            def read_json_file(
+                self, file_path: str | Path
+            ) -> FlextResult[FlextTypes.JsonValue]:
+                # Return valid dict but without the requested key
+                return FlextResult[FlextTypes.JsonValue].ok({"existing_key": "existing_value"})
+
+        cmd._file_tools = MockFileTools()
+
+        # Create fake config file to pass existence check
+        config_dir = Path.home() / ".flext"
+        config_dir.mkdir(exist_ok=True)
+        config_file = config_dir / "cli_config.json"
+
+        try:
+            config_file.write_text('{"existing_key": "existing_value"}', encoding="utf-8")
+
+            # Request a key that doesn't exist in the config data
+            result = cmd.get_config_value("nonexistent_key")
+            assert result.is_failure
+            assert isinstance(result.error, str)
+            assert result.error is not None
+            assert "not found" in result.error.lower()
+        finally:
+            cmd._file_tools = original_file_tools
+            if config_file.exists():
+                config_file.unlink()

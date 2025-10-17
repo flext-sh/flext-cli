@@ -901,12 +901,21 @@ class FlextCliConstants(FlextConstants):
         TAGS: Final[str] = "tags"
         SORT_KEYS: Final[str] = "sort_keys"
 
+    class JsonSchemaKeys:
+        """JSON Schema property keys for Pydantic field constraints."""
+
+        MINIMUM: Final[str] = "minimum"
+        MAXIMUM: Final[str] = "maximum"
+        PROPERTIES: Final[str] = "properties"
+
     class EnvironmentConstants:
         """Environment variable and testing constants."""
 
         PYTEST_CURRENT_TEST: Final[str] = "PYTEST_CURRENT_TEST"
         PYTEST: Final[str] = "pytest"
         UNDERSCORE: Final[str] = "_"
+        CI: Final[str] = "CI"
+        CI_TRUE_VALUE: Final[str] = "true"
 
     class ConfigFiles:
         """Configuration file names."""
@@ -1068,15 +1077,24 @@ class FlextCliConstants(FlextConstants):
         OPTION_PREFIX: Final[str] = "--"
         HELP_TEXT_FALLBACK: Final[str] = "{field_name} parameter"
         MASKED_SENSITIVE: Final[str] = "***MASKED***"
+        MASK_CHAR: Final[str] = "*"
+        MAGIC_ATTR_CLI_MODEL: Final[str] = "__cli_model__"
+        MAGIC_ATTR_CLI_COMMAND_NAME: Final[str] = "__cli_command_name__"
+        MAGIC_ATTR_CLI_MODELS: Final[str] = "__cli_models__"
 
     class FileIODefaults:
         """File I/O operation constants."""
 
-        FILE_WRITE_MODE: Final[str] = "w"
-        FILE_READ_MODE: Final[str] = "r"
+        FILE_WRITE_MODE: Final = "w"
+        FILE_READ_MODE: Final = "r"
+        FILE_READ_BINARY_MODE: Final[str] = "rb"
+        ZIP_WRITE_MODE: Final = "w"
+        ZIP_READ_MODE: Final = "r"
         JSON_INDENT: Final[int] = 2
         JSON_ENSURE_ASCII: Final[bool] = False
         ENCODING_DEFAULT: Final[str] = "utf-8"
+        GLOB_PATTERN_ALL: Final[str] = "*"
+        FORMAT_EXTENSIONS_KEY: Final[str] = "extensions"
 
     class CoreServiceDefaults:
         """Core service constants for operation defaults."""
@@ -1085,6 +1103,12 @@ class FlextCliConstants(FlextConstants):
         UNKNOWN_VALUE: Final[str] = "unknown"
         OPERATION_TYPE_CLI_COMMAND: Final[str] = "cli_command"
         CLI_COMMAND_PREFIX: Final[str] = "cli_command_"
+
+    class PrivateAttributes:
+        """Private attribute names for FlextCliCore service."""
+
+        SESSION_CONFIG: Final[str] = "_session_config"
+        SESSION_START_TIME: Final[str] = "_session_start_time"
 
     class CoreServiceDictKeys:
         """Dictionary keys specific to FlextCliCore operations."""
@@ -1140,6 +1164,8 @@ class FlextCliConstants(FlextConstants):
         FILE_ERROR_INDICATOR: Final[str] = "not found"
         TOKEN_DATA_TYPE_ERROR: Final[str] = "Token file must contain a JSON object"
         TOKEN_VALUE_TYPE_ERROR: Final[str] = "Token must be a string"
+        APP_DESCRIPTION_SUFFIX: Final[str] = " CLI"
+        CONTAINER_REGISTRATION_KEY: Final[str] = "flext_cli"
 
     class FileToolsDefaults:
         """File tools service defaults."""
@@ -1391,6 +1417,9 @@ class FlextCliConstants(FlextConstants):
         PROMPT_DEFAULT_FORMAT: Final[str] = " (default: {default})"
         PROMPT_LOG_FORMAT: Final[str] = "User prompted: {message}, input: {input}"
         CHOICE_LIST_FORMAT: Final[str] = "{index}. {choice}"
+        PROMPT_SPACE_SUFFIX: Final[str] = " "
+        DEFAULT_CHOICE_MESSAGE: Final[str] = "Choose an option:"
+        CHOICE_HISTORY_FORMAT: Final[str] = "{message}{separator}{options}"
 
     class PromptsMessages:
         """Messages for prompts operations."""
@@ -1650,6 +1679,43 @@ class FlextCliConstants(FlextConstants):
         APPLY_PARAMS_FAILED: Final[str] = "Failed to apply CLI parameters to config: {error}"
         CONFIGURE_LOGGER_FAILED: Final[str] = "Failed to configure logger: {error}"
 
+    class CliParamsRegistry:
+        """CLI parameter registry metadata and constants."""
+
+        # Short flag constants for CLI parameters
+        SHORT_FLAG_VERBOSE: Final[str] = "v"
+        SHORT_FLAG_QUIET: Final[str] = "q"
+        SHORT_FLAG_DEBUG: Final[str] = "d"
+        SHORT_FLAG_TRACE: Final[str] = "t"
+        SHORT_FLAG_LOG_LEVEL: Final[str] = "L"
+        SHORT_FLAG_OUTPUT_FORMAT: Final[str] = "o"
+        SHORT_FLAG_CONFIG_FILE: Final[str] = "c"
+
+        # Priority constants for CLI parameters
+        PRIORITY_VERBOSE: Final[int] = 1
+        PRIORITY_QUIET: Final[int] = 2
+        PRIORITY_DEBUG: Final[int] = 3
+        PRIORITY_TRACE: Final[int] = 4
+        PRIORITY_LOG_LEVEL: Final[int] = 5
+        PRIORITY_LOG_FORMAT: Final[int] = 6
+        PRIORITY_OUTPUT_FORMAT: Final[int] = 7
+        PRIORITY_NO_COLOR: Final[int] = 8
+        PRIORITY_CONFIG_FILE: Final[int] = 9
+
+        # Registry metadata keys
+        KEY_SHORT: Final[str] = "short"
+        KEY_PRIORITY: Final[str] = "priority"
+        KEY_CHOICES: Final[str] = "choices"
+        KEY_CASE_SENSITIVE: Final[str] = "case_sensitive"
+        KEY_FIELD_NAME_OVERRIDE: Final[str] = "field_name_override"
+
+        # Field name override value
+        LOG_FORMAT_OVERRIDE: Final[str] = "log-format"
+
+        # Boolean values for registry metadata
+        CASE_INSENSITIVE: Final[bool] = False
+        CASE_SENSITIVE: Final[bool] = True
+
     class OutputDefaults:
         """Output service defaults and constants."""
 
@@ -1661,6 +1727,9 @@ class FlextCliConstants(FlextConstants):
         DEFAULT_TREE_TITLE: Final[str] = "Tree"
         TREE_BRANCH_LIST_SUFFIX: Final[str] = " (list)"
         TEST_INVALID_KEY: Final[str] = "invalid"
+        WARNING_PREFIX: Final[str] = "Warning:"
+        NEWLINE: Final[str] = "\n"
+        TREE_VALUE_SEPARATOR: Final[str] = ": "
 
     class OutputFieldNames:
         """Field names for output operations."""
@@ -1736,17 +1805,30 @@ class FlextCliConstants(FlextConstants):
         REQUIRED_NESTED_CLASS_NOT_FOUND: Final[str] = "Required nested class {class_name} not found"
         FIELD_NO_TYPE_ANNOTATION: Final[str] = "Field {field_name} has no type annotation"
         COMMAND_LINE_CANNOT_BE_EMPTY: Final[str] = "Command line cannot be empty"
-        INVALID_STATUS: Final[str] = "Invalid status '{status}'. Must be one of: {valid_statuses}"
+        INVALID_STATUS: Final[str] = "Invalid status '{value}'. Must be one of: {allowed}"
+        COMMAND_WITH_EXIT_CODE_PENDING: Final[str] = "Command with exit_code cannot have pending status"
+        COMMAND_WITH_OUTPUT_PENDING: Final[str] = "Command with output cannot have pending status"
+        COMMAND_DATA_MUST_BE_DICT: Final[str] = "Command data must be a dictionary"
+        COMMAND_FIELD_REQUIRED: Final[str] = "Command field is required"
+        COMMAND_MUST_BE_STRING: Final[str] = "Command must be a string"
+        COMMAND_ALREADY_EXISTS: Final[str] = "Command already exists in session"
+        DURATION_CANNOT_BE_NEGATIVE: Final[str] = "duration_seconds cannot be negative"
+        INVALID_DEBUG_LEVEL: Final[str] = "Invalid debug level '{value}'. Must be one of: {allowed}"
+        CRITICAL_DEBUG_REQUIRES_MESSAGE: Final[str] = "Debug level '{level}' requires a descriptive message"
+        FAILED_FIELD_CONVERSION: Final[str] = "Failed to convert field {field_name}: {error}"
+        FAILED_MODEL_CONVERSION: Final[str] = "Failed to convert model {model_name}: {error}"
+        FAILED_CLICK_OPTIONS_GENERATION: Final[str] = "Failed to generate Click options for {model_name}: {error}"
+        FAILED_MODEL_CREATION_FROM_CLI: Final[str] = "Failed to create {model_name} from CLI args: {error}"
+        INVALID_INPUT: Final[str] = "Invalid input: {error}"
+        VALIDATION_FAILED_FOR_MODEL: Final[str] = "Validation failed for {model_name}: {error}"
+        USER_ID_EMPTY: Final[str] = "User ID cannot be empty"
         COMMAND_WITH_EXIT_CODE_CANNOT_HAVE_PENDING_STATUS: Final[str] = (
             "Command with exit_code cannot have pending status"
         )
         COMMAND_WITH_OUTPUT_CANNOT_HAVE_PENDING_STATUS: Final[str] = (
             "Command with output cannot have pending status"
         )
-        COMMAND_DATA_MUST_BE_DICT: Final[str] = "Command data must be a dictionary"
-        COMMAND_MUST_BE_STRING: Final[str] = "Command must be a string"
         COMMAND_ALREADY_EXISTS_IN_SESSION: Final[str] = "Command already exists in session"
-        DURATION_CANNOT_BE_NEGATIVE: Final[str] = "duration_seconds cannot be negative"
         DEBUG_LEVEL_REQUIRES_MESSAGE: Final[str] = (
             "Debug level '{level}' requires a descriptive message"
         )
@@ -1757,10 +1839,6 @@ class FlextCliConstants(FlextConstants):
         )
         FAILED_TO_CREATE_MODEL_FROM_CLI_ARGS: Final[str] = (
             "Failed to create {model_name} from CLI args: {error}"
-        )
-        INVALID_INPUT: Final[str] = "Invalid input: {error}"
-        VALIDATION_FAILED_FOR_MODEL: Final[str] = (
-            "Validation failed for {model_name}: {error}"
         )
 
     class ModelsValidationMessages:
@@ -1831,8 +1909,11 @@ class FlextCliConstants(FlextConstants):
     class CliSessionDefaults:
         """CLI Session model defaults."""
 
+        SESSION_ID_PREFIX: Final[str] = "session_"
+        DATETIME_FORMAT: Final[str] = "%Y%m%d_%H%M%S_%f"
         ZERO_DURATION: Final[float] = 0.0
         DEFAULT_USER_ID: Final[str | None] = None
+        SECONDS_PER_MINUTE: Final[int] = 60
 
     class CliSessionDescriptions:
         """CLI Session field descriptions."""
@@ -1841,7 +1922,7 @@ class FlextCliConstants(FlextConstants):
         START_TIME: Final[str] = "Session start time in ISO 8601 format"
         END_TIME: Final[str] = "Session end time in ISO 8601 format"
         LAST_ACTIVITY: Final[str] = "Last activity timestamp in ISO 8601 format"
-        INTERNAL_DURATION_SECONDS: Final[str] = (
+        INTERNAL_DURATION: Final[str] = (
             "Internal duration tracking field (use duration_seconds computed field)"
         )
         COMMANDS_EXECUTED: Final[str] = "Total number of commands executed in this session"

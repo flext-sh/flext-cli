@@ -15,6 +15,7 @@ import os
 import shutil
 from datetime import UTC, datetime
 from pathlib import Path
+from typing import Literal, cast
 
 from flext_core import (
     FlextConfig,
@@ -138,9 +139,19 @@ class FlextCliConfig(FlextConfig):
         description="Enable debug mode",
     )
 
-    @field_validator("debug", "verbose", "no_color", "auto_refresh", "quiet", "interactive", mode="before")
+    trace: bool = Field(
+        default=False,
+        description="Enable trace mode (requires debug=True)",
+    )
+
+    log_level: str = Field(
+        default=FlextCliConstants.CliDefaults.DEFAULT_LOG_LEVEL,
+        description="Log level for application (DEBUG, INFO, WARNING, ERROR, CRITICAL)",
+    )
+
+    @field_validator("debug", "verbose", "no_color", "auto_refresh", "quiet", "interactive", "trace", mode="before")
     @classmethod
-    def parse_bool_strings(cls, v: object) -> object:
+    def parse_bool_strings(cls, v: str | bool | None) -> str | bool | None:
         """Parse string boolean values from environment variables."""
         if isinstance(v, str):
             v_lower = v.lower()
@@ -152,7 +163,7 @@ class FlextCliConfig(FlextConfig):
 
     @field_validator("max_retries", "cli_timeout", "max_width", mode="before")
     @classmethod
-    def parse_int_strings(cls, v: object) -> object:
+    def parse_int_strings(cls, v: str | int | None) -> str | int | None:
         """Parse string integer values from environment variables."""
         if isinstance(v, str) and v.isdigit():
             return int(v)
@@ -205,8 +216,8 @@ class FlextCliConfig(FlextConfig):
     )
 
     # Logging configuration - centralized for all FLEXT projects
-    log_verbosity: str = Field(
-        default=FlextCliConstants.CliDefaults.DEFAULT_LOG_VERBOSITY,
+    log_verbosity: Literal["compact", "detailed", "full"] = Field(
+        default=cast("Literal['compact', 'detailed', 'full']", FlextCliConstants.CliDefaults.DEFAULT_LOG_VERBOSITY),
         description="Logging verbosity (compact, detailed, full)",
     )
 
@@ -575,24 +586,32 @@ class FlextCliConfig(FlextConfig):
             # Get current config snapshot
             current_config = self.model_dump()
 
-            # Create new instance from environment
-            env_config = FlextCliConfig()
-
-            # Merge: current config overrides env
-            for key, value in current_config.items():
-                if value != getattr(self.__class__(), key, None):
-                    # Value was explicitly set, keep it
-                    setattr(env_config, key, value)
-
-            # Copy merged config back (skip computed fields)
-            computed_fields = {
+            # Read-only/computed fields that cannot be set (includes FlextConfig computed fields)
+            readonly_fields = {
                 "auto_output_format",
                 "auto_color_support",
                 "auto_verbosity",
                 "optimal_table_format",
+                "effective_log_level",
+                "effective_timeout",
+                "has_cache",
+                "has_database",
+                "is_debug_enabled",
+                "is_production",
             }
+
+            # Create new instance from environment
+            env_config = FlextCliConfig()
+
+            # Merge: current config overrides env (skip read-only fields)
+            for key, value in current_config.items():
+                if key not in readonly_fields and value != getattr(self.__class__(), key, None):
+                    # Value was explicitly set, keep it
+                    setattr(env_config, key, value)
+
+            # Copy merged config back (skip read-only fields)
             for key in current_config:
-                if key not in computed_fields:
+                if key not in readonly_fields:
                     setattr(self, key, getattr(env_config, key))
 
             return FlextResult[None].ok(None)

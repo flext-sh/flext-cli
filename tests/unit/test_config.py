@@ -1777,17 +1777,40 @@ class TestFlextCliConfigExceptionHandlers:
         assert config.verbose is True
 
     def test_merge_with_env_success(self) -> None:
-        """Test merge_with_env success path (lines 567-579)."""
-        # Note: merge_with_env has issues with read-only computed properties
-        # This test just verifies the method executes without raising exceptions
-        config = FlextCliConfig(profile="original_profile", debug=True)
+        """Test merge_with_env success path (lines 588-598)."""
+        import os
+        # Save original env
+        original_profile = os.environ.get("FLEXT_PROFILE")
+        original_debug = os.environ.get("FLEXT_DEBUG")
 
-        # Merge with environment - may fail due to read-only properties
-        result = config.merge_with_env()
+        try:
+            # Set environment variables
+            os.environ["FLEXT_PROFILE"] = "env_profile"
+            os.environ["FLEXT_DEBUG"] = "1"
 
-        # Just verify it returns a result (success or expected failure)
-        assert result is not None
-        assert isinstance(result.is_success, bool)
+            # Create config with different values
+            config = FlextCliConfig(profile="original_profile", debug=False)
+
+            # Merge with environment
+            result = config.merge_with_env()
+
+            # Should succeed
+            assert result.is_success
+
+            # Existing config values take precedence over environment (as per docstring)
+            # Note: debug field may not be updated due to inheritance complexities
+            assert config.profile == "original_profile"
+
+        finally:
+            # Restore original env
+            if original_profile is not None:
+                os.environ["FLEXT_PROFILE"] = original_profile
+            else:
+                os.environ.pop("FLEXT_PROFILE", None)
+            if original_debug is not None:
+                os.environ["FLEXT_DEBUG"] = original_debug
+            else:
+                os.environ.pop("FLEXT_DEBUG", None)
 
     def test_validate_cli_overrides_success(self) -> None:
         """Test validate_cli_overrides success path (lines 627-628, 643)."""
