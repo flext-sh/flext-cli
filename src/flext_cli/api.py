@@ -16,7 +16,12 @@ from collections.abc import Callable
 from pathlib import Path
 from typing import cast
 
-from flext_core import FlextContainer, FlextLogger, FlextResult, FlextTypes
+from flext_core import (
+    FlextContainer,
+    FlextLogger,
+    FlextResult,
+    FlextTypes,
+)
 
 from flext_cli.cli import FlextCliCli
 from flext_cli.cmd import FlextCliCmd
@@ -62,12 +67,16 @@ class FlextCli:
         # CLI metadata - MUST be first for Typer app creation
         self._name = FlextCliConstants.CliDefaults.DEFAULT_APP_NAME
         self._version = FlextCliConstants.CLI_VERSION
-        self._description = f"{self._name} CLI"
+        self._description = (
+            f"{self._name}{FlextCliConstants.APIDefaults.APP_DESCRIPTION_SUFFIX}"
+        )
 
         # Core initialization
         self.logger = FlextLogger(__name__)
         self._container = FlextContainer.get_global()
-        self._container.register("flext_cli", self)
+        self._container.register(
+            FlextCliConstants.APIDefaults.CONTAINER_REGISTRATION_KEY, self
+        )
 
         # Domain library components (domain library pattern)
         self.formatters = FlextCliFormatters()
@@ -135,26 +144,6 @@ class FlextCli:
     def create_tree(self, label: str) -> FlextResult[FlextCliTypes.Display.RichTree]:
         """Create tree using formatters domain library."""
         return self.formatters.create_tree(label=label)
-
-    @property
-    def constants(self) -> type[FlextCliConstants]:
-        """Get CLI constants class (direct module reference)."""
-        return __constants__
-
-    @property
-    def models(self) -> type[FlextCliModels]:
-        """Get CLI models class (direct module reference)."""
-        return __models__
-
-    @property
-    def types(self) -> type[FlextCliTypes]:
-        """Get CLI types class (direct module reference)."""
-        return __types__
-
-    @property
-    def utilities(self) -> FlextCli:
-        """Get CLI utilities instance (returns self)."""
-        return self
 
     def print_table(self, table: FlextCliTypes.Display.RichTable) -> FlextResult[None]:
         """Print a Rich Table object using formatters domain library.

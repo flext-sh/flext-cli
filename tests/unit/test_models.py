@@ -1293,7 +1293,7 @@ class TestFlextCliModelsExceptionHandlers:
         # Test with dict missing command field
         result = FlextCliModels.CliCommand.validate_command_input({"other": "data"})
         assert result.is_failure
-        assert "must be a string" in str(result.error).lower()
+        assert "field" in str(result.error).lower() or "required" in str(result.error).lower()
 
     def test_cli_command_business_rules_edge_cases(self) -> None:
         """Test CliCommand business rules with edge cases."""

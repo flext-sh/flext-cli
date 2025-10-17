@@ -553,7 +553,7 @@ class FlextCliFileTools(FlextService[FlextTypes.Dict]):
     ) -> FlextResult[None]:
         """Create zip archive."""
         try:
-            with zipfile.ZipFile(archive_path, "w") as zipf:
+            with zipfile.ZipFile(archive_path, FlextCliConstants.FileIODefaults.ZIP_WRITE_MODE) as zipf:
                 for file in files:
                     zipf.write(file, Path(file).name)
             return FlextResult[None].ok(None)
@@ -567,7 +567,7 @@ class FlextCliFileTools(FlextService[FlextTypes.Dict]):
     ) -> FlextResult[None]:
         """Extract zip archive."""
         try:
-            with zipfile.ZipFile(archive_path, "r") as zipf:
+            with zipfile.ZipFile(archive_path, FlextCliConstants.FileIODefaults.ZIP_READ_MODE) as zipf:
                 zipf.extractall(extract_to)
             return FlextResult[None].ok(None)
         except Exception as e:
@@ -594,7 +594,7 @@ class FlextCliFileTools(FlextService[FlextTypes.Dict]):
     ) -> FlextResult[FlextTypes.StringList]:
         """Find files by name."""
         try:
-            files = [str(p) for p in Path(directory).rglob("*") if p.name == name]
+            files = [str(p) for p in Path(directory).rglob(FlextCliConstants.FileIODefaults.GLOB_PATTERN_ALL) if p.name == name]
             return FlextResult[FlextTypes.StringList].ok(files)
         except Exception as e:
             return FlextResult[FlextTypes.StringList].fail(
@@ -649,9 +649,9 @@ class FlextCliFileTools(FlextService[FlextTypes.Dict]):
             for format_name, format_info in supported_formats.items():
                 if (
                     isinstance(format_info, dict)
-                    and "extensions" in format_info
-                    and isinstance(format_info["extensions"], (list, tuple))
-                    and extension in format_info["extensions"]
+                    and FlextCliConstants.FileIODefaults.FORMAT_EXTENSIONS_KEY in format_info
+                    and isinstance(format_info[FlextCliConstants.FileIODefaults.FORMAT_EXTENSIONS_KEY], (list, tuple))
+                    and extension in format_info[FlextCliConstants.FileIODefaults.FORMAT_EXTENSIONS_KEY]
                 ):
                     return FlextResult[str].ok(format_name)
 

@@ -15,7 +15,7 @@ from __future__ import annotations
 import sys
 import types
 from collections.abc import Callable
-from typing import ClassVar, TypeVar, cast, get_args, get_origin
+from typing import ClassVar, Literal, TypeVar, cast, get_args, get_origin
 
 import typer
 from flext_core import FlextResult, FlextTypes
@@ -55,30 +55,47 @@ class FlextCliCommonParams:
     # CLI Parameter Metadata Registry
     # Maps field names to CLI-specific metadata (short flags, choices, priority)
     CLI_PARAM_REGISTRY: ClassVar[dict[str, FlextTypes.Dict]] = {
-        "verbose": {"short": "v", "priority": 1},
-        "quiet": {"short": "q", "priority": 2},
-        "debug": {"short": "d", "priority": 3},
-        "trace": {"short": "t", "priority": 4},
+        "verbose": {
+            FlextCliConstants.CliParamsRegistry.KEY_SHORT: FlextCliConstants.CliParamsRegistry.SHORT_FLAG_VERBOSE,
+            FlextCliConstants.CliParamsRegistry.KEY_PRIORITY: FlextCliConstants.CliParamsRegistry.PRIORITY_VERBOSE,
+        },
+        "quiet": {
+            FlextCliConstants.CliParamsRegistry.KEY_SHORT: FlextCliConstants.CliParamsRegistry.SHORT_FLAG_QUIET,
+            FlextCliConstants.CliParamsRegistry.KEY_PRIORITY: FlextCliConstants.CliParamsRegistry.PRIORITY_QUIET,
+        },
+        "debug": {
+            FlextCliConstants.CliParamsRegistry.KEY_SHORT: FlextCliConstants.CliParamsRegistry.SHORT_FLAG_DEBUG,
+            FlextCliConstants.CliParamsRegistry.KEY_PRIORITY: FlextCliConstants.CliParamsRegistry.PRIORITY_DEBUG,
+        },
+        "trace": {
+            FlextCliConstants.CliParamsRegistry.KEY_SHORT: FlextCliConstants.CliParamsRegistry.SHORT_FLAG_TRACE,
+            FlextCliConstants.CliParamsRegistry.KEY_PRIORITY: FlextCliConstants.CliParamsRegistry.PRIORITY_TRACE,
+        },
         "log_level": {
-            "short": "L",
-            "priority": 5,
-            "choices": FlextCliConstants.LOG_LEVELS_LIST,
-            "case_sensitive": False,
+            FlextCliConstants.CliParamsRegistry.KEY_SHORT: FlextCliConstants.CliParamsRegistry.SHORT_FLAG_LOG_LEVEL,
+            FlextCliConstants.CliParamsRegistry.KEY_PRIORITY: FlextCliConstants.CliParamsRegistry.PRIORITY_LOG_LEVEL,
+            FlextCliConstants.CliParamsRegistry.KEY_CHOICES: FlextCliConstants.LOG_LEVELS_LIST,
+            FlextCliConstants.CliParamsRegistry.KEY_CASE_SENSITIVE: FlextCliConstants.CliParamsRegistry.CASE_INSENSITIVE,
         },
         "log_verbosity": {
-            "priority": 6,
-            "choices": FlextCliConstants.CliParamsDefaults.VALID_LOG_FORMATS,
-            "case_sensitive": False,
-            "field_name_override": "log-format",  # CLI uses --log-format
+            FlextCliConstants.CliParamsRegistry.KEY_PRIORITY: FlextCliConstants.CliParamsRegistry.PRIORITY_LOG_FORMAT,
+            FlextCliConstants.CliParamsRegistry.KEY_CHOICES: FlextCliConstants.CliParamsDefaults.VALID_LOG_FORMATS,
+            FlextCliConstants.CliParamsRegistry.KEY_CASE_SENSITIVE: FlextCliConstants.CliParamsRegistry.CASE_INSENSITIVE,
+            FlextCliConstants.CliParamsRegistry.KEY_FIELD_NAME_OVERRIDE: FlextCliConstants.CliParamsRegistry.LOG_FORMAT_OVERRIDE,
         },
         "output_format": {
-            "short": "o",
-            "priority": 7,
-            "choices": FlextCliConstants.CliParamsDefaults.VALID_OUTPUT_FORMATS,
-            "case_sensitive": False,
+            FlextCliConstants.CliParamsRegistry.KEY_SHORT: FlextCliConstants.CliParamsRegistry.SHORT_FLAG_OUTPUT_FORMAT,
+            FlextCliConstants.CliParamsRegistry.KEY_PRIORITY: FlextCliConstants.CliParamsRegistry.PRIORITY_OUTPUT_FORMAT,
+            FlextCliConstants.CliParamsRegistry.KEY_CHOICES: FlextCliConstants.CliParamsDefaults.VALID_OUTPUT_FORMATS,
+            FlextCliConstants.CliParamsRegistry.KEY_CASE_SENSITIVE: FlextCliConstants.CliParamsRegistry.CASE_INSENSITIVE,
         },
-        "no_color": {"priority": 8},
-        "config_file": {"short": "c", "priority": 9},
+        "no_color": {
+            FlextCliConstants.CliParamsRegistry.KEY_PRIORITY: FlextCliConstants.CliParamsRegistry.PRIORITY_NO_COLOR,
+        },
+        "config_file": {
+            FlextCliConstants.CliParamsRegistry.KEY_SHORT: FlextCliConstants.CliParamsRegistry.SHORT_FLAG_CONFIG_FILE,
+            FlextCliConstants.CliParamsRegistry.KEY_PRIORITY: FlextCliConstants.CliParamsRegistry.PRIORITY_CONFIG_FILE,
+        },
     }
 
     # Class-level flag to track if parameters are enabled
@@ -149,7 +166,9 @@ class FlextCliCommonParams:
             raise ValueError(msg)
 
         field_info = fields[field_name]
-        field_schema = schema["properties"].get(field_name, {})
+        field_schema = schema[FlextCliConstants.JsonSchemaKeys.PROPERTIES].get(
+            field_name, {}
+        )
         param_meta = cls.CLI_PARAM_REGISTRY.get(field_name, {})
 
         # Get base type (handle Optional/Union types)
@@ -164,14 +183,16 @@ class FlextCliCommonParams:
             field_type = args[0] if args else str
 
         # Build parameter declarations (--param-name, -short)
-        cli_name_raw = param_meta.get("field_name_override", field_name)
+        cli_name_raw = param_meta.get(
+            FlextCliConstants.CliParamsRegistry.KEY_FIELD_NAME_OVERRIDE, field_name
+        )
         # Type narrowing: must be str (from field_name or registry)
         cli_name = str(cli_name_raw) if cli_name_raw != field_name else field_name
-        option_name = f"--{cli_name.replace('_', '-')}"
+        option_name = f"--{cli_name.replace(FlextCliConstants.CliParamDefaults.FIELD_NAME_SEPARATOR, FlextCliConstants.CliParamDefaults.PARAM_NAME_SEPARATOR)}"
         param_decls = [option_name]
 
-        if "short" in param_meta:
-            short_val = param_meta["short"]
+        if FlextCliConstants.CliParamsRegistry.KEY_SHORT in param_meta:
+            short_val = param_meta[FlextCliConstants.CliParamsRegistry.KEY_SHORT]
             # Type narrowing: must be str
             if isinstance(short_val, str):
                 param_decls.insert(0, f"-{short_val}")
@@ -193,8 +214,8 @@ class FlextCliCommonParams:
         )
 
         # Enhance help text with choices
-        if "choices" in param_meta:
-            choices_val = param_meta["choices"]
+        if FlextCliConstants.CliParamsRegistry.KEY_CHOICES in param_meta:
+            choices_val = param_meta[FlextCliConstants.CliParamsRegistry.KEY_CHOICES]
             # Type narrowing: must be sequence
             if isinstance(choices_val, (list, tuple)):
                 choices_str = ", ".join(str(c) for c in choices_val)
@@ -203,26 +224,28 @@ class FlextCliCommonParams:
                 )
 
         # Enhance help text with constraints
-        if "minimum" in field_schema and "maximum" in field_schema:
+        minimum_key = FlextCliConstants.JsonSchemaKeys.MINIMUM
+        maximum_key = FlextCliConstants.JsonSchemaKeys.MAXIMUM
+        if minimum_key in field_schema and maximum_key in field_schema:
             help_text += FlextCliConstants.CliParamsDefaults.RANGE_HELP_SUFFIX.format(
-                minimum=field_schema["minimum"],
-                maximum=field_schema["maximum"]
+                minimum=field_schema[minimum_key],
+                maximum=field_schema[maximum_key]
             )
 
         # Build typer.Option parameters explicitly (type-safe)
         # Extract optional parameters with proper types
         case_sensitive_val: bool | None = None
-        if "case_sensitive" in param_meta:
-            cs_raw = param_meta["case_sensitive"]
+        if FlextCliConstants.CliParamsRegistry.KEY_CASE_SENSITIVE in param_meta:
+            cs_raw = param_meta[FlextCliConstants.CliParamsRegistry.KEY_CASE_SENSITIVE]
             case_sensitive_val = bool(cs_raw) if isinstance(cs_raw, bool) else None
 
         min_val: float | int | None = None
         max_val: float | int | None = None
-        if "minimum" in field_schema:
-            min_raw = field_schema["minimum"]
+        if minimum_key in field_schema:
+            min_raw = field_schema[minimum_key]
             min_val = min_raw if isinstance(min_raw, (int, float)) else None
-        if "maximum" in field_schema:
-            max_raw = field_schema["maximum"]
+        if maximum_key in field_schema:
+            max_raw = field_schema[maximum_key]
             max_val = max_raw if isinstance(max_raw, (int, float)) else None
 
         show_default_val = default_value is not None
@@ -305,9 +328,12 @@ class FlextCliCommonParams:
             >>> params["verbose"]  # typer.Option(False, "--verbose", "-v", help="...")
 
         """
+        default_priority = FlextCliConstants.PriorityDefaults.DEFAULT_PRIORITY
         param_fields = sorted(
             cls.CLI_PARAM_REGISTRY.items(),
-            key=lambda x: int(str(x[1].get("priority", 999))),
+            key=lambda x: int(
+                str(x[1].get(FlextCliConstants.CliParamsRegistry.KEY_PRIORITY, default_priority))
+            ),
         )
 
         return {
@@ -365,7 +391,8 @@ class FlextCliCommonParams:
                 config.trace = trace
             if log_level is not None:
                 # Validate log level
-                if log_level.upper() not in FlextCliConstants.LOG_LEVELS_LIST:
+                log_level_upper = log_level.upper()
+                if log_level_upper not in FlextCliConstants.LOG_LEVELS_LIST:
                     valid = ", ".join(FlextCliConstants.LOG_LEVELS_LIST)
                     return FlextResult[FlextCliConfig].fail(
                         FlextCliConstants.CliParamsErrorMessages.INVALID_LOG_LEVEL.format(
@@ -373,10 +400,11 @@ class FlextCliCommonParams:
                             valid=valid
                         )
                     )
-                config.log_level = log_level.upper()
+                config.log_level = log_level_upper
             if log_format is not None:
                 # Validate log format
-                if log_format.lower() not in FlextCliConstants.CliParamsDefaults.VALID_LOG_FORMATS:
+                log_format_lower = log_format.lower()
+                if log_format_lower not in FlextCliConstants.CliParamsDefaults.VALID_LOG_FORMATS:
                     valid = ", ".join(FlextCliConstants.CliParamsDefaults.VALID_LOG_FORMATS)
                     return FlextResult[FlextCliConfig].fail(
                         FlextCliConstants.CliParamsErrorMessages.INVALID_LOG_FORMAT.format(
@@ -384,10 +412,11 @@ class FlextCliCommonParams:
                             valid=valid
                         )
                     )
-                config.log_verbosity = log_format.lower()
+                config.log_verbosity = cast("Literal['compact', 'detailed', 'full']", log_format_lower)
             if output_format is not None:
                 # Validate output format
-                if output_format.lower() not in FlextCliConstants.CliParamsDefaults.VALID_OUTPUT_FORMATS:
+                output_format_lower = output_format.lower()
+                if output_format_lower not in FlextCliConstants.CliParamsDefaults.VALID_OUTPUT_FORMATS:
                     valid = ", ".join(FlextCliConstants.CliParamsDefaults.VALID_OUTPUT_FORMATS)
                     return FlextResult[FlextCliConfig].fail(
                         FlextCliConstants.CliParamsErrorMessages.INVALID_OUTPUT_FORMAT.format(
@@ -395,7 +424,7 @@ class FlextCliCommonParams:
                             valid=valid
                         )
                     )
-                config.output_format = output_format.lower()
+                config.output_format = output_format_lower
             if no_color is not None:
                 config.no_color = no_color
 
@@ -428,13 +457,13 @@ class FlextCliCommonParams:
         """
         try:
             # Validate log level is valid
-            log_level = config.log_level.upper()
+            log_level_upper = config.log_level.upper()
 
-            if log_level not in FlextCliConstants.LOG_LEVELS_LIST:
+            if log_level_upper not in FlextCliConstants.LOG_LEVELS_LIST:
                 valid = ", ".join(FlextCliConstants.LOG_LEVELS_LIST)
                 return FlextResult[None].fail(
                     FlextCliConstants.CliParamsErrorMessages.INVALID_LOG_LEVEL.format(
-                        log_level=log_level,
+                        log_level=log_level_upper,
                         valid=valid
                     )
                 )
@@ -503,7 +532,7 @@ class FlextCliCommonParams:
             validation = cls.validate_enabled()
             if validation.is_failure and cls._enforcement_mode:
                 # In enforcement mode, any attempt to disable params is an error
-                sys.exit(1)
+                sys.exit(FlextCliConstants.ExitCodes.FAILURE)
 
             # For Typer, parameters are defined in function signature
             # This decorator validates enforcement only

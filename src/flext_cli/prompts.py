@@ -109,7 +109,7 @@ class FlextCliPrompts(FlextService[FlextCliTypes.Data.CliDataDict]):
             in os.environ.get(
                 FlextCliConstants.EnvironmentConstants.UNDERSCORE, ""
             ).lower()
-            or os.environ.get("CI") == "true"
+            or os.environ.get(FlextCliConstants.EnvironmentConstants.CI) == FlextCliConstants.EnvironmentConstants.CI_TRUE_VALUE
         )
 
     def prompt_text(
@@ -194,7 +194,7 @@ class FlextCliPrompts(FlextService[FlextCliTypes.Data.CliDataDict]):
 
         try:
             # Record prompt for history
-            self._prompt_history.append(f"{message} (y/n)")
+            self._prompt_history.append(f"{message}{FlextCliConstants.PromptsDefaults.CONFIRMATION_SUFFIX}")
 
             # Use input with timeout if available
 
@@ -245,9 +245,18 @@ class FlextCliPrompts(FlextService[FlextCliTypes.Data.CliDataDict]):
         try:
             # Record prompt for history
             choice_list = ", ".join(
-                f"{i + 1}. {choice}" for i, choice in enumerate(choices)
+                FlextCliConstants.PromptsDefaults.CHOICE_LIST_FORMAT.format(
+                    index=i + 1, choice=choice
+                )
+                for i, choice in enumerate(choices)
             )
-            self._prompt_history.append(f"{message}\n{choice_list}")
+            self._prompt_history.append(
+                FlextCliConstants.PromptsDefaults.CHOICE_HISTORY_FORMAT.format(
+                    message=message,
+                    separator=FlextCliConstants.PromptsDefaults.CHOICE_PROMPT_SEPARATOR,
+                    options=choice_list,
+                )
+            )
 
             # Use input with timeout if available
 
@@ -294,7 +303,9 @@ class FlextCliPrompts(FlextService[FlextCliTypes.Data.CliDataDict]):
             self._prompt_history.append(f"{message} [password hidden]")
 
             # Use getpass for secure password input
-            password = getpass.getpass(prompt=message + " ")
+            password = getpass.getpass(
+                prompt=message + FlextCliConstants.PromptsDefaults.PROMPT_SPACE_SUFFIX
+            )
 
             if len(password) < min_length:
                 return FlextResult[str].fail(
@@ -477,7 +488,9 @@ class FlextCliPrompts(FlextService[FlextCliTypes.Data.CliDataDict]):
             )
 
     def select_from_options(
-        self, options: FlextTypes.StringList, message: str = "Choose an option:"
+        self,
+        options: FlextTypes.StringList,
+        message: str = FlextCliConstants.PromptsDefaults.DEFAULT_CHOICE_MESSAGE,
     ) -> FlextResult[str]:
         """Prompt user to select from multiple options.
 
@@ -491,7 +504,13 @@ class FlextCliPrompts(FlextService[FlextCliTypes.Data.CliDataDict]):
         """
         try:
             # Store selection prompt for history
-            self._prompt_history.append(f"{message}: {options}")
+            self._prompt_history.append(
+                FlextCliConstants.PromptsDefaults.CHOICE_HISTORY_FORMAT.format(
+                    message=message,
+                    separator=FlextCliConstants.PromptsDefaults.PROMPT_INPUT_SEPARATOR,
+                    options=options,
+                )
+            )
 
             # Display options to user
             if not options:
