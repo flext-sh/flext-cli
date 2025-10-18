@@ -15,14 +15,14 @@ from datetime import UTC, datetime
 from pathlib import Path
 from typing import override
 
-from flext_core import FlextResult, FlextService, FlextTypes
+from flext_core import FlextResult, FlextService
 
 from flext_cli.config import FlextCliConfig
 from flext_cli.constants import FlextCliConstants
 from flext_cli.file_tools import FlextCliFileTools
 
 
-class FlextCliCmd(FlextService[FlextTypes.Dict]):
+class FlextCliCmd(FlextService[dict[str, object]]):
     """CMD service extending FlextService from flext-core.
 
     Provides essential command functionality using flext-core patterns.
@@ -39,9 +39,9 @@ class FlextCliCmd(FlextService[FlextTypes.Dict]):
         # Logger is automatically provided by FlextMixins mixin
         self._file_tools = FlextCliFileTools()
 
-    def execute(self) -> FlextResult[FlextTypes.Dict]:
+    def execute(self) -> FlextResult[dict[str, object]]:
         """Execute command service - required by FlextService."""
-        return FlextResult[FlextTypes.Dict].ok({
+        return FlextResult[dict[str, object]].ok({
             FlextCliConstants.DictKeys.STATUS: FlextCliConstants.ServiceStatus.OPERATIONAL.value,
             FlextCliConstants.DictKeys.SERVICE: FlextCliConstants.CmdDefaults.SERVICE_NAME,
         })
@@ -51,7 +51,7 @@ class FlextCliCmd(FlextService[FlextTypes.Dict]):
         """Create new instance of FlextCliCmd."""
         return cls()
 
-    def _get_config_paths(self) -> FlextTypes.StringList:
+    def _get_config_paths(self) -> list[str]:
         """Get standard configuration paths."""
         home = Path.home()
         flext_dir = home / FlextCliConstants.FLEXT_DIR_NAME
@@ -65,9 +65,9 @@ class FlextCliCmd(FlextService[FlextTypes.Dict]):
             str(flext_dir / FlextCliConstants.Subdirectories.REFRESH_TOKEN),
         ]
 
-    def _validate_config_structure(self) -> FlextTypes.StringList:
+    def _validate_config_structure(self) -> list[str]:
         """Validate configuration directory structure."""
-        results: FlextTypes.StringList = []
+        results: list[str] = []
         home = Path.home()
         flext_dir = home / FlextCliConstants.FLEXT_DIR_NAME
 
@@ -101,7 +101,7 @@ class FlextCliCmd(FlextService[FlextTypes.Dict]):
 
         return results
 
-    def _get_config_info(self) -> FlextTypes.Dict:
+    def _get_config_info(self) -> dict[str, object]:
         """Get configuration information."""
         home = Path.home()
         flext_dir = home / FlextCliConstants.FLEXT_DIR_NAME
@@ -116,13 +116,13 @@ class FlextCliCmd(FlextService[FlextTypes.Dict]):
             FlextCliConstants.DictKeys.TIMESTAMP: datetime.now(UTC).isoformat(),
         }
 
-    def show_config_paths(self) -> FlextResult[FlextTypes.StringList]:
+    def show_config_paths(self) -> FlextResult[list[str]]:
         """Show configuration paths."""
         try:
             paths = self._get_config_paths()
-            return FlextResult[FlextTypes.StringList].ok(paths)
+            return FlextResult[list[str]].ok(paths)
         except Exception as e:
-            return FlextResult[FlextTypes.StringList].fail(
+            return FlextResult[list[str]].fail(
                 FlextCliConstants.ErrorMessages.CONFIG_PATHS_FAILED.format(error=e)
             )
 
@@ -142,13 +142,13 @@ class FlextCliCmd(FlextService[FlextTypes.Dict]):
                 FlextCliConstants.ErrorMessages.CONFIG_VALIDATION_FAILED.format(error=e)
             )
 
-    def get_config_info(self) -> FlextResult[FlextTypes.Dict]:
+    def get_config_info(self) -> FlextResult[dict[str, object]]:
         """Get configuration information."""
         try:
             info = self._get_config_info()
-            return FlextResult[FlextTypes.Dict].ok(info)
+            return FlextResult[dict[str, object]].ok(info)
         except Exception as e:
-            return FlextResult[FlextTypes.Dict].fail(
+            return FlextResult[dict[str, object]].fail(
                 FlextCliConstants.ErrorMessages.CONFIG_INFO_FAILED.format(error=e)
             )
 
@@ -160,7 +160,7 @@ class FlextCliCmd(FlextService[FlextTypes.Dict]):
             # Set the configuration value using flext-core utilities
 
             # Create configuration data
-            config_data: FlextTypes.Dict = {key: value}
+            config_data: dict[str, object] = {key: value}
 
             # Save to file using FlextCliFileTools
             config_path = (
@@ -191,7 +191,7 @@ class FlextCliCmd(FlextService[FlextTypes.Dict]):
                 FlextCliConstants.ErrorMessages.SET_CONFIG_FAILED.format(error=e)
             )
 
-    def get_config_value(self, key: str) -> FlextResult[FlextTypes.Dict]:
+    def get_config_value(self, key: str) -> FlextResult[dict[str, object]]:
         """Get configuration value with real persistence using flext-core."""
         try:
             # Use flext-core configuration system for real persistence
@@ -204,7 +204,7 @@ class FlextCliCmd(FlextService[FlextTypes.Dict]):
 
             # Check if config file exists
             if not config_path.exists():
-                return FlextResult[FlextTypes.Dict].fail(
+                return FlextResult[dict[str, object]].fail(
                     FlextCliConstants.CmdErrorMessages.CONFIG_FILE_NOT_FOUND.format(
                         path=config_path
                     )
@@ -213,7 +213,7 @@ class FlextCliCmd(FlextService[FlextTypes.Dict]):
             # Load configuration data using FlextCliFileTools
             load_result = self._file_tools.read_json_file(str(config_path))
             if load_result.is_failure:
-                return FlextResult[FlextTypes.Dict].fail(
+                return FlextResult[dict[str, object]].fail(
                     FlextCliConstants.CmdErrorMessages.CONFIG_LOAD_FAILED.format(
                         error=load_result.error
                     )
@@ -223,27 +223,27 @@ class FlextCliCmd(FlextService[FlextTypes.Dict]):
 
             # Ensure config_data is a dict
             if not isinstance(config_data, dict):
-                return FlextResult[FlextTypes.Dict].fail(
+                return FlextResult[dict[str, object]].fail(
                     FlextCliConstants.CmdErrorMessages.CONFIG_NOT_DICT
                 )
 
             # Get the specific key value
             if key not in config_data:
-                return FlextResult[FlextTypes.Dict].fail(
+                return FlextResult[dict[str, object]].fail(
                     FlextCliConstants.CmdErrorMessages.CONFIG_KEY_NOT_FOUND.format(
                         key=key
                     )
                 )
 
-            result_data: FlextTypes.Dict = {
+            result_data: dict[str, object] = {
                 FlextCliConstants.DictKeys.KEY: key,
                 FlextCliConstants.DictKeys.VALUE: config_data[key],
                 FlextCliConstants.DictKeys.TIMESTAMP: datetime.now(UTC).isoformat(),
             }
-            return FlextResult[FlextTypes.Dict].ok(result_data)
+            return FlextResult[dict[str, object]].ok(result_data)
 
         except Exception as e:
-            return FlextResult[FlextTypes.Dict].fail(
+            return FlextResult[dict[str, object]].fail(
                 FlextCliConstants.CmdErrorMessages.GET_CONFIG_FAILED.format(error=e)
             )
 
@@ -295,7 +295,7 @@ class FlextCliCmd(FlextService[FlextTypes.Dict]):
                 }
 
                 # Save default configuration - convert values to object type
-                config_data: FlextTypes.Dict = {
+                config_data: dict[str, object] = {
                     FlextCliConstants.DictKeys.HOST: str(
                         default_config[FlextCliConstants.DictKeys.HOST]
                     ),
@@ -331,7 +331,7 @@ class FlextCliCmd(FlextService[FlextTypes.Dict]):
                     FlextCliConstants.CmdErrorMessages.CONFIG_NOT_DICT
                 )
 
-            loaded_config_data: FlextTypes.Dict = load_result.value
+            loaded_config_data: dict[str, object] = load_result.value
 
             # For now, return success with config info
             # In a real implementation, this would open an editor

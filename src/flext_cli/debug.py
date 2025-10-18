@@ -72,13 +72,13 @@ class FlextCliDebug(FlextService[str]):
 
     def validate_environment_setup(
         self,
-    ) -> FlextResult[FlextTypes.StringList]:
+    ) -> FlextResult[list[str]]:
         """Validate environment setup and dependencies."""
         try:
             results = self._validate_filesystem_permissions()
-            return FlextResult[FlextTypes.StringList].ok(results)
+            return FlextResult[list[str]].ok(results)
         except Exception as e:
-            return FlextResult[FlextTypes.StringList].fail(
+            return FlextResult[list[str]].fail(
                 FlextCliConstants.DebugErrorMessages.ENVIRONMENT_VALIDATION_FAILED.format(
                     error=e
                 )
@@ -86,7 +86,7 @@ class FlextCliDebug(FlextService[str]):
 
     def test_connectivity(
         self,
-    ) -> FlextResult[FlextTypes.StringDict]:
+    ) -> FlextResult[dict[str, str]]:
         """Test basic connectivity and service status."""
         try:
             connectivity_info = {
@@ -95,9 +95,9 @@ class FlextCliDebug(FlextService[str]):
                 FlextCliConstants.DictKeys.SERVICE: str(FlextCliDebug),
                 FlextCliConstants.DebugDictKeys.CONNECTIVITY: FlextCliConstants.ServiceStatus.OPERATIONAL.value,
             }
-            return FlextResult[FlextTypes.StringDict].ok(connectivity_info)
+            return FlextResult[dict[str, str]].ok(connectivity_info)
         except Exception as e:
-            return FlextResult[FlextTypes.StringDict].fail(
+            return FlextResult[dict[str, str]].fail(
                 FlextCliConstants.DebugErrorMessages.CONNECTIVITY_TEST_FAILED.format(
                     error=e
                 )
@@ -119,9 +119,7 @@ class FlextCliDebug(FlextService[str]):
                 FlextCliConstants.DebugErrorMessages.HEALTH_CHECK_FAILED.format(error=e)
             )
 
-    def execute_trace(
-        self, args: FlextTypes.StringList
-    ) -> FlextResult[Types.Data.DebugInfoData]:
+    def execute_trace(self, args: list[str]) -> FlextResult[Types.Data.DebugInfoData]:
         """Execute trace operation with provided arguments."""
         try:
             trace_info: Types.Data.DebugInfoData = {
@@ -212,7 +210,7 @@ class FlextCliDebug(FlextService[str]):
     ) -> FlextResult[Types.Data.DebugInfoData]:
         """Get comprehensive debug information combining all debug methods."""
         try:
-            comprehensive_info: FlextTypes.Dict = {}
+            comprehensive_info: dict[str, object] = {}
 
             # Collect system info
             system_result = self.get_system_info()
@@ -275,7 +273,7 @@ class FlextCliDebug(FlextService[str]):
     # PRIVATE HELPER METHODS - Implementation details
     # =========================================================================
 
-    def _get_system_info(self) -> FlextTypes.Dict:
+    def _get_system_info(self) -> dict[str, object]:
         """Get basic system information."""
         return {
             FlextCliConstants.DebugDictKeys.PYTHON_VERSION: sys.version,
@@ -285,9 +283,9 @@ class FlextCliDebug(FlextService[str]):
             FlextCliConstants.DebugDictKeys.HOSTNAME: platform.node(),
         }
 
-    def _get_environment_info(self) -> FlextTypes.StringDict:
+    def _get_environment_info(self) -> dict[str, str]:
         """Get environment variables with sensitive data masked."""
-        env_info: FlextTypes.StringDict = {}
+        env_info: dict[str, str] = {}
 
         for key, value in os.environ.items():
             if any(
@@ -300,7 +298,7 @@ class FlextCliDebug(FlextService[str]):
 
         return env_info
 
-    def _get_path_info(self) -> list[FlextTypes.Dict]:
+    def _get_path_info(self) -> list[dict[str, object]]:
         """Get system path information."""
         paths = []
         for i, path in enumerate(sys.path):
@@ -316,7 +314,7 @@ class FlextCliDebug(FlextService[str]):
 
         return paths
 
-    def _validate_filesystem_permissions(self) -> FlextTypes.StringList:
+    def _validate_filesystem_permissions(self) -> list[str]:
         """Validate filesystem permissions and setup."""
         errors = []
 

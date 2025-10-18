@@ -129,27 +129,6 @@ class TestFlextCli:
         assert "key: value" in formatted_output
         assert "number: 42" in formatted_output
 
-    def test_format_data_csv(self, api_service: FlextCli) -> None:
-        """Test CSV data formatting functionality using formatters."""
-        test_data: dict[
-            str,
-            str | int | float | bool | FlextTypes.List | FlextTypes.Dict | None,
-        ] = {
-            "John": "30 | New York",
-            "Jane": "25 | London",
-        }
-
-        # Use formatters to create table
-        result = api_service.create_table(
-            data=test_data, headers=["Name", "Age | City"], title="User Data"
-        )
-
-        assert isinstance(result, FlextResult)
-        assert result.is_success
-
-        table = result.unwrap()
-        assert table is not None
-
     def test_display_output(self, api_service: FlextCli) -> None:
         """Test output display functionality using formatters."""
         test_output = "This is test output content"
@@ -161,20 +140,6 @@ class TestFlextCli:
 
         # The print method should return success
         assert result.unwrap() is None
-
-    # ========================================================================
-    # PROGRESS BAR AND STATUS DISPLAY
-    # ========================================================================
-
-    def test_create_progress_bar(self, api_service: FlextCli) -> None:
-        """Test progress bar creation functionality using formatters."""
-        result = api_service.create_progress()
-
-        assert isinstance(result, FlextResult)
-        assert result.is_success
-
-        progress_bar = result.unwrap()
-        assert progress_bar is not None
 
     # ========================================================================
     # FILE OPERATIONS
@@ -365,8 +330,8 @@ class TestFlextCli:
     def test_save_config(self, api_service: FlextCli, temp_dir: Path) -> None:
         """Test configuration saving functionality."""
         config_file = temp_dir / "test_save_config.json"
-        test_config: FlextTypes.Dict = cast(
-            "FlextTypes.Dict",
+        test_config: dict[str, object] = cast(
+            "dict[str, object]",
             {
                 "debug": False,
                 "output_format": "table",
@@ -715,54 +680,11 @@ nested:
         assert isinstance(result, FlextResult)
         assert result.is_success
 
-    # ========================================================================
-    # FILE OPERATION WRAPPER TESTS
-    # ========================================================================
-
-    def test_read_text_file_wrapper(
-        self, api_service: FlextCli, temp_file: Path
-    ) -> None:
-        """Test read_text_file wrapper method."""
-        result = api_service.read_text_file(temp_file)
-
-        assert isinstance(result, FlextResult)
-        assert result.is_success
-        assert result.unwrap() == "test content"
-
-    def test_write_text_file_wrapper(
-        self, api_service: FlextCli, temp_dir: Path
-    ) -> None:
-        """Test write_text_file wrapper method."""
-        test_file = temp_dir / "wrapper_test.txt"
-        test_content = "wrapper test content"
-
-        result = api_service.write_text_file(test_file, test_content)
-
-        assert isinstance(result, FlextResult)
-        assert result.is_success
-        assert test_file.exists()
-        assert test_file.read_text() == test_content
-
-    # ========================================================================
-    # PRINT AND FORMATTING WRAPPER TESTS
-    # ========================================================================
-
-    def test_print_wrapper(self, api_service: FlextCli) -> None:
-        """Test print wrapper method."""
-        result = api_service.print("Test message", style="cyan")
-
-        assert isinstance(result, FlextResult)
-        assert result.is_success
-
-    def test_create_tree_wrapper(self, api_service: FlextCli) -> None:
-        """Test create_tree wrapper method."""
-        result = api_service.create_tree("Test Tree")
-
-        assert isinstance(result, FlextResult)
-        assert result.is_success
-
-        tree = result.unwrap()
-        assert tree is not None
+    # NOTE: Wrapper methods removed in Phase 2 refactoring
+    # - Removed: test_read_text_file_wrapper, test_write_text_file_wrapper
+    # - Removed: test_print_wrapper, test_create_tree_wrapper
+    # These tested 1:1 delegation methods that were eliminated to follow
+    # direct access pattern: use cli.file_tools.read_text_file() directly
 
     # ========================================================================
     # COVERAGE COMPLETION TESTS - Missing Lines in api.py
@@ -1012,43 +934,9 @@ nested:
         # Verify valid tokens were cleared (line 346)
         assert len(api_service._valid_tokens) == 0
 
-    def test_print_table_success(self) -> None:
-        """Test print_table success case (line 171)."""
-        from unittest.mock import Mock
-
-        api_service = FlextCli()
-
-        # Mock formatters.get_console().print to succeed
-        mock_console = Mock()
-        mock_console.print = Mock(return_value=None)
-
-        # Mock formatters.get_console() to return our mock console
-        api_service.formatters.get_console = Mock(return_value=mock_console)
-
-        result = api_service.print_table("mock_table")
-
-        assert result.is_success
-        assert result.unwrap() is None
-        # Verify print was called with the table
-        mock_console.print.assert_called_once_with("mock_table")
-
-    def test_print_table_exception(self, monkeypatch: pytest.MonkeyPatch) -> None:
-        """Test print_table exception handler (lines 199-203)."""
-        from unittest.mock import Mock
-
-        api_service = FlextCli()
-
-        # Mock formatters.get_console().print to raise exception
-        mock_console = Mock()
-        mock_console.print = Mock(side_effect=RuntimeError("Print failed"))
-
-        # Mock formatters.get_console() to return our mock console
-        api_service.formatters.get_console = Mock(return_value=mock_console)
-
-        result = api_service.print_table("mock_table")
-
-        assert result.is_failure
-        assert "failed to print table" in str(result.error).lower()
+    # NOTE: print_table wrapper method removed in Phase 2 refactoring
+    # Tests print_table_success and print_table_exception removed as they tested
+    # a wrapper method that no longer exists.
 
     def test_get_auth_token_not_dict(
         self, api_service: FlextCli, monkeypatch: pytest.MonkeyPatch

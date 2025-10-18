@@ -311,8 +311,7 @@ class FlextCliModels(FlextModels):
             except Exception as e:
                 return FlextResult[FlextCliModels.CliParameterSpec].fail(
                     FlextCliConstants.ModelsErrorMessages.FAILED_FIELD_CONVERSION.format(
-                        field_name=field_name,
-                        error=str(e)
+                        field_name=field_name, error=str(e)
                     )
                 )
 
@@ -351,8 +350,7 @@ class FlextCliModels(FlextModels):
             except Exception as e:
                 return FlextResult[list[FlextCliModels.CliParameterSpec]].fail(
                     FlextCliConstants.ModelsErrorMessages.FAILED_MODEL_CONVERSION.format(
-                        model_name=model_class.__name__,
-                        error=str(e)
+                        model_name=model_class.__name__, error=str(e)
                     )
                 )
 
@@ -410,8 +408,7 @@ class FlextCliModels(FlextModels):
             except Exception as e:
                 return FlextResult[list[FlextCliModels.CliOptionSpec]].fail(
                     FlextCliConstants.ModelsErrorMessages.FAILED_CLICK_OPTIONS_GENERATION.format(
-                        model_name=model_class.__name__,
-                        error=str(e)
+                        model_name=model_class.__name__, error=str(e)
                     )
                 )
 
@@ -450,8 +447,7 @@ class FlextCliModels(FlextModels):
             except Exception as e:
                 return FlextResult[BaseModel].fail(
                     FlextCliConstants.ModelsErrorMessages.FAILED_MODEL_CREATION_FROM_CLI.format(
-                        model_name=model_class.__name__,
-                        error=str(e)
+                        model_name=model_class.__name__, error=str(e)
                     )
                 )
 
@@ -502,8 +498,16 @@ class FlextCliModels(FlextModels):
                 func: Callable[..., FlextTypes.JsonValue],
             ) -> Callable[..., FlextTypes.JsonValue | FlextResult[object]]:
                 # Store model metadata on function for CLI builder inspection
-                setattr(func, FlextCliConstants.CliParamDefaults.MAGIC_ATTR_CLI_MODEL, model_class)
-                setattr(func, FlextCliConstants.CliParamDefaults.MAGIC_ATTR_CLI_COMMAND_NAME, command_name or func.__name__)
+                setattr(
+                    func,
+                    FlextCliConstants.CliParamDefaults.MAGIC_ATTR_CLI_MODEL,
+                    model_class,
+                )
+                setattr(
+                    func,
+                    FlextCliConstants.CliParamDefaults.MAGIC_ATTR_CLI_COMMAND_NAME,
+                    command_name or func.__name__,
+                )
 
                 def wrapper(
                     **cli_kwargs: FlextTypes.JsonValue,
@@ -562,8 +566,16 @@ class FlextCliModels(FlextModels):
                 func: Callable[..., FlextTypes.JsonValue],
             ) -> Callable[..., FlextTypes.JsonValue | FlextResult[object]]:
                 # Store multiple models metadata
-                setattr(func, FlextCliConstants.CliParamDefaults.MAGIC_ATTR_CLI_MODELS, model_classes)
-                setattr(func, FlextCliConstants.CliParamDefaults.MAGIC_ATTR_CLI_COMMAND_NAME, command_name or func.__name__)
+                setattr(
+                    func,
+                    FlextCliConstants.CliParamDefaults.MAGIC_ATTR_CLI_MODELS,
+                    model_classes,
+                )
+                setattr(
+                    func,
+                    FlextCliConstants.CliParamDefaults.MAGIC_ATTR_CLI_COMMAND_NAME,
+                    command_name or func.__name__,
+                )
 
                 def wrapper(
                     **cli_kwargs: FlextTypes.JsonValue,
@@ -584,7 +596,7 @@ class FlextCliModels(FlextModels):
                             return FlextResult[object].fail(
                                 FlextCliConstants.ModelsErrorMessages.VALIDATION_FAILED_FOR_MODEL.format(
                                     model_name=model_class.__name__,
-                                    error=validation_result.error
+                                    error=validation_result.error,
                                 )
                             )
 
@@ -703,8 +715,7 @@ class FlextCliModels(FlextModels):
             if v not in allowed_statuses:
                 raise ValueError(
                     FlextCliConstants.ModelsErrorMessages.INVALID_STATUS.format(
-                        value=v,
-                        allowed=", ".join(sorted(allowed_statuses))
+                        value=v, allowed=", ".join(sorted(allowed_statuses))
                     )
                 )
             return v
@@ -779,7 +790,10 @@ class FlextCliModels(FlextModels):
             ]
             for pattern in sensitive_patterns:
                 if pattern in value.lower():
-                    return value.replace(pattern, FlextCliConstants.CliParamDefaults.MASK_CHAR * len(pattern))
+                    return value.replace(
+                        pattern,
+                        FlextCliConstants.CliParamDefaults.MASK_CHAR * len(pattern),
+                    )
             return value
 
         @classmethod
@@ -993,7 +1007,10 @@ class FlextCliModels(FlextModels):
                 session_id=self.session_id,
                 is_active=self.status == FlextCliConstants.SessionStatus.ACTIVE.value,
                 commands_count=len(self.commands),
-                duration_minutes=round(duration / FlextCliConstants.CliSessionDefaults.SECONDS_PER_MINUTE, 2),
+                duration_minutes=round(
+                    duration / FlextCliConstants.CliSessionDefaults.SECONDS_PER_MINUTE,
+                    2,
+                ),
                 has_user=self.user_id is not None,
                 last_activity_age=self._calculate_activity_age(),
             )
@@ -1148,8 +1165,7 @@ class FlextCliModels(FlextModels):
             if v not in valid_levels:
                 raise ValueError(
                     FlextCliConstants.ModelsErrorMessages.INVALID_DEBUG_LEVEL.format(
-                        value=v,
-                        allowed=", ".join(sorted(valid_levels))
+                        value=v, allowed=", ".join(sorted(valid_levels))
                     )
                 )
             return v
@@ -1313,20 +1329,35 @@ class FlextCliModels(FlextModels):
         model-to-CLI conversion utilities.
         """
 
-        name: str = Field(description=FlextCliConstants.CliParameterSpecDescriptions.NAME)
-        field_name: str = Field(description=FlextCliConstants.CliParameterSpecDescriptions.FIELD_NAME)
-        param_type: type = Field(description=FlextCliConstants.CliParameterSpecDescriptions.PARAM_TYPE)
-        click_type: str = Field(description=FlextCliConstants.CliParameterSpecDescriptions.CLICK_TYPE)
-        required: bool = Field(description=FlextCliConstants.CliParameterSpecDescriptions.REQUIRED)
-        default: FlextTypes.JsonValue | None = Field(
-            default=None, description=FlextCliConstants.CliParameterSpecDescriptions.DEFAULT
+        name: str = Field(
+            description=FlextCliConstants.CliParameterSpecDescriptions.NAME
         )
-        help: str = Field(description=FlextCliConstants.CliParameterSpecDescriptions.HELP)
+        field_name: str = Field(
+            description=FlextCliConstants.CliParameterSpecDescriptions.FIELD_NAME
+        )
+        param_type: type = Field(
+            description=FlextCliConstants.CliParameterSpecDescriptions.PARAM_TYPE
+        )
+        click_type: str = Field(
+            description=FlextCliConstants.CliParameterSpecDescriptions.CLICK_TYPE
+        )
+        required: bool = Field(
+            description=FlextCliConstants.CliParameterSpecDescriptions.REQUIRED
+        )
+        default: FlextTypes.JsonValue | None = Field(
+            default=None,
+            description=FlextCliConstants.CliParameterSpecDescriptions.DEFAULT,
+        )
+        help: str = Field(
+            description=FlextCliConstants.CliParameterSpecDescriptions.HELP
+        )
         validators: list[Callable[..., FlextTypes.JsonValue]] = Field(
-            default_factory=list, description=FlextCliConstants.CliParameterSpecDescriptions.VALIDATORS
+            default_factory=list,
+            description=FlextCliConstants.CliParameterSpecDescriptions.VALIDATORS,
         )
         metadata: dict[str, FlextTypes.JsonValue] = Field(
-            default_factory=dict, description=FlextCliConstants.CliParameterSpecDescriptions.METADATA
+            default_factory=dict,
+            description=FlextCliConstants.CliParameterSpecDescriptions.METADATA,
         )
 
     class CliOptionSpec(FlextModels.StrictArbitraryTypesModel):
@@ -1336,17 +1367,27 @@ class FlextCliModels(FlextModels):
         from Pydantic model fields.
         """
 
-        option_name: str = Field(description=FlextCliConstants.CliOptionSpecDescriptions.OPTION_NAME)
-        param_decls: list[str] = Field(description=FlextCliConstants.CliOptionSpecDescriptions.PARAM_DECLS)
+        option_name: str = Field(
+            description=FlextCliConstants.CliOptionSpecDescriptions.OPTION_NAME
+        )
+        param_decls: list[str] = Field(
+            description=FlextCliConstants.CliOptionSpecDescriptions.PARAM_DECLS
+        )
         type: str = Field(description=FlextCliConstants.CliOptionSpecDescriptions.TYPE)
         default: FlextTypes.JsonValue | None = Field(
-            default=None, description=FlextCliConstants.CliOptionSpecDescriptions.DEFAULT
+            default=None,
+            description=FlextCliConstants.CliOptionSpecDescriptions.DEFAULT,
         )
         help: str = Field(description=FlextCliConstants.CliOptionSpecDescriptions.HELP)
-        required: bool = Field(description=FlextCliConstants.CliOptionSpecDescriptions.REQUIRED)
-        show_default: bool = Field(description=FlextCliConstants.CliOptionSpecDescriptions.SHOW_DEFAULT)
+        required: bool = Field(
+            description=FlextCliConstants.CliOptionSpecDescriptions.REQUIRED
+        )
+        show_default: bool = Field(
+            description=FlextCliConstants.CliOptionSpecDescriptions.SHOW_DEFAULT
+        )
         metadata: dict[str, FlextTypes.JsonValue] = Field(
-            default_factory=dict, description=FlextCliConstants.CliOptionSpecDescriptions.METADATA
+            default_factory=dict,
+            description=FlextCliConstants.CliOptionSpecDescriptions.METADATA,
         )
 
     class CliCommandResult(FlextModels.StrictArbitraryTypesModel):
@@ -1356,12 +1397,22 @@ class FlextCliModels(FlextModels):
         """
 
         id: str = Field(description=FlextCliConstants.CliCommandResultDescriptions.ID)
-        command_line: str = Field(description=FlextCliConstants.CliCommandResultDescriptions.COMMAND_LINE)
-        status: str = Field(description=FlextCliConstants.CliCommandResultDescriptions.STATUS)
-        exit_code: int | None = Field(default=None, description=FlextCliConstants.CliCommandResultDescriptions.EXIT_CODE)
-        created_at: str = Field(description=FlextCliConstants.CliCommandResultDescriptions.CREATED_AT)
+        command_line: str = Field(
+            description=FlextCliConstants.CliCommandResultDescriptions.COMMAND_LINE
+        )
+        status: str = Field(
+            description=FlextCliConstants.CliCommandResultDescriptions.STATUS
+        )
+        exit_code: int | None = Field(
+            default=None,
+            description=FlextCliConstants.CliCommandResultDescriptions.EXIT_CODE,
+        )
+        created_at: str = Field(
+            description=FlextCliConstants.CliCommandResultDescriptions.CREATED_AT
+        )
         execution_time: float | None = Field(
-            default=None, description=FlextCliConstants.CliCommandResultDescriptions.EXECUTION_TIME
+            default=None,
+            description=FlextCliConstants.CliCommandResultDescriptions.EXECUTION_TIME,
         )
 
     class CliDebugData(FlextModels.StrictArbitraryTypesModel):
@@ -1370,14 +1421,28 @@ class FlextCliModels(FlextModels):
         Provides structured validation for debug information and diagnostic data.
         """
 
-        service: str = Field(description=FlextCliConstants.CliDebugDataDescriptions.SERVICE)
+        service: str = Field(
+            description=FlextCliConstants.CliDebugDataDescriptions.SERVICE
+        )
         level: str = Field(description=FlextCliConstants.CliDebugDataDescriptions.LEVEL)
-        status: str = Field(description=FlextCliConstants.CliDebugDataDescriptions.STATUS)
-        has_system_info: bool = Field(description=FlextCliConstants.CliDebugDataDescriptions.HAS_SYSTEM_INFO)
-        has_config_info: bool = Field(description=FlextCliConstants.CliDebugDataDescriptions.HAS_CONFIG_INFO)
-        total_stats: int = Field(description=FlextCliConstants.CliDebugDataDescriptions.TOTAL_STATS)
-        message_length: int = Field(description=FlextCliConstants.CliDebugDataDescriptions.MESSAGE_LENGTH)
-        age_seconds: float = Field(description=FlextCliConstants.CliDebugDataDescriptions.AGE_SECONDS)
+        status: str = Field(
+            description=FlextCliConstants.CliDebugDataDescriptions.STATUS
+        )
+        has_system_info: bool = Field(
+            description=FlextCliConstants.CliDebugDataDescriptions.HAS_SYSTEM_INFO
+        )
+        has_config_info: bool = Field(
+            description=FlextCliConstants.CliDebugDataDescriptions.HAS_CONFIG_INFO
+        )
+        total_stats: int = Field(
+            description=FlextCliConstants.CliDebugDataDescriptions.TOTAL_STATS
+        )
+        message_length: int = Field(
+            description=FlextCliConstants.CliDebugDataDescriptions.MESSAGE_LENGTH
+        )
+        age_seconds: float = Field(
+            description=FlextCliConstants.CliDebugDataDescriptions.AGE_SECONDS
+        )
 
     class CliSessionData(FlextModels.StrictArbitraryTypesModel):
         """CLI session data model - replaces dict[str, object] in session summaries.
@@ -1385,13 +1450,24 @@ class FlextCliModels(FlextModels):
         Provides structured validation for session summary information.
         """
 
-        session_id: str = Field(description=FlextCliConstants.CliSessionDataDescriptions.SESSION_ID)
-        is_active: bool = Field(description=FlextCliConstants.CliSessionDataDescriptions.IS_ACTIVE)
-        commands_count: int = Field(description=FlextCliConstants.CliSessionDataDescriptions.COMMANDS_COUNT)
-        duration_minutes: float = Field(description=FlextCliConstants.CliSessionDataDescriptions.DURATION_MINUTES)
-        has_user: bool = Field(description=FlextCliConstants.CliSessionDataDescriptions.HAS_USER)
+        session_id: str = Field(
+            description=FlextCliConstants.CliSessionDataDescriptions.SESSION_ID
+        )
+        is_active: bool = Field(
+            description=FlextCliConstants.CliSessionDataDescriptions.IS_ACTIVE
+        )
+        commands_count: int = Field(
+            description=FlextCliConstants.CliSessionDataDescriptions.COMMANDS_COUNT
+        )
+        duration_minutes: float = Field(
+            description=FlextCliConstants.CliSessionDataDescriptions.DURATION_MINUTES
+        )
+        has_user: bool = Field(
+            description=FlextCliConstants.CliSessionDataDescriptions.HAS_USER
+        )
         last_activity_age: float | None = Field(
-            default=None, description=FlextCliConstants.CliSessionDataDescriptions.LAST_ACTIVITY_AGE
+            default=None,
+            description=FlextCliConstants.CliSessionDataDescriptions.LAST_ACTIVITY_AGE,
         )
 
     class CliLoggingData(FlextModels.ArbitraryTypesModel):
@@ -1400,11 +1476,22 @@ class FlextCliModels(FlextModels):
         Provides structured validation for logging configuration summaries.
         """
 
-        level: str = Field(description=FlextCliConstants.CliLoggingDataDescriptions.LEVEL)
-        format: str = Field(description=FlextCliConstants.CliLoggingDataDescriptions.FORMAT)
-        console_output: bool = Field(description=FlextCliConstants.CliLoggingDataDescriptions.CONSOLE_OUTPUT)
-        log_file: str | None = Field(default=None, description=FlextCliConstants.CliLoggingDataDescriptions.LOG_FILE)
-        has_file_output: bool = Field(description=FlextCliConstants.CliLoggingDataDescriptions.HAS_FILE_OUTPUT)
+        level: str = Field(
+            description=FlextCliConstants.CliLoggingDataDescriptions.LEVEL
+        )
+        format: str = Field(
+            description=FlextCliConstants.CliLoggingDataDescriptions.FORMAT
+        )
+        console_output: bool = Field(
+            description=FlextCliConstants.CliLoggingDataDescriptions.CONSOLE_OUTPUT
+        )
+        log_file: str | None = Field(
+            default=None,
+            description=FlextCliConstants.CliLoggingDataDescriptions.LOG_FILE,
+        )
+        has_file_output: bool = Field(
+            description=FlextCliConstants.CliLoggingDataDescriptions.HAS_FILE_OUTPUT
+        )
 
 
 __all__ = [

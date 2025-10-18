@@ -39,7 +39,7 @@ import tempfile
 from pathlib import Path
 from typing import cast
 
-from flext_core import FlextResult, FlextTypes
+from flext_core import FlextResult
 
 from flext_cli import FlextCli, FlextCliTables
 from flext_cli.typings import FlextCliTypes
@@ -283,7 +283,7 @@ def validate_and_import_data(input_file: Path) -> FlextCliTypes.Data.CliDataDict
 # ============================================================================
 
 
-def backup_config_files(source_dir: Path, backup_dir: Path) -> FlextTypes.StringList:
+def backup_config_files(source_dir: Path, backup_dir: Path) -> list[str]:
     """Backup configuration files in YOUR backup tool."""
     backup_dir.mkdir(parents=True, exist_ok=True)
 

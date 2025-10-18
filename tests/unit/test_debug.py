@@ -13,7 +13,7 @@ from __future__ import annotations
 import time
 
 import pytest
-from flext_core import FlextResult, FlextTypes
+from flext_core import FlextResult
 
 from flext_cli.debug import FlextCliDebug
 
@@ -373,7 +373,7 @@ class TestFlextCliDebugExceptionHandlers:
         debug = FlextCliDebug()
 
         # Mock _get_path_info to return path dict[str, object] with tuple (non-basic type)
-        def mock_path_info() -> list[FlextTypes.Dict]:
+        def mock_path_info() -> list[dict[str, object]]:
             return [
                 {
                     "index": 0,

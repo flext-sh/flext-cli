@@ -84,11 +84,11 @@ class FlextCliPrompts(FlextService[FlextCliTypes.Data.CliDataDict]):
             self._prompt_history = []
 
     @property
-    def prompt_history(self) -> FlextTypes.StringList:
+    def prompt_history(self) -> list[str]:
         """Get prompt history (returns copy for immutability).
 
         Returns:
-            FlextTypes.StringList: Copy of prompt history list
+            list[str]: Copy of prompt history list
 
         """
         return self._prompt_history.copy()
@@ -109,7 +109,8 @@ class FlextCliPrompts(FlextService[FlextCliTypes.Data.CliDataDict]):
             in os.environ.get(
                 FlextCliConstants.EnvironmentConstants.UNDERSCORE, ""
             ).lower()
-            or os.environ.get(FlextCliConstants.EnvironmentConstants.CI) == FlextCliConstants.EnvironmentConstants.CI_TRUE_VALUE
+            or os.environ.get(FlextCliConstants.EnvironmentConstants.CI)
+            == FlextCliConstants.EnvironmentConstants.CI_TRUE_VALUE
         )
 
     def prompt_text(
@@ -194,7 +195,9 @@ class FlextCliPrompts(FlextService[FlextCliTypes.Data.CliDataDict]):
 
         try:
             # Record prompt for history
-            self._prompt_history.append(f"{message}{FlextCliConstants.PromptsDefaults.CONFIRMATION_SUFFIX}")
+            self._prompt_history.append(
+                f"{message}{FlextCliConstants.PromptsDefaults.CONFIRMATION_SUFFIX}"
+            )
 
             # Use input with timeout if available
 
@@ -215,7 +218,7 @@ class FlextCliPrompts(FlextService[FlextCliTypes.Data.CliDataDict]):
     def prompt_choice(
         self,
         message: str,
-        choices: FlextTypes.StringList,
+        choices: list[str],
         default: str | None = None,
     ) -> FlextResult[str]:
         """Prompt user to select from multiple choices.
@@ -489,7 +492,7 @@ class FlextCliPrompts(FlextService[FlextCliTypes.Data.CliDataDict]):
 
     def select_from_options(
         self,
-        options: FlextTypes.StringList,
+        options: list[str],
         message: str = FlextCliConstants.PromptsDefaults.DEFAULT_CHOICE_MESSAGE,
     ) -> FlextResult[str]:
         """Prompt user to select from multiple options.
@@ -725,7 +728,7 @@ class FlextCliPrompts(FlextService[FlextCliTypes.Data.CliDataDict]):
 
     def with_progress(
         self,
-        items: FlextTypes.List,
+        items: list[object],
         description: str = FlextCliConstants.PromptsDefaults.DEFAULT_PROCESSING_DESCRIPTION,
     ) -> FlextResult[object]:
         """Execute with progress indicator.

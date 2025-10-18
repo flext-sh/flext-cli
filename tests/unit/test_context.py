@@ -7,8 +7,11 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
+from collections import UserDict, UserList
 from typing import cast
+from unittest.mock import patch
 
+import pytest
 from flext_core import FlextResult
 
 from flext_cli.context import FlextCliContext
@@ -224,14 +227,14 @@ class TestFlextCliContext:
 
         # Test with None - this will cause type error but should be handled
         try:
-            result = context.get_environment_variable(None)  # type: ignore
+            result = context.get_environment_variable(None)
             assert result.is_failure
         except TypeError:
             pass  # Expected for None input
 
         # Test with non-string - this will cause type error but should be handled
         try:
-            result = context.get_environment_variable(123)  # type: ignore
+            result = context.get_environment_variable(123)
             assert result.is_failure
         except TypeError:
             pass  # Expected for non-string input
@@ -247,25 +250,25 @@ class TestFlextCliContext:
 
         # Test with None name
         try:
-            result = context.set_environment_variable(None, "value")  # type: ignore
+            result = context.set_environment_variable(None, "value")
             assert result.is_failure
         except TypeError:
             pass  # Expected for None input
 
         # Test with non-string name
         try:
-            result = context.set_environment_variable(123, "value")  # type: ignore
+            result = context.set_environment_variable(123, "value")
             assert result.is_failure
         except TypeError:
             pass  # Expected for non-string input
 
         # Test with non-string value
-        result = context.set_environment_variable("TEST", 123)  # type: ignore
+        result = context.set_environment_variable("TEST", 123)
         assert result.is_failure
         assert "must be a string" in str(result.error).lower()
 
         # Test with None value
-        result = context.set_environment_variable("TEST", None)  # type: ignore
+        result = context.set_environment_variable("TEST", None)
         assert result.is_failure
         assert "must be a string" in str(result.error).lower()
 
@@ -280,14 +283,14 @@ class TestFlextCliContext:
 
         # Test with None
         try:
-            result = context.add_argument(None)  # type: ignore
+            result = context.add_argument(None)
             assert result.is_failure
         except TypeError:
             pass  # Expected for None input
 
         # Test with non-string
         try:
-            result = context.add_argument(123)  # type: ignore
+            result = context.add_argument(123)
             assert result.is_failure
         except TypeError:
             pass  # Expected for non-string input
@@ -303,14 +306,14 @@ class TestFlextCliContext:
 
         # Test with None
         try:
-            result = context.remove_argument(None)  # type: ignore
+            result = context.remove_argument(None)
             assert result.is_failure
         except TypeError:
             pass  # Expected for None input
 
         # Test with non-string
         try:
-            result = context.remove_argument(123)  # type: ignore
+            result = context.remove_argument(123)
             assert result.is_failure
         except TypeError:
             pass  # Expected for non-string input
@@ -326,14 +329,14 @@ class TestFlextCliContext:
 
         # Test with None
         try:
-            result = context.set_metadata(None, "value")  # type: ignore
+            result = context.set_metadata(None, "value")
             assert result.is_failure
         except TypeError:
             pass  # Expected for None input
 
         # Test with non-string
         try:
-            result = context.set_metadata(123, "value")  # type: ignore
+            result = context.set_metadata(123, "value")
             assert result.is_failure
         except TypeError:
             pass  # Expected for non-string input
@@ -349,133 +352,158 @@ class TestFlextCliContext:
 
         # Test with None
         try:
-            result = context.get_metadata(None)  # type: ignore
+            result = context.get_metadata(None)
             assert result.is_failure
         except TypeError:
             pass  # Expected for None input
 
         # Test with non-string
         try:
-            result = context.get_metadata(123)  # type: ignore
+            result = context.get_metadata(123)
             assert result.is_failure
         except TypeError:
             pass  # Expected for non-string input
 
-    def test_activate_exception_handling(self, monkeypatch) -> None:
-        """Test activate method exception handling (lines 97-98)."""
-        context = FlextCliContext()
+    def test_activate_exception_handling(self) -> None:
+        """Test activate method exception handling by mocking the is_active attribute directly."""
 
-        # Mock is_active property to raise exception when accessed
-        def mock_is_active_get(self):
-            raise RuntimeError("Mock exception")
+        # Create a context where accessing is_active raises an exception
+        # by replacing the attribute with a property that raises
+        class ExceptionContext(FlextCliContext):
+            @property
+            def is_active(self) -> bool:
+                msg = "Mock exception"
+                raise RuntimeError(msg)
 
-        monkeypatch.setattr(type(context), 'is_active', property(mock_is_active_get))
+            @is_active.setter
+            def is_active(self, value: bool) -> None:
+                # Prevent setting the attribute
+                pass
 
-        result = context.activate()
+        exception_context = ExceptionContext()
+
+        result = exception_context.activate()
         assert result.is_failure
         assert "activation failed" in str(result.error).lower()
 
-    def test_deactivate_exception_handling(self, monkeypatch) -> None:
-        """Test deactivate method exception handling (lines 114-115)."""
-        context = FlextCliContext()
-        context.is_active = True  # Set as active first
+    def test_deactivate_exception_handling(self) -> None:
+        """Test deactivate method exception handling by mocking the is_active attribute directly."""
 
-        # Mock is_active property to raise exception when accessed
-        def mock_is_active_get(self):
-            raise RuntimeError("Mock exception")
+        # Create a context where accessing is_active raises an exception
+        class ExceptionContext(FlextCliContext):
+            def __init__(self) -> None:
+                super().__init__()
+                self._is_active = True  # Start as active
 
-        monkeypatch.setattr(type(context), 'is_active', property(mock_is_active_get))
+            @property
+            def is_active(self) -> bool:
+                msg = "Mock exception"
+                raise RuntimeError(msg)
 
-        result = context.deactivate()
+            @is_active.setter
+            def is_active(self, value: bool) -> None:
+                self._is_active = value
+
+        exception_context = ExceptionContext()
+
+        result = exception_context.deactivate()
         assert result.is_failure
         assert "deactivation failed" in str(result.error).lower()
 
-    def test_get_environment_variable_exception_handling(self, monkeypatch) -> None:
-        """Test get_environment_variable exception handling (lines 137-138)."""
+    def test_get_environment_variable_exception_handling(self) -> None:
+        """Test get_environment_variable exception handling by using a custom dict subclass."""
+
+        class ExceptionDict(UserDict):
+            def __getitem__(self, key: str) -> str:
+                msg = "Mock exception"
+                raise RuntimeError(msg)
+
+        # Create context with exception-raising environment_variables
         context = FlextCliContext()
-
-        # Mock environment_variables to raise exception when accessed
-        def mock_getitem(self, key):
-            raise RuntimeError("Mock exception")
-
-        monkeypatch.setattr(type(context.environment_variables), '__getitem__', mock_getitem)
-
-        # Set up environment variable so we get past the 'not in' check
-        context.environment_variables = {"TEST": "value"}
+        context.environment_variables = ExceptionDict({"TEST": "value"})
 
         result = context.get_environment_variable("TEST")
         assert result.is_failure
         assert "retrieval failed" in str(result.error).lower()
 
-    def test_set_environment_variable_exception_handling(self, monkeypatch) -> None:
-        """Test set_environment_variable exception handling (lines 159-160)."""
+    def test_set_environment_variable_exception_handling(self) -> None:
+        """Test set_environment_variable exception handling by using a custom dict subclass."""
+
+        class ExceptionDict(UserDict):
+            def __setitem__(self, key: str, value: str) -> None:
+                msg = "Mock exception"
+                raise RuntimeError(msg)
+
+        # Create context with exception-raising environment_variables
         context = FlextCliContext()
-
-        # Mock environment_variables __setitem__ to raise exception
-        def mock_setitem(self, key, value):
-            raise RuntimeError("Mock exception")
-
-        monkeypatch.setattr(type(context.environment_variables), '__setitem__', mock_setitem)
+        context.environment_variables = ExceptionDict()
 
         result = context.set_environment_variable("TEST", "value")
         assert result.is_failure
         assert "setting failed" in str(result.error).lower()
 
-    def test_add_argument_exception_handling(self, monkeypatch) -> None:
-        """Test add_argument exception handling (lines 176-177)."""
+    def test_add_argument_exception_handling(self) -> None:
+        """Test add_argument exception handling by using a custom list subclass."""
+
+        class ExceptionList(UserList):
+            def append(self, item: str) -> None:
+                msg = "Mock exception"
+                raise RuntimeError(msg)
+
+        # Create context with exception-raising arguments
         context = FlextCliContext()
-
-        # Mock arguments append to raise exception
-        def mock_append(self, item):
-            raise RuntimeError("Mock exception")
-
-        monkeypatch.setattr(type(context.arguments), 'append', mock_append)
+        context.arguments = ExceptionList()
 
         result = context.add_argument("test_arg")
         assert result.is_failure
         assert "addition failed" in str(result.error).lower()
 
-    def test_remove_argument_exception_handling(self, monkeypatch) -> None:
-        """Test remove_argument exception handling (lines 199-200)."""
+    def test_remove_argument_exception_handling(self) -> None:
+        """Test remove_argument exception handling by using a custom list subclass."""
+
+        class ExceptionList(UserList):
+            def remove(self, item: str) -> None:
+                msg = "Mock exception"
+                raise RuntimeError(msg)
+
+        # Create context with exception-raising arguments
         context = FlextCliContext()
-        context.arguments = ["test_arg"]
-
-        # Mock arguments remove to raise exception
-        def mock_remove(self, item):
-            raise RuntimeError("Mock exception")
-
-        monkeypatch.setattr(type(context.arguments), 'remove', mock_remove)
+        context.arguments = ExceptionList(["test_arg"])
 
         result = context.remove_argument("test_arg")
         assert result.is_failure
         assert "removal failed" in str(result.error).lower()
 
-    def test_set_metadata_exception_handling(self, monkeypatch) -> None:
+    def test_set_metadata_exception_handling(
+        self, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
         """Test set_metadata exception handling (lines 216-217)."""
         context = FlextCliContext()
 
-        # Mock context_metadata __setitem__ to raise exception
-        def mock_setitem(self, key, value):
-            raise RuntimeError("Mock exception")
+        # Create a mock dict that raises exception on __setitem__
+        class MockDict(UserDict):
+            def __setitem__(self, key: str, value: object) -> None:
+                msg = "Mock exception"
+                raise RuntimeError(msg)
 
-        monkeypatch.setattr(type(context.context_metadata), '__setitem__', mock_setitem)
+        # Replace the context_metadata with our mock
+        context.context_metadata = MockDict()
 
         result = context.set_metadata("test_key", "test_value")
         assert result.is_failure
         assert "setting failed" in str(result.error).lower()
 
-    def test_get_metadata_exception_handling(self, monkeypatch) -> None:
-        """Test get_metadata exception handling (lines 238-239)."""
+    def test_get_metadata_exception_handling(self) -> None:
+        """Test get_metadata exception handling by using a custom dict subclass."""
+
+        class ExceptionDict(UserDict):
+            def __getitem__(self, key: str) -> object:
+                msg = "Mock exception"
+                raise RuntimeError(msg)
+
+        # Create context with exception-raising context_metadata
         context = FlextCliContext()
-
-        # Mock context_metadata to raise exception when accessed
-        def mock_getitem(self, key):
-            raise RuntimeError("Mock exception")
-
-        monkeypatch.setattr(type(context.context_metadata), '__getitem__', mock_getitem)
-
-        # Set up metadata so we get past the 'not in' check
-        context.context_metadata = {"test_key": "test_value"}
+        context.context_metadata = ExceptionDict({"test_key": "test_value"})
 
         result = context.get_metadata("test_key")
         assert result.is_failure
@@ -483,26 +511,42 @@ class TestFlextCliContext:
 
     def test_get_context_summary_exception_handling(self) -> None:
         """Test get_context_summary exception handling (lines 272-273)."""
-        # Create a custom context class that raises exception when accessing attributes
-        class FailingContext(FlextCliContext):
-            @property
-            def id(self) -> str:  # type: ignore
-                raise RuntimeError("Mock exception accessing id")
+        context = FlextCliContext()
 
-        context = FailingContext()
-        result = context.get_context_summary()
-        assert result.is_failure
-        assert "summary generation failed" in str(result.error).lower()
+        # Mock self.id to raise exception when accessed
+        with patch.object(
+            context,
+            "id",
+            new_callable=lambda: property(
+                lambda self: (_ for _ in ()).throw(RuntimeError("Mock exception"))
+            ),
+        ):
+            result = context.get_context_summary()
+            assert result.is_failure
+            assert "summary generation failed" in str(result.error).lower()
 
-    def test_execute_exception_handling(self) -> None:
+    def test_execute_exception_handling(self, monkeypatch: pytest.MonkeyPatch) -> None:
         """Test execute method exception handling (lines 291-292)."""
-        # Create a custom context class that raises exception when accessing arguments
-        class FailingContext(FlextCliContext):
-            @property
-            def arguments(self):  # type: ignore
-                raise RuntimeError("Mock exception accessing arguments")
+        context = FlextCliContext()
 
-        context = FailingContext()
-        result = context.execute()
-        assert result.is_failure
-        assert "execution failed" in str(result.error).lower()
+        # Mock len() to raise exception when called on arguments
+        original_len = len
+        call_count = 0
+
+        def mock_len(obj: object) -> int:
+            nonlocal call_count
+            if (
+                isinstance(obj, list)
+                and hasattr(context, "arguments")
+                and obj is context.arguments
+            ):
+                call_count += 1
+                if call_count == 1:  # Only fail on first call
+                    msg = "Mock exception"
+                    raise RuntimeError(msg)
+            return original_len(obj)
+
+        with patch("builtins.len", side_effect=mock_len):
+            result = context.execute()
+            assert result.is_failure
+            assert "execution failed" in str(result.error).lower()

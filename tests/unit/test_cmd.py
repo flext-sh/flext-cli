@@ -228,8 +228,7 @@ class TestFlextCliCmd:
 
         # Ensure config file doesn't exist
         config_path = (
-            FlextCliConfig().config_dir
-            / FlextCliConstants.ConfigFiles.CLI_CONFIG_JSON
+            FlextCliConfig().config_dir / FlextCliConstants.ConfigFiles.CLI_CONFIG_JSON
         )
         if config_path.exists():
             config_path.unlink()
@@ -309,10 +308,10 @@ class TestFlextCliCmd:
             def read_json_file(
                 self, file_path: str | Path
             ) -> FlextResult[
-                FlextTypes.Dict | FlextTypes.List | str | int | float | bool | None
+                dict[str, object] | list[object] | str | int | float | bool | None
             ]:
                 return FlextResult[
-                    FlextTypes.Dict | FlextTypes.List | str | int | float | bool | None
+                    dict[str, object] | list[object] | str | int | float | bool | None
                 ].fail("Test load error")
 
         cmd._file_tools = FailingFileTools()
@@ -359,10 +358,10 @@ class TestFlextCliCmd:
             def read_json_file(
                 self, file_path: str | Path
             ) -> FlextResult[
-                FlextTypes.Dict | FlextTypes.List | str | int | float | bool | None
+                dict[str, object] | list[object] | str | int | float | bool | None
             ]:
                 return FlextResult[
-                    FlextTypes.Dict | FlextTypes.List | str | int | float | bool | None
+                    dict[str, object] | list[object] | str | int | float | bool | None
                 ].fail("Test load error")
 
             @staticmethod
@@ -718,7 +717,7 @@ class TestFlextCliCmd:
         with patch.object(
             FlextCliCmd,
             "get_config_info",
-            return_value=FlextResult[FlextTypes.Dict].fail("Info failed"),
+            return_value=FlextResult[dict[str, object]].fail("Info failed"),
         ):
             result = cmd.show_config()
             assert result.is_failure
@@ -787,7 +786,9 @@ class TestFlextCliCmd:
                 self, file_path: str | Path
             ) -> FlextResult[FlextTypes.JsonValue]:
                 # Return valid dict but without the requested key
-                return FlextResult[FlextTypes.JsonValue].ok({"existing_key": "existing_value"})
+                return FlextResult[FlextTypes.JsonValue].ok({
+                    "existing_key": "existing_value"
+                })
 
         cmd._file_tools = MockFileTools()
 
@@ -797,7 +798,9 @@ class TestFlextCliCmd:
         config_file = config_dir / "cli_config.json"
 
         try:
-            config_file.write_text('{"existing_key": "existing_value"}', encoding="utf-8")
+            config_file.write_text(
+                '{"existing_key": "existing_value"}', encoding="utf-8"
+            )
 
             # Request a key that doesn't exist in the config data
             result = cmd.get_config_value("nonexistent_key")

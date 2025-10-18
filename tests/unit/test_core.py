@@ -19,7 +19,7 @@ from typing import Never, cast
 
 import pytest
 import yaml
-from flext_core import FlextResult, FlextTypes, FlextUtilities
+from flext_core import FlextResult, FlextUtilities
 
 from flext_cli import (
     FlextCli,
@@ -189,7 +189,7 @@ class TestFlextCliCore:
     ) -> None:
         """Test configuration saving functionality."""
         config_file = temp_dir / "test_save_config.json"
-        test_config: FlextTypes.Dict = {
+        test_config: dict[str, object] = {
             "debug": False,
             "output_format": "table",
             "timeout": FlextCliConstants.TIMEOUTS.DEFAULT,
@@ -367,9 +367,9 @@ class TestFlextCliCore:
 
         try:
             parsed = json.loads(json_data)
-            result = FlextResult[FlextTypes.Dict].ok(parsed)
+            result = FlextResult[dict[str, object]].ok(parsed)
         except Exception as e:
-            result = FlextResult[FlextTypes.Dict].fail(str(e))
+            result = FlextResult[dict[str, object]].fail(str(e))
 
         assert isinstance(result, FlextResult)
         assert result.is_success
@@ -388,16 +388,16 @@ class TestFlextCliCore:
 
         try:
             parsed = json.loads(invalid_json)
-            result = FlextResult[FlextTypes.Dict].ok(parsed)
+            result = FlextResult[dict[str, object]].ok(parsed)
         except Exception as e:
-            result = FlextResult[FlextTypes.Dict].fail(str(e))
+            result = FlextResult[dict[str, object]].fail(str(e))
 
         assert isinstance(result, FlextResult)
         assert result.is_failure
 
     def test_serialize_json_data(self) -> None:
         """Test JSON data serialization functionality."""
-        test_data: FlextTypes.Dict = {
+        test_data: dict[str, object] = {
             "key": "value",
             "number": 42,
             "list": [1, 2, 3],
@@ -435,9 +435,9 @@ nested:
 
         try:
             parsed = yaml.safe_load(yaml_data)
-            result = FlextResult[FlextTypes.Dict].ok(parsed)
+            result = FlextResult[dict[str, object]].ok(parsed)
         except Exception as e:
-            result = FlextResult[FlextTypes.Dict].fail(str(e))
+            result = FlextResult[dict[str, object]].fail(str(e))
 
         assert isinstance(result, FlextResult)
         assert result.is_success
@@ -453,7 +453,7 @@ nested:
 
     def test_serialize_yaml_data(self) -> None:
         """Test YAML data serialization functionality."""
-        test_data: FlextTypes.Dict = {
+        test_data: dict[str, object] = {
             "key": "value",
             "number": 42,
             "list": [1, 2, 3],
@@ -650,7 +650,7 @@ nested:
     ) -> None:
         """Test complete workflow integration."""
         # 1. Create configuration
-        config_data: FlextTypes.Dict = {
+        config_data: dict[str, object] = {
             "debug": True,
             "output_format": "json",
             "timeout": FlextCliConstants.TIMEOUTS.DEFAULT,
@@ -677,7 +677,7 @@ nested:
         assert validate_result.is_success
 
         # 4. Process data
-        test_data: FlextTypes.Dict = {
+        test_data: dict[str, object] = {
             "processed": True,
             "timestamp": "2025-01-01T00:00:00Z",
         }
@@ -880,7 +880,7 @@ class TestFlextCliCoreExtended:
 
         context: dict[
             str,
-            str | int | float | bool | FlextTypes.List | FlextTypes.Dict | None,
+            str | int | float | bool | list[object] | dict[str, object] | None,
         ] = {"option": "value", "flag": True}
         result = core_service.execute_command("test-cmd", context=context)
 
@@ -1090,7 +1090,7 @@ class TestFlextCliCoreExtended:
             str,
             dict[
                 str,
-                str | int | float | bool | FlextTypes.List | FlextTypes.Dict | None,
+                str | int | float | bool | list[object] | dict[str, object] | None,
             ],
         ] = {"theme": {"value": "dark"}, "verbose": {"value": True}}
 
@@ -1110,7 +1110,7 @@ class TestFlextCliCoreExtended:
 
     def test_create_profile_success(self, core_service: FlextCliCore) -> None:
         """Test creating configuration profile."""
-        profile_config: FlextTypes.Dict = {"color": "blue", "size": "large"}
+        profile_config: dict[str, object] = {"color": "blue", "size": "large"}
 
         result = core_service.create_profile("test-profile", profile_config)
 
@@ -1263,7 +1263,7 @@ class TestFlextCliCoreExtended:
             str,
             dict[
                 str,
-                str | int | float | bool | FlextTypes.List | FlextTypes.Dict | None,
+                str | int | float | bool | list[object] | dict[str, object] | None,
             ],
         ] = {
             "theme": {"value": "dark"},
@@ -1286,7 +1286,7 @@ class TestFlextCliCoreExtended:
         # Step 4: Save configuration
         with tempfile.TemporaryDirectory() as temp_dir:
             config_path = str(Path(temp_dir) / "config.json")
-            simple_config: FlextTypes.Dict = {
+            simple_config: dict[str, object] = {
                 "theme": "dark",
                 "verbose": True,
                 "timeout": 30,
@@ -1378,10 +1378,10 @@ class TestFlextCliCoreExceptionHandlers:
         # Set _config to empty dict to trigger the not initialized path
         core_service._config = {}
 
-        config: dict[str, FlextTypes.Dict] = {"test": {"value": "data"}}
+        config: dict[str, dict[str, object]] = {"test": {"value": "data"}}
         result = core_service.update_configuration(
             cast(
-                "dict[str, dict[str, str | int | float | bool | FlextTypes.List | FlextTypes.Dict | None]]",
+                "dict[str, dict[str, str | int | float | bool | list[object] | dict[str, object] | None]]",
                 config,
             )
         )
@@ -1402,10 +1402,10 @@ class TestFlextCliCoreExceptionHandlers:
 
         monkeypatch.setattr(core_service, "_config", MockConfigDict())
 
-        config: dict[str, FlextTypes.Dict] = {"test": {"value": "data"}}
+        config: dict[str, dict[str, object]] = {"test": {"value": "data"}}
         result = core_service.update_configuration(
             cast(
-                "dict[str, dict[str, str | int | float | bool | FlextTypes.List | FlextTypes.Dict | None]]",
+                "dict[str, dict[str, str | int | float | bool | list[object] | dict[str, object] | None]]",
                 config,
             )
         )
@@ -1559,7 +1559,7 @@ class TestFlextCliCoreExceptionHandlers:
         monkeypatch.setattr(core_service, "_config", "invalid_type")
 
         result = core_service.get_config()
-        # The method just casts to FlextTypes.Dict, so it returns successfully
+        # The method just casts to dict[str, object], so it returns successfully
         assert isinstance(result, FlextResult)
         assert result.is_success
 

@@ -323,7 +323,7 @@ class TestFlextCliOutput:
     def test_output_edge_cases(self, output: FlextCliOutput) -> None:
         """Test edge cases and error conditions."""
         # Test with empty data
-        empty_data: FlextTypes.Dict = {}
+        empty_data: dict[str, object] = {}
         result = output.format_data(cast("FlextTypes.JsonValue", empty_data), "json")
         assert isinstance(result, FlextResult)
 
@@ -390,7 +390,7 @@ class TestFlextCliOutput:
     def test_output_error_handling(self, output: FlextCliOutput) -> None:
         """Test output error handling."""
         # Test with circular reference data
-        circular_data: FlextTypes.Dict = {}
+        circular_data: dict[str, object] = {}
         circular_data["self"] = circular_data
 
         result = output.format_data(cast("FlextTypes.JsonValue", circular_data), "json")

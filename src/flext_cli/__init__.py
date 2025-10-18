@@ -164,6 +164,7 @@ from __future__ import annotations
 
 from flext_cli.__version__ import __version__, __version_info__
 from flext_cli.api import FlextCli
+from flext_cli.auth import FlextCliAuthService
 from flext_cli.cli import FlextCliCli
 from flext_cli.cli_params import FlextCliCommonParams
 from flext_cli.cmd import FlextCliCmd
@@ -173,6 +174,8 @@ from flext_cli.constants import FlextCliConstants
 from flext_cli.context import FlextCliContext
 from flext_cli.core import FlextCliCore
 from flext_cli.debug import FlextCliDebug
+
+# TEMP FIX: from flext_cli.decorators import FlextCliDecorators
 from flext_cli.exceptions import FlextCliExceptions
 from flext_cli.file_tools import FlextCliFileTools
 from flext_cli.formatters import FlextCliFormatters
@@ -181,11 +184,15 @@ from flext_cli.models import FlextCliModels
 from flext_cli.output import FlextCliOutput
 from flext_cli.prompts import FlextCliPrompts
 from flext_cli.protocols import FlextCliProtocols
+
+# TEMP FIX: from flext_cli.router import FlextCliRouter
 from flext_cli.tables import FlextCliTables
 from flext_cli.typings import FlextCliTypes
+from flext_cli.validator import FlextCliValidator
 
 __all__ = [
     "FlextCli",
+    "FlextCliAuthService",
     "FlextCliCli",
     "FlextCliCmd",
     "FlextCliCommands",
@@ -205,6 +212,7 @@ __all__ = [
     "FlextCliProtocols",
     "FlextCliTables",
     "FlextCliTypes",
+    "FlextCliValidator",
     "__version__",
     "__version_info__",
 ]

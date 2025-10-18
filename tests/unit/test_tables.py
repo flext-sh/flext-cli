@@ -35,7 +35,7 @@ def sample_data() -> list[dict[str, FlextTypes.JsonValue]]:
 
 
 @pytest.fixture
-def sample_list_data() -> list[FlextTypes.List]:
+def sample_list_data() -> list[list[object]]:
     """Sample list-based table data."""
     return [
         ["Alice", 30, "New York", 75000.50],
@@ -121,7 +121,7 @@ class TestFlextCliTables:
         assert "Alice" in table_str
 
     def test_create_table_with_custom_headers(
-        self, tables: FlextCliTables, sample_list_data: list[FlextTypes.List]
+        self, tables: FlextCliTables, sample_list_data: list[list[object]]
     ) -> None:
         """Test table creation with custom headers."""
         headers = ["Name", "Age", "City", "Salary"]

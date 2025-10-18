@@ -797,9 +797,13 @@ class TestCliParamsCoverageCompletion:
             raise RuntimeError(msg)
 
         # Create mock error messages class
-        mock_error_messages = type("MockErrorMessages", (), {
-            "APPLY_PARAMS_FAILED": "Failed to apply CLI parameters to config: {error}"
-        })()
+        mock_error_messages = type(
+            "MockErrorMessages",
+            (),
+            {
+                "APPLY_PARAMS_FAILED": "Failed to apply CLI parameters to config: {error}"
+            },
+        )()
 
         # Create a mock property that raises
         mock_constants = type(

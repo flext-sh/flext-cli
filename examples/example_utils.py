@@ -10,7 +10,7 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from flext_core import FlextResult, FlextTypes
+from flext_core import FlextResult
 
 from flext_cli import FlextCli
 
@@ -18,7 +18,7 @@ from flext_cli import FlextCli
 def print_demo_completion(
     cli: FlextCli,
     demo_name: str,
-    features: FlextTypes.StringList,
+    features: list[str],
     *,
     style: str = "green",
 ) -> None:
@@ -44,9 +44,9 @@ def print_demo_completion(
 
 def handle_command_result(
     cli: FlextCli,
-    result: FlextResult[FlextTypes.Dict],
+    result: FlextResult[dict[str, object]],
     action: str,
-    success_fields: FlextTypes.StringList | None = None,
+    success_fields: list[str] | None = None,
 ) -> None:
     """Generic handler for CQRS command results using FlextCli.
 

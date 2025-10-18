@@ -92,7 +92,7 @@ class FlextCliConstants(FlextConstants):
     HEALTHY: Final[str] = ServiceStatus.HEALTHY.value
     OPERATIONAL: Final[str] = ServiceStatus.OPERATIONAL.value
 
-    # Output formats - using FlextTypes.Output.OutputFormat Literal type
+    # Output formats - using FlextTypes.OutputFormat Literal type
     # CLI adds "plain" format on top of standard formats
     class OutputFormats(StrEnum):
         """CLI output format enum - extends Flextstandard formats."""
@@ -199,7 +199,7 @@ class FlextCliConstants(FlextConstants):
         US_PHONE_DIGITS: Final[int] = 10
 
     # Constant lists for validation and iteration
-    OUTPUT_FORMATS_LIST: Final[FlextTypes.StringList] = [
+    OUTPUT_FORMATS_LIST: Final[list[str]] = [
         OutputFormats.JSON.value,
         OutputFormats.YAML.value,
         OutputFormats.CSV.value,
@@ -207,7 +207,7 @@ class FlextCliConstants(FlextConstants):
         OutputFormats.PLAIN.value,
     ]
 
-    LOG_LEVELS_LIST: Final[FlextTypes.StringList] = [
+    LOG_LEVELS_LIST: Final[list[str]] = [
         "DEBUG",
         "INFO",
         "WARNING",
@@ -215,7 +215,7 @@ class FlextCliConstants(FlextConstants):
         "CRITICAL",
     ]
 
-    COMMAND_STATUSES_LIST: Final[FlextTypes.StringList] = [
+    COMMAND_STATUSES_LIST: Final[list[str]] = [
         CommandStatus.PENDING.value,
         CommandStatus.RUNNING.value,
         CommandStatus.COMPLETED.value,
@@ -223,13 +223,13 @@ class FlextCliConstants(FlextConstants):
         CommandStatus.CANCELLED.value,
     ]
 
-    SESSION_STATUSES_LIST: Final[FlextTypes.StringList] = [
+    SESSION_STATUSES_LIST: Final[list[str]] = [
         SessionStatus.ACTIVE.value,
         SessionStatus.COMPLETED.value,
         SessionStatus.TERMINATED.value,
     ]
 
-    DEBUG_LEVELS_LIST: Final[FlextTypes.StringList] = [
+    DEBUG_LEVELS_LIST: Final[list[str]] = [
         DebugLevel.DEBUG.value,
         DebugLevel.INFO.value,
         DebugLevel.WARNING.value,
@@ -238,7 +238,7 @@ class FlextCliConstants(FlextConstants):
     ]
 
     # Critical debug levels that require descriptive messages
-    CRITICAL_DEBUG_LEVELS: Final[FlextTypes.StringList] = [
+    CRITICAL_DEBUG_LEVELS: Final[list[str]] = [
         DebugLevel.ERROR.value,
         DebugLevel.CRITICAL.value,
     ]
@@ -248,7 +248,7 @@ class FlextCliConstants(FlextConstants):
         DebugLevel.CRITICAL.value,
     }
 
-    SERVICE_STATUSES_LIST: Final[FlextTypes.StringList] = [
+    SERVICE_STATUSES_LIST: Final[list[str]] = [
         ServiceStatus.OPERATIONAL.value,
         ServiceStatus.AVAILABLE.value,
         ServiceStatus.DEGRADED.value,
@@ -257,7 +257,7 @@ class FlextCliConstants(FlextConstants):
         ServiceStatus.CONNECTED.value,
     ]
 
-    ERROR_CODES_LIST: Final[FlextTypes.StringList] = [
+    ERROR_CODES_LIST: Final[list[str]] = [
         ErrorCodes.CLI_ERROR.value,
         ErrorCodes.CLI_VALIDATION_ERROR.value,
         ErrorCodes.CLI_CONFIGURATION_ERROR.value,
@@ -282,7 +282,7 @@ class FlextCliConstants(FlextConstants):
 
         # Core command result types
         CommandResultData = dict[str, FlextTypes.JsonValue]
-        CommandResultStatus = Literal["success", "failure", "error"]
+        # Note: CommandResultStatus defined at module level as CommandResultStatusLiteral
         CommandResultMetadata = dict[str, str | int | bool]
 
     class Shell:
@@ -299,7 +299,7 @@ class FlextCliConstants(FlextConstants):
         SESSION: Final[str] = "session"
 
         # Shell command list
-        BUILTIN_COMMANDS: Final[FlextTypes.StringList] = [
+        BUILTIN_COMMANDS: Final[list[str]] = [
             EXIT,
             QUIT,
             Q,
@@ -349,7 +349,7 @@ class FlextCliConstants(FlextConstants):
         RETRY_DELAY: Final[int] = 1
         USER_AGENT: Final[str] = "FlextCLI/1.0"
 
-    class HttpMethods(StrEnum):
+    class FlextWebMethods(StrEnum):
         """HTTP method constants."""
 
         GET = "GET"
@@ -360,7 +360,7 @@ class FlextCliConstants(FlextConstants):
         HEAD = "HEAD"
         OPTIONS = "OPTIONS"
 
-    HTTP_METHODS_LIST: Final[FlextTypes.StringList] = [
+    HTTP_METHODS_LIST: Final[list[str]] = [
         "GET",
         "POST",
         "PUT",
@@ -379,7 +379,7 @@ class FlextCliConstants(FlextConstants):
         SUCCESS = "success"
         DEBUG = "debug"
 
-    MESSAGE_TYPES_LIST: Final[FlextTypes.StringList] = [
+    MESSAGE_TYPES_LIST: Final[list[str]] = [
         MessageTypes.INFO.value,
         MessageTypes.ERROR.value,
         MessageTypes.WARNING.value,
@@ -429,7 +429,7 @@ class FlextCliConstants(FlextConstants):
     TSV: Final[str] = "tsv"
 
     # File formats configuration
-    FILE_FORMATS: Final[dict[str, dict[str, FlextTypes.StringList]]] = {
+    FILE_FORMATS: Final[dict[str, dict[str, list[str]]]] = {
         "json": {"extensions": ["json"]},
         "yaml": {"extensions": ["yaml", "yml"]},
         "csv": {"extensions": ["csv"]},
@@ -795,6 +795,7 @@ class FlextCliConstants(FlextConstants):
 
         # Service and system keys
         SERVICE: Final[str] = "service"
+        VERSION: Final[str] = "version"
         MESSAGE: Final[str] = "message"
         LOGGER_INSTANCE: Final[str] = "logger_instance"
         PROMPTS_EXECUTED: Final[str] = "prompts_executed"
@@ -836,7 +837,7 @@ class FlextCliConstants(FlextConstants):
         REFRESH_TOKEN: Final[str] = "refresh_token"
 
         # List of subdirectories for iteration
-        STANDARD_SUBDIRS: Final[FlextTypes.StringList] = [
+        STANDARD_SUBDIRS: Final[list[str]] = [
             CONFIG,
             CACHE,
             LOGS,
@@ -862,8 +863,8 @@ class FlextCliConstants(FlextConstants):
         ONE: Final[str] = "1"
         ZERO: Final[str] = "0"
 
-        YES_VALUES: Final[FlextTypes.StringList] = ["y", "yes", "true", "1"]
-        NO_VALUES: Final[FlextTypes.StringList] = ["n", "no", "false", "0"]
+        YES_VALUES: Final[list[str]] = ["y", "yes", "true", "1"]
+        NO_VALUES: Final[list[str]] = ["n", "no", "false", "0"]
 
     class Encoding:
         """Encoding constants."""
@@ -907,6 +908,8 @@ class FlextCliConstants(FlextConstants):
         MINIMUM: Final[str] = "minimum"
         MAXIMUM: Final[str] = "maximum"
         PROPERTIES: Final[str] = "properties"
+        TITLE: Final[str] = "title"
+        DESCRIPTION: Final[str] = "description"
 
     class EnvironmentConstants:
         """Environment variable and testing constants."""
@@ -930,7 +933,7 @@ class FlextCliConstants(FlextConstants):
         BOOL_FALSE_VALUES: Final[set[str]] = {"false", "0", "no", "off", ""}
 
     class Project:
-        """CLI-specific project types extending FlextTypes.Project.
+        """CLI-specific project types extending FlextTypes.
 
         Adds CLI-specific project types while inheriting generic types from FlextTypes.
         Follows domain separation principle: CLI domain owns CLI-specific types.
@@ -948,12 +951,10 @@ class FlextCliConstants(FlextConstants):
         ]
 
         # CLI-specific project configurations
-        CliProjectConfig = dict[str, FlextTypes.ConfigValue]
-        CommandLineConfig = dict[str, str | int | bool | FlextTypes.StringList]
-        InteractiveConfig = dict[str, bool | str | dict[str, FlextTypes.ConfigValue]]
-        OutputConfig = dict[
-            str, FlextTypes.Output.OutputFormat | FlextTypes.ConfigValue
-        ]
+        CliProjectConfig = dict[str, object]
+        CommandLineConfig = dict[str, str | int | bool | list[str]]
+        InteractiveConfig = dict[str, bool | str | dict[str, object]]
+        OutputConfig = dict[str, FlextTypes.OutputFormat | object]
 
     class Styles:
         """Rich/Terminal style constants for colored output."""
@@ -984,6 +985,7 @@ class FlextCliConstants(FlextConstants):
         GRID: Final[str] = "grid"
         FANCY_GRID: Final[str] = "fancy_grid"
         PIPE: Final[str] = "pipe"
+        GITHUB: Final[str] = "github"
         HTML: Final[str] = "html"
         UNSAFEHTML: Final[str] = "unsafehtml"
         LATEX: Final[str] = "latex"
@@ -1144,7 +1146,7 @@ class FlextCliConstants(FlextConstants):
 
         DEFAULT_FILE_MODE: Final[str] = "r"
         DEFAULT_ERROR_HANDLING: Final[str] = "strict"
-        DEFAULT_DATETIME_FORMATS: Final[FlextTypes.StringList] = [
+        DEFAULT_DATETIME_FORMATS: Final[list[str]] = [
             "%Y-%m-%d",
             "%Y-%m-%dT%H:%M:%S",
             "%Y-%m-%d %H:%M:%S",
@@ -1217,17 +1219,27 @@ class FlextCliConstants(FlextConstants):
         TXT: Final[str] = ".txt"
 
     class FileSupportedFormats:
-        """Supported file format lists."""
+        """Supported file format lists and format name constants."""
 
-        SUPPORTED_FORMATS: Final[FlextTypes.StringList] = [
+        # Format name constants
+        JSON: Final[str] = "json"
+        YAML: Final[str] = "yaml"
+        YML: Final[str] = "yml"
+        CSV: Final[str] = "csv"
+        TXT: Final[str] = "txt"
+        TOML: Final[str] = "toml"
+        XML: Final[str] = "xml"
+        TSV: Final[str] = "tsv"
+
+        SUPPORTED_FORMATS: Final[list[str]] = [
             "json",
             "yaml",
             "yml",
             "txt",
             "csv",
         ]
-        FORMAT_EXTENSIONS_JSON: Final[FlextTypes.StringList] = ["json"]
-        FORMAT_EXTENSIONS_YAML: Final[FlextTypes.StringList] = ["yaml", "yml"]
+        FORMAT_EXTENSIONS_JSON: Final[list[str]] = ["json"]
+        FORMAT_EXTENSIONS_YAML: Final[list[str]] = ["yaml", "yml"]
         YAML_EXTENSIONS_SET: Final[set[str]] = {".yaml", ".yml"}
 
     class ContextDefaults:
@@ -1239,14 +1251,22 @@ class FlextCliConstants(FlextConstants):
     class ContextDictKeys:
         """Dictionary keys specific to CLI context operations."""
 
+        # Context identity and basic info
+        ID: Final[str] = "id"
         CONTEXT_ID: Final[str] = "context_id"
         COMMAND: Final[str] = "command"
+        CREATED_AT: Final[str] = "created_at"
+        TIMEOUT_SECONDS: Final[str] = "timeout_seconds"
+
+        # Arguments and environment
         ARGUMENTS_COUNT: Final[str] = "arguments_count"
         ARGUMENTS: Final[str] = "arguments"
+        ENVIRONMENT_VARIABLES: Final[str] = "environment_variables"
         ENVIRONMENT_VARIABLES_COUNT: Final[str] = "environment_variables_count"
         WORKING_DIRECTORY: Final[str] = "working_directory"
+
+        # State and metadata
         IS_ACTIVE: Final[str] = "is_active"
-        CREATED_AT: Final[str] = "created_at"
         METADATA_KEYS: Final[str] = "metadata_keys"
         METADATA_COUNT: Final[str] = "metadata_count"
         CONTEXT_EXECUTED: Final[str] = "context_executed"
@@ -1477,7 +1497,7 @@ class FlextCliConstants(FlextConstants):
         TIMESTAMP: Final[str] = "timestamp"
 
     # Table formats for tabulate integration
-    TABLE_FORMATS: Final[FlextTypes.StringDict] = {
+    TABLE_FORMATS: Final[dict[str, str]] = {
         "plain": "Minimal formatting, no borders",
         "simple": "Simple ASCII borders",
         "grid": "Grid-style ASCII table",
@@ -1541,12 +1561,8 @@ class FlextCliConstants(FlextConstants):
         SESSION_STATUS_INVALID: Final[str] = (
             "Invalid session status '{current_status}'. Valid states: {valid_states}"
         )
-        PIPELINE_STEP_EMPTY: Final[str] = (
-            "Pipeline step must be a non-empty dictionary"
-        )
-        PIPELINE_STEP_NO_NAME: Final[str] = (
-            "Pipeline step must have a 'name' field"
-        )
+        PIPELINE_STEP_EMPTY: Final[str] = "Pipeline step must be a non-empty dictionary"
+        PIPELINE_STEP_NO_NAME: Final[str] = "Pipeline step must have a 'name' field"
         PIPELINE_STEP_NAME_EMPTY: Final[str] = "Pipeline step name cannot be empty"
         CONFIG_MISSING_FIELDS: Final[str] = (
             "Missing required configuration fields: {missing_fields}"
@@ -1582,9 +1598,7 @@ class FlextCliConstants(FlextConstants):
 
         COMMAND_NOT_FOUND: Final[str] = "Command '{name}' not found"
         COMMAND_NOT_FOUND_DETAIL: Final[str] = "Command not found: {command_name}"
-        HANDLER_NOT_CALLABLE: Final[str] = (
-            "Handler is not callable: {command_name}"
-        )
+        HANDLER_NOT_CALLABLE: Final[str] = "Handler is not callable: {command_name}"
         INVALID_COMMAND_STRUCTURE: Final[str] = (
             "Invalid command structure: {command_name}"
         )
@@ -1634,7 +1648,9 @@ class FlextCliConstants(FlextConstants):
         """Error messages for tables operations."""
 
         TABLE_DATA_EMPTY: Final[str] = "Table data cannot be empty"
-        INVALID_TABLE_FORMAT: Final[str] = "Invalid table format: {table_format}. Available: {available_formats}"
+        INVALID_TABLE_FORMAT: Final[str] = (
+            "Invalid table format: {table_format}. Available: {available_formats}"
+        )
         UNKNOWN_FORMAT: Final[str] = "Unknown format: {format_name}"
         TABLE_CREATION_FAILED: Final[str] = "Failed to create table: {error}"
         PRINT_FORMATS_FAILED: Final[str] = "Failed to print formats: {error}"
@@ -1652,8 +1668,18 @@ class FlextCliConstants(FlextConstants):
         DEFAULT_HELP_TEXT_FORMAT: Final[str] = "Set {field_name}"
         CHOICES_HELP_SUFFIX: Final[str] = " (choices: {choices_str})"
         RANGE_HELP_SUFFIX: Final[str] = " [range: {minimum}-{maximum}]"
-        VALID_LOG_FORMATS: Final[FlextTypes.StringList] = ["compact", "detailed", "full"]
-        VALID_OUTPUT_FORMATS: Final[FlextTypes.StringList] = ["table", "json", "yaml", "csv", "plain"]
+        VALID_LOG_FORMATS: Final[list[str]] = [
+            "compact",
+            "detailed",
+            "full",
+        ]
+        VALID_OUTPUT_FORMATS: Final[list[str]] = [
+            "table",
+            "json",
+            "yaml",
+            "csv",
+            "plain",
+        ]
         FIELD_NAME_OVERRIDE_KEY: Final[str] = "field_name_override"
 
     class CliParamsErrorMessages:
@@ -1676,7 +1702,9 @@ class FlextCliConstants(FlextConstants):
         INVALID_OUTPUT_FORMAT: Final[str] = (
             "Invalid output format: {output_format}. Must be one of: {valid}"
         )
-        APPLY_PARAMS_FAILED: Final[str] = "Failed to apply CLI parameters to config: {error}"
+        APPLY_PARAMS_FAILED: Final[str] = (
+            "Failed to apply CLI parameters to config: {error}"
+        )
         CONFIGURE_LOGGER_FAILED: Final[str] = "Failed to configure logger: {error}"
 
     class CliParamsRegistry:
@@ -1802,25 +1830,49 @@ class FlextCliConstants(FlextConstants):
     class ModelsErrorMessages:
         """Error messages for models operations."""
 
-        REQUIRED_NESTED_CLASS_NOT_FOUND: Final[str] = "Required nested class {class_name} not found"
-        FIELD_NO_TYPE_ANNOTATION: Final[str] = "Field {field_name} has no type annotation"
+        REQUIRED_NESTED_CLASS_NOT_FOUND: Final[str] = (
+            "Required nested class {class_name} not found"
+        )
+        FIELD_NO_TYPE_ANNOTATION: Final[str] = (
+            "Field {field_name} has no type annotation"
+        )
         COMMAND_LINE_CANNOT_BE_EMPTY: Final[str] = "Command line cannot be empty"
-        INVALID_STATUS: Final[str] = "Invalid status '{value}'. Must be one of: {allowed}"
-        COMMAND_WITH_EXIT_CODE_PENDING: Final[str] = "Command with exit_code cannot have pending status"
-        COMMAND_WITH_OUTPUT_PENDING: Final[str] = "Command with output cannot have pending status"
+        INVALID_STATUS: Final[str] = (
+            "Invalid status '{value}'. Must be one of: {allowed}"
+        )
+        COMMAND_WITH_EXIT_CODE_PENDING: Final[str] = (
+            "Command with exit_code cannot have pending status"
+        )
+        COMMAND_WITH_OUTPUT_PENDING: Final[str] = (
+            "Command with output cannot have pending status"
+        )
         COMMAND_DATA_MUST_BE_DICT: Final[str] = "Command data must be a dictionary"
         COMMAND_FIELD_REQUIRED: Final[str] = "Command field is required"
         COMMAND_MUST_BE_STRING: Final[str] = "Command must be a string"
         COMMAND_ALREADY_EXISTS: Final[str] = "Command already exists in session"
         DURATION_CANNOT_BE_NEGATIVE: Final[str] = "duration_seconds cannot be negative"
-        INVALID_DEBUG_LEVEL: Final[str] = "Invalid debug level '{value}'. Must be one of: {allowed}"
-        CRITICAL_DEBUG_REQUIRES_MESSAGE: Final[str] = "Debug level '{level}' requires a descriptive message"
-        FAILED_FIELD_CONVERSION: Final[str] = "Failed to convert field {field_name}: {error}"
-        FAILED_MODEL_CONVERSION: Final[str] = "Failed to convert model {model_name}: {error}"
-        FAILED_CLICK_OPTIONS_GENERATION: Final[str] = "Failed to generate Click options for {model_name}: {error}"
-        FAILED_MODEL_CREATION_FROM_CLI: Final[str] = "Failed to create {model_name} from CLI args: {error}"
+        INVALID_DEBUG_LEVEL: Final[str] = (
+            "Invalid debug level '{value}'. Must be one of: {allowed}"
+        )
+        CRITICAL_DEBUG_REQUIRES_MESSAGE: Final[str] = (
+            "Debug level '{level}' requires a descriptive message"
+        )
+        FAILED_FIELD_CONVERSION: Final[str] = (
+            "Failed to convert field {field_name}: {error}"
+        )
+        FAILED_MODEL_CONVERSION: Final[str] = (
+            "Failed to convert model {model_name}: {error}"
+        )
+        FAILED_CLICK_OPTIONS_GENERATION: Final[str] = (
+            "Failed to generate Click options for {model_name}: {error}"
+        )
+        FAILED_MODEL_CREATION_FROM_CLI: Final[str] = (
+            "Failed to create {model_name} from CLI args: {error}"
+        )
         INVALID_INPUT: Final[str] = "Invalid input: {error}"
-        VALIDATION_FAILED_FOR_MODEL: Final[str] = "Validation failed for {model_name}: {error}"
+        VALIDATION_FAILED_FOR_MODEL: Final[str] = (
+            "Validation failed for {model_name}: {error}"
+        )
         USER_ID_EMPTY: Final[str] = "User ID cannot be empty"
         COMMAND_WITH_EXIT_CODE_CANNOT_HAVE_PENDING_STATUS: Final[str] = (
             "Command with exit_code cannot have pending status"
@@ -1828,12 +1880,18 @@ class FlextCliConstants(FlextConstants):
         COMMAND_WITH_OUTPUT_CANNOT_HAVE_PENDING_STATUS: Final[str] = (
             "Command with output cannot have pending status"
         )
-        COMMAND_ALREADY_EXISTS_IN_SESSION: Final[str] = "Command already exists in session"
+        COMMAND_ALREADY_EXISTS_IN_SESSION: Final[str] = (
+            "Command already exists in session"
+        )
         DEBUG_LEVEL_REQUIRES_MESSAGE: Final[str] = (
             "Debug level '{level}' requires a descriptive message"
         )
-        FAILED_TO_CONVERT_FIELD: Final[str] = "Failed to convert field {field_name}: {error}"
-        FAILED_TO_CONVERT_MODEL: Final[str] = "Failed to convert model {model_name}: {error}"
+        FAILED_TO_CONVERT_FIELD: Final[str] = (
+            "Failed to convert field {field_name}: {error}"
+        )
+        FAILED_TO_CONVERT_MODEL: Final[str] = (
+            "Failed to convert model {model_name}: {error}"
+        )
         FAILED_TO_GENERATE_CLICK_OPTIONS: Final[str] = (
             "Failed to generate Click options for {model_name}: {error}"
         )
@@ -1864,6 +1922,11 @@ class FlextCliConstants(FlextConstants):
         EXAMPLE_ARGS_2: Final[str] = "deploy"
         EXAMPLE_ARGS_3: Final[str] = "--env"
         EXAMPLE_ARGS_4: Final[str] = "production"
+
+    class PydanticTypeNames:
+        """Pydantic-specific type name constants."""
+
+        UNDEFINED_TYPE: Final[str] = "PydanticUndefinedType"
 
     class ModelsTypeMapping:
         """Type mapping for Python to Click type conversion."""
@@ -1896,7 +1959,9 @@ class FlextCliConstants(FlextConstants):
         STATUS: Final[str] = "Current execution status of the command"
         EXIT_CODE: Final[str] = "Process exit code (0 for success, non-zero for errors)"
         OUTPUT: Final[str] = "Standard output captured from command execution"
-        ERROR_OUTPUT: Final[str] = "Standard error output captured from command execution"
+        ERROR_OUTPUT: Final[str] = (
+            "Standard error output captured from command execution"
+        )
         EXECUTION_TIME: Final[str] = "Command execution time in seconds"
         RESULT: Final[str] = "Structured result data from command execution"
         KWARGS: Final[str] = "Additional keyword arguments passed to command"
@@ -1925,7 +1990,9 @@ class FlextCliConstants(FlextConstants):
         INTERNAL_DURATION: Final[str] = (
             "Internal duration tracking field (use duration_seconds computed field)"
         )
-        COMMANDS_EXECUTED: Final[str] = "Total number of commands executed in this session"
+        COMMANDS_EXECUTED: Final[str] = (
+            "Total number of commands executed in this session"
+        )
         COMMANDS: Final[str] = "List of commands executed in this session"
         STATUS: Final[str] = "Current session status"
         USER_ID: Final[str] = "User identifier associated with this session"
@@ -2041,13 +2108,22 @@ class FlextCliConstants(FlextConstants):
         START_TIME_EXAMPLES: Final[list[str]] = ["2025-01-13T14:30:22Z"]
         END_TIME_EXAMPLES: Final[list[str]] = ["2025-01-13T15:45:30Z"]
         LAST_ACTIVITY_EXAMPLES: Final[list[str]] = ["2025-01-13T15:30:00Z"]
-        LOG_LEVEL_EXAMPLES: Final[list[str]] = ["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"]
+        LOG_LEVEL_EXAMPLES: Final[list[str]] = [
+            "DEBUG",
+            "INFO",
+            "WARNING",
+            "ERROR",
+            "CRITICAL",
+        ]
         LOG_FORMAT_EXAMPLES: Final[list[str]] = [
             "%(levelname)s: %(message)s",
             "json",
             "plain",
         ]
-        LOG_FILE_EXAMPLES: Final[list[str]] = ["/var/log/flext-cli.log", "~/.flext/cli.log"]
+        LOG_FILE_EXAMPLES: Final[list[str]] = [
+            "/var/log/flext-cli.log",
+            "~/.flext/cli.log",
+        ]
 
 
 __all__ = [
