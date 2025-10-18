@@ -13,7 +13,6 @@ from __future__ import annotations
 
 import secrets
 from collections.abc import Callable
-from pathlib import Path
 from typing import cast
 
 from flext_core import (
@@ -42,11 +41,25 @@ __types__ = FlextCliTypes
 
 
 class FlextCli:
-    """Consolidated single-class CLI implementation.
+    """Coordinator for CLI operations with direct domain library access.
 
-    Contains ALL CLI functionality (formatting, auth, commands, etc.).
+    Consolidates ALL CLI functionality through direct access to domain libraries:
+    - formatters: FlextCliFormatters - Rich-based visual output
+    - output: FlextCliOutput - Comprehensive output tools
+    - file_tools: FlextCliFileTools - File operations
+    - core: FlextCliCore - Core CLI service
+    - cmd: FlextCliCmd - Command execution
+    - prompts: FlextCliPrompts - Interactive prompts
+    - config: FlextCliConfig - Configuration management
+
     Uses FlextResult railway pattern with zero async operations.
     All defaults from FlextCliConstants with proper centralization.
+
+    Usage (direct access pattern):
+        >>> cli = FlextCli.get_instance()
+        >>> cli.formatters.print("Hello")  # Direct formatters access
+        >>> cli.output.format_data(data)  # Direct output access
+        >>> cli.file_tools.read_json_file(path)  # Direct file tools access
     """
 
     _instance: FlextCli | None = None
@@ -88,16 +101,16 @@ class FlextCli:
 
         # CLI framework abstraction (domain library pattern)
         self._cli = FlextCliCli()
-        self._commands: FlextTypes.Dict = {}
-        self._groups: FlextTypes.Dict = {}
-        self._plugin_commands: FlextTypes.Dict = {}
+        self._commands: dict[str, object] = {}
+        self._groups: dict[str, object] = {}
+        self._plugin_commands: dict[str, object] = {}
 
         # Auth state (consolidated from FlextCliAuth)
         self.config = FlextCliConfig()
         self._valid_tokens: set[str] = set()
         self._valid_sessions: set[str] = set()
         self._session_permissions: dict[str, set[str]] = {}
-        self._users: dict[str, FlextTypes.Dict] = {}
+        self._users: dict[str, dict[str, object]] = {}
         self._deleted_users: set[str] = set()
 
     @classmethod
@@ -109,59 +122,6 @@ class FlextCli:
                 if cls._instance is None:
                     cls._instance = cls()
         return cls._instance
-
-    def print(
-        self,
-        message: str,
-        style: str | None = None,
-    ) -> FlextResult[None]:
-        """Print formatted message using formatters domain library."""
-        return self.formatters.print(message, style=style)
-
-    def create_table(
-        self,
-        data: FlextCliTypes.Data.CliDataDict | None = None,
-        headers: FlextTypes.StringList | None = None,
-        title: str | None = None,
-    ) -> FlextResult[FlextCliTypes.Display.RichTable]:
-        """Create table using formatters domain library.
-
-        Returns:
-            FlextResult[RichTable]: Rich Table wrapped in Result
-
-        """
-        return self.formatters.create_table(data=data, headers=headers, title=title)
-
-    def create_progress(self) -> FlextResult[FlextCliTypes.Interactive.Progress]:
-        """Create progress bar using formatters domain library.
-
-        Returns:
-            FlextResult[Progress]: Rich Progress wrapped in Result
-
-        """
-        return self.formatters.create_progress()
-
-    def create_tree(self, label: str) -> FlextResult[FlextCliTypes.Display.RichTree]:
-        """Create tree using formatters domain library."""
-        return self.formatters.create_tree(label=label)
-
-    def print_table(self, table: FlextCliTypes.Display.RichTable) -> FlextResult[None]:
-        """Print a Rich Table object using formatters domain library.
-
-        Args:
-            table: Rich Table object to print
-
-        Returns:
-            FlextResult[None]: Success if printed, failure with details
-
-        """
-        try:
-            self.formatters.get_console().print(table)
-            return FlextResult[None].ok(None)
-        except Exception as e:
-            return FlextResult[None].fail(
-                FlextCliConstants.APIDefaults.PRINT_TABLE_ERROR_PREFIX.format(error=e)
-            )
 
     # =========================================================================
     # AUTHENTICATION - Direct implementation (consolidated from auth.py)
@@ -389,24 +349,12 @@ class FlextCli:
         return FlextResult[None].ok(None)
 
     # =========================================================================
-    # FILE OPERATIONS - Domain library delegation
-    # =========================================================================
-
-    def read_text_file(self, path: Path) -> FlextResult[str]:
-        """Read text file using file tools domain library."""
-        return self.file_tools.read_text_file(str(path))
-
-    def write_text_file(self, path: Path, content: str) -> FlextResult[None]:
-        """Write text file using file tools domain library."""
-        return self.file_tools.write_text_file(str(path), content)
-
-    # =========================================================================
     # EXECUTION - Railway pattern with FlextResult
     # =========================================================================
 
-    def execute(self) -> FlextResult[FlextTypes.Dict]:
+    def execute(self) -> FlextResult[dict[str, object]]:
         """Execute CLI service with railway pattern."""
-        return FlextResult[FlextTypes.Dict].ok({
+        return FlextResult[dict[str, object]].ok({
             FlextCliConstants.DictKeys.STATUS: FlextCliConstants.ServiceStatus.OPERATIONAL.value,
             FlextCliConstants.DictKeys.SERVICE: FlextCliConstants.FLEXT_CLI,
         })

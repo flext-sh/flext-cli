@@ -14,7 +14,7 @@ import time
 from typing import Never
 
 import pytest
-from flext_core import FlextResult, FlextTypes
+from flext_core import FlextResult
 
 from flext_cli.commands import FlextCliCommands
 from flext_cli.constants import FlextCliConstants
@@ -279,7 +279,7 @@ class TestFlextCliCommands:
         commands = FlextCliCommands()
 
         # Register command that accepts args
-        def cmd_with_args(args: FlextTypes.StringList) -> str:
+        def cmd_with_args(args: list[str]) -> str:
             return f"args: {len(args)}"
 
         commands.register_command("with_args", cmd_with_args)
@@ -472,7 +472,7 @@ class TestFlextCliCommands:
         with patch.object(
             FlextCliCommands,
             "execute",
-            return_value=FlextResult[FlextTypes.Dict].fail("Execute failed"),
+            return_value=FlextResult[dict[str, object]].fail("Execute failed"),
         ):
             result = commands.run_cli()
             assert result.is_failure

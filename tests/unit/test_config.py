@@ -1779,6 +1779,7 @@ class TestFlextCliConfigExceptionHandlers:
     def test_merge_with_env_success(self) -> None:
         """Test merge_with_env success path (lines 588-598)."""
         import os
+
         # Save original env
         original_profile = os.environ.get("FLEXT_PROFILE")
         original_debug = os.environ.get("FLEXT_DEBUG")

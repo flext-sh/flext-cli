@@ -212,7 +212,7 @@ def flext_cli_utilities() -> type[FlextUtilities]:
 
 
 @pytest.fixture
-def sample_config_data() -> FlextTypes.Dict:
+def sample_config_data() -> dict[str, object]:
     """Provide sample configuration data for tests."""
     return {
         "debug": True,
@@ -227,7 +227,7 @@ def sample_config_data() -> FlextTypes.Dict:
 
 
 @pytest.fixture
-def sample_file_data(temp_dir: Path) -> FlextTypes.Dict:
+def sample_file_data(temp_dir: Path) -> dict[str, object]:
     """Provide sample file data for tests."""
     return {
         "content": "This is test content for file operations",
@@ -242,7 +242,7 @@ def sample_file_data(temp_dir: Path) -> FlextTypes.Dict:
 
 
 @pytest.fixture
-def sample_command_data() -> FlextTypes.Dict:
+def sample_command_data() -> dict[str, object]:
     """Provide sample command data for tests."""
     return {
         "command": "test_command",
@@ -274,7 +274,7 @@ def fixture_data_csv() -> Path:
 
 
 @pytest.fixture
-def load_fixture_config() -> FlextTypes.Dict:
+def load_fixture_config() -> dict[str, object]:
     """Load configuration data from fixtures directory."""
     fixture_path = Path("tests/fixtures/configs/test_config.json")
     with fixture_path.open(encoding="utf-8") as f:
@@ -282,7 +282,7 @@ def load_fixture_config() -> FlextTypes.Dict:
 
 
 @pytest.fixture
-def load_fixture_data() -> FlextTypes.Dict:
+def load_fixture_data() -> dict[str, object]:
     """Load test data from fixtures directory."""
     fixture_path = Path("tests/fixtures/data/test_data.json")
     with fixture_path.open(encoding="utf-8") as f:

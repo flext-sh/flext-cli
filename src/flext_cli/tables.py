@@ -132,7 +132,9 @@ class FlextCliTables(FlextService[object]):
 
         """
         if not data:
-            return FlextResult[str].fail(FlextCliConstants.TablesErrorMessages.TABLE_DATA_EMPTY)
+            return FlextResult[str].fail(
+                FlextCliConstants.TablesErrorMessages.TABLE_DATA_EMPTY
+            )
 
         if table_format not in FlextCliConstants.TABLE_FORMATS:
             return FlextResult[str].fail(
@@ -144,10 +146,20 @@ class FlextCliTables(FlextService[object]):
 
         try:
             # Use constants for defaults
-            final_floatfmt = floatfmt or FlextCliConstants.TablesDefaults.DEFAULT_FLOAT_FORMAT
-            final_numalign = numalign or FlextCliConstants.TablesDefaults.DEFAULT_NUM_ALIGN
-            final_stralign = stralign or FlextCliConstants.TablesDefaults.DEFAULT_STR_ALIGN
-            final_missingval = missingval if missingval is not None else FlextCliConstants.TablesDefaults.DEFAULT_MISSING_VALUE
+            final_floatfmt = (
+                floatfmt or FlextCliConstants.TablesDefaults.DEFAULT_FLOAT_FORMAT
+            )
+            final_numalign = (
+                numalign or FlextCliConstants.TablesDefaults.DEFAULT_NUM_ALIGN
+            )
+            final_stralign = (
+                stralign or FlextCliConstants.TablesDefaults.DEFAULT_STR_ALIGN
+            )
+            final_missingval = (
+                missingval
+                if missingval is not None
+                else FlextCliConstants.TablesDefaults.DEFAULT_MISSING_VALUE
+            )
 
             # Determine column alignment parameter
             final_colalign: Sequence[str] | None = None
@@ -196,7 +208,11 @@ class FlextCliTables(FlextService[object]):
             return FlextResult[str].ok(table_str)
 
         except Exception as e:
-            error_msg = FlextCliConstants.TablesErrorMessages.TABLE_CREATION_FAILED.format(error=e)
+            error_msg = (
+                FlextCliConstants.TablesErrorMessages.TABLE_CREATION_FAILED.format(
+                    error=e
+                )
+            )
             self._logger.exception(error_msg)
             return FlextResult[str].fail(error_msg)
 
@@ -404,7 +420,7 @@ class FlextCliTables(FlextService[object]):
     # UTILITY METHODS
     # =========================================================================
 
-    def list_formats(self) -> FlextTypes.StringList:
+    def list_formats(self) -> list[str]:
         """List all available table formats.
 
         Returns:
@@ -457,7 +473,11 @@ class FlextCliTables(FlextService[object]):
             return FlextResult[None].ok(None)
 
         except Exception as e:
-            error_msg = FlextCliConstants.TablesErrorMessages.PRINT_FORMATS_FAILED.format(error=e)
+            error_msg = (
+                FlextCliConstants.TablesErrorMessages.PRINT_FORMATS_FAILED.format(
+                    error=e
+                )
+            )
             self._logger.exception(error_msg)
             return FlextResult[None].fail(error_msg)
 

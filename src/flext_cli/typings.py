@@ -3,9 +3,9 @@
 This module provides CLI-specific type definitions extending FlextTypes.
 Follows FLEXT standards:
 - Single unified class per module
-- Domain-specific complex types only
+- Domain-specific types with business value
 - Python 3.13+ syntax
-- No simple aliases to primitive types
+- Pydantic v2 Annotated types with validation constraints
 
 Copyright (c) 2025 FLEXT Team. All rights reserved.
 SPDX-License-Identifier: MIT
@@ -14,9 +14,11 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from typing import TypeVar
+import typing
+from typing import Annotated, TypeVar
 
-from flext_core import FlextTypes
+from flext_core import FlextResult, FlextTypes
+from pydantic import Field
 from rich.console import Console as RichConsoleImport
 from rich.layout import Layout as RichLayoutImport
 from rich.live import Live as RichLiveImport
@@ -32,19 +34,7 @@ from rich.status import Status as RichStatusImport
 from rich.table import Table as RichTableImport
 from rich.tree import Tree as RichTreeImport
 
-# Type aliases for module-level types (used outside class definitions)
-type CsvData = list[FlextTypes.StringDict]
-type ErrorList = FlextTypes.StringList
-type ConnectivityInfo = FlextTypes.StringDict
-type FileList = FlextTypes.StringList
-type TableHeaders = FlextTypes.StringList
-type CommandArgs = FlextTypes.StringList
-
-# =============================================================================
-# CLI-SPECIFIC TYPE VARIABLES - Domain-specific TypeVars for CLI operations
-# =============================================================================
-
-# CLI domain TypeVars
+# Module-level TypeVars
 TCliCommand = TypeVar("TCliCommand")
 TCliConfig = TypeVar("TCliConfig")
 TCliOutput = TypeVar("TCliOutput")
@@ -54,272 +44,240 @@ TCliContext = TypeVar("TCliContext")
 TCliPlugin = TypeVar("TCliPlugin")
 TCliFormatter = TypeVar("TCliFormatter")
 
-# Generic TypeVar for utility functions
-T = TypeVar("T")
 
-
-class FlextCliTypes(FlextTypes):
+class FlextCliTypes:
     """CLI-specific type definitions extending FlextTypes.
 
-    Contains complex CLI-specific types that add business value.
-    Follows FLEXT pattern: domain-specific complex types only, no simple aliases.
-    Uses Python 3.13+ type syntax and patterns.
+    Provides Pydantic v2 Annotated types with validation constraints
+    for CLI-specific field patterns, and Rich component type aliases.
     """
 
-    # =========================================================================
-    # CLI COMMAND TYPES - Complex command processing types
-    # Note: StringList available via FlextTypes.StringList
-    # =========================================================================
+    # =====================================================================
+    # CORE TYPE ALIASES - Inherit from FlextTypes
+    # =====================================================================
 
-    class CliCommand:
-        """CLI command-specific complex types."""
+    JsonValue = FlextTypes.JsonValue
+    """JSON value type alias (inherited from FlextTypes for compatibility)."""
 
-        type CommandDefinition = dict[
-            str, str | FlextTypes.StringList | dict[str, FlextTypes.JsonValue]
+    # =====================================================================
+    # ANNOTATED CLI TYPES - Pydantic v2 Annotated types with validation
+    # =====================================================================
+
+    class AnnotatedCli:
+        """CLI-specific Annotated types with built-in validation constraints.
+
+        Provides reusable Annotated type definitions for CLI-specific field
+        patterns, eliminating verbose Field() declarations in CLI commands
+        and models.
+
+        Example:
+            from flext_cli.typings import FlextCliTypes
+            from pydantic import BaseModel
+
+            class CommandParams(BaseModel):
+                command_name: FlextCliTypes.AnnotatedCli.CommandName
+                port: FlextCliTypes.AnnotatedCli.PortNumber
+                batch_size: FlextCliTypes.AnnotatedCli.BatchSize
+
+        """
+
+        # Command string types with validation
+        CommandName = Annotated[
+            str, Field(pattern=r"^[a-z][a-z0-9-]*$", min_length=1, max_length=64)
         ]
-        type CommandPipeline = list[dict[str, FlextTypes.JsonValue]]
-        type CommandRegistry = dict[
-            str,
-            dict[
-                str,
-                str | FlextTypes.StringList | dict[str, FlextTypes.JsonValue],
-            ],
+        """Command name with kebab-case pattern validation."""
+
+        OptionName = Annotated[
+            str, Field(pattern=r"^--[a-z][a-z0-9-]*$", min_length=3, max_length=64)
         ]
-        type CommandContext = dict[str, FlextTypes.JsonValue]
-        type CommandResult = FlextTypes.Dict
-        type CommandMetadata = dict[str, str | int | FlextTypes.StringList]
-        type CommandArgs = FlextTypes.StringList
-        type CommandNames = FlextTypes.StringList
+        """CLI option name with double-dash prefix."""
 
-    class CliCommandResult:
-        """CLI command result type definitions."""
+        ProfileName = Annotated[str, Field(min_length=1, max_length=64)]
+        """Configuration profile name."""
 
-        # Core command result types
-        CommandResultData = dict[str, FlextTypes.JsonValue]
-        # CommandResultStatus defined in FlextCliConstants.CliCommandResult
-        CommandResultMetadata = dict[str, str | int | bool]
+        # Numeric types with value constraints
+        PortNumber = Annotated[int, Field(ge=1, le=65535)]
+        """Port number (valid range: 1-65535)."""
 
-    # =========================================================================
-    # CLI CONFIGURATION TYPES - Complex configuration types
-    # =========================================================================
+        TimeoutMs = Annotated[int, Field(ge=100, le=300000)]
+        """Timeout in milliseconds (100ms-300s)."""
 
-    class Configuration:
-        """CLI configuration complex types."""
+        BatchSize = Annotated[int, Field(ge=1, le=10000)]
+        """Batch processing size (1-10000 items)."""
 
-        type CliConfigSchema = dict[str, dict[str, FlextTypes.ConfigValue]]
-        type ProfileConfiguration = FlextTypes.Dict
-        type EnvironmentConfig = dict[
-            str, FlextTypes.ConfigValue | dict[str, FlextTypes.ConfigValue]
+        MaxRetries = Annotated[int, Field(ge=0, le=100)]
+        """Maximum number of retries (0-100)."""
+
+        MaxWorkers = Annotated[int, Field(ge=1, le=50)]
+        """Maximum number of parallel workers (1-50)."""
+
+        # Path and file types
+        ConfigFilePath = Annotated[str, Field(min_length=1)]
+        """Path to configuration file."""
+
+        OutputDirectory = Annotated[str, Field(min_length=1)]
+        """Path to output directory."""
+
+        # Output format types
+        OutputFormat = Annotated[str, Field(pattern=r"^(json|yaml|csv|table|plain)$")]
+        """Supported output format (json, yaml, csv, table, plain)."""
+
+        TableWidth = Annotated[int, Field(ge=40, le=300)]
+        """Table display width in characters (40-300)."""
+
+        # Logging and debug types
+        LogLevel = Annotated[
+            str, Field(pattern=r"^(DEBUG|INFO|WARNING|ERROR|CRITICAL)$")
         ]
-        type SessionConfiguration = dict[
-            str,
-            str | int | float | bool | FlextTypes.List | FlextTypes.Dict | None,
-        ]
-        type AuthenticationConfig = dict[str, str | int | bool | FlextTypes.StringList]
-        type LogConfig = dict[str, str | None]
+        """Log level (DEBUG, INFO, WARNING, ERROR, CRITICAL)."""
 
-    # =========================================================================
-    # CLI OUTPUT TYPES - Complex output formatting types
-    # =========================================================================
+        VerbosityLevel = Annotated[int, Field(ge=0, le=3)]
+        """Verbosity level (0-3, where 0=quiet, 3=very verbose)."""
 
-    class Output(FlextTypes.Output):
-        """CLI output formatting complex types extending FlextTypes.Output."""
-
-        FormatterConfig = dict[
-            str, FlextTypes.Output.OutputFormat | FlextTypes.StringDict
-        ]
-        TableConfiguration = dict[str, str | int | FlextTypes.StringList | bool]
-        ProgressBarConfig = dict[str, str | int | bool]
-        OutputPipeline = list[
-            dict[str, FlextTypes.Output.OutputFormat | FlextTypes.JsonValue]
-        ]
-        RenderingOptions = dict[str, bool | str | int | FlextTypes.StringList]
-
-    # =========================================================================
-    # CLI PROCESSING TYPES - Complex processing types
-    # =========================================================================
-
-    class Processing(FlextTypes.Processing):
-        """CLI processing complex types extending FlextTypes.Processing."""
-
-        BatchOperation = dict[str, list[dict[str, FlextTypes.JsonValue]]]
-        PipelineDefinition = list[dict[str, str | dict[str, FlextTypes.JsonValue]]]
-        WorkflowConfiguration = dict[
-            str, FlextTypes.Processing.ProcessingStatus | FlextTypes.JsonValue
-        ]
-        TaskConfiguration = dict[
-            str,
-            str | int | float | bool | FlextTypes.List | FlextTypes.Dict | None,
-        ]
-
-    # =========================================================================
-    # CLI DATA TYPES - Complex data processing types
-    # =========================================================================
+    # =====================================================================
+    # CLI DATA TYPES - Protocol data structures for CLI operations
+    # =====================================================================
 
     class Data:
-        """CLI data processing complex types."""
+        """CLI data type aliases for protocol operations.
 
-        PandasReadCsvKwargs = dict[str, str | int | bool | object]
-        PyArrowReadTableKwargs = dict[str, str | int | bool | object]
-        PyArrowWriteTableKwargs = dict[str, str | int | bool | object]
-        CliDataDict = dict[str, FlextTypes.JsonValue]
-        CliCommandData = dict[str, FlextTypes.JsonValue]
-        CliCommandResult = dict[
-            str,
-            str | int | float | bool | FlextTypes.List | FlextTypes.Dict | None,
-        ]
-        CliCommandArgs = dict[str, FlextTypes.JsonValue]
+        Provides reusable type definitions for CLI data structures used in
+        protocols and handlers. All data types are dict-based for flexibility
+        and compatibility with JSON serialization.
+
+        Example:
+            from flext_cli.typings import FlextCliTypes
+            from flext_core import FlextResult
+
+            class MyFormatter:
+                def format_data(
+                    self,
+                    data: FlextCliTypes.Data.CliFormatData,
+                    **options: FlextCliTypes.Data.CliConfigData,
+                ) -> FlextResult[str]:
+                    # Implementation
+                    return FlextResult[str].ok("formatted")
+
+        """
+
+        # Data structures for CLI formatting and configuration
         CliFormatData = dict[str, FlextTypes.JsonValue]
+        """Data structure for CLI formatting operations."""
+
         CliConfigData = dict[str, FlextTypes.JsonValue]
-        AuthConfigData = dict[str, str | int | bool]
-        DebugInfoData = dict[
-            str,
-            str
-            | int
-            | float
-            | bool
-            | FlextTypes.List
-            | FlextTypes.Dict
-            | FlextTypes.StringList
-            | None,
-        ]
-        ErrorList = FlextTypes.StringList
-        FileList = FlextTypes.StringList
-        CsvData = list[FlextTypes.StringDict]
-        ConnectivityInfo = FlextTypes.StringDict
-        TableHeaders = FlextTypes.StringList
-        TableRows = list[FlextTypes.StringList]
-        PathInfoList = list[dict[str, FlextTypes.JsonValue]]
+        """Data structure for CLI configuration (load/save/options)."""
 
-    class PandasTypes:
-        """Pandas-specific type definitions for CLI data processing."""
+        AuthConfigData = dict[str, FlextTypes.JsonValue]
+        """Data structure for authentication configuration and credentials."""
 
-        PandasToCsvKwargs = dict[str, str | int | bool | object]
+        DebugInfoData = dict[str, FlextTypes.JsonValue]
+        """Data structure for debug information."""
 
-    # =========================================================================
-    # CLI AUTH TYPES - Authentication and authorization types
-    # =========================================================================
+        CliCommandArgs = dict[str, FlextTypes.JsonValue]
+        """Data structure for CLI command arguments and kwargs."""
+
+        CliCommandResult = dict[str, FlextTypes.JsonValue]
+        """Data structure for CLI command execution results."""
+
+        # Additional CLI data structures
+        CliDataDict = dict[str, FlextTypes.JsonValue]
+        """Generic CLI data dictionary for flexible data passing."""
+
+        CliCommandData = dict[str, FlextTypes.JsonValue]
+        """Data structure for CLI command data and metadata."""
+
+    # =====================================================================
+    # AUTH DATA TYPES - Authentication and credentials
+    # =====================================================================
 
     class Auth:
-        """CLI authentication complex types."""
+        """Authentication data type aliases."""
 
-        PermissionList = FlextTypes.StringList
-        RoleList = FlextTypes.StringList
-        SessionData = dict[str, str | int | bool]
         CredentialsData = dict[str, FlextTypes.JsonValue]
-        UserData = dict[str, FlextTypes.JsonValue]
-        AuthResult = dict[str, FlextTypes.JsonValue]
-        UserList = list[dict[str, FlextTypes.JsonValue]]
+        """Data structure for credentials (username, password, token)."""
 
-    # =========================================================================
-    # CLI HTTP TYPES - HTTP-related types
-    # =========================================================================
+    # =====================================================================
+    # CLI COMMAND TYPES - Command execution and results
+    # =====================================================================
 
-    class Http:
-        """CLI HTTP complex types."""
+    class CliCommand:
+        """CLI command type aliases for command execution framework."""
 
-        Headers = FlextTypes.StringDict
-        ResponseData = FlextTypes.Dict
-        RequestData = FlextTypes.Dict
+        CommandDefinition = dict[str, FlextTypes.JsonValue]
+        """Data structure for command definition."""
 
-    # =========================================================================
-    # CLI PROJECT TYPES - Domain-specific project types extending FlextTypes
-    # =========================================================================
+        CommandContext = dict[str, FlextTypes.JsonValue]
+        """Data structure for command execution context."""
 
-    class Project(FlextTypes.Project):
-        """CLI-specific project types extending FlextTypes.Project.
+        CommandResult = dict[str, FlextTypes.JsonValue]
+        """Data structure for command execution results."""
 
-        Adds CLI-specific project types while inheriting generic types from FlextTypes.
-        Follows domain separation principle: CLI domain owns CLI-specific types.
-        CLI-specific types defined in FlextCliConstants.Project.
-        """
+    # =====================================================================
+    # CONFIGURATION TYPES - Application configuration
+    # =====================================================================
 
-    # =========================================================================
-    # CLI DISPLAY TYPES - Rich visual component type aliases
-    # =========================================================================
+    class Configuration:
+        """Configuration type aliases."""
+
+        CliConfigSchema = dict[str, FlextTypes.JsonValue]
+        """Data structure for CLI configuration schema."""
+
+        ProfileConfiguration = dict[str, FlextTypes.JsonValue]
+        """Data structure for configuration profile."""
+
+        SessionConfiguration = dict[str, FlextTypes.JsonValue]
+        """Data structure for session configuration."""
+
+    # =====================================================================
+    # CALLABLE TYPE ALIASES - Function signatures for CLI operations
+    # =====================================================================
+
+    class Callable:
+        """CLI-specific callable type aliases for handlers and formatters."""
+
+        # Handler function that processes CLI data and returns result
+        HandlerFunction = typing.Callable[..., FlextResult[FlextTypes.JsonValue]]
+        """CLI command handler function signature."""
+
+        # Result formatter that displays domain-specific result types
+        ResultFormatter = typing.Callable[[object, str], None]
+        """Result formatter function signature: (result, output_format) -> None."""
+
+    # =====================================================================
+    # RICH COMPONENT TYPE ALIASES
+    # =====================================================================
 
     class Display:
-        """Rich visual component type aliases for CLI display.
+        """Rich visual component type aliases."""
 
-        Type aliases for Rich library visual components - re-exported from formatters.
-        Follows ZERO TOLERANCE principle: NO direct Rich imports in user code.
-        """
-
-        # Type aliases from module-level imports using Python 3.12+ type statement
         type Console = RichConsoleImport
         type RichPanel = RichPanelImport
         type RichTable = RichTableImport
         type RichTree = RichTreeImport
 
     class Layout:
-        """Rich layout component type aliases for CLI layout.
+        """Rich layout component type aliases."""
 
-        Type aliases for Rich library layout components - re-exported from formatters.
-        Follows ZERO TOLERANCE principle: NO direct Rich imports in user code.
-        """
-
-        # Type alias from module-level import using Python 3.12+ type statement
         type RichLayout = RichLayoutImport
 
     class Interactive:
-        """Rich interactive component type aliases for CLI interaction.
+        """Rich interactive component type aliases."""
 
-        Type aliases for Rich library interactive components - re-exported from formatters.
-        Follows ZERO TOLERANCE principle: NO direct Rich imports in user code.
-        """
-
-        # Type aliases from module-level imports using Python 3.12+ type statement
         type RichLive = RichLiveImport
         type Progress = ProgressImport
         type RichStatus = RichStatusImport
 
     class ProgressColumns:
-        """Rich progress column type aliases for CLI progress tracking.
+        """Rich progress column type aliases."""
 
-        Type aliases for Rich library progress column components - re-exported from formatters.
-        Follows ZERO TOLERANCE principle: NO direct Rich imports in user code.
-        """
-
-        # Type aliases from module-level imports using Python 3.12+ type statement
         type BarColumn = BarColumnImport
         type SpinnerColumn = SpinnerColumnImport
         type TextColumn = TextColumnImport
         type TimeRemainingColumn = TimeRemainingColumnImport
 
 
-# =============================================================================
-# MODULE-LEVEL ALIASES - For convenient imports from flext_cli
-# =============================================================================
-
-# Re-export Rich components from FlextCliTypes nested classes
-RichTable = FlextCliTypes.Display.RichTable
-RichTree = FlextCliTypes.Display.RichTree
-RichPanel = FlextCliTypes.Display.RichPanel
-RichLayout = FlextCliTypes.Layout.RichLayout
-RichLive = FlextCliTypes.Interactive.RichLive
-RichStatus = FlextCliTypes.Interactive.RichStatus
-Progress = FlextCliTypes.Interactive.Progress
-BarColumn = FlextCliTypes.ProgressColumns.BarColumn
-SpinnerColumn = FlextCliTypes.ProgressColumns.SpinnerColumn
-TextColumn = FlextCliTypes.ProgressColumns.TextColumn
-TimeRemainingColumn = FlextCliTypes.ProgressColumns.TimeRemainingColumn
-
-# =============================================================================
-# PUBLIC API EXPORTS - CLI TypeVars and types
-# =============================================================================
-
-__all__: FlextTypes.StringList = [
-    "BarColumn",
+__all__: list[str] = [
     "FlextCliTypes",
-    "Progress",
-    "RichLayout",
-    "RichLive",
-    "RichPanel",
-    "RichStatus",
-    # Rich component type aliases from FlextCliTypes nested classes
-    "RichTable",
-    "RichTree",
-    "SpinnerColumn",
     "TCliCommand",
     "TCliConfig",
     "TCliContext",
@@ -328,6 +286,4 @@ __all__: FlextTypes.StringList = [
     "TCliPlugin",
     "TCliResult",
     "TCliSession",
-    "TextColumn",
-    "TimeRemainingColumn",
 ]

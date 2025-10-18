@@ -35,7 +35,7 @@ from flext_cli.constants import FlextCliConstants
 # ============================================================================
 
 
-class FlextCliFileTools(FlextService[FlextTypes.Dict]):
+class FlextCliFileTools(FlextService[dict[str, object]]):
     """Unified file operations service following FLEXT namespace pattern.
 
     Single class containing all file operations with nested helper classes
@@ -50,7 +50,7 @@ class FlextCliFileTools(FlextService[FlextTypes.Dict]):
 
     # Attributes initialized in __init__
 
-    def execute(self) -> FlextResult[FlextTypes.Dict]:
+    def execute(self) -> FlextResult[dict[str, object]]:
         """Execute file tools service - FlextService interface.
 
         Returns:
@@ -58,7 +58,7 @@ class FlextCliFileTools(FlextService[FlextTypes.Dict]):
 
         """
         # Return dict[str, object] to indicate service is ready (matches service interface)
-        return FlextResult[FlextTypes.Dict].ok({
+        return FlextResult[dict[str, object]].ok({
             FlextCliConstants.DictKeys.STATUS: FlextCliConstants.FileToolsDefaults.SERVICE_STATUS_READY
         })
 
@@ -138,7 +138,7 @@ class FlextCliFileTools(FlextService[FlextTypes.Dict]):
     def read_json_file(
         self, file_path: str | Path
     ) -> FlextResult[
-        FlextTypes.Dict | FlextTypes.List | str | int | float | bool | None
+        dict[str, object] | list[object] | str | int | float | bool | None
     ]:
         """Read JSON file using internal loader.
 
@@ -193,7 +193,7 @@ class FlextCliFileTools(FlextService[FlextTypes.Dict]):
     def read_yaml_file(
         self, file_path: str | Path
     ) -> FlextResult[
-        FlextTypes.Dict | FlextTypes.List | str | int | float | bool | None
+        dict[str, object] | list[object] | str | int | float | bool | None
     ]:
         """Read YAML file using internal loader.
 
@@ -253,11 +253,9 @@ class FlextCliFileTools(FlextService[FlextTypes.Dict]):
 
     def detect_file_format(self, file_path: str | Path) -> FlextResult[str]:
         """Detect file format from extension."""
-        supported_formats = {
-            "json": {"extensions": ["json"]},
-            "yaml": {"extensions": ["yaml", "yml"]},
-        }
-        return self._FormatDetector.detect_format(supported_formats, file_path)
+        return self._FormatDetector.detect_format(
+            FlextCliConstants.FILE_FORMATS, file_path
+        )
 
     def load_file_auto_detect(
         self, file_path: str | Path
@@ -271,9 +269,9 @@ class FlextCliFileTools(FlextService[FlextTypes.Dict]):
             )
 
         file_format = format_result.unwrap()
-        if file_format == "json":
+        if file_format == FlextCliConstants.FileSupportedFormats.JSON:
             return self._FileLoader.load_json(str(file_path))
-        if file_format == "yaml":
+        if file_format == FlextCliConstants.FileSupportedFormats.YAML:
             return self._FileLoader.load_yaml(str(file_path))
 
         return FlextResult[FlextTypes.JsonValue].fail(
@@ -316,9 +314,7 @@ class FlextCliFileTools(FlextService[FlextTypes.Dict]):
                 FlextCliConstants.FileErrorMessages.BINARY_WRITE_FAILED.format(error=e)
             )
 
-    def read_csv_file(
-        self, file_path: str | Path
-    ) -> FlextResult[list[FlextTypes.StringList]]:
+    def read_csv_file(self, file_path: str | Path) -> FlextResult[list[list[str]]]:
         """Read CSV file content."""
         try:
             with Path(file_path).open(
@@ -326,14 +322,14 @@ class FlextCliFileTools(FlextService[FlextTypes.Dict]):
             ) as f:
                 reader = csv.reader(f)
                 data = list(reader)
-            return FlextResult[list[FlextTypes.StringList]].ok(data)
+            return FlextResult[list[list[str]]].ok(data)
         except Exception as e:
-            return FlextResult[list[FlextTypes.StringList]].fail(
+            return FlextResult[list[list[str]]].fail(
                 FlextCliConstants.FileErrorMessages.CSV_READ_FAILED.format(error=e)
             )
 
     def write_csv_file(
-        self, file_path: str | Path, data: list[FlextTypes.StringList]
+        self, file_path: str | Path, data: list[list[str]]
     ) -> FlextResult[None]:
         """Write CSV file content."""
         try:
@@ -352,7 +348,7 @@ class FlextCliFileTools(FlextService[FlextTypes.Dict]):
 
     def read_csv_file_with_headers(
         self, file_path: str | Path
-    ) -> FlextResult[list[FlextTypes.StringDict]]:
+    ) -> FlextResult[list[dict[str, str]]]:
         """Read CSV file with headers."""
         try:
             with Path(file_path).open(
@@ -360,9 +356,9 @@ class FlextCliFileTools(FlextService[FlextTypes.Dict]):
             ) as f:
                 reader = csv.DictReader(f)
                 data = list(reader)
-            return FlextResult[list[FlextTypes.StringDict]].ok(data)
+            return FlextResult[list[dict[str, str]]].ok(data)
         except Exception as e:
-            return FlextResult[list[FlextTypes.StringDict]].fail(
+            return FlextResult[list[dict[str, str]]].fail(
                 FlextCliConstants.FileErrorMessages.CSV_READ_FAILED.format(error=e)
             )
 
@@ -424,15 +420,13 @@ class FlextCliFileTools(FlextService[FlextTypes.Dict]):
                 )
             )
 
-    def list_directory(
-        self, dir_path: str | Path
-    ) -> FlextResult[FlextTypes.StringList]:
+    def list_directory(self, dir_path: str | Path) -> FlextResult[list[str]]:
         """List directory contents."""
         try:
             items = [str(p.name) for p in Path(dir_path).iterdir()]
-            return FlextResult[FlextTypes.StringList].ok(items)
+            return FlextResult[list[str]].ok(items)
         except Exception as e:
-            return FlextResult[FlextTypes.StringList].fail(
+            return FlextResult[list[str]].fail(
                 FlextCliConstants.FileErrorMessages.DIRECTORY_LISTING_FAILED.format(
                     error=e
                 )
@@ -549,11 +543,13 @@ class FlextCliFileTools(FlextService[FlextTypes.Dict]):
             )
 
     def create_zip_archive(
-        self, archive_path: str | Path, files: FlextTypes.StringList
+        self, archive_path: str | Path, files: list[str]
     ) -> FlextResult[None]:
         """Create zip archive."""
         try:
-            with zipfile.ZipFile(archive_path, FlextCliConstants.FileIODefaults.ZIP_WRITE_MODE) as zipf:
+            with zipfile.ZipFile(
+                archive_path, FlextCliConstants.FileIODefaults.ZIP_WRITE_MODE
+            ) as zipf:
                 for file in files:
                     zipf.write(file, Path(file).name)
             return FlextResult[None].ok(None)
@@ -567,7 +563,9 @@ class FlextCliFileTools(FlextService[FlextTypes.Dict]):
     ) -> FlextResult[None]:
         """Extract zip archive."""
         try:
-            with zipfile.ZipFile(archive_path, FlextCliConstants.FileIODefaults.ZIP_READ_MODE) as zipf:
+            with zipfile.ZipFile(
+                archive_path, FlextCliConstants.FileIODefaults.ZIP_READ_MODE
+            ) as zipf:
                 zipf.extractall(extract_to)
             return FlextResult[None].ok(None)
         except Exception as e:
@@ -579,31 +577,37 @@ class FlextCliFileTools(FlextService[FlextTypes.Dict]):
 
     def find_files_by_pattern(
         self, directory: str | Path, pattern: str
-    ) -> FlextResult[FlextTypes.StringList]:
+    ) -> FlextResult[list[str]]:
         """Find files by glob pattern."""
         try:
             files = [str(p) for p in Path(directory).glob(pattern)]
-            return FlextResult[FlextTypes.StringList].ok(files)
+            return FlextResult[list[str]].ok(files)
         except Exception as e:
-            return FlextResult[FlextTypes.StringList].fail(
+            return FlextResult[list[str]].fail(
                 FlextCliConstants.FileErrorMessages.FILE_SEARCH_FAILED.format(error=e)
             )
 
     def find_files_by_name(
         self, directory: str | Path, name: str
-    ) -> FlextResult[FlextTypes.StringList]:
+    ) -> FlextResult[list[str]]:
         """Find files by name."""
         try:
-            files = [str(p) for p in Path(directory).rglob(FlextCliConstants.FileIODefaults.GLOB_PATTERN_ALL) if p.name == name]
-            return FlextResult[FlextTypes.StringList].ok(files)
+            files = [
+                str(p)
+                for p in Path(directory).rglob(
+                    FlextCliConstants.FileIODefaults.GLOB_PATTERN_ALL
+                )
+                if p.name == name
+            ]
+            return FlextResult[list[str]].ok(files)
         except Exception as e:
-            return FlextResult[FlextTypes.StringList].fail(
+            return FlextResult[list[str]].fail(
                 FlextCliConstants.FileErrorMessages.FILE_SEARCH_FAILED.format(error=e)
             )
 
     def find_files_by_content(
         self, directory: str | Path, content: str
-    ) -> FlextResult[FlextTypes.StringList]:
+    ) -> FlextResult[list[str]]:
         """Find files containing specific content."""
         try:
             matches = []
@@ -617,18 +621,18 @@ class FlextCliFileTools(FlextService[FlextTypes.Dict]):
                             matches.append(str(file_path))
                     except (UnicodeDecodeError, PermissionError):
                         continue
-            return FlextResult[FlextTypes.StringList].ok(matches)
+            return FlextResult[list[str]].ok(matches)
         except Exception as e:
-            return FlextResult[FlextTypes.StringList].fail(
+            return FlextResult[list[str]].fail(
                 FlextCliConstants.FileErrorMessages.CONTENT_SEARCH_FAILED.format(
                     error=e
                 )
             )
 
-    def get_supported_formats(self) -> FlextResult[FlextTypes.StringList]:
+    def get_supported_formats(self) -> FlextResult[list[str]]:
         """Get list of supported file formats."""
         formats = FlextCliConstants.FileSupportedFormats.SUPPORTED_FORMATS
-        return FlextResult[FlextTypes.StringList].ok(formats)
+        return FlextResult[list[str]].ok(formats)
 
     # === NESTED HELPER CLASSES ===
 
@@ -637,7 +641,7 @@ class FlextCliFileTools(FlextService[FlextTypes.Dict]):
 
         @staticmethod
         def detect_format(
-            supported_formats: dict[str, dict[str, FlextTypes.StringList]],
+            supported_formats: dict[str, dict[str, list[str]]],
             file_path: str | Path,
         ) -> FlextResult[str]:
             """Detect file format from extension."""
@@ -649,9 +653,18 @@ class FlextCliFileTools(FlextService[FlextTypes.Dict]):
             for format_name, format_info in supported_formats.items():
                 if (
                     isinstance(format_info, dict)
-                    and FlextCliConstants.FileIODefaults.FORMAT_EXTENSIONS_KEY in format_info
-                    and isinstance(format_info[FlextCliConstants.FileIODefaults.FORMAT_EXTENSIONS_KEY], (list, tuple))
-                    and extension in format_info[FlextCliConstants.FileIODefaults.FORMAT_EXTENSIONS_KEY]
+                    and FlextCliConstants.FileIODefaults.FORMAT_EXTENSIONS_KEY
+                    in format_info
+                    and isinstance(
+                        format_info[
+                            FlextCliConstants.FileIODefaults.FORMAT_EXTENSIONS_KEY
+                        ],
+                        (list, tuple),
+                    )
+                    and extension
+                    in format_info[
+                        FlextCliConstants.FileIODefaults.FORMAT_EXTENSIONS_KEY
+                    ]
                 ):
                     return FlextResult[str].ok(format_name)
 

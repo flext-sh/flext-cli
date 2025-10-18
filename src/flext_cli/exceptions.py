@@ -37,7 +37,7 @@ class FlextCliExceptions(FlextExceptions):
         """
 
         # Add context attribute for CLI-specific usage
-        context: FlextTypes.Dict
+        context: dict[str, object]
 
         # Explicitly declare inherited attributes for Pyrefly
         message: str
@@ -114,22 +114,28 @@ class FlextCliExceptions(FlextExceptions):
         @override
         def __repr__(self) -> str:
             """Return detailed representation for debugging."""
-            message_part = FlextCliConstants.ExceptionFormatMessages.REPR_FORMAT_MESSAGE.format(
-                message=self.message
+            message_part = (
+                FlextCliConstants.ExceptionFormatMessages.REPR_FORMAT_MESSAGE.format(
+                    message=self.message
+                )
             )
             error_code_part = (
                 FlextCliConstants.ExceptionFormatMessages.REPR_FORMAT_ERROR_CODE.format(
                     error_code=self.error_code
                 )
             )
-            context_part = FlextCliConstants.ExceptionFormatMessages.REPR_FORMAT_CONTEXT.format(
-                context=self.context
+            context_part = (
+                FlextCliConstants.ExceptionFormatMessages.REPR_FORMAT_CONTEXT.format(
+                    context=self.context
+                )
             )
 
             parts = [message_part, error_code_part, context_part]
             return (
                 FlextCliConstants.ExceptionFormatMessages.REPR_FORMAT_PREFIX
-                + FlextCliConstants.ExceptionFormatMessages.REPR_ITEMS_SEPARATOR.join(parts)
+                + FlextCliConstants.ExceptionFormatMessages.REPR_ITEMS_SEPARATOR.join(
+                    parts
+                )
                 + FlextCliConstants.ExceptionFormatMessages.REPR_FORMAT_SUFFIX
             )
 
@@ -145,15 +151,15 @@ class FlextCliExceptions(FlextExceptions):
 
         def _extract_common_kwargs(
             self, kwargs: dict[str, FlextTypes.JsonValue]
-        ) -> tuple[FlextTypes.Dict, str | None, FlextTypes.Dict]:
+        ) -> tuple[dict[str, object], str | None, dict[str, object]]:
             """Extract common kwargs for exception initialization.
 
             If context is provided as a dict, use it as base context.
             If context is provided as a non-dict value, treat it as a regular kwarg.
             """
             context = kwargs.get(FlextCliConstants.ExceptionDefaults.CONTEXT_KEY)
-            base_context: FlextTypes.Dict = {}
-            remaining: FlextTypes.Dict = {}
+            base_context: dict[str, object] = {}
+            remaining: dict[str, object] = {}
 
             # If context is a dict, use it as base context
             if isinstance(context, dict):
@@ -162,7 +168,8 @@ class FlextCliExceptions(FlextExceptions):
                 remaining = {
                     k: v
                     for k, v in kwargs.items()
-                    if k not in {
+                    if k
+                    not in {
                         FlextCliConstants.ExceptionDefaults.CONTEXT_KEY,
                         FlextCliConstants.ExceptionDefaults.CORRELATION_ID_KEY,
                     }
@@ -185,9 +192,9 @@ class FlextCliExceptions(FlextExceptions):
 
         def _build_context(
             self,
-            base_context: FlextTypes.Dict,
-            remaining: FlextTypes.Dict | None = None,
-        ) -> FlextTypes.Dict:
+            base_context: dict[str, object],
+            remaining: dict[str, object] | None = None,
+        ) -> dict[str, object]:
             """Build complete context dictionary merging base and remaining kwargs."""
             result = base_context.copy()
             if remaining:

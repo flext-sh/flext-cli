@@ -10,9 +10,10 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
+from typing import cast
 from urllib.parse import urlparse
 
-from flext_core import FlextMixins, FlextResult, FlextTypes
+from flext_core import FlextDecorators, FlextMixins, FlextResult, FlextTypes
 
 from flext_cli.constants import FlextCliConstants
 from flext_cli.typings import FlextCliTypes
@@ -110,7 +111,7 @@ class FlextCliMixins(FlextMixins):
 
         @staticmethod
         def validate_enum_value(
-            field_name: str, field_value: str, valid_values: FlextTypes.StringList
+            field_name: str, field_value: str, valid_values: list[str]
         ) -> FlextResult[None]:
             """Validate that a field value is in the allowed list.
 
@@ -269,7 +270,7 @@ class FlextCliMixins(FlextMixins):
 
         @staticmethod
         def validate_session_state(
-            current_status: str, valid_states: FlextTypes.StringList
+            current_status: str, valid_states: list[str]
         ) -> FlextResult[None]:
             """Validate session state.
 
@@ -314,7 +315,9 @@ class FlextCliMixins(FlextMixins):
 
             if (
                 not step[FlextCliConstants.MixinsFieldNames.PIPELINE_STEP_NAME]
-                or not str(step[FlextCliConstants.MixinsFieldNames.PIPELINE_STEP_NAME]).strip()
+                or not str(
+                    step[FlextCliConstants.MixinsFieldNames.PIPELINE_STEP_NAME]
+                ).strip()
             ):
                 return FlextResult[None].fail(
                     FlextCliConstants.MixinsValidationMessages.PIPELINE_STEP_NAME_EMPTY
@@ -325,7 +328,7 @@ class FlextCliMixins(FlextMixins):
         @staticmethod
         def validate_configuration_consistency(
             config_data: FlextCliTypes.Data.CliDataDict | None,
-            required_fields: FlextTypes.StringList,
+            required_fields: list[str],
         ) -> FlextResult[None]:
             """Validate configuration consistency.
 
@@ -350,6 +353,120 @@ class FlextCliMixins(FlextMixins):
                 )
 
             return FlextResult[None].ok(None)
+
+    # =========================================================================
+    # CLI COMMAND MIXIN - Decorator composition for CLI commands
+    # =========================================================================
+
+    class CliCommandMixin:
+        """Mixin providing CLI command execution patterns with flext-core decorators.
+
+        **PURPOSE**: Eliminate repetitive decorator application and context setup.
+
+        Provides helper methods that compose flext-core decorators for common
+        CLI command patterns. Reduces 18 lines of context setup per command to
+        a single method call.
+
+        **ELIMINATES**:
+        - Manual correlation_id generation (2 lines)
+        - FlextContext setup calls (4 lines)
+        - Scoped context manager boilerplate (8 lines)
+        - Manual context cleanup (4 lines)
+        Total: 18 lines per command
+
+        **USAGE**:
+            ```python
+            from flext_cli import FlextCliMixins
+            from flext_core import FlextDecorators, FlextResult
+
+
+            class MyCli(FlextCliMixins.CliCommandMixin):
+                def execute_command(self, operation: str) -> FlextResult[None]:
+                    # Use mixin method for automatic decorator composition
+                    return self.execute_with_cli_context(
+                        operation="migrate",
+                        handler=self._do_migration,
+                        input_dir="data",
+                        output_dir="out",
+                    )
+
+                def _do_migration(self, **kwargs) -> FlextResult[None]:
+                    # Just implement logic - context already set up!
+                    return FlextResult[None].ok(None)
+            ```
+        """
+
+        @staticmethod
+        def execute_with_cli_context(
+            operation: str,
+            handler: FlextCliTypes.Callable.HandlerFunction,
+            **context_data: FlextTypes.JsonValue,
+        ) -> FlextResult[FlextTypes.JsonValue]:
+            """Execute handler with automatic CLI context management.
+
+            Composes flext-core decorators to provide complete context setup:
+            - Correlation ID generation and management
+            - Operation logging with structured context
+            - Performance tracking
+            - Railway pattern error handling
+
+            **ELIMINATES**:
+            - Manual correlation_id = FlextContext.Correlation.generate_correlation_id()
+            - Manual FlextContext.Correlation.set_correlation_id(correlation_id)
+            - Manual FlextContext.Request.set_operation_name(operation)
+            - Manual with FlextLogger.scoped_context(...)
+            - Manual context cleanup
+
+            Args:
+                operation: Operation name (e.g., "migrate", "validate")
+                handler: Handler function to execute with context
+                **context_data: Additional context data for logging
+
+            Returns:
+                FlextResult from handler execution
+
+            Example:
+                ```python
+                class client-aOudMigrationCli(FlextCliMixins.CliCommandMixin):
+                    def _execute_migrate(self, args: list[str]) -> FlextResult[None]:
+                        # Single line replaces 18 lines of boilerplate!
+                        return self.execute_with_cli_context(
+                            operation="migrate",
+                            handler=self._run_migration_service,
+                            input_dir=args[0],
+                            output_dir=args[1],
+                        )
+
+                    def _run_migration_service(self, **kwargs) -> FlextResult[None]:
+                        # Context auto-managed - just implement logic
+                        service = client-aOudMigrationService(**kwargs)
+                        return service.execute()
+                ```
+
+            **DECORATOR COMPOSITION** (applied in correct order):
+            ```
+            @FlextDecorators.railway          # Outermost - converts exceptions
+            @FlextDecorators.track_performance # Track execution time
+            @FlextDecorators.log_operation     # Log with context
+            @FlextDecorators.with_correlation  # Correlation ID management
+            ```
+
+            """
+            # Compose decorators in correct order (outermost to innermost)
+            # Railway must be outermost to catch all exceptions
+            wrapped_handler = FlextDecorators.railway()(
+                FlextDecorators.track_performance()(
+                    FlextDecorators.log_operation(operation)(
+                        FlextDecorators.with_correlation()(handler)
+                    )
+                )
+            )
+
+            # Execute with composed decorators
+            # Type cast needed because decorators preserve FlextResult type
+            return cast(
+                "FlextResult[FlextTypes.JsonValue]", wrapped_handler(**context_data)
+            )
 
 
 __all__ = [

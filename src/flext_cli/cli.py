@@ -688,7 +688,7 @@ class FlextCliCli:
     def create_cli_runner(
         self,
         charset: str = FlextCliConstants.Encoding.UTF8,
-        env: FlextTypes.StringDict | None = None,
+        env: dict[str, str] | None = None,
         *,
         echo_stdin: bool = False,
     ) -> FlextResult[CliRunner]:
@@ -775,6 +775,133 @@ class FlextCliCli:
         """
         click.pause(info=info)
         return FlextResult[None].ok(None)
+
+    def model_command(
+        self,
+        model_class: type,
+        handler: Callable[..., object],
+    ) -> Callable[..., None]:
+        """Create Typer command from Pydantic model - ZERO manual parameters.
+
+        Generic model-driven CLI automation using Field metadata introspection.
+        Delegates to existing Typer infrastructure for type conversion.
+
+        Handles optional parameters: Fields with defaults become optional CLI args
+        that don't require specification on command line.
+
+        Args:
+            model_class: Pydantic BaseModel subclass defining parameters
+            handler: Function receiving validated model instance
+
+        Returns:
+            Typer command function with auto-generated parameters
+
+        Example:
+            ```python
+            from pydantic import BaseModel, Field
+
+            cli = FlextCliCli()
+
+
+            class MyParams(BaseModel):
+                input: str = Field(description="Input path")
+                count: int = Field(default=10, description="Item count")
+                sync: bool = Field(default=True, description="Enable sync")
+
+
+            def handle(params: MyParams):
+                print(f"Processing {params.input}, count={params.count}")
+
+
+            # Auto-generates Typer command from model
+            command = cli.model_command(MyParams, handle)
+
+            # CLI usage:
+            # my-command --input /path          # count=10 (default), sync=True (default)
+            # my-command --input /path --count 5  # sync=True (default)
+            # my-command --input /path --no-sync  # count=10 (default), sync=False
+            ```
+
+        """
+        from pydantic import ValidationError  # Import locally  # noqa: PLC0415
+        from pydantic_core import PydanticUndefined  # noqa: PLC0415
+
+        # Auto-generate function with proper signature from model fields
+        if not hasattr(model_class, "model_fields"):
+            msg = f"{model_class.__name__} must be a Pydantic BaseModel"
+            raise TypeError(msg)
+
+        # Build parameter definitions
+        params_def: list[str] = []
+        params_call: list[str] = []
+
+        def _format_type_annotation(field_type: type) -> str:
+            """Format type annotation for dynamic function signature."""
+            if hasattr(field_type, "__origin__"):
+                # Generic type (Optional, List, etc.)
+                return str(field_type).replace("typing.", "")
+            if hasattr(field_type, "__name__"):
+                return field_type.__name__
+            return str(field_type)
+
+        for field_name, field_info in model_class.model_fields.items():
+            field_type = field_info.annotation
+            has_default = field_info.default is not PydanticUndefined
+            description = field_info.description or f"{field_name} parameter"
+
+            params_call.append(f"{field_name}={field_name}")
+
+            # Format type annotation string
+            type_str = _format_type_annotation(field_type)
+
+            # Generate parameter with Typer Option
+            if has_default:
+                default_value = repr(field_info.default)
+                if field_type is bool:
+                    # Boolean flags need --flag/--no-flag format
+                    flag_name = f"--{field_name.replace('_', '-')}"
+                    no_flag_name = f"--no-{field_name.replace('_', '-')}"
+                    params_def.append(
+                        f"{field_name}: {type_str} = typer.Option({default_value}, '{flag_name}', '{no_flag_name}', help={description!r})"
+                    )
+                else:
+                    # Optional parameter with default - truly optional in CLI
+                    params_def.append(
+                        f"{field_name}: {type_str} = typer.Option({default_value}, help={description!r})"
+                    )
+            else:
+                # Required parameter - must be specified in CLI
+                params_def.append(
+                    f"{field_name}: {type_str} = typer.Option(..., help={description!r})"
+                )
+
+        # Create function dynamically with proper signature
+        func_code = f"""
+def generated_command({', '.join(params_def)}):
+    '''Auto-generated command from {model_class.__name__}'''
+    try:
+        params = model_class({', '.join(params_call)})
+    except ValidationError as e:
+        typer.echo(f"Invalid parameters: {{e}}", err=True)
+        raise typer.Exit(code=1) from e
+
+    try:
+        handler(params)
+    except Exception as e:
+        typer.echo(f"Command failed: {{e}}", err=True)
+        raise typer.Exit(code=1) from e
+"""
+
+        # Execute function definition with proper context
+        exec_globals = {
+            "typer": typer,
+            "model_class": model_class,
+            "handler": handler,
+            "ValidationError": ValidationError,
+        }
+        exec(func_code, exec_globals)  # noqa: S102
+
+        return exec_globals["generated_command"]  # type: ignore[return-value]
 
     def execute(self) -> FlextResult[object]:
         """Execute Click abstraction layer operations.

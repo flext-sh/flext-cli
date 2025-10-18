@@ -28,7 +28,7 @@ import os
 import time
 from typing import cast
 
-from flext_core import FlextResult, FlextTypes
+from flext_core import FlextResult
 
 from flext_cli import FlextCli
 from flext_cli.typings import FlextCliTypes
@@ -60,7 +60,7 @@ def handle_status_command() -> FlextResult[FlextCliTypes.Data.CliDataDict]:
 
 def handle_list_command(
     filter_text: str = "",
-) -> FlextResult[FlextTypes.StringList]:
+) -> FlextResult[list[str]]:
     """List command with filtering in YOUR CLI."""
     items = ["item1", "item2", "item3", "test_item"]
 
@@ -70,11 +70,11 @@ def handle_list_command(
             f"📋 Found {len(filtered)} items matching '{filter_text}'", style="cyan"
         )
         # Cast to expected type (runtime type is compatible)
-        return FlextResult[FlextTypes.StringList].ok(filtered)
+        return FlextResult[list[str]].ok(filtered)
 
     cli.print(f"📋 Total items: {len(items)}", style="cyan")
     # Cast to expected type (runtime type is compatible)
-    return FlextResult[FlextTypes.StringList].ok(items)
+    return FlextResult[list[str]].ok(items)
 
 
 def handle_config_command(key: str = "", value: str = "") -> FlextResult[str]:
@@ -152,7 +152,7 @@ class InteractiveShell:
 # ============================================================================
 
 
-def handle_multiline_input(lines: FlextTypes.StringList) -> str:
+def handle_multiline_input(lines: list[str]) -> str:
     """Process multi-line input in YOUR interactive CLI."""
     combined = "\n".join(lines)
     cli.print(f"📝 Processing {len(lines)} lines...", style="cyan")
@@ -171,7 +171,7 @@ class CommandHistory:
     def __init__(self, max_size: int = 100) -> None:
         """Initialize command history with maximum size limit."""
         super().__init__()
-        self.history: FlextTypes.StringList = []
+        self.history: list[str] = []
         self.max_size = max_size
 
     def add(self, command: str) -> None:
@@ -180,7 +180,7 @@ class CommandHistory:
         if len(self.history) > self.max_size:
             self.history.pop(0)
 
-    def get_recent(self, count: int = 10) -> FlextTypes.StringList:
+    def get_recent(self, count: int = 10) -> list[str]:
         """Get recent commands."""
         return self.history[-count:]
 

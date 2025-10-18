@@ -15,7 +15,7 @@ import os
 import shutil
 from datetime import UTC, datetime
 from pathlib import Path
-from typing import Literal, cast
+from typing import Literal
 
 from flext_core import (
     FlextConfig,
@@ -69,8 +69,8 @@ class FlextCliConfig(FlextConfig):
         env_parse_enums=True,
         env_parse_none_str=None,
         json_schema_extra={
-            "title": "FLEXT CLI Configuration",
-            "description": "Enterprise CLI configuration extending FlextConfig",
+            FlextCliConstants.JsonSchemaKeys.TITLE: "FLEXT CLI Configuration",
+            FlextCliConstants.JsonSchemaKeys.DESCRIPTION: "Enterprise CLI configuration extending FlextConfig",
         },
     )
 
@@ -80,7 +80,7 @@ class FlextCliConfig(FlextConfig):
         description="CLI profile to use for configuration",
     )
 
-    output_format: str = Field(
+    output_format: Literal["json", "yaml", "csv", "table", "plain"] = Field(  # type: ignore[assignment]
         default=FlextCliConstants.OutputFormats.TABLE,
         description="Default output format for CLI commands",
     )
@@ -144,30 +144,38 @@ class FlextCliConfig(FlextConfig):
         description="Enable trace mode (requires debug=True)",
     )
 
-    log_level: str = Field(
+    log_level: Literal["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"] = Field(  # type: ignore[assignment]
         default=FlextCliConstants.CliDefaults.DEFAULT_LOG_LEVEL,
         description="Log level for application (DEBUG, INFO, WARNING, ERROR, CRITICAL)",
     )
 
-    @field_validator("debug", "verbose", "no_color", "auto_refresh", "quiet", "interactive", "trace", mode="before")
+    @field_validator(
+        "debug",
+        "verbose",
+        "no_color",
+        "auto_refresh",
+        "quiet",
+        "interactive",
+        "trace",
+        mode="before",
+    )
     @classmethod
-    def parse_bool_strings(cls, v: str | bool | None) -> str | bool | None:
-        """Parse string boolean values from environment variables."""
-        if isinstance(v, str):
-            v_lower = v.lower()
-            if v_lower in FlextCliConstants.ConfigParsing.BOOL_TRUE_VALUES:
-                return True
-            if v_lower in FlextCliConstants.ConfigParsing.BOOL_FALSE_VALUES:
-                return False
-        return v
+    def validate_bool_fields_cli(cls, v: bool | str | int) -> bool:
+        """Coerce CLI boolean fields from environment variables.
+
+        Delegates to FlextConfig's validate_boolean_field for consistency.
+        """
+        return cls.validate_boolean_field(v)
 
     @field_validator("max_retries", "cli_timeout", "max_width", mode="before")
     @classmethod
-    def parse_int_strings(cls, v: str | int | None) -> str | int | None:
-        """Parse string integer values from environment variables."""
-        if isinstance(v, str) and v.isdigit():
-            return int(v)
-        return v
+    def validate_int_fields_cli(cls, v: int | str) -> int:
+        """Coerce CLI integer fields from environment variables.
+
+        Delegates to FlextConfig's validate_int_field for consistency.
+        """
+        return cls.validate_int_field(v)
+
     app_name: str = Field(
         default=FlextCliConstants.CliDefaults.DEFAULT_APP_NAME,
         description="Application name",
@@ -184,7 +192,7 @@ class FlextCliConfig(FlextConfig):
         default=FlextCliConstants.CliDefaults.DEFAULT_INTERACTIVE,
         description="Enable interactive mode",
     )
-    environment: str = Field(
+    environment: Literal["development", "staging", "production", "test"] = Field(  # type: ignore[assignment]
         default=FlextCliConstants.CliDefaults.DEFAULT_ENVIRONMENT,
         description="Deployment environment",
     )
@@ -216,17 +224,17 @@ class FlextCliConfig(FlextConfig):
     )
 
     # Logging configuration - centralized for all FLEXT projects
-    log_verbosity: Literal["compact", "detailed", "full"] = Field(
-        default=cast("Literal['compact', 'detailed', 'full']", FlextCliConstants.CliDefaults.DEFAULT_LOG_VERBOSITY),
+    log_verbosity: Literal["compact", "detailed", "full"] = Field(  # type: ignore[assignment]
+        default=FlextCliConstants.CliDefaults.DEFAULT_LOG_VERBOSITY,
         description="Logging verbosity (compact, detailed, full)",
     )
 
-    cli_log_level: str = Field(
+    cli_log_level: Literal["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"] = Field(  # type: ignore[assignment]
         default=FlextCliConstants.CliDefaults.DEFAULT_CLI_LOG_LEVEL,
         description="CLI-specific logging level",
     )
 
-    cli_log_verbosity: str = Field(
+    cli_log_verbosity: Literal["compact", "detailed", "full"] = Field(  # type: ignore[assignment]
         default=FlextCliConstants.CliDefaults.DEFAULT_CLI_LOG_VERBOSITY,
         description="CLI-specific logging verbosity",
     )
@@ -237,18 +245,6 @@ class FlextCliConfig(FlextConfig):
     )
 
     # Pydantic 2.11 field validators
-    @field_validator("output_format")
-    @classmethod
-    def validate_output_format(cls, v: str) -> str:
-        """Validate output format is one of the allowed values."""
-        if v not in FlextCliConstants.OUTPUT_FORMATS_LIST:
-            valid_formats = ", ".join(FlextCliConstants.OUTPUT_FORMATS_LIST)
-            msg = FlextCliConstants.ValidationMessages.INVALID_OUTPUT_FORMAT_MUST_BE.format(
-                format=v, valid_formats=valid_formats
-            )
-            raise ValueError(msg)
-        return v
-
     @field_validator("profile")
     @classmethod
     def validate_profile(cls, v: str) -> str:
@@ -271,42 +267,29 @@ class FlextCliConfig(FlextConfig):
             raise ValueError(msg)
         return v
 
-    @field_validator("log_level", "cli_log_level")
+    @field_validator("log_level", "cli_log_level", mode="before")
     @classmethod
-    def validate_log_level(cls, v: str) -> str:
-        """Validate log level is one of the allowed values."""
-        valid_levels = set(FlextCliConstants.LOG_LEVELS_LIST)
-        level_upper = v.upper()
-        if level_upper not in valid_levels:
-            msg = FlextCliConstants.ValidationMessages.INVALID_LOG_LEVEL_MUST_BE.format(
-                level=v, valid_levels=", ".join(sorted(valid_levels))
-            )
-            raise ValueError(msg)
-        return level_upper
+    def validate_log_level(cls, v: str | object) -> str:
+        """Normalize log level to uppercase (Pydantic Literal handles validation)."""
+        if isinstance(v, str):
+            return v.upper()
+        return str(v).upper()
 
-    @field_validator("log_verbosity", "cli_log_verbosity")
+    @field_validator("log_verbosity", "cli_log_verbosity", mode="before")
     @classmethod
-    def validate_log_verbosity(cls, v: str) -> str:
-        """Validate log verbosity is one of the allowed values."""
-        valid_verbosity = FlextCliConstants.ConfigValidation.LOG_VERBOSITY_VALUES
-        verbosity_lower = v.lower()
-        if verbosity_lower not in valid_verbosity:
-            msg = FlextCliConstants.ValidationMessages.INVALID_LOG_VERBOSITY_MUST_BE.format(
-                verbosity=v, valid_verbosity=", ".join(sorted(valid_verbosity))
-            )
-            raise ValueError(msg)
-        return verbosity_lower
+    def validate_log_verbosity(cls, v: str | object) -> str:
+        """Normalize log verbosity to lowercase (Pydantic Literal handles validation)."""
+        if isinstance(v, str):
+            return v.lower()
+        return str(v).lower()
 
-    @field_validator("environment")
+    @field_validator("environment", mode="before")
     @classmethod
-    def validate_environment(cls, v: str) -> str:
-        """Validate environment is one of the allowed values."""
-        valid_environments = FlextCliConstants.ConfigValidation.ENVIRONMENT_VALUES
-        env_lower = v.lower()
-        if env_lower not in valid_environments:
-            msg = f"Invalid environment '{v}'. Must be one of: {', '.join(sorted(valid_environments))}"
-            raise ValueError(msg)
-        return env_lower
+    def validate_environment(cls, v: str | object) -> str:
+        """Normalize environment to lowercase (Pydantic Literal handles validation)."""
+        if isinstance(v, str):
+            return v.lower()
+        return str(v).lower()
 
     @model_validator(mode="after")
     def validate_configuration(self) -> FlextCliConfig:
@@ -452,7 +435,7 @@ class FlextCliConfig(FlextConfig):
 
         # Medium terminals: github format
         if terminal_width < FlextCliConstants.TERMINAL_WIDTH_MEDIUM:
-            return "github"
+            return FlextCliConstants.TableFormats.GITHUB
 
         # Wide terminals: grid format (most visually appealing)
         return FlextCliConstants.TableFormats.GRID
@@ -481,7 +464,7 @@ class FlextCliConfig(FlextConfig):
                 )
 
             # Load based on file extension
-            if config_file.suffix.lower() == ".json":
+            if config_file.suffix.lower() == FlextCliConstants.FileExtensions.JSON:
                 with config_file.open(
                     "r", encoding=FlextCliConstants.Encoding.UTF8
                 ) as f:
@@ -519,8 +502,8 @@ class FlextCliConfig(FlextConfig):
         return FlextResult[FlextCliTypes.Data.CliDataDict].ok({
             FlextCliConstants.DictKeys.STATUS: FlextCliConstants.ServiceStatus.OPERATIONAL.value,
             FlextCliConstants.DictKeys.SERVICE: FlextCliConstants.ConfigDefaults.DEFAULT_SERVICE_NAME,
-            "timestamp": datetime.now(UTC).isoformat(),
-            "version": FlextCliConstants.ConfigDefaults.DEFAULT_VERSION_STRING,
+            FlextCliConstants.DictKeys.TIMESTAMP: datetime.now(UTC).isoformat(),
+            FlextCliConstants.DictKeys.VERSION: FlextCliConstants.ConfigDefaults.DEFAULT_VERSION_STRING,
             FlextCliConstants.DictKeys.CONFIG: self.model_dump(),
         })
 
@@ -547,7 +530,7 @@ class FlextCliConfig(FlextConfig):
         """
         try:
             # Filter only valid configuration fields using dictionary comprehension
-            valid_updates: FlextTypes.Dict = {
+            valid_updates: dict[str, object] = {
                 key: value for key, value in kwargs.items() if hasattr(self, key)
             }
 
@@ -605,7 +588,9 @@ class FlextCliConfig(FlextConfig):
 
             # Merge: current config overrides env (skip read-only fields)
             for key, value in current_config.items():
-                if key not in readonly_fields and value != getattr(self.__class__(), key, None):
+                if key not in readonly_fields and value != getattr(
+                    self.__class__(), key, None
+                ):
                     # Value was explicitly set, keep it
                     setattr(env_config, key, value)
 
@@ -623,7 +608,7 @@ class FlextCliConfig(FlextConfig):
 
     def validate_cli_overrides(
         self, **overrides: FlextTypes.JsonValue
-    ) -> FlextResult[FlextTypes.Dict]:
+    ) -> FlextResult[dict[str, object]]:
         """Validate CLI overrides without applying them.
 
         Useful for checking if CLI arguments are valid before applying.
@@ -632,7 +617,7 @@ class FlextCliConfig(FlextConfig):
             **overrides: Configuration overrides to validate
 
         Returns:
-            FlextResult[FlextTypes.Dict]: Valid overrides or validation errors
+            FlextResult[dict[str, object]]: Valid overrides or validation errors
 
         Example:
             >>> config = FlextCliConfig()
@@ -644,8 +629,8 @@ class FlextCliConfig(FlextConfig):
 
         """
         try:
-            valid_overrides: FlextTypes.Dict = {}
-            errors: FlextTypes.StringList = []
+            valid_overrides: dict[str, object] = {}
+            errors: list[str] = []
 
             for key, value in overrides.items():
                 # Check if field exists
@@ -672,16 +657,16 @@ class FlextCliConfig(FlextConfig):
                     )
 
             if errors:
-                return FlextResult[FlextTypes.Dict].fail(
+                return FlextResult[dict[str, object]].fail(
                     FlextCliConstants.ErrorMessages.VALIDATION_ERRORS.format(
                         errors="; ".join(errors)
                     )
                 )
 
-            return FlextResult[FlextTypes.Dict].ok(valid_overrides)
+            return FlextResult[dict[str, object]].ok(valid_overrides)
 
         except Exception as e:
-            return FlextResult[FlextTypes.Dict].fail(f"Validation failed: {e}")
+            return FlextResult[dict[str, object]].fail(f"Validation failed: {e}")
 
     # Protocol-compliant methods for CliConfigProvider
     def load_config(self) -> FlextResult[FlextCliTypes.Data.CliConfigData]:

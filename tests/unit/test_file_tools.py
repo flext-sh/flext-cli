@@ -150,7 +150,7 @@ class TestFlextCliFileTools:
     ) -> None:
         """Test writing JSON file functionality."""
         test_file = temp_dir / "test_write.json"
-        test_data: FlextTypes.Dict = {
+        test_data: dict[str, object] = {
             "name": "test",
             "value": 123,
             "nested": {"inner": "data"},
@@ -203,7 +203,7 @@ class TestFlextCliFileTools:
     ) -> None:
         """Test writing YAML file functionality."""
         test_file = temp_dir / "test_write.yaml"
-        test_data: FlextTypes.Dict = {
+        test_data: dict[str, object] = {
             "name": "test",
             "value": 123,
             "nested": {"inner": "data"},
@@ -780,7 +780,7 @@ class TestFlextCliFileTools:
     ) -> None:
         """Test complete file workflow integration."""
         # 1. Create test data
-        test_data: FlextTypes.Dict = {
+        test_data: dict[str, object] = {
             "name": "integration_test",
             "value": 42,
             "nested": {"inner": "data"},

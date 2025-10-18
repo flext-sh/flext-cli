@@ -16,7 +16,7 @@ from typing import Never, cast
 from unittest.mock import MagicMock, patch
 
 import pytest
-from flext_core import FlextLogger, FlextResult, FlextTypes
+from flext_core import FlextLogger, FlextResult
 
 from flext_cli.prompts import FlextCliPrompts
 from flext_cli.typings import FlextCliTypes
@@ -110,7 +110,7 @@ class TestFlextCliPrompts:
         self, interactive_prompts: FlextCliPrompts
     ) -> None:
         """Test select from options functionality."""
-        options: FlextTypes.StringList = ["option1", "option2", "option3"]
+        options: list[str] = ["option1", "option2", "option3"]
 
         with patch("builtins.input", return_value="1"):
             result = interactive_prompts.select_from_options(
@@ -139,7 +139,7 @@ class TestFlextCliPrompts:
 
     def test_prompts_select_from_options_empty(self, prompts: FlextCliPrompts) -> None:
         """Test select from options with empty options."""
-        options: FlextTypes.StringList = []
+        options: list[str] = []
 
         result = prompts.select_from_options(options, "Choose an option:")
 
@@ -200,7 +200,7 @@ class TestFlextCliPrompts:
     def test_prompts_with_progress(self, prompts: FlextCliPrompts) -> None:
         """Test with progress functionality."""
         # with_progress expects a list of items, not a function
-        test_items: FlextTypes.List = ["item1", "item2", "item3"]
+        test_items: list[object] = ["item1", "item2", "item3"]
         result = prompts.with_progress(test_items, "Processing...")
 
         assert isinstance(result, FlextResult)
@@ -687,7 +687,7 @@ class TestFlextCliPrompts:
     def test_with_progress_large_dataset(self, prompts: FlextCliPrompts) -> None:
         """Test with_progress with large item count."""
         # Test with many items to trigger progress reporting
-        large_items: FlextTypes.List = list(range(100))
+        large_items: list[object] = list(range(100))
         result = prompts.with_progress(large_items, "Processing large dataset")
 
         assert result.is_success
@@ -695,7 +695,7 @@ class TestFlextCliPrompts:
 
     def test_with_progress_small_dataset(self, prompts: FlextCliPrompts) -> None:
         """Test with_progress with small item count."""
-        small_items: FlextTypes.List = [1, 2, 3]
+        small_items: list[object] = [1, 2, 3]
         result = prompts.with_progress(small_items, "Processing small dataset")
 
         assert result.is_success

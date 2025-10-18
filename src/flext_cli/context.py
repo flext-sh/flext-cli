@@ -34,10 +34,10 @@ class FlextCliContext(FlextService[FlextCliTypes.Data.CliDataDict]):
     # Direct attributes - no properties needed
     id: str = ""
     command: str | None = None
-    arguments: FlextTypes.StringList = Field(default_factory=list)
-    environment_variables: FlextTypes.Dict = Field(default_factory=dict)
+    arguments: list[str] = Field(default_factory=list)
+    environment_variables: dict[str, object] = Field(default_factory=dict)
     working_directory: str | None = None
-    context_metadata: FlextTypes.Dict = Field(default_factory=dict)
+    context_metadata: dict[str, object] = Field(default_factory=dict)
 
     # Context state
     is_active: bool = False
@@ -47,8 +47,8 @@ class FlextCliContext(FlextService[FlextCliTypes.Data.CliDataDict]):
     def __init__(
         self,
         command: str | None = None,
-        arguments: FlextTypes.StringList | None = None,
-        environment_variables: FlextTypes.Dict | None = None,
+        arguments: list[str] | None = None,
+        environment_variables: dict[str, object] | None = None,
         working_directory: str | None = None,
         **data: FlextTypes.JsonValue,
     ) -> None:
@@ -94,7 +94,7 @@ class FlextCliContext(FlextService[FlextCliTypes.Data.CliDataDict]):
 
             self.is_active = True
             return FlextResult[None].ok(None)
-        except Exception as e:
+        except Exception as e:  # pragma: no cover
             return FlextResult[None].fail(
                 FlextCliConstants.ContextErrorMessages.CONTEXT_ACTIVATION_FAILED.format(
                     error=e
@@ -111,7 +111,7 @@ class FlextCliContext(FlextService[FlextCliTypes.Data.CliDataDict]):
 
             self.is_active = False
             return FlextResult[None].ok(None)
-        except Exception as e:
+        except Exception as e:  # pragma: no cover
             return FlextResult[None].fail(
                 FlextCliConstants.ContextErrorMessages.CONTEXT_DEACTIVATION_FAILED.format(
                     error=e
@@ -134,7 +134,7 @@ class FlextCliContext(FlextService[FlextCliTypes.Data.CliDataDict]):
                     name=name
                 )
             )
-        except Exception as e:
+        except Exception as e:  # pragma: no cover
             return FlextResult[str].fail(
                 FlextCliConstants.ContextErrorMessages.ENV_VAR_RETRIEVAL_FAILED.format(
                     error=e
@@ -156,7 +156,7 @@ class FlextCliContext(FlextService[FlextCliTypes.Data.CliDataDict]):
         try:
             self.environment_variables[name] = value
             return FlextResult[None].ok(None)
-        except Exception as e:
+        except Exception as e:  # pragma: no cover
             return FlextResult[None].fail(
                 FlextCliConstants.ContextErrorMessages.ENV_VAR_SETTING_FAILED.format(
                     error=e
@@ -173,7 +173,7 @@ class FlextCliContext(FlextService[FlextCliTypes.Data.CliDataDict]):
         try:
             self.arguments.append(argument)
             return FlextResult[None].ok(None)
-        except Exception as e:
+        except Exception as e:  # pragma: no cover
             return FlextResult[None].fail(
                 FlextCliConstants.ContextErrorMessages.ARGUMENT_ADDITION_FAILED.format(
                     error=e
@@ -196,7 +196,7 @@ class FlextCliContext(FlextService[FlextCliTypes.Data.CliDataDict]):
                     argument=argument
                 )
             )
-        except Exception as e:
+        except Exception as e:  # pragma: no cover
             return FlextResult[None].fail(
                 FlextCliConstants.ContextErrorMessages.ARGUMENT_REMOVAL_FAILED.format(
                     error=e
@@ -213,7 +213,7 @@ class FlextCliContext(FlextService[FlextCliTypes.Data.CliDataDict]):
         try:
             self.context_metadata[key] = value
             return FlextResult[None].ok(None)
-        except Exception as e:
+        except Exception as e:  # pragma: no cover
             return FlextResult[None].fail(
                 FlextCliConstants.ContextErrorMessages.METADATA_SETTING_FAILED.format(
                     error=e
@@ -235,7 +235,7 @@ class FlextCliContext(FlextService[FlextCliTypes.Data.CliDataDict]):
                     key=key
                 )
             )
-        except Exception as e:
+        except Exception as e:  # pragma: no cover
             return FlextResult[object].fail(
                 FlextCliConstants.ContextErrorMessages.METADATA_RETRIEVAL_FAILED.format(
                     error=e
@@ -244,10 +244,10 @@ class FlextCliContext(FlextService[FlextCliTypes.Data.CliDataDict]):
 
     def get_context_summary(
         self,
-    ) -> FlextResult[FlextTypes.Dict]:
+    ) -> FlextResult[dict[str, object]]:
         """Get comprehensive context summary using CLI-specific data types."""
         try:
-            summary: FlextTypes.Dict = {
+            summary: dict[str, object] = {
                 FlextCliConstants.ContextDictKeys.CONTEXT_ID: self.id,
                 FlextCliConstants.ContextDictKeys.COMMAND: self.command
                 or FlextCliConstants.ContextDefaults.CONTEXT_NONE,
@@ -268,9 +268,9 @@ class FlextCliContext(FlextService[FlextCliTypes.Data.CliDataDict]):
                 ),
             }
 
-            return FlextResult[FlextTypes.Dict].ok(summary)
-        except Exception as e:
-            return FlextResult[FlextTypes.Dict].fail(
+            return FlextResult[dict[str, object]].ok(summary)
+        except Exception as e:  # pragma: no cover
+            return FlextResult[dict[str, object]].fail(
                 FlextCliConstants.ContextErrorMessages.CONTEXT_SUMMARY_GENERATION_FAILED.format(
                     error=e
                 ),
@@ -288,23 +288,24 @@ class FlextCliContext(FlextService[FlextCliTypes.Data.CliDataDict]):
                 FlextCliConstants.DictKeys.TIMESTAMP: FlextUtilities.Generators.generate_timestamp(),
             }
             return FlextResult[FlextCliTypes.Data.CliDataDict].ok(result)
-        except Exception as e:
+        except Exception as e:  # pragma: no cover
             return FlextResult[FlextCliTypes.Data.CliDataDict].fail(
                 FlextCliConstants.ContextErrorMessages.CONTEXT_EXECUTION_FAILED.format(
                     error=e
                 )
             )
 
-    def to_dict(self) -> FlextTypes.Dict:
+    def to_dict(self) -> dict[str, object]:
         """Convert context to dictionary."""
         return {
-            "id": self.id,
-            "command": self.command,
-            "arguments": self.arguments or [],
-            "environment_variables": self.environment_variables or {},
-            "working_directory": self.working_directory,
-            "created_at": self.created_at,
-            "timeout_seconds": self.timeout_seconds,
+            FlextCliConstants.ContextDictKeys.ID: self.id,
+            FlextCliConstants.ContextDictKeys.COMMAND: self.command,
+            FlextCliConstants.ContextDictKeys.ARGUMENTS: self.arguments or [],
+            FlextCliConstants.ContextDictKeys.ENVIRONMENT_VARIABLES: self.environment_variables
+            or {},
+            FlextCliConstants.ContextDictKeys.WORKING_DIRECTORY: self.working_directory,
+            FlextCliConstants.ContextDictKeys.CREATED_AT: self.created_at,
+            FlextCliConstants.ContextDictKeys.TIMEOUT_SECONDS: self.timeout_seconds,
         }
 
 
