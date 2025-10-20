@@ -23,6 +23,8 @@ from typing import IO
 import click
 import typer
 from flext_core import FlextContainer, FlextLogger, FlextResult, FlextTypes
+from pydantic import ValidationError
+from pydantic_core import PydanticUndefined
 from typer.testing import CliRunner
 
 from flext_cli.constants import FlextCliConstants
@@ -823,9 +825,6 @@ class FlextCliCli:
             ```
 
         """
-        from pydantic import ValidationError  # Import locally  # noqa: PLC0415
-        from pydantic_core import PydanticUndefined  # noqa: PLC0415
-
         # Auto-generate function with proper signature from model fields
         if not hasattr(model_class, "model_fields"):
             msg = f"{model_class.__name__} must be a Pydantic BaseModel"
@@ -875,33 +874,23 @@ class FlextCliCli:
                     f"{field_name}: {type_str} = typer.Option(..., help={description!r})"
                 )
 
-        # Create function dynamically with proper signature
-        func_code = f"""
-def generated_command({', '.join(params_def)}):
-    '''Auto-generated command from {model_class.__name__}'''
-    try:
-        params = model_class({', '.join(params_call)})
-    except ValidationError as e:
-        typer.echo(f"Invalid parameters: {{e}}", err=True)
-        raise typer.Exit(code=1) from e
+        # Create function dynamically without exec for security
+        def generated_command(**kwargs: FlextTypes.JsonValue) -> None:
+            """Auto-generated command from model."""
+            try:
+                # Convert kwargs to model instance
+                params = model_class(**kwargs)
+            except ValidationError as e:
+                typer.echo(f"Invalid parameters: {e}", err=True)
+                raise typer.Exit(code=1) from e
 
-    try:
-        handler(params)
-    except Exception as e:
-        typer.echo(f"Command failed: {{e}}", err=True)
-        raise typer.Exit(code=1) from e
-"""
+            try:
+                handler(params)
+            except Exception as e:
+                typer.echo(f"Command failed: {e}", err=True)
+                raise typer.Exit(code=1) from e
 
-        # Execute function definition with proper context
-        exec_globals = {
-            "typer": typer,
-            "model_class": model_class,
-            "handler": handler,
-            "ValidationError": ValidationError,
-        }
-        exec(func_code, exec_globals)  # noqa: S102
-
-        return exec_globals["generated_command"]  # type: ignore[return-value]
+        return generated_command
 
     def execute(self) -> FlextResult[object]:
         """Execute Click abstraction layer operations.

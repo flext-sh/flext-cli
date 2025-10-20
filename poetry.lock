@@ -208,6 +208,18 @@ filecache = ["filelock (>=3.8.0)"]
 redis = ["redis (>=2.10.5)"]
 
 [[package]]
+name = "cachetools"
+version = "6.2.1"
+description = "Extensible memoizing collections and decorators"
+optional = false
+python-versions = ">=3.9"
+groups = ["main"]
+files = [
+    {file = "cachetools-6.2.1-py3-none-any.whl", hash = "sha256:09868944b6dde876dfd44e1d47e18484541eaf12f26f29b7af91b26cc892d701"},
+    {file = "cachetools-6.2.1.tar.gz", hash = "sha256:3f391e4bd8f8bf0931169baf7456cc822705f4e2a31f840d218f445b9a854201"},
+]
+
+[[package]]
 name = "certifi"
 version = "2025.10.5"
 description = "Python package for providing Mozilla's CA Bundle."
@@ -1067,7 +1079,7 @@ structlog = ">=25.4.0"
 dev = ["autoflake (>=2.3.1)", "black (>=25.1.0)", "codespell (>=2.3.0)", "deptry (>=0.23.0)", "isort (>=6.0.1)", "pre-commit (>=4.0.1)", "pylint (>=3.3.0)", "pyupgrade (>=3.19.0)", "radon (>=6.0.1)", "ruff (>=0.12.3)", "vulture (>=2.13)"]
 security = ["bandit (>=1.8.0)", "pip-audit (>=2.7.3)"]
 test = ["factory-boy (>=3.3.1)", "faker (>=37.4.0)", "hypothesis (>=6.125.0)", "pytest (>=8.4.0)", "pytest-benchmark (>=5.1.0)", "pytest-clarity (>=1.0.1)", "pytest-cov (>=6.2.0)", "pytest-deadfixtures (>=2.2.1)", "pytest-env (>=1.1.5)", "pytest-mock (>=3.14.0)", "pytest-randomly (>=3.16.0)", "pytest-sugar (>=1.0.0)", "pytest-timeout (>=2.4.0)", "pytest-xdist (>=3.8.0)"]
-typings = ["django-stubs (>=5.2.2)", "types-ldap3 (>=2.9.13.20250622)", "types-protobuf (>=6.30.2.20250703)", "types-psutil (>=7.0.0)", "types-psycopg2 (>=2.9.21.20250718)", "types-python-dateutil (>=2.9.0)", "types-pyyaml (>=6.0.12)", "types-redis (>=4.6.0)", "types-requests (>=2.32.4)", "types-setuptools (>=80.9.0)", "types-toml (>=0.10.8.20240310)"]
+typings = ["django-stubs (>=5.2.2)", "types-docker (>=7.1.0)", "types-ldap3 (>=2.9.13.20250622)", "types-protobuf (>=6.30.2.20250703)", "types-psutil (>=7.0.0)", "types-psycopg2 (>=2.9.21.20250718)", "types-python-dateutil (>=2.9.0)", "types-pyyaml (>=6.0.12)", "types-redis (>=4.6.0)", "types-requests (>=2.32.4)", "types-setuptools (>=80.9.0)", "types-toml (>=0.10.8.20240310)"]
 
 [package.source]
 type = "directory"
@@ -1736,6 +1748,21 @@ identify = ">=1.0.0"
 nodeenv = ">=0.11.1"
 pyyaml = ">=5.1"
 virtualenv = ">=20.10.0"
+
+[[package]]
+name = "prompt-toolkit"
+version = "3.0.52"
+description = "Library for building powerful interactive command lines in Python"
+optional = false
+python-versions = ">=3.8"
+groups = ["main"]
+files = [
+    {file = "prompt_toolkit-3.0.52-py3-none-any.whl", hash = "sha256:9aac639a3bbd33284347de5ad8d68ecc044b91a762dc39b7c21095fcd6a19955"},
+    {file = "prompt_toolkit-3.0.52.tar.gz", hash = "sha256:28cde192929c8e7321de85de1ddbe736f1375148b02f2e17edd840042b1be855"},
+]
+
+[package.dependencies]
+wcwidth = "*"
 
 [[package]]
 name = "psycopg2"
@@ -3103,6 +3130,18 @@ files = [
     {file = "vulture-2.14.tar.gz", hash = "sha256:cb8277902a1138deeab796ec5bef7076a6e0248ca3607a3f3dee0b6d9e9b8415"},
 ]
 
+[[package]]
+name = "wcwidth"
+version = "0.2.14"
+description = "Measures the displayed width of unicode strings in a terminal"
+optional = false
+python-versions = ">=3.6"
+groups = ["main"]
+files = [
+    {file = "wcwidth-0.2.14-py2.py3-none-any.whl", hash = "sha256:a7bb560c8aee30f9957e5f9895805edd20602f2d7f720186dfd906e82b4982e1"},
+    {file = "wcwidth-0.2.14.tar.gz", hash = "sha256:4d478375d31bc5395a3c55c40ccdf3354688364cd61c4f6adacaa9215d0b3605"},
+]
+
 [extras]
 dev = ["autoflake", "black", "codespell", "deptry", "isort", "pre-commit", "pylint", "pyupgrade", "radon", "ruff", "vulture"]
 security = ["bandit", "pip-audit"]
@@ -3112,4 +3151,4 @@ typings = ["django-stubs", "types-ldap3", "types-protobuf", "types-psutil", "typ
 [metadata]
 lock-version = "2.1"
 python-versions = ">=3.13,<3.14"
-content-hash = "88c3ba1ad1d7f4132754dce30e70c04273f7ecea1cb5fc3a30a2aafb6e51d48e"
+content-hash = "ce57d65e138d870f7acd8a4a83b61c6d0d837d8f65cb36c07b7efaf22653f5aa"

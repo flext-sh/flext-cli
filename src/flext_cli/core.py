@@ -69,12 +69,21 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
+import asyncio
+import functools
 import json
+import time
+from collections.abc import Callable, Coroutine
+from concurrent.futures import ThreadPoolExecutor
 from datetime import UTC, datetime
+from importlib import metadata
 from pathlib import Path
-from typing import cast, override
+from typing import Any, cast, override
 
-from flext_core import FlextDecorators, FlextResult, FlextService, FlextTypes
+import pluggy
+from cachetools import LRUCache, TTLCache, cached
+from cachetools.keys import hashkey
+from flext_core import FlextDecorators, FlextResult, FlextService, FlextTypes, P, T
 
 from flext_cli.config import FlextCliConfig
 from flext_cli.constants import FlextCliConstants
@@ -223,6 +232,36 @@ class FlextCliCore(FlextService[FlextCliTypes.Data.CliDataDict]):
     - Service state tracked explicitly
     """
 
+    # =========================================================================
+    # NESTED HELPER: Cache Statistics
+    # =========================================================================
+
+    class _CacheStats:
+        """Internal cache statistics tracker.
+
+        Tracks cache performance metrics for monitoring and optimization.
+        """
+
+        def __init__(self) -> None:
+            """Initialize cache statistics."""
+            self.cache_hits = 0
+            self.cache_misses = 0
+            self.total_time_saved = 0.0
+
+        def record_hit(self, time_saved: float) -> None:
+            """Record a cache hit."""
+            self.cache_hits += 1
+            self.total_time_saved += time_saved
+
+        def record_miss(self) -> None:
+            """Record a cache miss."""
+            self.cache_misses += 1
+
+        def get_hit_rate(self) -> float:
+            """Calculate cache hit rate."""
+            total = self.cache_hits + self.cache_misses
+            return self.cache_hits / total if total > 0 else 0.0
+
     # Logger is provided by FlextMixins mixin
 
     def __init__(
@@ -252,6 +291,13 @@ class FlextCliCore(FlextService[FlextCliTypes.Data.CliDataDict]):
         self._plugins: dict[str, object] = {}
         self._sessions: dict[str, object] = {}
         self._session_active = False
+
+        # Performance and async integration
+        self._caches: dict[str, Any] = {}  # TTLCache or LRUCache instances
+        self._cache_stats = self._CacheStats()
+        self._async_executor = ThreadPoolExecutor(max_workers=4)
+        self._async_tasks: dict[str, asyncio.Task] = {}
+        self._plugin_manager = pluggy.PluginManager("flext_cli")
 
     # ==========================================================================
     # CLI COMMAND MANAGEMENT - Using FlextCliTypes.CliCommand types
@@ -1043,6 +1089,202 @@ class FlextCliCore(FlextService[FlextCliTypes.Data.CliDataDict]):
         """
         # Validation already performed by Pydantic during instantiation
         return FlextResult[None].ok(None)
+
+    # ==========================================================================
+    # PERFORMANCE OPTIMIZATIONS - Integrated into core service
+    # ==========================================================================
+
+    def create_ttl_cache(
+        self, name: str, maxsize: int = 128, ttl: int = 300
+    ) -> FlextResult[Any]:
+        """Create TTL cache with time-based expiration.
+
+        Args:
+            name: Cache identifier
+            maxsize: Maximum number of items
+            ttl: Time-to-live in seconds
+
+        Returns:
+            FlextResult[TTLCache]: Created cache instance
+
+        """
+        try:
+            if name in self._caches:
+                return FlextResult[Any].fail(f"Cache '{name}' already exists")
+
+            cache: Any = TTLCache(maxsize=maxsize, ttl=ttl)  # TTLCache instance
+            self._caches[name] = cache
+            return FlextResult[Any].ok(cache)
+        except Exception as e:
+            return FlextResult[Any].fail(str(e))
+
+    def memoize(
+        self, cache_name: str = "default", ttl: int | None = None
+    ) -> Callable[[Callable[P, T]], Callable[P, T]]:
+        """Create memoization decorator for functions."""
+
+        def decorator(func: Callable[P, T]) -> Callable[P, T]:
+            if cache_name not in self._caches:
+                if ttl:
+                    self._caches[cache_name] = TTLCache(maxsize=128, ttl=ttl)
+                else:
+                    self._caches[cache_name] = LRUCache(maxsize=128)
+
+            cache = self._caches[cache_name]
+
+            @functools.wraps(func)
+            @cached(cache=cache, key=hashkey)
+            def wrapper(*args: P.args, **kwargs: P.kwargs) -> T:
+                start = time.time()
+                try:
+                    result = func(*args, **kwargs)
+                    time_saved = time.time() - start
+                    self._cache_stats.record_hit(time_saved)
+                    return result
+                except KeyError:
+                    self._cache_stats.record_miss()
+                    return func(*args, **kwargs)
+
+            return cast("Callable[P, T]", wrapper)
+
+        return decorator
+
+    def get_cache_stats(self, cache_name: str) -> FlextResult[dict[str, object]]:
+        """Get statistics for a specific cache."""
+        try:
+            if cache_name not in self._caches:
+                return FlextResult[dict[str, object]].fail(
+                    f"Cache '{cache_name}' not found"
+                )
+
+            cache = self._caches[cache_name]
+            stats: dict[str, object] = {
+                "size": len(cache),
+                "maxsize": cache.maxsize,
+                "hits": self._cache_stats.cache_hits,
+                "misses": self._cache_stats.cache_misses,
+                "hit_rate": self._cache_stats.get_hit_rate(),
+                "time_saved": self._cache_stats.total_time_saved,
+            }
+
+            return FlextResult[dict[str, object]].ok(stats)
+        except Exception as e:
+            return FlextResult[dict[str, object]].fail(str(e))
+
+    # ==========================================================================
+    # ASYNC SUPPORT - Integrated into core service
+    # ==========================================================================
+
+    def run_async(
+        self,
+        coro: Coroutine[Any, Any, T],
+        timeout: float | None = None,
+    ) -> FlextResult[T]:
+        """Run async coroutine and return result."""
+        try:
+            loop = asyncio.get_event_loop()
+
+            if timeout:
+                result = loop.run_until_complete(
+                    asyncio.wait_for(coro, timeout=timeout)
+                )
+            else:
+                result = loop.run_until_complete(coro)
+
+            return FlextResult[T].ok(result)
+        except TimeoutError:
+            return FlextResult[T].fail(f"Operation timed out after {timeout}s")
+        except Exception as e:
+            return FlextResult[T].fail(str(e))
+
+    def run_in_executor(
+        self,
+        func: Callable[P, T],
+        *args: P.args,
+        **kwargs: P.kwargs,
+    ) -> FlextResult[T]:
+        """Run sync function in thread pool executor."""
+        try:
+            loop = asyncio.get_event_loop()
+            result = loop.run_until_complete(
+                loop.run_in_executor(
+                    self._async_executor, functools.partial(func, *args, **kwargs)
+                )
+            )
+            return FlextResult[T].ok(result)
+        except Exception as e:
+            return FlextResult[T].fail(str(e))
+
+    def async_command(
+        self,
+        func: Callable[P, Coroutine[Any, Any, T]],
+    ) -> Callable[P, T]:
+        """Decorator to make async function work with Click."""
+
+        @functools.wraps(func)
+        def wrapper(*args: P.args, **kwargs: P.kwargs) -> T:
+            try:
+                loop = asyncio.get_event_loop()
+                return loop.run_until_complete(func(*args, **kwargs))
+            except RuntimeError:
+                return asyncio.run(func(*args, **kwargs))
+
+        return wrapper
+
+    # ==========================================================================
+    # PLUGIN SYSTEM - Integrated into core service
+    # ==========================================================================
+
+    def register_plugin(self, plugin: object) -> FlextResult[None]:
+        """Register a plugin with the plugin manager."""
+        try:
+            plugin_name = self._plugin_manager.register(plugin)
+            if plugin_name:
+                self._plugins[plugin_name] = plugin
+            return FlextResult[None].ok(None)
+        except Exception as e:
+            return FlextResult[None].fail(str(e))
+
+    def discover_plugins(self) -> FlextResult[list[str]]:
+        """Discover and register plugins via entry points."""
+        try:
+            discovered_plugins: list[str] = []
+
+            for dist in metadata.distributions():
+                for ep in dist.entry_points:
+                    if ep.group == "flext_cli.plugins":
+                        try:
+                            plugin_class = ep.load()
+                            plugin_instance = plugin_class()
+                            self._plugin_manager.register(plugin_instance)
+
+                            discovered_plugins.append(ep.name)
+                            self._plugins[ep.name] = plugin_instance
+
+                        except Exception as e:
+                            self.logger.warning(f"Failed to load plugin {ep.name}: {e}")
+
+            return FlextResult[list[str]].ok(discovered_plugins)
+        except Exception as e:
+            return FlextResult[list[str]].fail(str(e))
+
+    def call_plugin_hook(
+        self, hook_name: str, **kwargs: object
+    ) -> FlextResult[list[object]]:
+        """Call a plugin hook with arguments."""
+        try:
+            hook_caller = getattr(self._plugin_manager.hook, hook_name, None)
+
+            if hook_caller is None:
+                return FlextResult[list[object]].fail(f"Hook '{hook_name}' not found")
+
+            results = hook_caller(**kwargs)
+            if not isinstance(results, list):
+                results = [results] if results is not None else []
+
+            return FlextResult[list[object]].ok(results)
+        except Exception as e:
+            return FlextResult[list[object]].fail(str(e))
 
     # ==========================================================================
     # END OF CORE CLI SERVICE METHODS

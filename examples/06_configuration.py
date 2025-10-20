@@ -28,8 +28,7 @@ import os
 from pathlib import Path
 from typing import cast
 
-from flext_cli import FlextCli, FlextCliConfig
-from flext_cli.typings import FlextCliTypes
+from flext_cli import FlextCli, FlextCliConfig, FlextCliTypes
 
 cli = FlextCli.get_instance()
 

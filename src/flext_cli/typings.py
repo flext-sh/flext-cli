@@ -45,7 +45,7 @@ TCliPlugin = TypeVar("TCliPlugin")
 TCliFormatter = TypeVar("TCliFormatter")
 
 
-class FlextCliTypes:
+class FlextCliTypes(FlextTypes):
     """CLI-specific type definitions extending FlextTypes.
 
     Provides Pydantic v2 Annotated types with validation constraints
@@ -53,11 +53,11 @@ class FlextCliTypes:
     """
 
     # =====================================================================
-    # CORE TYPE ALIASES - Inherit from FlextTypes
+    # CORE TYPE ALIASES - Direct use of FlextTypes domain types
     # =====================================================================
 
     JsonValue = FlextTypes.JsonValue
-    """JSON value type alias (inherited from FlextTypes for compatibility)."""
+    """JSON value type alias (domain-specific composite type from FlextTypes)."""
 
     # =====================================================================
     # ANNOTATED CLI TYPES - Pydantic v2 Annotated types with validation
@@ -274,6 +274,12 @@ class FlextCliTypes:
         type SpinnerColumn = SpinnerColumnImport
         type TextColumn = TextColumnImport
         type TimeRemainingColumn = TimeRemainingColumnImport
+
+    # =====================================================================
+    # CLI PROJECT TYPES - Domain-specific project types
+    # =====================================================================
+    # Project class removed to avoid override conflicts with FlextTypes.Project
+    # CLI-specific project type aliases can be added here if needed
 
 
 __all__: list[str] = [

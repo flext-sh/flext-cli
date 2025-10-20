@@ -14,7 +14,7 @@ from rich.progress import Progress
 from rich.table import Table as RichTable
 from rich.tree import Tree as RichTree
 
-from flext_cli.formatters import FlextCliFormatters
+from flext_cli import FlextCliFormatters
 
 
 class TestFlextCliFormattersCore:

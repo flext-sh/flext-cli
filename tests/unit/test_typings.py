@@ -27,12 +27,9 @@ from typing import (
 )
 
 import pytest
+from flext_core import T
 
-from flext_cli.constants import FlextCliConstants
-from flext_cli.typings import FlextCliTypes
-
-# Type variables for generic tests
-T = TypeVar("T")
+from flext_cli import FlextCliConstants, FlextCliTypes
 
 
 class TestFlextCliTypes:

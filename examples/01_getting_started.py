@@ -34,7 +34,6 @@ from typing import cast
 
 from flext_cli import FlextCli, FlextCliTypes
 
-# Initialize once - reuse everywhere
 cli = FlextCli.get_instance()
 
 

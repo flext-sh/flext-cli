@@ -16,8 +16,7 @@ from typing import Never
 import pytest
 from flext_core import FlextResult
 
-from flext_cli.commands import FlextCliCommands
-from flext_cli.constants import FlextCliConstants
+from flext_cli import FlextCliCommands, FlextCliConstants
 
 
 class TestFlextCliCommands:

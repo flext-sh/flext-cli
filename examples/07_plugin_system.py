@@ -1,20 +1,26 @@
-"""Plugin System - Using flext-cli for Extensible CLIs.
+"""Plugin System - PATTERN GUIDE (NOT A FLEXT-CLI BUILT-IN FEATURE)..
 
-WHEN TO USE THIS:
+⚠️  IMPORTANT: This is a PATTERN GUIDE showing how YOU can implement
+plugin systems in YOUR own CLI application using flext-cli as a foundation.
+
+flext-cli does NOT provide FlextCliPlugin or FlextCliPluginManager built-in.
+This example demonstrates patterns and best practices for YOUR implementation.
+
+WHEN TO USE THIS PATTERN IN YOUR CLI:
 - Building CLI tools that support extensions/plugins
 - Need to allow third-party functionality additions
 - Want modular CLI architecture
 - Building extensible command systems
 - Need dynamic command registration
 
-FLEXT-CLI PROVIDES:
-- FlextCliPlugin - Base plugin class
-- FlextCliPluginManager - Plugin discovery and management
-- FlextResult integration - Error handling for plugins
-- Lifecycle hooks - initialize, execute, cleanup
+WHAT YOU CAN BUILD USING THIS PATTERN:
+- Custom plugin classes for YOUR application
+- Plugin manager for YOUR CLI
+- FlextResult integration for error handling
+- Lifecycle hooks (initialize, execute, cleanup)
 
-HOW TO USE IN YOUR CLI:
-Create plugin-based architecture in YOUR CLI application
+HOW TO IMPLEMENT IN YOUR CLI:
+Use flext-cli foundation (FlextResult, FlextCli) to build plugin architecture
 
 Copyright (c) 2025 FLEXT Team. All rights reserved.
 SPDX-License-Identifier: MIT
@@ -25,11 +31,11 @@ from __future__ import annotations
 
 import json
 from pathlib import Path
+from typing import cast
 
-from flext_core import FlextResult
+from flext_core import FlextResult, FlextTypes
 
-from flext_cli import FlextCli, FlextCliTables
-from flext_cli.typings import FlextCliTypes
+from flext_cli import FlextCli, FlextCliTables, FlextCliTypes
 
 cli = FlextCli.get_instance()
 
@@ -133,7 +139,9 @@ class MyAppPluginManager:
 
         # Cast to expected type for table creation
         table_result = cli.create_table(
-            data=plugin_data, headers=["Plugin", "Version"], title="Registered Plugins"
+            data=cast("FlextTypes.JsonValue", plugin_data),
+            headers=["Plugin", "Version"],
+            title="Registered Plugins",
         )
 
         if table_result.is_success:

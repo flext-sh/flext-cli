@@ -118,7 +118,7 @@ class FlextCliContext(FlextService[FlextCliTypes.Data.CliDataDict]):
                 )
             )
 
-    def get_environment_variable(self, name: str) -> FlextResult[str]:
+    def get_environment_variable(self, name: object) -> FlextResult[str]:
         """Get specific environment variable value."""
         if not name or not isinstance(name, str):
             return FlextResult[str].fail(
@@ -141,7 +141,9 @@ class FlextCliContext(FlextService[FlextCliTypes.Data.CliDataDict]):
                 )
             )
 
-    def set_environment_variable(self, name: str, value: str) -> FlextResult[None]:
+    def set_environment_variable(
+        self, name: object, value: object
+    ) -> FlextResult[None]:
         """Set environment variable value."""
         if not name or not isinstance(name, str):
             return FlextResult[None].fail(
@@ -163,7 +165,7 @@ class FlextCliContext(FlextService[FlextCliTypes.Data.CliDataDict]):
                 )
             )
 
-    def add_argument(self, argument: str) -> FlextResult[None]:
+    def add_argument(self, argument: object) -> FlextResult[None]:
         """Add command line argument."""
         if not argument or not isinstance(argument, str):
             return FlextResult[None].fail(
@@ -180,7 +182,7 @@ class FlextCliContext(FlextService[FlextCliTypes.Data.CliDataDict]):
                 )
             )
 
-    def remove_argument(self, argument: str) -> FlextResult[None]:
+    def remove_argument(self, argument: object) -> FlextResult[None]:
         """Remove command line argument."""
         if not argument or not isinstance(argument, str):
             return FlextResult[None].fail(
@@ -203,7 +205,9 @@ class FlextCliContext(FlextService[FlextCliTypes.Data.CliDataDict]):
                 )
             )
 
-    def set_metadata(self, key: str, value: FlextTypes.JsonValue) -> FlextResult[None]:
+    def set_metadata(
+        self, key: object, value: FlextTypes.JsonValue
+    ) -> FlextResult[None]:
         """Set context metadata using CLI-specific data types."""
         if not key or not isinstance(key, str):
             return FlextResult[None].fail(
@@ -220,7 +224,7 @@ class FlextCliContext(FlextService[FlextCliTypes.Data.CliDataDict]):
                 )
             )
 
-    def get_metadata(self, key: str) -> FlextResult[object]:
+    def get_metadata(self, key: object) -> FlextResult[object]:
         """Get context metadata value."""
         if not key or not isinstance(key, str):
             return FlextResult[object].fail(

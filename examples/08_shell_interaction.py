@@ -1,21 +1,27 @@
-"""Shell Interaction - Using flext-cli for Interactive CLIs.
+"""Shell Interaction - PATTERN GUIDE (NOT A FLEXT-CLI BUILT-IN FEATURE)..
 
-WHEN TO USE THIS:
+⚠️  IMPORTANT: This is a PATTERN GUIDE showing how YOU can implement
+interactive shell/REPL in YOUR own CLI application using flext-cli as a foundation.
+
+flext-cli does NOT provide FlextCliShell or REPL features built-in.
+This example demonstrates patterns and best practices for YOUR implementation.
+
+WHEN TO USE THIS PATTERN IN YOUR CLI:
 - Building interactive REPL-style CLIs
 - Need command history and auto-completion
 - Want multi-command interactive sessions
 - Building debugging/admin consoles
 - Need syntax highlighting in terminal
 
-FLEXT-CLI PROVIDES:
-- Command registration with decorators
-- Auto-completion for commands and arguments
-- Command history persistence
+WHAT YOU CAN BUILD USING THIS PATTERN:
+- Custom interactive shell for YOUR application
+- Command dispatcher with FlextResult integration
+- Command history tracking
 - Multi-line input support
-- Syntax highlighting
+- Auto-completion for YOUR commands
 
-HOW TO USE IN YOUR CLI:
-Build interactive shell interface for YOUR CLI application
+HOW TO IMPLEMENT IN YOUR CLI:
+Use flext-cli foundation (FlextResult, FlextCli) + prompt_toolkit library
 
 Copyright (c) 2025 FLEXT Team. All rights reserved.
 SPDX-License-Identifier: MIT
@@ -30,8 +36,7 @@ from typing import cast
 
 from flext_core import FlextResult
 
-from flext_cli import FlextCli
-from flext_cli.typings import FlextCliTypes
+from flext_cli import FlextCli, FlextCliTypes
 
 cli = FlextCli.get_instance()
 
@@ -49,9 +54,9 @@ def handle_status_command() -> FlextResult[FlextCliTypes.Data.CliDataDict]:
         "timestamp": time.strftime("%Y-%m-%d %H:%M:%S"),
     }
 
-    cli.print(f"✅ Status: {status['status']}", style="green")
-    cli.print(f"   User: {status['user']}", style="cyan")
-    cli.print(f"   Time: {status['timestamp']}", style="cyan")
+    cli.formatters.print(f"✅ Status: {status['status']}", style="green")
+    cli.formatters.print(f"   User: {status['user']}", style="cyan")
+    cli.formatters.print(f"   Time: {status['timestamp']}", style="cyan")
 
     # Cast to expected type (runtime type is compatible)
     typed_status = cast("FlextCliTypes.Data.CliDataDict", status)
@@ -66,13 +71,13 @@ def handle_list_command(
 
     if filter_text:
         filtered = [item for item in items if filter_text in item]
-        cli.print(
+        cli.formatters.print(
             f"📋 Found {len(filtered)} items matching '{filter_text}'", style="cyan"
         )
         # Cast to expected type (runtime type is compatible)
         return FlextResult[list[str]].ok(filtered)
 
-    cli.print(f"📋 Total items: {len(items)}", style="cyan")
+    cli.formatters.print(f"📋 Total items: {len(items)}", style="cyan")
     # Cast to expected type (runtime type is compatible)
     return FlextResult[list[str]].ok(items)
 
@@ -80,13 +85,13 @@ def handle_list_command(
 def handle_config_command(key: str = "", value: str = "") -> FlextResult[str]:
     """Config management in YOUR interactive CLI."""
     if key and value:
-        cli.print(f"✅ Set {key}={value}", style="green")
+        cli.formatters.print(f"✅ Set {key}={value}", style="green")
         return FlextResult[str].ok(f"Set {key}={value}")
     if key:
         # Get config value
-        cli.print(f"📖 Reading {key}...", style="cyan")
+        cli.formatters.print(f"📖 Reading {key}...", style="cyan")
         return FlextResult[str].ok("value")
-    cli.print("⚠️  Usage: config <key> [value]", style="yellow")
+    cli.formatters.print("⚠️  Usage: config <key> [value]", style="yellow")
     return FlextResult[str].fail("Missing key")
 
 
@@ -112,14 +117,14 @@ class InteractiveShell:
 
     def show_help(self) -> FlextResult[None]:
         """Show available commands."""
-        cli.print("\n📚 Available Commands:", style="bold cyan")
+        cli.formatters.print("\n📚 Available Commands:", style="bold cyan")
         for cmd in self.commands:
-            cli.print(f"   • {cmd}", style="white")
+            cli.formatters.print(f"   • {cmd}", style="white")
         return FlextResult[None].ok(None)
 
     def exit_shell(self) -> FlextResult[None]:
         """Exit interactive shell."""
-        cli.print("👋 Goodbye!", style="cyan")
+        cli.formatters.print("👋 Goodbye!", style="cyan")
         self.running = False
         return FlextResult[None].ok(None)
 
@@ -155,8 +160,8 @@ class InteractiveShell:
 def handle_multiline_input(lines: list[str]) -> str:
     """Process multi-line input in YOUR interactive CLI."""
     combined = "\n".join(lines)
-    cli.print(f"📝 Processing {len(lines)} lines...", style="cyan")
-    cli.print(f"   Total chars: {len(combined)}", style="white")
+    cli.formatters.print(f"📝 Processing {len(lines)} lines...", style="cyan")
+    cli.formatters.print(f"   Total chars: {len(combined)}", style="white")
     return combined
 
 
@@ -187,12 +192,12 @@ class CommandHistory:
     def display_history(self) -> None:
         """Display command history."""
         if not self.history:
-            cli.print("📜 No command history", style="yellow")
+            cli.formatters.print("📜 No command history", style="yellow")
             return
 
-        cli.print("\n📜 Recent Commands (last 10):", style="bold cyan")
+        cli.formatters.print("\n📜 Recent Commands (last 10):", style="bold cyan")
         for i, cmd in enumerate(self.get_recent(), 1):
-            cli.print(f"   {i}. {cmd}", style="white")
+            cli.formatters.print(f"   {i}. {cmd}", style="white")
 
 
 # ============================================================================
@@ -202,51 +207,63 @@ class CommandHistory:
 
 def main() -> None:
     """Examples of shell interaction in YOUR code."""
-    cli.print("=" * 70, style="bold blue")
-    cli.print("  Interactive Shell Library Usage", style="bold white")
-    cli.print("=" * 70, style="bold blue")
+    cli.formatters.print("=" * 70, style="bold blue")
+    cli.formatters.print("  Interactive Shell Library Usage", style="bold white")
+    cli.formatters.print("=" * 70, style="bold blue")
 
     # Example 1: Command handlers
-    cli.print("\n1. Command Handlers (status, list, config):", style="bold cyan")
+    cli.formatters.print(
+        "\n1. Command Handlers (status, list, config):", style="bold cyan"
+    )
     handle_status_command()
     handle_list_command(filter_text="test")
     handle_config_command(key="theme", value="dark")
 
     # Example 2: Interactive shell
-    cli.print("\n2. Interactive Shell (command dispatcher):", style="bold cyan")
+    cli.formatters.print(
+        "\n2. Interactive Shell (command dispatcher):", style="bold cyan"
+    )
     shell = InteractiveShell()
     shell.show_help()
 
     # Simulate command execution
-    cli.print("\n   Simulating: status", style="yellow")
+    cli.formatters.print("\n   Simulating: status", style="yellow")
     shell.execute_command("status")
 
-    cli.print("\n   Simulating: list test", style="yellow")
+    cli.formatters.print("\n   Simulating: list test", style="yellow")
     shell.execute_command("list test")
 
     # Example 3: Multi-line input
-    cli.print("\n3. Multi-Line Input (combined processing):", style="bold cyan")
+    cli.formatters.print(
+        "\n3. Multi-Line Input (combined processing):", style="bold cyan"
+    )
     lines = ["SELECT * FROM users", "WHERE active = true", "ORDER BY created_at DESC"]
     handle_multiline_input(lines)
 
     # Example 4: Command history
-    cli.print("\n4. Command History (tracking):", style="bold cyan")
+    cli.formatters.print("\n4. Command History (tracking):", style="bold cyan")
     history = CommandHistory()
     history.add("status")
     history.add("list test")
     history.add("config theme dark")
     history.display_history()
 
-    cli.print("\n" + "=" * 70, style="bold blue")
-    cli.print("  ✅ Shell Interaction Examples Complete", style="bold green")
-    cli.print("=" * 70, style="bold blue")
+    cli.formatters.print("\n" + "=" * 70, style="bold blue")
+    cli.formatters.print("  ✅ Shell Interaction Examples Complete", style="bold green")
+    cli.formatters.print("=" * 70, style="bold blue")
 
     # Integration guide
-    cli.print("\n💡 Integration Tips:", style="bold cyan")
-    cli.print("  • Create command handlers with FlextResult returns", style="white")
-    cli.print("  • Build command dispatcher to route user input", style="white")
-    cli.print("  • Add command history for better UX", style="white")
-    cli.print("  • Support multi-line input for complex commands", style="white")
+    cli.formatters.print("\n💡 Integration Tips:", style="bold cyan")
+    cli.formatters.print(
+        "  • Create command handlers with FlextResult returns", style="white"
+    )
+    cli.formatters.print(
+        "  • Build command dispatcher to route user input", style="white"
+    )
+    cli.formatters.print("  • Add command history for better UX", style="white")
+    cli.formatters.print(
+        "  • Support multi-line input for complex commands", style="white"
+    )
 
 
 if __name__ == "__main__":

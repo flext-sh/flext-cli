@@ -15,7 +15,7 @@ import time
 import pytest
 from flext_core import FlextResult
 
-from flext_cli.debug import FlextCliDebug
+from flext_cli import FlextCliDebug
 
 
 class TestFlextCliDebug:

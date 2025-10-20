@@ -34,8 +34,7 @@ from typing import cast
 
 from flext_core import FlextResult
 
-from flext_cli import FlextCli, FlextCliPrompts
-from flext_cli.typings import FlextCliTypes
+from flext_cli import FlextCli, FlextCliPrompts, FlextCliTypes
 
 cli = FlextCli.get_instance()
 prompts = FlextCliPrompts()

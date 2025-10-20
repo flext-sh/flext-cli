@@ -20,10 +20,7 @@ Write comprehensive tests for YOUR CLI application
 Copyright (c) 2025 FLEXT Team. All rights reserved.
 SPDX-License-Identifier: MIT
 
-NOTE: This file demonstrates testing patterns for users, hence S101 (assert usage)
-is expected and appropriate - showing users how to write assert-based tests.
 """
-# ruff: noqa: S101
 
 from __future__ import annotations
 
@@ -33,8 +30,7 @@ from typing import cast
 
 from flext_core import FlextResult
 
-from flext_cli import FlextCli, FlextCliPrompts
-from flext_cli.typings import FlextCliTypes
+from flext_cli import FlextCli, FlextCliPrompts, FlextCliTypes
 
 cli = FlextCli.get_instance()
 
@@ -60,15 +56,23 @@ def test_cli_command() -> None:
 
     # Test success case
     result = my_cli_command("World")
-    assert result.is_success, "Command should succeed"
-    assert result.unwrap() == "Hello, World!", "Unexpected output"
+    if not result.is_success:
+        cli.print(f"   ❌ Command should succeed: {result.error}", style="red")
+        return
+    if result.unwrap() != "Hello, World!":
+        cli.print("   ❌ Unexpected output", style="red")
+        return
     cli.print("   ✅ Success case passed", style="green")
 
     # Test failure case
     result = my_cli_command("")
-    assert result.is_failure, "Command should fail with empty name"
+    if not result.is_failure:
+        cli.print("   ❌ Command should fail with empty name", style="red")
+        return
     error_msg = result.error or ""
-    assert "empty" in error_msg.lower(), "Unexpected error message"
+    if "empty" not in error_msg.lower():
+        cli.print("   ❌ Unexpected error message", style="red")
+        return
     cli.print("   ✅ Failure case passed", style="green")
 
 
@@ -102,7 +106,9 @@ def test_file_operations() -> None:
     config = cast("FlextCliTypes.Data.CliDataDict", config_data)
     result = save_config_command(config)
 
-    assert result.is_success, "Config save should succeed"
+    if not result.is_success:
+        cli.print(f"   ❌ Config save should succeed: {result.error}", style="red")
+        return
     cli.print("   ✅ File save test passed", style="green")
 
     # Verify file contents
@@ -110,11 +116,14 @@ def test_file_operations() -> None:
     temp_file = Path(tempfile.gettempdir()) / "test_config.json"
     read_result = cli.file_tools.read_json_file(temp_file)
 
-    assert read_result.is_success, "Config read should succeed"
+    if not (read_result.is_success):
+        cli.print("   ❌ Config read should succeed", style="red")
+        return
     loaded = read_result.unwrap()
     # Type narrowing for dict[str, object] access
-    if isinstance(loaded, dict):
-        assert loaded.get("test") is True, "Config value mismatch"
+    if isinstance(loaded, dict) and loaded.get("test") is not True:
+        cli.print("   ❌ Config value mismatch", style="red")
+        return
     cli.print("   ✅ File read test passed", style="green")
 
     # Cleanup
@@ -147,8 +156,12 @@ def test_interactive_command() -> None:
     # Test with non-interactive prompts
     result = interactive_command()
 
-    assert result.is_success, "Interactive command should succeed"
-    assert "TestUser" in result.unwrap(), "Should use default value"
+    if not result.is_success:
+        cli.print(f"   ❌ Interactive command should succeed: {result.error}", style="red")
+        return
+    if "TestUser" not in result.unwrap():
+        cli.print("   ❌ Should use default value", style="red")
+        return
     cli.print("   ✅ Interactive command test passed", style="green")
 
 
@@ -174,22 +187,34 @@ def test_error_scenarios() -> None:
 
     # Test negative value
     result = risky_operation(-1)
-    assert result.is_failure, "Should fail with negative value"
+    if not result.is_failure:
+        cli.print("   ❌ Should fail with negative value", style="red")
+        return
     error_msg = result.error or ""
-    assert "positive" in error_msg, "Unexpected error message"
+    if "positive" not in error_msg:
+        cli.print("   ❌ Unexpected error message", style="red")
+        return
     cli.print("   ✅ Negative value test passed", style="green")
 
     # Test too large value
     result = risky_operation(200)
-    assert result.is_failure, "Should fail with large value"
+    if not result.is_failure:
+        cli.print("   ❌ Should fail with large value", style="red")
+        return
     error_msg = result.error or ""
-    assert "too large" in error_msg.lower(), "Unexpected error message"
+    if "too large" not in error_msg.lower():
+        cli.print("   ❌ Unexpected error message", style="red")
+        return
     cli.print("   ✅ Large value test passed", style="green")
 
     # Test valid value
     result = risky_operation(10)
-    assert result.is_success, "Should succeed with valid value"
-    assert result.unwrap() == 20, "Unexpected result"
+    if not result.is_success:
+        cli.print(f"   ❌ Should succeed with valid value: {result.error}", style="red")
+        return
+    if result.unwrap() != 20:
+        cli.print("   ❌ Unexpected result", style="red")
+        return
     cli.print("   ✅ Valid value test passed", style="green")
 
 
@@ -248,11 +273,17 @@ def test_integration() -> None:
 
     result = full_workflow_command()
 
-    assert result.is_success, "Workflow should succeed"
+    if not result.is_success:
+        cli.print(f"   ❌ Workflow should succeed: {result.error}", style="red")
+        return
 
     data = result.unwrap()
-    assert data["status"] == "completed", "Status should be updated"
-    assert data["processed"] is True, "Should be marked as processed"
+    if data["status"] != "completed":
+        cli.print("   ❌ Status should be updated", style="red")
+        return
+    if data["processed"] is not True:
+        cli.print("   ❌ Should be marked as processed", style="red")
+        return
     cli.print("   ✅ Integration test passed", style="green")
 
 

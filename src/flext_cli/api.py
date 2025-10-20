@@ -13,7 +13,7 @@ from __future__ import annotations
 
 import secrets
 from collections.abc import Callable
-from typing import cast
+from typing import Any, cast
 
 from flext_core import (
     FlextContainer,
@@ -29,15 +29,9 @@ from flext_cli.constants import FlextCliConstants
 from flext_cli.core import FlextCliCore
 from flext_cli.file_tools import FlextCliFileTools
 from flext_cli.formatters import FlextCliFormatters
-from flext_cli.models import FlextCliModels
 from flext_cli.output import FlextCliOutput
 from flext_cli.prompts import FlextCliPrompts
 from flext_cli.typings import FlextCliTypes
-
-# Direct module-level class references (no wrapping)
-__constants__ = FlextCliConstants
-__models__ = FlextCliModels
-__types__ = FlextCliTypes
 
 
 class FlextCli:
@@ -308,13 +302,13 @@ class FlextCli:
     def command(
         self, name: str | None = None
     ) -> Callable[
-        [Callable[..., FlextCliTypes.JsonValue]], Callable[..., FlextCliTypes.JsonValue]
+        [Callable[..., FlextTypes.JsonValue]], Callable[..., FlextTypes.JsonValue]
     ]:
         """Register a command using CLI framework abstraction."""
 
         def decorator(
-            func: Callable[..., FlextCliTypes.JsonValue],
-        ) -> Callable[..., FlextCliTypes.JsonValue]:
+            func: Callable[..., FlextTypes.JsonValue],
+        ) -> Callable[..., FlextTypes.JsonValue]:
             cmd_name = name or func.__name__
             self._commands[cmd_name] = func
 
@@ -327,13 +321,13 @@ class FlextCli:
     def group(
         self, name: str | None = None
     ) -> Callable[
-        [Callable[..., FlextCliTypes.JsonValue]], Callable[..., FlextCliTypes.JsonValue]
+        [Callable[..., FlextTypes.JsonValue]], Callable[..., FlextTypes.JsonValue]
     ]:
         """Register a command group using CLI framework abstraction."""
 
         def decorator(
-            func: Callable[..., FlextCliTypes.JsonValue],
-        ) -> Callable[..., FlextCliTypes.JsonValue]:
+            func: Callable[..., FlextTypes.JsonValue],
+        ) -> Callable[..., FlextTypes.JsonValue]:
             group_name = name or func.__name__
             self._groups[group_name] = func
 
@@ -358,6 +352,60 @@ class FlextCli:
             FlextCliConstants.DictKeys.STATUS: FlextCliConstants.ServiceStatus.OPERATIONAL.value,
             FlextCliConstants.DictKeys.SERVICE: FlextCliConstants.FLEXT_CLI,
         })
+
+    # =========================================================================
+    # CONVENIENCE METHODS - Delegate to service instances
+    # =========================================================================
+
+    def print(
+        self,
+        message: str,
+        style: str | None = None,
+    ) -> FlextResult[None]:
+        """Print formatted message (convenience method for formatters.print)."""
+        return self.formatters.print(message, style)
+
+    def create_table(
+        self,
+        data: object | None = None,
+        headers: list[str] | None = None,
+        title: str | None = None,
+    ) -> FlextResult[str]:
+        """Create table from data (convenience method).
+
+        Args:
+            data: Data to format as table (dict or list of dicts)
+            headers: Optional column headers
+            title: Optional table title
+
+        Returns:
+            FlextResult[str]: Formatted table string
+
+        """
+        # Handle None case - use empty dict as default
+        table_data: object = data if data is not None else {}
+        # Use output.format_data which supports data, title, and headers
+        # Cast to JsonValue to satisfy type checker (runtime compatible)
+        return self.output.format_data(
+            data=cast("FlextTypes.JsonValue", table_data),
+            format_type="table",
+            title=title,
+            headers=headers,
+        )
+
+    def print_table(
+        self,
+        table: str,
+    ) -> FlextResult[None]:
+        """Print table string (convenience method)."""
+        return self.formatters.print(table)
+
+    def create_tree(
+        self,
+        label: str,
+    ) -> FlextResult[Any]:
+        """Create tree visualization (convenience method for formatters.create_tree)."""
+        return self.formatters.create_tree(label)
 
 
 __all__ = [

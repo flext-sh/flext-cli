@@ -8,15 +8,22 @@ EXPECTED MYPY ISSUES (documented for awareness):
 
 Copyright (c) 2025 FLEXT Team. All rights reserved.
 SPDX-License-Identifier: MIT
+
 """
 
 from __future__ import annotations
 
 from collections.abc import Callable
 from datetime import UTC, datetime
-from typing import Self, cast, get_args, get_origin
+from typing import Annotated, Self, cast, get_args, get_origin
 
-from flext_core import FlextConfig, FlextLogger, FlextModels, FlextResult, FlextTypes
+from flext_core import (
+    FlextConstants,
+    FlextLogger,
+    FlextModels,
+    FlextResult,
+    FlextTypes,
+)
 from pydantic import (
     BaseModel,
     ConfigDict,
@@ -24,10 +31,10 @@ from pydantic import (
     SerializationInfo,
     computed_field,
     field_serializer,
-    field_validator,
     fields,
     model_validator,
 )
+from pydantic.functional_validators import BeforeValidator
 from pydantic_core import PydanticUndefined
 
 from flext_cli.constants import FlextCliConstants
@@ -35,6 +42,32 @@ from flext_cli.mixins import FlextCliMixins
 from flext_cli.typings import FlextCliTypes
 
 logger = FlextLogger(__name__)
+
+
+# =============================================================================
+# MODULE-LEVEL VALIDATORS (Pydantic 2.11+ BeforeValidator pattern)
+# =============================================================================
+
+
+def _validate_log_level(v: str) -> str:
+    """Validate log level using flext-core constants (no duplication).
+
+    Args:
+        v: Log level string to validate
+
+    Returns:
+        Normalized log level (uppercase)
+
+    Raises:
+        ValueError: If log level not in valid levels
+
+    """
+    valid_levels = set(FlextConstants.Logging.VALID_LEVELS)
+    level_upper = v.upper()
+    if level_upper not in valid_levels:
+        msg = f"Invalid log level: {v}. Must be one of {valid_levels}"
+        raise ValueError(msg)
+    return level_upper
 
 
 class FlextCliModels(FlextModels):
@@ -88,31 +121,9 @@ class FlextCliModels(FlextModels):
         },
     )
 
-    @model_validator(mode="after")
-    def validate_cli_models_consistency(self) -> Self:
-        """Cross-model validation ensuring CLI models consistency."""
-        # Ensure all required nested classes are properly defined
-        required_nested_classes: list[str] = [
-            "BaseEntity",
-            "BaseValidatedModel",
-            "BaseConfig",
-            "CliCommand",
-            "DebugInfo",
-            "CliSession",
-        ]
-
-        for class_name in required_nested_classes:
-            if not hasattr(self.__class__, class_name):
-                error_message = FlextCliConstants.ModelsErrorMessages.REQUIRED_NESTED_CLASS_NOT_FOUND.format(
-                    class_name=class_name
-                )
-                raise ValueError(error_message)
-
-        return self
-
     @field_serializer("model_summary")
     def serialize_model_summary(
-        self, value: FlextTypes.StringDict, _info: SerializationInfo
+        self, value: dict[str, str], _info: SerializationInfo
     ) -> dict[str, str | dict[str, str | int]]:
         """Serialize model summary with additional metadata."""
         return {
@@ -415,7 +426,7 @@ class FlextCliModels(FlextModels):
         @staticmethod
         def cli_args_to_model(
             model_class: type[BaseModel],
-            cli_args: FlextTypes.Dict,
+            cli_args: dict[str, object],
         ) -> FlextResult[BaseModel]:
             """Convert CLI arguments dictionary to Pydantic model instance.
 
@@ -517,7 +528,7 @@ class FlextCliModels(FlextModels):
 
                     validation_result = (
                         FlextCliModels.CliModelConverter.cli_args_to_model(
-                            model_class, cast("FlextTypes.Dict", cli_kwargs)
+                            model_class, cast("dict[str, object]", cli_kwargs)
                         )
                     )
 
@@ -588,7 +599,7 @@ class FlextCliModels(FlextModels):
 
                         validation_result = (
                             FlextCliModels.CliModelConverter.cli_args_to_model(
-                                model_class, cast("FlextTypes.Dict", cli_kwargs)
+                                model_class, cast("dict[str, object]", cli_kwargs)
                             )
                         )
 
@@ -632,7 +643,7 @@ class FlextCliModels(FlextModels):
             description=FlextCliConstants.CliCommandDescriptions.COMMAND_LINE,
             examples=["flext validate", "flext deploy --env production"],
         )
-        args: FlextTypes.StringList = Field(
+        args: list[str] = Field(
             default_factory=list,
             description=FlextCliConstants.CliCommandDescriptions.ARGS,
             examples=[["validate"], ["deploy", "--env", "production"]],
@@ -695,30 +706,6 @@ class FlextCliModels(FlextModels):
             default=FlextCliConstants.DEFAULT,
             description=FlextCliConstants.CliCommandDescriptions.PLUGIN_VERSION,
         )
-
-        # Pydantic 2.11 field validators for business logic validation
-        @field_validator("command_line")
-        @classmethod
-        def validate_command_line_not_empty(cls, v: str) -> str:
-            """Validate command line is not empty."""
-            if not v or not v.strip():
-                raise ValueError(
-                    FlextCliConstants.ModelsErrorMessages.COMMAND_LINE_CANNOT_BE_EMPTY
-                )
-            return v.strip()
-
-        @field_validator("status")
-        @classmethod
-        def validate_status_allowed(cls, v: str) -> str:
-            """Validate status is one of the allowed values."""
-            allowed_statuses = set(FlextCliConstants.COMMAND_STATUSES_LIST)
-            if v not in allowed_statuses:
-                raise ValueError(
-                    FlextCliConstants.ModelsErrorMessages.INVALID_STATUS.format(
-                        value=v, allowed=", ".join(sorted(allowed_statuses))
-                    )
-                )
-            return v
 
         # Pydantic 2.11 computed fields for derived properties
         @computed_field
@@ -798,7 +785,7 @@ class FlextCliModels(FlextModels):
 
         @classmethod
         def validate_command_input(
-            cls, data: FlextCliTypes.Data.CliCommandData | None
+            cls, data: object
         ) -> FlextResult[FlextCliTypes.Data.CliCommandData | None]:
             """Validate and normalize command input data using railway pattern.
 
@@ -910,29 +897,11 @@ class FlextCliModels(FlextModels):
             examples=["session_20250113_143022_123456"],
         )
 
-        @field_validator("session_id", mode="before")
-        @classmethod
-        def validate_session_id(cls, v: str | None) -> str:
-            """Validate and generate session_id if not provided."""
-            if v is None or not v.strip():
-                return f"{FlextCliConstants.CliSessionDefaults.SESSION_ID_PREFIX}{datetime.now(UTC).strftime(FlextCliConstants.CliSessionDefaults.DATETIME_FORMAT)}"
-            return v
-
         start_time: str | None = Field(
             default=None,
             description=FlextCliConstants.CliSessionDescriptions.START_TIME,
             examples=["2025-01-13T14:30:22Z"],
         )
-
-        @field_validator("start_time", mode="before")
-        @classmethod
-        def validate_start_time(cls, v: str | datetime | None) -> str | None:
-            """Convert datetime to ISO string if needed."""
-            if v is None:
-                return None
-            if isinstance(v, datetime):
-                return v.isoformat()
-            return v
 
         end_time: str | None = Field(
             default=None,
@@ -1016,9 +985,9 @@ class FlextCliModels(FlextModels):
             )
 
         @computed_field
-        def commands_by_status(self) -> FlextTypes.IntDict:
+        def commands_by_status(self) -> dict[str, int]:
             """Computed field grouping commands by status."""
-            status_counts: FlextTypes.IntDict = {}
+            status_counts: dict[str, int] = {}
             for command in self.commands:
                 status = command.status
                 status_counts[status] = status_counts.get(status, 0) + 1
@@ -1042,7 +1011,7 @@ class FlextCliModels(FlextModels):
         @field_serializer("commands")
         def serialize_commands(
             self, value: list[FlextCliModels.CliCommand], _info: SerializationInfo
-        ) -> list[FlextTypes.Dict]:
+        ) -> list[dict[str, object]]:
             """Serialize commands with summary information."""
             return [
                 {
@@ -1132,43 +1101,29 @@ class FlextCliModels(FlextModels):
             default_factory=lambda: datetime.now(UTC),
             description=FlextCliConstants.DebugInfoDescriptions.TIMESTAMP,
         )
-        system_info: FlextTypes.StringDict = Field(
+        system_info: dict[str, str] = Field(
             default_factory=dict,
             description=FlextCliConstants.DebugInfoDescriptions.SYSTEM_INFO,
         )
-        config_info: FlextTypes.StringDict = Field(
+        config_info: dict[str, str] = Field(
             default_factory=dict,
             description=FlextCliConstants.DebugInfoDescriptions.CONFIG_INFO,
         )
         level: str = Field(
-            default=FlextCliConstants.DebugLevel.INFO.value,
+            default=FlextConstants.Logging.INFO,
             description=FlextCliConstants.DebugInfoDescriptions.LEVEL,
             examples=[
-                FlextCliConstants.DebugLevel.DEBUG.value,
-                FlextCliConstants.DebugLevel.INFO.value,
-                FlextCliConstants.DebugLevel.WARNING.value,
-                FlextCliConstants.DebugLevel.ERROR.value,
-                FlextCliConstants.DebugLevel.CRITICAL.value,
+                FlextConstants.Logging.DEBUG,
+                FlextConstants.Logging.INFO,
+                FlextConstants.Logging.WARNING,
+                FlextConstants.Logging.ERROR,
+                FlextConstants.Logging.CRITICAL,
             ],
         )
         message: str = Field(
             default=FlextCliConstants.ModelsDefaults.EMPTY_STRING,
             description=FlextCliConstants.DebugInfoDescriptions.MESSAGE,
         )
-
-        # Pydantic 2.11 field validators
-        @field_validator("level")
-        @classmethod
-        def validate_level_allowed(cls, v: str) -> str:
-            """Validate level is one of the allowed values."""
-            valid_levels = set(FlextCliConstants.DEBUG_LEVELS_LIST)
-            if v not in valid_levels:
-                raise ValueError(
-                    FlextCliConstants.ModelsErrorMessages.INVALID_DEBUG_LEVEL.format(
-                        value=v, allowed=", ".join(sorted(valid_levels))
-                    )
-                )
-            return v
 
         # Pydantic 2.11 computed fields
         @computed_field
@@ -1220,8 +1175,8 @@ class FlextCliModels(FlextModels):
 
         @field_serializer("system_info", "config_info")
         def serialize_sensitive_info(
-            self, value: FlextTypes.StringDict, _info: SerializationInfo
-        ) -> FlextTypes.StringDict:
+            self, value: dict[str, str], _info: SerializationInfo
+        ) -> dict[str, str]:
             """Serialize system/config info masking sensitive values."""
             sensitive_keys = {
                 FlextCliConstants.DictKeys.PASSWORD,
@@ -1271,7 +1226,7 @@ class FlextCliModels(FlextModels):
         - field_validator for business logic validation
         """
 
-        log_level: str = Field(
+        log_level: Annotated[str, BeforeValidator(_validate_log_level)] = Field(
             ...,
             description=FlextCliConstants.LoggingConfigDescriptions.LOG_LEVEL,
             examples=["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"],
@@ -1290,13 +1245,6 @@ class FlextCliModels(FlextModels):
             description=FlextCliConstants.LoggingConfigDescriptions.LOG_FILE,
             examples=["/var/log/flext-cli.log", "~/.flext/cli.log"],
         )
-
-        # Pydantic 2.11 field validators
-        @field_validator("log_level")
-        @classmethod
-        def validate_log_level_value(cls, v: str) -> str:
-            """Validate log level using FlextConfig reusable validator."""
-            return FlextConfig.validate_log_level_field(v)
 
         # Pydantic 2.11 computed fields
         @computed_field

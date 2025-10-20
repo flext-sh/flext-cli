@@ -15,7 +15,7 @@ import os
 import shutil
 from datetime import UTC, datetime
 from pathlib import Path
-from typing import Literal
+from typing import Annotated, Any, Literal
 
 from flext_core import (
     FlextConfig,
@@ -26,10 +26,10 @@ from flext_core import (
     FlextTypes,
 )
 from pydantic import (
+    BeforeValidator,
     Field,
     SecretStr,
     computed_field,
-    field_validator,
     model_validator,
 )
 from pydantic_settings import SettingsConfigDict
@@ -38,6 +38,28 @@ from flext_cli.constants import FlextCliConstants
 from flext_cli.typings import FlextCliTypes
 
 logger = FlextLogger(__name__)
+
+
+# ===== TYPE COERCION VALIDATORS (for environment variables with strict=True) =====
+def _coerce_bool(v: Any) -> bool:
+    """Coerce environment variable string to bool (strict mode compatible)."""
+    if isinstance(v, bool):
+        return v
+    if isinstance(v, str):
+        return v.lower() in {"true", "1", "yes", "on"}
+    if isinstance(v, int):
+        return v != 0
+    return bool(v)
+
+
+def _coerce_int(v: Any) -> int:
+    """Coerce environment variable string to int (strict mode compatible)."""
+    if isinstance(v, int):
+        return v
+    if isinstance(v, str):
+        return int(v)
+    msg = f"Cannot convert {type(v).__name__} to int"
+    raise ValueError(msg)
 
 
 class FlextCliConfig(FlextConfig):
@@ -67,7 +89,6 @@ class FlextCliConfig(FlextConfig):
         str_strip_whitespace=True,
         # Environment parsing configuration
         env_parse_enums=True,
-        env_parse_none_str=None,
         json_schema_extra={
             FlextCliConstants.JsonSchemaKeys.TITLE: "FLEXT CLI Configuration",
             FlextCliConstants.JsonSchemaKeys.DESCRIPTION: "Enterprise CLI configuration extending FlextConfig",
@@ -80,12 +101,12 @@ class FlextCliConfig(FlextConfig):
         description="CLI profile to use for configuration",
     )
 
-    output_format: Literal["json", "yaml", "csv", "table", "plain"] = Field(  # type: ignore[assignment]
-        default=FlextCliConstants.OutputFormats.TABLE,
+    output_format: Literal["json", "yaml", "csv", "table", "plain"] = Field(
+        default="table",  # FlextCliConstants.OutputFormats.TABLE
         description="Default output format for CLI commands",
     )
 
-    no_color: bool = Field(
+    no_color: Annotated[bool, BeforeValidator(_coerce_bool)] = Field(
         default=FlextCliConstants.CliDefaults.DEFAULT_NO_COLOR,
         description="Disable colored output in CLI",
     )
@@ -124,80 +145,47 @@ class FlextCliConfig(FlextConfig):
         description="Path to refresh token file",
     )
 
-    auto_refresh: bool = Field(
+    auto_refresh: Annotated[bool, BeforeValidator(_coerce_bool)] = Field(
         default=FlextCliConstants.ConfigDefaults.AUTO_REFRESH,
         description="Automatically refresh authentication tokens",
     )
 
     # CLI behavior configuration (flattened from previous nested classes)
-    verbose: bool = Field(
+    verbose: Annotated[bool, BeforeValidator(_coerce_bool)] = Field(
         default=FlextCliConstants.CliDefaults.DEFAULT_VERBOSE,
         description="Enable verbose output",
     )
-    debug: bool = Field(
+    debug: Annotated[bool, BeforeValidator(_coerce_bool)] = Field(
         default=FlextCliConstants.CliDefaults.DEFAULT_DEBUG,
         description="Enable debug mode",
     )
 
-    trace: bool = Field(
+    trace: Annotated[bool, BeforeValidator(_coerce_bool)] = Field(
         default=False,
         description="Enable trace mode (requires debug=True)",
     )
 
-    log_level: Literal["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"] = Field(  # type: ignore[assignment]
-        default=FlextCliConstants.CliDefaults.DEFAULT_LOG_LEVEL,
-        description="Log level for application (DEBUG, INFO, WARNING, ERROR, CRITICAL)",
-    )
+    # Inherited from FlextConfig - use parent's type
+    # log_level: FlextConstants.Config.LogLevel (defined in parent class)
 
-    @field_validator(
-        "debug",
-        "verbose",
-        "no_color",
-        "auto_refresh",
-        "quiet",
-        "interactive",
-        "trace",
-        mode="before",
-    )
-    @classmethod
-    def validate_bool_fields_cli(cls, v: bool | str | int) -> bool:
-        """Coerce CLI boolean fields from environment variables.
-
-        Delegates to FlextConfig's validate_boolean_field for consistency.
-        """
-        return cls.validate_boolean_field(v)
-
-    @field_validator("max_retries", "cli_timeout", "max_width", mode="before")
-    @classmethod
-    def validate_int_fields_cli(cls, v: int | str) -> int:
-        """Coerce CLI integer fields from environment variables.
-
-        Delegates to FlextConfig's validate_int_field for consistency.
-        """
-        return cls.validate_int_field(v)
-
-    app_name: str = Field(
-        default=FlextCliConstants.CliDefaults.DEFAULT_APP_NAME,
-        description="Application name",
-    )
     version: str = Field(
         default=FlextCliConstants.CliDefaults.DEFAULT_VERSION,
         description="Application version",
     )
-    quiet: bool = Field(
+    quiet: Annotated[bool, BeforeValidator(_coerce_bool)] = Field(
         default=FlextCliConstants.CliDefaults.DEFAULT_QUIET,
         description="Enable quiet mode",
     )
-    interactive: bool = Field(
+    interactive: Annotated[bool, BeforeValidator(_coerce_bool)] = Field(
         default=FlextCliConstants.CliDefaults.DEFAULT_INTERACTIVE,
         description="Enable interactive mode",
     )
-    environment: Literal["development", "staging", "production", "test"] = Field(  # type: ignore[assignment]
-        default=FlextCliConstants.CliDefaults.DEFAULT_ENVIRONMENT,
+    environment: Literal["development", "staging", "production", "test"] = Field(
+        default="development",  # FlextCliConstants.CliDefaults.DEFAULT_ENVIRONMENT
         description="Deployment environment",
     )
 
-    max_width: int = Field(
+    max_width: Annotated[int, BeforeValidator(_coerce_int)] = Field(
         default=FlextCliConstants.CliDefaults.DEFAULT_MAX_WIDTH,
         ge=FlextCliConstants.ValidationLimits.MIN_MAX_WIDTH,
         le=FlextCliConstants.ValidationLimits.MAX_MAX_WIDTH,
@@ -209,14 +197,14 @@ class FlextCliConfig(FlextConfig):
     )
 
     # Network configuration
-    cli_timeout: int = Field(
+    cli_timeout: Annotated[int, BeforeValidator(_coerce_int)] = Field(
         default=FlextCliConstants.NetworkDefaults.DEFAULT_TIMEOUT,
         ge=1,
         le=FlextCliConstants.ValidationLimits.MAX_TIMEOUT_SECONDS,
         description="CLI network timeout in seconds",
     )
 
-    max_retries: int = Field(
+    max_retries: Annotated[int, BeforeValidator(_coerce_int)] = Field(
         default=FlextCliConstants.NetworkDefaults.DEFAULT_MAX_RETRIES,
         ge=0,
         le=FlextCliConstants.ValidationLimits.MAX_RETRIES,
@@ -224,18 +212,18 @@ class FlextCliConfig(FlextConfig):
     )
 
     # Logging configuration - centralized for all FLEXT projects
-    log_verbosity: Literal["compact", "detailed", "full"] = Field(  # type: ignore[assignment]
-        default=FlextCliConstants.CliDefaults.DEFAULT_LOG_VERBOSITY,
+    log_verbosity: str = Field(  # Must match FlextConfig.log_verbosity type
+        default="detailed",  # FlextCliConstants.CliDefaults.DEFAULT_LOG_VERBOSITY
         description="Logging verbosity (compact, detailed, full)",
     )
 
-    cli_log_level: Literal["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"] = Field(  # type: ignore[assignment]
-        default=FlextCliConstants.CliDefaults.DEFAULT_CLI_LOG_LEVEL,
+    cli_log_level: Literal["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"] = Field(
+        default="INFO",  # FlextCliConstants.CliDefaults.DEFAULT_CLI_LOG_LEVEL
         description="CLI-specific logging level",
     )
 
-    cli_log_verbosity: Literal["compact", "detailed", "full"] = Field(  # type: ignore[assignment]
-        default=FlextCliConstants.CliDefaults.DEFAULT_CLI_LOG_VERBOSITY,
+    cli_log_verbosity: Literal["compact", "detailed", "full"] = Field(
+        default="detailed",  # FlextCliConstants.CliDefaults.DEFAULT_CLI_LOG_VERBOSITY
         description="CLI-specific logging verbosity",
     )
 
@@ -245,52 +233,6 @@ class FlextCliConfig(FlextConfig):
     )
 
     # Pydantic 2.11 field validators
-    @field_validator("profile")
-    @classmethod
-    def validate_profile(cls, v: str) -> str:
-        """Validate profile name is not empty."""
-        if not v or not v.strip():
-            msg = FlextCliConstants.ValidationMessages.PROFILE_NAME_CANNOT_BE_EMPTY
-            raise ValueError(msg)
-        return v.strip()
-
-    @field_validator("api_url")
-    @classmethod
-    def validate_api_url(cls, v: str) -> str:
-        """Validate API URL format."""
-        if not v.startswith(FlextCliConstants.ConfigValidation.URL_PROTOCOLS):
-            msg = (
-                FlextCliConstants.ValidationMessages.INVALID_API_URL_MUST_START.format(
-                    url=v
-                )
-            )
-            raise ValueError(msg)
-        return v
-
-    @field_validator("log_level", "cli_log_level", mode="before")
-    @classmethod
-    def validate_log_level(cls, v: str | object) -> str:
-        """Normalize log level to uppercase (Pydantic Literal handles validation)."""
-        if isinstance(v, str):
-            return v.upper()
-        return str(v).upper()
-
-    @field_validator("log_verbosity", "cli_log_verbosity", mode="before")
-    @classmethod
-    def validate_log_verbosity(cls, v: str | object) -> str:
-        """Normalize log verbosity to lowercase (Pydantic Literal handles validation)."""
-        if isinstance(v, str):
-            return v.lower()
-        return str(v).lower()
-
-    @field_validator("environment", mode="before")
-    @classmethod
-    def validate_environment(cls, v: str | object) -> str:
-        """Normalize environment to lowercase (Pydantic Literal handles validation)."""
-        if isinstance(v, str):
-            return v.lower()
-        return str(v).lower()
-
     @model_validator(mode="after")
     def validate_configuration(self) -> FlextCliConfig:
         """Validate configuration and auto-propagate to FlextContext/FlextContainer.
