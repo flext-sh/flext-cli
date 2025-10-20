@@ -30,8 +30,7 @@ import time
 from pathlib import Path
 from typing import cast
 
-from flext_cli import FlextCli
-from flext_cli.typings import FlextCliTypes
+from flext_cli import FlextCli, FlextCliTypes
 
 cli = FlextCli.get_instance()
 

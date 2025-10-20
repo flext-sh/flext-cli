@@ -19,8 +19,7 @@ from typing import cast
 import pytest
 from flext_core import FlextResult, FlextTypes
 
-from flext_cli.constants import FlextCliConstants
-from flext_cli.output import FlextCliOutput
+from flext_cli import FlextCliConstants, FlextCliOutput
 
 
 class TestFlextCliOutput:

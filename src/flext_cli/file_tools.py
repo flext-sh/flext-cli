@@ -11,6 +11,10 @@ Dependencies:
 - xml.etree: XML parsing and generation
 - toml: TOML configuration files
 - pathlib: Modern path handling
+
+Copyright (c) 2025 FLEXT Team. All rights reserved.
+SPDX-License-Identifier: MIT
+
 """
 
 from __future__ import annotations
@@ -29,10 +33,6 @@ import yaml
 from flext_core import FlextResult, FlextService, FlextTypes
 
 from flext_cli.constants import FlextCliConstants
-
-# ============================================================================
-# SPECIALIZED INTERNAL SERVICES - Better separation of concerns
-# ============================================================================
 
 
 class FlextCliFileTools(FlextService[dict[str, object]]):

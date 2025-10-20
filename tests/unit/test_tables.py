@@ -15,7 +15,7 @@ from typing import cast
 import pytest
 from flext_core import FlextResult, FlextTypes
 
-from flext_cli.tables import FlextCliTables
+from flext_cli import FlextCliTables
 
 
 @pytest.fixture

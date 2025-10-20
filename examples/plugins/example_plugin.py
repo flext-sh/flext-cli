@@ -17,7 +17,6 @@ from flext_core import FlextResult
 
 from flext_cli.typings import FlextCliTypes
 
-# Type definitions for processor functions
 type DataProcessor = Callable[[str], str]
 type ProcessorRegistry = dict[str, DataProcessor]
 

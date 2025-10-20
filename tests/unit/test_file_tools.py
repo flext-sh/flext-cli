@@ -20,7 +20,7 @@ import pytest
 import yaml
 from flext_core import FlextResult, FlextTypes
 
-from flext_cli.file_tools import FlextCliFileTools
+from flext_cli import FlextCliFileTools
 
 
 class TestFlextCliFileTools:

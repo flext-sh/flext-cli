@@ -16,7 +16,7 @@ from typing import Protocol, runtime_checkable
 
 import pytest
 
-from flext_cli.protocols import FlextCliProtocols
+from flext_cli import FlextCliProtocols
 
 
 class TestFlextCliProtocols:

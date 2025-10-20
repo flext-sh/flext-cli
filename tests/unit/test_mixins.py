@@ -15,9 +15,7 @@ from __future__ import annotations
 
 import pytest
 
-from flext_cli.constants import FlextCliConstants
-from flext_cli.mixins import FlextCliMixins
-from flext_cli.typings import FlextCliTypes
+from flext_cli import FlextCliConstants, FlextCliMixins, FlextCliTypes
 
 
 class TestFlextCliMixinsValidation:

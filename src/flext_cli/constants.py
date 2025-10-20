@@ -15,8 +15,6 @@ from typing import Final, Literal
 
 from flext_core import FlextConstants, FlextTypes
 
-# Literal types moved to FlextCliConstants class - CRITICAL VIOLATION FIXED
-
 
 class FlextCliConstants(FlextConstants):
     """CLI constants extending flext-core standardization for CLI domain.
@@ -69,14 +67,7 @@ class FlextCliConstants(FlextConstants):
         COMPLETED = "completed"
         TERMINATED = "terminated"
 
-    class DebugLevel(StrEnum):
-        """Debug information level enum."""
-
-        DEBUG = "debug"
-        INFO = "info"
-        WARNING = "warning"
-        ERROR = "error"
-        CRITICAL = "critical"
+    # No DebugLevel class - use FlextConstants.Logging.LogLevel from flext-core
 
     class ServiceStatus(StrEnum):
         """Service operational status enum."""
@@ -92,7 +83,7 @@ class FlextCliConstants(FlextConstants):
     HEALTHY: Final[str] = ServiceStatus.HEALTHY.value
     OPERATIONAL: Final[str] = ServiceStatus.OPERATIONAL.value
 
-    # Output formats - using FlextTypes.OutputFormat Literal type
+    # Output formats - using str Literal type
     # CLI adds "plain" format on top of standard formats
     class OutputFormats(StrEnum):
         """CLI output format enum - extends Flextstandard formats."""
@@ -207,13 +198,8 @@ class FlextCliConstants(FlextConstants):
         OutputFormats.PLAIN.value,
     ]
 
-    LOG_LEVELS_LIST: Final[list[str]] = [
-        "DEBUG",
-        "INFO",
-        "WARNING",
-        "ERROR",
-        "CRITICAL",
-    ]
+    # Use FlextConstants.Logging.VALID_LEVELS from flext-core (no duplication)
+    LOG_LEVELS_LIST: Final[list[str]] = list(FlextConstants.Logging.VALID_LEVELS)
 
     COMMAND_STATUSES_LIST: Final[list[str]] = [
         CommandStatus.PENDING.value,
@@ -229,23 +215,18 @@ class FlextCliConstants(FlextConstants):
         SessionStatus.TERMINATED.value,
     ]
 
-    DEBUG_LEVELS_LIST: Final[list[str]] = [
-        DebugLevel.DEBUG.value,
-        DebugLevel.INFO.value,
-        DebugLevel.WARNING.value,
-        DebugLevel.ERROR.value,
-        DebugLevel.CRITICAL.value,
-    ]
+    # Use same list as LOG_LEVELS_LIST (references flext-core)
+    DEBUG_LEVELS_LIST: Final[list[str]] = LOG_LEVELS_LIST
 
     # Critical debug levels that require descriptive messages
     CRITICAL_DEBUG_LEVELS: Final[list[str]] = [
-        DebugLevel.ERROR.value,
-        DebugLevel.CRITICAL.value,
+        FlextConstants.Logging.ERROR,
+        FlextConstants.Logging.CRITICAL,
     ]
 
     CRITICAL_DEBUG_LEVELS_SET: Final[set[str]] = {
-        DebugLevel.ERROR.value,
-        DebugLevel.CRITICAL.value,
+        FlextConstants.Logging.ERROR,
+        FlextConstants.Logging.CRITICAL,
     }
 
     SERVICE_STATUSES_LIST: Final[list[str]] = [
@@ -767,6 +748,11 @@ class FlextCliConstants(FlextConstants):
         # Token and auth keys
         TOKEN_FILE: Final[str] = "token_file"
         REFRESH_TOKEN_FILE: Final[str] = "refresh_token_file"
+
+        # Testing keys
+        EXIT_CODE: Final[str] = "exit_code"
+        OUTPUT: Final[str] = "output"
+        EXCEPTION: Final[str] = "exception"
         TOKEN_PATH: Final[str] = "token_path"
         REFRESH_TOKEN_PATH: Final[str] = "refresh_token_path"
         TOKEN: Final[str] = "token"
@@ -954,7 +940,7 @@ class FlextCliConstants(FlextConstants):
         CliProjectConfig = dict[str, object]
         CommandLineConfig = dict[str, str | int | bool | list[str]]
         InteractiveConfig = dict[str, bool | str | dict[str, object]]
-        OutputConfig = dict[str, FlextTypes.OutputFormat | object]
+        OutputConfig = dict[str, str | object]
 
     class Styles:
         """Rich/Terminal style constants for colored output."""
@@ -1254,6 +1240,9 @@ class FlextCliConstants(FlextConstants):
         # Context identity and basic info
         ID: Final[str] = "id"
         CONTEXT_ID: Final[str] = "context_id"
+
+        # Testing and exception info
+        EXCEPTION_INFO: Final[str] = "exception_info"
         COMMAND: Final[str] = "command"
         CREATED_AT: Final[str] = "created_at"
         TIMEOUT_SECONDS: Final[str] = "timeout_seconds"

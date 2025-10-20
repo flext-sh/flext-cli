@@ -36,10 +36,6 @@ from flext_cli.prompts import FlextCliPrompts
 from flext_cli.protocols import FlextCliProtocols
 from flext_cli.typings import FlextCliTypes
 
-# ============================================================================
-# CLI TEST INFRASTRUCTURE
-# ============================================================================
-
 
 @pytest.fixture
 def cli_runner() -> CliRunner:

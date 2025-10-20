@@ -55,8 +55,8 @@ Serves 32+ FLEXT projects with standardized patterns.
 9. **Infrastructure & Utilities**:
    - FlextCliContext - Request/operation context (10K)
    - FlextCliDebug - Debug utilities (12K)
-   - FlextCliExceptions - Exception hierarchy (12K)
    - FlextCliMixins - Reusable mixins (10K)
+   - Exceptions: Use flext_core.FlextExceptions for all error handling
 
 **INTEGRATION POINTS**:
 - Depends on: flext-core (foundation library)
@@ -164,6 +164,9 @@ from __future__ import annotations
 
 from flext_cli.__version__ import __version__, __version_info__
 from flext_cli.api import FlextCli
+
+# Phase 2: Advanced Features - Production Ready
+# from flext_cli.async_support import FlextCliAsync  # Module not yet implemented
 from flext_cli.auth import FlextCliAuthService
 from flext_cli.cli import FlextCliCli
 from flext_cli.cli_params import FlextCliCommonParams
@@ -174,9 +177,6 @@ from flext_cli.constants import FlextCliConstants
 from flext_cli.context import FlextCliContext
 from flext_cli.core import FlextCliCore
 from flext_cli.debug import FlextCliDebug
-
-# TEMP FIX: from flext_cli.decorators import FlextCliDecorators
-from flext_cli.exceptions import FlextCliExceptions
 from flext_cli.file_tools import FlextCliFileTools
 from flext_cli.formatters import FlextCliFormatters
 from flext_cli.mixins import FlextCliMixins
@@ -184,14 +184,15 @@ from flext_cli.models import FlextCliModels
 from flext_cli.output import FlextCliOutput
 from flext_cli.prompts import FlextCliPrompts
 from flext_cli.protocols import FlextCliProtocols
-
-# TEMP FIX: from flext_cli.router import FlextCliRouter
 from flext_cli.tables import FlextCliTables
+from flext_cli.testing import FlextCliMockScenarios, FlextCliTesting, FlextCliTestRunner
 from flext_cli.typings import FlextCliTypes
 from flext_cli.validator import FlextCliValidator
 
 __all__ = [
+    # Core API (alphabetically sorted per FLEXT standards)
     "FlextCli",
+    # "FlextCliAsync",  # Module not yet implemented
     "FlextCliAuthService",
     "FlextCliCli",
     "FlextCliCmd",
@@ -202,17 +203,20 @@ __all__ = [
     "FlextCliContext",
     "FlextCliCore",
     "FlextCliDebug",
-    "FlextCliExceptions",
     "FlextCliFileTools",
     "FlextCliFormatters",
     "FlextCliMixins",
+    "FlextCliMockScenarios",
     "FlextCliModels",
     "FlextCliOutput",
     "FlextCliPrompts",
     "FlextCliProtocols",
     "FlextCliTables",
+    "FlextCliTestRunner",
+    "FlextCliTesting",
     "FlextCliTypes",
     "FlextCliValidator",
+    # Version
     "__version__",
     "__version_info__",
 ]
