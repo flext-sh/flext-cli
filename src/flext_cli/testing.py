@@ -74,7 +74,7 @@ from typing import Any
 
 import click
 from click.testing import CliRunner
-from flext_core import FlextResult, FlextService
+from flext_core import FlextResult, FlextService, FlextTypes
 
 from flext_cli.constants import FlextCliConstants
 from flext_cli.typings import FlextCliTypes
@@ -129,7 +129,7 @@ class FlextCliTesting(FlextService[dict[str, object]]):
             args: list[str] | None = None,
             input_text: str | None = None,
             env: dict[str, str] | None = None,
-        ) -> FlextResult[dict[str, Any]]:
+        ) -> FlextResult[dict[str, FlextTypes.JsonValue]]:
             """Invoke a CLI command in isolated environment.
 
             Args:
@@ -235,7 +235,8 @@ class FlextCliTesting(FlextService[dict[str, object]]):
                 )
 
         def mock_auth_token(
-            self, token: str = "test_token_abc123"  # noqa: S107  # nosec B107
+            self,
+            token: str = "test_token_abc123",  # noqa: S107
         ) -> FlextResult[str]:
             """Create mock authentication token.
 
@@ -255,7 +256,7 @@ class FlextCliTesting(FlextService[dict[str, object]]):
         def mock_auth_credentials(
             self,
             username: str = "testuser",
-            password: str = "testpass_abc123",  # noqa: S107  # nosec B107
+            password: str = "testpass_abc123",  # noqa: S107
         ) -> FlextResult[FlextCliTypes.Auth.CredentialsData]:
             """Create mock authentication credentials.
 
@@ -282,7 +283,7 @@ class FlextCliTesting(FlextService[dict[str, object]]):
                 return FlextResult[FlextCliTypes.Auth.CredentialsData].fail(str(e))
 
         def create_temp_config_file(
-            self, config_data: dict[str, Any]
+            self, config_data: dict[str, FlextTypes.JsonValue]
         ) -> FlextResult[Path]:
             """Create temporary configuration file for testing.
 

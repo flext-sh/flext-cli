@@ -82,7 +82,7 @@ class FlextCliContext(FlextService[FlextCliTypes.Data.CliDataDict]):
         # Context state
         self.is_active = False
         self.created_at = FlextUtilities.Generators.generate_timestamp()
-        self.timeout_seconds = FlextCliConfig.get_global_instance().timeout_seconds
+        self.timeout_seconds = int(FlextCliConfig.get_global_instance().timeout_seconds)
 
     def activate(self) -> FlextResult[None]:
         """Activate CLI context for execution."""

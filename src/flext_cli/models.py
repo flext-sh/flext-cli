@@ -13,6 +13,7 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
+import typing
 from collections.abc import Callable
 from datetime import UTC, datetime
 from typing import Annotated, Self, cast, get_args, get_origin
@@ -28,7 +29,6 @@ from pydantic import (
     BaseModel,
     ConfigDict,
     Field,
-    SerializationInfo,
     computed_field,
     field_serializer,
     fields,
@@ -123,7 +123,7 @@ class FlextCliModels(FlextModels):
 
     @field_serializer("model_summary")
     def serialize_model_summary(
-        self, value: dict[str, str], _info: SerializationInfo
+        self, value: dict[str, str], _info: typing.Any
     ) -> dict[str, str | dict[str, str | int]]:
         """Serialize model summary with additional metadata."""
         return {
@@ -138,6 +138,80 @@ class FlextCliModels(FlextModels):
     def execute(self) -> FlextResult[object]:
         """Execute model operations - placeholder for testing."""
         return FlextResult[object].ok(None)
+
+    # ========================================================================
+    # DICT REPLACEMENT MODELS - Define before usage
+    # ========================================================================
+
+    class CliParameterSpec(FlextModels.StrictArbitraryTypesModel):
+        """CLI parameter specification model - replaces dict in CLI parameter handling.
+
+        Provides structured validation for CLI parameter specifications used in
+        model-to-CLI conversion utilities.
+        """
+
+        name: str = Field(
+            description=FlextCliConstants.CliParameterSpecDescriptions.NAME
+        )
+        field_name: str = Field(
+            description=FlextCliConstants.CliParameterSpecDescriptions.FIELD_NAME
+        )
+        param_type: type = Field(
+            description=FlextCliConstants.CliParameterSpecDescriptions.PARAM_TYPE
+        )
+        click_type: str = Field(
+            description=FlextCliConstants.CliParameterSpecDescriptions.CLICK_TYPE
+        )
+        required: bool = Field(
+            description=FlextCliConstants.CliParameterSpecDescriptions.REQUIRED
+        )
+        default: FlextTypes.JsonValue | None = Field(
+            default=None,
+            description=FlextCliConstants.CliParameterSpecDescriptions.DEFAULT,
+        )
+        help: str = Field(
+            description=FlextCliConstants.CliParameterSpecDescriptions.HELP
+        )
+        validators: list[Callable[[FlextTypes.JsonValue], FlextTypes.JsonValue]] = (
+            Field(
+                default_factory=list,
+                description=FlextCliConstants.CliParameterSpecDescriptions.VALIDATORS,
+            )
+        )
+        metadata: dict[str, FlextTypes.JsonValue] = Field(
+            default_factory=dict,
+            description=FlextCliConstants.CliParameterSpecDescriptions.METADATA,
+        )
+
+    class CliOptionSpec(FlextModels.StrictArbitraryTypesModel):
+        """Click option specification model - replaces dict[str, object] in Click option generation.
+
+        Provides structured validation for Click option specifications generated
+        from Pydantic model fields.
+        """
+
+        option_name: str = Field(
+            description=FlextCliConstants.CliOptionSpecDescriptions.OPTION_NAME
+        )
+        param_decls: list[str] = Field(
+            description=FlextCliConstants.CliOptionSpecDescriptions.PARAM_DECLS
+        )
+        type: str = Field(description=FlextCliConstants.CliOptionSpecDescriptions.TYPE)
+        default: FlextTypes.JsonValue | None = Field(
+            default=None,
+            description=FlextCliConstants.CliOptionSpecDescriptions.DEFAULT,
+        )
+        help: str = Field(description=FlextCliConstants.CliOptionSpecDescriptions.HELP)
+        required: bool = Field(
+            description=FlextCliConstants.CliOptionSpecDescriptions.REQUIRED
+        )
+        show_default: bool = Field(
+            description=FlextCliConstants.CliOptionSpecDescriptions.SHOW_DEFAULT
+        )
+        metadata: dict[str, FlextTypes.JsonValue] = Field(
+            default_factory=dict,
+            description=FlextCliConstants.CliOptionSpecDescriptions.METADATA,
+        )
 
     # ========================================================================
     # CLI MODEL INTEGRATION UTILITIES - Pydantic → CLI Conversion
@@ -294,7 +368,9 @@ class FlextCliModels(FlextModels):
                 )
 
                 # Extract validation constraints from metadata
-                validators: list[Callable[..., FlextTypes.JsonValue]] = []
+                validators: list[
+                    Callable[[FlextTypes.JsonValue], FlextTypes.JsonValue]
+                ] = []
                 metadata: dict[str, FlextTypes.JsonValue] = {}
 
                 if hasattr(field_info, "metadata"):
@@ -485,7 +561,7 @@ class FlextCliModels(FlextModels):
         def cli_from_model(
             model_class: type[BaseModel], command_name: str | None = None
         ) -> Callable[
-            [Callable[..., FlextTypes.JsonValue]],
+            [Callable[[BaseModel], FlextTypes.JsonValue | FlextResult[object]]],
             Callable[..., FlextTypes.JsonValue | FlextResult[object]],
         ]:
             """Decorator that generates CLI command from Pydantic model.
@@ -506,7 +582,7 @@ class FlextCliModels(FlextModels):
             """
 
             def decorator(
-                func: Callable[..., FlextTypes.JsonValue],
+                func: Callable[[BaseModel], FlextTypes.JsonValue | FlextResult[object]],
             ) -> Callable[..., FlextTypes.JsonValue | FlextResult[object]]:
                 # Store model metadata on function for CLI builder inspection
                 setattr(
@@ -553,7 +629,7 @@ class FlextCliModels(FlextModels):
         def cli_from_multiple_models(
             *model_classes: type[BaseModel], command_name: str | None = None
         ) -> Callable[
-            [Callable[..., FlextTypes.JsonValue]],
+            [Callable[..., FlextTypes.JsonValue | FlextResult[object]]],
             Callable[..., FlextTypes.JsonValue | FlextResult[object]],
         ]:
             """Decorator for CLI command with multiple model inputs.
@@ -574,7 +650,7 @@ class FlextCliModels(FlextModels):
             """
 
             def decorator(
-                func: Callable[..., FlextTypes.JsonValue],
+                func: Callable[..., FlextTypes.JsonValue | FlextResult[object]],
             ) -> Callable[..., FlextTypes.JsonValue | FlextResult[object]]:
                 # Store multiple models metadata
                 setattr(
@@ -766,7 +842,7 @@ class FlextCliModels(FlextModels):
             return self
 
         @field_serializer("command_line")
-        def serialize_command_line(self, value: str, _info: SerializationInfo) -> str:
+        def serialize_command_line(self, value: str, _info: typing.Any) -> str:
             """Serialize command line with safety checks for sensitive commands."""
             # Mask potentially sensitive command parts
             sensitive_patterns = [
@@ -1010,7 +1086,7 @@ class FlextCliModels(FlextModels):
 
         @field_serializer("commands")
         def serialize_commands(
-            self, value: list[FlextCliModels.CliCommand], _info: SerializationInfo
+            self, value: list[FlextCliModels.CliCommand], _info: typing.Any
         ) -> list[dict[str, object]]:
             """Serialize commands with summary information."""
             return [
@@ -1175,7 +1251,7 @@ class FlextCliModels(FlextModels):
 
         @field_serializer("system_info", "config_info")
         def serialize_sensitive_info(
-            self, value: dict[str, str], _info: SerializationInfo
+            self, value: dict[str, str], _info: typing.Any
         ) -> dict[str, str]:
             """Serialize system/config info masking sensitive values."""
             sensitive_keys = {
@@ -1267,76 +1343,8 @@ class FlextCliModels(FlextModels):
     # Import from flext_cli.config instead of using this duplicate
 
     # ========================================================================
-    # DICT REPLACEMENT MODELS - Replace dict/Dict usage with proper Pydantic models
+    # ADDITIONAL DICT REPLACEMENT MODELS
     # ========================================================================
-
-    class CliParameterSpec(FlextModels.StrictArbitraryTypesModel):
-        """CLI parameter specification model - replaces dict in CLI parameter handling.
-
-        Provides structured validation for CLI parameter specifications used in
-        model-to-CLI conversion utilities.
-        """
-
-        name: str = Field(
-            description=FlextCliConstants.CliParameterSpecDescriptions.NAME
-        )
-        field_name: str = Field(
-            description=FlextCliConstants.CliParameterSpecDescriptions.FIELD_NAME
-        )
-        param_type: type = Field(
-            description=FlextCliConstants.CliParameterSpecDescriptions.PARAM_TYPE
-        )
-        click_type: str = Field(
-            description=FlextCliConstants.CliParameterSpecDescriptions.CLICK_TYPE
-        )
-        required: bool = Field(
-            description=FlextCliConstants.CliParameterSpecDescriptions.REQUIRED
-        )
-        default: FlextTypes.JsonValue | None = Field(
-            default=None,
-            description=FlextCliConstants.CliParameterSpecDescriptions.DEFAULT,
-        )
-        help: str = Field(
-            description=FlextCliConstants.CliParameterSpecDescriptions.HELP
-        )
-        validators: list[Callable[..., FlextTypes.JsonValue]] = Field(
-            default_factory=list,
-            description=FlextCliConstants.CliParameterSpecDescriptions.VALIDATORS,
-        )
-        metadata: dict[str, FlextTypes.JsonValue] = Field(
-            default_factory=dict,
-            description=FlextCliConstants.CliParameterSpecDescriptions.METADATA,
-        )
-
-    class CliOptionSpec(FlextModels.StrictArbitraryTypesModel):
-        """Click option specification model - replaces dict[str, object] in Click option generation.
-
-        Provides structured validation for Click option specifications generated
-        from Pydantic model fields.
-        """
-
-        option_name: str = Field(
-            description=FlextCliConstants.CliOptionSpecDescriptions.OPTION_NAME
-        )
-        param_decls: list[str] = Field(
-            description=FlextCliConstants.CliOptionSpecDescriptions.PARAM_DECLS
-        )
-        type: str = Field(description=FlextCliConstants.CliOptionSpecDescriptions.TYPE)
-        default: FlextTypes.JsonValue | None = Field(
-            default=None,
-            description=FlextCliConstants.CliOptionSpecDescriptions.DEFAULT,
-        )
-        help: str = Field(description=FlextCliConstants.CliOptionSpecDescriptions.HELP)
-        required: bool = Field(
-            description=FlextCliConstants.CliOptionSpecDescriptions.REQUIRED
-        )
-        show_default: bool = Field(
-            description=FlextCliConstants.CliOptionSpecDescriptions.SHOW_DEFAULT
-        )
-        metadata: dict[str, FlextTypes.JsonValue] = Field(
-            default_factory=dict,
-            description=FlextCliConstants.CliOptionSpecDescriptions.METADATA,
-        )
 
     class CliCommandResult(FlextModels.StrictArbitraryTypesModel):
         """CLI command result model - replaces dict[str, object] in command execution results.

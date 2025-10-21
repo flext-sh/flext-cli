@@ -55,9 +55,8 @@ class FlextCliTypes(FlextTypes):
     # =====================================================================
     # CORE TYPE ALIASES - Direct use of FlextTypes domain types
     # =====================================================================
-
-    JsonValue = FlextTypes.JsonValue
-    """JSON value type alias (domain-specific composite type from FlextTypes)."""
+    # Note: JsonValue is inherited from FlextTypes and not redefined here
+    # to avoid override conflicts. Use FlextTypes.JsonValue directly.
 
     # =====================================================================
     # ANNOTATED CLI TYPES - Pydantic v2 Annotated types with validation
@@ -236,7 +235,9 @@ class FlextCliTypes(FlextTypes):
         """CLI-specific callable type aliases for handlers and formatters."""
 
         # Handler function that processes CLI data and returns result
-        HandlerFunction = typing.Callable[..., FlextResult[FlextTypes.JsonValue]]
+        HandlerFunction = typing.Callable[
+            [FlextTypes.JsonValue], FlextResult[FlextTypes.JsonValue]
+        ]
         """CLI command handler function signature."""
 
         # Result formatter that displays domain-specific result types

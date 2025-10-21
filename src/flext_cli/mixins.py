@@ -465,7 +465,8 @@ class FlextCliMixins(FlextMixins):
             # Execute with composed decorators
             # Type cast needed because decorators preserve FlextResult type
             return cast(
-                "FlextResult[FlextTypes.JsonValue]", wrapped_handler(**context_data)
+                "FlextResult[FlextTypes.JsonValue]",
+                wrapped_handler(cast("FlextTypes.JsonValue", context_data)),
             )
 
 

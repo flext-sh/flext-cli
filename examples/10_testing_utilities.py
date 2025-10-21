@@ -157,7 +157,9 @@ def test_interactive_command() -> None:
     result = interactive_command()
 
     if not result.is_success:
-        cli.print(f"   ❌ Interactive command should succeed: {result.error}", style="red")
+        cli.print(
+            f"   ❌ Interactive command should succeed: {result.error}", style="red"
+        )
         return
     if "TestUser" not in result.unwrap():
         cli.print("   ❌ Should use default value", style="red")
