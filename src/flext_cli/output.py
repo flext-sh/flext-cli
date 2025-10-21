@@ -225,11 +225,6 @@ class FlextCliOutput(FlextService[object]):
 
         """
         try:
-            if not callable(formatter):
-                return FlextResult[None].fail(
-                    f"Formatter for {result_type.__name__} must be callable"
-                )
-
             self._result_formatters[result_type] = formatter
             self.logger.info(f"Registered formatter for {result_type.__name__}")
             return FlextResult[None].ok(None)
@@ -241,7 +236,7 @@ class FlextCliOutput(FlextService[object]):
 
     def format_and_display_result(
         self,
-        result: object,
+        result: FlextTypes.JsonValue,
         output_format: str = "table",
     ) -> FlextResult[None]:
         """Auto-detect result type and apply registered formatter.
@@ -297,10 +292,16 @@ class FlextCliOutput(FlextService[object]):
                 f"No registered formatter for {result_type.__name__}, using generic formatting"
             )
 
+            # Handle None case first
+            if result is None:
+                format_result = FlextResult[str].ok("None")
             # Try to convert result to dict for generic formatting
-            if hasattr(result, "model_dump"):
-                # Pydantic model
-                result_dict = result.model_dump()
+            elif hasattr(result, "model_dump") and callable(
+                getattr(result, "model_dump", None)
+            ):
+                # Pydantic model - safe to call model_dump since we checked it's callable
+                model_dump_method = getattr(result, "model_dump")
+                result_dict = model_dump_method()
                 format_result = self.format_data(result_dict, output_format)
             elif hasattr(result, "__dict__"):
                 # Regular object with __dict__

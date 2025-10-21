@@ -104,10 +104,11 @@ class FlextCliFileTools(FlextService[dict[str, object]]):
 
         """
         try:
-            # If encoding is not a string, use default (graceful degradation)
-            if not isinstance(encoding, str):
-                encoding = FlextCliConstants.Encoding.UTF8
-            Path(file_path).write_text(content, encoding=encoding)
+            # Validate encoding - use default if not string or None
+            validated_encoding = encoding
+            if not isinstance(encoding, str | type(None)):
+                validated_encoding = FlextCliConstants.Encoding.UTF8
+            Path(file_path).write_text(content, encoding=validated_encoding)
             return FlextResult[None].ok(None)
         except Exception as e:
             return FlextResult[None].fail(

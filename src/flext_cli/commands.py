@@ -247,10 +247,8 @@ class FlextCliCommands(FlextService[dict[str, object]]):
                 isinstance(command_info, dict)
                 and FlextCliConstants.CommandsDictKeys.HANDLER in command_info
             ):
-                handler = cast(
-                    "Callable[..., FlextTypes.JsonValue]",
-                    command_info.get(FlextCliConstants.CommandsDictKeys.HANDLER),
-                )
+                # Handler can be either no-arg or list-arg callable, use Any for dynamic typing
+                handler = command_info.get(FlextCliConstants.CommandsDictKeys.HANDLER)
                 if handler is not None and callable(handler):
                     # Pass args to handler if it accepts them
                     if args:
@@ -261,7 +259,9 @@ class FlextCliCommands(FlextService[dict[str, object]]):
                             result = handler()
                     else:
                         result = handler()
-                    return FlextResult[FlextTypes.JsonValue].ok(result)
+                    return FlextResult[FlextTypes.JsonValue].ok(
+                        cast("FlextTypes.JsonValue", result)
+                    )
                 return FlextResult[FlextTypes.JsonValue].fail(
                     FlextCliConstants.CommandsErrorMessages.HANDLER_NOT_CALLABLE.format(
                         command_name=command_name

@@ -293,10 +293,10 @@ class FlextCliCore(FlextService[FlextCliTypes.Data.CliDataDict]):
         self._session_active = False
 
         # Performance and async integration
-        self._caches: dict[str, Any] = {}  # TTLCache or LRUCache instances
+        self._caches: dict[str, object] = {}  # TTLCache or LRUCache instances
         self._cache_stats = self._CacheStats()
         self._async_executor = ThreadPoolExecutor(max_workers=4)
-        self._async_tasks: dict[str, asyncio.Task] = {}
+        self._async_tasks: dict[str, asyncio.Task[object]] = {}
         self._plugin_manager = pluggy.PluginManager("flext_cli")
 
     # ==========================================================================
@@ -1130,7 +1130,9 @@ class FlextCliCore(FlextService[FlextCliTypes.Data.CliDataDict]):
                 else:
                     self._caches[cache_name] = LRUCache(maxsize=128)
 
-            cache = self._caches[cache_name]
+            cache_obj = self._caches[cache_name]
+            # Cast to LRUCache for decorator
+            cache = cast("LRUCache[object, object]", cache_obj)
 
             @functools.wraps(func)
             @cached(cache=cache, key=hashkey)
@@ -1157,7 +1159,9 @@ class FlextCliCore(FlextService[FlextCliTypes.Data.CliDataDict]):
                     f"Cache '{cache_name}' not found"
                 )
 
-            cache = self._caches[cache_name]
+            cache_obj = self._caches[cache_name]
+            # Cast to LRUCache to access size and maxsize attributes
+            cache = cast("LRUCache[object, object]", cache_obj)
             stats: dict[str, object] = {
                 "size": len(cache),
                 "maxsize": cache.maxsize,

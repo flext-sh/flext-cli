@@ -16,6 +16,7 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 import shutil
+import typing
 from collections.abc import Callable, Sequence
 from pathlib import Path
 from typing import IO
@@ -81,7 +82,7 @@ class FlextCliCli:
         self,
         name: str | None = None,
         help_text: str | None = None,
-    ) -> Callable[[Callable[..., FlextTypes.JsonValue]], click.Command]:
+    ) -> typing.Callable[[typing.Callable[..., typing.Any]], click.Command]:
         """Create Click command decorator.
 
         Args:
@@ -117,7 +118,7 @@ class FlextCliCli:
         self,
         name: str | None = None,
         help_text: str | None = None,
-    ) -> Callable[[Callable[..., FlextTypes.JsonValue]], click.Group]:
+    ) -> typing.Callable[[typing.Callable[..., typing.Any]], click.Group]:
         """Create Click group decorator for command groups.
 
         Args:
@@ -156,7 +157,7 @@ class FlextCliCli:
         self,
         *param_decls: str,
         default: FlextTypes.JsonValue | None = None,
-        type_hint: click.ParamType | type[FlextTypes.JsonValue] | None = None,
+        type_hint: click.ParamType | type | None = None,
         required: bool = False,
         help_text: str | None = None,
         is_flag: bool = False,
@@ -217,11 +218,11 @@ class FlextCliCli:
     def create_argument_decorator(
         self,
         *param_decls: str,
-        type_hint: click.ParamType | type[FlextTypes.JsonValue] | None = None,
+        type_hint: click.ParamType | type | None = None,
         required: bool = True,
         nargs: int = 1,
-    ) -> Callable[
-        [Callable[..., FlextTypes.JsonValue]], Callable[..., FlextTypes.JsonValue]
+    ) -> typing.Callable[
+        [typing.Callable[..., typing.Any]], typing.Callable[..., typing.Any]
     ]:
         """Create Click argument decorator with explicit parameters.
 
@@ -537,8 +538,8 @@ class FlextCliCli:
 
     def create_pass_context_decorator(
         self,
-    ) -> Callable[
-        [Callable[..., FlextTypes.JsonValue]], Callable[..., FlextTypes.JsonValue]
+    ) -> typing.Callable[
+        [typing.Callable[..., typing.Any]], typing.Callable[..., typing.Any]
     ]:
         """Create pass_context decorator.
 
@@ -781,7 +782,7 @@ class FlextCliCli:
     def model_command(
         self,
         model_class: type,
-        handler: Callable[..., object],
+        handler: typing.Callable[..., typing.Any],
     ) -> Callable[..., None]:
         """Create Typer command from Pydantic model - ZERO manual parameters.
 

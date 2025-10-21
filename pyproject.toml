@@ -144,6 +144,7 @@
                 redis = ">=5.0.0"
 
             [tool.poetry.group.typings.dependencies]
+                types-cachetools = "^6.2.0.20250827"
                 types-defusedxml = "^0.7.0.20250822"
                 types-lxml = "^2025.8.25"
                 types-pyyaml = "^6.0.12.20250809"

@@ -15,7 +15,7 @@ import os
 import shutil
 from datetime import UTC, datetime
 from pathlib import Path
-from typing import Annotated, Any, Literal
+from typing import Annotated, Literal
 
 from flext_core import (
     FlextConfig,
@@ -41,7 +41,7 @@ logger = FlextLogger(__name__)
 
 
 # ===== TYPE COERCION VALIDATORS (for environment variables with strict=True) =====
-def _coerce_bool(v: Any) -> bool:
+def _coerce_bool(v: str | int | bool | None) -> bool:
     """Coerce environment variable string to bool (strict mode compatible)."""
     if isinstance(v, bool):
         return v
@@ -52,7 +52,7 @@ def _coerce_bool(v: Any) -> bool:
     return bool(v)
 
 
-def _coerce_int(v: Any) -> int:
+def _coerce_int(v: str | int | None) -> int:
     """Coerce environment variable string to int (strict mode compatible)."""
     if isinstance(v, int):
         return v
@@ -166,7 +166,7 @@ class FlextCliConfig(FlextConfig):
     )
 
     # Inherited from FlextConfig - use parent's type
-    # log_level: FlextConstants.Config.LogLevel (defined in parent class)
+    # log_level: FlextConstants.Configuration.LogLevel (defined in parent class)
 
     version: str = Field(
         default=FlextCliConstants.CliDefaults.DEFAULT_VERSION,
@@ -664,9 +664,6 @@ class FlextCliConfig(FlextConfig):
             # Basic validation rules for CLI config
             if not self.profile:
                 return FlextResult[None].fail("Profile cannot be empty")
-
-            if not self.output_format:
-                return FlextResult[None].fail("Output format cannot be empty")
 
             if not self.config_dir:
                 return FlextResult[None].fail("Config directory cannot be empty")

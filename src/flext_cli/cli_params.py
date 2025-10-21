@@ -386,8 +386,10 @@ class FlextCliCommonParams:
                     return FlextResult[FlextCliConfig].fail(
                         err.INVALID_LOG_LEVEL.format(log_level=log_level, valid=valid)
                     )
-                # Cast to parent class type (FlextConstants.Config.LogLevel)
-                config.log_level = cast("FlextConstants.Config.LogLevel", log_level_upper)
+                # Cast to parent class type (FlextConstants.Configuration.LogLevel)
+                config.log_level = cast(
+                    "FlextConstants.Configuration.LogLevel", log_level_upper
+                )
             if log_format is not None:
                 log_format_lower = log_format.lower()
                 if log_format_lower not in defs.VALID_LOG_FORMATS:
@@ -462,7 +464,8 @@ class FlextCliCommonParams:
     def create_decorator(
         cls,
     ) -> Callable[
-        [Callable[..., FlextTypes.JsonValue]], Callable[..., FlextTypes.JsonValue]
+        [Callable[[FlextTypes.JsonValue], FlextTypes.JsonValue]],
+        Callable[[FlextTypes.JsonValue], FlextTypes.JsonValue],
     ]:
         """Create decorator to validate common CLI parameters are used.
 
@@ -505,8 +508,8 @@ class FlextCliCommonParams:
         """
 
         def decorator(
-            func: Callable[..., FlextTypes.JsonValue],
-        ) -> Callable[..., FlextTypes.JsonValue]:
+            func: Callable[[FlextTypes.JsonValue], FlextTypes.JsonValue],
+        ) -> Callable[[FlextTypes.JsonValue], FlextTypes.JsonValue]:
             # Validate enforcement
             validation = cls.validate_enabled()
             if validation.is_failure and cls._enforcement_mode:
