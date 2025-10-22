@@ -901,7 +901,7 @@ class TestFlextCliFileTools:
         result = file_tools.write_text_file(
             str(test_file),
             "content",
-            encoding=123,
+            encoding=123,  # type: ignore[arg-type]
         )
         assert result.is_success  # Should use default UTF8 encoding
         # Verify file was written with correct content
