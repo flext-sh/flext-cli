@@ -386,9 +386,9 @@ class FlextCliCommonParams:
                     return FlextResult[FlextCliConfig].fail(
                         err.INVALID_LOG_LEVEL.format(log_level=log_level, valid=valid)
                     )
-                # Cast to parent class type (FlextConstants.Configuration.LogLevel)
+                # Cast to parent class type (FlextConstants.Settings.LogLevel)
                 config.log_level = cast(
-                    "FlextConstants.Configuration.LogLevel", log_level_upper
+                    "FlextConstants.Settings.LogLevel", log_level_upper
                 )
             if log_format is not None:
                 log_format_lower = log_format.lower()

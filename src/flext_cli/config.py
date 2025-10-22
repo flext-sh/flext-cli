@@ -15,7 +15,7 @@ import os
 import shutil
 from datetime import UTC, datetime
 from pathlib import Path
-from typing import Annotated, Literal
+from typing import Literal
 
 from flext_core import (
     FlextConfig,
@@ -24,9 +24,11 @@ from flext_core import (
     FlextLogger,
     FlextResult,
     FlextTypes,
+    LogLevel,
+    RetryCount,
+    TimeoutSeconds,
 )
 from pydantic import (
-    BeforeValidator,
     Field,
     SecretStr,
     computed_field,
@@ -38,28 +40,6 @@ from flext_cli.constants import FlextCliConstants
 from flext_cli.typings import FlextCliTypes
 
 logger = FlextLogger(__name__)
-
-
-# ===== TYPE COERCION VALIDATORS (for environment variables with strict=True) =====
-def _coerce_bool(v: str | int | bool | None) -> bool:
-    """Coerce environment variable string to bool (strict mode compatible)."""
-    if isinstance(v, bool):
-        return v
-    if isinstance(v, str):
-        return v.lower() in {"true", "1", "yes", "on"}
-    if isinstance(v, int):
-        return v != 0
-    return bool(v)
-
-
-def _coerce_int(v: str | int | None) -> int:
-    """Coerce environment variable string to int (strict mode compatible)."""
-    if isinstance(v, int):
-        return v
-    if isinstance(v, str):
-        return int(v)
-    msg = f"Cannot convert {type(v).__name__} to int"
-    raise ValueError(msg)
 
 
 class FlextCliConfig(FlextConfig):
@@ -106,7 +86,7 @@ class FlextCliConfig(FlextConfig):
         description="Default output format for CLI commands",
     )
 
-    no_color: Annotated[bool, BeforeValidator(_coerce_bool)] = Field(
+    no_color: bool = Field(
         default=FlextCliConstants.CliDefaults.DEFAULT_NO_COLOR,
         description="Disable colored output in CLI",
     )
@@ -145,38 +125,38 @@ class FlextCliConfig(FlextConfig):
         description="Path to refresh token file",
     )
 
-    auto_refresh: Annotated[bool, BeforeValidator(_coerce_bool)] = Field(
+    auto_refresh: bool = Field(
         default=FlextCliConstants.ConfigDefaults.AUTO_REFRESH,
         description="Automatically refresh authentication tokens",
     )
 
     # CLI behavior configuration (flattened from previous nested classes)
-    verbose: Annotated[bool, BeforeValidator(_coerce_bool)] = Field(
+    verbose: bool = Field(
         default=FlextCliConstants.CliDefaults.DEFAULT_VERBOSE,
         description="Enable verbose output",
     )
-    debug: Annotated[bool, BeforeValidator(_coerce_bool)] = Field(
+    debug: bool = Field(
         default=FlextCliConstants.CliDefaults.DEFAULT_DEBUG,
         description="Enable debug mode",
     )
 
-    trace: Annotated[bool, BeforeValidator(_coerce_bool)] = Field(
+    trace: bool = Field(
         default=False,
         description="Enable trace mode (requires debug=True)",
     )
 
     # Inherited from FlextConfig - use parent's type
-    # log_level: FlextConstants.Configuration.LogLevel (defined in parent class)
+    # log_level: FlextConstants.Settings.LogLevel (defined in parent class)
 
     version: str = Field(
         default=FlextCliConstants.CliDefaults.DEFAULT_VERSION,
         description="Application version",
     )
-    quiet: Annotated[bool, BeforeValidator(_coerce_bool)] = Field(
+    quiet: bool = Field(
         default=FlextCliConstants.CliDefaults.DEFAULT_QUIET,
         description="Enable quiet mode",
     )
-    interactive: Annotated[bool, BeforeValidator(_coerce_bool)] = Field(
+    interactive: bool = Field(
         default=FlextCliConstants.CliDefaults.DEFAULT_INTERACTIVE,
         description="Enable interactive mode",
     )
@@ -185,7 +165,7 @@ class FlextCliConfig(FlextConfig):
         description="Deployment environment",
     )
 
-    max_width: Annotated[int, BeforeValidator(_coerce_int)] = Field(
+    max_width: int = Field(
         default=FlextCliConstants.CliDefaults.DEFAULT_MAX_WIDTH,
         ge=FlextCliConstants.ValidationLimits.MIN_MAX_WIDTH,
         le=FlextCliConstants.ValidationLimits.MAX_MAX_WIDTH,
@@ -197,17 +177,13 @@ class FlextCliConfig(FlextConfig):
     )
 
     # Network configuration
-    cli_timeout: Annotated[int, BeforeValidator(_coerce_int)] = Field(
+    cli_timeout: TimeoutSeconds = Field(
         default=FlextCliConstants.NetworkDefaults.DEFAULT_TIMEOUT,
-        ge=1,
-        le=FlextCliConstants.ValidationLimits.MAX_TIMEOUT_SECONDS,
         description="CLI network timeout in seconds",
     )
 
-    max_retries: Annotated[int, BeforeValidator(_coerce_int)] = Field(
+    max_retries: RetryCount = Field(
         default=FlextCliConstants.NetworkDefaults.DEFAULT_MAX_RETRIES,
-        ge=0,
-        le=FlextCliConstants.ValidationLimits.MAX_RETRIES,
         description="Maximum number of retry attempts",
     )
 
@@ -217,7 +193,7 @@ class FlextCliConfig(FlextConfig):
         description="Logging verbosity (compact, detailed, full)",
     )
 
-    cli_log_level: Literal["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"] = Field(
+    cli_log_level: LogLevel = Field(
         default="INFO",  # FlextCliConstants.CliDefaults.DEFAULT_CLI_LOG_LEVEL
         description="CLI-specific logging level",
     )

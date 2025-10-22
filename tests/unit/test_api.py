@@ -16,7 +16,8 @@ from pathlib import Path
 from typing import cast
 
 import pytest
-from flext_core import FlextResult, FlextTypes, FlextUtilities
+from flext_core import FlextResult, FlextTypes
+from pydantic import PositiveInt, TypeAdapter, ValidationError
 
 from flext_cli import FlextCli, FlextCliConstants, FlextCliTypes
 
@@ -363,16 +364,22 @@ class TestFlextCli:
         assert isinstance(result, FlextResult)
         assert result.is_success
 
-        # Test invalid configuration - use Flextvalidation utilities
+        # Test invalid configuration - use modern Pydantic validation
         # Test negative timeout validation
-        timeout_result = FlextUtilities.Validation.validate_timeout_seconds(-1)
-        assert isinstance(timeout_result, FlextResult)
-        assert timeout_result.is_failure
+        try:
+            TypeAdapter(FlextCliTypes.AnnotatedCli.TimeoutMs).validate_python(-1)
+            msg = "Should have raised ValidationError"
+            raise AssertionError(msg)
+        except ValidationError:
+            pass  # Expected to fail validation
 
         # Test positive integer validation for retries
-        retry_result = FlextUtilities.Validation.validate_positive_integer(-5)
-        assert isinstance(retry_result, FlextResult)
-        assert retry_result.is_failure
+        try:
+            TypeAdapter(PositiveInt).validate_python(-5)
+            msg = "Should have raised ValidationError"
+            raise AssertionError(msg)
+        except ValidationError:
+            pass  # Expected to fail validation
 
     # ========================================================================
     # DATA PROCESSING

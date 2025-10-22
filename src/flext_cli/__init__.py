@@ -187,7 +187,6 @@ from flext_cli.protocols import FlextCliProtocols
 from flext_cli.tables import FlextCliTables
 from flext_cli.testing import FlextCliMockScenarios, FlextCliTesting, FlextCliTestRunner
 from flext_cli.typings import FlextCliTypes
-from flext_cli.validator import FlextCliValidator
 
 __all__ = [
     # Core API (alphabetically sorted per FLEXT standards)
@@ -215,7 +214,6 @@ __all__ = [
     "FlextCliTestRunner",
     "FlextCliTesting",
     "FlextCliTypes",
-    "FlextCliValidator",
     # Version
     "__version__",
     "__version_info__",

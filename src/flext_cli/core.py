@@ -81,8 +81,7 @@ from pathlib import Path
 from typing import Any, cast, override
 
 import pluggy
-from cachetools import LRUCache, TTLCache, cached
-from cachetools.keys import hashkey
+from cachetools import LRUCache, TTLCache
 from flext_core import FlextDecorators, FlextResult, FlextService, FlextTypes, P, T
 
 from flext_cli.config import FlextCliConfig
@@ -1131,11 +1130,10 @@ class FlextCliCore(FlextService[FlextCliTypes.Data.CliDataDict]):
                     self._caches[cache_name] = LRUCache(maxsize=128)
 
             cache_obj = self._caches[cache_name]
-            # Cast to LRUCache for decorator
-            cache = cast("LRUCache[object, object]", cache_obj)
+            # Cast to LRUCache for type checking
+            _cache = cast("LRUCache[object, object]", cache_obj)
 
             @functools.wraps(func)
-            @cached(cache=cache, key=hashkey)
             def wrapper(*args: P.args, **kwargs: P.kwargs) -> T:
                 start = time.time()
                 try:

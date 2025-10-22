@@ -20,6 +20,7 @@ from typing import Never, cast
 import pytest
 import yaml
 from flext_core import FlextResult, FlextUtilities
+from pydantic import EmailStr, HttpUrl, TypeAdapter, ValidationError
 
 from flext_cli import (
     FlextCli,
@@ -557,29 +558,38 @@ nested:
     def test_validate_email(self) -> None:
         """Test email validation functionality."""
         # Test valid email
-        result = FlextUtilities.Validation.validate_email("test@example.com")
-        assert isinstance(result, FlextResult)
-        assert result.is_success
-        assert result.unwrap() == "test@example.com"
+        try:
+            result = TypeAdapter(EmailStr).validate_python("test@example.com")
+            assert result == "test@example.com"
+        except ValidationError as e:
+            msg = "Should have validated successfully"
+            raise AssertionError(msg) from e
 
         # Test invalid email
-        result = FlextUtilities.Validation.validate_email("invalid-email")
-        assert isinstance(result, FlextResult)
-        assert result.is_failure
+        try:
+            TypeAdapter(EmailStr).validate_python("invalid-email")
+            msg = "Should have raised ValidationError"
+            raise AssertionError(msg)
+        except ValidationError:
+            pass  # Expected to fail validation
 
     def test_validate_url(self) -> None:
         """Test URL validation functionality."""
-        # Test valid URL - validate_url returns FlextResult[None] (validation pattern)
-        result = FlextUtilities.Validation.validate_url("https://example.com")
-        assert isinstance(result, FlextResult)
-        assert result.is_success
-        # Validation functions return None on success (validation pattern, not transformation)
-        assert result.unwrap() is None
+        # Test valid URL
+        try:
+            result = TypeAdapter(HttpUrl).validate_python("https://example.com")
+            assert str(result) == "https://example.com/"
+        except ValidationError as e:
+            msg = "Should have validated successfully"
+            raise AssertionError(msg) from e
 
         # Test invalid URL
-        result = FlextUtilities.Validation.validate_url("not-a-url")
-        assert isinstance(result, FlextResult)
-        assert result.is_failure
+        try:
+            TypeAdapter(HttpUrl).validate_python("not-a-url")
+            msg = "Should have raised ValidationError"
+            raise AssertionError(msg)
+        except ValidationError:
+            pass  # Expected to fail validation
 
     # ========================================================================
     # ERROR HANDLING AND EDGE CASES

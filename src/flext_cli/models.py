@@ -16,7 +16,7 @@ from __future__ import annotations
 import typing
 from collections.abc import Callable
 from datetime import UTC, datetime
-from typing import Annotated, Self, cast, get_args, get_origin
+from typing import Literal, Self, cast, get_args, get_origin
 
 from flext_core import (
     FlextConstants,
@@ -34,7 +34,6 @@ from pydantic import (
     fields,
     model_validator,
 )
-from pydantic.functional_validators import BeforeValidator
 from pydantic_core import PydanticUndefined
 
 from flext_cli.constants import FlextCliConstants
@@ -42,32 +41,6 @@ from flext_cli.mixins import FlextCliMixins
 from flext_cli.typings import FlextCliTypes
 
 logger = FlextLogger(__name__)
-
-
-# =============================================================================
-# MODULE-LEVEL VALIDATORS (Pydantic 2.11+ BeforeValidator pattern)
-# =============================================================================
-
-
-def _validate_log_level(v: str) -> str:
-    """Validate log level using flext-core constants (no duplication).
-
-    Args:
-        v: Log level string to validate
-
-    Returns:
-        Normalized log level (uppercase)
-
-    Raises:
-        ValueError: If log level not in valid levels
-
-    """
-    valid_levels = set(FlextConstants.Logging.VALID_LEVELS)
-    level_upper = v.upper()
-    if level_upper not in valid_levels:
-        msg = f"Invalid log level: {v}. Must be one of {valid_levels}"
-        raise ValueError(msg)
-    return level_upper
 
 
 class FlextCliModels(FlextModels):
@@ -143,7 +116,7 @@ class FlextCliModels(FlextModels):
     # DICT REPLACEMENT MODELS - Define before usage
     # ========================================================================
 
-    class CliParameterSpec(FlextModels.StrictArbitraryTypesModel):
+    class CliParameterSpec(FlextModels.ArbitraryTypesModel):
         """CLI parameter specification model - replaces dict in CLI parameter handling.
 
         Provides structured validation for CLI parameter specifications used in
@@ -183,7 +156,7 @@ class FlextCliModels(FlextModels):
             description=FlextCliConstants.CliParameterSpecDescriptions.METADATA,
         )
 
-    class CliOptionSpec(FlextModels.StrictArbitraryTypesModel):
+    class CliOptionSpec(FlextModels.ArbitraryTypesModel):
         """Click option specification model - replaces dict[str, object] in Click option generation.
 
         Provides structured validation for Click option specifications generated
@@ -902,17 +875,23 @@ class FlextCliModels(FlextModels):
             )
 
         def validate_business_rules(self) -> FlextResult[None]:
-            """Validate command business rules."""
-            # Use mixin validation methods
-            command_result = FlextCliMixins.ValidationMixin.validate_not_empty(
-                "Command line", self.command_line
-            )
-            if not command_result.is_success:
-                return command_result
+            """Validate command business rules using Pydantic v2 patterns."""
+            # Inline validation: command_line must not be empty
+            if not self.command_line or not str(self.command_line).strip():
+                return FlextResult[None].fail(
+                    FlextCliConstants.MixinsValidationMessages.FIELD_CANNOT_BE_EMPTY.format(
+                        field_name="Command line"
+                    )
+                )
 
-            status_result = FlextCliMixins.ValidationMixin.validate_status(self.status)
-            if not status_result.is_success:
-                return status_result
+            # Inline validation: status must be valid
+            if self.status not in FlextCliConstants.COMMAND_STATUSES_LIST:
+                return FlextResult[None].fail(
+                    FlextCliConstants.MixinsValidationMessages.INVALID_ENUM_VALUE.format(
+                        field_name="status",
+                        valid_values=FlextCliConstants.COMMAND_STATUSES_LIST,
+                    )
+                )
 
             return FlextResult[None].ok(None)
 
@@ -1076,12 +1055,6 @@ class FlextCliModels(FlextModels):
             if self.commands_executed != len(self.commands):
                 self.commands_executed = len(self.commands)
 
-            # Duration should be non-negative
-            if self.internal_duration_seconds < 0:
-                raise ValueError(
-                    FlextCliConstants.ModelsErrorMessages.DURATION_CANNOT_BE_NEGATIVE
-                )
-
             return self
 
         @field_serializer("commands")
@@ -1111,13 +1084,14 @@ class FlextCliModels(FlextModels):
                 return None
 
         def validate_business_rules(self) -> FlextResult[None]:
-            """Validate session business rules."""
-            # Use mixin validation methods
-            session_id_result = FlextCliMixins.ValidationMixin.validate_not_empty(
-                FlextCliConstants.ModelsFieldNames.SESSION_ID, self.session_id
-            )
-            if not session_id_result.is_success:
-                return session_id_result
+            """Validate session business rules using Pydantic v2 patterns."""
+            # Inline validation: session_id must not be empty
+            if not self.session_id or not str(self.session_id).strip():
+                return FlextResult[None].fail(
+                    FlextCliConstants.MixinsValidationMessages.FIELD_CANNOT_BE_EMPTY.format(
+                        field_name=FlextCliConstants.ModelsFieldNames.SESSION_ID
+                    )
+                )
 
             # Validate user_id if provided
             if self.user_id is not None and not self.user_id.strip():
@@ -1125,12 +1099,14 @@ class FlextCliModels(FlextModels):
                     FlextCliConstants.ModelsErrorMessages.USER_ID_EMPTY
                 )
 
-            valid_statuses = FlextCliConstants.SESSION_STATUSES_LIST
-            status_result = FlextCliMixins.ValidationMixin.validate_enum_value(
-                FlextCliConstants.ModelsFieldNames.STATUS, self.status, valid_statuses
-            )
-            if not status_result.is_success:
-                return status_result
+            # Inline validation: status must be valid
+            if self.status not in FlextCliConstants.SESSION_STATUSES_LIST:
+                return FlextResult[None].fail(
+                    FlextCliConstants.MixinsValidationMessages.INVALID_ENUM_VALUE.format(
+                        field_name=FlextCliConstants.ModelsFieldNames.STATUS,
+                        valid_values=FlextCliConstants.SESSION_STATUSES_LIST,
+                    )
+                )
 
             return FlextResult[None].ok(None)
 
@@ -1145,12 +1121,10 @@ class FlextCliModels(FlextModels):
             self.commands_executed = len(self.commands)
             return FlextResult[None].ok(None)
 
-    class DebugInfo(
-        FlextModels.StrictArbitraryTypesModel, FlextCliMixins.ValidationMixin
-    ):
+    class DebugInfo(FlextModels.ArbitraryTypesModel):
         """Debug information model with comprehensive diagnostic data.
 
-        Extends FlextModels.StrictArbitraryTypesModel for strict validation.
+        Extends FlextModels.ArbitraryTypesModel for strict validation.
 
         Pydantic 2.11 Features:
         - Annotated fields with rich metadata
@@ -1271,27 +1245,27 @@ class FlextCliModels(FlextModels):
             }
 
         def validate_business_rules(self) -> FlextResult[None]:
-            """Validate debug info business rules."""
-            # Use mixin validation methods
-            service_result = FlextCliMixins.ValidationMixin.validate_not_empty(
-                "Service name", self.service
-            )
-            if not service_result.is_success:
-                return service_result
+            """Validate debug info business rules using Pydantic v2 patterns."""
+            # Inline validation: service must not be empty
+            if not self.service or not str(self.service).strip():
+                return FlextResult[None].fail(
+                    FlextCliConstants.MixinsValidationMessages.FIELD_CANNOT_BE_EMPTY.format(
+                        field_name="Service name"
+                    )
+                )
 
-            # Validate level
-            valid_levels = FlextCliConstants.DEBUG_LEVELS_LIST
-            level_result = FlextCliMixins.ValidationMixin.validate_enum_value(
-                "level", self.level, valid_levels
-            )
-            if not level_result.is_success:
-                return level_result
+            # Inline validation: level must be valid
+            if self.level not in FlextCliConstants.DEBUG_LEVELS_LIST:
+                return FlextResult[None].fail(
+                    FlextCliConstants.MixinsValidationMessages.INVALID_ENUM_VALUE.format(
+                        field_name="level",
+                        valid_values=FlextCliConstants.DEBUG_LEVELS_LIST,
+                    )
+                )
 
             return FlextResult[None].ok(None)
 
-    class LoggingConfig(
-        FlextModels.ArbitraryTypesModel, FlextCliMixins.ValidationMixin
-    ):
+    class LoggingConfig(FlextModels.ArbitraryTypesModel):
         """Logging configuration model for CLI operations.
 
         Extends FlextModels.ArbitraryTypesModel for flexible configuration.
@@ -1302,10 +1276,9 @@ class FlextCliModels(FlextModels):
         - field_validator for business logic validation
         """
 
-        log_level: Annotated[str, BeforeValidator(_validate_log_level)] = Field(
-            ...,
+        log_level: Literal["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"] = Field(
+            default="INFO",
             description=FlextCliConstants.LoggingConfigDescriptions.LOG_LEVEL,
-            examples=["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"],
         )
         log_format: str = Field(
             ...,
@@ -1346,7 +1319,7 @@ class FlextCliModels(FlextModels):
     # ADDITIONAL DICT REPLACEMENT MODELS
     # ========================================================================
 
-    class CliCommandResult(FlextModels.StrictArbitraryTypesModel):
+    class CliCommandResult(FlextModels.ArbitraryTypesModel):
         """CLI command result model - replaces dict[str, object] in command execution results.
 
         Provides structured validation for command execution results and metadata.
@@ -1371,7 +1344,7 @@ class FlextCliModels(FlextModels):
             description=FlextCliConstants.CliCommandResultDescriptions.EXECUTION_TIME,
         )
 
-    class CliDebugData(FlextModels.StrictArbitraryTypesModel):
+    class CliDebugData(FlextModels.ArbitraryTypesModel):
         """CLI debug data model - replaces dict[str, object] in debug information.
 
         Provides structured validation for debug information and diagnostic data.
@@ -1400,7 +1373,7 @@ class FlextCliModels(FlextModels):
             description=FlextCliConstants.CliDebugDataDescriptions.AGE_SECONDS
         )
 
-    class CliSessionData(FlextModels.StrictArbitraryTypesModel):
+    class CliSessionData(FlextModels.ArbitraryTypesModel):
         """CLI session data model - replaces dict[str, object] in session summaries.
 
         Provides structured validation for session summary information.
