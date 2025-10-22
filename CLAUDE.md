@@ -425,6 +425,90 @@ def operation() -> str:
 
 ---
 
+## Pydantic v2 Standards (MANDATORY)
+
+**ALL models in FlextCliModels must use Pydantic v2 patterns. Pydantic v1 patterns are FORBIDDEN.**
+
+### ✅ Required Patterns
+
+**Model Configuration**:
+```python
+from pydantic import BaseModel, ConfigDict
+
+class CommandExecutionConfig(BaseModel):
+    model_config = ConfigDict(frozen=False, validate_assignment=True)
+    # Use ConfigDict, NOT class Config:
+```
+
+**Field Validators** (Modern decorators):
+```python
+from pydantic import field_validator
+
+class CommandModel(BaseModel):
+    command_name: str
+
+    @field_validator('command_name')
+    @classmethod
+    def validate_command_name(cls, v: str) -> str:
+        """Validates command name format."""
+        return v.lower()
+```
+
+**Serialization** (Always use these methods):
+```python
+model.model_dump()           # Python dict
+model.model_dump_json()      # JSON string (FASTEST)
+model.model_dump(mode='json')  # JSON-compatible dict
+```
+
+**Validation** (Always use these methods):
+```python
+CommandModel.model_validate(data)        # From dict
+CommandModel.model_validate_json(json)   # From JSON (FAST)
+```
+
+### ❌ Forbidden Patterns
+
+**NO Pydantic v1**:
+- `class Config:` → Use `model_config = ConfigDict()`
+- `.dict()` → Use `.model_dump()`
+- `.json()` → Use `.model_dump_json()`
+- `parse_obj()` → Use `.model_validate()`
+- `@validator` → Use `@field_validator`
+- `@root_validator` → Use `@model_validator`
+
+**NO Custom Validation Duplication**:
+- Use Pydantic built-in types: `EmailStr`, `HttpUrl`, `PositiveInt`
+- Use `Field()` constraints: `Field(min_length=1, max_length=255)`
+- Use FlextTypes domain types from flext-core
+
+### ⚡ Performance Best Practices
+
+**JSON Parsing** (Use model_validate_json):
+```python
+# ✅ FAST (Rust-based)
+config = CommandExecutionConfig.model_validate_json(json_string)
+
+# ❌ SLOW (Python + parsing)
+import json
+data = json.loads(json_string)
+config = CommandExecutionConfig.model_validate(data)
+```
+
+**TypeAdapter** (Module-level for batch operations):
+```python
+from pydantic import TypeAdapter
+from typing import Final
+
+# ✅ FAST (created once at module level)
+_COMMAND_ADAPTER: Final = TypeAdapter(list[CommandExecutionConfig])
+
+def validate_commands(data):
+    return _COMMAND_ADAPTER.validate_python(data)
+```
+
+---
+
 ## Common Issues and Solutions
 
 ### Import Errors
@@ -523,6 +607,34 @@ Additional documentation is available in `docs/`:
 2. Actual exports in `__init__.py`
 3. Test patterns in `tests/conftest.py`
 4. This CLAUDE.md file for authoritative architecture
+
+---
+
+## Pydantic v2 Compliance Standards
+
+**Status**: ✅ Fully Pydantic v2 Compliant
+**Verified**: October 22, 2025 (Phase 7 Ecosystem Audit)
+
+### Standards Applied
+
+This project adheres to FLEXT ecosystem Pydantic v2 standards. All CLI configuration models use Pydantic v2 patterns exclusively.
+
+### Pydantic v1 Patterns (FORBIDDEN)
+
+- ❌ `class Config:` (use `model_config = ConfigDict()`)
+- ❌ `.dict()`, `.json()`, `parse_obj()` methods (use `.model_dump()`, `.model_dump_json()`, `.model_validate()`)
+- ❌ `@validator`, `@root_validator` (use `@field_validator`, `@model_validator`)
+
+### Verification
+
+```bash
+make audit-pydantic-v2     # Expected: Status: PASS, Violations: 0
+```
+
+### Reference
+
+- **Complete Guide**: `../flext-core/docs/pydantic-v2-modernization/PYDANTIC_V2_STANDARDS_GUIDE.md`
+- **Phase 7 Report**: `../flext-core/docs/pydantic-v2-modernization/PHASE_7_COMPLETION_REPORT.md`
 
 ---
 

@@ -130,25 +130,24 @@
                 develop = true
                 path = "../flext-observability"
 
-        [tool.poetry.group]
-            [tool.poetry.group.dev.dependencies]
-                docker = ">=7.1.0"
-                email-validator = "^2.3.0"
-                hypothesis = "^6.139.2"
-                ldap3 = ">=2.9.1"
-                numpy = ">=2.3.2"
-                psycopg2 = ">=2.9.10"
-                pyrefly = "^0.34.0"
-                pytest = "^8.4.1"
-                pytest-cov = "^7.0.0"
-                redis = ">=5.0.0"
+        [tool.poetry.group.dev.dependencies]
+            docker = ">=7.1.0"
+            email-validator = "^2.3.0"
+            hypothesis = "^6.139.2"
+            ldap3 = ">=2.9.1"
+            numpy = ">=2.3.2"
+            psycopg2 = ">=2.9.10"
+            pyrefly = "^0.34.0"
+            pytest = "^8.4.1"
+            pytest-cov = "^7.0.0"
+            redis = ">=5.0.0"
 
-            [tool.poetry.group.typings.dependencies]
-                types-cachetools = "^6.2.0.20250827"
-                types-defusedxml = "^0.7.0.20250822"
-                types-lxml = "^2025.8.25"
-                types-pyyaml = "^6.0.12.20250809"
-                types-toml = "^0.10.8.20240310"
+        [tool.poetry.group.typings.dependencies]
+            types-cachetools = "^6.2.0.20250827"
+            types-defusedxml = "^0.7.0.20250822"
+            types-lxml = "^2025.8.25"
+            types-pyyaml = "^6.0.12.20250809"
+            types-toml = "^0.10.8.20240310"
 
     [tool.pytest.ini_options]
         addopts = [
@@ -195,6 +194,9 @@
         testpaths = [
             "tests",
         ]
+
+    [tool.pyrefly]
+        python_version = "3.13"
 
     [tool.ruff]
         extend = "../ruff-shared.toml"

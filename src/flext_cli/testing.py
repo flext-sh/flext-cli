@@ -236,7 +236,7 @@ class FlextCliTesting(FlextService[dict[str, object]]):
 
         def mock_auth_token(
             self,
-            token: str = "test_token_abc123",  # noqa: S107
+            token: str = "test_token_abc123",  # noqa: S107  # nosec B107 - test fixture
         ) -> FlextResult[str]:
             """Create mock authentication token.
 
@@ -256,7 +256,7 @@ class FlextCliTesting(FlextService[dict[str, object]]):
         def mock_auth_credentials(
             self,
             username: str = "testuser",
-            password: str = "testpass_abc123",  # noqa: S107
+            password: str = "testpass_abc123",  # noqa: S107  # nosec B107 - test fixture
         ) -> FlextResult[FlextCliTypes.Auth.CredentialsData]:
             """Create mock authentication credentials.
 

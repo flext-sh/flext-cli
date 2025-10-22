@@ -15,7 +15,7 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 import typing
-from typing import Annotated, TypeVar
+from typing import Annotated, Literal, TypeVar
 
 from flext_core import FlextResult, FlextTypes
 from pydantic import Field
@@ -95,9 +95,6 @@ class FlextCliTypes(FlextTypes):
         """Configuration profile name."""
 
         # Numeric types with value constraints
-        PortNumber = Annotated[int, Field(ge=1, le=65535)]
-        """Port number (valid range: 1-65535)."""
-
         TimeoutMs = Annotated[int, Field(ge=100, le=300000)]
         """Timeout in milliseconds (100ms-300s)."""
 
@@ -109,6 +106,28 @@ class FlextCliTypes(FlextTypes):
 
         MaxWorkers = Annotated[int, Field(ge=1, le=50)]
         """Maximum number of parallel workers (1-50)."""
+
+        # Validation constraint types (Pydantic v2 native)
+        NotEmptyStr = Annotated[str, Field(min_length=1)]
+        """Non-empty string (min length 1)."""
+
+        PositiveNumber = Annotated[int, Field(gt=0)]
+        """Positive integer (> 0)."""
+
+        NonNegativeNumber = Annotated[int, Field(ge=0)]
+        """Non-negative integer (>= 0)."""
+
+        # Enum-like types using Literal (Pydantic v2 native)
+        OutputFormatEnum = Literal["json", "yaml", "csv", "table", "plain"]
+        """Output format options."""
+
+        LogLevelEnum = Literal["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"]
+        """Log level options."""
+
+        CommandStatusEnum = Literal[
+            "pending", "running", "completed", "failed", "cancelled"
+        ]
+        """Command execution status options."""
 
         # Path and file types
         ConfigFilePath = Annotated[str, Field(min_length=1)]
