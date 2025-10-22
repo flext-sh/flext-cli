@@ -15,14 +15,17 @@ from __future__ import annotations
 import sys
 import types
 from collections.abc import Callable
-from typing import ClassVar, Literal, cast, get_args, get_origin
+from typing import ClassVar, Literal, TypeVar, cast, get_args, get_origin
 
 import typer
-from flext_core import FlextConstants, FlextResult, FlextTypes
+from flext_core import FlextConstants, FlextResult
 from typer.models import OptionInfo
 
 from flext_cli.config import FlextCliConfig
 from flext_cli.constants import FlextCliConstants
+
+# Type variable for generic decorator
+F = TypeVar("F", bound=Callable[..., object])
 
 
 class FlextCliCommonParams:
@@ -463,10 +466,7 @@ class FlextCliCommonParams:
     @classmethod
     def create_decorator(
         cls,
-    ) -> Callable[
-        [Callable[[FlextTypes.JsonValue], FlextTypes.JsonValue]],
-        Callable[[FlextTypes.JsonValue], FlextTypes.JsonValue],
-    ]:
+    ) -> Callable[[F], F]:
         """Create decorator to validate common CLI parameters are used.
 
         By default, ALL parameters are included and this is MANDATORY.
@@ -507,9 +507,7 @@ class FlextCliCommonParams:
 
         """
 
-        def decorator(
-            func: Callable[[FlextTypes.JsonValue], FlextTypes.JsonValue],
-        ) -> Callable[[FlextTypes.JsonValue], FlextTypes.JsonValue]:
+        def decorator(func: F) -> F:
             # Validate enforcement
             validation = cls.validate_enabled()
             if validation.is_failure and cls._enforcement_mode:

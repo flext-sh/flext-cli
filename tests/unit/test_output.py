@@ -771,7 +771,7 @@ class TestFlextCliOutput:
     def test_format_table_list_not_list_type(self, output: FlextCliOutput) -> None:
         """Test format_table when data is not dict or list (line 668)."""
         # Pass a string which is neither dict nor list
-        result = output.format_table("not a dict or list")
+        result = output.format_table("not a dict or list")  # type: ignore[arg-type]
         assert result.is_failure
         assert "Table format requires dict[str, object] or list of dicts" in str(
             result.error

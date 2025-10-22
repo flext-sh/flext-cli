@@ -214,7 +214,7 @@ class TestFlextCliCore:
         valid_config = FlextCliConfig(
             debug=True,
             output_format="json",
-            timeout=FlextCliConstants.TIMEOUTS.DEFAULT,
+            cli_timeout=FlextCliConstants.TIMEOUTS.DEFAULT,
             max_retries=FlextCliConstants.HTTP.MAX_RETRIES,
         )
 
@@ -227,7 +227,7 @@ class TestFlextCliCore:
         with pytest.raises(Exception):
             FlextCliConfig(
                 debug=cast("bool", "invalid_boolean"),
-                timeout=-1,
+                cli_timeout=-1,
                 max_retries=cast("int", "not_a_number"),
             )
 
@@ -680,7 +680,7 @@ nested:
         config_model = FlextCliConfig(
             debug=True,
             output_format="json",
-            timeout=FlextCliConstants.TIMEOUTS.DEFAULT,
+            cli_timeout=FlextCliConstants.TIMEOUTS.DEFAULT,
             max_retries=FlextCliConstants.HTTP.MAX_RETRIES,
         )
         validate_result = core_service.validate_configuration(config_model)
@@ -1104,7 +1104,7 @@ class TestFlextCliCoreExtended:
             ],
         ] = {"theme": {"value": "dark"}, "verbose": {"value": True}}
 
-        result = core_service.update_configuration(config)
+        result = core_service.update_configuration(config)  # type: ignore[arg-type]
 
         assert isinstance(result, FlextResult)
         assert result.is_success
@@ -1122,7 +1122,7 @@ class TestFlextCliCoreExtended:
         """Test creating configuration profile."""
         profile_config: dict[str, object] = {"color": "blue", "size": "large"}
 
-        result = core_service.create_profile("test-profile", profile_config)
+        result = core_service.create_profile("test-profile", profile_config)  # type: ignore[arg-type]
 
         assert isinstance(result, FlextResult)
         assert result.is_success
@@ -1280,7 +1280,7 @@ class TestFlextCliCoreExtended:
             "verbose": {"value": True},
             "timeout": {"value": 30},
         }
-        update_result = core_service.update_configuration(config)
+        update_result = core_service.update_configuration(config)  # type: ignore[arg-type]
         assert update_result.is_success
 
         # Step 2: Get configuration
@@ -1383,14 +1383,12 @@ class TestFlextCliCoreExceptionHandlers:
         self, core_service: FlextCliCore, monkeypatch: pytest.MonkeyPatch
     ) -> None:
         """Test update_configuration when config not initialized (lines 235-237)."""
-        from typing import cast
-
         # Set _config to empty dict to trigger the not initialized path
         core_service._config = {}
 
         config: dict[str, dict[str, object]] = {"test": {"value": "data"}}
-        result = core_service.update_configuration(
-            cast(
+        result = core_service.update_configuration(  # type: ignore[arg-type]
+            cast(  # type: ignore[arg-type]
                 "dict[str, dict[str, str | int | float | bool | list[object] | dict[str, object] | None]]",
                 config,
             )
@@ -1413,8 +1411,8 @@ class TestFlextCliCoreExceptionHandlers:
         monkeypatch.setattr(core_service, "_config", MockConfigDict())
 
         config: dict[str, dict[str, object]] = {"test": {"value": "data"}}
-        result = core_service.update_configuration(
-            cast(
+        result = core_service.update_configuration(  # type: ignore[arg-type]
+            cast(  # type: ignore[arg-type]
                 "dict[str, dict[str, str | int | float | bool | list[object] | dict[str, object] | None]]",
                 config,
             )
