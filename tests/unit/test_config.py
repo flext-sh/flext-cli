@@ -1807,7 +1807,9 @@ class TestFlextCliConfigExceptionHandlers:
         """Test validate_cli_overrides success path (lines 627-628, 643)."""
         config = FlextCliConfig()
         result = config.validate_cli_overrides(
-            profile="valid_profile", output_format="json", debug=True  # type: ignore[arg-type]
+            profile="valid_profile",
+            output_format="json",
+            debug=True,  # type: ignore[arg-type]
         )
         assert result.is_success
         valid_overrides = result.unwrap()
