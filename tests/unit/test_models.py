@@ -1129,7 +1129,17 @@ class TestFlextCliModelsExceptionHandlers:
         # Test with a model class that raises exception during field access
         class ProblematicModel(BaseModel):
             @classmethod
-            def model_validate(cls, _obj: object, *, _strict: bool | None = None, _extra: object = None, _from_attributes: bool | None = None, _context: object = None, _by_alias: bool | None = None, _by_name: bool | None = None) -> Self:  # type: ignore[override]
+            def model_validate(
+                cls,
+                _obj: object,
+                *,
+                _strict: bool | None = None,
+                _extra: object = None,
+                _from_attributes: bool | None = None,
+                _context: object = None,
+                _by_alias: bool | None = None,
+                _by_name: bool | None = None,
+            ) -> Self:  # type: ignore[override]
                 msg = "Model fields error"
                 raise RuntimeError(msg)
 
@@ -1146,7 +1156,17 @@ class TestFlextCliModelsExceptionHandlers:
         # Test with a model that causes issues in model_to_cli_params
         class ProblematicModel(BaseModel):
             @classmethod
-            def model_validate(cls, _obj: object, *, _strict: bool | None = None, _extra: object = None, _from_attributes: bool | None = None, _context: object = None, _by_alias: bool | None = None, _by_name: bool | None = None) -> Self:  # type: ignore[override]
+            def model_validate(
+                cls,
+                _obj: object,
+                *,
+                _strict: bool | None = None,
+                _extra: object = None,
+                _from_attributes: bool | None = None,
+                _context: object = None,
+                _by_alias: bool | None = None,
+                _by_name: bool | None = None,
+            ) -> Self:  # type: ignore[override]
                 msg = "Click options error"
                 raise RuntimeError(msg)
 
