@@ -2,9 +2,323 @@
 
 **Contributing guidelines and development workflow for flext-cli.**
 
-**Last Updated**: September 17, 2025 | **Version**: 0.9.9 RC
+**Last Updated**: 2025-01-24 | **Version**: 0.10.0
 
 ---
+
+## 📌 Quick Navigation
+
+- [v0.10.0 Development Guidelines (Current)](#v0100-development-guidelines-current) ← **Start Here**
+- [v0.9.0 Development Guidelines (Historical Reference)](#v090-development-guidelines-historical-reference)
+
+---
+
+## v0.10.0 Development Guidelines (Current)
+
+**Status**: 📝 Planned | **Release**: Q1 2025 | **Breaking Changes**: Yes
+
+### Overview
+
+FLEXT-CLI v0.10.0 follows a simplified architecture with clear guidelines for when to use services vs simple classes. This guide helps you make the right architectural decisions.
+
+---
+
+## When to Use Each Pattern
+
+### Use FlextService When:
+
+**Requirements**:
+- ✅ Class manages **mutable state** (commands, sessions, configuration)
+- ✅ Class requires **dependency injection**
+- ✅ Class needs **lifecycle management** (startup, shutdown, cleanup)
+- ✅ Class has **complex initialization** with external dependencies
+
+**Example - FlextCliCore (Stateful Service)**:
+```python
+from flext_core import FlextService
+
+class FlextCliCore(FlextService[CliDataDict]):
+    """Core service managing commands and sessions."""
+
+    def __init__(self):
+        super().__init__()
+        self._commands: dict[str, Command] = {}  # MUTABLE STATE
+        self._sessions: dict[str, Session] = {}  # MUTABLE STATE
+        self._config: FlextCliConfig = ...       # MANAGED STATE
+
+    def register_command(self, name: str, command: Command) -> FlextResult[None]:
+        """Register command - modifies internal state."""
+        self._commands[name] = command
+        return FlextResult[None].ok(None)
+```
+
+**When NOT to use**:
+- ❌ Operations are stateless (just transformations)
+- ❌ No initialization needed
+- ❌ Methods could all be static
+- ❌ Just grouping related functions
+
+### Use Simple Class When:
+
+**Requirements**:
+- ✅ Class is **stateless** (no internal state to manage)
+- ✅ Methods could be **static** (no `self` needed)
+- ✅ **No dependency injection** required
+- ✅ Just utility functions grouped together
+- ✅ Pure **I/O operations** (read/write files)
+
+**Example - FlextCliFileTools (Simple Utility Class)**:
+```python
+from flext_core import FlextResult
+import json
+
+class FlextCliFileTools:
+    """Stateless file operations."""
+
+    @staticmethod
+    def read_json_file(path: str) -> FlextResult[dict]:
+        """Read JSON file - no state needed."""
+        try:
+            with open(path) as f:
+                return FlextResult[dict].ok(json.load(f))
+        except Exception as e:
+            return FlextResult[dict].fail(str(e))
+
+    @staticmethod
+    def write_json_file(path: str, data: dict) -> FlextResult[None]:
+        """Write JSON file - no state needed."""
+        try:
+            with open(path, 'w') as f:
+                json.dump(data, f, indent=2)
+            return FlextResult[None].ok(None)
+        except Exception as e:
+            return FlextResult[None].fail(str(e))
+```
+
+**Benefits**:
+- No initialization overhead
+- Clear that it's stateless
+- Can use static methods
+- Easy to test
+
+### Use Value Object (Pydantic) When:
+
+**Requirements**:
+- ✅ Class is **immutable data**
+- ✅ Compared by **value**, not identity
+- ✅ **No behavior** (no business logic)
+- ✅ Just data **validation and structure**
+- ✅ Configuration or context data
+
+**Example - FlextCliContext (Value Object)**:
+```python
+from flext_core import FlextModels
+from pydantic import Field
+
+class FlextCliContext(FlextModels.Value):
+    """Immutable execution context."""
+    command: str | None = None
+    arguments: list[str] = Field(default_factory=list)
+    environment_variables: dict[str, object] = Field(default_factory=dict)
+    working_directory: str | None = None
+
+    # No methods - just validated, immutable data
+```
+
+**When to use**:
+- Configuration data
+- Request/response models
+- Event data
+- Execution context
+
+---
+
+## Architecture Decision Flowchart
+
+```
+Does the class manage mutable state?
+├─ YES → Use FlextService
+│        Examples: FlextCliCore, FlextCli
+│
+└─ NO → Does it have behavior (business logic)?
+    ├─ YES → Is it stateless utility functions?
+    │   ├─ YES → Use Simple Class
+    │   │        Examples: FlextCliFileTools, FlextCliFormatters
+    │   └─ NO → Re-evaluate: might need FlextService
+    │
+    └─ NO → Is it just data with validation?
+        └─ YES → Use Value Object (Pydantic)
+                 Examples: FlextCliContext, FlextCliModels.*
+```
+
+---
+
+## Code Organization Guidelines
+
+### Module Structure
+
+Follow the v0.10.0 module organization:
+
+```
+src/flext_cli/
+├── Services (3-4 only)
+│   ├── core.py              # FlextCliCore - stateful
+│   ├── api.py               # FlextCli - facade
+│   └── cmd.py               # FlextCliCmd - command execution
+│
+├── Simple Classes (utilities)
+│   ├── file_tools.py        # File I/O
+│   ├── formatters.py        # Rich formatting
+│   ├── tables.py            # Table generation
+│   ├── output.py            # Output management
+│   ├── prompts.py           # User input
+│   └── debug.py             # Debug utilities
+│
+└── Data Models (value objects)
+    ├── context.py           # FlextCliContext
+    ├── models.py            # All Pydantic models
+    └── config.py            # FlextCliConfig
+```
+
+### Direct Access Pattern
+
+**Always use direct access** (no wrapper methods):
+
+```python
+# ✅ CORRECT - Direct access
+cli = FlextCli()
+cli.formatters.print("Hello", style="green")
+cli.file_tools.read_json_file("config.json")
+cli.prompts.confirm("Continue?")
+
+# ❌ WRONG - Wrapper methods (v0.9.0 pattern)
+# cli.print("Hello")              # REMOVED
+# cli.read_json_file("config.json")  # REMOVED
+# cli.confirm("Continue?")           # REMOVED
+```
+
+---
+
+## Testing Guidelines (v0.10.0)
+
+### Test Organization
+
+Tests are now organized by feature area:
+
+```
+tests/
+├── unit/
+│   ├── core/              # Core functionality tests
+│   │   ├── test_api.py
+│   │   ├── test_service_base.py
+│   │   └── test_singleton.py
+│   ├── io/                # I/O operations tests
+│   │   ├── test_json_operations.py
+│   │   ├── test_yaml_operations.py
+│   │   └── test_csv_operations.py
+│   ├── formatting/        # Output formatting tests
+│   │   ├── test_rich_formatters.py
+│   │   ├── test_tables.py
+│   │   └── test_output.py
+│   └── cli/               # CLI framework tests
+│       ├── test_click_wrapper.py
+│       ├── test_commands.py
+│       └── test_execution.py
+│
+├── integration/           # Integration tests
+└── fixtures/              # Test utilities (moved from src/)
+```
+
+### Testing Simple Classes
+
+```python
+import pytest
+from flext_cli import FlextCliFileTools
+
+def test_read_json_file():
+    """Test static method on simple class."""
+    # Simple classes use static methods
+    result = FlextCliFileTools.read_json_file("test.json")
+
+    assert result.is_success
+    data = result.unwrap()
+    assert isinstance(data, dict)
+
+# No initialization needed - static methods
+```
+
+### Testing Value Objects
+
+```python
+import pytest
+from flext_cli import FlextCliContext
+
+def test_context_immutability():
+    """Test context is immutable."""
+    context = FlextCliContext(
+        command="test",
+        arguments=["arg1"]
+    )
+
+    # Cannot modify (immutable)
+    with pytest.raises(Exception):
+        context.command = "modified"
+
+    # Create new instance for changes
+    updated = context.model_copy(
+        update={"command": "new_command"}
+    )
+
+    assert context.command == "test"
+    assert updated.command == "new_command"
+```
+
+---
+
+## Contributing to v0.10.0
+
+### Implementation Checklist
+
+Before implementing new features, review:
+
+**[IMPLEMENTATION_CHECKLIST.md](refactoring/IMPLEMENTATION_CHECKLIST.md)** - 40-step checklist for refactoring
+
+Key phases:
+1. Documentation (complete)
+2. Delete duplicates (validator.py, auth.py, testing.py)
+3. Convert services to simple classes
+4. Fix context (service → value object)
+5. Remove API wrappers
+6. Remove unused infrastructure
+7. Reorganize tests
+8. Quality gates
+
+### Pull Request Guidelines
+
+1. **Follow the Architecture**:
+   - Services only for state
+   - Simple classes for utilities
+   - Value objects for data
+
+2. **Use Direct Access**:
+   - No wrapper methods
+   - Clear ownership
+
+3. **Quality Gates (MANDATORY)**:
+   ```bash
+   make validate  # Must pass 100%
+   ```
+
+4. **Test Organization**:
+   - Tests in appropriate directories
+   - No file > 30K lines
+   - Feature-based organization
+
+---
+
+## v0.9.0 Development Guidelines (Historical Reference)
+
+**Note**: The following documentation describes v0.9.0 patterns. This is kept for historical reference during the migration period.
 
 ## Development Setup
 

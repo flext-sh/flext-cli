@@ -1,55 +1,53 @@
 # flext-cli
 
-**Production-Ready CLI Foundation for the FLEXT Ecosystem**
+**Simple, Powerful CLI Foundation for the FLEXT Ecosystem**
 
 [![Python 3.13+](https://img.shields.io/badge/python-3.13+-blue.svg)](https://www.python.org/downloads/)
-[![Status](https://img.shields.io/badge/status-100%25%20Test%20Pass%20Rate-brightgreen.svg)](#quality-status)
-[![Lines of Code](https://img.shields.io/badge/lines-10.7K+-blue.svg)](#implementation-metrics)
-[![FLEXT Core](https://img.shields.io/badge/flext--core-integrated-blue.svg)](../flext-core/README.md)
+[![Version](https://img.shields.io/badge/version-0.10.0-green.svg)](#whats-new-in-v0100)
+[![Status](https://img.shields.io/badge/status-production--ready-brightgreen.svg)](#production-ready)
+[![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+[![FLEXT Core](https://img.shields.io/badge/flext--core-v0.9.9+-blue.svg)](../flext-core/README.md)
 
-> **✅ STATUS**: **Production Ready** - 100% test pass rate, 0 Pyrefly errors, comprehensive QA validated (Last updated: 2025-10-16)
+**Version 0.10.0** - Simplified architecture, 30-40% less code, 75% fewer services, clearer patterns.
+
+> **🚀 UPGRADE NOTICE**: v0.10.0 introduces breaking changes for a simpler, cleaner API. See [Migration Guide](docs/refactoring/MIGRATION_GUIDE_V0.9_TO_V0.10.md).
 
 ---
 
-## 🎯 Purpose and Role in FLEXT Ecosystem
+## ✨ What's New in v0.10.0
 
-### **CLI Foundation Library** - ZERO TOLERANCE Architecture
+**Simplified Architecture**:
+- 🎯 **Direct Access API** - Clear ownership: `cli.formatters.*`, `cli.file_tools.*`, `cli.prompts.*`
+- 🔧 **Services Only for State** - 18 → 3-4 services (75% reduction)
+- 📦 **Value Objects for Data** - Immutable context with Pydantic
+- ⚡ **30-40% Less Code** - 14K → 10K lines, simpler to maintain
+- 🧪 **Organized Tests** - Feature-based test structure
 
-flext-cli serves as the **universal CLI foundation** for all 32+ FLEXT projects, providing:
+**Key Benefits**:
+- ✅ Easier to understand (one clear way per operation)
+- ✅ Better performance (less indirection)
+- ✅ Clearer documentation (no API duplication)
+- ✅ Simpler maintenance (fewer services, clearer patterns)
 
-- **Complete Click Abstraction** - ONLY file allowed to import Click
-- **Complete Rich Abstraction** - ONLY file allowed to import Rich
-- **Comprehensive Tabulate Integration** - 22+ table formats
-- **Authentication & Configuration** - Complete auth and config management
-- **File Operations** - JSON/YAML/CSV with validation
-- **Interactive Prompts** - User input with validation
+**Migration**: Most changes are simple find-and-replace patterns (30-60 minutes). See [Migration Guide](docs/refactoring/MIGRATION_GUIDE_V0.9_TO_V0.10.md).
 
-### **ZERO TOLERANCE Policy**
+---
 
-**Ecosystem Projects**: NO direct Click/Rich imports allowed
+## 🎯 Purpose
 
-```python
-# ❌ ABSOLUTELY FORBIDDEN in ecosystem projects
-import click       # VIOLATION
-import rich        # VIOLATION
-from rich.console import Console  # VIOLATION
+flext-cli is the **CLI foundation library** for the FLEXT ecosystem, providing:
 
-# ✅ MANDATORY - Use flext-cli exclusively
-from flext_cli import FlextCli, FlextCliMain, FlextCliFormatters
-```
+- **Click/Rich Abstraction** - Framework isolation for easy upgrades
+- **File Operations** - JSON, YAML, CSV with validation
+- **Interactive Prompts** - User input with confirmation
+- **Table Formatting** - 22+ formats via Tabulate
+- **Output Management** - Rich terminal UI
+- **Railway Pattern** - All operations return `FlextResult[T]`
 
-### **Key Responsibilities**
-
-1. **CLI Abstraction Authority** - All CLI functionality through flext-cli
-2. **Output Standardization** - Consistent formatting across ecosystem
-3. **Extensibility** - Plugin system for ecosystem expansion
-4. **Modern Features** - , performance, interactive capabilities
-
-### **Integration Points**
-
-- **[flext-core](../flext-core/README.md)** → FlextResult, FlextService, FlextContainer patterns
-- **All FLEXT Projects** → Universal CLI foundation (NO direct Click/Rich)
-- **Ecosystem CLIs** → client-a-oud-mig, client-b-meltano-native, flext-api tools
+**FLEXT Ecosystem Integration**:
+- Uses **[flext-core](../flext-core/README.md)** patterns (FlextResult, FlextService, FlextModels)
+- Provides CLI foundation for **32+ FLEXT projects**
+- **Zero Tolerance Framework Isolation** - No direct Click/Rich imports in ecosystem projects
 
 ---
 
@@ -163,95 +161,112 @@ graph TB
 
 ## 🚀 Quick Start
 
-### **Installation**
+### Installation
 
 ```bash
-# Clone from FLEXT ecosystem
+# Add to your project
+poetry add flext-cli
+# or
+pip install flext-cli
+
+# For development
 git clone https://github.com/flext-sh/flext-cli.git
 cd flext-cli
-
-# Setup development environment
 make setup
-
-# Verify installation
-python -c "from flext_cli import FlextCli; print('✅ flext-cli ready')"
 ```
 
-### **Simple API** (Phase 3 Convenience Methods)
+### Your First CLI Application (v0.10.0)
+
+```python
+from flext_cli import FlextCli
+from flext_core import FlextResult
+
+# Initialize CLI
+cli = FlextCli()
+
+# Output with direct access (clear ownership)
+cli.formatters.print("Welcome to FLEXT CLI!", style="green bold")
+
+# Read configuration (direct access to file_tools)
+config_result = cli.file_tools.read_json_file("config.json")
+
+if config_result.is_success:
+    config = config_result.unwrap()
+    cli.formatters.print(f"Loaded: {config}", style="cyan")
+else:
+    cli.formatters.print(f"Error: {config_result.error}", style="red")
+
+# Interactive prompt (direct access to prompts)
+confirm_result = cli.prompts.confirm("Continue?")
+
+if confirm_result.is_success and confirm_result.unwrap():
+    cli.formatters.print("Let's go!", style="green")
+```
+
+### Working with Tables
 
 ```python
 from flext_cli import FlextCli
 
-# Create CLI instance
 cli = FlextCli()
 
-# Simple output messages
-cli.success("Operation completed!")
-cli.error("Something went wrong!")
-cli.warning("Warning message")
-cli.info("Information")
-
-# Display table (automatic formatting)
+# Create data
 users = [
-    {"name": "Alice", "age": 30, "role": "Admin"},
-    {"name": "Bob", "age": 25, "role": "User"},
+    {"name": "Alice", "role": "Admin", "status": "Active"},
+    {"name": "Bob", "role": "User", "status": "Active"},
 ]
-cli.table(users)
 
-# Interactive prompts
-if cli.confirm("Continue?", default=True):
-    name = cli.prompt_text("Your name?", default="Guest")
-    cli.success(f"Hello, {name}!")
+# Format as table (direct access to output)
+table_result = cli.output.format_data(
+    data={"users": users},
+    format_type="table"
+)
 
-# File operations (JSON/YAML)
-data = {"app": "myapp", "version": "1.0"}
-cli.write_json(data, "config.json")
-loaded = cli.read_json("config.json")
-cli.write_yaml(data, "config.yaml")
-yaml_data = cli.read_yaml("config.yaml")
+if table_result.is_success:
+    cli.formatters.print(table_result.unwrap())
 ```
 
-### **Advanced API** (Full Features)
-
-```python
-from flext_cli import FlextCli
-
-# Create CLI application
-cli = FlextCli()
-
-@cli.main.command()
-def hello(name: str = "World"):
-    """Say hello."""
-    print(f"Hello, {name}!")
-
-# Run CLI
-if __name__ == "__main__":
-    cli.main.execute()
-```
-
-### **Rich Output**
+### File Operations
 
 ```python
 from flext_cli import FlextCli
 
 cli = FlextCli()
 
-@cli.main.command()
-def status():
-    """Show status with Rich formatting."""
-    table_result = cli.formatters.create_table(
-        title="System Status",
-        show_header=True,
-    )
+# JSON operations (direct access to file_tools)
+data = {"app": "myapp", "version": "1.0.0"}
 
-    if table_result.is_success:
-        table = table_result.unwrap()
-        table.add_column("Component")
-        table.add_column("Status")
-        table.add_row("API", "[green]✅ Online[/green]")
-        table.add_row("Database", "[green]✅ Connected[/green]")
+# Write
+cli.file_tools.write_json_file("config.json", data)
 
-        cli.formatters.print_renderable(table)
+# Read
+result = cli.file_tools.read_json_file("config.json")
+if result.is_success:
+    loaded = result.unwrap()
+
+# YAML operations
+cli.file_tools.write_yaml_file("config.yaml", data)
+yaml_result = cli.file_tools.read_yaml_file("config.yaml")
+```
+
+### Railway-Oriented Programming
+
+```python
+from flext_cli import FlextCli
+from flext_core import FlextResult
+
+cli = FlextCli()
+
+# Chain operations
+result = (
+    cli.file_tools.read_json_file("config.json")
+    .flat_map(lambda cfg: validate_config(cfg))
+    .map(lambda cfg: apply_defaults(cfg))
+    .map(lambda cfg: cli.formatters.print(f"Config: {cfg}"))
+)
+
+if not result.is_success:
+    cli.formatters.print(f"Error: {result.error}", style="red")
 ```
 
 ### **Authentication Workflow**
@@ -376,7 +391,7 @@ make check                  # Lint + type-check only
 ### **Comprehensive Guides**
 
 - **[Quick Start](docs/QUICKSTART.md)** - Get started in minutes
-- **[Migration Guide](docs/MIGRATION_GUIDE.md)** - Migrate from Click/Rich
+- **[Migration Guide](docs/refactoring/MIGRATION_GUIDE_V0.9_TO_V0.10.md)** - Migrate from v0.9.0 to v0.10.0
 - **[Best Practices](docs/BEST_PRACTICES.md)** - Patterns and guidelines
 - **[API Reference](docs/api-reference.md)** - Complete API documentation
 - **[Architecture](docs/architecture.md)** - Design and structure

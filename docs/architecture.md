@@ -2,9 +2,425 @@
 
 **flext-cli structure and design patterns for CLI foundation library.**
 
-**Last Updated**: 2025-10-10 | **Version**: 0.9.0
+**Last Updated**: 2025-01-24 | **Version**: 0.10.0
 
 ---
+
+## 📌 Quick Navigation
+
+- [v0.10.0 Architecture (Current)](#v0100-architecture-current) ← **Start Here**
+- [v0.9.0 Architecture (Historical Reference)](#v090-architecture-historical-reference)
+
+---
+
+## v0.10.0 Architecture (Current)
+
+**Status**: 📝 Planned | **Release**: Q1 2025 | **Breaking Changes**: Yes
+
+### Overview
+
+FLEXT-CLI v0.10.0 introduces a simplified, cleaner architecture by removing over-engineering and aligning with core design principles. The refactoring reduces complexity by 30-40% while maintaining all essential functionality.
+
+**Key Improvements**:
+- **Service Classes**: 18 → 3-4 (75% reduction)
+- **Lines of Code**: ~14,000 → ~10,000 (30% reduction)
+- **API Methods**: ~30 → ~15 (50% reduction)
+- **Architecture**: Services only for state, simple classes for utilities
+- **Pattern**: Direct access (no wrapper methods)
+
+### Design Principles
+
+1. **Services Only for State** - Use FlextService only when managing stateful logic
+2. **Simple Classes for Utilities** - Stateless operations use simple classes
+3. **Value Objects for Data** - Immutable data models using Pydantic
+4. **Direct Access Pattern** - No thin wrappers, explicit ownership
+5. **Zero Unused Infrastructure** - No async, threading, or plugins unless needed
+
+---
+
+### Module Classification
+
+#### 🎯 Services (Stateful - 3-4 Only)
+
+**Use FlextService when**:
+- Class manages mutable state (commands, sessions, configuration)
+- Class requires dependency injection
+- Class needs lifecycle management
+- Class has complex initialization
+
+```python
+# ✅ FlextCliCore - Stateful service
+from flext_core import FlextService
+
+class FlextCliCore(FlextService[CliDataDict]):
+    """Manages commands, sessions, and configuration lifecycle."""
+
+    def __init__(self):
+        super().__init__()
+        self._commands: dict[str, Command] = {}  # STATE
+        self._sessions: dict[str, Session] = {}  # STATE
+        self._config: FlextCliConfig = FlextCliConfig()  # STATE
+```
+
+**Services in v0.10.0**:
+1. **FlextCliCore** - Command/session management ✅
+2. **FlextCli** - Main API facade (singleton) ✅
+3. **FlextCliCmd** - Command execution (evaluate) ⚠️
+
+#### 🔧 Simple Classes (Utilities - 10+)
+
+**Use simple classes when**:
+- Class is stateless
+- Methods could be static
+- No dependency injection needed
+- Just utility functions grouped together
+
+```python
+# ✅ FlextCliFileTools - Simple utility class
+from flext_core import FlextResult
+
+class FlextCliFileTools:
+    """Stateless file operations."""
+
+    @staticmethod
+    def read_json_file(path: str) -> FlextResult[dict]:
+        """Read JSON file - no state needed."""
+        try:
+            with open(path) as f:
+                return FlextResult[dict].ok(json.load(f))
+        except Exception as e:
+            return FlextResult[dict].fail(str(e))
+```
+
+**Simple Classes in v0.10.0**:
+- **FlextCliFileTools** - File I/O operations
+- **FlextCliFormatters** - Rich formatting (already simple)
+- **FlextCliTables** - Table generation
+- **FlextCliOutput** - Output management
+- **FlextCliPrompts** - User input
+- **FlextCliDebug** - Debug utilities
+- **FlextCliCommands** - Command registry
+
+#### 📦 Data Models (Value Objects)
+
+**Use value objects when**:
+- Class is immutable data
+- Compared by value, not identity
+- No behavior, just data validation
+- Pydantic model is appropriate
+
+```python
+# ✅ FlextCliContext - Value Object
+from flext_core import FlextModels
+from pydantic import Field
+
+class FlextCliContext(FlextModels.Value):
+    """Immutable execution context."""
+    command: str | None = None
+    arguments: list[str] = Field(default_factory=list)
+    environment_variables: dict[str, object] = Field(default_factory=dict)
+    working_directory: str | None = None
+
+    # No methods - just validated, immutable data
+```
+
+**Value Objects in v0.10.0**:
+- **FlextCliContext** - Execution context (changed from service)
+- **All FlextCliModels.*** - Configuration and data models
+
+---
+
+### Direct Access Pattern
+
+The core change in v0.10.0 is removing wrapper methods in favor of direct access to underlying services.
+
+#### ❌ Old Pattern (v0.9.0): Wrapper Methods
+
+```python
+from flext_cli import FlextCli
+
+cli = FlextCli()
+
+# Multiple ways to do the same thing (confusing!)
+cli.print("Hello")                     # Wrapper method
+cli.formatters.print("Hello")          # Direct access
+
+# Which one should I use?
+```
+
+#### ✅ New Pattern (v0.10.0): Direct Access
+
+```python
+from flext_cli import FlextCli
+
+cli = FlextCli()
+
+# One clear way - direct access with explicit ownership
+cli.formatters.print("Hello")                          # Formatting
+cli.file_tools.read_json_file("config.json")           # File I/O
+cli.prompts.confirm("Continue?")                       # User input
+cli.output.format_data(data, format_type="table")      # Output
+```
+
+**Benefits**:
+- **Clear ownership** - Which service handles what is explicit
+- **No duplicate API** - Only one way to do things
+- **Easier to document** - Single source of truth
+- **Better IDE support** - Clearer autocomplete
+- **Performance** - One less indirection level
+
+---
+
+### Module Structure (v0.10.0)
+
+```
+src/flext_cli/
+├── __init__.py          # Public API exports
+├── __version__.py       # Version: 0.10.0
+├── py.typed             # PEP 561 type marker
+
+# SERVICES (3-4 only)
+├── core.py              # FlextCliCore - stateful service
+├── api.py               # FlextCli - main facade (singleton)
+├── cmd.py               # FlextCliCmd - command execution (evaluate)
+
+# FRAMEWORK ABSTRACTION (ZERO TOLERANCE)
+├── cli.py               # FlextCliCli - Click abstraction (ONLY Click import)
+├── cli_params.py        # FlextCliCommonParams - reusable parameters
+
+# SIMPLE CLASSES (utilities)
+├── formatters.py        # FlextCliFormatters - Rich formatting
+├── tables.py            # FlextCliTables - table formatting
+├── output.py            # FlextCliOutput - output management
+├── prompts.py           # FlextCliPrompts - user input
+├── file_tools.py        # FlextCliFileTools - file operations
+├── debug.py             # FlextCliDebug - debug utilities
+├── commands.py          # FlextCliCommands - command registry
+
+# DATA MODELS & CONFIGURATION
+├── context.py           # FlextCliContext - value object (changed!)
+├── config.py            # FlextCliConfig - configuration
+├── models.py            # FlextCliModels - Pydantic models
+├── constants.py         # FlextCliConstants - system constants
+├── typings.py           # FlextCliTypes - type aliases
+├── protocols.py         # FlextCliProtocols - structural typing
+├── exceptions.py        # FlextCliExceptions - exception hierarchy
+└── mixins.py            # FlextCliMixins - reusable mixins
+
+# DELETED (no longer needed)
+# validator.py           # Empty stub - removed
+# auth.py                # Duplicate of api.py auth - removed
+# testing.py             # Moved to tests/fixtures/
+```
+
+**Total**: 20 modules (down from 24)
+
+---
+
+### Architecture Diagram (v0.10.0)
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│                    FlextCli (Main Facade)                     │
+│  - Singleton pattern                                          │
+│  - Core initialization                                        │
+│  - Authentication (business logic, not delegation)            │
+│  - CLI execution orchestration                                │
+└─────────────────────────────────────────────────────────────┘
+                              │
+        ┌─────────────────────┼─────────────────────┐
+        │                     │                     │
+        ▼                     ▼                     ▼
+┌──────────────────┐  ┌──────────────────┐  ┌──────────────────┐
+│ FlextCliCore     │  │ FlextCliCmd      │  │ Simple Classes   │
+│ (Service)        │  │ (Service?)       │  │ (Utilities)      │
+│                  │  │                  │  │                  │
+│ • Commands       │  │ • Execute        │  │ • FileTools      │
+│ • Sessions       │  │ • Validate       │  │ • Formatters     │
+│ • Config         │  │                  │  │ • Tables         │
+│ • Statistics     │  │                  │  │ • Output         │
+│                  │  │                  │  │ • Prompts        │
+│                  │  │                  │  │ • Debug          │
+└──────────────────┘  └──────────────────┘  └──────────────────┘
+        │                     │                     │
+        └─────────────────────┼─────────────────────┘
+                              │
+                              ▼
+                ┌──────────────────────────┐
+                │   Data Models            │
+                │   (Value Objects)        │
+                │                          │
+                │ • FlextCliContext        │
+                │ • FlextCliModels.*       │
+                │ • FlextCliConfig         │
+                └──────────────────────────┘
+```
+
+---
+
+### Usage Examples (v0.10.0)
+
+#### Example 1: File Operations
+
+```python
+from flext_cli import FlextCli
+
+cli = FlextCli()
+
+# Direct access - clear ownership
+result = cli.file_tools.read_json_file("config.json")
+
+if result.is_success:
+    config = result.unwrap()
+    print(f"Loaded config: {config}")
+else:
+    print(f"Error: {result.error}")
+```
+
+#### Example 2: Output Formatting
+
+```python
+from flext_cli import FlextCli
+
+cli = FlextCli()
+
+# Direct access to formatters
+cli.formatters.print("Success!", style="green")
+
+# Direct access to output service
+table_result = cli.output.format_data(
+    data=users,
+    format_type="table"
+)
+
+if table_result.is_success:
+    cli.formatters.print(table_result.unwrap())
+```
+
+#### Example 3: Context as Value Object
+
+```python
+from flext_cli import FlextCliContext
+
+# Context is now immutable data (not a service)
+context = FlextCliContext(
+    command="deploy",
+    arguments=["production", "--force"],
+    environment_variables={"ENV": "prod"},
+    working_directory="/app"
+)
+
+# No activate/deactivate - just use the data
+print(f"Running: {context.command}")
+print(f"Args: {context.arguments}")
+
+# Immutable - create new instance for changes
+updated_context = context.model_copy(
+    update={"working_directory": "/app/new"}
+)
+```
+
+#### Example 4: User Prompts
+
+```python
+from flext_cli import FlextCli
+
+cli = FlextCli()
+
+# Direct access to prompts
+confirm_result = cli.prompts.confirm("Deploy to production?")
+
+if confirm_result.is_success and confirm_result.unwrap():
+    cli.formatters.print("Deploying...", style="bold green")
+else:
+    cli.formatters.print("Cancelled", style="yellow")
+```
+
+---
+
+### Migration from v0.9.0 to v0.10.0
+
+**See**: [MIGRATION_GUIDE_V0.9_TO_V0.10.md](refactoring/MIGRATION_GUIDE_V0.9_TO_V0.10.md)
+
+**Quick Find-and-Replace Patterns** (90% of changes):
+
+```python
+# Old (v0.9.0) → New (v0.10.0)
+cli.print(              → cli.formatters.print(
+cli.read_json_file(     → cli.file_tools.read_json_file(
+cli.confirm(            → cli.prompts.confirm(
+cli.create_table(       → cli.output.format_data(..., format_type="table")
+```
+
+**Estimated Migration Time**: 30-60 minutes for typical project
+
+---
+
+### When to Use Each Pattern
+
+#### Use FlextService When:
+- ✅ Managing stateful resources (commands, sessions)
+- ✅ Complex initialization required
+- ✅ Lifecycle management needed (startup, shutdown)
+- ✅ Dependency injection required
+
+#### Use Simple Class When:
+- ✅ Stateless utility functions
+- ✅ Pure I/O operations (read/write files)
+- ✅ Formatting and transformation
+- ✅ No initialization needed
+- ✅ Methods could be static
+
+#### Use Value Object When:
+- ✅ Immutable data
+- ✅ Compared by value
+- ✅ No behavior, just validation
+- ✅ Configuration or context data
+
+---
+
+### Breaking Changes Summary
+
+**API Changes**:
+- ❌ Removed ~15 wrapper methods from FlextCli
+- ❌ FlextCliContext is now value object (not service)
+- ❌ Static methods for utility classes (no instantiation)
+
+**Module Changes**:
+- ❌ Deleted: validator.py, auth.py
+- ❌ Moved: testing.py → tests/fixtures/
+
+**See Full List**: [BREAKING_CHANGES.md](refactoring/BREAKING_CHANGES.md)
+
+---
+
+### Benefits of v0.10.0 Architecture
+
+**Code Quality**:
+- ✅ 30-40% less code to maintain
+- ✅ Clearer separation of concerns
+- ✅ Better SOLID compliance
+- ✅ No unused infrastructure
+
+**Developer Experience**:
+- ✅ Simpler mental model
+- ✅ One clear way per operation
+- ✅ Better IDE autocomplete
+- ✅ Easier to debug
+
+**Performance**:
+- ✅ Less indirection (faster calls)
+- ✅ No service overhead for utilities
+- ✅ Lighter initialization
+
+**Maintainability**:
+- ✅ Organized test structure
+- ✅ Clear module responsibilities
+- ✅ Easier to extend
+
+---
+
+## v0.9.0 Architecture (Historical Reference)
 
 ## Architecture Overview
 

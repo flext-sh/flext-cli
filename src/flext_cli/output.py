@@ -436,7 +436,14 @@ class FlextCliOutput(FlextService[object]):
             data: List of dictionaries to display
             headers: Optional custom headers
             table_format: Table format (simple, grid, fancy_grid, pipe, etc.)
-            **kwargs: Additional tabulate options
+            align: Column alignment (str or sequence)
+            floatfmt: Float format string
+            numalign: Number alignment
+            stralign: String alignment
+            missingval: Value to display for missing data
+            showindex: Show index column (bool or str)
+            disable_numparse: Disable numeric parsing
+            colalign: Column-specific alignment
 
         Returns:
             FlextResult[str]: ASCII table string
