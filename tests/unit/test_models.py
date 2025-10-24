@@ -1139,7 +1139,7 @@ class TestFlextCliModelsExceptionHandlers:
                 _context: object = None,
                 _by_alias: bool | None = None,
                 _by_name: bool | None = None,
-            ) -> Self:  # type: ignore[override]
+            ) -> Self:
                 msg = "Model fields error"
                 raise RuntimeError(msg)
 
@@ -1166,7 +1166,7 @@ class TestFlextCliModelsExceptionHandlers:
                 _context: object = None,
                 _by_alias: bool | None = None,
                 _by_name: bool | None = None,
-            ) -> Self:  # type: ignore[override]
+            ) -> Self:
                 msg = "Click options error"
                 raise RuntimeError(msg)
 
@@ -1204,7 +1204,7 @@ class TestFlextCliModelsExceptionHandlers:
 
         decorator = FlextCliModels.CliModelDecorators.cli_from_model(FailingModel)
 
-        @decorator  # type: ignore[arg-type]
+        @decorator
         def test_function(invalid_param: str) -> str:
             return "success"
 

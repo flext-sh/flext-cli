@@ -2,7 +2,498 @@
 
 **Complete reference for FLEXT CLI command-line interface patterns**
 
-This document provides comprehensive API documentation for FLEXT CLI components based on the actual implementation in `src/flext_cli/`.
+**Last Updated**: 2025-01-24 | **Version**: 0.10.0
+
+---
+
+## 📌 Quick Navigation
+
+- [v0.10.0 API (Current)](#v0100-api-current) ← **Start Here**
+- [v0.9.0 API (Historical Reference)](#v090-api-historical-reference)
+
+---
+
+## v0.10.0 API (Current)
+
+**Status**: 📝 Planned | **Release**: Q1 2025 | **Breaking Changes**: Yes
+
+### Overview
+
+FLEXT-CLI v0.10.0 introduces a **direct access API pattern**, removing all wrapper methods from the main `FlextCli` facade. This provides clearer ownership of functionality and eliminates API duplication.
+
+**Key Changes**:
+- **Direct Access**: All operations accessed via property paths (e.g., `cli.formatters.print()`)
+- **No Wrappers**: Removed ~15 wrapper methods from `FlextCli`
+- **Clear Ownership**: Explicit which service handles each operation
+- **Context as Value Object**: `FlextCliContext` is now immutable data
+
+### Essential Imports (v0.10.0)
+
+```python
+# Main API facade
+from flext_cli import FlextCli
+
+# Core services and utilities
+from flext_cli import (
+    FlextCliCore,          # Core service (stateful)
+    FlextCliCmd,           # Command execution
+    FlextCliConfig,        # Configuration singleton
+    FlextCliContext,       # Execution context (NOW VALUE OBJECT)
+)
+
+# Simple utility classes
+from flext_cli import (
+    FlextCliFileTools,     # File I/O (JSON/YAML/CSV)
+    FlextCliFormatters,    # Rich formatting
+    FlextCliTables,        # Table generation
+    FlextCliOutput,        # Output management
+    FlextCliPrompts,       # Interactive prompts
+    FlextCliDebug,         # Debug utilities
+)
+
+# Data models and types
+from flext_cli import (
+    FlextCliModels,        # ALL Pydantic models
+    FlextCliTypes,         # Type definitions
+    FlextCliConstants,     # System constants
+    FlextCliExceptions,    # Exception hierarchy
+)
+
+# Railway pattern from flext-core
+from flext_core import FlextResult
+```
+
+---
+
+### 🏗️ FlextCli - Main API Facade (v0.10.0)
+
+The main entry point provides access to all CLI functionality via properties.
+
+#### Basic Initialization
+
+```python
+from flext_cli import FlextCli
+
+# Create instance (singleton pattern)
+cli = FlextCli()
+
+# Access services via direct properties
+cli.formatters    # FlextCliFormatters - Rich formatting
+cli.file_tools    # FlextCliFileTools - File operations
+cli.prompts       # FlextCliPrompts - User input
+cli.output        # FlextCliOutput - Output management
+cli.config        # FlextCliConfig - Configuration
+cli.core          # FlextCliCore - Core service
+```
+
+---
+
+### 🎨 Output Formatting (v0.10.0)
+
+#### Print and Formatting
+
+```python
+from flext_cli import FlextCli
+
+cli = FlextCli()
+
+# Direct access to formatters
+cli.formatters.print("Hello World!", style="green")
+cli.formatters.print("[bold red]Error![/bold red]")
+cli.formatters.print("Info", style="blue bold")
+
+# Create styled text
+styled = cli.formatters.style_text("Warning", style="yellow")
+```
+
+#### Table Display
+
+```python
+from flext_cli import FlextCli
+
+cli = FlextCli()
+
+# Create table data
+users = [
+    {"name": "Alice", "age": 30, "role": "Admin"},
+    {"name": "Bob", "age": 25, "role": "User"},
+]
+
+# Format as table (direct access to output service)
+table_result = cli.output.format_data(
+    data={"users": users},
+    format_type="table"
+)
+
+# Display the table
+if table_result.is_success:
+    cli.formatters.print(table_result.unwrap())
+```
+
+#### Progress Indicators
+
+```python
+from flext_cli import FlextCli
+
+cli = FlextCli()
+
+# Create progress bar
+progress_result = cli.formatters.create_progress_bar(
+    total=100,
+    description="Processing items..."
+)
+
+if progress_result.is_success:
+    progress = progress_result.unwrap()
+
+    for i in range(100):
+        progress.update(1)
+        # Do work...
+
+    progress.stop()
+```
+
+---
+
+### 📁 File Operations (v0.10.0)
+
+#### JSON Operations
+
+```python
+from flext_cli import FlextCli
+from pathlib import Path
+
+cli = FlextCli()
+
+# Read JSON file (direct access to file_tools)
+config_result = cli.file_tools.read_json_file("config.json")
+
+if config_result.is_success:
+    config = config_result.unwrap()
+    print(f"Loaded config: {config}")
+else:
+    cli.formatters.print(f"Error: {config_result.error}", style="red")
+
+# Write JSON file
+data = {"setting": "value", "enabled": True}
+write_result = cli.file_tools.write_json_file("output.json", data)
+
+if write_result.is_success:
+    cli.formatters.print("File saved!", style="green")
+```
+
+#### YAML Operations
+
+```python
+from flext_cli import FlextCli
+
+cli = FlextCli()
+
+# Read YAML
+yaml_result = cli.file_tools.read_yaml_file("config.yaml")
+
+if yaml_result.is_success:
+    config = yaml_result.unwrap()
+
+# Write YAML
+data = {"database": {"host": "localhost", "port": 5432}}
+cli.file_tools.write_yaml_file("config.yaml", data)
+```
+
+#### CSV Operations
+
+```python
+from flext_cli import FlextCli
+
+cli = FlextCli()
+
+# Read CSV
+csv_result = cli.file_tools.read_csv_file("data.csv")
+
+if csv_result.is_success:
+    rows = csv_result.unwrap()
+    cli.formatters.print(f"Loaded {len(rows)} rows")
+
+# Write CSV
+data = [
+    ["Name", "Age", "Role"],
+    ["Alice", "30", "Admin"],
+    ["Bob", "25", "User"],
+]
+cli.file_tools.write_csv_file("output.csv", data)
+```
+
+---
+
+### 💬 Interactive Prompts (v0.10.0)
+
+#### Confirmation Dialogs
+
+```python
+from flext_cli import FlextCli
+
+cli = FlextCli()
+
+# Ask for confirmation (direct access to prompts)
+confirm_result = cli.prompts.confirm(
+    "Continue with operation?",
+    default=True
+)
+
+if confirm_result.is_success and confirm_result.unwrap():
+    cli.formatters.print("Proceeding...", style="green")
+else:
+    cli.formatters.print("Cancelled", style="yellow")
+```
+
+#### Text Input
+
+```python
+from flext_cli import FlextCli
+
+cli = FlextCli()
+
+# Get text input
+name_result = cli.prompts.prompt(
+    "Enter your name:",
+    default="Guest"
+)
+
+if name_result.is_success:
+    name = name_result.unwrap()
+    cli.formatters.print(f"Hello, {name}!", style="cyan")
+```
+
+#### Selection Prompts
+
+```python
+from flext_cli import FlextCli
+
+cli = FlextCli()
+
+# Select from choices
+choice_result = cli.prompts.select(
+    message="Choose environment:",
+    choices=["development", "staging", "production"]
+)
+
+if choice_result.is_success:
+    env = choice_result.unwrap()
+    cli.formatters.print(f"Selected: {env}", style="green")
+```
+
+---
+
+### 📦 Context as Value Object (v0.10.0)
+
+**Important Change**: `FlextCliContext` is now an immutable value object (not a service).
+
+```python
+from flext_cli import FlextCliContext
+
+# Create immutable context
+context = FlextCliContext(
+    command="deploy",
+    arguments=["production", "--force"],
+    environment_variables={"ENV": "prod"},
+    working_directory="/app"
+)
+
+# Access data (no methods, just properties)
+print(f"Command: {context.command}")
+print(f"Args: {context.arguments}")
+print(f"Working dir: {context.working_directory}")
+
+# Immutable - create new instance for changes
+updated_context = context.model_copy(
+    update={"working_directory": "/app/new"}
+)
+
+# ❌ OLD (v0.9.0) - No longer available:
+# context.activate()   # REMOVED
+# context.deactivate() # REMOVED
+# context.is_active = True  # REMOVED (now immutable)
+```
+
+---
+
+### ⚙️ Configuration Management (v0.10.0)
+
+```python
+from flext_cli import FlextCliConfig
+
+# Get singleton instance
+config = FlextCliConfig.get_global_instance()
+
+# Read-only properties (env var support)
+debug = config.debug                    # FLEXT_DEBUG
+output_format = config.output_format    # FLEXT_OUTPUT_FORMAT
+timeout = config.timeout                # FLEXT_TIMEOUT
+token_file = config.token_file          # ~/.flext/auth/token.json
+
+# Access via CLI facade
+from flext_cli import FlextCli
+cli = FlextCli()
+debug_mode = cli.config.debug
+```
+
+---
+
+### 🧪 Railway-Oriented Error Handling (v0.10.0)
+
+All operations return `FlextResult[T]` for composable error handling.
+
+```python
+from flext_cli import FlextCli
+from flext_core import FlextResult
+
+cli = FlextCli()
+
+# Chain operations
+result = (
+    cli.file_tools.read_json_file("config.json")
+    .flat_map(lambda config: validate_config(config))
+    .map(lambda config: apply_defaults(config))
+    .map(lambda config: cli.formatters.print(f"Config loaded: {config}"))
+)
+
+# Handle success or failure
+if result.is_success:
+    cli.formatters.print("Operation completed!", style="green")
+else:
+    cli.formatters.print(f"Error: {result.error}", style="red")
+
+# Safe unwrap with default
+config = result.unwrap_or(default_config)
+```
+
+---
+
+### 🔧 Utility Operations (v0.10.0)
+
+#### Debug Utilities
+
+```python
+from flext_cli import FlextCli
+
+cli = FlextCli()
+
+# Access debug utilities
+debug_info = cli.debug.get_system_info()
+cli.debug.dump_state()
+cli.debug.trace_execution()
+```
+
+#### Table Formatting
+
+```python
+from flext_cli import FlextCli
+
+cli = FlextCli()
+
+# Create table with specific format
+data = [["Name", "Age"], ["Alice", 30], ["Bob", 25]]
+
+table_result = cli.tables.create_table(
+    data=data,
+    format="fancy_grid",  # 22+ formats available
+    title="Users"
+)
+
+if table_result.is_success:
+    cli.formatters.print(table_result.unwrap())
+```
+
+---
+
+### 📊 Complete Example: Application Workflow (v0.10.0)
+
+```python
+from flext_cli import FlextCli, FlextCliContext
+from flext_core import FlextResult
+
+def main() -> FlextResult[None]:
+    """Complete application using v0.10.0 API patterns."""
+    cli = FlextCli()
+
+    # 1. Load configuration (direct access)
+    config_result = cli.file_tools.read_json_file("config.json")
+    if not config_result.is_success:
+        cli.formatters.print(f"Config error: {config_result.error}", style="red")
+        return FlextResult[None].fail(config_result.error)
+
+    config = config_result.unwrap()
+
+    # 2. Create immutable context (value object)
+    context = FlextCliContext(
+        command="process",
+        arguments=["--verbose"],
+        environment_variables={"MODE": "production"},
+        working_directory=config.get("work_dir", "/tmp")
+    )
+
+    # 3. Confirm with user (direct access to prompts)
+    confirm_result = cli.prompts.confirm(
+        f"Process in {context.environment_variables['MODE']} mode?"
+    )
+
+    if not confirm_result.is_success or not confirm_result.unwrap():
+        cli.formatters.print("Operation cancelled", style="yellow")
+        return FlextResult[None].ok(None)
+
+    # 4. Process data with progress
+    cli.formatters.print("Processing data...", style="cyan")
+
+    # 5. Save results (direct access to file_tools)
+    results = {"status": "completed", "processed": 100}
+    save_result = cli.file_tools.write_json_file("results.json", results)
+
+    if save_result.is_success:
+        cli.formatters.print("✓ Processing complete!", style="green bold")
+
+        # 6. Display results as table
+        table_data = [
+            ["Metric", "Value"],
+            ["Status", results["status"]],
+            ["Processed", results["processed"]],
+        ]
+        table_result = cli.tables.create_table(data=table_data, format="simple")
+
+        if table_result.is_success:
+            cli.formatters.print(table_result.unwrap())
+
+    return FlextResult[None].ok(None)
+
+if __name__ == "__main__":
+    result = main()
+    if not result.is_success:
+        print(f"Error: {result.error}")
+```
+
+---
+
+### 🔀 Migration from v0.9.0 to v0.10.0
+
+**Common Pattern Changes**:
+
+| v0.9.0 (Old) | v0.10.0 (New) | Category |
+|--------------|---------------|----------|
+| `cli.print(...)` | `cli.formatters.print(...)` | Output |
+| `cli.create_table(...)` | `cli.output.format_data(..., format_type="table")` | Tables |
+| `cli.read_json_file(...)` | `cli.file_tools.read_json_file(...)` | Files |
+| `cli.write_json_file(...)` | `cli.file_tools.write_json_file(...)` | Files |
+| `cli.confirm(...)` | `cli.prompts.confirm(...)` | Input |
+| `cli.prompt_text(...)` | `cli.prompts.prompt(...)` | Input |
+| `context.activate()` | ❌ Removed (context is now immutable) | Context |
+| `context.deactivate()` | ❌ Removed (context is now immutable) | Context |
+
+**See Full Guide**: [MIGRATION_GUIDE_V0.9_TO_V0.10.md](refactoring/MIGRATION_GUIDE_V0.9_TO_V0.10.md)
+
+---
+
+## v0.9.0 API (Historical Reference)
+
+**Note**: The following documentation describes the v0.9.0 API with wrapper methods. This is kept for historical reference during the migration period.
 
 ## 🎯 Essential Imports
 

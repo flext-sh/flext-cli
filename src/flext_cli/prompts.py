@@ -124,7 +124,6 @@ class FlextCliPrompts(FlextService[FlextCliTypes.Data.CliDataDict]):
         Args:
             message: Prompt message to display
             default: Default value if no input provided
-            timeout: Timeout in seconds (uses default if None)
             validation_pattern: Optional regex pattern for input validation
 
         Returns:
@@ -184,7 +183,6 @@ class FlextCliPrompts(FlextService[FlextCliTypes.Data.CliDataDict]):
         Args:
             message: Confirmation message to display
             default: Default value if no input provided
-            timeout: Timeout in seconds (uses default if None)
 
         Returns:
             FlextResult[bool]: User confirmation or error
@@ -227,7 +225,6 @@ class FlextCliPrompts(FlextService[FlextCliTypes.Data.CliDataDict]):
             message: Choice prompt message to display
             choices: List of available choices
             default: Default choice if no input provided
-            timeout: Timeout in seconds (uses default if None)
 
         Returns:
             FlextResult[str]: Selected choice or error
@@ -289,7 +286,6 @@ class FlextCliPrompts(FlextService[FlextCliTypes.Data.CliDataDict]):
 
         Args:
             message: Password prompt message
-            timeout: Timeout in seconds (uses default if None)
             min_length: Minimum password length
 
         Returns:

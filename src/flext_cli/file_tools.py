@@ -30,43 +30,24 @@ import zipfile
 from pathlib import Path
 
 import yaml
-from flext_core import FlextResult, FlextService, FlextTypes
+from flext_core import FlextResult, FlextTypes
 
 from flext_cli.constants import FlextCliConstants
 
 
-class FlextCliFileTools(FlextService[dict[str, object]]):
-    """Unified file operations service following FLEXT namespace pattern.
+class FlextCliFileTools:
+    """Unified file operations utility following FLEXT namespace pattern.
 
-    Single class containing all file operations with nested helper classes
+    Single class containing all stateless file operations with nested helper classes
     for format detection, loading, and saving operations.
     """
-
-    def __init__(self) -> None:
-        """Initialize unified file tools service with Phase 1 context enrichment."""
-        super().__init__()
-        # Logger and container inherited from FlextService via FlextMixins
-        self._supported_formats = FlextCliConstants.FILE_FORMATS
-
-    # Attributes initialized in __init__
-
-    def execute(self) -> FlextResult[dict[str, object]]:
-        """Execute file tools service - FlextService interface.
-
-        Returns:
-            FlextResult with status dict[str, object] (file tools service is ready)
-
-        """
-        # Return dict[str, object] to indicate service is ready (matches service interface)
-        return FlextResult[dict[str, object]].ok({
-            FlextCliConstants.DictKeys.STATUS: FlextCliConstants.FileToolsDefaults.SERVICE_STATUS_READY
-        })
 
     # ==========================================================================
     # PUBLIC API - File operations exposed to ecosystem
     # ==========================================================================
 
-    def read_text_file(self, file_path: str | Path) -> FlextResult[str]:
+    @staticmethod
+    def read_text_file(file_path: str | Path) -> FlextResult[str]:
         """Read text file.
 
         Args:
@@ -150,7 +131,7 @@ class FlextCliFileTools(FlextService[dict[str, object]]):
             FlextResult containing parsed JSON data
 
         """
-        return self._FileLoader.load_json(str(file_path))
+        return FlextCliFileTools._FileLoader.load_json(str(file_path))
 
     @staticmethod
     def write_json_file(
@@ -205,7 +186,7 @@ class FlextCliFileTools(FlextService[dict[str, object]]):
             FlextResult containing parsed YAML data
 
         """
-        return self._FileLoader.load_yaml(str(file_path))
+        return FlextCliFileTools._FileLoader.load_yaml(str(file_path))
 
     @staticmethod
     def write_yaml_file(
@@ -248,13 +229,15 @@ class FlextCliFileTools(FlextService[dict[str, object]]):
 
     # === PUBLIC API METHODS ===
 
-    def file_exists(self, file_path: str | Path) -> FlextResult[bool]:
+    @staticmethod
+    def file_exists(file_path: str | Path) -> FlextResult[bool]:
         """Check if file exists."""
-        return self._FileSystemOps.file_exists(str(file_path))
+        return FlextCliFileTools._FileSystemOps.file_exists(str(file_path))
 
-    def detect_file_format(self, file_path: str | Path) -> FlextResult[str]:
+    @staticmethod
+    def detect_file_format(file_path: str | Path) -> FlextResult[str]:
         """Detect file format from extension."""
-        return self._FormatDetector.detect_format(
+        return FlextCliFileTools._FormatDetector.detect_format(
             FlextCliConstants.FILE_FORMATS, file_path
         )
 
@@ -262,7 +245,7 @@ class FlextCliFileTools(FlextService[dict[str, object]]):
         self, file_path: str | Path
     ) -> FlextResult[FlextTypes.JsonValue]:
         """Load file with automatic format detection."""
-        format_result = self.detect_file_format(file_path)
+        format_result = FlextCliFileTools.detect_file_format(file_path)
         if format_result.is_failure:
             return FlextResult[FlextTypes.JsonValue].fail(
                 format_result.error
@@ -271,9 +254,9 @@ class FlextCliFileTools(FlextService[dict[str, object]]):
 
         file_format = format_result.unwrap()
         if file_format == FlextCliConstants.FileSupportedFormats.JSON:
-            return self._FileLoader.load_json(str(file_path))
+            return FlextCliFileTools._FileLoader.load_json(str(file_path))
         if file_format == FlextCliConstants.FileSupportedFormats.YAML:
-            return self._FileLoader.load_yaml(str(file_path))
+            return FlextCliFileTools._FileLoader.load_yaml(str(file_path))
 
         return FlextResult[FlextTypes.JsonValue].fail(
             FlextCliConstants.ErrorMessages.UNSUPPORTED_FORMAT.format(
@@ -291,9 +274,10 @@ class FlextCliFileTools(FlextService[dict[str, object]]):
             For custom formatting options, use write_json_file() or write_yaml_file() directly.
 
         """
-        return self._FileSaver.save_file(file_path, data)
+        return FlextCliFileTools._FileSaver.save_file(file_path, data)
 
-    def read_binary_file(self, file_path: str | Path) -> FlextResult[bytes]:
+    @staticmethod
+    def read_binary_file(file_path: str | Path) -> FlextResult[bytes]:
         """Read binary file content."""
         try:
             content = Path(file_path).read_bytes()
@@ -315,7 +299,8 @@ class FlextCliFileTools(FlextService[dict[str, object]]):
                 FlextCliConstants.FileErrorMessages.BINARY_WRITE_FAILED.format(error=e)
             )
 
-    def read_csv_file(self, file_path: str | Path) -> FlextResult[list[list[str]]]:
+    @staticmethod
+    def read_csv_file(file_path: str | Path) -> FlextResult[list[list[str]]]:
         """Read CSV file content."""
         try:
             with Path(file_path).open(
@@ -363,7 +348,8 @@ class FlextCliFileTools(FlextService[dict[str, object]]):
                 FlextCliConstants.FileErrorMessages.CSV_READ_FAILED.format(error=e)
             )
 
-    def delete_file(self, file_path: str | Path) -> FlextResult[None]:
+    @staticmethod
+    def delete_file(file_path: str | Path) -> FlextResult[None]:
         """Delete file."""
         try:
             Path(file_path).unlink()
@@ -385,7 +371,8 @@ class FlextCliFileTools(FlextService[dict[str, object]]):
                 FlextCliConstants.FileErrorMessages.FILE_MOVE_FAILED.format(error=e)
             )
 
-    def create_directory(self, dir_path: str | Path) -> FlextResult[None]:
+    @staticmethod
+    def create_directory(dir_path: str | Path) -> FlextResult[None]:
         """Create directory."""
         try:
             Path(dir_path).mkdir(parents=True, exist_ok=True)
@@ -397,7 +384,8 @@ class FlextCliFileTools(FlextService[dict[str, object]]):
                 )
             )
 
-    def directory_exists(self, dir_path: str | Path) -> FlextResult[bool]:
+    @staticmethod
+    def directory_exists(dir_path: str | Path) -> FlextResult[bool]:
         """Check if directory exists."""
         try:
             exists = Path(dir_path).is_dir()
@@ -409,7 +397,8 @@ class FlextCliFileTools(FlextService[dict[str, object]]):
                 )
             )
 
-    def delete_directory(self, dir_path: str | Path) -> FlextResult[None]:
+    @staticmethod
+    def delete_directory(dir_path: str | Path) -> FlextResult[None]:
         """Delete directory."""
         try:
             shutil.rmtree(str(dir_path))
@@ -421,7 +410,8 @@ class FlextCliFileTools(FlextService[dict[str, object]]):
                 )
             )
 
-    def list_directory(self, dir_path: str | Path) -> FlextResult[list[str]]:
+    @staticmethod
+    def list_directory(dir_path: str | Path) -> FlextResult[list[str]]:
         """List directory contents."""
         try:
             items = [str(p.name) for p in Path(dir_path).iterdir()]
@@ -433,7 +423,8 @@ class FlextCliFileTools(FlextService[dict[str, object]]):
                 )
             )
 
-    def get_file_size(self, file_path: str | Path) -> FlextResult[int]:
+    @staticmethod
+    def get_file_size(file_path: str | Path) -> FlextResult[int]:
         """Get file size in bytes."""
         try:
             size = Path(file_path).stat().st_size
@@ -445,7 +436,8 @@ class FlextCliFileTools(FlextService[dict[str, object]]):
                 )
             )
 
-    def get_file_modified_time(self, file_path: str | Path) -> FlextResult[float]:
+    @staticmethod
+    def get_file_modified_time(file_path: str | Path) -> FlextResult[float]:
         """Get file modification time."""
         try:
             mtime = Path(file_path).stat().st_mtime
@@ -457,8 +449,9 @@ class FlextCliFileTools(FlextService[dict[str, object]]):
                 )
             )
 
+    @staticmethod
     def calculate_file_hash(
-        self, file_path: str | Path, algorithm: str = "sha256"
+        file_path: str | Path, algorithm: str = "sha256"
     ) -> FlextResult[str]:
         """Calculate file hash."""
         try:
@@ -476,11 +469,12 @@ class FlextCliFileTools(FlextService[dict[str, object]]):
                 )
             )
 
+    @staticmethod
     def verify_file_hash(
-        self, file_path: str | Path, expected_hash: str, algorithm: str = "sha256"
+        file_path: str | Path, expected_hash: str, algorithm: str = "sha256"
     ) -> FlextResult[bool]:
         """Verify file hash."""
-        hash_result = self.calculate_file_hash(file_path, algorithm)
+        hash_result = FlextCliFileTools.calculate_file_hash(file_path, algorithm)
         if hash_result.is_failure:
             return FlextResult[bool].fail(
                 hash_result.error
@@ -490,7 +484,8 @@ class FlextCliFileTools(FlextService[dict[str, object]]):
         matches = hash_result.unwrap() == expected_hash
         return FlextResult[bool].ok(matches)
 
-    def get_file_permissions(self, file_path: str | Path) -> FlextResult[int]:
+    @staticmethod
+    def get_file_permissions(file_path: str | Path) -> FlextResult[int]:
         """Get file permissions."""
         try:
             mode = Path(file_path).stat().st_mode
@@ -503,8 +498,9 @@ class FlextCliFileTools(FlextService[dict[str, object]]):
                 )
             )
 
+    @staticmethod
     def set_file_permissions(
-        self, file_path: str | Path, permissions: int
+        file_path: str | Path, permissions: int
     ) -> FlextResult[None]:
         """Set file permissions."""
         try:
@@ -517,7 +513,8 @@ class FlextCliFileTools(FlextService[dict[str, object]]):
                 )
             )
 
-    def create_temp_file(self) -> FlextResult[str]:
+    @staticmethod
+    def create_temp_file() -> FlextResult[str]:
         """Create temporary file."""
         try:
             fd, path = tempfile.mkstemp()
@@ -531,7 +528,8 @@ class FlextCliFileTools(FlextService[dict[str, object]]):
                 )
             )
 
-    def create_temp_directory(self) -> FlextResult[str]:
+    @staticmethod
+    def create_temp_directory() -> FlextResult[str]:
         """Create temporary directory."""
         try:
             path = tempfile.mkdtemp()
@@ -630,7 +628,8 @@ class FlextCliFileTools(FlextService[dict[str, object]]):
                 )
             )
 
-    def get_supported_formats(self) -> FlextResult[list[str]]:
+    @staticmethod
+    def get_supported_formats() -> FlextResult[list[str]]:
         """Get list of supported file formats."""
         formats = FlextCliConstants.FileSupportedFormats.SUPPORTED_FORMATS
         return FlextResult[list[str]].ok(formats)

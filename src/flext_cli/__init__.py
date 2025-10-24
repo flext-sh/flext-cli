@@ -1,8 +1,8 @@
 """FLEXT CLI - Production-ready CLI foundation library (Layer 3+ Application API).
 
-**PURPOSE**: Root module exporting 19 unified classes providing enterprise-grade
+**PURPOSE**: Root module exporting 16 unified classes providing enterprise-grade
 command-line interface abstraction with Click/Rich integration, configuration
-management, authentication, output formatting, file operations, and plugin system.
+management, output formatting, file operations, and plugin system.
 Serves 32+ FLEXT projects with standardized patterns.
 
 **ARCHITECTURE LAYER**: Application API Layer (Layer 3+)
@@ -18,7 +18,7 @@ Serves 32+ FLEXT projects with standardized patterns.
 - **ONLY formatters.py + typings.py import Rich** - Terminal UI completely abstracted
 - Breaking this constraint violates foundation library core purpose for 32+ projects
 
-**19 EXPORTED CLASSES** (organized by functionality):
+**16 EXPORTED CLASSES** (organized by functionality):
 
 1. **Core Facade**:
    - FlextCli - Main unified API for all CLI operations (16K+ lines)
@@ -167,7 +167,6 @@ from flext_cli.api import FlextCli
 
 # Phase 2: Advanced Features - Production Ready
 # from flext_cli.async_support import FlextCliAsync  # Module not yet implemented
-from flext_cli.auth import FlextCliAuthService
 from flext_cli.cli import FlextCliCli
 from flext_cli.cli_params import FlextCliCommonParams
 from flext_cli.cmd import FlextCliCmd
@@ -185,14 +184,12 @@ from flext_cli.output import FlextCliOutput
 from flext_cli.prompts import FlextCliPrompts
 from flext_cli.protocols import FlextCliProtocols
 from flext_cli.tables import FlextCliTables
-from flext_cli.testing import FlextCliMockScenarios, FlextCliTesting, FlextCliTestRunner
 from flext_cli.typings import FlextCliTypes
 
 __all__ = [
     # Core API (alphabetically sorted per FLEXT standards)
     "FlextCli",
     # "FlextCliAsync",  # Module not yet implemented
-    "FlextCliAuthService",
     "FlextCliCli",
     "FlextCliCmd",
     "FlextCliCommands",
@@ -205,14 +202,11 @@ __all__ = [
     "FlextCliFileTools",
     "FlextCliFormatters",
     "FlextCliMixins",
-    "FlextCliMockScenarios",
     "FlextCliModels",
     "FlextCliOutput",
     "FlextCliPrompts",
     "FlextCliProtocols",
     "FlextCliTables",
-    "FlextCliTestRunner",
-    "FlextCliTesting",
     "FlextCliTypes",
     # Version
     "__version__",

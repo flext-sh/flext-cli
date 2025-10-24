@@ -1104,7 +1104,7 @@ class TestFlextCliCoreExtended:
             ],
         ] = {"theme": {"value": "dark"}, "verbose": {"value": True}}
 
-        result = core_service.update_configuration(config)  # type: ignore[arg-type]
+        result = core_service.update_configuration(config)
 
         assert isinstance(result, FlextResult)
         assert result.is_success
@@ -1122,7 +1122,7 @@ class TestFlextCliCoreExtended:
         """Test creating configuration profile."""
         profile_config: dict[str, object] = {"color": "blue", "size": "large"}
 
-        result = core_service.create_profile("test-profile", profile_config)  # type: ignore[arg-type]
+        result = core_service.create_profile("test-profile", profile_config)
 
         assert isinstance(result, FlextResult)
         assert result.is_success
@@ -1280,7 +1280,7 @@ class TestFlextCliCoreExtended:
             "verbose": {"value": True},
             "timeout": {"value": 30},
         }
-        update_result = core_service.update_configuration(config)  # type: ignore[arg-type]
+        update_result = core_service.update_configuration(config)
         assert update_result.is_success
 
         # Step 2: Get configuration
@@ -1387,8 +1387,8 @@ class TestFlextCliCoreExceptionHandlers:
         core_service._config = {}
 
         config: dict[str, dict[str, object]] = {"test": {"value": "data"}}
-        result = core_service.update_configuration(  # type: ignore[arg-type]
-            cast(  # type: ignore[arg-type]
+        result = core_service.update_configuration(
+            cast(
                 "dict[str, dict[str, str | int | float | bool | list[object] | dict[str, object] | None]]",
                 config,
             )
@@ -1411,8 +1411,8 @@ class TestFlextCliCoreExceptionHandlers:
         monkeypatch.setattr(core_service, "_config", MockConfigDict())
 
         config: dict[str, dict[str, object]] = {"test": {"value": "data"}}
-        result = core_service.update_configuration(  # type: ignore[arg-type]
-            cast(  # type: ignore[arg-type]
+        result = core_service.update_configuration(
+            cast(
                 "dict[str, dict[str, str | int | float | bool | list[object] | dict[str, object] | None]]",
                 config,
             )
