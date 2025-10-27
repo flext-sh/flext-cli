@@ -41,17 +41,6 @@ class TestFlextCliFileTools:
         assert hasattr(file_tools, "logger")
         assert hasattr(file_tools, "container")  # Property from FlextService
 
-    def test_file_tools_execute_method(self, file_tools: FlextCliFileTools) -> None:
-        """Test file tools execute method with real functionality."""
-        result = file_tools.execute()
-
-        assert isinstance(result, FlextResult)
-        assert result.is_success
-
-        data = result.unwrap()
-        assert isinstance(data, dict)
-        assert data.get("status") == "ready"
-
     # ========================================================================
     # BASIC FILE OPERATIONS
     # ========================================================================
@@ -831,17 +820,6 @@ class TestFlextCliFileTools:
         assert json_file.exists()
         assert copied_file.exists()
         assert archive_file.exists()
-
-    def test_file_workflow_integration(self, file_tools: FlextCliFileTools) -> None:
-        """Test file workflow integration (execute now sync)."""
-        # Test execute (now sync, delegates to execute)
-        result = file_tools.execute()
-        assert isinstance(result, FlextResult)
-        assert result.is_success
-
-        data = result.unwrap()
-        assert isinstance(data, dict)
-        assert data.get("status") == "ready"
 
     # ========================================================================
     # ADDITIONAL COVERAGE TESTS

@@ -45,7 +45,7 @@ def convert_file_tools() -> None:
 
     # 6. Add @staticmethod to methods that don't already have it
     # Find all method definitions that don't have @staticmethod
-    def add_staticmethod(match):
+    def add_staticmethod(match: re.Match[str]) -> str:
         """Add @staticmethod decorator if not present."""
         method_def = match.group(0)
         if "@staticmethod" not in method_def:

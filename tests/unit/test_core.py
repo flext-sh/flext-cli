@@ -224,7 +224,9 @@ class TestFlextCliCore:
 
         # Test invalid configuration - Pydantic will catch validation errors
         # during model construction, so we expect an exception
-        with pytest.raises(Exception):
+        from pydantic import ValidationError
+
+        with pytest.raises(ValidationError):
             FlextCliConfig(
                 debug=cast("bool", "invalid_boolean"),
                 cli_timeout=-1,
@@ -1096,13 +1098,10 @@ class TestFlextCliCoreExtended:
 
     def test_update_configuration_success(self, core_service: FlextCliCore) -> None:
         """Test updating configuration."""
-        config: dict[
-            str,
-            dict[
-                str,
-                str | int | float | bool | list[object] | dict[str, object] | None,
-            ],
-        ] = {"theme": {"value": "dark"}, "verbose": {"value": True}}
+        config: FlextCliTypes.Configuration.CliConfigSchema = {
+            "theme": {"value": "dark"},
+            "verbose": {"value": True},
+        }
 
         result = core_service.update_configuration(config)
 
@@ -1120,7 +1119,10 @@ class TestFlextCliCoreExtended:
 
     def test_create_profile_success(self, core_service: FlextCliCore) -> None:
         """Test creating configuration profile."""
-        profile_config: dict[str, object] = {"color": "blue", "size": "large"}
+        profile_config: FlextCliTypes.Configuration.ProfileConfiguration = {
+            "color": "blue",
+            "size": "large",
+        }
 
         result = core_service.create_profile("test-profile", profile_config)
 
@@ -1269,13 +1271,8 @@ class TestFlextCliCoreExtended:
     def test_configuration_workflow(self, core_service: FlextCliCore) -> None:
         """Test configuration management workflow."""
         # Step 1: Update configuration
-        config: dict[
-            str,
-            dict[
-                str,
-                str | int | float | bool | list[object] | dict[str, object] | None,
-            ],
-        ] = {
+
+        config: FlextCliTypes.Configuration.CliConfigSchema = {
             "theme": {"value": "dark"},
             "verbose": {"value": True},
             "timeout": {"value": 30},
@@ -1386,13 +1383,10 @@ class TestFlextCliCoreExceptionHandlers:
         # Set _config to empty dict to trigger the not initialized path
         core_service._config = {}
 
-        config: dict[str, dict[str, object]] = {"test": {"value": "data"}}
-        result = core_service.update_configuration(
-            cast(
-                "dict[str, dict[str, str | int | float | bool | list[object] | dict[str, object] | None]]",
-                config,
-            )
-        )
+        config: FlextCliTypes.Configuration.CliConfigSchema = {
+            "test": {"value": "data"}
+        }
+        result = core_service.update_configuration(config)
         assert result.is_failure
         assert "not initialized" in str(result.error)
 
@@ -1400,7 +1394,6 @@ class TestFlextCliCoreExceptionHandlers:
         self, core_service: FlextCliCore, monkeypatch: pytest.MonkeyPatch
     ) -> None:
         """Test update_configuration exception handler (lines 238-239)."""
-        from typing import cast
 
         # Mock _config with a custom dict-like object that raises
         class MockConfigDict(UserDict[str, object]):
@@ -1410,13 +1403,10 @@ class TestFlextCliCoreExceptionHandlers:
 
         monkeypatch.setattr(core_service, "_config", MockConfigDict())
 
-        config: dict[str, dict[str, object]] = {"test": {"value": "data"}}
-        result = core_service.update_configuration(
-            cast(
-                "dict[str, dict[str, str | int | float | bool | list[object] | dict[str, object] | None]]",
-                config,
-            )
-        )
+        config: FlextCliTypes.Configuration.CliConfigSchema = {
+            "test": {"value": "data"}
+        }
+        result = core_service.update_configuration(config)
         assert result.is_failure
 
     def test_get_configuration_exception_handler(

@@ -71,14 +71,14 @@ class FlextCliFileTools:
         self,
         file_path: str | Path,
         content: str,
-        encoding: str = FlextCliConstants.Encoding.UTF8,
+        encoding: str | int = FlextCliConstants.Encoding.UTF8,
     ) -> FlextResult[None]:
         """Write text content to file.
 
         Args:
             file_path: Path to text file
             content: Content to write
-            encoding: Text encoding (default: UTF-8)
+            encoding: Text encoding (default: UTF-8). Non-string values fall back to UTF-8.
 
         Returns:
             FlextResult[None] indicating success or failure
@@ -86,9 +86,11 @@ class FlextCliFileTools:
         """
         try:
             # Validate encoding - use default if not string or None
-            validated_encoding = encoding
-            if not isinstance(encoding, str | type(None)):
-                validated_encoding = FlextCliConstants.Encoding.UTF8
+            validated_encoding: str = (
+                encoding
+                if isinstance(encoding, str)
+                else FlextCliConstants.Encoding.UTF8
+            )
             Path(file_path).write_text(content, encoding=validated_encoding)
             return FlextResult[None].ok(None)
         except Exception as e:
