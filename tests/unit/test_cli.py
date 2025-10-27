@@ -549,3 +549,159 @@ class TestFlextCliCli:
         # Verify command was created with multiple options
         assert isinstance(multi, click.Command)
         assert multi.name == "multi"
+
+    # =========================================================================
+    # MODEL_COMMAND TESTS - Pydantic v2 Field Alias Support
+    # =========================================================================
+
+    def test_model_command_with_field_aliases(self, cli_cli: FlextCliCli) -> None:
+        """Test model_command() with Pydantic Field aliases."""
+        from pydantic import BaseModel, Field
+
+        class ParamsWithAliases(BaseModel):
+            """Model with Field aliases for CLI generation."""
+
+            input_dir: str = Field(alias="input-dir", description="Input directory")
+            output_dir: str = Field(alias="output-dir", description="Output directory")
+            max_count: int = Field(
+                alias="max-count", default=10, description="Maximum count"
+            )
+
+        handler_called = False
+        received_params = None
+
+        def handler(params: ParamsWithAliases) -> None:
+            """Test handler."""
+            nonlocal handler_called, received_params
+            handler_called = True
+            received_params = params
+
+        # Generate command from model
+        command_func = cli_cli.model_command(ParamsWithAliases, handler)
+
+        # Verify function was created
+        assert callable(command_func)
+        assert command_func.__name__ == "generated_command"
+
+        # Verify function signature includes properly named parameters
+        import inspect
+
+        sig = inspect.signature(command_func)
+        param_names = list(sig.parameters.keys())
+
+        # Parameters should use safe names (hyphens replaced with underscores)
+        assert "input_dir" in param_names
+        assert "output_dir" in param_names
+        assert "max_count" in param_names
+
+    def test_model_command_without_aliases(self, cli_cli: FlextCliCli) -> None:
+        """Test model_command() without Field aliases (standard behavior)."""
+        from pydantic import BaseModel, Field
+
+        class StandardParams(BaseModel):
+            """Model without aliases."""
+
+            input_path: str = Field(description="Input path")
+            count: int = Field(default=5, description="Count")
+
+        handler_called = False
+
+        def handler(params: StandardParams) -> None:
+            """Test handler."""
+            nonlocal handler_called
+            handler_called = True
+
+        # Generate command from model
+        command_func = cli_cli.model_command(StandardParams, handler)
+
+        # Verify function was created
+        assert callable(command_func)
+
+        # Verify function signature
+        import inspect
+
+        sig = inspect.signature(command_func)
+        param_names = list(sig.parameters.keys())
+
+        # Parameters should match field names
+        assert "input_path" in param_names
+        assert "count" in param_names
+
+    def test_model_command_with_boolean_fields(self, cli_cli: FlextCliCli) -> None:
+        """Test model_command() with boolean fields (flag generation)."""
+        from pydantic import BaseModel, Field
+
+        class ParamsWithBool(BaseModel):
+            """Model with boolean fields."""
+
+            enable_sync: bool = Field(
+                alias="enable-sync", default=True, description="Enable sync"
+            )
+            verbose: bool = Field(default=False, description="Verbose output")
+
+        def handler(params: ParamsWithBool) -> None:
+            """Test handler."""
+
+        # Generate command from model
+        command_func = cli_cli.model_command(ParamsWithBool, handler)
+
+        # Verify function was created with boolean parameters
+        assert callable(command_func)
+
+        import inspect
+
+        sig = inspect.signature(command_func)
+        param_names = list(sig.parameters.keys())
+
+        # Boolean fields should be present
+        assert "enable_sync" in param_names
+        assert "verbose" in param_names
+
+    def test_model_command_invalid_model_class(self, cli_cli: FlextCliCli) -> None:
+        """Test model_command() with non-Pydantic model raises TypeError."""
+
+        class NotAModel:
+            """Not a Pydantic model."""
+
+        def handler(params: NotAModel) -> None:  # type: ignore[valid-type]
+            """Test handler."""
+
+        # Should raise TypeError for non-Pydantic models
+        with pytest.raises(TypeError) as exc_info:
+            cli_cli.model_command(NotAModel, handler)  # type: ignore[arg-type]
+
+        assert "must be a Pydantic BaseModel" in str(exc_info.value)
+
+    def test_model_command_mixed_required_optional(self, cli_cli: FlextCliCli) -> None:
+        """Test model_command() with mix of required and optional fields."""
+        from pydantic import BaseModel, Field
+
+        class MixedParams(BaseModel):
+            """Model with mixed required/optional fields."""
+
+            required_field: str = Field(description="Required field")
+            optional_field: str = Field(
+                default="default_value", description="Optional field"
+            )
+            optional_int: int = Field(
+                alias="optional-int", default=42, description="Optional int"
+            )
+
+        def handler(params: MixedParams) -> None:
+            """Test handler."""
+
+        # Generate command from model
+        command_func = cli_cli.model_command(MixedParams, handler)
+
+        # Verify function was created
+        assert callable(command_func)
+
+        import inspect
+
+        sig = inspect.signature(command_func)
+        param_names = list(sig.parameters.keys())
+
+        # All parameters should be present
+        assert "required_field" in param_names
+        assert "optional_field" in param_names
+        assert "optional_int" in param_names

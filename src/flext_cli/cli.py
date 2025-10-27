@@ -783,8 +783,9 @@ class FlextCliCli:
         self,
         model_class: type,
         handler: typing.Callable[..., typing.Any],
+        config: typing.Any | None = None,
     ) -> Callable[..., None]:
-        """Create Typer command from Pydantic model - ZERO manual parameters.
+        """Create Typer command from Pydantic model with automatic config integration.
 
         Generic model-driven CLI automation using Field metadata introspection.
         Delegates to existing Typer infrastructure for type conversion.
@@ -792,9 +793,29 @@ class FlextCliCli:
         Handles optional parameters: Fields with defaults become optional CLI args
         that don't require specification on command line.
 
+        Supports Pydantic v2 Field aliases: Field(alias="input-dir") generates
+        --input-dir CLI option (not --input_dir).
+
+        **AUTOMATIC CONFIG INTEGRATION** (NEW):
+        If config singleton is provided, FlextCli automatically:
+        1. Reads config field values as defaults for CLI parameters (when no CLI value provided)
+        2. Updates config with CLI values using Pydantic v2's __dict__ (bypasses validators)
+        3. Passes fully-populated params model to handler (no fallback logic needed)
+
+        This enables full configuration hierarchy - completely automatic:
+        - Constants (in config defaults)
+        - .env file (config reads via env_prefix)
+        - Environment variables (config reads via Pydantic Settings)
+        - CLI Arguments (override config if different, stored via __dict__ to bypass validation)
+
+        No custom code needed in application - framework handles it all!
+
         Args:
             model_class: Pydantic BaseModel subclass defining parameters
             handler: Function receiving validated model instance
+            config: Optional config singleton (Pydantic Settings with env_prefix)
+                   - Provides defaults for CLI parameters
+                   - Gets updated with CLI values when they differ
 
         Returns:
             Typer command function with auto-generated parameters
@@ -802,27 +823,50 @@ class FlextCliCli:
         Example:
             ```python
             from pydantic import BaseModel, Field
+            from pydantic_settings import BaseSettings, SettingsConfigDict
 
             cli = FlextCliCli()
 
 
+            class MyConfig(BaseSettings):
+                model_config = SettingsConfigDict(
+                    env_prefix="MY_APP_",
+                )
+                input_dir: str = Field(default="data/input")
+                count: int = Field(default=10)
+
+
             class MyParams(BaseModel):
-                input: str = Field(description="Input path")
+                input_dir: str = Field(alias="input-dir", description="Input path")
                 count: int = Field(default=10, description="Item count")
                 sync: bool = Field(default=True, description="Enable sync")
 
 
             def handle(params: MyParams):
-                print(f"Processing {params.input}, count={params.count}")
+                # params is fully populated: CLI args OR config defaults
+                # No fallback logic needed!
+                print(f"Processing {params.input_dir}, count={params.count}")
 
 
-            # Auto-generates Typer command from model
-            command = cli.model_command(MyParams, handle)
+            # Fully automatic - pass config reference
+            config = MyConfig()  # Reads from MY_APP_INPUT_DIR, MY_APP_COUNT env vars
+            command = cli.model_command(MyParams, handle, config=config)
 
-            # CLI usage:
-            # my-command --input /path          # count=10 (default), sync=True (default)
-            # my-command --input /path --count 5  # sync=True (default)
-            # my-command --input /path --no-sync  # count=10 (default), sync=False
+            # CLI usage - ALL automatic:
+            # my-command
+            #   → Uses defaults: input_dir from config (from env or default)
+            #   → Calls: handle(MyParams(input_dir=config.input_dir, count=10, sync=True))
+            #   → Updates: config.input_dir if CLI value different
+            #
+            # my-command --input-dir /path
+            #   → Overrides: input_dir from config with /path
+            #   → Calls: handle(MyParams(input_dir=/path, count=10, sync=True))
+            #   → Updates: config.input_dir = /path (different from original)
+            #
+            # my-command --input-dir /path --count 5
+            #   → Overrides: input_dir and count
+            #   → Calls: handle(MyParams(input_dir=/path, count=5, sync=True))
+            #   → Updates: config with both values
             ```
 
         """
@@ -831,9 +875,10 @@ class FlextCliCli:
             msg = f"{model_class.__name__} must be a Pydantic BaseModel"
             raise TypeError(msg)
 
-        # Build parameter definitions
+        # Build parameter definitions and mapping
         params_def: list[str] = []
         params_call: list[str] = []
+        field_mapping: dict[str, str] = {}  # param_name -> field_name
 
         def _format_type_annotation(field_type: type) -> str:
             """Format type annotation for dynamic function signature."""
@@ -844,54 +889,165 @@ class FlextCliCli:
                 return field_type.__name__
             return str(field_type)
 
+        def _get_config_value(field_name: str) -> typing.Any | None:
+            """Get field value from config singleton if available."""
+            if config is None:
+                return None
+            # Check if config has the field
+            if not hasattr(config, field_name):
+                return None
+            # Get the field value
+            try:
+                return getattr(config, field_name)
+            except (AttributeError, Exception):
+                return None
+
         for field_name, field_info in model_class.model_fields.items():
             field_type = field_info.annotation
             has_default = field_info.default is not PydanticUndefined
             description = field_info.description or f"{field_name} parameter"
 
-            params_call.append(f"{field_name}={field_name}")
+            # CRITICAL: Use Pydantic Field alias if present, else use field_name
+            # This ensures CLI parameter matches Field(alias="...") definition
+            cli_param_name = field_info.alias or field_name
+            safe_param_name = cli_param_name.replace("-", "_")
+
+            # Track mapping from CLI parameter to model field
+            field_mapping[safe_param_name] = field_name
+            params_call.append(f'"{field_name}": {safe_param_name}')
 
             # Format type annotation string
             type_str = _format_type_annotation(field_type)
 
-            # Generate parameter with Typer Option
-            if has_default:
-                default_value = repr(field_info.default)
+            # ENHANCED: Get default value from field or config
+            # Priority: field default (if not None) > config value > None
+            cli_default = field_info.default
+            # Check for both PydanticUndefined AND None (None means no real default, just optional)
+            if cli_default is PydanticUndefined or cli_default is None:
+                # No field default or default is None, try config
+                config_value = _get_config_value(field_name)
+                if config_value is not None:
+                    cli_default = config_value
+                    has_default = True
+                # If no config value either, keep None as the default for optional fields
+                elif cli_default is None:
+                    has_default = (
+                        True  # Still mark as having default (None is the default)
+                    )
+
+            # Generate parameter with Typer Option using alias for CLI flag
+            if has_default and cli_default is not PydanticUndefined:
+                default_value = repr(cli_default)
                 if field_type is bool:
                     # Boolean flags need --flag/--no-flag format
-                    flag_name = f"--{field_name.replace('_', '-')}"
-                    no_flag_name = f"--no-{field_name.replace('_', '-')}"
+                    flag_name = f"--{cli_param_name}"
+                    no_flag_name = f"--no-{cli_param_name}"
                     params_def.append(
-                        f"{field_name}: {type_str} = typer.Option({default_value}, '{flag_name}', '{no_flag_name}', help={description!r})"
+                        f"{safe_param_name}: {type_str} = typer.Option({default_value}, '{flag_name}', '{no_flag_name}', help={description!r})"
                     )
                 else:
                     # Optional parameter with default - truly optional in CLI
+                    cli_option_name = f"--{cli_param_name}"
                     params_def.append(
-                        f"{field_name}: {type_str} = typer.Option({default_value}, help={description!r})"
+                        f"{safe_param_name}: {type_str} = typer.Option({default_value}, '{cli_option_name}', help={description!r})"
                     )
             else:
                 # Required parameter - must be specified in CLI
+                cli_option_name = f"--{cli_param_name}"
                 params_def.append(
-                    f"{field_name}: {type_str} = typer.Option(..., help={description!r})"
+                    f"{safe_param_name}: {type_str} = typer.Option(..., '{cli_option_name}', help={description!r})"
                 )
 
-        # Create function dynamically without exec for security
-        def generated_command(**kwargs: FlextTypes.JsonValue) -> None:
-            """Auto-generated command from model."""
-            try:
-                # Convert kwargs to model instance
-                params = model_class(**kwargs)
-            except ValidationError as e:
-                typer.echo(f"Invalid parameters: {e}", err=True)
-                raise typer.Exit(code=1) from e
+        # Create function dynamically with proper signature for Typer introspection
+        # This is required because Typer needs to inspect function parameters
+        params_signature = ", ".join(params_def)
+        kwargs_dict = "{" + ", ".join(params_call) + "}"
 
-            try:
-                handler(params)
-            except Exception as e:
-                typer.echo(f"Command failed: {e}", err=True)
-                raise typer.Exit(code=1) from e
+        # Build function code with proper signature
+        # Config defaults are read when building CLI parameters above
+        func_code = f"""
+def generated_command({params_signature}) -> None:
+    '''Auto-generated command from {model_class.__name__} model.'''
+    try:
+        # Build kwargs dict mapping field names to values
+        kwargs = {kwargs_dict}
+        # Validate and instantiate model (fully populated from CLI args OR config defaults)
+        params = model_class(**kwargs)
+    except ValidationError as e:
+        typer.echo(f"Invalid parameters: {{e}}", err=True)
+        raise typer.Exit(code=1) from e
+    try:
+        handler(params)
+    except Exception as e:
+        typer.echo(f"Command failed: {{e}}", err=True)
+        raise typer.Exit(code=1) from e
+"""
 
-        return generated_command
+        # Execute function creation in controlled namespace
+        # Using exec is required here for dynamic function signature creation
+        # which is necessary for Typer to introspect CLI parameters
+        namespace: dict[str, typing.Any] = {
+            "typer": typer,
+            "ValidationError": ValidationError,
+            "model_class": model_class,
+            "handler": handler,
+            "config": config,
+            # Include typing module components for type annotation resolution
+            # ForwardRef is needed when Pydantic v2 evaluates type annotations
+            "ForwardRef": typing.ForwardRef,
+            "Union": typing.Union,
+            "Optional": typing.Optional,
+            "get_args": typing.get_args,
+            "get_origin": typing.get_origin,
+            # Include builtins for basic types (str, int, bool, etc.)
+            "__builtins__": __builtins__,
+        }
+        # Add model_class's module globals so type annotations can resolve
+        # This allows field types from the model's module to be available
+        if hasattr(model_class, "__module__"):
+            import sys
+
+            model_module = sys.modules.get(model_class.__module__)
+            if model_module and hasattr(model_module, "__dict__"):
+                namespace.update(model_module.__dict__)
+
+        exec(func_code, namespace)  # noqa: S102 # nosec B102
+
+        # Type assertion: we know generated_command is Callable[..., None]
+        generated_command_func: Callable[..., None] = typing.cast(
+            "Callable[..., None]", namespace["generated_command"]
+        )
+
+        # If config provided, wrap function to update config with CLI values
+        if config is not None:
+            import functools
+
+            # Use functools.wraps to properly copy metadata for Typer
+            @functools.wraps(generated_command_func)
+            def wrapped_command(**kwargs) -> None:
+                """Wrapper that updates config singleton with CLI values.
+
+                Uses Pydantic v2's __dict__ directly to bypass validation,
+                allowing CLI values to override config values even if invalid.
+                This ensures configuration hierarchy: Constants → .env → env vars → CLI args
+                """
+                # Update config with CLI parameter values by directly modifying __dict__
+                # This bypasses Pydantic v2 validators and read-only properties
+                for field_name, cli_value in kwargs.items():
+                    if cli_value is not None:
+                        try:
+                            # Use __dict__ directly to bypass validation
+                            config.__dict__[field_name] = cli_value
+                        except Exception:
+                            # Config update is advisory - continue even if it fails
+                            pass
+
+                # Call the original generated command
+                generated_command_func(**kwargs)
+
+            return wrapped_command
+
+        return generated_command_func
 
     def execute(self) -> FlextResult[object]:
         """Execute Click abstraction layer operations.
