@@ -41,6 +41,7 @@ def main() -> None:
             cli = FlextCli()
 
             # Route operations to appropriate methods
+            result: FlextResult[list[str]] | FlextResult[None] | FlextResult[dict[str, object]]
             if operation == ["config", "show"]:
                 result = cli.cmd.show_config_paths()
             elif operation == ["config", "validate"]:
@@ -48,7 +49,11 @@ def main() -> None:
             elif operation == ["auth", "status"]:
                 # Test authentication status
                 is_authenticated = cli.is_authenticated()
-                result = FlextResult[None].ok(None) if is_authenticated else FlextResult[None].fail("Not authenticated")
+                result = (
+                    FlextResult[None].ok(None)
+                    if is_authenticated
+                    else FlextResult[None].fail("Not authenticated")
+                )
             elif operation == ["debug", "check"]:
                 # Test debug functionality - check if services are operational
                 result = cli.execute()

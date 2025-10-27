@@ -121,7 +121,7 @@ class MyAppPluginManager:
 
         try:
             # Type guard: we checked execute exists
-            execute_method = getattr(plugin, "execute")
+            execute_method = plugin.execute
             return execute_method(**kwargs)
         except Exception as e:
             return FlextResult[object].fail(f"Plugin execution failed: {e}")

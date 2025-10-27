@@ -749,7 +749,7 @@ nested:
 
         # Mock save_auth_token to succeed so we reach the empty check on line 225
         original_save = api_service.save_auth_token
-        api_service.save_auth_token = Mock(return_value=FlextResult[None].ok(None))
+        api_service.save_auth_token = Mock(return_value=FlextResult[None].ok(None))  # type: ignore[method-assign]
 
         credentials = cast(
             "FlextCliTypes.Auth.CredentialsData", {"token": "   "}
@@ -757,7 +757,7 @@ nested:
         result = api_service.authenticate(credentials)
 
         # Restore original method
-        api_service.save_auth_token = original_save
+        api_service.save_auth_token = original_save  # type: ignore[method-assign]
 
         assert result.is_failure
         assert result.error is not None

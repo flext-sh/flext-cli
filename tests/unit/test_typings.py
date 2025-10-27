@@ -371,7 +371,9 @@ class TestFlextCliTypes:
         user_response = create_user_response(user_data)
         assert isinstance(user_response, dict)
         assert user_response.get("status") == "success"
-        data = user_response.get("data", {})
+        data: UserData | list[UserData] | dict[str, object] = user_response.get(
+            "data", {}
+        )
         assert isinstance(data, dict)
         assert data.get("name") == "John Doe"
         assert user_response.get("message") == "User created successfully"

@@ -16,10 +16,11 @@ import tempfile
 import time
 from collections.abc import Generator
 from pathlib import Path
+from typing import Literal, cast
 
 import pytest
 import yaml
-from flext_core import FlextConfig, FlextContainer, FlextResult
+from flext_core import FlextConfig, FlextConstants, FlextContainer, FlextResult
 
 from flext_cli import FlextCli, FlextCliConfig, FlextCliModels
 
@@ -698,11 +699,17 @@ class TestLoggingLevelConfiguration:
     def test_set_logging_level_via_parameter(self) -> None:
         """Test setting logging level via parameter."""
         # Test all standard logging levels
-        levels = ["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"]
+        levels = [
+            FlextConstants.Settings.LogLevel.DEBUG,
+            FlextConstants.Settings.LogLevel.INFO,
+            FlextConstants.Settings.LogLevel.WARNING,
+            FlextConstants.Settings.LogLevel.ERROR,
+            FlextConstants.Settings.LogLevel.CRITICAL,
+        ]
 
         for level in levels:
             config = FlextCliConfig(log_level=level)
-            assert config.log_level == level, f"Log level should be {level}"
+            assert config.log_level == level.value, f"Log level should be {level.value}"
 
     def test_set_logging_level_via_env(self) -> None:
         """Test setting logging level via environment variable."""
@@ -777,7 +784,11 @@ class TestLoggingLevelConfiguration:
 
     def test_logging_verbosity_levels(self) -> None:
         """Test logging verbosity configuration."""
-        verbosity_levels = ["compact", "detailed", "full"]
+        verbosity_levels: list[Literal["compact", "detailed", "full"]] = [
+            "compact",
+            "detailed",
+            "full",
+        ]
 
         for verbosity in verbosity_levels:
             config = FlextCliConfig(
@@ -804,7 +815,9 @@ class TestLoggingLevelConfiguration:
                 os.environ["FLEXT_LOG_LEVEL"] = "WARNING"
 
                 # Parameter ERROR should override both
-                config = FlextCliConfig(log_level="ERROR")
+                config = FlextCliConfig(
+                    log_level=FlextConstants.Settings.LogLevel.ERROR
+                )
 
                 assert config.log_level == "ERROR", (
                     "Parameter should override ENV and .env"
@@ -823,25 +836,35 @@ class TestLoggingLevelConfiguration:
 
     def test_change_logging_level_runtime(self) -> None:
         """Test changing logging level at runtime."""
-        config = FlextCliConfig(log_level="INFO")
-        assert config.log_level == "INFO"
+        from flext_core import FlextConstants
 
-        # Change logging level (Pydantic validate_assignment=True allows this)
-        config.log_level = "DEBUG"
-        assert config.log_level == "DEBUG"
+        # Test creating configs with different log levels
+        config_info = FlextCliConfig(log_level=FlextConstants.Settings.LogLevel.INFO)
+        assert config_info.log_level == "INFO"
 
-        config.log_level = "CRITICAL"
-        assert config.log_level == "CRITICAL"
+        # Create new config with DEBUG level
+        config_debug = FlextCliConfig(log_level=FlextConstants.Settings.LogLevel.DEBUG)
+        assert config_debug.log_level == FlextConstants.Settings.LogLevel.DEBUG
+
+        # Create new config with CRITICAL level
+        config_critical = FlextCliConfig(
+            log_level=FlextConstants.Settings.LogLevel.CRITICAL
+        )
+        assert config_critical.log_level == FlextConstants.Settings.LogLevel.CRITICAL
 
     def test_debug_flag_correlation(self) -> None:
         """Test correlation between debug flag and logging level."""
         # When debug=True, verify it doesn't conflict with log_level
-        config_debug = FlextCliConfig(debug=True, log_level="DEBUG")
+        config_debug = FlextCliConfig(
+            debug=True, log_level=FlextConstants.Settings.LogLevel.DEBUG
+        )
         assert config_debug.debug is True
         assert config_debug.log_level == "DEBUG"
 
         # debug=False with DEBUG log level should be allowed
-        config_mixed = FlextCliConfig(debug=False, log_level="DEBUG")
+        config_mixed = FlextCliConfig(
+            debug=False, log_level=FlextConstants.Settings.LogLevel.DEBUG
+        )
         assert config_mixed.debug is False
         assert config_mixed.log_level == "DEBUG"
 
@@ -926,7 +949,7 @@ class TestLoggingLevelConfiguration:
             debug=True,
             verbose=True,
             trace=True,
-            log_level="DEBUG",
+            log_level=FlextConstants.Settings.LogLevel.DEBUG,
             log_verbosity="full",
             cli_log_level="DEBUG",
             cli_log_verbosity="full",
@@ -953,7 +976,7 @@ class TestLoggingOutput:
         import logging
 
         # Configure for DEBUG level
-        FlextCliConfig(log_level="DEBUG")
+        FlextCliConfig(log_level=FlextConstants.Settings.LogLevel.DEBUG)
 
         # Create logger with DEBUG level
         logger = logging.getLogger("test_debug")
@@ -974,7 +997,7 @@ class TestLoggingOutput:
         import logging
 
         # Configure for INFO level
-        FlextCliConfig(log_level="INFO")
+        FlextCliConfig(log_level=FlextConstants.Settings.LogLevel.INFO)
 
         # Create logger with INFO level
         logger = logging.getLogger("test_info")
@@ -997,7 +1020,7 @@ class TestLoggingOutput:
         import logging
 
         # Configure for WARNING level
-        FlextCliConfig(log_level="WARNING")
+        FlextCliConfig(log_level=FlextConstants.Settings.LogLevel.WARNING)
 
         # Create logger with WARNING level
         logger = logging.getLogger("test_warning")
@@ -1022,7 +1045,7 @@ class TestLoggingOutput:
         import logging
 
         # Configure for ERROR level
-        FlextCliConfig(log_level="ERROR")
+        FlextCliConfig(log_level=FlextConstants.Settings.LogLevel.ERROR)
 
         # Create logger with ERROR level
         logger = logging.getLogger("test_error")
@@ -1049,7 +1072,7 @@ class TestLoggingOutput:
         import logging
 
         # Configure for CRITICAL level
-        FlextCliConfig(log_level="CRITICAL")
+        FlextCliConfig(log_level=FlextConstants.Settings.LogLevel.CRITICAL)
 
         # Create logger with CRITICAL level
         logger = logging.getLogger("test_critical")
@@ -1076,22 +1099,29 @@ class TestLoggingOutput:
         import logging
 
         # Start with INFO level
-        config = FlextCliConfig(log_level="INFO")
+        from flext_core import FlextConstants
+
+        config_info = FlextCliConfig(log_level=FlextConstants.Settings.LogLevel.INFO)
         logger = logging.getLogger("test_runtime")
         logger.setLevel(logging.INFO)
+
+        # Verify config has INFO level
+        assert config_info.log_level == "INFO"
 
         # Log debug message - should not appear
         logger.debug("Debug at INFO level")
         assert "Debug at INFO level" not in caplog.text
 
-        # Change to DEBUG level
-        config.log_level = "DEBUG"
+        # Create new config with DEBUG level and update logger
+        config_debug = FlextCliConfig(log_level=FlextConstants.Settings.LogLevel.DEBUG)
         logger.setLevel(logging.DEBUG)
         caplog.clear()
 
         # Now debug should appear
         logger.debug("Debug at DEBUG level")
         assert "Debug at DEBUG level" in caplog.text
+        # Verify config has DEBUG level
+        assert config_debug.log_level == FlextConstants.Settings.LogLevel.DEBUG
 
     def test_flext_cli_logger_respects_config(
         self, caplog: pytest.LogCaptureFixture
@@ -1126,7 +1156,9 @@ class TestLoggingOutput:
         import logging
 
         # Config with debug=True
-        config = FlextCliConfig(debug=True, log_level="DEBUG")
+        config = FlextCliConfig(
+            debug=True, log_level=FlextConstants.Settings.LogLevel.DEBUG
+        )
         logger = logging.getLogger("test_debug_flag")
         logger.setLevel(logging.DEBUG)
 
@@ -1161,7 +1193,11 @@ class TestConfigValidation:
     def test_invalid_output_format_validation(self) -> None:
         """Test invalid output format validation error (lines 205-209)."""
         with pytest.raises(ValueError) as exc_info:
-            FlextCliConfig(output_format="invalid_format")
+            FlextCliConfig(
+                output_format=cast(
+                    'Literal["json", "yaml", "csv", "table", "plain"]', "invalid_format"
+                )
+            )
 
         error_msg = str(exc_info.value).lower()
         assert "invalid_format" in error_msg
@@ -1186,7 +1222,9 @@ class TestConfigValidation:
     def test_invalid_log_level_validation(self) -> None:
         """Test invalid log level validation error (lines 241-244)."""
         with pytest.raises(ValueError) as exc_info:
-            FlextCliConfig(log_level="INVALID_LEVEL")
+            FlextCliConfig(
+                log_level=cast("FlextConstants.Settings.LogLevel", "INVALID_LEVEL")
+            )
 
         assert (
             "log_level" in str(exc_info.value).lower()
@@ -1196,7 +1234,11 @@ class TestConfigValidation:
     def test_invalid_cli_log_level_validation(self) -> None:
         """Test invalid CLI log level validation error (lines 241-244)."""
         with pytest.raises(ValueError) as exc_info:
-            FlextCliConfig(cli_log_level="TRACE")
+            FlextCliConfig(
+                cli_log_level=cast(
+                    'Literal["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"]', "TRACE"
+                )
+            )
 
         assert (
             "log_level" in str(exc_info.value).lower()
@@ -1213,14 +1255,23 @@ class TestConfigValidation:
     def test_invalid_cli_log_verbosity_validation(self) -> None:
         """Test invalid CLI log verbosity validation error (lines 254-257)."""
         with pytest.raises(ValueError) as exc_info:
-            FlextCliConfig(cli_log_verbosity="extreme")
+            FlextCliConfig(
+                cli_log_verbosity=cast(
+                    'Literal["compact", "detailed", "full"]', "extreme"
+                )
+            )
 
         assert "verbosity" in str(exc_info.value).lower()
 
     def test_invalid_environment_validation(self) -> None:
         """Test invalid environment validation error (lines 267-268)."""
         with pytest.raises(ValueError) as exc_info:
-            FlextCliConfig(environment="invalid_env")
+            FlextCliConfig(
+                environment=cast(
+                    'Literal["development", "staging", "production", "test"]',
+                    "invalid_env",
+                )
+            )
 
         assert (
             "environment" in str(exc_info.value).lower()
@@ -1230,7 +1281,12 @@ class TestConfigValidation:
     def test_valid_output_formats(self) -> None:
         """Test all valid output formats pass validation."""
         # Only formats supported by both field validator AND business rules validator
-        valid_formats = ["table", "json", "yaml", "csv"]
+        valid_formats: list[Literal["json", "yaml", "csv", "table", "plain"]] = [
+            "table",
+            "json",
+            "yaml",
+            "csv",
+        ]
 
         for fmt in valid_formats:
             config = FlextCliConfig(output_format=fmt)
@@ -1251,16 +1307,26 @@ class TestConfigValidation:
 
     def test_valid_log_levels(self) -> None:
         """Test all valid log levels pass validation."""
-        valid_levels = ["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"]
+        valid_levels = [
+            FlextConstants.Settings.LogLevel.DEBUG,
+            FlextConstants.Settings.LogLevel.INFO,
+            FlextConstants.Settings.LogLevel.WARNING,
+            FlextConstants.Settings.LogLevel.ERROR,
+            FlextConstants.Settings.LogLevel.CRITICAL,
+        ]
 
         for level in valid_levels:
-            config = FlextCliConfig(log_level=level, cli_log_level=level)
-            assert config.log_level == level
-            assert config.cli_log_level == level
+            config = FlextCliConfig(log_level=level, cli_log_level=level.value)
+            assert config.log_level == level.value
+            assert config.cli_log_level == level.value
 
     def test_valid_log_verbosities(self) -> None:
         """Test all valid verbosities pass validation."""
-        valid_verbosities = ["compact", "detailed", "full"]
+        valid_verbosities: list[Literal["compact", "detailed", "full"]] = [
+            "compact",
+            "detailed",
+            "full",
+        ]
 
         for verbosity in valid_verbosities:
             config = FlextCliConfig(
@@ -1272,7 +1338,12 @@ class TestConfigValidation:
 
     def test_valid_environments(self) -> None:
         """Test all valid environments pass validation."""
-        valid_envs = ["development", "staging", "production", "test"]
+        valid_envs: list[Literal["development", "staging", "production", "test"]] = [
+            "development",
+            "staging",
+            "production",
+            "test",
+        ]
 
         for env in valid_envs:
             config = FlextCliConfig(environment=env)

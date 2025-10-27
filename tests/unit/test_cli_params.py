@@ -15,7 +15,7 @@ from typing import Never, cast
 
 import pytest
 import typer
-from flext_core import FlextLogger
+from flext_core import FlextConstants, FlextLogger
 from typer.testing import CliRunner
 
 from flext_cli import FlextCliCommonParams, FlextCliConfig
@@ -123,8 +123,10 @@ class TestFlextCliCommonParams:
 
     def test_apply_to_config_log_level(self) -> None:
         """Test applying log level parameter."""
-        config = FlextCliConfig(log_level="INFO")
-        result = FlextCliCommonParams.apply_to_config(config, log_level="DEBUG")
+        config = FlextCliConfig(log_level=FlextConstants.Settings.LogLevel.INFO)
+        result = FlextCliCommonParams.apply_to_config(
+            config, log_level=FlextConstants.Settings.LogLevel.DEBUG.value
+        )
 
         assert result.is_success
         updated_config = result.unwrap()
@@ -193,7 +195,7 @@ class TestFlextCliCommonParams:
 
     def test_configure_logger_debug_level(self) -> None:
         """Test configuring logger with DEBUG level."""
-        config = FlextCliConfig(log_level="DEBUG")
+        config = FlextCliConfig(log_level=FlextConstants.Settings.LogLevel.DEBUG)
 
         result = FlextCliCommonParams.configure_logger(config)
 
@@ -202,7 +204,7 @@ class TestFlextCliCommonParams:
 
     def test_configure_logger_info_level(self) -> None:
         """Test configuring logger with INFO level."""
-        config = FlextCliConfig(log_level="INFO")
+        config = FlextCliConfig(log_level=FlextConstants.Settings.LogLevel.INFO)
 
         result = FlextCliCommonParams.configure_logger(config)
 
@@ -212,7 +214,7 @@ class TestFlextCliCommonParams:
 
     def test_configure_logger_warning_level(self) -> None:
         """Test configuring logger with WARNING level."""
-        config = FlextCliConfig(log_level="WARNING")
+        config = FlextCliConfig(log_level=FlextConstants.Settings.LogLevel.WARNING)
 
         result = FlextCliCommonParams.configure_logger(config)
 
@@ -222,7 +224,7 @@ class TestFlextCliCommonParams:
 
     def test_configure_logger_error_level(self) -> None:
         """Test configuring logger with ERROR level."""
-        config = FlextCliConfig(log_level="ERROR")
+        config = FlextCliConfig(log_level=FlextConstants.Settings.LogLevel.ERROR)
 
         result = FlextCliCommonParams.configure_logger(config)
 
@@ -232,7 +234,7 @@ class TestFlextCliCommonParams:
 
     def test_configure_logger_critical_level(self) -> None:
         """Test configuring logger with CRITICAL level."""
-        config = FlextCliConfig(log_level="CRITICAL")
+        config = FlextCliConfig(log_level=FlextConstants.Settings.LogLevel.CRITICAL)
 
         result = FlextCliCommonParams.configure_logger(config)
 
@@ -517,10 +519,12 @@ class TestLoggerIntegration:
     ) -> None:
         """Test that logger is properly configured from CLI parameters."""
         # Create config with DEBUG level
-        config = FlextCliConfig(log_level="INFO")
+        config = FlextCliConfig(log_level=FlextConstants.Settings.LogLevel.INFO)
 
         # Apply CLI parameter to change to DEBUG
-        result = FlextCliCommonParams.apply_to_config(config, log_level="DEBUG")
+        result = FlextCliCommonParams.apply_to_config(
+            config, log_level=FlextConstants.Settings.LogLevel.DEBUG.value
+        )
         assert result.is_success
         updated_config = result.unwrap()
 
@@ -544,7 +548,7 @@ class TestLoggerIntegration:
     ) -> None:
         """Test that logger respects runtime log level changes."""
         # Start with INFO
-        config = FlextCliConfig(log_level="INFO")
+        config = FlextCliConfig(log_level=FlextConstants.Settings.LogLevel.INFO)
         FlextCliCommonParams.configure_logger(config)
 
         logger = FlextLogger("test_runtime")

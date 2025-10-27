@@ -122,17 +122,17 @@ class TestFlextCliContext:
         context = FlextCliContext()
 
         # Initially empty
-        result = context.get_environment_variable("TEST_KEY")
-        assert not result.is_success
+        get_result = context.get_environment_variable("TEST_KEY")
+        assert not get_result.is_success
 
         # Set a variable
-        result = context.set_environment_variable("TEST_KEY", "test_value")
-        assert result.is_success
+        set_result = context.set_environment_variable("TEST_KEY", "test_value")
+        assert set_result.is_success
 
         # Get the variable
-        result = context.get_environment_variable("TEST_KEY")
-        assert result.is_success
-        assert result.unwrap() == "test_value"
+        get_result2 = context.get_environment_variable("TEST_KEY")
+        assert get_result2.is_success
+        assert get_result2.unwrap() == "test_value"
 
     def test_context_arguments(self) -> None:
         """Test argument operations."""
@@ -164,24 +164,24 @@ class TestFlextCliContext:
         context = FlextCliContext()
 
         # Set metadata
-        result = context.set_metadata("key1", "value1")
-        assert result.is_success
+        set_result1 = context.set_metadata("key1", "value1")
+        assert set_result1.is_success
 
-        result = context.set_metadata("key2", {"nested": "data"})
-        assert result.is_success
+        set_result2 = context.set_metadata("key2", {"nested": "data"})
+        assert set_result2.is_success
 
         # Get metadata
-        result = context.get_metadata("key1")
-        assert result.is_success
-        assert result.unwrap() == "value1"
+        get_result1 = context.get_metadata("key1")
+        assert get_result1.is_success
+        assert get_result1.unwrap() == "value1"
 
-        result = context.get_metadata("key2")
-        assert result.is_success
-        assert result.unwrap() == {"nested": "data"}
+        get_result2 = context.get_metadata("key2")
+        assert get_result2.is_success
+        assert get_result2.unwrap() == {"nested": "data"}
 
         # Get non-existent metadata
-        result = context.get_metadata("nonexistent")
-        assert not result.is_success
+        get_result3 = context.get_metadata("nonexistent")
+        assert not get_result3.is_success
 
     def test_context_summary(self) -> None:
         """Test context summary generation."""
@@ -399,7 +399,8 @@ class TestFlextCliContext:
                 raise RuntimeError(msg)
             return original_getattribute(self, name)
 
-        exception_context.__class__.__getattribute__ = mock_getattribute
+        # Use setattr to mock method - necessary for testing exception behavior
+        exception_context.__class__.__getattribute__ = mock_getattribute  # type: ignore[method-assign,assignment]
 
         result = exception_context.deactivate()
         assert result.is_failure

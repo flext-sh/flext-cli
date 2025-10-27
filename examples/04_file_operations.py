@@ -39,7 +39,7 @@ import tempfile
 from pathlib import Path
 from typing import cast
 
-from flext_core import FlextResult
+from flext_core import FlextResult, FlextTypes
 
 from flext_cli import FlextCli, FlextCliTables, FlextCliTypes
 
@@ -490,10 +490,12 @@ def export_multi_format(
     # Export to JSON
     json_path = base_path.with_suffix(".json")
     # Handle both single dict and list of dicts
-    json_data = data if isinstance(data, dict) else {"data": data}
-    json_result = cli.file_tools.write_json_file(
-        json_path, cast("dict[str, object]", json_data), indent=2
+    json_data: FlextTypes.JsonValue = (
+        cast("FlextTypes.JsonValue", data)
+        if isinstance(data, dict)
+        else cast("FlextTypes.JsonValue", {"data": cast("list[object]", data)})
     )
+    json_result = cli.file_tools.write_json_file(json_path, json_data, indent=2)
     if json_result.is_success:
         size = json_path.stat().st_size
         export_results["JSON"] = f"{size} bytes"

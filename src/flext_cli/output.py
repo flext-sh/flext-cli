@@ -300,7 +300,7 @@ class FlextCliOutput(FlextService[object]):
                 getattr(result, "model_dump", None)
             ):
                 # Pydantic model - safe to call model_dump since we checked it's callable
-                model_dump_method = getattr(result, "model_dump")
+                model_dump_method = result.model_dump
                 result_dict = model_dump_method()
                 format_result = self.format_data(result_dict, output_format)
             elif hasattr(result, "__dict__"):
@@ -804,14 +804,16 @@ class FlextCliOutput(FlextService[object]):
 
     def format_table(
         self,
-        data: dict[str, FlextTypes.JsonValue] | list[dict[str, FlextTypes.JsonValue]],
+        data: dict[str, FlextTypes.JsonValue]
+        | list[dict[str, FlextTypes.JsonValue]]
+        | str,
         title: str | None = None,
         headers: list[str] | None = None,
     ) -> FlextResult[str]:
         """Format data as a tabulated table string using FlextCliTables.
 
         Args:
-            data: Data to format (dict or list of dicts)
+            data: Data to format (dict or list of dicts). Non-dict/list types return error.
             title: Optional table title
             headers: Optional column headers
 
