@@ -205,9 +205,7 @@ class TestConfigModelExtraction:
             captured_params["params"] = params
 
         # Create command with config integration
-        command = cli.model_command(
-            AppParams, handler, config=config
-        )
+        command = cli.model_command(AppParams, handler, config=config)
 
         # Verify command was created and is callable
         assert command is not None
@@ -263,9 +261,7 @@ class TestConfigModelExtraction:
         def handler(params: ParamsWithOptionals) -> None:
             captured_params["params"] = params
 
-        command = cli.model_command(
-            ParamsWithOptionals, handler, config=config
-        )
+        command = cli.model_command(ParamsWithOptionals, handler, config=config)
 
         assert command is not None
 

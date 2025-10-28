@@ -51,6 +51,7 @@ def normalize_annotation(annotation: Any) -> Any:
     # typing.Union type (traditional typing.Union[X, Y])
     try:
         from typing import Union
+
         if origin is Union:
             return _normalize_union_type(annotation)
     except (ImportError, AttributeError):
@@ -111,13 +112,11 @@ def _normalize_union_type(annotation: Any) -> Any:
     # If multiple types, use Union[T1, T2, ...]
     if len(non_none_args) > 1:
         # Recursively normalize all inner types
-        normalized_non_none = tuple(
-            normalize_annotation(arg) for arg in non_none_args
-        )
+        normalized_non_none = tuple(normalize_annotation(arg) for arg in non_none_args)
         # Create union from normalized types using the | operator
         union_type = normalized_non_none[0]
         for arg_type in normalized_non_none[1:]:
-            union_type = union_type | arg_type
+            union_type |= arg_type
 
         if has_none:
             # Union with None becomes Optional[Union[...]]

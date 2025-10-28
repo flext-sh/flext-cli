@@ -1511,27 +1511,6 @@ class FlextCliConstants(FlextConstants):
         "tsv": "Tab-separated values",
     }
 
-    class ExceptionDefaults:
-        """Exception handling defaults and constants."""
-
-        CONTEXT_KEY: Final[str] = "context"
-        CORRELATION_ID_KEY: Final[str] = "correlation_id"
-
-    class ExceptionFormatMessages:
-        """Format templates for exception string representations."""
-
-        CONTEXT_ITEM_FORMAT: Final[str] = "{k}={v}"
-        CONTEXT_ITEMS_SEPARATOR: Final[str] = ", "
-        CONTEXT_WRAPPER_PREFIX: Final[str] = " ("
-        CONTEXT_WRAPPER_SUFFIX: Final[str] = ")"
-        ERROR_STRING_FORMAT: Final[str] = "[{error_code}] {message}{context_str}"
-        REPR_FORMAT_PREFIX: Final[str] = "FlextCliExceptions.BaseError("
-        REPR_FORMAT_MESSAGE: Final[str] = "message='{message}'"
-        REPR_FORMAT_ERROR_CODE: Final[str] = "error_code='{error_code}'"
-        REPR_FORMAT_CONTEXT: Final[str] = "context={context}"
-        REPR_FORMAT_SUFFIX: Final[str] = ")"
-        REPR_ITEMS_SEPARATOR: Final[str] = ", "
-
     class MixinsValidationMessages:
         """Validation error messages for mixins."""
 
