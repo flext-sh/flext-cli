@@ -23,6 +23,7 @@ from typer.models import OptionInfo
 
 from flext_cli.config import FlextCliConfig
 from flext_cli.constants import FlextCliConstants
+from flext_cli.type_utils import normalize_annotation
 
 # Type variable for generic decorator
 F = TypeVar("F", bound=Callable[..., object])
@@ -180,7 +181,8 @@ class FlextCliCommonParams:
         param_meta = cls.CLI_PARAM_REGISTRY.get(field_name, {})
 
         # Get base type (handle Optional/Union types)
-        field_type = field_info.annotation
+        # First normalize modern union syntax (Path | None) to typing-compatible forms
+        field_type = normalize_annotation(field_info.annotation)
         origin = get_origin(field_type)
 
         if origin is types.NoneType or (
