@@ -881,13 +881,74 @@ class FlextCliCli:
         field_mapping: dict[str, str] = {}  # param_name -> field_name
 
         def _format_type_annotation(field_type: type) -> str:
-            """Format type annotation for dynamic function signature."""
-            if hasattr(field_type, "__origin__"):
-                # Generic type (Optional, List, etc.)
-                return str(field_type).replace("typing.", "")
+            """Format type annotation for dynamic function signature.
+
+            Handles Pydantic v2 Annotated types by stripping metadata (PlainSerializer, etc.)
+            and returning just the base type, which is sufficient for CLI function signatures.
+            The actual validation and serialization is handled by Pydantic model instantiation.
+            """
+            # Get origin to check for Annotated
+            origin = typing.get_origin(field_type)
+
+            # Handle Annotated types - extract base type without metadata
+            if origin is typing.Annotated:
+                # Annotated[BaseType, metadata1, metadata2, ...]
+                # We only need BaseType for the function signature
+                args = typing.get_args(field_type)
+                if args:
+                    base_type = args[0]
+                    # Recursively format the base type (might be Optional, etc.)
+                    return _format_type_annotation(base_type)
+
+            # Handle Literal types - convert to str for CLI signature
+            # The actual validation is done by Pydantic model instantiation
+            # Literal types with string values can't be properly evaluated in stringified annotations
+            if origin is typing.Literal:
+                return "str"
+
+            # Handle Optional (Union[T, None])
+            if origin is typing.Union:
+                args = typing.get_args(field_type)
+                # Check if this is Optional (Union with None)
+                if type(None) in args:
+                    # Filter out None to get the actual type
+                    non_none_types = [t for t in args if t is not type(None)]
+                    if len(non_none_types) == 1:
+                        # This is Optional[T]
+                        inner_type = non_none_types[0]
+                        inner_str = _format_type_annotation(inner_type)
+                        return f"Optional[{inner_str}]"
+                    else:
+                        # Union with multiple non-None types
+                        type_strs = [_format_type_annotation(t) for t in non_none_types]
+                        return f"Union[{', '.join(type_strs)}]"
+
+            # Handle List, Dict, etc.
+            if origin is not None:
+                # Generic type with origin (List, Dict, etc.)
+                args = typing.get_args(field_type)
+                origin_name = getattr(origin, "__name__", str(origin)).replace("typing.", "")
+                if args:
+                    arg_strs = [_format_type_annotation(arg) for arg in args]
+                    return f"{origin_name}[{', '.join(arg_strs)}]"
+                return origin_name
+
+            # Handle simple types
             if hasattr(field_type, "__name__"):
                 return field_type.__name__
-            return str(field_type)
+
+            # Fallback - clean up string representation
+            # Remove problematic prefixes and syntax that can't be evaluated
+            type_str = str(field_type)
+            # Remove typing module prefix
+            type_str = type_str.replace("typing.", "")
+            # Remove types module prefix (for UnionType, etc.)
+            type_str = type_str.replace("types.", "")
+            # If we get a complex stringified type, just use 'str' as a safe fallback
+            # This handles edge cases like <function PlainSerializer at 0x...>
+            if "<" in type_str and ">" in type_str:
+                return "str"
+            return type_str
 
         def _get_config_value(field_name: str) -> typing.Any | None:
             """Get field value from config singleton if available."""
@@ -983,9 +1044,24 @@ def generated_command({params_signature}) -> None:
         raise typer.Exit(code=1) from e
 """
 
+        # Clean up generated code - remove any UnionType references that can't be evaluated
+        # This can happen with Python 3.10+ union syntax (str | None)
+        if "UnionType" in func_code:
+            # Replace UnionType[X, NoneType] with Optional[X] for proper evaluation
+            # The regex captures the first type argument before any comma, excluding NoneType
+            import re
+            func_code = re.sub(
+                r"UnionType\[([^,\]]+)(?:, NoneType)?\]",
+                r"Optional[\1]",
+                func_code,
+            )
+
         # Execute function creation in controlled namespace
         # Using exec is required here for dynamic function signature creation
         # which is necessary for Typer to introspect CLI parameters
+        import types as types_module
+        import collections.abc
+
         namespace: dict[str, typing.Any] = {
             "typer": typer,
             "ValidationError": ValidationError,
@@ -993,12 +1069,26 @@ def generated_command({params_signature}) -> None:
             "handler": handler,
             "config": config,
             # Include typing module components for type annotation resolution
-            # ForwardRef is needed when Pydantic v2 evaluates type annotations
+            # These are essential for evaluating stringified type annotations
             "ForwardRef": typing.ForwardRef,
             "Union": typing.Union,
             "Optional": typing.Optional,
+            "Annotated": typing.Annotated,
+            "Literal": typing.Literal,
+            "List": list,
+            "Dict": dict,
+            "Tuple": tuple,
+            "Set": set,
+            "Callable": collections.abc.Callable,
+            "Iterable": collections.abc.Iterable,
             "get_args": typing.get_args,
             "get_origin": typing.get_origin,
+            # Include NoneType for type annotations
+            "NoneType": type(None),
+            # Note: We intentionally exclude UnionType from the namespace because:
+            # - Type annotations using | syntax (str | None) are parsed internally
+            # - The typing.Union and Optional from above handle all necessary union cases
+            # - Providing UnionType leads to "not subscriptable" errors when eval'd
             # Include builtins for basic types (str, int, bool, etc.)
             "__builtins__": __builtins__,
         }
@@ -1017,6 +1107,13 @@ def generated_command({params_signature}) -> None:
         generated_command_func: Callable[..., None] = typing.cast(
             "Callable[..., None]", namespace["generated_command"]
         )
+
+        # Update generated function's __globals__ to include typing constructs
+        # This ensures Typer can later introspect the function with eval_str=True
+        if hasattr(generated_command_func, "__globals__"):
+            generated_command_func.__globals__.update({
+                "Literal": typing.Literal,
+            })
 
         # If config provided, wrap function to update config with CLI values
         if config is not None:
@@ -1044,6 +1141,12 @@ def generated_command({params_signature}) -> None:
 
                 # Call the original generated command
                 generated_command_func(**kwargs)
+
+            # Also update wrapper's __globals__ if possible
+            if hasattr(wrapped_command, "__globals__"):
+                wrapped_command.__globals__.update({
+                    "Literal": typing.Literal,
+                })
 
             return wrapped_command
 

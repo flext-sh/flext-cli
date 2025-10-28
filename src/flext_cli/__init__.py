@@ -56,7 +56,6 @@ Serves 32+ FLEXT projects with standardized patterns.
    - FlextCliContext - Request/operation context (10K)
    - FlextCliDebug - Debug utilities (12K)
    - FlextCliMixins - Reusable mixins (10K)
-   - Exceptions: Use flext_core.FlextExceptions for all error handling
 
 **INTEGRATION POINTS**:
 - Depends on: flext-core (foundation library)
@@ -164,9 +163,6 @@ from __future__ import annotations
 
 from flext_cli.__version__ import __version__, __version_info__
 from flext_cli.api import FlextCli
-
-# Phase 2: Advanced Features - Production Ready
-# from flext_cli.async_support import FlextCliAsync  # Module not yet implemented
 from flext_cli.cli import FlextCliCli
 from flext_cli.cli_params import FlextCliCommonParams
 from flext_cli.cmd import FlextCliCmd
@@ -190,7 +186,6 @@ from flext_cli.typings import FlextCliTypes
 __all__ = [
     # Core API (alphabetically sorted per FLEXT standards)
     "FlextCli",
-    # "FlextCliAsync",  # Module not yet implemented
     "FlextCliCli",
     "FlextCliCmd",
     "FlextCliCommands",
@@ -209,9 +204,9 @@ __all__ = [
     "FlextCliProtocols",
     "FlextCliTables",
     "FlextCliTypes",
-    # Type utilities
-    "normalize_annotation",
     # Version
     "__version__",
     "__version_info__",
+    # Type utilities
+    "normalize_annotation",
 ]
