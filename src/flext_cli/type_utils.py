@@ -15,7 +15,7 @@ from __future__ import annotations
 
 import sys
 import types
-from typing import Any, get_args, get_origin
+from typing import Any, Union, get_args, get_origin
 
 
 def normalize_annotation(annotation: Any) -> Any:
@@ -50,8 +50,6 @@ def normalize_annotation(annotation: Any) -> Any:
 
     # typing.Union type (traditional typing.Union[X, Y])
     try:
-        from typing import Union
-
         if origin is Union:
             return _normalize_union_type(annotation)
     except (ImportError, AttributeError):
@@ -86,9 +84,6 @@ def _normalize_union_type(annotation: Any) -> Any:
         Normalized annotation
 
     """
-    # Import here to avoid circular imports
-    from typing import Optional
-
     # Extract union members
     args = get_args(annotation)
     if not args:
@@ -103,7 +98,7 @@ def _normalize_union_type(annotation: Any) -> Any:
         inner_type = non_none_args[0]
         # Recursively normalize the inner type
         normalized_inner = normalize_annotation(inner_type)
-        return Optional[normalized_inner]
+        return normalized_inner | None
 
     # If only one non-None type without None, use that type directly
     if not has_none and len(non_none_args) == 1:

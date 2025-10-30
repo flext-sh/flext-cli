@@ -19,16 +19,17 @@
 
 ## Overview
 
-### What Changed?
+### What Changed
 
 v0.10.0 simplifies FLEXT-CLI by:
+
 - ✅ **Direct Access Pattern**: Call methods on specific services (e.g., `cli.formatters.print()`)
 - ✅ **Removed Wrappers**: No more thin wrapper methods in FlextCli
 - ✅ **Simplified Services**: Only 3-4 service classes (down from 18)
 - ✅ **Context as Value Object**: FlextCliContext is now immutable data
 - ✅ **Removed Complexity**: No unused async/threading/plugin code
 
-### Why These Changes?
+### Why These Changes
 
 **Clarity**: It's now obvious which service handles what
 **Simplicity**: One way to do things, not multiple
@@ -179,6 +180,7 @@ from tests.fixtures.testing_utilities import (
 ### 5. Removed Modules
 
 These modules no longer exist:
+
 - ❌ `flext_cli.validator` (was already empty)
 - ❌ `flext_cli.auth` (functionality in `api.py`)
 - ❌ `flext_cli.testing` (moved to tests/)
@@ -244,6 +246,7 @@ find . -name "*.py" -exec sed -i 's/cli\.create_table(/cli.output.format_data(/g
 #### Manual Review
 
 After automated replacement, manually check:
+
 1. Method signatures (some changed slightly)
 2. Error handling (still uses FlextResult[T])
 3. Type hints (may need updates)
@@ -284,6 +287,7 @@ pytest --cov=your_module
 ```
 
 Common test failures:
+
 - Missing `.formatters` or `.file_tools` in calls
 - Context activate/deactivate assertions
 - Import errors from removed modules
@@ -308,84 +312,85 @@ Type hints for FlextCli don't change - only method calls do.
 
 ### Complete Method Mapping
 
-| v0.9.0 (OLD) | v0.10.0 (NEW) |
-|--------------|---------------|
-| `cli.print(msg)` | `cli.formatters.print(msg)` |
-| `cli.create_table(data)` | `cli.output.format_data(data, format_type="table")` |
-| `cli.print_table(table)` | `cli.formatters.print(table)` |
-| `cli.create_tree(label)` | `cli.formatters.create_tree(label)` |
-| `cli.format_output(data, fmt)` | `cli.output.format_data(data, format_type=fmt)` |
-| `cli.read_json_file(path)` | `cli.file_tools.read_json_file(path)` |
-| `cli.write_json_file(path, data)` | `cli.file_tools.write_json_file(path, data)` |
-| `cli.read_yaml_file(path)` | `cli.file_tools.read_yaml_file(path)` |
-| `cli.write_yaml_file(path, data)` | `cli.file_tools.write_yaml_file(path, data)` |
-| `cli.read_csv_file(path)` | `cli.file_tools.read_csv_file(path)` |
-| `cli.write_csv_file(path, data)` | `cli.file_tools.write_csv_file(path, data)` |
-| `cli.prompt_user(msg)` | `cli.prompts.prompt(msg)` |
-| `cli.confirm(msg)` | `cli.prompts.confirm(msg)` |
-| `cli.select(msg, choices)` | `cli.prompts.select(msg, choices)` |
+| v0.9.0 (OLD)                      | v0.10.0 (NEW)                                       |
+| --------------------------------- | --------------------------------------------------- |
+| `cli.print(msg)`                  | `cli.formatters.print(msg)`                         |
+| `cli.create_table(data)`          | `cli.output.format_data(data, format_type="table")` |
+| `cli.print_table(table)`          | `cli.formatters.print(table)`                       |
+| `cli.create_tree(label)`          | `cli.formatters.create_tree(label)`                 |
+| `cli.format_output(data, fmt)`    | `cli.output.format_data(data, format_type=fmt)`     |
+| `cli.read_json_file(path)`        | `cli.file_tools.read_json_file(path)`               |
+| `cli.write_json_file(path, data)` | `cli.file_tools.write_json_file(path, data)`        |
+| `cli.read_yaml_file(path)`        | `cli.file_tools.read_yaml_file(path)`               |
+| `cli.write_yaml_file(path, data)` | `cli.file_tools.write_yaml_file(path, data)`        |
+| `cli.read_csv_file(path)`         | `cli.file_tools.read_csv_file(path)`                |
+| `cli.write_csv_file(path, data)`  | `cli.file_tools.write_csv_file(path, data)`         |
+| `cli.prompt_user(msg)`            | `cli.prompts.prompt(msg)`                           |
+| `cli.confirm(msg)`                | `cli.prompts.confirm(msg)`                          |
+| `cli.select(msg, choices)`        | `cli.prompts.select(msg, choices)`                  |
 
 ### Services Reference
 
 Access these through FlextCli instance:
 
-| Service | Methods | Purpose |
-|---------|---------|---------|
-| `cli.formatters` | `print()`, `create_tree()`, etc. | Rich terminal formatting |
-| `cli.output` | `format_data()`, etc. | Output management |
-| `cli.file_tools` | `read_json_file()`, `write_yaml_file()`, etc. | File I/O |
-| `cli.prompts` | `prompt()`, `confirm()`, `select()` | User input |
-| `cli.core` | `execute_command()`, etc. | Command management |
-| `cli.cmd` | `execute()` | Command execution |
+| Service          | Methods                                       | Purpose                  |
+| ---------------- | --------------------------------------------- | ------------------------ |
+| `cli.formatters` | `print()`, `create_tree()`, etc.              | Rich terminal formatting |
+| `cli.output`     | `format_data()`, etc.                         | Output management        |
+| `cli.file_tools` | `read_json_file()`, `write_yaml_file()`, etc. | File I/O                 |
+| `cli.prompts`    | `prompt()`, `confirm()`, `select()`           | User input               |
+| `cli.core`       | `execute_command()`, etc.                     | Command management       |
+| `cli.cmd`        | `execute()`                                   | Command execution        |
 
 ---
 
 ## FAQ
 
-### Q: Why remove wrapper methods?
+### Q: Why remove wrapper methods
 
 **A**: Wrapper methods added no value and made the API confusing. Now there's one clear way to do each operation.
 
-### Q: Will this break my code?
+### Q: Will this break my code
 
 **A**: Yes, if you use wrapper methods. But the migration is straightforward - mostly find-and-replace.
 
-### Q: Can I use both old and new patterns?
+### Q: Can I use both old and new patterns
 
 **A**: No, v0.10.0 removes the old wrapper methods completely. You must migrate.
 
-### Q: How long does migration take?
+### Q: How long does migration take
 
 **A**: Typically 30-60 minutes for a project. Most of it is automated find-and-replace.
 
-### Q: Is the migration tool available?
+### Q: Is the migration tool available
 
 **A**: Not yet, but the find-and-replace commands above work well. We may add a tool in the future.
 
-### Q: What if I have a large codebase?
+### Q: What if I have a large codebase
 
 **A**: Start with automated find-and-replace, then:
+
 1. Run tests to find issues
 2. Fix issues one module at a time
 3. Consider a staged rollout
 
-### Q: Will there be more breaking changes?
+### Q: Will there be more breaking changes
 
 **A**: We aim for stability. v0.10.0 is a major cleanup. Future versions should be backwards compatible.
 
-### Q: Can I stay on v0.9.0?
+### Q: Can I stay on v0.9.0
 
 **A**: Yes, but v0.10.0 has improvements and will receive ongoing support. v0.9.0 is now in maintenance mode.
 
-### Q: What about performance?
+### Q: What about performance
 
 **A**: v0.10.0 is **faster** due to less indirection. You may notice 10-20% speed improvements.
 
-### Q: Are there new features?
+### Q: Are there new features
 
 **A**: v0.10.0 focuses on simplification. New features will come in v0.11.x and later.
 
-### Q: Where's the full changelog?
+### Q: Where's the full changelog
 
 **A**: See [CHANGELOG.md](../../CHANGELOG.md) for complete details.
 
@@ -524,6 +529,7 @@ def run_command(command: str, args: list[str]):
 ### Migration Assistance
 
 If you need help migrating:
+
 1. Open a GitHub issue with "Migration Help" label
 2. Include code samples and specific questions
 3. We'll provide guidance
@@ -531,6 +537,7 @@ If you need help migrating:
 ### Reporting Problems
 
 Found a bug after migrating?
+
 1. Check if it's a known issue
 2. Create a minimal reproduction
 3. Open a GitHub issue with:

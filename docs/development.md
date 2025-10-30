@@ -25,15 +25,17 @@ FLEXT-CLI v0.10.0 follows a simplified architecture with clear guidelines for wh
 
 ## When to Use Each Pattern
 
-### Use FlextService When:
+### Use FlextService When
 
 **Requirements**:
+
 - ✅ Class manages **mutable state** (commands, sessions, configuration)
 - ✅ Class requires **dependency injection**
 - ✅ Class needs **lifecycle management** (startup, shutdown, cleanup)
 - ✅ Class has **complex initialization** with external dependencies
 
 **Example - FlextCliCore (Stateful Service)**:
+
 ```python
 from flext_core import FlextService
 
@@ -53,14 +55,16 @@ class FlextCliCore(FlextService[CliDataDict]):
 ```
 
 **When NOT to use**:
+
 - ❌ Operations are stateless (just transformations)
 - ❌ No initialization needed
 - ❌ Methods could all be static
 - ❌ Just grouping related functions
 
-### Use Simple Class When:
+### Use Simple Class When
 
 **Requirements**:
+
 - ✅ Class is **stateless** (no internal state to manage)
 - ✅ Methods could be **static** (no `self` needed)
 - ✅ **No dependency injection** required
@@ -68,6 +72,7 @@ class FlextCliCore(FlextService[CliDataDict]):
 - ✅ Pure **I/O operations** (read/write files)
 
 **Example - FlextCliFileTools (Simple Utility Class)**:
+
 ```python
 from flext_core import FlextResult
 import json
@@ -96,14 +101,16 @@ class FlextCliFileTools:
 ```
 
 **Benefits**:
+
 - No initialization overhead
 - Clear that it's stateless
 - Can use static methods
 - Easy to test
 
-### Use Value Object (Pydantic) When:
+### Use Value Object (Pydantic) When
 
 **Requirements**:
+
 - ✅ Class is **immutable data**
 - ✅ Compared by **value**, not identity
 - ✅ **No behavior** (no business logic)
@@ -111,6 +118,7 @@ class FlextCliFileTools:
 - ✅ Configuration or context data
 
 **Example - FlextCliContext (Value Object)**:
+
 ```python
 from flext_core import FlextModels
 from pydantic import Field
@@ -126,6 +134,7 @@ class FlextCliContext(FlextModels.Value):
 ```
 
 **When to use**:
+
 - Configuration data
 - Request/response models
 - Event data
@@ -284,6 +293,7 @@ Before implementing new features, review:
 **[IMPLEMENTATION_CHECKLIST.md](refactoring/IMPLEMENTATION_CHECKLIST.md)** - 40-step checklist for refactoring
 
 Key phases:
+
 1. Documentation (complete)
 2. Delete duplicates (validator.py, auth.py, testing.py)
 3. Convert services to simple classes
@@ -305,6 +315,7 @@ Key phases:
    - Clear ownership
 
 3. **Quality Gates (MANDATORY)**:
+
    ```bash
    make validate  # Must pass 100%
    ```

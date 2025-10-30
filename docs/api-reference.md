@@ -22,6 +22,7 @@
 FLEXT-CLI v0.10.0 introduces a **direct access API pattern**, removing all wrapper methods from the main `FlextCli` facade. This provides clearer ownership of functionality and eliminates API duplication.
 
 **Key Changes**:
+
 - **Direct Access**: All operations accessed via property paths (e.g., `cli.formatters.print()`)
 - **No Wrappers**: Removed ~15 wrapper methods from `FlextCli`
 - **Clear Ownership**: Explicit which service handles each operation
@@ -476,16 +477,16 @@ if __name__ == "__main__":
 
 **Common Pattern Changes**:
 
-| v0.9.0 (Old) | v0.10.0 (New) | Category |
-|--------------|---------------|----------|
-| `cli.print(...)` | `cli.formatters.print(...)` | Output |
-| `cli.create_table(...)` | `cli.output.format_data(..., format_type="table")` | Tables |
-| `cli.read_json_file(...)` | `cli.file_tools.read_json_file(...)` | Files |
-| `cli.write_json_file(...)` | `cli.file_tools.write_json_file(...)` | Files |
-| `cli.confirm(...)` | `cli.prompts.confirm(...)` | Input |
-| `cli.prompt_text(...)` | `cli.prompts.prompt(...)` | Input |
-| `context.activate()` | ❌ Removed (context is now immutable) | Context |
-| `context.deactivate()` | ❌ Removed (context is now immutable) | Context |
+| v0.9.0 (Old)               | v0.10.0 (New)                                      | Category |
+| -------------------------- | -------------------------------------------------- | -------- |
+| `cli.print(...)`           | `cli.formatters.print(...)`                        | Output   |
+| `cli.create_table(...)`    | `cli.output.format_data(..., format_type="table")` | Tables   |
+| `cli.read_json_file(...)`  | `cli.file_tools.read_json_file(...)`               | Files    |
+| `cli.write_json_file(...)` | `cli.file_tools.write_json_file(...)`              | Files    |
+| `cli.confirm(...)`         | `cli.prompts.confirm(...)`                         | Input    |
+| `cli.prompt_text(...)`     | `cli.prompts.prompt(...)`                          | Input    |
+| `context.activate()`       | ❌ Removed (context is now immutable)              | Context  |
+| `context.deactivate()`     | ❌ Removed (context is now immutable)              | Context  |
 
 **See Full Guide**: [MIGRATION_GUIDE_V0.9_TO_V0.10.md](refactoring/MIGRATION_GUIDE_V0.9_TO_V0.10.md)
 

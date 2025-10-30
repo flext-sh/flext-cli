@@ -6,14 +6,14 @@
 
 ## Executive Summary
 
-| Aspect | v0.9.0 (Before) | v0.10.0 (After) | Change |
-|--------|----------------|-----------------|---------|
-| **Service Classes** | 18 | 3-4 | **-75%** |
-| **Lines of Code** | ~14,000 | ~10,000 | **-30%** |
-| **API Methods** | ~30 | ~15 | **-50%** |
-| **Modules** | 24 | 20 | **-4** |
-| **Test Structure** | Flat | Organized | **Better** |
-| **Async Code** | Imported (unused) | Removed | **Simpler** |
+| Aspect              | v0.9.0 (Before)   | v0.10.0 (After) | Change      |
+| ------------------- | ----------------- | --------------- | ----------- |
+| **Service Classes** | 18                | 3-4             | **-75%**    |
+| **Lines of Code**   | ~14,000           | ~10,000         | **-30%**    |
+| **API Methods**     | ~30               | ~15             | **-50%**    |
+| **Modules**         | 24                | 20              | **-4**      |
+| **Test Structure**  | Flat              | Organized       | **Better**  |
+| **Async Code**      | Imported (unused) | Removed         | **Simpler** |
 
 ---
 
@@ -109,6 +109,7 @@ cli.prompts.confirm("Continue?")
 ### Example 1: File Operations
 
 #### v0.9.0 (Old)
+
 ```python
 from flext_cli import FlextCli
 
@@ -124,6 +125,7 @@ config = cli.file_tools.read_json_file("config.json").unwrap()
 ```
 
 #### v0.10.0 (New)
+
 ```python
 from flext_cli import FlextCli
 
@@ -138,6 +140,7 @@ config = cli.file_tools.read_json_file("config.json").unwrap()
 ### Example 2: Output Formatting
 
 #### v0.9.0 (Old)
+
 ```python
 # Multiple ways:
 cli.print("Message")  # Wrapper
@@ -153,6 +156,7 @@ cli.formatters.print(table)  # Direct
 ```
 
 #### v0.10.0 (New)
+
 ```python
 # One clear way:
 cli.formatters.print("Message")
@@ -167,6 +171,7 @@ cli.formatters.print(table.unwrap())
 ### Example 3: Context Usage
 
 #### v0.9.0 (Old)
+
 ```python
 # Context as service (mutable, with methods)
 from flext_cli import FlextCliContext
@@ -179,6 +184,7 @@ context.deactivate()  # Service method
 ```
 
 #### v0.10.0 (New)
+
 ```python
 # Context as value object (immutable, just data)
 from flext_cli import FlextCliContext
@@ -248,6 +254,7 @@ tests/unit/
 ```
 
 **Problems**:
+
 - Hard to find specific tests
 - Some files are 70K+ bytes
 - No logical grouping
@@ -280,6 +287,7 @@ tests/
 ```
 
 **Benefits**:
+
 - Easy to find tests
 - Logical grouping
 - No file > 30K lines
@@ -319,6 +327,7 @@ from flext_core import FlextResult, FlextService
 ### Method Call Overhead
 
 #### v0.9.0: Double Indirection
+
 ```python
 cli.print("msg")
     → FlextCli.print()  # Wrapper
@@ -329,6 +338,7 @@ cli.print("msg")
 ```
 
 #### v0.10.0: Single Indirection
+
 ```python
 cli.formatters.print("msg")
     → FlextCliFormatters.print()  # Direct
@@ -340,6 +350,7 @@ cli.formatters.print("msg")
 ### Initialization Overhead
 
 #### v0.9.0: Every Class is Service
+
 ```python
 # Every instantiation has service overhead
 file_tools = FlextCliFileTools()
@@ -347,6 +358,7 @@ file_tools = FlextCliFileTools()
 ```
 
 #### v0.10.0: Static Methods
+
 ```python
 # No instantiation needed for utilities
 FlextCliFileTools.read_json_file(path)
@@ -398,13 +410,13 @@ cli.confirm(        → cli.prompts.confirm(
 
 ## Code Metrics
 
-| Metric | v0.9.0 | v0.10.0 | Improvement |
-|--------|---------|---------|-------------|
-| **Cyclomatic Complexity** | Higher | Lower | Simpler logic |
-| **Coupling** | Medium | Low | Better separation |
-| **Cohesion** | Medium | High | Clear responsibilities |
-| **Maintainability Index** | Good | Excellent | Easier to maintain |
-| **Test Coverage** | 95%+ | 95%+ | Maintained |
+| Metric                    | v0.9.0 | v0.10.0   | Improvement            |
+| ------------------------- | ------ | --------- | ---------------------- |
+| **Cyclomatic Complexity** | Higher | Lower     | Simpler logic          |
+| **Coupling**              | Medium | Low       | Better separation      |
+| **Cohesion**              | Medium | High      | Clear responsibilities |
+| **Maintainability Index** | Good   | Excellent | Easier to maintain     |
+| **Test Coverage**         | 95%+   | 95%+      | Maintained             |
 
 ---
 

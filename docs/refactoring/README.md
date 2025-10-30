@@ -5,14 +5,17 @@ This directory contains comprehensive documentation for the v0.10.0 refactoring,
 ## 📚 Documentation Index
 
 ### Planning & Strategy
+
 - **[REFACTORING_PLAN_V0.10.0.md](REFACTORING_PLAN_V0.10.0.md)** - Complete refactoring plan with rationale, changes, and timeline
 - **[ARCHITECTURE_COMPARISON.md](ARCHITECTURE_COMPARISON.md)** - Side-by-side comparison of v0.9.0 vs v0.10.0 architecture
 
 ### Implementation Guides
+
 - **[IMPLEMENTATION_CHECKLIST.md](IMPLEMENTATION_CHECKLIST.md)** - Step-by-step checklist for developers implementing the refactoring
 - **[BREAKING_CHANGES.md](BREAKING_CHANGES.md)** - Complete list of breaking changes with detailed explanations
 
 ### User Resources
+
 - **[MIGRATION_GUIDE_V0.9_TO_V0.10.md](MIGRATION_GUIDE_V0.9_TO_V0.10.md)** - User-friendly migration guide with code examples and patterns
 
 ## 🎯 Overview
@@ -20,6 +23,7 @@ This directory contains comprehensive documentation for the v0.10.0 refactoring,
 ### What Changed in v0.10.0
 
 **Key Improvements**:
+
 - 30-40% code reduction (~14K → ~10K lines)
 - Services reduced from 18 → 3-4 (only for stateful logic)
 - Direct access pattern (removed thin wrappers)
@@ -27,6 +31,7 @@ This directory contains comprehensive documentation for the v0.10.0 refactoring,
 - Context changed from service to value object
 
 **Benefits**:
+
 - Simpler architecture
 - Easier maintenance
 - Better performance
@@ -51,16 +56,19 @@ This directory contains comprehensive documentation for the v0.10.0 refactoring,
 ## 📖 Reading Order
 
 ### For Users Migrating
+
 1. Read [MIGRATION_GUIDE_V0.9_TO_V0.10.md](MIGRATION_GUIDE_V0.9_TO_V0.10.md)
 2. Review [BREAKING_CHANGES.md](BREAKING_CHANGES.md)
 3. Check [ARCHITECTURE_COMPARISON.md](ARCHITECTURE_COMPARISON.md) for context
 
 ### For Contributors
+
 1. Read [REFACTORING_PLAN_V0.10.0.md](REFACTORING_PLAN_V0.10.0.md)
 2. Use [IMPLEMENTATION_CHECKLIST.md](IMPLEMENTATION_CHECKLIST.md)
 3. Reference [ARCHITECTURE_COMPARISON.md](ARCHITECTURE_COMPARISON.md)
 
 ### For Maintainers
+
 1. Review all documents
 2. Understand rationale in [REFACTORING_PLAN_V0.10.0.md](REFACTORING_PLAN_V0.10.0.md)
 3. Follow [IMPLEMENTATION_CHECKLIST.md](IMPLEMENTATION_CHECKLIST.md) strictly

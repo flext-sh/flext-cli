@@ -28,30 +28,33 @@ This refactoring aims to simplify FLEXT-CLI's architecture by removing over-engi
 
 ### Key Metrics
 
-| Metric | v0.9.0 (Current) | v0.10.0 (Target) | Change |
-|--------|------------------|-------------------|---------|
-| **Lines of Code** | ~14,000 | ~9,000-10,000 | **-30-40%** |
-| **Service Classes** | 18 | 3-4 | **-75-80%** |
-| **Module Count** | 24 | 20 | **-4 modules** |
-| **Async Infrastructure** | Yes (unused) | No | **Removed** |
-| **API Methods** | ~30 | ~15 | **-50%** |
-| **Test Files** | 21 flat | ~40 organized | **Better structure** |
+| Metric                   | v0.9.0 (Current) | v0.10.0 (Target) | Change               |
+| ------------------------ | ---------------- | ---------------- | -------------------- |
+| **Lines of Code**        | ~14,000          | ~9,000-10,000    | **-30-40%**          |
+| **Service Classes**      | 18               | 3-4              | **-75-80%**          |
+| **Module Count**         | 24               | 20               | **-4 modules**       |
+| **Async Infrastructure** | Yes (unused)     | No               | **Removed**          |
+| **API Methods**          | ~30              | ~15              | **-50%**             |
+| **Test Files**           | 21 flat          | ~40 organized    | **Better structure** |
 
 ### Benefits
 
 **For Users**:
+
 - ✅ Simpler, more intuitive API
 - ✅ Clearer documentation
 - ✅ Faster performance (less indirection)
 - ✅ Easier debugging
 
 **For Contributors**:
+
 - ✅ Less code to maintain
 - ✅ Clearer architecture
 - ✅ Easier to extend
 - ✅ Better test organization
 
 **For the Project**:
+
 - ✅ Reduced technical debt
 - ✅ Better alignment with SOLID principles
 - ✅ Improved code quality
@@ -88,12 +91,14 @@ class FlextCliFileTools(FlextService[dict[str, object]]):
 ```
 
 **Impact**:
+
 - Unnecessary initialization overhead
 - Confusing architecture (everything is a "service")
 - Harder to understand what's actually stateful
 - More code to maintain
 
 **Services that shouldn't be services**:
+
 - FlextCliFileTools - Stateless I/O
 - FlextCliFormatters - Stateless formatting
 - FlextCliTables - Stateless formatting
@@ -115,6 +120,7 @@ import pluggy  # Plugin system never used
 ```
 
 **Impact**:
+
 - Misleading to developers
 - Suggests features that don't exist
 - Maintenance burden
@@ -140,6 +146,7 @@ class FlextCli:
 ```
 
 **Impact**:
+
 - Bloated API surface
 - Two ways to do everything (confusing)
 - Harder to document
@@ -157,6 +164,7 @@ class FlextCliContext(FlextService[CliDataDict]):
 ```
 
 **Impact**:
+
 - Mutable state where immutability is better
 - Service overhead for simple data
 - Violates value object pattern
@@ -184,6 +192,7 @@ tests/unit/
 ```
 
 **Impact**:
+
 - Hard to navigate
 - Slow to run individual tests
 - Difficult to maintain
@@ -205,6 +214,7 @@ tests/unit/
 #### Services (3-4 classes only)
 
 **FlextService should be used when**:
+
 - Class manages mutable state (commands, sessions, configuration)
 - Class requires dependency injection
 - Class needs lifecycle management
@@ -222,6 +232,7 @@ class FlextCliCore(FlextService[CliDataDict]):
 ```
 
 **Services in v0.10.0**:
+
 1. **FlextCliCore** - Command/session management ✅
 2. **FlextCli** - Main API facade (evaluate if needed) ⚠️
 3. **FlextCliCmd** - Command execution (evaluate if needed) ⚠️
@@ -229,6 +240,7 @@ class FlextCliCore(FlextService[CliDataDict]):
 #### Simple Classes (10+ utilities)
 
 **Simple classes should be used when**:
+
 - Class is stateless
 - Methods could be static
 - No dependency injection needed
@@ -250,6 +262,7 @@ class FlextCliFileTools:
 ```
 
 **Simple Classes in v0.10.0**:
+
 - FlextCliFileTools - File I/O
 - FlextCliFormatters - Rich wrapper (already simple)
 - FlextCliTables - Table formatting
@@ -261,6 +274,7 @@ class FlextCliFileTools:
 #### Data Models (Value Objects)
 
 **Value objects should be used when**:
+
 - Class is immutable data
 - Compared by value, not identity
 - No behavior, just data validation
@@ -281,8 +295,9 @@ class FlextCliContext(FlextModels.Value):
 ```
 
 **Value Objects in v0.10.0**:
+
 - FlextCliContext - Execution context
-- All models in FlextCliModels.*
+- All models in FlextCliModels.\*
 
 ### Direct Access Pattern
 
@@ -305,6 +320,7 @@ cli.file_tools.read_json_file("config.json")   # Direct
 ```
 
 **Benefits**:
+
 - Clear ownership (which service handles what)
 - No duplicate API surface
 - Easier to document
@@ -383,6 +399,7 @@ cli.file_tools.read_json_file("config.json")   # Direct
 #### 2.1 FlextCliFileTools
 
 **Before**:
+
 ```python
 class FlextCliFileTools(FlextService[dict[str, object]]):
     def __init__(self):
@@ -394,6 +411,7 @@ class FlextCliFileTools(FlextService[dict[str, object]]):
 ```
 
 **After**:
+
 ```python
 class FlextCliFileTools:
     """Stateless file operations utility."""
@@ -405,12 +423,14 @@ class FlextCliFileTools:
 ```
 
 **Changes**:
+
 - Remove FlextService inheritance
 - Remove `__init__`
 - Make methods static (no self needed)
 - Remove logger (can use module-level logger if needed)
 
 **Applies to**:
+
 - FlextCliFileTools ✅
 - FlextCliTables ✅
 - FlextCliOutput ✅
@@ -425,6 +445,7 @@ class FlextCliFileTools:
 ### Phase 3: Fix FlextCliContext
 
 **Before**:
+
 ```python
 class FlextCliContext(FlextService[CliDataDict]):
     """Context as service with methods."""
@@ -433,6 +454,7 @@ class FlextCliContext(FlextService[CliDataDict]):
 ```
 
 **After**:
+
 ```python
 from flext_core import FlextModels
 
@@ -448,6 +470,7 @@ class FlextCliContext(FlextModels.Value):
 ```
 
 **Benefits**:
+
 - Immutable by default
 - Simpler mental model
 - No lifecycle management needed
@@ -503,6 +526,7 @@ def select(self, message, choices) -> FlextResult[str]:
 ```
 
 **Keep in FlextCli**:
+
 ```python
 # ✅ Keep these (not simple wrappers):
 def __init__(self) -> None:
@@ -595,21 +619,25 @@ tests/
 #### 6.2 Split Large Test Files
 
 **test_config.py** (1,821 lines) → Split into:
+
 - `config/test_config_loading.py` (~600 lines)
 - `config/test_config_validation.py` (~600 lines)
 - `config/test_profiles.py` (~400 lines)
 
 **test_core.py** (1,670 lines) → Split into:
+
 - `core/test_service_base.py` (~600 lines)
 - `core/test_command_registry.py` (~500 lines)
 - `core/test_session_management.py` (~400 lines)
 
 **test_file_tools.py** (1,284 lines) → Split into:
+
 - `io/test_json_operations.py` (~400 lines)
 - `io/test_yaml_operations.py` (~400 lines)
 - `io/test_csv_operations.py` (~400 lines)
 
 **test_api.py** (986 lines) → Split into:
+
 - `core/test_api.py` (~400 lines)
 - `auth/test_token_auth.py` (~300 lines)
 - `auth/test_credential_auth.py` (~200 lines)
@@ -620,24 +648,26 @@ tests/
 
 ### Timeline Overview
 
-| Phase | Duration | Dependencies | Risk |
-|-------|----------|--------------|------|
-| **Phase 1**: Documentation | 13-19 hours | None | Low |
-| **Phase 2**: Delete duplicates | 1-2 hours | Phase 1 | Low |
-| **Phase 3**: Convert services | 4-6 hours | Phase 2 | Medium |
-| **Phase 4**: Fix context | 2-3 hours | Phase 3 | Medium |
-| **Phase 5**: Remove wrappers | 2-3 hours | Phase 3 | Medium |
-| **Phase 6**: Remove infrastructure | 1-2 hours | Phase 3 | Low |
-| **Phase 7**: Reorganize tests | 3-4 hours | All above | Medium |
-| **Phase 8**: Quality gates | 2-3 hours | All above | Low |
-| **Total** | **28-42 hours** | Sequential | Medium |
+| Phase                              | Duration        | Dependencies | Risk   |
+| ---------------------------------- | --------------- | ------------ | ------ |
+| **Phase 1**: Documentation         | 13-19 hours     | None         | Low    |
+| **Phase 2**: Delete duplicates     | 1-2 hours       | Phase 1      | Low    |
+| **Phase 3**: Convert services      | 4-6 hours       | Phase 2      | Medium |
+| **Phase 4**: Fix context           | 2-3 hours       | Phase 3      | Medium |
+| **Phase 5**: Remove wrappers       | 2-3 hours       | Phase 3      | Medium |
+| **Phase 6**: Remove infrastructure | 1-2 hours       | Phase 3      | Low    |
+| **Phase 7**: Reorganize tests      | 3-4 hours       | All above    | Medium |
+| **Phase 8**: Quality gates         | 2-3 hours       | All above    | Low    |
+| **Total**                          | **28-42 hours** | Sequential   | Medium |
 
 ### Detailed Steps
 
 #### Phase 1: Documentation (Complete First) ✅
+
 See: [IMPLEMENTATION_CHECKLIST.md](IMPLEMENTATION_CHECKLIST.md)
 
 #### Phase 2: Delete Duplicates
+
 1. Delete `validator.py`
 2. Delete `auth.py`
 3. Move `testing.py` to `tests/fixtures/testing_utilities.py`
@@ -647,7 +677,9 @@ See: [IMPLEMENTATION_CHECKLIST.md](IMPLEMENTATION_CHECKLIST.md)
 7. Commit: "refactor: remove duplicate and empty modules"
 
 #### Phase 3: Convert Services to Simple Classes
+
 For each utility class:
+
 1. Remove FlextService inheritance
 2. Remove `__init__` method
 3. Convert instance methods to static methods
@@ -657,6 +689,7 @@ For each utility class:
 7. Run: `make validate` after each conversion
 
 Order:
+
 1. FlextCliFileTools (simplest)
 2. FlextCliTables
 3. FlextCliOutput
@@ -667,6 +700,7 @@ Order:
 Commit after each: "refactor: convert FlextCliFileTools to simple class"
 
 #### Phase 4: Fix FlextCliContext
+
 1. Change inheritance: `FlextService` → `FlextModels.Value`
 2. Remove service methods: `activate()`, `deactivate()`
 3. Add `model_config = ConfigDict(frozen=True)`
@@ -676,6 +710,7 @@ Commit after each: "refactor: convert FlextCliFileTools to simple class"
 7. Commit: "refactor: convert context to value object"
 
 #### Phase 5: Remove API Wrappers
+
 1. Remove ~15 wrapper methods from `api.py`
 2. Update examples in docs/
 3. Update tests
@@ -683,6 +718,7 @@ Commit after each: "refactor: convert FlextCliFileTools to simple class"
 5. Commit: "refactor: remove API wrapper methods"
 
 #### Phase 6: Remove Unused Infrastructure
+
 1. Remove asyncio imports
 2. Remove threading imports
 3. Remove pluggy imports
@@ -692,6 +728,7 @@ Commit after each: "refactor: convert FlextCliFileTools to simple class"
 7. Commit: "refactor: remove unused infrastructure"
 
 #### Phase 7: Reorganize Tests
+
 1. Create new test directory structure
 2. Split large test files
 3. Move testing utilities
@@ -700,6 +737,7 @@ Commit after each: "refactor: convert FlextCliFileTools to simple class"
 6. Commit: "refactor: reorganize test structure"
 
 #### Phase 8: Quality Gates
+
 1. Run: `make validate` (must pass 100%)
 2. Run: `make test` (must maintain 95%+ pass rate)
 3. Update `__version__.py` → `0.10.0`
@@ -715,12 +753,14 @@ Commit after each: "refactor: convert FlextCliFileTools to simple class"
 ### Low Risk (High Confidence)
 
 **1. Delete empty/duplicate modules**
+
 - validator.py is empty
 - auth.py is duplicate
 - testing.py is test-only
 - Minimal external impact
 
 **2. Remove unused imports**
+
 - Not referenced anywhere
 - No functionality loss
 - Easy to verify with grep
@@ -730,31 +770,37 @@ Commit after each: "refactor: convert FlextCliFileTools to simple class"
 ### Medium Risk (Moderate Confidence)
 
 **1. Convert services to simple classes**
+
 - Changes instantiation pattern
 - May affect dependency injection
 - Tests need updates
 
 **Mitigation**:
+
 - Convert one at a time
 - Run tests after each
 - Keep git history clean for easy rollback
 
 **2. Remove API wrappers**
+
 - Breaking change for users
 - Migration guide needed
 - Examples need updates
 
 **Mitigation**:
+
 - Comprehensive migration guide
 - Version bump (0.9→0.10)
 - Deprecation warnings (if time permits)
 
 **3. Reorganize tests**
+
 - Large structural change
 - Risk of breaking tests during move
 - May miss dependencies
 
 **Mitigation**:
+
 - Full test run before starting
 - Move and verify incrementally
 - Keep backup of working tests
@@ -762,21 +808,25 @@ Commit after each: "refactor: convert FlextCliFileTools to simple class"
 ### High Risk (Careful Attention Required)
 
 **1. Change FlextCliContext from service to value object**
+
 - Architectural pattern change
 - Affects all context usage
 - May have subtle bugs
 
 **Mitigation**:
+
 - Comprehensive test coverage
 - Code review by team
 - Staged rollout possible
 
 **2. Remove infrastructure from core.py**
+
 - Core module changes risky
 - May have hidden dependencies
 - Could break ecosystem projects
 
 **Mitigation**:
+
 - Thorough analysis first
 - Test with dependent projects
 - Rollback plan ready
@@ -786,17 +836,20 @@ Commit after each: "refactor: convert FlextCliFileTools to simple class"
 If issues arise:
 
 1. **Per-Phase Rollback**: Each phase is a separate commit
+
    ```bash
    git revert <commit-hash>
    ```
 
 2. **Full Rollback**: Return to v0.9.0
+
    ```bash
    git checkout v0.9.0
    git checkout -b hotfix/rollback-v0.10
    ```
 
 3. **Partial Rollback**: Keep safe changes, revert risky ones
+
    ```bash
    git revert <risky-commit-1> <risky-commit-2>
    ```
@@ -859,6 +912,7 @@ If issues arise:
 ## Timeline
 
 ### Week 1: Documentation & Planning
+
 - **Days 1-3**: Create all refactoring documentation
 - **Days 4-5**: Update existing documentation
 - **Day 6**: Team review and approval
@@ -867,6 +921,7 @@ If issues arise:
 **Deliverables**: All documentation complete and approved
 
 ### Week 2: Core Refactoring
+
 - **Day 1**: Delete duplicates, remove dead code
 - **Days 2-3**: Convert services to simple classes
 - **Day 4**: Fix FlextCliContext
@@ -877,6 +932,7 @@ If issues arise:
 **Deliverables**: Core refactoring complete, tests passing
 
 ### Week 3: Test Reorganization & Polish
+
 - **Days 1-2**: Reorganize test structure
 - **Day 3**: Split large test files
 - **Day 4**: Update conftest.py
@@ -886,6 +942,7 @@ If issues arise:
 **Deliverables**: v0.10.0 ready for release
 
 ### Week 4: Release & Support
+
 - **Day 1**: Create PR and final review
 - **Day 2**: Merge to main
 - **Day 3**: Tag v0.10.0 and release

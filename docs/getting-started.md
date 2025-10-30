@@ -28,6 +28,7 @@ flext-cli v0.10.0 is a simplified, streamlined CLI foundation library for the FL
 - **Railway Pattern**: All operations return `FlextResult[T]`
 
 **Key Improvements in v0.10.0**:
+
 - 30-40% less code (14K → 10K lines)
 - 75% fewer services (18 → 3-4)
 - 50% fewer API methods (~30 → ~15)
@@ -47,6 +48,7 @@ flext-cli v0.10.0 is a simplified, streamlined CLI foundation library for the FL
 ### FLEXT Ecosystem Integration
 
 flext-cli integrates with:
+
 - **[flext-core](../../flext-core/README.md)**: Foundation patterns (FlextResult, FlextService, FlextModels)
 - **Click 8.2+**: CLI framework (abstracted)
 - **Rich 14.0+**: Terminal UI (abstracted)
@@ -312,6 +314,7 @@ def test_my_cli_operation():
 ### Migration from v0.9.0
 
 If you're upgrading from v0.9.0, see:
+
 - **[Migration Guide](refactoring/MIGRATION_GUIDE_V0.9_TO_V0.10.md)** - Step-by-step migration
 - **[Breaking Changes](refactoring/BREAKING_CHANGES.md)** - Complete breaking changes list
 - **[Architecture Comparison](refactoring/ARCHITECTURE_COMPARISON.md)** - Before/after comparison
@@ -319,6 +322,7 @@ If you're upgrading from v0.9.0, see:
 ### Examples
 
 Check `examples/` directory for complete application samples:
+
 - Basic CLI application
 - File processing workflows
 - Interactive prompts
