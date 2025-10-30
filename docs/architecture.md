@@ -22,6 +22,7 @@
 FLEXT-CLI v0.10.0 introduces a simplified, cleaner architecture by removing over-engineering and aligning with core design principles. The refactoring reduces complexity by 30-40% while maintaining all essential functionality.
 
 **Key Improvements**:
+
 - **Service Classes**: 18 → 3-4 (75% reduction)
 - **Lines of Code**: ~14,000 → ~10,000 (30% reduction)
 - **API Methods**: ~30 → ~15 (50% reduction)
@@ -43,6 +44,7 @@ FLEXT-CLI v0.10.0 introduces a simplified, cleaner architecture by removing over
 #### 🎯 Services (Stateful - 3-4 Only)
 
 **Use FlextService when**:
+
 - Class manages mutable state (commands, sessions, configuration)
 - Class requires dependency injection
 - Class needs lifecycle management
@@ -63,6 +65,7 @@ class FlextCliCore(FlextService[CliDataDict]):
 ```
 
 **Services in v0.10.0**:
+
 1. **FlextCliCore** - Command/session management ✅
 2. **FlextCli** - Main API facade (singleton) ✅
 3. **FlextCliCmd** - Command execution (evaluate) ⚠️
@@ -70,6 +73,7 @@ class FlextCliCore(FlextService[CliDataDict]):
 #### 🔧 Simple Classes (Utilities - 10+)
 
 **Use simple classes when**:
+
 - Class is stateless
 - Methods could be static
 - No dependency injection needed
@@ -93,6 +97,7 @@ class FlextCliFileTools:
 ```
 
 **Simple Classes in v0.10.0**:
+
 - **FlextCliFileTools** - File I/O operations
 - **FlextCliFormatters** - Rich formatting (already simple)
 - **FlextCliTables** - Table generation
@@ -104,6 +109,7 @@ class FlextCliFileTools:
 #### 📦 Data Models (Value Objects)
 
 **Use value objects when**:
+
 - Class is immutable data
 - Compared by value, not identity
 - No behavior, just data validation
@@ -125,8 +131,9 @@ class FlextCliContext(FlextModels.Value):
 ```
 
 **Value Objects in v0.10.0**:
+
 - **FlextCliContext** - Execution context (changed from service)
-- **All FlextCliModels.*** - Configuration and data models
+- **All FlextCliModels.\*** - Configuration and data models
 
 ---
 
@@ -163,6 +170,7 @@ cli.output.format_data(data, format_type="table")      # Output
 ```
 
 **Benefits**:
+
 - **Clear ownership** - Which service handles what is explicit
 - **No duplicate API** - Only one way to do things
 - **Easier to document** - Single source of truth
@@ -358,20 +366,23 @@ cli.create_table(       → cli.output.format_data(..., format_type="table")
 
 ### When to Use Each Pattern
 
-#### Use FlextService When:
+#### Use FlextService When
+
 - ✅ Managing stateful resources (commands, sessions)
 - ✅ Complex initialization required
 - ✅ Lifecycle management needed (startup, shutdown)
 - ✅ Dependency injection required
 
-#### Use Simple Class When:
+#### Use Simple Class When
+
 - ✅ Stateless utility functions
 - ✅ Pure I/O operations (read/write files)
 - ✅ Formatting and transformation
 - ✅ No initialization needed
 - ✅ Methods could be static
 
-#### Use Value Object When:
+#### Use Value Object When
+
 - ✅ Immutable data
 - ✅ Compared by value
 - ✅ No behavior, just validation
@@ -382,11 +393,13 @@ cli.create_table(       → cli.output.format_data(..., format_type="table")
 ### Breaking Changes Summary
 
 **API Changes**:
+
 - ❌ Removed ~15 wrapper methods from FlextCli
 - ❌ FlextCliContext is now value object (not service)
 - ❌ Static methods for utility classes (no instantiation)
 
 **Module Changes**:
+
 - ❌ Deleted: validator.py, auth.py
 - ❌ Moved: testing.py → tests/fixtures/
 
@@ -397,23 +410,27 @@ cli.create_table(       → cli.output.format_data(..., format_type="table")
 ### Benefits of v0.10.0 Architecture
 
 **Code Quality**:
+
 - ✅ 30-40% less code to maintain
 - ✅ Clearer separation of concerns
 - ✅ Better SOLID compliance
 - ✅ No unused infrastructure
 
 **Developer Experience**:
+
 - ✅ Simpler mental model
 - ✅ One clear way per operation
 - ✅ Better IDE autocomplete
 - ✅ Easier to debug
 
 **Performance**:
+
 - ✅ Less indirection (faster calls)
 - ✅ No service overhead for utilities
 - ✅ Lighter initialization
 
 **Maintainability**:
+
 - ✅ Organized test structure
 - ✅ Clear module responsibilities
 - ✅ Easier to extend

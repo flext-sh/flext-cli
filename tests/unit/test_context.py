@@ -400,7 +400,7 @@ class TestFlextCliContext:
             return original_getattribute(self, name)
 
         # Use setattr to mock method - necessary for testing exception behavior
-        exception_context.__class__.__getattribute__ = mock_getattribute  # type: ignore[method-assign,assignment]
+        exception_context.__class__.__getattribute__ = mock_getattribute
 
         result = exception_context.deactivate()
         assert result.is_failure

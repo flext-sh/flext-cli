@@ -226,7 +226,10 @@ class FlextCliOutput(FlextService[object]):
         """
         try:
             self._result_formatters[result_type] = formatter
-            self.logger.info(f"Registered formatter for {result_type.__name__}")
+            self.logger.debug(
+                "Registered result formatter",
+                extra={"formatter_type": result_type.__name__},
+            )
             return FlextResult[None].ok(None)
 
         except Exception as e:

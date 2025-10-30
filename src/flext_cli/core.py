@@ -1264,7 +1264,10 @@ class FlextCliCore(FlextService[FlextCliTypes.Data.CliDataDict]):
                             self._plugins[ep.name] = plugin_instance
 
                         except Exception as e:
-                            self.logger.debug(f"Failed to load plugin {ep.name}: {e}")
+                            self.logger.debug(
+                                "Failed to load plugin",
+                                extra={"plugin_name": ep.name, "exception": str(e)},
+                            )
 
             return FlextResult[list[str]].ok(discovered_plugins)
         except Exception as e:

@@ -8,13 +8,13 @@
 
 ## Summary
 
-| Category | Breaking Changes | Impact Level |
-|----------|-----------------|--------------|
-| **API Methods** | 15 methods removed | **HIGH** - Most common |
-| **Module Removal** | 3 modules deleted | **MEDIUM** - If used |
-| **Context** | Service → Value Object | **MEDIUM** - If activated |
-| **Service Classes** | 15 classes simplified | **LOW** - Internal |
-| **Test Utilities** | Moved to tests/ | **LOW** - Tests only |
+| Category            | Breaking Changes       | Impact Level              |
+| ------------------- | ---------------------- | ------------------------- |
+| **API Methods**     | 15 methods removed     | **HIGH** - Most common    |
+| **Module Removal**  | 3 modules deleted      | **MEDIUM** - If used      |
+| **Context**         | Service → Value Object | **MEDIUM** - If activated |
+| **Service Classes** | 15 classes simplified  | **LOW** - Internal        |
+| **Test Utilities**  | Moved to tests/        | **LOW** - Tests only      |
 
 **Estimated Migration Time**: 30-60 minutes
 
@@ -208,7 +208,7 @@ new_context = FlextCliContext(
 )
 ```
 
-### Why This Change?
+### Why This Change
 
 - ✅ Immutability prevents bugs
 - ✅ Value object pattern is correct for context data
@@ -403,28 +403,28 @@ Use this checklist to ensure complete migration:
 
 ## Compatibility Table
 
-| Feature | v0.9.0 | v0.10.0 | Compatible? |
-|---------|---------|---------|-------------|
-| Python 3.13+ | ✅ Required | ✅ Required | ✅ Yes |
-| flext-core | ✅ v0.9.x | ✅ v0.9.x+ | ✅ Yes |
-| FlextResult[T] | ✅ | ✅ | ✅ Yes |
-| Railway Pattern | ✅ | ✅ | ✅ Yes |
-| Type Safety | ✅ | ✅ | ✅ Yes |
-| API Wrappers | ✅ | ❌ Removed | ❌ No |
-| Context.activate() | ✅ | ❌ Removed | ❌ No |
-| Auth module | ✅ | ❌ Removed | ❌ No |
-| Testing in prod | ✅ | ❌ Moved | ❌ No |
-| Async/Threading | ⚠️ Imported | ❌ Removed | ⚠️ N/A (unused) |
+| Feature            | v0.9.0      | v0.10.0     | Compatible?     |
+| ------------------ | ----------- | ----------- | --------------- |
+| Python 3.13+       | ✅ Required | ✅ Required | ✅ Yes          |
+| flext-core         | ✅ v0.9.x   | ✅ v0.9.x+  | ✅ Yes          |
+| FlextResult[T]     | ✅          | ✅          | ✅ Yes          |
+| Railway Pattern    | ✅          | ✅          | ✅ Yes          |
+| Type Safety        | ✅          | ✅          | ✅ Yes          |
+| API Wrappers       | ✅          | ❌ Removed  | ❌ No           |
+| Context.activate() | ✅          | ❌ Removed  | ❌ No           |
+| Auth module        | ✅          | ❌ Removed  | ❌ No           |
+| Testing in prod    | ✅          | ❌ Moved    | ❌ No           |
+| Async/Threading    | ⚠️ Imported | ❌ Removed  | ⚠️ N/A (unused) |
 
 ---
 
 ## Deprecation Timeline
 
-| Version | Status | Notes |
-|---------|--------|-------|
-| **v0.9.0** | Maintenance Mode | Security fixes only |
-| **v0.10.0** | Current | Stable, recommended |
-| **v0.11.0+** | Future | New features (backwards compatible with v0.10.0) |
+| Version      | Status           | Notes                                            |
+| ------------ | ---------------- | ------------------------------------------------ |
+| **v0.9.0**   | Maintenance Mode | Security fixes only                              |
+| **v0.10.0**  | Current          | Stable, recommended                              |
+| **v0.11.0+** | Future           | New features (backwards compatible with v0.10.0) |
 
 **Recommendation**: Migrate to v0.10.0 within 3 months
 

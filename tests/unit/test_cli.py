@@ -663,12 +663,12 @@ class TestFlextCliCli:
         class NotAModel:
             """Not a Pydantic model."""
 
-        def handler(params: NotAModel) -> None:  # type: ignore[valid-type]
+        def handler(params: NotAModel) -> None:
             """Test handler."""
 
         # Should raise TypeError for non-Pydantic models
         with pytest.raises(TypeError) as exc_info:
-            cli_cli.model_command(NotAModel, handler)  # type: ignore[arg-type]
+            cli_cli.model_command(NotAModel, handler)
 
         assert "must be a Pydantic BaseModel" in str(exc_info.value)
 

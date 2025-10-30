@@ -15,7 +15,12 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
+import collections.abc
+import contextlib
+import functools
+import re
 import shutil
+import sys
 import typing
 from collections.abc import Callable, Sequence
 from pathlib import Path
@@ -918,16 +923,17 @@ class FlextCliCli:
                         inner_type = non_none_types[0]
                         inner_str = _format_type_annotation(inner_type)
                         return f"Optional[{inner_str}]"
-                    else:
-                        # Union with multiple non-None types
-                        type_strs = [_format_type_annotation(t) for t in non_none_types]
-                        return f"Union[{', '.join(type_strs)}]"
+                    # Union with multiple non-None types
+                    type_strs = [_format_type_annotation(t) for t in non_none_types]
+                    return f"Union[{', '.join(type_strs)}]"
 
             # Handle List, Dict, etc.
             if origin is not None:
                 # Generic type with origin (List, Dict, etc.)
                 args = typing.get_args(field_type)
-                origin_name = getattr(origin, "__name__", str(origin)).replace("typing.", "")
+                origin_name = getattr(origin, "__name__", str(origin)).replace(
+                    "typing.", ""
+                )
                 if args:
                     arg_strs = [_format_type_annotation(arg) for arg in args]
                     return f"{origin_name}[{', '.join(arg_strs)}]"
@@ -1049,7 +1055,6 @@ def generated_command({params_signature}) -> None:
         if "UnionType" in func_code:
             # Replace UnionType[X, NoneType] with Optional[X] for proper evaluation
             # The regex captures the first type argument before any comma, excluding NoneType
-            import re
             func_code = re.sub(
                 r"UnionType\[([^,\]]+)(?:, NoneType)?\]",
                 r"Optional[\1]",
@@ -1059,9 +1064,6 @@ def generated_command({params_signature}) -> None:
         # Execute function creation in controlled namespace
         # Using exec is required here for dynamic function signature creation
         # which is necessary for Typer to introspect CLI parameters
-        import types as types_module
-        import collections.abc
-
         namespace: dict[str, typing.Any] = {
             "typer": typer,
             "ValidationError": ValidationError,
@@ -1095,13 +1097,11 @@ def generated_command({params_signature}) -> None:
         # Add model_class's module globals so type annotations can resolve
         # This allows field types from the model's module to be available
         if hasattr(model_class, "__module__"):
-            import sys
-
             model_module = sys.modules.get(model_class.__module__)
             if model_module and hasattr(model_module, "__dict__"):
                 namespace.update(model_module.__dict__)
 
-        exec(func_code, namespace)  # noqa: S102 # nosec B102
+        exec(func_code, namespace)
 
         # Type assertion: we know generated_command is Callable[..., None]
         generated_command_func: Callable[..., None] = typing.cast(
@@ -1117,11 +1117,9 @@ def generated_command({params_signature}) -> None:
 
         # If config provided, wrap function to update config with CLI values
         if config is not None:
-            import functools
-
             # Use functools.wraps to properly copy metadata for Typer
             @functools.wraps(generated_command_func)
-            def wrapped_command(**kwargs) -> None:
+            def wrapped_command(**kwargs: dict[str, typing.Any]) -> None:
                 """Wrapper that updates config singleton with CLI values.
 
                 Uses Pydantic v2's __dict__ directly to bypass validation,
@@ -1132,12 +1130,10 @@ def generated_command({params_signature}) -> None:
                 # This bypasses Pydantic v2 validators and read-only properties
                 for field_name, cli_value in kwargs.items():
                     if cli_value is not None:
-                        try:
-                            # Use __dict__ directly to bypass validation
+                        # Use __dict__ directly to bypass validation
+                        # Config update is advisory - continue silently if it fails
+                        with contextlib.suppress(Exception):
                             config.__dict__[field_name] = cli_value
-                        except Exception:
-                            # Config update is advisory - continue even if it fails
-                            pass
 
                 # Call the original generated command
                 generated_command_func(**kwargs)

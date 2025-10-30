@@ -17,6 +17,7 @@
 ## ✨ What's New in v0.10.0
 
 **Simplified Architecture**:
+
 - 🎯 **Direct Access API** - Clear ownership: `cli.formatters.*`, `cli.file_tools.*`, `cli.prompts.*`
 - 🔧 **Services Only for State** - 18 → 3-4 services (75% reduction)
 - 📦 **Value Objects for Data** - Immutable context with Pydantic
@@ -24,6 +25,7 @@
 - 🧪 **Organized Tests** - Feature-based test structure
 
 **Key Benefits**:
+
 - ✅ Easier to understand (one clear way per operation)
 - ✅ Better performance (less indirection)
 - ✅ Clearer documentation (no API duplication)
@@ -45,6 +47,7 @@ flext-cli is the **CLI foundation library** for the FLEXT ecosystem, providing:
 - **Railway Pattern** - All operations return `FlextResult[T]`
 
 **FLEXT Ecosystem Integration**:
+
 - Uses **[flext-core](../flext-core/README.md)** patterns (FlextResult, FlextService, FlextModels)
 - Provides CLI foundation for **32+ FLEXT projects**
 - **Zero Tolerance Framework Isolation** - No direct Click/Rich imports in ecosystem projects
