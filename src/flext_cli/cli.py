@@ -18,6 +18,7 @@ from __future__ import annotations
 import collections.abc
 import contextlib
 import functools
+import pathlib
 import re
 import shutil
 import sys
@@ -1091,6 +1092,10 @@ def generated_command({params_signature}) -> None:
             # - Type annotations using | syntax (str | None) are parsed internally
             # - The typing.Union and Optional from above handle all necessary union cases
             # - Providing UnionType leads to "not subscriptable" errors when eval'd
+            # Include pathlib for Typer annotation evaluation (Python 3.13+)
+            # Typer uses inspect.signature(eval_str=True) which needs pathlib in globals
+            "pathlib": pathlib,
+            "Path": pathlib.Path,
             # Include builtins for basic types (str, int, bool, etc.)
             "__builtins__": __builtins__,
         }
@@ -1108,11 +1113,14 @@ def generated_command({params_signature}) -> None:
             "Callable[..., None]", namespace["generated_command"]
         )
 
-        # Update generated function's __globals__ to include typing constructs
+        # Update generated function's __globals__ to include typing constructs and pathlib
         # This ensures Typer can later introspect the function with eval_str=True
+        # pathlib is needed for Python 3.13+ when Typer evaluates Path annotations
         if hasattr(generated_command_func, "__globals__"):
             generated_command_func.__globals__.update({
                 "Literal": typing.Literal,
+                "pathlib": pathlib,
+                "Path": pathlib.Path,
             })
 
         # If config provided, wrap function to update config with CLI values
@@ -1139,9 +1147,12 @@ def generated_command({params_signature}) -> None:
                 generated_command_func(**kwargs)
 
             # Also update wrapper's __globals__ if possible
+            # pathlib is needed for Python 3.13+ when Typer evaluates Path annotations
             if hasattr(wrapped_command, "__globals__"):
                 wrapped_command.__globals__.update({
                     "Literal": typing.Literal,
+                    "pathlib": pathlib,
+                    "Path": pathlib.Path,
                 })
 
             return wrapped_command
