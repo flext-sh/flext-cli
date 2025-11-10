@@ -12,13 +12,14 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 from pathlib import Path
-from typing import Any
+from typing import Any, cast
 
 import pytest
 from pydantic import BaseModel, Field, ValidationError
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 from flext_cli import FlextCliCli
+from flext_cli.config import FlextCliConfig
 
 
 class TestConfigModelExtraction:
@@ -205,7 +206,11 @@ class TestConfigModelExtraction:
             captured_params["params"] = params
 
         # Create command with config integration
-        command = cli.model_command(AppParams, handler, config=config)
+        command = cli.model_command(
+            AppParams,
+            handler,
+            config=cast("FlextCliConfig", config),
+        )
 
         # Verify command was created and is callable
         assert command is not None
@@ -261,7 +266,11 @@ class TestConfigModelExtraction:
         def handler(params: ParamsWithOptionals) -> None:
             captured_params["params"] = params
 
-        command = cli.model_command(ParamsWithOptionals, handler, config=config)
+        command = cli.model_command(
+            ParamsWithOptionals,
+            handler,
+            config=cast("FlextCliConfig", config),
+        )
 
         assert command is not None
 

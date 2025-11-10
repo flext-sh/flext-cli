@@ -11,7 +11,7 @@ from __future__ import annotations
 import logging
 import traceback
 
-from flext_core import FlextResult
+from flext_core import FlextResult, FlextTypes
 
 from flext_cli import FlextCli
 
@@ -41,7 +41,11 @@ def main() -> None:
             cli = FlextCli()
 
             # Route operations to appropriate methods
-            result: FlextResult[list[str]] | FlextResult[None] | FlextResult[dict[str, object]]
+            result: (
+                FlextResult[list[str]]
+                | FlextResult[None]
+                | FlextResult[FlextTypes.JsonDict]
+            )
             if operation == ["config", "show"]:
                 result = cli.cmd.show_config_paths()
             elif operation == ["config", "validate"]:

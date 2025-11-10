@@ -87,9 +87,7 @@ def save_config_command(
     """CLI command that saves config."""
     temp_file = Path(tempfile.gettempdir()) / "test_config.json"
 
-    write_result = cli.file_tools.write_json_file(
-        temp_file, cast("dict[str, object]", config)
-    )
+    write_result = cli.file_tools.write_json_file(temp_file, config)
     if write_result.is_failure:
         return FlextResult[None].fail(f"Save failed: {write_result.error}")
 
@@ -232,9 +230,7 @@ def full_workflow_command() -> FlextResult[FlextCliTypes.Data.CliDataDict]:
 
     # Step 2: Save to file
     temp_file = Path(tempfile.gettempdir()) / "workflow_test.json"
-    write_result = cli.file_tools.write_json_file(
-        temp_file, cast("dict[str, object]", data)
-    )
+    write_result = cli.file_tools.write_json_file(temp_file, data)
 
     if write_result.is_failure:
         return FlextResult[FlextCliTypes.Data.CliDataDict].fail(

@@ -10,7 +10,7 @@ SPDX-License-Identifier: MIT
 """
 
 import secrets
-from collections.abc import Callable
+from collections.abc import Callable, Sequence
 from typing import Any, cast
 
 from flext_core import (
@@ -366,7 +366,9 @@ class FlextCli:
 
     def create_table(
         self,
-        data: FlextTypes.JsonValue | None = None,
+        data: Sequence[dict[str, FlextTypes.JsonValue]]
+        | dict[str, FlextTypes.JsonValue]
+        | None = None,
         headers: list[str] | None = None,
         title: str | None = None,
     ) -> FlextResult[str]:
@@ -382,10 +384,19 @@ class FlextCli:
 
         """
         # Handle None case - use empty dict as default
-        table_data: FlextTypes.JsonValue = data if data is not None else {}
+        table_data: (
+            dict[str, FlextTypes.JsonValue] | list[dict[str, FlextTypes.JsonValue]]
+        )
+        if data is None:
+            table_data = {}
+        elif isinstance(data, dict):
+            table_data = data
+        else:
+            table_data = list(data)
         # Use output.format_data which supports data, title, and headers
+        # Cast needed: table_data is dict|list but format_data expects JsonValue (wider union)
         return self.output.format_data(
-            data=table_data,
+            data=cast("FlextTypes.JsonValue", table_data),
             format_type="table",
             title=title,
             headers=headers,

@@ -331,15 +331,12 @@ class TestFlextCli:
     def test_save_config(self, api_service: FlextCli, temp_dir: Path) -> None:
         """Test configuration saving functionality."""
         config_file = temp_dir / "test_save_config.json"
-        test_config: dict[str, object] = cast(
-            "dict[str, object]",
-            {
-                "debug": False,
-                "output_format": "table",
-                "timeout": FlextCliConstants.TIMEOUTS.DEFAULT,
-                "retries": FlextCliConstants.HTTP.MAX_RETRIES,
-            },
-        )
+        test_config: FlextCliTypes.Data.CliDataDict = {
+            "debug": False,
+            "output_format": "table",
+            "timeout": FlextCliConstants.TIMEOUTS.DEFAULT,
+            "retries": FlextCliConstants.HTTP.MAX_RETRIES,
+        }
 
         # Test saving configuration using file_tools
         result = api_service.file_tools.write_json_file(

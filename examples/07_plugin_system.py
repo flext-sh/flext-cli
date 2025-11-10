@@ -30,6 +30,7 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 import json
+from collections.abc import Callable
 from pathlib import Path
 from typing import cast
 
@@ -108,23 +109,33 @@ class MyAppPluginManager:
         self.plugins[plugin_name] = plugin
         cli.print(f"🔌 Registered plugin: {plugin_name}", style="cyan")
 
-    def execute_plugin(self, plugin_name: str, **kwargs: object) -> FlextResult[object]:
+    def execute_plugin(
+        self, plugin_name: str, **kwargs: object
+    ) -> FlextResult[FlextTypes.JsonValue]:
         """Execute plugin by name in YOUR CLI."""
         if plugin_name not in self.plugins:
-            return FlextResult[object].fail(f"Plugin not found: {plugin_name}")
+            return FlextResult[FlextTypes.JsonValue].fail(
+                f"Plugin not found: {plugin_name}"
+            )
 
         plugin = self.plugins[plugin_name]
-        if not hasattr(plugin, "execute"):
-            return FlextResult[object].fail(
+
+        execute_attr = getattr(plugin, "execute", None)
+        if not callable(execute_attr):
+            return FlextResult[FlextTypes.JsonValue].fail(
                 f"Plugin {plugin_name} does not have execute method"
             )
 
+        execute_method = cast(
+            "Callable[..., FlextResult[FlextTypes.JsonValue]]", execute_attr
+        )
+
         try:
-            # Type guard: we checked execute exists
-            execute_method = plugin.execute
             return execute_method(**kwargs)
         except Exception as e:
-            return FlextResult[object].fail(f"Plugin execution failed: {e}")
+            return FlextResult[FlextTypes.JsonValue].fail(
+                f"Plugin execution failed: {e}"
+            )
 
     def list_plugins(self) -> None:
         """List all registered plugins in YOUR CLI."""
@@ -139,7 +150,7 @@ class MyAppPluginManager:
 
         # Cast to expected type for table creation
         table_result = cli.create_table(
-            data=cast("FlextTypes.JsonValue", plugin_data),
+            data=plugin_data,
             headers=["Plugin", "Version"],
             title="Registered Plugins",
         )

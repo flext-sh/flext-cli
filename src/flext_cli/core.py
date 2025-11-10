@@ -350,7 +350,7 @@ class FlextCliCore(FlextService[FlextCliTypes.Data.CliDataDict]):
             # Type-safe conversion to CLI command definition
             if isinstance(command_def, dict):
                 # Type safety: command_def dict is compatible with CommandDefinition
-                typed_def: FlextCliTypes.CliCommand.CommandDefinition = command_def  # type: ignore[assignment]
+                typed_def: FlextCliTypes.CliCommand.CommandDefinition = command_def
                 return FlextResult[FlextCliTypes.CliCommand.CommandDefinition].ok(
                     typed_def,
                 )
@@ -396,7 +396,7 @@ class FlextCliCore(FlextService[FlextCliTypes.Data.CliDataDict]):
                 # Convert list of strings to context dict
                 # Type-safe: CommandContext uses JsonValue, strings are valid JsonValue
                 args_list: list[FlextTypes.JsonValue] = list(context)
-                execution_context = {FlextCliConstants.DictKeys.ARGS: args_list}  # type: ignore[dict-item]
+                execution_context = {FlextCliConstants.DictKeys.ARGS: args_list}
             else:
                 execution_context = context or {}
 

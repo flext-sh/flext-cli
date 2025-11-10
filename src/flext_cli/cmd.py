@@ -253,7 +253,7 @@ class FlextCliCmd(FlextService[FlextTypes.JsonDict]):
                 )
 
             # Cast to proper JsonValue type
-            value: FlextTypes.JsonValue = config_data[key]  # type: ignore[assignment]
+            value: FlextTypes.JsonValue = config_data[key]
             result_data: FlextTypes.JsonDict = {
                 FlextCliConstants.DictKeys.KEY: key,
                 FlextCliConstants.DictKeys.VALUE: value,
@@ -353,7 +353,7 @@ class FlextCliCmd(FlextService[FlextTypes.JsonDict]):
                 )
 
             # Cast dict[str, object] to FlextTypes.JsonDict (compatible types)
-            loaded_config_data: FlextTypes.JsonDict = load_result.value  # type: ignore[assignment]
+            loaded_config_data: FlextTypes.JsonDict = load_result.value
 
             # For now, return success with config info
             # In a real implementation, this would open an editor

@@ -78,9 +78,7 @@ def display_user_data(user: FlextCliTypes.Data.CliDataDict) -> None:
 
 def save_config(config: FlextCliTypes.Data.CliDataDict, filepath: str) -> bool:
     """Save YOUR config to JSON with proper error handling."""
-    write_result = cli.file_tools.write_json_file(
-        filepath, cast("dict[str, object]", config)
-    )
+    write_result = cli.file_tools.write_json_file(filepath, config)
 
     if write_result.is_failure:
         cli.print(f"Failed to save: {write_result.error}", style="bold red")
