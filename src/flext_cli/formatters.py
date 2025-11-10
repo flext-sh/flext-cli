@@ -8,11 +8,9 @@ SPDX-License-Identifier: MIT
 
 """
 
-from __future__ import annotations
-
 from io import StringIO
 
-from flext_core import FlextResult
+from flext_core import FlextResult, FlextTypes
 from rich.console import Console
 from rich.layout import Layout as RichLayout
 from rich.live import Live as RichLive
@@ -42,9 +40,9 @@ class FlextCliFormatters:
         """Get console instance - direct access."""
         return self.console
 
-    def execute(self) -> FlextResult[dict[str, object]]:
+    def execute(self) -> FlextResult[FlextTypes.JsonDict]:
         """Execute service - required by FlextService."""
-        return FlextResult[dict[str, object]].ok({
+        return FlextResult[FlextTypes.JsonDict].ok({
             FlextCliConstants.DictKeys.STATUS: FlextCliConstants.ServiceStatus.OPERATIONAL.value,
             FlextCliConstants.DictKeys.SERVICE: FlextCliConstants.Services.FORMATTERS,
         })
@@ -110,7 +108,7 @@ class FlextCliFormatters:
 
             # Add rows if data provided
             if data and isinstance(data, dict):
-                # Simple dict[str, object] to table conversion - key-value pairs for 2-column tables
+                # Simple FlextTypes.JsonDict to table conversion - key-value pairs for 2-column tables
                 if (
                     headers
                     and len(headers)

@@ -1552,14 +1552,14 @@ class TestFlextCliCoreExceptionHandlers:
     ) -> None:
         """Test get_config with invalid config type."""
         # Set _config to non-dict type to trigger error path
-        # However, the current implementation doesn't validate type, so it just returns the value
-        # This test verifies that get_config returns successfully (even with invalid type)
+        # FlextResult now validates types, so invalid type should return failure
         monkeypatch.setattr(core_service, "_config", "invalid_type")
 
         result = core_service.get_config()
-        # The method just casts to dict[str, object], so it returns successfully
+        # The method validates type, so invalid type returns failure
         assert isinstance(result, FlextResult)
-        assert result.is_success
+        assert result.is_failure
+        assert "invalid_type" in result.error or "str instead of" in result.error
 
     def test_get_handlers_exception_handler(
         self, core_service: FlextCliCore, monkeypatch: pytest.MonkeyPatch

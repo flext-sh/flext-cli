@@ -8,8 +8,6 @@ SPDX-License-Identifier: MIT
 
 """
 
-from __future__ import annotations
-
 from enum import StrEnum
 from typing import Final, Literal
 
@@ -486,7 +484,7 @@ class FlextCliConstants(FlextConstants):
         # Validation errors
         NO_DATA_PROVIDED: Final[str] = "No data provided for table"
         TABLE_FORMAT_REQUIRED_DICT: Final[str] = (
-            "Table format requires dict[str, object] or list of dicts"
+            "Table format requires FlextTypes.JsonDict or list of dicts"
         )
         TABLE_HEADERS_MUST_BE_LIST: Final[str] = (
             "Table headers must be a list for list of dicts data"
@@ -937,9 +935,9 @@ class FlextCliConstants(FlextConstants):
         ]
 
         # CLI-specific project configurations
-        CliProjectConfig = dict[str, object]
+        CliProjectConfig = FlextTypes.JsonDict
         CommandLineConfig = dict[str, str | int | bool | list[str]]
-        InteractiveConfig = dict[str, bool | str | dict[str, object]]
+        InteractiveConfig = dict[str, bool | str | FlextTypes.JsonDict]
         OutputConfig = dict[str, str | object]
 
     class Styles:
@@ -1739,7 +1737,7 @@ class FlextCliConstants(FlextConstants):
 
         NO_DATA_PROVIDED: Final[str] = "No data provided for table"
         TABLE_FORMAT_REQUIRED_DICT: Final[str] = (
-            "Table format requires dict[str, object] or list of dicts"
+            "Table format requires FlextTypes.JsonDict or list of dicts"
         )
         TABLE_HEADERS_MUST_BE_LIST: Final[str] = (
             "Table headers must be a list for list of dicts data"

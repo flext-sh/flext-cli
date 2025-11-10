@@ -8,8 +8,6 @@ SPDX-License-Identifier: MIT
 
 """
 
-from __future__ import annotations
-
 from collections.abc import Iterable, Sequence
 
 from flext_core import FlextLogger, FlextResult, FlextService, FlextTypes
@@ -96,7 +94,7 @@ class FlextCliTables(FlextService[object]):
         Args:
             data: Table data (list of dicts, list of lists, etc.)
             headers: Column headers
-                - "keys" (default): Use dict[str, object] keys as headers
+                - "keys" (default): Use FlextTypes.JsonDict keys as headers
                 - "firstrow": Use first row as headers
                 - Sequence: Custom headers
                 - "" or []: No headers

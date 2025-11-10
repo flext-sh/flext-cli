@@ -857,7 +857,7 @@ class TestFlextCliPrompts:
         prompts = FlextCliPrompts(quiet=True)
         msg = "Stats failed"
         with patch(
-            "flext_cli.prompts.FlextUtilities.Generators.generate_timestamp",
+            "flext_cli.prompts.FlextUtilities.Generators.generate_iso_timestamp",
             side_effect=RuntimeError(msg),
         ):
             result = prompts.get_prompt_statistics()

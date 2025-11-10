@@ -10,20 +10,16 @@ SPDX-License-Identifier: MIT
 
 """
 
-from __future__ import annotations
-
 import sys
-import types
 from collections.abc import Callable
-from typing import ClassVar, Literal, TypeVar, cast, get_args, get_origin
+from typing import ClassVar, Literal, TypeVar, cast
 
-import typer
-from flext_core import FlextConstants, FlextResult
+from flext_core import FlextResult, LogLevel
 from typer.models import OptionInfo
 
 from flext_cli.config import FlextCliConfig
 from flext_cli.constants import FlextCliConstants
-from flext_cli.type_utils import normalize_annotation
+from flext_cli.models import FlextCliModels
 
 # Type variable for generic decorator
 F = TypeVar("F", bound=Callable[..., object])
@@ -60,7 +56,8 @@ class FlextCliCommonParams:
     _def = FlextCliConstants.CliParamDefaults  # Singular - for FIELD_NAME_SEPARATOR
     _defs = FlextCliConstants.CliParamsDefaults  # Plural - for VALID_LOG_FORMATS
 
-    CLI_PARAM_REGISTRY: ClassVar[dict[str, dict[str, object]]] = {
+    # Registry allows list[str] for choices
+    CLI_PARAM_REGISTRY: ClassVar[dict[str, dict[str, str | int | bool | list[str]]]] = {
         "verbose": {
             _reg.KEY_SHORT: _reg.SHORT_FLAG_VERBOSE,
             _reg.KEY_PRIORITY: _reg.PRIORITY_VERBOSE,
@@ -142,173 +139,17 @@ class FlextCliCommonParams:
     def create_option(cls, field_name: str) -> OptionInfo:
         """Create typer.Option() from FlextCliConfig field metadata.
 
-        Auto-generates typer.Option() with all metadata from pydantic Field:
-        - default value from field default
-        - Help text from field description
-        - Constraints (min/max) from JSON schema
-        - Short flags from CLI_PARAM_REGISTRY
-        - Valid choices from CLI_PARAM_REGISTRY
+        Delegate to OptionBuilder for reduced complexity (SOLID/SRP).
 
         Args:
-            field_name: Name of field in FlextCliConfig (e.g., 'verbose', 'log_level')
+            field_name: Name of field in FlextCliConfig
 
         Returns:
-            typer.Option() object to use as parameter default value
-
-        Example:
-            >>> verbose_opt = FlextCliCommonParams.create_option("verbose")
-            >>> # Use as: verbose: bool = FlextCliCommonParams.verbose_option()
+            typer.Option instance
 
         """
-        # Local aliases for shorter lines
-        reg = cls._reg
-        def_sep = cls._def  # Singular - FIELD_NAME_SEPARATOR, PARAM_NAME_SEPARATOR
-        defs = cls._defs  # Plural - VALID_LOG_FORMATS, CHOICES_HELP_SUFFIX
-        err = FlextCliConstants.CliParamsErrorMessages
-        json = FlextCliConstants.JsonSchemaKeys
-        pyd = FlextCliConstants.PydanticTypeNames
-
-        # Get pydantic field metadata
-        fields = FlextCliConfig.model_fields
-        schema = FlextCliConfig.model_json_schema()
-
-        if field_name not in fields:
-            msg = err.FIELD_NOT_FOUND.format(field_name=field_name)
-            raise ValueError(msg)
-
-        field_info = fields[field_name]
-        field_schema = schema[json.PROPERTIES].get(field_name, {})
-        param_meta = cls.CLI_PARAM_REGISTRY.get(field_name, {})
-
-        # Get base type (handle Optional/Union types)
-        # First normalize modern union syntax (Path | None) to typing-compatible forms
-        field_type = normalize_annotation(field_info.annotation)
-        origin = get_origin(field_type)
-
-        if origin is types.NoneType or (
-            hasattr(field_type, "__args__") and types.NoneType in get_args(field_type)
-        ):
-            # Extract non-None type from Optional
-            args = [a for a in get_args(field_type) if a is not types.NoneType]
-            field_type = args[0] if args else str
-
-        # Build parameter declarations (--param-name, -short)
-        cli_name_raw = param_meta.get(reg.KEY_FIELD_NAME_OVERRIDE, field_name)
-        cli_name = str(cli_name_raw) if cli_name_raw != field_name else field_name
-        option_name = f"--{cli_name.replace(def_sep.FIELD_NAME_SEPARATOR, def_sep.PARAM_NAME_SEPARATOR)}"
-        param_decls = [option_name]
-
-        if reg.KEY_SHORT in param_meta:
-            short_val = param_meta[reg.KEY_SHORT]
-            if isinstance(short_val, str):
-                param_decls.insert(0, f"-{short_val}")
-
-        # Get default value
-        default_value = field_info.default
-        if default_value is None:
-            pass
-        elif (
-            hasattr(default_value, "__class__")
-            and default_value.__class__.__name__ == pyd.UNDEFINED_TYPE
-        ):
-            default_value = None
-
-        # Build help text from field description
-        help_text = field_info.description or defs.DEFAULT_HELP_TEXT_FORMAT.format(
-            field_name=field_name
-        )
-
-        # Enhance help text with choices
-        if reg.KEY_CHOICES in param_meta:
-            choices_val = param_meta[reg.KEY_CHOICES]
-            if isinstance(choices_val, (list, tuple)):
-                choices_str = ", ".join(str(c) for c in choices_val)
-                help_text += defs.CHOICES_HELP_SUFFIX.format(choices_str=choices_str)
-
-        # Enhance help text with constraints
-        if json.MINIMUM in field_schema and json.MAXIMUM in field_schema:
-            help_text += defs.RANGE_HELP_SUFFIX.format(
-                minimum=field_schema[json.MINIMUM], maximum=field_schema[json.MAXIMUM]
-            )
-
-        # Build typer.Option parameters (type-safe)
-        case_sensitive_val: bool | None = None
-        if reg.KEY_CASE_SENSITIVE in param_meta:
-            cs_raw = param_meta[reg.KEY_CASE_SENSITIVE]
-            case_sensitive_val = bool(cs_raw) if isinstance(cs_raw, bool) else None
-
-        min_val: float | int | None = None
-        max_val: float | int | None = None
-        if json.MINIMUM in field_schema:
-            min_raw = field_schema[json.MINIMUM]
-            min_val = min_raw if isinstance(min_raw, (int, float)) else None
-        if json.MAXIMUM in field_schema:
-            max_raw = field_schema[json.MAXIMUM]
-            max_val = max_raw if isinstance(max_raw, (int, float)) else None
-
-        show_default_val = default_value is not None
-
-        return cast(
-            "OptionInfo",
-            typer.Option(
-                default_value,
-                *param_decls,
-                help=help_text,
-                case_sensitive=case_sensitive_val
-                if case_sensitive_val is not None
-                else True,
-                min=min_val,
-                max=max_val,
-                show_default=show_default_val,
-            ),
-        )
-
-    @classmethod
-    def verbose_option(cls) -> OptionInfo:
-        """Create --verbose/-v option from FlextConfig.verbose field metadata."""
-        return cls.create_option("verbose")
-
-    @classmethod
-    def quiet_option(cls) -> OptionInfo:
-        """Create --quiet/-q option from FlextConfig.quiet field metadata."""
-        return cls.create_option("quiet")
-
-    @classmethod
-    def debug_option(cls) -> OptionInfo:
-        """Create --debug/-d option from FlextConfig.debug field metadata."""
-        return cls.create_option("debug")
-
-    @classmethod
-    def trace_option(cls) -> OptionInfo:
-        """Create --trace/-t option from FlextConfig.trace field metadata."""
-        return cls.create_option("trace")
-
-    @classmethod
-    def log_level_option(cls) -> OptionInfo:
-        """Create --log-level/-L option from FlextConfig.log_level field metadata."""
-        return cls.create_option("log_level")
-
-    @classmethod
-    def log_format_option(cls) -> OptionInfo:
-        """Create --log-format option from FlextConfig.log_verbosity field metadata."""
-        return cls.create_option("log_verbosity")
-
-    @classmethod
-    def output_format_option(
-        cls,
-    ) -> OptionInfo:
-        """Create --output-format/-o option from FlextConfig.output_format field metadata."""
-        return cls.create_option("output_format")
-
-    @classmethod
-    def no_color_option(cls) -> OptionInfo:
-        """Create --no-color option from FlextConfig.no_color field metadata."""
-        return cls.create_option("no_color")
-
-    @classmethod
-    def config_file_option(cls) -> OptionInfo:
-        """Create --config-file/-c option from FlextConfig.config_file field metadata."""
-        return cls.create_option("config_file")
+        builder = FlextCliModels.OptionBuilder(field_name, cls.CLI_PARAM_REGISTRY)
+        return builder.build()
 
     @classmethod
     def get_all_common_params(cls) -> dict[str, OptionInfo]:
@@ -352,8 +193,7 @@ class FlextCliCommonParams:
     ) -> FlextResult[FlextCliConfig]:
         """Apply CLI parameter values to FlextConfig instance.
 
-        This method updates the config with CLI parameter values, following precedence:
-        CLI parameters > ENV variables > .env file > defaults
+        Applies parameters directly inline (ConfigApplier wrapper eliminated).
 
         Args:
             config: FlextCliConfig instance to update
@@ -361,74 +201,65 @@ class FlextCliCommonParams:
             quiet: Quiet flag from CLI
             debug: Debug flag from CLI
             trace: Trace flag from CLI
-            log_level: Log level from CLI
-            log_format: Log format from CLI
-            output_format: Output format from CLI
+            log_level: Log level from CLI (DEBUG/INFO/WARNING/ERROR/CRITICAL)
+            log_format: Log format from CLI (compact/detailed/full)
+            output_format: Output format from CLI (json/yaml/csv/table/plain)
             no_color: No color flag from CLI
 
         Returns:
             FlextResult[FlextCliConfig]: Updated config or error
 
         """
-        err = FlextCliConstants.CliParamsErrorMessages
-        defs = cls._defs
         try:
-            # Apply parameters only if explicitly provided (not None)
-            if verbose is not None:
-                config.verbose = verbose
-            if quiet is not None:
-                config.quiet = quiet
-            if debug is not None:
-                config.debug = debug
-            if trace is not None:
-                if trace and not config.debug:
-                    return FlextResult[FlextCliConfig].fail(err.TRACE_REQUIRES_DEBUG)
-                config.trace = trace
+            # Apply boolean parameters (DRY pattern with mapping)
+            bool_params = {
+                "verbose": verbose,
+                "quiet": quiet,
+                "debug": debug,
+                "trace": trace,
+                "no_color": no_color,
+            }
+            for attr, value in bool_params.items():
+                if value is not None:
+                    setattr(config, attr, value)
+
+            # Apply log_level with validation
             if log_level is not None:
-                log_level_upper = log_level.upper()
-                if log_level_upper not in FlextCliConstants.LOG_LEVELS_LIST:
-                    valid = ", ".join(FlextCliConstants.LOG_LEVELS_LIST)
+                valid_levels = FlextCliConstants.LOG_LEVELS_LIST
+                normalized = log_level.upper()
+                if normalized not in valid_levels:
                     return FlextResult[FlextCliConfig].fail(
-                        err.INVALID_LOG_LEVEL.format(log_level=log_level, valid=valid)
+                        f"invalid log level: {log_level}. valid options: {', '.join(valid_levels)}"
                     )
-                # Cast to parent class type (FlextConstants.Settings.LogLevel)
-                config.log_level = cast(
-                    "FlextConstants.Settings.LogLevel", log_level_upper
-                )
+                # Type checked: normalized is validated against LOG_LEVELS_LIST
+                config.log_level = cast("LogLevel", normalized)  # type: ignore[assignment]
+
+            # Apply log_format with validation (maps to log_verbosity)
             if log_format is not None:
-                log_format_lower = log_format.lower()
-                if log_format_lower not in defs.VALID_LOG_FORMATS:
-                    valid = ", ".join(defs.VALID_LOG_FORMATS)
+                valid_formats = FlextCliConstants.CliParamsDefaults.VALID_LOG_FORMATS
+                if log_format not in valid_formats:
                     return FlextResult[FlextCliConfig].fail(
-                        err.INVALID_LOG_FORMAT.format(
-                            log_format=log_format, valid=valid
-                        )
+                        f"invalid log format: {log_format}. valid options: {', '.join(valid_formats)}"
                     )
                 config.log_verbosity = cast(
-                    "Literal['compact', 'detailed', 'full']", log_format_lower
+                    "Literal['compact', 'detailed', 'full']", log_format
                 )
+
+            # Apply output_format with validation
             if output_format is not None:
-                output_format_lower = output_format.lower()
-                if output_format_lower not in defs.VALID_OUTPUT_FORMATS:
-                    valid = ", ".join(defs.VALID_OUTPUT_FORMATS)
+                valid_formats = FlextCliConstants.CliParamsDefaults.VALID_OUTPUT_FORMATS
+                if output_format not in valid_formats:
                     return FlextResult[FlextCliConfig].fail(
-                        err.INVALID_OUTPUT_FORMAT.format(
-                            output_format=output_format, valid=valid
-                        )
+                        f"invalid output format: {output_format}. valid options: {', '.join(valid_formats)}"
                     )
-                # Cast to Literal type after validation
                 config.output_format = cast(
-                    "Literal['json', 'yaml', 'csv', 'table', 'plain']",
-                    output_format_lower,
+                    "Literal['json', 'yaml', 'csv', 'table', 'plain']", output_format
                 )
-            if no_color is not None:
-                config.no_color = no_color
 
             return FlextResult[FlextCliConfig].ok(config)
-
         except Exception as e:
             return FlextResult[FlextCliConfig].fail(
-                err.APPLY_PARAMS_FAILED.format(error=e)
+                f"Failed to apply CLI parameters: {e}"
             )
 
     @classmethod
@@ -490,11 +321,13 @@ class FlextCliCommonParams:
             @FlextCliCommonParams.create_decorator()
             def my_command(
                 name: str,
-                verbose: bool = FlextCliCommonParams.verbose_option(),
-                debug: bool = FlextCliCommonParams.debug_option(),
-                log_level: str = FlextCliCommonParams.log_level_option(),
-                output_format: str = FlextCliCommonParams.output_format_option(),
-                # ... other common params using *_option() methods
+                verbose: bool = FlextCliCommonParams.create_option("verbose"),
+                debug: bool = FlextCliCommonParams.create_option("debug"),
+                log_level: str = FlextCliCommonParams.create_option("log_level"),
+                output_format: str = FlextCliCommonParams.create_option(
+                    "output_format"
+                ),
+                # ... other common params using create_option() method
             ) -> None:
                 # Common parameters automatically available with full metadata
                 config = FlextCliConfig()

@@ -13,6 +13,9 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
+import functools
+import inspect
+import types
 import typing
 from collections.abc import Callable
 from datetime import UTC, datetime
@@ -157,7 +160,7 @@ class FlextCliModels(FlextModels):
         )
 
     class CliOptionSpec(FlextModels.ArbitraryTypesModel):
-        """Click option specification model - replaces dict[str, object] in Click option generation.
+        """Click option specification model - replaces FlextTypes.JsonDict in Click option generation.
 
         Provides structured validation for Click option specifications generated
         from Pydantic model fields.
@@ -297,7 +300,7 @@ class FlextCliModels(FlextModels):
                 field_info: Pydantic FieldInfo object
 
             Returns:
-                FlextResult containing CLI parameter specification dict[str, object] with:
+                FlextResult containing CLI parameter specification FlextTypes.JsonDict with:
                 - name: CLI parameter name (--field-name)
                 - type: Python type for the parameter
                 - click_type: Click type specification
@@ -312,7 +315,7 @@ class FlextCliModels(FlextModels):
                 # Extract field metadata
                 field_type = field_info.annotation
                 if field_type is None:
-                    return FlextResult[FlextCliModels.CliParameterSpec].fail(
+                    return FlextResult["FlextCliModels.CliParameterSpec"].fail(
                         FlextCliConstants.ModelsErrorMessages.FIELD_NO_TYPE_ANNOTATION.format(
                             field_name=field_name
                         )
@@ -367,9 +370,9 @@ class FlextCliModels(FlextModels):
                     metadata=metadata,
                 )
 
-                return FlextResult[FlextCliModels.CliParameterSpec].ok(cli_param)
+                return FlextResult["FlextCliModels.CliParameterSpec"].ok(cli_param)
             except Exception as e:
-                return FlextResult[FlextCliModels.CliParameterSpec].fail(
+                return FlextResult["FlextCliModels.CliParameterSpec"].fail(
                     FlextCliConstants.ModelsErrorMessages.FAILED_FIELD_CONVERSION.format(
                         field_name=field_name, error=str(e)
                     )
@@ -406,9 +409,11 @@ class FlextCliModels(FlextModels):
 
                     cli_params.append(param_result.unwrap())
 
-                return FlextResult[list[FlextCliModels.CliParameterSpec]].ok(cli_params)
+                return FlextResult[list["FlextCliModels.CliParameterSpec"]].ok(
+                    cli_params
+                )
             except Exception as e:
-                return FlextResult[list[FlextCliModels.CliParameterSpec]].fail(
+                return FlextResult[list["FlextCliModels.CliParameterSpec"]].fail(
                     FlextCliConstants.ModelsErrorMessages.FAILED_MODEL_CONVERSION.format(
                         model_name=model_class.__name__, error=str(e)
                     )
@@ -442,7 +447,7 @@ class FlextCliModels(FlextModels):
                     model_class
                 )
                 if params_result.is_failure:
-                    return FlextResult[list[FlextCliModels.CliOptionSpec]].fail(
+                    return FlextResult[list["FlextCliModels.CliOptionSpec"]].fail(
                         params_result.error
                     )
 
@@ -464,9 +469,11 @@ class FlextCliModels(FlextModels):
 
                     click_options.append(click_option)
 
-                return FlextResult[list[FlextCliModels.CliOptionSpec]].ok(click_options)
+                return FlextResult[list["FlextCliModels.CliOptionSpec"]].ok(
+                    click_options
+                )
             except Exception as e:
-                return FlextResult[list[FlextCliModels.CliOptionSpec]].fail(
+                return FlextResult[list["FlextCliModels.CliOptionSpec"]].fail(
                     FlextCliConstants.ModelsErrorMessages.FAILED_CLICK_OPTIONS_GENERATION.format(
                         model_name=model_class.__name__, error=str(e)
                     )
@@ -475,7 +482,7 @@ class FlextCliModels(FlextModels):
         @staticmethod
         def cli_args_to_model(
             model_class: type[BaseModel],
-            cli_args: dict[str, object],
+            cli_args: FlextTypes.JsonDict,
         ) -> FlextResult[BaseModel]:
             """Convert CLI arguments dictionary to Pydantic model instance.
 
@@ -573,11 +580,10 @@ class FlextCliModels(FlextModels):
                     **cli_kwargs: FlextTypes.JsonValue,
                 ) -> FlextTypes.JsonValue | FlextResult[object]:
                     # Validate CLI input with Pydantic model
-                    from typing import cast
-
+                    # kwargs is always a dict, type is correct
                     validation_result = (
                         FlextCliModels.CliModelConverter.cli_args_to_model(
-                            model_class, cast("dict[str, object]", cli_kwargs)
+                            model_class, cli_kwargs
                         )
                     )
 
@@ -644,11 +650,10 @@ class FlextCliModels(FlextModels):
 
                     # Validate with each model
                     for model_class in model_classes:
-                        from typing import cast
-
+                        # kwargs is always a dict, type is correct
                         validation_result = (
                             FlextCliModels.CliModelConverter.cli_args_to_model(
-                                model_class, cast("dict[str, object]", cli_kwargs)
+                                model_class, cli_kwargs
                             )
                         )
 
@@ -668,6 +673,439 @@ class FlextCliModels(FlextModels):
                 return wrapper
 
             return decorator
+
+    # =========================================================================
+    # CLI BUILDERS - Model and Option Construction Utilities
+    # =========================================================================
+
+    class ModelCommandBuilder:
+        """Build CLI commands from Pydantic models.
+
+        Single Responsibility: Convert Pydantic models to executable CLI commands.
+        Extracted from cli.py to follow Single Responsibility Principle and nested
+        in FlextCliModels following flext-core patterns.
+        """
+
+        def __init__(
+            self,
+            model_class: type[BaseModel],
+            handler: Callable[..., FlextTypes.JsonValue],
+            config: FlextCliConfig | None = None,
+        ) -> None:
+            """Initialize builder.
+
+            Args:
+                model_class: Pydantic model class
+                handler: Handler function to call with model instance
+                config: Optional config to integrate
+
+            """
+            self.model_class = model_class
+            self.handler = handler
+            self.config = config
+            self.params_def: list[str] = []
+            self.params_call: list[str] = []
+            self.field_mapping: dict[str, str] = {}
+
+        def build(self) -> Callable[..., None]:
+            """Build the command function.
+
+            Returns:
+                Callable command function
+
+            """
+            self._build_parameters()
+            func = self._generate_function()
+
+            if self.config is not None:
+                return self._wrap_with_config_update(func)
+
+            return func
+
+        def _build_parameters(self) -> None:
+            """Build parameter definitions from model fields."""
+            for field_name, field_info in self.model_class.model_fields.items():
+                param_name = field_name.replace("_", "-")
+                self.field_mapping[param_name] = field_name
+
+                # Get field type and format it
+                field_type = field_info.annotation or str
+                type_str = self._format_type_annotation(field_type)
+
+                # Build typer.Option specification
+                default_value = self._get_field_default(field_name, field_info)
+                is_required = field_info.is_required()
+                help_text = field_info.description or ""
+
+                # Generate parameter definition
+                if is_required:
+                    self.params_def.append(
+                        f"{param_name}: {type_str} = typer.Option(..., help={help_text!r})"
+                    )
+                else:
+                    self.params_def.append(
+                        f"{param_name}: {type_str} = typer.Option({default_value!r}, help={help_text!r})"
+                    )
+
+                self.params_call.append(f"{field_name}={param_name}")
+
+        @staticmethod
+        def _format_type_annotation(annotation: object) -> str:
+            """Format type annotation for CLI help text.
+
+            Args:
+                annotation: Type annotation to format
+
+            Returns:
+                str: Human-readable type string
+
+            """
+            if annotation is None:
+                return "Any"
+            if hasattr(annotation, "__name__"):
+                return str(annotation.__name__)
+            return str(annotation)
+
+        def _get_field_default(
+            self, field_name: str, field_info: fields.FieldInfo
+        ) -> FlextTypes.JsonValue:
+            """Get default value for field.
+
+            Args:
+                field_name: Name of the field
+                field_info: Pydantic FieldInfo
+
+            Returns:
+                Default value
+
+            """
+            # Check config first
+            if self.config is not None and hasattr(self.config, field_name):
+                value = getattr(self.config, field_name)
+                # Validate it's JSON-compatible
+                if isinstance(value, (str, int, float, bool, list, dict, type(None))):
+                    return value
+                return str(value)
+
+            # Use field default
+            if field_info.default is not PydanticUndefined:
+                default = field_info.default
+                if isinstance(default, (str, int, float, bool, list, dict, type(None))):
+                    return default
+                return str(default)
+
+            if field_info.default_factory is not None and callable(
+                field_info.default_factory
+            ):
+                try:
+                    # Call factory - may raise if it requires arguments
+                    factory_func = field_info.default_factory
+                    if callable(factory_func):
+                        # Type safety: factory is callable and may require no args
+                        factory_result = factory_func()  # type: ignore[call-arg]
+                    if isinstance(
+                        factory_result, (str, int, float, bool, list, dict, type(None))
+                    ):
+                        return factory_result
+                    return str(factory_result)
+                except TypeError:
+                    # Factory requires arguments we don't have
+                    return None
+
+            return None
+
+        def _generate_function(self) -> Callable[..., None]:
+            """Generate the command function dynamically using closure pattern.
+
+            Creates a function with explicit named parameters for Click/Typer compatibility.
+            Uses __signature__ to assign the correct signature without exec.
+
+            Returns:
+                Generated function
+
+            """
+            # Capture model_class and handler in closure
+            model_class = self.model_class
+            handler = self.handler
+            field_mapping = self.field_mapping
+
+            def generated_command(**kwargs: FlextTypes.JsonValue) -> None:
+                """Dynamically generated command function.
+
+                Uses closure to capture model_class, handler, and field_mapping
+                without requiring exec or eval.
+                """
+                # Build model arguments from CLI kwargs
+                model_args: FlextTypes.JsonDict = {}
+                for cli_param, field_name in field_mapping.items():
+                    if cli_param in kwargs:
+                        model_args[field_name] = kwargs[cli_param]
+
+                # Create model instance and call handler
+                model_instance = model_class(**model_args)
+                handler(model_instance)
+
+            # Build explicit signature for Click/Typer introspection
+            parameters = []
+            # Use .values() since we only need field_name, not cli_param
+            for field_name in field_mapping.values():
+                field_info = self.model_class.model_fields.get(field_name)
+                if field_info:
+                    default_value = self._get_field_default(field_name, field_info)
+                    # Create Parameter with field_name (underscores) not cli_param (hyphens)
+                    # Python identifiers can't have hyphens
+                    param = inspect.Parameter(
+                        field_name,  # Use field_name with underscores, not cli_param with hyphens
+                        inspect.Parameter.KEYWORD_ONLY,
+                        default=default_value
+                        if default_value is not None
+                        else inspect.Parameter.empty,
+                        annotation=field_info.annotation,
+                    )
+                    parameters.append(param)
+
+            # Assign signature to function for Click/Typer introspection
+            # Type safety: __signature__ is a valid runtime attribute for callables
+            generated_command.__signature__ = inspect.Signature(parameters)  # type: ignore[attr-defined]
+
+            return generated_command
+
+        def _wrap_with_config_update(
+            self, func: Callable[..., None]
+        ) -> Callable[..., None]:
+            """Wrap function to update config with CLI values.
+
+            Args:
+                func: Function to wrap
+
+            Returns:
+                Wrapped function
+
+            """
+
+            @functools.wraps(func)
+            def wrapped(**kwargs: FlextTypes.JsonValue) -> None:
+                """Update config and call wrapped function."""
+                if self.config is not None:
+                    # Update config fields from CLI args
+                    for cli_param, field_name in self.field_mapping.items():
+                        cli_value = kwargs.get(cli_param)
+                        if cli_value is not None:
+                            setattr(self.config, field_name, cli_value)
+
+                func(**kwargs)
+
+            # Preserve signature from wrapped function for Click/Typer introspection
+            if hasattr(func, "__signature__"):
+                # Type safety: __signature__ is a valid runtime attribute for callables
+                wrapped.__signature__ = func.__signature__  # type: ignore[attr-defined]
+
+            return wrapped
+
+    class OptionBuilder:
+        """Build typer.Option from FlextCliConfig field metadata.
+
+        Single Responsibility: Convert Pydantic field metadata to typer.Option.
+        Extracted from cli_params.py to follow Single Responsibility Principle and nested
+        in FlextCliModels following flext-core patterns.
+        """
+
+        def __init__(
+            self,
+            field_name: str,
+            registry: dict[str, dict[str, str | int | bool | list[str]]],
+        ) -> None:
+            """Initialize builder.
+
+            Args:
+                field_name: Name of field in FlextCliConfig
+                registry: CLI parameter registry with metadata
+
+            """
+            self.field_name = field_name
+            self.registry = registry
+
+            # Import here to avoid circular dependency
+            from flext_cli.config import FlextCliConfig
+
+            # Get field metadata
+            self.fields = FlextCliConfig.model_fields
+            self.schema = FlextCliConfig.model_json_schema()
+
+            if field_name not in self.fields:
+                msg = f"Field {field_name!r} not found in FlextCliConfig"
+                raise ValueError(msg)
+
+            self.field_info = self.fields[field_name]
+            self.field_schema = self.schema["properties"].get(field_name, {})
+            self.param_meta = registry.get(field_name, {})
+
+        def build(self) -> OptionInfo:
+            """Build typer.Option from field metadata.
+
+            Returns:
+                typer.Option instance
+
+            """
+            import typer  # Local import for nested class access
+
+            param_decls = self._build_param_declarations()
+            default_value = self._get_default_value()
+            help_text = self._build_help_text()
+            constraints = self._extract_constraints()
+
+            # Extract constraint values with proper types for typer.Option
+            case_sensitive_val = constraints.get("case_sensitive", True)
+            case_sensitive = (
+                bool(case_sensitive_val) if case_sensitive_val is not None else True
+            )
+
+            min_val = constraints.get("min")
+            min_constraint: int | float | None = None
+            if min_val is None:
+                min_constraint = None
+            elif isinstance(min_val, int):
+                min_constraint = int(min_val)
+            elif isinstance(min_val, float):
+                min_constraint = float(min_val)
+
+            max_val = constraints.get("max")
+            max_constraint: int | float | None = None
+            if max_val is None:
+                max_constraint = None
+            elif isinstance(max_val, int):
+                max_constraint = int(max_val)
+            elif isinstance(max_val, float):
+                max_constraint = float(max_val)
+
+            return cast(
+                "OptionInfo",
+                typer.Option(
+                    default_value,
+                    *param_decls,
+                    help=help_text,
+                    case_sensitive=case_sensitive,
+                    min=min_constraint,
+                    max=max_constraint,
+                    show_default=default_value is not None,
+                ),
+            )
+
+        def _extract_type(self) -> type | types.UnionType:
+            """Extract base type from field annotation."""
+            field_type = normalize_annotation(self.field_info.annotation)
+
+            # Guard against None
+            if field_type is None:
+                return str
+
+            origin = get_origin(field_type)
+
+            # Handle Optional types
+            if origin is types.NoneType or (
+                hasattr(field_type, "__args__")
+                and types.NoneType in get_args(field_type)
+            ):
+                args = [a for a in get_args(field_type) if a is not types.NoneType]
+                return args[0] if args else str
+
+            return field_type
+
+        def _build_param_declarations(self) -> list[str]:
+            """Build parameter declarations (--name, -short)."""
+            reg = FlextCliConstants.CliParamsRegistry
+
+            cli_name = self.param_meta.get(reg.KEY_FIELD_NAME_OVERRIDE, self.field_name)
+            cli_name = str(cli_name) if cli_name != self.field_name else self.field_name
+
+            # Build long form (--param-name)
+            option_name = f"--{cli_name.replace('_', '-')}"
+            param_decls = [option_name]
+
+            # Add short form if available (-p)
+            if reg.KEY_SHORT in self.param_meta:
+                short_val = self.param_meta[reg.KEY_SHORT]
+                if isinstance(short_val, str):
+                    param_decls.insert(0, f"-{short_val}")
+
+            return param_decls
+
+        def _get_default_value(self) -> FlextTypes.JsonValue:
+            """Get default value from field."""
+            default_value = self.field_info.default
+
+            if default_value is None:
+                return None
+
+            if isinstance(default_value, type(PydanticUndefined)):
+                return None
+
+            # Validate that default is a JSON-compatible value
+            if isinstance(
+                default_value, (str, int, float, bool, list, dict, type(None))
+            ):
+                return default_value
+
+            # For other types, convert to string representation
+            return str(default_value)
+
+        def _build_help_text(self) -> str:
+            """Build help text from field description and metadata."""
+            defs = FlextCliConstants.CliParamsDefaults
+            reg = FlextCliConstants.CliParamsRegistry
+            json_keys = FlextCliConstants.JsonSchemaKeys
+
+            help_text = (
+                self.field_info.description
+                or defs.DEFAULT_HELP_TEXT_FORMAT.format(field_name=self.field_name)
+            )
+
+            # Add choices to help text
+            if reg.KEY_CHOICES in self.param_meta:
+                choices = self.param_meta[reg.KEY_CHOICES]
+                if isinstance(choices, (list, tuple)):
+                    choices_str = ", ".join(str(c) for c in choices)
+                    help_text += defs.CHOICES_HELP_SUFFIX.format(
+                        choices_str=choices_str
+                    )
+
+            # Add range constraints to help text
+            if (
+                json_keys.MINIMUM in self.field_schema
+                and json_keys.MAXIMUM in self.field_schema
+            ):
+                help_text += defs.RANGE_HELP_SUFFIX.format(
+                    minimum=self.field_schema[json_keys.MINIMUM],
+                    maximum=self.field_schema[json_keys.MAXIMUM],
+                )
+
+            return help_text
+
+        def _extract_constraints(self) -> dict[str, FlextTypes.JsonValue]:
+            """Extract constraints (min, max, case_sensitive)."""
+            reg = FlextCliConstants.CliParamsRegistry
+            json_keys = FlextCliConstants.JsonSchemaKeys
+
+            constraints: dict[str, FlextTypes.JsonValue] = {}
+
+            # Case sensitivity
+            if reg.KEY_CASE_SENSITIVE in self.param_meta:
+                cs_raw = self.param_meta[reg.KEY_CASE_SENSITIVE]
+                if isinstance(cs_raw, bool):
+                    constraints["case_sensitive"] = cs_raw
+
+            # Min/Max constraints
+            if json_keys.MINIMUM in self.field_schema:
+                min_raw = self.field_schema[json_keys.MINIMUM]
+                if isinstance(min_raw, (int, float)):
+                    constraints["min"] = min_raw
+
+            if json_keys.MAXIMUM in self.field_schema:
+                max_raw = self.field_schema[json_keys.MAXIMUM]
+                if isinstance(max_raw, (int, float)):
+                    constraints["max"] = max_raw
+
+            return constraints
 
     # =========================================================================
     # CLI DOMAIN MODELS - Using FlextModels base classes directly
@@ -834,7 +1272,7 @@ class FlextCliModels(FlextModels):
 
         @classmethod
         def validate_command_input(
-            cls, data: object
+            cls, data: FlextTypes.JsonValue
         ) -> FlextResult[FlextCliTypes.Data.CliCommandData | None]:
             """Validate and normalize command input data using railway pattern.
 
@@ -851,6 +1289,8 @@ class FlextCliModels(FlextModels):
                     FlextCliConstants.ModelsErrorMessages.COMMAND_DATA_MUST_BE_DICT
                 )
 
+            # Type narrowing: data is dict[str, JsonValue] after isinstance check
+
             if "command" not in data:
                 return FlextResult[FlextCliTypes.Data.CliCommandData | None].fail(
                     FlextCliConstants.ModelsErrorMessages.COMMAND_FIELD_REQUIRED
@@ -863,10 +1303,11 @@ class FlextCliModels(FlextModels):
                 )
 
             # Normalize command data
+            # Type safety: dict values from data.items() are JSON-compatible
             normalized_data: FlextCliTypes.Data.CliDataDict = {
                 "command": command,
-                "execution_time": data.get("execution_time"),
-                **{k: v for k, v in data.items() if k != "command"},
+                "execution_time": data.get("execution_time"),  # type: ignore[dict-item]
+                **{k: v for k, v in data.items() if k != "command"},  # type: ignore[misc]
             }
 
             # Return normalized data (type is already correct)
@@ -1060,11 +1501,11 @@ class FlextCliModels(FlextModels):
         @field_serializer("commands")
         def serialize_commands(
             self, value: list[FlextCliModels.CliCommand], _info: typing.Any
-        ) -> list[dict[str, object]]:
+        ) -> list[FlextTypes.JsonDict]:
             """Serialize commands with summary information."""
             return [
                 {
-                    "id": cmd.id,
+                    "id": str(cmd.id) if hasattr(cmd, "id") else "",
                     "command_line": cmd.command_line,
                     "status": cmd.status,
                     "exit_code": cmd.exit_code,
@@ -1320,7 +1761,7 @@ class FlextCliModels(FlextModels):
     # ========================================================================
 
     class CliCommandResult(FlextModels.ArbitraryTypesModel):
-        """CLI command result model - replaces dict[str, object] in command execution results.
+        """CLI command result model - replaces FlextTypes.JsonDict in command execution results.
 
         Provides structured validation for command execution results and metadata.
         """
@@ -1345,7 +1786,7 @@ class FlextCliModels(FlextModels):
         )
 
     class CliDebugData(FlextModels.ArbitraryTypesModel):
-        """CLI debug data model - replaces dict[str, object] in debug information.
+        """CLI debug data model - replaces FlextTypes.JsonDict in debug information.
 
         Provides structured validation for debug information and diagnostic data.
         """
@@ -1374,7 +1815,7 @@ class FlextCliModels(FlextModels):
         )
 
     class CliSessionData(FlextModels.ArbitraryTypesModel):
-        """CLI session data model - replaces dict[str, object] in session summaries.
+        """CLI session data model - replaces FlextTypes.JsonDict in session summaries.
 
         Provides structured validation for session summary information.
         """
@@ -1400,7 +1841,7 @@ class FlextCliModels(FlextModels):
         )
 
     class CliLoggingData(FlextModels.ArbitraryTypesModel):
-        """CLI logging data model - replaces dict[str, object] in logging summaries.
+        """CLI logging data model - replaces FlextTypes.JsonDict in logging summaries.
 
         Provides structured validation for logging configuration summaries.
         """

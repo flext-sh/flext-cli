@@ -8,8 +8,6 @@ SPDX-License-Identifier: MIT
 
 """
 
-from __future__ import annotations
-
 import uuid
 
 from flext_core import FlextResult, FlextService, FlextTypes, FlextUtilities
@@ -35,9 +33,9 @@ class FlextCliContext(FlextService[FlextCliTypes.Data.CliDataDict]):
     id: str = ""
     command: str | None = None
     arguments: list[str] = Field(default_factory=list)
-    environment_variables: dict[str, object] = Field(default_factory=dict)
+    environment_variables: FlextTypes.JsonDict = Field(default_factory=dict)
     working_directory: str | None = None
-    context_metadata: dict[str, object] = Field(default_factory=dict)
+    context_metadata: FlextTypes.JsonDict = Field(default_factory=dict)
 
     # Context state
     is_active: bool = False
@@ -48,7 +46,7 @@ class FlextCliContext(FlextService[FlextCliTypes.Data.CliDataDict]):
         self,
         command: str | None = None,
         arguments: list[str] | None = None,
-        environment_variables: dict[str, object] | None = None,
+        environment_variables: FlextTypes.JsonDict | None = None,
         working_directory: str | None = None,
         **data: FlextTypes.JsonValue,
     ) -> None:
@@ -81,7 +79,7 @@ class FlextCliContext(FlextService[FlextCliTypes.Data.CliDataDict]):
 
         # Context state
         self.is_active = False
-        self.created_at = FlextUtilities.Generators.generate_timestamp()
+        self.created_at = FlextUtilities.Generators.generate_iso_timestamp()
         self.timeout_seconds = int(FlextCliConfig.get_global_instance().timeout_seconds)
 
     def activate(self) -> FlextResult[None]:
@@ -118,7 +116,7 @@ class FlextCliContext(FlextService[FlextCliTypes.Data.CliDataDict]):
                 )
             )
 
-    def get_environment_variable(self, name: object) -> FlextResult[str]:
+    def get_environment_variable(self, name: str) -> FlextResult[str]:
         """Get specific environment variable value."""
         if not name or not isinstance(name, str):
             return FlextResult[str].fail(
@@ -141,9 +139,7 @@ class FlextCliContext(FlextService[FlextCliTypes.Data.CliDataDict]):
                 )
             )
 
-    def set_environment_variable(
-        self, name: object, value: object
-    ) -> FlextResult[None]:
+    def set_environment_variable(self, name: str, value: str) -> FlextResult[None]:
         """Set environment variable value."""
         if not name or not isinstance(name, str):
             return FlextResult[None].fail(
@@ -165,7 +161,7 @@ class FlextCliContext(FlextService[FlextCliTypes.Data.CliDataDict]):
                 )
             )
 
-    def add_argument(self, argument: object) -> FlextResult[None]:
+    def add_argument(self, argument: str) -> FlextResult[None]:
         """Add command line argument."""
         if not argument or not isinstance(argument, str):
             return FlextResult[None].fail(
@@ -182,7 +178,7 @@ class FlextCliContext(FlextService[FlextCliTypes.Data.CliDataDict]):
                 )
             )
 
-    def remove_argument(self, argument: object) -> FlextResult[None]:
+    def remove_argument(self, argument: str) -> FlextResult[None]:
         """Remove command line argument."""
         if not argument or not isinstance(argument, str):
             return FlextResult[None].fail(
@@ -205,9 +201,7 @@ class FlextCliContext(FlextService[FlextCliTypes.Data.CliDataDict]):
                 )
             )
 
-    def set_metadata(
-        self, key: object, value: FlextTypes.JsonValue
-    ) -> FlextResult[None]:
+    def set_metadata(self, key: str, value: FlextTypes.JsonValue) -> FlextResult[None]:
         """Set context metadata using CLI-specific data types."""
         if not key or not isinstance(key, str):
             return FlextResult[None].fail(
@@ -224,23 +218,23 @@ class FlextCliContext(FlextService[FlextCliTypes.Data.CliDataDict]):
                 )
             )
 
-    def get_metadata(self, key: object) -> FlextResult[object]:
+    def get_metadata(self, key: str) -> FlextResult[FlextTypes.JsonValue]:
         """Get context metadata value."""
         if not key or not isinstance(key, str):
-            return FlextResult[object].fail(
+            return FlextResult[FlextTypes.JsonValue].fail(
                 FlextCliConstants.ContextErrorMessages.METADATA_KEY_MUST_BE_STRING
             )
 
         try:
             if key in self.context_metadata:
-                return FlextResult[object].ok(self.context_metadata[key])
-            return FlextResult[object].fail(
+                return FlextResult[FlextTypes.JsonValue].ok(self.context_metadata[key])
+            return FlextResult[FlextTypes.JsonValue].fail(
                 FlextCliConstants.ContextErrorMessages.METADATA_KEY_NOT_FOUND.format(
                     key=key
                 )
             )
         except Exception as e:  # pragma: no cover
-            return FlextResult[object].fail(
+            return FlextResult[FlextTypes.JsonValue].fail(
                 FlextCliConstants.ContextErrorMessages.METADATA_RETRIEVAL_FAILED.format(
                     error=e
                 )
@@ -248,10 +242,10 @@ class FlextCliContext(FlextService[FlextCliTypes.Data.CliDataDict]):
 
     def get_context_summary(
         self,
-    ) -> FlextResult[dict[str, object]]:
+    ) -> FlextResult[FlextTypes.JsonDict]:
         """Get comprehensive context summary using CLI-specific data types."""
         try:
-            summary: dict[str, object] = {
+            summary: FlextTypes.JsonDict = {
                 FlextCliConstants.ContextDictKeys.CONTEXT_ID: self.id,
                 FlextCliConstants.ContextDictKeys.COMMAND: self.command
                 or FlextCliConstants.ContextDefaults.CONTEXT_NONE,
@@ -272,9 +266,9 @@ class FlextCliContext(FlextService[FlextCliTypes.Data.CliDataDict]):
                 ),
             }
 
-            return FlextResult[dict[str, object]].ok(summary)
+            return FlextResult[FlextTypes.JsonDict].ok(summary)
         except Exception as e:  # pragma: no cover
-            return FlextResult[dict[str, object]].fail(
+            return FlextResult[FlextTypes.JsonDict].fail(
                 FlextCliConstants.ContextErrorMessages.CONTEXT_SUMMARY_GENERATION_FAILED.format(
                     error=e
                 ),
@@ -289,7 +283,7 @@ class FlextCliContext(FlextService[FlextCliTypes.Data.CliDataDict]):
                 FlextCliConstants.ContextDictKeys.ARGUMENTS_COUNT: len(self.arguments)
                 if self.arguments
                 else 0,
-                FlextCliConstants.DictKeys.TIMESTAMP: FlextUtilities.Generators.generate_timestamp(),
+                FlextCliConstants.DictKeys.TIMESTAMP: FlextUtilities.Generators.generate_iso_timestamp(),
             }
             return FlextResult[FlextCliTypes.Data.CliDataDict].ok(result)
         except Exception as e:  # pragma: no cover
@@ -301,6 +295,7 @@ class FlextCliContext(FlextService[FlextCliTypes.Data.CliDataDict]):
 
     def to_dict(self) -> dict[str, object]:
         """Convert context to dictionary."""
+        # Return dict[str, object] for type compatibility with specific types
         return {
             FlextCliConstants.ContextDictKeys.ID: self.id,
             FlextCliConstants.ContextDictKeys.COMMAND: self.command,
