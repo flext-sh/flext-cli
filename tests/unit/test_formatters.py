@@ -14,7 +14,7 @@ from rich.progress import Progress
 from rich.table import Table as RichTable
 from rich.tree import Tree as RichTree
 
-from flext_cli import FlextCliFormatters
+from flext_cli import FlextCliFormatters, FlextCliTypes
 
 
 class TestFlextCliFormattersCore:
@@ -90,10 +90,7 @@ class TestFlextCliFormattersCore:
     def test_create_table_with_data(self) -> None:
         """Test create_table() with data."""
         formatters = FlextCliFormatters()
-        data: dict[
-            str,
-            str | int | float | bool | list[object] | dict[str, object] | None,
-        ] = {"key1": "value1", "key2": "value2"}
+        data: FlextCliTypes.Data.CliDataDict = {"key1": "value1", "key2": "value2"}
         result = formatters.create_table(data=data, headers=["Key", "Value"])
         assert result.is_success
         table = result.unwrap()
@@ -184,10 +181,11 @@ class TestFlextCliFormattersIntegration:
         formatters = FlextCliFormatters()
 
         # Create table with data
-        data: dict[
-            str,
-            str | int | float | bool | list[object] | dict[str, object] | None,
-        ] = {"Name": "Alice", "Age": "30", "City": "NYC"}
+        data: FlextCliTypes.Data.CliDataDict = {
+            "Name": "Alice",
+            "Age": "30",
+            "City": "NYC",
+        }
         table_result = formatters.create_table(
             data=data, headers=["Key", "Value"], title="User Info"
         )
@@ -295,12 +293,13 @@ class TestFlextCliFormattersIntegration:
         assert panel is not None
 
     def test_create_table_dict_without_headers(self) -> None:
-        """Test create_table() with dict[str, object] data but no headers (lines 133-134)."""
+        """Test create_table() with CLI data dict but no headers (lines 133-134)."""
         formatters = FlextCliFormatters()
-        data: dict[
-            str,
-            str | int | float | bool | list[object] | dict[str, object] | None,
-        ] = {"key1": "value1", "key2": "value2", "key3": "value3"}
+        data: FlextCliTypes.Data.CliDataDict = {
+            "key1": "value1",
+            "key2": "value2",
+            "key3": "value3",
+        }
         # No headers - will use else branch at line 131
         result = formatters.create_table(data=data)
         assert result.is_success

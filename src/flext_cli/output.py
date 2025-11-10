@@ -13,6 +13,7 @@ from typing import cast, override
 
 import yaml
 from flext_core import FlextResult, FlextService, FlextTypes
+from pydantic import BaseModel
 
 from flext_cli.constants import FlextCliConstants
 from flext_cli.formatters import FlextCliFormatters
@@ -115,11 +116,19 @@ class FlextCliOutput(FlextService[object]):
         if format_lower == FlextCliConstants.OutputFormats.TABLE.value:
             # Convert object to appropriate type for format_table
             if isinstance(data, dict):
-                # Type narrowing: data is dict[str, JsonValue] after isinstance check
-                return self.format_table(data, title=title, headers=headers)  # type: ignore[arg-type]
+                return self.format_table(
+                    data,
+                    title=title,
+                    headers=headers,
+                )
             if isinstance(data, list):
-                # Cast to the expected list type for format_table
-                list_data = cast("list[dict[str, FlextTypes.JsonValue]]", data)
+                if not all(isinstance(item, dict) for item in data):
+                    return FlextResult[str].fail(
+                        FlextCliConstants.ErrorMessages.TABLE_FORMAT_REQUIRED_DICT
+                    )
+                list_data: list[dict[str, FlextTypes.JsonValue]] = [
+                    cast("dict[str, FlextTypes.JsonValue]", item) for item in data
+                ]
                 return self.format_table(list_data, title=title, headers=headers)
             return FlextResult[str].fail(
                 FlextCliConstants.ErrorMessages.TABLE_FORMAT_REQUIRED_DICT
@@ -236,7 +245,7 @@ class FlextCliOutput(FlextService[object]):
 
     def format_and_display_result(
         self,
-        result: FlextTypes.JsonValue,
+        result: object,
         output_format: str = "table",
     ) -> FlextResult[None]:
         """Auto-detect result type and apply registered formatter.
@@ -296,17 +305,24 @@ class FlextCliOutput(FlextService[object]):
             if result is None:
                 format_result = FlextResult[str].ok("None")
             # Try to convert result to dict for generic formatting
-            elif hasattr(result, "model_dump") and callable(
-                getattr(result, "model_dump", None)
-            ):
-                # Pydantic model - safe to call model_dump since we checked it's callable
-                model_dump_method = result.model_dump  # Type-safe access
-                result_dict = model_dump_method()
+            elif isinstance(result, BaseModel):
+                result_dict = cast(
+                    "dict[str, FlextTypes.JsonValue]", result.model_dump()
+                )
                 format_result = self.format_data(result_dict, output_format)
             elif hasattr(result, "__dict__"):
                 # Regular object with __dict__
-                result_dict = result.__dict__
-                format_result = self.format_data(result_dict, output_format)
+                raw_dict = result.__dict__
+                normalized_dict: dict[str, FlextTypes.JsonValue] = {}
+                for key, value in raw_dict.items():
+                    if isinstance(
+                        value,
+                        (str, int, float, bool, list, dict, type(None)),
+                    ):
+                        normalized_dict[key] = value
+                    else:
+                        normalized_dict[key] = str(value)
+                format_result = self.format_data(normalized_dict, output_format)
             else:
                 # Fallback to string representation
                 format_result = FlextResult[str].ok(str(result))
@@ -932,7 +948,7 @@ class FlextCliOutput(FlextService[object]):
 
         # Build tree structure
         # Type safety: JsonDict is compatible with JsonValue for tree building
-        self._build_tree(tree, data)  # type: ignore[arg-type]
+        self._build_tree(tree, data)
 
         # Render to string using formatters
         return self._formatters.render_tree_to_string(
@@ -968,7 +984,7 @@ class FlextCliOutput(FlextService[object]):
         elif isinstance(data, list):
             for item in data:
                 # Type narrowing: item is JsonValue from list[JsonValue]
-                self._build_tree(tree, item)  # type: ignore[arg-type]
+                self._build_tree(tree, item)
         else:
             tree.add(str(data))
 

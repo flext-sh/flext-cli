@@ -19,7 +19,7 @@ from typing import Self
 
 import pydantic
 import pytest
-from flext_core import FlextResult, FlextTypes
+from flext_core import FlextResult
 from pydantic import BaseModel
 from pydantic.fields import FieldInfo as PydanticFieldInfo
 
@@ -750,7 +750,7 @@ class TestFlextCliModels:
         assert sums["C"] == 30
 
         # Calculate average by category
-        averages: FlextTypes.FloatDict = {}
+        averages: dict[str, float] = {}
         for category, items in grouped.items():
             numeric_values = [
                 item["value"] for item in items if isinstance(item["value"], int)

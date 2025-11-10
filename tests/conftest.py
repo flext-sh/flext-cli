@@ -18,7 +18,7 @@ from pathlib import Path
 import pytest
 import yaml
 from click.testing import CliRunner
-from flext_core import FlextContainer, FlextTypes, FlextUtilities
+from flext_core import FlextContainer, FlextUtilities
 
 from flext_cli.api import FlextCli
 from flext_cli.cmd import FlextCliCmd
@@ -62,7 +62,7 @@ def temp_file(temp_dir: Path) -> Path:
 def temp_json_file(temp_dir: Path) -> Path:
     """Create temporary JSON file for tests."""
     temp_file_path = temp_dir / "test_file.json"
-    test_data: dict[str, str | int | FlextTypes.IntList] = {
+    test_data: dict[str, str | int | list[int]] = {
         "key": "value",
         "number": 42,
         "list": [1, 2, 3],
@@ -75,7 +75,7 @@ def temp_json_file(temp_dir: Path) -> Path:
 def temp_yaml_file(temp_dir: Path) -> Path:
     """Create temporary YAML file for tests."""
     temp_file_path = temp_dir / "test_file.yaml"
-    test_data: dict[str, str | int | FlextTypes.IntList] = {
+    test_data: dict[str, str | int | list[int]] = {
         "key": "value",
         "number": 42,
         "list": [1, 2, 3],

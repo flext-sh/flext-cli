@@ -13,6 +13,7 @@ SPDX-License-Identifier: MIT
 """
 
 import typing
+from collections.abc import Sequence
 from typing import Annotated, Literal, TypeVar
 
 from flext_core import FlextResult, FlextTypes
@@ -198,6 +199,15 @@ class FlextCliTypes(FlextTypes):
         # Additional CLI data structures
         CliDataDict = dict[str, FlextTypes.JsonValue]
         """Generic CLI data dictionary for flexible data passing."""
+
+        TableRow = CliDataDict
+        """Single row of tabular CLI data."""
+
+        TableData = Sequence[CliDataDict] | CliDataDict
+        """Tabular data represented as a sequence of dictionaries or a single row."""
+
+        TabularData = TableData
+        """Complete table input supporting rows defined as dictionaries."""
 
         CliCommandData = dict[str, FlextTypes.JsonValue]
         """Data structure for CLI command data and metadata."""

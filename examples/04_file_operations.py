@@ -62,9 +62,7 @@ def save_user_preferences(
     # with open(config_file, 'w') as f:
     #     json.dump(preferences, f)
 
-    write_result = cli.file_tools.write_json_file(
-        config_file, cast("dict[str, object]", preferences)
-    )
+    write_result = cli.file_tools.write_json_file(config_file, preferences)
 
     if write_result.is_failure:
         cli.print(f"❌ Failed to save: {write_result.error}", style="bold red")
@@ -109,9 +107,7 @@ def save_deployment_config(
     # with open(config_file, 'w') as f:
     #     yaml.dump(config, f)
 
-    write_result = cli.file_tools.write_yaml_file(
-        config_file, cast("dict[str, object]", config)
-    )
+    write_result = cli.file_tools.write_yaml_file(config_file, config)
 
     if write_result.is_failure:
         cli.print(f"❌ Config save failed: {write_result.error}", style="bold red")
@@ -490,12 +486,8 @@ def export_multi_format(
     # Export to JSON
     json_path = base_path.with_suffix(".json")
     # Handle both single dict and list of dicts
-    json_data: FlextTypes.JsonValue = (
-        cast("FlextTypes.JsonValue", data)
-        if isinstance(data, dict)
-        else cast("FlextTypes.JsonValue", {"data": cast("list[object]", data)})
-    )
-    json_result = cli.file_tools.write_json_file(json_path, json_data, indent=2)
+    json_payload = cast("FlextTypes.JsonValue", data)
+    json_result = cli.file_tools.write_json_file(json_path, json_payload, indent=2)
     if json_result.is_success:
         size = json_path.stat().st_size
         export_results["JSON"] = f"{size} bytes"
@@ -503,9 +495,8 @@ def export_multi_format(
 
     # Export to YAML
     yaml_path = base_path.with_suffix(".yaml")
-    yaml_result = cli.file_tools.write_yaml_file(
-        yaml_path, cast("dict[str, object]", data)
-    )
+    yaml_payload = cast("FlextTypes.JsonValue", data)
+    yaml_result = cli.file_tools.write_yaml_file(yaml_path, yaml_payload)
     if yaml_result.is_success:
         size = yaml_path.stat().st_size
         export_results["YAML"] = f"{size} bytes"
@@ -594,7 +585,7 @@ def main() -> None:
         "FlextCliTypes.Data.CliDataDict", {"id": 1, "name": "test", "value": 100}
     )
     test_file = temp_dir / "test_data.json"
-    cli.file_tools.write_json_file(test_file, cast("dict[str, object]", test_data))
+    cli.file_tools.write_json_file(test_file, test_data)
     validate_and_import_data(test_file)
 
     # Example 7: CSV export/import
@@ -627,8 +618,8 @@ def main() -> None:
     )
     auto_json = temp_dir / "auto_config.json"
     auto_yaml = temp_dir / "auto_config.yaml"
-    cli.file_tools.write_json_file(auto_json, cast("dict[str, object]", auto_config))
-    cli.file_tools.write_yaml_file(auto_yaml, cast("dict[str, object]", auto_config))
+    cli.file_tools.write_json_file(auto_json, auto_config)
+    cli.file_tools.write_yaml_file(auto_yaml, auto_config)
     load_config_auto_detect(auto_json)
     load_config_auto_detect(auto_yaml)
 

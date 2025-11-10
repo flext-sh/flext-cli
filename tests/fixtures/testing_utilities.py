@@ -70,7 +70,7 @@ import tempfile
 from collections.abc import Generator
 from contextlib import contextmanager
 from pathlib import Path
-from typing import Any
+from typing import Any, cast
 
 import click
 from click.testing import CliRunner
@@ -200,7 +200,7 @@ class FlextCliTesting(FlextService[dict[str, object]]):
         def mock_user_config(
             self,
             profile: str = "test",
-            **overrides: str | float | bool | dict[str, object] | list[object] | None,
+            **overrides: FlextTypes.JsonValue,
         ) -> FlextResult[FlextCliTypes.Configuration.CliConfigSchema]:
             """Create mock user configuration.
 
@@ -339,11 +339,12 @@ class FlextCliTesting(FlextService[dict[str, object]]):
 
         """
         try:
-            return FlextResult[dict[str, object]].ok({
+            payload: FlextTypes.JsonDict = {
                 FlextCliConstants.DictKeys.STATUS: FlextCliConstants.ServiceStatus.OPERATIONAL.value,
                 FlextCliConstants.DictKeys.SERVICE: "FlextCliTesting",
                 FlextCliConstants.DictKeys.MESSAGE: "Testing utilities ready",
-            })
+            }
+            return FlextResult[dict[str, object]].ok(cast("dict[str, object]", payload))
         except Exception as e:
             return FlextResult[dict[str, object]].fail(str(e))
 

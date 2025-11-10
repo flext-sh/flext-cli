@@ -320,9 +320,8 @@ class TestFlextCliProtocols:
             def method3(self, data: dict[str, object]) -> list[object]: ...
 
         # Test protocol inspection
-        # __protocol_attrs__ may not exist in all Python versions
-        if hasattr(InspectionProtocol, "__protocol_attrs__"):
-            protocol_attrs = InspectionProtocol.__protocol_attrs__
+        protocol_attrs = getattr(InspectionProtocol, "__protocol_attrs__", None)
+        if protocol_attrs is not None:
             assert "method1" in protocol_attrs
             assert "method2" in protocol_attrs
             assert "method3" in protocol_attrs

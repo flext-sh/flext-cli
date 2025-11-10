@@ -21,6 +21,7 @@ from collections.abc import Callable
 from datetime import UTC, datetime
 from typing import Literal, Self, cast, get_args, get_origin
 
+import typer
 from flext_core import (
     FlextConstants,
     FlextLogger,
@@ -38,9 +39,12 @@ from pydantic import (
     model_validator,
 )
 from pydantic_core import PydanticUndefined
+from typer.models import OptionInfo
 
+from flext_cli.config import FlextCliConfig
 from flext_cli.constants import FlextCliConstants
 from flext_cli.mixins import FlextCliMixins
+from flext_cli.type_utils import normalize_annotation
 from flext_cli.typings import FlextCliTypes
 
 logger = FlextLogger(__name__)
@@ -762,8 +766,8 @@ class FlextCliModels(FlextModels):
             """
             if annotation is None:
                 return "Any"
-            if hasattr(annotation, "__name__"):
-                return str(annotation.__name__)
+            if isinstance(annotation, type):
+                return annotation.__name__
             return str(annotation)
 
         def _get_field_default(
@@ -794,25 +798,39 @@ class FlextCliModels(FlextModels):
                     return default
                 return str(default)
 
-            if field_info.default_factory is not None and callable(
-                field_info.default_factory
-            ):
-                try:
-                    # Call factory - may raise if it requires arguments
-                    factory_func = field_info.default_factory
-                    if callable(factory_func):
-                        # Type safety: factory is callable and may require no args
-                        factory_result = factory_func()  # type: ignore[call-arg]
-                    if isinstance(
-                        factory_result, (str, int, float, bool, list, dict, type(None))
-                    ):
-                        return factory_result
-                    return str(factory_result)
-                except TypeError:
-                    # Factory requires arguments we don't have
+            default_factory = field_info.default_factory
+            if default_factory is not None and callable(default_factory):
+                if not self._factory_accepts_no_arguments(default_factory):
                     return None
 
+                factory_callable = cast("Callable[[], object]", default_factory)
+                try:
+                    factory_result = factory_callable()
+                except TypeError:
+                    return None
+
+                if isinstance(
+                    factory_result,
+                    (str, int, float, bool, list, dict, type(None)),
+                ):
+                    return factory_result
+                return str(factory_result)
+
             return None
+
+        @staticmethod
+        def _factory_accepts_no_arguments(factory: Callable[..., object]) -> bool:
+            """Return True when callable can be invoked without required arguments."""
+            signature = inspect.signature(factory)
+            for parameter in signature.parameters.values():
+                if parameter.kind in {
+                    inspect.Parameter.VAR_POSITIONAL,
+                    inspect.Parameter.VAR_KEYWORD,
+                }:
+                    continue
+                if parameter.default is inspect.Parameter.empty:
+                    return False
+            return True
 
         def _generate_function(self) -> Callable[..., None]:
             """Generate the command function dynamically using closure pattern.
@@ -925,9 +943,6 @@ class FlextCliModels(FlextModels):
             self.field_name = field_name
             self.registry = registry
 
-            # Import here to avoid circular dependency
-            from flext_cli.config import FlextCliConfig
-
             # Get field metadata
             self.fields = FlextCliConfig.model_fields
             self.schema = FlextCliConfig.model_json_schema()
@@ -947,8 +962,6 @@ class FlextCliModels(FlextModels):
                 typer.Option instance
 
             """
-            import typer  # Local import for nested class access
-
             param_decls = self._build_param_declarations()
             default_value = self._get_default_value()
             help_text = self._build_help_text()
@@ -1306,8 +1319,8 @@ class FlextCliModels(FlextModels):
             # Type safety: dict values from data.items() are JSON-compatible
             normalized_data: FlextCliTypes.Data.CliDataDict = {
                 "command": command,
-                "execution_time": data.get("execution_time"),  # type: ignore[dict-item]
-                **{k: v for k, v in data.items() if k != "command"},  # type: ignore[misc]
+                "execution_time": data.get("execution_time"),
+                **{k: v for k, v in data.items() if k != "command"},
             }
 
             # Return normalized data (type is already correct)
@@ -1369,6 +1382,13 @@ class FlextCliModels(FlextModels):
             self.output = output
             self.status = FlextCliConstants.CommandStatus.COMPLETED.value
             return FlextResult[None].ok(None)
+
+        @classmethod
+        def __init_subclass__(cls, **kwargs: typing.Any) -> None:
+            """Automatically rebuild model for forward references in Pydantic v2."""
+            super().__init_subclass__(**kwargs)
+            if hasattr(cls, "model_rebuild"):
+                cls.model_rebuild()
 
     class CliSession(
         FlextModels.Entity,

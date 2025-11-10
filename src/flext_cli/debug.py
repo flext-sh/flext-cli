@@ -150,7 +150,7 @@ class FlextCliDebug(FlextService[str]):
                 FlextCliConstants.DictKeys.SERVICE: FlextCliConstants.DebugDefaults.SERVICE_NAME,
                 FlextCliConstants.DictKeys.TIMESTAMP: datetime.now(UTC).isoformat(),
                 FlextCliConstants.DebugDictKeys.DEBUG_ID: str(uuid.uuid4()),
-                FlextCliConstants.DebugDictKeys.SYSTEM_INFO: self._get_system_info(),  # type: ignore[dict-item]
+                FlextCliConstants.DebugDictKeys.SYSTEM_INFO: self._get_system_info(),
                 FlextCliConstants.DebugDictKeys.ENVIRONMENT_STATUS: FlextCliConstants.ServiceStatus.OPERATIONAL.value,
                 FlextCliConstants.DebugDictKeys.CONNECTIVITY_STATUS: FlextCliConstants.ServiceStatus.CONNECTED.value,
             }
@@ -193,7 +193,7 @@ class FlextCliDebug(FlextService[str]):
             paths_list = cast("list[FlextTypes.JsonValue]", paths)
             # Type safety: paths_list is JSON-compatible list type
             typed_paths: FlextCliTypes.Data.CliDataDict = {
-                FlextCliConstants.DebugDictKeys.PATHS: paths_list  # type: ignore[dict-item]
+                FlextCliConstants.DebugDictKeys.PATHS: paths_list
             }
             return FlextResult[FlextCliTypes.Data.CliDataDict].ok(typed_paths)
         except Exception as e:

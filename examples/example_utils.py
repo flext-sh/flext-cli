@@ -10,7 +10,7 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from flext_core import FlextResult
+from flext_core import FlextResult, FlextTypes
 
 from flext_cli import FlextCli
 
@@ -44,7 +44,7 @@ def print_demo_completion(
 
 def handle_command_result(
     cli: FlextCli,
-    result: FlextResult[dict[str, object]],
+    result: FlextResult[FlextTypes.JsonDict],
     action: str,
     success_fields: list[str] | None = None,
 ) -> None:

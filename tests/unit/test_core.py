@@ -19,7 +19,7 @@ from typing import Never, cast
 
 import pytest
 import yaml
-from flext_core import FlextResult, FlextUtilities
+from flext_core import FlextResult, FlextTypes, FlextUtilities
 from pydantic import EmailStr, HttpUrl, TypeAdapter, ValidationError
 
 from flext_cli import (
@@ -190,7 +190,7 @@ class TestFlextCliCore:
     ) -> None:
         """Test configuration saving functionality."""
         config_file = temp_dir / "test_save_config.json"
-        test_config: dict[str, object] = {
+        test_config: FlextCliTypes.Data.CliDataDict = {
             "debug": False,
             "output_format": "table",
             "timeout": FlextCliConstants.TIMEOUTS.DEFAULT,
@@ -370,9 +370,9 @@ class TestFlextCliCore:
 
         try:
             parsed = json.loads(json_data)
-            result = FlextResult[dict[str, object]].ok(parsed)
+            result = FlextResult[FlextTypes.JsonDict].ok(parsed)
         except Exception as e:
-            result = FlextResult[dict[str, object]].fail(str(e))
+            result = FlextResult[FlextTypes.JsonDict].fail(str(e))
 
         assert isinstance(result, FlextResult)
         assert result.is_success
@@ -391,16 +391,16 @@ class TestFlextCliCore:
 
         try:
             parsed = json.loads(invalid_json)
-            result = FlextResult[dict[str, object]].ok(parsed)
+            result = FlextResult[FlextTypes.JsonDict].ok(parsed)
         except Exception as e:
-            result = FlextResult[dict[str, object]].fail(str(e))
+            result = FlextResult[FlextTypes.JsonDict].fail(str(e))
 
         assert isinstance(result, FlextResult)
         assert result.is_failure
 
     def test_serialize_json_data(self) -> None:
         """Test JSON data serialization functionality."""
-        test_data: dict[str, object] = {
+        test_data: FlextCliTypes.Data.CliDataDict = {
             "key": "value",
             "number": 42,
             "list": [1, 2, 3],
@@ -456,7 +456,7 @@ nested:
 
     def test_serialize_yaml_data(self) -> None:
         """Test YAML data serialization functionality."""
-        test_data: dict[str, object] = {
+        test_data: FlextCliTypes.Data.CliDataDict = {
             "key": "value",
             "number": 42,
             "list": [1, 2, 3],
@@ -662,7 +662,7 @@ nested:
     ) -> None:
         """Test complete workflow integration."""
         # 1. Create configuration
-        config_data: dict[str, object] = {
+        config_data: FlextCliTypes.Data.CliDataDict = {
             "debug": True,
             "output_format": "json",
             "timeout": FlextCliConstants.TIMEOUTS.DEFAULT,
@@ -689,7 +689,7 @@ nested:
         assert validate_result.is_success
 
         # 4. Process data
-        test_data: dict[str, object] = {
+        test_data: FlextCliTypes.Data.CliDataDict = {
             "processed": True,
             "timestamp": "2025-01-01T00:00:00Z",
         }
@@ -890,10 +890,7 @@ class TestFlextCliCoreExtended:
         """Test executing command with dict[str, object] context."""
         core_service.register_command(sample_command)
 
-        context: dict[
-            str,
-            str | int | float | bool | list[object] | dict[str, object] | None,
-        ] = {"option": "value", "flag": True}
+        context: FlextCliTypes.Data.CliDataDict = {"option": "value", "flag": True}
         result = core_service.execute_command("test-cmd", context=context)
 
         assert result.is_success
@@ -1165,7 +1162,10 @@ class TestFlextCliCoreExtended:
 
         with tempfile.TemporaryDirectory() as temp_dir:
             config_path = str(Path(temp_dir) / "config.json")
-            config = cast("dict[str, object]", {"setting1": "value1", "setting2": 42})
+            config = cast(
+                "FlextCliTypes.Data.CliDataDict",
+                {"setting1": "value1", "setting2": 42},
+            )
 
             result = core_service.save_configuration(config_path, config)
 
@@ -1293,7 +1293,7 @@ class TestFlextCliCoreExtended:
         # Step 4: Save configuration
         with tempfile.TemporaryDirectory() as temp_dir:
             config_path = str(Path(temp_dir) / "config.json")
-            simple_config: dict[str, object] = {
+            simple_config: FlextCliTypes.Data.CliDataDict = {
                 "theme": "dark",
                 "verbose": True,
                 "timeout": 30,
@@ -1559,7 +1559,8 @@ class TestFlextCliCoreExceptionHandlers:
         # The method validates type, so invalid type returns failure
         assert isinstance(result, FlextResult)
         assert result.is_failure
-        assert "invalid_type" in result.error or "str instead of" in result.error
+        error_message = result.error or ""
+        assert "invalid_type" in error_message or "str instead of" in error_message
 
     def test_get_handlers_exception_handler(
         self, core_service: FlextCliCore, monkeypatch: pytest.MonkeyPatch

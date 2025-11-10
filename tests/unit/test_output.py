@@ -19,7 +19,7 @@ from typing import cast
 import pytest
 from flext_core import FlextResult, FlextTypes
 
-from flext_cli import FlextCliConstants, FlextCliOutput
+from flext_cli import FlextCliConstants, FlextCliOutput, FlextCliTypes
 
 
 class TestFlextCliOutput:
@@ -216,7 +216,7 @@ class TestFlextCliOutput:
         self, output: FlextCliOutput, sample_data: dict[str, FlextTypes.JsonValue]
     ) -> None:
         """Test formatting table."""
-        # Convert dict[str, object] to list format expected by format_table
+        # Convert CLI data dictionary to list format expected by format_table
         sample_list: list[dict[str, FlextTypes.JsonValue]] = [sample_data]
         result = output.format_table(sample_list)
 
@@ -242,7 +242,7 @@ class TestFlextCliOutput:
         self, output: FlextCliOutput, sample_data: dict[str, FlextTypes.JsonValue]
     ) -> None:
         """Test formatting as tree."""
-        result = output.format_as_tree(cast("dict[str, object]", sample_data))
+        result = output.format_as_tree(sample_data)
 
         assert isinstance(result, FlextResult)
         assert result.is_success
@@ -322,7 +322,7 @@ class TestFlextCliOutput:
     def test_output_edge_cases(self, output: FlextCliOutput) -> None:
         """Test edge cases and error conditions."""
         # Test with empty data
-        empty_data: dict[str, object] = {}
+        empty_data: FlextCliTypes.Data.CliDataDict = {}
         result = output.format_data(cast("FlextTypes.JsonValue", empty_data), "json")
         assert isinstance(result, FlextResult)
 
@@ -389,7 +389,7 @@ class TestFlextCliOutput:
     def test_output_error_handling(self, output: FlextCliOutput) -> None:
         """Test output error handling."""
         # Test with circular reference data
-        circular_data: dict[str, object] = {}
+        circular_data: FlextCliTypes.Data.CliDataDict = {}
         circular_data["self"] = circular_data
 
         result = output.format_data(cast("FlextTypes.JsonValue", circular_data), "json")
@@ -844,7 +844,7 @@ class TestFlextCliOutput:
 
         monkeypatch.setattr(output._formatters, "create_tree", mock_create_tree_fail)
 
-        data: dict[str, object] = {"key": "value"}
+        data: FlextCliTypes.Data.CliDataDict = {"key": "value"}
         result = output.format_as_tree(data)
         assert result.is_failure
         assert "Failed to create tree" in str(result.error)
