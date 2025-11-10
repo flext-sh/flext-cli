@@ -8,8 +8,6 @@ SPDX-License-Identifier: MIT
 
 """
 
-from __future__ import annotations
-
 from collections.abc import Callable
 from typing import cast, override
 
@@ -18,7 +16,7 @@ from flext_core import FlextResult, FlextService, FlextTypes
 from flext_cli.constants import FlextCliConstants
 
 
-class FlextCliCommands(FlextService[dict[str, object]]):
+class FlextCliCommands(FlextService[FlextTypes.JsonDict]):
     """Single unified CLI commands class following FLEXT standards.
 
     Provides CLI command registration and management using flext-core patterns.
@@ -31,7 +29,7 @@ class FlextCliCommands(FlextService[dict[str, object]]):
         """Nested helper for CLI group operations."""
 
         def __init__(
-            self, name: str, description: str, commands: dict[str, object]
+            self, name: str, description: str, commands: dict[str, dict[str, object]]
         ) -> None:
             """Initialize CLI group."""
             self.name = name
@@ -50,16 +48,19 @@ class FlextCliCommands(FlextService[dict[str, object]]):
         # Logger is automatically provided by FlextMixins mixin
         self._name = name
         self._description = description
-        self._commands: FlextTypes.NestedDict = {}
+        # Commands store handler callables, use dict[str, dict[str, object]]
+        self._commands: dict[str, dict[str, object]] = {}
+        # Type hint for empty dict to match _CliGroup signature
+        empty_commands: dict[str, dict[str, object]] = {}
         self._cli_group = self._CliGroup(
             name=name,
             description=description,
-            commands={},
+            commands=empty_commands,
         )
 
-    def execute(self) -> FlextResult[dict[str, object]]:
+    def execute(self) -> FlextResult[FlextTypes.JsonDict]:
         """Execute the main domain service operation - required by FlextService."""
-        return FlextResult[dict[str, object]].ok({
+        return FlextResult[FlextTypes.JsonDict].ok({
             FlextCliConstants.CommandsDictKeys.STATUS: FlextCliConstants.ServiceStatus.OPERATIONAL.value,
             FlextCliConstants.CommandsDictKeys.SERVICE: FlextCliConstants.FLEXT_CLI,
             FlextCliConstants.CommandsDictKeys.COMMANDS: list(self._commands.keys()),
@@ -128,24 +129,26 @@ class FlextCliCommands(FlextService[dict[str, object]]):
         self,
         name: str,
         description: str = "",
-        commands: dict[str, object] | None = None,
+        commands: dict[str, dict[str, object]] | None = None,
     ) -> FlextResult[object]:
         """Create a command group.
 
         Args:
             name: Group name
             description: Group description
-            commands: Dictionary of command names and objects in group
+            commands: Dictionary of command names and handler objects in group
 
         Returns:
             FlextResult[object]: Group object or error
 
         """
         try:
+            # Type hint for empty dict fallback
+            empty_cmds: dict[str, dict[str, object]] = {}
             group = self._CliGroup(
                 name=name,
                 description=description,
-                commands=commands or {},
+                commands=commands or empty_cmds,
             )
             return FlextResult[object].ok(group)
         except Exception as e:
@@ -201,7 +204,7 @@ class FlextCliCommands(FlextService[dict[str, object]]):
                 FlextCliConstants.ErrorMessages.CLI_EXECUTION_ERROR.format(error=e)
             )
 
-    def get_click_group(self) -> FlextCliCommands._CliGroup:
+    def get_click_group(self) -> "FlextCliCommands._CliGroup":
         """Get the Click group object.
 
         Returns:
@@ -277,11 +280,11 @@ class FlextCliCommands(FlextService[dict[str, object]]):
                 FlextCliConstants.ErrorMessages.COMMAND_EXECUTION_FAILED.format(error=e)
             )
 
-    def get_commands(self) -> FlextTypes.NestedDict:
+    def get_commands(self) -> dict[str, dict[str, object]]:
         """Get all registered commands.
 
         Returns:
-            FlextTypes.NestedDict: Dictionary of registered commands
+            dict[str, dict[str, object]]: Dictionary of registered commands
 
         """
         return self._commands.copy()
@@ -320,7 +323,7 @@ class FlextCliCommands(FlextService[dict[str, object]]):
                 )
             )
 
-    def create_main_cli(self) -> FlextCliCommands:
+    def create_main_cli(self) -> "FlextCliCommands":
         """Create the main CLI instance.
 
         Returns:

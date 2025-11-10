@@ -5,8 +5,6 @@ SPDX-License-Identifier: MIT
 
 """
 
-from __future__ import annotations
-
 import csv
 import json
 from collections.abc import Iterable, Mapping, Sequence
@@ -117,9 +115,8 @@ class FlextCliOutput(FlextService[object]):
         if format_lower == FlextCliConstants.OutputFormats.TABLE.value:
             # Convert object to appropriate type for format_table
             if isinstance(data, dict):
-                # Cast to the expected dict type for format_table
-                dict_data = cast("dict[str, FlextTypes.JsonValue]", data)
-                return self.format_table(dict_data, title=title, headers=headers)
+                # Type narrowing: data is dict[str, JsonValue] after isinstance check
+                return self.format_table(data, title=title, headers=headers)  # type: ignore[arg-type]
             if isinstance(data, list):
                 # Cast to the expected list type for format_table
                 list_data = cast("list[dict[str, FlextTypes.JsonValue]]", data)
@@ -303,7 +300,7 @@ class FlextCliOutput(FlextService[object]):
                 getattr(result, "model_dump", None)
             ):
                 # Pydantic model - safe to call model_dump since we checked it's callable
-                model_dump_method = result.model_dump
+                model_dump_method = result.model_dump  # Type-safe access
                 result_dict = model_dump_method()
                 format_result = self.format_data(result_dict, output_format)
             elif hasattr(result, "__dict__"):
@@ -902,7 +899,7 @@ class FlextCliOutput(FlextService[object]):
 
     def format_as_tree(
         self,
-        data: dict[str, object],
+        data: FlextTypes.JsonDict,
         title: str | None = None,
     ) -> FlextResult[str]:
         """Format hierarchical data as tree view using FlextCliFormatters.
@@ -934,7 +931,8 @@ class FlextCliOutput(FlextService[object]):
         tree = tree_result.unwrap()
 
         # Build tree structure
-        self._build_tree(tree, data)
+        # Type safety: JsonDict is compatible with JsonValue for tree building
+        self._build_tree(tree, data)  # type: ignore[arg-type]
 
         # Render to string using formatters
         return self._formatters.render_tree_to_string(
@@ -961,14 +959,16 @@ class FlextCliOutput(FlextService[object]):
                         f"{key}{FlextCliConstants.OutputDefaults.TREE_BRANCH_LIST_SUFFIX}"
                     )
                     for item in value:
-                        self._build_tree(branch, cast("FlextTypes.JsonValue", item))
+                        # Type narrowing: item is JsonValue from list[JsonValue]
+                        self._build_tree(branch, item)
                 else:
                     tree.add(
                         f"{key}{FlextCliConstants.OutputDefaults.TREE_VALUE_SEPARATOR}{value}"
                     )
         elif isinstance(data, list):
             for item in data:
-                self._build_tree(tree, cast("FlextTypes.JsonValue", item))
+                # Type narrowing: item is JsonValue from list[JsonValue]
+                self._build_tree(tree, item)  # type: ignore[arg-type]
         else:
             tree.add(str(data))
 

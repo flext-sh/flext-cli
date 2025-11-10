@@ -1,7 +1,5 @@
 """User interaction tools for CLI applications."""
 
-from __future__ import annotations
-
 import getpass
 import os
 import re
@@ -65,7 +63,7 @@ class FlextCliPrompts(FlextService[FlextCliTypes.Data.CliDataDict]):
         # If quiet mode is enabled, disable interactive mode
         final_interactive = interactive_mode and not quiet
 
-        # Set fields in data dict[str, object] for Pydantic initialization
+        # Set fields in data FlextTypes.JsonDict for Pydantic initialization
         data["interactive_mode"] = final_interactive
         data["quiet"] = quiet
         data["default_timeout"] = default_timeout
@@ -350,7 +348,7 @@ class FlextCliPrompts(FlextService[FlextCliTypes.Data.CliDataDict]):
                 FlextCliConstants.PromptsDictKeys.HISTORY_SIZE: len(
                     self._prompt_history
                 ),
-                FlextCliConstants.PromptsDictKeys.TIMESTAMP: FlextUtilities.Generators.generate_timestamp(),
+                FlextCliConstants.PromptsDictKeys.TIMESTAMP: FlextUtilities.Generators.generate_iso_timestamp(),
             }
 
             return FlextResult[FlextCliTypes.Data.CliDataDict].ok(stats)
@@ -370,7 +368,7 @@ class FlextCliPrompts(FlextService[FlextCliTypes.Data.CliDataDict]):
 
         """
         try:
-            # Simple execution that returns empty dict[str, object] as expected by tests
+            # Simple execution that returns empty FlextTypes.JsonDict as expected by tests
             return FlextResult[FlextCliTypes.Data.CliDataDict].ok({})
 
         except Exception as e:

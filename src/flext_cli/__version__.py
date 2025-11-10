@@ -7,8 +7,6 @@ Copyright (c) 2025 Algar Telecom. Todos os direitos reservados.
 SPDX-License-Identifier: Proprietary
 """
 
-from __future__ import annotations
-
 from importlib.metadata import metadata
 
 _metadata = metadata("flext_cli")

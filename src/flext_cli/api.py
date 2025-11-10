@@ -9,8 +9,6 @@ SPDX-License-Identifier: MIT
 
 """
 
-from __future__ import annotations
-
 import secrets
 from collections.abc import Callable
 from typing import Any, cast
@@ -56,7 +54,7 @@ class FlextCli:
         >>> cli.file_tools.read_json_file(path)  # Direct file tools access
     """
 
-    _instance: FlextCli | None = None
+    _instance: "FlextCli | None" = None
     _lock = __import__("threading").Lock()
 
     # Public service instances (no wrapping needed - direct access)
@@ -95,20 +93,21 @@ class FlextCli:
 
         # CLI framework abstraction (domain library pattern)
         self._cli = FlextCliCli()
-        self._commands: dict[str, object] = {}
-        self._groups: dict[str, object] = {}
-        self._plugin_commands: dict[str, object] = {}
+        # Commands and groups store Callable functions, not JSON data
+        self._commands: dict[str, Callable[..., FlextTypes.JsonValue]] = {}
+        self._groups: dict[str, Callable[..., FlextTypes.JsonValue]] = {}
+        self._plugin_commands: dict[str, Callable[..., FlextTypes.JsonValue]] = {}
 
         # Auth state (consolidated from FlextCliAuth)
         self.config = FlextCliConfig()
         self._valid_tokens: set[str] = set()
         self._valid_sessions: set[str] = set()
         self._session_permissions: dict[str, set[str]] = {}
-        self._users: dict[str, dict[str, object]] = {}
+        self._users: dict[str, FlextTypes.JsonDict] = {}
         self._deleted_users: set[str] = set()
 
     @classmethod
-    def get_instance(cls) -> FlextCli:
+    def get_instance(cls) -> "FlextCli":
         """Get singleton FlextCli instance using class-level singleton pattern."""
         if cls._instance is None:
             with cls._lock:
@@ -346,9 +345,9 @@ class FlextCli:
     # EXECUTION - Railway pattern with FlextResult
     # =========================================================================
 
-    def execute(self) -> FlextResult[dict[str, object]]:
+    def execute(self) -> FlextResult[FlextTypes.JsonDict]:
         """Execute CLI service with railway pattern."""
-        return FlextResult[dict[str, object]].ok({
+        return FlextResult[FlextTypes.JsonDict].ok({
             FlextCliConstants.DictKeys.STATUS: FlextCliConstants.ServiceStatus.OPERATIONAL.value,
             FlextCliConstants.DictKeys.SERVICE: FlextCliConstants.FLEXT_CLI,
         })
@@ -367,7 +366,7 @@ class FlextCli:
 
     def create_table(
         self,
-        data: object | None = None,
+        data: FlextTypes.JsonValue | None = None,
         headers: list[str] | None = None,
         title: str | None = None,
     ) -> FlextResult[str]:
@@ -383,11 +382,10 @@ class FlextCli:
 
         """
         # Handle None case - use empty dict as default
-        table_data: object = data if data is not None else {}
+        table_data: FlextTypes.JsonValue = data if data is not None else {}
         # Use output.format_data which supports data, title, and headers
-        # Cast to JsonValue to satisfy type checker (runtime compatible)
         return self.output.format_data(
-            data=cast("FlextTypes.JsonValue", table_data),
+            data=table_data,
             format_type="table",
             title=title,
             headers=headers,

@@ -405,7 +405,7 @@ class TestFlextCliOutput:
         assert isinstance(result.error, str)
         assert result.error is not None
         assert (
-            "Table format requires dict[str, object] or list of dicts" in result.error
+            "Table format requires FlextTypes.JsonDict or list of dicts" in result.error
         )
 
     def test_get_formatter_unsupported_format(self, output: FlextCliOutput) -> None:
@@ -436,7 +436,7 @@ class TestFlextCliOutput:
         assert result.error is not None
         assert isinstance(result.error, str)
         assert (
-            "Table format requires dict[str, object] or list of dicts" in result.error
+            "Table format requires FlextTypes.JsonDict or list of dicts" in result.error
         )
 
     def test_output_custom_format(
@@ -773,7 +773,7 @@ class TestFlextCliOutput:
         # Pass a string which is neither dict nor list
         result = output.format_table("not a dict or list")
         assert result.is_failure
-        assert "Table format requires dict[str, object] or list of dicts" in str(
+        assert "Table format requires FlextTypes.JsonDict or list of dicts" in str(
             result.error
         )
 

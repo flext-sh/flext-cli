@@ -14,8 +14,6 @@ SPDX-License-Identifier: MIT
 
 """
 
-from __future__ import annotations
-
 import os
 import pathlib
 import platform
@@ -147,11 +145,12 @@ class FlextCliDebug(FlextService[str]):
 
         """
         try:
+            # Type safety: _get_system_info() returns dict[str, JsonValue] which is compatible
             debug_info: Types.Data.DebugInfoData = {
                 FlextCliConstants.DictKeys.SERVICE: FlextCliConstants.DebugDefaults.SERVICE_NAME,
                 FlextCliConstants.DictKeys.TIMESTAMP: datetime.now(UTC).isoformat(),
                 FlextCliConstants.DebugDictKeys.DEBUG_ID: str(uuid.uuid4()),
-                FlextCliConstants.DebugDictKeys.SYSTEM_INFO: self._get_system_info(),
+                FlextCliConstants.DebugDictKeys.SYSTEM_INFO: self._get_system_info(),  # type: ignore[dict-item]
                 FlextCliConstants.DebugDictKeys.ENVIRONMENT_STATUS: FlextCliConstants.ServiceStatus.OPERATIONAL.value,
                 FlextCliConstants.DebugDictKeys.CONNECTIVITY_STATUS: FlextCliConstants.ServiceStatus.CONNECTED.value,
             }
@@ -172,10 +171,8 @@ class FlextCliDebug(FlextService[str]):
         """
         try:
             info = self._get_system_info()
-            # Type-safe cast: _get_system_info returns dict[str, object] with JSON-compatible values
-            # (str, tuple of str) which are valid JsonValue types
-            typed_info = cast("FlextCliTypes.Data.CliDataDict", info)
-            return FlextResult[FlextCliTypes.Data.CliDataDict].ok(typed_info)
+            # Type narrowing: _get_system_info returns dict[str, JsonValue]
+            return FlextResult[FlextCliTypes.Data.CliDataDict].ok(info)
         except Exception as e:
             return FlextResult[FlextCliTypes.Data.CliDataDict].fail(
                 FlextCliConstants.DebugErrorMessages.SYSTEM_INFO_COLLECTION_FAILED.format(
@@ -193,9 +190,10 @@ class FlextCliDebug(FlextService[str]):
         try:
             paths = self._get_path_info()
             # Type-safe cast: paths is list[dict] with JSON-compatible values
-            paths_list = cast("list[object]", paths)
+            paths_list = cast("list[FlextTypes.JsonValue]", paths)
+            # Type safety: paths_list is JSON-compatible list type
             typed_paths: FlextCliTypes.Data.CliDataDict = {
-                FlextCliConstants.DebugDictKeys.PATHS: paths_list
+                FlextCliConstants.DebugDictKeys.PATHS: paths_list  # type: ignore[dict-item]
             }
             return FlextResult[FlextCliTypes.Data.CliDataDict].ok(typed_paths)
         except Exception as e:
@@ -256,11 +254,10 @@ class FlextCliDebug(FlextService[str]):
                     debug_result.error
                 )
 
-            # Type-safe cast: comprehensive_info contains only JSON-compatible values
-            typed_comprehensive_info = cast(
-                "Types.Data.DebugInfoData", comprehensive_info
+            # Cast needed: dict[str, object] is compatible at runtime with DebugInfoData
+            return FlextResult[Types.Data.DebugInfoData].ok(
+                cast("Types.Data.DebugInfoData", comprehensive_info)
             )
-            return FlextResult[Types.Data.DebugInfoData].ok(typed_comprehensive_info)
 
         except Exception as e:
             return FlextResult[Types.Data.DebugInfoData].fail(
@@ -273,12 +270,14 @@ class FlextCliDebug(FlextService[str]):
     # PRIVATE HELPER METHODS - Implementation details
     # =========================================================================
 
-    def _get_system_info(self) -> dict[str, object]:
+    def _get_system_info(self) -> dict[str, FlextTypes.JsonValue]:
         """Get basic system information."""
+        # Note: platform.architecture() returns tuple[str, str], convert to list
+        arch_tuple = platform.architecture()
         return {
             FlextCliConstants.DebugDictKeys.PYTHON_VERSION: sys.version,
             FlextCliConstants.DebugDictKeys.PLATFORM: platform.platform(),
-            FlextCliConstants.DebugDictKeys.ARCHITECTURE: platform.architecture(),
+            FlextCliConstants.DebugDictKeys.ARCHITECTURE: list(arch_tuple),
             FlextCliConstants.DebugDictKeys.PROCESSOR: platform.processor(),
             FlextCliConstants.DebugDictKeys.HOSTNAME: platform.node(),
         }

@@ -13,15 +13,7 @@ SPDX-License-Identifier: MIT
 
 """
 
-from __future__ import annotations
-
-import collections.abc
-import contextlib
-import functools
-import pathlib
-import re
 import shutil
-import sys
 import typing
 from collections.abc import Callable, Sequence
 from pathlib import Path
@@ -30,11 +22,11 @@ from typing import IO
 import click
 import typer
 from flext_core import FlextContainer, FlextLogger, FlextResult, FlextTypes
-from pydantic import ValidationError
-from pydantic_core import PydanticUndefined
 from typer.testing import CliRunner
 
+from flext_cli.config import FlextCliConfig
 from flext_cli.constants import FlextCliConstants
+from flext_cli.models import FlextCliModels
 
 
 class FlextCliCli:
@@ -788,8 +780,8 @@ class FlextCliCli:
     def model_command(
         self,
         model_class: type,
-        handler: typing.Callable[..., typing.Any],
-        config: typing.Any | None = None,
+        handler: typing.Callable[..., FlextTypes.JsonValue],
+        config: FlextCliConfig | None = None,
     ) -> Callable[..., None]:
         """Create Typer command from Pydantic model with automatic config integration.
 
@@ -876,288 +868,13 @@ class FlextCliCli:
             ```
 
         """
-        # Auto-generate function with proper signature from model fields
+        # Delegate to FlextCliModels.ModelCommandBuilder for reduced complexity (SOLID/SRP)
         if not hasattr(model_class, "model_fields"):
             msg = f"{model_class.__name__} must be a Pydantic BaseModel"
             raise TypeError(msg)
 
-        # Build parameter definitions and mapping
-        params_def: list[str] = []
-        params_call: list[str] = []
-        field_mapping: dict[str, str] = {}  # param_name -> field_name
-
-        def _format_type_annotation(field_type: type) -> str:
-            """Format type annotation for dynamic function signature.
-
-            Handles Pydantic v2 Annotated types by stripping metadata (PlainSerializer, etc.)
-            and returning just the base type, which is sufficient for CLI function signatures.
-            The actual validation and serialization is handled by Pydantic model instantiation.
-            """
-            # Get origin to check for Annotated
-            origin = typing.get_origin(field_type)
-
-            # Handle Annotated types - extract base type without metadata
-            if origin is typing.Annotated:
-                # Annotated[BaseType, metadata1, metadata2, ...]
-                # We only need BaseType for the function signature
-                args = typing.get_args(field_type)
-                if args:
-                    base_type = args[0]
-                    # Recursively format the base type (might be Optional, etc.)
-                    return _format_type_annotation(base_type)
-
-            # Handle Literal types - convert to str for CLI signature
-            # The actual validation is done by Pydantic model instantiation
-            # Literal types with string values can't be properly evaluated in stringified annotations
-            if origin is typing.Literal:
-                return "str"
-
-            # Handle Optional (Union[T, None])
-            if origin is typing.Union:
-                args = typing.get_args(field_type)
-                # Check if this is Optional (Union with None)
-                if type(None) in args:
-                    # Filter out None to get the actual type
-                    non_none_types = [t for t in args if t is not type(None)]
-                    if len(non_none_types) == 1:
-                        # This is Optional[T]
-                        inner_type = non_none_types[0]
-                        inner_str = _format_type_annotation(inner_type)
-                        return f"Optional[{inner_str}]"
-                    # Union with multiple non-None types
-                    type_strs = [_format_type_annotation(t) for t in non_none_types]
-                    return f"Union[{', '.join(type_strs)}]"
-
-            # Handle List, Dict, etc.
-            if origin is not None:
-                # Generic type with origin (List, Dict, etc.)
-                args = typing.get_args(field_type)
-                origin_name = getattr(origin, "__name__", str(origin)).replace(
-                    "typing.", ""
-                )
-                if args:
-                    arg_strs = [_format_type_annotation(arg) for arg in args]
-                    return f"{origin_name}[{', '.join(arg_strs)}]"
-                return origin_name
-
-            # Handle simple types
-            if hasattr(field_type, "__name__"):
-                return field_type.__name__
-
-            # Fallback - clean up string representation
-            # Remove problematic prefixes and syntax that can't be evaluated
-            type_str = str(field_type)
-            # Remove typing module prefix
-            type_str = type_str.replace("typing.", "")
-            # Remove types module prefix (for UnionType, etc.)
-            type_str = type_str.replace("types.", "")
-            # If we get a complex stringified type, just use 'str' as a safe fallback
-            # This handles edge cases like <function PlainSerializer at 0x...>
-            if "<" in type_str and ">" in type_str:
-                return "str"
-            return type_str
-
-        def _get_config_value(field_name: str) -> typing.Any | None:
-            """Get field value from config singleton if available."""
-            if config is None:
-                return None
-            # Check if config has the field
-            if not hasattr(config, field_name):
-                return None
-            # Get the field value
-            try:
-                return getattr(config, field_name)
-            except (AttributeError, Exception):
-                return None
-
-        for field_name, field_info in model_class.model_fields.items():
-            field_type = field_info.annotation
-            has_default = field_info.default is not PydanticUndefined
-            description = field_info.description or f"{field_name} parameter"
-
-            # CRITICAL: Use Pydantic Field alias if present, else use field_name
-            # This ensures CLI parameter matches Field(alias="...") definition
-            cli_param_name = field_info.alias or field_name
-            safe_param_name = cli_param_name.replace("-", "_")
-
-            # Track mapping from CLI parameter to model field
-            field_mapping[safe_param_name] = field_name
-            params_call.append(f'"{field_name}": {safe_param_name}')
-
-            # Format type annotation string
-            type_str = _format_type_annotation(field_type)
-
-            # ENHANCED: Get default value from field or config
-            # Priority: field default (if not None) > config value > None
-            cli_default = field_info.default
-            # Check for both PydanticUndefined AND None (None means no real default, just optional)
-            if cli_default is PydanticUndefined or cli_default is None:
-                # No field default or default is None, try config
-                config_value = _get_config_value(field_name)
-                if config_value is not None:
-                    cli_default = config_value
-                    has_default = True
-                # If no config value either, keep None as the default for optional fields
-                elif cli_default is None:
-                    has_default = (
-                        True  # Still mark as having default (None is the default)
-                    )
-
-            # Generate parameter with Typer Option using alias for CLI flag
-            if has_default and cli_default is not PydanticUndefined:
-                default_value = repr(cli_default)
-                if field_type is bool:
-                    # Boolean flags need --flag/--no-flag format
-                    flag_name = f"--{cli_param_name}"
-                    no_flag_name = f"--no-{cli_param_name}"
-                    params_def.append(
-                        f"{safe_param_name}: {type_str} = typer.Option({default_value}, '{flag_name}', '{no_flag_name}', help={description!r})"
-                    )
-                else:
-                    # Optional parameter with default - truly optional in CLI
-                    cli_option_name = f"--{cli_param_name}"
-                    params_def.append(
-                        f"{safe_param_name}: {type_str} = typer.Option({default_value}, '{cli_option_name}', help={description!r})"
-                    )
-            else:
-                # Required parameter - must be specified in CLI
-                cli_option_name = f"--{cli_param_name}"
-                params_def.append(
-                    f"{safe_param_name}: {type_str} = typer.Option(..., '{cli_option_name}', help={description!r})"
-                )
-
-        # Create function dynamically with proper signature for Typer introspection
-        # This is required because Typer needs to inspect function parameters
-        params_signature = ", ".join(params_def)
-        kwargs_dict = "{" + ", ".join(params_call) + "}"
-
-        # Build function code with proper signature
-        # Config defaults are read when building CLI parameters above
-        func_code = f"""
-def generated_command({params_signature}) -> None:
-    '''Auto-generated command from {model_class.__name__} model.'''
-    try:
-        # Build kwargs dict mapping field names to values
-        kwargs = {kwargs_dict}
-        # Validate and instantiate model (fully populated from CLI args OR config defaults)
-        params = model_class(**kwargs)
-    except ValidationError as e:
-        typer.echo(f"Invalid parameters: {{e}}", err=True)
-        raise typer.Exit(code=1) from e
-    try:
-        handler(params)
-    except Exception as e:
-        typer.echo(f"Command failed: {{e}}", err=True)
-        raise typer.Exit(code=1) from e
-"""
-
-        # Clean up generated code - remove any UnionType references that can't be evaluated
-        # This can happen with Python 3.10+ union syntax (str | None)
-        if "UnionType" in func_code:
-            # Replace UnionType[X, NoneType] with Optional[X] for proper evaluation
-            # The regex captures the first type argument before any comma, excluding NoneType
-            func_code = re.sub(
-                r"UnionType\[([^,\]]+)(?:, NoneType)?\]",
-                r"Optional[\1]",
-                func_code,
-            )
-
-        # Execute function creation in controlled namespace
-        # Using exec is required here for dynamic function signature creation
-        # which is necessary for Typer to introspect CLI parameters
-        namespace: dict[str, typing.Any] = {
-            "typer": typer,
-            "ValidationError": ValidationError,
-            "model_class": model_class,
-            "handler": handler,
-            "config": config,
-            # Include typing module components for type annotation resolution
-            # These are essential for evaluating stringified type annotations
-            "ForwardRef": typing.ForwardRef,
-            "Union": typing.Union,
-            "Optional": typing.Optional,
-            "Annotated": typing.Annotated,
-            "Literal": typing.Literal,
-            "List": list,
-            "Dict": dict,
-            "Tuple": tuple,
-            "Set": set,
-            "Callable": collections.abc.Callable,
-            "Iterable": collections.abc.Iterable,
-            "get_args": typing.get_args,
-            "get_origin": typing.get_origin,
-            # Include NoneType for type annotations
-            "NoneType": type(None),
-            # Note: We intentionally exclude UnionType from the namespace because:
-            # - Type annotations using | syntax (str | None) are parsed internally
-            # - The typing.Union and Optional from above handle all necessary union cases
-            # - Providing UnionType leads to "not subscriptable" errors when eval'd
-            # Include pathlib for Typer annotation evaluation (Python 3.13+)
-            # Typer uses inspect.signature(eval_str=True) which needs pathlib in globals
-            "pathlib": pathlib,
-            "Path": pathlib.Path,
-            # Include builtins for basic types (str, int, bool, etc.)
-            "__builtins__": __builtins__,
-        }
-        # Add model_class's module globals so type annotations can resolve
-        # This allows field types from the model's module to be available
-        if hasattr(model_class, "__module__"):
-            model_module = sys.modules.get(model_class.__module__)
-            if model_module and hasattr(model_module, "__dict__"):
-                namespace.update(model_module.__dict__)
-
-        exec(func_code, namespace)
-
-        # Type assertion: we know generated_command is Callable[..., None]
-        generated_command_func: Callable[..., None] = typing.cast(
-            "Callable[..., None]", namespace["generated_command"]
-        )
-
-        # Update generated function's __globals__ to include typing constructs and pathlib
-        # This ensures Typer can later introspect the function with eval_str=True
-        # pathlib is needed for Python 3.13+ when Typer evaluates Path annotations
-        if hasattr(generated_command_func, "__globals__"):
-            generated_command_func.__globals__.update({
-                "Literal": typing.Literal,
-                "pathlib": pathlib,
-                "Path": pathlib.Path,
-            })
-
-        # If config provided, wrap function to update config with CLI values
-        if config is not None:
-            # Use functools.wraps to properly copy metadata for Typer
-            @functools.wraps(generated_command_func)
-            def wrapped_command(**kwargs: dict[str, typing.Any]) -> None:
-                """Wrapper that updates config singleton with CLI values.
-
-                Uses Pydantic v2's __dict__ directly to bypass validation,
-                allowing CLI values to override config values even if invalid.
-                This ensures configuration hierarchy: Constants → .env → env vars → CLI args
-                """
-                # Update config with CLI parameter values by directly modifying __dict__
-                # This bypasses Pydantic v2 validators and read-only properties
-                for field_name, cli_value in kwargs.items():
-                    if cli_value is not None:
-                        # Use __dict__ directly to bypass validation
-                        # Config update is advisory - continue silently if it fails
-                        with contextlib.suppress(Exception):
-                            config.__dict__[field_name] = cli_value
-
-                # Call the original generated command
-                generated_command_func(**kwargs)
-
-            # Also update wrapper's __globals__ if possible
-            # pathlib is needed for Python 3.13+ when Typer evaluates Path annotations
-            if hasattr(wrapped_command, "__globals__"):
-                wrapped_command.__globals__.update({
-                    "Literal": typing.Literal,
-                    "pathlib": pathlib,
-                    "Path": pathlib.Path,
-                })
-
-            return wrapped_command
-
-        return generated_command_func
+        builder = FlextCliModels.ModelCommandBuilder(model_class, handler, config)
+        return builder.build()
 
     def execute(self) -> FlextResult[object]:
         """Execute Click abstraction layer operations.

@@ -66,8 +66,6 @@ SPDX-License-Identifier: MIT
 
 """
 
-from __future__ import annotations
-
 from typing import Protocol, runtime_checkable
 
 from flext_core import FlextProtocols, FlextResult, FlextTypes

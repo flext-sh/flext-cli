@@ -7,15 +7,13 @@ SPDX-License-Identifier: MIT
 
 """
 
-from __future__ import annotations
-
 import importlib
 import json
 import os
 import shutil
 from datetime import UTC, datetime
 from pathlib import Path
-from typing import Literal
+from typing import Literal, Self
 
 from flext_core import (
     FlextConfig,
@@ -55,7 +53,7 @@ class FlextCliConfig(FlextConfig):
     - Uses FlextConfig features for configuration management
 
     # Explicitly declare Pydantic methods for Pyrefly
-    def model_dump(self, **kwargs) -> dict[str, object]: ...
+    def model_dump(self, **kwargs) -> FlextTypes.JsonDict: ...
     def model_validate(self, obj: object, **kwargs) -> FlextCliConfig: ...
     def model_copy(self, **kwargs) -> FlextCliConfig: ...
     - Uses Python 3.13 + Pydantic 2 features
@@ -210,7 +208,7 @@ class FlextCliConfig(FlextConfig):
 
     # Pydantic 2.11 field validators
     @model_validator(mode="after")
-    def validate_configuration(self) -> FlextCliConfig:
+    def validate_configuration(self) -> Self:
         """Validate configuration and auto-propagate to FlextContext/FlextContainer.
 
         This method:
@@ -371,7 +369,7 @@ class FlextCliConfig(FlextConfig):
         return FlextResult[str].ok(value)
 
     @classmethod
-    def load_from_config_file(cls, config_file: Path) -> FlextResult[FlextCliConfig]:
+    def load_from_config_file(cls, config_file: Path) -> FlextResult["FlextCliConfig"]:
         """Load configuration from file with proper error handling."""
         try:
             if not config_file.exists():
@@ -448,7 +446,7 @@ class FlextCliConfig(FlextConfig):
         """
         try:
             # Filter only valid configuration fields using dictionary comprehension
-            valid_updates: dict[str, object] = {
+            valid_updates: FlextTypes.JsonDict = {
                 key: value for key, value in kwargs.items() if hasattr(self, key)
             }
 
@@ -526,7 +524,7 @@ class FlextCliConfig(FlextConfig):
 
     def validate_cli_overrides(
         self, **overrides: FlextTypes.JsonValue
-    ) -> FlextResult[dict[str, object]]:
+    ) -> FlextResult[FlextTypes.JsonDict]:
         """Validate CLI overrides without applying them.
 
         Useful for checking if CLI arguments are valid before applying.
@@ -535,7 +533,7 @@ class FlextCliConfig(FlextConfig):
             **overrides: Configuration overrides to validate
 
         Returns:
-            FlextResult[dict[str, object]]: Valid overrides or validation errors
+            FlextResult[FlextTypes.JsonDict]: Valid overrides or validation errors
 
         Example:
             >>> config = FlextCliConfig()
@@ -547,7 +545,7 @@ class FlextCliConfig(FlextConfig):
 
         """
         try:
-            valid_overrides: dict[str, object] = {}
+            valid_overrides: FlextTypes.JsonDict = {}
             errors: list[str] = []
 
             for key, value in overrides.items():
@@ -575,16 +573,16 @@ class FlextCliConfig(FlextConfig):
                     )
 
             if errors:
-                return FlextResult[dict[str, object]].fail(
+                return FlextResult[FlextTypes.JsonDict].fail(
                     FlextCliConstants.ErrorMessages.VALIDATION_ERRORS.format(
                         errors="; ".join(errors)
                     )
                 )
 
-            return FlextResult[dict[str, object]].ok(valid_overrides)
+            return FlextResult[FlextTypes.JsonDict].ok(valid_overrides)
 
         except Exception as e:
-            return FlextResult[dict[str, object]].fail(f"Validation failed: {e}")
+            return FlextResult[FlextTypes.JsonDict].fail(f"Validation failed: {e}")
 
     # Protocol-compliant methods for CliConfigProvider
     def load_config(self) -> FlextResult[FlextCliTypes.Data.CliConfigData]:

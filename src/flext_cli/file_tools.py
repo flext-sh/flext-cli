@@ -17,8 +17,6 @@ SPDX-License-Identifier: MIT
 
 """
 
-from __future__ import annotations
-
 import csv
 import hashlib
 import json
@@ -121,9 +119,7 @@ class FlextCliFileTools:
 
     def read_json_file(
         self, file_path: str | Path
-    ) -> FlextResult[
-        dict[str, object] | list[object] | str | int | float | bool | None
-    ]:
+    ) -> FlextResult[FlextTypes.JsonValue]:
         """Read JSON file using internal loader.
 
         Args:
@@ -176,9 +172,7 @@ class FlextCliFileTools:
 
     def read_yaml_file(
         self, file_path: str | Path
-    ) -> FlextResult[
-        dict[str, object] | list[object] | str | int | float | bool | None
-    ]:
+    ) -> FlextResult[FlextTypes.JsonValue]:
         """Read YAML file using internal loader.
 
         Args:

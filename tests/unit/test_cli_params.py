@@ -21,17 +21,27 @@ from typer.testing import CliRunner
 from flext_cli import FlextCliCommonParams, FlextCliConfig
 
 # Module-level defaults to avoid B008 - use cast() for type-safe defaults
-DEFAULT_VERBOSE: bool = cast("bool", FlextCliCommonParams.verbose_option().default)
-DEFAULT_QUIET: bool = cast("bool", FlextCliCommonParams.quiet_option().default)
-DEFAULT_DEBUG: bool = cast("bool", FlextCliCommonParams.debug_option().default)
-DEFAULT_TRACE: bool = cast("bool", FlextCliCommonParams.trace_option().default)
-DEFAULT_LOG_LEVEL: str = cast("str", FlextCliCommonParams.log_level_option().default)
-DEFAULT_LOG_FORMAT: str = cast("str", FlextCliCommonParams.log_format_option().default)
-DEFAULT_OUTPUT_FORMAT: str = cast(
-    "str", FlextCliCommonParams.output_format_option().default
+DEFAULT_VERBOSE: bool = cast(
+    "bool", FlextCliCommonParams.create_option("verbose").default
 )
-DEFAULT_NO_COLOR: bool = cast("bool", FlextCliCommonParams.no_color_option().default)
-DEFAULT_CONFIG_FILE: Path | None = FlextCliCommonParams.config_file_option().default
+DEFAULT_QUIET: bool = cast("bool", FlextCliCommonParams.create_option("quiet").default)
+DEFAULT_DEBUG: bool = cast("bool", FlextCliCommonParams.create_option("debug").default)
+DEFAULT_TRACE: bool = cast("bool", FlextCliCommonParams.create_option("trace").default)
+DEFAULT_LOG_LEVEL: str = cast(
+    "str", FlextCliCommonParams.create_option("log_level").default
+)
+DEFAULT_LOG_FORMAT: str = cast(
+    "str", FlextCliCommonParams.create_option("log_verbosity").default
+)
+DEFAULT_OUTPUT_FORMAT: str = cast(
+    "str", FlextCliCommonParams.create_option("output_format").default
+)
+DEFAULT_NO_COLOR: bool = cast(
+    "bool", FlextCliCommonParams.create_option("no_color").default
+)
+DEFAULT_CONFIG_FILE: Path | None = FlextCliCommonParams.create_option(
+    "config_file"
+).default
 
 
 class TestFlextCliCommonParams:
@@ -40,9 +50,9 @@ class TestFlextCliCommonParams:
     def test_common_params_class_exists(self) -> None:
         """Test that FlextCliCommonParams class exists."""
         assert FlextCliCommonParams is not None
-        assert hasattr(FlextCliCommonParams, "verbose_option")
-        assert hasattr(FlextCliCommonParams, "debug_option")
+        assert hasattr(FlextCliCommonParams, "create_option")
         assert hasattr(FlextCliCommonParams, "apply_to_config")
+        assert hasattr(FlextCliCommonParams, "get_all_common_params")
 
     def test_enforcement_enabled_by_default(self) -> None:
         """Test that enforcement is enabled by default."""
@@ -809,6 +819,9 @@ class TestCliParamsCoverageCompletion:
             },
         )()
 
+        # Create mock defaults class
+        from flext_cli.constants import FlextCliConstants as RealConstants
+
         # Create a mock property that raises
         mock_constants = type(
             "MockConstants",
@@ -816,12 +829,16 @@ class TestCliParamsCoverageCompletion:
             {
                 "LOG_LEVELS_LIST": property(lambda self: mock_log_levels_list_raises()),
                 "CliParamsErrorMessages": mock_error_messages,
+                "CliParamsDefaults": RealConstants.CliParamsDefaults,  # Keep real defaults
             },
         )()
 
+        # Patch FlextCliConstants in cli_params module
         monkeypatch.setattr("flext_cli.cli_params.FlextCliConstants", mock_constants)
 
         result = FlextCliCommonParams.apply_to_config(config, log_level="INFO")
 
         assert result.is_failure
-        assert "failed to apply" in str(result.error).lower()
+        # Error can be from exception handler or from flat_map Railway pattern
+        error_msg = str(result.error).lower()
+        assert "failed to apply" in error_msg or "constants access error" in error_msg

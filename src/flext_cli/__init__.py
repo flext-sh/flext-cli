@@ -159,8 +159,6 @@ SPDX-License-Identifier: MIT
 
 """
 
-from __future__ import annotations
-
 from flext_cli.__version__ import __version__, __version_info__
 from flext_cli.api import FlextCli
 from flext_cli.cli import FlextCliCli
