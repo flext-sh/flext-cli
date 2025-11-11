@@ -15,7 +15,7 @@ from typing import cast
 import pytest
 from flext_core import FlextResult, FlextTypes
 
-from flext_cli import FlextCliTables
+from flext_cli import FlextCliModels, FlextCliTables
 
 
 @pytest.fixture
@@ -82,7 +82,8 @@ class TestFlextCliTables:
         sample_data: list[dict[str, FlextTypes.JsonValue]],
     ) -> None:
         """Test creating simple format table."""
-        result = tables.create_table(data=sample_data, table_format="simple")
+        config = FlextCliModels.TableConfig(table_format="simple")
+        result = tables.create_table(data=sample_data, config=config)
 
         assert isinstance(result, FlextResult)
         assert result.is_success
@@ -99,7 +100,8 @@ class TestFlextCliTables:
         sample_data: list[dict[str, FlextTypes.JsonValue]],
     ) -> None:
         """Test creating grid format table."""
-        result = tables.create_table(data=sample_data, table_format="grid")
+        config = FlextCliModels.TableConfig(table_format="grid")
+        result = tables.create_table(data=sample_data, config=config)
 
         assert result.is_success
         table_str = result.unwrap()
@@ -113,7 +115,8 @@ class TestFlextCliTables:
         sample_data: list[dict[str, FlextTypes.JsonValue]],
     ) -> None:
         """Test creating fancy grid format table."""
-        result = tables.create_table(data=sample_data, table_format="fancy_grid")
+        config = FlextCliModels.TableConfig(table_format="fancy_grid")
+        result = tables.create_table(data=sample_data, config=config)
 
         assert result.is_success
         table_str = result.unwrap()
@@ -125,9 +128,8 @@ class TestFlextCliTables:
     ) -> None:
         """Test table creation with custom headers."""
         headers = ["Name", "Age", "City", "Salary"]
-        result = tables.create_table(
-            data=sample_list_data, headers=headers, table_format="simple"
-        )
+        config = FlextCliModels.TableConfig(headers=headers, table_format="simple")
+        result = tables.create_table(data=sample_list_data, config=config)
 
         assert result.is_success
         table_str = result.unwrap()
@@ -141,16 +143,16 @@ class TestFlextCliTables:
         sample_data: list[dict[str, FlextTypes.JsonValue]],
     ) -> None:
         """Test table creation with column alignment."""
-        result = tables.create_table(
-            data=sample_data, table_format="simple", align="center"
-        )
+        config = FlextCliModels.TableConfig(table_format="simple", align="center")
+        result = tables.create_table(data=sample_data, config=config)
 
         assert result.is_success
         assert "Alice" in result.unwrap()
 
     def test_create_table_empty_data_fails(self, tables: FlextCliTables) -> None:
         """Test that empty data returns failure."""
-        result = tables.create_table(data=[], table_format="simple")
+        config = FlextCliModels.TableConfig(table_format="simple")
+        result = tables.create_table(data=[], config=config)
 
         assert isinstance(result, FlextResult)
         assert result.is_failure
@@ -162,7 +164,8 @@ class TestFlextCliTables:
         sample_data: list[dict[str, FlextTypes.JsonValue]],
     ) -> None:
         """Test that invalid format returns failure."""
-        result = tables.create_table(data=sample_data, table_format="invalid_format")
+        config = FlextCliModels.TableConfig(table_format="invalid_format")
+        result = tables.create_table(data=sample_data, config=config)
 
         assert result.is_failure
         assert "invalid" in (result.error or "").lower()
@@ -298,7 +301,8 @@ class TestFlextCliTables:
         single_row = cast(
             "list[dict[str, FlextTypes.JsonValue]]", [{"name": "Alice", "age": 30}]
         )
-        result = tables.create_table(data=single_row, table_format="simple")
+        config = FlextCliModels.TableConfig(table_format="simple")
+        result = tables.create_table(data=single_row, config=config)
 
         assert result.is_success
         assert "Alice" in result.unwrap()
@@ -309,9 +313,10 @@ class TestFlextCliTables:
             {"name": "Alice", "age": 30, "city": None},
             {"name": "Bob", "age": None, "city": "London"},
         ]
+        config = FlextCliModels.TableConfig(table_format="simple")
         result = tables.create_table(
             data=cast("list[dict[str, FlextTypes.JsonValue]]", data_with_none),
-            table_format="simple",
+            config=config,
         )
 
         assert result.is_success
@@ -325,9 +330,8 @@ class TestFlextCliTables:
         sample_data: list[dict[str, FlextTypes.JsonValue]],
     ) -> None:
         """Test table with float number formatting."""
-        result = tables.create_table(
-            data=sample_data, table_format="simple", floatfmt=".2f"
-        )
+        config = FlextCliModels.TableConfig(table_format="simple", floatfmt=".2f")
+        result = tables.create_table(data=sample_data, config=config)
 
         assert result.is_success
         table_str = result.unwrap()
@@ -340,9 +344,8 @@ class TestFlextCliTables:
         sample_data: list[dict[str, FlextTypes.JsonValue]],
     ) -> None:
         """Test table with row index."""
-        result = tables.create_table(
-            data=sample_data, table_format="simple", showindex=True
-        )
+        config = FlextCliModels.TableConfig(table_format="simple", showindex=True)
+        result = tables.create_table(data=sample_data, config=config)
 
         assert result.is_success
         table_str = result.unwrap()
@@ -382,7 +385,8 @@ class TestFlextCliTables:
         assert desc_result.is_success
 
         # Create table with that format
-        table_result = tables.create_table(data=sample_data, table_format=first_format)
+        config = FlextCliModels.TableConfig(table_format=first_format)
+        table_result = tables.create_table(data=sample_data, config=config)
         assert table_result.is_success
         assert "Alice" in table_result.unwrap()
 
@@ -395,7 +399,8 @@ class TestFlextCliTables:
         formats = ["simple", "grid", "pipe", "fancy_grid"]
 
         for fmt in formats:
-            result = tables.create_table(data=sample_data, table_format=fmt)
+            config = FlextCliModels.TableConfig(table_format=fmt)
+            result = tables.create_table(data=sample_data, config=config)
             assert result.is_success, f"Format {fmt} failed"
             table_str = result.unwrap()
             assert "Alice" in table_str
@@ -412,11 +417,11 @@ class TestFlextCliTables:
     ) -> None:
         """Test table creation with colalign as list (line 157)."""
         # colalign as list triggers line 157
-        result = tables.create_table(
-            data=sample_data,
+        config = FlextCliModels.TableConfig(
             table_format="simple",
             colalign=["left", "right", "center", "left"],
         )
+        result = tables.create_table(data=sample_data, config=config)
 
         assert result.is_success
         assert "Alice" in result.unwrap()
@@ -428,11 +433,11 @@ class TestFlextCliTables:
     ) -> None:
         """Test table creation with align as list (line 164)."""
         # When colalign is None but align is a list, triggers line 164
-        result = tables.create_table(
-            data=sample_data,
+        config = FlextCliModels.TableConfig(
             table_format="simple",
             align=["left", "right", "center", "left"],  # List triggers line 164
         )
+        result = tables.create_table(data=sample_data, config=config)
 
         assert result.is_success
         assert "Alice" in result.unwrap()
@@ -491,7 +496,8 @@ class TestFlextCliTables:
         monkeypatch.setattr("flext_cli.tables.tabulate", mock_tabulate)
 
         # This should trigger the exception handler
-        result = tables.create_table(data=sample_data, table_format="simple")
+        config = FlextCliModels.TableConfig(table_format="simple")
+        result = tables.create_table(data=sample_data, config=config)
 
         assert result.is_failure
         assert "Failed to create table" in (result.error or "")
@@ -526,11 +532,11 @@ class TestFlextCliTables:
         # isinstance(data, list) and data and isinstance(data[0], dict)
         # and isinstance(headers, (list, tuple))
         custom_headers = ["Name", "Age", "City", "Salary"]
-        result = tables.create_table(
-            data=sample_data,
+        config = FlextCliModels.TableConfig(
             headers=custom_headers,  # Sequence headers with list of dicts
             table_format="simple",
         )
+        result = tables.create_table(data=sample_data, config=config)
 
         assert result.is_success
         table_str = result.unwrap()

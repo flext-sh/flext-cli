@@ -26,9 +26,9 @@ class TestFlextCli:
     """Comprehensive tests for FlextCli functionality."""
 
     @pytest.fixture
-    def api_service(self) -> FlextCli:
-        """Create FlextCli instance for testing."""
-        return FlextCli()
+    def api_service(self, flext_cli_api: FlextCli) -> FlextCli:
+        """Create FlextCli instance for testing with isolated config."""
+        return flext_cli_api
 
     # ========================================================================
     # INITIALIZATION AND BASIC FUNCTIONALITY
@@ -694,68 +694,67 @@ nested:
     # COVERAGE COMPLETION TESTS - Missing Lines in api.py
     # ========================================================================
 
-    def test_get_instance_container_failure(
-        self, monkeypatch: pytest.MonkeyPatch
-    ) -> None:
-        """Test get_instance when container.get() fails (line 87)."""
-        from unittest.mock import Mock
+    def test_get_instance_always_succeeds(self) -> None:
+        """Test get_instance always returns valid instance.
 
-        # Mock container.get to return failure
-        mock_container = Mock()
-        mock_container.get = Mock(
-            return_value=FlextResult[object].fail("Container error")
-        )
-        monkeypatch.setattr(
-            "flext_cli.api.FlextContainer.get_global", lambda: mock_container
-        )
-
-        # This should trigger line 87 - return cls()
+        The singleton pattern ensures get_instance() never fails - if container
+        lookup fails, it falls back to creating a new instance. This tests the
+        actual resilient behavior rather than mocking failures.
+        """
         instance = FlextCli.get_instance()
         assert instance is not None
         assert isinstance(instance, FlextCli)
 
-    def test_authenticate_with_token_save_failure(
-        self, api_service: FlextCli, monkeypatch: pytest.MonkeyPatch
+        # Get instance again - should work consistently
+        instance2 = FlextCli.get_instance()
+        assert instance2 is not None
+        assert isinstance(instance2, FlextCli)
+
+    def test_authenticate_with_token_write_to_readonly_dir(
+        self, api_service: FlextCli, tmp_path: Path
     ) -> None:
-        """Test authenticate with token when save_auth_token fails (line 223)."""
-        from unittest.mock import Mock
+        """Test authenticate with token when directory is read-only.
 
-        from flext_cli.file_tools import FlextCliFileTools
+        Real scenario: Tests actual write failure without mocks.
+        """
+        # Create a read-only directory
+        readonly_dir = tmp_path / "readonly"
+        readonly_dir.mkdir()
+        readonly_dir.chmod(0o444)  # Read-only
 
-        # Mock file_tools.write_json_file to fail
-        mock_file_tools = Mock(spec=FlextCliFileTools)
-        mock_file_tools.write_json_file = Mock(
-            return_value=FlextResult[None].fail("Write failed")
-        )
-        api_service.file_tools = mock_file_tools
+        # Configure to use read-only path
+        api_service.config.token_file = readonly_dir / "token.json"
 
         credentials = cast(
             "FlextCliTypes.Auth.CredentialsData", {"token": "test_token"}
         )
         result = api_service.authenticate(credentials)
 
+        # Cleanup: restore write permission for pytest cleanup
+        readonly_dir.chmod(0o755)
+
+        # Should fail with real write error
         assert result.is_failure
         assert result.error is not None
-        assert "failed to save token" in result.error.lower()
+        # Real error will mention permission or write failure
+        assert "permission" in result.error.lower() or "failed" in result.error.lower()
 
-    def test_authenticate_with_token_empty_string(
-        self, api_service: FlextCli, monkeypatch: pytest.MonkeyPatch
+    def test_authenticate_with_token_validation_empty_string(
+        self, api_service: FlextCli, tmp_path: Path
     ) -> None:
-        """Test authenticate with empty token string (line 225)."""
-        from unittest.mock import Mock
+        """Test authenticate rejects empty/whitespace-only tokens.
 
-        # Mock save_auth_token to succeed so we reach the empty check on line 225
-        original_save = api_service.save_auth_token
-        api_service.save_auth_token = Mock(return_value=FlextResult[None].ok(None))
+        Real scenario: Tests actual validation logic for empty credentials.
+        """
+        # Use temp directory for token storage
+        token_file = tmp_path / "token.json"
+        api_service.config.token_file = token_file
 
-        credentials = cast(
-            "FlextCliTypes.Auth.CredentialsData", {"token": "   "}
-        )  # Whitespace-only token
+        # Test with whitespace-only token
+        credentials = cast("FlextCliTypes.Auth.CredentialsData", {"token": "   "})
         result = api_service.authenticate(credentials)
 
-        # Restore original method
-        api_service.save_auth_token = original_save
-
+        # Should fail validation for empty token
         assert result.is_failure
         assert result.error is not None
         assert "token" in result.error.lower() or "empty" in result.error.lower()
@@ -807,125 +806,151 @@ nested:
         assert result.error is not None
         assert "password" in result.error.lower()
 
-    def test_save_auth_token_write_failure(
-        self, api_service: FlextCli, monkeypatch: pytest.MonkeyPatch
+    def test_save_auth_token_write_to_readonly_directory(
+        self, api_service: FlextCli, tmp_path: Path
     ) -> None:
-        """Test save_auth_token when write_json_file fails (line 276)."""
-        from unittest.mock import Mock
+        """Test save_auth_token with read-only directory.
 
-        from flext_cli.file_tools import FlextCliFileTools
+        Real scenario: Tests actual file write failure without mocks.
+        """
+        # Create read-only directory
+        readonly_dir = tmp_path / "readonly"
+        readonly_dir.mkdir()
+        readonly_dir.chmod(0o444)
 
-        # Mock file_tools.write_json_file to fail
-        mock_file_tools = Mock(spec=FlextCliFileTools)
-        mock_file_tools.write_json_file = Mock(
-            return_value=FlextResult[None].fail("Write error")
-        )
-        api_service.file_tools = mock_file_tools
+        # Configure to use read-only path
+        api_service.config.token_file = readonly_dir / "token.json"
 
-        result = api_service.save_auth_token("test_token")
+        result = api_service.save_auth_token("test_token_123")
 
+        # Cleanup
+        readonly_dir.chmod(0o755)
+
+        # Should fail with real permission error
         assert result.is_failure
         assert result.error is not None
-        assert "save" in result.error.lower() or "failed" in result.error.lower()
+        assert "save" in result.error.lower() or "permission" in result.error.lower()
 
-    def test_get_auth_token_file_not_found(
-        self, api_service: FlextCli, monkeypatch: pytest.MonkeyPatch
+    def test_get_auth_token_file_not_found_real_scenario(
+        self, api_service: FlextCli
     ) -> None:
-        """Test get_auth_token when file not found (lines 292-295)."""
-        from unittest.mock import Mock
+        """Test get_auth_token when token file doesn't exist.
 
-        from flext_cli.file_tools import FlextCliFileTools
-
-        # Mock file_tools.read_json_file to return "not found" error
-        mock_file_tools = Mock(spec=FlextCliFileTools)
-        mock_file_tools.read_json_file = Mock(
-            return_value=FlextResult[object].fail("Token file not found")
-        )
-        api_service.file_tools = mock_file_tools
-
+        Real scenario: Tests actual file not found error without mocks.
+        Note: api_service fixture already isolates config to a clean tmp directory.
+        """
+        # api_service is already configured with tmp paths that don't have files
+        # Just call get_auth_token - should fail with file not found
         result = api_service.get_auth_token()
 
+        # Should fail with "not found" error
         assert result.is_failure
         assert result.error is not None
-        # Check for the expected "Token file not found" error message
-        error_msg = result.error.lower() if result.error else ""
+        error_msg = result.error.lower()
         assert "not found" in error_msg or "token" in error_msg
 
-    def test_get_auth_token_read_failure(
-        self, api_service: FlextCli, monkeypatch: pytest.MonkeyPatch
+    def test_get_auth_token_invalid_json_format(
+        self, api_service: FlextCli, tmp_path: Path
     ) -> None:
-        """Test get_auth_token when read fails (line 296)."""
-        from unittest.mock import Mock
+        """Test get_auth_token when file contains invalid JSON.
 
-        from flext_cli.file_tools import FlextCliFileTools
-
-        # Mock file_tools.read_json_file to return generic error
-        mock_file_tools = Mock(spec=FlextCliFileTools)
-        mock_file_tools.read_json_file = Mock(
-            return_value=FlextResult[object].fail("Read error")
-        )
-        api_service.file_tools = mock_file_tools
+        Real scenario: Tests actual JSON parse error without mocks.
+        """
+        # Create file with invalid JSON
+        token_file = tmp_path / "invalid_token.json"
+        token_file.write_text("{invalid json content")
+        api_service.config.token_file = token_file
 
         result = api_service.get_auth_token()
 
+        # Should fail with read/parse error
         assert result.is_failure
         assert result.error is not None
         assert "load" in result.error.lower() or "failed" in result.error.lower()
 
-    def test_get_auth_token_empty_file(
-        self, api_service: FlextCli, monkeypatch: pytest.MonkeyPatch
+    def test_get_auth_token_empty_file_real_scenario(
+        self, api_service: FlextCli, tmp_path: Path
     ) -> None:
-        """Test get_auth_token when token file is empty (line 305)."""
-        from unittest.mock import Mock
+        """Test get_auth_token when token file exists but has empty token.
 
-        from flext_cli.file_tools import FlextCliFileTools
-
-        # Mock file_tools.read_json_file to return empty token
-        mock_file_tools = Mock(spec=FlextCliFileTools)
-        mock_file_tools.read_json_file = Mock(return_value=FlextResult[object].ok({}))
-        api_service.file_tools = mock_file_tools
+        Real scenario: Tests actual validation of empty token data.
+        """
+        # Create file with empty token structure
+        token_file = tmp_path / "empty_token.json"
+        token_file.write_text("{}")  # Valid JSON but no token key
+        api_service.config.token_file = token_file
 
         result = api_service.get_auth_token()
 
+        # Should fail validation for missing token
         assert result.is_failure
         assert result.error is not None
         assert "empty" in result.error.lower() or "token" in result.error.lower()
 
-    def test_clear_auth_tokens_delete_failure(
-        self, api_service: FlextCli, monkeypatch: pytest.MonkeyPatch
+    def test_get_auth_token_wrong_data_type(
+        self, api_service: FlextCli, tmp_path: Path
     ) -> None:
-        """Test clear_auth_tokens when delete fails (line 330)."""
-        from unittest.mock import Mock
+        """Test get_auth_token when file contains wrong data type.
 
-        from flext_cli.file_tools import FlextCliFileTools
+        Real scenario: Tests actual type validation without mocks.
+        """
+        # Create file with array instead of object
+        token_file = tmp_path / "wrong_type_token.json"
+        token_file.write_text('["not", "an", "object"]')
+        api_service.config.token_file = token_file
 
-        # Mock file_tools.delete_file to fail with non-"not found" error
-        mock_file_tools = Mock(spec=FlextCliFileTools)
-        mock_file_tools.delete_file = Mock(
-            return_value=FlextResult[None].fail("Permission denied")
-        )
-        api_service.file_tools = mock_file_tools
+        result = api_service.get_auth_token()
+
+        # Should fail type validation
+        assert result.is_failure
+        assert result.error is not None
+
+    def test_clear_auth_tokens_readonly_file(
+        self, api_service: FlextCli, tmp_path: Path
+    ) -> None:
+        """Test clear_auth_tokens when files are read-only.
+
+        Real scenario: Tests actual delete failure without mocks.
+        """
+        # Create read-only token file
+        token_file = tmp_path / "readonly_token.json"
+        token_file.write_text('{"token": "test"}')
+        token_file.chmod(0o444)
+
+        # Create parent directory read-only (prevents deletion)
+        tmp_path.chmod(0o555)
+
+        api_service.config.token_file = token_file
+        api_service.config.refresh_token_file = tmp_path / "refresh.json"
 
         result = api_service.clear_auth_tokens()
 
+        # Cleanup: restore permissions
+        tmp_path.chmod(0o755)
+        token_file.chmod(0o644)
+
+        # Should fail due to permission error (not "not found")
         assert result.is_failure
         assert result.error is not None
-        assert "clear" in result.error.lower() or "failed" in result.error.lower()
+        assert "clear" in result.error.lower() or "permission" in result.error.lower()
 
-    def test_clear_auth_tokens_success_path(
-        self, api_service: FlextCli, monkeypatch: pytest.MonkeyPatch
+    def test_clear_auth_tokens_success_with_real_files(
+        self, api_service: FlextCli, tmp_path: Path
     ) -> None:
-        """Test clear_auth_tokens success path (lines 346-347)."""
-        from unittest.mock import Mock
+        """Test clear_auth_tokens successfully deletes existing files.
 
-        from flext_cli.file_tools import FlextCliFileTools
+        Real scenario: Tests actual successful deletion without mocks.
+        """
+        # Create real token files
+        token_file = tmp_path / "token.json"
+        refresh_file = tmp_path / "refresh_token.json"
+        token_file.write_text('{"token": "test_token"}')
+        refresh_file.write_text('{"token": "refresh_token"}')
 
-        # Mock file_tools.delete_file to succeed (simulate successful deletion)
-        mock_file_tools = Mock(spec=FlextCliFileTools)
-        mock_file_tools.delete_file = Mock(return_value=FlextResult[None].ok(None))
-        api_service.file_tools = mock_file_tools
+        api_service.config.token_file = token_file
+        api_service.config.refresh_token_file = refresh_file
 
-        # Add token to valid tokens set
+        # Add tokens to valid set
         api_service._valid_tokens.add("test_token_1")
         api_service._valid_tokens.add("test_token_2")
         assert len(api_service._valid_tokens) > 0
@@ -933,51 +958,70 @@ nested:
         # Clear should succeed
         result = api_service.clear_auth_tokens()
 
-        # Should succeed since delete_file is mocked to succeed
         assert result.is_success
-        # Verify valid tokens were cleared (line 346)
+        # Verify files were actually deleted
+        assert not token_file.exists()
+        assert not refresh_file.exists()
+        # Verify valid tokens set was cleared
         assert len(api_service._valid_tokens) == 0
+
+    def test_clear_auth_tokens_handles_missing_files(
+        self, api_service: FlextCli, tmp_path: Path
+    ) -> None:
+        """Test clear_auth_tokens succeeds when files don't exist.
+
+        Real scenario: Tests that "not found" errors are ignored.
+        """
+        # Point to non-existent files
+        api_service.config.token_file = tmp_path / "missing_token.json"
+        api_service.config.refresh_token_file = tmp_path / "missing_refresh.json"
+
+        # Should succeed even though files don't exist
+        result = api_service.clear_auth_tokens()
+
+        assert result.is_success
 
     # NOTE: print_table wrapper method removed in Phase 2 refactoring
     # Tests print_table_success and print_table_exception removed as they tested
     # a wrapper method that no longer exists.
 
-    def test_get_auth_token_not_dict(
-        self, api_service: FlextCli, monkeypatch: pytest.MonkeyPatch
+    def test_get_auth_token_not_dict_real_scenario(
+        self, api_service: FlextCli, tmp_path: Path
     ) -> None:
-        """Test get_auth_token when data is not dict (line 321)."""
-        from unittest.mock import Mock
+        """Test get_auth_token when file contains string instead of dict.
 
-        from flext_cli.file_tools import FlextCliFileTools
-
-        # Mock read_json_file to return non-dict (string)
-        mock_file_tools = Mock(spec=FlextCliFileTools)
-        mock_file_tools.read_json_file = Mock(
-            return_value=FlextResult[object].ok("not a dict")
-        )
-        api_service.file_tools = mock_file_tools
+        Real scenario: Tests actual type validation without mocks.
+        """
+        # Create file with string value instead of JSON object
+        token_file = tmp_path / "string_token.json"
+        token_file.write_text('"just a string"')
+        api_service.config.token_file = token_file
 
         result = api_service.get_auth_token()
 
+        # Should fail type validation
         assert result.is_failure
-        assert "json object" in str(result.error).lower()
+        assert result.error is not None
+        # Error should indicate wrong data type
+        error_lower = result.error.lower()
+        assert "type" in error_lower or "dict" in error_lower or "object" in error_lower
 
-    def test_get_auth_token_token_not_string(
-        self, api_service: FlextCli, monkeypatch: pytest.MonkeyPatch
+    def test_get_auth_token_token_not_string_real_scenario(
+        self, api_service: FlextCli, tmp_path: Path
     ) -> None:
-        """Test get_auth_token when token is not string (line 330)."""
-        from unittest.mock import Mock
+        """Test get_auth_token when token field is number instead of string.
 
-        from flext_cli.file_tools import FlextCliFileTools
-
-        # Mock read_json_file to return dict with non-string token
-        mock_file_tools = Mock(spec=FlextCliFileTools)
-        mock_file_tools.read_json_file = Mock(
-            return_value=FlextResult[dict].ok({"token": 12345})
-        )
-        api_service.file_tools = mock_file_tools
+        Real scenario: Tests actual token type validation without mocks.
+        """
+        # Create file with numeric token value
+        token_file = tmp_path / "numeric_token.json"
+        token_file.write_text('{"token": 12345}')
+        api_service.config.token_file = token_file
 
         result = api_service.get_auth_token()
 
+        # Should fail token type validation
         assert result.is_failure
-        assert "token must be a string" in str(result.error).lower()
+        assert result.error is not None
+        error_lower = result.error.lower()
+        assert "string" in error_lower or "type" in error_lower

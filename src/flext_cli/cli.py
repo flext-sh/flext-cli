@@ -76,6 +76,54 @@ class FlextCliCli:
     # COMMAND AND GROUP CREATION
     # =========================================================================
 
+    @typing.overload
+    def _create_cli_decorator(
+        self,
+        entity_type: typing.Literal["command"],
+        name: str | None,
+        help_text: str | None,
+    ) -> typing.Callable[[typing.Callable[..., typing.Any]], click.Command]: ...
+
+    @typing.overload
+    def _create_cli_decorator(
+        self,
+        entity_type: typing.Literal["group"],
+        name: str | None,
+        help_text: str | None,
+    ) -> typing.Callable[[typing.Callable[..., typing.Any]], click.Group]: ...
+
+    def _create_cli_decorator(
+        self,
+        entity_type: typing.Literal["command", "group"],
+        name: str | None,
+        help_text: str | None,
+    ) -> typing.Callable[
+        [typing.Callable[..., typing.Any]], click.Command | click.Group
+    ]:
+        """Create Click decorator (command or group) - DRY helper.
+
+        Args:
+            entity_type: Type of decorator to create
+            name: Entity name (optional, uses function name if None)
+            help_text: Help text
+
+        Returns:
+            Decorator function
+
+        """
+        # Use Click directly (cli.py is ONLY file that may import Click)
+        if entity_type == "command":
+            decorator = click.command(name=name, help=help_text)
+            log_msg = "Created command decorator"
+            extra_key = "command_name"
+        else:  # group
+            decorator = click.group(name=name, help=help_text)
+            log_msg = "Created group decorator"
+            extra_key = "group_name"
+
+        self.logger.debug(log_msg, extra={extra_key: name, "help": help_text})
+        return decorator
+
     def create_command_decorator(
         self,
         name: str | None = None,
@@ -104,13 +152,7 @@ class FlextCliCli:
             ...     typer.echo("Hello!")
 
         """
-        # Use Click directly (cli.py is ONLY file that may import Click)
-        decorator = click.command(name=name, help=help_text)
-        self.logger.debug(
-            "Created command decorator",
-            extra={"command_name": name, "help": help_text},
-        )
-        return decorator
+        return self._create_cli_decorator("command", name, help_text)
 
     def create_group_decorator(
         self,
@@ -139,13 +181,7 @@ class FlextCliCli:
             ...     pass
 
         """
-        # Use Click directly (cli.py is ONLY file that may import Click)
-        decorator = click.group(name=name, help=help_text)
-        self.logger.debug(
-            "Created group decorator",
-            extra={"group_name": name, "help": help_text},
-        )
-        return decorator
+        return self._create_cli_decorator("group", name, help_text)
 
     # =========================================================================
     # PARAMETER DECORATORS (OPTION, ARGUMENT)
@@ -345,6 +381,75 @@ class FlextCliCli:
             atomic=atomic,
         )
 
+    # =========================================================================
+    # RANGE TYPE HELPERS - DRY pattern with overload for type safety
+    # =========================================================================
+
+    @typing.overload
+    def _get_range_type(
+        self,
+        range_type: typing.Literal["int"],
+        min_val: int | None,
+        max_val: int | None,
+        *,
+        min_open: bool,
+        max_open: bool,
+        clamp: bool,
+    ) -> click.IntRange: ...
+
+    @typing.overload
+    def _get_range_type(
+        self,
+        range_type: typing.Literal["float"],
+        min_val: float | None,
+        max_val: float | None,
+        *,
+        min_open: bool,
+        max_open: bool,
+        clamp: bool,
+    ) -> click.FloatRange: ...
+
+    def _get_range_type(
+        self,
+        range_type: typing.Literal["int", "float"],
+        min_val: float | None,
+        max_val: float | None,
+        *,
+        min_open: bool,
+        max_open: bool,
+        clamp: bool,
+    ) -> click.IntRange | click.FloatRange:
+        """Create Click range type (IntRange or FloatRange) - DRY helper.
+
+        Args:
+            range_type: Type of range to create ("int" or "float")
+            min_val: Minimum value (inclusive unless min_open=True)
+            max_val: Maximum value (inclusive unless max_open=True)
+            min_open: Minimum is exclusive
+            max_open: Maximum is exclusive
+            clamp: Clamp values to range instead of error
+
+        Returns:
+            Click IntRange or FloatRange based on range_type
+
+        """
+        if range_type == "int":
+            return click.IntRange(
+                min=min_val,
+                max=max_val,
+                min_open=min_open,
+                max_open=max_open,
+                clamp=clamp,
+            )
+        # float
+        return click.FloatRange(
+            min=min_val,
+            max=max_val,
+            min_open=min_open,
+            max_open=max_open,
+            clamp=clamp,
+        )
+
     def get_int_range_type(
         self,
         min_val: int | None = None,
@@ -367,12 +472,8 @@ class FlextCliCli:
             Click IntRange type
 
         """
-        return click.IntRange(
-            min=min_val,
-            max=max_val,
-            min_open=min_open,
-            max_open=max_open,
-            clamp=clamp,
+        return self._get_range_type(
+            "int", min_val, max_val, min_open=min_open, max_open=max_open, clamp=clamp
         )
 
     def get_float_range_type(
@@ -397,12 +498,8 @@ class FlextCliCli:
             Click FloatRange type
 
         """
-        return click.FloatRange(
-            min=min_val,
-            max=max_val,
-            min_open=min_open,
-            max_open=max_open,
-            clamp=clamp,
+        return self._get_range_type(
+            "float", min_val, max_val, min_open=min_open, max_open=max_open, clamp=clamp
         )
 
     def get_datetime_type(

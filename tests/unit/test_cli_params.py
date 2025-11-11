@@ -801,44 +801,24 @@ class TestCliParamsCoverageCompletion:
     def test_apply_to_config_setattr_exception(
         self, monkeypatch: pytest.MonkeyPatch
     ) -> None:
-        """Test apply_to_config exception handler (lines 388-389)."""
+        """Test apply_to_config exception handler with enum construction failure."""
         config = FlextCliConfig()
 
-        # Mock FlextCliConstants.LOG_LEVELS_LIST to raise exception when accessed
-        # This will trigger the exception handler during log_level validation
-        def mock_log_levels_list_raises(*args: object, **kwargs: object) -> None:
-            msg = "Constants access error"
+        # Mock FlextConstants.Settings.LogLevel to raise exception when constructed
+        # This triggers the outer exception handler (not the ValueError handler)
+        def mock_log_level_raises(*args: object, **kwargs: object) -> None:
+            msg = "Enum construction error"
             raise RuntimeError(msg)
 
-        # Create mock error messages class
-        mock_error_messages = type(
-            "MockErrorMessages",
-            (),
-            {
-                "APPLY_PARAMS_FAILED": "Failed to apply CLI parameters to config: {error}"
-            },
-        )()
-
-        # Create mock defaults class
-        from flext_cli.constants import FlextCliConstants as RealConstants
-
-        # Create a mock property that raises
-        mock_constants = type(
-            "MockConstants",
-            (),
-            {
-                "LOG_LEVELS_LIST": property(lambda self: mock_log_levels_list_raises()),
-                "CliParamsErrorMessages": mock_error_messages,
-                "CliParamsDefaults": RealConstants.CliParamsDefaults,  # Keep real defaults
-            },
-        )()
-
-        # Patch FlextCliConstants in cli_params module
-        monkeypatch.setattr("flext_cli.cli_params.FlextCliConstants", mock_constants)
+        # Patch LogLevel enum constructor in cli_params module
+        monkeypatch.setattr(
+            "flext_cli.cli_params.FlextConstants.Settings.LogLevel",
+            mock_log_level_raises,
+        )
 
         result = FlextCliCommonParams.apply_to_config(config, log_level="INFO")
 
         assert result.is_failure
-        # Error can be from exception handler or from flat_map Railway pattern
+        # Error comes from outer exception handler or railway pattern flat_map
         error_msg = str(result.error).lower()
-        assert "failed to apply" in error_msg or "constants access error" in error_msg
+        assert "failed to apply" in error_msg or "enum construction error" in error_msg

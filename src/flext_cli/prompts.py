@@ -1,7 +1,6 @@
 """User interaction tools for CLI applications."""
 
 import getpass
-import os
 import re
 
 from flext_core import (
@@ -15,6 +14,7 @@ from pydantic import Field, PrivateAttr
 
 from flext_cli.constants import FlextCliConstants
 from flext_cli.typings import FlextCliTypes
+from flext_cli.utilities import FlextCliUtilities
 
 
 class FlextCliPrompts(FlextService[FlextCliTypes.Data.CliDataDict]):
@@ -90,26 +90,6 @@ class FlextCliPrompts(FlextService[FlextCliTypes.Data.CliDataDict]):
 
         """
         return self._prompt_history.copy()
-
-    def _is_test_environment(self) -> bool:
-        """Check if running in a test environment.
-
-        Detects test environment to avoid FlextConfig CLI parsing issues.
-
-        Returns:
-            bool: True if in test environment
-
-        """
-        return (
-            os.environ.get(FlextCliConstants.EnvironmentConstants.PYTEST_CURRENT_TEST)
-            is not None
-            or FlextCliConstants.EnvironmentConstants.PYTEST
-            in os.environ.get(
-                FlextCliConstants.EnvironmentConstants.UNDERSCORE, ""
-            ).lower()
-            or os.environ.get(FlextCliConstants.EnvironmentConstants.CI)
-            == FlextCliConstants.EnvironmentConstants.CI_TRUE_VALUE
-        )
 
     def prompt_text(
         self,
@@ -417,7 +397,7 @@ class FlextCliPrompts(FlextService[FlextCliTypes.Data.CliDataDict]):
                 user_input = default
 
             # Only log in non-test environments to avoid FlextConfig CLI parsing issues
-            if not self._is_test_environment():
+            if not FlextCliUtilities.Environment.is_test_environment():
                 self._logger.info(
                     FlextCliConstants.PromptsDefaults.PROMPT_LOG_FORMAT.format(
                         message=message, input=user_input
@@ -596,6 +576,32 @@ class FlextCliPrompts(FlextService[FlextCliTypes.Data.CliDataDict]):
                 )
             )
 
+    def _print_message(
+        self,
+        message: str,
+        log_level: str,
+        message_format: str,
+        error_message_template: str,
+    ) -> FlextResult[None]:
+        """Generic message printing method - eliminates code duplication.
+
+        Args:
+            message: Message to print
+            log_level: Logger method name ("info", "error", "warning", etc.)
+            message_format: Format template for the message
+            error_message_template: Error message template if printing fails
+
+        Returns:
+            FlextResult[None]: Success or error
+
+        """
+        try:
+            log_method = getattr(self._logger, log_level)
+            log_method(message_format.format(message=message))
+            return FlextResult[None].ok(None)
+        except Exception as e:
+            return FlextResult[None].fail(error_message_template.format(error=e))
+
     def print_success(self, message: str) -> FlextResult[None]:
         """Print success message.
 
@@ -606,17 +612,12 @@ class FlextCliPrompts(FlextService[FlextCliTypes.Data.CliDataDict]):
             FlextResult[None]: Success or error
 
         """
-        try:
-            self._logger.info(
-                FlextCliConstants.PromptsDefaults.SUCCESS_FORMAT.format(message=message)
-            )
-            return FlextResult[None].ok(None)
-        except Exception as e:
-            return FlextResult[None].fail(
-                FlextCliConstants.PromptsErrorMessages.PRINT_SUCCESS_FAILED.format(
-                    error=e
-                )
-            )
+        return self._print_message(
+            message,
+            "info",
+            FlextCliConstants.PromptsDefaults.SUCCESS_FORMAT,
+            FlextCliConstants.PromptsErrorMessages.PRINT_SUCCESS_FAILED,
+        )
 
     def print_error(self, message: str) -> FlextResult[None]:
         """Print error message.
@@ -628,17 +629,12 @@ class FlextCliPrompts(FlextService[FlextCliTypes.Data.CliDataDict]):
             FlextResult[None]: Success or error
 
         """
-        try:
-            self._logger.error(
-                FlextCliConstants.PromptsDefaults.ERROR_FORMAT.format(message=message)
-            )
-            return FlextResult[None].ok(None)
-        except Exception as e:
-            return FlextResult[None].fail(
-                FlextCliConstants.PromptsErrorMessages.PRINT_ERROR_FAILED.format(
-                    error=e
-                )
-            )
+        return self._print_message(
+            message,
+            "error",
+            FlextCliConstants.PromptsDefaults.ERROR_FORMAT,
+            FlextCliConstants.PromptsErrorMessages.PRINT_ERROR_FAILED,
+        )
 
     def print_warning(self, message: str) -> FlextResult[None]:
         """Print warning message.
@@ -650,17 +646,12 @@ class FlextCliPrompts(FlextService[FlextCliTypes.Data.CliDataDict]):
             FlextResult[None]: Success or error
 
         """
-        try:
-            self._logger.warning(
-                FlextCliConstants.PromptsDefaults.WARNING_FORMAT.format(message=message)
-            )
-            return FlextResult[None].ok(None)
-        except Exception as e:
-            return FlextResult[None].fail(
-                FlextCliConstants.PromptsErrorMessages.PRINT_WARNING_FAILED.format(
-                    error=e
-                )
-            )
+        return self._print_message(
+            message,
+            "warning",
+            FlextCliConstants.PromptsDefaults.WARNING_FORMAT,
+            FlextCliConstants.PromptsErrorMessages.PRINT_WARNING_FAILED,
+        )
 
     def print_info(self, message: str) -> FlextResult[None]:
         """Print info message.
@@ -672,15 +663,12 @@ class FlextCliPrompts(FlextService[FlextCliTypes.Data.CliDataDict]):
             FlextResult[None]: Success or error
 
         """
-        try:
-            self._logger.info(
-                FlextCliConstants.PromptsDefaults.INFO_FORMAT.format(message=message)
-            )
-            return FlextResult[None].ok(None)
-        except Exception as e:
-            return FlextResult[None].fail(
-                FlextCliConstants.PromptsErrorMessages.PRINT_INFO_FAILED.format(error=e)
-            )
+        return self._print_message(
+            message,
+            "info",
+            FlextCliConstants.PromptsDefaults.INFO_FORMAT,
+            FlextCliConstants.PromptsErrorMessages.PRINT_INFO_FAILED,
+        )
 
     def create_progress(
         self,

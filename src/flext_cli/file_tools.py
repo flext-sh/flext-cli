@@ -25,7 +25,9 @@ import shutil
 import stat
 import tempfile
 import zipfile
+from collections.abc import Callable
 from pathlib import Path
+from typing import Any, cast
 
 import yaml
 from flext_core import FlextResult, FlextTypes
@@ -132,6 +134,41 @@ class FlextCliFileTools:
         return FlextCliFileTools._FileLoader.load_json(str(file_path))
 
     @staticmethod
+    def _write_file_generic(
+        file_path: str | Path,
+        serializer: Callable[[object, object], None],
+        data: object,
+        error_message: str,
+        *,
+        newline: str | None = None,
+    ) -> FlextResult[None]:
+        """Generic method to write file with custom serializer.
+
+        Eliminates code duplication across write methods.
+
+        Args:
+            file_path: Path to file
+            serializer: Function to serialize data to file handle
+            data: Data to serialize
+            error_message: Error message template for failures
+            newline: Newline parameter for Path.open() (used by CSV)
+
+        Returns:
+            FlextResult[None] indicating success or failure
+
+        """
+        try:
+            with Path(file_path).open(
+                mode="w",
+                encoding=FlextCliConstants.Encoding.UTF8,
+                newline=newline,
+            ) as f:
+                serializer(data, f)
+            return FlextResult[None].ok(None)
+        except Exception as e:
+            return FlextResult[None].fail(error_message.format(error=e))
+
+    @staticmethod
     def write_json_file(
         file_path: str | Path,
         data: FlextTypes.JsonValue,
@@ -153,22 +190,22 @@ class FlextCliFileTools:
             FlextResult[None] indicating success or failure
 
         """
-        try:
-            with Path(file_path).open(
-                "w", encoding=FlextCliConstants.Encoding.UTF8
-            ) as f:
-                json.dump(
-                    data,
-                    f,
-                    indent=indent,
-                    sort_keys=sort_keys,
-                    ensure_ascii=ensure_ascii,
-                )
-            return FlextResult[None].ok(None)
-        except Exception as e:
-            return FlextResult[None].fail(
-                FlextCliConstants.ErrorMessages.JSON_WRITE_FAILED.format(error=e)
+
+        def serializer(d: object, f: object) -> None:
+            json.dump(
+                cast("Any", d),
+                cast("Any", f),
+                indent=indent,
+                sort_keys=sort_keys,
+                ensure_ascii=ensure_ascii,
             )
+
+        return FlextCliFileTools._write_file_generic(
+            file_path,
+            serializer,
+            data,
+            FlextCliConstants.ErrorMessages.JSON_WRITE_FAILED,
+        )
 
     def read_yaml_file(
         self, file_path: str | Path
@@ -206,22 +243,22 @@ class FlextCliFileTools:
             FlextResult[None] indicating success or failure
 
         """
-        try:
-            with Path(file_path).open(
-                "w", encoding=FlextCliConstants.Encoding.UTF8
-            ) as f:
-                yaml.safe_dump(
-                    data,
-                    f,
-                    default_flow_style=default_flow_style,
-                    sort_keys=sort_keys,
-                    allow_unicode=allow_unicode,
-                )
-            return FlextResult[None].ok(None)
-        except Exception as e:
-            return FlextResult[None].fail(
-                FlextCliConstants.ErrorMessages.YAML_WRITE_FAILED.format(error=e)
+
+        def serializer(d: object, f: object) -> None:
+            yaml.safe_dump(
+                cast("Any", d),
+                cast("Any", f),
+                default_flow_style=default_flow_style,
+                sort_keys=sort_keys,
+                allow_unicode=allow_unicode,
             )
+
+        return FlextCliFileTools._write_file_generic(
+            file_path,
+            serializer,
+            data,
+            FlextCliConstants.ErrorMessages.YAML_WRITE_FAILED,
+        )
 
     # === PUBLIC API METHODS ===
 
@@ -314,19 +351,18 @@ class FlextCliFileTools:
         self, file_path: str | Path, data: list[list[str]]
     ) -> FlextResult[None]:
         """Write CSV file content."""
-        try:
-            with Path(file_path).open(
-                FlextCliConstants.FileIODefaults.FILE_WRITE_MODE,
-                encoding=FlextCliConstants.Encoding.UTF8,
-                newline="",
-            ) as f:
-                writer = csv.writer(f)
-                writer.writerows(data)
-            return FlextResult[None].ok(None)
-        except Exception as e:
-            return FlextResult[None].fail(
-                FlextCliConstants.FileErrorMessages.CSV_WRITE_FAILED.format(error=e)
-            )
+
+        def serializer(d: object, f: object) -> None:
+            writer = csv.writer(cast("Any", f))
+            writer.writerows(cast("Any", d))
+
+        return FlextCliFileTools._write_file_generic(
+            file_path,
+            serializer,
+            data,
+            FlextCliConstants.FileErrorMessages.CSV_WRITE_FAILED,
+            newline="",
+        )
 
     def read_csv_file_with_headers(
         self, file_path: str | Path

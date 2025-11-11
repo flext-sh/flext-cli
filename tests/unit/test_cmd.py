@@ -162,26 +162,29 @@ class TestFlextCliCmd:
         assert isinstance(instance, FlextCliCmd)
 
     def test_cmd_config_helper_get_config_paths(self) -> None:
-        """Test _get_config_paths method."""
-        cmd = FlextCliCmd()
-        paths = cmd._get_config_paths()
+        """Test FlextCliUtilities.ConfigOps.get_config_paths() directly."""
+        from flext_cli.utilities import FlextCliUtilities
+
+        paths = FlextCliUtilities.ConfigOps.get_config_paths()
         assert isinstance(paths, list)
         assert len(paths) > 0
         # Check that paths contain expected flext directory
         assert any(".flext" in path for path in paths)
 
     def test_cmd_config_helper_validate_config_structure(self) -> None:
-        """Test _validate_config_structure method."""
-        cmd = FlextCliCmd()
-        results = cmd._validate_config_structure()
+        """Test FlextCliUtilities.ConfigOps.validate_config_structure() directly."""
+        from flext_cli.utilities import FlextCliUtilities
+
+        results = FlextCliUtilities.ConfigOps.validate_config_structure()
         assert isinstance(results, list)
         # Results should contain validation messages
         assert len(results) > 0
 
     def test_cmd_config_helper_get_config_info(self) -> None:
-        """Test _get_config_info method."""
-        cmd = FlextCliCmd()
-        info = cmd._get_config_info()
+        """Test FlextCliUtilities.ConfigOps.get_config_info() directly."""
+        from flext_cli.utilities import FlextCliUtilities
+
+        info = FlextCliUtilities.ConfigOps.get_config_info()
         assert isinstance(info, dict)
         assert "config_dir" in info
         assert "config_exists" in info
@@ -564,17 +567,17 @@ class TestFlextCliCmd:
     def test_cmd_validate_config_structure_missing_dir(
         self, monkeypatch: pytest.MonkeyPatch
     ) -> None:
-        """Test _validate_config_structure when main config directory is missing (line 78)."""
-        cmd = FlextCliCmd()
-
+        """Test FlextCliUtilities.ConfigOps.validate_config_structure() when main config directory is missing."""
         # Mock Path.home to return a temp directory that doesn't have .flext
         import tempfile
+
+        from flext_cli.utilities import FlextCliUtilities
 
         temp_dir = Path(tempfile.mkdtemp())
         monkeypatch.setattr(Path, "home", lambda: temp_dir)
 
         try:
-            results = cmd._validate_config_structure()
+            results = FlextCliUtilities.ConfigOps.validate_config_structure()
             assert any("✗ Main config directory missing" in r for r in results)
         finally:
             import shutil
@@ -584,15 +587,17 @@ class TestFlextCliCmd:
     def test_cmd_show_config_paths_exception(
         self, monkeypatch: pytest.MonkeyPatch
     ) -> None:
-        """Test show_config_paths exception handler (lines 110-111)."""
+        """Test show_config_paths exception handler."""
+        from flext_cli.utilities import FlextCliUtilities
+
         cmd = FlextCliCmd()
 
-        # Mock _get_config_paths to raise exception
-        def mock_raise(*args: object, **kwargs: object) -> Never:
+        # Mock FlextCliUtilities.ConfigOps.get_config_paths to raise exception
+        def mock_raise() -> Never:
             msg = "Test exception"
             raise RuntimeError(msg)
 
-        monkeypatch.setattr(cmd, "_get_config_paths", mock_raise)
+        monkeypatch.setattr(FlextCliUtilities.ConfigOps, "get_config_paths", mock_raise)
         result = cmd.show_config_paths()
         assert result.is_failure
         assert "config paths failed" in str(result.error).lower()
@@ -600,15 +605,17 @@ class TestFlextCliCmd:
     def test_cmd_validate_config_exception(
         self, monkeypatch: pytest.MonkeyPatch
     ) -> None:
-        """Test validate_config exception handler (lines 126-127)."""
+        """Test validate_config exception handler."""
+        from flext_cli.utilities import FlextCliUtilities
+
         cmd = FlextCliCmd()
 
-        # Mock _validate_config_structure to raise exception
-        def mock_raise(*args: object, **kwargs: object) -> Never:
+        # Mock FlextCliUtilities.ConfigOps.validate_config_structure to raise exception
+        def mock_raise() -> Never:
             msg = "Validation exception"
             raise RuntimeError(msg)
 
-        monkeypatch.setattr(cmd, "_validate_config_structure", mock_raise)
+        monkeypatch.setattr(FlextCliUtilities.ConfigOps, "validate_config_structure", mock_raise)
         result = cmd.validate_config()
         assert result.is_failure
         assert "config validation failed" in str(result.error).lower()
@@ -616,15 +623,17 @@ class TestFlextCliCmd:
     def test_cmd_get_config_info_exception(
         self, monkeypatch: pytest.MonkeyPatch
     ) -> None:
-        """Test get_config_info exception handler (lines 136-137)."""
+        """Test get_config_info exception handler."""
+        from flext_cli.utilities import FlextCliUtilities
+
         cmd = FlextCliCmd()
 
-        # Mock _get_config_info to raise exception
-        def mock_raise(*args: object, **kwargs: object) -> Never:
+        # Mock FlextCliUtilities.ConfigOps.get_config_info to raise exception
+        def mock_raise() -> Never:
             msg = "Info exception"
             raise RuntimeError(msg)
 
-        monkeypatch.setattr(cmd, "_get_config_info", mock_raise)
+        monkeypatch.setattr(FlextCliUtilities.ConfigOps, "get_config_info", mock_raise)
         result = cmd.get_config_info()
         assert result.is_failure
         assert "config info failed" in str(result.error).lower()

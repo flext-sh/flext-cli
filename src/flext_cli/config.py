@@ -250,15 +250,17 @@ class FlextCliConfig(FlextConfig):
             context.set("cli_optimal_table_format", self.optimal_table_format)
         except Exception as e:
             # FlextContext might not be initialized yet - continue gracefully
-            logger.debug(f"Context not available during config initialization: {e}")
+            logger.debug("Context not available during config initialization: %s", e)
 
         # Auto-register in FlextContainer for dependency injection
         try:
             container = FlextContainer.get_global()
-            container.register("flext_cli_config", self)
+            # Register only if not already registered (avoids test conflicts)
+            if not container.has_service("flext_cli_config"):
+                container.with_service("flext_cli_config", self)
         except Exception as e:
             # Container might not be initialized yet - continue gracefully
-            logger.debug(f"Container not available during config initialization: {e}")
+            logger.debug("Container not available during config initialization: %s", e)
 
         return self
 
