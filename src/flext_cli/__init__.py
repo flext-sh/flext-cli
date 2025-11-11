@@ -178,8 +178,8 @@ from flext_cli.output import FlextCliOutput
 from flext_cli.prompts import FlextCliPrompts
 from flext_cli.protocols import FlextCliProtocols
 from flext_cli.tables import FlextCliTables
-from flext_cli.type_utils import normalize_annotation
 from flext_cli.typings import FlextCliTypes
+from flext_cli.utilities import FlextCliUtilities
 
 __all__ = [
     # Core API (alphabetically sorted per FLEXT standards)
@@ -202,9 +202,8 @@ __all__ = [
     "FlextCliProtocols",
     "FlextCliTables",
     "FlextCliTypes",
+    "FlextCliUtilities",
     # Version
     "__version__",
     "__version_info__",
-    # Type utilities
-    "normalize_annotation",
 ]

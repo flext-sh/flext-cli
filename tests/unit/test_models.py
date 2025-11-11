@@ -224,15 +224,20 @@ class TestFlextCliModels:
     # ========================================================================
 
     def test_cli_command_validation(self) -> None:
-        """Test CliCommand model validation."""
+        """Test CliCommand model validation.
+
+        Validation now happens automatically via Pydantic 2 field_validator.
+        This test verifies that a valid command can be created successfully.
+        """
         command = FlextCliModels.CliCommand(
             name="test_command",
             command_line="flext test",
             description="Test",
             status="pending",
         )
-        result = command.validate_business_rules()
-        assert result.is_success
+        # Validation happens automatically - if we got here, validation passed
+        assert isinstance(command, FlextCliModels.CliCommand)
+        assert command.status == "pending"
 
     def test_cli_command_update_status(self) -> None:
         """Test CliCommand start and complete execution methods."""
@@ -274,10 +279,16 @@ class TestFlextCliModels:
         assert summary.service == "TestService"
 
     def test_cli_session_validation(self) -> None:
-        """Test CliSession validation."""
+        """Test CliSession validation.
+
+        Validation now happens automatically via Pydantic 2 field_validator.
+        This test verifies that a valid session can be created successfully.
+        """
         session = FlextCliModels.CliSession(session_id="test-session", status="active")
-        result = session.validate_business_rules()
-        assert result.is_success
+        # Validation happens automatically - if we got here, validation passed
+        assert isinstance(session, FlextCliModels.CliSession)
+        assert session.session_id == "test-session"
+        assert session.status == "active"
 
     def test_cli_session_add_command(self) -> None:
         """Test CliSession add_command method."""
@@ -360,15 +371,22 @@ class TestFlextCliModels:
         assert result.is_failure
 
     def test_cli_session_validation_failures(self) -> None:
-        """Test CliSession validation failures."""
-        session = FlextCliModels.CliSession(
-            session_id="test_session",
-            status="invalid_status",  # Invalid status
-        )
-        # Validation should fail for invalid status
-        result = session.validate_business_rules()
-        assert result.is_failure
-        assert "status" in str(result.error).lower()
+        """Test CliSession validation failures.
+
+        Validation now happens automatically via Pydantic 2 field_validator.
+        Invalid values raise ValidationError during model instantiation.
+        """
+        import pytest
+        from pydantic import ValidationError
+
+        # Test invalid status - should raise ValidationError
+        with pytest.raises(ValidationError) as exc_info:
+            FlextCliModels.CliSession(
+                session_id="test_session",
+                status="invalid_status",  # Invalid status
+            )
+        # Verify error message mentions status
+        assert "status" in str(exc_info.value).lower()
 
     def test_cli_command_serialization_methods(self) -> None:
         """Test CliCommand serialization methods."""
@@ -454,13 +472,11 @@ class TestFlextCliModels:
             status="pending",
         )
 
-        # Test all validation methods
-        result = command.validate_business_rules()
-        assert result.is_success
-
+        # Validation happens automatically via Pydantic 2 field_validator
         # validate_command_consistency is a Pydantic model validator, not directly callable
         # It's automatically invoked during model validation
         assert isinstance(command, FlextCliModels.CliCommand)
+        assert command.status == "pending"
 
     def test_cli_session_edge_cases_comprehensive(self) -> None:
         """Test CliSession comprehensive edge cases."""
@@ -1327,26 +1343,29 @@ class TestFlextCliModelsExceptionHandlers:
             )  # The business rules method only checks command_line and status
 
     def test_cli_session_business_rules_edge_cases(self) -> None:
-        """Test CliSession business rules with edge cases."""
-        # Test with invalid status
-        session = FlextCliModels.CliSession(
-            session_id="test",
-            status="invalid_status",  # Invalid status value
-        )
+        """Test CliSession business rules with edge cases.
 
-        result = session.validate_business_rules()
-        assert result.is_failure
-        assert "status" in str(result.error).lower()
+        Validation now happens automatically via Pydantic 2 field_validator.
+        Invalid values raise ValidationError during model instantiation.
+        """
+        import pytest
+        from pydantic import ValidationError
 
-        # Test with empty user_id when provided
-        session2 = FlextCliModels.CliSession(
-            session_id="test2",
-            user_id="",  # Empty user_id
-        )
+        # Test with invalid status - should raise ValidationError
+        with pytest.raises(ValidationError) as exc_info:
+            FlextCliModels.CliSession(
+                session_id="test",
+                status="invalid_status",  # Invalid status value
+            )
+        assert "status" in str(exc_info.value).lower()
 
-        result2 = session2.validate_business_rules()
-        assert result2.is_failure
-        assert "empty" in str(result2.error).lower()
+        # Test with empty user_id when provided - should raise ValidationError
+        with pytest.raises(ValidationError) as exc_info2:
+            FlextCliModels.CliSession(
+                session_id="test2",
+                user_id="",  # Empty user_id
+            )
+        assert "empty" in str(exc_info2.value).lower()
 
     def test_cli_command_serialization_edge_cases(self) -> None:
         """Test CliCommand serialization with sensitive data."""

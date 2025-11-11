@@ -11,7 +11,7 @@ SPDX-License-Identifier: MIT
 
 import secrets
 from collections.abc import Callable, Sequence
-from typing import Any, cast
+from typing import Any, Literal, cast
 
 from flext_core import (
     FlextContainer,
@@ -30,6 +30,7 @@ from flext_cli.formatters import FlextCliFormatters
 from flext_cli.output import FlextCliOutput
 from flext_cli.prompts import FlextCliPrompts
 from flext_cli.typings import FlextCliTypes
+from flext_cli.utilities import FlextCliUtilities
 
 
 class FlextCli:
@@ -79,9 +80,13 @@ class FlextCli:
         # Core initialization
         self.logger = FlextLogger(__name__)
         self._container = FlextContainer.get_global()
-        self._container.register(
-            FlextCliConstants.APIDefaults.CONTAINER_REGISTRATION_KEY, self
-        )
+        # Register in container only if not already registered (avoids test conflicts)
+        if not self._container.has_service(
+            FlextCliConstants.APIDefaults.CONTAINER_REGISTRATION_KEY
+        ):
+            self._container.with_service(
+                FlextCliConstants.APIDefaults.CONTAINER_REGISTRATION_KEY, self
+            )
 
         # Domain library components (domain library pattern)
         self.formatters = FlextCliFormatters()
@@ -215,43 +220,56 @@ class FlextCli:
         return FlextResult[None].ok(None)
 
     def get_auth_token(self) -> FlextResult[str]:
-        """Get authentication token using file tools domain library."""
+        """Get authentication token using file tools domain library.
+
+        Uses railway pattern with flat_map chaining for cleaner error handling.
+        """
         token_path = self.config.token_file
 
-        # Use file tools domain library for JSON reading
-        read_result = self.file_tools.read_json_file(str(token_path))
-        if read_result.is_failure:
-            if (
-                FlextCliConstants.APIDefaults.FILE_ERROR_INDICATOR
-                in str(read_result.error).lower()
-            ):
-                return FlextResult[str].fail(
+        # Railway pattern: chain operations with flat_map
+        return (
+            self._read_token_file(str(token_path))
+            .flat_map(self._validate_token_data)
+            .flat_map(self._extract_token_string)
+        )
+
+    def _read_token_file(self, token_path: str) -> FlextResult[FlextTypes.JsonValue]:
+        """Read token file with appropriate error mapping."""
+        result = self.file_tools.read_json_file(token_path)
+        if result.is_failure:
+            error_str = str(result.error)
+            if FlextCliConstants.APIDefaults.FILE_ERROR_INDICATOR in error_str.lower():
+                return FlextResult[FlextTypes.JsonValue].fail(
                     FlextCliConstants.ErrorMessages.TOKEN_FILE_NOT_FOUND
                 )
-            return FlextResult[str].fail(
+            return FlextResult[FlextTypes.JsonValue].fail(
                 FlextCliConstants.ErrorMessages.TOKEN_LOAD_FAILED.format(
-                    error=read_result.error
+                    error=error_str
                 )
             )
+        return result
 
-        # Type guard: validate data is dict with token key
-        data = read_result.unwrap()
+    def _validate_token_data(
+        self, data: FlextTypes.JsonValue
+    ) -> FlextResult[FlextTypes.JsonDict]:
+        """Validate token data is a dict (type guard step)."""
         if not isinstance(data, dict):
-            return FlextResult[str].fail(
+            return FlextResult[FlextTypes.JsonDict].fail(
                 FlextCliConstants.APIDefaults.TOKEN_DATA_TYPE_ERROR
             )
+        return FlextResult[FlextTypes.JsonDict].ok(data)
 
+    def _extract_token_string(self, data: FlextTypes.JsonDict) -> FlextResult[str]:
+        """Extract and validate token string from data dict."""
         token = data.get(FlextCliConstants.DictKeys.TOKEN)
         if not token:
             return FlextResult[str].fail(
                 FlextCliConstants.ErrorMessages.TOKEN_FILE_EMPTY
             )
-
         if not isinstance(token, str):
             return FlextResult[str].fail(
                 FlextCliConstants.APIDefaults.TOKEN_VALUE_TYPE_ERROR
             )
-
         return FlextResult[str].ok(token)
 
     def is_authenticated(self) -> bool:
@@ -269,10 +287,8 @@ class FlextCli:
         delete_refresh_result = self.file_tools.delete_file(str(refresh_token_path))
 
         # Check if either deletion failed (but don't fail if file doesn't exist)
-        if (
-            delete_token_result.is_failure
-            and FlextCliConstants.APIDefaults.FILE_ERROR_INDICATOR
-            not in str(delete_token_result.error).lower()
+        if delete_token_result.is_failure and not FlextCliUtilities.FileOps.is_file_not_found_error(
+            str(delete_token_result.error)
         ):
             return FlextResult[None].fail(
                 FlextCliConstants.ErrorMessages.FAILED_CLEAR_CREDENTIALS.format(
@@ -280,10 +296,8 @@ class FlextCli:
                 )
             )
 
-        if (
-            delete_refresh_result.is_failure
-            and FlextCliConstants.APIDefaults.FILE_ERROR_INDICATOR
-            not in str(delete_refresh_result.error).lower()
+        if delete_refresh_result.is_failure and not FlextCliUtilities.FileOps.is_file_not_found_error(
+            str(delete_refresh_result.error)
         ):
             return FlextResult[None].fail(
                 FlextCliConstants.ErrorMessages.FAILED_CLEAR_CREDENTIALS.format(
@@ -298,6 +312,34 @@ class FlextCli:
     # COMMAND REGISTRATION - CLI framework abstraction (domain library pattern)
     # =========================================================================
 
+    def _register_cli_entity(
+        self,
+        entity_type: Literal["command", "group"],
+        name: str | None,
+        func: Callable[..., FlextTypes.JsonValue],
+    ) -> Callable[..., FlextTypes.JsonValue]:
+        """Register a CLI entity (command or group) with framework abstraction.
+
+        Args:
+            entity_type: Type of entity to register ("command" or "group")
+            name: Entity name (None to use function name)
+            func: Function to register
+
+        Returns:
+            Decorated function
+
+        """
+        entity_name = name or func.__name__
+
+        if entity_type == "command":
+            self._commands[entity_name] = func
+            decorator = self._cli.create_command_decorator(name=entity_name)
+        else:  # group
+            self._groups[entity_name] = func
+            decorator = self._cli.create_group_decorator(name=entity_name)
+
+        return decorator(func)
+
     def command(
         self, name: str | None = None
     ) -> Callable[
@@ -308,12 +350,7 @@ class FlextCli:
         def decorator(
             func: Callable[..., FlextTypes.JsonValue],
         ) -> Callable[..., FlextTypes.JsonValue]:
-            cmd_name = name or func.__name__
-            self._commands[cmd_name] = func
-
-            # Register with CLI framework abstraction
-            command_decorator = self._cli.create_command_decorator(name=cmd_name)
-            return command_decorator(func)
+            return self._register_cli_entity("command", name, func)
 
         return decorator
 
@@ -327,12 +364,7 @@ class FlextCli:
         def decorator(
             func: Callable[..., FlextTypes.JsonValue],
         ) -> Callable[..., FlextTypes.JsonValue]:
-            group_name = name or func.__name__
-            self._groups[group_name] = func
-
-            # Register with CLI framework abstraction
-            group_decorator = self._cli.create_group_decorator(name=group_name)
-            return group_decorator(func)
+            return self._register_cli_entity("group", name, func)
 
         return decorator
 

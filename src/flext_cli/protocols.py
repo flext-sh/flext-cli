@@ -66,6 +66,7 @@ SPDX-License-Identifier: MIT
 
 """
 
+import inspect
 from typing import Protocol, runtime_checkable
 
 from flext_core import FlextProtocols, FlextResult, FlextTypes
@@ -280,12 +281,12 @@ class FlextCliProtocols(FlextProtocols):
             name: str
             version: str
 
-            def initialize(self, cli_main: FlextTypes.JsonValue) -> FlextResult[None]:
+            def initialize(self, cli_context: FlextTypes.JsonValue) -> FlextResult[None]:
                 """Initialize plugin with CLI context."""
                 ...
 
             def register_commands(
-                self, cli_main: FlextTypes.JsonValue
+                self, cli_context: FlextTypes.JsonValue
             ) -> FlextResult[None]:
                 """Register plugin commands with CLI."""
                 ...
@@ -299,6 +300,20 @@ class FlextCliProtocols(FlextProtocols):
                 **kwargs: FlextCliTypes.Data.CliCommandArgs,
             ) -> FlextResult[FlextCliTypes.Data.CliCommandResult]:
                 """Execute CLI command with arguments."""
+                ...
+
+        @runtime_checkable
+        class InspectableCallable(Protocol):
+            """Protocol for callables with __signature__ attribute for CLI introspection.
+
+            Used by Click/Typer frameworks to introspect function signatures at runtime.
+            Functions can have __signature__ set dynamically for framework compatibility.
+            """
+
+            __signature__: inspect.Signature
+
+            def __call__(self, *args: object, **kwargs: object) -> object:
+                """Callable interface."""
                 ...
 
 

@@ -8,7 +8,6 @@ SPDX-License-Identifier: MIT
 
 """
 
-import os
 from datetime import UTC, datetime
 from pathlib import Path
 from typing import override
@@ -18,6 +17,7 @@ from flext_core import FlextResult, FlextService, FlextTypes
 from flext_cli.config import FlextCliConfig
 from flext_cli.constants import FlextCliConstants
 from flext_cli.file_tools import FlextCliFileTools
+from flext_cli.utilities import FlextCliUtilities
 
 
 class FlextCliCmd(FlextService[FlextTypes.JsonDict]):
@@ -29,77 +29,7 @@ class FlextCliCmd(FlextService[FlextTypes.JsonDict]):
 
     # Attributes initialized in __init__ (inherit types from FlextService)
     # Logger is provided by FlextMixins mixin
-
-    class CmdUtilities:
-        """Nested utilities class for configuration helpers following FLEXT pattern."""
-
-        @staticmethod
-        def get_config_paths() -> list[str]:
-            """Get standard configuration paths."""
-            home = Path.home()
-            flext_dir = home / FlextCliConstants.FLEXT_DIR_NAME
-
-            return [
-                str(flext_dir),
-                str(flext_dir / FlextCliConstants.DictKeys.CONFIG),
-                str(flext_dir / FlextCliConstants.Subdirectories.CACHE),
-                str(flext_dir / FlextCliConstants.Subdirectories.LOGS),
-                str(flext_dir / FlextCliConstants.DictKeys.TOKEN),
-                str(flext_dir / FlextCliConstants.Subdirectories.REFRESH_TOKEN),
-            ]
-
-        @staticmethod
-        def validate_config_structure() -> list[str]:
-            """Validate configuration directory structure."""
-            results: list[str] = []
-            home = Path.home()
-            flext_dir = home / FlextCliConstants.FLEXT_DIR_NAME
-
-            # Check main config directory
-            if flext_dir.exists():
-                results.append(
-                    FlextCliConstants.Symbols.SUCCESS_MARK
-                    + FlextCliConstants.CmdMessages.CONFIG_DIR_EXISTS
-                )
-            else:
-                results.append(
-                    FlextCliConstants.Symbols.FAILURE_MARK
-                    + FlextCliConstants.CmdMessages.CONFIG_DIR_MISSING
-                )
-
-            # Check subdirectories using constants
-            for subdir in FlextCliConstants.Subdirectories.STANDARD_SUBDIRS:
-                path = flext_dir / subdir
-                if path.exists():
-                    results.append(
-                        FlextCliConstants.CmdMessages.SUBDIR_EXISTS.format(
-                            symbol=FlextCliConstants.Symbols.SUCCESS_MARK, subdir=subdir
-                        )
-                    )
-                else:
-                    results.append(
-                        FlextCliConstants.CmdMessages.SUBDIR_MISSING.format(
-                            symbol=FlextCliConstants.Symbols.FAILURE_MARK, subdir=subdir
-                        )
-                    )
-
-            return results
-
-        @staticmethod
-        def get_config_info() -> FlextTypes.JsonDict:
-            """Get configuration information."""
-            home = Path.home()
-            flext_dir = home / FlextCliConstants.FLEXT_DIR_NAME
-
-            return {
-                FlextCliConstants.DictKeys.CONFIG_DIR: str(flext_dir),
-                FlextCliConstants.DictKeys.CONFIG_EXISTS: flext_dir.exists(),
-                FlextCliConstants.DictKeys.CONFIG_READABLE: flext_dir.exists()
-                and os.access(flext_dir, os.R_OK),
-                FlextCliConstants.DictKeys.CONFIG_WRITABLE: flext_dir.exists()
-                and os.access(flext_dir, os.W_OK),
-                FlextCliConstants.DictKeys.TIMESTAMP: datetime.now(UTC).isoformat(),
-            }
+    # All config utilities moved to FlextCliUtilities.ConfigOps
 
     @override
     def __init__(self) -> None:
@@ -120,23 +50,10 @@ class FlextCliCmd(FlextService[FlextTypes.JsonDict]):
         """Create new instance of FlextCliCmd."""
         return cls()
 
-    # Private wrapper methods for backwards compatibility with tests
-    def _get_config_paths(self) -> list[str]:
-        """Get config paths (delegates to CmdUtilities)."""
-        return self.CmdUtilities.get_config_paths()
-
-    def _validate_config_structure(self) -> list[str]:
-        """Validate config structure (delegates to CmdUtilities)."""
-        return self.CmdUtilities.validate_config_structure()
-
-    def _get_config_info(self) -> FlextTypes.JsonDict:
-        """Get config info (delegates to CmdUtilities)."""
-        return self.CmdUtilities.get_config_info()
-
     def show_config_paths(self) -> FlextResult[list[str]]:
-        """Show configuration paths."""
+        """Show configuration paths using FlextCliUtilities directly."""
         try:
-            paths = self._get_config_paths()
+            paths = FlextCliUtilities.ConfigOps.get_config_paths()
             return FlextResult[list[str]].ok(paths)
         except Exception as e:
             return FlextResult[list[str]].fail(
@@ -144,9 +61,9 @@ class FlextCliCmd(FlextService[FlextTypes.JsonDict]):
             )
 
     def validate_config(self) -> FlextResult[None]:
-        """Validate configuration structure."""
+        """Validate configuration structure using FlextCliUtilities directly."""
         try:
-            results = self._validate_config_structure()
+            results = FlextCliUtilities.ConfigOps.validate_config_structure()
             if results and self.logger:
                 self.logger.info(
                     FlextCliConstants.LogMessages.CONFIG_VALIDATION_RESULTS.format(
@@ -160,9 +77,9 @@ class FlextCliCmd(FlextService[FlextTypes.JsonDict]):
             )
 
     def get_config_info(self) -> FlextResult[FlextTypes.JsonDict]:
-        """Get configuration information."""
+        """Get configuration information using FlextCliUtilities directly."""
         try:
-            info = self._get_config_info()
+            info = FlextCliUtilities.ConfigOps.get_config_info()
             return FlextResult[FlextTypes.JsonDict].ok(info)
         except Exception as e:
             return FlextResult[FlextTypes.JsonDict].fail(
@@ -289,93 +206,100 @@ class FlextCliCmd(FlextService[FlextTypes.JsonDict]):
             )
 
     def edit_config(self) -> FlextResult[str]:
-        """Edit configuration with real implementation using flext-core."""
+        """Edit configuration with extracted helpers and railway pattern."""
         try:
-            # Use flext-core configuration system for real editing
-
-            # Get configuration file path
             config_path = (
                 FlextCliConfig().config_dir
                 / FlextCliConstants.ConfigFiles.CLI_CONFIG_JSON
             )
 
-            # Check if config file exists, create if not
-            if not config_path.exists():
-                # Create default configuration
-                default_config = {
-                    FlextCliConstants.DictKeys.HOST: FlextCliConstants.NetworkDefaults.DEFAULT_HOST,
-                    FlextCliConstants.DictKeys.PORT: FlextCliConstants.NetworkDefaults.DEFAULT_PORT,
-                    FlextCliConstants.DictKeys.PROFILE: FlextCliConstants.DEFAULT,
-                    FlextCliConstants.DictKeys.DEBUG: False,
-                    FlextCliConstants.DictKeys.VERBOSE: False,
-                    FlextCliConstants.DictKeys.QUIET: False,
-                    FlextCliConstants.DictKeys.OUTPUT_FORMAT: FlextCliConstants.TABLE,
-                    FlextCliConstants.DictKeys.TIMEOUT: FlextCliConstants.TIMEOUTS.DEFAULT,
-                }
-
-                # Save default configuration with proper JSON types
-                host_val = default_config[FlextCliConstants.DictKeys.HOST]
-                port_val = default_config[FlextCliConstants.DictKeys.PORT]
-                timeout_val = default_config[FlextCliConstants.DictKeys.TIMEOUT]
-
-                config_data: FlextTypes.JsonValue = {
-                    FlextCliConstants.DictKeys.HOST: str(host_val),
-                    FlextCliConstants.DictKeys.PORT: int(port_val)
-                    if isinstance(port_val, (int, str))
-                    else 0,
-                    FlextCliConstants.DictKeys.TIMEOUT: int(timeout_val)
-                    if isinstance(timeout_val, (int, str))
-                    else 30,
-                }
-                save_result = self._file_tools.write_json_file(
-                    file_path=str(config_path), data=config_data
-                )
-                if save_result.is_failure:
-                    return FlextResult[str].fail(
-                        FlextCliConstants.CmdErrorMessages.CREATE_DEFAULT_CONFIG_FAILED.format(
-                            error=save_result.error
-                        )
-                    )
-
-            # Load current configuration
-            load_result = self._file_tools.read_json_file(str(config_path))
-            if load_result.is_failure:
-                return FlextResult[str].fail(
-                    FlextCliConstants.CmdErrorMessages.CONFIG_LOAD_FAILED.format(
-                        error=load_result.error
-                    )
-                )
-
-            # Ensure config_data is a FlextTypes.JsonDict with type guard
-            if not isinstance(load_result.value, dict):
-                return FlextResult[str].fail(
-                    FlextCliConstants.CmdErrorMessages.CONFIG_NOT_DICT
-                )
-
-            # Cast dict[str, object] to FlextTypes.JsonDict (compatible types)
-            loaded_config_data: FlextTypes.JsonDict = load_result.value
-
-            # For now, return success with config info
-            # In a real implementation, this would open an editor
-            config_info = {
-                FlextCliConstants.DictKeys.CONFIG_FILE: str(config_path),
-                FlextCliConstants.DictKeys.CONFIG_DATA: loaded_config_data,
-                FlextCliConstants.DictKeys.MESSAGE: FlextCliConstants.ServiceMessages.CONFIG_LOADED_SUCCESSFULLY,
-            }
-
-            if self.logger:
-                self.logger.info(
-                    FlextCliConstants.CmdMessages.CONFIG_EDIT_COMPLETED_LOG,
-                    config=config_info,
-                )
-            return FlextResult[str].ok(
-                FlextCliConstants.LogMessages.CONFIG_EDIT_COMPLETED
+            # Railway pattern: ensure exists → load → validate → build response
+            return (
+                self._ensure_config_exists(config_path)
+                .flat_map(lambda _: self._load_and_validate_config(config_path))
+                .map(lambda config: self._build_config_response(config_path, config))
             )
 
         except Exception as e:
             return FlextResult[str].fail(
                 FlextCliConstants.ErrorMessages.EDIT_CONFIG_FAILED.format(error=e)
             )
+
+    def _ensure_config_exists(self, config_path: object) -> FlextResult[None]:
+        """Ensure config file exists, create default if not."""
+        path = Path(str(config_path))
+        if path.exists():
+            return FlextResult[None].ok(None)
+
+        # Create default config and save
+        default_config = self._create_default_config()
+        save_result = self._file_tools.write_json_file(
+            file_path=str(path), data=default_config
+        )
+
+        if save_result.is_failure:
+            return FlextResult[None].fail(
+                FlextCliConstants.CmdErrorMessages.CREATE_DEFAULT_CONFIG_FAILED.format(
+                    error=save_result.error
+                )
+            )
+
+        return FlextResult[None].ok(None)
+
+    def _create_default_config(self) -> FlextTypes.JsonValue:
+        """Create default configuration dict with proper types."""
+        # Build default config with typed values
+        host_default: str = str(FlextCliConstants.NetworkDefaults.DEFAULT_HOST)
+        port_default: int = int(FlextCliConstants.NetworkDefaults.DEFAULT_PORT)
+        timeout_default: int = int(FlextCliConstants.TIMEOUTS.DEFAULT)
+
+        # Create JSON-compatible config
+        config_data: FlextTypes.JsonValue = {
+            FlextCliConstants.DictKeys.HOST: host_default,
+            FlextCliConstants.DictKeys.PORT: port_default,
+            FlextCliConstants.DictKeys.TIMEOUT: timeout_default,
+        }
+
+        return config_data
+
+    def _load_and_validate_config(
+        self, config_path: object
+    ) -> FlextResult[FlextTypes.JsonDict]:
+        """Load config file and validate it's a dict."""
+        load_result = self._file_tools.read_json_file(str(config_path))
+
+        if load_result.is_failure:
+            return FlextResult[FlextTypes.JsonDict].fail(
+                FlextCliConstants.CmdErrorMessages.CONFIG_LOAD_FAILED.format(
+                    error=load_result.error
+                )
+            )
+
+        # Type guard validation
+        if not isinstance(load_result.value, dict):
+            return FlextResult[FlextTypes.JsonDict].fail(
+                FlextCliConstants.CmdErrorMessages.CONFIG_NOT_DICT
+            )
+
+        return FlextResult[FlextTypes.JsonDict].ok(load_result.value)
+
+    def _build_config_response(
+        self, config_path: object, config_data: FlextTypes.JsonDict
+    ) -> str:
+        """Build final config response with logging."""
+        config_info = {
+            FlextCliConstants.DictKeys.CONFIG_FILE: str(config_path),
+            FlextCliConstants.DictKeys.CONFIG_DATA: config_data,
+            FlextCliConstants.DictKeys.MESSAGE: FlextCliConstants.ServiceMessages.CONFIG_LOADED_SUCCESSFULLY,
+        }
+
+        if self.logger:
+            self.logger.info(
+                FlextCliConstants.CmdMessages.CONFIG_EDIT_COMPLETED_LOG,
+                config=config_info,
+            )
+
+        return FlextCliConstants.LogMessages.CONFIG_EDIT_COMPLETED
 
 
 __all__ = [

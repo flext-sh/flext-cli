@@ -71,7 +71,7 @@ import asyncio
 import functools
 import json
 import time
-from collections.abc import Callable, Coroutine
+from collections.abc import Callable, Coroutine, Mapping
 from concurrent.futures import ThreadPoolExecutor
 from datetime import UTC, datetime
 from importlib import metadata
@@ -907,6 +907,28 @@ class FlextCliCore(FlextService[FlextCliTypes.Data.CliDataDict]):
                 FlextCliConstants.ErrorMessages.CONFIG_RETRIEVAL_FAILED.format(error=e)
             )
 
+    def _get_dict_keys(
+        self,
+        data_dict: Mapping[str, object] | None,
+        error_message: str,
+    ) -> FlextResult[list[str]]:
+        """Generic method to safely get keys from a dictionary.
+
+        Args:
+            data_dict: Dictionary to extract keys from (None-safe)
+            error_message: Error message template to use on failure
+
+        Returns:
+            FlextResult with list of keys or error
+
+        """
+        try:
+            return FlextResult[list[str]].ok(
+                list(data_dict.keys()) if data_dict else []
+            )
+        except Exception as e:
+            return FlextResult[list[str]].fail(error_message.format(error=e))
+
     def get_handlers(self) -> FlextResult[list[str]]:
         """Get list of registered command handlers.
 
@@ -914,14 +936,10 @@ class FlextCliCore(FlextService[FlextCliTypes.Data.CliDataDict]):
             FlextResult[list[str]]: List of handler names
 
         """
-        try:
-            return FlextResult[list[str]].ok(
-                list(self._commands.keys()) if self._commands else []
-            )
-        except Exception as e:
-            return FlextResult[list[str]].fail(
-                FlextCliConstants.ErrorMessages.COMMAND_LISTING_FAILED.format(error=e)
-            )
+        return self._get_dict_keys(
+            self._commands,
+            FlextCliConstants.ErrorMessages.COMMAND_LISTING_FAILED,
+        )
 
     def get_plugins(self) -> FlextResult[list[str]]:
         """Get list of registered plugins.
@@ -930,16 +948,10 @@ class FlextCliCore(FlextService[FlextCliTypes.Data.CliDataDict]):
             FlextResult[list[str]]: List of plugin names
 
         """
-        try:
-            return FlextResult[list[str]].ok(
-                list(self._plugins.keys()) if self._plugins else []
-            )
-        except Exception as e:
-            return FlextResult[list[str]].fail(
-                FlextCliConstants.ErrorMessages.FAILED_GET_LOADED_PLUGINS.format(
-                    error=e
-                )
-            )
+        return self._get_dict_keys(
+            self._plugins,
+            FlextCliConstants.ErrorMessages.FAILED_GET_LOADED_PLUGINS,
+        )
 
     def get_sessions(self) -> FlextResult[list[str]]:
         """Get list of active sessions.
@@ -948,14 +960,9 @@ class FlextCliCore(FlextService[FlextCliTypes.Data.CliDataDict]):
             FlextResult[list[str]]: List of session IDs
 
         """
-        try:
-            return FlextResult[list[str]].ok(
-                list(self._sessions.keys()) if self._sessions else []
-            )
-        except Exception as e:
-            return FlextResult[list[str]].fail(
-                FlextCliConstants.ErrorMessages.SESSION_END_FAILED.format(error=e)
-            )
+        return self._get_dict_keys(
+            self._sessions, FlextCliConstants.ErrorMessages.SESSION_END_FAILED
+        )
 
     def get_commands(self) -> FlextResult[list[str]]:
         """Get list of registered commands.
@@ -964,14 +971,10 @@ class FlextCliCore(FlextService[FlextCliTypes.Data.CliDataDict]):
             FlextResult[list[str]]: List of command names
 
         """
-        try:
-            return FlextResult[list[str]].ok(
-                list(self._commands.keys()) if self._commands else []
-            )
-        except Exception as e:
-            return FlextResult[list[str]].fail(
-                FlextCliConstants.ErrorMessages.COMMAND_LISTING_FAILED.format(error=e)
-            )
+        return self._get_dict_keys(
+            self._commands,
+            FlextCliConstants.ErrorMessages.COMMAND_LISTING_FAILED,
+        )
 
     def get_formatters(self) -> FlextResult[list[str]]:
         """Get list of available formatters from constants.

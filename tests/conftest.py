@@ -99,8 +99,35 @@ def temp_csv_file(temp_dir: Path) -> Path:
 
 
 @pytest.fixture
-def flext_cli_api() -> FlextCli:
-    """Create FlextCli instance for testing."""
+def flext_cli_api(
+    tmp_path: Path, request: pytest.FixtureRequest, monkeypatch: pytest.MonkeyPatch
+) -> FlextCli:
+    """Create isolated FlextCli instance with test-specific config.
+
+    Each test gets a fresh FlextCli instance with configuration pointing
+    to a unique temporary directory, ensuring complete isolation between tests.
+    """
+    # Create unique subdirectory for this specific test
+    # This ensures complete isolation even if pytest reuses tmp_path
+    test_dir = tmp_path / f"test_{id(request)}"
+    test_dir.mkdir(exist_ok=True)
+
+    # Mock FlextCliConfig to inject test paths at creation time
+    original_config_init = FlextCliConfig.__init__
+
+    def patched_config_init(self: FlextCliConfig, **kwargs: object) -> None:
+        # Inject test paths if not explicitly provided
+        if "config_dir" not in kwargs:
+            kwargs["config_dir"] = test_dir
+        if "token_file" not in kwargs:
+            kwargs["token_file"] = test_dir / "token.json"
+        if "refresh_token_file" not in kwargs:
+            kwargs["refresh_token_file"] = test_dir / "refresh_token.json"
+        original_config_init(self, **kwargs)
+
+    monkeypatch.setattr(FlextCliConfig, "__init__", patched_config_init)
+
+    # Now create FlextCli instance - config will use test paths
     return FlextCli()
 
 
