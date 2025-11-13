@@ -1141,9 +1141,10 @@ class FlextCliModels(FlextModels):
                 """Update config and call wrapped function."""
                 if self.config is not None:
                     # Update config fields from CLI args
+                    # Only update fields that exist in config (command-specific params are ignored)
                     for cli_param, field_name in self.field_mapping.items():
                         cli_value = kwargs.get(cli_param)
-                        if cli_value is not None:
+                        if cli_value is not None and hasattr(self.config, field_name):
                             setattr(self.config, field_name, cli_value)
 
                 func(**kwargs)
