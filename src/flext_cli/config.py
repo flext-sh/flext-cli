@@ -35,6 +35,7 @@ from pydantic import (
 )
 from pydantic_settings import SettingsConfigDict
 
+from flext_cli._models_config import ConfigServiceExecutionResult
 from flext_cli.constants import FlextCliConstants
 from flext_cli.typings import FlextCliTypes
 
@@ -213,89 +214,157 @@ class FlextCliConfig(FlextConfig):
     # Pydantic 2.11 model validator (runs after all field validators)
     @model_validator(mode="after")
     def validate_configuration(self) -> Self:
-        """Validate configuration and auto-propagate to FlextContext/FlextContainer.
+        """Validate configuration using functional composition and railway pattern.
 
-        This method runs AFTER all field validators, so individual field validation
-        is already complete via Pydantic 2 @field_validator decorators.
+        This method runs AFTER all field validators, implementing comprehensive
+        configuration validation with functional error handling and auto-setup.
 
-        This method:
-        1. Ensures config directory exists
-        2. Auto-propagates config to FlextContext for global access
-        3. Auto-registers in FlextContainer for dependency injection
+        Uses railway pattern for:
+        1. Directory creation with proper error handling
+        2. Context propagation with graceful degradation
+        3. Container registration with conflict avoidance
 
         """
-        # Ensure config directory exists or can be created
-        try:
-            self.config_dir.mkdir(parents=True, exist_ok=True)
-        except (PermissionError, OSError) as e:
-            msg = FlextCliConstants.ErrorMessages.CANNOT_ACCESS_CONFIG_DIR.format(
-                config_dir=self.config_dir, error=e
-            )
-            raise ValueError(msg) from e
 
-        # Auto-propagate config to FlextContext for global access
-        try:
-            # Resolve context dynamically so test monkeypatching works
-            flext_core_module = importlib.import_module("flext_core")
-            context_cls = getattr(flext_core_module, "FlextContext", FlextContext)
-            context = context_cls()
-            context.set("cli_config", self)
-            context.set("cli_auto_output_format", self.auto_output_format)
-            context.set("cli_auto_color_support", self.auto_color_support)
-            context.set("cli_auto_verbosity", self.auto_verbosity)
-            context.set("cli_optimal_table_format", self.optimal_table_format)
-        except Exception as e:
-            # FlextContext might not be initialized yet - continue gracefully
-            logger.debug("Context not available during config initialization: %s", e)
+        # Functional directory validation using railway pattern
+        def ensure_config_directory() -> FlextResult[Path]:
+            """Ensure config directory exists with proper error handling."""
+            try:
+                self.config_dir.mkdir(parents=True, exist_ok=True)
+                return FlextResult.ok(self.config_dir)
+            except (PermissionError, OSError) as e:
+                error_msg = (
+                    FlextCliConstants.ErrorMessages.CANNOT_ACCESS_CONFIG_DIR.format(
+                        config_dir=self.config_dir, error=e
+                    )
+                )
+                return FlextResult.fail(error_msg)
 
-        # Auto-register in FlextContainer for dependency injection
-        try:
-            container = FlextContainer.get_global()
-            # Register only if not already registered (avoids test conflicts)
-            if not container.has_service("flext_cli_config"):
-                container.with_service("flext_cli_config", self)
-        except Exception as e:
-            # Container might not be initialized yet - continue gracefully
-            logger.debug("Container not available during config initialization: %s", e)
+        # Functional context propagation with graceful degradation
+        def propagate_to_context() -> FlextResult[None]:
+            """Propagate configuration to FlextContext with error recovery."""
+            try:
+                # Resolve context dynamically for test compatibility
+                flext_core_module = importlib.import_module("flext_core")
+                context_cls = getattr(flext_core_module, "FlextContext", FlextContext)
+                context = context_cls() if context_cls else FlextContext()
+
+                # Propagate configuration values
+                context.set("cli_config", self)
+                context.set("cli_auto_output_format", self.auto_output_format)
+                context.set("cli_auto_color_support", self.auto_color_support)
+                context.set("cli_auto_verbosity", self.auto_verbosity)
+                context.set("cli_optimal_table_format", self.optimal_table_format)
+
+                return FlextResult.ok(None)
+            except Exception as e:
+                # Log but don't fail - context might not be initialized yet
+                logger.debug(
+                    "Context not available during config initialization: %s", e
+                )
+                return FlextResult.ok(None)  # Graceful degradation
+
+        # Functional container registration with conflict avoidance
+        def register_in_container() -> FlextResult[None]:
+            """Register configuration in FlextContainer for dependency injection."""
+            try:
+                container = FlextContainer.get_global()
+                # Register only if not already registered (avoids test conflicts)
+                if not container.has_service("flext_cli_config"):
+                    container.with_service("flext_cli_config", self)
+                return FlextResult.ok(None)
+            except Exception as e:
+                # Container might not be initialized yet - continue gracefully
+                logger.debug(
+                    "Container not available during config initialization: %s", e
+                )
+                return FlextResult.ok(None)  # Graceful degradation
+
+        # Execute validation pipeline using railway pattern
+        validation_result = (
+            ensure_config_directory()
+            .flat_map(lambda _: propagate_to_context())
+            .flat_map(lambda _: register_in_container())
+        )
+
+        # Convert validation result to configuration result
+        if validation_result.is_failure:
+            msg = f"Configuration validation failed: {validation_result.error}"
+            raise ValueError(msg)
 
         return self
 
     # Pydantic 2 computed fields for smart auto-configuration
     @computed_field
     def auto_output_format(self) -> str:
-        """Auto-detect optimal output format based on terminal capabilities.
+        """Auto-detect optimal output format using functional composition and railway pattern.
 
-        Detects:
-        - Terminal width for best table format
-        - Color support for styling
-        - Interactive vs non-interactive mode
+        Detects terminal capabilities using functional pipeline:
+        - Interactive vs piped output detection
+        - Terminal width assessment
+        - Color support evaluation
+        - Format selection based on capabilities
 
         Returns:
             str: Optimal output format (table, json, plain, etc.)
 
         """
-        # Check if output is being piped (non-interactive)
-        if not os.isatty(FlextCliConstants.ConfigValidation.STDOUT_FD):
+
+        # Functional terminal capability detection
+        def detect_interactive_mode() -> FlextResult[bool]:
+            """Detect if output is interactive (not piped)."""
+            is_interactive = os.isatty(FlextCliConstants.ConfigValidation.STDOUT_FD)
+            return FlextResult.ok(is_interactive)
+
+        def get_terminal_width() -> FlextResult[int]:
+            """Get terminal width with fallback."""
+            try:
+                terminal_size = shutil.get_terminal_size(
+                    fallback=(
+                        FlextCliConstants.ConfigValidation.TERMINAL_FALLBACK_WIDTH,
+                        FlextCliConstants.ConfigValidation.TERMINAL_FALLBACK_HEIGHT,
+                    )
+                )
+                return FlextResult.ok(terminal_size.columns)
+            except Exception:
+                return FlextResult.ok(
+                    FlextCliConstants.ConfigValidation.TERMINAL_FALLBACK_WIDTH
+                )
+
+        def determine_format(is_interactive: bool, width: int, has_color: bool) -> str:
+            """Determine optimal format based on capabilities."""
+            # Non-interactive always uses JSON
+            if not is_interactive:
+                return FlextCliConstants.OutputFormats.JSON.value
+
+            # Narrow terminals use plain format
+            if width < FlextCliConstants.TERMINAL_WIDTH_NARROW:
+                return FlextCliConstants.OutputFormats.PLAIN.value
+
+            # Color terminals use table format
+            if has_color:
+                return FlextCliConstants.OutputFormats.TABLE.value
+
+            # Fallback to JSON
             return FlextCliConstants.OutputFormats.JSON.value
 
-        # Get terminal width
-        terminal_width = shutil.get_terminal_size(
-            fallback=(
-                FlextCliConstants.ConfigValidation.TERMINAL_FALLBACK_WIDTH,
-                FlextCliConstants.ConfigValidation.TERMINAL_FALLBACK_HEIGHT,
+        # Railway pattern: detect capabilities then determine format
+        return (
+            detect_interactive_mode()
+            .flat_map(
+                lambda interactive: get_terminal_width().map(
+                    lambda width: (interactive, width)
+                )
             )
-        ).columns
-
-        # For narrow terminals, use simple format
-        if terminal_width < FlextCliConstants.TERMINAL_WIDTH_NARROW:
-            return FlextCliConstants.OutputFormats.PLAIN.value
-
-        # For wide terminals with color support, use table
-        if bool(self.auto_color_support):
-            return FlextCliConstants.OutputFormats.TABLE.value
-
-        # Fallback to JSON for compatibility
-        return FlextCliConstants.OutputFormats.JSON.value
+            .map(
+                lambda capabilities: determine_format(
+                    capabilities[0],  # is_interactive
+                    capabilities[1],  # width
+                    bool(self.auto_color_support),  # has_color
+                )
+            )
+            .unwrap_or(FlextCliConstants.OutputFormats.JSON.value)  # Safe fallback
+        )
 
     @computed_field
     def auto_color_support(self) -> bool:
@@ -313,58 +382,106 @@ class FlextCliConfig(FlextConfig):
 
     @computed_field
     def auto_verbosity(self) -> str:
-        """Auto-set verbosity based on configuration.
+        """Auto-set verbosity using functional pattern matching and railway approach.
+
+        Determines verbosity level based on configuration flags with clear priority:
+        - Explicit verbose flag takes precedence
+        - Quiet flag overrides normal
+        - Falls back to normal verbosity
 
         Returns:
             str: Verbosity level (verbose, normal, quiet)
 
         """
-        # Check if explicitly set via config
-        if self.verbose:
-            return FlextCliConstants.ConfigDefaults.DEFAULT_VERBOSITY
-        if self.quiet:
-            return FlextCliConstants.ConfigDefaults.QUIET_VERBOSITY
 
-        # Default to normal verbosity
-        return FlextCliConstants.ConfigDefaults.NORMAL_VERBOSITY
+        # Functional verbosity determination using pattern matching
+        def determine_verbosity() -> str:
+            """Determine verbosity level based on configuration."""
+            match (self.verbose, self.quiet):
+                case (True, _):  # Verbose takes precedence
+                    return FlextCliConstants.ConfigDefaults.DEFAULT_VERBOSITY
+                case (_, True):  # Quiet overrides normal
+                    return FlextCliConstants.ConfigDefaults.QUIET_VERBOSITY
+                case _:  # Default case
+                    return FlextCliConstants.ConfigDefaults.NORMAL_VERBOSITY
+
+        # Railway pattern: validate and determine verbosity
+        return (
+            FlextResult.ok((self.verbose, self.quiet))
+            .map(lambda _: determine_verbosity())
+            .unwrap_or(FlextCliConstants.ConfigDefaults.NORMAL_VERBOSITY)
+        )
 
     @computed_field
     def optimal_table_format(self) -> str:
-        """Best tabulate format for current terminal width.
+        """Determine optimal table format using functional composition and railway pattern.
+
+        Analyzes terminal width using functional pipeline to select the best
+        tabulate format for optimal visual presentation.
 
         Returns:
-            str: Optimal tabulate format based on terminal width
+            str: Optimal tabulate format (simple, github, grid)
 
         """
-        terminal_width = shutil.get_terminal_size(
-            fallback=(
-                FlextCliConstants.ConfigValidation.TERMINAL_FALLBACK_WIDTH,
-                FlextCliConstants.ConfigValidation.TERMINAL_FALLBACK_HEIGHT,
-            )
-        ).columns
 
-        # Narrow terminals: simple format
-        if terminal_width < FlextCliConstants.TERMINAL_WIDTH_NARROW:
-            return FlextCliConstants.TableFormats.SIMPLE
+        # Functional terminal width detection
+        def get_terminal_width() -> FlextResult[int]:
+            """Get terminal width with error handling."""
+            try:
+                terminal_size = shutil.get_terminal_size(
+                    fallback=(
+                        FlextCliConstants.ConfigValidation.TERMINAL_FALLBACK_WIDTH,
+                        FlextCliConstants.ConfigValidation.TERMINAL_FALLBACK_HEIGHT,
+                    )
+                )
+                return FlextResult.ok(terminal_size.columns)
+            except Exception:
+                return FlextResult.ok(
+                    FlextCliConstants.ConfigValidation.TERMINAL_FALLBACK_WIDTH
+                )
 
-        # Medium terminals: github format
-        if terminal_width < FlextCliConstants.TERMINAL_WIDTH_MEDIUM:
-            return FlextCliConstants.TableFormats.GITHUB
+        def select_table_format(width: int) -> str:
+            """Select optimal table format based on terminal width."""
+            if width < FlextCliConstants.TERMINAL_WIDTH_NARROW:
+                return FlextCliConstants.TableFormats.SIMPLE
+            if width < FlextCliConstants.TERMINAL_WIDTH_MEDIUM:
+                return FlextCliConstants.TableFormats.GITHUB
+            return FlextCliConstants.TableFormats.GRID
 
-        # Wide terminals: grid format (most visually appealing)
-        return FlextCliConstants.TableFormats.GRID
+        # Railway pattern: get width then select format
+        return (
+            get_terminal_width()
+            .map(select_table_format)
+            .unwrap_or(FlextCliConstants.TableFormats.SIMPLE)  # Safe fallback
+        )
 
     # CLI-specific methods
 
     def validate_output_format_result(self, value: str) -> FlextResult[str]:
-        """Validate output format using FlextCliConstants and return FlextResult."""
-        if value not in FlextCliConstants.OUTPUT_FORMATS_LIST:
-            return FlextResult[str].fail(
-                FlextCliConstants.ErrorMessages.INVALID_OUTPUT_FORMAT.format(
-                    format=value
-                )
+        """Validate output format using functional composition and railway pattern.
+
+        Performs format validation using functional pipeline with clear error
+        messages and type-safe result handling.
+
+        Args:
+            value: Output format to validate
+
+        Returns:
+            FlextResult[str]: Validated format or error with details
+
+        """
+
+        # Functional validation using railway pattern
+        def check_format_exists(fmt: str) -> FlextResult[str]:
+            """Check if format exists in allowed list."""
+            if fmt in FlextCliConstants.OUTPUT_FORMATS_LIST:
+                return FlextResult.ok(fmt)
+            return FlextResult.fail(
+                FlextCliConstants.ErrorMessages.INVALID_OUTPUT_FORMAT.format(format=fmt)
             )
-        return FlextResult[str].ok(value)
+
+        # Railway pattern: validate input then check format
+        return FlextResult.ok(value).flat_map(check_format_exists)
 
     @classmethod
     def load_from_config_file(cls, config_file: Path) -> FlextResult["FlextCliConfig"]:
@@ -419,16 +536,9 @@ class FlextCliConfig(FlextConfig):
             - Serializes to dict for API compatibility
             - Type-safe with field validation
 
-        Note:
-            FlextCliModels imported locally to avoid circular dependency
-            (config.py → models.py → config.py)
-
         """
-        # Import locally to avoid circular dependency
-        from flext_cli.models import FlextCliModels
-
         # Create Pydantic model with type-safe fields
-        result_model = FlextCliModels.ConfigServiceExecutionResult(
+        result_model = ConfigServiceExecutionResult(
             status=FlextCliConstants.ServiceStatus.OPERATIONAL.value,
             service=FlextCliConstants.ConfigDefaults.DEFAULT_SERVICE_NAME,
             timestamp=datetime.now(UTC).isoformat(),

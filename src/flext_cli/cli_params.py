@@ -12,7 +12,7 @@ SPDX-License-Identifier: MIT
 
 import sys
 from collections.abc import Callable
-from typing import ClassVar, TypeVar
+from typing import ClassVar, Literal, TypeVar, cast
 
 from flext_core import FlextConstants, FlextResult
 from typer.models import OptionInfo
@@ -304,7 +304,9 @@ class FlextCliCommonParams:
                     f"invalid output format: {params.output_format}. valid options: {', '.join(valid)}"
                 )
             # After validation, safe to assign (MyPy needs explicit knowledge)
-            config.output_format = params.output_format
+            config.output_format = cast(
+                "Literal['csv', 'json', 'plain', 'table', 'yaml']", params.output_format
+            )
 
         return FlextResult[FlextCliConfig].ok(config)
 

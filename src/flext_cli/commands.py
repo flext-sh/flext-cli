@@ -185,12 +185,17 @@ class FlextCliCommands(FlextService[FlextTypes.JsonDict]):
                             )
                         )
 
-            # Log CLI execution mode for debugging
-            self.logger.debug(
-                FlextCliConstants.CommandsLogMessages.CLI_EXECUTION_MODE.format(
-                    standalone_mode=standalone_mode, args=args
-                )
-            )
+            # Log CLI execution mode for debugging with graceful degradation
+            try:
+                logger = getattr(self, "logger", None) or getattr(self, "_logger", None)
+                if logger:
+                    logger.debug(
+                        FlextCliConstants.CommandsLogMessages.CLI_EXECUTION_MODE.format(
+                            standalone_mode=standalone_mode, args=args
+                        )
+                    )
+            except Exception:
+                pass  # Graceful degradation
 
             # For now, just execute the service
             result = self.execute()
@@ -231,12 +236,17 @@ class FlextCliCommands(FlextService[FlextTypes.JsonDict]):
 
         """
         try:
-            # Log timeout parameter for future use
-            self.logger.debug(
-                FlextCliConstants.CommandsLogMessages.EXECUTING_COMMAND.format(
-                    command_name=command_name, timeout=timeout
-                )
-            )
+            # Log timeout parameter for future use with graceful degradation
+            try:
+                logger = getattr(self, "logger", None) or getattr(self, "_logger", None)
+                if logger:
+                    logger.debug(
+                        FlextCliConstants.CommandsLogMessages.EXECUTING_COMMAND.format(
+                            command_name=command_name, timeout=timeout
+                        )
+                    )
+            except Exception:
+                pass  # Graceful degradation
 
             if command_name not in self._commands:
                 return FlextResult[FlextTypes.JsonValue].fail(
