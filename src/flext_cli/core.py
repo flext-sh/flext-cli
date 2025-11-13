@@ -315,12 +315,34 @@ class FlextCliCore(FlextService[FlextCliTypes.Data.CliDataDict]):
             FlextResult[None]: Registration success or failure result
 
         """
-        # Validation is handled by Pydantic model, no isinstance checks needed
-        self._commands[command.name] = command.model_dump()
-        self.logger.info(
-            FlextCliConstants.LogMessages.COMMAND_REGISTERED.format(name=command.name)
-        )
-        return FlextResult[None].ok(None)
+        # Simple validation and registration (KISS principle)
+        if not command or not command.name:
+            return FlextResult.fail(FlextCliConstants.ErrorMessages.COMMAND_NAME_EMPTY)
+
+        try:
+            # Persist command to registry
+            self._commands[command.name] = command.model_dump()
+
+            # Log success with graceful degradation
+            try:
+                logger = getattr(self, "logger", None) or getattr(self, "_logger", None)
+                if logger:
+                    logger.info(
+                        FlextCliConstants.LogMessages.COMMAND_REGISTERED.format(
+                            name=command.name
+                        )
+                    )
+            except Exception:
+                pass  # Graceful degradation
+
+            return FlextResult.ok(None)
+
+        except Exception as e:
+            return FlextResult.fail(
+                FlextCliConstants.ErrorMessages.COMMAND_REGISTRATION_FAILED.format(
+                    command=command.name, error=str(e)
+                )
+            )
 
     def get_command(
         self,
@@ -412,9 +434,24 @@ class FlextCliCore(FlextService[FlextCliTypes.Data.CliDataDict]):
                 FlextCliConstants.DictKeys.TIMEOUT: timeout,  # Include timeout parameter in result
             }
 
-            self.logger.info(
-                FlextCliConstants.LogMessages.COMMAND_EXECUTED.format(name=name)
-            )
+            # Log successful execution with graceful degradation (FlextMixin pattern)
+            try:
+                logger = getattr(self, "logger", None) or getattr(self, "_logger", None)
+                if logger:
+                    logger.info(
+                        FlextCliConstants.LogMessages.COMMAND_EXECUTED.format(name=name)
+                    )
+            except Exception as e:
+                # Graceful degradation - logging failure shouldn't affect command result
+                try:
+                    logger = getattr(self, "logger", None) or getattr(
+                        self, "_logger", None
+                    )
+                    if logger:
+                        logger.debug(f"Command execution logging failed: {e}")
+                except Exception as e:
+                    pass  # Ultimate graceful degradation
+
             return FlextResult[FlextCliTypes.CliCommand.CommandResult].ok(result_data)
 
         except Exception as e:
@@ -425,19 +462,31 @@ class FlextCliCore(FlextService[FlextCliTypes.Data.CliDataDict]):
             )
 
     def list_commands(self) -> FlextResult[list[str]]:
-        """List all registered commands.
+        """List all registered commands using functional composition.
+
+        Performs command listing with railway pattern and proper error handling.
+        Uses functional approach to extract command names safely.
 
         Returns:
-            FlextResult[list[str]]: List of command names or error
+            FlextResult[list[str]]: List of command names or error with details
 
         """
-        try:
-            command_names = list(self._commands.keys())
-            return FlextResult[list[str]].ok(command_names)
-        except Exception as e:
-            return FlextResult[list[str]].fail(
-                FlextCliConstants.ErrorMessages.COMMAND_LISTING_FAILED.format(error=e)
-            )
+
+        # Functional command listing with railway pattern
+        def extract_command_names() -> FlextResult[list[str]]:
+            """Extract command names from internal registry."""
+            try:
+                command_names = list(self._commands.keys())
+                return FlextResult.ok(command_names)
+            except Exception as e:
+                return FlextResult.fail(
+                    FlextCliConstants.ErrorMessages.COMMAND_LISTING_FAILED.format(
+                        error=e
+                    )
+                )
+
+        # Railway pattern: extract and validate command names
+        return extract_command_names()
 
     # ==========================================================================
     # CLI CONFIGURATION MANAGEMENT - Using FlextCliTypes.Configuration types
@@ -447,108 +496,162 @@ class FlextCliCore(FlextService[FlextCliTypes.Data.CliDataDict]):
         self,
         config: FlextCliTypes.Configuration.CliConfigSchema,
     ) -> FlextResult[None]:
-        """Update CLI configuration with enhanced validation.
+        """Update CLI configuration using railway pattern and functional composition.
+
+        Performs configuration update with comprehensive validation and error handling.
+        Uses functional pipeline to ensure safe configuration merging.
 
         Args:
             config: New configuration schema with CLI-specific structure
 
         Returns:
-            FlextResult[None]: Configuration update result
+            FlextResult[None]: Configuration update result with success/failure details
 
         """
-        if not config:
-            return FlextResult[None].fail(
-                FlextCliConstants.ErrorMessages.CONFIG_NOT_DICT
-            )
 
-        try:
-            # Merge with existing configuration
-            # Check if _config is properly initialized as dict (not empty or invalid type)
+        # Functional configuration validation and update
+        def validate_config_input() -> FlextResult[
+            FlextCliTypes.Configuration.CliConfigSchema
+        ]:
+            """Validate input configuration."""
+            if not config:
+                return FlextResult.fail(FlextCliConstants.ErrorMessages.CONFIG_NOT_DICT)
+            return FlextResult.ok(config)
+
+        def validate_existing_config() -> FlextResult[dict[str, object]]:
+            """Validate existing configuration state."""
             if isinstance(self._config, dict) and self._config:
-                self._config.update(config)
-                self.logger.info(FlextCliConstants.LogMessages.CLI_CONFIG_UPDATED)
-                return FlextResult[None].ok(None)
-            return FlextResult[None].fail(
+                return FlextResult[dict[str, object]].ok(self._config)
+            return FlextResult[dict[str, object]].fail(
                 FlextCliConstants.ErrorMessages.CONFIG_NOT_INITIALIZED
             )
-        except Exception as e:
-            return FlextResult[None].fail(
-                FlextCliConstants.ErrorMessages.CONFIG_UPDATE_FAILED.format(error=e)
-            )
+
+        def merge_configurations(
+            valid_config: FlextCliTypes.Configuration.CliConfigSchema,
+        ) -> FlextResult[None]:
+            """Merge new configuration with existing one."""
+            try:
+                existing_config_result = validate_existing_config()
+                if existing_config_result.is_failure:
+                    return FlextResult[None].fail(existing_config_result.error)
+
+                existing_config = existing_config_result.unwrap()
+                existing_config.update(valid_config)
+
+                # Log successful update
+                # Log configuration update with graceful degradation
+                try:
+                    logger = getattr(self, "logger", None) or getattr(
+                        self, "_logger", None
+                    )
+                    if logger:
+                        logger.info(FlextCliConstants.LogMessages.CLI_CONFIG_UPDATED)
+                except Exception as e:
+                    # Graceful degradation with error logging
+                    try:
+                        logger = getattr(self, "logger", None) or getattr(
+                            self, "_logger", None
+                        )
+                        if logger:
+                            logger.debug(f"Config update logging failed: {e}")
+                    except Exception as e:
+                        pass  # Ultimate graceful degradation
+                return FlextResult.ok(None)
+
+            except Exception as e:
+                return FlextResult.fail(
+                    FlextCliConstants.ErrorMessages.CONFIG_UPDATE_FAILED.format(error=e)
+                )
+
+        # Railway pattern: validate input then merge configurations
+        return validate_config_input().flat_map(merge_configurations)
 
     def get_configuration(
         self,
     ) -> FlextResult[FlextCliTypes.Configuration.CliConfigSchema]:
-        """Get current CLI configuration.
+        """Get current CLI configuration using functional composition.
+
+        Retrieves configuration with validation and error handling.
+        Uses railway pattern to ensure configuration integrity.
 
         Returns:
-            FlextResult[FlextCliTypes.Configuration.CliConfigSchema]: Current configuration or error
+            FlextResult[FlextCliTypes.Configuration.CliConfigSchema]: Current configuration or error with details
 
         """
-        try:
-            # Check if _config is properly initialized as dict (not empty or invalid type)
-            if isinstance(self._config, dict) and self._config:
-                return FlextResult[FlextCliTypes.Configuration.CliConfigSchema].ok(
-                    self._config,
+
+        # Functional configuration retrieval with railway pattern
+        def validate_config_state() -> FlextResult[dict[str, object]]:
+            """Validate that configuration is properly initialized."""
+            try:
+                if isinstance(self._config, dict) and self._config:
+                    return FlextResult[dict[str, object]].ok(self._config)
+                return FlextResult[dict[str, object]].fail(
+                    FlextCliConstants.ErrorMessages.CONFIG_NOT_INITIALIZED
                 )
-            return FlextResult[FlextCliTypes.Configuration.CliConfigSchema].fail(
-                FlextCliConstants.ErrorMessages.CONFIG_NOT_INITIALIZED,
-            )
-        except Exception as e:
-            return FlextResult[FlextCliTypes.Configuration.CliConfigSchema].fail(
-                FlextCliConstants.ErrorMessages.CONFIG_RETRIEVAL_FAILED.format(error=e),
-            )
+            except Exception as e:
+                return FlextResult.fail(
+                    FlextCliConstants.ErrorMessages.CONFIG_RETRIEVAL_FAILED.format(
+                        error=e
+                    ),
+                )
+
+        # Railway pattern: validate and return configuration
+        return validate_config_state()
 
     def create_profile(
         self,
         name: str,
         profile_config: FlextCliTypes.Configuration.ProfileConfiguration,
     ) -> FlextResult[None]:
-        """Create CLI configuration profile.
+        """Create CLI configuration profile using railway pattern.
+
+        Performs profile creation with validation and error handling.
 
         Args:
-            name: Profile identifier
+            name: Profile identifier (validated for non-emptiness)
             profile_config: Profile-specific configuration
 
         Returns:
             FlextResult[None]: Profile creation result
 
         """
+        # Input validation
         if not name:
-            return FlextResult[None].fail(
-                FlextCliConstants.ErrorMessages.PROFILE_NAME_EMPTY
-            )
+            return FlextResult.fail(FlextCliConstants.ErrorMessages.PROFILE_NAME_EMPTY)
 
         if not profile_config:
-            return FlextResult[None].fail(
+            return FlextResult.fail(
                 FlextCliConstants.ErrorMessages.PROFILE_CONFIG_NOT_DICT
             )
 
+        if not (isinstance(self._config, dict) and self._config):
+            return FlextResult.fail(
+                FlextCliConstants.ErrorMessages.CONFIG_NOT_INITIALIZED
+            )
+
+        # Store profile
         try:
-            # Check if _config is properly initialized as dict (not empty or invalid type)
-            if not (isinstance(self._config, dict) and self._config):
-                return FlextResult[None].fail(
-                    FlextCliConstants.ErrorMessages.CONFIG_NOT_INITIALIZED
-                )
+            config = self._config
 
-            # Store profile in configuration
-            if FlextCliConstants.DictKeys.PROFILES not in self._config:
-                self._config[FlextCliConstants.DictKeys.PROFILES] = {}
+            # Initialize profiles section if needed
+            if FlextCliConstants.DictKeys.PROFILES not in config:
+                config[FlextCliConstants.DictKeys.PROFILES] = {}
 
-            # Type-safe profile storage
-            profiles_section = self._config[FlextCliConstants.DictKeys.PROFILES]
+            # Store profile safely
+            profiles_section = config[FlextCliConstants.DictKeys.PROFILES]
             if isinstance(profiles_section, dict):
                 profiles_section[name] = profile_config
                 self.logger.info(
                     FlextCliConstants.LogMessages.PROFILE_CREATED.format(name=name)
                 )
-                return FlextResult[None].ok(None)
+                return FlextResult.ok(None)
+
             return FlextResult[None].fail(
-                FlextCliConstants.ErrorMessages.INVALID_PROFILES_STRUCTURE
+                "Profile storage failed: unable to store profile configuration"
             )
 
         except Exception as e:
-            return FlextResult[None].fail(
+            return FlextResult.fail(
                 FlextCliConstants.ErrorMessages.PROFILE_CREATION_FAILED.format(error=e)
             )
 
@@ -580,7 +683,14 @@ class FlextCliCore(FlextService[FlextCliTypes.Data.CliDataDict]):
             self._session_active = True
             self._session_start_time = datetime.now(UTC).isoformat()
 
-            self.logger.info(FlextCliConstants.LogMessages.SESSION_STARTED)
+            # Log session start with graceful degradation
+            try:
+                logger = getattr(self, "logger", None) or getattr(self, "_logger", None)
+                if logger:
+                    logger.info(FlextCliConstants.LogMessages.SESSION_STARTED)
+            except Exception:
+                pass  # Ultimate graceful degradation
+
             return FlextResult[None].ok(None)
 
         except Exception as e:
@@ -607,7 +717,14 @@ class FlextCliCore(FlextService[FlextCliTypes.Data.CliDataDict]):
             if hasattr(self, FlextCliConstants.PrivateAttributes.SESSION_START_TIME):
                 delattr(self, FlextCliConstants.PrivateAttributes.SESSION_START_TIME)
 
-            self.logger.info(FlextCliConstants.LogMessages.SESSION_ENDED)
+            # Log session end with graceful degradation
+            try:
+                logger = getattr(self, "logger", None) or getattr(self, "_logger", None)
+                if logger:
+                    logger.info(FlextCliConstants.LogMessages.SESSION_ENDED)
+            except Exception:
+                pass  # Ultimate graceful degradation
+
             return FlextResult[None].ok(None)
 
         except Exception as e:

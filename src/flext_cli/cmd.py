@@ -65,12 +65,20 @@ class FlextCliCmd(FlextService[FlextTypes.JsonDict]):
         """Validate configuration structure using FlextCliUtilities directly."""
         try:
             results = FlextCliUtilities.ConfigOps.validate_config_structure()
-            if results and self.logger:
-                self.logger.info(
-                    FlextCliConstants.LogMessages.CONFIG_VALIDATION_RESULTS.format(
-                        results=results
+            if results:
+                # Log validation results with graceful degradation (FlextMixin pattern)
+                try:
+                    logger = getattr(self, "logger", None) or getattr(
+                        self, "_logger", None
                     )
-                )
+                    if logger:
+                        logger.info(
+                            FlextCliConstants.LogMessages.CONFIG_VALIDATION_RESULTS.format(
+                                results=results
+                            )
+                        )
+                except Exception as e:
+                    logger.debug(f"Non-critical logging error: {e}")
             return FlextResult[None].ok(None)
         except Exception as e:
             return FlextResult[None].fail(
@@ -113,12 +121,17 @@ class FlextCliCmd(FlextService[FlextTypes.JsonDict]):
                     )
                 )
 
-            if self.logger:
-                self.logger.info(
-                    FlextCliConstants.CmdMessages.CONFIG_SAVED.format(
-                        key=key, value=value
+            # Log configuration save with graceful degradation
+            try:
+                logger = getattr(self, "logger", None) or getattr(self, "_logger", None)
+                if logger:
+                    logger.info(
+                        FlextCliConstants.CmdMessages.CONFIG_SAVED.format(
+                            key=key, value=value
+                        )
                     )
-                )
+            except Exception as e:
+                logger.debug(f"Non-critical logging error: {e}")
             return FlextResult[bool].ok(True)
 
         except Exception as e:
@@ -195,11 +208,16 @@ class FlextCliCmd(FlextService[FlextTypes.JsonDict]):
                     )
                 )
 
-            if self.logger:
-                self.logger.info(
-                    FlextCliConstants.LogMessages.CONFIG_DISPLAYED,
-                    config=info_result.value,
-                )
+            # Log configuration display with graceful degradation
+            try:
+                logger = getattr(self, "logger", None) or getattr(self, "_logger", None)
+                if logger:
+                    logger.info(
+                        FlextCliConstants.LogMessages.CONFIG_DISPLAYED,
+                        config=info_result.value,
+                    )
+            except Exception as e:
+                logger.debug(f"Non-critical logging error: {e}")
             return FlextResult[None].ok(None)
         except Exception as e:
             return FlextResult[None].fail(
@@ -256,11 +274,16 @@ class FlextCliCmd(FlextService[FlextTypes.JsonDict]):
                 FlextCliConstants.DictKeys.MESSAGE: FlextCliConstants.ServiceMessages.CONFIG_LOADED_SUCCESSFULLY,
             }
 
-            if self.logger:
-                self.logger.info(
-                    FlextCliConstants.CmdMessages.CONFIG_EDIT_COMPLETED_LOG,
-                    config=config_info,
-                )
+            # Log config edit completion with graceful degradation
+            try:
+                logger = getattr(self, "logger", None) or getattr(self, "_logger", None)
+                if logger:
+                    logger.info(
+                        FlextCliConstants.CmdMessages.CONFIG_EDIT_COMPLETED_LOG,
+                        config=config_info,
+                    )
+            except Exception as e:
+                logger.debug(f"Non-critical logging error: {e}")
 
             return FlextResult[str].ok(
                 FlextCliConstants.LogMessages.CONFIG_EDIT_COMPLETED

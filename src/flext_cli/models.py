@@ -43,6 +43,7 @@ from pydantic import (
 from pydantic_core import PydanticUndefined
 from typer.models import OptionInfo
 
+from flext_cli._models_config import ConfigServiceExecutionResult
 from flext_cli.config import FlextCliConfig
 from flext_cli.constants import FlextCliConstants
 from flext_cli.mixins import FlextCliMixins
@@ -95,8 +96,12 @@ class FlextCliModels(FlextModels):
             "examples": [
                 {
                     "cli_command": {
-                        "command_line": FlextCliConstants.ModelsJsonSchema.EXAMPLE_COMMAND,
-                        FlextCliConstants.ModelsFieldNames.STATUS: FlextCliConstants.CommandStatus.PENDING.value,
+                        "command_line": (
+                            FlextCliConstants.ModelsJsonSchema.EXAMPLE_COMMAND
+                        ),
+                        FlextCliConstants.ModelsFieldNames.STATUS: (
+                            FlextCliConstants.CommandStatus.PENDING.value
+                        ),
                         "args": [FlextCliConstants.ModelsJsonSchema.EXAMPLE_ARGS],
                     }
                 }
@@ -114,7 +119,9 @@ class FlextCliModels(FlextModels):
             "_metadata": {
                 "generated_at": datetime.now(UTC).isoformat(),
                 "total_models": len(value),
-                "serialization_version": FlextCliConstants.ModelsDefaults.SERIALIZATION_VERSION,
+                "serialization_version": (
+                    FlextCliConstants.ModelsDefaults.SERIALIZATION_VERSION
+                ),
             },
         }
 
@@ -174,7 +181,9 @@ class FlextCliModels(FlextModels):
         )
 
     class CliOptionSpec(FlextModels.ArbitraryTypesModel):
-        """Click option specification model - replaces FlextTypes.JsonDict in Click option generation.
+        """Click option specification model.
+
+        Replaces FlextTypes.JsonDict in Click option generation.
 
         Provides structured validation for Click option specifications generated
         from Pydantic model fields.
@@ -238,7 +247,9 @@ class FlextCliModels(FlextModels):
             model_instance = CliModelConverter.cli_args_to_model(MyModel, cli_args)
 
             # Generate complete command specification
-            command_spec = CliModelConverter.generate_command_spec(MyModel, "my-command")
+            command_spec = CliModelConverter.generate_command_spec(
+                MyModel, "my-command"
+            )
         """
 
         @staticmethod
@@ -292,9 +303,8 @@ class FlextCliModels(FlextModels):
                     # Get first non-None type
                     for arg in args:
                         if arg is not type(None):
-                            return FlextCliModels.CliModelConverter.pydantic_type_to_python_type(
-                                arg
-                            )
+                            converter = FlextCliModels.CliModelConverter
+                            return converter.pydantic_type_to_python_type(arg)
 
             # Handle List types
             if origin is list:
@@ -347,8 +357,8 @@ class FlextCliModels(FlextModels):
 
             """
             try:
-                # Railway pattern: validate → convert types → extract properties → build spec
-                # Direct call to converter method (public API)
+                # Railway pattern: validate → convert types →
+                # extract properties → build spec (public API)
                 return FlextCliModels.CliModelConverter.convert_field_to_cli_param(
                     field_name, field_info
                 )
@@ -445,37 +455,43 @@ class FlextCliModels(FlextModels):
             python_type = data["python_type"]
             if not isinstance(python_type, type):
                 return FlextResult[FlextCliModels.CliParameterSpec].fail(
-                    f"Invalid python_type for field {field_name}: expected type, got {type(python_type)}"
+                    f"Invalid python_type for field {field_name}: "
+                    f"expected type, got {type(python_type)}"
                 )
 
             click_type = data["click_type"]
             if not isinstance(click_type, str):
                 return FlextResult[FlextCliModels.CliParameterSpec].fail(
-                    f"Invalid click_type for field {field_name}: expected str, got {type(click_type)}"
+                    f"Invalid click_type for field {field_name}: "
+                    f"expected str, got {type(click_type)}"
                 )
 
             is_required = data["is_required"]
             if not isinstance(is_required, bool):
                 return FlextResult[FlextCliModels.CliParameterSpec].fail(
-                    f"Invalid is_required for field {field_name}: expected bool, got {type(is_required)}"
+                    f"Invalid is_required for field {field_name}: "
+                    f"expected bool, got {type(is_required)}"
                 )
 
             description = data["description"]
             if not isinstance(description, str):
                 return FlextResult[FlextCliModels.CliParameterSpec].fail(
-                    f"Invalid description for field {field_name}: expected str, got {type(description)}"
+                    f"Invalid description for field {field_name}: "
+                    f"expected str, got {type(description)}"
                 )
 
             validators = data["validators"]
             if not isinstance(validators, list):
                 return FlextResult[FlextCliModels.CliParameterSpec].fail(
-                    f"Invalid validators for field {field_name}: expected list, got {type(validators)}"
+                    f"Invalid validators for field {field_name}: "
+                    f"expected list, got {type(validators)}"
                 )
 
             metadata = data["metadata"]
             if not isinstance(metadata, dict):
                 return FlextResult[FlextCliModels.CliParameterSpec].fail(
-                    f"Invalid metadata for field {field_name}: expected dict, got {type(metadata)}"
+                    f"Invalid metadata for field {field_name}: "
+                    f"expected dict, got {type(metadata)}"
                 )
 
             cli_param = FlextCliModels.CliParameterSpec(
@@ -504,7 +520,8 @@ class FlextCliModels(FlextModels):
                 model_class: Pydantic model class to convert
 
             Returns:
-                FlextResult containing list of comprehensive CLI parameter specifications
+                FlextResult containing list of comprehensive CLI parameter
+                specifications
 
             """
             try:
@@ -567,7 +584,10 @@ class FlextCliModels(FlextModels):
 
                 click_options: list[FlextCliModels.CliOptionSpec] = []
                 for param in params_result.unwrap():
-                    option_name = f"{FlextCliConstants.CliParamDefaults.OPTION_PREFIX}{param.name}"
+                    option_name = (
+                        f"{FlextCliConstants.CliParamDefaults.OPTION_PREFIX}"
+                        f"{param.name}"
+                    )
 
                     # Create CliOptionSpec instance
                     click_option = FlextCliModels.CliOptionSpec(
@@ -633,8 +653,9 @@ class FlextCliModels(FlextModels):
     class CliModelDecorators:
         """Decorators for model-driven CLI command generation.
 
-        Provides decorators that automatically generate CLI commands from Pydantic models,
-        eliminating manual parameter declaration boilerplate.
+        Provides decorators that automatically generate CLI commands
+        from Pydantic models, eliminating manual parameter declaration
+        boilerplate.
 
         ARCHITECTURAL PATTERN:
         - Introspect Pydantic model structure
@@ -892,11 +913,14 @@ class FlextCliModels(FlextModels):
                     # Boolean fields automatically get --flag/--no-flag in Typer
                     # by using the field name with underscores replaced by hyphens
                     self.params_def.append(
-                        f"{param_name}: {type_str} = typer.Option({default_value!r}, '--{param_name}/--no-{param_name}', help={help_text!r})"
+                        f"{param_name}: {type_str} = typer.Option("
+                        f"{default_value!r}, '--{param_name}/--no-{param_name}', "
+                        f"help={help_text!r})"
                     )
                 else:
                     self.params_def.append(
-                        f"{param_name}: {type_str} = typer.Option({default_value!r}, help={help_text!r})"
+                        f"{param_name}: {type_str} = typer.Option("
+                        f"{default_value!r}, help={help_text!r})"
                     )
 
                 self.params_call.append(f"{field_name}={param_name}")
@@ -1726,7 +1750,7 @@ class FlextCliModels(FlextModels):
             """Serialize commands with summary information."""
             return [
                 {
-                    "id": str(cmd.id) if hasattr(cmd, "id") else "",
+                    "id": str(getattr(cmd, "id", "")),
                     "command_line": cmd.command_line,
                     "status": cmd.status,
                     "exit_code": cmd.exit_code,
@@ -2427,28 +2451,11 @@ class FlextCliModels(FlextModels):
         user_id: str | None = Field(default=None, description="Optional user ID")
 
     # =========================================================================
-    # CONFIG SERVICE MODEL - FlextCliConfig service model
+    # CONFIG SERVICE MODEL - Re-exported from _models_config to avoid circular imports
     # =========================================================================
 
-    class ConfigServiceExecutionResult(BaseModel):
-        """Config service execution result - replaces dict in execute_as_service().
-
-        Pydantic 2 Features:
-            - Type-safe model instead of dict[str, JsonValue]
-            - Validates service operational status
-            - Embeds complete config as nested dict
-
-        """
-
-        model_config = ConfigDict(frozen=False, validate_assignment=True)
-
-        status: str = Field(description="Service status")
-        service: str = Field(description="Service name")
-        timestamp: str = Field(default="", description="Execution timestamp (ISO)")
-        version: str = Field(description="Service version")
-        config: dict[str, object] = Field(
-            default_factory=dict, description="Complete configuration dump"
-        )
+    # Imported from _models_config to break circular dependency (config.py ↔ models.py)
+    ConfigServiceExecutionResult = ConfigServiceExecutionResult
 
 
 __all__ = [
