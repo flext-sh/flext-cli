@@ -192,7 +192,9 @@ class FlextCliUtilities:
                 FlextResult[str]: Normalized lowercase format if valid, error otherwise
 
             Example:
-                >>> result = FlextCliUtilities.CliValidation.validate_output_format("JSON")
+                >>> result = FlextCliUtilities.CliValidation.validate_output_format(
+                ...     "JSON"
+                ... )
                 >>> if result.is_success:
                 ...     format = result.unwrap()  # "json"
 
@@ -265,7 +267,9 @@ class FlextCliUtilities:
 
             """
             return (
-                os.environ.get(FlextCliConstants.EnvironmentConstants.PYTEST_CURRENT_TEST)
+                os.environ.get(
+                    FlextCliConstants.EnvironmentConstants.PYTEST_CURRENT_TEST
+                )
                 is not None
                 or FlextCliConstants.EnvironmentConstants.PYTEST
                 in os.environ.get(
@@ -438,7 +442,9 @@ class FlextCliUtilities:
             Example:
                 >>> result = file_tools.read_json_file("missing.json")
                 >>> if result.is_failure:
-                ...     if FlextCliUtilities.FileOps.is_file_not_found_error(result.error):
+                ...     if FlextCliUtilities.FileOps.is_file_not_found_error(
+                ...         result.error
+                ...     ):
                 ...         print("File does not exist")
                 ...     else:
                 ...         print(f"Other error: {result.error}")
@@ -508,9 +514,7 @@ class FlextCliUtilities:
 
             # Python 3.10+ union type using | operator
             if sys.version_info >= (3, 10) and origin is types.UnionType:
-                return FlextCliUtilities.TypeNormalizer.normalize_union_type(
-                    annotation
-                )
+                return FlextCliUtilities.TypeNormalizer.normalize_union_type(annotation)
 
             # typing.Union type (traditional typing.Union[X, Y])
             try:
@@ -593,8 +597,8 @@ class FlextCliUtilities:
                 # Recursively normalize all inner types
                 normalized_non_none_list = []
                 for arg in non_none_args:
-                    normalized = (
-                        FlextCliUtilities.TypeNormalizer.normalize_annotation(arg)
+                    normalized = FlextCliUtilities.TypeNormalizer.normalize_annotation(
+                        arg
                     )
                     if normalized is not None:
                         normalized_non_none_list.append(normalized)

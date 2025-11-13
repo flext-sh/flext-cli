@@ -17,6 +17,7 @@ from flext_core import FlextResult, FlextService, FlextTypes
 from flext_cli.config import FlextCliConfig
 from flext_cli.constants import FlextCliConstants
 from flext_cli.file_tools import FlextCliFileTools
+from flext_cli.models import FlextCliModels
 from flext_cli.utilities import FlextCliUtilities
 
 
@@ -206,100 +207,69 @@ class FlextCliCmd(FlextService[FlextTypes.JsonDict]):
             )
 
     def edit_config(self) -> FlextResult[str]:
-        """Edit configuration with extracted helpers and railway pattern."""
+        """Edit configuration using Pydantic validation - no wrappers."""
         try:
             config_path = (
                 FlextCliConfig().config_dir
                 / FlextCliConstants.ConfigFiles.CLI_CONFIG_JSON
             )
+            path = Path(str(config_path))
 
-            # Railway pattern: ensure exists → load → validate → build response
-            return (
-                self._ensure_config_exists(config_path)
-                .flat_map(lambda _: self._load_and_validate_config(config_path))
-                .map(lambda config: self._build_config_response(config_path, config))
+            # Ensure config exists - create default if not
+            if not path.exists():
+                # Use Pydantic model for default - replaces _create_default_config
+                default_config = FlextCliModels.CmdConfig().model_dump()
+                save_result = self._file_tools.write_json_file(
+                    file_path=str(path), data=default_config
+                )
+                if save_result.is_failure:
+                    return FlextResult[str].fail(
+                        FlextCliConstants.CmdErrorMessages.CREATE_DEFAULT_CONFIG_FAILED.format(
+                            error=save_result.error
+                        )
+                    )
+
+            # Load and validate using Pydantic - replaces _load_and_validate_config
+            load_result = self._file_tools.read_json_file(str(path))
+            if load_result.is_failure:
+                return FlextResult[str].fail(
+                    FlextCliConstants.CmdErrorMessages.CONFIG_LOAD_FAILED.format(
+                        error=load_result.error
+                    )
+                )
+
+            # Validate with Pydantic model
+            try:
+                config_model = FlextCliModels.CmdConfig.model_validate(
+                    load_result.value
+                )
+                config_data = config_model.model_dump()
+            except Exception:
+                return FlextResult[str].fail(
+                    FlextCliConstants.CmdErrorMessages.CONFIG_NOT_DICT
+                )
+
+            # Build response - replaces _build_config_response
+            config_info = {
+                FlextCliConstants.DictKeys.CONFIG_FILE: str(path),
+                FlextCliConstants.DictKeys.CONFIG_DATA: config_data,
+                FlextCliConstants.DictKeys.MESSAGE: FlextCliConstants.ServiceMessages.CONFIG_LOADED_SUCCESSFULLY,
+            }
+
+            if self.logger:
+                self.logger.info(
+                    FlextCliConstants.CmdMessages.CONFIG_EDIT_COMPLETED_LOG,
+                    config=config_info,
+                )
+
+            return FlextResult[str].ok(
+                FlextCliConstants.LogMessages.CONFIG_EDIT_COMPLETED
             )
 
         except Exception as e:
             return FlextResult[str].fail(
                 FlextCliConstants.ErrorMessages.EDIT_CONFIG_FAILED.format(error=e)
             )
-
-    def _ensure_config_exists(self, config_path: object) -> FlextResult[None]:
-        """Ensure config file exists, create default if not."""
-        path = Path(str(config_path))
-        if path.exists():
-            return FlextResult[None].ok(None)
-
-        # Create default config and save
-        default_config = self._create_default_config()
-        save_result = self._file_tools.write_json_file(
-            file_path=str(path), data=default_config
-        )
-
-        if save_result.is_failure:
-            return FlextResult[None].fail(
-                FlextCliConstants.CmdErrorMessages.CREATE_DEFAULT_CONFIG_FAILED.format(
-                    error=save_result.error
-                )
-            )
-
-        return FlextResult[None].ok(None)
-
-    def _create_default_config(self) -> FlextTypes.JsonValue:
-        """Create default configuration dict with proper types."""
-        # Build default config with typed values
-        host_default: str = str(FlextCliConstants.NetworkDefaults.DEFAULT_HOST)
-        port_default: int = int(FlextCliConstants.NetworkDefaults.DEFAULT_PORT)
-        timeout_default: int = int(FlextCliConstants.TIMEOUTS.DEFAULT)
-
-        # Create JSON-compatible config
-        config_data: FlextTypes.JsonValue = {
-            FlextCliConstants.DictKeys.HOST: host_default,
-            FlextCliConstants.DictKeys.PORT: port_default,
-            FlextCliConstants.DictKeys.TIMEOUT: timeout_default,
-        }
-
-        return config_data
-
-    def _load_and_validate_config(
-        self, config_path: object
-    ) -> FlextResult[FlextTypes.JsonDict]:
-        """Load config file and validate it's a dict."""
-        load_result = self._file_tools.read_json_file(str(config_path))
-
-        if load_result.is_failure:
-            return FlextResult[FlextTypes.JsonDict].fail(
-                FlextCliConstants.CmdErrorMessages.CONFIG_LOAD_FAILED.format(
-                    error=load_result.error
-                )
-            )
-
-        # Type guard validation
-        if not isinstance(load_result.value, dict):
-            return FlextResult[FlextTypes.JsonDict].fail(
-                FlextCliConstants.CmdErrorMessages.CONFIG_NOT_DICT
-            )
-
-        return FlextResult[FlextTypes.JsonDict].ok(load_result.value)
-
-    def _build_config_response(
-        self, config_path: object, config_data: FlextTypes.JsonDict
-    ) -> str:
-        """Build final config response with logging."""
-        config_info = {
-            FlextCliConstants.DictKeys.CONFIG_FILE: str(config_path),
-            FlextCliConstants.DictKeys.CONFIG_DATA: config_data,
-            FlextCliConstants.DictKeys.MESSAGE: FlextCliConstants.ServiceMessages.CONFIG_LOADED_SUCCESSFULLY,
-        }
-
-        if self.logger:
-            self.logger.info(
-                FlextCliConstants.CmdMessages.CONFIG_EDIT_COMPLETED_LOG,
-                config=config_info,
-            )
-
-        return FlextCliConstants.LogMessages.CONFIG_EDIT_COMPLETED
 
 
 __all__ = [

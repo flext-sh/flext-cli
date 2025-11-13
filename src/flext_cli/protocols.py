@@ -281,7 +281,9 @@ class FlextCliProtocols(FlextProtocols):
             name: str
             version: str
 
-            def initialize(self, cli_context: FlextTypes.JsonValue) -> FlextResult[None]:
+            def initialize(
+                self, cli_context: FlextTypes.JsonValue
+            ) -> FlextResult[None]:
                 """Initialize plugin with CLI context."""
                 ...
 

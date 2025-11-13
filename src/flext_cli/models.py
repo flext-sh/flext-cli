@@ -33,6 +33,7 @@ from pydantic import (
     BaseModel,
     ConfigDict,
     Field,
+    StringConstraints,
     computed_field,
     field_serializer,
     field_validator,
@@ -1351,7 +1352,7 @@ class FlextCliModels(FlextModels):
         Pydantic 2.11 Features:
         - Annotated fields with rich metadata
         - computed_field for derived properties
-        - field_validator for business logic validation
+        - Literal types for enum values (eliminates field_validator)
         - model_validator for cross-field validation
         """
 
@@ -1366,26 +1367,15 @@ class FlextCliModels(FlextModels):
             description=FlextCliConstants.CliCommandDescriptions.ARGS,
             examples=[["validate"], ["deploy", "--env", "production"]],
         )
-        status: str = Field(
-            default=FlextCliConstants.CommandStatus.PENDING.value,
-            description=FlextCliConstants.CliCommandDescriptions.STATUS,
-            examples=[
-                FlextCliConstants.CommandStatus.PENDING.value,
-                FlextCliConstants.CommandStatus.RUNNING.value,
-                FlextCliConstants.CommandStatus.COMPLETED.value,
-                FlextCliConstants.CommandStatus.FAILED.value,
-            ],
+        # REFACTORED: Use Literal for status instead of field_validator
+        # Provides type safety + runtime validation without custom validator
+        status: Literal["pending", "running", "completed", "failed", "cancelled"] = (
+            Field(
+                default="pending",
+                description=FlextCliConstants.CliCommandDescriptions.STATUS,
+            )
         )
 
-        @field_validator("status")
-        @classmethod
-        def validate_status(cls, v: str) -> str:
-            """Validate status is in allowed list using Pydantic 2 field_validator."""
-            if v not in FlextCliConstants.COMMAND_STATUSES_LIST:
-                valid_options = ", ".join(FlextCliConstants.COMMAND_STATUSES_LIST)
-                msg = f"invalid status: {v}. valid options: {valid_options}"
-                raise ValueError(msg)
-            return v
         exit_code: int | None = Field(
             default=None,
             description=FlextCliConstants.CliCommandDescriptions.EXIT_CODE,
@@ -1568,7 +1558,7 @@ class FlextCliModels(FlextModels):
             if not state_result.is_success:
                 return state_result
 
-            self.status = FlextCliConstants.CommandStatus.RUNNING.value
+            self.status = "running"  # Literal type requires exact string
             return FlextResult[None].ok(None)
 
         def complete_execution(
@@ -1587,7 +1577,7 @@ class FlextCliModels(FlextModels):
 
             self.exit_code = exit_code
             self.output = output
-            self.status = FlextCliConstants.CommandStatus.COMPLETED.value
+            self.status = "completed"  # Literal type requires exact string
             return FlextResult[None].ok(None)
 
         @classmethod
@@ -1609,12 +1599,15 @@ class FlextCliModels(FlextModels):
         Pydantic 2.11 Features:
         - Annotated fields with rich metadata
         - computed_field for derived properties
-        - field_validator for business logic validation
+        - Literal types for enum values (eliminates field_validator)
         - model_validator for cross-field validation
         """
 
         # Session-specific fields (id, created_at, updated_at inherited from Entity)
-        session_id: str = Field(
+        # Using Annotated with StringConstraints for automatic validation
+        session_id: Annotated[
+            str, StringConstraints(min_length=1, strip_whitespace=True)
+        ] = Field(
             default_factory=lambda: f"{FlextCliConstants.CliSessionDefaults.SESSION_ID_PREFIX}{datetime.now(UTC).strftime(FlextCliConstants.CliSessionDefaults.DATETIME_FORMAT)}",
             description=FlextCliConstants.CliSessionDescriptions.SESSION_ID,
             examples=["session_20250113_143022_123456"],
@@ -1650,53 +1643,20 @@ class FlextCliModels(FlextModels):
             default_factory=list,
             description=FlextCliConstants.CliSessionDescriptions.COMMANDS,
         )
-        status: str = Field(
-            default=FlextCliConstants.SessionStatus.ACTIVE.value,
+        # REFACTORED: Use Literal for status instead of field_validator
+        # Provides type safety + runtime validation without custom validator
+        status: Literal["active", "completed", "terminated"] = Field(
+            default="active",
             description=FlextCliConstants.CliSessionDescriptions.STATUS,
-            examples=[
-                FlextCliConstants.SessionStatus.ACTIVE.value,
-                FlextCliConstants.SessionStatus.COMPLETED.value,
-                FlextCliConstants.SessionStatus.TERMINATED.value,
-            ],
         )
-        user_id: str | None = Field(
+        # Using Annotated with StringConstraints for automatic validation
+        user_id: (
+            Annotated[str, StringConstraints(min_length=1, strip_whitespace=True)]
+            | None
+        ) = Field(
             default=None,
             description=FlextCliConstants.CliSessionDescriptions.USER_ID,
         )
-
-        # Pydantic 2.11 field validators
-        @field_validator("session_id")
-        @classmethod
-        def validate_session_id(cls, v: str) -> str:
-            """Validate session_id is not empty using Pydantic 2 field_validator."""
-            if not v or not v.strip():
-                raise ValueError(
-                    FlextCliConstants.MixinsValidationMessages.FIELD_CANNOT_BE_EMPTY.format(
-                        field_name=FlextCliConstants.ModelsFieldNames.SESSION_ID
-                    )
-                )
-            return v
-
-        @field_validator("user_id")
-        @classmethod
-        def validate_user_id(cls, v: str | None) -> str | None:
-            """Validate user_id is not empty if provided using Pydantic 2 field_validator."""
-            if v is not None and not v.strip():
-                raise ValueError(FlextCliConstants.ModelsErrorMessages.USER_ID_EMPTY)
-            return v
-
-        @field_validator("status")
-        @classmethod
-        def validate_status(cls, v: str) -> str:
-            """Validate status is in allowed list using Pydantic 2 field_validator."""
-            if v not in FlextCliConstants.SESSION_STATUSES_LIST:
-                raise ValueError(
-                    FlextCliConstants.MixinsValidationMessages.INVALID_ENUM_VALUE.format(
-                        field_name=FlextCliConstants.ModelsFieldNames.STATUS,
-                        valid_values=FlextCliConstants.SESSION_STATUSES_LIST,
-                    )
-                )
-            return v
 
         # Pydantic 2.11 computed fields
         @computed_field
@@ -1802,25 +1762,27 @@ class FlextCliModels(FlextModels):
         Extends FlextModels.ArbitraryTypesModel for strict validation.
 
         Pydantic 2.11 Features:
-        - Annotated fields with rich metadata
+        - Annotated fields with StringConstraints (eliminates validate_service)
+        - Literal types for enum values (eliminates status validator)
         - computed_field for derived properties
-        - field_validator for business logic validation
+        - field_validator for business logic (level normalization)
         - field_serializer for sensitive data masking
         """
 
-        service: str = Field(
+        # REFACTORED: Use StringConstraints instead of validate_service
+        service: Annotated[
+            str, StringConstraints(min_length=1, strip_whitespace=True)
+        ] = Field(
             default=FlextCliConstants.DebugServiceNames.DEBUG,
             description=FlextCliConstants.DebugInfoDescriptions.SERVICE,
             examples=["FlextCliDebug", "FlextCliCore", "FlextCliCommands"],
         )
-        status: str = Field(
-            default=FlextCliConstants.ServiceStatus.OPERATIONAL.value,
+        # REFACTORED: Use Literal for status instead of field_validator
+        status: Literal[
+            "operational", "available", "degraded", "error", "healthy", "connected"
+        ] = Field(
+            default="operational",
             description=FlextCliConstants.DebugInfoDescriptions.STATUS,
-            examples=[
-                FlextCliConstants.ServiceStatus.OPERATIONAL.value,
-                FlextCliConstants.ServiceStatus.DEGRADED.value,
-                FlextCliConstants.ServiceStatus.ERROR.value,
-            ],
         )
         timestamp: datetime = Field(
             default_factory=lambda: datetime.now(UTC),
@@ -1850,20 +1812,14 @@ class FlextCliModels(FlextModels):
             description=FlextCliConstants.DebugInfoDescriptions.MESSAGE,
         )
 
-        # Pydantic 2.11 field validators
-        @field_validator("service")
-        @classmethod
-        def validate_service(cls, v: str) -> str:
-            """Validate service name is not empty using Pydantic 2 field_validator."""
-            if not v or not v.strip():
-                msg = "Service name cannot be empty"
-                raise ValueError(msg)
-            return v
-
+        # Pydantic 2.11 field validators - Keep level validator for normalization
         @field_validator("level")
         @classmethod
         def validate_level(cls, v: str) -> str:
-            """Validate debug level is valid using Pydantic 2 field_validator."""
+            """Validate debug level is valid using Pydantic 2 field_validator.
+
+            Accepts case-insensitive input and normalizes to uppercase.
+            """
             valid_levels = [
                 FlextConstants.Logging.DEBUG,
                 FlextConstants.Logging.INFO,
@@ -1871,11 +1827,13 @@ class FlextCliModels(FlextModels):
                 FlextConstants.Logging.ERROR,
                 FlextConstants.Logging.CRITICAL,
             ]
-            if v not in valid_levels:
+            # Normalize to uppercase for case-insensitive comparison
+            normalized = v.upper()
+            if normalized not in valid_levels:
                 valid_options = ", ".join(valid_levels)
                 msg = f"invalid debug level: {v}. valid options: {valid_options}"
                 raise ValueError(msg)
-            return v
+            return normalized
 
         # Pydantic 2.11 computed fields
         @computed_field
@@ -2188,6 +2146,308 @@ class FlextCliModels(FlextModels):
         )
         no_color: bool | None = Field(
             default=None, description="No color output flag from CLI"
+        )
+
+    # =========================================================================
+    # AUTH MODELS - Pydantic 2 validation replacing manual checks
+    # =========================================================================
+
+    class TokenData(BaseModel):
+        """Token data with Pydantic 2 validation - replaces manual validation.
+
+        REFACTORED: Removed redundant validate_token_not_empty validator.
+        StringConstraints(min_length=1, strip_whitespace=True) already ensures non-empty tokens.
+        """
+
+        model_config = ConfigDict(frozen=False, validate_assignment=True)
+
+        token: Annotated[
+            str, StringConstraints(min_length=1, strip_whitespace=True)
+        ] = Field(description="Authentication token")
+
+    class PasswordAuth(BaseModel):
+        """Password authentication with Pydantic 2 validation - replaces manual checks."""
+
+        model_config = ConfigDict(frozen=False, validate_assignment=True)
+
+        username: Annotated[
+            str,
+            StringConstraints(
+                min_length=FlextCliConstants.Auth.MIN_USERNAME_LENGTH,
+                strip_whitespace=True,
+            ),
+        ] = Field(description="Username for authentication")
+
+        password: Annotated[
+            str,
+            StringConstraints(
+                min_length=FlextCliConstants.Auth.MIN_PASSWORD_LENGTH,
+            ),
+        ] = Field(description="Password for authentication")
+
+    class CmdConfig(BaseModel):
+        """CMD config with Pydantic 2 validation - replaces manual dict checks."""
+
+        model_config = ConfigDict(frozen=False, validate_assignment=True)
+
+        host: str = Field(
+            default=FlextCliConstants.NetworkDefaults.DEFAULT_HOST,
+            description="Host address",
+        )
+        port: int = Field(
+            default=FlextCliConstants.NetworkDefaults.DEFAULT_PORT,
+            description="Port number",
+            ge=1,
+            le=65535,
+        )
+        timeout: int = Field(
+            default=FlextCliConstants.TIMEOUTS.DEFAULT,
+            description="Timeout in seconds",
+            ge=0,
+        )
+
+    # System Information Models (replaces dict usage in debug.py)
+
+    class SystemInfo(BaseModel):
+        """System information model - replaces dict[str, FlextTypes.JsonValue].
+
+        Pydantic 2 Features:
+        - Explicit field types instead of generic JsonValue
+        - Built-in validation
+        - Type-safe serialization with model_dump()
+
+        Usage:
+            >>> info = FlextCliModels.SystemInfo(
+            ...     python_version="3.13.0",
+            ...     platform="Linux-6.17.1-x86_64",
+            ...     architecture=["64bit", "ELF"],
+            ...     processor="x86_64",
+            ...     hostname="server01",
+            ... )
+            >>> info.model_dump()  # Pydantic 2 serialization
+        """
+
+        model_config = ConfigDict(frozen=False, validate_assignment=True)
+
+        python_version: str = Field(description="Python version string")
+        platform: str = Field(description="Platform identifier")
+        architecture: list[str] = Field(
+            description="Architecture tuple as list [bits, linkage]"
+        )
+        processor: str = Field(description="Processor type")
+        hostname: str = Field(description="System hostname")
+
+    class EnvironmentInfo(BaseModel):
+        """Environment variables model - replaces dict[str, str].
+
+        Pydantic 2 Features:
+        - Dict field with str constraints
+        - Sensitive data masking handled in setter
+        - Type-safe with proper validation
+
+        Usage:
+            >>> env = FlextCliModels.EnvironmentInfo(
+            ...     variables={"PATH": "/usr/bin", "PASSWORD": "***MASKED***"}
+            ... )
+            >>> env.variables["PATH"]
+            '/usr/bin'
+        """
+
+        model_config = ConfigDict(frozen=False, validate_assignment=True)
+
+        variables: dict[str, str] = Field(
+            default_factory=dict, description="Environment variables (sensitive masked)"
+        )
+
+    class PathInfo(BaseModel):
+        """Path information model - replaces dict[str, object].
+
+        Pydantic 2 Features:
+        - Explicit types instead of generic object
+        - Path validation with Field
+        - Type-safe access
+
+        Usage:
+            >>> path = FlextCliModels.PathInfo(
+            ...     index=0, path="/usr/bin", exists=True, is_dir=True
+            ... )
+        """
+
+        model_config = ConfigDict(frozen=False, validate_assignment=True)
+
+        index: int = Field(description="Path index in sys.path")
+        path: str = Field(description="File system path")
+        exists: bool = Field(description="Path exists")
+        is_dir: bool = Field(description="Is directory")
+
+    # Context and Prompts Models (replaces dict usage in context.py and prompts.py)
+
+    class ContextExecutionResult(BaseModel):
+        """Context execution result model - replaces dict in execute().
+
+        Pydantic 2 Features:
+        - Type-safe result instead of generic dict
+        - Built-in validation for all fields
+        - Immutable timestamp generation
+
+        Usage:
+            >>> result = FlextCliModels.ContextExecutionResult(
+            ...     context_executed=True, command="test", arguments_count=2
+            ... )
+            >>> result.model_dump()  # Serializes to dict
+        """
+
+        model_config = ConfigDict(frozen=False, validate_assignment=True)
+
+        context_executed: bool = Field(description="Whether context was executed")
+        command: str = Field(description="Command name")
+        arguments_count: int = Field(ge=0, description="Number of arguments")
+        timestamp: str = Field(
+            default="",  # Will be set after import in __post_init__ or by caller
+            description="ISO timestamp of execution",
+        )
+
+    class PromptStatistics(BaseModel):
+        """Prompt statistics model - replaces dict in get_prompt_statistics().
+
+        Pydantic 2 Features:
+        - Type-safe statistics instead of generic dict
+        - Automatic validation of counters (non-negative)
+        - Clean API for accessing stats
+
+        Usage:
+            >>> stats = FlextCliModels.PromptStatistics(
+            ...     prompts_executed=5,
+            ...     interactive_mode=True,
+            ...     default_timeout=30,
+            ...     history_size=10,
+            ... )
+        """
+
+        model_config = ConfigDict(frozen=False, validate_assignment=True)
+
+        prompts_executed: int = Field(ge=0, description="Total prompts executed")
+        interactive_mode: bool = Field(description="Whether in interactive mode")
+        default_timeout: int = Field(ge=0, description="Default timeout in seconds")
+        history_size: int = Field(ge=0, description="Prompt history size")
+        timestamp: str = Field(
+            default="",  # Will be set by caller
+            description="ISO timestamp",
+        )
+
+    # =========================================================================
+    # CORE SERVICE MODELS - FlextCliCore service models
+    # =========================================================================
+
+    class CommandStatistics(BaseModel):
+        """Command statistics model - replaces dict in get_command_statistics().
+
+        Pydantic 2 Features:
+            - Type-safe model instead of dict[str, JsonValue]
+            - Automatic validation on creation
+            - Clean serialization with model_dump()
+
+        """
+
+        model_config = ConfigDict(frozen=False, validate_assignment=True)
+
+        total_commands: int = Field(ge=0, description="Total registered commands")
+        registered_commands: list[str] = Field(
+            default_factory=list, description="List of registered command names"
+        )
+        status: bool = Field(description="Session active status")
+        timestamp: str = Field(default="", description="ISO timestamp")
+
+    class SessionStatistics(BaseModel):
+        """Session statistics model - replaces dict in get_session_statistics().
+
+        Pydantic 2 Features:
+            - Type-safe model instead of dict[str, JsonValue]
+            - Validates non-negative duration
+            - Automatic field validation
+
+        """
+
+        model_config = ConfigDict(frozen=False, validate_assignment=True)
+
+        session_active: bool = Field(description="Whether session is active")
+        session_duration_seconds: int = Field(
+            ge=0, description="Session duration in seconds"
+        )
+        commands_available: int = Field(
+            ge=0, description="Number of available commands"
+        )
+        configuration_loaded: bool = Field(
+            description="Whether configuration is loaded"
+        )
+        session_config_keys: list[str] = Field(
+            default_factory=list, description="Session configuration keys"
+        )
+        start_time: str = Field(description="Session start time (ISO or 'unknown')")
+        current_time: str = Field(default="", description="Current time (ISO)")
+
+    class ServiceExecutionResult(BaseModel):
+        """Service execution result model - replaces dict in execute().
+
+        Pydantic 2 Features:
+            - Type-safe model instead of dict[str, JsonValue]
+            - Validates service ready state
+            - Clean structure for service execution
+
+        """
+
+        model_config = ConfigDict(frozen=False, validate_assignment=True)
+
+        service_executed: bool = Field(description="Whether service was executed")
+        commands_count: int = Field(ge=0, description="Number of commands available")
+        session_active: bool = Field(description="Whether session is active")
+        execution_timestamp: str = Field(
+            default="", description="Execution timestamp (ISO)"
+        )
+        service_ready: bool = Field(description="Whether service is ready")
+
+    class CommandExecutionContextResult(BaseModel):
+        """Command execution context result - replaces dict in execute_cli_command_with_context().
+
+        Pydantic 2 Features:
+            - Type-safe model instead of dict[str, JsonValue]
+            - Supports optional user_id
+            - Flexible context data
+
+        """
+
+        model_config = ConfigDict(frozen=False, validate_assignment=True)
+
+        command: str = Field(description="Command name")
+        status: bool = Field(description="Execution status")
+        context: dict[str, object] = Field(
+            default_factory=dict, description="Context data"
+        )
+        timestamp: str = Field(default="", description="Execution timestamp (ISO)")
+        user_id: str | None = Field(default=None, description="Optional user ID")
+
+    # =========================================================================
+    # CONFIG SERVICE MODEL - FlextCliConfig service model
+    # =========================================================================
+
+    class ConfigServiceExecutionResult(BaseModel):
+        """Config service execution result - replaces dict in execute_as_service().
+
+        Pydantic 2 Features:
+            - Type-safe model instead of dict[str, JsonValue]
+            - Validates service operational status
+            - Embeds complete config as nested dict
+
+        """
+
+        model_config = ConfigDict(frozen=False, validate_assignment=True)
+
+        status: str = Field(description="Service status")
+        service: str = Field(description="Service name")
+        timestamp: str = Field(default="", description="Execution timestamp (ISO)")
+        version: str = Field(description="Service version")
+        config: dict[str, object] = Field(
+            default_factory=dict, description="Complete configuration dump"
         )
 
 

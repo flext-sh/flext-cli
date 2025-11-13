@@ -615,7 +615,9 @@ class TestFlextCliCmd:
             msg = "Validation exception"
             raise RuntimeError(msg)
 
-        monkeypatch.setattr(FlextCliUtilities.ConfigOps, "validate_config_structure", mock_raise)
+        monkeypatch.setattr(
+            FlextCliUtilities.ConfigOps, "validate_config_structure", mock_raise
+        )
         result = cmd.validate_config()
         assert result.is_failure
         assert "config validation failed" in str(result.error).lower()

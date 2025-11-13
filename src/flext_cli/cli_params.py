@@ -192,7 +192,7 @@ class FlextCliCommonParams:
         output_format: str | None = None,
         no_color: bool | None = None,
     ) -> FlextResult[FlextCliConfig]:
-        """Apply CLI parameter values to FlextConfig instance.
+        """Apply CLI parameter values to FlextConfig using Pydantic validation.
 
         Args:
             config: FlextCliConfig instance to update
@@ -211,7 +211,7 @@ class FlextCliCommonParams:
 
         """
         try:
-            # Build params model from kwargs if not provided (backwards compatibility)
+            # Build params model from kwargs if not provided (Pydantic validates automatically)
             if params is None:
                 params = FlextCliModels.CliParamsConfig(
                     verbose=verbose,
@@ -224,111 +224,89 @@ class FlextCliCommonParams:
                     no_color=no_color,
                 )
 
-            # Railway pattern: apply bool → log level → log format → output format
-            return (
-                cls._apply_bool_params(config, params)
-                .flat_map(lambda cfg: cls._apply_log_level(cfg, params))
-                .flat_map(lambda cfg: cls._apply_log_format(cfg, params))
-                .flat_map(lambda cfg: cls._apply_output_format(cfg, params))
-            )
+            # Apply all parameters - extracted helpers to reduce complexity
+            cls._set_bool_params(config, params)
+
+            log_level_result = cls._set_log_level(config, params)
+            if log_level_result.is_failure:
+                return log_level_result
+
+            format_result = cls._set_format_params(config, params)
+            if format_result.is_failure:
+                return format_result
+
+            return FlextResult[FlextCliConfig].ok(config)
+
         except Exception as e:
             return FlextResult[FlextCliConfig].fail(
                 f"Failed to apply CLI parameters: {e}"
             )
 
     @classmethod
-    def _apply_bool_params(
+    def _set_bool_params(
         cls, config: FlextCliConfig, params: FlextCliModels.CliParamsConfig
-    ) -> FlextResult[FlextCliConfig]:
-        """Apply boolean CLI parameters to config."""
-        bool_params = {
-            "verbose": params.verbose,
-            "quiet": params.quiet,
-            "debug": params.debug,
-            "trace": params.trace,
-            "no_color": params.no_color,
-        }
-        for attr, value in bool_params.items():
-            if value is not None:
-                setattr(config, attr, value)
-        return FlextResult[FlextCliConfig].ok(config)
+    ) -> None:
+        """Set boolean parameters - no validation needed (Pydantic already validated)."""
+        if params.verbose is not None:
+            config.verbose = params.verbose
+        if params.quiet is not None:
+            config.quiet = params.quiet
+        if params.debug is not None:
+            config.debug = params.debug
+        if params.trace is not None:
+            config.trace = params.trace
+        if params.no_color is not None:
+            config.no_color = params.no_color
 
     @classmethod
-    def _apply_log_level(
+    def _set_log_level(
         cls, config: FlextCliConfig, params: FlextCliModels.CliParamsConfig
     ) -> FlextResult[FlextCliConfig]:
-        """Apply and validate log_level parameter."""
+        """Set log_level with enum conversion."""
         if params.log_level is None:
             return FlextResult[FlextCliConfig].ok(config)
 
         normalized = params.log_level.upper()
         try:
             config.log_level = FlextConstants.Settings.LogLevel(normalized)
-        except ValueError:
-            valid_levels = FlextCliConstants.LOG_LEVELS_LIST
-            return FlextResult[FlextCliConfig].fail(
-                f"invalid log level: {params.log_level}. valid options: {', '.join(valid_levels)}"
-            )
-        return FlextResult[FlextCliConfig].ok(config)
-
-    @classmethod
-    def _apply_validated_param(
-        cls,
-        config: FlextCliConfig,
-        param_value: str | None,
-        valid_values: list[str],
-        config_attr: str,
-        param_name: str,
-    ) -> FlextResult[FlextCliConfig]:
-        """Generic method to validate and apply a parameter to config.
-
-        Args:
-            config: Configuration object to update
-            param_value: Parameter value to validate (None means skip)
-            valid_values: List of valid values for validation
-            config_attr: Config attribute name to set
-            param_name: Parameter name for error messages
-
-        Returns:
-            FlextResult with updated config or error
-
-        """
-        if param_value is None:
             return FlextResult[FlextCliConfig].ok(config)
-
-        if param_value not in valid_values:
+        except ValueError:
+            valid = FlextCliConstants.LOG_LEVELS_LIST
             return FlextResult[FlextCliConfig].fail(
-                f"invalid {param_name}: {param_value}. valid options: {', '.join(valid_values)}"
+                f"invalid log level: {params.log_level}. valid options: {', '.join(valid)}"
             )
 
-        setattr(config, config_attr, param_value)
+    @classmethod
+    def _set_format_params(
+        cls, config: FlextCliConfig, params: FlextCliModels.CliParamsConfig
+    ) -> FlextResult[FlextCliConfig]:
+        """Set log_format and output_format with validation."""
+        # log_format maps to log_verbosity
+        if params.log_format is not None:
+            if (
+                params.log_format
+                not in FlextCliConstants.CliParamsDefaults.VALID_LOG_FORMATS
+            ):
+                valid = FlextCliConstants.CliParamsDefaults.VALID_LOG_FORMATS
+                return FlextResult[FlextCliConfig].fail(
+                    f"invalid log format: {params.log_format}. valid options: {', '.join(valid)}"
+                )
+            config.log_verbosity = params.log_format
+
+        # output_format
+        if params.output_format is not None:
+            if (
+                params.output_format
+                not in FlextCliConstants.CliParamsDefaults.VALID_OUTPUT_FORMATS
+            ):
+                valid = FlextCliConstants.CliParamsDefaults.VALID_OUTPUT_FORMATS
+                return FlextResult[FlextCliConfig].fail(
+                    f"invalid output format: {params.output_format}. valid options: {', '.join(valid)}"
+                )
+            # After validation, safe to assign (MyPy needs explicit knowledge)
+            config.output_format = params.output_format
+
         return FlextResult[FlextCliConfig].ok(config)
-
-    @classmethod
-    def _apply_log_format(
-        cls, config: FlextCliConfig, params: FlextCliModels.CliParamsConfig
-    ) -> FlextResult[FlextCliConfig]:
-        """Apply and validate log_format parameter."""
-        return cls._apply_validated_param(
-            config=config,
-            param_value=params.log_format,
-            valid_values=FlextCliConstants.CliParamsDefaults.VALID_LOG_FORMATS,
-            config_attr="log_verbosity",
-            param_name="log format",
-        )
-
-    @classmethod
-    def _apply_output_format(
-        cls, config: FlextCliConfig, params: FlextCliModels.CliParamsConfig
-    ) -> FlextResult[FlextCliConfig]:
-        """Apply and validate output_format parameter."""
-        return cls._apply_validated_param(
-            config=config,
-            param_value=params.output_format,
-            valid_values=FlextCliConstants.CliParamsDefaults.VALID_OUTPUT_FORMATS,
-            config_attr="output_format",
-            param_name="output format",
-        )
 
     @classmethod
     def configure_logger(

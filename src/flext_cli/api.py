@@ -27,6 +27,7 @@ from flext_cli.constants import FlextCliConstants
 from flext_cli.core import FlextCliCore
 from flext_cli.file_tools import FlextCliFileTools
 from flext_cli.formatters import FlextCliFormatters
+from flext_cli.models import FlextCliModels
 from flext_cli.output import FlextCliOutput
 from flext_cli.prompts import FlextCliPrompts
 from flext_cli.typings import FlextCliTypes
@@ -159,25 +160,12 @@ class FlextCli:
     def _authenticate_with_credentials(
         self, credentials: FlextCliTypes.Auth.CredentialsData
     ) -> FlextResult[str]:
-        """Authenticate using username/password."""
-        username = str(credentials[FlextCliConstants.DictKeys.USERNAME])
-        password = str(credentials[FlextCliConstants.DictKeys.PASSWORD])
-
-        # Simple validation (in real implementation, check against user store)
-        if not username or not password:
-            return FlextResult[str].fail(
-                FlextCliConstants.ErrorMessages.USERNAME_PASSWORD_REQUIRED
-            )
-
-        if len(username) < FlextCliConstants.Auth.MIN_USERNAME_LENGTH:
-            return FlextResult[str].fail(
-                FlextCliConstants.ErrorMessages.USERNAME_TOO_SHORT
-            )
-
-        if len(password) < FlextCliConstants.Auth.MIN_PASSWORD_LENGTH:
-            return FlextResult[str].fail(
-                FlextCliConstants.ErrorMessages.PASSWORD_TOO_SHORT
-            )
+        """Authenticate using Pydantic 2 validation - no manual checks."""
+        # Validate using Pydantic model - eliminates all manual validation
+        try:
+            FlextCliModels.PasswordAuth.model_validate(credentials)
+        except Exception as e:
+            return FlextResult[str].fail(str(e))
 
         # Generate token
         token = secrets.token_urlsafe(
@@ -188,12 +176,12 @@ class FlextCli:
         return FlextResult[str].ok(token)
 
     def validate_credentials(self, username: str, password: str) -> FlextResult[None]:
-        """Validate credentials."""
-        if not username or not password:
-            return FlextResult[None].fail(
-                FlextCliConstants.ErrorMessages.USERNAME_PASSWORD_REQUIRED
-            )
-        return FlextResult[None].ok(None)
+        """Validate credentials using Pydantic 2."""
+        try:
+            FlextCliModels.PasswordAuth(username=username, password=password)
+            return FlextResult[None].ok(None)
+        except Exception as e:
+            return FlextResult[None].fail(str(e))
 
     def save_auth_token(self, token: str) -> FlextResult[None]:
         """Save authentication token using file tools domain library."""
@@ -220,57 +208,45 @@ class FlextCli:
         return FlextResult[None].ok(None)
 
     def get_auth_token(self) -> FlextResult[str]:
-        """Get authentication token using file tools domain library.
+        """Get authentication token using Pydantic 2 validation - no wrappers.
 
-        Uses railway pattern with flat_map chaining for cleaner error handling.
+        Uses FlextCliModels.TokenData for validation instead of manual checks.
         """
         token_path = self.config.token_file
 
-        # Railway pattern: chain operations with flat_map
-        return (
-            self._read_token_file(str(token_path))
-            .flat_map(self._validate_token_data)
-            .flat_map(self._extract_token_string)
-        )
-
-    def _read_token_file(self, token_path: str) -> FlextResult[FlextTypes.JsonValue]:
-        """Read token file with appropriate error mapping."""
-        result = self.file_tools.read_json_file(token_path)
+        # Read JSON file directly using file_tools
+        result = self.file_tools.read_json_file(str(token_path))
         if result.is_failure:
             error_str = str(result.error)
             if FlextCliConstants.APIDefaults.FILE_ERROR_INDICATOR in error_str.lower():
-                return FlextResult[FlextTypes.JsonValue].fail(
+                return FlextResult[str].fail(
                     FlextCliConstants.ErrorMessages.TOKEN_FILE_NOT_FOUND
                 )
-            return FlextResult[FlextTypes.JsonValue].fail(
+            return FlextResult[str].fail(
                 FlextCliConstants.ErrorMessages.TOKEN_LOAD_FAILED.format(
                     error=error_str
                 )
             )
-        return result
 
-    def _validate_token_data(
-        self, data: FlextTypes.JsonValue
-    ) -> FlextResult[FlextTypes.JsonDict]:
-        """Validate token data is a dict (type guard step)."""
-        if not isinstance(data, dict):
-            return FlextResult[FlextTypes.JsonDict].fail(
-                FlextCliConstants.APIDefaults.TOKEN_DATA_TYPE_ERROR
-            )
-        return FlextResult[FlextTypes.JsonDict].ok(data)
-
-    def _extract_token_string(self, data: FlextTypes.JsonDict) -> FlextResult[str]:
-        """Extract and validate token string from data dict."""
-        token = data.get(FlextCliConstants.DictKeys.TOKEN)
-        if not token:
+        # Validate using Pydantic model - eliminates _validate_token_data + _extract_token_string
+        data = result.unwrap()
+        try:
+            token_data = FlextCliModels.TokenData.model_validate(data)
+            return FlextResult[str].ok(token_data.token)
+        except Exception as e:
+            # Return appropriate error message based on exception type
+            error_str = str(e).lower()
+            if "dict" in error_str or "mapping" in error_str or "object" in error_str:
+                return FlextResult[str].fail(
+                    FlextCliConstants.APIDefaults.TOKEN_DATA_TYPE_ERROR
+                )
+            if "string" in error_str or "str" in error_str:
+                return FlextResult[str].fail(
+                    FlextCliConstants.APIDefaults.TOKEN_VALUE_TYPE_ERROR
+                )
             return FlextResult[str].fail(
                 FlextCliConstants.ErrorMessages.TOKEN_FILE_EMPTY
             )
-        if not isinstance(token, str):
-            return FlextResult[str].fail(
-                FlextCliConstants.APIDefaults.TOKEN_VALUE_TYPE_ERROR
-            )
-        return FlextResult[str].ok(token)
 
     def is_authenticated(self) -> bool:
         """Check if user is authenticated."""
@@ -287,8 +263,11 @@ class FlextCli:
         delete_refresh_result = self.file_tools.delete_file(str(refresh_token_path))
 
         # Check if either deletion failed (but don't fail if file doesn't exist)
-        if delete_token_result.is_failure and not FlextCliUtilities.FileOps.is_file_not_found_error(
-            str(delete_token_result.error)
+        if (
+            delete_token_result.is_failure
+            and not FlextCliUtilities.FileOps.is_file_not_found_error(
+                str(delete_token_result.error)
+            )
         ):
             return FlextResult[None].fail(
                 FlextCliConstants.ErrorMessages.FAILED_CLEAR_CREDENTIALS.format(
@@ -296,8 +275,11 @@ class FlextCli:
                 )
             )
 
-        if delete_refresh_result.is_failure and not FlextCliUtilities.FileOps.is_file_not_found_error(
-            str(delete_refresh_result.error)
+        if (
+            delete_refresh_result.is_failure
+            and not FlextCliUtilities.FileOps.is_file_not_found_error(
+                str(delete_refresh_result.error)
+            )
         ):
             return FlextResult[None].fail(
                 FlextCliConstants.ErrorMessages.FAILED_CLEAR_CREDENTIALS.format(

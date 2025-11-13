@@ -636,17 +636,23 @@ class FlextCliCore(FlextService[FlextCliTypes.Data.CliDataDict]):
         Returns:
             FlextResult[FlextCliTypes.Data.CliDataDict]: Statistics data or error
 
+        Pydantic 2 Modernization:
+            - Uses CommandStatistics model internally
+            - Serializes to dict for API compatibility
+            - Type-safe with automatic validation
+
         """
         try:
-            stats: FlextCliTypes.Data.CliDataDict = {
-                FlextCliConstants.DictKeys.TOTAL_COMMANDS: len(self._commands),
-                FlextCliConstants.CoreServiceDictKeys.REGISTERED_COMMANDS: list(
-                    self._commands.keys()
-                ),
-                FlextCliConstants.DictKeys.STATUS: self._session_active,
-                FlextCliConstants.DictKeys.TIMESTAMP: datetime.now(UTC).isoformat(),
-            }
-            return FlextResult[FlextCliTypes.Data.CliDataDict].ok(stats)
+            # Create Pydantic model with type-safe fields
+            stats_model = FlextCliModels.CommandStatistics(
+                total_commands=len(self._commands),
+                registered_commands=list(self._commands.keys()),
+                status=self._session_active,
+                timestamp=datetime.now(UTC).isoformat(),
+            )
+            # Serialize to dict for API compatibility
+            stats_dict: FlextCliTypes.Data.CliDataDict = stats_model.model_dump()
+            return FlextResult[FlextCliTypes.Data.CliDataDict].ok(stats_dict)
         except Exception as e:
             return FlextResult[FlextCliTypes.Data.CliDataDict].fail(
                 FlextCliConstants.ErrorMessages.CLI_EXECUTION_ERROR.format(error=e),
@@ -693,6 +699,11 @@ class FlextCliCore(FlextService[FlextCliTypes.Data.CliDataDict]):
         Returns:
             FlextResult[FlextCliTypes.Data.CliDataDict]: Session statistics or error
 
+        Pydantic 2 Modernization:
+            - Uses SessionStatistics model internally
+            - Serializes to dict for API compatibility
+            - Type-safe with field validation (non-negative duration)
+
         """
         if not self._session_active:
             return FlextResult[FlextCliTypes.Data.CliDataDict].fail(
@@ -714,35 +725,35 @@ class FlextCliCore(FlextService[FlextCliTypes.Data.CliDataDict]):
                 duration_delta = current_time - start_time
                 session_duration = int(duration_delta.total_seconds())
 
-            # Collect session-specific statistics
-            statistics: FlextCliTypes.Data.CliDataDict = {
-                FlextCliConstants.CoreServiceDictKeys.SESSION_ACTIVE: self._session_active,
-                FlextCliConstants.CoreServiceDictKeys.SESSION_DURATION_SECONDS: session_duration,
-                FlextCliConstants.CoreServiceDictKeys.COMMANDS_AVAILABLE: len(
-                    self._commands
-                ),
-                FlextCliConstants.CoreServiceDictKeys.CONFIGURATION_LOADED: bool(
-                    self._config
-                ),
-                FlextCliConstants.CoreServiceDictKeys.SESSION_CONFIG_KEYS: (
-                    list(self._session_config.keys())
-                    if hasattr(self, FlextCliConstants.PrivateAttributes.SESSION_CONFIG)
-                    and self._session_config
-                    else []
-                ),
-                FlextCliConstants.CoreServiceDictKeys.START_TIME: (
-                    self._session_start_time
-                    if hasattr(
-                        self, FlextCliConstants.PrivateAttributes.SESSION_START_TIME
-                    )
-                    else FlextCliConstants.CoreServiceDefaults.UNKNOWN_VALUE
-                ),
-                FlextCliConstants.CoreServiceDictKeys.CURRENT_TIME: datetime.now(
-                    UTC
-                ).isoformat(),
-            }
+            # Get session config keys
+            session_config_keys = (
+                list(self._session_config.keys())
+                if hasattr(self, FlextCliConstants.PrivateAttributes.SESSION_CONFIG)
+                and self._session_config
+                else []
+            )
 
-            return FlextResult[FlextCliTypes.Data.CliDataDict].ok(statistics)
+            # Get start time string
+            start_time_str = (
+                self._session_start_time
+                if hasattr(self, FlextCliConstants.PrivateAttributes.SESSION_START_TIME)
+                else FlextCliConstants.CoreServiceDefaults.UNKNOWN_VALUE
+            )
+
+            # Create Pydantic model with type-safe fields
+            stats_model = FlextCliModels.SessionStatistics(
+                session_active=self._session_active,
+                session_duration_seconds=session_duration,
+                commands_available=len(self._commands),
+                configuration_loaded=bool(self._config),
+                session_config_keys=session_config_keys,
+                start_time=start_time_str,
+                current_time=datetime.now(UTC).isoformat(),
+            )
+
+            # Serialize to dict for API compatibility
+            stats_dict: FlextCliTypes.Data.CliDataDict = stats_model.model_dump()
+            return FlextResult[FlextCliTypes.Data.CliDataDict].ok(stats_dict)
 
         except Exception as e:
             return FlextResult[FlextCliTypes.Data.CliDataDict].fail(
@@ -769,6 +780,11 @@ class FlextCliCore(FlextService[FlextCliTypes.Data.CliDataDict]):
         Returns:
             FlextResult[FlextCliTypes.Data.CliDataDict]: Service execution result
 
+        Pydantic 2 Modernization:
+            - Uses ServiceExecutionResult model internally
+            - Serializes to dict for API compatibility
+            - Type-safe with field validation
+
         """
         try:
             # Validate service state before execution
@@ -779,20 +795,18 @@ class FlextCliCore(FlextService[FlextCliTypes.Data.CliDataDict]):
                     ),
                 )
 
-            # Execute service with comprehensive status data
-            status_data: FlextCliTypes.Data.CliDataDict = {
-                FlextCliConstants.CoreServiceDictKeys.SERVICE_EXECUTED: True,
-                FlextCliConstants.CoreServiceDictKeys.COMMANDS_COUNT: len(
-                    self._commands
-                ),
-                FlextCliConstants.CoreServiceDictKeys.SESSION_ACTIVE: self._session_active,
-                FlextCliConstants.CoreServiceDictKeys.EXECUTION_TIMESTAMP: datetime.now(
-                    UTC
-                ).isoformat(),
-                FlextCliConstants.CoreServiceDictKeys.SERVICE_READY: True,
-            }
+            # Create Pydantic model with type-safe fields
+            result_model = FlextCliModels.ServiceExecutionResult(
+                service_executed=True,
+                commands_count=len(self._commands),
+                session_active=self._session_active,
+                execution_timestamp=datetime.now(UTC).isoformat(),
+                service_ready=True,
+            )
 
-            return FlextResult[FlextCliTypes.Data.CliDataDict].ok(status_data)
+            # Serialize to dict for API compatibility
+            status_dict: FlextCliTypes.Data.CliDataDict = result_model.model_dump()
+            return FlextResult[FlextCliTypes.Data.CliDataDict].ok(status_dict)
 
         except Exception as e:
             return FlextResult[FlextCliTypes.Data.CliDataDict].fail(
@@ -858,17 +872,18 @@ class FlextCliCore(FlextService[FlextCliTypes.Data.CliDataDict]):
             **context_data,
         )
 
-        # Execute the command with enriched context
-        result_data: FlextCliTypes.Data.CliDataDict = {
-            FlextCliConstants.DictKeys.COMMAND: command_name,
-            FlextCliConstants.DictKeys.STATUS: True,
-            FlextCliConstants.DictKeys.CONTEXT: cast(
-                "FlextTypes.JsonValue", context_data
-            ),
-            FlextCliConstants.DictKeys.TIMESTAMP: datetime.now(UTC).isoformat(),
-            FlextCliConstants.CoreServiceDictKeys.USER_ID: user_id,
-        }
-        return FlextResult[FlextCliTypes.Data.CliDataDict].ok(result_data)
+        # Create Pydantic model with type-safe fields
+        result_model = FlextCliModels.CommandExecutionContextResult(
+            command=command_name,
+            status=True,
+            context=dict(context_data),  # Convert kwargs to dict
+            timestamp=datetime.now(UTC).isoformat(),
+            user_id=user_id,
+        )
+
+        # Serialize to dict for API compatibility
+        result_dict: FlextCliTypes.Data.CliDataDict = result_model.model_dump()
+        return FlextResult[FlextCliTypes.Data.CliDataDict].ok(result_dict)
 
     def health_check(self) -> FlextResult[FlextTypes.JsonDict]:
         """Perform health check on the CLI service.
@@ -1116,6 +1131,16 @@ class FlextCliCore(FlextService[FlextCliTypes.Data.CliDataDict]):
                     f"Cache '{name}' already exists"
                 )
 
+            # Validate parameters
+            if maxsize < 0:
+                return FlextResult[TTLCache[str, object]].fail(
+                    f"Invalid maxsize '{maxsize}': must be non-negative"
+                )
+            if ttl < 0:
+                return FlextResult[TTLCache[str, object]].fail(
+                    f"Invalid ttl '{ttl}': must be non-negative"
+                )
+
             cache: TTLCache[str, object] = TTLCache(maxsize=maxsize, ttl=ttl)
             self._caches[name] = cache
             return FlextResult[TTLCache[str, object]].ok(cache)
@@ -1189,14 +1214,11 @@ class FlextCliCore(FlextService[FlextCliTypes.Data.CliDataDict]):
     ) -> FlextResult[T]:
         """Run async coroutine and return result."""
         try:
-            loop = asyncio.get_event_loop()
-
+            # Use asyncio.run for Python 3.13+ to avoid deprecation warning
             if timeout:
-                result = loop.run_until_complete(
-                    asyncio.wait_for(coro, timeout=timeout)
-                )
+                result = asyncio.run(asyncio.wait_for(coro, timeout=timeout))
             else:
-                result = loop.run_until_complete(coro)
+                result = asyncio.run(coro)
 
             return FlextResult[T].ok(result)
         except TimeoutError:
@@ -1212,31 +1234,41 @@ class FlextCliCore(FlextService[FlextCliTypes.Data.CliDataDict]):
     ) -> FlextResult[T]:
         """Run sync function in thread pool executor."""
         try:
-            loop = asyncio.get_event_loop()
-            result = loop.run_until_complete(
-                loop.run_in_executor(
+            # Use asyncio.run with ThreadPoolExecutor for Python 3.13+
+            async def run_in_thread() -> T:
+                loop = asyncio.get_running_loop()
+                return await loop.run_in_executor(
                     self._async_executor, functools.partial(func, *args, **kwargs)
                 )
-            )
+
+            result = asyncio.run(run_in_thread())
             return FlextResult[T].ok(result)
         except Exception as e:
             return FlextResult[T].fail(str(e))
 
     def async_command(
         self,
-        func: Callable[P, Coroutine[Any, Any, T]],
-    ) -> Callable[P, T]:
-        """Decorator to make async function work with Click."""
+        func: Callable[P, Coroutine[Any, Any, T]] | None = None,
+    ) -> (
+        Callable[P, T] | Callable[[Callable[P, Coroutine[Any, Any, T]]], Callable[P, T]]
+    ):
+        """Decorator to make async function work with Click.
 
-        @functools.wraps(func)
-        def wrapper(*args: P.args, **kwargs: P.kwargs) -> T:
-            try:
-                loop = asyncio.get_event_loop()
-                return loop.run_until_complete(func(*args, **kwargs))
-            except RuntimeError:
+        Can be used as @async_command or @async_command().
+        """
+
+        def decorator(func: Callable[P, Coroutine[Any, Any, T]]) -> Callable[P, T]:
+            @functools.wraps(func)
+            def wrapper(*args: P.args, **kwargs: P.kwargs) -> T:
+                # Use asyncio.run as primary method for Python 3.13+
                 return asyncio.run(func(*args, **kwargs))
 
-        return wrapper
+            return wrapper
+
+        # Handle both @async_command and @async_command() syntax
+        if func is None:
+            return decorator
+        return decorator(func)
 
     # ==========================================================================
     # PLUGIN SYSTEM - Integrated into core service

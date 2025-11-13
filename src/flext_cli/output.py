@@ -110,9 +110,9 @@ class FlextCliOutput(FlextService[object]):
 
         """
         # Railway pattern: validate format → dispatch to handler
-        return FlextCliUtilities.CliValidation.validate_output_format(format_type).flat_map(
-            lambda fmt: self._dispatch_formatter(fmt, data, title, headers)
-        )
+        return FlextCliUtilities.CliValidation.validate_output_format(
+            format_type
+        ).flat_map(lambda fmt: self._dispatch_formatter(fmt, data, title, headers))
 
     # Helper _validate_format_type moved to FlextCliUtilities.CliValidation.validate_output_format()
 
@@ -189,8 +189,9 @@ class FlextCliOutput(FlextService[object]):
         try:
             # Validate format using consolidated utility - railway pattern
             return (
-                FlextCliUtilities.CliValidation.validate_output_format(format_type)
-                .map(lambda _: self)  # Return self as formatter on success
+                FlextCliUtilities.CliValidation.validate_output_format(format_type).map(
+                    lambda _: self
+                )  # Return self as formatter on success
             )
         except Exception as e:
             return FlextResult[object].fail(

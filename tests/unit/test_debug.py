@@ -366,25 +366,20 @@ class TestFlextCliDebugExceptionHandlers:
         # Should complete but with error in system info section
         assert result.is_success or result.is_failure
 
-    def test_get_system_paths_with_non_basic_types(self) -> None:
-        """Test get_system_paths with non-basic type values."""
+    def test_get_system_paths_with_path_info_models(self) -> None:
+        """Test get_system_paths with PathInfo models (type-safe approach)."""
         from typing import cast
+
+        from flext_cli.models import FlextCliModels
 
         debug = FlextCliDebug()
 
-        # Mock _get_path_info to return path dict[str, object] with tuple (non-basic type)
-        def mock_path_info() -> list[dict[str, object]]:
+        # Mock _get_path_info to return PathInfo models
+        def mock_path_info() -> list[FlextCliModels.PathInfo]:
             return [
-                {
-                    "index": 0,
-                    "path": "/test/path",
-                    "exists": True,
-                    "is_dir": True,
-                    "extra_data": (
-                        "tuple",
-                        "value",
-                    ),  # Non-basic type - passed through as-is
-                }
+                FlextCliModels.PathInfo(
+                    index=0, path="/test/path", exists=True, is_dir=True
+                )
             ]
 
         import pytest
@@ -403,10 +398,11 @@ class TestFlextCliDebugExceptionHandlers:
         paths = cast("list[dict[str, object]]", paths_dict["paths"])
         assert len(paths) == 1
         assert isinstance(paths, list)
-        # Implementation doesn't convert non-basic types, they're passed through
-        assert "extra_data" in paths[0]
-        # Verify it's the tuple we passed in
-        assert paths[0]["extra_data"] == ("tuple", "value")
+        # Verify PathInfo model was serialized correctly
+        assert paths[0]["index"] == 0
+        assert paths[0]["path"] == "/test/path"
+        assert paths[0]["exists"] is True
+        assert paths[0]["is_dir"] is True
 
         monkeypatch.undo()
 
