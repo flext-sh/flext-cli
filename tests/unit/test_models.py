@@ -15,7 +15,6 @@ import operator
 import re
 import threading
 import time
-from typing import Self
 
 import pydantic
 import pytest
@@ -156,26 +155,32 @@ class TestFlextCliModels:
     # ========================================================================
 
     def test_debug_info_creation(self) -> None:
-        """Test DebugInfo model creation."""
+        """Test DebugInfo model creation.
+
+        The level field validator normalizes to uppercase automatically.
+        """
         debug_info = FlextCliModels.DebugInfo(
             service="TestService",
             status="operational",
-            level="info",
+            level="info",  # Case-insensitive input
             message="Test message",
         )
         assert debug_info.service == "TestService"
         assert debug_info.status == "operational"
-        assert debug_info.level == "info"
+        assert debug_info.level == "INFO"  # Normalized to uppercase
 
     def test_debug_info_serialization(self) -> None:
-        """Test DebugInfo model serialization."""
+        """Test DebugInfo model serialization.
+
+        The level field validator normalizes to uppercase automatically.
+        """
         debug_info = FlextCliModels.DebugInfo(
             service="TestService", level="debug", message="Debug message"
         )
         data = debug_info.model_dump()
         assert isinstance(data, dict)
         assert data["service"] == "TestService"
-        assert data["level"] == "debug"
+        assert data["level"] == "DEBUG"  # Normalized to uppercase
 
     # ========================================================================
     # LoggingConfig Model Tests
@@ -1136,66 +1141,6 @@ class TestFlextCliModelsExceptionHandlers:
         assert result.is_failure
         assert "no type annotation" in str(result.error).lower()
 
-    @pytest.mark.skip(
-        reason="Tests defensive code - method returns success with empty list when model validation fails"
-    )
-    def test_model_to_cli_params_exception_handler(self) -> None:
-        """Test model_to_cli_params exception handler (lines 336-339)."""
-
-        # Test with a model class that raises exception during field access
-        class ProblematicModel(BaseModel):
-            @classmethod
-            def model_validate(
-                cls,
-                obj: object,
-                *,
-                strict: bool | None = None,
-                extra: object = None,
-                from_attributes: bool | None = None,
-                context: object = None,
-                by_alias: bool | None = None,
-                by_name: bool | None = None,
-            ) -> Self:
-                # Use parameters to satisfy linter
-                _ = (obj, strict, extra, from_attributes, context, by_alias, by_name)
-                msg = "Model fields error"
-                raise RuntimeError(msg)
-
-        result = FlextCliModels.CliModelConverter.model_to_cli_params(ProblematicModel)
-
-        assert result.is_failure
-
-    @pytest.mark.skip(
-        reason="Tests defensive code - method returns success with empty list when model validation fails"
-    )
-    def test_model_to_click_options_exception_handler(self) -> None:
-        """Test model_to_click_options exception handler (lines 394-397)."""
-
-        # Test with a model that causes issues in model_to_cli_params
-        class ProblematicModel(BaseModel):
-            @classmethod
-            def model_validate(
-                cls,
-                obj: object,
-                *,
-                strict: bool | None = None,
-                extra: object = None,
-                from_attributes: bool | None = None,
-                context: object = None,
-                by_alias: bool | None = None,
-                by_name: bool | None = None,
-            ) -> Self:
-                # Use parameters to satisfy linter
-                _ = (obj, strict, extra, from_attributes, context, by_alias, by_name)
-                msg = "Click options error"
-                raise RuntimeError(msg)
-
-        result = FlextCliModels.CliModelConverter.model_to_click_options(
-            ProblematicModel
-        )
-
-        assert result.is_failure
-
     def test_cli_args_to_model_exception_handler(self) -> None:
         """Test cli_args_to_model exception handler (lines 427-430)."""
 
@@ -1360,12 +1305,14 @@ class TestFlextCliModelsExceptionHandlers:
         assert "status" in str(exc_info.value).lower()
 
         # Test with empty user_id when provided - should raise ValidationError
+        # Annotated with StringConstraints raises "string_too_short" error
         with pytest.raises(ValidationError) as exc_info2:
             FlextCliModels.CliSession(
                 session_id="test2",
                 user_id="",  # Empty user_id
             )
-        assert "empty" in str(exc_info2.value).lower()
+        error_msg = str(exc_info2.value).lower()
+        assert "too_short" in error_msg or "at least 1 character" in error_msg
 
     def test_cli_command_serialization_edge_cases(self) -> None:
         """Test CliCommand serialization with sensitive data."""

@@ -857,7 +857,7 @@ class TestFlextCliPrompts:
         prompts = FlextCliPrompts(quiet=True)
         msg = "Stats failed"
         with patch(
-            "flext_cli.prompts.FlextUtilities.Generators.generate_iso_timestamp",
+            "flext_cli.prompts.FlextCliUtilities.Generators.generate_iso_timestamp",
             side_effect=RuntimeError(msg),
         ):
             result = prompts.get_prompt_statistics()
@@ -1059,10 +1059,6 @@ class TestFlextCliPrompts:
         assert result.error is not None
         assert "confirmation prompt failed" in (result.error or "").lower()
 
-    @pytest.mark.skip(reason="Tests defensive code marked with pragma: no cover")
-    def test_prompt_choice_exception_handling_coverage(
-        self, monkeypatch: pytest.MonkeyPatch
-    ) -> None:
         """Test prompt_choice exception handler (defensive code, not covered)."""
         # The exception handler in prompt_choice() is marked with # pragma: no cover
         # as it handles edge cases that shouldn't occur in normal operation

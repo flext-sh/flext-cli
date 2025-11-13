@@ -20,7 +20,7 @@ from typing import Literal, cast
 
 import pytest
 import yaml
-from flext_core import FlextConfig, FlextConstants, FlextContainer, FlextResult
+from flext_core import FlextConfig, FlextConstants, FlextContainer
 
 from flext_cli import FlextCli, FlextCliConfig, FlextCliModels
 
@@ -1205,12 +1205,13 @@ class TestConfigValidation:
         assert "input should be" in error_msg or "must be one of" in error_msg
 
     def test_empty_profile_validation(self) -> None:
-        """Test empty profile validation error (lines 217-218)."""
+        """Test empty profile validation via Pydantic StringConstraints."""
         with pytest.raises(ValueError) as exc_info:
             FlextCliConfig(profile="")
 
-        assert "profile" in str(exc_info.value).lower()
-        assert "empty" in str(exc_info.value).lower()
+        error_msg = str(exc_info.value).lower()
+        assert "profile" in error_msg
+        assert "at least 1 character" in error_msg or "too_short" in error_msg
 
     def test_whitespace_only_profile_validation(self) -> None:
         """Test whitespace-only profile validation error (lines 217-218)."""
@@ -1388,24 +1389,21 @@ def temp_yaml_file(temp_dir: Path) -> Path:
 class TestFlextCliConfigExceptionHandlers:
     """Exception handler tests for FlextCliConfig methods - achieving 100% coverage."""
 
-    def test_validate_configuration_business_rules_failure(
-        self, monkeypatch: pytest.MonkeyPatch
-    ) -> None:
-        """Test validate_configuration when business rules fail (lines 285-290)."""
+    def test_validate_configuration_field_validators(self) -> None:
+        """Test that Pydantic 2 field validators work correctly.
 
-        # Mock validate_business_rules to return failure
-        def mock_validate_failure(self: object) -> FlextResult[None]:
-            return FlextResult[None].fail("Business rule validation failed")
+        validate_business_rules was eliminated - validation now happens
+        automatically via Pydantic 2 @field_validator decorators.
+        """
+        # Valid config should pass all field validators
+        config = FlextCliConfig()
+        assert isinstance(config, FlextCliConfig)
+        assert config.profile  # profile has StringConstraints(min_length=1)
 
-        monkeypatch.setattr(
-            FlextCliConfig, "validate_business_rules", mock_validate_failure
-        )
-
-        # Creating config should raise ValueError
+        # Invalid profile should raise ValidationError during instantiation
         with pytest.raises(ValueError) as exc_info:
-            FlextCliConfig()
-
-        assert "business rules validation failed" in str(exc_info.value).lower()
+            FlextCliConfig(profile="")
+        assert "at least 1 character" in str(exc_info.value).lower()
 
     def test_validate_configuration_config_dir_permission_error(
         self, monkeypatch: pytest.MonkeyPatch
@@ -1738,68 +1736,37 @@ class TestFlextCliConfigExceptionHandlers:
         assert result.is_failure
         assert "config save failed" in str(result.error).lower()
 
-    def test_validate_business_rules_empty_profile(self) -> None:
-        """Test validate_business_rules with empty profile (lines 700-701)."""
-        config = FlextCliConfig()
-        # Manually set empty profile to bypass field validator
-        config.__dict__["profile"] = ""
+    def test_profile_validation_empty(self) -> None:
+        """Test profile validation with empty string.
 
-        result = config.validate_business_rules()
-        assert result.is_failure
-        assert "profile" in str(result.error).lower()
+        Validation now happens automatically via Pydantic 2 Annotated with StringConstraints.
+        Empty profile raises ValidationError during model creation.
+        """
+        import pytest
+        from pydantic import ValidationError
 
-    def test_validate_business_rules_empty_output_format(self) -> None:
-        """Test validate_business_rules with empty output_format (lines 703-704)."""
-        config = FlextCliConfig()
-        # Manually set empty output_format to bypass field validator
-        config.__dict__["output_format"] = ""
+        with pytest.raises(ValidationError) as exc_info:
+            FlextCliConfig(profile="")
 
-        result = config.validate_business_rules()
-        assert result.is_failure
-        assert "output format" in str(result.error).lower()
+        error_msg = str(exc_info.value).lower()
+        assert "too_short" in error_msg or "at least 1 character" in error_msg
 
-    def test_validate_business_rules_empty_config_dir(self) -> None:
-        """Test validate_business_rules with empty config_dir (lines 706-707)."""
-        config = FlextCliConfig()
-        # Manually set None config_dir to bypass field validator
-        config.__dict__["config_dir"] = None
+    def test_output_format_validation_unsupported(self) -> None:
+        """Test output_format validation with unsupported format.
 
-        result = config.validate_business_rules()
-        assert result.is_failure
-        assert "config directory" in str(result.error).lower()
+        Validation now happens automatically via Pydantic 2 Literal type.
+        Invalid format raises ValidationError during model creation.
+        """
+        import pytest
+        from pydantic import ValidationError
 
-    def test_validate_business_rules_unsupported_format(self) -> None:
-        """Test validate_business_rules with unsupported format (lines 717-720)."""
-        config = FlextCliConfig()
-        # Manually set unsupported format to bypass field validator
-        config.__dict__["output_format"] = "unsupported_format"
+        with pytest.raises(ValidationError) as exc_info:
+            FlextCliConfig(output_format="unsupported_format")
 
-        result = config.validate_business_rules()
-        assert result.is_failure
-        assert "unsupported" in str(result.error).lower()
-
-    def test_validate_business_rules_exception(
-        self, monkeypatch: pytest.MonkeyPatch
-    ) -> None:
-        """Test validate_business_rules exception handler (lines 724-725)."""
-        config = FlextCliConfig()
-
-        # Mock __getattribute__ to raise exception when accessing profile
-        original_getattribute = FlextCliConfig.__getattribute__
-
-        def mock_getattribute_raises(self: FlextCliConfig, name: str) -> object:
-            if name == "profile":
-                msg = "Profile error"
-                raise RuntimeError(msg)
-            return original_getattribute(self, name)
-
-        monkeypatch.setattr(
-            FlextCliConfig, "__getattribute__", mock_getattribute_raises
+        error_msg = str(exc_info.value).lower()
+        assert (
+            "literal" in error_msg or "unexpected" in error_msg or "input" in error_msg
         )
-
-        result = config.validate_business_rules()
-        assert result.is_failure
-        assert "business rules validation failed" in str(result.error).lower()
 
     def test_validate_configuration_context_success(
         self, monkeypatch: pytest.MonkeyPatch

@@ -8,11 +8,11 @@ from flext_core import (
     FlextResult,
     FlextService,
     FlextTypes,
-    FlextUtilities,
 )
 from pydantic import Field, PrivateAttr
 
 from flext_cli.constants import FlextCliConstants
+from flext_cli.models import FlextCliModels
 from flext_cli.typings import FlextCliTypes
 from flext_cli.utilities import FlextCliUtilities
 
@@ -319,19 +319,25 @@ class FlextCliPrompts(FlextService[FlextCliTypes.Data.CliDataDict]):
         Returns:
             FlextResult[FlextCliTypes.Data.CliDataDict]: Statistics data
 
+        Pydantic 2 Modernization:
+            - Uses PromptStatistics model internally
+            - Serializes to dict for API compatibility
+            - Type-safe with automatic validation
+
         """
         try:
-            stats: FlextCliTypes.Data.CliDataDict = {
-                FlextCliConstants.DictKeys.PROMPTS_EXECUTED: len(self._prompt_history),
-                FlextCliConstants.DictKeys.INTERACTIVE_MODE: self.interactive_mode,
-                FlextCliConstants.PromptsDictKeys.DEFAULT_TIMEOUT: self.default_timeout,
-                FlextCliConstants.PromptsDictKeys.HISTORY_SIZE: len(
-                    self._prompt_history
-                ),
-                FlextCliConstants.PromptsDictKeys.TIMESTAMP: FlextUtilities.Generators.generate_iso_timestamp(),
-            }
+            # Create Pydantic model with type-safe fields
+            stats_model = FlextCliModels.PromptStatistics(
+                prompts_executed=len(self._prompt_history),
+                interactive_mode=self.interactive_mode,
+                default_timeout=self.default_timeout,
+                history_size=len(self._prompt_history),
+                timestamp=FlextCliUtilities.Generators.generate_iso_timestamp(),
+            )
 
-            return FlextResult[FlextCliTypes.Data.CliDataDict].ok(stats)
+            # Serialize to dict for API compatibility
+            stats_dict: FlextCliTypes.Data.CliDataDict = stats_model.model_dump()
+            return FlextResult[FlextCliTypes.Data.CliDataDict].ok(stats_dict)
 
         except Exception as e:
             return FlextResult[FlextCliTypes.Data.CliDataDict].fail(

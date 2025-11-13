@@ -19,7 +19,7 @@ import pytest
 from flext_core import FlextResult, FlextTypes
 from pydantic import PositiveInt, TypeAdapter, ValidationError
 
-from flext_cli import FlextCli, FlextCliConstants, FlextCliTypes
+from flext_cli import FlextCli, FlextCliConfig, FlextCliConstants, FlextCliTypes
 
 
 class TestFlextCli:
@@ -353,13 +353,15 @@ class TestFlextCli:
         assert saved_data == test_config
 
     def test_validate_config(self, api_service: FlextCli) -> None:
-        """Test configuration validation functionality."""
-        # Test valid configuration using config's validate_business_rules
-        config = api_service.config
-        result = config.validate_business_rules()
+        """Test configuration validation functionality.
 
-        assert isinstance(result, FlextResult)
-        assert result.is_success
+        Validation now happens automatically via Pydantic 2 validators.
+        Valid config is created successfully, invalid config raises ValidationError.
+        """
+        # Test valid configuration - if it was created, it's valid
+        config = api_service.config
+        assert isinstance(config, FlextCliConfig)
+        assert config.profile  # Non-empty due to StringConstraints
 
         # Test invalid configuration - use modern Pydantic validation
         # Test negative timeout validation

@@ -13,7 +13,7 @@ import os
 import shutil
 from datetime import UTC, datetime
 from pathlib import Path
-from typing import Literal, Self
+from typing import Annotated, Literal, Self
 
 from flext_core import (
     FlextConfig,
@@ -29,6 +29,7 @@ from flext_core import (
 from pydantic import (
     Field,
     SecretStr,
+    StringConstraints,
     computed_field,
     model_validator,
 )
@@ -74,9 +75,12 @@ class FlextCliConfig(FlextConfig):
     )
 
     # CLI-specific configuration fields using FlextCliConstants for defaults
-    profile: str = Field(
-        default=FlextCliConstants.CliDefaults.DEFAULT_PROFILE,
-        description="CLI profile to use for configuration",
+    # Using Annotated with StringConstraints for automatic validation (Pydantic 2)
+    profile: Annotated[str, StringConstraints(min_length=1, strip_whitespace=True)] = (
+        Field(
+            default=FlextCliConstants.CliDefaults.DEFAULT_PROFILE,
+            description="CLI profile to use for configuration",
+        )
     )
 
     output_format: Literal["json", "yaml", "csv", "table", "plain"] = Field(
@@ -206,28 +210,20 @@ class FlextCliConfig(FlextConfig):
         description="Optional log file path for persistent logging",
     )
 
-    # Pydantic 2.11 field validators
+    # Pydantic 2.11 model validator (runs after all field validators)
     @model_validator(mode="after")
     def validate_configuration(self) -> Self:
         """Validate configuration and auto-propagate to FlextContext/FlextContainer.
 
+        This method runs AFTER all field validators, so individual field validation
+        is already complete via Pydantic 2 @field_validator decorators.
+
         This method:
-        1. Validates business rules from FlextConfig
-        2. Ensures config directory exists
-        3. Auto-propagates config to FlextContext for global access
-        4. Auto-registers in FlextContainer for dependency injection
+        1. Ensures config directory exists
+        2. Auto-propagates config to FlextContext for global access
+        3. Auto-registers in FlextContainer for dependency injection
 
         """
-        # Use FlextConfig business rules validation
-        validation_result = self.validate_business_rules()
-        if validation_result.is_failure:
-            msg = (
-                FlextCliConstants.ErrorMessages.BUSINESS_RULES_VALIDATION_FAILED.format(
-                    error=validation_result.error
-                )
-            )
-            raise ValueError(msg)
-
         # Ensure config directory exists or can be created
         try:
             self.config_dir.mkdir(parents=True, exist_ok=True)
@@ -416,14 +412,32 @@ class FlextCliConfig(FlextConfig):
             )
 
     def execute_as_service(self) -> FlextResult[FlextCliTypes.Data.CliDataDict]:
-        """Execute config as service operation."""
-        return FlextResult[FlextCliTypes.Data.CliDataDict].ok({
-            FlextCliConstants.DictKeys.STATUS: FlextCliConstants.ServiceStatus.OPERATIONAL.value,
-            FlextCliConstants.DictKeys.SERVICE: FlextCliConstants.ConfigDefaults.DEFAULT_SERVICE_NAME,
-            FlextCliConstants.DictKeys.TIMESTAMP: datetime.now(UTC).isoformat(),
-            FlextCliConstants.DictKeys.VERSION: FlextCliConstants.ConfigDefaults.DEFAULT_VERSION_STRING,
-            FlextCliConstants.DictKeys.CONFIG: self.model_dump(),
-        })
+        """Execute config as service operation.
+
+        Pydantic 2 Modernization:
+            - Uses ConfigServiceExecutionResult model internally
+            - Serializes to dict for API compatibility
+            - Type-safe with field validation
+
+        Note:
+            FlextCliModels imported locally to avoid circular dependency
+            (config.py → models.py → config.py)
+
+        """
+        # Import locally to avoid circular dependency
+        from flext_cli.models import FlextCliModels
+
+        # Create Pydantic model with type-safe fields
+        result_model = FlextCliModels.ConfigServiceExecutionResult(
+            status=FlextCliConstants.ServiceStatus.OPERATIONAL.value,
+            service=FlextCliConstants.ConfigDefaults.DEFAULT_SERVICE_NAME,
+            timestamp=datetime.now(UTC).isoformat(),
+            version=FlextCliConstants.ConfigDefaults.DEFAULT_VERSION_STRING,
+            config=self.model_dump(),
+        )
+        # Serialize to dict for API compatibility
+        result_dict: FlextCliTypes.Data.CliDataDict = result_model.model_dump()
+        return FlextResult[FlextCliTypes.Data.CliDataDict].ok(result_dict)
 
     def update_from_cli_args(self, **kwargs: FlextTypes.JsonValue) -> FlextResult[None]:
         """Update configuration from CLI arguments with validation.
@@ -628,38 +642,6 @@ class FlextCliConfig(FlextConfig):
             return FlextResult[None].fail(
                 FlextCliConstants.ErrorMessages.CONFIG_SAVE_FAILED_MSG.format(error=e)
             )
-
-    def validate_business_rules(self) -> FlextResult[None]:
-        """Validate configuration business rules.
-
-        Returns:
-            FlextResult[None]: Success if all rules pass, error otherwise
-
-        """
-        try:
-            # Basic validation rules for CLI config
-            if not self.profile:
-                return FlextResult[None].fail("Profile cannot be empty")
-
-            if not self.config_dir:
-                return FlextResult[None].fail("Config directory cannot be empty")
-
-            # Validate output format is supported
-            supported_formats = [
-                FlextCliConstants.OutputFormats.TABLE.value,
-                FlextCliConstants.OutputFormats.JSON.value,
-                FlextCliConstants.OutputFormats.YAML.value,
-                FlextCliConstants.OutputFormats.CSV.value,
-            ]
-            if self.output_format not in supported_formats:
-                supported_list = ", ".join(supported_formats)
-                message = f"Unsupported output format: {self.output_format}. Supported: {supported_list}"
-                return FlextResult[None].fail(message)
-
-            return FlextResult[None].ok(None)
-
-        except Exception as e:
-            return FlextResult[None].fail(f"Business rules validation failed: {e}")
 
 
 __all__ = [

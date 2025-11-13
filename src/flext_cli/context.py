@@ -10,11 +10,12 @@ SPDX-License-Identifier: MIT
 
 import uuid
 
-from flext_core import FlextResult, FlextService, FlextTypes, FlextUtilities
+from flext_core import FlextResult, FlextService, FlextTypes
 from pydantic import Field
 
 from flext_cli.config import FlextCliConfig
 from flext_cli.constants import FlextCliConstants
+from flext_cli.models import FlextCliModels
 from flext_cli.typings import FlextCliTypes
 from flext_cli.utilities import FlextCliUtilities
 
@@ -80,7 +81,7 @@ class FlextCliContext(FlextService[FlextCliTypes.Data.CliDataDict]):
 
         # Context state
         self.is_active = False
-        self.created_at = FlextUtilities.Generators.generate_iso_timestamp()
+        self.created_at = FlextCliUtilities.Generators.generate_iso_timestamp()
         self.timeout_seconds = int(FlextCliConfig.get_global_instance().timeout_seconds)
 
     def activate(self) -> FlextResult[None]:
@@ -294,17 +295,28 @@ class FlextCliContext(FlextService[FlextCliTypes.Data.CliDataDict]):
             )
 
     def execute(self) -> FlextResult[FlextCliTypes.Data.CliDataDict]:
-        """Execute the CLI context."""
+        """Execute the CLI context.
+
+        Returns:
+            FlextResult with ContextExecutionResult serialized as dict
+
+        Pydantic 2 Modernization:
+            - Uses ContextExecutionResult model internally
+            - Serializes to dict for API compatibility
+            - Type-safe with automatic validation
+
+        """
         try:
-            result: FlextCliTypes.Data.CliDataDict = {
-                FlextCliConstants.ContextDictKeys.CONTEXT_EXECUTED: True,
-                FlextCliConstants.ContextDictKeys.COMMAND: self.command,
-                FlextCliConstants.ContextDictKeys.ARGUMENTS_COUNT: len(self.arguments)
-                if self.arguments
-                else 0,
-                FlextCliConstants.DictKeys.TIMESTAMP: FlextUtilities.Generators.generate_iso_timestamp(),
-            }
-            return FlextResult[FlextCliTypes.Data.CliDataDict].ok(result)
+            # Create Pydantic model with type-safe fields (command defaults to empty if None)
+            result_model = FlextCliModels.ContextExecutionResult(
+                context_executed=True,
+                command=self.command or "",
+                arguments_count=len(self.arguments) if self.arguments else 0,
+                timestamp=FlextCliUtilities.Generators.generate_iso_timestamp(),
+            )
+            # Serialize to dict for API compatibility
+            result_dict: FlextCliTypes.Data.CliDataDict = result_model.model_dump()
+            return FlextResult[FlextCliTypes.Data.CliDataDict].ok(result_dict)
         except Exception as e:  # pragma: no cover
             return FlextResult[FlextCliTypes.Data.CliDataDict].fail(
                 FlextCliConstants.ContextErrorMessages.CONTEXT_EXECUTION_FAILED.format(
