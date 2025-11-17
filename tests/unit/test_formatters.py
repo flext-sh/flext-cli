@@ -27,20 +27,16 @@ class TestFlextCliFormattersCore:
         assert isinstance(formatters, FlextCliFormatters)
 
     def test_console_property(self) -> None:
-        """Test console property lazy loading."""
+        """Test console property access."""
+        from rich.console import Console
+
         formatters = FlextCliFormatters()
         console = formatters.console
         assert console is not None
+        assert isinstance(console, Console)
         # Second access should return same instance
         console2 = formatters.console
         assert console is console2
-
-    def test_get_console(self) -> None:
-        """Test get_console() method."""
-        formatters = FlextCliFormatters()
-        console = formatters.get_console()
-        assert console is not None
-        assert console is formatters.console
 
     def test_execute(self) -> None:
         """Test service execute() method."""
@@ -141,7 +137,7 @@ class TestFlextCliFormattersCore:
         """Test create_tree() with different label."""
         formatters = FlextCliFormatters()
         # create_tree() only accepts label parameter (no guide_style option)
-        # For custom tree styling, use get_console() and create Tree directly
+        # For custom tree styling, access console directly and create Tree
         result = formatters.create_tree("Root Node")
         assert result.is_success
         tree = result.unwrap()
@@ -225,7 +221,7 @@ class TestFlextCliFormattersIntegration:
         formatters = FlextCliFormatters()
 
         console1 = formatters.console
-        console2 = formatters.get_console()
+        console2 = formatters.console
 
         # Should be same instance
         assert console1 is console2

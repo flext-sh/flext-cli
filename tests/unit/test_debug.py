@@ -11,6 +11,7 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 import time
+from typing import Never
 
 import pytest
 from flext_core import FlextResult
@@ -449,21 +450,35 @@ class TestFlextCliDebugExceptionHandlers:
     def test_get_comprehensive_debug_info_outer_exception(
         self, monkeypatch: pytest.MonkeyPatch
     ) -> None:
-        """Test get_comprehensive_debug_info outer exception handler (lines 240-241)."""
+        """Test get_comprehensive_debug_info outer exception handler (lines 271-276)."""
         debug = FlextCliDebug()
 
-        # Mock cast to raise exception - triggers outer exception handler
-        def mock_cast_raises(*args: object, **kwargs: object) -> object:
-            msg = "Cast exception"
+        # Mock _get_system_info (private method) to raise exception
+        # This will cause get_system_info to return a failure, but we want to test
+        # the outer exception handler, so we need to cause an exception in the try block
+        # We'll mock the dictionary assignment to raise an exception
+        original_get_system_info = debug.get_system_info
+
+        def mock_get_system_info_raises() -> Never:
+            msg = "System info exception"
             raise RuntimeError(msg)
 
-        monkeypatch.setattr("flext_cli.debug.cast", mock_cast_raises)
+        # Use monkeypatch to replace the method at class level
+        monkeypatch.setattr(
+            FlextCliDebug, "get_system_info", mock_get_system_info_raises
+        )
 
-        result = debug.get_comprehensive_debug_info()
+        try:
+            result = debug.get_comprehensive_debug_info()
 
-        # Should catch exception and return failure
-        assert result.is_failure
-        assert "Comprehensive debug info collection failed" in str(result.error)
+            # Should catch exception at outer level and return failure
+            assert result.is_failure
+            assert "Comprehensive debug info collection failed" in str(result.error)
+        finally:
+            # Restore original method
+            monkeypatch.setattr(
+                FlextCliDebug, "get_system_info", original_get_system_info
+            )
 
     def test_validate_filesystem_permissions_oserror(
         self, monkeypatch: pytest.MonkeyPatch

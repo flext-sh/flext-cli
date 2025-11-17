@@ -247,9 +247,9 @@ class TestFlextCliOutput:
         assert isinstance(result, FlextResult)
         assert result.is_success
 
-    def test_output_get_console(self, output: FlextCliOutput) -> None:
-        """Test getting console."""
-        console = output.get_console()
+    def test_output_console_property(self, output: FlextCliOutput) -> None:
+        """Test console property access."""
+        console = output.console
 
         assert console is not None
 
@@ -278,8 +278,8 @@ class TestFlextCliOutput:
         message_result = output.print_message("Test message")
         assert message_result.is_success
 
-        # Step 5: Get console
-        console = output.get_console()
+        # Step 5: Access console
+        console = output.console
         assert console is not None
 
     def test_output_real_functionality(self, output: FlextCliOutput) -> None:
@@ -860,7 +860,7 @@ class TestFlextCliOutput:
         data = [{"name": "item1"}, {"name": "item2"}]
         output._build_tree(tree, cast("FlextTypes.JsonValue", data))  # Should not raise
 
-    def test_console_property(self, output: FlextCliOutput) -> None:
-        """Test console property (line 782)."""
-        console = output.get_console()
+    def test_console_property_access(self, output: FlextCliOutput) -> None:
+        """Test console property access."""
+        console = output.console
         assert console is not None

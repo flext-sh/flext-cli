@@ -139,8 +139,8 @@ class TestFlextCli:
         assert isinstance(result, FlextResult)
         assert result.is_success
 
-        # The print method should return success
-        assert result.unwrap() is None
+        # The print method should return True on success (FlextResult[bool])
+        assert result.unwrap() is True
 
     # ========================================================================
     # FILE OPERATIONS
@@ -470,7 +470,7 @@ nested:
 
     def test_concurrent_operations(self, api_service: FlextCli, temp_dir: Path) -> None:
         """Test concurrent operations to ensure thread safety."""
-        results: list[FlextResult[None]] = []
+        results: list[FlextResult[bool]] = []
         errors: list[Exception] = []
 
         def worker(worker_id: int) -> None:

@@ -83,15 +83,15 @@ def test_cli_command() -> None:
 
 def save_config_command(
     config: FlextCliTypes.Data.CliDataDict,
-) -> FlextResult[None]:
+) -> FlextResult[bool]:
     """CLI command that saves config."""
     temp_file = Path(tempfile.gettempdir()) / "test_config.json"
 
     write_result = cli.file_tools.write_json_file(temp_file, config)
     if write_result.is_failure:
-        return FlextResult[None].fail(f"Save failed: {write_result.error}")
+        return FlextResult[bool].fail(f"Save failed: {write_result.error}")
 
-    return FlextResult[None].ok(None)
+    return FlextResult[bool].ok(True)
 
 
 def test_file_operations() -> None:

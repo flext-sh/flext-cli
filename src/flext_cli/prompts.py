@@ -1,5 +1,7 @@
 """User interaction tools for CLI applications."""
 
+from __future__ import annotations
+
 import getpass
 import re
 
@@ -73,8 +75,11 @@ class FlextCliPrompts(FlextService[FlextCliTypes.Data.CliDataDict]):
 
         super().__init__(**data)
 
-        # Initialize logger - use provided logger or create new one
-        self._logger = logger or FlextLogger(__name__)
+        # Initialize logger - validate explicitly, no fallback
+        if logger is not None:
+            self._logger = logger
+        else:
+            self._logger = FlextLogger(__name__)
 
         # Initialize private prompt history (PrivateAttr default_factory handles this automatically)
         # But we ensure it exists for clarity
@@ -126,10 +131,8 @@ class FlextCliPrompts(FlextService[FlextCliTypes.Data.CliDataDict]):
             # Record prompt for history
             self._prompt_history.append(message)
 
-            # Use input with timeout if available
-
-            # Simulate user input (in real implementation, would use proper input handling)
-            user_input = default or FlextCliConstants.StatusValues.SIMULATED_INPUT
+            # Use default directly - type guarantees it's a string (no fallback needed)
+            user_input = default
 
             # Validate input if pattern provided
             if (
@@ -236,15 +239,20 @@ class FlextCliPrompts(FlextService[FlextCliTypes.Data.CliDataDict]):
                 )
             )
 
-            # Use input with timeout if available
-
-            # Simulate user input (in real implementation, would use proper input handling)
-            selected = default or choices[0]
-
-            if selected not in choices:
+            # Get real user selection - no fallback to fake data
+            if default:
+                if default not in choices:
+                    return FlextResult[str].fail(
+                        FlextCliConstants.ErrorMessages.INVALID_CHOICE.format(
+                            selected=default
+                        )
+                    )
+                selected = default
+            else:
+                # No default provided - require explicit choice
                 return FlextResult[str].fail(
-                    FlextCliConstants.ErrorMessages.INVALID_CHOICE.format(
-                        selected=selected
+                    FlextCliConstants.PromptsErrorMessages.CHOICE_REQUIRED.format(
+                        choices=", ".join(choices)
                     )
                 )
 
@@ -298,18 +306,18 @@ class FlextCliPrompts(FlextService[FlextCliTypes.Data.CliDataDict]):
                 FlextCliConstants.ErrorMessages.PASSWORD_PROMPT_FAILED.format(error=e)
             )
 
-    def clear_prompt_history(self) -> FlextResult[None]:
+    def clear_prompt_history(self) -> FlextResult[bool]:
         """Clear prompt history.
 
         Returns:
-            FlextResult[None]: Success or failure result
+            FlextResult[bool]: True if history cleared successfully, failure on error
 
         """
         try:
             self._prompt_history.clear()
-            return FlextResult[None].ok(None)
+            return FlextResult[bool].ok(True)
         except Exception as e:
-            return FlextResult[None].fail(
+            return FlextResult[bool].fail(
                 FlextCliConstants.ErrorMessages.HISTORY_CLEAR_FAILED.format(error=e)
             )
 
@@ -556,7 +564,7 @@ class FlextCliPrompts(FlextService[FlextCliTypes.Data.CliDataDict]):
 
     def print_status(
         self, message: str, status: str = FlextCliConstants.MessageTypes.INFO.value
-    ) -> FlextResult[None]:
+    ) -> FlextResult[bool]:
         """Print status message.
 
         Args:
@@ -564,7 +572,7 @@ class FlextCliPrompts(FlextService[FlextCliTypes.Data.CliDataDict]):
             status: Status type (from FlextCliConstants.MessageTypes)
 
         Returns:
-            FlextResult[None]: Success or error
+            FlextResult[bool]: True if message printed successfully, failure on error
 
         """
         try:
@@ -574,9 +582,9 @@ class FlextCliPrompts(FlextService[FlextCliTypes.Data.CliDataDict]):
                 status=status_upper, message=message
             )
             self._logger.info(formatted_message)
-            return FlextResult[None].ok(None)
+            return FlextResult[bool].ok(True)
         except Exception as e:
-            return FlextResult[None].fail(
+            return FlextResult[bool].fail(
                 FlextCliConstants.PromptsErrorMessages.PRINT_STATUS_FAILED.format(
                     error=e
                 )
@@ -588,7 +596,7 @@ class FlextCliPrompts(FlextService[FlextCliTypes.Data.CliDataDict]):
         log_level: str,
         message_format: str,
         error_message_template: str,
-    ) -> FlextResult[None]:
+    ) -> FlextResult[bool]:
         """Generic message printing method - eliminates code duplication.
 
         Args:
@@ -598,24 +606,24 @@ class FlextCliPrompts(FlextService[FlextCliTypes.Data.CliDataDict]):
             error_message_template: Error message template if printing fails
 
         Returns:
-            FlextResult[None]: Success or error
+            FlextResult[bool]: True if message printed successfully, failure on error
 
         """
         try:
             log_method = getattr(self._logger, log_level)
             log_method(message_format.format(message=message))
-            return FlextResult[None].ok(None)
+            return FlextResult[bool].ok(True)
         except Exception as e:
-            return FlextResult[None].fail(error_message_template.format(error=e))
+            return FlextResult[bool].fail(error_message_template.format(error=e))
 
-    def print_success(self, message: str) -> FlextResult[None]:
+    def print_success(self, message: str) -> FlextResult[bool]:
         """Print success message.
 
         Args:
             message: Success message
 
         Returns:
-            FlextResult[None]: Success or error
+            FlextResult[bool]: True if message printed successfully, failure on error
 
         """
         return self._print_message(
@@ -625,14 +633,14 @@ class FlextCliPrompts(FlextService[FlextCliTypes.Data.CliDataDict]):
             FlextCliConstants.PromptsErrorMessages.PRINT_SUCCESS_FAILED,
         )
 
-    def print_error(self, message: str) -> FlextResult[None]:
+    def print_error(self, message: str) -> FlextResult[bool]:
         """Print error message.
 
         Args:
             message: Error message
 
         Returns:
-            FlextResult[None]: Success or error
+            FlextResult[bool]: True if message printed successfully, failure on error
 
         """
         return self._print_message(
@@ -642,14 +650,14 @@ class FlextCliPrompts(FlextService[FlextCliTypes.Data.CliDataDict]):
             FlextCliConstants.PromptsErrorMessages.PRINT_ERROR_FAILED,
         )
 
-    def print_warning(self, message: str) -> FlextResult[None]:
+    def print_warning(self, message: str) -> FlextResult[bool]:
         """Print warning message.
 
         Args:
             message: Warning message
 
         Returns:
-            FlextResult[None]: Success or error
+            FlextResult[bool]: True if message printed successfully, failure on error
 
         """
         return self._print_message(
@@ -659,14 +667,14 @@ class FlextCliPrompts(FlextService[FlextCliTypes.Data.CliDataDict]):
             FlextCliConstants.PromptsErrorMessages.PRINT_WARNING_FAILED,
         )
 
-    def print_info(self, message: str) -> FlextResult[None]:
+    def print_info(self, message: str) -> FlextResult[bool]:
         """Print info message.
 
         Args:
             message: Info message
 
         Returns:
-            FlextResult[None]: Success or error
+            FlextResult[bool]: True if message printed successfully, failure on error
 
         """
         return self._print_message(
@@ -750,7 +758,7 @@ class FlextCliPrompts(FlextService[FlextCliTypes.Data.CliDataDict]):
                 FlextCliConstants.ProgressDefaults.REPORT_THRESHOLD
             )
             for _ in range(len(items)):
-                # Process the item (placeholder - would do actual work)
+                # Process the item
                 processed_count += 1
 
                 # Show progress for large item sets

@@ -1,12 +1,14 @@
 """FLEXT CLI - Tabulate Integration Layer.
 
-This module provides lightweight ASCII table formatting as an alternative to Rich tables.
-Optimized for performance, plain text output, and large datasets.
+This module provides lightweight ASCII table formatting as an alternative
+to Rich tables. Optimized for performance, plain text output, and large datasets.
 
 Copyright (c) 2025 FLEXT Team. All rights reserved.
 SPDX-License-Identifier: MIT
 
 """
+
+from __future__ import annotations
 
 from collections.abc import Iterable, Sequence
 
@@ -16,8 +18,13 @@ from tabulate import tabulate
 from flext_cli.constants import FlextCliConstants
 from flext_cli.models import FlextCliModels
 
+# Type alias for table data to avoid long lines
+type TableData = Iterable[
+    Sequence[FlextTypes.JsonValue] | dict[str, FlextTypes.JsonValue]
+]
 
-class FlextCliTables(FlextService[object]):
+
+class FlextCliTables(FlextService[FlextTypes.JsonDict]):
     """Tabulate integration for lightweight ASCII tables.
 
     Provides simple, fast table formatting without ANSI codes.
@@ -71,13 +78,22 @@ class FlextCliTables(FlextService[object]):
         # Initialize logger - inherited from FlextService via FlextMixins
         self._logger = FlextLogger(__name__)
 
+    def execute(self) -> FlextResult[FlextTypes.JsonDict]:
+        """Execute the main domain service operation - required by FlextService.
+
+        Returns:
+            FlextResult[FlextTypes.JsonDict]: Service execution result
+
+        """
+        return FlextResult[FlextTypes.JsonDict].ok({})
+
     # =========================================================================
     # TABLE CREATION
     # =========================================================================
 
     def create_table(
         self,
-        data: Iterable[Sequence[object] | dict[str, FlextTypes.JsonValue]],
+        data: TableData,
         config: FlextCliModels.TableConfig | None = None,
     ) -> FlextResult[str]:
         """Create formatted ASCII table using tabulate with Pydantic config.
@@ -100,8 +116,9 @@ class FlextCliTables(FlextService[object]):
             >>> result = tables.create_table(data)
 
         """
-        # Use default config if none provided
-        cfg = config or FlextCliModels.TableConfig()
+        # Create config explicitly if None - no fallback to defaults
+        # This ensures all config values are explicit and validated
+        cfg = FlextCliModels.TableConfig() if config is None else config
 
         # Railway pattern: validate → prepare headers → create table
         return (
@@ -112,28 +129,33 @@ class FlextCliTables(FlextService[object]):
 
     def _validate_table_data(
         self,
-        data: Iterable[Sequence[object] | dict[str, FlextTypes.JsonValue]],
+        data: TableData,
         table_format: str,
-    ) -> FlextResult[None]:
-        """Validate table data and format."""
+    ) -> FlextResult[bool]:
+        """Validate table data and format.
+
+        Returns:
+            FlextResult[bool]: True if validation passed, failure on error
+
+        """
         if not data:
-            return FlextResult[None].fail(
+            return FlextResult[bool].fail(
                 FlextCliConstants.TablesErrorMessages.TABLE_DATA_EMPTY
             )
 
         if table_format not in FlextCliConstants.TABLE_FORMATS:
-            return FlextResult[None].fail(
+            return FlextResult[bool].fail(
                 FlextCliConstants.TablesErrorMessages.INVALID_TABLE_FORMAT.format(
                     table_format=table_format,
                     available_formats=", ".join(FlextCliConstants.TABLE_FORMATS.keys()),
                 )
             )
 
-        return FlextResult[None].ok(None)
+        return FlextResult[bool].ok(True)
 
     def _prepare_headers(
         self,
-        data: Iterable[Sequence[object] | dict[str, FlextTypes.JsonValue]],
+        data: TableData,
         headers: str | Sequence[str],
     ) -> FlextResult[str | Sequence[str]]:
         """Prepare headers based on data type."""
@@ -152,7 +174,7 @@ class FlextCliTables(FlextService[object]):
 
     def _create_table_string(
         self,
-        data: Iterable[Sequence[object] | dict[str, FlextTypes.JsonValue]],
+        data: TableData,
         cfg: FlextCliModels.TableConfig,
         headers: str | Sequence[str],
     ) -> FlextResult[str]:
@@ -174,7 +196,9 @@ class FlextCliTables(FlextService[object]):
             self._logger.debug(
                 FlextCliConstants.TablesLogMessages.TABLE_CREATED,
                 extra={
-                    FlextCliConstants.TablesLogMessages.TABLE_FORMAT_KEY: cfg.table_format,
+                    FlextCliConstants.TablesLogMessages.TABLE_FORMAT_KEY: (
+                        cfg.table_format
+                    ),
                     FlextCliConstants.TablesLogMessages.ROW_COUNT_KEY: len(list(data))
                     if hasattr(data, "__len__")
                     else "unknown",
@@ -194,7 +218,7 @@ class FlextCliTables(FlextService[object]):
 
     def _create_formatted_table(
         self,
-        data: Iterable[Sequence[object] | dict[str, FlextTypes.JsonValue]],
+        data: TableData,
         table_format: str,
         headers: Sequence[str] | None = None,
     ) -> FlextResult[str]:
@@ -211,15 +235,19 @@ class FlextCliTables(FlextService[object]):
             FlextResult containing formatted table string
 
         """
+        # Validate headers explicitly - no fallback
+        validated_headers = (
+            headers if headers is not None else FlextCliConstants.TableFormats.KEYS
+        )
         config = FlextCliModels.TableConfig(
             table_format=table_format,
-            headers=headers or FlextCliConstants.TableFormats.KEYS,
+            headers=validated_headers,
         )
         return self.create_table(data, config)
 
     def create_simple_table(
         self,
-        data: Iterable[Sequence[object] | dict[str, FlextTypes.JsonValue]],
+        data: TableData,
         headers: Sequence[str] | None = None,
     ) -> FlextResult[str]:
         """Create simple ASCII table with minimal formatting.
@@ -245,7 +273,7 @@ class FlextCliTables(FlextService[object]):
 
     def create_grid_table(
         self,
-        data: Iterable[Sequence[object] | dict[str, FlextTypes.JsonValue]],
+        data: TableData,
         headers: Sequence[str] | None = None,
         *,
         fancy: bool = False,
@@ -275,7 +303,7 @@ class FlextCliTables(FlextService[object]):
 
     def create_markdown_table(
         self,
-        data: Iterable[Sequence[object] | dict[str, FlextTypes.JsonValue]],
+        data: TableData,
         headers: Sequence[str] | None = None,
     ) -> FlextResult[str]:
         """Create Markdown pipe table.
@@ -308,7 +336,7 @@ class FlextCliTables(FlextService[object]):
 
     def create_html_table(
         self,
-        data: Iterable[Sequence[object] | dict[str, FlextTypes.JsonValue]],
+        data: TableData,
         headers: Sequence[str] | None = None,
         *,
         escape: bool = True,
@@ -338,7 +366,7 @@ class FlextCliTables(FlextService[object]):
 
     def create_latex_table(
         self,
-        data: Iterable[Sequence[object] | dict[str, FlextTypes.JsonValue]],
+        data: TableData,
         headers: Sequence[str] | None = None,
         *,
         booktabs: bool = False,
@@ -372,7 +400,7 @@ class FlextCliTables(FlextService[object]):
 
     def create_rst_table(
         self,
-        data: Iterable[Sequence[object] | dict[str, FlextTypes.JsonValue]],
+        data: TableData,
         headers: Sequence[str] | None = None,
     ) -> FlextResult[str]:
         """Create reStructuredText grid table.
@@ -428,11 +456,11 @@ class FlextCliTables(FlextService[object]):
 
         return FlextResult[str].ok(FlextCliConstants.TABLE_FORMATS[format_name])
 
-    def print_available_formats(self) -> FlextResult[None]:
+    def print_available_formats(self) -> FlextResult[bool]:
         """Print all available table formats with descriptions.
 
         Returns:
-            FlextResult[None]
+            FlextResult[bool]: True if formats printed successfully, failure on error
 
         """
         try:
@@ -450,7 +478,7 @@ class FlextCliTables(FlextService[object]):
             # Output through logger instead of print (linting requirement)
             self._logger.info(table_str)
 
-            return FlextResult[None].ok(None)
+            return FlextResult[bool].ok(True)
 
         except Exception as e:
             error_msg = (
@@ -459,16 +487,7 @@ class FlextCliTables(FlextService[object]):
                 )
             )
             self._logger.exception(error_msg)
-            return FlextResult[None].fail(error_msg)
-
-    def execute(self) -> FlextResult[object]:
-        """Execute Tabulate tables layer operations.
-
-        Returns:
-            FlextResult[object]
-
-        """
-        return FlextResult[object].ok(None)
+            return FlextResult[bool].fail(error_msg)
 
 
 __all__ = [

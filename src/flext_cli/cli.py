@@ -13,6 +13,8 @@ SPDX-License-Identifier: MIT
 
 """
 
+from __future__ import annotations
+
 import shutil
 import typing
 from collections.abc import Callable, Sequence
@@ -79,7 +81,7 @@ class FlextCliCli:
     @typing.overload
     def _create_cli_decorator(
         self,
-        entity_type: typing.Literal["command"],
+        entity_type: FlextCliConstants.EntityTypeLiteral,
         name: str | None,
         help_text: str | None,
     ) -> typing.Callable[[typing.Callable[..., typing.Any]], click.Command]: ...
@@ -87,14 +89,14 @@ class FlextCliCli:
     @typing.overload
     def _create_cli_decorator(
         self,
-        entity_type: typing.Literal["group"],
+        entity_type: FlextCliConstants.EntityTypeLiteral,
         name: str | None,
         help_text: str | None,
     ) -> typing.Callable[[typing.Callable[..., typing.Any]], click.Group]: ...
 
     def _create_cli_decorator(
         self,
-        entity_type: typing.Literal["command", "group"],
+        entity_type: FlextCliConstants.EntityTypeLiteral,
         name: str | None,
         help_text: str | None,
     ) -> typing.Callable[
@@ -181,7 +183,11 @@ class FlextCliCli:
             ...     pass
 
         """
-        return self._create_cli_decorator("group", name, help_text)
+        # Type checker needs explicit cast for overload resolution
+        decorator = self._create_cli_decorator("group", name, help_text)
+        return typing.cast(
+            "typing.Callable[[typing.Callable[..., typing.Any]], click.Group]", decorator
+        )
 
     # =========================================================================
     # PARAMETER DECORATORS (OPTION, ARGUMENT)
@@ -388,7 +394,7 @@ class FlextCliCli:
     @typing.overload
     def _get_range_type(
         self,
-        range_type: typing.Literal["int"],
+        range_type: FlextCliConstants.RangeTypeLiteral,
         min_val: int | None,
         max_val: int | None,
         *,
@@ -400,7 +406,7 @@ class FlextCliCli:
     @typing.overload
     def _get_range_type(
         self,
-        range_type: typing.Literal["float"],
+        range_type: FlextCliConstants.RangeTypeLiteral,
         min_val: float | None,
         max_val: float | None,
         *,
@@ -411,7 +417,7 @@ class FlextCliCli:
 
     def _get_range_type(
         self,
-        range_type: typing.Literal["int", "float"],
+        range_type: FlextCliConstants.RangeTypeLiteral,
         min_val: float | None,
         max_val: float | None,
         *,
@@ -664,7 +670,7 @@ class FlextCliCli:
         nl: bool = True,
         err: bool = False,
         color: bool | None = None,
-    ) -> FlextResult[None]:
+    ) -> FlextResult[bool]:
         """Output message using Typer.echo (Typer backend).
 
         Args:
@@ -675,11 +681,11 @@ class FlextCliCli:
             color: Force color on/off
 
         Returns:
-            FlextResult[None]: Success or failure of echo operation
+            FlextResult[bool]: True if echo succeeded, failure on error
 
         """
         typer.echo(message=message, file=file, nl=nl, err=err, color=color)
-        return FlextResult[None].ok(None)
+        return FlextResult[bool].ok(True)
 
     def confirm(
         self,
@@ -849,30 +855,30 @@ class FlextCliCli:
         size = shutil.get_terminal_size()
         return (size.columns, size.lines)
 
-    def clear_screen(self) -> FlextResult[None]:
+    def clear_screen(self) -> FlextResult[bool]:
         """Clear terminal screen.
 
         Returns:
-            FlextResult[None]: Success or failure of clear operation
+            FlextResult[bool]: True if screen cleared successfully, failure on error
 
         """
         click.clear()
-        return FlextResult[None].ok(None)
+        return FlextResult[bool].ok(True)
 
     def pause(
         self, info: str = FlextCliConstants.UIDefaults.DEFAULT_PAUSE_MESSAGE
-    ) -> FlextResult[None]:
+    ) -> FlextResult[bool]:
         """Pause execution until key press.
 
         Args:
             info: Information message to display
 
         Returns:
-            FlextResult[None]: Success or failure of pause operation
+            FlextResult[bool]: True if pause succeeded, failure on error
 
         """
         click.pause(info=info)
-        return FlextResult[None].ok(None)
+        return FlextResult[bool].ok(True)
 
     def model_command(
         self,

@@ -8,6 +8,8 @@ SPDX-License-Identifier: MIT
 
 """
 
+from __future__ import annotations
+
 from enum import StrEnum
 from typing import Final, Literal
 
@@ -21,7 +23,7 @@ class FlextCliConstants(FlextConstants):
     without duplication or wrappers, using direct access patterns.
     """
 
-    # Literal types - CRITICAL VIOLATION FIXED: Moved from module level
+    # Literal types - CRITICAL: All Literals must be in constants (first class)
     CommandResultStatusLiteral = Literal["success", "failure", "error"]
     CliProjectTypeLiteral = Literal[
         "cli-tool",
@@ -32,6 +34,40 @@ class FlextCliConstants(FlextConstants):
         "batch-processor",
         "cli-wrapper",
     ]
+
+    # Output format literal - must be in constants
+    OutputFormatLiteral = Literal["json", "yaml", "csv", "table", "plain"]
+
+    # Log level literal - must be in constants
+    LogLevelLiteral = Literal["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"]
+
+    # Command status literal - must be in constants (matches CommandStatus StrEnum)
+    CommandStatusLiteral = Literal[
+        "pending", "running", "completed", "failed", "cancelled"
+    ]
+
+    # Session status literal - must be in constants (matches SessionStatus StrEnum)
+    SessionStatusLiteral = Literal["active", "completed", "terminated"]
+
+    # Service status literal - must be in constants (matches ServiceStatus StrEnum)
+    ServiceStatusLiteral = Literal[
+        "operational", "available", "degraded", "error", "healthy", "connected"
+    ]
+
+    # Environment literal - must be in constants
+    EnvironmentLiteral = Literal["development", "staging", "production", "test"]
+
+    # Log verbosity literal - must be in constants
+    LogVerbosityLiteral = Literal["compact", "detailed", "full"]
+
+    # Entity type literal - must be in constants
+    EntityTypeLiteral = Literal["command", "group"]
+
+    # Range type literal - must be in constants
+    RangeTypeLiteral = Literal["int", "float"]
+
+    # Priority defaults - must be in first class (not nested)
+    DEFAULT_PRIORITY: Final[int] = 999
 
     # Project identification
     PROJECT_NAME: Final[str] = "flext-cli"
@@ -446,6 +482,16 @@ class FlextCliConstants(FlextConstants):
         COMMAND_RETRIEVAL_FAILED: Final[str] = "Command retrieval failed: {error}"
         COMMAND_EXECUTION_FAILED: Final[str] = "Command execution failed: {error}"
         COMMAND_LISTING_FAILED: Final[str] = "Command listing failed: {error}"
+        COMMAND_REGISTRATION_FAILED: Final[str] = "Command registration failed: {error}"
+        COMMAND_UNREGISTRATION_FAILED: Final[str] = (
+            "Command unregistration failed: {error}"
+        )
+        COMMANDS_REQUIRED: Final[str] = (
+            "Commands dictionary is required and cannot be None"
+        )
+        GROUP_CREATION_FAILED: Final[str] = "Group creation failed: {error}"
+        CLI_EXECUTION_FAILED: Final[str] = "CLI execution failed"
+        CLI_EXECUTION_ERROR: Final[str] = "CLI execution error: {error}"
 
         # Configuration errors
         CONFIG_NOT_DICT: Final[str] = "Configuration must be a valid dictionary"
@@ -604,13 +650,6 @@ class FlextCliConstants(FlextConstants):
 
         # Command errors (additional)
         SET_CONFIG_FAILED: Final[str] = "Set config failed: {error}"
-        COMMAND_REGISTRATION_FAILED: Final[str] = "Command registration failed: {error}"
-        COMMAND_UNREGISTRATION_FAILED: Final[str] = (
-            "Command unregistration failed: {error}"
-        )
-        CLI_EXECUTION_FAILED: Final[str] = "CLI execution failed"
-        CLI_EXECUTION_ERROR: Final[str] = "CLI execution failed: {error}"
-        GROUP_CREATION_FAILED: Final[str] = "Group creation failed: {error}"
         LOAD_FAILED: Final[str] = "Load failed: {error}"
         INITIALIZE_FAILED: Final[str] = "Initialize failed: {error}"
 
@@ -923,18 +962,8 @@ class FlextCliConstants(FlextConstants):
         Follows domain separation principle: CLI domain owns CLI-specific types.
         """
 
-        # CLI-specific project types
-        CliProjectType = Literal[
-            "cli-tool",
-            "console-app",
-            "terminal-ui",
-            "command-runner",
-            "interactive-cli",
-            "batch-processor",
-            "cli-wrapper",
-        ]
-
         # CLI-specific project configurations
+        # Note: CliProjectType is defined as CliProjectTypeLiteral in first class (line 28)
         CliProjectConfig = FlextTypes.JsonDict
         CommandLineConfig = dict[str, str | int | bool | list[str]]
         InteractiveConfig = dict[str, bool | str | FlextTypes.JsonDict]
@@ -989,11 +1018,6 @@ class FlextCliConstants(FlextConstants):
         DEFAULT_WIDTH: Final[int] = 80
         DEFAULT_HEIGHT: Final[int] = 24
 
-    class PriorityDefaults:
-        """Priority level defaults for task scheduling."""
-
-        DEFAULT_PRIORITY: Final[int] = 999
-
     class ValidationLimits:
         """Validation boundary limits for CLI parameters."""
 
@@ -1034,8 +1058,6 @@ class FlextCliConstants(FlextConstants):
         URL_PROTOCOLS: Final[tuple[str, ...]] = ("http://", "https://")
         YAML_EXTENSIONS: Final[set[str]] = {".yml", ".yaml"}
         STDOUT_FD: Final[int] = 1
-        TERMINAL_FALLBACK_WIDTH: Final[int] = 80
-        TERMINAL_FALLBACK_HEIGHT: Final[int] = 24
 
     class ConfigDefaults:
         """Additional configuration defaults."""
@@ -1061,7 +1083,7 @@ class FlextCliConstants(FlextConstants):
         PARAM_NAME_SEPARATOR: Final[str] = "-"
         FIELD_NAME_SEPARATOR: Final[str] = "_"
         OPTION_PREFIX: Final[str] = "--"
-        HELP_TEXT_FALLBACK: Final[str] = "{field_name} parameter"
+        HELP_TEXT_DEFAULT: Final[str] = "{field_name} parameter"
         MASKED_SENSITIVE: Final[str] = "***MASKED***"
         MASK_CHAR: Final[str] = "*"
         MAGIC_ATTR_CLI_MODEL: Final[str] = "__cli_model__"
@@ -1290,6 +1312,15 @@ class FlextCliConstants(FlextConstants):
             "Context summary generation failed: {error}"
         )
         CONTEXT_EXECUTION_FAILED: Final[str] = "Context execution failed: {error}"
+        ARGUMENTS_NOT_INITIALIZED: Final[str] = (
+            "Context arguments not initialized - cannot serialize"
+        )
+        ENV_VARS_NOT_INITIALIZED: Final[str] = (
+            "Context environment variables not initialized - cannot serialize"
+        )
+        CONTEXT_SERIALIZATION_FAILED: Final[str] = (
+            "Context serialization failed: {error}"
+        )
 
     class DebugErrorMessages:
         """Error messages for debug operations."""
@@ -1462,6 +1493,7 @@ class FlextCliConstants(FlextConstants):
         PROMPT_FAILED: Final[str] = "Prompt failed: {error}"
         CONFIRMATION_FAILED: Final[str] = "Confirmation failed: {error}"
         SELECTION_FAILED: Final[str] = "Selection failed: {error}"
+        CHOICE_REQUIRED: Final[str] = "Choice required. Available choices: {choices}"
         STATISTICS_COLLECTION_FAILED: Final[str] = (
             "Statistics collection failed: {error}"
         )

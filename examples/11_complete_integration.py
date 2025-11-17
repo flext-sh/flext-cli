@@ -56,16 +56,16 @@ class DataManagerCLI:
         self.cli.print("  📊 Data Manager CLI", style="bold white on blue")
         self.cli.print("=" * 70, style="bold blue")
 
-    def save_data(self, data: FlextCliTypes.Data.CliDataDict) -> FlextResult[None]:
+    def save_data(self, data: FlextCliTypes.Data.CliDataDict) -> FlextResult[bool]:
         """Save data with proper error handling."""
         write_result = self.cli.file_tools.write_json_file(self.data_file, data)
 
         if write_result.is_failure:
             self.cli.print(f"❌ Save failed: {write_result.error}", style="bold red")
-            return FlextResult[None].fail(write_result.error)
+            return FlextResult[bool].fail(write_result.error)
 
         self.cli.print(f"✅ Data saved to {self.data_file.name}", style="green")
-        return FlextResult[None].ok(None)
+        return FlextResult[bool].ok(True)
 
     def load_data(self) -> FlextResult[FlextCliTypes.Data.CliDataDict]:
         """Load data with error handling."""
@@ -132,7 +132,7 @@ class DataManagerCLI:
             cast("FlextCliTypes.Data.CliDataDict", entry)
         )
 
-    def run_workflow(self) -> FlextResult[None]:
+    def run_workflow(self) -> FlextResult[bool]:
         """Complete workflow integrating all features."""
         # Step 1: Welcome
         self.display_welcome()
@@ -157,7 +157,7 @@ class DataManagerCLI:
         entry_result = self.add_entry()
 
         if entry_result.is_failure:
-            return FlextResult[None].fail(f"Add entry failed: {entry_result.error}")
+            return FlextResult[bool].fail(f"Add entry failed: {entry_result.error}")
 
         new_entry = entry_result.unwrap()
         current_data.update(new_entry)
@@ -168,14 +168,14 @@ class DataManagerCLI:
         save_result = self.save_data(current_data)
 
         if save_result.is_failure:
-            return FlextResult[None].fail(f"Save failed: {save_result.error}")
+            return FlextResult[bool].fail(f"Save failed: {save_result.error}")
 
         # Step 6: Display final result
         self.cli.print("\n✨ Final Result:", style="bold cyan")
         # Cast to expected type for display function
         self.display_data(current_data)
 
-        return FlextResult[None].ok(None)
+        return FlextResult[bool].ok(True)
 
 
 # ============================================================================

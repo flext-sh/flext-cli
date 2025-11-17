@@ -8,6 +8,8 @@ SPDX-License-Identifier: MIT
 
 """
 
+from __future__ import annotations
+
 from io import StringIO
 
 from flext_core import FlextResult, FlextTypes
@@ -36,10 +38,6 @@ class FlextCliFormatters:
         # Use Rich directly (formatters.py is ONE OF TWO files that may import Rich)
         self.console = Console()
 
-    def get_console(self) -> Console:
-        """Get console instance - direct access."""
-        return self.console
-
     def execute(self) -> FlextResult[FlextTypes.JsonDict]:
         """Execute service - required by FlextService."""
         return FlextResult[FlextTypes.JsonDict].ok({
@@ -55,7 +53,7 @@ class FlextCliFormatters:
         self,
         message: str,
         style: str | None = None,
-    ) -> FlextResult[None]:
+    ) -> FlextResult[bool]:
         """Print formatted message using Rich.
 
         Args:
@@ -63,17 +61,17 @@ class FlextCliFormatters:
             style: Rich style string (e.g., "bold red")
 
         Returns:
-            FlextResult[None]: Success or error
+            FlextResult[bool]: True on success, False on failure
 
         Note:
-            For advanced Rich features, use get_console() to access Rich Console directly.
+            For advanced Rich features, access self.console directly.
 
         """
         try:
             self.console.print(message, style=style)
-            return FlextResult[None].ok(None)
+            return FlextResult[bool].ok(True)
         except Exception as e:
-            return FlextResult[None].fail(
+            return FlextResult[bool].fail(
                 FlextCliConstants.FormattersErrorMessages.PRINT_FAILED.format(error=e)
             )
 
@@ -95,7 +93,7 @@ class FlextCliFormatters:
 
         Note:
             For advanced Rich table features (box styles, padding, etc),
-            use get_console() and create Rich tables directly.
+            access self.console directly and create Rich tables.
 
         """
         try:
@@ -150,7 +148,9 @@ class FlextCliFormatters:
 
             # Capture console output
             buffer = StringIO()
-            temp_console = Console(file=buffer, width=width or console.width)
+            # Validate width explicitly - no fallback
+            validated_width = width if width is not None else console.width
+            temp_console = Console(file=buffer, width=validated_width)
             temp_console.print(table)
             output = buffer.getvalue()
 
@@ -170,8 +170,8 @@ class FlextCliFormatters:
             FlextResult[Progress]: Rich Progress instance or error
 
         Note:
-            For custom progress bars (columns, styles), use get_console()
-            and create Progress objects directly.
+            For custom progress bars (columns, styles), access self.console
+            directly and create Progress objects.
 
         """
         try:
@@ -194,7 +194,7 @@ class FlextCliFormatters:
             FlextResult[RichTree]: Rich Tree instance or error
 
         Note:
-            For custom tree styling, use get_console() and create Tree objects directly.
+            For custom tree styling, access self.console directly and create Tree objects.
 
         """
         try:
@@ -222,7 +222,9 @@ class FlextCliFormatters:
         """
         try:
             buffer = StringIO()
-            temp_console = Console(file=buffer, width=width or self.console.width)
+            # Validate width explicitly - no fallback
+            validated_width = width if width is not None else self.console.width
+            temp_console = Console(file=buffer, width=validated_width)
             temp_console.print(tree)
             output = buffer.getvalue()
 
@@ -254,13 +256,19 @@ class FlextCliFormatters:
             FlextResult[RichStatus]: Rich Status instance or error
 
         Note:
-            For custom spinners, use get_console() and create Status objects directly.
+            For custom spinners, access self.console directly and create Status objects.
 
         """
         try:
+            # Validate spinner explicitly - no fallback
+            validated_spinner = (
+                spinner
+                if spinner is not None
+                else FlextCliConstants.FormattersDefaults.DEFAULT_SPINNER
+            )
             status = RichStatus(
                 message,
-                spinner=spinner or FlextCliConstants.FormattersDefaults.DEFAULT_SPINNER,
+                spinner=validated_spinner,
                 console=self.console,
             )
             return FlextResult[RichStatus].ok(status)
@@ -284,13 +292,18 @@ class FlextCliFormatters:
             FlextResult[RichLive]: Rich Live instance or error
 
         Note:
-            For custom live displays, use get_console() and create Live objects directly.
+            For custom live displays, access self.console directly and create Live objects.
 
         """
         try:
+            # Validate refresh rate explicitly - no fallback
+            validated_refresh_rate = (
+                refresh_per_second
+                if refresh_per_second is not None
+                else FlextCliConstants.FormattersDefaults.DEFAULT_REFRESH_RATE
+            )
             live = RichLive(
-                refresh_per_second=refresh_per_second
-                or FlextCliConstants.FormattersDefaults.DEFAULT_REFRESH_RATE,
+                refresh_per_second=validated_refresh_rate,
                 console=self.console,
             )
             return FlextResult[RichLive].ok(live)
@@ -308,8 +321,8 @@ class FlextCliFormatters:
             FlextResult[RichLayout]: Rich Layout instance or error
 
         Note:
-            For custom layouts (named regions, sizes), use get_console()
-            and create Layout objects directly.
+            For custom layouts (named regions, sizes), access self.console
+            directly and create Layout objects.
 
         """
         try:
@@ -339,16 +352,21 @@ class FlextCliFormatters:
             FlextResult[RichPanel]: Rich Panel instance or error
 
         Note:
-            For panels with complex content (Rich renderables), use get_console()
-            and create Panel objects directly.
+            For panels with complex content (Rich renderables), access self.console
+            directly and create Panel objects.
 
         """
         try:
+            # Validate border style explicitly - no fallback
+            validated_border_style = (
+                border_style
+                if border_style is not None
+                else FlextCliConstants.FormattersDefaults.DEFAULT_BORDER_STYLE
+            )
             panel = RichPanel(
                 content,
                 title=title,
-                border_style=border_style
-                or FlextCliConstants.FormattersDefaults.DEFAULT_BORDER_STYLE,
+                border_style=validated_border_style,
             )
             return FlextResult[RichPanel].ok(panel)
         except Exception as e:
