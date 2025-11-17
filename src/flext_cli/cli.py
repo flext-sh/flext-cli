@@ -186,7 +186,8 @@ class FlextCliCli:
         # Type checker needs explicit cast for overload resolution
         decorator = self._create_cli_decorator("group", name, help_text)
         return typing.cast(
-            "typing.Callable[[typing.Callable[..., typing.Any]], click.Group]", decorator
+            "typing.Callable[[typing.Callable[..., typing.Any]], click.Group]",
+            decorator,
         )
 
     # =========================================================================

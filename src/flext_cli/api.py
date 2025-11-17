@@ -221,7 +221,13 @@ class FlextCli:
         result = self.file_tools.read_json_file(str(token_path))
         if result.is_failure:
             error_str = str(result.error)
-            if FlextCliConstants.APIDefaults.FILE_ERROR_INDICATOR in error_str.lower():
+            # Check for file not found using utilities helper (covers "not found", "no such file", etc.)
+            from flext_cli.utilities import FlextCliUtilities
+
+            if (
+                FlextCliConstants.APIDefaults.FILE_ERROR_INDICATOR in error_str.lower()
+                or FlextCliUtilities.FileOps.is_file_not_found_error(error_str)
+            ):
                 return FlextResult[str].fail(
                     FlextCliConstants.ErrorMessages.TOKEN_FILE_NOT_FOUND
                 )
@@ -233,6 +239,11 @@ class FlextCli:
 
         # Validate using Pydantic model - eliminates _validate_token_data + _extract_token_string
         data = result.unwrap()
+        # Check if data is empty or None before validation
+        if not data or (isinstance(data, dict) and not data):
+            return FlextResult[str].fail(
+                FlextCliConstants.ErrorMessages.TOKEN_FILE_EMPTY
+            )
         try:
             token_data = FlextCliModels.TokenData.model_validate(data)
             return FlextResult[str].ok(token_data.token)
@@ -247,6 +258,7 @@ class FlextCli:
                 return FlextResult[str].fail(
                     FlextCliConstants.APIDefaults.TOKEN_VALUE_TYPE_ERROR
                 )
+            # Fallback for any other validation errors (e.g., field required, value errors)
             return FlextResult[str].fail(
                 FlextCliConstants.ErrorMessages.TOKEN_FILE_EMPTY
             )

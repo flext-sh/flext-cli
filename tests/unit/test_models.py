@@ -224,7 +224,7 @@ class TestFlextCliModels:
         # Check CliCommand model has field_serializer for command_line
         command_model = FlextCliModels.CliCommand
         assert hasattr(command_model, "model_fields")
-        
+
         # Verify session model has field_serializer for commands
         session_model = FlextCliModels.CliSession
         assert hasattr(session_model, "model_fields")
@@ -1232,6 +1232,45 @@ class TestFlextCliModelsExceptionHandlers:
             )
             assert result == test_type
 
+    def test_pydantic_type_to_python_type_optional_types(self) -> None:
+        """Test pydantic_type_to_python_type with Optional types - covers lines 312-318."""
+        # Test with int | None (Optional[int])
+        optional_int = int | None
+        result = FlextCliModels.CliModelConverter.pydantic_type_to_python_type(
+            optional_int
+        )
+        # Should extract int from Optional[int]
+        assert result == int
+
+    def test_pydantic_type_to_python_type_list_dict(self) -> None:
+        """Test pydantic_type_to_python_type with List and Dict - covers lines 322, 326."""
+        # Test with list type
+        list_type = list[str]
+        result = FlextCliModels.CliModelConverter.pydantic_type_to_python_type(
+            list_type
+        )
+        assert result == list
+
+        # Test with dict type
+        dict_type = dict[str, str]
+        result = FlextCliModels.CliModelConverter.pydantic_type_to_python_type(
+            dict_type
+        )
+        assert result == dict
+
+    def test_pydantic_type_to_python_type_complex_defaults_to_str(self) -> None:
+        """Test pydantic_type_to_python_type with complex types defaults to str - covers line 333."""
+
+        # Test with complex type that doesn't match any pattern
+        class ComplexType:
+            pass
+
+        result = FlextCliModels.CliModelConverter.pydantic_type_to_python_type(
+            ComplexType
+        )
+        # Should default to str for complex types
+        assert result == str
+
     def test_python_type_to_click_type_edge_cases(self) -> None:
         """Test python_type_to_click_type with edge cases."""
 
@@ -1309,15 +1348,13 @@ class TestFlextCliModelsExceptionHandlers:
             )
         assert "status" in str(exc_info.value).lower()
 
-        # Test with empty user_id when provided - should raise ValidationError
-        # Annotated with StringConstraints raises "string_too_short" error
-        with pytest.raises(ValidationError) as exc_info2:
-            FlextCliModels.CliSession(
-                session_id="test2",
-                user_id="",  # Empty user_id
-            )
-        error_msg = str(exc_info2.value).lower()
-        assert "too_short" in error_msg or "at least 1 character" in error_msg
+        # Test with empty user_id - now accepts empty string as default (None removed)
+        # Empty string is valid default value, so no ValidationError expected
+        session = FlextCliModels.CliSession(
+            session_id="test2",
+            user_id="",  # Empty user_id is now valid (default value)
+        )
+        assert session.user_id == ""  # Empty string is accepted as default
 
     def test_cli_command_serialization_edge_cases(self) -> None:
         """Test CliCommand serialization with sensitive data."""
@@ -1433,3 +1470,129 @@ class TestFlextCliModelsExceptionHandlers:
         assert "secret" not in command_line.lower() or "***" in command_line
         assert "password" not in command_line.lower() or "***" in command_line
         assert "token" not in command_line.lower() or "***" in command_line
+
+    def test_models_execute_method(self, flext_cli_models: FlextCliModels) -> None:
+        """Test execute method of FlextCliModels - covers line 141."""
+        result = flext_cli_models.execute()
+        assert result.is_success
+        assert result.unwrap() == {}
+
+    def test_validate_field_data_invalid_python_type(self) -> None:
+        """Test _validate_field_data with invalid python_type - covers line 462."""
+        from flext_cli.models import FlextCliModels
+
+        # Create invalid data with non-type python_type
+        invalid_data: dict[str, object] = {
+            "python_type": "not_a_type",  # Should be a type, not a string
+            "click_type": "STRING",
+            "is_required": True,
+            "description": "Test field",
+            "validators": [],
+            "metadata": {},
+        }
+
+        result = FlextCliModels.CliModelConverter._validate_field_data(
+            "test_field", invalid_data
+        )
+        assert result.is_failure
+        assert "Invalid python_type" in str(result.error)
+
+    def test_validate_field_data_invalid_click_type(self) -> None:
+        """Test _validate_field_data with invalid click_type - covers line 469."""
+        from flext_cli.models import FlextCliModels
+
+        # Create invalid data with non-string click_type
+        invalid_data: dict[str, object] = {
+            "python_type": str,
+            "click_type": 123,  # Should be a string, not an int
+            "is_required": True,
+            "description": "Test field",
+            "validators": [],
+            "metadata": {},
+        }
+
+        result = FlextCliModels.CliModelConverter._validate_field_data(
+            "test_field", invalid_data
+        )
+        assert result.is_failure
+        assert "Invalid click_type" in str(result.error)
+
+    def test_validate_field_data_invalid_is_required(self) -> None:
+        """Test _validate_field_data with invalid is_required - covers line 476."""
+        from flext_cli.models import FlextCliModels
+
+        # Create invalid data with non-bool is_required
+        invalid_data: dict[str, object] = {
+            "python_type": str,
+            "click_type": "STRING",
+            "is_required": "yes",  # Should be a bool, not a string
+            "description": "Test field",
+            "validators": [],
+            "metadata": {},
+        }
+
+        result = FlextCliModels.CliModelConverter._validate_field_data(
+            "test_field", invalid_data
+        )
+        assert result.is_failure
+        assert "Invalid is_required" in str(result.error)
+
+    def test_validate_field_data_invalid_description(self) -> None:
+        """Test _validate_field_data with invalid description - covers line 483."""
+        from flext_cli.models import FlextCliModels
+
+        # Create invalid data with non-string description
+        invalid_data: dict[str, object] = {
+            "python_type": str,
+            "click_type": "STRING",
+            "is_required": True,
+            "description": 123,  # Should be a string, not an int
+            "validators": [],
+            "metadata": {},
+        }
+
+        result = FlextCliModels.CliModelConverter._validate_field_data(
+            "test_field", invalid_data
+        )
+        assert result.is_failure
+        assert "Invalid description" in str(result.error)
+
+    def test_validate_field_data_invalid_validators(self) -> None:
+        """Test _validate_field_data with invalid validators - covers line 490."""
+        from flext_cli.models import FlextCliModels
+
+        # Create invalid data with non-list validators
+        invalid_data: dict[str, object] = {
+            "python_type": str,
+            "click_type": "STRING",
+            "is_required": True,
+            "description": "Test field",
+            "validators": "not_a_list",  # Should be a list, not a string
+            "metadata": {},
+        }
+
+        result = FlextCliModels.CliModelConverter._validate_field_data(
+            "test_field", invalid_data
+        )
+        assert result.is_failure
+        assert "Invalid validators" in str(result.error)
+
+    def test_validate_field_data_invalid_metadata(self) -> None:
+        """Test _validate_field_data with invalid metadata - covers line 497."""
+        from flext_cli.models import FlextCliModels
+
+        # Create invalid data with non-dict metadata
+        invalid_data: dict[str, object] = {
+            "python_type": str,
+            "click_type": "STRING",
+            "is_required": True,
+            "description": "Test field",
+            "validators": [],
+            "metadata": "not_a_dict",  # Should be a dict, not a string
+        }
+
+        result = FlextCliModels.CliModelConverter._validate_field_data(
+            "test_field", invalid_data
+        )
+        assert result.is_failure
+        assert "Invalid metadata" in str(result.error)

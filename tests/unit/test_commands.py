@@ -528,3 +528,37 @@ class TestFlextCliCommands:
             result = commands.list_commands()
             assert result.is_failure
             assert "failed" in str(result.error).lower()
+
+    def test_create_command_group_none(self) -> None:
+        """Test create_command_group with None commands (line 150).
+
+        Real scenario: Tests fast-fail when commands is None.
+        """
+        commands = FlextCliCommands()
+        # create_command_group is the method that takes a dict of commands
+        # Test with None to trigger the fast-fail path
+        result = commands.create_command_group("test_group", "Test", None)
+        assert result.is_failure
+        assert "required" in str(result.error).lower()
+
+    def test_execute_command_invalid_type(self) -> None:
+        """Test execute_command with handler returning invalid type (line 314).
+
+        Real scenario: Tests type validation for handler return value.
+        """
+        commands = FlextCliCommands()
+
+        # Create handler that returns invalid type (not JsonValue)
+        # Use a type that's not in the allowed JsonValue types
+        class InvalidType:
+            pass
+
+        def invalid_handler() -> InvalidType:
+            return InvalidType()
+
+        commands.register_command("test", invalid_handler)
+        result = commands.execute_command("test", [])
+        # The handler will be executed and return InvalidType
+        # The type check at line 314 should catch this
+        assert result.is_failure
+        assert "invalid type" in str(result.error).lower()
