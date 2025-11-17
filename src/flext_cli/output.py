@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import csv
 import json
+import typing
 from collections.abc import Sequence
 from io import StringIO
 from typing import override
@@ -78,9 +79,13 @@ class FlextCliOutput(FlextService[FlextTypes.JsonDict]):
         # Result formatter registry for domain-specific result types
         self._result_formatters: dict[type, FlextCliTypes.Callable.ResultFormatter] = {}
 
-    def execute(self) -> FlextResult[str]:
+    @override
+    def execute(self) -> FlextResult[FlextTypes.JsonDict]:
         """Execute the main domain service operation - required by FlextService."""
-        return FlextResult[str].ok("FlextCliOutput operational")
+        return FlextResult[FlextTypes.JsonDict].ok({
+            FlextCliConstants.DictKeys.STATUS: FlextCliConstants.ServiceStatus.OPERATIONAL.value,
+            FlextCliConstants.DictKeys.SERVICE: FlextCliConstants.FLEXT_CLI,
+        })
 
     # =========================================================================
     # FORMAT DATA - UNIFIED API
@@ -156,13 +161,17 @@ class FlextCliOutput(FlextService[FlextTypes.JsonDict]):
         headers: list[str] | None,
     ) -> FlextResult[str]:
         """Format data as table with type validation."""
-        # Handle dict
+        # Handle dict - type narrowing for format_table
         if isinstance(data, dict):
-            # data is dict, which is compatible with format_table parameter type
-            # No cast needed - dict is already dict[str, JsonValue] compatible
-            return self.format_table(data, title=title, headers=headers)
+            # Type cast: dict[str, JsonValue] is compatible with format_table
+            # JsonValue is recursively defined to include dict[str, JsonValue]
+            table_data = typing.cast(
+                "dict[str, FlextTypes.JsonValue] | list[dict[str, FlextTypes.JsonValue]] | str",
+                data,
+            )
+            return self.format_table(table_data, title=title, headers=headers)
 
-        # Handle list of dicts
+        # Handle list of dicts - type narrowing for format_table
         if isinstance(data, list):
             # Fast fail validation
             if not data:
@@ -173,8 +182,13 @@ class FlextCliOutput(FlextService[FlextTypes.JsonDict]):
                 return FlextResult[str].fail(
                     FlextCliConstants.ErrorMessages.TABLE_FORMAT_REQUIRED_DICT
                 )
-            # All items are dicts, already compatible with format_table parameter type
-            return self.format_table(data, title=title, headers=headers)
+            # Type cast: list[dict[str, JsonValue]] is compatible with format_table
+            # JsonValue is recursively defined to include dict[str, JsonValue]
+            table_data_list = typing.cast(
+                "dict[str, FlextTypes.JsonValue] | list[dict[str, FlextTypes.JsonValue]] | str",
+                data,
+            )
+            return self.format_table(table_data_list, title=title, headers=headers)
 
         # Invalid type for table
         return FlextResult[str].fail(
@@ -392,9 +406,9 @@ class FlextCliOutput(FlextService[FlextTypes.JsonDict]):
             else:
                 normalized_dict[key] = str(value)
 
-        # normalized_dict is dict[str, JsonValue] which is compatible with JsonValue
-        # dict is a valid JsonValue type, no cast needed
-        json_value: FlextTypes.JsonValue = normalized_dict
+        # Type cast: dict[str, JsonValue] is a valid JsonValue
+        # JsonValue is recursively defined to include dict[str, JsonValue]
+        json_value = typing.cast("FlextTypes.JsonValue", normalized_dict)
         return self.format_data(json_value, output_format)
 
     def _display_formatted_result(self, formatted: str) -> FlextResult[bool]:
@@ -891,9 +905,14 @@ class FlextCliOutput(FlextService[FlextTypes.JsonDict]):
                 writer = csv.DictWriter(output_buffer, fieldnames=fieldnames)
                 writer.writeheader()
 
-                # data is list[dict[str, JsonValue]] which is compatible with
-                # Iterable[Mapping[str, object]] expected by csv.DictWriter.writerows
-                writer.writerows(data)
+                # Convert JsonValue to object for csv.DictWriter compatibility
+                # csv.DictWriter expects Mapping[str, object], not dict[str, JsonValue]
+                csv_rows: list[dict[str, object]] = [
+                    {k: v if v is not None else "" for k, v in row.items()}
+                    for row in data
+                    if isinstance(row, dict)
+                ]
+                writer.writerows(csv_rows)
                 return FlextResult[str].ok(output_buffer.getvalue())
             if isinstance(data, dict):
                 output_buffer = StringIO()
@@ -1107,9 +1126,10 @@ class FlextCliOutput(FlextService[FlextTypes.JsonDict]):
         tree = tree_result.unwrap()
 
         # Build tree structure
-        # data is CliDataDict (dict[str, JsonValue]) which is compatible with JsonValue
-        # dict is a valid JsonValue type, no cast needed
-        self._build_tree(tree, data)
+        # Type cast: CliDataDict (dict[str, JsonValue]) is a valid JsonValue
+        # JsonValue is recursively defined to include dict[str, JsonValue]
+        tree_data = typing.cast("FlextTypes.JsonValue", data)
+        self._build_tree(tree, tree_data)
 
         # Render to string using formatters
         return self._formatters.render_tree_to_string(
@@ -1137,16 +1157,18 @@ class FlextCliOutput(FlextService[FlextTypes.JsonDict]):
                         f"{key}{FlextCliConstants.OutputDefaults.TREE_BRANCH_LIST_SUFFIX}"
                     )
                     for item in value:
-                        # Type narrowing: item is JsonValue from list[JsonValue]
-                        self._build_tree(branch, item)
+                        # Type cast: item from list[JsonValue] is a valid JsonValue
+                        json_item = typing.cast("FlextTypes.JsonValue", item)
+                        self._build_tree(branch, json_item)
                 else:
                     tree.add(
                         f"{key}{FlextCliConstants.OutputDefaults.TREE_VALUE_SEPARATOR}{value}"
                     )
         elif isinstance(data, list):
             for item in data:
-                # item is JsonValue from list[JsonValue], no cast needed
-                self._build_tree(tree, item)
+                # Type cast: item from list[JsonValue] is a valid JsonValue
+                json_item = typing.cast("FlextTypes.JsonValue", item)
+                self._build_tree(tree, json_item)
         else:
             # data is primitive JsonValue (str, int, float, bool, None), no cast needed
             tree.add(str(data))

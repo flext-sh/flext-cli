@@ -90,7 +90,7 @@ class FlextCliConfig(FlextConfig):
     )
 
     output_format: FlextCliConstants.OutputFormatLiteral = Field(
-        default="table",  # FlextCliConstants.OutputFormats.TABLE
+        default="table",  # FlextCliConstants.OutputFormats.TABLE.value - Literal requires literal value
         description="Default output format for CLI commands",
     )
 

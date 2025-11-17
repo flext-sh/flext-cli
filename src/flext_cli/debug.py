@@ -21,6 +21,7 @@ import pathlib
 import platform
 import sys
 import tempfile
+import typing
 import uuid
 from datetime import UTC, datetime
 from typing import override
@@ -204,8 +205,10 @@ class FlextCliDebug(FlextService[str]):
 
             # Type-safe dict construction
             # serialized_paths is list[dict[str, object]] which is compatible with JsonValue
-            # list is a valid JsonValue type, no cast needed
-            paths_dict: FlextCliTypes.Data.CliDataDict = {"paths": serialized_paths}
+            # list is a valid JsonValue type, cast to ensure type compatibility
+            paths_dict: FlextCliTypes.Data.CliDataDict = {
+                "paths": typing.cast("FlextTypes.JsonValue", serialized_paths)
+            }
             return FlextResult[FlextCliTypes.Data.CliDataDict].ok(paths_dict)
         except Exception as e:
             return FlextResult[FlextCliTypes.Data.CliDataDict].fail(
@@ -224,8 +227,9 @@ class FlextCliDebug(FlextService[str]):
             # Collect system info
             system_result = self.get_system_info()
             if system_result.is_success:
+                # Type cast: CliDataDict is dict[str, JsonValue] which is compatible with JsonValue
                 comprehensive_info[FlextCliConstants.DebugDictKeys.SYSTEM] = (
-                    system_result.value
+                    typing.cast("FlextTypes.JsonValue", system_result.value)
                 )
             else:
                 comprehensive_info[FlextCliConstants.DebugDictKeys.SYSTEM_ERROR] = (
@@ -235,8 +239,9 @@ class FlextCliDebug(FlextService[str]):
             # Collect environment info
             env_result = self.get_environment_variables()
             if env_result.is_success:
+                # Type cast: CliDataDict is dict[str, JsonValue] which is compatible with JsonValue
                 comprehensive_info[FlextCliConstants.DebugDictKeys.ENVIRONMENT] = (
-                    env_result.value
+                    typing.cast("FlextTypes.JsonValue", env_result.value)
                 )
             else:
                 comprehensive_info[
@@ -246,8 +251,9 @@ class FlextCliDebug(FlextService[str]):
             # Collect paths info
             paths_result = self.get_system_paths()
             if paths_result.is_success:
-                comprehensive_info[FlextCliConstants.DebugDictKeys.PATHS] = (
-                    paths_result.value
+                # Type cast: CliDataDict is dict[str, JsonValue] which is compatible with JsonValue
+                comprehensive_info[FlextCliConstants.DebugDictKeys.PATHS] = typing.cast(
+                    "FlextTypes.JsonValue", paths_result.value
                 )
             else:
                 comprehensive_info[FlextCliConstants.DebugDictKeys.PATHS_ERROR] = (
@@ -257,8 +263,9 @@ class FlextCliDebug(FlextService[str]):
             # Collect debug info
             debug_result = self.get_debug_info()
             if debug_result.is_success:
-                comprehensive_info[FlextCliConstants.DebugDictKeys.DEBUG] = (
-                    debug_result.value
+                # Type cast: DebugInfoData is dict[str, JsonValue] which is compatible with JsonValue
+                comprehensive_info[FlextCliConstants.DebugDictKeys.DEBUG] = typing.cast(
+                    "FlextTypes.JsonValue", debug_result.value
                 )
             else:
                 comprehensive_info[FlextCliConstants.DebugDictKeys.DEBUG_ERROR] = (

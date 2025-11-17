@@ -1975,7 +1975,7 @@ class FlextCliConstants(FlextConstants):
         SESSION_ID_PREFIX: Final[str] = "session_"
         DATETIME_FORMAT: Final[str] = "%Y%m%d_%H%M%S_%f"
         ZERO_DURATION: Final[float] = 0.0
-        DEFAULT_USER_ID: Final[str | None] = None
+        DEFAULT_USER_ID: Final[str] = ""  # Empty string instead of None
         SECONDS_PER_MINUTE: Final[int] = 60
 
     class CliSessionDescriptions:

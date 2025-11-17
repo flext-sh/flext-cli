@@ -18,7 +18,11 @@ import typer
 from flext_core import FlextConstants, FlextLogger
 from typer.testing import CliRunner
 
-from flext_cli import FlextCliCommonParams, FlextCliConfig
+from flext_cli import (
+    FlextCliCommonParams,
+    FlextCliConfig,
+    FlextCliModels,
+)
 
 # Module-level defaults to avoid B008 - use cast() for type-safe defaults
 DEFAULT_VERBOSE: bool = cast(
@@ -828,3 +832,16 @@ class TestCliParamsCoverageCompletion:
         # Error comes from outer exception handler or railway pattern flat_map
         error_msg = str(result.error).lower()
         assert "failed to apply" in error_msg or "enum construction error" in error_msg
+
+    def test_set_log_level_none(self) -> None:
+        """Test _set_log_level when log_level is None (line 269).
+
+        Real scenario: Tests early return when log_level is None.
+        """
+        config = FlextCliConfig()
+        params = FlextCliModels.CliParamsConfig(log_level=None)
+        # _set_log_level is a private method, test through apply_to_config
+        # or directly if accessible
+        result = FlextCliCommonParams._set_log_level(config, params)
+        assert result.is_success
+        assert result.unwrap() == config

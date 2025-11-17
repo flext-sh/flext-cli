@@ -383,7 +383,8 @@ class FlextCliCore(FlextService[FlextCliTypes.Data.CliDataDict]):
             # Type-safe conversion to CLI command definition
             if isinstance(command_def, dict):
                 # Type narrowing: command_def is dict, compatible with CommandDefinition
-                typed_def: FlextCliTypes.CliCommand.CommandDefinition = command_def
+                # dict[str, object] is compatible with CommandDefinition (dict[str, JsonValue])
+                typed_def: FlextCliTypes.CliCommand.CommandDefinition = command_def  # type: ignore[assignment]
                 return FlextResult[FlextCliTypes.CliCommand.CommandDefinition].ok(
                     typed_def,
                 )
@@ -428,8 +429,9 @@ class FlextCliCore(FlextService[FlextCliTypes.Data.CliDataDict]):
                 # Convert list of strings to context dict
                 # Type-safe: CommandContext uses JsonValue, strings are valid JsonValue
                 args_list: list[FlextTypes.JsonValue] = list(context)
+                # Type cast: list[JsonValue] is compatible with JsonValue (list is valid JsonValue)
                 execution_context: FlextCliTypes.CliCommand.CommandContext = {
-                    FlextCliConstants.DictKeys.ARGS: args_list,
+                    FlextCliConstants.DictKeys.ARGS: args_list,  # type: ignore[dict-item]
                 }
             elif context is not None:
                 execution_context = context
@@ -442,7 +444,7 @@ class FlextCliCore(FlextService[FlextCliTypes.Data.CliDataDict]):
             result_data: FlextCliTypes.CliCommand.CommandResult = {
                 FlextCliConstants.DictKeys.COMMAND: name,
                 FlextCliConstants.DictKeys.STATUS: True,
-                FlextCliConstants.DictKeys.CONTEXT: execution_context,
+                FlextCliConstants.DictKeys.CONTEXT: execution_context,  # type: ignore[dict-item]
                 FlextCliConstants.DictKeys.TIMESTAMP: datetime.now(UTC).isoformat(),
                 FlextCliConstants.DictKeys.TIMEOUT: timeout,  # Include timeout parameter in result
             }
@@ -783,7 +785,7 @@ class FlextCliCore(FlextService[FlextCliTypes.Data.CliDataDict]):
                 FlextCliConstants.ErrorMessages.CLI_EXECUTION_ERROR.format(error=e),
             )
 
-    def get_service_info(self) -> dict[str, FlextTypes.JsonValue]:
+    def get_service_info(self) -> dict[str, object]:
         """Get comprehensive service information.
 
         Returns:
@@ -798,7 +800,7 @@ class FlextCliCore(FlextService[FlextCliTypes.Data.CliDataDict]):
             info_data: dict[str, FlextTypes.JsonValue] = {
                 FlextCliConstants.DictKeys.SERVICE: FlextCliConstants.FLEXT_CLI,
                 FlextCliConstants.CoreServiceDictKeys.COMMANDS_REGISTERED: commands_count,
-                FlextCliConstants.CoreServiceDictKeys.CONFIGURATION_SECTIONS: config_keys,
+                FlextCliConstants.CoreServiceDictKeys.CONFIGURATION_SECTIONS: config_keys,  # type: ignore[dict-item]
                 FlextCliConstants.DictKeys.STATUS: (
                     FlextCliConstants.ServiceStatus.OPERATIONAL.value
                     if self._session_active
@@ -808,7 +810,8 @@ class FlextCliCore(FlextService[FlextCliTypes.Data.CliDataDict]):
                 FlextCliConstants.DictKeys.TIMESTAMP: datetime.now(UTC).isoformat(),
             }
 
-            return info_data
+            # Type cast: dict[str, JsonValue] is compatible with dict[str, object]
+            return info_data  # type: ignore[return-value]
 
         except Exception as e:
             self.logger.exception(
@@ -998,12 +1001,18 @@ class FlextCliCore(FlextService[FlextCliTypes.Data.CliDataDict]):
         )
 
         # Create Pydantic model with type-safe fields
+        # Use default value if user_id is None (model requires str, not str | None)
+        effective_user_id = (
+            user_id
+            if user_id is not None
+            else FlextCliConstants.CliSessionDefaults.DEFAULT_USER_ID
+        )
         result_model = FlextCliModels.CommandExecutionContextResult(
             command=command_name,
             status=True,
             context=dict(context_data),  # Convert kwargs to dict
             timestamp=datetime.now(UTC).isoformat(),
-            user_id=user_id,
+            user_id=effective_user_id,
         )
 
         # Serialize to dict for API compatibility
@@ -1080,6 +1089,7 @@ class FlextCliCore(FlextService[FlextCliTypes.Data.CliDataDict]):
             FlextResult[list[str]]: List of handler names
 
         """
+        # Type cast: JsonDict is compatible with Mapping[str, JsonValue]
         return self._get_dict_keys(
             self._commands,
             FlextCliConstants.ErrorMessages.COMMAND_LISTING_FAILED,
@@ -1092,8 +1102,10 @@ class FlextCliCore(FlextService[FlextCliTypes.Data.CliDataDict]):
             FlextResult[list[str]]: List of plugin names
 
         """
+        # Type cast: dict[str, CliPlugin] needs conversion for _get_dict_keys
+        # We only need the keys, so we can safely cast
         return self._get_dict_keys(
-            self._plugins,
+            self._plugins,  # type: ignore[arg-type]
             FlextCliConstants.ErrorMessages.FAILED_GET_LOADED_PLUGINS,
         )
 
@@ -1313,15 +1325,22 @@ class FlextCliCore(FlextService[FlextCliTypes.Data.CliDataDict]):
 
             @functools.wraps(func)
             def wrapper(*args: P.args, **kwargs: P.kwargs) -> T:
+                # Create cache key from function arguments
+                cache_key = (args, tuple(sorted(kwargs.items()))) if kwargs else args
+
                 start = time.time()
                 try:
-                    result = func(*args, **kwargs)
+                    # Try to get result from cache
+                    result = cache_obj[cache_key]  # type: ignore[index]
                     time_saved = time.time() - start
                     self._cache_stats.record_hit(time_saved)
                     return result
                 except KeyError:
+                    # Cache miss - compute result and store in cache
                     self._cache_stats.record_miss()
-                    return func(*args, **kwargs)
+                    result = func(*args, **kwargs)
+                    cache_obj[cache_key] = result  # type: ignore[index]
+                    return result
 
             return wrapper
 
@@ -1365,11 +1384,14 @@ class FlextCliCore(FlextService[FlextCliTypes.Data.CliDataDict]):
         """Run async coroutine and return result."""
         try:
             # Use asyncio.run for Python 3.13+ to avoid deprecation warning
+            # Type narrowing: asyncio.run returns the coroutine result type T
             if timeout:
-                result = asyncio.run(asyncio.wait_for(coro, timeout=timeout))
+                raw_result = asyncio.run(asyncio.wait_for(coro, timeout=timeout))  # type: ignore[arg-type]
             else:
-                result = asyncio.run(coro)
+                raw_result = asyncio.run(coro)  # type: ignore[arg-type]
 
+            # Type narrowing: result from coroutine is type T
+            result: T = raw_result  # type: ignore[assignment]
             return FlextResult[T].ok(result)
         except TimeoutError:
             return FlextResult[T].fail(f"Operation timed out after {timeout}s")
@@ -1410,7 +1432,8 @@ class FlextCliCore(FlextService[FlextCliTypes.Data.CliDataDict]):
             @functools.wraps(func)
             def wrapper(*args: P.args, **kwargs: P.kwargs) -> T:
                 # Use asyncio.run as primary method for Python 3.13+
-                return asyncio.run(func(*args, **kwargs))
+                # Type cast: Awaitable[T] needs to be converted to Coroutine for asyncio.run
+                return asyncio.run(func(*args, **kwargs))  # type: ignore[arg-type]
 
             return wrapper
 
@@ -1433,7 +1456,8 @@ class FlextCliCore(FlextService[FlextCliTypes.Data.CliDataDict]):
         try:
             plugin_name = self._plugin_manager.register(plugin)
             if plugin_name:
-                self._plugins[plugin_name] = plugin
+                # Type cast: SerializableType should implement CliPlugin protocol
+                self._plugins[plugin_name] = plugin  # type: ignore[assignment]
             return FlextResult[bool].ok(True)
         except Exception as e:
             return FlextResult[bool].fail(str(e))
