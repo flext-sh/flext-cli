@@ -287,8 +287,8 @@ class TestFlextCliTables:
         result = tables.print_available_formats()
 
         assert result.is_success
-        # Method returns None but prints to stdout
-        assert result.unwrap() is None
+        # Method returns True on success
+        assert result.unwrap() is True
 
     # =========================================================================
     # EDGE CASES AND ERROR HANDLING
@@ -362,7 +362,7 @@ class TestFlextCliTables:
 
         assert isinstance(result, FlextResult)
         assert result.is_success
-        assert result.unwrap() is None
+        assert result.unwrap() == {}
 
     # =========================================================================
     # INTEGRATION TESTS

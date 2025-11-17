@@ -457,7 +457,10 @@ class TestFlextCliCommands:
         with patch.object(
             FlextCliCommands._CliGroup, "__init__", side_effect=mock_init
         ):
-            result = commands.create_command_group("test_group")
+            # Pass commands dict to trigger GROUP_CREATION_FAILED path
+            result = commands.create_command_group(
+                "test_group", description="Test", commands={"cmd": {}}
+            )
             assert result.is_failure
             assert "group creation failed" in str(result.error).lower()
 

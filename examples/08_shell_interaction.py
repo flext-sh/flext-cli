@@ -115,18 +115,18 @@ class InteractiveShell:
         }
         self.running = False
 
-    def show_help(self) -> FlextResult[None]:
+    def show_help(self) -> FlextResult[bool]:
         """Show available commands."""
         cli.formatters.print("\n📚 Available Commands:", style="bold cyan")
         for cmd in self.commands:
             cli.formatters.print(f"   • {cmd}", style="white")
-        return FlextResult[None].ok(None)
+        return FlextResult[bool].ok(True)
 
-    def exit_shell(self) -> FlextResult[None]:
+    def exit_shell(self) -> FlextResult[bool]:
         """Exit interactive shell."""
         cli.formatters.print("👋 Goodbye!", style="cyan")
         self.running = False
-        return FlextResult[None].ok(None)
+        return FlextResult[bool].ok(True)
 
     def execute_command(self, command_line: str) -> FlextResult[object]:
         """Execute command from user input."""

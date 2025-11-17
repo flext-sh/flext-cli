@@ -105,9 +105,9 @@ class TestFlextCliMixinsBusinessRulesMixin:
         result = FlextCliMixins.BusinessRulesMixin.validate_configuration_consistency(
             None, ["field1"]
         )
-        assert (
-            result.is_success
-        )  # Should succeed when config is None (no missing fields)
+        # Fast-fail: None config should fail when required fields are specified
+        assert result.is_failure
+        assert "field1" in (result.error or "")
 
 
 class TestFlextCliMixinsCliCommandMixin:
@@ -115,9 +115,12 @@ class TestFlextCliMixinsCliCommandMixin:
 
     def test_execute_with_cli_context_success(self) -> None:
         """Test execute_with_cli_context with successful handler."""
+        from flext_core import FlextResult, FlextTypes
 
-        def mock_handler(context_data: dict) -> dict:
-            return {"result": "success", **context_data}
+        def mock_handler(
+            **kwargs: FlextTypes.JsonValue,
+        ) -> FlextResult[FlextTypes.JsonValue]:
+            return FlextResult[FlextTypes.JsonValue].ok({"result": "success", **kwargs})
 
         result = FlextCliMixins.CliCommandMixin.execute_with_cli_context(
             operation="test_operation", handler=mock_handler, test_param="test_value"
@@ -130,14 +133,18 @@ class TestFlextCliMixinsCliCommandMixin:
 
     def test_execute_with_cli_context_failure(self) -> None:
         """Test execute_with_cli_context with failing handler."""
+        from flext_core import FlextResult, FlextTypes
+
         test_error_msg = "Test error"
 
-        def mock_handler(context_data: dict) -> dict:
-            raise ValueError(test_error_msg)
+        def mock_handler(
+            **kwargs: FlextTypes.JsonValue,
+        ) -> FlextResult[FlextTypes.JsonValue]:
+            return FlextResult[FlextTypes.JsonValue].fail(test_error_msg)
 
         result = FlextCliMixins.CliCommandMixin.execute_with_cli_context(
             operation="test_operation", handler=mock_handler
         )
 
         assert result.is_failure
-        assert test_error_msg in result.error
+        assert test_error_msg in (result.error or "")

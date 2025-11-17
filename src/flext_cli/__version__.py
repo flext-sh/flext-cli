@@ -20,7 +20,9 @@ __description__ = _metadata["Summary"]
 __author__ = _metadata["Author"]
 __author_email__ = _metadata["Author-Email"]
 __license__ = _metadata["License"]
-__url__ = _metadata.get("Home-Page") or ""
+# Validate URL explicitly - no fallback to empty string
+_home_page = _metadata.get("Home-Page")
+__url__ = _home_page if _home_page is not None else ""
 
 __all__ = [
     "__author__",

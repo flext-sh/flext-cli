@@ -8,6 +8,9 @@ SPDX-License-Identifier: MIT
 
 """
 
+from __future__ import annotations
+
+from flext_core import FlextTypes
 from pydantic import BaseModel, ConfigDict, Field
 
 
@@ -30,7 +33,7 @@ class ConfigServiceExecutionResult(BaseModel):
     service: str = Field(description="Service name")
     timestamp: str = Field(default="", description="Execution timestamp (ISO)")
     version: str = Field(description="Service version")
-    config: dict[str, object] = Field(
+    config: dict[str, FlextTypes.JsonValue] = Field(
         default_factory=dict, description="Complete configuration dump"
     )
 

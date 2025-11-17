@@ -9,9 +9,11 @@ SPDX-License-Identifier: MIT
 
 """
 
+from __future__ import annotations
+
 import secrets
+import typing
 from collections.abc import Callable, Sequence
-from typing import Any, Literal, cast
 
 from flext_core import (
     FlextContainer,
@@ -56,7 +58,7 @@ class FlextCli:
         >>> cli.file_tools.read_json_file(path)  # Direct file tools access
     """
 
-    _instance: "FlextCli | None" = None
+    _instance: FlextCli | None = None
     _lock = __import__("threading").Lock()
 
     # Public service instances (no wrapping needed - direct access)
@@ -113,7 +115,7 @@ class FlextCli:
         self._deleted_users: set[str] = set()
 
     @classmethod
-    def get_instance(cls) -> "FlextCli":
+    def get_instance(cls) -> FlextCli:
         """Get singleton FlextCli instance using class-level singleton pattern."""
         if cls._instance is None:
             with cls._lock:
@@ -175,18 +177,18 @@ class FlextCli:
 
         return FlextResult[str].ok(token)
 
-    def validate_credentials(self, username: str, password: str) -> FlextResult[None]:
+    def validate_credentials(self, username: str, password: str) -> FlextResult[bool]:
         """Validate credentials using Pydantic 2."""
         try:
             FlextCliModels.PasswordAuth(username=username, password=password)
-            return FlextResult[None].ok(None)
+            return FlextResult[bool].ok(True)
         except Exception as e:
-            return FlextResult[None].fail(str(e))
+            return FlextResult[bool].fail(str(e))
 
-    def save_auth_token(self, token: str) -> FlextResult[None]:
+    def save_auth_token(self, token: str) -> FlextResult[bool]:
         """Save authentication token using file tools domain library."""
         if not token.strip():
-            return FlextResult[None].fail(FlextCliConstants.ErrorMessages.TOKEN_EMPTY)
+            return FlextResult[bool].fail(FlextCliConstants.ErrorMessages.TOKEN_EMPTY)
 
         token_path = self.config.token_file
         token_data: FlextCliTypes.Auth.CredentialsData = {
@@ -194,18 +196,19 @@ class FlextCli:
         }
 
         # Use file tools domain library for JSON writing
-        # Cast to JsonValue to satisfy invariant dict typing
-        json_data: FlextTypes.JsonValue = cast("FlextTypes.JsonValue", token_data)
+        # token_data is CredentialsData (dict[str, JsonValue]) which is compatible with JsonValue
+        # Cast to JsonValue for type checker (dict is a valid JsonValue at runtime)
+        json_data = typing.cast("FlextTypes.JsonValue", token_data)
         write_result = self.file_tools.write_json_file(str(token_path), json_data)
         if write_result.is_failure:
-            return FlextResult[None].fail(
+            return FlextResult[bool].fail(
                 FlextCliConstants.ErrorMessages.TOKEN_SAVE_FAILED.format(
                     error=write_result.error
                 )
             )
 
         self._valid_tokens.add(token)
-        return FlextResult[None].ok(None)
+        return FlextResult[bool].ok(True)
 
     def get_auth_token(self) -> FlextResult[str]:
         """Get authentication token using Pydantic 2 validation - no wrappers.
@@ -253,7 +256,7 @@ class FlextCli:
         token_result = self.get_auth_token()
         return token_result.is_success
 
-    def clear_auth_tokens(self) -> FlextResult[None]:
+    def clear_auth_tokens(self) -> FlextResult[bool]:
         """Clear authentication tokens using file tools domain library."""
         token_path = self.config.token_file
         refresh_token_path = self.config.refresh_token_file
@@ -269,7 +272,7 @@ class FlextCli:
                 str(delete_token_result.error)
             )
         ):
-            return FlextResult[None].fail(
+            return FlextResult[bool].fail(
                 FlextCliConstants.ErrorMessages.FAILED_CLEAR_CREDENTIALS.format(
                     error=delete_token_result.error
                 )
@@ -281,14 +284,14 @@ class FlextCli:
                 str(delete_refresh_result.error)
             )
         ):
-            return FlextResult[None].fail(
+            return FlextResult[bool].fail(
                 FlextCliConstants.ErrorMessages.FAILED_CLEAR_CREDENTIALS.format(
                     error=delete_refresh_result.error
                 )
             )
 
         self._valid_tokens.clear()
-        return FlextResult[None].ok(None)
+        return FlextResult[bool].ok(True)
 
     # =========================================================================
     # COMMAND REGISTRATION - CLI framework abstraction (domain library pattern)
@@ -296,7 +299,7 @@ class FlextCli:
 
     def _register_cli_entity(
         self,
-        entity_type: Literal["command", "group"],
+        entity_type: FlextCliConstants.EntityTypeLiteral,
         name: str | None,
         func: Callable[..., FlextTypes.JsonValue],
     ) -> Callable[..., FlextTypes.JsonValue]:
@@ -311,7 +314,8 @@ class FlextCli:
             Decorated function
 
         """
-        entity_name = name or func.__name__
+        # Validate entity name explicitly - no fallback
+        entity_name = name if name is not None else func.__name__
 
         if entity_type == "command":
             self._commands[entity_name] = func
@@ -350,10 +354,10 @@ class FlextCli:
 
         return decorator
 
-    def execute_cli(self) -> FlextResult[None]:
+    def execute_cli(self) -> FlextResult[bool]:
         """Execute the CLI application using framework abstraction."""
         # FlextCliCli doesn't have run_app - CLI execution handled elsewhere
-        return FlextResult[None].ok(None)
+        return FlextResult[bool].ok(True)
 
     # =========================================================================
     # EXECUTION - Railway pattern with FlextResult
@@ -374,7 +378,7 @@ class FlextCli:
         self,
         message: str,
         style: str | None = None,
-    ) -> FlextResult[None]:
+    ) -> FlextResult[bool]:
         """Print formatted message (convenience method for formatters.print)."""
         return self.formatters.print(message, style)
 
@@ -397,20 +401,23 @@ class FlextCli:
             FlextResult[str]: Formatted table string
 
         """
-        # Handle None case - use empty dict as default
-        table_data: (
-            dict[str, FlextTypes.JsonValue] | list[dict[str, FlextTypes.JsonValue]]
-        )
+        # Handle None case - fast fail if data is None
         if data is None:
-            table_data = {}
-        elif isinstance(data, dict):
-            table_data = data
+            return FlextResult[str].fail(
+                FlextCliConstants.ErrorMessages.NO_DATA_PROVIDED
+            )
+
+        # table_data is dict|list which are both valid JsonValue types
+        # Ensure type compatibility for type checker (dict/list are JsonValue at runtime)
+        if isinstance(data, dict):
+            table_data = typing.cast("FlextTypes.JsonValue", data)
         else:
-            table_data = list(data)
+            # Convert to list and ensure JsonValue compatibility
+            table_data = typing.cast("FlextTypes.JsonValue", list(data))
+
         # Use output.format_data which supports data, title, and headers
-        # Cast needed: table_data is dict|list but format_data expects JsonValue (wider union)
         return self.output.format_data(
-            data=cast("FlextTypes.JsonValue", table_data),
+            data=table_data,
             format_type="table",
             title=title,
             headers=headers,
@@ -419,14 +426,14 @@ class FlextCli:
     def print_table(
         self,
         table: str,
-    ) -> FlextResult[None]:
+    ) -> FlextResult[bool]:
         """Print table string (convenience method)."""
         return self.formatters.print(table)
 
     def create_tree(
         self,
         label: str,
-    ) -> FlextResult[Any]:
+    ) -> FlextResult[FlextCliTypes.Display.RichTree]:
         """Create tree visualization (convenience method for formatters.create_tree)."""
         return self.formatters.create_tree(label)
 

@@ -43,14 +43,14 @@ class ExamplePlugin:
         self._initialized = False
         self._config: FlextCliTypes.Data.CliDataDict = {}
 
-    def initialize(self, _cli_main: object) -> FlextResult[None]:
+    def initialize(self, _cli_main: object) -> FlextResult[bool]:
         """Initialize the plugin.
 
         Args:
             _cli_main: FlextCliMain instance
 
         Returns:
-            FlextResult[None] indicating success or failure
+            FlextResult[bool] indicating success (True) or failure
 
         """
         try:
@@ -63,19 +63,19 @@ class ExamplePlugin:
 
             self._initialized = True
 
-            return FlextResult[None].ok(None)
+            return FlextResult[bool].ok(True)
 
         except Exception as e:
-            return FlextResult[None].fail(f"Plugin initialization failed: {e}")
+            return FlextResult[bool].fail(f"Plugin initialization failed: {e}")
 
-    def register_commands(self, cli_main: object) -> FlextResult[None]:
+    def register_commands(self, cli_main: object) -> FlextResult[bool]:
         """Register plugin commands.
 
         Args:
             cli_main: FlextCliMain instance for command registration
 
         Returns:
-            FlextResult[None] indicating success or failure
+            FlextResult[bool] indicating success (True) or failure
 
         """
         try:
@@ -124,10 +124,10 @@ class ExamplePlugin:
                 """Show plugin status."""
                 status()
 
-            return FlextResult[None].ok(None)
+            return FlextResult[bool].ok(True)
 
         except Exception as e:
-            return FlextResult[None].fail(f"Command registration failed: {e}")
+            return FlextResult[bool].fail(f"Command registration failed: {e}")
 
 
 # Another example plugin - data processing
@@ -147,14 +147,14 @@ class DataProcessorPlugin:
         super().__init__()
         self._processors: ProcessorRegistry = {}
 
-    def initialize(self, _cli_main: object) -> FlextResult[None]:
+    def initialize(self, _cli_main: object) -> FlextResult[bool]:
         """Initialize the plugin.
 
         Args:
             _cli_main: FlextCliMain instance
 
         Returns:
-            FlextResult[None]
+            FlextResult[bool] indicating success (True) or failure
 
         """
         try:
@@ -165,19 +165,19 @@ class DataProcessorPlugin:
                 "xml": lambda data: f"XML: {data}",
             }
 
-            return FlextResult[None].ok(None)
+            return FlextResult[bool].ok(True)
 
         except Exception as e:
-            return FlextResult[None].fail(f"Initialization failed: {e}")
+            return FlextResult[bool].fail(f"Initialization failed: {e}")
 
-    def register_commands(self, cli_main: object) -> FlextResult[None]:
+    def register_commands(self, cli_main: object) -> FlextResult[bool]:
         """Register data processing commands.
 
         Args:
             cli_main: FlextCliMain instance
 
         Returns:
-            FlextResult[None]
+            FlextResult[bool] indicating success (True) or failure
 
         """
         try:
@@ -227,10 +227,10 @@ class DataProcessorPlugin:
                 formats_list = list_formats()
                 print(f"Available formats: {', '.join(formats_list)}")
 
-            return FlextResult[None].ok(None)
+            return FlextResult[bool].ok(True)
 
         except Exception as e:
-            return FlextResult[None].fail(f"Command registration failed: {e}")
+            return FlextResult[bool].fail(f"Command registration failed: {e}")
 
 
 # ============================================================================

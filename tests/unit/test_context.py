@@ -201,11 +201,13 @@ class TestFlextCliContext:
         )
 
         result = context.to_dict()
-        assert isinstance(result, dict)
-        assert result["command"] == "test_cmd"
-        assert result["arguments"] == ["arg1"]
-        assert result["working_directory"] == "/tmp"
-        assert "timeout_seconds" in result
+        assert result.is_success
+        data = result.unwrap()
+        assert isinstance(data, dict)
+        assert data["command"] == "test_cmd"
+        assert data["arguments"] == ["arg1"]
+        assert data["working_directory"] == "/tmp"
+        assert "timeout_seconds" in data
 
     # ========================================================================
     # ERROR HANDLING AND EDGE CASES

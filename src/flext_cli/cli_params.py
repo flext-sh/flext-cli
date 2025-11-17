@@ -10,9 +10,11 @@ SPDX-License-Identifier: MIT
 
 """
 
+from __future__ import annotations
+
 import sys
 from collections.abc import Callable
-from typing import ClassVar, Literal, TypeVar, cast
+from typing import ClassVar, TypeVar, cast
 
 from flext_core import FlextConstants, FlextResult
 from typer.models import OptionInfo
@@ -123,17 +125,17 @@ class FlextCliCommonParams:
         cls._enforcement_mode = True
 
     @classmethod
-    def validate_enabled(cls) -> FlextResult[None]:
+    def validate_enabled(cls) -> FlextResult[bool]:
         """Validate that common parameters are enabled.
 
         Returns:
-            FlextResult[None]: Success if enabled, failure if disabled in enforcement mode.
+            FlextResult[bool]: True if enabled, failure if disabled in enforcement mode.
 
         """
         err = FlextCliConstants.CliParamsErrorMessages
         if not cls._params_enabled and cls._enforcement_mode:
-            return FlextResult[None].fail(err.PARAMS_MANDATORY)
-        return FlextResult[None].ok(None)
+            return FlextResult[bool].fail(err.PARAMS_MANDATORY)
+        return FlextResult[bool].ok(True)
 
     @classmethod
     def create_option(cls, field_name: str) -> OptionInfo:
@@ -167,7 +169,7 @@ class FlextCliCommonParams:
 
         """
         reg = cls._reg
-        default_priority = FlextCliConstants.PriorityDefaults.DEFAULT_PRIORITY
+        default_priority = FlextCliConstants.DEFAULT_PRIORITY
         param_fields = sorted(
             cls.CLI_PARAM_REGISTRY.items(),
             key=lambda x: int(str(x[1].get(reg.KEY_PRIORITY, default_priority))),
@@ -295,17 +297,20 @@ class FlextCliCommonParams:
 
         # output_format
         if params.output_format is not None:
+            output_format_value = params.output_format
             if (
-                params.output_format
+                output_format_value
                 not in FlextCliConstants.CliParamsDefaults.VALID_OUTPUT_FORMATS
             ):
                 valid = FlextCliConstants.CliParamsDefaults.VALID_OUTPUT_FORMATS
                 return FlextResult[FlextCliConfig].fail(
-                    f"invalid output format: {params.output_format}. valid options: {', '.join(valid)}"
+                    f"invalid output format: {output_format_value}. valid options: {', '.join(valid)}"
                 )
-            # After validation, safe to assign (MyPy needs explicit knowledge)
+            # After validation, we know output_format_value is in VALID_OUTPUT_FORMATS
+            # Cast to Literal type since validation guarantees it's one of the valid values
+            # Type narrowing: validation above ensures this is a valid OutputFormatLiteral
             config.output_format = cast(
-                "Literal['csv', 'json', 'plain', 'table', 'yaml']", params.output_format
+                "FlextCliConstants.OutputFormatLiteral", output_format_value
             )
 
         return FlextResult[FlextCliConfig].ok(config)
@@ -314,7 +319,7 @@ class FlextCliCommonParams:
     def configure_logger(
         cls,
         config: FlextCliConfig,
-    ) -> FlextResult[None]:
+    ) -> FlextResult[bool]:
         """Configure FlextLogger based on config parameters.
 
         NOTE: FlextLogger uses structlog which configures logging globally.
@@ -325,7 +330,7 @@ class FlextCliCommonParams:
             config: FlextCliConfig with logging configuration
 
         Returns:
-            FlextResult[None]: Success or error
+            FlextResult[bool]: True if logger configured successfully, failure on error
 
         """
         err = FlextCliConstants.CliParamsErrorMessages
@@ -334,15 +339,15 @@ class FlextCliCommonParams:
 
             if log_level_upper not in FlextCliConstants.LOG_LEVELS_LIST:
                 valid = ", ".join(FlextCliConstants.LOG_LEVELS_LIST)
-                return FlextResult[None].fail(
+                return FlextResult[bool].fail(
                     err.INVALID_LOG_LEVEL.format(log_level=log_level_upper, valid=valid)
                 )
 
             # FlextLogger configuration is done via FlextConfig at initialization
-            return FlextResult[None].ok(None)
+            return FlextResult[bool].ok(True)
 
         except Exception as e:
-            return FlextResult[None].fail(err.CONFIGURE_LOGGER_FAILED.format(error=e))
+            return FlextResult[bool].fail(err.CONFIGURE_LOGGER_FAILED.format(error=e))
 
     @classmethod
     def create_decorator(

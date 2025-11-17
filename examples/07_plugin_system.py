@@ -231,12 +231,12 @@ class LifecyclePlugin:
         self.name = "lifecycle-plugin"
         self.initialized = False
 
-    def initialize(self) -> FlextResult[None]:
+    def initialize(self) -> FlextResult[bool]:
         """Initialize plugin resources."""
         cli.print(f"🚀 Initializing {self.name}...", style="cyan")
         # Your initialization logic
         self.initialized = True
-        return FlextResult[None].ok(None)
+        return FlextResult[bool].ok(True)
 
     def execute(self, data: str) -> FlextResult[str]:
         """Execute plugin logic."""
@@ -247,12 +247,12 @@ class LifecyclePlugin:
         cli.print(f"✅ Processed: {processed}", style="green")
         return FlextResult[str].ok(processed)
 
-    def cleanup(self) -> FlextResult[None]:
+    def cleanup(self) -> FlextResult[bool]:
         """Cleanup plugin resources."""
         cli.print(f"🧹 Cleaning up {self.name}...", style="cyan")
         # Your cleanup logic
         self.initialized = False
-        return FlextResult[None].ok(None)
+        return FlextResult[bool].ok(True)
 
 
 # ============================================================================

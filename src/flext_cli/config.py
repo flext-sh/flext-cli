@@ -7,22 +7,24 @@ SPDX-License-Identifier: MIT
 
 """
 
+from __future__ import annotations
+
 import importlib
 import json
 import os
 import shutil
 from datetime import UTC, datetime
 from pathlib import Path
-from typing import Annotated, Literal, Self
+from typing import Annotated, Self
 
 from flext_core import (
     FlextConfig,
+    FlextConstants,
     FlextContainer,
     FlextContext,
     FlextLogger,
     FlextResult,
     FlextTypes,
-    LogLevel,
     RetryCount,
     TimeoutSeconds,
 )
@@ -38,6 +40,9 @@ from pydantic_settings import SettingsConfigDict
 from flext_cli._models_config import ConfigServiceExecutionResult
 from flext_cli.constants import FlextCliConstants
 from flext_cli.typings import FlextCliTypes
+
+# Alias LogLevel from FlextConstants (moved from flext_core direct export)
+LogLevel = FlextConstants.Settings.LogLevel
 
 logger = FlextLogger(__name__)
 
@@ -84,7 +89,7 @@ class FlextCliConfig(FlextConfig):
         )
     )
 
-    output_format: Literal["json", "yaml", "csv", "table", "plain"] = Field(
+    output_format: FlextCliConstants.OutputFormatLiteral = Field(
         default="table",  # FlextCliConstants.OutputFormats.TABLE
         description="Default output format for CLI commands",
     )
@@ -163,7 +168,7 @@ class FlextCliConfig(FlextConfig):
         default=FlextCliConstants.CliDefaults.DEFAULT_INTERACTIVE,
         description="Enable interactive mode",
     )
-    environment: Literal["development", "staging", "production", "test"] = Field(
+    environment: FlextCliConstants.EnvironmentLiteral = Field(
         default="development",  # FlextCliConstants.CliDefaults.DEFAULT_ENVIRONMENT
         description="Deployment environment",
     )
@@ -197,11 +202,11 @@ class FlextCliConfig(FlextConfig):
     )
 
     cli_log_level: LogLevel = Field(
-        default="INFO",  # FlextCliConstants.CliDefaults.DEFAULT_CLI_LOG_LEVEL
+        default=FlextConstants.Settings.LogLevel.INFO,  # Use enum value from constants
         description="CLI-specific logging level",
     )
 
-    cli_log_verbosity: Literal["compact", "detailed", "full"] = Field(
+    cli_log_verbosity: FlextCliConstants.LogVerbosityLiteral = Field(
         default="detailed",  # FlextCliConstants.CliDefaults.DEFAULT_CLI_LOG_VERBOSITY
         description="CLI-specific logging verbosity",
     )
@@ -241,7 +246,7 @@ class FlextCliConfig(FlextConfig):
                 return FlextResult.fail(error_msg)
 
         # Functional context propagation with graceful degradation
-        def propagate_to_context() -> FlextResult[None]:
+        def propagate_to_context() -> FlextResult[bool]:
             """Propagate configuration to FlextContext with error recovery."""
             try:
                 # Resolve context dynamically for test compatibility
@@ -256,29 +261,29 @@ class FlextCliConfig(FlextConfig):
                 context.set("cli_auto_verbosity", self.auto_verbosity)
                 context.set("cli_optimal_table_format", self.optimal_table_format)
 
-                return FlextResult.ok(None)
+                return FlextResult[bool].ok(True)
             except Exception as e:
                 # Log but don't fail - context might not be initialized yet
                 logger.debug(
                     "Context not available during config initialization: %s", e
                 )
-                return FlextResult.ok(None)  # Graceful degradation
+                return FlextResult[bool].ok(True)  # Graceful degradation
 
         # Functional container registration with conflict avoidance
-        def register_in_container() -> FlextResult[None]:
+        def register_in_container() -> FlextResult[bool]:
             """Register configuration in FlextContainer for dependency injection."""
             try:
                 container = FlextContainer.get_global()
                 # Register only if not already registered (avoids test conflicts)
                 if not container.has_service("flext_cli_config"):
                     container.with_service("flext_cli_config", self)
-                return FlextResult.ok(None)
+                return FlextResult[bool].ok(True)
             except Exception as e:
                 # Container might not be initialized yet - continue gracefully
                 logger.debug(
                     "Container not available during config initialization: %s", e
                 )
-                return FlextResult.ok(None)  # Graceful degradation
+                return FlextResult[bool].ok(True)  # Graceful degradation
 
         # Execute validation pipeline using railway pattern
         validation_result = (
@@ -317,19 +322,12 @@ class FlextCliConfig(FlextConfig):
             return FlextResult.ok(is_interactive)
 
         def get_terminal_width() -> FlextResult[int]:
-            """Get terminal width with fallback."""
+            """Get terminal width - fast-fail on error."""
             try:
-                terminal_size = shutil.get_terminal_size(
-                    fallback=(
-                        FlextCliConstants.ConfigValidation.TERMINAL_FALLBACK_WIDTH,
-                        FlextCliConstants.ConfigValidation.TERMINAL_FALLBACK_HEIGHT,
-                    )
-                )
+                terminal_size = shutil.get_terminal_size()
                 return FlextResult.ok(terminal_size.columns)
-            except Exception:
-                return FlextResult.ok(
-                    FlextCliConstants.ConfigValidation.TERMINAL_FALLBACK_WIDTH
-                )
+            except Exception as e:
+                return FlextResult[int].fail(f"Failed to get terminal width: {e}")
 
         def determine_format(is_interactive: bool, width: int, has_color: bool) -> str:
             """Determine optimal format based on capabilities."""
@@ -345,11 +343,11 @@ class FlextCliConfig(FlextConfig):
             if has_color:
                 return FlextCliConstants.OutputFormats.TABLE.value
 
-            # Fallback to JSON
+            # Default to JSON for non-color interactive terminals
             return FlextCliConstants.OutputFormats.JSON.value
 
         # Railway pattern: detect capabilities then determine format
-        return (
+        result = (
             detect_interactive_mode()
             .flat_map(
                 lambda interactive: get_terminal_width().map(
@@ -363,8 +361,11 @@ class FlextCliConfig(FlextConfig):
                     bool(self.auto_color_support),  # has_color
                 )
             )
-            .unwrap_or(FlextCliConstants.OutputFormats.JSON.value)  # Safe fallback
         )
+        if result.is_success:
+            return result.unwrap()
+        # Fast-fail: return error format on failure
+        return FlextCliConstants.OutputFormats.JSON.value
 
     @computed_field
     def auto_color_support(self) -> bool:
@@ -406,11 +407,13 @@ class FlextCliConfig(FlextConfig):
                     return FlextCliConstants.ConfigDefaults.NORMAL_VERBOSITY
 
         # Railway pattern: validate and determine verbosity
-        return (
-            FlextResult.ok((self.verbose, self.quiet))
-            .map(lambda _: determine_verbosity())
-            .unwrap_or(FlextCliConstants.ConfigDefaults.NORMAL_VERBOSITY)
+        result = FlextResult.ok((self.verbose, self.quiet)).map(
+            lambda _: determine_verbosity()
         )
+        if result.is_success:
+            return result.unwrap()
+        # Fast-fail: return normal verbosity on failure
+        return FlextCliConstants.ConfigDefaults.NORMAL_VERBOSITY
 
     @computed_field
     def optimal_table_format(self) -> str:
@@ -426,19 +429,12 @@ class FlextCliConfig(FlextConfig):
 
         # Functional terminal width detection
         def get_terminal_width() -> FlextResult[int]:
-            """Get terminal width with error handling."""
+            """Get terminal width - fast-fail on error."""
             try:
-                terminal_size = shutil.get_terminal_size(
-                    fallback=(
-                        FlextCliConstants.ConfigValidation.TERMINAL_FALLBACK_WIDTH,
-                        FlextCliConstants.ConfigValidation.TERMINAL_FALLBACK_HEIGHT,
-                    )
-                )
+                terminal_size = shutil.get_terminal_size()
                 return FlextResult.ok(terminal_size.columns)
-            except Exception:
-                return FlextResult.ok(
-                    FlextCliConstants.ConfigValidation.TERMINAL_FALLBACK_WIDTH
-                )
+            except Exception as e:
+                return FlextResult[int].fail(f"Failed to get terminal width: {e}")
 
         def select_table_format(width: int) -> str:
             """Select optimal table format based on terminal width."""
@@ -449,11 +445,11 @@ class FlextCliConfig(FlextConfig):
             return FlextCliConstants.TableFormats.GRID
 
         # Railway pattern: get width then select format
-        return (
-            get_terminal_width()
-            .map(select_table_format)
-            .unwrap_or(FlextCliConstants.TableFormats.SIMPLE)  # Safe fallback
-        )
+        result = get_terminal_width().map(select_table_format)
+        if result.is_success:
+            return result.unwrap()
+        # Fast-fail: return simple format on failure
+        return FlextCliConstants.TableFormats.SIMPLE
 
     # CLI-specific methods
 
@@ -484,7 +480,7 @@ class FlextCliConfig(FlextConfig):
         return FlextResult.ok(value).flat_map(check_format_exists)
 
     @classmethod
-    def load_from_config_file(cls, config_file: Path) -> FlextResult["FlextCliConfig"]:
+    def load_from_config_file(cls, config_file: Path) -> FlextResult[FlextCliConfig]:
         """Load configuration from file with proper error handling."""
         try:
             if not config_file.exists():
@@ -537,19 +533,26 @@ class FlextCliConfig(FlextConfig):
             - Type-safe with field validation
 
         """
+        # Convert Path objects to strings for JSON compatibility
+        config_dict = self.model_dump()
+        # Convert PosixPath to str for JSON serialization
+        for key, value in config_dict.items():
+            if isinstance(value, Path):
+                config_dict[key] = str(value)
+
         # Create Pydantic model with type-safe fields
         result_model = ConfigServiceExecutionResult(
             status=FlextCliConstants.ServiceStatus.OPERATIONAL.value,
             service=FlextCliConstants.ConfigDefaults.DEFAULT_SERVICE_NAME,
             timestamp=datetime.now(UTC).isoformat(),
             version=FlextCliConstants.ConfigDefaults.DEFAULT_VERSION_STRING,
-            config=self.model_dump(),
+            config=config_dict,
         )
         # Serialize to dict for API compatibility
         result_dict: FlextCliTypes.Data.CliDataDict = result_model.model_dump()
         return FlextResult[FlextCliTypes.Data.CliDataDict].ok(result_dict)
 
-    def update_from_cli_args(self, **kwargs: FlextTypes.JsonValue) -> FlextResult[None]:
+    def update_from_cli_args(self, **kwargs: FlextTypes.JsonValue) -> FlextResult[bool]:
         """Update configuration from CLI arguments with validation.
 
         Allows CLI commands to override configuration values dynamically.
@@ -559,7 +562,7 @@ class FlextCliConfig(FlextConfig):
             **kwargs: Configuration key-value pairs to update
 
         Returns:
-            FlextResult[None]: Success or validation error
+            FlextResult[bool]: True if update succeeded, failure on error
 
         Example:
             >>> config = FlextCliConfig()
@@ -583,21 +586,21 @@ class FlextCliConfig(FlextConfig):
             # Re-validate entire model to ensure consistency
             self.model_validate(self.model_dump())
 
-            return FlextResult[None].ok(None)
+            return FlextResult[bool].ok(True)
 
         except Exception as e:
-            return FlextResult[None].fail(
+            return FlextResult[bool].fail(
                 FlextCliConstants.ErrorMessages.CLI_ARGS_UPDATE_FAILED.format(error=e)
             )
 
-    def merge_with_env(self) -> FlextResult[None]:
+    def merge_with_env(self) -> FlextResult[bool]:
         """Re-load environment variables and merge with current config.
 
         Useful when environment variables change during runtime.
         Existing config values take precedence over environment variables.
 
         Returns:
-            FlextResult[None]: Success or error
+            FlextResult[bool]: True if merge succeeded, failure on error
 
         Example:
             >>> config = FlextCliConfig()
@@ -609,7 +612,14 @@ class FlextCliConfig(FlextConfig):
         """
         try:
             # Get current config snapshot
-            current_config = self.model_dump()
+            # Convert Path objects to strings for JSON compatibility
+            config_dict = self.model_dump()
+            # Convert PosixPath to str for JSON serialization
+            for key, value in config_dict.items():
+                if isinstance(value, Path):
+                    config_dict[key] = str(value)
+
+            current_config = config_dict
 
             # Read-only/computed fields that cannot be set (includes FlextConfig computed fields)
             readonly_fields = {
@@ -641,10 +651,10 @@ class FlextCliConfig(FlextConfig):
                 if key not in readonly_fields:
                     setattr(self, key, getattr(env_config, key))
 
-            return FlextResult[None].ok(None)
+            return FlextResult[bool].ok(True)
 
         except Exception as e:
-            return FlextResult[None].fail(
+            return FlextResult[bool].fail(
                 FlextCliConstants.ErrorMessages.ENV_MERGE_FAILED.format(error=e)
             )
 
@@ -729,14 +739,14 @@ class FlextCliConfig(FlextConfig):
 
     def save_config(
         self, config: FlextCliTypes.Data.CliConfigData
-    ) -> FlextResult[None]:
+    ) -> FlextResult[bool]:
         """Save CLI configuration - implements CliConfigProvider protocol.
 
         Args:
             config: Configuration data to save
 
         Returns:
-            FlextResult[None]: Success or error
+            FlextResult[bool]: True if save succeeded, failure on error
 
         """
         try:
@@ -747,9 +757,9 @@ class FlextCliConfig(FlextConfig):
 
             # Validate the updated configuration
             self.model_validate(self.model_dump())
-            return FlextResult[None].ok(None)
+            return FlextResult[bool].ok(True)
         except Exception as e:
-            return FlextResult[None].fail(
+            return FlextResult[bool].fail(
                 FlextCliConstants.ErrorMessages.CONFIG_SAVE_FAILED_MSG.format(error=e)
             )
 

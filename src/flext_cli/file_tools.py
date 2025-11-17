@@ -17,6 +17,8 @@ SPDX-License-Identifier: MIT
 
 """
 
+from __future__ import annotations
+
 import csv
 import hashlib
 import json
@@ -70,7 +72,7 @@ class FlextCliFileTools:
         file_path: str | Path,
         content: str,
         encoding: str | int = FlextCliConstants.Encoding.UTF8,
-    ) -> FlextResult[None]:
+    ) -> FlextResult[bool]:
         """Write text content to file.
 
         Args:
@@ -79,7 +81,7 @@ class FlextCliFileTools:
             encoding: Text encoding (default: UTF-8). Non-string values fall back to UTF-8.
 
         Returns:
-            FlextResult[None] indicating success or failure
+            FlextResult[bool]: True on success, False on failure
 
         """
         try:
@@ -90,9 +92,9 @@ class FlextCliFileTools:
                 else FlextCliConstants.Encoding.UTF8
             )
             Path(file_path).write_text(content, encoding=validated_encoding)
-            return FlextResult[None].ok(None)
+            return FlextResult[bool].ok(True)
         except Exception as e:
-            return FlextResult[None].fail(
+            return FlextResult[bool].fail(
                 FlextCliConstants.ErrorMessages.TEXT_FILE_WRITE_FAILED.format(error=e)
             )
 
@@ -139,7 +141,7 @@ class FlextCliFileTools:
         *,
         sort_keys: bool = False,
         ensure_ascii: bool = True,
-    ) -> FlextResult[None]:
+    ) -> FlextResult[bool]:
         """Write data to JSON file - inline without wrapper.
 
         Args:
@@ -150,7 +152,7 @@ class FlextCliFileTools:
             ensure_ascii: Escape non-ASCII characters (default: True)
 
         Returns:
-            FlextResult[None] indicating success or failure
+            FlextResult[bool]: True on success, False on failure
 
         """
         try:
@@ -165,9 +167,9 @@ class FlextCliFileTools:
                     sort_keys=sort_keys,
                     ensure_ascii=ensure_ascii,
                 )
-            return FlextResult[None].ok(None)
+            return FlextResult[bool].ok(True)
         except Exception as e:
-            return FlextResult[None].fail(
+            return FlextResult[bool].fail(
                 FlextCliConstants.ErrorMessages.JSON_WRITE_FAILED.format(error=e)
             )
 
@@ -193,7 +195,7 @@ class FlextCliFileTools:
         default_flow_style: bool | None = None,
         sort_keys: bool = False,
         allow_unicode: bool = True,
-    ) -> FlextResult[None]:
+    ) -> FlextResult[bool]:
         """Write data to YAML file - inline without wrapper.
 
         Args:
@@ -204,7 +206,7 @@ class FlextCliFileTools:
             allow_unicode: Output Unicode characters (default: True)
 
         Returns:
-            FlextResult[None] indicating success or failure
+            FlextResult[bool]: True on success, False on failure
 
         """
         try:
@@ -219,9 +221,9 @@ class FlextCliFileTools:
                     sort_keys=sort_keys,
                     allow_unicode=allow_unicode,
                 )
-            return FlextResult[None].ok(None)
+            return FlextResult[bool].ok(True)
         except Exception as e:
-            return FlextResult[None].fail(
+            return FlextResult[bool].fail(
                 FlextCliConstants.ErrorMessages.YAML_WRITE_FAILED.format(error=e)
             )
 
@@ -245,10 +247,13 @@ class FlextCliFileTools:
         """Load file with automatic format detection."""
         format_result = FlextCliFileTools.detect_file_format(file_path)
         if format_result.is_failure:
-            return FlextResult[FlextTypes.JsonValue].fail(
+            # Validate error explicitly - no fallback
+            error_message = (
                 format_result.error
-                or FlextCliConstants.ErrorMessages.FORMAT_DETECTION_FAILED
+                if format_result.error is not None
+                else FlextCliConstants.ErrorMessages.FORMAT_DETECTION_FAILED
             )
+            return FlextResult[FlextTypes.JsonValue].fail(error_message)
 
         file_format = format_result.unwrap()
         if file_format == FlextCliConstants.FileSupportedFormats.JSON:
@@ -264,7 +269,7 @@ class FlextCliFileTools:
 
     def save_file(
         self, file_path: str | Path, data: FlextTypes.JsonValue
-    ) -> FlextResult[None]:
+    ) -> FlextResult[bool]:
         """Save data to file with automatic format detection.
 
         Note:
@@ -287,13 +292,13 @@ class FlextCliFileTools:
 
     def write_binary_file(
         self, file_path: str | Path, content: bytes
-    ) -> FlextResult[None]:
+    ) -> FlextResult[bool]:
         """Write binary content to file."""
         try:
             Path(file_path).write_bytes(content)
-            return FlextResult[None].ok(None)
+            return FlextResult[bool].ok(True)
         except Exception as e:
-            return FlextResult[None].fail(
+            return FlextResult[bool].fail(
                 FlextCliConstants.FileErrorMessages.BINARY_WRITE_FAILED.format(error=e)
             )
 
@@ -314,7 +319,7 @@ class FlextCliFileTools:
 
     def write_csv_file(
         self, file_path: str | Path, data: list[list[str]]
-    ) -> FlextResult[None]:
+    ) -> FlextResult[bool]:
         """Write CSV file content - inline without wrapper."""
         try:
             with Path(file_path).open(
@@ -324,9 +329,9 @@ class FlextCliFileTools:
             ) as f:
                 writer = csv.writer(f)
                 writer.writerows(data)
-            return FlextResult[None].ok(None)
+            return FlextResult[bool].ok(True)
         except Exception as e:
-            return FlextResult[None].fail(
+            return FlextResult[bool].fail(
                 FlextCliConstants.FileErrorMessages.CSV_WRITE_FAILED.format(error=e)
             )
 
@@ -347,36 +352,36 @@ class FlextCliFileTools:
             )
 
     @staticmethod
-    def delete_file(file_path: str | Path) -> FlextResult[None]:
+    def delete_file(file_path: str | Path) -> FlextResult[bool]:
         """Delete file."""
         try:
             Path(file_path).unlink()
-            return FlextResult[None].ok(None)
+            return FlextResult[bool].ok(True)
         except Exception as e:
-            return FlextResult[None].fail(
+            return FlextResult[bool].fail(
                 FlextCliConstants.FileErrorMessages.FILE_DELETION_FAILED.format(error=e)
             )
 
     def move_file(
         self, source: str | Path, destination: str | Path
-    ) -> FlextResult[None]:
+    ) -> FlextResult[bool]:
         """Move file to new location."""
         try:
             shutil.move(str(source), str(destination))
-            return FlextResult[None].ok(None)
+            return FlextResult[bool].ok(True)
         except Exception as e:
-            return FlextResult[None].fail(
+            return FlextResult[bool].fail(
                 FlextCliConstants.FileErrorMessages.FILE_MOVE_FAILED.format(error=e)
             )
 
     @staticmethod
-    def create_directory(dir_path: str | Path) -> FlextResult[None]:
+    def create_directory(dir_path: str | Path) -> FlextResult[bool]:
         """Create directory."""
         try:
             Path(dir_path).mkdir(parents=True, exist_ok=True)
-            return FlextResult[None].ok(None)
+            return FlextResult[bool].ok(True)
         except Exception as e:
-            return FlextResult[None].fail(
+            return FlextResult[bool].fail(
                 FlextCliConstants.FileErrorMessages.DIRECTORY_CREATION_FAILED.format(
                     error=e
                 )
@@ -396,13 +401,13 @@ class FlextCliFileTools:
             )
 
     @staticmethod
-    def delete_directory(dir_path: str | Path) -> FlextResult[None]:
+    def delete_directory(dir_path: str | Path) -> FlextResult[bool]:
         """Delete directory."""
         try:
             shutil.rmtree(str(dir_path))
-            return FlextResult[None].ok(None)
+            return FlextResult[bool].ok(True)
         except Exception as e:
-            return FlextResult[None].fail(
+            return FlextResult[bool].fail(
                 FlextCliConstants.FileErrorMessages.DIRECTORY_DELETION_FAILED.format(
                     error=e
                 )
@@ -474,10 +479,13 @@ class FlextCliFileTools:
         """Verify file hash."""
         hash_result = FlextCliFileTools.calculate_file_hash(file_path, algorithm)
         if hash_result.is_failure:
-            return FlextResult[bool].fail(
+            # Validate error explicitly - no fallback
+            error_message = (
                 hash_result.error
-                or FlextCliConstants.FileErrorMessages.HASH_CALCULATION_FAILED_NO_ERROR
+                if hash_result.error is not None
+                else FlextCliConstants.FileErrorMessages.HASH_CALCULATION_FAILED_NO_ERROR
             )
+            return FlextResult[bool].fail(error_message)
 
         matches = hash_result.unwrap() == expected_hash
         return FlextResult[bool].ok(matches)
@@ -499,13 +507,18 @@ class FlextCliFileTools:
     @staticmethod
     def set_file_permissions(
         file_path: str | Path, permissions: int
-    ) -> FlextResult[None]:
-        """Set file permissions."""
+    ) -> FlextResult[bool]:
+        """Set file permissions.
+
+        Returns:
+            FlextResult[bool]: True if permissions set successfully, failure on error
+
+        """
         try:
             Path(file_path).chmod(permissions)
-            return FlextResult[None].ok(None)
+            return FlextResult[bool].ok(True)
         except Exception as e:
-            return FlextResult[None].fail(
+            return FlextResult[bool].fail(
                 FlextCliConstants.FileErrorMessages.PERMISSION_SET_FAILED.format(
                     error=e
                 )
@@ -541,32 +554,42 @@ class FlextCliFileTools:
 
     def create_zip_archive(
         self, archive_path: str | Path, files: list[str]
-    ) -> FlextResult[None]:
-        """Create zip archive."""
+    ) -> FlextResult[bool]:
+        """Create zip archive.
+
+        Returns:
+            FlextResult[bool]: True if archive created successfully, failure on error
+
+        """
         try:
             with zipfile.ZipFile(
                 archive_path, FlextCliConstants.FileIODefaults.ZIP_WRITE_MODE
             ) as zipf:
                 for file in files:
                     zipf.write(file, Path(file).name)
-            return FlextResult[None].ok(None)
+            return FlextResult[bool].ok(True)
         except Exception as e:
-            return FlextResult[None].fail(
+            return FlextResult[bool].fail(
                 FlextCliConstants.FileErrorMessages.ZIP_CREATION_FAILED.format(error=e)
             )
 
     def extract_zip_archive(
         self, archive_path: str | Path, extract_to: str | Path
-    ) -> FlextResult[None]:
-        """Extract zip archive."""
+    ) -> FlextResult[bool]:
+        """Extract zip archive.
+
+        Returns:
+            FlextResult[bool]: True if archive extracted successfully, failure on error
+
+        """
         try:
             with zipfile.ZipFile(
                 archive_path, FlextCliConstants.FileIODefaults.ZIP_READ_MODE
             ) as zipf:
                 zipf.extractall(extract_to)
-            return FlextResult[None].ok(None)
+            return FlextResult[bool].ok(True)
         except Exception as e:
-            return FlextResult[None].fail(
+            return FlextResult[bool].fail(
                 FlextCliConstants.FileErrorMessages.ZIP_EXTRACTION_FAILED.format(
                     error=e
                 )
@@ -710,7 +733,7 @@ class FlextCliFileTools:
         def save_file(
             file_path: str | Path,
             data: FlextTypes.JsonValue,
-        ) -> FlextResult[None]:
+        ) -> FlextResult[bool]:
             """Save data to file with automatic format detection.
 
             Args:
@@ -718,7 +741,7 @@ class FlextCliFileTools:
                 data: Data to save
 
             Returns:
-                FlextResult[None] indicating success or failure
+                FlextResult[bool]: True if file saved successfully, failure on error
 
             Note:
                 Uses default parameters for JSON/YAML writing.
@@ -733,7 +756,7 @@ class FlextCliFileTools:
                 return FlextCliFileTools.write_json_file(file_path, data)
             if extension in FlextCliConstants.FileSupportedFormats.YAML_EXTENSIONS_SET:
                 return FlextCliFileTools.write_yaml_file(file_path, data)
-            return FlextResult[None].fail(
+            return FlextResult[bool].fail(
                 FlextCliConstants.FileErrorMessages.UNSUPPORTED_FORMAT_EXTENSION.format(
                     extension=extension
                 )

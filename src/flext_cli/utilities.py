@@ -8,6 +8,8 @@ SPDX-License-Identifier: MIT
 
 """
 
+from __future__ import annotations
+
 import os
 import sys
 import types
@@ -73,7 +75,7 @@ class FlextCliUtilities:
         """CLI-specific validation operations.
 
         Eliminates code duplication in models.py validate_business_rules methods.
-        All validators return FlextResult[None] for railway pattern composition.
+        All validators return FlextResult[bool] for railway pattern composition.
 
         """
 
@@ -81,7 +83,7 @@ class FlextCliUtilities:
         def validate_field_not_empty(
             field_value: object,
             field_display_name: str,
-        ) -> FlextResult[None]:
+        ) -> FlextResult[bool]:
             """Validate that a field is not empty.
 
             Generic helper eliminating code duplication in validate_business_rules.
@@ -91,7 +93,7 @@ class FlextCliUtilities:
                 field_display_name: Display name for error messages
 
             Returns:
-                FlextResult[None]: Success if not empty, failure with error message
+                FlextResult[bool]: True if not empty, failure with error message otherwise
 
             Example:
                 >>> result = FlextCliUtilities.CliValidation.validate_field_not_empty(
@@ -101,20 +103,27 @@ class FlextCliUtilities:
                 ...     print(result.error)
 
             """
-            if not field_value or not str(field_value).strip():
-                return FlextResult[None].fail(
+            # Fast-fail: no fallback, validate explicitly
+            if not field_value:
+                return FlextResult[bool].fail(
                     FlextCliConstants.MixinsValidationMessages.FIELD_CANNOT_BE_EMPTY.format(
                         field_name=field_display_name
                     )
                 )
-            return FlextResult[None].ok(None)
+            if not isinstance(field_value, str) or not field_value.strip():
+                return FlextResult[bool].fail(
+                    FlextCliConstants.MixinsValidationMessages.FIELD_CANNOT_BE_EMPTY.format(
+                        field_name=field_display_name
+                    )
+                )
+            return FlextResult[bool].ok(True)
 
         @staticmethod
         def validate_field_in_list(
             field_value: object,
             valid_values: list[str],
             field_name: str,
-        ) -> FlextResult[None]:
+        ) -> FlextResult[bool]:
             """Validate that a field value is in a list of valid values.
 
             Generic helper eliminating code duplication in validate_business_rules.
@@ -125,7 +134,7 @@ class FlextCliUtilities:
                 field_name: Field name for error messages
 
             Returns:
-                FlextResult[None]: Success if in list, failure with error message
+                FlextResult[bool]: True if in list, failure with error message otherwise
 
             Example:
                 >>> result = FlextCliUtilities.CliValidation.validate_field_in_list(
@@ -136,23 +145,23 @@ class FlextCliUtilities:
 
             """
             if field_value not in valid_values:
-                return FlextResult[None].fail(
+                return FlextResult[bool].fail(
                     FlextCliConstants.MixinsValidationMessages.INVALID_ENUM_VALUE.format(
                         field_name=field_name,
                         valid_values=valid_values,
                     )
                 )
-            return FlextResult[None].ok(None)
+            return FlextResult[bool].ok(True)
 
         @staticmethod
-        def validate_command_status(status: str) -> FlextResult[None]:
+        def validate_command_status(status: str) -> FlextResult[bool]:
             """Validate command status against known valid statuses.
 
             Args:
                 status: Command status to validate
 
             Returns:
-                FlextResult[None]: Success if valid, failure otherwise
+                FlextResult[bool]: True if valid, failure otherwise
 
             """
             return FlextCliUtilities.CliValidation.validate_field_in_list(
@@ -162,14 +171,14 @@ class FlextCliUtilities:
             )
 
         @staticmethod
-        def validate_debug_level(level: str) -> FlextResult[None]:
+        def validate_debug_level(level: str) -> FlextResult[bool]:
             """Validate debug level against known valid levels.
 
             Args:
                 level: Debug level to validate
 
             Returns:
-                FlextResult[None]: Success if valid, failure otherwise
+                FlextResult[bool]: True if valid, failure otherwise
 
             """
             return FlextCliUtilities.CliValidation.validate_field_in_list(
@@ -211,7 +220,7 @@ class FlextCliUtilities:
         @staticmethod
         def validate_string_not_empty(
             value: object, error_message: str
-        ) -> FlextResult[None]:
+        ) -> FlextResult[bool]:
             """Validate that a value is a non-empty string.
 
             Consolidates repeated pattern: if not X or not isinstance(X, str)
@@ -222,7 +231,7 @@ class FlextCliUtilities:
                 error_message: Error message to return on failure
 
             Returns:
-                FlextResult[None]: Success if non-empty string, failure otherwise
+                FlextResult[bool]: True if non-empty string, failure otherwise
 
             Example:
                 >>> result = FlextCliUtilities.CliValidation.validate_string_not_empty(
@@ -232,9 +241,14 @@ class FlextCliUtilities:
                 ...     return result
 
             """
-            if not value or not isinstance(value, str):
-                return FlextResult[None].fail(error_message)
-            return FlextResult[None].ok(None)
+            # Fast-fail: no fallback, validate explicitly
+            if not value:
+                return FlextResult[bool].fail(error_message)
+            if not isinstance(value, str):
+                return FlextResult[bool].fail(error_message)
+            if not value.strip():
+                return FlextResult[bool].fail(error_message)
+            return FlextResult[bool].ok(True)
 
     # =========================================================================
     # ENVIRONMENT - Environment detection and checks
@@ -266,17 +280,21 @@ class FlextCliUtilities:
                 ...     pass
 
             """
+            # Validate environment variables explicitly - no fallback
+            pytest_test = os.environ.get(
+                FlextCliConstants.EnvironmentConstants.PYTEST_CURRENT_TEST
+            )
+            underscore_value = os.environ.get(
+                FlextCliConstants.EnvironmentConstants.UNDERSCORE, ""
+            )
+            ci_value = os.environ.get(FlextCliConstants.EnvironmentConstants.CI)
             return (
-                os.environ.get(
-                    FlextCliConstants.EnvironmentConstants.PYTEST_CURRENT_TEST
+                pytest_test is not None
+                or (
+                    FlextCliConstants.EnvironmentConstants.PYTEST
+                    in underscore_value.lower()
                 )
-                is not None
-                or FlextCliConstants.EnvironmentConstants.PYTEST
-                in os.environ.get(
-                    FlextCliConstants.EnvironmentConstants.UNDERSCORE, ""
-                ).lower()
-                or os.environ.get(FlextCliConstants.EnvironmentConstants.CI)
-                == FlextCliConstants.EnvironmentConstants.CI_TRUE_VALUE
+                or ci_value == FlextCliConstants.EnvironmentConstants.CI_TRUE_VALUE
             )
 
     # =========================================================================

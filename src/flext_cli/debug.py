@@ -14,6 +14,8 @@ SPDX-License-Identifier: MIT
 
 """
 
+from __future__ import annotations
+
 import os
 import pathlib
 import platform
@@ -21,7 +23,7 @@ import sys
 import tempfile
 import uuid
 from datetime import UTC, datetime
-from typing import cast, override
+from typing import override
 
 from flext_core import FlextResult, FlextService, FlextTypes
 
@@ -201,9 +203,9 @@ class FlextCliDebug(FlextService[str]):
             ]
 
             # Type-safe dict construction
-            paths_dict: FlextCliTypes.Data.CliDataDict = {
-                "paths": cast("FlextTypes.JsonValue", serialized_paths)
-            }
+            # serialized_paths is list[dict[str, object]] which is compatible with JsonValue
+            # list is a valid JsonValue type, no cast needed
+            paths_dict: FlextCliTypes.Data.CliDataDict = {"paths": serialized_paths}
             return FlextResult[FlextCliTypes.Data.CliDataDict].ok(paths_dict)
         except Exception as e:
             return FlextResult[FlextCliTypes.Data.CliDataDict].fail(
@@ -217,7 +219,7 @@ class FlextCliDebug(FlextService[str]):
     ) -> FlextResult[Types.Data.DebugInfoData]:
         """Get comprehensive debug information combining all debug methods."""
         try:
-            comprehensive_info: dict[str, object] = {}
+            comprehensive_info: Types.Data.DebugInfoData = {}
 
             # Collect system info
             system_result = self.get_system_info()
@@ -263,10 +265,8 @@ class FlextCliDebug(FlextService[str]):
                     debug_result.error
                 )
 
-            # Cast needed: dict[str, object] is compatible at runtime with DebugInfoData
-            return FlextResult[Types.Data.DebugInfoData].ok(
-                cast("Types.Data.DebugInfoData", comprehensive_info)
-            )
+            # comprehensive_info is already correctly typed as DebugInfoData
+            return FlextResult[Types.Data.DebugInfoData].ok(comprehensive_info)
 
         except Exception as e:
             return FlextResult[Types.Data.DebugInfoData].fail(

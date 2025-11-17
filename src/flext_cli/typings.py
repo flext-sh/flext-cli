@@ -12,12 +12,14 @@ SPDX-License-Identifier: MIT
 
 """
 
+from __future__ import annotations
+
 import typing
 from collections.abc import Sequence
-from typing import Annotated, Literal, TypeVar
+from typing import Annotated, Protocol, TypeVar
 
 from flext_core import FlextResult, FlextTypes
-from pydantic import Field
+from pydantic import BaseModel, Field
 from rich.console import Console as RichConsoleImport
 from rich.layout import Layout as RichLayoutImport
 from rich.live import Live as RichLiveImport
@@ -32,6 +34,8 @@ from rich.progress import (
 from rich.status import Status as RichStatusImport
 from rich.table import Table as RichTableImport
 from rich.tree import Tree as RichTreeImport
+
+from flext_cli.constants import FlextCliConstants
 
 # Module-level TypeVars
 TCliCommand = TypeVar("TCliCommand")
@@ -117,16 +121,15 @@ class FlextCliTypes(FlextTypes):
         """Non-negative integer (>= 0)."""
 
         # Enum-like types using Literal (Pydantic v2 native)
-        OutputFormatEnum = Literal["json", "yaml", "csv", "table", "plain"]
-        """Output format options."""
+        # CRITICAL: All Literals must come from FlextCliConstants
+        OutputFormatEnum = FlextCliConstants.OutputFormatLiteral
+        """Output format options - from constants."""
 
-        LogLevelEnum = Literal["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"]
-        """Log level options."""
+        LogLevelEnum = FlextCliConstants.LogLevelLiteral
+        """Log level options - from constants."""
 
-        CommandStatusEnum = Literal[
-            "pending", "running", "completed", "failed", "cancelled"
-        ]
-        """Command execution status options."""
+        CommandStatusEnum = FlextCliConstants.CommandStatusLiteral
+        """Command execution status options - from constants."""
 
         # Path and file types
         ConfigFilePath = Annotated[str, Field(min_length=1)]
@@ -262,13 +265,20 @@ class FlextCliTypes(FlextTypes):
         """CLI-specific callable type aliases for handlers and formatters."""
 
         # Handler function that processes CLI data and returns result
-        HandlerFunction = typing.Callable[
-            [FlextTypes.JsonValue], FlextResult[FlextTypes.JsonValue]
-        ]
-        """CLI command handler function signature."""
+        # Accepts **kwargs (context_data) and returns FlextResult
+        HandlerFunction = typing.Callable[..., FlextResult[FlextTypes.JsonValue]]
+        """CLI command handler function signature - accepts **kwargs."""
 
         # Result formatter that displays domain-specific result types
-        ResultFormatter = typing.Callable[[object, str], None]
+        # Accepts BaseModel, dict, or objects with __dict__ attribute
+        class FormatableResult(Protocol):
+            """Protocol for results that can be formatted."""
+
+            __dict__: dict[str, object]
+
+        ResultFormatter = typing.Callable[
+            [BaseModel | FlextTypes.JsonValue | FormatableResult, str], None
+        ]
         """Result formatter function signature: (result, output_format) -> None."""
 
     # =====================================================================

@@ -156,9 +156,9 @@ class TestFlextCliCmd:
         # Should not raise any logging-related exceptions
         assert result.value is not None
 
-    def test_cmd_create_instance(self) -> None:
-        """Test create_instance class method."""
-        instance = FlextCliCmd.create_instance()
+    def test_cmd_instantiation(self) -> None:
+        """Test direct instantiation."""
+        instance = FlextCliCmd()
         assert isinstance(instance, FlextCliCmd)
 
     def test_cmd_config_helper_get_config_paths(self) -> None:
@@ -367,10 +367,10 @@ class TestFlextCliCmd:
                 *,
                 sort_keys: bool = False,
                 ensure_ascii: bool = True,
-            ) -> FlextResult[None]:
+            ) -> FlextResult[bool]:
                 # Mock implementation - parameters unused in test context
                 _ = file_path, data, indent, sort_keys, ensure_ascii
-                return FlextResult[None].ok(None)
+                return FlextResult[bool].ok(True)
 
         cmd._file_tools = FailingFileTools()
 
@@ -541,10 +541,10 @@ class TestFlextCliCmd:
                 *,
                 sort_keys: bool = False,
                 ensure_ascii: bool = True,
-            ) -> FlextResult[None]:
+            ) -> FlextResult[bool]:
                 # Mock implementation - parameters unused in test context
                 _ = file_path, data, indent, sort_keys, ensure_ascii
-                return FlextResult[None].ok(None)
+                return FlextResult[bool].ok(True)
 
         cmd._file_tools = MockFileTools()
 
@@ -654,7 +654,7 @@ class TestFlextCliCmd:
                 *,
                 sort_keys: bool = False,
                 ensure_ascii: bool = True,
-            ) -> FlextResult[None]:
+            ) -> FlextResult[bool]:
                 # Validate parameter types to satisfy linting
                 assert isinstance(file_path, (str, Path))
                 assert (
@@ -664,7 +664,7 @@ class TestFlextCliCmd:
                 assert isinstance(indent, int)
                 assert isinstance(sort_keys, bool)
                 assert isinstance(ensure_ascii, bool)
-                return FlextResult[None].fail("Write failed")
+                return FlextResult[bool].fail("Write failed")
 
         cmd._file_tools = FailingFileTools()
         try:
@@ -755,7 +755,7 @@ class TestFlextCliCmd:
         with patch.object(
             FlextCliFileTools,
             "write_json_file",
-            return_value=FlextResult[None].fail("Save failed"),
+            return_value=FlextResult[bool].fail("Save failed"),
         ):
             result = cmd.edit_config()
             assert result.is_failure
