@@ -602,7 +602,9 @@ class TestFlextCliOutput:
         # Should succeed because registered formatter was found and executed (line 319)
         assert result.is_success
 
-    def test_register_result_formatter_exception(self, output: FlextCliOutput) -> None:
+    def test_register_result_formatter_exception_with_raising_dict(
+        self, output: FlextCliOutput
+    ) -> None:
         """Test register_result_formatter exception handler (lines 291-294).
 
         Real scenario: Tests exception handling in register_result_formatter.
@@ -617,15 +619,16 @@ class TestFlextCliOutput:
             pass
 
         # To force exception, make _result_formatters raise when setting item
-        class ErrorDict(UserDict):
+        class ErrorDict(UserDict[type[object], object]):
             """Dict that raises exception on __setitem__."""
 
-            def __setitem__(self, key, value) -> None:
+            def __setitem__(self, key: type[object], value: object) -> None:
                 msg = "Forced exception for testing register_result_formatter exception handler"
                 raise RuntimeError(msg)
 
         # Replace _result_formatters with error-raising dict
-        object.__setattr__(output, "_result_formatters", ErrorDict())
+        # Use setattr directly - necessary to bypass Pydantic validation in tests
+        output._result_formatters = ErrorDict()
 
         # Now register_result_formatter should catch the exception
         result = output.register_result_formatter(TestModel, formatter)
@@ -653,7 +656,7 @@ class TestFlextCliOutput:
         class ErrorResult:
             """Result that raises exception when type() is called."""
 
-            def __class__(self):
+            def __class__(self) -> type[object]:  # type: ignore[override]
                 msg = "Forced exception for testing format_and_display_result exception handler"
                 raise RuntimeError(msg)
 
@@ -662,14 +665,15 @@ class TestFlextCliOutput:
         # by making type(result) raise
 
         # Real approach: Make _result_formatters raise when accessed
-        class ErrorFormatters(UserDict):
+        class ErrorFormatters(UserDict[type[object], object]):
             """Dict that raises exception on __contains__."""
 
-            def __contains__(self, key) -> bool:
+            def __contains__(self, key: object) -> bool:
                 msg = "Forced exception for testing format_and_display_result exception handler"
                 raise RuntimeError(msg)
 
-        object.__setattr__(output, "_result_formatters", ErrorFormatters())
+        # Use setattr directly - necessary to bypass Pydantic validation in tests
+        output._result_formatters = ErrorFormatters()
 
         # Now format_and_display_result should catch the exception
         data = {"key": "value"}
@@ -694,7 +698,7 @@ class TestFlextCliOutput:
         class ErrorHeaders:
             """Headers that raise exception when accessed."""
 
-            def __getattribute__(self, name):
+            def __getattribute__(self, name: str) -> object:
                 msg = "Forced exception for testing _prepare_table_data_safe exception handler"
                 raise RuntimeError(msg)
 
@@ -1197,7 +1201,7 @@ class TestFlextCliOutput:
         table_str = result.unwrap()
         assert "Test Title" in table_str
 
-    def test_format_table_exception_handler(
+    def test_format_table_exception_handler_with_monkeypatch(
         self, output: FlextCliOutput, monkeypatch: pytest.MonkeyPatch
     ) -> None:
         """Test format_table exception handler (lines 697-700)."""

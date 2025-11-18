@@ -19,7 +19,7 @@ import types
 import typing
 from collections.abc import Callable
 from datetime import UTC, datetime
-from typing import Annotated, Self, get_args, get_origin, get_type_hints
+from typing import Annotated, Self, cast, get_args, get_origin, get_type_hints
 
 import typer
 from flext_core import (
@@ -944,6 +944,9 @@ class FlextCliModels(FlextModels):
             self.params_call: list[str] = []
             self.field_mapping: dict[str, str] = {}
 
+            # ✅ VALIDATE: Model cannot redefine global common params
+            self._validate_no_common_param_conflicts()
+
         def build(self) -> Callable[..., None]:
             """Build the command function.
 
@@ -997,8 +1000,33 @@ class FlextCliModels(FlextModels):
                     return str
                 return annotation
 
+        def _validate_no_common_param_conflicts(self) -> None:
+            """Validate that model does not redefine global common params.
+
+            Raises:
+                ValueError: If model has fields conflicting with common params
+
+            """
+            common_param_names = {"debug", "trace", "verbose", "quiet", "log_level"}
+            model_field_names = set(self.model_class.model_fields.keys())
+
+            conflicts = common_param_names & model_field_names
+
+            if conflicts:
+                msg = (
+                    f"Model {self.model_class.__name__} cannot redefine global common "
+                    f"parameters: {sorted(conflicts)}. These parameters are automatically "
+                    f"injected at the app level (--debug, --trace, --verbose, --quiet, --log-level). "
+                    f"Remove these fields from your model."
+                )
+                raise ValueError(msg)
+
         def _build_parameters(self) -> None:
-            """Build parameter definitions from model fields."""
+            """Build parameter definitions from model fields + inject common params."""
+            # ✅ INJECT: Add FlextCliCommonParams FIRST (global logging params)
+            self._inject_common_parameters()
+
+            # Add model-specific parameters
             for field_name, field_info in self.model_class.model_fields.items():
                 # Use Pydantic v2 Field alias if defined, otherwise convert underscores to hyphens
                 # Validate explicitly - no fallback
@@ -1046,6 +1074,169 @@ class FlextCliModels(FlextModels):
                     )
 
                 self.params_call.append(f"{field_name}={param_name}")
+
+        def _inject_common_parameters(self) -> None:
+            """Inject FlextCliCommonParams (--debug, --log-level, etc.) automatically.
+
+            These params are injected into ALL model_command() commands globally.
+            Applied BEFORE handler execution to reconfigure logger if CLI params provided.
+
+            Common params are prefixed with '__' in kwargs to avoid conflicts with
+            model-specific parameters.
+
+            Injected params:
+                --debug/--no-debug: Enable debug mode
+                --trace/--no-trace: Enable trace mode
+                --verbose/--no-verbose: Enable verbose output
+                --quiet/--no-quiet: Suppress non-error output
+                --log-level/-L: Set log level (DEBUG, INFO, WARNING, ERROR, CRITICAL)
+
+            """
+            # Import here to avoid circular imports
+            from flext_cli.cli_params import FlextCliCommonParams
+
+            # Get registry of common params
+            registry = FlextCliCommonParams.CLI_PARAM_REGISTRY
+
+            # Add each common param to the command
+            for param_name in ["debug", "trace", "verbose", "quiet", "log_level"]:
+                if param_name not in registry:
+                    continue
+
+                cli_name = param_name.replace("_", "-")
+
+                # Prefix with '__' to avoid conflicts (extracted separately later)
+                prefixed_name = f"__{param_name}"
+                self.field_mapping[cli_name] = prefixed_name
+
+                # Build parameter based on type
+                if param_name in {"debug", "trace", "verbose", "quiet"}:
+                    # Boolean flags: --debug / --no-debug
+                    self.params_def.append(
+                        f"{prefixed_name}: bool = typer.Option("
+                        f"False, '--{cli_name}/--no-{cli_name}', "
+                        f"help='Enable {param_name} mode')"
+                    )
+                elif param_name == "log_level":
+                    # String with choices (case insensitive)
+                    self.params_def.append(
+                        f"{prefixed_name}: str | None = typer.Option("
+                        f"None, '--{cli_name}', '-L', "
+                        f"help='Log level (DEBUG, INFO, WARNING, ERROR, CRITICAL)', "
+                        f"case_sensitive=False)"
+                    )
+
+                self.params_call.append(f"{prefixed_name}={prefixed_name}")
+
+        @staticmethod
+        def _extract_common_params(kwargs: dict[str, object]) -> dict[str, object]:
+            """Extract common params (prefixed with __) from kwargs.
+
+            Args:
+                kwargs: Command keyword arguments from CLI
+
+            Returns:
+                dict: Common parameters without prefix
+                     {debug: True, log_level: "DEBUG", ...}
+
+            """
+            return {
+                k.replace("__", ""): v for k, v in kwargs.items() if k.startswith("__")
+            }
+
+        @staticmethod
+        def _extract_model_params(kwargs: dict[str, object]) -> dict[str, object]:
+            """Extract model-specific params (no prefix) from kwargs.
+
+            Args:
+                kwargs: Command keyword arguments from CLI
+
+            Returns:
+                dict: Model parameters for handler
+                     {input_dir: "/path", sync: True, ...}
+
+            """
+            return {k: v for k, v in kwargs.items() if not k.startswith("__")}
+
+        def _apply_common_params_to_config(
+            self, common_params: dict[str, object]
+        ) -> None:
+            """Apply CLI common params to config and reconfigure logger.
+
+            This is the MODIFICATION layer - only runs if CLI params provided.
+            Uses FlextCliCommonParams.apply_to_config() for proper validation.
+
+            Args:
+                common_params: Common parameters from CLI
+                             {debug: True, log_level: "DEBUG", ...}
+
+            Note:
+                - Filters out None values (params not provided via CLI)
+                - Only reconfigures logger if CLI params override config
+                - Uses FLEXT patterns (no Python logging import)
+
+            """
+            # Import here to avoid circular imports
+            from flext_core.loggings import FlextLogger
+
+            from flext_cli.cli_params import FlextCliCommonParams
+
+            # Filter out None values (params not provided via CLI)
+            # Type guard: ensure config is not None
+            if self.config is None:
+                return
+
+            active_params = {k: v for k, v in common_params.items() if v is not None}
+
+            if not active_params:
+                return  # No CLI overrides
+
+            # ✅ FILTER: Only apply params that exist in config
+            # Config may not have all common params (e.g., quiet)
+            config_fields = (
+                set(self.config.model_fields.keys())
+                if hasattr(self.config, "model_fields")
+                else set()
+            )
+            filtered_params = {
+                k: v for k, v in active_params.items() if k in config_fields
+            }
+
+            if not filtered_params:
+                return
+
+            # Apply to config (validates and updates)
+            result = FlextCliCommonParams.apply_to_config(
+                self.config, **cast("dict[str, typing.Any]", filtered_params)
+            )
+
+            if result.is_failure:
+                # Log warning but don't fail
+                FlextLogger.get_logger().warning(
+                    f"Failed to apply CLI params: {result.error}"
+                )
+                return
+
+            # ✅ RECONFIGURE: Logger with new config values
+            # Use reconfigure_structlog() to bypass guards and force CLI override
+            import logging
+
+            from flext_core.runtime import FlextRuntime
+
+            # Determine effective log level from config (convert LogLevel enum to logging int)
+            if self.config.debug or self.config.trace:
+                # Debug/trace mode forces DEBUG level
+                log_level_value = logging.DEBUG  # 10
+            else:
+                # Use configured log level enum value (convert string to int)
+                log_level_name = self.config.log_level.value  # "INFO", "DEBUG", etc.
+                log_level_value = getattr(logging, log_level_name, logging.INFO)
+
+            # Force reconfiguration (bypasses is_configured() guards)
+            FlextRuntime.reconfigure_structlog(
+                log_level=log_level_value,
+                console_renderer=self.config.console_enabled,
+            )
 
         @staticmethod
         def _format_type_annotation(annotation: type | types.UnionType | None) -> str:
@@ -1158,6 +1349,56 @@ class FlextCliModels(FlextModels):
                 return FlextResult[FlextTypes.JsonValue].ok(factory_result)
             return FlextResult[FlextTypes.JsonValue].ok(str(factory_result))
 
+        def _inject_common_param_signatures(
+            self, parameters: list[inspect.Parameter]
+        ) -> None:
+            """Inject common param signatures (inspect.Parameter) into parameters list.
+
+            Creates inspect.Parameter objects for --debug, --trace, --log-level etc.
+            and adds them to the parameters list for Typer signature.
+
+            Args:
+                parameters: List to append Parameter objects to
+
+            """
+            import typer
+
+            # Common boolean params
+            for param_name in ["debug", "trace", "verbose", "quiet"]:
+                prefixed_name = f"__{param_name}"
+                cli_name = param_name.replace("_", "-")
+
+                option_default = typer.Option(
+                    False,
+                    f"--{cli_name}/--no-{cli_name}",
+                    help=f"Enable {param_name} mode",
+                )
+
+                param = inspect.Parameter(
+                    prefixed_name,
+                    inspect.Parameter.KEYWORD_ONLY,
+                    default=option_default,
+                    annotation=bool,
+                )
+                parameters.append(param)
+
+            # Log level param (string with short flag)
+            option_default = typer.Option(
+                None,
+                "--log-level",
+                "-L",
+                help="Log level (DEBUG, INFO, WARNING, ERROR, CRITICAL)",
+                case_sensitive=False,
+            )
+
+            param = inspect.Parameter(
+                "__log_level",
+                inspect.Parameter.KEYWORD_ONLY,
+                default=option_default,
+                annotation=str | None,
+            )
+            parameters.append(param)
+
         @staticmethod
         def _factory_accepts_no_arguments(factory: Callable[..., object]) -> bool:
             """Return True when callable can be invoked without required arguments."""
@@ -1191,9 +1432,16 @@ class FlextCliModels(FlextModels):
             # We create a dictionary of parameters where:
             # - key = field_name (Python parameter name with underscores)
             # - value = typer.Option instance with CLI name (with hyphens if aliased)
-            parameters = []
+            parameters: list[inspect.Parameter] = []
+
+            # ✅ INJECT: Add common params FIRST (they don't exist in model_fields)
+            self._inject_common_param_signatures(parameters)
 
             for cli_param, field_name in field_mapping.items():
+                # Skip common params (already added above)
+                if field_name.startswith("__"):
+                    continue
+
                 field_info = self.model_class.model_fields.get(field_name)
                 if not field_info:
                     continue
@@ -1247,19 +1495,38 @@ class FlextCliModels(FlextModels):
                 parameters.append(param)
 
             def generated_command(**kwargs: FlextTypes.JsonValue) -> None:
-                """Dynamically generated command function.
+                """Dynamically generated command function with automatic logger reconfiguration.
 
                 Uses closure to capture model_class, handler, and field_mapping
                 without requiring exec or eval.
-                """
-                # Build model arguments from CLI kwargs
-                # kwargs keys are field_names (underscores), not cli_params (hyphens)
-                model_args: FlextTypes.JsonDict = {}
-                for field_name, value in kwargs.items():
-                    if value is not None:
-                        model_args[field_name] = value
 
-                # Create model instance and call handler
+                Automatic Flow:
+                    1. Extract common params (--debug, --log-level, etc.)
+                    2. Extract model-specific params
+                    3. Apply common params to config (reconfigures logger)
+                    4. Create model instance
+                    5. Call handler
+
+                """
+                # ✅ EXTRACT: Separate common params from model params
+                common_params = self._extract_common_params(
+                    cast("dict[str, object]", kwargs)
+                )
+                model_params = self._extract_model_params(
+                    cast("dict[str, object]", kwargs)
+                )
+
+                # ✅ APPLY: Update config and reconfigure logger if CLI params present
+                if self.config and common_params:
+                    self._apply_common_params_to_config(common_params)
+
+                # ✅ VALIDATE: Build model arguments (filter None values)
+                model_args: FlextTypes.JsonDict = {}
+                for field_name, value in model_params.items():
+                    if value is not None:
+                        model_args[field_name] = cast("FlextTypes.JsonValue", value)
+
+                # ✅ EXECUTE: Create model instance and call handler
                 model_instance = model_class(**model_args)
                 handler(model_instance)
 

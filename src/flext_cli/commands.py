@@ -60,8 +60,13 @@ class FlextCliCommands(FlextService[FlextTypes.JsonDict]):
             commands=empty_commands,
         )
 
-    def execute(self) -> FlextResult[FlextTypes.JsonDict]:
-        """Execute the main domain service operation - required by FlextService."""
+    def execute(self, **_kwargs: object) -> FlextResult[FlextTypes.JsonDict]:
+        """Execute the main domain service operation - required by FlextService.
+
+        Args:
+            **_kwargs: Additional execution parameters (unused, for FlextService compatibility)
+
+        """
         return FlextResult[FlextTypes.JsonDict].ok({
             FlextCliConstants.CommandsDictKeys.STATUS: FlextCliConstants.ServiceStatus.OPERATIONAL.value,
             FlextCliConstants.CommandsDictKeys.SERVICE: FlextCliConstants.FLEXT_CLI,

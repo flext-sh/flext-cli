@@ -78,8 +78,11 @@ class FlextCliTables(FlextService[FlextTypes.JsonDict]):
         # Initialize logger - inherited from FlextService via FlextMixins
         self._logger = FlextLogger(__name__)
 
-    def execute(self) -> FlextResult[FlextTypes.JsonDict]:
+    def execute(self, **_kwargs: object) -> FlextResult[FlextTypes.JsonDict]:
         """Execute the main domain service operation - required by FlextService.
+
+        Args:
+            **_kwargs: Additional execution parameters (unused, for FlextService compatibility)
 
         Returns:
             FlextResult[FlextTypes.JsonDict]: Service execution result

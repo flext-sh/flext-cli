@@ -354,8 +354,11 @@ class FlextCliPrompts(FlextService[FlextCliTypes.Data.CliDataDict]):
                 ),
             )
 
-    def execute(self) -> FlextResult[FlextCliTypes.Data.CliDataDict]:
+    def execute(self, **_kwargs: object) -> FlextResult[FlextCliTypes.Data.CliDataDict]:
         """Execute prompt service operation.
+
+        Args:
+            **_kwargs: Additional execution parameters (unused, for FlextService compatibility)
 
         Returns:
             FlextResult[FlextCliTypes.Data.CliDataDict]: Service execution result

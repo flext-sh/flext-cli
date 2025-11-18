@@ -15,6 +15,7 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
+import logging
 import shutil
 import typing
 from collections.abc import Callable, Sequence
@@ -24,8 +25,10 @@ from typing import IO
 import click
 import typer
 from flext_core import FlextContainer, FlextLogger, FlextResult, FlextTypes
+from flext_core.runtime import FlextRuntime
 from typer.testing import CliRunner
 
+from flext_cli.cli_params import FlextCliCommonParams
 from flext_cli.config import FlextCliConfig
 from flext_cli.constants import FlextCliConstants
 from flext_cli.models import FlextCliModels
@@ -81,7 +84,7 @@ class FlextCliCli:
     @typing.overload
     def _create_cli_decorator(
         self,
-        entity_type: FlextCliConstants.EntityTypeLiteral,
+        entity_type: typing.Literal["command"],
         name: str | None,
         help_text: str | None,
     ) -> typing.Callable[[typing.Callable[..., typing.Any]], click.Command]: ...
@@ -89,7 +92,7 @@ class FlextCliCli:
     @typing.overload
     def _create_cli_decorator(
         self,
-        entity_type: FlextCliConstants.EntityTypeLiteral,
+        entity_type: typing.Literal["group"],
         name: str | None,
         help_text: str | None,
     ) -> typing.Callable[[typing.Callable[..., typing.Any]], click.Group]: ...
@@ -156,6 +159,150 @@ class FlextCliCli:
         """
         return self._create_cli_decorator("command", name, help_text)
 
+    def create_app_with_common_params(
+        self,
+        name: str,
+        help_text: str,
+        config: object | None = None,
+        *,
+        add_completion: bool = True,
+    ) -> typer.Typer:
+        """Create Typer app with automatic global common params (--debug, --log-level, --trace).
+
+        This method creates a Typer app and automatically registers a global callback
+        with FlextCliCommonParams (--debug, --trace, --verbose, --quiet, --log-level).
+        These params are available at the app level (before subcommands) and will
+        reconfigure the logger automatically when provided.
+
+        Args:
+            name: Application name
+            help_text: Application help text
+            config: Optional FlextConfig instance for logger reconfiguration
+            add_completion: Whether to add shell completion support
+
+        Returns:
+            Configured Typer app with global common params
+
+        Example:
+            >>> cli = FlextCliCli()
+            >>> app = cli.create_app_with_common_params(
+            ...     name="my-app", help_text="My application", config=my_config
+            ... )
+            >>> # Now app has --debug, --log-level, etc. at global level
+            >>> # Usage: my-app --debug subcommand
+
+        """
+        # Create Typer app
+        app = typer.Typer(
+            name=name,
+            help=help_text,
+            add_completion=add_completion,
+        )
+
+        # Define global callback with common params
+        @app.callback()
+        def global_callback(
+            *,
+            debug: bool = typer.Option(
+                False,
+                "--debug/--no-debug",
+                help="Enable debug mode",
+            ),
+            trace: bool = typer.Option(
+                False,
+                "--trace/--no-trace",
+                help="Enable trace mode",
+            ),
+            verbose: bool = typer.Option(
+                False,
+                "--verbose/--no-verbose",
+                help="Enable verbose mode",
+            ),
+            quiet: bool = typer.Option(
+                False,
+                "--quiet/--no-quiet",
+                help="Enable quiet mode",
+            ),
+            log_level: str | None = typer.Option(
+                None,
+                "--log-level",
+                "-L",
+                help="Log level (DEBUG, INFO, WARNING, ERROR, CRITICAL)",
+                case_sensitive=False,
+            ),
+        ) -> None:
+            """Global options available for all commands."""
+            # Extract common params
+            common_params = {
+                "debug": debug,
+                "trace": trace,
+                "verbose": verbose,
+                "quiet": quiet,
+                "log_level": log_level,
+            }
+
+            # Filter out None values and False booleans
+            active_params = {
+                k: v
+                for k, v in common_params.items()
+                if v is not None and v is not False
+            }
+
+            if not active_params or not config:
+                return
+
+            # ✅ FILTER: Only apply params that exist in config
+            # Config may not have all common params (e.g., quiet)
+            config_fields = (
+                set(config.model_fields.keys())
+                if hasattr(config, "model_fields")
+                else set()
+            )
+            filtered_params = {
+                k: v for k, v in active_params.items() if k in config_fields
+            }
+
+            if not filtered_params:
+                return
+
+            # Apply to config and reconfigure logger
+            # Type guard: config is FlextCliConfig if we reached this point
+            if not isinstance(config, FlextCliConfig):
+                return
+
+            result = FlextCliCommonParams.apply_to_config(
+                config, **typing.cast("dict[str, typing.Any]", filtered_params)
+            )
+
+            if result.is_failure:
+                FlextLogger.get_logger().warning(
+                    f"Failed to apply CLI params: {result.error}"
+                )
+                return
+
+            # ✅ RECONFIGURE: Logger with new config values
+            # Use reconfigure_structlog() to bypass guards and force CLI override
+            # Convert LogLevel enum (string) to logging int constant
+            if config.debug or config.trace:
+                log_level_value = logging.DEBUG  # 10
+            else:
+                # Convert LogLevel enum string to logging int
+                log_level_name = config.log_level.value  # "INFO", "DEBUG", etc.
+                log_level_value = getattr(logging, log_level_name, logging.INFO)
+
+            # Force reconfiguration (bypasses is_configured() guards)
+            FlextRuntime.reconfigure_structlog(
+                log_level=log_level_value,
+                console_renderer=config.console_enabled,
+            )
+
+        self.logger.debug(
+            "Created Typer app with global common params",
+            extra={"app_name": name, "has_config": config is not None},
+        )
+
+        return app
+
     def create_group_decorator(
         self,
         name: str | None = None,
@@ -183,12 +330,8 @@ class FlextCliCli:
             ...     pass
 
         """
-        # Type checker needs explicit cast for overload resolution
-        decorator = self._create_cli_decorator("group", name, help_text)
-        return typing.cast(
-            "typing.Callable[[typing.Callable[..., typing.Any]], click.Group]",
-            decorator,
-        )
+        # Type checker resolves overload based on Literal["group"] parameter
+        return self._create_cli_decorator("group", name, help_text)
 
     # =========================================================================
     # PARAMETER DECORATORS (OPTION, ARGUMENT)
@@ -395,7 +538,7 @@ class FlextCliCli:
     @typing.overload
     def _get_range_type(
         self,
-        range_type: FlextCliConstants.RangeTypeLiteral,
+        range_type: typing.Literal["int"],
         min_val: int | None,
         max_val: int | None,
         *,
@@ -407,7 +550,7 @@ class FlextCliCli:
     @typing.overload
     def _get_range_type(
         self,
-        range_type: FlextCliConstants.RangeTypeLiteral,
+        range_type: typing.Literal["float"],
         min_val: float | None,
         max_val: float | None,
         *,

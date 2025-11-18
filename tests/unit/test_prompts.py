@@ -612,15 +612,16 @@ class TestFlextCliPrompts:
         # We can do this by making _prompt_history raise when appending.
 
         # Create a list that raises exception on append
-        class ErrorList(UserList):
+        class ErrorList(UserList[str]):
             """List that raises exception on append."""
 
-            def append(self, item) -> Never:
+            def append(self, item: str) -> Never:
                 msg = "Forced exception for testing prompt_choice exception handler"
                 raise RuntimeError(msg)
 
         # Replace _prompt_history with error-raising list
-        object.__setattr__(prompts, "_prompt_history", ErrorList())
+        # Use setattr directly - necessary to bypass Pydantic validation in tests
+        prompts._prompt_history = ErrorList()
 
         # Now prompt_choice should catch the exception
         choices = ["option1", "option2"]

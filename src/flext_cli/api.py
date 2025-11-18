@@ -222,8 +222,6 @@ class FlextCli:
         if result.is_failure:
             error_str = str(result.error)
             # Check for file not found using utilities helper (covers "not found", "no such file", etc.)
-            from flext_cli.utilities import FlextCliUtilities
-
             if (
                 FlextCliConstants.APIDefaults.FILE_ERROR_INDICATOR in error_str.lower()
                 or FlextCliUtilities.FileOps.is_file_not_found_error(error_str)

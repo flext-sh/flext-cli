@@ -637,7 +637,9 @@ class TestFlextCliCli:
             enable_sync: bool = Field(
                 alias="enable-sync", default=True, description="Enable sync"
             )
-            verbose: bool = Field(default=False, description="Verbose output")
+            verbose_mode: bool = Field(
+                alias="verbose-mode", default=False, description="Verbose output"
+            )
 
         def handler(params: ParamsWithBool) -> None:
             """Test handler."""
@@ -655,7 +657,7 @@ class TestFlextCliCli:
 
         # Boolean fields should be present
         assert "enable_sync" in param_names
-        assert "verbose" in param_names
+        assert "verbose_mode" in param_names
 
     def test_model_command_invalid_model_class(self, cli_cli: FlextCliCli) -> None:
         """Test model_command() with non-Pydantic model raises TypeError."""
