@@ -48,8 +48,13 @@ class FlextCliDebug(FlextService[str]):
         super().__init__()
         # Logger and container inherited from FlextService via FlextMixins
 
-    def execute(self) -> FlextResult[str]:
-        """Execute debug service - required by FlextService."""
+    def execute(self, **_kwargs: object) -> FlextResult[str]:
+        """Execute debug service - required by FlextService.
+
+        Args:
+            **_kwargs: Additional execution parameters (unused, for FlextService compatibility)
+
+        """
         return FlextResult[str].ok(
             FlextCliConstants.ServiceMessages.FLEXT_CLI_DEBUG_OPERATIONAL
         )

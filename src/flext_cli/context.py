@@ -37,8 +37,8 @@ class FlextCliContext(FlextService[FlextCliTypes.Data.CliDataDict]):
     # Direct attributes - no properties needed
     id: str = ""
     command: str | None = None
-    arguments: list[str] = Field(default_factory=list)
-    environment_variables: FlextTypes.JsonDict = Field(default_factory=dict)
+    arguments: list[str] | None = Field(default_factory=list)
+    environment_variables: FlextTypes.JsonDict | None = Field(default_factory=dict)
     working_directory: str | None = None
     context_metadata: FlextTypes.JsonDict = Field(default_factory=dict)
 
@@ -74,18 +74,20 @@ class FlextCliContext(FlextService[FlextCliTypes.Data.CliDataDict]):
         # Initialize parent FlextService
         super().__init__(**data)
 
-        # Set id from data - check both data dict and generated_id
+        # Set id from data - check both self.id (after super().__init__) and generated_id
         # This ensures all paths are reachable for comprehensive coverage
-        if data.get("id"):
-            # Normal path: id is in data and truthy
-            self.id = str(data["id"])
+        # Check self.id first (set by super().__init__ from data), then fallback to generated_id
+        if self.id:
+            # Normal path: id was set by super().__init__ from data and is truthy
+            # Ensure it's a string
+            self.id = str(self.id)
         elif generated_id is not None:
-            # Fallback path: id was generated but data["id"] is falsy after super().__init__
-            # This can happen if super().__init__ modifies data["id"] to be falsy
+            # Fallback path: id was generated but self.id is falsy after super().__init__
+            # This can happen if super().__init__ doesn't set id or sets it to falsy value
             self.id = generated_id
         else:
             # Final fallback: generate new id (defensive programming)
-            # This line is reachable if both data["id"] and generated_id are None/empty
+            # This line is reachable if both self.id and generated_id are None/empty
             self.id = str(uuid.uuid4())
 
         # Set CLI context attributes directly
@@ -161,6 +163,12 @@ class FlextCliContext(FlextService[FlextCliTypes.Data.CliDataDict]):
         if validation_result.is_failure:
             return FlextResult[str].fail(validation_result.error)
 
+        # Fast-fail if environment_variables is None
+        if self.environment_variables is None:
+            return FlextResult[str].fail(
+                FlextCliConstants.ContextErrorMessages.ENV_VARS_NOT_INITIALIZED
+            )
+
         try:
             if name in self.environment_variables:
                 value = self.environment_variables[name]
@@ -197,6 +205,12 @@ class FlextCliContext(FlextService[FlextCliTypes.Data.CliDataDict]):
                 FlextCliConstants.ContextErrorMessages.VARIABLE_VALUE_MUST_BE_STRING
             )
 
+        # Fast-fail if environment_variables is None
+        if self.environment_variables is None:
+            return FlextResult[bool].fail(
+                FlextCliConstants.ContextErrorMessages.ENV_VARS_NOT_INITIALIZED
+            )
+
         try:
             self.environment_variables[name] = value
             return FlextResult[bool].ok(True)
@@ -222,6 +236,12 @@ class FlextCliContext(FlextService[FlextCliTypes.Data.CliDataDict]):
         if validation_result.is_failure:
             return FlextResult[bool].fail(validation_result.error)
 
+        # Fast-fail if arguments is None
+        if self.arguments is None:
+            return FlextResult[bool].fail(
+                FlextCliConstants.ContextErrorMessages.ARGUMENTS_NOT_INITIALIZED
+            )
+
         try:
             self.arguments.append(argument)
             return FlextResult[bool].ok(True)
@@ -246,6 +266,12 @@ class FlextCliContext(FlextService[FlextCliTypes.Data.CliDataDict]):
         )
         if validation_result.is_failure:
             return FlextResult[bool].fail(validation_result.error)
+
+        # Fast-fail if arguments is None
+        if self.arguments is None:
+            return FlextResult[bool].fail(
+                FlextCliConstants.ContextErrorMessages.ARGUMENTS_NOT_INITIALIZED
+            )
 
         try:
             if argument in self.arguments:
@@ -320,13 +346,22 @@ class FlextCliContext(FlextService[FlextCliTypes.Data.CliDataDict]):
         try:
             # Validate command explicitly - no fallback, use actual value or fail
             command_value: str | None = self.command
+
+            # Handle None values for arguments and environment_variables
+            arguments_list = self.arguments if self.arguments is not None else []
+            env_vars_dict = (
+                self.environment_variables
+                if self.environment_variables is not None
+                else {}
+            )
+
             summary: FlextTypes.JsonDict = {
                 FlextCliConstants.ContextDictKeys.CONTEXT_ID: self.id,
                 FlextCliConstants.ContextDictKeys.COMMAND: command_value,
-                FlextCliConstants.ContextDictKeys.ARGUMENTS_COUNT: len(self.arguments),
-                FlextCliConstants.ContextDictKeys.ARGUMENTS: list(self.arguments),
+                FlextCliConstants.ContextDictKeys.ARGUMENTS_COUNT: len(arguments_list),
+                FlextCliConstants.ContextDictKeys.ARGUMENTS: list(arguments_list),
                 FlextCliConstants.ContextDictKeys.ENVIRONMENT_VARIABLES_COUNT: len(
-                    self.environment_variables
+                    env_vars_dict
                 ),
                 FlextCliConstants.ContextDictKeys.WORKING_DIRECTORY: self.working_directory,
                 FlextCliConstants.ContextDictKeys.IS_ACTIVE: self.is_active,
@@ -347,8 +382,11 @@ class FlextCliContext(FlextService[FlextCliTypes.Data.CliDataDict]):
                 ),
             )
 
-    def execute(self) -> FlextResult[FlextCliTypes.Data.CliDataDict]:
+    def execute(self, **_kwargs: object) -> FlextResult[FlextCliTypes.Data.CliDataDict]:
         """Execute the CLI context.
+
+        Args:
+            **_kwargs: Additional execution parameters (unused, for FlextService compatibility)
 
         Returns:
             FlextResult with ContextExecutionResult serialized as dict

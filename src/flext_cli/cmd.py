@@ -42,8 +42,13 @@ class FlextCliCmd(FlextService[FlextTypes.JsonDict]):
         # Logger is automatically provided by FlextMixins mixin
         self._file_tools = FlextCliFileTools()
 
-    def execute(self) -> FlextResult[FlextTypes.JsonDict]:
-        """Execute command service - required by FlextService."""
+    def execute(self, **_kwargs: object) -> FlextResult[FlextTypes.JsonDict]:
+        """Execute command service - required by FlextService.
+
+        Args:
+            **_kwargs: Additional execution parameters (unused, for FlextService compatibility)
+
+        """
         return FlextResult[FlextTypes.JsonDict].ok({
             FlextCliConstants.DictKeys.STATUS: FlextCliConstants.ServiceStatus.OPERATIONAL.value,
             FlextCliConstants.DictKeys.SERVICE: FlextCliConstants.CmdDefaults.SERVICE_NAME,

@@ -263,41 +263,45 @@ class TestConfigOps:
         expected_keys = [
             "config_dir",
             "config_exists",
+            "config_readable",
+            "config_writable",
+            "timestamp",
+        ]
+        for key in expected_keys:
+            assert key in info
 
     def test_check_flext_directory_missing(
         self, monkeypatch: pytest.MonkeyPatch
     ) -> None:
         """Test check_flext_directory_structure when directory is missing (line 374)."""
         from pathlib import Path
-        
+
         # Mock Path.home() to return a path where flext_dir doesn't exist
-        original_home = Path.home
-        
         def mock_home() -> Path:
             # Return a path where .flext doesn't exist
             return Path("/tmp/test_home_nonexistent")
-        
+
         monkeypatch.setattr(Path, "home", staticmethod(mock_home))
-        
+
         # Also mock exists() to return False for .flext directory
         original_exists = Path.exists
-        
+
         def mock_exists(self: Path) -> bool:
             # If this is the .flext directory, return False
             if ".flext" in str(self):
                 return False
             return original_exists(self)
-        
+
         monkeypatch.setattr(Path, "exists", mock_exists)
-        
-        # Now check_flext_directory_structure should hit the else branch (line 374)
-        result = FlextCliUtilities.ConfigOps.check_flext_directory_structure()
-        assert result.is_success
-        results = result.unwrap()
+
+        # Now validate_config_structure should hit the else branch (line 374)
+        results = FlextCliUtilities.ConfigOps.validate_config_structure()
         assert isinstance(results, list)
         # Should contain failure message for missing directory
-        assert any("missing" in msg.lower() or "not found" in msg.lower() for msg in results)
-        
+        assert any(
+            "missing" in msg.lower() or "not found" in msg.lower() for msg in results
+        )
+
         # Restore original
         monkeypatch.undo()
 
@@ -555,7 +559,7 @@ class TestTypeNormalizer:
         class ErrorType:
             """Type that raises during __getitem__."""
 
-            def __class_getitem__(cls, args):
+            def __class_getitem__(cls: type[object], args: object) -> type[object]:
                 msg = "Cannot index this type"
                 raise TypeError(msg)
 
@@ -850,12 +854,14 @@ class TestTypeNormalizer:
         result = FlextCliUtilities.TypeNormalizer.normalize_union_type(annotation)
         # Should return annotation directly (line 633)
         assert result is not None
-        assert result == annotation or result == type(None)
+        assert result is annotation or result is type(None)
 
-    def test_config_ops_check_flext_directory_missing(self, monkeypatch: pytest.MonkeyPatch) -> None:
+    def test_config_ops_check_flext_directory_missing(
+        self, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
         """Test ConfigOps.check_flext_directory_structure when directory is missing (line 374)."""
         from pathlib import Path
-        
+
         # Mock Path.home() to return a path where flext_dir doesn't exist
         class MockHomePath(Path):
             def __truediv__(self, other: object) -> Path:
@@ -863,29 +869,29 @@ class TestTypeNormalizer:
                 result = super().__truediv__(other)
                 # Make exists() return False for flext directory
                 original_exists = result.exists
+
                 def mock_exists() -> bool:
                     if str(result).endswith(".flext"):
                         return False
                     return original_exists()
+
                 result.exists = mock_exists  # type: ignore[assignment]
                 return result
-        
+
         # Mock Path.home() to return our mock
-        original_home = Path.home
-        
         def mock_home() -> MockHomePath:
             return MockHomePath("/nonexistent/home")
-        
+
         monkeypatch.setattr(Path, "home", staticmethod(mock_home))
-        
-        # Now check_flext_directory_structure should hit the else branch (line 374)
-        result = FlextCliUtilities.ConfigOps.check_flext_directory_structure()
-        assert result.is_success
-        results = result.unwrap()
+
+        # Now validate_config_structure should hit the else branch (line 374)
+        results = FlextCliUtilities.ConfigOps.validate_config_structure()
         assert isinstance(results, list)
         # Should contain failure message for missing directory
-        assert any("missing" in msg.lower() or "not found" in msg.lower() for msg in results)
-        
+        assert any(
+            "missing" in msg.lower() or "not found" in msg.lower() for msg in results
+        )
+
         # Restore original
         monkeypatch.undo()
 
@@ -956,3 +962,273 @@ class TestUtilitiesIntegration:
         info = FlextCliUtilities.ConfigOps.get_config_info()
         assert "config_dir" in info
         assert "timestamp" in info
+
+    def test_normalize_annotation_union_exception_handler_direct(
+        self, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        """Test normalize_annotation Union exception handler - covers lines 543-544 directly.
+
+        Real scenario: Forces AttributeError when accessing Union in the try block.
+        """
+        import typing
+
+        # Create annotation first before monkeypatching
+        from typing import Union, get_origin
+
+        annotation = Union[str, int]
+        original_union = typing.Union
+        original_get_origin = get_origin
+
+        # Make accessing typing.Union raise AttributeError when accessed in the try block
+        class FailingUnionAccess:
+            """A descriptor that raises AttributeError when accessed."""
+
+            def __get__(self, obj: object, objtype: object = None) -> None:
+                error_msg_union = "Union access failed"
+                raise AttributeError(error_msg_union)
+
+        # Replace typing.Union with our failing accessor
+        monkeypatch.setattr(typing, "Union", FailingUnionAccess())
+
+        # Make get_origin return original_union for Union types
+        # This will cause the check "if origin is Union" to access Union, raising AttributeError
+        def mock_get_origin(ann: object) -> object:
+            origin = original_get_origin(ann)
+            # For Union types, return original_union (which will cause AttributeError when accessed)
+            if origin is original_union:
+                return original_union  # This will cause AttributeError when compared
+            return origin
+
+        monkeypatch.setattr("typing.get_origin", mock_get_origin)
+
+        # Now when normalize_annotation checks "if origin is Union",
+        # accessing typing.Union will raise AttributeError, triggering lines 543-544
+        result = FlextCliUtilities.TypeNormalizer.normalize_annotation(annotation)
+        # Should handle exception and continue (line 544: pass)
+        assert result is not None
+
+        monkeypatch.undo()
+
+    def test_normalize_annotation_reconstruction_exception_direct(
+        self, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        """Test normalize_annotation reconstruction exception - covers lines 564-567 directly.
+
+        Real scenario: Forces TypeError when reconstructing generic type.
+        """
+        from typing import get_args, get_origin
+
+        # Create a type that will raise TypeError during reconstruction
+        class FailingGenericType:
+            """A type that raises TypeError when indexed."""
+
+            def __class_getitem__(cls: type[object], key: object) -> type[object]:
+                error_msg_reconstruct = "Cannot reconstruct this type"
+                raise TypeError(error_msg_reconstruct)
+
+            def __getitem__(self, key: object) -> object:
+                error_msg_index = "Cannot index this type"
+                raise TypeError(error_msg_index)
+
+        # Make get_origin return FailingGenericType for list types
+        original_get_origin = get_origin
+
+        def mock_get_origin(annotation: object) -> object:
+            origin = original_get_origin(annotation)
+            # For list[str], return our failing type
+            if str(type(annotation).__name__).startswith("_GenericAlias"):
+                args = get_args(annotation)
+                if args and args[0] is str:
+                    return FailingGenericType
+            return origin
+
+        monkeypatch.setattr("typing.get_origin", mock_get_origin)
+
+        # Test with list[str] which should trigger reconstruction
+        annotation = list[str]
+        result = FlextCliUtilities.TypeNormalizer.normalize_annotation(annotation)
+        # Should catch TypeError (line 564-565) and return original (line 567)
+        assert result is not None
+
+        monkeypatch.undo()
+
+    def test_normalize_union_type_single_non_none_direct(
+        self, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        """Test normalize_union_type with single non-None type - covers line 609 directly.
+
+        Real scenario: Forces union to have exactly one non-None type (has_none=False, len(non_none_args)==1).
+        """
+        import types
+        from typing import get_args
+
+        # Make get_args return a tuple with exactly one non-None type (no NoneType)
+        original_get_args = get_args
+
+        def single_non_none_get_args(annotation: object) -> tuple[object, ...]:
+            # For union types (str | int), return tuple with one str type (no None)
+            # This will make has_none=False and len(non_none_args)==1, triggering line 609
+            if hasattr(annotation, "__origin__"):
+                # Check if it's a union type
+                origin = getattr(annotation, "__origin__", None)
+                if origin is types.UnionType or (
+                    hasattr(types, "UnionType") and origin == types.UnionType
+                ):
+                    # Return one non-None type
+                    return (str,)
+            return original_get_args(annotation)
+
+        monkeypatch.setattr("typing.get_args", single_non_none_get_args)
+
+        # Test with a union that will be processed as having one non-None type
+        annotation = str | int  # Will be processed as having one type after mock
+        result = FlextCliUtilities.TypeNormalizer.normalize_union_type(annotation)
+        # Should trigger line 609: if not has_none and len(non_none_args) == 1
+        assert result is not None
+        # Result should be the normalized single type (normalize_annotation(str))
+        # It might be str or something else depending on normalization
+
+        monkeypatch.undo()
+
+    def test_normalize_union_type_only_none_direct(
+        self, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        """Test normalize_union_type with only None - covers line 633 directly.
+
+        Real scenario: Forces union to have only None after filtering non_none_args.
+        This happens when get_args returns only NoneType, making non_none_args empty.
+        """
+        import types
+        from typing import get_args
+
+        # Make get_args return tuple with only NoneType
+        # This will make non_none_args empty after filtering, triggering line 633
+        original_get_args = get_args
+
+        def only_none_get_args(annotation: object) -> tuple[object, ...]:
+            # For union types, return tuple with only NoneType
+            # After filtering non_none_args, we'll have empty tuple, triggering line 633
+            if hasattr(annotation, "__origin__"):
+                origin = getattr(annotation, "__origin__", None)
+                if origin is types.UnionType or (
+                    hasattr(types, "UnionType") and origin == types.UnionType
+                ):
+                    # Return only NoneType
+                    return (types.NoneType,)
+            return original_get_args(annotation)
+
+        monkeypatch.setattr("typing.get_args", only_none_get_args)
+
+        # Test with a union that will be processed as having only None
+        annotation = str | int  # Will be processed as having only None after mock
+        result = FlextCliUtilities.TypeNormalizer.normalize_union_type(annotation)
+        # Should trigger line 633: return annotation (edge case: only None)
+        # This happens when non_none_args is empty after filtering
+        assert result is not None
+        # Result should be the original annotation (edge case)
+        assert result == annotation
+
+        monkeypatch.undo()
+
+    def test_normalize_annotation_union_import_error(
+        self, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        """Test normalize_annotation with Union ImportError - covers lines 543-544.
+
+        Real scenario: Forces ImportError when accessing Union type.
+        """
+        # Make typing.Union raise ImportError when accessed
+        import typing
+
+        class FailingUnion:
+            """Union that raises ImportError when accessed."""
+
+            def __getattribute__(self, name: str) -> object:
+                if name == "__origin__":
+                    error_msg_union = "Union not available"
+                    raise ImportError(error_msg_union)
+                return object.__getattribute__(self, name)
+
+        failing_union = FailingUnion()
+        monkeypatch.setattr(typing, "Union", failing_union)
+
+        # Test with a union type that will trigger the ImportError path
+        annotation = str | int
+        result = FlextCliUtilities.TypeNormalizer.normalize_annotation(annotation)
+        # Should handle ImportError gracefully and continue
+        assert result is not None
+
+        monkeypatch.undo()
+
+    def test_normalize_annotation_reconstruction_type_error(
+        self, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        """Test normalize_annotation with reconstruction TypeError - covers lines 564-567.
+
+        Real scenario: Forces TypeError when reconstructing generic type.
+        """
+        from typing import get_args, get_origin
+
+        original_get_origin = get_origin
+
+        class FailingOrigin:
+            """Origin that raises TypeError when indexed."""
+
+            def __getitem__(self, key: object) -> object:
+                error_msg_index_origin = "Cannot index this origin"
+                raise TypeError(error_msg_index_origin)
+
+        def mock_get_origin(annotation: object) -> object:
+            origin = original_get_origin(annotation)
+            # For list types, return our failing origin
+            if str(type(annotation).__name__).startswith("_GenericAlias"):
+                args = get_args(annotation)
+                if args and args[0] is str:
+                    return FailingOrigin()
+            return origin
+
+        monkeypatch.setattr("typing.get_origin", mock_get_origin)
+
+        # Test with list[str] which should trigger reconstruction failure
+        annotation = list[str]
+        result = FlextCliUtilities.TypeNormalizer.normalize_annotation(annotation)
+        # Should handle TypeError gracefully and return original annotation
+        assert result is not None
+
+        monkeypatch.undo()
+
+    def test_normalize_union_type_single_non_none(self) -> None:
+        """Test normalize_union_type with single non-None type - covers line 609.
+
+        Real scenario: Union with only one non-None type should return that type directly.
+        """
+        from typing import Union
+
+        # Union[str, None] after filtering None, has only str
+        # But this will be normalized to Optional[str], not just str
+        # To trigger line 609, we need a union with only one non-None type and no None
+        # Let's use a union that will be processed as having only one type
+        annotation = Union[str]  # Only str, no None
+        result = FlextCliUtilities.TypeNormalizer.normalize_union_type(annotation)
+        # Should return normalized str (line 609)
+        assert result is not None
+        # Result should be str (the single non-None type)
+        # Use isinstance check since result might be a type object
+        assert result is str or (isinstance(result, type) and result.__name__ == "str")
+
+    def test_normalize_union_type_only_none_real(self) -> None:
+        """Test normalize_union_type with only None - covers line 633.
+
+        Real scenario: Union with only NoneType should return annotation directly.
+        """
+        from typing import Union
+
+        # Create a union that has only None
+        # This is an edge case that shouldn't happen normally
+        annotation = Union[type(None)]  # Only NoneType
+
+        result = FlextCliUtilities.TypeNormalizer.normalize_union_type(annotation)
+        # Should return annotation directly (line 633)
+        assert result is not None
+        # Result should be the original annotation (edge case)
+        assert result == annotation or result is annotation

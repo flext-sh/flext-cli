@@ -80,8 +80,13 @@ class FlextCliOutput(FlextService[FlextTypes.JsonDict]):
         self._result_formatters: dict[type, FlextCliTypes.Callable.ResultFormatter] = {}
 
     @override
-    def execute(self) -> FlextResult[FlextTypes.JsonDict]:
-        """Execute the main domain service operation - required by FlextService."""
+    def execute(self, **_kwargs: object) -> FlextResult[FlextTypes.JsonDict]:
+        """Execute the main domain service operation - required by FlextService.
+
+        Args:
+            **_kwargs: Additional execution parameters (unused, for FlextService compatibility)
+
+        """
         return FlextResult[FlextTypes.JsonDict].ok({
             FlextCliConstants.DictKeys.STATUS: FlextCliConstants.ServiceStatus.OPERATIONAL.value,
             FlextCliConstants.DictKeys.SERVICE: FlextCliConstants.FLEXT_CLI,

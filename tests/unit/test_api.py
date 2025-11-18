@@ -1227,7 +1227,7 @@ nested:
             api_service.config.token_file = original_token_file
 
     def test_get_auth_token_invalid_data_type_other_error(
-        self, api_service: FlextCli, temp_file
+        self, api_service: FlextCli, temp_file: Path
     ) -> None:
         """Test get_auth_token with invalid data that doesn't match dict/string patterns - covers line 255.
 

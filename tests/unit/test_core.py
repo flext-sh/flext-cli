@@ -1339,12 +1339,12 @@ class TestFlextCliCoreExceptionHandlers:
         class ErrorDict(UserDict):
             """Dict that raises exception on __setitem__."""
 
-            def __setitem__(self, key, value) -> None:
+            def __setitem__(self, key: str, value: object) -> None:
                 msg = "Forced exception for testing register_command exception handler"
                 raise RuntimeError(msg)
 
         # Replace _commands with error-raising dict
-        object.__setattr__(core_service, "_commands", ErrorDict())
+        core_service._commands = ErrorDict()
 
         # Now register_command should catch the exception
         result = core_service.register_command(cmd)
@@ -1374,10 +1374,10 @@ class TestFlextCliCoreExceptionHandlers:
         # We need to preserve the command we just registered
         original_commands = core_service._commands.copy()
 
-        class ErrorDict(UserDict):
+        class ErrorDict(UserDict[str, object]):
             """Dict that raises exception on __getitem__."""
 
-            def __getitem__(self, key):
+            def __getitem__(self, key: str) -> object:
                 # Only raise for the test command, otherwise use original
                 if key == "test":
                     msg = "Forced exception for testing get_command exception handler"
@@ -1385,7 +1385,8 @@ class TestFlextCliCoreExceptionHandlers:
                 return original_commands[key]
 
         # Replace _commands with error-raising dict
-        object.__setattr__(core_service, "_commands", ErrorDict(original_commands))
+        # Use setattr directly - necessary to bypass Pydantic validation in tests
+        core_service._commands = ErrorDict(original_commands)
 
         # Now get_command should catch the exception
         result = core_service.get_command("test")
@@ -1466,7 +1467,7 @@ class TestFlextCliCoreExceptionHandlers:
         """
 
         # To force exception, make _log_config_update raise
-        def error_log_update(self) -> Never:
+        def error_log_update(self: FlextCliCore) -> Never:
             msg = "Forced exception for testing update_configuration exception handler"
             raise RuntimeError(msg)
 
@@ -1474,7 +1475,8 @@ class TestFlextCliCoreExceptionHandlers:
         import types
 
         bound_method = types.MethodType(error_log_update, core_service)
-        object.__setattr__(core_service, "_log_config_update", bound_method)
+        # Use setattr directly - necessary to bypass Pydantic validation in tests
+        core_service._log_config_update = bound_method
 
         # Now update_configuration should catch the exception
         config: FlextCliTypes.Configuration.CliConfigSchema = {
@@ -1507,7 +1509,8 @@ class TestFlextCliCoreExceptionHandlers:
 
         error_config = ErrorDict({"test": "value"})
         # Replace _config with error-raising dict
-        object.__setattr__(core_service, "_config", error_config)
+        # Use setattr directly - necessary to bypass Pydantic validation in tests
+        core_service._config = error_config
 
         # Now get_configuration should catch the exception when checking if _config
         result = core_service.get_configuration()
@@ -1830,47 +1833,11 @@ class TestFlextCliCoreExceptionHandlers:
         assert result == 11
 
     # =================================================================
-    # ASYNC TESTS - Testing async functionality
+    # EXECUTOR TESTS - Testing synchronous execution
     # =================================================================
 
-    def test_run_async_success(self, core_service: FlextCliCore) -> None:
-        """Test running async coroutine successfully."""
-        import asyncio
-
-        async def simple_coro() -> str:
-            await asyncio.sleep(0.01)
-            return "success"
-
-        result = core_service.run_async(simple_coro())
-        assert result.is_success
-        assert result.unwrap() == "success"
-
-    def test_run_async_with_timeout(self, core_service: FlextCliCore) -> None:
-        """Test running async with timeout."""
-        import asyncio
-
-        async def quick_coro() -> str:
-            await asyncio.sleep(0.01)
-            return "done"
-
-        result = core_service.run_async(quick_coro(), timeout=1.0)
-        assert result.is_success
-        assert result.unwrap() == "done"
-
-    def test_run_async_timeout_error(self, core_service: FlextCliCore) -> None:
-        """Test async timeout error handling."""
-        import asyncio
-
-        async def slow_coro() -> str:
-            await asyncio.sleep(10.0)
-            return "too slow"
-
-        result = core_service.run_async(slow_coro(), timeout=0.01)
-        assert result.is_failure
-        assert "timeout" in result.error.lower() or "timed out" in result.error.lower()
-
     def test_run_in_executor_success(self, core_service: FlextCliCore) -> None:
-        """Test running function in thread pool executor."""
+        """Test running function synchronously (formerly in executor)."""
 
         def cpu_intensive(x: int) -> int:
             return x * x
@@ -1878,21 +1845,6 @@ class TestFlextCliCoreExceptionHandlers:
         result = core_service.run_in_executor(cpu_intensive, 10)
         assert result.is_success
         assert result.unwrap() == 100
-
-    def test_async_command_decorator(self, core_service: FlextCliCore) -> None:
-        """Test async_command decorator."""
-        import asyncio
-
-        @core_service.async_command()
-        async def async_task(value: int) -> int:
-            await asyncio.sleep(0.01)
-            return value * 3
-
-        # The decorator wraps the function
-        result = async_task(5)
-        # Should return the value from async execution
-        assert isinstance(result, int)
-        assert result == 15
 
     # =================================================================
     # PLUGIN TESTS - Testing plugin system
@@ -2389,7 +2341,9 @@ class TestFlextCliCoreExceptionHandlers:
             or "invalid" in str(result.error).lower()
         )
 
-    def test_create_ttl_cache_exception(self, core_service: FlextCliCore) -> None:
+    def test_create_ttl_cache_exception_handler(
+        self, core_service: FlextCliCore
+    ) -> None:
         """Test create_ttl_cache exception handler (line 1303-1304).
 
         Real scenario: Tests exception handling in create_ttl_cache.
@@ -2457,41 +2411,6 @@ class TestFlextCliCoreExceptionHandlers:
         core_service.create_ttl_cache("test_cache", maxsize=100, ttl=60)
         result = core_service.get_cache_stats("test_cache")
         assert result.is_success
-
-    def test_run_async_timeout(self, core_service: FlextCliCore) -> None:
-        """Test run_async with timeout (line 1390).
-
-        Real scenario: Tests TimeoutError handling.
-        """
-        import asyncio
-
-        async def slow_coro() -> str:
-            await asyncio.sleep(2)
-            return "done"
-
-        result = core_service.run_async(slow_coro(), timeout=0.1)
-        assert result.is_failure
-        assert (
-            "timeout" in str(result.error).lower()
-            or "timed out" in str(result.error).lower()
-        )
-
-    def test_run_async_exception(self, core_service: FlextCliCore) -> None:
-        """Test run_async exception handler (line 1391-1392).
-
-        Real scenario: Tests exception handling in run_async.
-        """
-
-        async def failing_coro() -> str:
-            msg = "Test error"
-            raise ValueError(msg)
-
-        result = core_service.run_async(failing_coro())
-        assert result.is_failure
-        assert (
-            "test error" in str(result.error).lower()
-            or "error" in str(result.error).lower()
-        )
 
     def test_run_in_executor_exception(self, core_service: FlextCliCore) -> None:
         """Test run_in_executor exception handler (line 1412-1413).
@@ -2872,11 +2791,14 @@ class TestFlextCliCoreExceptionHandlers:
         assert result.is_failure
 
     def test_load_configuration_generic_exception(
-        self, core_service: FlextCliCore, monkeypatch: pytest.MonkeyPatch, temp_file
+        self,
+        core_service: FlextCliCore,
+        monkeypatch: pytest.MonkeyPatch,
+        temp_file: Path,
     ) -> None:
         """Test load_configuration generic exception handler (lines 1203-1204)."""
         # Write valid JSON to temp file
-        temp_file.write_text('{"key": "value"}')
+        temp_file.write_text('{"key": "value"}', encoding="utf-8")
 
         # Force exception by making read_text raise (not JSONDecodeError)
         def failing_read_text(*args: object, **kwargs: object) -> str:
@@ -2902,7 +2824,7 @@ class TestFlextCliCoreExceptionHandlers:
 
         original_init = TTLCache.__init__
 
-        def failing_init(self, *args: object, **kwargs: object) -> None:
+        def failing_init(self: TTLCache, *args: object, **kwargs: object) -> None:
             msg = "Forced exception for testing create_cache"
             raise RuntimeError(msg)
 
@@ -3059,7 +2981,7 @@ class TestFlextCliCoreExceptionHandlers:
         assert result.is_failure
         assert "error" in str(result.error).lower()
 
-    def test_get_configuration_exception_handler_real(
+    def test_get_configuration_exception_handler_real_with_monkeypatch(
         self, core_service: FlextCliCore, monkeypatch: pytest.MonkeyPatch
     ) -> None:
         """Test get_configuration exception handler (lines 605-606)."""
@@ -3097,44 +3019,25 @@ class TestFlextCliCoreExceptionHandlers:
         # Force exception by making profiles_section[name] = profile_config raise
         # The code does: profiles_section[name] = profile_config (line 659)
         # We need to make profiles_section raise when setting an item
-        class FailingProfilesDict(UserDict):
-            def __setitem__(self, key: object, value: object) -> None:
+        # But _config must be a valid dict to pass the isinstance check (line 643)
+        class FailingProfilesDict(UserDict[str, object]):
+            def __setitem__(self, key: str, value: object) -> None:
                 msg = "Forced exception for testing create_profile"
                 raise RuntimeError(msg)
 
-        # Make the config return a failing profiles dict when profiles section is accessed
-        class ConfigWithFailingProfiles(UserDict):
-            def __init__(self, *args: object, **kwargs: object) -> None:
-                super().__init__(*args, **kwargs)
-                # Pre-populate with a failing profiles dict
-                super().__setitem__("profiles", FailingProfilesDict())
-
-        monkeypatch.setattr(
-            core_service,
-            "_config",
-            ConfigWithFailingProfiles({"some_key": "some_value"}),
-        )
+        # Make the config a valid dict with a failing profiles dict
+        core_service._config = {
+            "some_key": "some_value",
+            "profiles": FailingProfilesDict(),
+        }
 
         result = core_service.create_profile("test_profile", {"key": "value"})
         assert result.is_failure
+        # The exception handler (line 669-672) should catch the RuntimeError
         assert (
             "failed" in str(result.error).lower()
             or "profile" in str(result.error).lower()
         )
-
-    def test_async_command_with_func(self, core_service: FlextCliCore) -> None:
-        """Test async_command when func is provided (line 1443)."""
-        import asyncio
-
-        async def async_task(value: int) -> int:
-            await asyncio.sleep(0.01)
-            return value * 3
-
-        # Test @async_command decorator with function (not @async_command())
-        decorated = core_service.async_command(async_task)
-        result = decorated(5)
-        assert isinstance(result, int)
-        assert result == 15
 
     def test_discover_plugins_load_exception_real(
         self, core_service: FlextCliCore, monkeypatch: pytest.MonkeyPatch

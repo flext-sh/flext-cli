@@ -71,16 +71,14 @@ from __future__ import annotations
 #
 # Copyright (c) 2025 FLEXT Team. All rights reserved.
 # SPDX-License-Identifier: MIT
-import asyncio
 import functools
 import json
 import time
-from collections.abc import Awaitable, Callable, Mapping
-from concurrent.futures import ThreadPoolExecutor
+from collections.abc import Callable, Mapping
 from datetime import UTC, datetime
 from importlib import metadata
 from pathlib import Path
-from typing import override
+from typing import cast, override
 
 import pluggy
 from cachetools import LRUCache, TTLCache
@@ -303,8 +301,6 @@ class FlextCliCore(FlextService[FlextCliTypes.Data.CliDataDict]):
             TTLCache[str, FlextTypes.JsonValue] | LRUCache[str, FlextTypes.JsonValue],
         ] = {}
         self._cache_stats = self._CacheStats()
-        self._async_executor = ThreadPoolExecutor(max_workers=4)
-        self._async_tasks: dict[str, asyncio.Task[FlextTypes.JsonValue]] = {}
         self._plugin_manager = pluggy.PluginManager("flext_cli")
 
     # ==========================================================================
@@ -897,8 +893,11 @@ class FlextCliCore(FlextService[FlextCliTypes.Data.CliDataDict]):
     @override
     @FlextDecorators.log_operation("cli_core_health_check")
     @FlextDecorators.track_performance()
-    def execute(self) -> FlextResult[FlextCliTypes.Data.CliDataDict]:
+    def execute(self, **kwargs: object) -> FlextResult[FlextCliTypes.Data.CliDataDict]:
         """Execute CLI service operations.
+
+        Args:
+            **kwargs: Additional execution parameters (for FlextService compatibility)
 
         FlextDecorators automatically:
         - Log operation start/completion/failure
@@ -1331,7 +1330,10 @@ class FlextCliCore(FlextService[FlextCliTypes.Data.CliDataDict]):
                 start = time.time()
                 try:
                     # Try to get result from cache
-                    result = cache_obj[cache_key]  # type: ignore[index]
+                    cached_value = cache_obj[cache_key]  # type: ignore[index]
+                    # Type cast: cache stores JsonValue but we know it's type T
+                    # Note: T is a TypeVar, runtime type is Any but we cast for type checker
+                    result: T = cached_value  # type: ignore[assignment]
                     time_saved = time.time() - start
                     self._cache_stats.record_hit(time_saved)
                     return result
@@ -1339,7 +1341,8 @@ class FlextCliCore(FlextService[FlextCliTypes.Data.CliDataDict]):
                     # Cache miss - compute result and store in cache
                     self._cache_stats.record_miss()
                     result = func(*args, **kwargs)
-                    cache_obj[cache_key] = result  # type: ignore[index]
+                    # Type cast: store T as JsonValue in cache
+                    cache_obj[cache_key] = cast("FlextTypes.JsonValue", result)  # type: ignore[index]
                     return result
 
             return wrapper
@@ -1373,30 +1376,8 @@ class FlextCliCore(FlextService[FlextCliTypes.Data.CliDataDict]):
             return FlextResult[FlextTypes.JsonDict].fail(str(e))
 
     # ==========================================================================
-    # ASYNC SUPPORT - Integrated into core service
+    # EXECUTOR SUPPORT - Thread pool execution for blocking operations
     # ==========================================================================
-
-    def run_async(
-        self,
-        coro: Awaitable[T],
-        timeout: float | None = None,
-    ) -> FlextResult[T]:
-        """Run async coroutine and return result."""
-        try:
-            # Use asyncio.run for Python 3.13+ to avoid deprecation warning
-            # Type narrowing: asyncio.run returns the coroutine result type T
-            if timeout:
-                raw_result = asyncio.run(asyncio.wait_for(coro, timeout=timeout))  # type: ignore[arg-type]
-            else:
-                raw_result = asyncio.run(coro)  # type: ignore[arg-type]
-
-            # Type narrowing: result from coroutine is type T
-            result: T = raw_result  # type: ignore[assignment]
-            return FlextResult[T].ok(result)
-        except TimeoutError:
-            return FlextResult[T].fail(f"Operation timed out after {timeout}s")
-        except Exception as e:
-            return FlextResult[T].fail(str(e))
 
     def run_in_executor(
         self,
@@ -1404,43 +1385,17 @@ class FlextCliCore(FlextService[FlextCliTypes.Data.CliDataDict]):
         *args: P.args,
         **kwargs: P.kwargs,
     ) -> FlextResult[T]:
-        """Run sync function in thread pool executor."""
-        try:
-            # Use asyncio.run with ThreadPoolExecutor for Python 3.13+
-            async def run_in_thread() -> T:
-                loop = asyncio.get_running_loop()
-                return await loop.run_in_executor(
-                    self._async_executor,
-                    functools.partial(func, *args, **kwargs),
-                )
+        """Execute function synchronously (formerly in thread pool).
 
-            result = asyncio.run(run_in_thread())
+        Note: This method now executes synchronously. Thread pool execution
+        has been removed in v0.10.0 to maintain synchronous-only codebase.
+        The API is maintained for backward compatibility but behavior changed.
+        """
+        try:
+            result = func(*args, **kwargs)
             return FlextResult[T].ok(result)
         except Exception as e:
             return FlextResult[T].fail(str(e))
-
-    def async_command(
-        self,
-        func: Callable[P, Awaitable[T]] | None = None,
-    ) -> Callable[P, T] | Callable[[Callable[P, Awaitable[T]]], Callable[P, T]]:
-        """Decorator to make async function work with Click.
-
-        Can be used as @async_command or @async_command().
-        """
-
-        def decorator(func: Callable[P, Awaitable[T]]) -> Callable[P, T]:
-            @functools.wraps(func)
-            def wrapper(*args: P.args, **kwargs: P.kwargs) -> T:
-                # Use asyncio.run as primary method for Python 3.13+
-                # Type cast: Awaitable[T] needs to be converted to Coroutine for asyncio.run
-                return asyncio.run(func(*args, **kwargs))  # type: ignore[arg-type]
-
-            return wrapper
-
-        # Handle both @async_command and @async_command() syntax
-        if func is None:
-            return decorator
-        return decorator(func)
 
     # ==========================================================================
     # PLUGIN SYSTEM - Integrated into core service

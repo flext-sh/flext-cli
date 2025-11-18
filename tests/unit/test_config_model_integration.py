@@ -193,7 +193,9 @@ class TestConfigModelExtraction:
                 alias="output-dir",
                 description="Output directory",
             )
-            verbose: bool = Field(default=False, description="Verbose mode")
+            verbose_mode: bool = Field(
+                alias="verbose-mode", default=False, description="Verbose mode"
+            )
 
             model_config = {"populate_by_name": True}
 
@@ -535,7 +537,9 @@ class TestConfigModelExtraction:
                 alias="batch-size",
                 description="Batch size",
             )
-            verbose: bool = Field(default=False, description="Verbose")
+            verbose_mode: bool = Field(
+                alias="verbose-mode", default=False, description="Verbose"
+            )
 
             model_config = {"populate_by_name": True}
 
@@ -547,7 +551,7 @@ class TestConfigModelExtraction:
             "input_dir": config.input_dir,
             "output_dir": config.output_dir,
             "batch_size": config.batch_size,
-            "verbose": config.verbose,
+            "verbose_mode": config.verbose,
         }
 
         # Create params from CLI args
@@ -557,7 +561,7 @@ class TestConfigModelExtraction:
         assert params.input_dir == "/app/input"
         assert params.output_dir == "/app/output"
         assert params.batch_size == 1000
-        assert params.verbose is False
+        assert params.verbose_mode is False
 
     def test_cli_parameter_override_config(self) -> None:
         """Test that CLI parameters override config defaults."""

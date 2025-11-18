@@ -227,7 +227,9 @@ class FlextCliCommonParams:
                 )
 
             # Apply all parameters - extracted helpers to reduce complexity
-            cls._set_bool_params(config, params)
+            bool_result = cls._set_bool_params(config, params)
+            if bool_result.is_failure:
+                return FlextResult[FlextCliConfig].fail(bool_result.error)
 
             log_level_result = cls._set_log_level(config, params)
             if log_level_result.is_failure:
@@ -247,18 +249,39 @@ class FlextCliCommonParams:
     @classmethod
     def _set_bool_params(
         cls, config: FlextCliConfig, params: FlextCliModels.CliParamsConfig
-    ) -> None:
-        """Set boolean parameters - no validation needed (Pydantic already validated)."""
+    ) -> FlextResult[bool]:
+        """Set boolean parameters with validation.
+
+        CRITICAL: Uses object.__setattr__() to bypass Pydantic validate_assignment=True,
+        which would re-trigger model_validator DURING assignment, causing the validator
+        to see the OLD value instead of the new one. This is the same pattern used
+        in client-a-oud-mig/config.py line 605.
+
+        Returns:
+            FlextResult[bool]: True if successful, error if trace=True without debug=True
+
+        """
+        # VALIDATION: trace mode requires debug mode (from FlextConfig)
+        # Check BEFORE applying to avoid invalid state
+        will_be_trace = params.trace if params.trace is not None else config.trace
+        will_be_debug = params.debug if params.debug is not None else config.debug
+        if will_be_trace and not will_be_debug:
+            return FlextResult[bool].fail(
+                "Trace mode requires debug mode to be enabled"
+            )
+
         if params.verbose is not None:
-            config.verbose = params.verbose
+            object.__setattr__(config, "verbose", params.verbose)  # noqa: PLC2801
         if params.quiet is not None:
-            config.quiet = params.quiet
+            object.__setattr__(config, "quiet", params.quiet)  # noqa: PLC2801
         if params.debug is not None:
-            config.debug = params.debug
+            object.__setattr__(config, "debug", params.debug)  # noqa: PLC2801
         if params.trace is not None:
-            config.trace = params.trace
+            object.__setattr__(config, "trace", params.trace)  # noqa: PLC2801
         if params.no_color is not None:
-            config.no_color = params.no_color
+            object.__setattr__(config, "no_color", params.no_color)  # noqa: PLC2801
+
+        return FlextResult[bool].ok(True)
 
     @classmethod
     def _set_log_level(
