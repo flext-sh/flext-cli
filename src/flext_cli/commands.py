@@ -224,7 +224,7 @@ class FlextCliCommands(FlextService[FlextTypes.JsonDict]):
             if result.is_success:
                 return FlextResult[bool].ok(True)
             # Fast-fail: error is always present in failure case
-            return FlextResult[bool].fail(result.error)
+            return FlextResult[bool].fail(result.error or "Unknown error")
         except Exception as e:
             return FlextResult[bool].fail(
                 FlextCliConstants.ErrorMessages.CLI_EXECUTION_ERROR.format(error=e)

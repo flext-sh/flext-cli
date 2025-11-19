@@ -565,7 +565,7 @@ class FlextCliModels(FlextModels):
             )
             if validation_result.is_failure:
                 return FlextResult[FlextCliModels.CliParameterSpec].fail(
-                    validation_result.error
+                    validation_result.error or "Validation failed"
                 )
 
             (
