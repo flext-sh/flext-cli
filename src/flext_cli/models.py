@@ -675,7 +675,7 @@ class FlextCliModels(FlextModels):
                 )
                 if params_result.is_failure:
                     return FlextResult[list[FlextCliModels.CliOptionSpec]].fail(
-                        params_result.error
+                        params_result.error or "Parameter conversion failed"
                     )
 
                 click_options: list[FlextCliModels.CliOptionSpec] = []
@@ -1229,7 +1229,7 @@ class FlextCliModels(FlextModels):
                 log_level_value = logging.DEBUG  # 10
             else:
                 # Use configured log level enum value (convert string to int)
-                log_level_name = self.config.log_level.value  # "INFO", "DEBUG", etc.
+                log_level_name = self.config.cli_log_level.value  # "INFO", "DEBUG", etc.
                 log_level_value = getattr(logging, log_level_name, logging.INFO)
 
             # Force reconfiguration (bypasses is_configured() guards)
@@ -2650,9 +2650,9 @@ class FlextCliModels(FlextModels):
             if not hasattr(config, field_name):
                 return None
             value: object = getattr(config, field_name)
-            # Special handling for log_level (convert to string)
-            if field_name == "log_level" and value is not None:
-                return str(value)
+            # Special handling for cli_log_level (convert enum to string)
+            if field_name == "cli_log_level" and value is not None:
+                return value.value if hasattr(value, "value") else str(value)
             # Type narrowing: config values should be JsonValue compatible
             if isinstance(value, (str, int, float, bool, type(None))):
                 return value
@@ -2682,7 +2682,7 @@ class FlextCliModels(FlextModels):
         ) -> dict[str, object]:
             """Fill None values from Config (Config has priority over Constants).
 
-            When fields are None, use values from FlextCliConfig.get_global_instance()
+            When fields are None, use values from FlextCliConfig.get_instance()
             if available. This ensures Config values are used instead of requiring
             explicit values to be passed.
             """
@@ -2692,7 +2692,7 @@ class FlextCliModels(FlextModels):
 
             # Try to get config instance (may not be available in all contexts)
             try:
-                config = FlextCliConfig.get_global_instance()
+                config = FlextCliConfig.get_instance()
             except Exception:
                 # Config not available - return data as-is
                 return data
@@ -2703,7 +2703,11 @@ class FlextCliModels(FlextModels):
             cls._fill_field_from_config(result, config, "quiet")
             cls._fill_field_from_config(result, config, "debug")
             cls._fill_field_from_config(result, config, "trace")
-            cls._fill_field_from_config(result, config, "log_level")
+            # Map cli_log_level from config to log_level in CliParamsConfig
+            if result.get("log_level") is None and hasattr(config, "cli_log_level"):
+                cli_log_level_value = config.cli_log_level
+                if cli_log_level_value is not None:
+                    result["log_level"] = cli_log_level_value.value if hasattr(cli_log_level_value, "value") else str(cli_log_level_value)
             # Special handling for log_format (maps to log_verbosity in config)
             if result.get("log_format") is None and hasattr(config, "log_verbosity"):
                 result["log_format"] = config.log_verbosity

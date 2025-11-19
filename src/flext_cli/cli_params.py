@@ -76,11 +76,12 @@ class FlextCliCommonParams:
             _reg.KEY_SHORT: _reg.SHORT_FLAG_TRACE,
             _reg.KEY_PRIORITY: _reg.PRIORITY_TRACE,
         },
-        "log_level": {
+        "cli_log_level": {
             _reg.KEY_SHORT: _reg.SHORT_FLAG_LOG_LEVEL,
             _reg.KEY_PRIORITY: _reg.PRIORITY_LOG_LEVEL,
             _reg.KEY_CHOICES: FlextCliConstants.LOG_LEVELS_LIST,
             _reg.KEY_CASE_SENSITIVE: _reg.CASE_INSENSITIVE,
+            _reg.KEY_FIELD_NAME_OVERRIDE: "log_level",  # CLI param name is --log-level, maps to cli_log_level field
         },
         "log_verbosity": {
             _reg.KEY_PRIORITY: _reg.PRIORITY_LOG_FORMAT,
@@ -229,7 +230,7 @@ class FlextCliCommonParams:
             # Apply all parameters - extracted helpers to reduce complexity
             bool_result = cls._set_bool_params(config, params)
             if bool_result.is_failure:
-                return FlextResult[FlextCliConfig].fail(bool_result.error)
+                return FlextResult[FlextCliConfig].fail(bool_result.error or "Boolean parameter setting failed")
 
             log_level_result = cls._set_log_level(config, params)
             if log_level_result.is_failure:
@@ -263,12 +264,14 @@ class FlextCliCommonParams:
         """
         # VALIDATION: trace mode requires debug mode (from FlextConfig)
         # Check BEFORE applying to avoid invalid state
-        will_be_trace = params.trace if params.trace is not None else config.trace
-        will_be_debug = params.debug if params.debug is not None else config.debug
-        if will_be_trace and not will_be_debug:
-            return FlextResult[bool].fail(
-                "Trace mode requires debug mode to be enabled"
-            )
+        # If trace is being set, check if debug will be enabled
+        if params.trace is not None and params.trace:
+            # Trace requires debug - check if debug is being set or already enabled
+            will_be_debug = params.debug if params.debug is not None else config.debug
+            if not will_be_debug:
+                return FlextResult[bool].fail(
+                    "Trace mode requires debug mode to be enabled"
+                )
 
         if params.verbose is not None:
             object.__setattr__(config, "verbose", params.verbose)  # noqa: PLC2801
@@ -287,13 +290,13 @@ class FlextCliCommonParams:
     def _set_log_level(
         cls, config: FlextCliConfig, params: FlextCliModels.CliParamsConfig
     ) -> FlextResult[FlextCliConfig]:
-        """Set log_level with enum conversion."""
+        """Set cli_log_level with enum conversion."""
         if params.log_level is None:
             return FlextResult[FlextCliConfig].ok(config)
 
         normalized = params.log_level.upper()
         try:
-            config.log_level = FlextConstants.Settings.LogLevel(normalized)
+            config.cli_log_level = FlextConstants.Settings.LogLevel(normalized)
             return FlextResult[FlextCliConfig].ok(config)
         except ValueError:
             valid = FlextCliConstants.LOG_LEVELS_LIST
@@ -358,7 +361,7 @@ class FlextCliCommonParams:
         """
         err = FlextCliConstants.CliParamsErrorMessages
         try:
-            log_level_upper = config.log_level.upper()
+            log_level_upper = config.cli_log_level.value.upper()
 
             if log_level_upper not in FlextCliConstants.LOG_LEVELS_LIST:
                 valid = ", ".join(FlextCliConstants.LOG_LEVELS_LIST)
@@ -399,7 +402,7 @@ class FlextCliCommonParams:
                 name: str,
                 verbose: bool = FlextCliCommonParams.create_option("verbose"),
                 debug: bool = FlextCliCommonParams.create_option("debug"),
-                log_level: str = FlextCliCommonParams.create_option("log_level"),
+                log_level: str = FlextCliCommonParams.create_option("cli_log_level"),
                 output_format: str = FlextCliCommonParams.create_option(
                     "output_format"
                 ),

@@ -127,9 +127,17 @@ class TestFlextCliTables:
         self, tables: FlextCliTables, sample_list_data: list[list[object]]
     ) -> None:
         """Test table creation with custom headers."""
+        from typing import TYPE_CHECKING
+
+        if TYPE_CHECKING:
+            from typing import Any
+
         headers = ["Name", "Age", "City", "Salary"]
         config = FlextCliModels.TableConfig(headers=headers, table_format="simple")
-        result = tables.create_table(data=sample_list_data, config=config)
+        # Cast data to expected type for test
+        # Use Any to avoid complex type string parsing issues
+        typed_data: Any = sample_list_data
+        result = tables.create_table(data=typed_data, config=config)
 
         assert result.is_success
         table_str = result.unwrap()

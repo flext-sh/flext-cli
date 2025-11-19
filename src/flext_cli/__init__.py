@@ -118,7 +118,7 @@ from flext_core import FlextResult
 cli = FlextCli()
 
 # Get configuration
-config = FlextCliConfig.get_global_instance()
+config = FlextCliConfig.get_instance()
 print(f"Debug: {config.debug}, Format: {config.output_format}")
 
 # Authenticate

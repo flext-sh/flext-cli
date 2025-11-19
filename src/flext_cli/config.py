@@ -47,36 +47,57 @@ LogLevel = FlextConstants.Settings.LogLevel
 logger = FlextLogger(__name__)
 
 
-class FlextCliConfig(FlextConfig):
-    """Single flat Pydantic 2 Settings class for flext-cli extending FlextConfig.
+@FlextConfig.auto_register("cli")
+class FlextCliConfig(FlextConfig.AutoConfig):
+    """Single flat Pydantic 2 BaseModel class for flext-cli using AutoConfig pattern.
+
+    **ARCHITECTURAL PATTERN**: Zero-Boilerplate Auto-Registration
+
+    This class uses FlextConfig.AutoConfig for automatic:
+    - Singleton pattern (thread-safe)
+    - Namespace registration (accessible via config.cli)
+    - Test reset capability (_reset_instance)
 
     Implements FlextCliProtocols.CliConfigProvider through structural subtyping.
 
     Follows standardized pattern:
-    - Extends FlextConfig from flext-core directly (no nested classes)
+    - Extends FlextConfig.AutoConfig (BaseModel) for nested config pattern
     - Flat class structure with all fields at top level
     - All defaults from FlextCliConstants
     - SecretStr for sensitive data
-    - Uses FlextConfig features for configuration management
+    - Uses FlextConfig namespace features for configuration management
 
-    # Explicitly declare Pydantic methods for Pyrefly
-    def model_dump(self, **kwargs) -> FlextTypes.JsonDict: ...
-    def model_validate(self, obj: object, **kwargs) -> FlextCliConfig: ...
-    def model_copy(self, **kwargs) -> FlextCliConfig: ...
+    **Usage**:
+        # Get singleton instance
+        config = FlextCliConfig.get_instance()
+
+        # Or via FlextConfig namespace
+        from flext_core import FlextConfig
+        config = FlextConfig.get_global_instance()
+        cli_config = config.cli
+
     - Uses Python 3.13 + Pydantic 2 features
     """
 
     model_config = SettingsConfigDict(
         case_sensitive=False,
         extra="allow",
-        # Inherit enhanced Pydantic 2.11+ features from FlextConfig
+        # Pydantic Settings environment variable support
+        env_prefix="FLEXT_CLI_",
+        env_file=".env",
+        env_file_encoding="utf-8",
+        env_nested_delimiter="__",
+        # Inherit enhanced Pydantic 2.11+ features
         validate_assignment=True,
         str_strip_whitespace=True,
-        # Environment parsing configuration
-        env_parse_enums=True,
+        validate_default=True,
+        frozen=False,
+        arbitrary_types_allowed=True,
+        # Allow type coercion from environment variables (required for bool, int, etc.)
+        strict=False,
         json_schema_extra={
             FlextCliConstants.JsonSchemaKeys.TITLE: "FLEXT CLI Configuration",
-            FlextCliConstants.JsonSchemaKeys.DESCRIPTION: "Enterprise CLI configuration extending FlextConfig",
+            FlextCliConstants.JsonSchemaKeys.DESCRIPTION: "Enterprise CLI configuration using AutoConfig pattern",
         },
     )
 
@@ -139,22 +160,19 @@ class FlextCliConfig(FlextConfig):
     )
 
     # CLI behavior configuration (flattened from previous nested classes)
-    verbose: bool = Field(
-        default=FlextCliConstants.CliDefaults.DEFAULT_VERBOSE,
-        description="Enable verbose output",
-    )
+    # Core fields needed for CLI operations - using Pydantic Settings pattern
     debug: bool = Field(
-        default=FlextCliConstants.CliDefaults.DEFAULT_DEBUG,
+        default=False,
         description="Enable debug mode",
     )
-
     trace: bool = Field(
         default=False,
         description="Enable trace mode (requires debug=True)",
     )
-
-    # Inherited from FlextConfig - use parent's type
-    # log_level: FlextConstants.Settings.LogLevel (defined in parent class)
+    verbose: bool = Field(
+        default=FlextCliConstants.CliDefaults.DEFAULT_VERBOSE,
+        description="Enable verbose CLI output",
+    )
 
     version: str = Field(
         default=FlextCliConstants.CliDefaults.DEFAULT_VERSION,
@@ -214,6 +232,11 @@ class FlextCliConfig(FlextConfig):
     log_file: str | None = Field(
         default=None,
         description="Optional log file path for persistent logging",
+    )
+
+    console_enabled: bool = Field(
+        default=FlextConstants.Logging.CONSOLE_ENABLED,
+        description="Enable console logging output",
     )
 
     # Pydantic 2.11 model validator (runs after all field validators)
@@ -591,71 +614,6 @@ class FlextCliConfig(FlextConfig):
         except Exception as e:
             return FlextResult[bool].fail(
                 FlextCliConstants.ErrorMessages.CLI_ARGS_UPDATE_FAILED.format(error=e)
-            )
-
-    def merge_with_env(self) -> FlextResult[bool]:
-        """Re-load environment variables and merge with current config.
-
-        Useful when environment variables change during runtime.
-        Existing config values take precedence over environment variables.
-
-        Returns:
-            FlextResult[bool]: True if merge succeeded, failure on error
-
-        Example:
-            >>> config = FlextCliConfig()
-            >>> # Environment changes
-            >>> os.environ["FLEXT_CLI_PROFILE"] = "staging"
-            >>> result = config.merge_with_env()
-            >>> config.profile  # Will be "staging" if not already set
-
-        """
-        try:
-            # Get current config snapshot
-            # Convert Path objects to strings for JSON compatibility
-            config_dict = self.model_dump()
-            # Convert PosixPath to str for JSON serialization
-            for key, value in config_dict.items():
-                if isinstance(value, Path):
-                    config_dict[key] = str(value)
-
-            current_config = config_dict
-
-            # Read-only/computed fields that cannot be set (includes FlextConfig computed fields)
-            readonly_fields = {
-                "auto_output_format",
-                "auto_color_support",
-                "auto_verbosity",
-                "optimal_table_format",
-                "effective_log_level",
-                "effective_timeout",
-                "has_cache",
-                "has_database",
-                "is_debug_enabled",
-                "is_production",
-            }
-
-            # Create new instance from environment
-            env_config = FlextCliConfig()
-
-            # Merge: current config overrides env (skip read-only fields)
-            for key, value in current_config.items():
-                if key not in readonly_fields and value != getattr(
-                    self.__class__(), key, None
-                ):
-                    # Value was explicitly set, keep it
-                    setattr(env_config, key, value)
-
-            # Copy merged config back (skip read-only fields)
-            for key in current_config:
-                if key not in readonly_fields:
-                    setattr(self, key, getattr(env_config, key))
-
-            return FlextResult[bool].ok(True)
-
-        except Exception as e:
-            return FlextResult[bool].fail(
-                FlextCliConstants.ErrorMessages.ENV_MERGE_FAILED.format(error=e)
             )
 
     def validate_cli_overrides(

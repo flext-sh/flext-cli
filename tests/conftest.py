@@ -117,13 +117,16 @@ def flext_cli_api(
 
     def patched_config_init(self: FlextCliConfig, **kwargs: object) -> None:
         # Inject test paths if not explicitly provided
-        if "config_dir" not in kwargs:
-            kwargs["config_dir"] = test_dir
-        if "token_file" not in kwargs:
-            kwargs["token_file"] = test_dir / "token.json"
-        if "refresh_token_file" not in kwargs:
-            kwargs["refresh_token_file"] = test_dir / "refresh_token.json"
-        original_config_init(self, **kwargs)
+        # Type narrowing: convert kwargs to proper types
+        typed_kwargs: dict[str, object] = dict(kwargs)
+        if "config_dir" not in typed_kwargs:
+            typed_kwargs["config_dir"] = test_dir
+        if "token_file" not in typed_kwargs:
+            typed_kwargs["token_file"] = test_dir / "token.json"
+        if "refresh_token_file" not in typed_kwargs:
+            typed_kwargs["refresh_token_file"] = test_dir / "refresh_token.json"
+        # Call original with typed kwargs - Pydantic will validate
+        original_config_init(self, **typed_kwargs)  # type: ignore[arg-type]
 
     monkeypatch.setattr(FlextCliConfig, "__init__", patched_config_init)
 
@@ -341,6 +344,18 @@ def mock_env_vars(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setenv("FLEXT_PROFILE", "test")
     monkeypatch.setenv("FLEXT_TIMEOUT", "30")
     monkeypatch.setenv("FLEXT_RETRIES", "3")
+
+
+@pytest.fixture(autouse=True)
+def reset_singletons() -> Generator[None]:
+    """Reset all FlextConfig singletons between tests for isolation.
+
+    CRITICAL: This fixture runs automatically before EACH test to ensure
+    no state leaks between tests regardless of pytest-randomly order.
+    """
+    yield
+    # Reset after test to clean up any state
+    FlextCliConfig._reset_instance()
 
 
 @pytest.fixture
