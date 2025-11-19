@@ -26,9 +26,11 @@ class TestFlextCliMixinsBusinessRulesMixin:
             current_status="stopped", required_status="running", operation="migrate"
         )
         assert result.is_failure
-        assert "migrate" in result.error
-        assert "stopped" in result.error
-        assert "running" in result.error
+        # Type narrowing: when is_failure is True, error is guaranteed to be str
+        error_msg = result.error or ""
+        assert "migrate" in error_msg
+        assert "stopped" in error_msg
+        assert "running" in error_msg
 
     def test_validate_session_state_valid(self) -> None:
         """Test validate_session_state with valid state."""
@@ -43,62 +45,92 @@ class TestFlextCliMixinsBusinessRulesMixin:
             current_status="error", valid_states=["active", "idle"]
         )
         assert result.is_failure
-        assert "error" in result.error
-        assert "active" in result.error
-        assert "idle" in result.error
+        # Type narrowing: when is_failure is True, error is guaranteed to be str
+        error_msg = result.error or ""
+        assert "error" in error_msg
+        assert "active" in error_msg
+        assert "idle" in error_msg
 
     def test_validate_pipeline_step_valid(self) -> None:
         """Test validate_pipeline_step with valid step."""
+        from typing import cast
         step = {"name": "migration", "type": "batch"}
-        result = FlextCliMixins.BusinessRulesMixin.validate_pipeline_step(step)
+        # Cast to expected type for test
+        step_typed = cast("dict[str, str | int | float | bool | dict[str, object] | list[object] | None]", step)
+        result = FlextCliMixins.BusinessRulesMixin.validate_pipeline_step(step_typed)
         assert result.is_success
 
     def test_validate_pipeline_step_empty(self) -> None:
         """Test validate_pipeline_step with empty step."""
         result = FlextCliMixins.BusinessRulesMixin.validate_pipeline_step(None)
         assert result.is_failure
-        assert "empty" in result.error.lower()
+        # Type narrowing: when is_failure is True, error is guaranteed to be str
+        error_msg = result.error or ""
+        assert "empty" in error_msg.lower()
 
     def test_validate_pipeline_step_no_name(self) -> None:
         """Test validate_pipeline_step without name field."""
+        from typing import cast
         step = {"type": "batch", "config": {}}
-        result = FlextCliMixins.BusinessRulesMixin.validate_pipeline_step(step)
+        # Cast to expected type for test
+        step_typed = cast("dict[str, str | int | float | bool | dict[str, object] | list[object] | None]", step)
+        result = FlextCliMixins.BusinessRulesMixin.validate_pipeline_step(step_typed)
         assert result.is_failure
-        assert "name" in result.error.lower()
+        # Type narrowing: when is_failure is True, error is guaranteed to be str
+        error_msg = result.error or ""
+        assert "name" in error_msg.lower()
 
     def test_validate_pipeline_step_name_empty(self) -> None:
         """Test validate_pipeline_step with empty name."""
+        from typing import cast
         step = {"name": "", "type": "batch"}
-        result = FlextCliMixins.BusinessRulesMixin.validate_pipeline_step(step)
+        # Cast to expected type for test
+        step_typed = cast("dict[str, str | int | float | bool | dict[str, object] | list[object] | None]", step)
+        result = FlextCliMixins.BusinessRulesMixin.validate_pipeline_step(step_typed)
         assert result.is_failure
-        assert "name" in result.error.lower()
+        # Type narrowing: when is_failure is True, error is guaranteed to be str
+        error_msg = result.error or ""
+        assert "name" in error_msg.lower()
 
     def test_validate_pipeline_step_name_whitespace(self) -> None:
         """Test validate_pipeline_step with whitespace-only name."""
+        from typing import cast
         step = {"name": "   ", "type": "batch"}
-        result = FlextCliMixins.BusinessRulesMixin.validate_pipeline_step(step)
+        # Cast to expected type for test
+        step_typed = cast("dict[str, str | int | float | bool | dict[str, object] | list[object] | None]", step)
+        result = FlextCliMixins.BusinessRulesMixin.validate_pipeline_step(step_typed)
         assert result.is_failure
-        assert "name" in result.error.lower()
+        # Type narrowing: when is_failure is True, error is guaranteed to be str
+        error_msg = result.error or ""
+        assert "name" in error_msg.lower()
 
     def test_validate_configuration_consistency_valid(self) -> None:
         """Test validate_configuration_consistency with valid config."""
+        from typing import cast
         config = {"field1": "value1", "field2": "value2"}
+        # Cast to expected type for test
+        config_typed = cast("dict[str, str | int | float | bool | dict[str, object] | list[object] | None]", config)
         required_fields = ["field1", "field2"]
         result = FlextCliMixins.BusinessRulesMixin.validate_configuration_consistency(
-            config, required_fields
+            config_typed, required_fields
         )
         assert result.is_success
 
     def test_validate_configuration_consistency_missing_fields(self) -> None:
         """Test validate_configuration_consistency with missing fields."""
+        from typing import cast
         config = {"field1": "value1"}
+        # Cast to expected type for test
+        config_typed = cast("dict[str, str | int | float | bool | dict[str, object] | list[object] | None]", config)
         required_fields = ["field1", "field2", "field3"]
         result = FlextCliMixins.BusinessRulesMixin.validate_configuration_consistency(
-            config, required_fields
+            config_typed, required_fields
         )
         assert result.is_failure
-        assert "field2" in result.error
-        assert "field3" in result.error
+        # Type narrowing: when is_failure is True, error is guaranteed to be str
+        error_msg = result.error or ""
+        assert "field2" in error_msg
+        assert "field3" in error_msg
 
     def test_validate_configuration_consistency_none_config(self) -> None:
         """Test validate_configuration_consistency with None config."""
@@ -128,8 +160,10 @@ class TestFlextCliMixinsCliCommandMixin:
 
         assert result.is_success
         data = result.unwrap()
-        assert data["result"] == "success"
-        assert data["test_param"] == "test_value"
+        # Type narrowing: unwrap returns dict when successful
+        assert isinstance(data, dict)
+        assert data.get("result") == "success"
+        assert data.get("test_param") == "test_value"
 
     def test_execute_with_cli_context_failure(self) -> None:
         """Test execute_with_cli_context with failing handler."""

@@ -287,7 +287,7 @@ class FlextCliCli:
                 log_level_value = logging.DEBUG  # 10
             else:
                 # Convert LogLevel enum string to logging int
-                log_level_name = config.log_level.value  # "INFO", "DEBUG", etc.
+                log_level_name = config.cli_log_level.value  # "INFO", "DEBUG", etc.
                 log_level_value = getattr(logging, log_level_name, logging.INFO)
 
             # Force reconfiguration (bypasses is_configured() guards)

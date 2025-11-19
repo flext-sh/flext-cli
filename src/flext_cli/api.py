@@ -14,6 +14,7 @@ from __future__ import annotations
 import secrets
 import typing
 from collections.abc import Callable, Sequence
+from datetime import UTC, datetime
 
 from flext_core import (
     FlextContainer,
@@ -22,6 +23,7 @@ from flext_core import (
     FlextTypes,
 )
 
+from flext_cli.__version__ import __version__
 from flext_cli.cli import FlextCliCli
 from flext_cli.cmd import FlextCliCmd
 from flext_cli.config import FlextCliConfig
@@ -107,7 +109,15 @@ class FlextCli:
         self._plugin_commands: dict[str, Callable[..., FlextTypes.JsonValue]] = {}
 
         # Auth state (consolidated from FlextCliAuth)
-        self.config = FlextCliConfig()
+        # Use new config pattern with automatic namespaces
+        # Import ensures auto_register decorator executes
+
+        # Pydantic Settings pattern: AutoConfig.__init__() automatically loads from:
+        # 1. Environment variables (FLEXT_CLI_* prefix from model_config)
+        # 2. .env file (if exists, via env_file in model_config)
+        # 3. Field defaults
+        # No workarounds needed - Pydantic Settings handles everything automatically
+        self.config = FlextCliConfig.get_instance()
         self._valid_tokens: set[str] = set()
         self._valid_sessions: set[str] = set()
         self._session_permissions: dict[str, set[str]] = {}
@@ -378,6 +388,14 @@ class FlextCli:
         return FlextResult[FlextTypes.JsonDict].ok({
             FlextCliConstants.DictKeys.STATUS: FlextCliConstants.ServiceStatus.OPERATIONAL.value,
             FlextCliConstants.DictKeys.SERVICE: FlextCliConstants.FLEXT_CLI,
+            "timestamp": datetime.now(UTC).isoformat(),
+            "version": __version__,
+            "components": {
+                "config": "available",
+                "formatters": "available",
+                "core": "available",
+                "prompts": "available",
+            },
         })
 
     # =========================================================================

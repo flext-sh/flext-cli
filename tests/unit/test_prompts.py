@@ -621,7 +621,9 @@ class TestFlextCliPrompts:
 
         # Replace _prompt_history with error-raising list
         # Use setattr directly - necessary to bypass Pydantic validation in tests
-        prompts._prompt_history = ErrorList()
+        # Cast to list[str] for type compatibility
+        from typing import cast
+        prompts._prompt_history = cast("list[str]", ErrorList())
 
         # Now prompt_choice should catch the exception
         choices = ["option1", "option2"]
@@ -925,7 +927,7 @@ class TestFlextCliPrompts:
 
         # Create a custom prompts class that raises exception
         class BadPrompts(FlextCliPrompts):
-            def execute(self) -> FlextResult[FlextCliTypes.Data.CliDataDict]:
+            def execute(self, **kwargs: object) -> FlextResult[FlextCliTypes.Data.CliDataDict]:
                 try:
                     msg = "Execute failed"
                     raise RuntimeError(msg)

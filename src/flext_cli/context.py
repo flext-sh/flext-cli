@@ -13,10 +13,9 @@ from __future__ import annotations
 import typing
 import uuid
 
-from flext_core import FlextResult, FlextService, FlextTypes
+from flext_core import FlextConfig, FlextResult, FlextService, FlextTypes
 from pydantic import Field
 
-from flext_cli.config import FlextCliConfig
 from flext_cli.constants import FlextCliConstants
 from flext_cli.models import FlextCliModels
 from flext_cli.typings import FlextCliTypes
@@ -107,7 +106,10 @@ class FlextCliContext(FlextService[FlextCliTypes.Data.CliDataDict]):
         # Context state
         self.is_active = False
         self.created_at = FlextCliUtilities.Generators.generate_iso_timestamp()
-        self.timeout_seconds = int(FlextCliConfig.get_global_instance().timeout_seconds)
+        # Get timeout_seconds from FlextConfig base (not FlextCliConfig)
+        global_config = FlextConfig.get_global_instance()
+        # timeout_seconds is float in FlextConfig, convert to int for context
+        self.timeout_seconds = int(global_config.timeout_seconds)
 
     def activate(self) -> FlextResult[bool]:
         """Activate CLI context for execution.
@@ -161,7 +163,7 @@ class FlextCliContext(FlextService[FlextCliTypes.Data.CliDataDict]):
             FlextCliConstants.ContextErrorMessages.VARIABLE_NAME_MUST_BE_STRING,
         )
         if validation_result.is_failure:
-            return FlextResult[str].fail(validation_result.error)
+            return FlextResult[str].fail(validation_result.error or "Environment variable validation failed")
 
         # Fast-fail if environment_variables is None
         if self.environment_variables is None:
@@ -198,7 +200,7 @@ class FlextCliContext(FlextService[FlextCliTypes.Data.CliDataDict]):
             FlextCliConstants.ContextErrorMessages.VARIABLE_NAME_MUST_BE_STRING,
         )
         if validation_result.is_failure:
-            return FlextResult[bool].fail(validation_result.error)
+            return FlextResult[bool].fail(validation_result.error or "Environment variable setting failed")
 
         if not isinstance(value, str):
             return FlextResult[bool].fail(
@@ -234,7 +236,7 @@ class FlextCliContext(FlextService[FlextCliTypes.Data.CliDataDict]):
             FlextCliConstants.ContextErrorMessages.ARGUMENT_MUST_BE_STRING,
         )
         if validation_result.is_failure:
-            return FlextResult[bool].fail(validation_result.error)
+            return FlextResult[bool].fail(validation_result.error or "Validation failed")
 
         # Fast-fail if arguments is None
         if self.arguments is None:
@@ -265,7 +267,7 @@ class FlextCliContext(FlextService[FlextCliTypes.Data.CliDataDict]):
             FlextCliConstants.ContextErrorMessages.ARGUMENT_MUST_BE_STRING,
         )
         if validation_result.is_failure:
-            return FlextResult[bool].fail(validation_result.error)
+            return FlextResult[bool].fail(validation_result.error or "Validation failed")
 
         # Fast-fail if arguments is None
         if self.arguments is None:
@@ -302,7 +304,7 @@ class FlextCliContext(FlextService[FlextCliTypes.Data.CliDataDict]):
             FlextCliConstants.ContextErrorMessages.METADATA_KEY_MUST_BE_STRING,
         )
         if validation_result.is_failure:
-            return FlextResult[bool].fail(validation_result.error)
+            return FlextResult[bool].fail(validation_result.error or "Validation failed")
 
         try:
             self.context_metadata[key] = value
@@ -322,7 +324,7 @@ class FlextCliContext(FlextService[FlextCliTypes.Data.CliDataDict]):
             FlextCliConstants.ContextErrorMessages.METADATA_KEY_MUST_BE_STRING,
         )
         if validation_result.is_failure:
-            return FlextResult[FlextTypes.JsonValue].fail(validation_result.error)
+            return FlextResult[FlextTypes.JsonValue].fail(validation_result.error or "Metadata validation failed")
 
         try:
             if key in self.context_metadata:

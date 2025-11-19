@@ -1716,7 +1716,8 @@ class TestFlextCliModelsExceptionHandlers:
         # Create a field that will cause validation to fail
         # We need to make _validate_field_data return failure
         # This is tricky without mocking, but we can use an invalid field configuration
-        field_info = Field(annotation=str, description="Test field")
+        # Pydantic v2: Field() doesn't take annotation parameter (use type hints instead)
+        field_info = Field(description="Test field", json_schema_extra={"type": "string"})
 
         # Make _validate_field_data return failure by using invalid data structure
         # Actually, we need to trigger this through the normal flow

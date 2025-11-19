@@ -841,6 +841,11 @@ nested:
         Real scenario: Tests actual file not found error without mocks.
         Note: api_service fixture already isolates config to a clean tmp directory.
         """
+        # Explicitly ensure token file doesn't exist (test isolation)
+        # Previous tests might have created it
+        if api_service.config.token_file.exists():
+            api_service.config.token_file.unlink()
+
         # api_service is already configured with tmp paths that don't have files
         # Just call get_auth_token - should fail with file not found
         result = api_service.get_auth_token()
