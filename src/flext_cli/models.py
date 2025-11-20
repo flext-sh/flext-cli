@@ -18,8 +18,9 @@ import inspect
 import types
 import typing
 from collections.abc import Callable
-from datetime import UTC, datetime
-from typing import Annotated, Self, cast, get_args, get_origin, get_type_hints
+from datetime import datetime
+from types import UnionType
+from typing import Annotated, Self, Union, cast, get_args, get_origin, get_type_hints
 
 import typer
 from flext_core import (
@@ -27,7 +28,9 @@ from flext_core import (
     FlextLogger,
     FlextModels,
     FlextResult,
+    FlextRuntime,
     FlextTypes,
+    FlextUtilities,
 )
 from pydantic import (
     BaseModel,
@@ -43,7 +46,7 @@ from pydantic import (
 from pydantic_core import PydanticUndefined
 from typer.models import OptionInfo
 
-from flext_cli._models_config import ConfigServiceExecutionResult
+# ConfigServiceExecutionResult defined below to avoid circular dependency
 from flext_cli.config import FlextCliConfig
 from flext_cli.constants import FlextCliConstants
 from flext_cli.mixins import FlextCliMixins
@@ -293,7 +296,9 @@ class FlextCliModels(FlextModels):
             )
 
         @staticmethod
-        def pydantic_type_to_python_type(field_type: type) -> type:
+        def pydantic_type_to_python_type(  # noqa: C901
+            field_type: type | UnionType,
+        ) -> type[str | int | float | bool | list[object] | dict[str, object]]:
             """Convert Pydantic field type to Python native type.
 
             Handles Optional, Union, List, Dict, and complex Pydantic types,
@@ -303,12 +308,12 @@ class FlextCliModels(FlextModels):
                 field_type: Pydantic field type annotation
 
             Returns:
-                type: Python native type for CLI usage
+                Python native type for CLI usage (str, int, float, bool, list, or dict)
 
             """
             # Handle Optional types (Union with None)
             origin = get_origin(field_type)
-            if origin is type(int | None):  # Union type check
+            if origin is Union or origin is UnionType:
                 args = get_args(field_type)
                 if args:
                     # Get first non-None type
@@ -326,8 +331,14 @@ class FlextCliModels(FlextModels):
                 return dict
 
             # Native types pass through
-            if field_type in {str, int, float, bool}:
-                return field_type
+            if field_type is str:
+                return str
+            if field_type is int:
+                return int
+            if field_type is float:
+                return float
+            if field_type is bool:
+                return bool
 
             # Default to str for complex types
             return str
@@ -461,51 +472,59 @@ class FlextCliModels(FlextModels):
             if not isinstance(python_type, type):
                 return FlextResult[FieldValidationResult].fail(
                     f"Invalid python_type for field {field_name}: "
-                    f"expected type, got {type(python_type)}"
+                    f"expected type, got {type(python_type).__name__}"
                 )
 
             click_type = data["click_type"]
             if not isinstance(click_type, str):
                 return FlextResult[FieldValidationResult].fail(
                     f"Invalid click_type for field {field_name}: "
-                    f"expected str, got {type(click_type)}"
+                    f"expected str, got {type(click_type).__name__}"
                 )
 
             is_required = data["is_required"]
             if not isinstance(is_required, bool):
                 return FlextResult[FieldValidationResult].fail(
                     f"Invalid is_required for field {field_name}: "
-                    f"expected bool, got {type(is_required)}"
+                    f"expected bool, got {type(is_required).__name__}"
                 )
 
             description = data["description"]
             if not isinstance(description, str):
                 return FlextResult[FieldValidationResult].fail(
                     f"Invalid description for field {field_name}: "
-                    f"expected str, got {type(description)}"
+                    f"expected str, got {type(description).__name__}"
                 )
 
             validators_raw = data["validators"]
-            if not isinstance(validators_raw, list):
+            if not FlextRuntime.is_list_like(validators_raw):
                 return FlextResult[FieldValidationResult].fail(
                     f"Invalid validators for field {field_name}: "
-                    f"expected list, got {type(validators_raw)}"
+                    f"expected list, got {type(validators_raw).__name__}"
                 )
 
             metadata_raw = data["metadata"]
-            if not isinstance(metadata_raw, dict):
+            if not FlextRuntime.is_dict_like(metadata_raw):
                 return FlextResult[FieldValidationResult].fail(
                     f"Invalid metadata for field {field_name}: "
-                    f"expected dict, got {type(metadata_raw)}"
+                    f"expected dict, got {type(metadata_raw).__name__}"
                 )
 
-            # Type cast to ensure correct types
-            # validators_raw is already validated as list, cast to correct type
+            # Type narrowing: validators_raw is already validated as list[Callable[...]]
+            # Cast to ensure type checker understands the narrowed type
+            validators_list: list[object] = list(validators_raw)
             validators: list[Callable[[FlextTypes.JsonValue], FlextTypes.JsonValue]] = (
-                validators_raw  # type: ignore[assignment]
+                cast(
+                    "list[Callable[[FlextTypes.JsonValue], FlextTypes.JsonValue]]",
+                    validators_list,
+                )
             )
-            # metadata_raw is already validated as dict, cast to correct type
-            metadata: dict[str, FlextTypes.JsonValue] = metadata_raw  # type: ignore[assignment]
+            # Type narrowing: metadata_raw is already validated as dict[str, JsonValue]
+            # Cast to ensure type checker understands the narrowed type
+            metadata_dict: dict[str, object] = dict(metadata_raw)
+            metadata: dict[str, FlextTypes.JsonValue] = cast(
+                "dict[str, FlextTypes.JsonValue]", metadata_dict
+            )
 
             return FlextResult[FieldValidationResult].ok((
                 python_type,
@@ -542,7 +561,11 @@ class FlextCliModels(FlextModels):
                 key: value
                 for key, value in metadata_raw.items()
                 if isinstance(key, str)
-                and isinstance(value, (str, int, float, bool, dict, list, type(None)))
+                and (
+                    isinstance(value, (str, int, float, bool, type(None)))
+                    or FlextRuntime.is_dict_like(value)
+                    or FlextRuntime.is_list_like(value)
+                )
             }
 
         @staticmethod
@@ -553,8 +576,10 @@ class FlextCliModels(FlextModels):
             # Extract and type-narrow default value
             default_value_raw = data["default_value"]
             default_value: FlextTypes.JsonValue | None = None
-            if default_value_raw is not None and isinstance(
-                default_value_raw, (str, int, float, bool, dict, list, type(None))
+            if default_value_raw is not None and (
+                isinstance(default_value_raw, (str, int, float, bool, type(None)))
+                or FlextRuntime.is_dict_like(default_value_raw)
+                or FlextRuntime.is_list_like(default_value_raw)
             ):
                 default_value = typing.cast("FlextTypes.JsonValue", default_value_raw)
 
@@ -1176,11 +1201,6 @@ class FlextCliModels(FlextModels):
                 - Uses FLEXT patterns (no Python logging import)
 
             """
-            # Import here to avoid circular imports
-            from flext_core.loggings import FlextLogger
-
-            from flext_cli.cli_params import FlextCliCommonParams
-
             # Filter out None values (params not provided via CLI)
             # Type guard: ensure config is not None
             if self.config is None:
@@ -1193,9 +1213,11 @@ class FlextCliModels(FlextModels):
 
             # ✅ FILTER: Only apply params that exist in config
             # Config may not have all common params (e.g., quiet)
+            # Use class model_fields, not instance (Pydantic v2 pattern)
             config_fields = (
-                set(self.config.model_fields.keys())
-                if hasattr(self.config, "model_fields")
+                set(self.config.__class__.model_fields.keys())
+                if hasattr(self.config, "__class__")
+                and hasattr(self.config.__class__, "model_fields")
                 else set()
             )
             filtered_params = {
@@ -1205,9 +1227,39 @@ class FlextCliModels(FlextModels):
             if not filtered_params:
                 return
 
+            # Build CliParamsConfig from filtered params
+            # Map field names to CliParamsConfig field names
+            cli_params_dict: dict[str, FlextTypes.JsonValue] = {}
+            for key, value in filtered_params.items():
+                # Map cli_log_level to log_level for CliParamsConfig
+                if key == "cli_log_level":
+                    mapped_value: FlextTypes.JsonValue = (
+                        value.value if hasattr(value, "value") else str(value)
+                    )
+                    cli_params_dict["log_level"] = mapped_value
+                # Map log_verbosity to log_format for CliParamsConfig
+                elif key == "log_verbosity":
+                    mapped_value = (
+                        value.value if hasattr(value, "value") else str(value)
+                    )
+                    cli_params_dict["log_format"] = mapped_value
+                else:
+                    # Type narrow: value is already JsonValue compatible from filtered_params
+                    mapped_value = typing.cast("FlextTypes.JsonValue", value)
+                    cli_params_dict[key] = mapped_value
+
+            # Build CliParamsConfig model
+            try:
+                params_model = FlextCliModels.CliParamsConfig(**cli_params_dict)
+            except Exception as e:
+                FlextLogger.get_logger().warning(
+                    f"Failed to build CliParamsConfig: {e}"
+                )
+                return
+
             # Apply to config (validates and updates)
             result = FlextCliCommonParams.apply_to_config(
-                self.config, **cast("dict[str, typing.Any]", filtered_params)
+                self.config, params=params_model
             )
 
             if result.is_failure:
@@ -1219,17 +1271,15 @@ class FlextCliModels(FlextModels):
 
             # ✅ RECONFIGURE: Logger with new config values
             # Use reconfigure_structlog() to bypass guards and force CLI override
-            import logging
-
-            from flext_core.runtime import FlextRuntime
-
             # Determine effective log level from config (convert LogLevel enum to logging int)
             if self.config.debug or self.config.trace:
                 # Debug/trace mode forces DEBUG level
                 log_level_value = logging.DEBUG  # 10
             else:
                 # Use configured log level enum value (convert string to int)
-                log_level_name = self.config.cli_log_level.value  # "INFO", "DEBUG", etc.
+                log_level_name = (
+                    self.config.cli_log_level.value
+                )  # "INFO", "DEBUG", etc.
                 log_level_value = getattr(logging, log_level_name, logging.INFO)
 
             # Force reconfiguration (bypasses is_configured() guards)
@@ -1300,7 +1350,11 @@ class FlextCliModels(FlextModels):
                 return FlextResult[FlextTypes.JsonValue].fail("No config value")
 
             value = getattr(self.config, field_name)
-            if isinstance(value, (str, int, float, bool, list, dict, type(None))):
+            if (
+                isinstance(value, (str, int, float, bool, type(None)))
+                or FlextRuntime.is_dict_like(value)
+                or FlextRuntime.is_list_like(value)
+            ):
                 return FlextResult[FlextTypes.JsonValue].ok(value)
             return FlextResult[FlextTypes.JsonValue].ok(str(value))
 
@@ -1314,7 +1368,11 @@ class FlextCliModels(FlextModels):
             default = field_info.default
             if default is None:
                 return FlextResult[FlextTypes.JsonValue].fail("Field default is None")
-            if isinstance(default, (str, int, float, bool, list, dict)):
+            if (
+                isinstance(default, (str, int, float, bool))
+                or FlextRuntime.is_dict_like(default)
+                or FlextRuntime.is_list_like(default)
+            ):
                 return FlextResult[FlextTypes.JsonValue].ok(default)
             return FlextResult[FlextTypes.JsonValue].ok(str(default))
 
@@ -1517,7 +1575,7 @@ class FlextCliModels(FlextModels):
                 )
 
                 # ✅ APPLY: Update config and reconfigure logger if CLI params present
-                if self.config and common_params:
+                if self.config is not None and common_params:
                     self._apply_common_params_to_config(common_params)
 
                 # ✅ VALIDATE: Build model arguments (filter None values)
@@ -1528,7 +1586,7 @@ class FlextCliModels(FlextModels):
 
                 # ✅ EXECUTE: Create model instance and call handler
                 model_instance = model_class(**model_args)
-                handler(model_instance)
+                _ = handler(model_instance)  # Result intentionally unused
 
             # Assign signature to function for Typer introspection
             # Set signature directly - all callables support __signature__ attribute
@@ -1749,7 +1807,7 @@ class FlextCliModels(FlextModels):
             # Add choices to help text
             if reg.KEY_CHOICES in self.param_meta:
                 choices = self.param_meta[reg.KEY_CHOICES]
-                if isinstance(choices, (list, tuple)):
+                if isinstance(choices, tuple) or FlextRuntime.is_list_like(choices):
                     choices_str = ", ".join(str(c) for c in choices)
                     help_text += defs.CHOICES_HELP_SUFFIX.format(
                         choices_str=choices_str
@@ -1935,8 +1993,8 @@ class FlextCliModels(FlextModels):
 
             return self
 
-        @field_serializer("command_line")  # type: ignore[type-var]
-        def serialize_command_line(self, value: str, _info: fields.FieldInfo) -> str:
+        @field_serializer("command_line")
+        def serialize_command_line(self, value: str) -> str:
             """Serialize command line with safety checks for sensitive commands."""
             # Mask potentially sensitive command parts
             sensitive_patterns = [
@@ -1967,7 +2025,7 @@ class FlextCliModels(FlextModels):
 
             """
             # Extract command from data - ensure it's a string
-            if not isinstance(data, dict):
+            if not FlextRuntime.is_dict_like(data):
                 return FlextResult[FlextCliTypes.Data.CliCommandData].fail(
                     FlextCliConstants.ModelsErrorMessages.COMMAND_DATA_MUST_BE_DICT
                 )
@@ -1992,14 +2050,18 @@ class FlextCliModels(FlextModels):
             }
             # Add execution_time if present and valid
             exec_time = data.get("execution_time")
-            if exec_time is not None and isinstance(
-                exec_time, (str, int, float, bool, dict, list, type(None))
+            if exec_time is not None and (
+                isinstance(exec_time, (str, int, float, bool, type(None)))
+                or FlextRuntime.is_dict_like(exec_time)
+                or FlextRuntime.is_list_like(exec_time)
             ):
                 normalized_data["execution_time"] = exec_time
             # Add other fields that are JsonValue compatible
             for k, v in data.items():
-                if k not in {"command", "execution_time"} and isinstance(
-                    v, (str, int, float, bool, dict, list, type(None))
+                if k not in {"command", "execution_time"} and (
+                    isinstance(v, (str, int, float, bool, type(None)))
+                    or FlextRuntime.is_dict_like(v)
+                    or FlextRuntime.is_list_like(v)
                 ):
                     normalized_data[k] = v
 
@@ -2052,13 +2114,12 @@ class FlextCliModels(FlextModels):
 
         @classmethod
         def __init_subclass__(cls, **kwargs: object) -> None:
-            """Automatically rebuild model for forward references in Pydantic v2."""
+            """Initialize subclass following Pydantic v2 patterns."""
             # BaseModel.__init_subclass__ accepts keyword arguments but mypy strict doesn't recognize it
             # This is a known limitation - BaseModel.__init_subclass__ does accept **kwargs
             # We need to call it without **kwargs to satisfy mypy, but Pydantic accepts it at runtime
             super().__init_subclass__()
-            if hasattr(cls, "model_rebuild"):
-                cls.model_rebuild()
+            # Pydantic v2 handles forward references automatically, no model_rebuild needed
 
     class CliSession(
         FlextModels.Entity,
@@ -2081,7 +2142,7 @@ class FlextCliModels(FlextModels):
         session_id: Annotated[
             str, StringConstraints(min_length=1, strip_whitespace=True)
         ] = Field(
-            default_factory=lambda: f"{FlextCliConstants.CliSessionDefaults.SESSION_ID_PREFIX}{datetime.now(UTC).strftime(FlextCliConstants.CliSessionDefaults.DATETIME_FORMAT)}",
+            default_factory=lambda: f"{FlextCliConstants.CliSessionDefaults.SESSION_ID_PREFIX}{FlextUtilities.Generators.generate_iso_timestamp().replace(':', '').replace('-', '').replace('T', '_').split('.')[0]}",
             description=FlextCliConstants.CliSessionDescriptions.SESSION_ID,
             examples=["session_20250113_143022_123456"],
         )
@@ -2190,9 +2251,9 @@ class FlextCliModels(FlextModels):
 
             return self
 
-        @field_serializer("commands")  # type: ignore[type-var]
+        @field_serializer("commands")
         def serialize_commands(
-            self, value: list[FlextCliModels.CliCommand], _info: fields.FieldInfo
+            self, value: list[FlextCliModels.CliCommand]
         ) -> list[FlextTypes.JsonDict]:
             """Serialize commands with summary information."""
             return [
@@ -2212,7 +2273,12 @@ class FlextCliModels(FlextModels):
                 return None
             try:
                 last_time = datetime.fromisoformat(self.last_activity)
-                return (datetime.now(UTC) - last_time).total_seconds()
+                return (
+                    datetime.fromisoformat(
+                        FlextUtilities.Generators.generate_iso_timestamp()
+                    )
+                    - last_time
+                ).total_seconds()
             except (ValueError, AttributeError):
                 return None
 
@@ -2259,7 +2325,9 @@ class FlextCliModels(FlextModels):
             description=FlextCliConstants.DebugInfoDescriptions.STATUS,
         )
         timestamp: datetime = Field(
-            default_factory=lambda: datetime.now(UTC),
+            default_factory=lambda: datetime.fromisoformat(
+                FlextUtilities.Generators.generate_iso_timestamp()
+            ),
             description=FlextCliConstants.DebugInfoDescriptions.TIMESTAMP,
         )
         system_info: dict[str, str] = Field(
@@ -2326,7 +2394,12 @@ class FlextCliModels(FlextModels):
         @computed_field
         def age_seconds(self) -> float:
             """Age of debug info in seconds since capture."""
-            return (datetime.now(UTC) - self.timestamp).total_seconds()
+            return (
+                datetime.fromisoformat(
+                    FlextUtilities.Generators.generate_iso_timestamp()
+                )
+                - self.timestamp
+            ).total_seconds()
 
         @computed_field
         def debug_summary(self) -> FlextCliModels.CliDebugData:
@@ -2341,7 +2414,10 @@ class FlextCliModels(FlextModels):
                 + len(self.config_info),  # Compute directly
                 message_length=len(self.message),
                 age_seconds=(
-                    datetime.now(UTC) - self.timestamp
+                    datetime.fromisoformat(
+                        FlextUtilities.Generators.generate_iso_timestamp()
+                    )
+                    - self.timestamp
                 ).total_seconds(),  # Compute directly
             )
 
@@ -2360,10 +2436,8 @@ class FlextCliModels(FlextModels):
                 )
             return self
 
-        @field_serializer("system_info", "config_info")  # type: ignore[type-var]
-        def serialize_sensitive_info(
-            self, value: dict[str, str], _info: fields.FieldInfo
-        ) -> dict[str, str]:
+        @field_serializer("system_info", "config_info")
+        def serialize_sensitive_info(self, value: dict[str, str]) -> dict[str, str]:
             """Serialize system/config info masking sensitive values."""
             sensitive_keys = {
                 FlextCliConstants.DictKeys.PASSWORD,
@@ -2652,14 +2726,19 @@ class FlextCliModels(FlextModels):
             value: object = getattr(config, field_name)
             # Special handling for cli_log_level (convert enum to string)
             if field_name == "cli_log_level" and value is not None:
-                return value.value if hasattr(value, "value") else str(value)
+                # Type narrowing: check if it's an enum-like object with .value
+                if isinstance(value, type) or not hasattr(value, "value"):
+                    return str(value)
+                # Type narrowing: value has .value attribute (enum-like)
+                enum_value = getattr(value, "value", None)
+                return enum_value if enum_value is not None else str(value)
             # Type narrowing: config values should be JsonValue compatible
             if isinstance(value, (str, int, float, bool, type(None))):
                 return value
-            if isinstance(value, dict):
+            if FlextRuntime.is_dict_like(value):
                 # dict[str, object] is compatible with JsonDict
                 return value
-            if isinstance(value, list):
+            if FlextRuntime.is_list_like(value):
                 # list[object] is compatible with JsonValue
                 return value
             # Convert to string for unknown types (ensures JsonValue compatibility)
@@ -2686,7 +2765,7 @@ class FlextCliModels(FlextModels):
             if available. This ensures Config values are used instead of requiring
             explicit values to be passed.
             """
-            if not isinstance(data, dict):
+            if not FlextRuntime.is_dict_like(data):
                 # Convert non-dict to dict for Pydantic validation
                 return {} if data is None else {"_data": data}
 
@@ -2706,8 +2785,19 @@ class FlextCliModels(FlextModels):
             # Map cli_log_level from config to log_level in CliParamsConfig
             if result.get("log_level") is None and hasattr(config, "cli_log_level"):
                 cli_log_level_value = config.cli_log_level
+                # Type narrowing: check if it's an enum-like object
                 if cli_log_level_value is not None:
-                    result["log_level"] = cli_log_level_value.value if hasattr(cli_log_level_value, "value") else str(cli_log_level_value)
+                    if isinstance(cli_log_level_value, type):
+                        result["log_level"] = str(cli_log_level_value)
+                    elif hasattr(cli_log_level_value, "value"):
+                        enum_value = getattr(cli_log_level_value, "value", None)
+                        result["log_level"] = (
+                            enum_value
+                            if enum_value is not None
+                            else str(cli_log_level_value)
+                        )
+                    else:
+                        result["log_level"] = str(cli_log_level_value)
             # Special handling for log_format (maps to log_verbosity in config)
             if result.get("log_format") is None and hasattr(config, "log_verbosity"):
                 result["log_format"] = config.log_verbosity
@@ -2720,23 +2810,23 @@ class FlextCliModels(FlextModels):
     # AUTH MODELS - Pydantic 2 validation replacing manual checks
     # =========================================================================
 
-    class TokenData(BaseModel):
+    class TokenData(FlextModels.ArbitraryTypesModel):
         """Token data with Pydantic 2 validation - replaces manual validation.
 
         REFACTORED: Removed redundant validate_token_not_empty validator.
         StringConstraints(min_length=1, strip_whitespace=True) already ensures non-empty tokens.
+        Extends FlextModels.ArbitraryTypesModel for ecosystem consistency.
         """
-
-        model_config = ConfigDict(frozen=False, validate_assignment=True)
 
         token: Annotated[
             str, StringConstraints(min_length=1, strip_whitespace=True)
         ] = Field(description="Authentication token")
 
-    class PasswordAuth(BaseModel):
-        """Password authentication with Pydantic 2 validation - replaces manual checks."""
+    class PasswordAuth(FlextModels.ArbitraryTypesModel):
+        """Password authentication with Pydantic 2 validation - replaces manual checks.
 
-        model_config = ConfigDict(frozen=False, validate_assignment=True)
+        Extends FlextModels.ArbitraryTypesModel for ecosystem consistency.
+        """
 
         username: Annotated[
             str,
@@ -2753,10 +2843,11 @@ class FlextCliModels(FlextModels):
             ),
         ] = Field(description="Password for authentication")
 
-    class CmdConfig(BaseModel):
-        """CMD config with Pydantic 2 validation - replaces manual dict checks."""
+    class CmdConfig(FlextModels.ArbitraryTypesModel):
+        """CMD config with Pydantic 2 validation - replaces manual dict checks.
 
-        model_config = ConfigDict(frozen=False, validate_assignment=True)
+        Extends FlextModels.ArbitraryTypesModel for ecosystem consistency.
+        """
 
         host: str = Field(
             default=FlextCliConstants.NetworkDefaults.DEFAULT_HOST,
@@ -2776,13 +2867,14 @@ class FlextCliModels(FlextModels):
 
     # System Information Models (replaces dict usage in debug.py)
 
-    class SystemInfo(BaseModel):
+    class SystemInfo(FlextModels.ArbitraryTypesModel):
         """System information model - replaces dict[str, FlextTypes.JsonValue].
 
         Pydantic 2 Features:
         - Explicit field types instead of generic JsonValue
         - Built-in validation
         - Type-safe serialization with model_dump()
+        - Extends FlextModels.ArbitraryTypesModel for ecosystem consistency
 
         Usage:
             >>> info = FlextCliModels.SystemInfo(
@@ -2795,8 +2887,6 @@ class FlextCliModels(FlextModels):
             >>> info.model_dump()  # Pydantic 2 serialization
         """
 
-        model_config = ConfigDict(frozen=False, validate_assignment=True)
-
         python_version: str = Field(description="Python version string")
         platform: str = Field(description="Platform identifier")
         architecture: list[str] = Field(
@@ -2805,13 +2895,14 @@ class FlextCliModels(FlextModels):
         processor: str = Field(description="Processor type")
         hostname: str = Field(description="System hostname")
 
-    class EnvironmentInfo(BaseModel):
+    class EnvironmentInfo(FlextModels.ArbitraryTypesModel):
         """Environment variables model - replaces dict[str, str].
 
         Pydantic 2 Features:
         - Dict field with str constraints
         - Sensitive data masking handled in setter
         - Type-safe with proper validation
+        - Extends FlextModels.ArbitraryTypesModel for ecosystem consistency
 
         Usage:
             >>> env = FlextCliModels.EnvironmentInfo(
@@ -2821,27 +2912,24 @@ class FlextCliModels(FlextModels):
             '/usr/bin'
         """
 
-        model_config = ConfigDict(frozen=False, validate_assignment=True)
-
         variables: dict[str, str] = Field(
             default_factory=dict, description="Environment variables (sensitive masked)"
         )
 
-    class PathInfo(BaseModel):
+    class PathInfo(FlextModels.ArbitraryTypesModel):
         """Path information model - replaces dict[str, object].
 
         Pydantic 2 Features:
         - Explicit types instead of generic object
         - Path validation with Field
         - Type-safe access
+        - Extends FlextModels.ArbitraryTypesModel for ecosystem consistency
 
         Usage:
             >>> path = FlextCliModels.PathInfo(
             ...     index=0, path="/usr/bin", exists=True, is_dir=True
             ... )
         """
-
-        model_config = ConfigDict(frozen=False, validate_assignment=True)
 
         index: int = Field(description="Path index in sys.path")
         path: str = Field(description="File system path")
@@ -2850,13 +2938,14 @@ class FlextCliModels(FlextModels):
 
     # Context and Prompts Models (replaces dict usage in context.py and prompts.py)
 
-    class ContextExecutionResult(BaseModel):
+    class ContextExecutionResult(FlextModels.ArbitraryTypesModel):
         """Context execution result model - replaces dict in execute().
 
         Pydantic 2 Features:
         - Type-safe result instead of generic dict
         - Built-in validation for all fields
         - Immutable timestamp generation
+        - Extends FlextModels.ArbitraryTypesModel for ecosystem consistency
 
         Usage:
             >>> result = FlextCliModels.ContextExecutionResult(
@@ -2864,8 +2953,6 @@ class FlextCliModels(FlextModels):
             ... )
             >>> result.model_dump()  # Serializes to dict
         """
-
-        model_config = ConfigDict(frozen=False, validate_assignment=True)
 
         context_executed: bool = Field(description="Whether context was executed")
         command: str | None = Field(default=None, description="Command name (optional)")
@@ -2875,13 +2962,14 @@ class FlextCliModels(FlextModels):
             description="ISO timestamp of execution",
         )
 
-    class PromptStatistics(BaseModel):
+    class PromptStatistics(FlextModels.ArbitraryTypesModel):
         """Prompt statistics model - replaces dict in get_prompt_statistics().
 
         Pydantic 2 Features:
         - Type-safe statistics instead of generic dict
         - Automatic validation of counters (non-negative)
         - Clean API for accessing stats
+        - Extends FlextModels.ArbitraryTypesModel for ecosystem consistency
 
         Usage:
             >>> stats = FlextCliModels.PromptStatistics(
@@ -2891,8 +2979,6 @@ class FlextCliModels(FlextModels):
             ...     history_size=10,
             ... )
         """
-
-        model_config = ConfigDict(frozen=False, validate_assignment=True)
 
         prompts_executed: int = Field(ge=0, description="Total prompts executed")
         interactive_mode: bool = Field(description="Whether in interactive mode")
@@ -2907,17 +2993,16 @@ class FlextCliModels(FlextModels):
     # CORE SERVICE MODELS - FlextCliCore service models
     # =========================================================================
 
-    class CommandStatistics(BaseModel):
+    class CommandStatistics(FlextModels.ArbitraryTypesModel):
         """Command statistics model - replaces dict in get_command_statistics().
 
         Pydantic 2 Features:
             - Type-safe model instead of dict[str, JsonValue]
             - Automatic validation on creation
             - Clean serialization with model_dump()
+            - Extends FlextModels.ArbitraryTypesModel for ecosystem consistency
 
         """
-
-        model_config = ConfigDict(frozen=False, validate_assignment=True)
 
         total_commands: int = Field(ge=0, description="Total registered commands")
         registered_commands: list[str] = Field(
@@ -2926,17 +3011,16 @@ class FlextCliModels(FlextModels):
         status: bool = Field(description="Session active status")
         timestamp: str = Field(default="", description="ISO timestamp")
 
-    class SessionStatistics(BaseModel):
+    class SessionStatistics(FlextModels.ArbitraryTypesModel):
         """Session statistics model - replaces dict in get_session_statistics().
 
         Pydantic 2 Features:
             - Type-safe model instead of dict[str, JsonValue]
             - Validates non-negative duration
             - Automatic field validation
+            - Extends FlextModels.ArbitraryTypesModel for ecosystem consistency
 
         """
-
-        model_config = ConfigDict(frozen=False, validate_assignment=True)
 
         session_active: bool = Field(description="Whether session is active")
         session_duration_seconds: int = Field(
@@ -2954,17 +3038,16 @@ class FlextCliModels(FlextModels):
         start_time: str = Field(description="Session start time (ISO or 'unknown')")
         current_time: str = Field(default="", description="Current time (ISO)")
 
-    class ServiceExecutionResult(BaseModel):
+    class ServiceExecutionResult(FlextModels.ArbitraryTypesModel):
         """Service execution result model - replaces dict in execute().
 
         Pydantic 2 Features:
             - Type-safe model instead of dict[str, JsonValue]
             - Validates service ready state
             - Clean structure for service execution
+            - Extends FlextModels.ArbitraryTypesModel for ecosystem consistency
 
         """
-
-        model_config = ConfigDict(frozen=False, validate_assignment=True)
 
         service_executed: bool = Field(description="Whether service was executed")
         commands_count: int = Field(ge=0, description="Number of commands available")
@@ -2974,13 +3057,14 @@ class FlextCliModels(FlextModels):
         )
         service_ready: bool = Field(description="Whether service is ready")
 
-    class CommandExecutionContextResult(BaseModel):
+    class CommandExecutionContextResult(FlextModels.ArbitraryTypesModel):
         """Command execution context result - replaces dict in execute_cli_command_with_context().
 
         Pydantic 2 Features:
             - Type-safe model instead of dict[str, JsonValue]
             - Supports optional user_id
             - Flexible context data
+            - Extends FlextModels.ArbitraryTypesModel for ecosystem consistency
 
         """
 
@@ -2998,11 +3082,31 @@ class FlextCliModels(FlextModels):
         )
 
     # =========================================================================
-    # CONFIG SERVICE MODEL - Re-exported from _models_config to avoid circular imports
+    # CONFIG SERVICE MODEL - Defined here to avoid circular imports
     # =========================================================================
 
-    # Imported from _models_config to break circular dependency (config.py ↔ models.py)
-    ConfigServiceExecutionResult = ConfigServiceExecutionResult
+    class ConfigServiceExecutionResult(FlextModels.ArbitraryTypesModel):
+        """Config service execution result - replaces dict in execute_as_service().
+
+        Pydantic 2 Features:
+            - Type-safe model instead of dict[str, JsonValue]
+            - Validates service operational status
+            - Embeds complete config as nested dict
+
+        Railway Pattern:
+            Used internally as type-safe model, serialized to dict for API compatibility
+
+        """
+
+        model_config = ConfigDict(frozen=False, validate_assignment=True)
+
+        status: str = Field(description="Service status")
+        service: str = Field(description="Service name")
+        timestamp: str = Field(default="", description="Execution timestamp (ISO)")
+        version: str = Field(description="Service version")
+        config: dict[str, FlextTypes.JsonValue] = Field(
+            default_factory=dict, description="Complete configuration dump"
+        )
 
 
 __all__ = [

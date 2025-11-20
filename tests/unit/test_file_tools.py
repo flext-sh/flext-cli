@@ -20,7 +20,7 @@ import pytest
 import yaml
 from flext_core import FlextResult, FlextTypes
 
-from flext_cli import FlextCliFileTools, FlextCliTypes
+from flext_cli import FlextCliFileTools
 
 
 class TestFlextCliFileTools:
@@ -139,7 +139,7 @@ class TestFlextCliFileTools:
     ) -> None:
         """Test writing JSON file functionality."""
         test_file = temp_dir / "test_write.json"
-        test_data: FlextCliTypes.Data.CliDataDict = {
+        test_data: FlextTypes.JsonValue = {
             "name": "test",
             "value": 123,
             "nested": {"inner": "data"},
@@ -192,7 +192,7 @@ class TestFlextCliFileTools:
     ) -> None:
         """Test writing YAML file functionality."""
         test_file = temp_dir / "test_write.yaml"
-        test_data: FlextCliTypes.Data.CliDataDict = {
+        test_data: FlextTypes.JsonValue = {
             "name": "test",
             "value": 123,
             "nested": {"inner": "data"},
@@ -769,7 +769,7 @@ class TestFlextCliFileTools:
     ) -> None:
         """Test complete file workflow integration."""
         # 1. Create test data
-        test_data: FlextCliTypes.Data.CliDataDict = {
+        test_data: FlextTypes.JsonValue = {
             "name": "integration_test",
             "value": 42,
             "nested": {"inner": "data"},
@@ -778,7 +778,8 @@ class TestFlextCliFileTools:
 
         # 2. Write JSON file
         json_file = temp_dir / "test_data.json"
-        write_result = file_tools.write_json_file(str(json_file), test_data)
+        json_data: FlextTypes.JsonValue = test_data
+        write_result = file_tools.write_json_file(str(json_file), json_data)
         assert write_result.is_success
 
         # 3. Read JSON file

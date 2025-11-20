@@ -11,11 +11,17 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 import typing
-from datetime import UTC, datetime
 from pathlib import Path
 from typing import override
 
-from flext_core import FlextResult, FlextService, FlextTypes
+from flext_core import (
+    FlextMixins,
+    FlextResult,
+    FlextRuntime,
+    FlextService,
+    FlextTypes,
+    FlextUtilities,
+)
 
 from flext_cli.config import FlextCliConfig
 from flext_cli.constants import FlextCliConstants
@@ -164,7 +170,7 @@ class FlextCliCmd(FlextService[FlextTypes.JsonDict]):
             config_data = load_result.value
 
             # Ensure config_data is a dict
-            if not isinstance(config_data, dict):
+            if not FlextRuntime.is_dict_like(config_data):
                 return FlextResult[FlextTypes.JsonDict].fail(
                     FlextCliConstants.CmdErrorMessages.CONFIG_NOT_DICT
                 )
@@ -185,7 +191,7 @@ class FlextCliCmd(FlextService[FlextTypes.JsonDict]):
                 {
                     FlextCliConstants.DictKeys.KEY: key,
                     FlextCliConstants.DictKeys.VALUE: value,
-                    FlextCliConstants.DictKeys.TIMESTAMP: datetime.now(UTC).isoformat(),
+                    FlextCliConstants.DictKeys.TIMESTAMP: FlextUtilities.Generators.generate_iso_timestamp(),
                 },
             )
             return FlextResult[FlextTypes.JsonDict].ok(result_data)
@@ -236,7 +242,8 @@ class FlextCliCmd(FlextService[FlextTypes.JsonDict]):
                 # Use Pydantic model for default - no conversion needed
                 default_config_model = FlextCliModels.CmdConfig()
                 save_result = self._file_tools.write_json_file(
-                    file_path=str(path), data=default_config_model.model_dump()
+                    file_path=str(path),
+                    data=FlextMixins.ModelConversion.to_dict(default_config_model),
                 )
                 if save_result.is_failure:
                     return FlextResult[str].fail(
@@ -265,7 +272,7 @@ class FlextCliCmd(FlextService[FlextTypes.JsonDict]):
                 )
 
             # Use model directly - no conversion needed
-            config_data = config_model.model_dump()
+            config_data = FlextMixins.ModelConversion.to_dict(config_model)
 
             # Build response - replaces _build_config_response
             config_info = {

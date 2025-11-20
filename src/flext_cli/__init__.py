@@ -181,8 +181,12 @@ from flext_cli.tables import FlextCliTables
 from flext_cli.typings import FlextCliTypes
 from flext_cli.utilities import FlextCliUtilities
 
+# Re-export for convenience
+ConfigServiceExecutionResult = FlextCliModels.ConfigServiceExecutionResult
+
 __all__ = [
     # Core API (alphabetically sorted per FLEXT standards)
+    "ConfigServiceExecutionResult",  # Re-exported to break circular imports
     "FlextCli",
     "FlextCliCli",
     "FlextCliCmd",

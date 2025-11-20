@@ -18,8 +18,7 @@ import pytest
 from pydantic import BaseModel, Field, ValidationError
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
-from flext_cli import FlextCliCli
-from flext_cli.config import FlextCliConfig
+from flext_cli import FlextCliCli, FlextCliConfig
 
 
 class TestConfigModelExtraction:

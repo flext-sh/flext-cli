@@ -76,8 +76,7 @@ import click
 from click.testing import CliRunner
 from flext_core import FlextResult, FlextService, FlextTypes
 
-from flext_cli.constants import FlextCliConstants
-from flext_cli.typings import FlextCliTypes
+from flext_cli import FlextCliConstants, FlextCliTypes
 
 
 class FlextCliTesting(FlextService[dict[str, object]]):
@@ -331,8 +330,11 @@ class FlextCliTesting(FlextService[dict[str, object]]):
     # FLEXTSERVICE PROTOCOL IMPLEMENTATION
     # =========================================================================
 
-    def execute(self) -> FlextResult[dict[str, object]]:
+    def execute(self, **kwargs: object) -> FlextResult[dict[str, object]]:
         """Execute testing service.
+
+        Args:
+            **kwargs: Additional execution parameters (for FlextService compatibility)
 
         Returns:
             FlextResult[dict[str, object]]: Service execution status

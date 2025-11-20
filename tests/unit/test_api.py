@@ -12,6 +12,7 @@ from __future__ import annotations
 
 import json
 import threading
+from collections.abc import Sequence
 from pathlib import Path
 from typing import cast
 
@@ -240,7 +241,7 @@ class TestFlextCli:
     def test_execute_command(self, api_service: FlextCli) -> None:
         """Test command execution functionality."""
         # Register a test command first
-        from flext_cli.models import FlextCliModels
+        from flext_cli import FlextCliModels
 
         test_command = FlextCliModels.CliCommand(
             name="test_command",
@@ -266,7 +267,7 @@ class TestFlextCli:
     def test_execute_command_with_timeout(self, api_service: FlextCli) -> None:
         """Test command execution with timeout."""
         # Register a test command first
-        from flext_cli.models import FlextCliModels
+        from flext_cli import FlextCliModels
 
         test_command = FlextCliModels.CliCommand(
             name="test_timeout_command",
@@ -341,7 +342,7 @@ class TestFlextCli:
         # Test saving configuration using file_tools
         result = api_service.file_tools.write_json_file(
             str(config_file),
-            test_config,
+            cast("FlextTypes.JsonValue", test_config),
         )
 
         assert isinstance(result, FlextResult)
@@ -1130,7 +1131,9 @@ nested:
         Real scenario: Tests line 412-413 - dict data path.
         """
         data = {"name": "John", "age": 30}
-        result = api_service.create_table(data=data, title="Test Table")
+        result = api_service.create_table(
+            data=cast("dict[str, FlextTypes.JsonValue]", data), title="Test Table"
+        )
         assert result.is_success
         table_str = result.unwrap()
         assert "name" in table_str or "John" in table_str
@@ -1141,7 +1144,10 @@ nested:
         Real scenario: Tests line 415-416 - sequence data path.
         """
         data = [{"name": "John", "age": 30}, {"name": "Jane", "age": 25}]
-        result = api_service.create_table(data=data, headers=["name", "age"])
+        result = api_service.create_table(
+            data=cast("Sequence[dict[str, FlextTypes.JsonValue]]", data),
+            headers=["name", "age"],
+        )
         assert result.is_success
         table_str = result.unwrap()
         assert "name" in table_str or "John" in table_str
@@ -1208,7 +1214,7 @@ nested:
         # Create token file with empty dict - ensure directory exists
         token_file_path = temp_dir / "token.json"
         token_file_path.parent.mkdir(parents=True, exist_ok=True)
-        invalid_data = {}  # Empty dict
+        invalid_data: dict[str, object] = {}  # Empty dict
         with Path(token_file_path).open("w", encoding="utf-8") as f:
             json.dump(invalid_data, f)
 

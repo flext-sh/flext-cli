@@ -10,6 +10,8 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
+from typing import cast
+
 from flext_core import FlextDecorators, FlextMixins, FlextResult, FlextTypes
 
 from flext_cli.constants import FlextCliConstants
@@ -279,8 +281,12 @@ class FlextCliMixins(FlextMixins):
             # Handler returns FlextResult[FlextTypes.JsonValue]
             # context_data is already correctly typed
             # The railway decorator ensures the handler result is wrapped in FlextResult
-            # Type annotation to help mypy understand the return type
-            result: FlextResult[FlextTypes.JsonValue] = wrapped_handler(**context_data)  # type: ignore[assignment]
+            # If handler already returns FlextResult, railway returns it as-is (no double wrapping)
+            handler_result = wrapped_handler(**context_data)
+            # Type cast: railway decorator may wrap or return as-is, but we know it's FlextResult[JsonValue]
+            result: FlextResult[FlextTypes.JsonValue] = cast(
+                "FlextResult[FlextTypes.JsonValue]", handler_result
+            )
             return result
 
 

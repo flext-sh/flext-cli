@@ -12,7 +12,7 @@ from __future__ import annotations
 
 from collections.abc import Iterable, Sequence
 
-from flext_core import FlextLogger, FlextResult, FlextService, FlextTypes
+from flext_core import FlextLogger, FlextResult, FlextRuntime, FlextService, FlextTypes
 from tabulate import tabulate
 
 from flext_cli.constants import FlextCliConstants
@@ -164,10 +164,12 @@ class FlextCliTables(FlextService[FlextTypes.JsonDict]):
         """Prepare headers based on data type."""
         # For list of dicts with sequence headers, use "keys"
         if (
-            isinstance(data, list)
+            FlextRuntime.is_list_like(data)
             and data
-            and isinstance(data[0], dict)
-            and isinstance(headers, (list, tuple))
+            and FlextRuntime.is_dict_like(data[0])
+            and isinstance(
+                headers, (list, tuple)
+            )  # tuple check is specific, not dict/list
         ):
             return FlextResult[str | Sequence[str]].ok(
                 FlextCliConstants.TableFormats.KEYS

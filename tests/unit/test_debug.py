@@ -294,19 +294,20 @@ class TestFlextCliDebugExceptionHandlers:
 
     def test_test_connectivity_exception(self, monkeypatch: pytest.MonkeyPatch) -> None:
         """Test test_connectivity exception handler (lines 95-96)."""
-        from flext_cli import debug as debug_module
-
         debug = FlextCliDebug()
 
-        # Create a mock datetime module that raises on .now()
-        class MockDatetime:
-            @staticmethod
-            def now(*_args: object, **_kwargs: object) -> None:
-                msg = "Datetime error"
-                raise RuntimeError(msg)
+        # Mock FlextUtilities.Generators.generate_iso_timestamp to raise exception
+        def mock_generate_iso_timestamp(*_args: object, **_kwargs: object) -> None:
+            msg = "Timestamp generation error"
+            raise RuntimeError(msg)
 
-        # Mock the entire datetime object in the debug module
-        monkeypatch.setattr(debug_module, "datetime", MockDatetime)
+        from flext_core import FlextUtilities
+
+        monkeypatch.setattr(
+            FlextUtilities.Generators,
+            "generate_iso_timestamp",
+            mock_generate_iso_timestamp,
+        )
 
         result = debug.test_connectivity()
         assert result.is_failure
@@ -316,9 +317,16 @@ class TestFlextCliDebugExceptionHandlers:
         self, monkeypatch: pytest.MonkeyPatch
     ) -> None:
         """Test execute_health_check exception handler (lines 152-153)."""
+        from flext_core import FlextUtilities
+
+        def mock_generate_uuid() -> None:
+            msg = "UUID generation error"
+            raise RuntimeError(msg)
+
         monkeypatch.setattr(
-            "uuid.uuid4",
-            lambda: (_ for _ in ()).throw(RuntimeError("Test error")),
+            FlextUtilities.Generators,
+            "generate_uuid",
+            mock_generate_uuid,
         )
         debug = FlextCliDebug()
         result = debug.execute_health_check()
@@ -327,14 +335,20 @@ class TestFlextCliDebugExceptionHandlers:
 
     def test_execute_trace_exception(self, monkeypatch: pytest.MonkeyPatch) -> None:
         """Test execute_trace exception handler (lines 129-130)."""
+        from flext_core import FlextUtilities
+
         debug = FlextCliDebug()
 
-        # Mock uuid.uuid4 to raise exception to trigger lines 129-130
-        def mock_uuid4() -> None:
+        # Mock FlextUtilities.Generators.generate_uuid to raise exception
+        def mock_generate_uuid() -> None:
             msg = "UUID error"
             raise RuntimeError(msg)
 
-        monkeypatch.setattr("uuid.uuid4", mock_uuid4)
+        monkeypatch.setattr(
+            FlextUtilities.Generators,
+            "generate_uuid",
+            mock_generate_uuid,
+        )
 
         result = debug.execute_trace(["arg1", "arg2"])
         assert result.is_failure
@@ -371,7 +385,7 @@ class TestFlextCliDebugExceptionHandlers:
         """Test get_system_paths with PathInfo models (type-safe approach)."""
         from typing import cast
 
-        from flext_cli.models import FlextCliModels
+        from flext_cli import FlextCliModels
 
         debug = FlextCliDebug()
 

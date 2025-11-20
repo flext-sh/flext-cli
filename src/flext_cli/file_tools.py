@@ -30,7 +30,7 @@ import zipfile
 from pathlib import Path
 
 import yaml
-from flext_core import FlextResult, FlextTypes
+from flext_core import FlextResult, FlextRuntime, FlextTypes
 
 from flext_cli.constants import FlextCliConstants
 
@@ -673,7 +673,7 @@ class FlextCliFileTools:
 
             for format_name, format_info in supported_formats.items():
                 if (
-                    isinstance(format_info, dict)
+                    FlextRuntime.is_dict_like(format_info)
                     and FlextCliConstants.FileIODefaults.FORMAT_EXTENSIONS_KEY
                     in format_info
                     and isinstance(

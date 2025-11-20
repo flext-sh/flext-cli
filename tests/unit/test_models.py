@@ -1479,7 +1479,7 @@ class TestFlextCliModelsExceptionHandlers:
 
     def test_validate_field_data_invalid_python_type(self) -> None:
         """Test _validate_field_data with invalid python_type - covers line 462."""
-        from flext_cli.models import FlextCliModels
+        from flext_cli import FlextCliModels
 
         # Create invalid data with non-type python_type
         invalid_data: dict[str, object] = {
@@ -1499,7 +1499,7 @@ class TestFlextCliModelsExceptionHandlers:
 
     def test_validate_field_data_invalid_click_type(self) -> None:
         """Test _validate_field_data with invalid click_type - covers line 469."""
-        from flext_cli.models import FlextCliModels
+        from flext_cli import FlextCliModels
 
         # Create invalid data with non-string click_type
         invalid_data: dict[str, object] = {
@@ -1519,7 +1519,7 @@ class TestFlextCliModelsExceptionHandlers:
 
     def test_validate_field_data_invalid_is_required(self) -> None:
         """Test _validate_field_data with invalid is_required - covers line 476."""
-        from flext_cli.models import FlextCliModels
+        from flext_cli import FlextCliModels
 
         # Create invalid data with non-bool is_required
         invalid_data: dict[str, object] = {
@@ -1539,7 +1539,7 @@ class TestFlextCliModelsExceptionHandlers:
 
     def test_validate_field_data_invalid_description(self) -> None:
         """Test _validate_field_data with invalid description - covers line 483."""
-        from flext_cli.models import FlextCliModels
+        from flext_cli import FlextCliModels
 
         # Create invalid data with non-string description
         invalid_data: dict[str, object] = {
@@ -1559,7 +1559,7 @@ class TestFlextCliModelsExceptionHandlers:
 
     def test_validate_field_data_invalid_validators(self) -> None:
         """Test _validate_field_data with invalid validators - covers line 490."""
-        from flext_cli.models import FlextCliModels
+        from flext_cli import FlextCliModels
 
         # Create invalid data with non-list validators
         invalid_data: dict[str, object] = {
@@ -1579,7 +1579,7 @@ class TestFlextCliModelsExceptionHandlers:
 
     def test_validate_field_data_invalid_metadata(self) -> None:
         """Test _validate_field_data with invalid metadata - covers line 497."""
-        from flext_cli.models import FlextCliModels
+        from flext_cli import FlextCliModels
 
         # Create invalid data with non-dict metadata
         invalid_data: dict[str, object] = {
@@ -1717,7 +1717,9 @@ class TestFlextCliModelsExceptionHandlers:
         # We need to make _validate_field_data return failure
         # This is tricky without mocking, but we can use an invalid field configuration
         # Pydantic v2: Field() doesn't take annotation parameter (use type hints instead)
-        field_info = Field(description="Test field", json_schema_extra={"type": "string"})
+        field_info = Field(
+            description="Test field", json_schema_extra={"type": "string"}
+        )
 
         # Make _validate_field_data return failure by using invalid data structure
         # Actually, we need to trigger this through the normal flow

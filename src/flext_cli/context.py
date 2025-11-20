@@ -11,15 +11,20 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 import typing
-import uuid
 
-from flext_core import FlextConfig, FlextResult, FlextService, FlextTypes
+from flext_core import (
+    FlextConfig,
+    FlextMixins,
+    FlextResult,
+    FlextService,
+    FlextTypes,
+    FlextUtilities,
+)
 from pydantic import Field
 
 from flext_cli.constants import FlextCliConstants
 from flext_cli.models import FlextCliModels
 from flext_cli.typings import FlextCliTypes
-from flext_cli.utilities import FlextCliUtilities
 
 
 class FlextCliContext(FlextService[FlextCliTypes.Data.CliDataDict]):
@@ -64,10 +69,10 @@ class FlextCliContext(FlextService[FlextCliTypes.Data.CliDataDict]):
             **data: Additional entity initialization data
 
         """
-        # Generate id if not provided
+        # Generate id if not provided using FlextUtilities
         generated_id: str | None = None
         if "id" not in data:
-            generated_id = str(uuid.uuid4())
+            generated_id = FlextUtilities.Generators.generate_uuid()
             data["id"] = generated_id
 
         # Initialize parent FlextService
@@ -85,9 +90,9 @@ class FlextCliContext(FlextService[FlextCliTypes.Data.CliDataDict]):
             # This can happen if super().__init__ doesn't set id or sets it to falsy value
             self.id = generated_id
         else:
-            # Final fallback: generate new id (defensive programming)
+            # Final fallback: generate new id using FlextUtilities (defensive programming)
             # This line is reachable if both self.id and generated_id are None/empty
-            self.id = str(uuid.uuid4())
+            self.id = FlextUtilities.Generators.generate_uuid()
 
         # Set CLI context attributes directly
         # Validate explicitly - no fallback to empty collections
@@ -101,11 +106,13 @@ class FlextCliContext(FlextService[FlextCliTypes.Data.CliDataDict]):
         else:
             self.environment_variables = {}
         self.working_directory = working_directory
-        self.context_metadata = {}
+        # Initialize context_metadata as empty dict (JsonDict type)
+        if not self.context_metadata:
+            self.context_metadata = {}
 
         # Context state
         self.is_active = False
-        self.created_at = FlextCliUtilities.Generators.generate_iso_timestamp()
+        self.created_at = FlextUtilities.Generators.generate_iso_timestamp()
         # Get timeout_seconds from FlextConfig base (not FlextCliConfig)
         global_config = FlextConfig.get_global_instance()
         # timeout_seconds is float in FlextConfig, convert to int for context
@@ -157,13 +164,16 @@ class FlextCliContext(FlextService[FlextCliTypes.Data.CliDataDict]):
 
     def get_environment_variable(self, name: str) -> FlextResult[str]:
         """Get specific environment variable value."""
-        # Validate using FlextCliUtilities consolidation
-        validation_result = FlextCliUtilities.CliValidation.validate_string_not_empty(
-            name,
-            FlextCliConstants.ContextErrorMessages.VARIABLE_NAME_MUST_BE_STRING,
-        )
-        if validation_result.is_failure:
-            return FlextResult[str].fail(validation_result.error or "Environment variable validation failed")
+        # Validate using FlextUtilities.Validation
+        try:
+            FlextUtilities.Validation.validate_required_string(
+                name,
+                "Variable name",
+            )
+        except ValueError as e:
+            return FlextResult[str].fail(
+                str(e) or "Environment variable validation failed"
+            )
 
         # Fast-fail if environment_variables is None
         if self.environment_variables is None:
@@ -194,13 +204,16 @@ class FlextCliContext(FlextService[FlextCliTypes.Data.CliDataDict]):
             FlextResult[bool]: True if set successfully, or error
 
         """
-        # Validate using FlextCliUtilities consolidation
-        validation_result = FlextCliUtilities.CliValidation.validate_string_not_empty(
-            name,
-            FlextCliConstants.ContextErrorMessages.VARIABLE_NAME_MUST_BE_STRING,
-        )
-        if validation_result.is_failure:
-            return FlextResult[bool].fail(validation_result.error or "Environment variable setting failed")
+        # Validate using FlextUtilities.Validation
+        try:
+            FlextUtilities.Validation.validate_required_string(
+                name,
+                "Variable name",
+            )
+        except ValueError as e:
+            return FlextResult[bool].fail(
+                str(e) or "Environment variable setting failed"
+            )
 
         if not isinstance(value, str):
             return FlextResult[bool].fail(
@@ -230,13 +243,14 @@ class FlextCliContext(FlextService[FlextCliTypes.Data.CliDataDict]):
             FlextResult[bool]: True if added successfully, or error
 
         """
-        # Validate using FlextCliUtilities consolidation
-        validation_result = FlextCliUtilities.CliValidation.validate_string_not_empty(
-            argument,
-            FlextCliConstants.ContextErrorMessages.ARGUMENT_MUST_BE_STRING,
-        )
-        if validation_result.is_failure:
-            return FlextResult[bool].fail(validation_result.error or "Validation failed")
+        # Validate using FlextUtilities.Validation
+        try:
+            FlextUtilities.Validation.validate_required_string(
+                argument,
+                "Argument",
+            )
+        except ValueError as e:
+            return FlextResult[bool].fail(str(e) or "Validation failed")
 
         # Fast-fail if arguments is None
         if self.arguments is None:
@@ -261,13 +275,14 @@ class FlextCliContext(FlextService[FlextCliTypes.Data.CliDataDict]):
             FlextResult[bool]: True if removed successfully, False if not found, or error
 
         """
-        # Validate using FlextCliUtilities consolidation
-        validation_result = FlextCliUtilities.CliValidation.validate_string_not_empty(
-            argument,
-            FlextCliConstants.ContextErrorMessages.ARGUMENT_MUST_BE_STRING,
-        )
-        if validation_result.is_failure:
-            return FlextResult[bool].fail(validation_result.error or "Validation failed")
+        # Validate using FlextUtilities.Validation
+        try:
+            FlextUtilities.Validation.validate_required_string(
+                argument,
+                "Argument",
+            )
+        except ValueError as e:
+            return FlextResult[bool].fail(str(e) or "Validation failed")
 
         # Fast-fail if arguments is None
         if self.arguments is None:
@@ -298,13 +313,14 @@ class FlextCliContext(FlextService[FlextCliTypes.Data.CliDataDict]):
             FlextResult[bool]: True if set successfully, or error
 
         """
-        # Validate using FlextCliUtilities consolidation
-        validation_result = FlextCliUtilities.CliValidation.validate_string_not_empty(
-            key,
-            FlextCliConstants.ContextErrorMessages.METADATA_KEY_MUST_BE_STRING,
-        )
-        if validation_result.is_failure:
-            return FlextResult[bool].fail(validation_result.error or "Validation failed")
+        # Validate using FlextUtilities.Validation
+        try:
+            FlextUtilities.Validation.validate_required_string(
+                key,
+                "Metadata key",
+            )
+        except ValueError as e:
+            return FlextResult[bool].fail(str(e) or "Validation failed")
 
         try:
             self.context_metadata[key] = value
@@ -318,13 +334,16 @@ class FlextCliContext(FlextService[FlextCliTypes.Data.CliDataDict]):
 
     def get_metadata(self, key: str) -> FlextResult[FlextTypes.JsonValue]:
         """Get context metadata value."""
-        # Validate using FlextCliUtilities consolidation
-        validation_result = FlextCliUtilities.CliValidation.validate_string_not_empty(
-            key,
-            FlextCliConstants.ContextErrorMessages.METADATA_KEY_MUST_BE_STRING,
-        )
-        if validation_result.is_failure:
-            return FlextResult[FlextTypes.JsonValue].fail(validation_result.error or "Metadata validation failed")
+        # Validate using FlextUtilities.Validation
+        try:
+            FlextUtilities.Validation.validate_required_string(
+                key,
+                "Metadata key",
+            )
+        except ValueError as e:
+            return FlextResult[FlextTypes.JsonValue].fail(
+                str(e) or "Metadata validation failed"
+            )
 
         try:
             if key in self.context_metadata:
@@ -410,12 +429,12 @@ class FlextCliContext(FlextService[FlextCliTypes.Data.CliDataDict]):
                 context_executed=True,
                 command=self.command,
                 arguments_count=arguments_count,
-                timestamp=FlextCliUtilities.Generators.generate_iso_timestamp(),
+                timestamp=FlextUtilities.Generators.generate_iso_timestamp(),
             )
             # Use model directly - no conversion needed
             # Return model data as dict for API compatibility
             return FlextResult[FlextCliTypes.Data.CliDataDict].ok(
-                result_model.model_dump()
+                FlextMixins.ModelConversion.to_dict(result_model)
             )
         except Exception as e:  # pragma: no cover
             return FlextResult[FlextCliTypes.Data.CliDataDict].fail(

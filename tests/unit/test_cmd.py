@@ -163,7 +163,7 @@ class TestFlextCliCmd:
 
     def test_cmd_config_helper_get_config_paths(self) -> None:
         """Test FlextCliUtilities.ConfigOps.get_config_paths() directly."""
-        from flext_cli.utilities import FlextCliUtilities
+        from flext_cli import FlextCliUtilities
 
         paths = FlextCliUtilities.ConfigOps.get_config_paths()
         assert isinstance(paths, list)
@@ -173,7 +173,7 @@ class TestFlextCliCmd:
 
     def test_cmd_config_helper_validate_config_structure(self) -> None:
         """Test FlextCliUtilities.ConfigOps.validate_config_structure() directly."""
-        from flext_cli.utilities import FlextCliUtilities
+        from flext_cli import FlextCliUtilities
 
         results = FlextCliUtilities.ConfigOps.validate_config_structure()
         assert isinstance(results, list)
@@ -182,7 +182,7 @@ class TestFlextCliCmd:
 
     def test_cmd_config_helper_get_config_info(self) -> None:
         """Test FlextCliUtilities.ConfigOps.get_config_info() directly."""
-        from flext_cli.utilities import FlextCliUtilities
+        from flext_cli import FlextCliUtilities
 
         info = FlextCliUtilities.ConfigOps.get_config_info()
         assert isinstance(info, dict)
@@ -571,7 +571,7 @@ class TestFlextCliCmd:
         # Mock Path.home to return a temp directory that doesn't have .flext
         import tempfile
 
-        from flext_cli.utilities import FlextCliUtilities
+        from flext_cli import FlextCliUtilities
 
         temp_dir = Path(tempfile.mkdtemp())
         monkeypatch.setattr(Path, "home", lambda: temp_dir)
@@ -588,7 +588,7 @@ class TestFlextCliCmd:
         self, monkeypatch: pytest.MonkeyPatch
     ) -> None:
         """Test show_config_paths exception handler."""
-        from flext_cli.utilities import FlextCliUtilities
+        from flext_cli import FlextCliUtilities
 
         cmd = FlextCliCmd()
 
@@ -606,7 +606,7 @@ class TestFlextCliCmd:
         self, monkeypatch: pytest.MonkeyPatch
     ) -> None:
         """Test validate_config exception handler."""
-        from flext_cli.utilities import FlextCliUtilities
+        from flext_cli import FlextCliUtilities
 
         cmd = FlextCliCmd()
 
@@ -626,7 +626,7 @@ class TestFlextCliCmd:
         self, monkeypatch: pytest.MonkeyPatch
     ) -> None:
         """Test get_config_info exception handler."""
-        from flext_cli.utilities import FlextCliUtilities
+        from flext_cli import FlextCliUtilities
 
         cmd = FlextCliCmd()
 

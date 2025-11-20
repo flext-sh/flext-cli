@@ -22,11 +22,15 @@ import platform
 import sys
 import tempfile
 import typing
-import uuid
-from datetime import UTC, datetime
 from typing import override
 
-from flext_core import FlextResult, FlextService, FlextTypes
+from flext_core import (
+    FlextMixins,
+    FlextResult,
+    FlextService,
+    FlextTypes,
+    FlextUtilities,
+)
 
 from flext_cli.constants import FlextCliConstants
 from flext_cli.models import FlextCliModels
@@ -98,7 +102,7 @@ class FlextCliDebug(FlextService[str]):
         try:
             connectivity_info = {
                 FlextCliConstants.DictKeys.STATUS: FlextCliConstants.ServiceStatus.CONNECTED.value,
-                FlextCliConstants.DictKeys.TIMESTAMP: datetime.now(UTC).isoformat(),
+                FlextCliConstants.DictKeys.TIMESTAMP: FlextUtilities.Generators.generate_iso_timestamp(),
                 FlextCliConstants.DictKeys.SERVICE: str(FlextCliDebug),
                 FlextCliConstants.DebugDictKeys.CONNECTIVITY: FlextCliConstants.ServiceStatus.OPERATIONAL.value,
             }
@@ -115,9 +119,9 @@ class FlextCliDebug(FlextService[str]):
         try:
             health_info: Types.Data.DebugInfoData = {
                 FlextCliConstants.DictKeys.STATUS: FlextCliConstants.ServiceStatus.HEALTHY.value,
-                FlextCliConstants.DictKeys.TIMESTAMP: datetime.now(UTC).isoformat(),
+                FlextCliConstants.DictKeys.TIMESTAMP: FlextUtilities.Generators.generate_iso_timestamp(),
                 FlextCliConstants.DictKeys.SERVICE: FlextCliConstants.DebugDefaults.SERVICE_NAME,
-                FlextCliConstants.DebugDictKeys.CHECK_ID: str(uuid.uuid4()),
+                FlextCliConstants.DebugDictKeys.CHECK_ID: FlextUtilities.Generators.generate_uuid(),
                 FlextCliConstants.DebugDictKeys.CHECKS_PASSED: True,
             }
             return FlextResult[Types.Data.DebugInfoData].ok(health_info)
@@ -135,8 +139,8 @@ class FlextCliDebug(FlextService[str]):
                     args
                 ),  # Cast to list for JsonValue compatibility
                 FlextCliConstants.DebugDictKeys.ARGS_COUNT: len(args),
-                FlextCliConstants.DictKeys.TIMESTAMP: datetime.now(UTC).isoformat(),
-                FlextCliConstants.DebugDictKeys.TRACE_ID: str(uuid.uuid4()),
+                FlextCliConstants.DictKeys.TIMESTAMP: FlextUtilities.Generators.generate_iso_timestamp(),
+                FlextCliConstants.DebugDictKeys.TRACE_ID: FlextUtilities.Generators.generate_uuid(),
             }
             return FlextResult[Types.Data.DebugInfoData].ok(trace_info)
         except Exception as e:
@@ -158,9 +162,11 @@ class FlextCliDebug(FlextService[str]):
             system_info_model = self._get_system_info()
             debug_info: Types.Data.DebugInfoData = {
                 FlextCliConstants.DictKeys.SERVICE: FlextCliConstants.DebugDefaults.SERVICE_NAME,
-                FlextCliConstants.DictKeys.TIMESTAMP: datetime.now(UTC).isoformat(),
-                FlextCliConstants.DebugDictKeys.DEBUG_ID: str(uuid.uuid4()),
-                FlextCliConstants.DebugDictKeys.SYSTEM_INFO: system_info_model.model_dump(),
+                FlextCliConstants.DictKeys.TIMESTAMP: FlextUtilities.Generators.generate_iso_timestamp(),
+                FlextCliConstants.DebugDictKeys.DEBUG_ID: FlextUtilities.Generators.generate_uuid(),
+                FlextCliConstants.DebugDictKeys.SYSTEM_INFO: FlextMixins.ModelConversion.to_dict(
+                    system_info_model
+                ),
                 FlextCliConstants.DebugDictKeys.ENVIRONMENT_STATUS: FlextCliConstants.ServiceStatus.OPERATIONAL.value,
                 FlextCliConstants.DebugDictKeys.CONNECTIVITY_STATUS: FlextCliConstants.ServiceStatus.CONNECTED.value,
             }
@@ -182,7 +188,9 @@ class FlextCliDebug(FlextService[str]):
         try:
             info_model = self._get_system_info()
             # Serialize SystemInfo model to dict using Pydantic 2 model_dump()
-            info_dict: FlextCliTypes.Data.CliDataDict = info_model.model_dump()
+            info_dict: FlextCliTypes.Data.CliDataDict = (
+                FlextMixins.ModelConversion.to_dict(info_model)
+            )
             return FlextResult[FlextCliTypes.Data.CliDataDict].ok(info_dict)
         except Exception as e:
             return FlextResult[FlextCliTypes.Data.CliDataDict].fail(
@@ -205,7 +213,8 @@ class FlextCliDebug(FlextService[str]):
             paths_data = self._get_path_info()
             # Serialize PathInfo models to dicts using model_dump()
             serialized_paths: list[dict[str, object]] = [
-                path_info.model_dump() for path_info in paths_data
+                FlextMixins.ModelConversion.to_dict(path_info)
+                for path_info in paths_data
             ]
 
             # Type-safe dict construction
