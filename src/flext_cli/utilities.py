@@ -13,7 +13,6 @@ from __future__ import annotations
 import os
 import sys
 import types
-from datetime import UTC, datetime
 from pathlib import Path
 from typing import Final, Union, get_args, get_origin
 
@@ -86,7 +85,7 @@ class FlextCliUtilities:
         ) -> FlextResult[bool]:
             """Validate that a field is not empty.
 
-            Generic helper eliminating code duplication in validate_business_rules.
+            Delegates to FlextUtilities.Validation.validate_required_string().
 
             Args:
                 field_value: Value to validate
@@ -103,20 +102,19 @@ class FlextCliUtilities:
                 ...     print(result.error)
 
             """
-            # Fast-fail: no fallback, validate explicitly
-            if not field_value:
+            # Use FlextUtilities.Validation.validate_required_string
+            if not isinstance(field_value, str):
                 return FlextResult[bool].fail(
                     FlextCliConstants.MixinsValidationMessages.FIELD_CANNOT_BE_EMPTY.format(
                         field_name=field_display_name
                     )
                 )
-            if not isinstance(field_value, str) or not field_value.strip():
-                return FlextResult[bool].fail(
-                    FlextCliConstants.MixinsValidationMessages.FIELD_CANNOT_BE_EMPTY.format(
-                        field_name=field_display_name
-                    )
-                )
-            return FlextResult[bool].ok(True)
+            result = FlextUtilities.Validation.validate_required_string(
+                field_value,
+                field_display_name,
+            )
+            # Convert FlextResult[str] to FlextResult[bool] using monadic pattern
+            return result.map(lambda _: True)
 
         @staticmethod
         def validate_field_in_list(
@@ -126,7 +124,7 @@ class FlextCliUtilities:
         ) -> FlextResult[bool]:
             """Validate that a field value is in a list of valid values.
 
-            Generic helper eliminating code duplication in validate_business_rules.
+            Delegates to FlextUtilities.Validation.validate_choice().
 
             Args:
                 field_value: Value to validate
@@ -144,14 +142,22 @@ class FlextCliUtilities:
                 ...     print(result.error)
 
             """
-            if field_value not in valid_values:
+            if not isinstance(field_value, str):
                 return FlextResult[bool].fail(
                     FlextCliConstants.MixinsValidationMessages.INVALID_ENUM_VALUE.format(
                         field_name=field_name,
                         valid_values=valid_values,
                     )
                 )
-            return FlextResult[bool].ok(True)
+            # Use FlextUtilities.Validation.validate_choice
+            result = FlextUtilities.Validation.validate_choice(
+                field_value,
+                set(valid_values),
+                field_name,
+                case_sensitive=True,
+            )
+            # Convert FlextResult[str] to FlextResult[bool] using monadic pattern
+            return result.map(lambda _: True)
 
         @staticmethod
         def validate_command_status(status: str) -> FlextResult[bool]:
@@ -194,6 +200,8 @@ class FlextCliUtilities:
             Validates format against list of supported output formats and
             returns normalized lowercase format string.
 
+            Uses FlextUtilities.Validation.validate_choice() internally.
+
             Args:
                 format_type: Output format to validate (json, yaml, table, csv, plain)
 
@@ -209,13 +217,16 @@ class FlextCliUtilities:
 
             """
             format_lower = format_type.lower()
-            if format_lower not in FlextCliConstants.OUTPUT_FORMATS_LIST:
-                return FlextResult[str].fail(
-                    FlextCliConstants.ErrorMessages.UNSUPPORTED_FORMAT_TYPE.format(
-                        format_type=format_type
-                    )
-                )
-            return FlextResult[str].ok(format_lower)
+            # Use FlextUtilities.Validation.validate_choice for validation
+            result = FlextUtilities.Validation.validate_choice(
+                format_lower,
+                set(FlextCliConstants.OUTPUT_FORMATS_LIST),
+                "Output format",
+                case_sensitive=False,
+            )
+            if result.is_success:
+                return FlextResult[str].ok(format_lower)
+            return result
 
         @staticmethod
         def validate_string_not_empty(
@@ -223,12 +234,11 @@ class FlextCliUtilities:
         ) -> FlextResult[bool]:
             """Validate that a value is a non-empty string.
 
-            Consolidates repeated pattern: if not X or not isinstance(X, str)
-            Found 6 times in context.py.
+            Delegates to FlextUtilities.Validation.validate_required_string().
 
             Args:
                 value: Value to validate
-                error_message: Error message to return on failure
+                error_message: Error message to return on failure (used if value is not a string)
 
             Returns:
                 FlextResult[bool]: True if non-empty string, failure otherwise
@@ -241,12 +251,16 @@ class FlextCliUtilities:
                 ...     return result
 
             """
-            # Fast-fail: no fallback, validate explicitly
-            if not value:
-                return FlextResult[bool].fail(error_message)
             if not isinstance(value, str):
                 return FlextResult[bool].fail(error_message)
-            if not value.strip():
+            # Use FlextUtilities.Validation.validate_required_string
+            result = FlextUtilities.Validation.validate_required_string(
+                value,
+                "Value",
+            )
+            # Convert FlextResult[str] to FlextResult[bool] using monadic pattern
+            # Use custom error_message if validation fails (for backward compatibility)
+            if result.is_failure:
                 return FlextResult[bool].fail(error_message)
             return FlextResult[bool].ok(True)
 
@@ -423,7 +437,7 @@ class FlextCliUtilities:
                 and os.access(flext_dir, os.R_OK),
                 FlextCliConstants.DictKeys.CONFIG_WRITABLE: flext_dir.exists()
                 and os.access(flext_dir, os.W_OK),
-                FlextCliConstants.DictKeys.TIMESTAMP: datetime.now(UTC).isoformat(),
+                FlextCliConstants.DictKeys.TIMESTAMP: FlextUtilities.Generators.generate_iso_timestamp(),
             }
 
     # =========================================================================

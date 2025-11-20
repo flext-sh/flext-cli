@@ -13,7 +13,7 @@ from __future__ import annotations
 from collections.abc import Callable
 from typing import override
 
-from flext_core import FlextResult, FlextService, FlextTypes
+from flext_core import FlextResult, FlextRuntime, FlextService, FlextTypes
 
 from flext_cli.constants import FlextCliConstants
 
@@ -59,7 +59,7 @@ class FlextCliCommands(FlextService[FlextTypes.JsonDict]):
             description=description,
             commands=empty_commands,
         )
-        
+
         self.logger.debug(
             "Initialized CLI commands manager",
             operation="__init__",
@@ -83,27 +83,27 @@ class FlextCliCommands(FlextService[FlextTypes.JsonDict]):
             cli_name=self._name,
             source="flext-cli/src/flext_cli/commands.py",
         )
-        
+
         self.logger.debug(
             "Building service status response",
             operation="execute",
             registered_commands=list(self._commands.keys()),
             source="flext-cli/src/flext_cli/commands.py",
         )
-        
+
         result = FlextResult[FlextTypes.JsonDict].ok({
             FlextCliConstants.CommandsDictKeys.STATUS: FlextCliConstants.ServiceStatus.OPERATIONAL.value,
             FlextCliConstants.CommandsDictKeys.SERVICE: FlextCliConstants.FLEXT_CLI,
             FlextCliConstants.CommandsDictKeys.COMMANDS: list(self._commands.keys()),
         })
-        
+
         self.logger.debug(
             "Service execution completed successfully",
             operation="execute",
             result_status="operational",
             source="flext-cli/src/flext_cli/commands.py",
         )
-        
+
         return result
 
     def register_command(
@@ -132,7 +132,7 @@ class FlextCliCommands(FlextService[FlextTypes.JsonDict]):
             handler_type=type(handler).__name__,
             source="flext-cli/src/flext_cli/commands.py",
         )
-        
+
         try:
             self._commands[name] = {
                 FlextCliConstants.CommandsDictKeys.NAME: name,
@@ -140,7 +140,7 @@ class FlextCliCommands(FlextService[FlextTypes.JsonDict]):
                 FlextCliConstants.CommandsDictKeys.DESCRIPTION: description,
             }
             self._cli_group.commands[name] = self._commands[name]
-            
+
             self.logger.debug(
                 "Command registered successfully",
                 operation="register_command",
@@ -148,7 +148,7 @@ class FlextCliCommands(FlextService[FlextTypes.JsonDict]):
                 total_commands=len(self._commands),
                 source="flext-cli/src/flext_cli/commands.py",
             )
-            
+
             return FlextResult[bool].ok(True)
         except Exception as e:
             self.logger.exception(
@@ -183,13 +183,13 @@ class FlextCliCommands(FlextService[FlextTypes.JsonDict]):
             current_commands_count=len(self._commands),
             source="flext-cli/src/flext_cli/commands.py",
         )
-        
+
         try:
             if name in self._commands:
                 del self._commands[name]
                 if name in self._cli_group.commands:
                     del self._cli_group.commands[name]
-                
+
                 self.logger.debug(
                     "Command unregistered successfully",
                     operation="unregister_command",
@@ -197,9 +197,9 @@ class FlextCliCommands(FlextService[FlextTypes.JsonDict]):
                     remaining_commands=len(self._commands),
                     source="flext-cli/src/flext_cli/commands.py",
                 )
-                
+
                 return FlextResult[bool].ok(True)
-            
+
             self.logger.warning(
                 "Command not found for unregistration",
                 operation="unregister_command",
@@ -207,7 +207,7 @@ class FlextCliCommands(FlextService[FlextTypes.JsonDict]):
                 available_commands=list(self._commands.keys()),
                 source="flext-cli/src/flext_cli/commands.py",
             )
-            
+
             return FlextResult[bool].fail(
                 FlextCliConstants.ErrorMessages.COMMAND_NOT_FOUND.format(name=name)
             )
@@ -253,7 +253,7 @@ class FlextCliCommands(FlextService[FlextTypes.JsonDict]):
             commands_count=len(commands) if commands else 0,
             source="flext-cli/src/flext_cli/commands.py",
         )
-        
+
         try:
             # Fast-fail if commands is None - no fallback
             if commands is None:
@@ -273,7 +273,7 @@ class FlextCliCommands(FlextService[FlextTypes.JsonDict]):
                 description=description,
                 commands=validated_commands,
             )
-            
+
             self.logger.debug(
                 "Command group created successfully",
                 operation="create_command_group",
@@ -281,7 +281,7 @@ class FlextCliCommands(FlextService[FlextTypes.JsonDict]):
                 commands_count=len(validated_commands),
                 source="flext-cli/src/flext_cli/commands.py",
             )
-            
+
             return FlextResult[object].ok(group)
         except Exception as e:
             self.logger.exception(
@@ -344,7 +344,7 @@ class FlextCliCommands(FlextService[FlextTypes.JsonDict]):
             args=args,
             source="flext-cli/src/flext_cli/commands.py",
         )
-        
+
         try:
             # Validate arguments
             self.logger.debug(
@@ -353,7 +353,7 @@ class FlextCliCommands(FlextService[FlextTypes.JsonDict]):
                 args=args,
                 source="flext-cli/src/flext_cli/commands.py",
             )
-            
+
             validation_result = self._validate_cli_args(args)
             if validation_result.is_failure:
                 self.logger.warning(
@@ -385,7 +385,7 @@ class FlextCliCommands(FlextService[FlextTypes.JsonDict]):
                     source="flext-cli/src/flext_cli/commands.py",
                 )
                 return FlextResult[bool].ok(True)
-            
+
             # Fast-fail: error is always present in failure case
             self.logger.error(
                 "CLI execution failed",
@@ -464,7 +464,7 @@ class FlextCliCommands(FlextService[FlextTypes.JsonDict]):
             args_count=len(args) if args else 0,
             source="flext-cli/src/flext_cli/commands.py",
         )
-        
+
         self.logger.debug(
             "Starting command execution",
             operation="execute_command",
@@ -474,7 +474,7 @@ class FlextCliCommands(FlextService[FlextTypes.JsonDict]):
             available_commands=list(self._commands.keys()),
             source="flext-cli/src/flext_cli/commands.py",
         )
-        
+
         try:
             if command_name not in self._commands:
                 self.logger.error(
@@ -499,16 +499,18 @@ class FlextCliCommands(FlextService[FlextTypes.JsonDict]):
                 has_handler=FlextCliConstants.CommandsDictKeys.HANDLER in command_info,
                 source="flext-cli/src/flext_cli/commands.py",
             )
-            
+
             if not (
-                isinstance(command_info, dict)
+                FlextRuntime.is_dict_like(command_info)
                 and FlextCliConstants.CommandsDictKeys.HANDLER in command_info
             ):
                 self.logger.error(
                     "FAILED to execute command - invalid command structure",
                     operation="execute_command",
                     command_name=command_name,
-                    command_info_keys=list(command_info.keys()) if isinstance(command_info, dict) else None,
+                    command_info_keys=list(command_info.keys())
+                    if FlextRuntime.is_dict_like(command_info)
+                    else None,
                     consequence="Command execution aborted",
                     source="flext-cli/src/flext_cli/commands.py",
                 )
@@ -543,9 +545,9 @@ class FlextCliCommands(FlextService[FlextTypes.JsonDict]):
                 args_provided=args is not None,
                 source="flext-cli/src/flext_cli/commands.py",
             )
-            
+
             result = self._execute_handler(handler, args)
-            
+
             # Result from handler should be JsonValue compatible
             # Validate type at runtime if needed, but avoid unnecessary cast
             if not isinstance(result, (str, int, float, bool, list, dict, type(None))):
@@ -568,7 +570,7 @@ class FlextCliCommands(FlextService[FlextTypes.JsonDict]):
                 result_type=type(result).__name__,
                 source="flext-cli/src/flext_cli/commands.py",
             )
-            
+
             self.logger.info(
                 "Command execution completed",
                 operation="execute_command",
@@ -615,19 +617,19 @@ class FlextCliCommands(FlextService[FlextTypes.JsonDict]):
             current_commands_count=len(self._commands),
             source="flext-cli/src/flext_cli/commands.py",
         )
-        
+
         try:
             count = len(self._commands)
             self._commands.clear()
             self._cli_group.commands.clear()
-            
+
             self.logger.debug(
                 "All commands cleared successfully",
                 operation="clear_commands",
                 cleared_count=count,
                 source="flext-cli/src/flext_cli/commands.py",
             )
-            
+
             return FlextResult[int].ok(count)
         except Exception as e:
             self.logger.exception(
@@ -655,10 +657,10 @@ class FlextCliCommands(FlextService[FlextTypes.JsonDict]):
             current_commands_count=len(self._commands),
             source="flext-cli/src/flext_cli/commands.py",
         )
-        
+
         try:
             command_names = list(self._commands.keys())
-            
+
             self.logger.debug(
                 "Commands listed successfully",
                 operation="list_commands",
@@ -666,7 +668,7 @@ class FlextCliCommands(FlextService[FlextTypes.JsonDict]):
                 command_names=command_names,
                 source="flext-cli/src/flext_cli/commands.py",
             )
-            
+
             return FlextResult[list[str]].ok(command_names)
         except Exception as e:
             self.logger.exception(

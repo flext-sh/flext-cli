@@ -15,7 +15,7 @@ from io import StringIO
 from typing import override
 
 import yaml
-from flext_core import FlextResult, FlextService, FlextTypes
+from flext_core import FlextMixins, FlextResult, FlextRuntime, FlextService, FlextTypes
 from pydantic import BaseModel
 
 from flext_cli.constants import FlextCliConstants
@@ -167,7 +167,7 @@ class FlextCliOutput(FlextService[FlextTypes.JsonDict]):
     ) -> FlextResult[str]:
         """Format data as table with type validation."""
         # Handle dict - type narrowing for format_table
-        if isinstance(data, dict):
+        if FlextRuntime.is_dict_like(data):
             # Type cast: dict[str, JsonValue] is compatible with format_table
             # JsonValue is recursively defined to include dict[str, JsonValue]
             table_data = typing.cast(
@@ -177,13 +177,13 @@ class FlextCliOutput(FlextService[FlextTypes.JsonDict]):
             return self.format_table(table_data, title=title, headers=headers)
 
         # Handle list of dicts - type narrowing for format_table
-        if isinstance(data, list):
+        if FlextRuntime.is_list_like(data):
             # Fast fail validation
             if not data:
                 return FlextResult[str].fail(
                     FlextCliConstants.ErrorMessages.NO_DATA_PROVIDED
                 )
-            if not all(isinstance(item, dict) for item in data):
+            if not all(FlextRuntime.is_dict_like(item) for item in data):
                 return FlextResult[str].fail(
                     FlextCliConstants.ErrorMessages.TABLE_FORMAT_REQUIRED_DICT
                 )
@@ -395,7 +395,7 @@ class FlextCliOutput(FlextService[FlextTypes.JsonDict]):
         """Format Pydantic model to string."""
         # model_dump() returns dict[str, Any] which is compatible with JsonValue
         # dict is a valid JsonValue type, no cast needed
-        result_dict: FlextTypes.JsonValue = result.model_dump()
+        result_dict: FlextTypes.JsonValue = FlextMixins.ModelConversion.to_dict(result)
         return self.format_data(result_dict, output_format)
 
     def _format_dict_object(
@@ -904,7 +904,11 @@ class FlextCliOutput(FlextService[FlextTypes.JsonDict]):
 
         """
         try:
-            if isinstance(data, list) and data and isinstance(data[0], dict):
+            if (
+                FlextRuntime.is_list_like(data)
+                and data
+                and FlextRuntime.is_dict_like(data[0])
+            ):
                 output_buffer = StringIO()
                 fieldnames = list(data[0].keys())
                 writer = csv.DictWriter(output_buffer, fieldnames=fieldnames)
@@ -915,11 +919,11 @@ class FlextCliOutput(FlextService[FlextTypes.JsonDict]):
                 csv_rows: list[dict[str, object]] = [
                     {k: v if v is not None else "" for k, v in row.items()}
                     for row in data
-                    if isinstance(row, dict)
+                    if FlextRuntime.is_dict_like(row)
                 ]
                 writer.writerows(csv_rows)
                 return FlextResult[str].ok(output_buffer.getvalue())
-            if isinstance(data, dict):
+            if FlextRuntime.is_dict_like(data):
                 output_buffer = StringIO()
                 fieldnames = list(data.keys())
                 writer = csv.DictWriter(output_buffer, fieldnames=fieldnames)
@@ -1001,9 +1005,9 @@ class FlextCliOutput(FlextService[FlextTypes.JsonDict]):
         headers: list[str] | None,
     ) -> FlextResult[tuple[list[dict[str, FlextTypes.JsonValue]], str | list[str]]]:
         """Prepare and validate table data and headers."""
-        if isinstance(data, dict):
+        if FlextRuntime.is_dict_like(data):
             return self._prepare_dict_data(data, headers)
-        if isinstance(data, list):
+        if FlextRuntime.is_list_like(data):
             return self._prepare_list_data(data, headers)
         return FlextResult[
             tuple[list[dict[str, FlextTypes.JsonValue]], str | list[str]]
@@ -1047,7 +1051,7 @@ class FlextCliOutput(FlextService[FlextTypes.JsonDict]):
             ].fail(FlextCliConstants.ErrorMessages.NO_DATA_PROVIDED)
 
         # Validate headers type
-        if headers is not None and not isinstance(headers, list):
+        if headers is not None and not FlextRuntime.is_list_like(headers):
             return FlextResult[
                 tuple[list[dict[str, FlextTypes.JsonValue]], str | list[str]]
             ].fail(FlextCliConstants.ErrorMessages.TABLE_HEADERS_MUST_BE_LIST)
@@ -1151,13 +1155,13 @@ class FlextCliOutput(FlextService[FlextTypes.JsonDict]):
             data: Data to build tree from
 
         """
-        if isinstance(data, dict):
+        if FlextRuntime.is_dict_like(data):
             for key, value in data.items():
-                if isinstance(value, dict):
+                if FlextRuntime.is_dict_like(value):
                     branch = tree.add(str(key))
                     # value is dict, which is a valid JsonValue type, no cast needed
                     self._build_tree(branch, value)
-                elif isinstance(value, list):
+                elif FlextRuntime.is_list_like(value):
                     branch = tree.add(
                         f"{key}{FlextCliConstants.OutputDefaults.TREE_BRANCH_LIST_SUFFIX}"
                     )
@@ -1169,7 +1173,7 @@ class FlextCliOutput(FlextService[FlextTypes.JsonDict]):
                     tree.add(
                         f"{key}{FlextCliConstants.OutputDefaults.TREE_VALUE_SEPARATOR}{value}"
                     )
-        elif isinstance(data, list):
+        elif FlextRuntime.is_list_like(data):
             for item in data:
                 # Type cast: item from list[JsonValue] is a valid JsonValue
                 json_item = typing.cast("FlextTypes.JsonValue", item)

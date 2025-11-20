@@ -12,8 +12,7 @@ from pathlib import Path
 
 import pytest
 
-from flext_cli.constants import FlextCliConstants
-from flext_cli.utilities import FlextCliUtilities
+from flext_cli import FlextCliConstants, FlextCliUtilities
 
 # =================================================================
 # CLI VALIDATION TESTS - Testing validation helpers
@@ -125,9 +124,7 @@ class TestCliValidation:
         assert result.is_failure
         # Type narrowing: when is_failure is True, error is guaranteed to be str
         error_msg = result.error or ""
-        assert (
-            "unsupported" in error_msg.lower() or "invalid" in error_msg.lower()
-        )
+        assert "unsupported" in error_msg.lower() or "invalid" in error_msg.lower()
 
     def test_validate_string_not_empty_success(self) -> None:
         """Test validate_string_not_empty with valid non-empty string."""
@@ -539,7 +536,7 @@ class TestTypeNormalizer:
 
         # Use types.NoneType instead of type(None) for mypy compatibility
         annotation: object = Union[types.NoneType]
-        result = FlextCliUtilities.TypeNormalizer.normalize_union_type(annotation)  # type: ignore[arg-type]  # type: ignore[arg-type]
+        result = FlextCliUtilities.TypeNormalizer.normalize_union_type(annotation)
         # Should return annotation directly (line 633)
         assert result is not None
 
@@ -553,7 +550,7 @@ class TestTypeNormalizer:
         from typing import Union
 
         annotation = Union[str, int]
-        result = FlextCliUtilities.TypeNormalizer.normalize_annotation(annotation)  # type: ignore[arg-type]
+        result = FlextCliUtilities.TypeNormalizer.normalize_annotation(annotation)
         assert result is not None
 
     def test_normalize_annotation_reconstruction_error(self) -> None:
@@ -574,9 +571,9 @@ class TestTypeNormalizer:
         # Create annotation with this type
         # Use type: ignore to suppress mypy error for invalid generic usage
         try:
-            annotation: object = ErrorType[int]  # type: ignore[type-arg]
+            annotation: object = ErrorType[int]
             # Now normalize_annotation should catch the TypeError during reconstruction
-            result = FlextCliUtilities.TypeNormalizer.normalize_annotation(annotation)  # type: ignore[arg-type]
+            result = FlextCliUtilities.TypeNormalizer.normalize_annotation(annotation)
             # Should return original annotation (line 567) after catching TypeError (line 564-565)
             assert result is not None
             assert (
@@ -632,7 +629,7 @@ class TestTypeNormalizer:
 
         # Test with Union type
         annotation = Union[str, int]
-        result = FlextCliUtilities.TypeNormalizer.normalize_annotation(annotation)  # type: ignore[arg-type]
+        result = FlextCliUtilities.TypeNormalizer.normalize_annotation(annotation)
         # Should handle the exception and continue (line 544: pass)
         assert result is not None
 
@@ -653,7 +650,7 @@ class TestTypeNormalizer:
             # Return None for str type to trigger line 603
             if annotation is str:
                 return None
-            return original_normalize(annotation)  # type: ignore[arg-type]
+            return original_normalize(annotation)
 
         monkeypatch.setattr(
             FlextCliUtilities.TypeNormalizer,
@@ -686,7 +683,7 @@ class TestTypeNormalizer:
             # For multiple types, return str to simulate combining
             if annotation in {int, float}:
                 return str  # Combine int and float into str
-            return original_normalize(annotation)  # type: ignore[arg-type]
+            return original_normalize(annotation)
 
         monkeypatch.setattr(
             FlextCliUtilities.TypeNormalizer,
@@ -719,8 +716,10 @@ class TestTypeNormalizer:
         monkeypatch.setattr("typing.get_args", single_arg_get_args)
 
         # Now test with a union that has one arg
-        annotation2: object = str | int  # Will be processed as having one arg after mock
-        result = FlextCliUtilities.TypeNormalizer.normalize_union_type(annotation2)  # type: ignore[arg-type]
+        annotation2: object = (
+            str | int
+        )  # Will be processed as having one arg after mock
+        result = FlextCliUtilities.TypeNormalizer.normalize_union_type(annotation2)
         assert result is not None
 
         # Restore original
@@ -752,7 +751,7 @@ class TestTypeNormalizer:
 
         # Test with Union type
         annotation = Union[str, int]
-        result = FlextCliUtilities.TypeNormalizer.normalize_annotation(annotation)  # type: ignore[arg-type]
+        result = FlextCliUtilities.TypeNormalizer.normalize_annotation(annotation)
         # Should handle the exception and continue (line 544: pass)
         assert result is not None
 
@@ -867,7 +866,7 @@ class TestTypeNormalizer:
         from typing import Union
 
         annotation: object = Union[types.NoneType]
-        result = FlextCliUtilities.TypeNormalizer.normalize_union_type(annotation)  # type: ignore[arg-type]
+        result = FlextCliUtilities.TypeNormalizer.normalize_union_type(annotation)
         # Should return annotation directly (line 633)
         assert result is not None
         assert result is annotation or result is type(None)
@@ -880,12 +879,13 @@ class TestTypeNormalizer:
 
         # Mock Path.home() to return a path where flext_dir doesn't exist
         class MockHomePath(Path):
-            def __truediv__(self, other: object) -> Path:  # type: ignore[override]
+            def __truediv__(self, other: object) -> Path:
                 # Return a path that doesn't exist
                 # Use cast to handle object type for other parameter
                 from typing import cast
+
                 other_path = cast("str | Path", other)
-                result: Path = super().__truediv__(other_path)  # type: ignore[assignment]
+                result: Path = super().__truediv__(other_path)
                 # Make exists() return False for flext directory
                 original_exists = result.exists
 
@@ -894,7 +894,7 @@ class TestTypeNormalizer:
                         return False
                     return original_exists()
 
-                result.exists = mock_exists  # type: ignore[assignment]
+                result.exists = mock_exists
                 return result
 
         # Mock Path.home() to return our mock
@@ -1022,7 +1022,7 @@ class TestUtilitiesIntegration:
 
         # Now when normalize_annotation checks "if origin is Union",
         # accessing typing.Union will raise AttributeError, triggering lines 543-544
-        result = FlextCliUtilities.TypeNormalizer.normalize_annotation(annotation)  # type: ignore[arg-type]
+        result = FlextCliUtilities.TypeNormalizer.normalize_annotation(annotation)
         # Should handle exception and continue (line 544: pass)
         assert result is not None
 
@@ -1244,9 +1244,10 @@ class TestUtilitiesIntegration:
         # This is an edge case that shouldn't happen normally
         import types
         from typing import Union
+
         annotation: object = Union[types.NoneType]  # Only NoneType
 
-        result = FlextCliUtilities.TypeNormalizer.normalize_union_type(annotation)  # type: ignore[arg-type]
+        result = FlextCliUtilities.TypeNormalizer.normalize_union_type(annotation)
         # Should return annotation directly (line 633)
         assert result is not None
         # Result should be the original annotation (edge case)

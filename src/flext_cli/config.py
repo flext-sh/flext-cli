@@ -13,7 +13,6 @@ import importlib
 import json
 import os
 import shutil
-from datetime import UTC, datetime
 from pathlib import Path
 from typing import Annotated, Self
 
@@ -23,8 +22,10 @@ from flext_core import (
     FlextContainer,
     FlextContext,
     FlextLogger,
+    FlextMixins,
     FlextResult,
     FlextTypes,
+    FlextUtilities,
     RetryCount,
     TimeoutSeconds,
 )
@@ -37,8 +38,8 @@ from pydantic import (
 )
 from pydantic_settings import SettingsConfigDict
 
-from flext_cli._models_config import ConfigServiceExecutionResult
 from flext_cli.constants import FlextCliConstants
+from flext_cli.models import FlextCliModels
 from flext_cli.typings import FlextCliTypes
 
 # Alias LogLevel from FlextConstants (moved from flext_core direct export)
@@ -557,22 +558,24 @@ class FlextCliConfig(FlextConfig.AutoConfig):
 
         """
         # Convert Path objects to strings for JSON compatibility
-        config_dict = self.model_dump()
+        config_dict = FlextMixins.ModelConversion.to_dict(self)
         # Convert PosixPath to str for JSON serialization
         for key, value in config_dict.items():
             if isinstance(value, Path):
                 config_dict[key] = str(value)
 
         # Create Pydantic model with type-safe fields
-        result_model = ConfigServiceExecutionResult(
+        result_model = FlextCliModels.ConfigServiceExecutionResult(
             status=FlextCliConstants.ServiceStatus.OPERATIONAL.value,
             service=FlextCliConstants.ConfigDefaults.DEFAULT_SERVICE_NAME,
-            timestamp=datetime.now(UTC).isoformat(),
+            timestamp=FlextUtilities.Generators.generate_iso_timestamp(),
             version=FlextCliConstants.ConfigDefaults.DEFAULT_VERSION_STRING,
             config=config_dict,
         )
         # Serialize to dict for API compatibility
-        result_dict: FlextCliTypes.Data.CliDataDict = result_model.model_dump()
+        result_dict: FlextCliTypes.Data.CliDataDict = (
+            FlextMixins.ModelConversion.to_dict(result_model)
+        )
         return FlextResult[FlextCliTypes.Data.CliDataDict].ok(result_dict)
 
     def update_from_cli_args(self, **kwargs: FlextTypes.JsonValue) -> FlextResult[bool]:
@@ -607,7 +610,7 @@ class FlextCliConfig(FlextConfig.AutoConfig):
                 setattr(self, key, value)
 
             # Re-validate entire model to ensure consistency
-            self.model_validate(self.model_dump())
+            self.model_validate(FlextMixins.ModelConversion.to_dict(self))
 
             return FlextResult[bool].ok(True)
 
@@ -657,7 +660,9 @@ class FlextCliConfig(FlextConfig.AutoConfig):
                     # Create test instance with override
                     test_config = self.model_copy()
                     setattr(test_config, key, value)
-                    test_config.model_validate(test_config.model_dump())
+                    test_config.model_validate(
+                        FlextMixins.ModelConversion.to_dict(test_config)
+                    )
                     valid_overrides[key] = value
                 except Exception as e:
                     errors.append(
@@ -688,7 +693,7 @@ class FlextCliConfig(FlextConfig.AutoConfig):
         """
         try:
             # Convert model to dictionary format expected by protocol
-            config_data = self.model_dump()
+            config_data = FlextMixins.ModelConversion.to_dict(self)
             return FlextResult[FlextCliTypes.Data.CliConfigData].ok(config_data)
         except Exception as e:
             return FlextResult[FlextCliTypes.Data.CliConfigData].fail(
@@ -714,7 +719,7 @@ class FlextCliConfig(FlextConfig.AutoConfig):
                     setattr(self, key, value)
 
             # Validate the updated configuration
-            self.model_validate(self.model_dump())
+            self.model_validate(FlextMixins.ModelConversion.to_dict(self))
             return FlextResult[bool].ok(True)
         except Exception as e:
             return FlextResult[bool].fail(

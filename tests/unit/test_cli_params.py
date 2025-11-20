@@ -260,7 +260,7 @@ class TestFlextCliCommonParams:
 
     def test_configure_logger_critical_level(self) -> None:
         """Test configuring logger with CRITICAL level."""
-        config = FlextCliConfig(log_level=FlextConstants.Settings.LogLevel.CRITICAL)
+        config = FlextCliConfig(cli_log_level=FlextConstants.Settings.LogLevel.CRITICAL)
 
         result = FlextCliCommonParams.configure_logger(config)
 
@@ -455,7 +455,9 @@ class TestCommonCliParamsDecorator:
                 updated_config = result.unwrap()
                 typer.echo(f"Config verbose: {updated_config.verbose}")
                 typer.echo(f"Config debug: {updated_config.debug}")
-                typer.echo(f"Config cli_log_level: {updated_config.cli_log_level.value}")
+                typer.echo(
+                    f"Config cli_log_level: {updated_config.cli_log_level.value}"
+                )
                 typer.echo(f"Config output_format: {updated_config.output_format}")
 
         runner = CliRunner()
@@ -708,7 +710,7 @@ class TestCliParamsCoverageCompletion:
         """Test configure_logger with invalid log level (lines 394-395)."""
         config = FlextCliConfig()
         # Directly set invalid log level (bypassing validation)
-        config.__dict__["cli_log_level"] = "INVALID"  # type: ignore[assignment]
+        config.__dict__["cli_log_level"] = "INVALID"
 
         result = FlextCliCommonParams.configure_logger(config)
 
@@ -729,13 +731,13 @@ class TestCliParamsCoverageCompletion:
             raise RuntimeError(msg)
 
         # Create property that raises on access
-        config.__dict__["cli_log_level"] = property(failing_log_level)  # type: ignore[assignment]
+        config.__dict__["cli_log_level"] = property(failing_log_level)
 
         try:
             result = FlextCliCommonParams.configure_logger(config)
         finally:
             # Restore original cli_log_level
-            config.__dict__["cli_log_level"] = original_log_level  # type: ignore[assignment]
+            config.__dict__["cli_log_level"] = original_log_level
 
         assert result.is_failure
         assert result.error is not None
@@ -751,7 +753,9 @@ class TestCliParamsCoverageCompletion:
         # Check that parameters are sorted by priority
         assert "verbose" in params
         assert "debug" in params
-        assert "cli_log_level" in params  # Field name is cli_log_level, CLI param is --log-level
+        assert (
+            "cli_log_level" in params
+        )  # Field name is cli_log_level, CLI param is --log-level
 
     def test_create_option_with_pydantic_undefined_default(self) -> None:
         """Test create_option with PydanticUndefinedType default (line 180)."""

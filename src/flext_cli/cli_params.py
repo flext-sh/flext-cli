@@ -230,7 +230,9 @@ class FlextCliCommonParams:
             # Apply all parameters - extracted helpers to reduce complexity
             bool_result = cls._set_bool_params(config, params)
             if bool_result.is_failure:
-                return FlextResult[FlextCliConfig].fail(bool_result.error or "Boolean parameter setting failed")
+                return FlextResult[FlextCliConfig].fail(
+                    bool_result.error or "Boolean parameter setting failed"
+                )
 
             log_level_result = cls._set_log_level(config, params)
             if log_level_result.is_failure:

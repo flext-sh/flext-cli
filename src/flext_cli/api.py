@@ -14,16 +14,17 @@ from __future__ import annotations
 import secrets
 import typing
 from collections.abc import Callable, Sequence
-from datetime import UTC, datetime
 
 from flext_core import (
     FlextContainer,
     FlextLogger,
     FlextResult,
+    FlextRuntime,
     FlextTypes,
+    FlextUtilities,
 )
 
-from flext_cli.__version__ import __version__
+from flext_cli import __version__
 from flext_cli.cli import FlextCliCli
 from flext_cli.cmd import FlextCliCmd
 from flext_cli.config import FlextCliConfig
@@ -248,7 +249,7 @@ class FlextCli:
         # Validate using Pydantic model - eliminates _validate_token_data + _extract_token_string
         data = result.unwrap()
         # Check if data is empty or None before validation
-        if not data or (isinstance(data, dict) and not data):
+        if not data or (FlextRuntime.is_dict_like(data) and not data):
             return FlextResult[str].fail(
                 FlextCliConstants.ErrorMessages.TOKEN_FILE_EMPTY
             )
@@ -388,7 +389,7 @@ class FlextCli:
         return FlextResult[FlextTypes.JsonDict].ok({
             FlextCliConstants.DictKeys.STATUS: FlextCliConstants.ServiceStatus.OPERATIONAL.value,
             FlextCliConstants.DictKeys.SERVICE: FlextCliConstants.FLEXT_CLI,
-            "timestamp": datetime.now(UTC).isoformat(),
+            "timestamp": FlextUtilities.Generators.generate_iso_timestamp(),
             "version": __version__,
             "components": {
                 "config": "available",
@@ -437,11 +438,17 @@ class FlextCli:
 
         # table_data is dict|list which are both valid JsonValue types
         # Ensure type compatibility for type checker (dict/list are JsonValue at runtime)
-        if isinstance(data, dict):
+        if FlextRuntime.is_dict_like(data):
+            table_data = typing.cast("FlextTypes.JsonValue", data)
+        elif FlextRuntime.is_list_like(data):
+            # Already a list-like structure, cast directly
             table_data = typing.cast("FlextTypes.JsonValue", data)
         else:
-            # Convert to list and ensure JsonValue compatibility
-            table_data = typing.cast("FlextTypes.JsonValue", list(data))
+            # Convert iterable to list and ensure JsonValue compatibility
+            table_data = typing.cast(
+                "FlextTypes.JsonValue",
+                list(data) if isinstance(data, Sequence) else [data],
+            )
 
         # Use output.format_data which supports data, title, and headers
         return self.output.format_data(

@@ -7,7 +7,7 @@ Copyright (c) 2025 FLEXT Team. All rights reserved.
 SPDX-License-Identifier: MIT
 """
 
-from flext_cli.mixins import FlextCliMixins
+from flext_cli import FlextCliMixins
 
 
 class TestFlextCliMixinsBusinessRulesMixin:
@@ -54,9 +54,13 @@ class TestFlextCliMixinsBusinessRulesMixin:
     def test_validate_pipeline_step_valid(self) -> None:
         """Test validate_pipeline_step with valid step."""
         from typing import cast
+
         step = {"name": "migration", "type": "batch"}
         # Cast to expected type for test
-        step_typed = cast("dict[str, str | int | float | bool | dict[str, object] | list[object] | None]", step)
+        step_typed = cast(
+            "dict[str, str | int | float | bool | dict[str, object] | list[object] | None]",
+            step,
+        )
         result = FlextCliMixins.BusinessRulesMixin.validate_pipeline_step(step_typed)
         assert result.is_success
 
@@ -71,9 +75,13 @@ class TestFlextCliMixinsBusinessRulesMixin:
     def test_validate_pipeline_step_no_name(self) -> None:
         """Test validate_pipeline_step without name field."""
         from typing import cast
+
         step = {"type": "batch", "config": {}}
         # Cast to expected type for test
-        step_typed = cast("dict[str, str | int | float | bool | dict[str, object] | list[object] | None]", step)
+        step_typed = cast(
+            "dict[str, str | int | float | bool | dict[str, object] | list[object] | None]",
+            step,
+        )
         result = FlextCliMixins.BusinessRulesMixin.validate_pipeline_step(step_typed)
         assert result.is_failure
         # Type narrowing: when is_failure is True, error is guaranteed to be str
@@ -83,9 +91,13 @@ class TestFlextCliMixinsBusinessRulesMixin:
     def test_validate_pipeline_step_name_empty(self) -> None:
         """Test validate_pipeline_step with empty name."""
         from typing import cast
+
         step = {"name": "", "type": "batch"}
         # Cast to expected type for test
-        step_typed = cast("dict[str, str | int | float | bool | dict[str, object] | list[object] | None]", step)
+        step_typed = cast(
+            "dict[str, str | int | float | bool | dict[str, object] | list[object] | None]",
+            step,
+        )
         result = FlextCliMixins.BusinessRulesMixin.validate_pipeline_step(step_typed)
         assert result.is_failure
         # Type narrowing: when is_failure is True, error is guaranteed to be str
@@ -95,9 +107,13 @@ class TestFlextCliMixinsBusinessRulesMixin:
     def test_validate_pipeline_step_name_whitespace(self) -> None:
         """Test validate_pipeline_step with whitespace-only name."""
         from typing import cast
+
         step = {"name": "   ", "type": "batch"}
         # Cast to expected type for test
-        step_typed = cast("dict[str, str | int | float | bool | dict[str, object] | list[object] | None]", step)
+        step_typed = cast(
+            "dict[str, str | int | float | bool | dict[str, object] | list[object] | None]",
+            step,
+        )
         result = FlextCliMixins.BusinessRulesMixin.validate_pipeline_step(step_typed)
         assert result.is_failure
         # Type narrowing: when is_failure is True, error is guaranteed to be str
@@ -107,9 +123,13 @@ class TestFlextCliMixinsBusinessRulesMixin:
     def test_validate_configuration_consistency_valid(self) -> None:
         """Test validate_configuration_consistency with valid config."""
         from typing import cast
+
         config = {"field1": "value1", "field2": "value2"}
         # Cast to expected type for test
-        config_typed = cast("dict[str, str | int | float | bool | dict[str, object] | list[object] | None]", config)
+        config_typed = cast(
+            "dict[str, str | int | float | bool | dict[str, object] | list[object] | None]",
+            config,
+        )
         required_fields = ["field1", "field2"]
         result = FlextCliMixins.BusinessRulesMixin.validate_configuration_consistency(
             config_typed, required_fields
@@ -119,9 +139,13 @@ class TestFlextCliMixinsBusinessRulesMixin:
     def test_validate_configuration_consistency_missing_fields(self) -> None:
         """Test validate_configuration_consistency with missing fields."""
         from typing import cast
+
         config = {"field1": "value1"}
         # Cast to expected type for test
-        config_typed = cast("dict[str, str | int | float | bool | dict[str, object] | list[object] | None]", config)
+        config_typed = cast(
+            "dict[str, str | int | float | bool | dict[str, object] | list[object] | None]",
+            config,
+        )
         required_fields = ["field1", "field2", "field3"]
         result = FlextCliMixins.BusinessRulesMixin.validate_configuration_consistency(
             config_typed, required_fields

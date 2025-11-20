@@ -24,8 +24,13 @@ from typing import IO
 
 import click
 import typer
-from flext_core import FlextContainer, FlextLogger, FlextResult, FlextTypes
-from flext_core.runtime import FlextRuntime
+from flext_core import (
+    FlextContainer,
+    FlextLogger,
+    FlextResult,
+    FlextRuntime,
+    FlextTypes,
+)
 from typer.testing import CliRunner
 
 from flext_cli.cli_params import FlextCliCommonParams

@@ -11,10 +11,11 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 import time
-from typing import Never
+from collections.abc import Callable
+from typing import Never, cast
 
 import pytest
-from flext_core import FlextResult
+from flext_core import FlextResult, FlextTypes
 
 from flext_cli import FlextCliCommands, FlextCliConstants
 
@@ -556,7 +557,14 @@ class TestFlextCliCommands:
         def invalid_handler() -> InvalidType:
             return InvalidType()
 
-        commands.register_command("test", invalid_handler)
+        # Cast to pass type checker - test validates runtime behavior
+        commands.register_command(
+            "test",
+            cast(
+                "Callable[[], FlextTypes.JsonValue] | Callable[[list[str]], FlextTypes.JsonValue]",
+                invalid_handler,
+            ),
+        )
         result = commands.execute_command("test", [])
         # The handler will be executed and return InvalidType
         # The type check at line 314 should catch this

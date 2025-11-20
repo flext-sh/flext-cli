@@ -550,7 +550,7 @@ nested:
     def test_execute_command_with_timeout(self, core_service: FlextCliCore) -> None:
         """Test command execution with timeout."""
         # Register a test command first
-        from flext_cli.models import FlextCliModels
+        from flext_cli import FlextCliModels
 
         test_command = FlextCliModels.CliCommand(
             name="test_timeout_core",
@@ -1397,7 +1397,8 @@ class TestFlextCliCoreExceptionHandlers:
                 raise RuntimeError(msg)
 
         # Replace _commands with error-raising dict
-        core_service._commands = ErrorDict()
+        # Type: ErrorDict is used for testing exception handling
+        core_service._commands = cast("FlextTypes.JsonDict", ErrorDict())
 
         # Now register_command should catch the exception
         result = core_service.register_command(cmd)
@@ -1438,8 +1439,10 @@ class TestFlextCliCoreExceptionHandlers:
                 return original_commands[key]
 
         # Replace _commands with error-raising dict
-        # Use setattr directly - necessary to bypass Pydantic validation in tests
-        core_service._commands = ErrorDict(original_commands)
+        # Type: ErrorDict is used for testing exception handling
+        core_service._commands = cast(
+            "FlextTypes.JsonDict", ErrorDict(original_commands)
+        )
 
         # Now get_command should catch the exception
         result = core_service.get_command("test")
@@ -1568,8 +1571,10 @@ class TestFlextCliCoreExceptionHandlers:
 
         error_config = ErrorDict({"test": "value"})
         # Replace _config with error-raising dict
-        # Use setattr directly - necessary to bypass Pydantic validation in tests
-        core_service._config = error_config
+        # Type: ErrorDict is used for testing exception handling
+        core_service._config = cast(
+            "FlextCliTypes.Configuration.CliConfigSchema", error_config
+        )
 
         # Now get_configuration should catch the exception when checking if _config
         result = core_service.get_configuration()
@@ -1836,6 +1841,7 @@ class TestFlextCliCoreExceptionHandlers:
         core_service.create_ttl_cache("test_cache", maxsize=100, ttl=60)
         result = core_service.create_ttl_cache("test_cache", maxsize=100, ttl=60)
         assert result.is_failure
+        assert result.error is not None
         assert "already exists" in result.error
 
     def test_create_ttl_cache_exception(self, core_service: FlextCliCore) -> None:
@@ -1879,6 +1885,7 @@ class TestFlextCliCoreExceptionHandlers:
         """Test getting stats for non-existent cache."""
         result = core_service.get_cache_stats("nonexistent")
         assert result.is_failure
+        assert result.error is not None
         assert "not found" in result.error
 
     def test_memoize_without_ttl(self, core_service: FlextCliCore) -> None:
@@ -1936,6 +1943,7 @@ class TestFlextCliCoreExceptionHandlers:
         """
         result = core_service.register_command(None)  # type: ignore[arg-type]
         assert result.is_failure
+        assert result.error is not None
         assert "empty" in str(result.error).lower()
 
     def test_register_command_empty_name(self, core_service: FlextCliCore) -> None:
@@ -1984,7 +1992,10 @@ class TestFlextCliCoreExceptionHandlers:
 
         Real scenario: Tests successful configuration update.
         """
-        config = {"new_key": "new_value", "another_key": 123}
+        config: dict[str, FlextTypes.JsonValue] = {
+            "new_key": "new_value",
+            "another_key": 123,
+        }
         result = core_service.update_configuration(config)
         assert result.is_success
         # Verify config was updated
@@ -2051,7 +2062,10 @@ class TestFlextCliCoreExceptionHandlers:
         """
         # Ensure config is initialized first
         core_service.update_configuration({"initialized": True})
-        profile_config = {"output_format": "json", "debug": True}
+        profile_config: dict[str, FlextTypes.JsonValue] = {
+            "output_format": "json",
+            "debug": True,
+        }
         result = core_service.create_profile("test_profile", profile_config)
         assert result.is_success
         # Verify profile was stored
@@ -2059,8 +2073,11 @@ class TestFlextCliCoreExceptionHandlers:
         assert get_result.is_success
         config = get_result.unwrap()
         assert "profiles" in config
-        assert "test_profile" in config["profiles"]
-        assert config["profiles"]["test_profile"] == profile_config
+        profiles = config["profiles"]
+        assert isinstance(profiles, dict)
+        assert "test_profile" in profiles
+        assert isinstance(profiles["test_profile"], dict)
+        assert profiles["test_profile"] == profile_config
 
     def test_start_session_success(self, core_service: FlextCliCore) -> None:
         """Test start_session success path (line 696-709).
@@ -2160,7 +2177,7 @@ class TestFlextCliCoreExceptionHandlers:
         Real scenario: Tests error when command type is invalid.
         """
         # Register command with invalid type (not dict)
-        core_service._commands["invalid_command"] = "not a dict"  # type: ignore[assignment]
+        core_service._commands["invalid_command"] = "not a dict"
         result = core_service.get_command("invalid_command")
         assert result.is_failure
         assert (
@@ -2261,7 +2278,7 @@ class TestFlextCliCoreExceptionHandlers:
         # Set _config to None
         original_config = core_service._config
         try:
-            core_service._config = None  # type: ignore[assignment]
+            core_service._config = None
             result = core_service.get_config()
             assert result.is_failure
             assert "not initialized" in str(result.error).lower()
@@ -2295,7 +2312,7 @@ class TestFlextCliCoreExceptionHandlers:
 
         Real scenario: Tests fast-fail when config_path is None.
         """
-        result = core_service.load_configuration(None)  # type: ignore[arg-type]
+        result = core_service.load_configuration(None)
         assert result.is_failure
         assert (
             "not found" in str(result.error).lower()
@@ -2417,7 +2434,7 @@ class TestFlextCliCoreExceptionHandlers:
         Real scenario: Tests TypeError when cache has invalid type.
         """
         # Create a cache with invalid type by directly assigning
-        core_service._caches["invalid_cache"] = {}  # type: ignore[assignment]
+        core_service._caches["invalid_cache"] = {}
         # This should raise TypeError when memoize tries to use it
         # But memoize creates the cache if it doesn't exist, so we need to test differently
         # Actually, memoize creates cache if it doesn't exist, so this is hard to test
@@ -2453,7 +2470,7 @@ class TestFlextCliCoreExceptionHandlers:
         Real scenario: Tests error when cache type is invalid.
         """
         # Create cache with invalid type
-        core_service._caches["invalid_cache"] = {}  # type: ignore[assignment]
+        core_service._caches["invalid_cache"] = {}
         result = core_service.get_cache_stats("invalid_cache")
         assert result.is_failure
         assert (
@@ -2680,7 +2697,7 @@ class TestFlextCliCoreExceptionHandlers:
         )
 
         # Set _config to None to trigger the not initialized path
-        core_service._config = None  # type: ignore[assignment]
+        core_service._config = None
         result = core_service.get_configuration()
         assert result.is_failure
         assert "not initialized" in str(result.error).lower()
@@ -2767,7 +2784,7 @@ class TestFlextCliCoreExceptionHandlers:
         core_service.start_session()
 
         # Force exception by making model_dump raise
-        from flext_cli.models import FlextCliModels
+        from flext_cli import FlextCliModels
 
         original_model_dump = FlextCliModels.SessionStatistics.model_dump
 
@@ -2898,7 +2915,7 @@ class TestFlextCliCoreExceptionHandlers:
     def test_memoize_invalid_cache_type(self, core_service: FlextCliCore) -> None:
         """Test memoize when cache has invalid type (lines 1323-1324)."""
         # Create a cache with invalid type
-        core_service._caches["invalid_cache"] = {}  # type: ignore[assignment]
+        core_service._caches["invalid_cache"] = {}
 
         # This should raise TypeError when memoize tries to use it
         with pytest.raises(TypeError, match="invalid type"):
@@ -2930,8 +2947,8 @@ class TestFlextCliCoreExceptionHandlers:
 
         # Manually delete from cache to force KeyError on next access
         cache = core_service._caches["test_keyerror"]
-        if 5 in cache:  # type: ignore[operator]
-            del cache[5]  # type: ignore[operator]
+        if 5 in cache:
+            del cache[5]
 
         # This should handle KeyError and call function again
         result2 = test_func(5)

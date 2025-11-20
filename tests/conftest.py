@@ -19,22 +19,25 @@ import pytest
 import yaml
 from click.testing import CliRunner
 from flext_core import FlextContainer, FlextUtilities
+from pydantic import BaseModel
 
-from flext_cli.api import FlextCli
-from flext_cli.cmd import FlextCliCmd
-from flext_cli.commands import FlextCliCommands
-from flext_cli.config import FlextCliConfig
-from flext_cli.constants import FlextCliConstants
-from flext_cli.context import FlextCliContext
-from flext_cli.core import FlextCliCore
-from flext_cli.debug import FlextCliDebug
-from flext_cli.file_tools import FlextCliFileTools
-from flext_cli.mixins import FlextCliMixins
-from flext_cli.models import FlextCliModels
-from flext_cli.output import FlextCliOutput
-from flext_cli.prompts import FlextCliPrompts
-from flext_cli.protocols import FlextCliProtocols
-from flext_cli.typings import FlextCliTypes
+from flext_cli import (
+    FlextCli,
+    FlextCliCmd,
+    FlextCliCommands,
+    FlextCliConfig,
+    FlextCliConstants,
+    FlextCliContext,
+    FlextCliCore,
+    FlextCliDebug,
+    FlextCliFileTools,
+    FlextCliMixins,
+    FlextCliModels,
+    FlextCliOutput,
+    FlextCliPrompts,
+    FlextCliProtocols,
+    FlextCliTypes,
+)
 
 
 @pytest.fixture
@@ -113,7 +116,8 @@ def flext_cli_api(
     test_dir.mkdir(exist_ok=True)
 
     # Mock FlextCliConfig to inject test paths at creation time
-    original_config_init = FlextCliConfig.__init__
+    # Patch __init__ to inject test paths before Pydantic validation
+    original_base_init = BaseModel.__init__
 
     def patched_config_init(self: FlextCliConfig, **kwargs: object) -> None:
         # Inject test paths if not explicitly provided
@@ -125,8 +129,9 @@ def flext_cli_api(
             typed_kwargs["token_file"] = test_dir / "token.json"
         if "refresh_token_file" not in typed_kwargs:
             typed_kwargs["refresh_token_file"] = test_dir / "refresh_token.json"
-        # Call original with typed kwargs - Pydantic will validate
-        original_config_init(self, **typed_kwargs)  # type: ignore[arg-type]
+        # Call BaseModel.__init__ directly to avoid recursion
+        # Pydantic BaseModel.__init__ accepts **kwargs: object
+        original_base_init(self, **typed_kwargs)
 
     monkeypatch.setattr(FlextCliConfig, "__init__", patched_config_init)
 
