@@ -11,12 +11,22 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
+import inspect
+import os
+import pathlib
 import secrets
+import sys
+import traceback
 import typing
+from abc import ABC, abstractmethod
 from collections.abc import Callable, Sequence
+from typing import ClassVar, cast
 
+import typer
+from click.exceptions import UsageError as ClickUsageError
 from flext_core import (
     FlextContainer,
+    FlextExceptions,
     FlextLogger,
     FlextResult,
     FlextRuntime,
@@ -25,16 +35,24 @@ from flext_core import (
 )
 
 from flext_cli import __version__
+from flext_cli.base import FlextCliServiceBase
 from flext_cli.cli import FlextCliCli
-from flext_cli.cmd import FlextCliCmd
+from flext_cli.cli_params import FlextCliCommonParams
+from flext_cli.commands import FlextCliCommands
 from flext_cli.config import FlextCliConfig
 from flext_cli.constants import FlextCliConstants
-from flext_cli.core import FlextCliCore
+from flext_cli.context import FlextCliContext
+from flext_cli.debug import FlextCliDebug
 from flext_cli.file_tools import FlextCliFileTools
 from flext_cli.formatters import FlextCliFormatters
+from flext_cli.mixins import FlextCliMixins
 from flext_cli.models import FlextCliModels
-from flext_cli.output import FlextCliOutput
-from flext_cli.prompts import FlextCliPrompts
+from flext_cli.protocols import FlextCliProtocols
+from flext_cli.services.cmd import FlextCliCmd
+from flext_cli.services.core import FlextCliCore
+from flext_cli.services.output import FlextCliOutput
+from flext_cli.services.prompts import FlextCliPrompts
+from flext_cli.services.tables import FlextCliTables
 from flext_cli.typings import FlextCliTypes
 from flext_cli.utilities import FlextCliUtilities
 
@@ -54,13 +72,69 @@ class FlextCli:
     Uses FlextResult railway pattern with zero async operations.
     All defaults from FlextCliConstants with proper centralization.
 
+    Nested Classes (FLEXT pattern):
+        FlextCli.Base - Click/Typer framework abstraction
+        FlextCli.Runner - Command execution
+        FlextCli.Commands - Command registration
+        FlextCli.Params - Reusable CLI parameters
+        FlextCli.Output - Output management
+        FlextCli.Formatters - Rich abstraction
+        FlextCli.Tables - Table formatting
+        FlextCli.Prompts - Interactive input
+        FlextCli.FileTools - File operations
+        FlextCli.Config - Configuration singleton
+        FlextCli.Context - Request context
+        FlextCli.Core - Core service
+        FlextCli.Debug - Debug utilities
+        FlextCli.Models - Pydantic models
+        FlextCli.Types - Type definitions
+        FlextCli.Protocols - Protocol definitions
+        FlextCli.Constants - System constants
+        FlextCli.Mixins - Reusable mixins
+        FlextCli.Utilities - Utility functions
+        FlextCli.AppBase - Base class for CLI applications
+
     Usage (direct access pattern):
         >>> cli = FlextCli.get_instance()
         >>> cli.formatters.print("Hello")  # Direct formatters access
         >>> cli.output.format_data(data)  # Direct output access
         >>> cli.file_tools.read_json_file(path)  # Direct file tools access
+
+    Usage (nested pattern):
+        >>> from flext_cli import FlextCli
+        >>> class MyCli(FlextCli.AppBase):
+        ...     app_name = "my-cli"
+        ...     app_help = "My CLI app"
     """
 
+    # =========================================================================
+    # NESTED CLASSES - FLEXT pattern (FlextCli.X instead of FlextCliX)
+    # =========================================================================
+    Base = FlextCliCli
+    Runner = FlextCliCmd
+    Commands = FlextCliCommands
+    Params = FlextCliCommonParams
+    Output = FlextCliOutput
+    Formatters = FlextCliFormatters
+    Tables = FlextCliTables
+    # AppBase will be assigned after FlextCliAppBase is defined
+    AppBase: ClassVar[type[ABC]]
+    Prompts = FlextCliPrompts
+    FileTools = FlextCliFileTools
+    Config = FlextCliConfig
+    Context = FlextCliContext
+    Core = FlextCliCore
+    Debug = FlextCliDebug
+    Models = FlextCliModels
+    Types = FlextCliTypes
+    Protocols = FlextCliProtocols
+    Constants = FlextCliConstants
+    Mixins = FlextCliMixins
+    Utilities = FlextCliUtilities
+
+    # =========================================================================
+    # SINGLETON PATTERN
+    # =========================================================================
     _instance: FlextCli | None = None
     _lock = __import__("threading").Lock()
 
@@ -118,7 +192,7 @@ class FlextCli:
         # 2. .env file (if exists, via env_file in model_config)
         # 3. Field defaults
         # No workarounds needed - Pydantic Settings handles everything automatically
-        self.config = FlextCliConfig.get_instance()
+        self.config = FlextCliServiceBase.get_cli_config()
         self._valid_tokens: set[str] = set()
         self._valid_sessions: set[str] = set()
         self._session_permissions: dict[str, set[str]] = {}
@@ -159,7 +233,10 @@ class FlextCli:
     ) -> FlextResult[str]:
         """Authenticate using token."""
         token = str(credentials[FlextCliConstants.DictKeys.TOKEN])
-        if not token.strip():
+        # Use FlextUtilities.Validation for token validation
+        try:
+            FlextUtilities.Validation.validate_required_string(token, "Token")
+        except ValueError:
             return FlextResult[str].fail(FlextCliConstants.ErrorMessages.TOKEN_EMPTY)
         save_result = self.save_auth_token(token)
         if save_result.is_failure:
@@ -198,7 +275,10 @@ class FlextCli:
 
     def save_auth_token(self, token: str) -> FlextResult[bool]:
         """Save authentication token using file tools domain library."""
-        if not token.strip():
+        # Use FlextUtilities.Validation for token validation
+        try:
+            FlextUtilities.Validation.validate_required_string(token, "Token")
+        except ValueError:
             return FlextResult[bool].fail(FlextCliConstants.ErrorMessages.TOKEN_EMPTY)
 
         token_path = self.config.token_file
@@ -386,18 +466,24 @@ class FlextCli:
 
     def execute(self) -> FlextResult[FlextTypes.JsonDict]:
         """Execute CLI service with railway pattern."""
-        return FlextResult[FlextTypes.JsonDict].ok({
-            FlextCliConstants.DictKeys.STATUS: FlextCliConstants.ServiceStatus.OPERATIONAL.value,
-            FlextCliConstants.DictKeys.SERVICE: FlextCliConstants.FLEXT_CLI,
-            "timestamp": FlextUtilities.Generators.generate_iso_timestamp(),
-            "version": __version__,
-            "components": {
-                "config": "available",
-                "formatters": "available",
-                "core": "available",
-                "prompts": "available",
-            },
-        })
+        components: dict[str, str] = {
+            "config": "available",
+            "formatters": "available",
+            "core": "available",
+            "prompts": "available",
+        }
+        return FlextResult[FlextTypes.JsonDict].ok(
+            cast(
+                "FlextTypes.JsonDict",
+                {
+                    FlextCliConstants.DictKeys.STATUS: FlextCliConstants.ServiceStatus.OPERATIONAL.value,
+                    FlextCliConstants.DictKeys.SERVICE: FlextCliConstants.FLEXT_CLI,
+                    "timestamp": FlextUtilities.Generators.generate_iso_timestamp(),
+                    "version": __version__,
+                    "components": components,
+                },
+            )
+        )
 
     # =========================================================================
     # CONVENIENCE METHODS - Delegate to service instances
@@ -473,6 +559,162 @@ class FlextCli:
         return self.formatters.create_tree(label)
 
 
+class FlextCliAppBase(ABC):
+    """Base class for CLI applications using FLEXT pattern.
+
+    Provides standard initialization, execution, and error handling
+    for CLI applications. Subclasses define app_name, app_help, and
+    config_class, then implement _register_commands().
+
+    Usage:
+        >>> from flext_cli import FlextCli
+        >>> class MyCli(FlextCli.AppBase):
+        ...     app_name = "my-cli"
+        ...     app_help = "My CLI application"
+        ...     config_class = MyConfig
+        ...
+        ...     def _register_commands(self) -> None:
+        ...         # Register commands here
+        ...         pass
+    """
+
+    # ClassVars to override in subclass
+    app_name: ClassVar[str]
+    app_help: ClassVar[str]
+    config_class: ClassVar[
+        type[FlextCliConfig]
+    ]  # Config class with get_instance() method
+
+    # Instance attributes (initialized in __init__)
+    _output: FlextCliOutput
+    _cli: FlextCliCli
+    _app: typer.Typer
+    _config: FlextCliConfig
+
+    def __init__(self) -> None:
+        """Initialize CLI with FlextCli infrastructure."""
+        super().__init__()
+        self._output = FlextCliOutput()
+        self._cli = FlextCliCli()
+
+        # Load configuration using singleton pattern
+        # config_class must have get_instance() class method
+        self._config = self.config_class.get_instance()
+
+        # Log loaded configuration
+        self._log_config_loaded()
+
+        # Create Typer app with common params (--debug, --log-level, --trace)
+        self._app = self._cli.create_app_with_common_params(
+            name=self.app_name,
+            help_text=self.app_help,
+            config=self._config,
+            add_completion=True,
+        )
+
+        # Register commands
+        try:
+            self._register_commands()
+        except NameError as ne:
+            self._handle_pathlib_annotation_error(ne)
+
+    @abstractmethod
+    def _register_commands(self) -> None:
+        """Register CLI commands - implement in subclass."""
+        ...
+
+    def _log_config_loaded(self) -> None:
+        """Log configuration values. Override in subclass for custom logging."""
+        FlextLogger.get_logger().debug(
+            "CLI configuration loaded",
+            app_name=self.app_name,
+        )
+
+    def _handle_pathlib_annotation_error(self, ne: NameError) -> None:
+        """Handle Typer annotation issues with pathlib.Path in Python <3.10."""
+        if "pathlib" in str(ne):
+            FlextLogger.get_logger().warning(
+                "Pathlib annotation issue detected during command registration",
+                error=str(ne),
+                python_version_note="Expected in Python <3.10 due to Typer annotation issues",
+            )
+        else:
+            raise ne
+
+    def _resolve_cli_args(self, args: list[str] | None) -> list[str]:
+        """Resolve CLI arguments based on environment.
+
+        Args:
+            args: Provided arguments or None
+
+        Returns:
+            List of CLI arguments to use
+
+        """
+        if args is None:
+            # Check if we're in a test environment
+            if os.getenv("PYTEST_CURRENT_TEST"):
+                return []
+            return sys.argv[1:] if len(sys.argv) > 1 else []
+        return args
+
+    def execute_cli(self, args: list[str] | None = None) -> FlextResult[bool]:
+        """Execute the CLI with Railway-pattern error handling.
+
+        Args:
+            args: Command-line arguments (defaults to sys.argv[1:])
+
+        Returns:
+            FlextResult[bool] - True if CLI execution completes successfully
+
+        """
+        try:
+            # Ensure pathlib is available for Typer's annotation evaluation
+            sys.modules["pathlib"] = pathlib
+            frame = inspect.currentframe()
+            if frame and "pathlib" not in frame.f_globals:
+                frame.f_globals["pathlib"] = pathlib
+
+            resolved_args = self._resolve_cli_args(args)
+            self._app(args=resolved_args, standalone_mode=False)
+            return FlextResult[bool].ok(True)
+        except NameError as e:
+            if "pathlib" in str(e):
+                error_msg = f"CLI annotation evaluation error: {e!s}"
+                self._output.print_error(error_msg)
+                return FlextResult[bool].fail(error_msg)
+            raise
+        except SystemExit as e:
+            if e.code == 0:
+                return FlextResult[bool].ok(True)
+            return FlextResult[bool].fail(f"CLI execution failed with code {e.code}")
+        except Exception as e:
+            if isinstance(e, ClickUsageError):
+                return FlextResult[bool].fail(f"CLI execution error: {e!s}")
+            if isinstance(
+                e,
+                (
+                    ValueError,
+                    KeyError,
+                    AttributeError,
+                    TypeError,
+                    OSError,
+                    RuntimeError,
+                    FlextExceptions.BaseError,
+                ),
+            ):
+                tb = traceback.format_exc()
+                error_msg = f"CLI execution error: {e!s}\nTraceback:\n{tb}"
+                self._output.print_error(error_msg)
+                return FlextResult[bool].fail(f"CLI execution error: {e!s}")
+            raise
+
+
+# Add AppBase to FlextCli nested pattern
+FlextCli.AppBase = FlextCliAppBase
+
+
 __all__ = [
     "FlextCli",
+    "FlextCliAppBase",
 ]

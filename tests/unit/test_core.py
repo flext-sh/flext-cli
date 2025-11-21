@@ -10,6 +10,14 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
+import sys
+from pathlib import Path
+
+# Add src to path for relative imports (pyrefly accepts this pattern)
+if Path(__file__).parent.parent.parent / "src" not in [Path(p) for p in sys.path]:
+    sys.path.insert(0, str(Path(__file__).parent.parent.parent / "src"))
+
+
 import json
 import tempfile
 import threading
@@ -1397,7 +1405,7 @@ class TestFlextCliCoreExceptionHandlers:
                 raise RuntimeError(msg)
 
         # Replace _commands with error-raising dict
-        # Type: ErrorDict is used for testing exception handling
+
         core_service._commands = cast("FlextTypes.JsonDict", ErrorDict())
 
         # Now register_command should catch the exception
@@ -1439,7 +1447,7 @@ class TestFlextCliCoreExceptionHandlers:
                 return original_commands[key]
 
         # Replace _commands with error-raising dict
-        # Type: ErrorDict is used for testing exception handling
+
         core_service._commands = cast(
             "FlextTypes.JsonDict", ErrorDict(original_commands)
         )
@@ -1538,6 +1546,7 @@ class TestFlextCliCoreExceptionHandlers:
 
         bound_method = types.MethodType(error_log_update, core_service)
         # Use setattr directly - necessary to bypass Pydantic validation in tests
+        # Type checker doesn't allow method assignment, but runtime does for testing
         core_service._log_config_update = bound_method
 
         # Now update_configuration should catch the exception
@@ -1571,7 +1580,7 @@ class TestFlextCliCoreExceptionHandlers:
 
         error_config = ErrorDict({"test": "value"})
         # Replace _config with error-raising dict
-        # Type: ErrorDict is used for testing exception handling
+
         core_service._config = cast(
             "FlextCliTypes.Configuration.CliConfigSchema", error_config
         )
@@ -1941,7 +1950,7 @@ class TestFlextCliCoreExceptionHandlers:
 
         Real scenario: Tests fast-fail when command is None.
         """
-        result = core_service.register_command(None)  # type: ignore[arg-type]
+        result = core_service.register_command(cast("FlextCliModels.CliCommand", None))
         assert result.is_failure
         assert result.error is not None
         assert "empty" in str(result.error).lower()
@@ -2143,7 +2152,7 @@ class TestFlextCliCoreExceptionHandlers:
         assert "service_executed" in data
         assert data["service_executed"] is True
         assert "commands_count" in data
-        assert data["commands_count"] > 0
+        assert cast("int", data["commands_count"]) > 0
 
     def test_execute_no_commands(self, core_service: FlextCliCore) -> None:
         """Test execute with no commands (line 919-924).
@@ -2216,7 +2225,7 @@ class TestFlextCliCoreExceptionHandlers:
         assert result.is_success
         data = result.unwrap()
         assert "context" in data
-        assert "args" in data["context"]
+        assert "args" in cast("dict[str, object]", data["context"])
 
     def test_execute_command_with_none_context(
         self, core_service: FlextCliCore
@@ -2275,10 +2284,15 @@ class TestFlextCliCoreExceptionHandlers:
 
         Real scenario: Tests fast-fail when config is None.
         """
-        # Set _config to None
+        # Set _config to None to test not initialized path
+        # Use cast for type safety (runtime allows None, but type checker doesn't)
+
         original_config = core_service._config
         try:
-            core_service._config = None
+            # Use setattr to set attribute for testing None case
+            # Runtime allows None (checked in get_config), but type annotation doesn't
+            # This is the correct way to set attributes that type checker doesn't allow
+            core_service._config = None  # type: ignore[assignment]
             result = core_service.get_config()
             assert result.is_failure
             assert "not initialized" in str(result.error).lower()
@@ -2312,7 +2326,7 @@ class TestFlextCliCoreExceptionHandlers:
 
         Real scenario: Tests fast-fail when config_path is None.
         """
-        result = core_service.load_configuration(None)
+        result = core_service.load_configuration(cast("str", None))
         assert result.is_failure
         assert (
             "not found" in str(result.error).lower()
@@ -2433,8 +2447,8 @@ class TestFlextCliCoreExceptionHandlers:
 
         Real scenario: Tests TypeError when cache has invalid type.
         """
-        # Create a cache with invalid type by directly assigning
-        core_service._caches["invalid_cache"] = {}
+        # Create a cache with invalid type by directly assigning (bypass type checker)
+        cast("dict[str, object]", core_service._caches)["invalid_cache"] = {}
         # This should raise TypeError when memoize tries to use it
         # But memoize creates the cache if it doesn't exist, so we need to test differently
         # Actually, memoize creates cache if it doesn't exist, so this is hard to test
@@ -2470,7 +2484,7 @@ class TestFlextCliCoreExceptionHandlers:
         Real scenario: Tests error when cache type is invalid.
         """
         # Create cache with invalid type
-        core_service._caches["invalid_cache"] = {}
+        cast("dict[str, object]", core_service._caches)["invalid_cache"] = {}
         result = core_service.get_cache_stats("invalid_cache")
         assert result.is_failure
         assert (
@@ -2697,7 +2711,10 @@ class TestFlextCliCoreExceptionHandlers:
         )
 
         # Set _config to None to trigger the not initialized path
-        core_service._config = None
+        # Use setattr to set attribute for testing None case
+        # Runtime allows None (checked in get_configuration), but type annotation doesn't
+        # This is the correct way to set attributes that type checker doesn't allow
+        core_service._config = None  # type: ignore[assignment]
         result = core_service.get_configuration()
         assert result.is_failure
         assert "not initialized" in str(result.error).lower()
@@ -2915,7 +2932,7 @@ class TestFlextCliCoreExceptionHandlers:
     def test_memoize_invalid_cache_type(self, core_service: FlextCliCore) -> None:
         """Test memoize when cache has invalid type (lines 1323-1324)."""
         # Create a cache with invalid type
-        core_service._caches["invalid_cache"] = {}
+        cast("dict[str, object]", core_service._caches)["invalid_cache"] = {}
 
         # This should raise TypeError when memoize tries to use it
         with pytest.raises(TypeError, match="invalid type"):
@@ -2946,9 +2963,11 @@ class TestFlextCliCoreExceptionHandlers:
         assert call_count == 1
 
         # Manually delete from cache to force KeyError on next access
+        # The key is "(5,)" - repr of args tuple for memoize decorator
         cache = core_service._caches["test_keyerror"]
-        if 5 in cache:
-            del cache[5]
+        key = "(5,)"
+        if key in cache:
+            del cache[key]
 
         # This should handle KeyError and call function again
         result2 = test_func(5)
@@ -3067,7 +3086,9 @@ class TestFlextCliCoreExceptionHandlers:
         # Force exception by making isinstance raise
         original_isinstance = isinstance
 
-        def failing_isinstance(obj: object, class_or_tuple: object) -> bool:
+        def failing_isinstance(
+            obj: object, class_or_tuple: type | tuple[type, ...]
+        ) -> bool:
             if obj is core_service._config:
                 msg = "Forced exception for testing get_configuration"
                 raise RuntimeError(msg)
@@ -3102,10 +3123,16 @@ class TestFlextCliCoreExceptionHandlers:
                 raise RuntimeError(msg)
 
         # Make the config a valid dict with a failing profiles dict
-        core_service._config = {
-            "some_key": "some_value",
-            "profiles": FailingProfilesDict(),
-        }
+        # Use cast to assign FailingProfilesDict (type checker knows it's not JsonValue, but we test runtime behavior)
+        from typing import cast
+
+        core_service._config = cast(
+            "FlextCliTypes.Configuration.CliConfigSchema",
+            {
+                "some_key": "some_value",
+                "profiles": FailingProfilesDict(),
+            },
+        )
 
         result = core_service.create_profile("test_profile", {"key": "value"})
         assert result.is_failure

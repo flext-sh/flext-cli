@@ -25,10 +25,6 @@ statistics monitoring. Uses railway-oriented patterns (FlextResult[T]) throughou
 
 **INTEGRATION POINTS**:
 
-"""
-
-from __future__ import annotations
-
 # Integration points:
 # - Extends FlextService (flext-core Layer 3 foundation)
 # - Uses FlextResult[T] (railway-oriented error handling)
@@ -71,9 +67,15 @@ from __future__ import annotations
 #
 # Copyright (c) 2025 FLEXT Team. All rights reserved.
 # SPDX-License-Identifier: MIT
+
+"""
+
+from __future__ import annotations
+
 import functools
 import json
 import time
+import typing
 from collections.abc import Callable, Mapping
 from datetime import datetime
 from importlib import metadata
@@ -479,25 +481,19 @@ class FlextCliCore(FlextService[FlextCliTypes.Data.CliDataDict]):
 
             # Type-safe conversion to CLI command definition
             if FlextRuntime.is_dict_like(command_def):
-                # Type cast: dict[str, object] needs conversion to dict[str, JsonValue]
-                # JsonValue is a union type that includes object, so this cast is safe
-                typed_def: FlextCliTypes.CliCommand.CommandDefinition = cast(
-                    "FlextCliTypes.CliCommand.CommandDefinition",
-                    cast("dict[str, FlextTypes.JsonValue]", command_def),
-                )
-
                 self.logger.debug(
                     "Command definition retrieved successfully",
                     operation="get_command",
                     command_name=name,
-                    definition_keys=list(typed_def.keys())
-                    if FlextRuntime.is_dict_like(typed_def)
+                    definition_keys=list(command_def.keys())
+                    if FlextRuntime.is_dict_like(command_def)
                     else None,
                     source="flext-cli/src/flext_cli/core.py",
                 )
 
+                # Type cast in return for pyrefly: dict validated as CliCommand.CommandDefinition
                 return FlextResult[FlextCliTypes.CliCommand.CommandDefinition].ok(
-                    typed_def,
+                    cast("FlextCliTypes.CliCommand.CommandDefinition", command_def),
                 )
 
             self.logger.error(
@@ -783,6 +779,7 @@ class FlextCliCore(FlextService[FlextCliTypes.Data.CliDataDict]):
                 else None,
                 source="flext-cli/src/flext_cli/core.py",
             )
+            # After validation, config is typed as CliConfigSchema
             return FlextResult.ok(config)
 
         def validate_existing_config() -> FlextResult[
@@ -791,8 +788,8 @@ class FlextCliCore(FlextService[FlextCliTypes.Data.CliDataDict]):
             """Validate existing configuration state."""
             if FlextRuntime.is_dict_like(self._config) and self._config:
                 # Type narrowing: self._config is dict, compatible with CliConfigSchema
-                config_schema: FlextCliTypes.Configuration.CliConfigSchema = (
-                    self._config
+                config_schema: FlextCliTypes.Configuration.CliConfigSchema = cast(
+                    "FlextCliTypes.Configuration.CliConfigSchema", self._config
                 )
                 return FlextResult[FlextCliTypes.Configuration.CliConfigSchema].ok(
                     config_schema
@@ -831,6 +828,7 @@ class FlextCliCore(FlextService[FlextCliTypes.Data.CliDataDict]):
                 existing_config = existing_config_result.unwrap()
                 # Update with type-safe merge
                 for key, value in valid_config.items():
+                    # value from CliConfigSchema is already typed as JsonValue
                     existing_config[key] = value
 
                 self.logger.debug(
@@ -902,8 +900,8 @@ class FlextCliCore(FlextService[FlextCliTypes.Data.CliDataDict]):
                 )
                 if FlextRuntime.is_dict_like(self._config) and self._config:
                     # Type narrowing: self._config is dict, compatible with CliConfigSchema
-                    config_schema: FlextCliTypes.Configuration.CliConfigSchema = (
-                        self._config
+                    config_schema: FlextCliTypes.Configuration.CliConfigSchema = cast(
+                        "FlextCliTypes.Configuration.CliConfigSchema", self._config
                     )
 
                     self.logger.debug(
@@ -921,6 +919,7 @@ class FlextCliCore(FlextService[FlextCliTypes.Data.CliDataDict]):
                         source="flext-cli/src/flext_cli/core.py",
                     )
 
+                    # config_schema is validated CliConfigSchema by constructor
                     return FlextResult[FlextCliTypes.Configuration.CliConfigSchema].ok(
                         config_schema
                     )
@@ -1161,8 +1160,9 @@ class FlextCliCore(FlextService[FlextCliTypes.Data.CliDataDict]):
                 timestamp=FlextUtilities.Generators.generate_iso_timestamp(),
             )
             # Serialize to dict for API compatibility
-            stats_dict: FlextCliTypes.Data.CliDataDict = (
-                FlextMixins.ModelConversion.to_dict(stats_model)
+            stats_dict: FlextCliTypes.Data.CliDataDict = cast(
+                "FlextCliTypes.Data.CliDataDict",
+                FlextMixins.ModelConversion.to_dict(stats_model),
             )
             # Use self.ok() from FlextService for consistency
             return self.ok(stats_dict)
@@ -1287,8 +1287,9 @@ class FlextCliCore(FlextService[FlextCliTypes.Data.CliDataDict]):
             )
 
             # Serialize to dict for API compatibility
-            stats_dict: FlextCliTypes.Data.CliDataDict = (
-                FlextMixins.ModelConversion.to_dict(stats_model)
+            stats_dict: FlextCliTypes.Data.CliDataDict = cast(
+                "FlextCliTypes.Data.CliDataDict",
+                FlextMixins.ModelConversion.to_dict(stats_model),
             )
 
             self.logger.debug(
@@ -1391,8 +1392,9 @@ class FlextCliCore(FlextService[FlextCliTypes.Data.CliDataDict]):
             )
 
             # Serialize to dict for API compatibility
-            status_dict: FlextCliTypes.Data.CliDataDict = (
-                FlextMixins.ModelConversion.to_dict(result_model)
+            status_dict: FlextCliTypes.Data.CliDataDict = cast(
+                "FlextCliTypes.Data.CliDataDict",
+                FlextMixins.ModelConversion.to_dict(result_model),
             )
 
             self.logger.debug(
@@ -1502,8 +1504,9 @@ class FlextCliCore(FlextService[FlextCliTypes.Data.CliDataDict]):
         )
 
         # Serialize to dict for API compatibility
-        result_dict: FlextCliTypes.Data.CliDataDict = (
-            FlextMixins.ModelConversion.to_dict(result_model)
+        result_dict: FlextCliTypes.Data.CliDataDict = cast(
+            "FlextCliTypes.Data.CliDataDict",
+            FlextMixins.ModelConversion.to_dict(result_model),
         )
         # Use self.ok() from FlextService for consistency
         return self.ok(result_dict)
@@ -1650,7 +1653,12 @@ class FlextCliCore(FlextService[FlextCliTypes.Data.CliDataDict]):
             return FlextResult[FlextTypes.JsonDict].fail(
                 FlextCliConstants.ErrorMessages.CONFIG_FILE_NOT_FOUND.format(file=""),
             )
-        if not config_path.strip():
+        # Use FlextUtilities.Validation for path validation
+        try:
+            FlextUtilities.Validation.validate_required_string(
+                config_path, "Config path"
+            )
+        except ValueError:
             return FlextResult[FlextTypes.JsonDict].fail(
                 FlextCliConstants.ErrorMessages.CONFIG_FILE_NOT_FOUND.format(file=""),
             )
@@ -1684,7 +1692,9 @@ class FlextCliCore(FlextService[FlextCliTypes.Data.CliDataDict]):
                     FlextCliConstants.ErrorMessages.CONFIG_NOT_DICT,
                 )
 
-            return FlextResult[FlextTypes.JsonDict].ok(config_data)
+            return FlextResult[FlextTypes.JsonDict].ok(
+                typing.cast("FlextTypes.JsonDict", config_data)
+            )
 
         except json.JSONDecodeError as e:
             return FlextResult[FlextTypes.JsonDict].fail(
@@ -1889,9 +1899,9 @@ class FlextCliCore(FlextService[FlextCliTypes.Data.CliDataDict]):
         """
         try:
             result = func(*args, **kwargs)
-            return FlextResult[T].ok(result)
+            return FlextResult.ok(result)
         except Exception as e:
-            return FlextResult[T].fail(str(e))
+            return FlextResult.fail(str(e))
 
     # ==========================================================================
     # PLUGIN SYSTEM - Integrated into core service
@@ -1965,7 +1975,9 @@ class FlextCliCore(FlextService[FlextCliTypes.Data.CliDataDict]):
                 # Single result - wrap in list (not a fallback, valid conversion)
                 return FlextResult[list[FlextTypes.JsonValue]].ok([results])
 
-            return FlextResult[list[FlextTypes.JsonValue]].ok(results)
+            return FlextResult[list[FlextTypes.JsonValue]].ok(
+                typing.cast("list[FlextTypes.JsonValue]", results)
+            )
         except Exception as e:
             return FlextResult[list[FlextTypes.JsonValue]].fail(str(e))
 

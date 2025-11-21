@@ -20,7 +20,7 @@ import shutil
 import typing
 from collections.abc import Callable, Sequence
 from pathlib import Path
-from typing import IO
+from typing import IO, Annotated
 
 import click
 import typer
@@ -31,6 +31,7 @@ from flext_core import (
     FlextRuntime,
     FlextTypes,
 )
+from pydantic import BaseModel
 from typer.testing import CliRunner
 
 from flext_cli.cli_params import FlextCliCommonParams
@@ -92,7 +93,7 @@ class FlextCliCli:
         entity_type: typing.Literal["command"],
         name: str | None,
         help_text: str | None,
-    ) -> typing.Callable[[typing.Callable[..., typing.Any]], click.Command]: ...
+    ) -> typing.Callable[[typing.Callable[..., object]], click.Command]: ...
 
     @typing.overload
     def _create_cli_decorator(
@@ -100,16 +101,14 @@ class FlextCliCli:
         entity_type: typing.Literal["group"],
         name: str | None,
         help_text: str | None,
-    ) -> typing.Callable[[typing.Callable[..., typing.Any]], click.Group]: ...
+    ) -> typing.Callable[[typing.Callable[..., object]], click.Group]: ...
 
     def _create_cli_decorator(
         self,
         entity_type: FlextCliConstants.EntityTypeLiteral,
         name: str | None,
         help_text: str | None,
-    ) -> typing.Callable[
-        [typing.Callable[..., typing.Any]], click.Command | click.Group
-    ]:
+    ) -> typing.Callable[[typing.Callable[..., object]], click.Command | click.Group]:
         """Create Click decorator (command or group) - DRY helper.
 
         Args:
@@ -138,7 +137,7 @@ class FlextCliCli:
         self,
         name: str | None = None,
         help_text: str | None = None,
-    ) -> typing.Callable[[typing.Callable[..., typing.Any]], click.Command]:
+    ) -> typing.Callable[[typing.Callable[..., object]], click.Command]:
         """Create Click command decorator.
 
         Args:
@@ -208,33 +207,43 @@ class FlextCliCli:
         @app.callback()
         def global_callback(
             *,
-            debug: bool = typer.Option(
-                False,
-                "--debug/--no-debug",
-                help="Enable debug mode",
-            ),
-            trace: bool = typer.Option(
-                False,
-                "--trace/--no-trace",
-                help="Enable trace mode",
-            ),
-            verbose: bool = typer.Option(
-                False,
-                "--verbose/--no-verbose",
-                help="Enable verbose mode",
-            ),
-            quiet: bool = typer.Option(
-                False,
-                "--quiet/--no-quiet",
-                help="Enable quiet mode",
-            ),
-            log_level: str | None = typer.Option(
-                None,
-                "--log-level",
-                "-L",
-                help="Log level (DEBUG, INFO, WARNING, ERROR, CRITICAL)",
-                case_sensitive=False,
-            ),
+            debug: Annotated[
+                bool,
+                typer.Option(
+                    "--debug/--no-debug",
+                    help="Enable debug mode",
+                ),
+            ] = False,
+            trace: Annotated[
+                bool,
+                typer.Option(
+                    "--trace/--no-trace",
+                    help="Enable trace mode",
+                ),
+            ] = False,
+            verbose: Annotated[
+                bool,
+                typer.Option(
+                    "--verbose/--no-verbose",
+                    help="Enable verbose mode",
+                ),
+            ] = False,
+            quiet: Annotated[
+                bool,
+                typer.Option(
+                    "--quiet/--no-quiet",
+                    help="Enable quiet mode",
+                ),
+            ] = False,
+            log_level: Annotated[
+                str | None,
+                typer.Option(
+                    "--log-level",
+                    "-L",
+                    help="Log level (DEBUG, INFO, WARNING, ERROR, CRITICAL)",
+                    case_sensitive=False,
+                ),
+            ] = None,
         ) -> None:
             """Global options available for all commands."""
             # Extract common params
@@ -258,11 +267,11 @@ class FlextCliCli:
 
             # ✅ FILTER: Only apply params that exist in config
             # Config may not have all common params (e.g., quiet)
-            config_fields = (
-                set(config.model_fields.keys())
-                if hasattr(config, "model_fields")
-                else set()
-            )
+            # Type narrowing: check if config has model_fields (Pydantic BaseModel)
+
+            config_fields: set[str] = set()
+            if isinstance(config, BaseModel):
+                config_fields = set(type(config).model_fields.keys())
             filtered_params = {
                 k: v for k, v in active_params.items() if k in config_fields
             }
@@ -275,8 +284,17 @@ class FlextCliCli:
             if not isinstance(config, FlextCliConfig):
                 return
 
+            # Unpack filtered_params as keyword arguments
+            # Type safety: filtered_params contains only valid config field names
+            # with values from common_params (all properly typed)
+            # Cast values to correct types since filtered_params is dict[str, object]
             result = FlextCliCommonParams.apply_to_config(
-                config, **typing.cast("dict[str, typing.Any]", filtered_params)
+                config,
+                verbose=typing.cast("bool | None", filtered_params.get("verbose")),
+                quiet=typing.cast("bool | None", filtered_params.get("quiet")),
+                debug=typing.cast("bool | None", filtered_params.get("debug")),
+                trace=typing.cast("bool | None", filtered_params.get("trace")),
+                log_level=typing.cast("str | None", filtered_params.get("log_level")),
             )
 
             if result.is_failure:
@@ -312,7 +330,7 @@ class FlextCliCli:
         self,
         name: str | None = None,
         help_text: str | None = None,
-    ) -> typing.Callable[[typing.Callable[..., typing.Any]], click.Group]:
+    ) -> typing.Callable[[typing.Callable[..., object]], click.Group]:
         """Create Click group decorator for command groups.
 
         Args:
@@ -410,9 +428,7 @@ class FlextCliCli:
         type_hint: click.ParamType | type | None = None,
         required: bool = True,
         nargs: int = 1,
-    ) -> typing.Callable[
-        [typing.Callable[..., typing.Any]], typing.Callable[..., typing.Any]
-    ]:
+    ) -> typing.Callable[[typing.Callable[..., object]], typing.Callable[..., object]]:
         """Create Click argument decorator with explicit parameters.
 
         Args:
@@ -788,9 +804,7 @@ class FlextCliCli:
 
     def create_pass_context_decorator(
         self,
-    ) -> typing.Callable[
-        [typing.Callable[..., typing.Any]], typing.Callable[..., typing.Any]
-    ]:
+    ) -> typing.Callable[[typing.Callable[..., object]], typing.Callable[..., object]]:
         """Create pass_context decorator.
 
         Returns:
@@ -1122,7 +1136,7 @@ class FlextCliCli:
         """
         # Delegate to FlextCliModels.ModelCommandBuilder for reduced complexity (SOLID/SRP)
         if not hasattr(model_class, "model_fields"):
-            msg = f"{model_class.__name__} must be a Pydantic BaseModel"
+            msg = f"{model_class.__name__} must be a Pydantic model (BaseModel or FlextModels subclass)"
             raise TypeError(msg)
 
         builder = FlextCliModels.ModelCommandBuilder(model_class, handler, config)

@@ -10,6 +10,14 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
+import sys
+from pathlib import Path
+
+# Add src to path for relative imports (pyrefly accepts this pattern)
+if Path(__file__).parent.parent.parent / "src" not in [Path(p) for p in sys.path]:
+    sys.path.insert(0, str(Path(__file__).parent.parent.parent / "src"))
+
+
 from typing import cast
 
 import pytest
@@ -501,7 +509,7 @@ class TestFlextCliTables:
         mock_tabulate = Mock(side_effect=RuntimeError("Tabulate internal error"))
 
         # Patch tabulate to raise exception
-        monkeypatch.setattr("flext_cli.tables.tabulate", mock_tabulate)
+        monkeypatch.setattr("flext_cli.services.tables.tabulate", mock_tabulate)
 
         # This should trigger the exception handler
         config = FlextCliModels.TableConfig(table_format="simple")
@@ -521,7 +529,7 @@ class TestFlextCliTables:
         mock_tabulate = Mock(side_effect=RuntimeError("Tabulate print error"))
 
         # Patch tabulate to raise exception
-        monkeypatch.setattr("flext_cli.tables.tabulate", mock_tabulate)
+        monkeypatch.setattr("flext_cli.services.tables.tabulate", mock_tabulate)
 
         # This should trigger the exception handler
         result = tables.print_available_formats()

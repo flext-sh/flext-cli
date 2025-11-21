@@ -11,6 +11,7 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 import typing
+from typing import cast
 
 from flext_core import (
     FlextConfig,
@@ -434,7 +435,10 @@ class FlextCliContext(FlextService[FlextCliTypes.Data.CliDataDict]):
             # Use model directly - no conversion needed
             # Return model data as dict for API compatibility
             return FlextResult[FlextCliTypes.Data.CliDataDict].ok(
-                FlextMixins.ModelConversion.to_dict(result_model)
+                cast(
+                    "FlextCliTypes.Data.CliDataDict",
+                    FlextMixins.ModelConversion.to_dict(result_model),
+                )
             )
         except Exception as e:  # pragma: no cover
             return FlextResult[FlextCliTypes.Data.CliDataDict].fail(

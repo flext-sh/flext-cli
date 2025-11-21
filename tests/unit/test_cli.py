@@ -10,6 +10,14 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
+import sys
+from pathlib import Path
+
+# Add src to path for relative imports (pyrefly accepts this pattern)
+if Path(__file__).parent.parent.parent / "src" not in [Path(p) for p in sys.path]:
+    sys.path.insert(0, str(Path(__file__).parent.parent.parent / "src"))
+
+
 import click
 import pytest
 from click.testing import CliRunner
@@ -672,7 +680,7 @@ class TestFlextCliCli:
         with pytest.raises(TypeError) as exc_info:
             cli_cli.model_command(NotAModel, handler)
 
-        assert "must be a Pydantic BaseModel" in str(exc_info.value)
+        assert "Pydantic model" in str(exc_info.value)
 
     def test_model_command_mixed_required_optional(self, cli_cli: FlextCliCli) -> None:
         """Test model_command() with mix of required and optional fields."""

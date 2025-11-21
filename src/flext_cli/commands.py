@@ -550,7 +550,11 @@ class FlextCliCommands(FlextService[FlextTypes.JsonDict]):
 
             # Result from handler should be JsonValue compatible
             # Validate type at runtime if needed, but avoid unnecessary cast
-            if not isinstance(result, (str, int, float, bool, list, dict, type(None))):
+            if not (
+                isinstance(result, (str, int, float, bool, type(None)))
+                or FlextRuntime.is_list_like(result)
+                or FlextRuntime.is_dict_like(result)
+            ):
                 self.logger.error(
                     "FAILED to execute command - handler returned invalid type",
                     operation="execute_command",

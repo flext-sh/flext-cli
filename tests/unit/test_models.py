@@ -10,19 +10,29 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
+import sys
+from pathlib import Path
+
+# Add src to path for relative imports (pyrefly accepts this pattern)
+if Path(__file__).parent.parent.parent / "src" not in [Path(p) for p in sys.path]:
+    sys.path.insert(0, str(Path(__file__).parent.parent.parent / "src"))
+
+
 import json
 import operator
 import re
 import threading
 import time
+from typing import cast
 
 import pydantic
 import pytest
-from flext_core import FlextResult
-from pydantic import BaseModel
+from flext_core import FlextResult, FlextTypes
+from pydantic import BaseModel, fields
 from pydantic.fields import FieldInfo as PydanticFieldInfo
 
-from flext_cli import FlextCliModels
+from flext_cli import FlextCliConstants, FlextCliModels
+from flext_cli.models import FieldMetadataDict
 
 
 class TestFlextCliModels:
@@ -386,14 +396,19 @@ class TestFlextCliModels:
         Validation now happens automatically via Pydantic 2 field_validator.
         Invalid values raise ValidationError during model instantiation.
         """
+        # Test invalid status - should raise ValidationError
+        # Use cast to test invalid status (type checker knows it's invalid, but we test validation)
+        from typing import cast
+
         import pytest
         from pydantic import ValidationError
 
-        # Test invalid status - should raise ValidationError
         with pytest.raises(ValidationError) as exc_info:
             FlextCliModels.CliSession(
                 session_id="test_session",
-                status="invalid_status",  # Invalid status
+                status=cast(
+                    "FlextCliConstants.SessionStatusLiteral", "invalid_status"
+                ),  # Invalid status
             )
         # Verify error message mentions status
         assert "status" in str(exc_info.value).lower()
@@ -905,13 +920,15 @@ class TestFlextCliModels:
         assert len(empty_data) == 0
 
         # Test with malformed JSON
-        try:
-            malformed_json = '{"key": "value", "incomplete": }'
+        malformed_json = '{"key": "value", "incomplete": }'
+        with pytest.raises(json.JSONDecodeError) as exc_info:
             json.loads(malformed_json)
-            msg = "Should have raised JSONDecodeError"
-            raise AssertionError(msg)
-        except json.JSONDecodeError:
-            assert True  # Expected behavior
+
+        # Verify the error is properly raised
+        assert exc_info.value is not None
+        assert "Expecting value" in str(exc_info.value) or "Invalid" in str(
+            exc_info.value
+        )
 
     def test_edge_cases_with_special_values(self) -> None:
         """Test edge cases with special values."""
@@ -1337,14 +1354,19 @@ class TestFlextCliModelsExceptionHandlers:
         Validation now happens automatically via Pydantic 2 field_validator.
         Invalid values raise ValidationError during model instantiation.
         """
+        # Test with invalid status - should raise ValidationError
+        # Use cast to test invalid status (type checker knows it's invalid, but we test validation)
+        from typing import cast
+
         import pytest
         from pydantic import ValidationError
 
-        # Test with invalid status - should raise ValidationError
         with pytest.raises(ValidationError) as exc_info:
             FlextCliModels.CliSession(
                 session_id="test",
-                status="invalid_status",  # Invalid status value
+                status=cast(
+                    "FlextCliConstants.SessionStatusLiteral", "invalid_status"
+                ),  # Invalid status value
             )
         assert "status" in str(exc_info.value).lower()
 
@@ -1492,7 +1514,7 @@ class TestFlextCliModelsExceptionHandlers:
         }
 
         result = FlextCliModels.CliModelConverter._validate_field_data(
-            "test_field", invalid_data
+            "test_field", cast("FieldMetadataDict", invalid_data)
         )
         assert result.is_failure
         assert "Invalid python_type" in str(result.error)
@@ -1512,7 +1534,7 @@ class TestFlextCliModelsExceptionHandlers:
         }
 
         result = FlextCliModels.CliModelConverter._validate_field_data(
-            "test_field", invalid_data
+            "test_field", cast("FieldMetadataDict", invalid_data)
         )
         assert result.is_failure
         assert "Invalid click_type" in str(result.error)
@@ -1532,7 +1554,7 @@ class TestFlextCliModelsExceptionHandlers:
         }
 
         result = FlextCliModels.CliModelConverter._validate_field_data(
-            "test_field", invalid_data
+            "test_field", cast("FieldMetadataDict", invalid_data)
         )
         assert result.is_failure
         assert "Invalid is_required" in str(result.error)
@@ -1552,7 +1574,7 @@ class TestFlextCliModelsExceptionHandlers:
         }
 
         result = FlextCliModels.CliModelConverter._validate_field_data(
-            "test_field", invalid_data
+            "test_field", cast("FieldMetadataDict", invalid_data)
         )
         assert result.is_failure
         assert "Invalid description" in str(result.error)
@@ -1572,7 +1594,7 @@ class TestFlextCliModelsExceptionHandlers:
         }
 
         result = FlextCliModels.CliModelConverter._validate_field_data(
-            "test_field", invalid_data
+            "test_field", cast("FieldMetadataDict", invalid_data)
         )
         assert result.is_failure
         assert "Invalid validators" in str(result.error)
@@ -1592,7 +1614,7 @@ class TestFlextCliModelsExceptionHandlers:
         }
 
         result = FlextCliModels.CliModelConverter._validate_field_data(
-            "test_field", invalid_data
+            "test_field", cast("FieldMetadataDict", invalid_data)
         )
         assert result.is_failure
         assert "Invalid metadata" in str(result.error)
@@ -1645,10 +1667,31 @@ class TestFlextCliModelsExceptionHandlers:
                 self.key1 = "value1"
                 self.key2 = "value2"
 
-        metadata_obj = MetadataWithDict()
         # Use Pydantic v2 syntax - Field doesn't take annotation directly
+        # Test case: json_schema_extra with proper JsonValue-compatible structure
+        # Use dict[str, str] which is compatible with JsonValue
+        metadata_dict: dict[str, str] = {"key1": "value1", "key2": "value2"}
+        from typing import cast
+
+        # Create json_schema_extra with proper JsonValue types
+        # Field expects JsonDict | ((JsonDict) -> None) | None
+        # JsonDict is dict[str, JsonValue], and JsonValue includes list, so list[dict[str, str]] is valid
+        # The structure is compatible at runtime, but type checker needs help with narrowing
+        # Use object.__setattr__ to set json_schema_extra after Field creation (if needed)
+        # Or use a callable that modifies the dict (which Field accepts)
+        json_schema_extra_raw: dict[str, list[dict[str, str]]] = {
+            "metadata": [metadata_dict]
+        }
+
+        # Field accepts JsonDict | Callable[[JsonDict], None] | None
+        # Create a callable that modifies the dict (this is type-safe)
+        def set_json_schema_extra(schema: FlextTypes.JsonDict) -> None:
+            """Set json_schema_extra - callable form is type-safe."""
+            schema.update(json_schema_extra_raw)  # type: ignore[arg-type]
+
         field_info = Field(
-            description="Test", json_schema_extra={"metadata": [metadata_obj]}
+            description="Test",
+            json_schema_extra=set_json_schema_extra,  # Use callable form which is type-safe
         )
         # Set annotation manually for testing
         field_info.annotation = str
@@ -1658,7 +1701,17 @@ class TestFlextCliModelsExceptionHandlers:
         click_type = FlextCliModels.CliModelConverter.python_type_to_click_type(
             python_type
         )
-        types = {"python_type": python_type, "click_type": click_type}
+        types = cast(
+            "FieldMetadataDict",
+            {
+                "python_type": python_type,
+                "click_type": click_type,
+                "is_required": True,
+                "description": "Test field",
+                "validators": [],
+                "metadata": {},
+            },
+        )
 
         # Access the method to test metadata extraction
         result = FlextCliModels.CliModelConverter.extract_field_properties(
@@ -1678,7 +1731,7 @@ class TestFlextCliModelsExceptionHandlers:
         def validator_func(value: object) -> object:
             return str(value).upper()
 
-        validators_raw = [validator_func, lambda x: x, str]
+        validators_raw: list[object] = [validator_func, lambda x: x, str]
         validators = FlextCliModels.CliModelConverter._process_validators(
             validators_raw
         )
@@ -1696,7 +1749,9 @@ class TestFlextCliModelsExceptionHandlers:
         from pydantic import Field
 
         # Create field with default value that needs casting - use Pydantic v2 syntax
-        field_info = Field(default="test_default", description="Test field")
+        field_info = cast(
+            "fields.FieldInfo", Field(default="test_default", description="Test field")
+        )
         # Set annotation manually for testing
         field_info.annotation = str
         result = FlextCliModels.CliModelConverter.field_to_cli_param(
@@ -1750,7 +1805,7 @@ class TestFlextCliModelsExceptionHandlers:
         }
 
         validation_result = FlextCliModels.CliModelConverter._validate_field_data(
-            "test_field", invalid_data
+            "test_field", cast("FieldMetadataDict", invalid_data)
         )
         if validation_result.is_failure:
             # Now test convert_field_to_cli_param with field that would use this invalid data
@@ -1845,8 +1900,10 @@ class TestFlextCliModelsExceptionHandlers:
 
         monkeypatch.setattr(TestModel, "__init__", failing_init)
 
-        cli_args = {"name": "test", "age": 25}
-        result = FlextCliModels.CliModelConverter.cli_args_to_model(TestModel, cli_args)
+        cli_args: dict[str, str | int] = {"name": "test", "age": 25}
+        result = FlextCliModels.CliModelConverter.cli_args_to_model(
+            TestModel, cast("FlextTypes.JsonDict", cli_args)
+        )
         assert result.is_failure
         assert (
             "failed" in str(result.error).lower()
@@ -1905,8 +1962,10 @@ class TestFlextCliModelsExceptionHandlers:
             name: str
             age: int
 
-        cli_args = {"name": "test", "age": 25}
-        result = FlextCliModels.CliModelConverter.cli_args_to_model(TestModel, cli_args)
+        cli_args: dict[str, str | int] = {"name": "test", "age": 25}
+        result = FlextCliModels.CliModelConverter.cli_args_to_model(
+            TestModel, cast("FlextTypes.JsonDict", cli_args)
+        )
         assert result.is_success
         model_instance = result.unwrap()
         assert isinstance(model_instance, TestModel)

@@ -10,6 +10,14 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
+import sys
+from pathlib import Path
+
+# Add src to path for relative imports (pyrefly accepts this pattern)
+if Path(__file__).parent.parent.parent / "src" not in [Path(p) for p in sys.path]:
+    sys.path.insert(0, str(Path(__file__).parent.parent.parent / "src"))
+
+
 import math
 import threading
 import time
@@ -40,22 +48,52 @@ class TestFlextCliTypes:
         """Create FlextCliTypes instance for testing."""
         return FlextCliTypes()
 
-    @pytest.fixture
     # ========================================================================
     # INITIALIZATION AND BASIC FUNCTIONALITY
     # ========================================================================
     def test_types_service_initialization(self, types_service: FlextCliTypes) -> None:
-        """Test types service initialization and basic properties."""
+        """Test types service initialization and real type access."""
+        # Test that types service is properly initialized
         assert types_service is not None
-        assert hasattr(types_service, "__class__")
+        # Test that we can access nested type namespaces
+        assert hasattr(types_service, "Data")
+        # Test that Data namespace contains type aliases
+        assert hasattr(types_service.Data, "CliDataDict")
+        # Real functionality test: verify type aliases are accessible
+        # Test that type aliases can be used in type hints
+        # Use FlextCliTypes directly for type hints (types_service is runtime instance)
+
+        def test_function(data: FlextCliTypes.Data.CliDataDict) -> bool:
+            return isinstance(data, dict)
+
+        # Test with actual data
+        test_data: FlextCliTypes.Data.CliDataDict = {"key": "value"}
+        assert test_function(test_data) is True
 
     def test_types_service_basic_functionality(
         self, types_service: FlextCliTypes
     ) -> None:
-        """Test types service basic functionality."""
-        # Test that types can be created and accessed
+        """Test types service basic functionality with real type usage."""
+        # Test that types can be accessed and used
         assert types_service is not None
-        assert hasattr(types_service, "__class__")
+        # Test Data namespace types
+        assert hasattr(types_service.Data, "CliDataDict")
+        assert hasattr(types_service.Data, "CliFormatData")
+        assert hasattr(types_service.Data, "CliConfigData")
+        # Real functionality test: use types in actual code
+        # Create data using type aliases
+        # Use FlextCliTypes directly for type hints (types_service is runtime instance)
+
+        config_data: FlextCliTypes.Data.CliConfigData = {
+            "output_format": "json",
+            "debug": True,
+        }
+        format_data: FlextCliTypes.Data.CliFormatData = {"data": [1, 2, 3]}
+        # Verify types work correctly
+        assert isinstance(config_data, dict)
+        assert isinstance(format_data, dict)
+        assert config_data["output_format"] == "json"
+        assert format_data["data"] == [1, 2, 3]
 
     # ========================================================================
     # TYPE DEFINITION AND VALIDATION

@@ -10,6 +10,14 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
+import sys
+from pathlib import Path
+
+# Add src to path for relative imports (pyrefly accepts this pattern)
+if Path(__file__).parent.parent.parent / "src" not in [Path(p) for p in sys.path]:
+    sys.path.insert(0, str(Path(__file__).parent.parent.parent / "src"))
+
+
 import json
 import threading
 from collections.abc import Sequence
@@ -20,7 +28,12 @@ import pytest
 from flext_core import FlextResult, FlextTypes
 from pydantic import PositiveInt, TypeAdapter, ValidationError
 
-from flext_cli import FlextCli, FlextCliConfig, FlextCliConstants, FlextCliTypes
+from flext_cli import (
+    FlextCli,
+    FlextCliConfig,
+    FlextCliConstants,
+    FlextCliTypes,
+)
 
 
 class TestFlextCli:

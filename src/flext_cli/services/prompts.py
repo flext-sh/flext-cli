@@ -4,9 +4,9 @@ from __future__ import annotations
 
 import getpass
 import re
+import typing
 
 from flext_core import (
-    FlextLogger,
     FlextMixins,
     FlextResult,
     FlextService,
@@ -51,7 +51,6 @@ class FlextCliPrompts(FlextService[FlextCliTypes.Data.CliDataDict]):
         *,
         interactive_mode: bool = True,
         quiet: bool = False,
-        logger: FlextLogger | None = None,
         **data: FlextTypes.JsonValue,
     ) -> None:
         """Initialize CLI prompts service with enhanced configuration and Phase 1 context enrichment.
@@ -60,7 +59,6 @@ class FlextCliPrompts(FlextService[FlextCliTypes.Data.CliDataDict]):
             interactive_mode: Enable interactive prompt features
             quiet: Enable quiet mode (non-interactive)
             default_timeout: Default timeout for prompt operations in seconds
-            logger: Optional logger instance
             **data: Additional service initialization data
 
         """
@@ -72,16 +70,7 @@ class FlextCliPrompts(FlextService[FlextCliTypes.Data.CliDataDict]):
         data["quiet"] = quiet
         data["default_timeout"] = default_timeout
 
-        # Do NOT add logger_instance to data - Pydantic strict mode rejects it
-        # FlextService creates its own logger internally
-
         super().__init__(**data)
-
-        # Initialize logger - validate explicitly, no fallback
-        if logger is not None:
-            self._logger = logger
-        else:
-            self._logger = FlextLogger(__name__)
 
         # Initialize private prompt history (PrivateAttr default_factory handles this automatically)
         # But we ensure it exists for clarity
@@ -595,8 +584,9 @@ class FlextCliPrompts(FlextService[FlextCliTypes.Data.CliDataDict]):
             )
 
             # Serialize to dict for API compatibility
-            stats_dict: FlextCliTypes.Data.CliDataDict = (
-                FlextMixins.ModelConversion.to_dict(stats_model)
+            stats_dict: FlextCliTypes.Data.CliDataDict = typing.cast(
+                "FlextCliTypes.Data.CliDataDict",
+                FlextMixins.ModelConversion.to_dict(stats_model),
             )
 
             self.logger.debug(
@@ -754,7 +744,7 @@ class FlextCliPrompts(FlextService[FlextCliTypes.Data.CliDataDict]):
 
             # Only log in non-test environments to avoid FlextConfig CLI parsing issues
             if not FlextCliUtilities.Environment.is_test_environment():
-                self._logger.info(
+                self.logger.info(
                     FlextCliConstants.PromptsDefaults.PROMPT_LOG_FORMAT.format(
                         message=message, input=user_input
                     )
@@ -875,7 +865,7 @@ class FlextCliPrompts(FlextService[FlextCliTypes.Data.CliDataDict]):
                     )
                     return FlextResult[bool].ok(False)
 
-                self._logger.warning(
+                self.logger.warning(
                     "Invalid confirmation input - please enter yes or no",
                     operation="confirm",
                     prompt_message=message,
@@ -977,13 +967,13 @@ class FlextCliPrompts(FlextService[FlextCliTypes.Data.CliDataDict]):
                 source="flext-cli/src/flext_cli/prompts.py",
             )
 
-            self._logger.info(
+            self.logger.info(
                 FlextCliConstants.PromptsDefaults.SELECTION_PROMPT.format(
                     message=message
                 )
             )
             for i, option in enumerate(options, 1):
-                self._logger.info(
+                self.logger.info(
                     FlextCliConstants.PromptsDefaults.CHOICE_DISPLAY_FORMAT.format(
                         num=i, option=option
                     )
@@ -1028,7 +1018,7 @@ class FlextCliPrompts(FlextService[FlextCliTypes.Data.CliDataDict]):
                         )
                         break
 
-                    self._logger.warning(
+                    self.logger.warning(
                         "Selection out of valid range",
                         operation="select_from_options",
                         prompt_message=message,
@@ -1038,7 +1028,7 @@ class FlextCliPrompts(FlextService[FlextCliTypes.Data.CliDataDict]):
                         source="flext-cli/src/flext_cli/prompts.py",
                     )
                 except ValueError:
-                    self._logger.warning(
+                    self.logger.warning(
                         "Invalid number format for selection",
                         operation="select_from_options",
                         prompt_message=message,
@@ -1075,7 +1065,7 @@ class FlextCliPrompts(FlextService[FlextCliTypes.Data.CliDataDict]):
                 source="flext-cli/src/flext_cli/prompts.py",
             )
 
-            self._logger.info(
+            self.logger.info(
                 FlextCliConstants.PromptsMessages.USER_SELECTION_LOG.format(
                     message=message, choice=selected_option
                 )
@@ -1132,7 +1122,7 @@ class FlextCliPrompts(FlextService[FlextCliTypes.Data.CliDataDict]):
                 source="flext-cli/src/flext_cli/prompts.py",
             )
 
-            self._logger.info(formatted_message)
+            self.logger.info(formatted_message)
             return FlextResult[bool].ok(True)
         except Exception as e:
             self.logger.exception(
@@ -1179,7 +1169,7 @@ class FlextCliPrompts(FlextService[FlextCliTypes.Data.CliDataDict]):
         )
 
         try:
-            log_method = getattr(self._logger, log_level)
+            log_method = getattr(self.logger, log_level)
             formatted_msg = message_format.format(message=message)
 
             self.logger.debug(
@@ -1313,13 +1303,13 @@ class FlextCliPrompts(FlextService[FlextCliTypes.Data.CliDataDict]):
                 source="flext-cli/src/flext_cli/prompts.py",
             )
 
-            self._logger.info(
+            self.logger.info(
                 FlextCliConstants.PromptsMessages.STARTING_PROGRESS.format(
                     description=description
                 )
             )
 
-            self._logger.info(
+            self.logger.info(
                 FlextCliConstants.PromptsMessages.CREATED_PROGRESS.format(
                     description=description
                 )
@@ -1390,7 +1380,7 @@ class FlextCliPrompts(FlextService[FlextCliTypes.Data.CliDataDict]):
 
             # Process items with progress indication
             total_items = len(items)
-            self._logger.info(
+            self.logger.info(
                 FlextCliConstants.PromptsMessages.PROCESSING.format(
                     description=description, count=total_items
                 )
@@ -1431,7 +1421,7 @@ class FlextCliPrompts(FlextService[FlextCliTypes.Data.CliDataDict]):
                         total=total_items,
                         source="flext-cli/src/flext_cli/prompts.py",
                     )
-                    self._logger.info(
+                    self.logger.info(
                         FlextCliConstants.PromptsDefaults.PROGRESS_FORMAT.format(
                             progress=progress,
                             current=processed_count,
@@ -1448,13 +1438,13 @@ class FlextCliPrompts(FlextService[FlextCliTypes.Data.CliDataDict]):
                 source="flext-cli/src/flext_cli/prompts.py",
             )
 
-            self._logger.info(
+            self.logger.info(
                 FlextCliConstants.PromptsMessages.PROGRESS_COMPLETED.format(
                     description=description
                 )
             )
 
-            self._logger.info(
+            self.logger.info(
                 FlextCliConstants.PromptsMessages.PROGRESS_COMPLETED_LOG.format(
                     description=description, processed=processed_count
                 )

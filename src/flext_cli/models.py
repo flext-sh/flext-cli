@@ -15,12 +15,26 @@ from __future__ import annotations
 
 import functools
 import inspect
+import logging
 import types
 import typing
 from collections.abc import Callable
 from datetime import datetime
+from enum import Enum
 from types import UnionType
-from typing import Annotated, Self, Union, cast, get_args, get_origin, get_type_hints
+from typing import (
+    TYPE_CHECKING,
+    Annotated,
+    Self,
+    Union,
+    cast,
+    get_args,
+    get_origin,
+    get_type_hints,
+)
+
+if TYPE_CHECKING:
+    from flext_cli.config import FlextCliConfig
 
 import typer
 from flext_core import (
@@ -47,7 +61,7 @@ from pydantic_core import PydanticUndefined
 from typer.models import OptionInfo
 
 # ConfigServiceExecutionResult defined below to avoid circular dependency
-from flext_cli.config import FlextCliConfig
+# FlextCliCommonParams and FlextCliConfig imported inside methods to avoid circular import
 from flext_cli.constants import FlextCliConstants
 from flext_cli.mixins import FlextCliMixins
 from flext_cli.typings import FlextCliTypes
@@ -581,7 +595,7 @@ class FlextCliModels(FlextModels):
                 or FlextRuntime.is_dict_like(default_value_raw)
                 or FlextRuntime.is_list_like(default_value_raw)
             ):
-                default_value = typing.cast("FlextTypes.JsonValue", default_value_raw)
+                default_value = default_value_raw
 
             # Validate and extract field data
             # SLF001: Accessing private method is intentional - it's a static method within the same class
@@ -1117,7 +1131,7 @@ class FlextCliModels(FlextModels):
                 --log-level/-L: Set log level (DEBUG, INFO, WARNING, ERROR, CRITICAL)
 
             """
-            # Import here to avoid circular imports
+            # Import here to avoid circular import
             from flext_cli.cli_params import FlextCliCommonParams
 
             # Get registry of common params
@@ -1183,6 +1197,82 @@ class FlextCliModels(FlextModels):
             """
             return {k: v for k, v in kwargs.items() if not k.startswith("__")}
 
+        def _get_config_fields(self) -> set[str]:
+            """Get config model fields for filtering params."""
+            if self.config is None:
+                return set()
+            # Use class model_fields, not instance (Pydantic v2 pattern)
+            if hasattr(self.config, "__class__") and hasattr(
+                self.config.__class__, "model_fields"
+            ):
+                return set(self.config.__class__.model_fields.keys())
+            return set()
+
+        def _map_params_to_cli_config(
+            self, filtered_params: dict[str, object]
+        ) -> dict[str, FlextTypes.JsonValue]:
+            """Map filtered params to CliParamsConfig field names."""
+            cli_params_dict: dict[str, FlextTypes.JsonValue] = {}
+            for key, value in filtered_params.items():
+                # Map cli_log_level to log_level for CliParamsConfig
+                if key == "cli_log_level":
+                    # Type narrowing: value might be an enum with .value attribute
+                    if isinstance(value, Enum):
+                        mapped_value: FlextTypes.JsonValue = value.value
+                    else:
+                        mapped_value = str(value)
+                    cli_params_dict["log_level"] = mapped_value
+                # Map log_verbosity to log_format for CliParamsConfig
+                elif key == "log_verbosity":
+                    # Type narrowing: value might be an enum with .value attribute
+                    if isinstance(value, Enum):
+                        mapped_value = value.value
+                    else:
+                        mapped_value = str(value)
+                    cli_params_dict["log_format"] = mapped_value
+                else:
+                    # Type narrow: value is already JsonValue compatible from filtered_params
+                    mapped_value = typing.cast("FlextTypes.JsonValue", value)
+                    cli_params_dict[key] = mapped_value
+            return cli_params_dict
+
+        def _build_and_apply_params_model(
+            self, cli_params_dict: dict[str, FlextTypes.JsonValue]
+        ) -> bool:
+            """Build CliParamsConfig model and apply to config."""
+            # Type guard: ensure config is not None
+            if self.config is None:
+                return False
+
+            # Build CliParamsConfig model
+            try:
+                # Use model_validate for type-safe construction
+                params_model = FlextCliModels.CliParamsConfig.model_validate(
+                    cli_params_dict
+                )
+            except Exception as e:
+                FlextLogger.get_logger().warning(
+                    f"Failed to build CliParamsConfig: {e}"
+                )
+                return False
+
+            # Apply to config (validates and updates)
+            # Import here to avoid circular import
+            from flext_cli.cli_params import FlextCliCommonParams
+
+            # Type narrowing: self.config is not None (checked above)
+            result = FlextCliCommonParams.apply_to_config(
+                self.config, params=params_model
+            )
+
+            if result.is_failure:
+                # Log warning but don't fail
+                FlextLogger.get_logger().warning(
+                    f"Failed to apply CLI params: {result.error}"
+                )
+                return False
+            return True
+
         def _apply_common_params_to_config(
             self, common_params: dict[str, object]
         ) -> None:
@@ -1201,11 +1291,11 @@ class FlextCliModels(FlextModels):
                 - Uses FLEXT patterns (no Python logging import)
 
             """
-            # Filter out None values (params not provided via CLI)
             # Type guard: ensure config is not None
             if self.config is None:
                 return
 
+            # Filter out None values (params not provided via CLI)
             active_params = {k: v for k, v in common_params.items() if v is not None}
 
             if not active_params:
@@ -1213,13 +1303,7 @@ class FlextCliModels(FlextModels):
 
             # ✅ FILTER: Only apply params that exist in config
             # Config may not have all common params (e.g., quiet)
-            # Use class model_fields, not instance (Pydantic v2 pattern)
-            config_fields = (
-                set(self.config.__class__.model_fields.keys())
-                if hasattr(self.config, "__class__")
-                and hasattr(self.config.__class__, "model_fields")
-                else set()
-            )
+            config_fields = self._get_config_fields()
             filtered_params = {
                 k: v for k, v in active_params.items() if k in config_fields
             }
@@ -1227,46 +1311,11 @@ class FlextCliModels(FlextModels):
             if not filtered_params:
                 return
 
-            # Build CliParamsConfig from filtered params
-            # Map field names to CliParamsConfig field names
-            cli_params_dict: dict[str, FlextTypes.JsonValue] = {}
-            for key, value in filtered_params.items():
-                # Map cli_log_level to log_level for CliParamsConfig
-                if key == "cli_log_level":
-                    mapped_value: FlextTypes.JsonValue = (
-                        value.value if hasattr(value, "value") else str(value)
-                    )
-                    cli_params_dict["log_level"] = mapped_value
-                # Map log_verbosity to log_format for CliParamsConfig
-                elif key == "log_verbosity":
-                    mapped_value = (
-                        value.value if hasattr(value, "value") else str(value)
-                    )
-                    cli_params_dict["log_format"] = mapped_value
-                else:
-                    # Type narrow: value is already JsonValue compatible from filtered_params
-                    mapped_value = typing.cast("FlextTypes.JsonValue", value)
-                    cli_params_dict[key] = mapped_value
+            # Map params to CliParamsConfig format
+            cli_params_dict = self._map_params_to_cli_config(filtered_params)
 
-            # Build CliParamsConfig model
-            try:
-                params_model = FlextCliModels.CliParamsConfig(**cli_params_dict)
-            except Exception as e:
-                FlextLogger.get_logger().warning(
-                    f"Failed to build CliParamsConfig: {e}"
-                )
-                return
-
-            # Apply to config (validates and updates)
-            result = FlextCliCommonParams.apply_to_config(
-                self.config, params=params_model
-            )
-
-            if result.is_failure:
-                # Log warning but don't fail
-                FlextLogger.get_logger().warning(
-                    f"Failed to apply CLI params: {result.error}"
-                )
+            # Build and apply params model
+            if not self._build_and_apply_params_model(cli_params_dict):
                 return
 
             # ✅ RECONFIGURE: Logger with new config values
@@ -1660,6 +1709,9 @@ class FlextCliModels(FlextModels):
             self.registry = registry
 
             # Get field metadata
+            # Import here to avoid circular import
+            from flext_cli.config import FlextCliConfig
+
             self.fields = FlextCliConfig.model_fields
             self.schema = FlextCliConfig.model_json_schema()
 
@@ -2770,8 +2822,11 @@ class FlextCliModels(FlextModels):
                 return {} if data is None else {"_data": data}
 
             # Try to get config instance (may not be available in all contexts)
+            # Import here to avoid circular import
+            from flext_cli.base import FlextCliServiceBase
+
             try:
-                config = FlextCliConfig.get_instance()
+                config = FlextCliServiceBase.get_cli_config()
             except Exception:
                 # Config not available - return data as-is
                 return data

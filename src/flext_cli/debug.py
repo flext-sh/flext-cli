@@ -188,8 +188,9 @@ class FlextCliDebug(FlextService[str]):
         try:
             info_model = self._get_system_info()
             # Serialize SystemInfo model to dict using Pydantic 2 model_dump()
-            info_dict: FlextCliTypes.Data.CliDataDict = (
-                FlextMixins.ModelConversion.to_dict(info_model)
+            info_dict: FlextCliTypes.Data.CliDataDict = typing.cast(
+                "FlextCliTypes.Data.CliDataDict",
+                FlextMixins.ModelConversion.to_dict(info_model),
             )
             return FlextResult[FlextCliTypes.Data.CliDataDict].ok(info_dict)
         except Exception as e:

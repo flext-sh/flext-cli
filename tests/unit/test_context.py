@@ -7,6 +7,14 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
+import sys
+from pathlib import Path
+
+# Add src to path for relative imports (pyrefly accepts this pattern)
+if Path(__file__).parent.parent.parent / "src" not in [Path(p) for p in sys.path]:
+    sys.path.insert(0, str(Path(__file__).parent.parent.parent / "src"))
+
+
 from typing import cast
 
 import pytest
@@ -208,7 +216,7 @@ class TestFlextCliContext:
             # Call original init
             original_init(self, **kwargs)
             # Clear id to make data["id"] falsy (simulates super().__init__ modifying it)
-            # Type: FlextCliContext has id attribute, but FlextService may not
+
             # Skip id manipulation - FlextService doesn't have id attribute
 
         # Patch FlextService.__init__ to clear id
@@ -490,8 +498,8 @@ class TestFlextCliContext:
         """
         context = FlextCliContext()
         # Pass non-string value - test validation
-        # Type: intentionally passing wrong type to test validation
-        result = context.set_environment_variable("TEST_VAR", cast("str", 123))  # type: ignore[arg-type]
+
+        result = context.set_environment_variable("TEST_VAR", cast("str", 123))
         assert result.is_failure
         assert (
             "must be string" in str(result.error).lower()

@@ -136,7 +136,7 @@ class FlextCliFileTools:
     @staticmethod
     def write_json_file(
         file_path: str | Path,
-        data: FlextTypes.JsonValue,
+        data: object,
         indent: int = 2,
         *,
         sort_keys: bool = False,
@@ -146,7 +146,7 @@ class FlextCliFileTools:
 
         Args:
             file_path: Path to JSON file
-            data: Data to write
+            data: Data to write (any JSON-serializable object)
             indent: Indentation level (default: 2)
             sort_keys: Sort keys alphabetically (default: False)
             ensure_ascii: Escape non-ASCII characters (default: True)
@@ -190,7 +190,7 @@ class FlextCliFileTools:
     @staticmethod
     def write_yaml_file(
         file_path: str | Path,
-        data: FlextTypes.JsonValue,
+        data: object,
         *,
         default_flow_style: bool | None = None,
         sort_keys: bool = False,
@@ -200,7 +200,7 @@ class FlextCliFileTools:
 
         Args:
             file_path: Path to YAML file
-            data: Data to write
+            data: Data to write (any YAML-serializable object)
             default_flow_style: Use flow style (None=auto, True=flow, False=block)
             sort_keys: Sort keys alphabetically (default: False)
             allow_unicode: Output Unicode characters (default: True)
@@ -676,18 +676,15 @@ class FlextCliFileTools:
                     FlextRuntime.is_dict_like(format_info)
                     and FlextCliConstants.FileIODefaults.FORMAT_EXTENSIONS_KEY
                     in format_info
-                    and isinstance(
-                        format_info[
-                            FlextCliConstants.FileIODefaults.FORMAT_EXTENSIONS_KEY
-                        ],
-                        (list, tuple),
-                    )
-                    and extension
-                    in format_info[
+                ):
+                    extensions = format_info[
                         FlextCliConstants.FileIODefaults.FORMAT_EXTENSIONS_KEY
                     ]
-                ):
-                    return FlextResult[str].ok(format_name)
+                    if (
+                        FlextRuntime.is_list_like(extensions)
+                        and extension in extensions
+                    ):
+                        return FlextResult[str].ok(format_name)
 
             return FlextResult[str].fail(
                 FlextCliConstants.FileErrorMessages.UNSUPPORTED_FORMAT_GENERIC.format(

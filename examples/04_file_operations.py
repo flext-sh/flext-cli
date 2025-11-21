@@ -32,6 +32,14 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
+import sys
+from pathlib import Path
+
+# Add src to path for relative imports (pyrefly accepts this pattern)
+if Path(__file__).parent.parent / "src" not in [Path(p) for p in sys.path]:
+    sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
+
+
 import hashlib
 import platform
 import shutil
@@ -41,7 +49,12 @@ from typing import cast
 
 from flext_core import FlextResult, FlextTypes
 
-from flext_cli import FlextCli, FlextCliTables, FlextCliTypes
+from flext_cli import (
+    FlextCli,
+    FlextCliModels,
+    FlextCliTables,
+    FlextCliTypes,
+)
 
 cli = FlextCli.get_instance()
 tables = FlextCliTables()
@@ -62,7 +75,10 @@ def save_user_preferences(
     # with open(config_file, 'w') as f:
     #     json.dump(preferences, f)
 
-    write_result = cli.file_tools.write_json_file(config_file, preferences)
+    # Cast dict to object (compatible with JsonValue)
+    write_result = cli.file_tools.write_json_file(
+        config_file, cast("dict[str, object]", preferences)
+    )
 
     if write_result.is_failure:
         cli.print(f"❌ Failed to save: {write_result.error}", style="bold red")
@@ -107,7 +123,10 @@ def save_deployment_config(
     # with open(config_file, 'w') as f:
     #     yaml.dump(config, f)
 
-    write_result = cli.file_tools.write_yaml_file(config_file, config)
+    # Cast dict to object (compatible with JsonValue)
+    write_result = cli.file_tools.write_yaml_file(
+        config_file, cast("dict[str, object]", config)
+    )
 
     if write_result.is_failure:
         cli.print(f"❌ Config save failed: {write_result.error}", style="bold red")
@@ -145,11 +164,9 @@ def export_database_report(
 ) -> bool | None:
     """Export database query results in YOUR reporting tool."""
     # Create ASCII table (for logs, emails, markdown docs)
-    # Cast to expected type for table creation
-    table_result = tables.create_table(
-        records,
-        table_format=format_type,
-    )
+    # Create table config with specified format
+    config = FlextCliModels.TableConfig(table_format=format_type)
+    table_result = tables.create_table(records, config=config)
 
     if table_result.is_failure:
         cli.print(f"❌ Table creation failed: {table_result.error}", style="bold red")
@@ -191,11 +208,9 @@ def list_project_files(project_dir: Path) -> None:
     if files_data:
         # files_data is already properly typed
         sample_data: list[FlextCliTypes.Data.CliDataDict] = files_data[:20]
-        # Cast to expected type for table creation
-        table_result = tables.create_table(
-            sample_data,
-            table_format="grid",
-        )
+        # Create table config for grid format
+        config = FlextCliModels.TableConfig(table_format="grid")
+        table_result = tables.create_table(sample_data, config=config)
         if table_result.is_success:
             cli.print(f"\n📁 Directory: {project_dir.name}", style="bold cyan")
             # tables.create_table returns string, use cli.print
@@ -224,8 +239,8 @@ def show_directory_tree(root_path: Path, max_items: int = 15) -> None:
             size = item.stat().st_size
             tree.add(f"📄 {item.name} ({size:,} bytes)")
 
-    # Tree is Rich Tree object, use console.print directly
-    cli.formatters.get_console().print(tree)
+    # Print the tree using cli
+    cli.print(str(tree))
 
 
 # ============================================================================
@@ -369,11 +384,9 @@ def import_from_csv(input_file: Path) -> list[FlextCliTypes.Data.CliDataDict] | 
         sample_rows: list[FlextCliTypes.Data.CliDataDict] = cast(
             "list[FlextCliTypes.Data.CliDataDict]", rows[:5]
         )
-        # Cast to expected type for table creation
-        table_result = tables.create_table(
-            sample_rows,
-            table_format="grid",
-        )
+        # Create table config for grid format
+        config = FlextCliModels.TableConfig(table_format="grid")
+        table_result = tables.create_table(sample_rows, config=config)
         if table_result.is_success:
             cli.print("\n📋 Sample Data:", style="yellow")
 
@@ -496,7 +509,7 @@ def export_multi_format(
     # Export to YAML
     yaml_path = base_path.with_suffix(".yaml")
     yaml_payload = cast("FlextTypes.JsonValue", data)
-    yaml_result = cli.file_tools.write_yaml_file(yaml_path, yaml_payload)
+    yaml_result = cli.file_tools.write_yaml_file(yaml_path, cast("dict[str, object]", yaml_payload))
     if yaml_result.is_success:
         size = yaml_path.stat().st_size
         export_results["YAML"] = f"{size} bytes"
@@ -585,7 +598,7 @@ def main() -> None:
         "FlextCliTypes.Data.CliDataDict", {"id": 1, "name": "test", "value": 100}
     )
     test_file = temp_dir / "test_data.json"
-    cli.file_tools.write_json_file(test_file, test_data)
+    cli.file_tools.write_json_file(test_file, cast("dict[str, object]", test_data))
     validate_and_import_data(test_file)
 
     # Example 7: CSV export/import
@@ -618,8 +631,8 @@ def main() -> None:
     )
     auto_json = temp_dir / "auto_config.json"
     auto_yaml = temp_dir / "auto_config.yaml"
-    cli.file_tools.write_json_file(auto_json, auto_config)
-    cli.file_tools.write_yaml_file(auto_yaml, auto_config)
+    cli.file_tools.write_json_file(auto_json, cast("dict[str, object]", auto_config))
+    cli.file_tools.write_yaml_file(auto_yaml, cast("dict[str, object]", auto_config))
     load_config_auto_detect(auto_json)
     load_config_auto_detect(auto_yaml)
 
