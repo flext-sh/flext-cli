@@ -10,6 +10,14 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
+import sys
+from pathlib import Path
+
+# Add src to path for relative imports (pyrefly accepts this pattern)
+if Path(__file__).parent.parent.parent / "src" not in [Path(p) for p in sys.path]:
+    sys.path.insert(0, str(Path(__file__).parent.parent.parent / "src"))
+
+
 import threading
 import time
 from typing import Protocol, runtime_checkable
@@ -27,24 +35,58 @@ class TestFlextCliProtocols:
         """Create FlextCliProtocols instance for testing."""
         return FlextCliProtocols()
 
-    @pytest.fixture
     # ========================================================================
     # INITIALIZATION AND BASIC FUNCTIONALITY
     # ========================================================================
     def test_protocols_service_initialization(
         self, protocols_service: FlextCliProtocols
     ) -> None:
-        """Test protocols service initialization and basic properties."""
+        """Test protocols service initialization and real protocol access."""
+        # Test that protocols service is properly initialized
         assert protocols_service is not None
-        assert hasattr(protocols_service, "__class__")
+        # Test that we can access nested protocol classes
+        assert hasattr(protocols_service, "Cli")
+        # Test that CliFormatter protocol exists and is runtime_checkable
+        assert hasattr(protocols_service.Cli, "CliFormatter")
+        # Test isinstance check with a real implementation
+        from flext_core import FlextResult
+
+        class TestFormatter:
+            def format_data(
+                self, data: dict[str, object], **options: dict[str, object]
+            ) -> FlextResult[str]:
+                return FlextResult[str].ok("formatted")
+
+        formatter = TestFormatter()
+        # Real functionality test: verify protocol compliance
+        assert isinstance(formatter, protocols_service.Cli.CliFormatter)
 
     def test_protocols_service_basic_functionality(
         self, protocols_service: FlextCliProtocols
     ) -> None:
-        """Test protocols service basic functionality."""
-        # Test that protocols can be created and accessed
+        """Test protocols service basic functionality with real implementations."""
+        # Test that protocols can be accessed and used
         assert protocols_service is not None
-        assert hasattr(protocols_service, "__class__")
+        # Test CliConfigProvider protocol with real implementation
+        from flext_core import FlextResult
+
+        class TestConfigProvider:
+            def load_config(self) -> FlextResult[dict[str, object]]:
+                return FlextResult[dict[str, object]].ok({"test": "config"})
+
+            def save_config(self, config: dict[str, object]) -> FlextResult[bool]:
+                return FlextResult[bool].ok(True)
+
+        provider = TestConfigProvider()
+        # Real functionality test: verify protocol compliance
+        assert isinstance(provider, protocols_service.Cli.CliConfigProvider)
+        # Test actual method calls
+        load_result = provider.load_config()
+        assert load_result.is_success
+        assert load_result.unwrap() == {"test": "config"}
+        save_result = provider.save_config({"new": "data"})
+        assert save_result.is_success
+        assert save_result.unwrap() is True
 
     # ========================================================================
     # PROTOCOL DEFINITION AND VALIDATION
@@ -179,7 +221,7 @@ class TestFlextCliProtocols:
 
         # Test signature validation
         correct = CorrectImplementation()
-        IncorrectImplementation()
+        _ = IncorrectImplementation()
 
         # Runtime checking will pass for both (Python's duck typing)
         assert isinstance(correct, SignatureProtocol)
@@ -526,7 +568,7 @@ class TestFlextCliProtocols:
         # Test risky operation
         assert impl.risky_operation("test") == "TEST"
         with pytest.raises(ValueError):
-            impl.risky_operation("")
+            _ = impl.risky_operation("")
 
     # ========================================================================
     # PROTOCOL PERFORMANCE

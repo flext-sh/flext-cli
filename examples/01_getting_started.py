@@ -18,7 +18,7 @@ WHEN TO USE:
 
 HOW TO INTEGRATE INTO YOUR PROJECT:
 1. Install: pip install flext-cli
-2. Import: from flext_cli import FlextCli
+2. Import: from flext_cli import FlextCli  # noqa: E402
 3. Use: cli = FlextCli.get_instance()
 
 Copyright (c) 2025 FLEXT Team. All rights reserved.
@@ -27,6 +27,14 @@ SPDX-License-Identifier: MIT
 """
 
 from __future__ import annotations
+
+import sys
+from pathlib import Path
+
+# Add src to path for relative imports (pyrefly accepts this pattern)
+if Path(__file__).parent.parent / "src" not in [Path(p) for p in sys.path]:
+    sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
+
 
 import tempfile
 from pathlib import Path
@@ -78,7 +86,10 @@ def display_user_data(user: FlextCliTypes.Data.CliDataDict) -> None:
 
 def save_config(config: FlextCliTypes.Data.CliDataDict, filepath: str) -> bool:
     """Save YOUR config to JSON with proper error handling."""
-    write_result = cli.file_tools.write_json_file(filepath, config)
+    # Cast to JsonValue (dict is part of JsonValue union)
+    write_result = cli.file_tools.write_json_file(
+        filepath, cast("dict[str, object]", config)
+    )
 
     if write_result.is_failure:
         cli.print(f"Failed to save: {write_result.error}", style="bold red")

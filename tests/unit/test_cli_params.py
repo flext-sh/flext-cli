@@ -10,6 +10,14 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
+import sys
+from pathlib import Path
+
+# Add src to path for relative imports (pyrefly accepts this pattern)
+if Path(__file__).parent.parent.parent / "src" not in [Path(p) for p in sys.path]:
+    sys.path.insert(0, str(Path(__file__).parent.parent.parent / "src"))
+
+
 from pathlib import Path
 from typing import Never, cast
 
@@ -22,6 +30,7 @@ from flext_cli import (
     FlextCliCommonParams,
     FlextCliConfig,
     FlextCliModels,
+    FlextCliServiceBase,
 )
 
 # Module-level defaults to avoid B008 - use cast() for type-safe defaults
@@ -119,7 +128,7 @@ class TestFlextCliCommonParams:
         """Test that trace requires debug to be enabled."""
         # Reset singleton to ensure clean state
         FlextCliConfig._reset_instance()
-        config = FlextCliConfig.get_instance()
+        config = FlextCliServiceBase.get_cli_config()
         config.debug = False
         result = FlextCliCommonParams.apply_to_config(config, trace=True)
 
@@ -132,7 +141,7 @@ class TestFlextCliCommonParams:
         """Test applying trace with debug enabled."""
         # Reset singleton to ensure clean state
         FlextCliConfig._reset_instance()
-        config = FlextCliConfig.get_instance()
+        config = FlextCliServiceBase.get_cli_config()
         # Set debug=True first
         config.debug = True
         result = FlextCliCommonParams.apply_to_config(config, trace=True)
@@ -182,7 +191,7 @@ class TestFlextCliCommonParams:
 
     def test_apply_to_config_multiple_params(self) -> None:
         """Test applying multiple parameters at once."""
-        config = FlextCliConfig()
+        config = FlextCliServiceBase.get_cli_config()
         result = FlextCliCommonParams.apply_to_config(
             config,
             verbose=True,
@@ -204,7 +213,7 @@ class TestFlextCliCommonParams:
         """Test that None values don't override existing config."""
         # Reset singleton to ensure clean state
         FlextCliConfig._reset_instance()
-        config = FlextCliConfig.get_instance()
+        config = FlextCliServiceBase.get_cli_config()
         # Set initial values
         config.verbose = True
         config.debug = False
@@ -442,7 +451,7 @@ class TestCommonCliParamsDecorator:
         ) -> None:
             """Test command with config integration."""
             # Create config and apply CLI params
-            config = FlextCliConfig()
+            config = FlextCliServiceBase.get_cli_config()
             result = FlextCliCommonParams.apply_to_config(
                 config,
                 verbose=verbose,
@@ -496,7 +505,7 @@ class TestCLIParametersPrecedence:
         FlextCliConfig._reset_instance()
 
         # Create config (loads from ENV)
-        config = FlextCliConfig()
+        config = FlextCliServiceBase.get_cli_config()
         assert config.debug is False
         assert config.verbose is False
 
@@ -529,7 +538,7 @@ class TestCLIParametersPrecedence:
             # Create config (loads .env and ENV)
             # Note: FlextCliConfig doesn't inherit log_level from FlextConfig base
             # It has cli_log_level instead
-            config = FlextCliConfig()
+            config = FlextCliServiceBase.get_cli_config()
             # For this test, we're testing CLI parameter precedence
             # CLI parameter should override all
             result = FlextCliCommonParams.apply_to_config(config, log_level="DEBUG")
@@ -639,7 +648,7 @@ class TestCliParamsCoverageCompletion:
 
     def test_apply_to_config_invalid_log_level(self) -> None:
         """Test apply_to_config with invalid log level (lines 338-339)."""
-        config = FlextCliConfig()
+        config = FlextCliServiceBase.get_cli_config()
         result = FlextCliCommonParams.apply_to_config(config, log_level="INVALID_LEVEL")
 
         assert result.is_failure
@@ -648,7 +657,7 @@ class TestCliParamsCoverageCompletion:
 
     def test_apply_to_config_invalid_log_format(self) -> None:
         """Test apply_to_config with invalid log format (lines 347-348)."""
-        config = FlextCliConfig()
+        config = FlextCliServiceBase.get_cli_config()
         result = FlextCliCommonParams.apply_to_config(
             config, log_format="invalid_format"
         )
@@ -659,7 +668,7 @@ class TestCliParamsCoverageCompletion:
 
     def test_apply_to_config_invalid_output_format(self) -> None:
         """Test apply_to_config with invalid output format (lines 356-357)."""
-        config = FlextCliConfig()
+        config = FlextCliServiceBase.get_cli_config()
         result = FlextCliCommonParams.apply_to_config(
             config, output_format="invalid_format"
         )
@@ -670,16 +679,22 @@ class TestCliParamsCoverageCompletion:
 
     def test_apply_to_config_exception_handling(self) -> None:
         """Test apply_to_config exception handling with actual validation errors."""
+        # Reset singleton to ensure clean state for each test
+        FlextCliConfig._reset_instance()
+
         # Test with invalid log level that should trigger validation error
-        config = FlextCliConfig()
+        config = FlextCliServiceBase.get_cli_config()
         result = FlextCliCommonParams.apply_to_config(config, log_level="INVALID_LEVEL")
 
         assert result.is_failure
         assert result.error is not None
         assert "invalid log level" in result.error.lower()
 
+        # Reset singleton again to ensure clean state
+        FlextCliConfig._reset_instance()
+
         # Test with invalid log format that should trigger validation error
-        config = FlextCliConfig()
+        config = FlextCliServiceBase.get_cli_config()
         result = FlextCliCommonParams.apply_to_config(
             config, log_format="invalid_format"
         )
@@ -688,8 +703,11 @@ class TestCliParamsCoverageCompletion:
         assert result.error is not None
         assert "invalid log format" in result.error.lower()
 
+        # Reset singleton again to ensure clean state
+        FlextCliConfig._reset_instance()
+
         # Test with invalid output format that should trigger validation error
-        config = FlextCliConfig()
+        config = FlextCliServiceBase.get_cli_config()
         result = FlextCliCommonParams.apply_to_config(
             config, output_format="invalid_format"
         )
@@ -699,8 +717,10 @@ class TestCliParamsCoverageCompletion:
         assert "invalid output format" in result.error.lower()
 
         # Test trace without debug (business rule validation)
-        config = FlextCliConfig(debug=False)
-        result = FlextCliCommonParams.apply_to_config(config, trace=True)
+        # Reset singleton to ensure clean state (like other tests do)
+        FlextCliConfig._reset_instance()
+        fresh_config = FlextCliConfig(debug=False, trace=False)
+        result = FlextCliCommonParams.apply_to_config(fresh_config, trace=True)
 
         assert result.is_failure
         assert result.error is not None
@@ -708,7 +728,7 @@ class TestCliParamsCoverageCompletion:
 
     def test_configure_logger_invalid_log_level(self) -> None:
         """Test configure_logger with invalid log level (lines 394-395)."""
-        config = FlextCliConfig()
+        config = FlextCliServiceBase.get_cli_config()
         # Directly set invalid log level (bypassing validation)
         config.__dict__["cli_log_level"] = "INVALID"
 
@@ -721,7 +741,7 @@ class TestCliParamsCoverageCompletion:
     def test_configure_logger_exception_handling(self) -> None:
         """Test configure_logger exception handling (lines 373-374)."""
         # Use a valid config but patch cli_log_level property to raise exception
-        config = FlextCliConfig()
+        config = FlextCliServiceBase.get_cli_config()
 
         # Patch the cli_log_level property to raise an exception
         original_log_level = config.cli_log_level
@@ -831,7 +851,7 @@ class TestCliParamsCoverageCompletion:
         self, monkeypatch: pytest.MonkeyPatch
     ) -> None:
         """Test apply_to_config exception handler with enum construction failure."""
-        config = FlextCliConfig()
+        config = FlextCliServiceBase.get_cli_config()
 
         # Mock FlextConstants.Settings.LogLevel to raise exception when constructed
         # This triggers the outer exception handler (not the ValueError handler)
@@ -857,7 +877,7 @@ class TestCliParamsCoverageCompletion:
 
         Real scenario: Tests early return when log_level is None.
         """
-        config = FlextCliConfig()
+        config = FlextCliServiceBase.get_cli_config()
         params = FlextCliModels.CliParamsConfig(log_level=None)
         # _set_log_level is a private method, test through apply_to_config
         # or directly if accessible

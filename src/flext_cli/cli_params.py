@@ -255,10 +255,9 @@ class FlextCliCommonParams:
     ) -> FlextResult[bool]:
         """Set boolean parameters with validation.
 
-        CRITICAL: Uses object.__setattr__() to bypass Pydantic validate_assignment=True,
-        which would re-trigger model_validator DURING assignment, causing the validator
-        to see the OLD value instead of the new one. This is the same pattern used
-        in algar-oud-mig/config.py line 605.
+        Uses model_copy to validate all updates together, then applies them to the
+        original config object. This ensures validators see the final state rather
+        than intermediate states during individual field assignments.
 
         Returns:
             FlextResult[bool]: True if successful, error if trace=True without debug=True
@@ -275,16 +274,28 @@ class FlextCliCommonParams:
                     "Trace mode requires debug mode to be enabled"
                 )
 
+        # Update all attributes at once using model_copy to avoid triggering
+        # validate_assignment for each individual field (which would see intermediate states)
+        # Then update the original config object's attributes
+        update_data: dict[str, object] = {}
         if params.verbose is not None:
-            object.__setattr__(config, "verbose", params.verbose)  # noqa: PLC2801
+            update_data["verbose"] = params.verbose
         if params.quiet is not None:
-            object.__setattr__(config, "quiet", params.quiet)  # noqa: PLC2801
+            update_data["quiet"] = params.quiet
         if params.debug is not None:
-            object.__setattr__(config, "debug", params.debug)  # noqa: PLC2801
+            update_data["debug"] = params.debug
         if params.trace is not None:
-            object.__setattr__(config, "trace", params.trace)  # noqa: PLC2801
+            update_data["trace"] = params.trace
         if params.no_color is not None:
-            object.__setattr__(config, "no_color", params.no_color)  # noqa: PLC2801
+            update_data["no_color"] = params.no_color
+
+        if update_data:
+            # Validate all updates together using model_copy, then apply to original
+            # This ensures validators see the final state, not intermediate states
+            validated_config = config.model_copy(update=update_data)
+            # Update original config object's attributes from validated instance
+            for key in update_data:
+                setattr(config, key, getattr(validated_config, key))
 
         return FlextResult[bool].ok(True)
 
@@ -411,7 +422,7 @@ class FlextCliCommonParams:
                 # ... other common params using create_option() method
             ) -> None:
                 # Common parameters automatically available with full metadata
-                config = FlextCliConfig()
+                config = FlextCliServiceBase.get_cli_config()
                 FlextCliCommonParams.apply_to_config(
                     config,
                     verbose=verbose,

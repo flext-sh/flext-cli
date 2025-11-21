@@ -10,6 +10,14 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
+import sys
+from pathlib import Path
+
+# Add src to path for relative imports (pyrefly accepts this pattern)
+if Path(__file__).parent.parent.parent / "src" not in [Path(p) for p in sys.path]:
+    sys.path.insert(0, str(Path(__file__).parent.parent.parent / "src"))
+
+
 import json
 import tempfile
 from collections.abc import Generator
@@ -18,8 +26,6 @@ from pathlib import Path
 import pytest
 import yaml
 from click.testing import CliRunner
-from flext_core import FlextContainer, FlextUtilities
-from pydantic import BaseModel
 
 from flext_cli import (
     FlextCli,
@@ -36,6 +42,7 @@ from flext_cli import (
     FlextCliOutput,
     FlextCliPrompts,
     FlextCliProtocols,
+    FlextCliServiceBase,
     FlextCliTypes,
 )
 
@@ -102,40 +109,30 @@ def temp_csv_file(temp_dir: Path) -> Path:
 
 
 @pytest.fixture
-def flext_cli_api(
-    tmp_path: Path, request: pytest.FixtureRequest, monkeypatch: pytest.MonkeyPatch
-) -> FlextCli:
+def flext_cli_api(tmp_path: Path, request: pytest.FixtureRequest) -> FlextCli:
     """Create isolated FlextCli instance with test-specific config.
 
     Each test gets a fresh FlextCli instance with configuration pointing
     to a unique temporary directory, ensuring complete isolation between tests.
+    Uses real configuration with test paths, no monkeypatch.
     """
     # Create unique subdirectory for this specific test
     # This ensures complete isolation even if pytest reuses tmp_path
     test_dir = tmp_path / f"test_{id(request)}"
     test_dir.mkdir(exist_ok=True)
 
-    # Mock FlextCliConfig to inject test paths at creation time
-    # Patch __init__ to inject test paths before Pydantic validation
-    original_base_init = BaseModel.__init__
+    # Reset singleton to ensure clean state
+    FlextCliConfig._reset_instance()
 
-    def patched_config_init(self: FlextCliConfig, **kwargs: object) -> None:
-        # Inject test paths if not explicitly provided
-        # Type narrowing: convert kwargs to proper types
-        typed_kwargs: dict[str, object] = dict(kwargs)
-        if "config_dir" not in typed_kwargs:
-            typed_kwargs["config_dir"] = test_dir
-        if "token_file" not in typed_kwargs:
-            typed_kwargs["token_file"] = test_dir / "token.json"
-        if "refresh_token_file" not in typed_kwargs:
-            typed_kwargs["refresh_token_file"] = test_dir / "refresh_token.json"
-        # Call BaseModel.__init__ directly to avoid recursion
-        # Pydantic BaseModel.__init__ accepts **kwargs: object
-        original_base_init(self, **typed_kwargs)
+    # Create config with test paths using real API
+    # The config will be used by FlextCli when it's created
+    FlextCliConfig(
+        config_dir=test_dir,
+        token_file=test_dir / "token.json",
+        refresh_token_file=test_dir / "refresh_token.json",
+    )
 
-    monkeypatch.setattr(FlextCliConfig, "__init__", patched_config_init)
-
-    # Now create FlextCli instance - config will use test paths
+    # Create FlextCli instance - it will use the configured instance
     return FlextCli()
 
 
@@ -153,8 +150,8 @@ def flext_cli_commands() -> FlextCliCommands:
 
 @pytest.fixture
 def flext_cli_config() -> FlextCliConfig:
-    """Create FlextCliConfig instance for testing."""
-    return FlextCliConfig()
+    """Create FlextCliConfig instance for testing via FlextCliServiceBase."""
+    return FlextCliServiceBase.get_cli_config()
 
 
 @pytest.fixture
@@ -224,8 +221,10 @@ def flext_cli_types() -> FlextCliTypes:
 
 
 @pytest.fixture
-def flext_cli_utilities() -> type[FlextUtilities]:
+def flext_cli_utilities() -> object:
     """Provide FlextUtilities class from flext-core for testing."""
+    from flext_core import FlextUtilities
+
     return FlextUtilities
 
 
@@ -341,14 +340,44 @@ def load_fixture_data() -> dict[str, object]:
 
 
 @pytest.fixture
-def mock_env_vars(monkeypatch: pytest.MonkeyPatch) -> None:
-    """Set up mock environment variables for tests."""
-    monkeypatch.setenv("FLEXT_DEBUG", "true")
-    monkeypatch.setenv("FLEXT_OUTPUT_FORMAT", "json")
-    monkeypatch.setenv("FLEXT_NO_COLOR", "false")
-    monkeypatch.setenv("FLEXT_PROFILE", "test")
-    monkeypatch.setenv("FLEXT_TIMEOUT", "30")
-    monkeypatch.setenv("FLEXT_RETRIES", "3")
+def mock_env_vars(tmp_path: Path) -> Generator[dict[str, str]]:
+    """Set up environment variables for tests using real .env file."""
+    # Create .env file with test environment variables
+    env_file = tmp_path / ".env"
+    env_content = """FLEXT_CLI_DEBUG=true
+FLEXT_CLI_OUTPUT_FORMAT=json
+FLEXT_CLI_NO_COLOR=false
+FLEXT_CLI_PROFILE=test
+FLEXT_CLI_TIMEOUT=30
+FLEXT_CLI_RETRIES=3
+"""
+    env_file.write_text(env_content)
+
+    # Store original env vars
+    import os
+
+    original_env: dict[str, str | None] = {}
+    env_vars = {
+        "FLEXT_CLI_DEBUG": "true",
+        "FLEXT_CLI_OUTPUT_FORMAT": "json",
+        "FLEXT_CLI_NO_COLOR": "false",
+        "FLEXT_CLI_PROFILE": "test",
+        "FLEXT_CLI_TIMEOUT": "30",
+        "FLEXT_CLI_RETRIES": "3",
+    }
+
+    for key, value in env_vars.items():
+        original_env[key] = os.environ.get(key)
+        os.environ[key] = value
+
+    yield env_vars
+
+    # Restore original environment
+    for key, original_value in original_env.items():
+        if original_value is None:
+            os.environ.pop(key, None)
+        else:
+            os.environ[key] = original_value
 
 
 @pytest.fixture(autouse=True)
@@ -358,6 +387,8 @@ def reset_singletons() -> Generator[None]:
     CRITICAL: This fixture runs automatically before EACH test to ensure
     no state leaks between tests regardless of pytest-randomly order.
     """
+    # Reset BEFORE test to ensure clean state
+    FlextCliConfig._reset_instance()
     yield
     # Reset after test to clean up any state
     FlextCliConfig._reset_instance()
@@ -366,6 +397,8 @@ def reset_singletons() -> Generator[None]:
 @pytest.fixture
 def clean_flext_container() -> Generator[None]:
     """Ensure clean FlextContainer state for tests."""
+    from flext_core import FlextContainer
+
     # Store original state
     FlextContainer.get_global()
 

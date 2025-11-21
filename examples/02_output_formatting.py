@@ -33,11 +33,24 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
+import sys
+from pathlib import Path
+
+# Add src to path for relative imports (pyrefly accepts this pattern)
+if Path(__file__).parent.parent / "src" not in [Path(p) for p in sys.path]:
+    sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
+
+
 import pathlib
 import time
 from pathlib import Path
 
-from flext_cli import FlextCli, FlextCliTables, FlextCliTypes
+from flext_cli import (
+    FlextCli,
+    FlextCliModels,
+    FlextCliTables,
+    FlextCliTypes,
+)
 
 cli = FlextCli.get_instance()
 tables = FlextCliTables()
@@ -107,21 +120,9 @@ def export_report(
 ) -> str | None:
     """Create ASCII tables for logs/reports in your app."""
     # Good for: log files, email reports, markdown docs
-
-    # Grid format (default)
-    if format_type == "grid":
-        # Cast to expected type for table creation
-        result = tables.create_table(list(data), table_format="grid")
-
-    # Markdown format (for README files, docs)
-    elif format_type == "pipe":
-        # Cast to expected type for table creation
-        result = tables.create_table(list(data), table_format="pipe")
-
-    # Simple format (minimal)
-    else:
-        # Cast to expected type for table creation
-        result = tables.create_table(list(data), table_format="simple")
+    # Create table config with specified format
+    config = FlextCliModels.TableConfig(table_format=format_type)
+    result = tables.create_table(list(data), config=config)
 
     if result.is_success:
         return result.unwrap()  # Returns string you can save to file
@@ -171,7 +172,8 @@ def display_project_structure(root_path: str | Path) -> None:
             else:
                 tree.add(f"📄 {item.name}")
 
-        cli.formatters.get_console().print(tree)
+        # Print the tree using cli
+        cli.print(str(tree))
 
 
 # ============================================================================
@@ -232,8 +234,9 @@ def monitor_live_metrics() -> None:
         ]
 
         # Display using ASCII table (FlextCliTables handles list[dict])
-        # Cast to expected type for table creation
-        table_result = tables.create_table(list(metrics_data), table_format="grid")
+        # Create table config for grid format
+        config = FlextCliModels.TableConfig(table_format="grid")
+        table_result = tables.create_table(list(metrics_data), config=config)
 
         if table_result.is_success:
             cli.print(f"\n{table_result.unwrap()}", style="white")

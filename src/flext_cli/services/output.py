@@ -12,7 +12,7 @@ import json
 import typing
 from collections.abc import Sequence
 from io import StringIO
-from typing import override
+from typing import cast, override
 
 import yaml
 from flext_core import FlextMixins, FlextResult, FlextRuntime, FlextService, FlextTypes
@@ -21,7 +21,7 @@ from pydantic import BaseModel
 from flext_cli.constants import FlextCliConstants
 from flext_cli.formatters import FlextCliFormatters
 from flext_cli.models import FlextCliModels
-from flext_cli.tables import FlextCliTables
+from flext_cli.services.tables import FlextCliTables
 from flext_cli.typings import FlextCliTypes
 from flext_cli.utilities import FlextCliUtilities
 
@@ -406,7 +406,11 @@ class FlextCliOutput(FlextService[FlextTypes.JsonDict]):
         normalized_dict: dict[str, FlextTypes.JsonValue] = {}
 
         for key, value in raw_dict.items():
-            if isinstance(value, (str, int, float, bool, list, dict, type(None))):
+            if (
+                isinstance(value, (str, int, float, bool, type(None)))
+                or FlextRuntime.is_list_like(value)
+                or FlextRuntime.is_dict_like(value)
+            ):
                 normalized_dict[key] = value
             else:
                 normalized_dict[key] = str(value)
@@ -1006,9 +1010,14 @@ class FlextCliOutput(FlextService[FlextTypes.JsonDict]):
     ) -> FlextResult[tuple[list[dict[str, FlextTypes.JsonValue]], str | list[str]]]:
         """Prepare and validate table data and headers."""
         if FlextRuntime.is_dict_like(data):
-            return self._prepare_dict_data(data, headers)
+            return self._prepare_dict_data(
+                typing.cast("dict[str, FlextTypes.JsonValue]", data), headers
+            )
         if FlextRuntime.is_list_like(data):
-            return self._prepare_list_data(data, headers)
+            return self._prepare_list_data(
+                typing.cast("list[dict[str, FlextTypes.JsonValue]]", data),
+                headers,
+            )
         return FlextResult[
             tuple[list[dict[str, FlextTypes.JsonValue]], str | list[str]]
         ].fail(FlextCliConstants.ErrorMessages.TABLE_FORMAT_REQUIRED_DICT)
@@ -1031,7 +1040,7 @@ class FlextCliOutput(FlextService[FlextTypes.JsonDict]):
             for k, v in data.items()
         ]
         # Validate headers explicitly - no fallback
-        validated_headers = (
+        validated_headers: str | list[str] = (
             headers if headers is not None else FlextCliConstants.TableFormats.KEYS
         )
         table_headers: str | list[str] = validated_headers
@@ -1056,10 +1065,13 @@ class FlextCliOutput(FlextService[FlextTypes.JsonDict]):
                 tuple[list[dict[str, FlextTypes.JsonValue]], str | list[str]]
             ].fail(FlextCliConstants.ErrorMessages.TABLE_HEADERS_MUST_BE_LIST)
 
-        # Validate headers explicitly - no fallback
-        validated_headers = (
-            headers if headers is not None else FlextCliConstants.TableFormats.KEYS
-        )
+        # Validate headers explicitly - no fallback, with type narrowing
+        if headers is not None:
+            # Type narrowing: headers is list[object] | str, cast to list[str] | str
+            validated_headers: str | list[str] = cast("str | list[str]", headers)
+        else:
+            validated_headers = FlextCliConstants.TableFormats.KEYS
+
         table_headers: str | list[str] = validated_headers
         return FlextResult[
             tuple[list[dict[str, FlextTypes.JsonValue]], str | list[str]]

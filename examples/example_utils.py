@@ -10,6 +10,14 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
+import sys
+from pathlib import Path
+
+# Add src to path for relative imports (pyrefly accepts this pattern)
+if Path(__file__).parent.parent / "src" not in [Path(p) for p in sys.path]:
+    sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
+
+
 from flext_core import FlextResult, FlextTypes
 
 from flext_cli import FlextCli

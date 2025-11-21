@@ -197,9 +197,6 @@
             "tests",
         ]
 
-    [tool.pyrefly]
-        python_version = "3.13"
-
     [tool.ruff]
         extend = "../ruff-shared.toml"
 

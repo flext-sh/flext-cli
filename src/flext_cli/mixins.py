@@ -12,7 +12,13 @@ from __future__ import annotations
 
 from typing import cast
 
-from flext_core import FlextDecorators, FlextMixins, FlextResult, FlextTypes
+from flext_core import (
+    FlextDecorators,
+    FlextMixins,
+    FlextResult,
+    FlextTypes,
+    FlextUtilities,
+)
 
 from flext_cli.constants import FlextCliConstants
 from flext_cli.typings import FlextCliTypes
@@ -124,7 +130,12 @@ class FlextCliMixins(FlextMixins):
                     FlextCliConstants.MixinsValidationMessages.PIPELINE_STEP_NAME_EMPTY
                 )
             step_name_str = str(step_name)
-            if not step_name_str.strip():
+            # Use FlextUtilities.Validation for step name validation
+            try:
+                FlextUtilities.Validation.validate_required_string(
+                    step_name_str, "Pipeline step name"
+                )
+            except ValueError:
                 return FlextResult[bool].fail(
                     FlextCliConstants.MixinsValidationMessages.PIPELINE_STEP_NAME_EMPTY
                 )

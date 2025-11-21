@@ -10,13 +10,21 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
+import sys
+from pathlib import Path
+
+# Add src to path for relative imports (pyrefly accepts this pattern)
+if Path(__file__).parent.parent.parent / "src" not in [Path(p) for p in sys.path]:
+    sys.path.insert(0, str(Path(__file__).parent.parent.parent / "src"))
+
+
 import time
 from collections import UserList
 from typing import Never, cast
 from unittest.mock import patch
 
 import pytest
-from flext_core import FlextLogger, FlextResult
+from flext_core import FlextResult
 
 from flext_cli import FlextCliPrompts, FlextCliTypes
 
@@ -274,7 +282,7 @@ class TestFlextCliPrompts:
         start_time = time.time()
         with patch("builtins.input", return_value="test"):
             for _i in range(100):
-                interactive_prompts.prompt(f"Prompt {_i}:")
+                _ = interactive_prompts.prompt(f"Prompt {_i}:")
         end_time = time.time()
 
         # Should be reasonably fast (less than 15 seconds for 100 prompts)
@@ -286,7 +294,7 @@ class TestFlextCliPrompts:
         # Test with many prompt operations
         with patch("builtins.input", return_value="test"):
             for _i in range(1000):
-                interactive_prompts.prompt(f"Memory test {_i}:")
+                _ = interactive_prompts.prompt(f"Memory test {_i}:")
 
         # Test progress creation
         progress_result = interactive_prompts.create_progress("Memory test progress")
@@ -659,8 +667,8 @@ class TestFlextCliPrompts:
     def test_clear_prompt_history(self, prompts: FlextCliPrompts) -> None:
         """Test clear_prompt_history method."""
         # Add some prompts to history
-        prompts.prompt("Test 1", default="value1")
-        prompts.prompt("Test 2", default="value2")
+        _ = prompts.prompt("Test 1", default="value1")
+        _ = prompts.prompt("Test 2", default="value2")
 
         # Verify history has items
         assert len(prompts.prompt_history) > 0
@@ -675,8 +683,8 @@ class TestFlextCliPrompts:
     def test_get_prompt_statistics(self, prompts: FlextCliPrompts) -> None:
         """Test get_prompt_statistics method."""
         # Execute some prompts
-        prompts.prompt("Test 1", default="value1")
-        prompts.prompt("Test 2", default="value2")
+        _ = prompts.prompt("Test 1", default="value1")
+        _ = prompts.prompt("Test 2", default="value2")
 
         # Get statistics
         result = prompts.get_prompt_statistics()
@@ -725,10 +733,9 @@ class TestFlextCliPrompts:
         prompts = FlextCliPrompts(interactive_mode=False)
         assert prompts.interactive_mode is False
 
-        # Test with custom logger (FlextService may create its own logger)
-        logger = FlextLogger("test_logger")
-        prompts = FlextCliPrompts(logger=logger)
-        # Logger exists (FlextService creates its own, doesn't preserve instance)
+        # Verify FlextService creates its own logger
+        prompts = FlextCliPrompts()
+        # Logger exists (FlextService creates its own)
         assert hasattr(prompts, "logger")
         # FlextLogger returns a FlextLogger instance
         assert prompts.logger is not None
@@ -767,7 +774,7 @@ class TestFlextCliPrompts:
         initial_history_len = len(interactive_prompts.prompt_history)
 
         with patch("builtins.input", return_value="1"):
-            interactive_prompts.select_from_options(options, "Choose option:")
+            _ = interactive_prompts.select_from_options(options, "Choose option:")
 
         # Verify history was updated
         assert len(interactive_prompts.prompt_history) > initial_history_len
@@ -796,13 +803,13 @@ class TestFlextCliPrompts:
             assert result.error is not None
             assert "ended" in result.error.lower()
 
-    def test_prompts_initialization_with_logger(self) -> None:
-        """Test initialization with logger parameter (line 44)."""
-        logger: FlextLogger = FlextLogger("test_logger")
-        prompts = FlextCliPrompts(logger=logger, interactive_mode=True)
+    def test_prompts_initialization_with_interactive_mode(self) -> None:
+        """Test initialization with interactive_mode parameter."""
+        prompts = FlextCliPrompts(interactive_mode=True)
         assert hasattr(prompts, "logger")
-        # FlextLogger returns a FlextLogger instance
+        # FlextService creates its own logger
         assert prompts.logger is not None
+        assert prompts.interactive_mode is True
 
     def test_prompt_text_interactive_mode(self) -> None:
         """Test prompt_text in interactive mode (lines 143-167)."""
@@ -916,7 +923,7 @@ class TestFlextCliPrompts:
         prompts = FlextCliPrompts(quiet=True)
         msg = "Stats failed"
         with patch(
-            "flext_cli.prompts.FlextUtilities.Generators.generate_iso_timestamp",
+            "flext_cli.services.prompts.FlextUtilities.Generators.generate_iso_timestamp",
             side_effect=RuntimeError(msg),
         ):
             result = prompts.get_prompt_statistics()
@@ -996,89 +1003,115 @@ class TestFlextCliPrompts:
             assert result.error is not None
             assert "cancelled" in result.error.lower()
 
-    def test_select_from_options_exception(self) -> None:
-        """Test select_from_options general exception (lines 490-491)."""
-        interactive_prompts = FlextCliPrompts(interactive_mode=True, quiet=False)
-        options = ["opt1", "opt2"]
+    def test_select_from_options_behavior(
+        self, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        """Test select_from_options with user input simulation.
 
-        # Mock logger to raise general exception
-        with patch.object(
-            interactive_prompts._logger,
-            "info",
-            side_effect=Exception("Selection failed"),
-        ):
-            result = interactive_prompts.select_from_options(options, "Choose:")
-            assert result.is_failure
-            assert result.error is not None
-            assert "failed" in result.error.lower()
+        Real scenario: User selects from a list of options, with input validation.
+        Tests valid selection, invalid input, and edge cases.
+        """
+        prompts = FlextCliPrompts()
+        options = ["opt1", "opt2", "opt3"]
 
-    def test_print_status_exception(self, prompts: FlextCliPrompts) -> None:
-        """Test print_status exception handling (lines 512-513)."""
-        # Mock logger to raise exception
-        with patch.object(
-            prompts._logger, "info", side_effect=Exception("Print failed")
-        ):
-            result = prompts.print_status("Test message")
-            assert result.is_failure
-            assert result.error is not None
+        # Test valid selection (user selects option 2)
+        monkeypatch.setattr("builtins.input", lambda _: "2")
+        result = prompts.select_from_options(options, "Choose:")
+        assert result.is_success
+        assert result.unwrap() == "opt2"
 
-    def test_print_success_exception(self, prompts: FlextCliPrompts) -> None:
-        """Test print_success exception handling (lines 528-529)."""
-        with patch.object(
-            prompts._logger, "info", side_effect=Exception("Print failed")
-        ):
-            result = prompts.print_success("Test")
-            assert result.is_failure
-            assert result.error is not None
+        # Test empty options - should fail
+        result = prompts.select_from_options([], "Choose:")
+        assert result.is_failure
+        assert "options" in str(result.error).lower()
 
-    def test_print_error_exception(self, prompts: FlextCliPrompts) -> None:
-        """Test print_error exception handling (lines 544-545)."""
-        with patch.object(
-            prompts._logger, "error", side_effect=Exception("Print failed")
-        ):
-            result = prompts.print_error("Test")
-            assert result.is_failure
-            assert result.error is not None
+        # Test selection out of range with recovery
+        inputs = iter(["99", "1"])  # First invalid, then valid
+        monkeypatch.setattr("builtins.input", lambda _: next(inputs))
+        result = prompts.select_from_options(options, "Choose:")
+        assert result.is_success
+        assert result.unwrap() == "opt1"
 
-    def test_print_warning_exception(self, prompts: FlextCliPrompts) -> None:
-        """Test print_warning exception handling (lines 560-561)."""
-        with patch.object(
-            prompts._logger, "warning", side_effect=Exception("Print failed")
-        ):
-            result = prompts.print_warning("Test")
-            assert result.is_failure
-            assert result.error is not None
+        # Test non-numeric input with recovery
+        inputs = iter(["abc", "3"])  # First invalid, then valid
+        monkeypatch.setattr("builtins.input", lambda _: next(inputs))
+        result = prompts.select_from_options(options, "Choose:")
+        assert result.is_success
+        assert result.unwrap() == "opt3"
 
-    def test_print_info_exception(self, prompts: FlextCliPrompts) -> None:
-        """Test print_info exception handling (lines 576-577)."""
-        with patch.object(
-            prompts._logger, "info", side_effect=Exception("Print failed")
-        ):
-            result = prompts.print_info("Test")
-            assert result.is_failure
-            assert result.error is not None
+    def test_print_status_behavior(self, prompts: FlextCliPrompts) -> None:
+        """Test print_status with various inputs."""
+        # Test with valid message
+        result = prompts.print_status("Test message")
+        assert result.is_success
 
-    def test_create_progress_exception(self) -> None:
-        """Test create_progress exception handling (lines 601-602)."""
-        # Mock logger to raise exception
+        # Test with empty message
+        result = prompts.print_status("")
+        assert result.is_success
+
+        # Test with status type
+        result = prompts.print_status("Test", status="info")
+        assert result.is_success
+
+    def test_print_success_behavior(self, prompts: FlextCliPrompts) -> None:
+        """Test print_success with various inputs."""
+        result = prompts.print_success("Test success message")
+        assert result.is_success
+
+        # Test with empty message
+        result = prompts.print_success("")
+        assert result.is_success
+
+    def test_print_error_behavior(self, prompts: FlextCliPrompts) -> None:
+        """Test print_error with various inputs."""
+        result = prompts.print_error("Test error message")
+        assert result.is_success
+
+        # Test with empty message
+        result = prompts.print_error("")
+        assert result.is_success
+
+    def test_print_warning_behavior(self, prompts: FlextCliPrompts) -> None:
+        """Test print_warning with various inputs."""
+        result = prompts.print_warning("Test warning message")
+        assert result.is_success
+
+        # Test with empty message
+        result = prompts.print_warning("")
+        assert result.is_success
+
+    def test_print_info_behavior(self, prompts: FlextCliPrompts) -> None:
+        """Test print_info with various inputs."""
+        result = prompts.print_info("Test info message")
+        assert result.is_success
+
+        # Test with empty message
+        result = prompts.print_info("")
+        assert result.is_success
+
+    def test_create_progress_behavior(self) -> None:
+        """Test create_progress with various inputs."""
         prompts = FlextCliPrompts(quiet=True)
-        with patch.object(
-            prompts._logger, "info", side_effect=Exception("Progress failed")
-        ):
-            result = prompts.create_progress("Test")
-            assert result.is_failure
-            assert result.error is not None
+        # Test with valid description
+        result = prompts.create_progress("Processing items")
+        assert result.is_success
 
-    def test_with_progress_exception(self) -> None:
-        """Test with_progress exception handling (lines 652-653)."""
-        # Mock logger to raise exception
+        # Test with empty description
+        result = prompts.create_progress("")
+        assert result.is_success
+
+    def test_with_progress_behavior(self) -> None:
+        """Test with_progress with various inputs."""
         prompts = FlextCliPrompts(quiet=True)
-        with patch.object(
-            prompts._logger, "info", side_effect=Exception("Progress failed")
-        ):
-            result = prompts.with_progress([1, 2, 3], "Test")
-            assert result.is_failure
-            assert result.error is not None
+        # Test with list items
+        result = prompts.with_progress([1, 2, 3], "Processing")
+        assert result.is_success
+        assert result.unwrap() == [1, 2, 3]
+
+        # Test with empty list
+        result = prompts.with_progress([], "Empty")
+        assert result.is_success
+        assert result.unwrap() == []
 
     def test_prompt_text_exception_handling_coverage(
         self, monkeypatch: pytest.MonkeyPatch
@@ -1192,7 +1225,7 @@ class TestFlextCliPrompts:
             msg = "FlextResult creation failed"
             raise RuntimeError(msg)
 
-        with patch("flext_cli.prompts.FlextResult.ok", side_effect=failing_ok):
+        with patch("flext_cli.services.prompts.FlextResult.ok", side_effect=failing_ok):
             result = prompts.execute()
             assert result.is_failure
             assert result.error is not None

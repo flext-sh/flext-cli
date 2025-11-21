@@ -10,15 +10,29 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
+import sys
+from pathlib import Path
+
+# Add src to path for relative imports (pyrefly accepts this pattern)
+if Path(__file__).parent.parent.parent / "src" not in [Path(p) for p in sys.path]:
+    sys.path.insert(0, str(Path(__file__).parent.parent.parent / "src"))
+
+
+import json
 import tempfile
 import time
 from pathlib import Path
 from typing import Never
 
 import pytest
-from flext_core import FlextResult, FlextTypes
+from flext_core import FlextResult, FlextRuntime, FlextTypes
 
-from flext_cli import FlextCliCmd, FlextCliConfig, FlextCliConstants, FlextCliFileTools
+from flext_cli import (
+    FlextCliCmd,
+    FlextCliConstants,
+    FlextCliFileTools,
+    FlextCliServiceBase,
+)
 
 
 class TestFlextCliCmd:
@@ -51,29 +65,104 @@ class TestFlextCliCmd:
         assert cmd is not None
         assert isinstance(cmd, FlextCliCmd)
 
-    def test_cmd_config_edit(self) -> None:
-        """Test configuration editing functionality."""
+    def test_cmd_config_edit(
+        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        """Test configuration editing functionality with proper setup."""
+        # Create temporary config directory
+        config_dir = tmp_path / "config"
+        config_dir.mkdir()
+
+        # Create mock function for config
+        from flext_cli.base import FlextCliServiceBase
+        from flext_cli.config import FlextCliConfig
+
+        def mock_get_cli_config() -> FlextCliConfig:
+            """Return config with test directory."""
+            return FlextCliConfig(config_dir=config_dir)
+
+        # Patch get_cli_config to return our test config
+        monkeypatch.setattr(FlextCliServiceBase, "get_cli_config", mock_get_cli_config)
+
+        # Initialize cmd and create/load default config
         cmd = FlextCliCmd()
-
-        # Test editing config (method takes no parameters)
         result = cmd.edit_config()
-        assert result.is_success
 
-    def test_cmd_config_edit_existing(self) -> None:
+        # Verify the config was loaded successfully
+        assert result.is_success, f"edit_config failed: {result.error}"
+        assert "completed" in result.unwrap().lower()
+
+    def test_cmd_config_edit_existing(
+        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
         """Test editing existing configuration."""
+        # Create temporary config directory with existing config
+        config_dir = tmp_path / "config"
+        config_dir.mkdir()
+
+        # Create a valid config file
+        config_file = config_dir / FlextCliConstants.ConfigFiles.CLI_CONFIG_JSON
+        config_data = {
+            "host": "localhost",
+            "port": 8080,
+            "timeout": 30,
+        }
+        config_file.write_text(json.dumps(config_data))
+
+        # Create mock function for config
+        from flext_cli.base import FlextCliServiceBase
+        from flext_cli.config import FlextCliConfig
+
+        def mock_get_cli_config() -> FlextCliConfig:
+            """Return config with test directory."""
+            return FlextCliConfig(config_dir=config_dir)
+
+        # Patch get_cli_config to return our test config
+        monkeypatch.setattr(FlextCliServiceBase, "get_cli_config", mock_get_cli_config)
+
+        # Test editing existing config
+        cmd = FlextCliCmd()
+        result = cmd.edit_config()
+
+        # Verify the existing config was loaded
+        assert result.is_success, f"edit_config failed: {result.error}"
+        assert "completed" in result.unwrap().lower()
+
+    def test_cmd_config_default_values(
+        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        """Test default configuration values with clean temporary directory."""
+        # Create a clean temporary config directory for this test
+        config_dir = tmp_path / "config"
+        config_dir.mkdir()
+        config_file = config_dir / FlextCliConstants.ConfigFiles.CLI_CONFIG_JSON
+
+        # Ensure config file doesn't exist - edit_config should create default
+        assert not config_file.exists()
+
+        # Create a mock config that returns our test directory
+        from flext_cli.config import FlextCliConfig
+
+        def mock_get_cli_config() -> FlextCliConfig:
+            """Return config with test directory."""
+            return FlextCliConfig(config_dir=config_dir)
+
+        # Patch get_cli_config to return our test config
+        monkeypatch.setattr(FlextCliServiceBase, "get_cli_config", mock_get_cli_config)
+
+        # Create cmd instance
         cmd = FlextCliCmd()
 
-        # Test editing config (method takes no parameters)
+        # Test editing config - should create default config file
         result = cmd.edit_config()
         assert result.is_success
-
-    def test_cmd_config_default_values(self) -> None:
-        """Test default configuration values."""
-        cmd = FlextCliCmd()
-
-        # Test editing config (method takes no parameters)
-        result = cmd.edit_config()
-        assert result.is_success
+        # Verify config file was created
+        assert config_file.exists()
+        # Verify file contains valid JSON
+        file_tools = FlextCliFileTools()
+        file_content = file_tools.read_json_file(str(config_file))
+        assert file_content.is_success
+        assert FlextRuntime.is_dict_like(file_content.value)
 
     def test_cmd_error_handling(self) -> None:
         """Test CMD error handling capabilities."""
@@ -119,20 +208,45 @@ class TestFlextCliCmd:
         assert cmd is not None
         assert isinstance(cmd, FlextCliCmd)
 
-    def test_cmd_configuration_consistency(self) -> None:
-        """Test configuration consistency across operations."""
+    def test_cmd_configuration_consistency(
+        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        """Test configuration consistency across operations with clean temporary directory."""
+        # Create a clean temporary config directory for this test
+        config_dir = tmp_path / "config"
+        config_dir.mkdir()
+        config_file = config_dir / FlextCliConstants.ConfigFiles.CLI_CONFIG_JSON
+
+        # Ensure config file doesn't exist initially
+        assert not config_file.exists()
+
+        # Create a mock config that returns our test directory
+        from flext_cli.config import FlextCliConfig
+
+        def mock_get_cli_config() -> FlextCliConfig:
+            """Return config with test directory."""
+            return FlextCliConfig(config_dir=config_dir)
+
+        # Patch get_cli_config to return our test config
+        monkeypatch.setattr(FlextCliServiceBase, "get_cli_config", mock_get_cli_config)
+
+        # Create cmd instance
         cmd = FlextCliCmd()
 
-        # Test edit config method (takes no parameters)
+        # Test edit config method (takes no parameters) - should create default
         result1 = cmd.edit_config()
         assert result1.is_success
+        assert config_file.exists()
 
-        # Test edit config again
+        # Test edit config again - should load existing config
         result2 = cmd.edit_config()
         assert result2.is_success
 
         # Both operations should succeed
         assert result1.is_success == result2.is_success
+        # Verify both results are strings
+        assert isinstance(result1.value, str)
+        assert isinstance(result2.value, str)
 
     def test_cmd_service_properties(self) -> None:
         """Test CMD service properties."""
@@ -231,7 +345,8 @@ class TestFlextCliCmd:
 
         # Ensure config file doesn't exist
         config_path = (
-            FlextCliConfig().config_dir / FlextCliConstants.ConfigFiles.CLI_CONFIG_JSON
+            FlextCliServiceBase.get_cli_config().config_dir
+            / FlextCliConstants.ConfigFiles.CLI_CONFIG_JSON
         )
         if config_path.exists():
             config_path.unlink()
@@ -249,12 +364,42 @@ class TestFlextCliCmd:
         result = cmd.show_config()
         assert result.is_success
 
-    def test_cmd_edit_config_creates_default(self) -> None:
-        """Test edit_config creates default configuration."""
+    def test_cmd_edit_config_creates_default(
+        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        """Test edit_config creates default configuration with clean temporary directory."""
+        # Create a clean temporary config directory for this test
+        config_dir = tmp_path / "config"
+        config_dir.mkdir()
+        config_file = config_dir / FlextCliConstants.ConfigFiles.CLI_CONFIG_JSON
+
+        # Ensure config file doesn't exist - edit_config should create default
+        assert not config_file.exists()
+
+        # Create a mock config that returns our test directory
+        from flext_cli.config import FlextCliConfig
+
+        def mock_get_cli_config() -> FlextCliConfig:
+            """Return config with test directory."""
+            return FlextCliConfig(config_dir=config_dir)
+
+        # Patch get_cli_config to return our test config
+        monkeypatch.setattr(FlextCliServiceBase, "get_cli_config", mock_get_cli_config)
+
+        # Create cmd instance
         cmd = FlextCliCmd()
+
+        # Test editing config - should create default config file
         result = cmd.edit_config()
         assert result.is_success
         assert isinstance(result.value, str)
+        # Verify config file was created
+        assert config_file.exists()
+        # Verify file contains valid JSON
+        file_tools = FlextCliFileTools()
+        file_content = file_tools.read_json_file(str(config_file))
+        assert file_content.is_success
+        assert FlextRuntime.is_dict_like(file_content.value)
 
     def test_cmd_config_display_helper_show_config(self) -> None:
         """Test show_config method."""
@@ -362,7 +507,7 @@ class TestFlextCliCmd:
             @staticmethod
             def write_json_file(
                 file_path: str | Path,
-                data: FlextTypes.JsonValue,
+                data: object,
                 indent: int = 2,
                 *,
                 sort_keys: bool = False,
@@ -380,7 +525,7 @@ class TestFlextCliCmd:
         config_file = config_dir / "cli_config.json"
 
         try:
-            config_file.write_text('{"test": "value"}', encoding="utf-8")
+            _ = config_file.write_text('{"test": "value"}', encoding="utf-8")
 
             result = cmd.edit_config()
             assert result.is_failure
@@ -442,8 +587,8 @@ class TestFlextCliCmd:
                 temp_file = f.name
             try:
                 # Temporarily replace config path
-                original_config_dir = FlextCliConfig().config_dir
-                FlextCliConfig().config_dir = Path(temp_file).parent
+                original_config_dir = FlextCliServiceBase.get_cli_config().config_dir
+                FlextCliServiceBase.get_cli_config().config_dir = Path(temp_file).parent
                 try:
                     result = cmd.get_config_value("missing_key")
                     assert result.is_failure
@@ -451,7 +596,9 @@ class TestFlextCliCmd:
                     assert result.error is not None
                     assert "not found" in result.error.lower()
                 finally:
-                    FlextCliConfig().config_dir = original_config_dir
+                    FlextCliServiceBase.get_cli_config().config_dir = (
+                        original_config_dir
+                    )
             finally:
                 Path(temp_file).unlink()
         finally:
@@ -477,7 +624,7 @@ class TestFlextCliCmd:
         config_file = config_dir / "cli_config.json"
 
         try:
-            config_file.write_text("[]", encoding="utf-8")
+            _ = config_file.write_text("[]", encoding="utf-8")
 
             result = cmd.get_config_value("test_key")
             assert result.is_failure
@@ -508,7 +655,7 @@ class TestFlextCliCmd:
         config_file = config_dir / "cli_config.json"
 
         try:
-            config_file.write_text('{"found_key": "found_value"}', encoding="utf-8")
+            _ = config_file.write_text('{"found_key": "found_value"}', encoding="utf-8")
 
             result = cmd.get_config_value("found_key")
             assert result.is_success
@@ -536,7 +683,7 @@ class TestFlextCliCmd:
             @staticmethod
             def write_json_file(
                 file_path: str | Path,
-                data: FlextTypes.JsonValue,
+                data: object,
                 indent: int = 2,
                 *,
                 sort_keys: bool = False,
@@ -554,7 +701,7 @@ class TestFlextCliCmd:
         config_file = config_dir / "cli_config.json"
 
         try:
-            config_file.write_text('"not a dict"', encoding="utf-8")
+            _ = config_file.write_text('"not a dict"', encoding="utf-8")
 
             result = cmd.edit_config()
             assert result.is_failure
@@ -649,7 +796,7 @@ class TestFlextCliCmd:
             @staticmethod
             def write_json_file(
                 file_path: str | Path,
-                data: FlextTypes.JsonValue,
+                data: object,
                 indent: int = 2,
                 *,
                 sort_keys: bool = False,
@@ -685,7 +832,9 @@ class TestFlextCliCmd:
             msg = "Config exception"
             raise RuntimeError(msg)
 
-        monkeypatch.setattr("flext_cli.cmd.FlextCliConfig", mock_raise)
+        monkeypatch.setattr(
+            "flext_cli.base.FlextCliServiceBase.get_cli_config", mock_raise
+        )
         result = cmd.set_config_value("key", "value")
         assert result.is_failure
         assert "set config failed" in str(result.error).lower()
@@ -701,7 +850,9 @@ class TestFlextCliCmd:
             msg = "Get config exception"
             raise RuntimeError(msg)
 
-        monkeypatch.setattr("flext_cli.cmd.FlextCliConfig", mock_raise)
+        monkeypatch.setattr(
+            "flext_cli.base.FlextCliServiceBase.get_cli_config", mock_raise
+        )
         result = cmd.get_config_value("key")
         assert result.is_failure
         assert "get config failed" in str(result.error).lower()
@@ -746,7 +897,8 @@ class TestFlextCliCmd:
 
         # Ensure config file doesn't exist so save is attempted
         config_path = (
-            FlextCliConfig().config_dir / FlextCliConstants.ConfigFiles.CLI_CONFIG_JSON
+            FlextCliServiceBase.get_cli_config().config_dir
+            / FlextCliConstants.ConfigFiles.CLI_CONFIG_JSON
         )
         if config_path.exists():
             config_path.unlink()
@@ -770,7 +922,9 @@ class TestFlextCliCmd:
             msg = "Edit config exception"
             raise RuntimeError(msg)
 
-        monkeypatch.setattr("flext_cli.cmd.FlextCliConfig", mock_raise)
+        monkeypatch.setattr(
+            "flext_cli.base.FlextCliServiceBase.get_cli_config", mock_raise
+        )
         result = cmd.edit_config()
         assert result.is_failure
         assert "edit config failed" in str(result.error).lower()
@@ -797,7 +951,7 @@ class TestFlextCliCmd:
         config_file = config_dir / "cli_config.json"
 
         try:
-            config_file.write_text(
+            _ = config_file.write_text(
                 '{"existing_key": "existing_value"}', encoding="utf-8"
             )
 

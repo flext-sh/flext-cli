@@ -12,7 +12,7 @@ from __future__ import annotations
 
 from collections.abc import Iterable, Sequence
 
-from flext_core import FlextLogger, FlextResult, FlextRuntime, FlextService, FlextTypes
+from flext_core import FlextResult, FlextRuntime, FlextService, FlextTypes
 from tabulate import tabulate
 
 from flext_cli.constants import FlextCliConstants
@@ -75,8 +75,6 @@ class FlextCliTables(FlextService[FlextTypes.JsonDict]):
     def __init__(self) -> None:
         """Initialize Tabulate tables layer with Phase 1 context enrichment."""
         super().__init__()
-        # Initialize logger - inherited from FlextService via FlextMixins
-        self._logger = FlextLogger(__name__)
 
     def execute(self, **_kwargs: object) -> FlextResult[FlextTypes.JsonDict]:
         """Execute the main domain service operation - required by FlextService.
@@ -198,7 +196,7 @@ class FlextCliTables(FlextService[FlextTypes.JsonDict]):
                 colalign=cfg.get_effective_colalign(),
             )
 
-            self._logger.debug(
+            self.logger.debug(
                 FlextCliConstants.TablesLogMessages.TABLE_CREATED,
                 extra={
                     FlextCliConstants.TablesLogMessages.TABLE_FORMAT_KEY: (
@@ -218,7 +216,7 @@ class FlextCliTables(FlextService[FlextTypes.JsonDict]):
                     error=e
                 )
             )
-            self._logger.exception(error_msg)
+            self.logger.exception(error_msg)
             return FlextResult[str].fail(error_msg)
 
     def _create_formatted_table(
@@ -481,7 +479,7 @@ class FlextCliTables(FlextService[FlextTypes.JsonDict]):
                 tablefmt=FlextCliConstants.TableFormats.GRID,
             )
             # Output through logger instead of print (linting requirement)
-            self._logger.info(table_str)
+            self.logger.info(table_str)
 
             return FlextResult[bool].ok(True)
 
@@ -491,7 +489,7 @@ class FlextCliTables(FlextService[FlextTypes.JsonDict]):
                     error=e
                 )
             )
-            self._logger.exception(error_msg)
+            self.logger.exception(error_msg)
             return FlextResult[bool].fail(error_msg)
 
 

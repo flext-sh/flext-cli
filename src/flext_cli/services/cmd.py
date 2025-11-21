@@ -23,7 +23,7 @@ from flext_core import (
     FlextUtilities,
 )
 
-from flext_cli.config import FlextCliConfig
+from flext_cli.base import FlextCliServiceBase
 from flext_cli.constants import FlextCliConstants
 from flext_cli.file_tools import FlextCliFileTools
 from flext_cli.models import FlextCliModels
@@ -114,7 +114,7 @@ class FlextCliCmd(FlextService[FlextTypes.JsonDict]):
 
             # Save to file using FlextCliFileTools
             config_path = (
-                FlextCliConfig.get_instance().config_dir
+                FlextCliServiceBase.get_cli_config().config_dir
                 / FlextCliConstants.ConfigFiles.CLI_CONFIG_JSON
             )
             save_result = self._file_tools.write_json_file(
@@ -146,7 +146,7 @@ class FlextCliCmd(FlextService[FlextTypes.JsonDict]):
 
             # Load configuration from file
             config_path = (
-                FlextCliConfig.get_instance().config_dir
+                FlextCliServiceBase.get_cli_config().config_dir
                 / FlextCliConstants.ConfigFiles.CLI_CONFIG_JSON
             )
 
@@ -232,7 +232,7 @@ class FlextCliCmd(FlextService[FlextTypes.JsonDict]):
         """Edit configuration using Pydantic validation - no wrappers."""
         try:
             config_path = (
-                FlextCliConfig.get_instance().config_dir
+                FlextCliServiceBase.get_cli_config().config_dir
                 / FlextCliConstants.ConfigFiles.CLI_CONFIG_JSON
             )
             path = Path(str(config_path))

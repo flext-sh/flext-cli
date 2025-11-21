@@ -109,12 +109,15 @@ class FlextCliUtilities:
                         field_name=field_display_name
                     )
                 )
-            result = FlextUtilities.Validation.validate_required_string(
-                field_value,
-                field_display_name,
-            )
-            # Convert FlextResult[str] to FlextResult[bool] using monadic pattern
-            return result.map(lambda _: True)
+            try:
+                # validate_required_string returns str or raises ValueError
+                _ = FlextUtilities.Validation.validate_required_string(
+                    field_value,
+                    field_display_name,
+                )
+                return FlextResult[bool].ok(True)
+            except ValueError as e:
+                return FlextResult[bool].fail(str(e))
 
         @staticmethod
         def validate_field_in_list(
@@ -253,16 +256,16 @@ class FlextCliUtilities:
             """
             if not isinstance(value, str):
                 return FlextResult[bool].fail(error_message)
-            # Use FlextUtilities.Validation.validate_required_string
-            result = FlextUtilities.Validation.validate_required_string(
-                value,
-                "Value",
-            )
-            # Convert FlextResult[str] to FlextResult[bool] using monadic pattern
-            # Use custom error_message if validation fails (for backward compatibility)
-            if result.is_failure:
+            try:
+                # validate_required_string returns str or raises ValueError
+                _ = FlextUtilities.Validation.validate_required_string(
+                    value,
+                    "Value",
+                )
+                return FlextResult[bool].ok(True)
+            except ValueError:
+                # Use custom error_message if validation fails (for backward compatibility)
                 return FlextResult[bool].fail(error_message)
-            return FlextResult[bool].ok(True)
 
     # =========================================================================
     # ENVIRONMENT - Environment detection and checks
@@ -549,13 +552,8 @@ class FlextCliUtilities:
                 return FlextCliUtilities.TypeNormalizer.normalize_union_type(annotation)
 
             # typing.Union type (traditional typing.Union[X, Y])
-            try:
-                if origin is Union:
-                    return FlextCliUtilities.TypeNormalizer.normalize_union_type(
-                        annotation
-                    )
-            except (ImportError, AttributeError):
-                pass
+            if origin is Union:
+                return FlextCliUtilities.TypeNormalizer.normalize_union_type(annotation)
 
             # For generic types, recursively normalize inner types
             if origin is not None and hasattr(annotation, "__args__"):
