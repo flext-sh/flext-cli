@@ -7,12 +7,11 @@ Copyright (c) 2025 FLEXT Team. All rights reserved.
 SPDX-License-Identifier: MIT
 """
 
-import sys
-from pathlib import Path
+from __future__ import annotations
 
-# Add src to path for relative imports (pyrefly accepts this pattern)
-if Path(__file__).parent.parent.parent / "src" not in [Path(p) for p in sys.path]:
-    sys.path.insert(0, str(Path(__file__).parent.parent.parent / "src"))
+from typing import cast
+
+from flext_core import FlextResult, FlextTypes
 
 from flext_cli import FlextCliMixins
 
@@ -23,14 +22,18 @@ class TestFlextCliMixinsBusinessRulesMixin:
     def test_validate_command_execution_state_valid(self) -> None:
         """Test validate_command_execution_state with valid states."""
         result = FlextCliMixins.BusinessRulesMixin.validate_command_execution_state(
-            current_status="running", required_status="running", operation="test"
+            current_status="running",
+            required_status="running",
+            operation="test",
         )
         assert result.is_success
 
     def test_validate_command_execution_state_invalid(self) -> None:
         """Test validate_command_execution_state with invalid states."""
         result = FlextCliMixins.BusinessRulesMixin.validate_command_execution_state(
-            current_status="stopped", required_status="running", operation="migrate"
+            current_status="stopped",
+            required_status="running",
+            operation="migrate",
         )
         assert result.is_failure
         # Type narrowing: when is_failure is True, error is guaranteed to be str
@@ -42,14 +45,16 @@ class TestFlextCliMixinsBusinessRulesMixin:
     def test_validate_session_state_valid(self) -> None:
         """Test validate_session_state with valid state."""
         result = FlextCliMixins.BusinessRulesMixin.validate_session_state(
-            current_status="active", valid_states=["active", "idle"]
+            current_status="active",
+            valid_states=["active", "idle"],
         )
         assert result.is_success
 
     def test_validate_session_state_invalid(self) -> None:
         """Test validate_session_state with invalid state."""
         result = FlextCliMixins.BusinessRulesMixin.validate_session_state(
-            current_status="error", valid_states=["active", "idle"]
+            current_status="error",
+            valid_states=["active", "idle"],
         )
         assert result.is_failure
         # Type narrowing: when is_failure is True, error is guaranteed to be str
@@ -60,8 +65,6 @@ class TestFlextCliMixinsBusinessRulesMixin:
 
     def test_validate_pipeline_step_valid(self) -> None:
         """Test validate_pipeline_step with valid step."""
-        from typing import cast
-
         step = {"name": "migration", "type": "batch"}
         # Cast to expected type for test
         step_typed = cast(
@@ -81,8 +84,6 @@ class TestFlextCliMixinsBusinessRulesMixin:
 
     def test_validate_pipeline_step_no_name(self) -> None:
         """Test validate_pipeline_step without name field."""
-        from typing import cast
-
         step = {"type": "batch", "config": {}}
         # Cast to expected type for test
         step_typed = cast(
@@ -97,8 +98,6 @@ class TestFlextCliMixinsBusinessRulesMixin:
 
     def test_validate_pipeline_step_name_empty(self) -> None:
         """Test validate_pipeline_step with empty name."""
-        from typing import cast
-
         step = {"name": "", "type": "batch"}
         # Cast to expected type for test
         step_typed = cast(
@@ -113,8 +112,6 @@ class TestFlextCliMixinsBusinessRulesMixin:
 
     def test_validate_pipeline_step_name_whitespace(self) -> None:
         """Test validate_pipeline_step with whitespace-only name."""
-        from typing import cast
-
         step = {"name": "   ", "type": "batch"}
         # Cast to expected type for test
         step_typed = cast(
@@ -129,8 +126,6 @@ class TestFlextCliMixinsBusinessRulesMixin:
 
     def test_validate_configuration_consistency_valid(self) -> None:
         """Test validate_configuration_consistency with valid config."""
-        from typing import cast
-
         config = {"field1": "value1", "field2": "value2"}
         # Cast to expected type for test
         config_typed = cast(
@@ -139,14 +134,13 @@ class TestFlextCliMixinsBusinessRulesMixin:
         )
         required_fields = ["field1", "field2"]
         result = FlextCliMixins.BusinessRulesMixin.validate_configuration_consistency(
-            config_typed, required_fields
+            config_typed,
+            required_fields,
         )
         assert result.is_success
 
     def test_validate_configuration_consistency_missing_fields(self) -> None:
         """Test validate_configuration_consistency with missing fields."""
-        from typing import cast
-
         config = {"field1": "value1"}
         # Cast to expected type for test
         config_typed = cast(
@@ -155,7 +149,8 @@ class TestFlextCliMixinsBusinessRulesMixin:
         )
         required_fields = ["field1", "field2", "field3"]
         result = FlextCliMixins.BusinessRulesMixin.validate_configuration_consistency(
-            config_typed, required_fields
+            config_typed,
+            required_fields,
         )
         assert result.is_failure
         # Type narrowing: when is_failure is True, error is guaranteed to be str
@@ -166,7 +161,8 @@ class TestFlextCliMixinsBusinessRulesMixin:
     def test_validate_configuration_consistency_none_config(self) -> None:
         """Test validate_configuration_consistency with None config."""
         result = FlextCliMixins.BusinessRulesMixin.validate_configuration_consistency(
-            None, ["field1"]
+            None,
+            ["field1"],
         )
         # Fast-fail: None config should fail when required fields are specified
         assert result.is_failure
@@ -178,7 +174,6 @@ class TestFlextCliMixinsCliCommandMixin:
 
     def test_execute_with_cli_context_success(self) -> None:
         """Test execute_with_cli_context with successful handler."""
-        from flext_core import FlextResult, FlextTypes
 
         def mock_handler(
             **kwargs: FlextTypes.JsonValue,
@@ -186,7 +181,9 @@ class TestFlextCliMixinsCliCommandMixin:
             return FlextResult[FlextTypes.JsonValue].ok({"result": "success", **kwargs})
 
         result = FlextCliMixins.CliCommandMixin.execute_with_cli_context(
-            operation="test_operation", handler=mock_handler, test_param="test_value"
+            operation="test_operation",
+            handler=mock_handler,
+            test_param="test_value",
         )
 
         assert result.is_success
@@ -198,8 +195,6 @@ class TestFlextCliMixinsCliCommandMixin:
 
     def test_execute_with_cli_context_failure(self) -> None:
         """Test execute_with_cli_context with failing handler."""
-        from flext_core import FlextResult, FlextTypes
-
         test_error_msg = "Test error"
 
         def mock_handler(
@@ -208,7 +203,8 @@ class TestFlextCliMixinsCliCommandMixin:
             return FlextResult[FlextTypes.JsonValue].fail(test_error_msg)
 
         result = FlextCliMixins.CliCommandMixin.execute_with_cli_context(
-            operation="test_operation", handler=mock_handler
+            operation="test_operation",
+            handler=mock_handler,
         )
 
         assert result.is_failure

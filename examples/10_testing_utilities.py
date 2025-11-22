@@ -24,14 +24,6 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-import sys
-from pathlib import Path
-
-# Add src to path for relative imports (pyrefly accepts this pattern)
-if Path(__file__).parent.parent / "src" not in [Path(p) for p in sys.path]:
-    sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
-
-
 import tempfile
 from pathlib import Path
 from typing import cast
@@ -164,7 +156,8 @@ def test_interactive_command() -> None:
 
     if not result.is_success:
         cli.print(
-            f"   ❌ Interactive command should succeed: {result.error}", style="red"
+            f"   ❌ Interactive command should succeed: {result.error}",
+            style="red",
         )
         return
     if "TestUser" not in result.unwrap():
@@ -242,7 +235,7 @@ def full_workflow_command() -> FlextResult[FlextCliTypes.Data.CliDataDict]:
 
     if write_result.is_failure:
         return FlextResult[FlextCliTypes.Data.CliDataDict].fail(
-            f"Write failed: {write_result.error}"
+            f"Write failed: {write_result.error}",
         )
 
     # Step 3: Read back
@@ -251,7 +244,7 @@ def full_workflow_command() -> FlextResult[FlextCliTypes.Data.CliDataDict]:
     if read_result.is_failure:
         temp_file.unlink(missing_ok=True)
         return FlextResult[FlextCliTypes.Data.CliDataDict].fail(
-            f"Read failed: {read_result.error}"
+            f"Read failed: {read_result.error}",
         )
 
     # Step 4: Process - type narrowing needed
@@ -259,7 +252,7 @@ def full_workflow_command() -> FlextResult[FlextCliTypes.Data.CliDataDict]:
     if not isinstance(loaded, dict):
         temp_file.unlink(missing_ok=True)
         return FlextResult[FlextCliTypes.Data.CliDataDict].fail(
-            "Data is not a dictionary"
+            "Data is not a dictionary",
         )
 
     loaded["status"] = "completed"

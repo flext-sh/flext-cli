@@ -24,22 +24,13 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-import sys
-from pathlib import Path
-
-# Add src to path for relative imports (pyrefly accepts this pattern)
-if Path(__file__).parent.parent / "src" not in [Path(p) for p in sys.path]:
-    sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
-
-
 import tempfile
 from pathlib import Path
 from typing import cast
 
 from flext_core import FlextResult
 
-from flext_cli import FlextCli, FlextCliPrompts
-from flext_cli.typings import FlextCliTypes
+from flext_cli import FlextCli, FlextCliPrompts, FlextCliTypes
 
 cli = FlextCli.get_instance()
 
@@ -69,8 +60,9 @@ class DataManagerCLI:
         write_result = self.cli.file_tools.write_json_file(self.data_file, data)
 
         if write_result.is_failure:
-            self.cli.print(f"❌ Save failed: {write_result.error}", style="bold red")
-            return FlextResult[bool].fail(write_result.error)
+            error_msg = write_result.error or "Unknown error"
+            self.cli.print(f"❌ Save failed: {error_msg}", style="bold red")
+            return FlextResult[bool].fail(error_msg)
 
         self.cli.print(f"✅ Data saved to {self.data_file.name}", style="green")
         return FlextResult[bool].ok(True)
@@ -79,24 +71,25 @@ class DataManagerCLI:
         """Load data with error handling."""
         if not self.data_file.exists():
             return FlextResult[FlextCliTypes.Data.CliDataDict].fail(
-                "No data file found"
+                "No data file found",
             )
 
         read_result = self.cli.file_tools.read_json_file(self.data_file)
 
         if read_result.is_failure:
-            self.cli.print(f"❌ Load failed: {read_result.error}", style="bold red")
-            return FlextResult[FlextCliTypes.Data.CliDataDict].fail(read_result.error)
+            error_msg = read_result.error or "Unknown error"
+            self.cli.print(f"❌ Load failed: {error_msg}", style="bold red")
+            return FlextResult[FlextCliTypes.Data.CliDataDict].fail(error_msg)
 
         # Type narrowing: ensure we return a dict
         data = read_result.unwrap()
         if not isinstance(data, dict):
             return FlextResult[FlextCliTypes.Data.CliDataDict].fail(
-                "Data is not a dictionary"
+                "Data is not a dictionary",
             )
         self.cli.print("✅ Data loaded successfully", style="green")
         return FlextResult[FlextCliTypes.Data.CliDataDict].ok(
-            cast("FlextCliTypes.Data.CliDataDict", data)
+            cast("FlextCliTypes.Data.CliDataDict", data),
         )
 
     def display_data(self, data: FlextCliTypes.Data.CliDataDict) -> None:
@@ -106,7 +99,9 @@ class DataManagerCLI:
             return
 
         table_result = self.cli.create_table(
-            data=data, headers=["Field", "Value"], title="📋 Current Data"
+            data=data,
+            headers=["Field", "Value"],
+            title="📋 Current Data",
         )
 
         if table_result.is_success:
@@ -120,7 +115,7 @@ class DataManagerCLI:
         key_result = prompts.prompt("Enter key:", default="sample_key")
         if key_result.is_failure:
             return FlextResult[FlextCliTypes.Data.CliDataDict].fail(
-                f"Prompt failed: {key_result.error}"
+                f"Prompt failed: {key_result.error}",
             )
 
         key = key_result.unwrap()
@@ -129,7 +124,7 @@ class DataManagerCLI:
         value_result = prompts.prompt("Enter value:", default="sample_value")
         if value_result.is_failure:
             return FlextResult[FlextCliTypes.Data.CliDataDict].fail(
-                f"Prompt failed: {value_result.error}"
+                f"Prompt failed: {value_result.error}",
             )
 
         value = value_result.unwrap()
@@ -137,7 +132,7 @@ class DataManagerCLI:
         entry = {key: value}
         self.cli.print(f"✅ Created entry: {key} = {value}", style="green")
         return FlextResult[FlextCliTypes.Data.CliDataDict].ok(
-            cast("FlextCliTypes.Data.CliDataDict", entry)
+            cast("FlextCliTypes.Data.CliDataDict", entry),
         )
 
     def run_workflow(self) -> FlextResult[bool]:
@@ -242,7 +237,7 @@ def main() -> None:
     cli.print("\n2. Railway Pattern (chained operations):", style="bold cyan")
     test_data_raw = {"id": 1, "name": "test"}
     pipeline_result = process_with_railway_pattern(
-        cast("FlextCliTypes.Data.CliDataDict", test_data_raw)
+        cast("FlextCliTypes.Data.CliDataDict", test_data_raw),
     )
 
     if pipeline_result.is_success:

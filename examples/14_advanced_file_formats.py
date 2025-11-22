@@ -26,14 +26,6 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-import sys
-from pathlib import Path
-
-# Add src to path for relative imports (pyrefly accepts this pattern)
-if Path(__file__).parent.parent / "src" not in [Path(p) for p in sys.path]:
-    sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
-
-
 import hashlib
 import shutil
 import tempfile
@@ -42,8 +34,7 @@ from typing import cast
 
 from flext_core import FlextTypes
 
-from flext_cli import FlextCli, FlextCliTables
-from flext_cli.typings import FlextCliTypes
+from flext_cli import FlextCli, FlextCliModels, FlextCliTables, FlextCliTypes
 
 cli = FlextCli.get_instance()
 tables = FlextCliTables()
@@ -55,7 +46,8 @@ tables = FlextCliTables()
 
 
 def export_to_csv(
-    data: list[FlextCliTypes.Data.CliDataDict], output_file: Path
+    data: list[FlextCliTypes.Data.CliDataDict],
+    output_file: Path,
 ) -> None:
     """Export data to CSV with proper headers."""
     if not data:
@@ -100,12 +92,14 @@ def import_from_csv(input_file: Path) -> list[FlextCliTypes.Data.CliDataDict] | 
         cli.print("\n📋 Sample Data:", style="yellow")
         # Cast to expected type
         sample_rows: list[FlextCliTypes.Data.CliDataDict] = cast(
-            "list[FlextCliTypes.Data.CliDataDict]", rows[:5]
+            "list[FlextCliTypes.Data.CliDataDict]",
+            rows[:5],
         )
         # Cast to expected type for table creation
+        config = FlextCliModels.TableConfig(table_format="grid")
         table_result = tables.create_table(
             sample_rows,
-            table_format="grid",
+            config=config,
         )
         if table_result.is_success:
             pass
@@ -146,7 +140,8 @@ def process_binary_file(input_file: Path, output_file: Path) -> None:
 
     if write_result.is_success:
         cli.print(
-            f"✅ Wrote {len(processed_data)} bytes to {output_file.name}", style="green"
+            f"✅ Wrote {len(processed_data)} bytes to {output_file.name}",
+            style="green",
         )
     else:
         cli.print(f"❌ Write failed: {write_result.error}", style="bold red")
@@ -166,7 +161,8 @@ def load_any_format_file(file_path: Path) -> FlextCliTypes.Data.CliDataDict | No
 
     if format_result.is_failure:
         cli.print(
-            f"❌ Format detection failed: {format_result.error}", style="bold red"
+            f"❌ Format detection failed: {format_result.error}",
+            style="bold red",
         )
         return None
 
@@ -194,7 +190,8 @@ def load_any_format_file(file_path: Path) -> FlextCliTypes.Data.CliDataDict | No
     # Display loaded data
     # Cast to expected type
     display_data: FlextCliTypes.Data.CliDataDict = cast(
-        "FlextCliTypes.Data.CliDataDict", data
+        "FlextCliTypes.Data.CliDataDict",
+        data,
     )
     table_result = cli.create_table(
         data=display_data,
@@ -289,7 +286,8 @@ def process_text_file(input_file: Path, output_file: Path) -> None:
 
     if write_result.is_success:
         cli.print(
-            f"✅ Wrote {len(processed)} characters to {output_file.name}", style="green"
+            f"✅ Wrote {len(processed)} characters to {output_file.name}",
+            style="green",
         )
 
 
@@ -301,7 +299,8 @@ def process_text_file(input_file: Path, output_file: Path) -> None:
 def copy_file_with_verification(source: Path, destination: Path) -> bool:
     """Copy file and verify integrity."""
     cli.print(
-        f"\n📋 Copying File: {source.name} → {destination.name}", style="bold cyan"
+        f"\n📋 Copying File: {source.name} → {destination.name}",
+        style="bold cyan",
     )
 
     # Calculate source checksum
@@ -441,17 +440,21 @@ def main() -> None:
     # Integration guide
     cli.print("\n💡 Integration Tips:", style="bold cyan")
     cli.print(
-        "  • CSV: Use read_csv_file_with_headers() for structured data", style="white"
+        "  • CSV: Use read_csv_file_with_headers() for structured data",
+        style="white",
     )
     cli.print(
-        "  • Binary: Use read_binary_file() for images, PDFs, etc.", style="white"
+        "  • Binary: Use read_binary_file() for images, PDFs, etc.",
+        style="white",
     )
     cli.print("  • Auto-detect: Use load_file_auto() for flexible input", style="white")
     cli.print(
-        "  • Multi-format: Export to JSON, YAML, CSV simultaneously", style="white"
+        "  • Multi-format: Export to JSON, YAML, CSV simultaneously",
+        style="white",
     )
     cli.print(
-        "  • Verification: Calculate checksums for integrity checks", style="white"
+        "  • Verification: Calculate checksums for integrity checks",
+        style="white",
     )
 
 

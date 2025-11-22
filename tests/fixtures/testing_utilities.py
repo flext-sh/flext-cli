@@ -233,11 +233,11 @@ class FlextCliTesting(FlextService[dict[str, object]]):
                 # Update with overrides - type is compatible with CliConfigSchema
                 base_config.update(overrides)
                 return FlextResult[FlextCliTypes.Configuration.CliConfigSchema].ok(
-                    base_config
+                    base_config,
                 )
             except Exception as e:
                 return FlextResult[FlextCliTypes.Configuration.CliConfigSchema].fail(
-                    str(e)
+                    str(e),
                 )
 
         def mock_auth_token(
@@ -289,7 +289,8 @@ class FlextCliTesting(FlextService[dict[str, object]]):
                 return FlextResult[FlextCliTypes.Auth.CredentialsData].fail(str(e))
 
         def create_temp_config_file(
-            self, config_data: dict[str, FlextTypes.JsonValue]
+            self,
+            config_data: dict[str, FlextTypes.JsonValue],
         ) -> FlextResult[Path]:
             """Create temporary configuration file for testing.
 
@@ -307,7 +308,10 @@ class FlextCliTesting(FlextService[dict[str, object]]):
             """
             try:
                 with tempfile.NamedTemporaryFile(
-                    mode="w", suffix=".json", delete=False, encoding="utf-8"
+                    mode="w",
+                    suffix=".json",
+                    delete=False,
+                    encoding="utf-8",
                 ) as temp_file:
                     json.dump(config_data, temp_file, indent=2)
                     temp_path = Path(temp_file.name)

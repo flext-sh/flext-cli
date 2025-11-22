@@ -231,7 +231,7 @@ class FlextCliCommonParams:
             bool_result = cls._set_bool_params(config, params)
             if bool_result.is_failure:
                 return FlextResult[FlextCliConfig].fail(
-                    bool_result.error or "Boolean parameter setting failed"
+                    bool_result.error or "Boolean parameter setting failed",
                 )
 
             log_level_result = cls._set_log_level(config, params)
@@ -246,12 +246,14 @@ class FlextCliCommonParams:
 
         except Exception as e:
             return FlextResult[FlextCliConfig].fail(
-                f"Failed to apply CLI parameters: {e}"
+                f"Failed to apply CLI parameters: {e}",
             )
 
     @classmethod
     def _set_bool_params(
-        cls, config: FlextCliConfig, params: FlextCliModels.CliParamsConfig
+        cls,
+        config: FlextCliConfig,
+        params: FlextCliModels.CliParamsConfig,
     ) -> FlextResult[bool]:
         """Set boolean parameters with validation.
 
@@ -271,7 +273,7 @@ class FlextCliCommonParams:
             will_be_debug = params.debug if params.debug is not None else config.debug
             if not will_be_debug:
                 return FlextResult[bool].fail(
-                    "Trace mode requires debug mode to be enabled"
+                    "Trace mode requires debug mode to be enabled",
                 )
 
         # Update all attributes at once using model_copy to avoid triggering
@@ -301,7 +303,9 @@ class FlextCliCommonParams:
 
     @classmethod
     def _set_log_level(
-        cls, config: FlextCliConfig, params: FlextCliModels.CliParamsConfig
+        cls,
+        config: FlextCliConfig,
+        params: FlextCliModels.CliParamsConfig,
     ) -> FlextResult[FlextCliConfig]:
         """Set cli_log_level with enum conversion."""
         if params.log_level is None:
@@ -314,12 +318,14 @@ class FlextCliCommonParams:
         except ValueError:
             valid = FlextCliConstants.LOG_LEVELS_LIST
             return FlextResult[FlextCliConfig].fail(
-                f"invalid log level: {params.log_level}. valid options: {', '.join(valid)}"
+                f"invalid log level: {params.log_level}. valid options: {', '.join(valid)}",
             )
 
     @classmethod
     def _set_format_params(
-        cls, config: FlextCliConfig, params: FlextCliModels.CliParamsConfig
+        cls,
+        config: FlextCliConfig,
+        params: FlextCliModels.CliParamsConfig,
     ) -> FlextResult[FlextCliConfig]:
         """Set log_format and output_format with validation."""
         # log_format maps to log_verbosity
@@ -330,7 +336,7 @@ class FlextCliCommonParams:
             ):
                 valid = FlextCliConstants.CliParamsDefaults.VALID_LOG_FORMATS
                 return FlextResult[FlextCliConfig].fail(
-                    f"invalid log format: {params.log_format}. valid options: {', '.join(valid)}"
+                    f"invalid log format: {params.log_format}. valid options: {', '.join(valid)}",
                 )
             config.log_verbosity = params.log_format
 
@@ -343,13 +349,14 @@ class FlextCliCommonParams:
             ):
                 valid = FlextCliConstants.CliParamsDefaults.VALID_OUTPUT_FORMATS
                 return FlextResult[FlextCliConfig].fail(
-                    f"invalid output format: {output_format_value}. valid options: {', '.join(valid)}"
+                    f"invalid output format: {output_format_value}. valid options: {', '.join(valid)}",
                 )
             # After validation, we know output_format_value is in VALID_OUTPUT_FORMATS
             # Cast to Literal type since validation guarantees it's one of the valid values
             # Type narrowing: validation above ensures this is a valid OutputFormatLiteral
             config.output_format = cast(
-                "FlextCliConstants.OutputFormatLiteral", output_format_value
+                "FlextCliConstants.OutputFormatLiteral",
+                output_format_value,
             )
 
         return FlextResult[FlextCliConfig].ok(config)
@@ -379,7 +386,10 @@ class FlextCliCommonParams:
             if log_level_upper not in FlextCliConstants.LOG_LEVELS_LIST:
                 valid = ", ".join(FlextCliConstants.LOG_LEVELS_LIST)
                 return FlextResult[bool].fail(
-                    err.INVALID_LOG_LEVEL.format(log_level=log_level_upper, valid=valid)
+                    err.INVALID_LOG_LEVEL.format(
+                        log_level=log_level_upper,
+                        valid=valid,
+                    ),
                 )
 
             # FlextLogger configuration is done via FlextConfig at initialization

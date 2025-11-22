@@ -24,14 +24,6 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-import sys
-from pathlib import Path
-
-# Add src to path for relative imports (pyrefly accepts this pattern)
-if Path(__file__).parent.parent / "src" not in [Path(p) for p in sys.path]:
-    sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
-
-
 import os
 import secrets
 import time
@@ -204,7 +196,8 @@ def show_session_info() -> None:
             if token_file.exists()
             else "N/A",
             "Modified": time.strftime(
-                "%Y-%m-%d %H:%M:%S", time.localtime(token_file.stat().st_mtime)
+                "%Y-%m-%d %H:%M:%S",
+                time.localtime(token_file.stat().st_mtime),
             )
             if token_file.exists()
             else "N/A",
@@ -213,7 +206,9 @@ def show_session_info() -> None:
 
     # Display as table
     table_result = cli.create_table(
-        data=session_data, headers=["Property", "Value"], title="🔐 Current Session"
+        data=session_data,
+        headers=["Property", "Value"],
+        title="🔐 Current Session",
     )
 
     if table_result.is_success:
@@ -330,10 +325,12 @@ def main() -> None:
     cli.print("\n💡 Integration Tips:", style="bold cyan")
     cli.print("  • Login: Use cli.authenticate() to save tokens", style="white")
     cli.print(
-        "  • API Calls: Use cli.get_auth_token() to retrieve tokens", style="white"
+        "  • API Calls: Use cli.get_auth_token() to retrieve tokens",
+        style="white",
     )
     cli.print(
-        "  • Validation: Use cli.validate_credentials() for user input", style="white"
+        "  • Validation: Use cli.validate_credentials() for user input",
+        style="white",
     )
     cli.print("  • Logout: Delete token file at cli.config.token_file", style="white")
 

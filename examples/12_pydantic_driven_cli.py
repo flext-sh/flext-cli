@@ -25,22 +25,12 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-import sys
-from pathlib import Path
-
-# Add src to path for relative imports (pyrefly accepts this pattern)
-if Path(__file__).parent.parent / "src" not in [Path(p) for p in sys.path]:
-    sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
-
-
 from typing import cast
 
 from flext_core import FlextResult
 from pydantic import BaseModel, Field, field_validator
 
-from flext_cli import FlextCli
-from flext_cli.models import FlextCliModels
-from flext_cli.typings import FlextCliTypes
+from flext_cli import FlextCli, FlextCliModels, FlextCliTypes
 
 cli = FlextCli.get_instance()
 
@@ -61,17 +51,24 @@ class DeployConfig(BaseModel):
     """
 
     environment: str = Field(
-        default="development", description="Deployment environment (dev/staging/prod)"
+        default="development",
+        description="Deployment environment (dev/staging/prod)",
     )
 
     workers: int = Field(
-        default=4, ge=1, le=32, description="Number of worker processes"
+        default=4,
+        ge=1,
+        le=32,
+        description="Number of worker processes",
     )
 
     enable_cache: bool = Field(default=True, description="Enable application cache")
 
     timeout: int = Field(
-        default=30, ge=1, le=300, description="Request timeout in seconds"
+        default=30,
+        ge=1,
+        le=300,
+        description="Request timeout in seconds",
     )
 
     @field_validator("environment")
@@ -161,7 +158,8 @@ def execute_deploy_from_cli(cli_args: dict[str, str | int | bool]) -> None:
 
         if deploy_result.is_success:
             cli.print(
-                f"✅ Deployment successful to {config.environment}!", style="bold green"
+                f"✅ Deployment successful to {config.environment}!",
+                style="bold green",
             )
 
     except Exception as e:
@@ -183,7 +181,8 @@ def show_common_cli_params() -> None:
     """Show auto-generated common CLI parameters."""
     cli.print("\n⚙️  Auto-Generated Common CLI Parameters:", style="bold cyan")
     cli.print(
-        "These are AUTOMATICALLY available in ALL flext-cli commands:\n", style="yellow"
+        "These are AUTOMATICALLY available in ALL flext-cli commands:\n",
+        style="yellow",
     )
 
     # These come from FlextCliConfig Pydantic fields
@@ -231,7 +230,7 @@ def demonstrate_nested_models() -> None:
 
     # Extract parameters from nested model
     db_params_result = FlextCliModels.CliModelConverter.model_to_cli_params(
-        DatabaseConfig
+        DatabaseConfig,
     )
 
     if db_params_result.is_success:
@@ -323,10 +322,12 @@ def main() -> None:
     )
     cli.print("  • Add field_validator() for custom validation", style="white")
     cli.print(
-        "  • Constraints (ge, le) become CLI validation automatically", style="white"
+        "  • Constraints (ge, le) become CLI validation automatically",
+        style="white",
     )
     cli.print(
-        "  • Model → CLI → validated instance = type-safe workflow!", style="white"
+        "  • Model → CLI → validated instance = type-safe workflow!",
+        style="white",
     )
 
 

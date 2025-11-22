@@ -11,9 +11,11 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 from enum import StrEnum
-from typing import Final, Literal
+from typing import Final, Literal, TypeAlias
 
-from flext_core import FlextConstants, FlextTypes
+from flext_core import FlextConstants
+
+from flext_cli.typings import CliJsonDict
 
 
 class FlextCliConstants(FlextConstants):
@@ -43,7 +45,11 @@ class FlextCliConstants(FlextConstants):
 
     # Command status literal - must be in constants (matches CommandStatus StrEnum)
     CommandStatusLiteral = Literal[
-        "pending", "running", "completed", "failed", "cancelled"
+        "pending",
+        "running",
+        "completed",
+        "failed",
+        "cancelled",
     ]
 
     # Session status literal - must be in constants (matches SessionStatus StrEnum)
@@ -51,7 +57,12 @@ class FlextCliConstants(FlextConstants):
 
     # Service status literal - must be in constants (matches ServiceStatus StrEnum)
     ServiceStatusLiteral = Literal[
-        "operational", "available", "degraded", "error", "healthy", "connected"
+        "operational",
+        "available",
+        "degraded",
+        "error",
+        "healthy",
+        "connected",
     ]
 
     # Environment literal - must be in constants
@@ -70,7 +81,7 @@ class FlextCliConstants(FlextConstants):
     DEFAULT_PRIORITY: Final[int] = 999
 
     # Project identification
-    PROJECT_NAME: Final[str] = "flext-cli"
+    PROJECT_NAME: str = "flext-cli"
 
     # Directory and file names
     FLEXT_DIR_NAME: Final[str] = ".flext"
@@ -296,9 +307,9 @@ class FlextCliConstants(FlextConstants):
         """CLI command result type definitions."""
 
         # Core command result types
-        CommandResultData = dict[str, FlextTypes.JsonValue]
+        CommandResultData: TypeAlias = CliJsonDict
         # Note: CommandResultStatus defined at module level as CommandResultStatusLiteral
-        CommandResultMetadata = dict[str, str | int | bool]
+        CommandResultMetadata: TypeAlias = dict[str, str | int | bool]
 
     class Shell:
         """Shell-specific constants."""
@@ -964,10 +975,10 @@ class FlextCliConstants(FlextConstants):
 
         # CLI-specific project configurations
         # Note: CliProjectType is defined as CliProjectTypeLiteral in first class (line 28)
-        CliProjectConfig = FlextTypes.JsonDict
-        CommandLineConfig = dict[str, str | int | bool | list[str]]
-        InteractiveConfig = dict[str, bool | str | FlextTypes.JsonDict]
-        OutputConfig = dict[str, str | object]
+        CliProjectConfig: TypeAlias = CliJsonDict
+        CommandLineConfig: TypeAlias = dict[str, str | int | bool | list[str]]
+        InteractiveConfig: TypeAlias = dict[str, bool | str | CliJsonDict]
+        OutputConfig: TypeAlias = dict[str, str | object]
 
     class Styles:
         """Rich/Terminal style constants for colored output."""

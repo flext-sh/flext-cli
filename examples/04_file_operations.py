@@ -32,14 +32,6 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-import sys
-from pathlib import Path
-
-# Add src to path for relative imports (pyrefly accepts this pattern)
-if Path(__file__).parent.parent / "src" not in [Path(p) for p in sys.path]:
-    sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
-
-
 import hashlib
 import platform
 import shutil
@@ -66,7 +58,8 @@ tables = FlextCliTables()
 
 
 def save_user_preferences(
-    preferences: FlextCliTypes.Data.CliDataDict, config_dir: Path
+    preferences: FlextCliTypes.Data.CliDataDict,
+    config_dir: Path,
 ) -> bool:
     """Save user preferences to JSON in YOUR app."""
     config_file = config_dir / "preferences.json"
@@ -77,7 +70,8 @@ def save_user_preferences(
 
     # Cast dict to object (compatible with JsonValue)
     write_result = cli.file_tools.write_json_file(
-        config_file, cast("dict[str, object]", preferences)
+        config_file,
+        cast("dict[str, object]", preferences),
     )
 
     if write_result.is_failure:
@@ -116,7 +110,8 @@ def load_user_preferences(config_dir: Path) -> FlextCliTypes.Data.CliDataDict | 
 
 
 def save_deployment_config(
-    config: FlextCliTypes.Data.CliDataDict, config_file: Path
+    config: FlextCliTypes.Data.CliDataDict,
+    config_file: Path,
 ) -> bool:
     """Save deployment config to YAML in YOUR tool."""
     # Instead of:
@@ -125,7 +120,8 @@ def save_deployment_config(
 
     # Cast dict to object (compatible with JsonValue)
     write_result = cli.file_tools.write_yaml_file(
-        config_file, cast("dict[str, object]", config)
+        config_file,
+        cast("dict[str, object]", config),
     )
 
     if write_result.is_failure:
@@ -268,7 +264,7 @@ def validate_and_import_data(input_file: Path) -> FlextCliTypes.Data.CliDataDict
         for field in required_fields:
             if field not in data:
                 return FlextResult[FlextCliTypes.Data.CliDataDict].fail(
-                    f"Missing required field: {field}"
+                    f"Missing required field: {field}",
                 )
         return FlextResult[FlextCliTypes.Data.CliDataDict].ok(data)
 
@@ -309,7 +305,8 @@ def backup_config_files(source_dir: Path, backup_dir: Path) -> list[str]:
 
         if read_result.is_failure:
             cli.print(
-                f"⚠️  Skipped {config_file.name}: {read_result.error}", style="yellow"
+                f"⚠️  Skipped {config_file.name}: {read_result.error}",
+                style="yellow",
             )
             continue
 
@@ -317,11 +314,13 @@ def backup_config_files(source_dir: Path, backup_dir: Path) -> list[str]:
         backup_file = backup_dir / config_file.name
         if config_file.suffix == ".json":
             write_result = cli.file_tools.write_json_file(
-                backup_file, read_result.unwrap()
+                backup_file,
+                read_result.unwrap(),
             )
         else:
             write_result = cli.file_tools.write_yaml_file(
-                backup_file, read_result.unwrap()
+                backup_file,
+                read_result.unwrap(),
             )
 
         if write_result.is_success:
@@ -337,7 +336,8 @@ def backup_config_files(source_dir: Path, backup_dir: Path) -> list[str]:
 
 
 def export_to_csv(
-    data: list[FlextCliTypes.Data.CliDataDict], output_file: Path
+    data: list[FlextCliTypes.Data.CliDataDict],
+    output_file: Path,
 ) -> bool:
     """Export data to CSV with proper headers in YOUR reporting tool."""
     if not data:
@@ -382,7 +382,8 @@ def import_from_csv(input_file: Path) -> list[FlextCliTypes.Data.CliDataDict] | 
     # Display sample
     if rows:
         sample_rows: list[FlextCliTypes.Data.CliDataDict] = cast(
-            "list[FlextCliTypes.Data.CliDataDict]", rows[:5]
+            "list[FlextCliTypes.Data.CliDataDict]",
+            rows[:5],
         )
         # Create table config for grid format
         config = FlextCliModels.TableConfig(table_format="grid")
@@ -428,7 +429,8 @@ def process_binary_file(input_file: Path, output_file: Path) -> bool:
         return False
 
     cli.print(
-        f"✅ Wrote {len(processed_data)} bytes to {output_file.name}", style="green"
+        f"✅ Wrote {len(processed_data)} bytes to {output_file.name}",
+        style="green",
     )
     return True
 
@@ -447,7 +449,8 @@ def load_config_auto_detect(config_file: Path) -> FlextCliTypes.Data.CliDataDict
 
     if format_result.is_failure:
         cli.print(
-            f"❌ Format detection failed: {format_result.error}", style="bold red"
+            f"❌ Format detection failed: {format_result.error}",
+            style="bold red",
         )
         return None
 
@@ -467,7 +470,8 @@ def load_config_auto_detect(config_file: Path) -> FlextCliTypes.Data.CliDataDict
     # Display loaded data
     if isinstance(data, dict):
         display_data: FlextCliTypes.Data.CliDataDict = cast(
-            "FlextCliTypes.Data.CliDataDict", data
+            "FlextCliTypes.Data.CliDataDict",
+            data,
         )
         table_result = cli.create_table(
             data=display_data,
@@ -509,7 +513,10 @@ def export_multi_format(
     # Export to YAML
     yaml_path = base_path.with_suffix(".yaml")
     yaml_payload = cast("FlextTypes.JsonValue", data)
-    yaml_result = cli.file_tools.write_yaml_file(yaml_path, cast("dict[str, object]", yaml_payload))
+    yaml_result = cli.file_tools.write_yaml_file(
+        yaml_path,
+        cast("dict[str, object]", yaml_payload),
+    )
     if yaml_result.is_success:
         size = yaml_path.stat().st_size
         export_results["YAML"] = f"{size} bytes"
@@ -595,7 +602,8 @@ def main() -> None:
     # Example 6: Data validation
     cli.print("\n6. Data Validation (ETL pipeline):", style="bold cyan")
     test_data: FlextCliTypes.Data.CliDataDict = cast(
-        "FlextCliTypes.Data.CliDataDict", {"id": 1, "name": "test", "value": 100}
+        "FlextCliTypes.Data.CliDataDict",
+        {"id": 1, "name": "test", "value": 100},
     )
     test_file = temp_dir / "test_data.json"
     cli.file_tools.write_json_file(test_file, cast("dict[str, object]", test_data))
@@ -656,13 +664,16 @@ def main() -> None:
     cli.print("  • JSON: Use file_tools.read_json_file() / write_json()", style="white")
     cli.print("  • YAML: Use file_tools.read_yaml_file() / write_yaml()", style="white")
     cli.print(
-        "  • CSV: Use read_csv_file_with_headers() for structured data", style="white"
+        "  • CSV: Use read_csv_file_with_headers() for structured data",
+        style="white",
     )
     cli.print(
-        "  • Binary: Use read_binary_file() for images, PDFs, etc.", style="white"
+        "  • Binary: Use read_binary_file() for images, PDFs, etc.",
+        style="white",
     )
     cli.print(
-        "  • Auto-detect: Use load_file_auto() for flexible loading", style="white"
+        "  • Auto-detect: Use load_file_auto() for flexible loading",
+        style="white",
     )
     cli.print("  • Tables: Use FlextCliTables for ASCII table export", style="white")
     cli.print("  • All methods return FlextResult for error handling", style="white")

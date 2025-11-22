@@ -67,7 +67,7 @@ class FlextCliCmd(FlextService[FlextTypes.JsonDict]):
             return FlextResult[list[str]].ok(paths)
         except Exception as e:
             return FlextResult[list[str]].fail(
-                FlextCliConstants.ErrorMessages.CONFIG_PATHS_FAILED.format(error=e)
+                FlextCliConstants.ErrorMessages.CONFIG_PATHS_FAILED.format(error=e),
             )
 
     def validate_config(self) -> FlextResult[bool]:
@@ -83,13 +83,15 @@ class FlextCliCmd(FlextService[FlextTypes.JsonDict]):
                 # Use logger directly from FlextService - no fallback
                 self.logger.info(
                     FlextCliConstants.LogMessages.CONFIG_VALIDATION_RESULTS.format(
-                        results=results
-                    )
+                        results=results,
+                    ),
                 )
             return FlextResult[bool].ok(True)
         except Exception as e:
             return FlextResult[bool].fail(
-                FlextCliConstants.ErrorMessages.CONFIG_VALIDATION_FAILED.format(error=e)
+                FlextCliConstants.ErrorMessages.CONFIG_VALIDATION_FAILED.format(
+                    error=e,
+                ),
             )
 
     def get_config_info(self) -> FlextResult[FlextTypes.JsonDict]:
@@ -99,7 +101,7 @@ class FlextCliCmd(FlextService[FlextTypes.JsonDict]):
             return FlextResult[FlextTypes.JsonDict].ok(info)
         except Exception as e:
             return FlextResult[FlextTypes.JsonDict].fail(
-                FlextCliConstants.ErrorMessages.CONFIG_INFO_FAILED.format(error=e)
+                FlextCliConstants.ErrorMessages.CONFIG_INFO_FAILED.format(error=e),
             )
 
     def set_config_value(self, key: str, value: str) -> FlextResult[bool]:
@@ -118,25 +120,26 @@ class FlextCliCmd(FlextService[FlextTypes.JsonDict]):
                 / FlextCliConstants.ConfigFiles.CLI_CONFIG_JSON
             )
             save_result = self._file_tools.write_json_file(
-                file_path=str(config_path), data=config_data
+                file_path=str(config_path),
+                data=config_data,
             )
 
             if not save_result.is_success:
                 return FlextResult[bool].fail(
                     FlextCliConstants.CmdErrorMessages.CONFIG_SAVE_FAILED.format(
-                        error=save_result.error
-                    )
+                        error=save_result.error,
+                    ),
                 )
 
             # Use logger directly from FlextService - no fallback
             self.logger.info(
-                FlextCliConstants.CmdMessages.CONFIG_SAVED.format(key=key, value=value)
+                FlextCliConstants.CmdMessages.CONFIG_SAVED.format(key=key, value=value),
             )
             return FlextResult[bool].ok(True)
 
         except Exception as e:
             return FlextResult[bool].fail(
-                FlextCliConstants.ErrorMessages.SET_CONFIG_FAILED.format(error=e)
+                FlextCliConstants.ErrorMessages.SET_CONFIG_FAILED.format(error=e),
             )
 
     def get_config_value(self, key: str) -> FlextResult[FlextTypes.JsonDict]:
@@ -154,8 +157,8 @@ class FlextCliCmd(FlextService[FlextTypes.JsonDict]):
             if not config_path.exists():
                 return FlextResult[FlextTypes.JsonDict].fail(
                     FlextCliConstants.CmdErrorMessages.CONFIG_FILE_NOT_FOUND.format(
-                        path=config_path
-                    )
+                        path=config_path,
+                    ),
                 )
 
             # Load configuration data using FlextCliFileTools
@@ -163,8 +166,8 @@ class FlextCliCmd(FlextService[FlextTypes.JsonDict]):
             if load_result.is_failure:
                 return FlextResult[FlextTypes.JsonDict].fail(
                     FlextCliConstants.CmdErrorMessages.CONFIG_LOAD_FAILED.format(
-                        error=load_result.error
-                    )
+                        error=load_result.error,
+                    ),
                 )
 
             config_data = load_result.value
@@ -172,15 +175,15 @@ class FlextCliCmd(FlextService[FlextTypes.JsonDict]):
             # Ensure config_data is a dict
             if not FlextRuntime.is_dict_like(config_data):
                 return FlextResult[FlextTypes.JsonDict].fail(
-                    FlextCliConstants.CmdErrorMessages.CONFIG_NOT_DICT
+                    FlextCliConstants.CmdErrorMessages.CONFIG_NOT_DICT,
                 )
 
             # Get the specific key value
             if key not in config_data:
                 return FlextResult[FlextTypes.JsonDict].fail(
                     FlextCliConstants.CmdErrorMessages.CONFIG_KEY_NOT_FOUND.format(
-                        key=key
-                    )
+                        key=key,
+                    ),
                 )
 
             # config_data is JsonDict (dict[str, JsonValue]), so config_data[key] is already JsonValue
@@ -198,7 +201,7 @@ class FlextCliCmd(FlextService[FlextTypes.JsonDict]):
 
         except Exception as e:
             return FlextResult[FlextTypes.JsonDict].fail(
-                FlextCliConstants.CmdErrorMessages.GET_CONFIG_FAILED.format(error=e)
+                FlextCliConstants.CmdErrorMessages.GET_CONFIG_FAILED.format(error=e),
             )
 
     def show_config(self) -> FlextResult[bool]:
@@ -213,8 +216,8 @@ class FlextCliCmd(FlextService[FlextTypes.JsonDict]):
             if info_result.is_failure:
                 return FlextResult[bool].fail(
                     FlextCliConstants.CmdErrorMessages.SHOW_CONFIG_FAILED.format(
-                        error=info_result.error
-                    )
+                        error=info_result.error,
+                    ),
                 )
 
             # Use logger directly from FlextService - no fallback
@@ -225,7 +228,7 @@ class FlextCliCmd(FlextService[FlextTypes.JsonDict]):
             return FlextResult[bool].ok(True)
         except Exception as e:
             return FlextResult[bool].fail(
-                FlextCliConstants.CmdErrorMessages.SHOW_CONFIG_FAILED.format(error=e)
+                FlextCliConstants.CmdErrorMessages.SHOW_CONFIG_FAILED.format(error=e),
             )
 
     def edit_config(self) -> FlextResult[str]:
@@ -248,8 +251,8 @@ class FlextCliCmd(FlextService[FlextTypes.JsonDict]):
                 if save_result.is_failure:
                     return FlextResult[str].fail(
                         FlextCliConstants.CmdErrorMessages.CREATE_DEFAULT_CONFIG_FAILED.format(
-                            error=save_result.error
-                        )
+                            error=save_result.error,
+                        ),
                     )
 
             # Load and validate using Pydantic - use model directly
@@ -257,18 +260,18 @@ class FlextCliCmd(FlextService[FlextTypes.JsonDict]):
             if load_result.is_failure:
                 return FlextResult[str].fail(
                     FlextCliConstants.CmdErrorMessages.CONFIG_LOAD_FAILED.format(
-                        error=load_result.error
-                    )
+                        error=load_result.error,
+                    ),
                 )
 
             # Validate with Pydantic model - use model directly, no conversion
             try:
                 config_model = FlextCliModels.CmdConfig.model_validate(
-                    load_result.value
+                    load_result.value,
                 )
             except Exception:
                 return FlextResult[str].fail(
-                    FlextCliConstants.CmdErrorMessages.CONFIG_NOT_DICT
+                    FlextCliConstants.CmdErrorMessages.CONFIG_NOT_DICT,
                 )
 
             # Use model directly - no conversion needed
@@ -288,12 +291,12 @@ class FlextCliCmd(FlextService[FlextTypes.JsonDict]):
             )
 
             return FlextResult[str].ok(
-                FlextCliConstants.LogMessages.CONFIG_EDIT_COMPLETED
+                FlextCliConstants.LogMessages.CONFIG_EDIT_COMPLETED,
             )
 
         except Exception as e:
             return FlextResult[str].fail(
-                FlextCliConstants.ErrorMessages.EDIT_CONFIG_FAILED.format(error=e)
+                FlextCliConstants.ErrorMessages.EDIT_CONFIG_FAILED.format(error=e),
             )
 
 

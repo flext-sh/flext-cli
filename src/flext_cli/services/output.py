@@ -123,7 +123,7 @@ class FlextCliOutput(FlextService[FlextTypes.JsonDict]):
         """
         # Railway pattern: validate format → dispatch to handler
         return FlextCliUtilities.CliValidation.validate_output_format(
-            format_type
+            format_type,
         ).flat_map(lambda fmt: self._dispatch_formatter(fmt, data, title, headers))
 
     # Helper _validate_format_type moved to FlextCliUtilities.CliValidation.validate_output_format()
@@ -141,11 +141,13 @@ class FlextCliOutput(FlextService[FlextTypes.JsonDict]):
             FlextCliConstants.OutputFormats.JSON.value: lambda: self.format_json(data),
             FlextCliConstants.OutputFormats.YAML.value: lambda: self.format_yaml(data),
             FlextCliConstants.OutputFormats.TABLE.value: lambda: self._format_table_data(
-                data, title, headers
+                data,
+                title,
+                headers,
             ),
             FlextCliConstants.OutputFormats.CSV.value: lambda: self.format_csv(data),
             FlextCliConstants.OutputFormats.PLAIN.value: lambda: FlextResult[str].ok(
-                str(data)
+                str(data),
             ),
         }
 
@@ -153,8 +155,8 @@ class FlextCliOutput(FlextService[FlextTypes.JsonDict]):
         if formatter is None:
             return FlextResult[str].fail(
                 FlextCliConstants.ErrorMessages.UNSUPPORTED_FORMAT_TYPE.format(
-                    format_type=format_type
-                )
+                    format_type=format_type,
+                ),
             )
 
         return formatter()
@@ -181,11 +183,11 @@ class FlextCliOutput(FlextService[FlextTypes.JsonDict]):
             # Fast fail validation
             if not data:
                 return FlextResult[str].fail(
-                    FlextCliConstants.ErrorMessages.NO_DATA_PROVIDED
+                    FlextCliConstants.ErrorMessages.NO_DATA_PROVIDED,
                 )
             if not all(FlextRuntime.is_dict_like(item) for item in data):
                 return FlextResult[str].fail(
-                    FlextCliConstants.ErrorMessages.TABLE_FORMAT_REQUIRED_DICT
+                    FlextCliConstants.ErrorMessages.TABLE_FORMAT_REQUIRED_DICT,
                 )
             # Type cast: list[dict[str, JsonValue]] is compatible with format_table
             # JsonValue is recursively defined to include dict[str, JsonValue]
@@ -197,7 +199,7 @@ class FlextCliOutput(FlextService[FlextTypes.JsonDict]):
 
         # Invalid type for table
         return FlextResult[str].fail(
-            FlextCliConstants.ErrorMessages.TABLE_FORMAT_REQUIRED_DICT
+            FlextCliConstants.ErrorMessages.TABLE_FORMAT_REQUIRED_DICT,
         )
 
     def create_formatter(self, format_type: str) -> FlextResult[FlextCliOutput]:
@@ -216,12 +218,12 @@ class FlextCliOutput(FlextService[FlextTypes.JsonDict]):
             # Validate format using consolidated utility - railway pattern
             return (
                 FlextCliUtilities.CliValidation.validate_output_format(format_type).map(
-                    lambda _: self
+                    lambda _: self,
                 )  # Return self as formatter on success
             )
         except Exception as e:
             return FlextResult[FlextCliOutput].fail(
-                FlextCliConstants.ErrorMessages.CREATE_FORMATTER_FAILED.format(error=e)
+                FlextCliConstants.ErrorMessages.CREATE_FORMATTER_FAILED.format(error=e),
             )
 
     # =========================================================================
@@ -295,7 +297,7 @@ class FlextCliOutput(FlextService[FlextTypes.JsonDict]):
 
         except Exception as e:
             return FlextResult[bool].fail(
-                f"Failed to register formatter for {result_type.__name__}: {e}"
+                f"Failed to register formatter for {result_type.__name__}: {e}",
             )
 
     def format_and_display_result(
@@ -325,7 +327,7 @@ class FlextCliOutput(FlextService[FlextTypes.JsonDict]):
 
             # Use generic formatting with railway pattern
             return self._convert_result_to_formattable(result, output_format).flat_map(
-                self._display_formatted_result
+                self._display_formatted_result,
             )
 
         except Exception as e:
@@ -353,7 +355,7 @@ class FlextCliOutput(FlextService[FlextTypes.JsonDict]):
             return FlextResult[bool].ok(True)
 
         return FlextResult[bool].fail(
-            f"No registered formatter for type {result_type.__name__}"
+            f"No registered formatter for type {result_type.__name__}",
         )
 
     def _convert_result_to_formattable(
@@ -371,11 +373,11 @@ class FlextCliOutput(FlextService[FlextTypes.JsonDict]):
         # Fast-fail if result is None - no fallback to fake data
         if result is None:
             return FlextResult[str].fail(
-                "Cannot format None result - provide a valid result object"
+                "Cannot format None result - provide a valid result object",
             )
 
         self.logger.info(
-            f"No registered formatter for {type(result).__name__}, using generic formatting"
+            f"No registered formatter for {type(result).__name__}, using generic formatting",
         )
 
         # Handle Pydantic models
@@ -390,7 +392,9 @@ class FlextCliOutput(FlextService[FlextTypes.JsonDict]):
         return FlextResult[str].ok(str(result))
 
     def _format_pydantic_model(
-        self, result: BaseModel, output_format: str
+        self,
+        result: BaseModel,
+        output_format: str,
     ) -> FlextResult[str]:
         """Format Pydantic model to string."""
         # model_dump() returns dict[str, Any] which is compatible with JsonValue
@@ -399,7 +403,9 @@ class FlextCliOutput(FlextService[FlextTypes.JsonDict]):
         return self.format_data(result_dict, output_format)
 
     def _format_dict_object(
-        self, result: FlextCliTypes.Callable.FormatableResult, output_format: str
+        self,
+        result: FlextCliTypes.Callable.FormatableResult,
+        output_format: str,
     ) -> FlextResult[str]:
         """Format object with __dict__ to string."""
         raw_dict = result.__dict__
@@ -459,7 +465,7 @@ class FlextCliOutput(FlextService[FlextTypes.JsonDict]):
         """
         if not data:
             return FlextResult[FlextCliTypes.Display.RichTable].fail(
-                FlextCliConstants.ErrorMessages.NO_DATA_PROVIDED
+                FlextCliConstants.ErrorMessages.NO_DATA_PROVIDED,
             )
 
         try:
@@ -475,7 +481,7 @@ class FlextCliOutput(FlextService[FlextTypes.JsonDict]):
 
             if table_result.is_failure:
                 return FlextResult[FlextCliTypes.Display.RichTable].fail(
-                    f"Failed to create Rich table: {table_result.error}"
+                    f"Failed to create Rich table: {table_result.error}",
                 )
 
             table = table_result.unwrap()
@@ -490,7 +496,7 @@ class FlextCliOutput(FlextService[FlextTypes.JsonDict]):
                 for header in table_headers:
                     if header not in row_data:
                         return FlextResult[FlextCliTypes.Display.RichTable].fail(
-                            f"Header {header!r} not found in row data. Available keys: {list(row_data.keys())}"
+                            f"Header {header!r} not found in row data. Available keys: {list(row_data.keys())}",
                         )
                     row_values.append(str(row_data[header]))
                 table.add_row(*row_values)
@@ -499,7 +505,7 @@ class FlextCliOutput(FlextService[FlextTypes.JsonDict]):
 
         except Exception as e:
             error_msg = FlextCliConstants.ErrorMessages.CREATE_RICH_TABLE_FAILED.format(
-                error=e
+                error=e,
             )
             self.logger.exception(error_msg)
             return FlextResult[FlextCliTypes.Display.RichTable].fail(error_msg)
@@ -819,12 +825,15 @@ class FlextCliOutput(FlextService[FlextTypes.JsonDict]):
             else FlextCliConstants.OutputDefaults.DEFAULT_FORMAT_TYPE
         )
         format_result = self.format_data(
-            data, format_type=final_format_type, title=title, headers=headers
+            data,
+            format_type=final_format_type,
+            title=title,
+            headers=headers,
         )
 
         if format_result.is_failure:
             return FlextResult[bool].fail(
-                f"Failed to format data: {format_result.error}"
+                f"Failed to format data: {format_result.error}",
             )
 
         formatted_data = format_result.unwrap()
@@ -856,11 +865,11 @@ class FlextCliOutput(FlextService[FlextTypes.JsonDict]):
                     data,
                     default=str,
                     indent=FlextCliConstants.OutputDefaults.JSON_INDENT,
-                )
+                ),
             )
         except Exception as e:
             error_msg = FlextCliConstants.OutputLogMessages.JSON_FORMAT_FAILED.format(
-                error=e
+                error=e,
             )
             self.logger.exception(error_msg)
             return FlextResult[str].fail(error_msg)
@@ -884,11 +893,11 @@ class FlextCliOutput(FlextService[FlextTypes.JsonDict]):
                 yaml.dump(
                     data,
                     default_flow_style=FlextCliConstants.OutputDefaults.YAML_DEFAULT_FLOW_STYLE,
-                )
+                ),
             )
         except Exception as e:
             error_msg = FlextCliConstants.OutputLogMessages.YAML_FORMAT_FAILED.format(
-                error=e
+                error=e,
             )
             self.logger.exception(error_msg)
             return FlextResult[str].fail(error_msg)
@@ -939,11 +948,11 @@ class FlextCliOutput(FlextService[FlextTypes.JsonDict]):
                     data,
                     default=str,
                     indent=FlextCliConstants.OutputDefaults.JSON_INDENT,
-                )
+                ),
             )
         except Exception as e:
             error_msg = FlextCliConstants.OutputLogMessages.CSV_FORMAT_FAILED.format(
-                error=e
+                error=e,
             )
             self.logger.exception(error_msg)
             return FlextResult[str].fail(error_msg)
@@ -977,7 +986,7 @@ class FlextCliOutput(FlextService[FlextTypes.JsonDict]):
         return (
             self._prepare_table_data_safe(data, headers)
             .flat_map(
-                lambda prepared: self._create_table_string(prepared[0], prepared[1])
+                lambda prepared: self._create_table_string(prepared[0], prepared[1]),
             )
             .map(lambda table: self._add_title(table, title))
         )
@@ -994,7 +1003,7 @@ class FlextCliOutput(FlextService[FlextTypes.JsonDict]):
             return self._prepare_table_data(data, headers)
         except Exception as e:
             error_msg = FlextCliConstants.OutputLogMessages.TABLE_FORMAT_FAILED.format(
-                error=e
+                error=e,
             )
             self.logger.exception(error_msg)
             return FlextResult[
@@ -1011,7 +1020,8 @@ class FlextCliOutput(FlextService[FlextTypes.JsonDict]):
         """Prepare and validate table data and headers."""
         if FlextRuntime.is_dict_like(data):
             return self._prepare_dict_data(
-                typing.cast("dict[str, FlextTypes.JsonValue]", data), headers
+                typing.cast("dict[str, FlextTypes.JsonValue]", data),
+                headers,
             )
         if FlextRuntime.is_list_like(data):
             return self._prepare_list_data(
@@ -1023,7 +1033,9 @@ class FlextCliOutput(FlextService[FlextTypes.JsonDict]):
         ].fail(FlextCliConstants.ErrorMessages.TABLE_FORMAT_REQUIRED_DICT)
 
     def _prepare_dict_data(
-        self, data: dict[str, FlextTypes.JsonValue], headers: list[str] | None
+        self,
+        data: dict[str, FlextTypes.JsonValue],
+        headers: list[str] | None,
     ) -> FlextResult[tuple[list[dict[str, FlextTypes.JsonValue]], str | list[str]]]:
         """Prepare dict data for table display."""
         # Reject test invalid key
@@ -1092,13 +1104,13 @@ class FlextCliOutput(FlextService[FlextTypes.JsonDict]):
 
             if table_result.is_failure:
                 return FlextResult[str].fail(
-                    f"Failed to create table: {table_result.error}"
+                    f"Failed to create table: {table_result.error}",
                 )
 
             return table_result
         except Exception as e:
             error_msg = FlextCliConstants.OutputLogMessages.TABLE_FORMAT_FAILED.format(
-                error=e
+                error=e,
             )
             self.logger.exception(error_msg)
             return FlextResult[str].fail(error_msg)
@@ -1154,11 +1166,14 @@ class FlextCliOutput(FlextService[FlextTypes.JsonDict]):
 
         # Render to string using formatters
         return self._formatters.render_tree_to_string(
-            tree, width=FlextCliConstants.CliDefaults.DEFAULT_MAX_WIDTH
+            tree,
+            width=FlextCliConstants.CliDefaults.DEFAULT_MAX_WIDTH,
         )
 
     def _build_tree(
-        self, tree: FlextCliTypes.Display.RichTree, data: FlextTypes.JsonValue
+        self,
+        tree: FlextCliTypes.Display.RichTree,
+        data: FlextTypes.JsonValue,
     ) -> None:
         """Build tree recursively (helper for format_as_tree).
 
@@ -1175,7 +1190,7 @@ class FlextCliOutput(FlextService[FlextTypes.JsonDict]):
                     self._build_tree(branch, value)
                 elif FlextRuntime.is_list_like(value):
                     branch = tree.add(
-                        f"{key}{FlextCliConstants.OutputDefaults.TREE_BRANCH_LIST_SUFFIX}"
+                        f"{key}{FlextCliConstants.OutputDefaults.TREE_BRANCH_LIST_SUFFIX}",
                     )
                     for item in value:
                         # Type cast: item from list[JsonValue] is a valid JsonValue
@@ -1183,7 +1198,7 @@ class FlextCliOutput(FlextService[FlextTypes.JsonDict]):
                         self._build_tree(branch, json_item)
                 else:
                     tree.add(
-                        f"{key}{FlextCliConstants.OutputDefaults.TREE_VALUE_SEPARATOR}{value}"
+                        f"{key}{FlextCliConstants.OutputDefaults.TREE_VALUE_SEPARATOR}{value}",
                     )
         elif FlextRuntime.is_list_like(data):
             for item in data:

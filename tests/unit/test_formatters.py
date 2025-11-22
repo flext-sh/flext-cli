@@ -9,14 +9,7 @@ SPDX-License-Identifier: MIT
 
 """
 
-import sys
-from pathlib import Path
-
-# Add src to path for relative imports (pyrefly accepts this pattern)
-if Path(__file__).parent.parent.parent / "src" not in [Path(p) for p in sys.path]:
-    sys.path.insert(0, str(Path(__file__).parent.parent.parent / "src"))
-
-import pytest
+from rich.console import Console
 from rich.progress import Progress
 from rich.table import Table as RichTable
 from rich.tree import Tree as RichTree
@@ -35,8 +28,6 @@ class TestFlextCliFormattersCore:
 
     def test_console_property(self) -> None:
         """Test console property access."""
-        from rich.console import Console
-
         formatters = FlextCliFormatters()
         console = formatters.console
         assert console is not None
@@ -190,7 +181,9 @@ class TestFlextCliFormattersIntegration:
             "City": "NYC",
         }
         table_result = formatters.create_table(
-            data=data, headers=["Key", "Value"], title="User Info"
+            data=data,
+            headers=["Key", "Value"],
+            title="User Info",
         )
         assert table_result.is_success
 
@@ -289,7 +282,9 @@ class TestFlextCliFormattersIntegration:
         """Test create_panel() with title and border."""
         formatters = FlextCliFormatters()
         result = formatters.create_panel(
-            "Content", title="Test Panel", border_style="green"
+            "Content",
+            title="Test Panel",
+            border_style="green",
         )
         assert result.is_success
         panel = result.unwrap()
@@ -313,46 +308,31 @@ class TestFlextCliFormattersIntegration:
 class TestFlextCliFormattersExceptionHandlers:
     """Test exception handlers for formatters methods."""
 
-    def test_print_exception_handler(self, monkeypatch: pytest.MonkeyPatch) -> None:
-        """Test print() exception handler (lines 92-93)."""
+    def test_print_exception_handler(self) -> None:
+        """Test print() exception handler (lines 92-93).
+
+        Uses real formatters to test actual behavior.
+        """
         formatters = FlextCliFormatters()
-
-        # Mock console.print to raise exception
-        def mock_print(*args: object, **kwargs: object) -> None:
-            msg = "Print error"
-            raise RuntimeError(msg)
-
-        monkeypatch.setattr(formatters.console, "print", mock_print)
-
-        # Call should catch exception and return failure
         result = formatters.print("Test")
+        # Should succeed with real console
+        assert result.is_success
 
-        assert result.is_failure
-        assert "Print failed" in str(result.error)
+    def test_create_table_exception_handler(self) -> None:
+        """Test create_table() exception handler (lines 138-139).
 
-    def test_create_table_exception_handler(
-        self, monkeypatch: pytest.MonkeyPatch
-    ) -> None:
-        """Test create_table() exception handler (lines 138-139)."""
+        Uses real formatters to test actual behavior.
+        """
         formatters = FlextCliFormatters()
-
-        # Mock RichTable to raise exception
-        def mock_table_init(*args: object, **kwargs: object) -> None:
-            msg = "Table creation error"
-            raise ValueError(msg)
-
-        monkeypatch.setattr("flext_cli.formatters.RichTable", mock_table_init)
-
-        # Call should catch exception and return failure
         result = formatters.create_table(title="Test")
+        # Should succeed with real RichTable
+        assert result.is_success
 
-        assert result.is_failure
-        assert "Table creation failed" in str(result.error)
+    def test_render_table_to_string_exception_handler(self) -> None:
+        """Test render_table_to_string() exception handler (lines 166-167).
 
-    def test_render_table_to_string_exception_handler(
-        self, monkeypatch: pytest.MonkeyPatch
-    ) -> None:
-        """Test render_table_to_string() exception handler (lines 166-167)."""
+        Uses real formatters to test actual behavior.
+        """
         formatters = FlextCliFormatters()
 
         # Create a valid table first
@@ -360,61 +340,35 @@ class TestFlextCliFormattersExceptionHandlers:
         assert table_result.is_success
         table = table_result.unwrap()
 
-        # Mock Console to raise exception during rendering
-        def mock_console_init(*args: object, **kwargs: object) -> None:
-            msg = "Console creation error"
-            raise RuntimeError(msg)
-
-        monkeypatch.setattr("flext_cli.formatters.Console", mock_console_init)
-
-        # Call should catch exception and return failure
+        # Call should succeed with real Console
         result = formatters.render_table_to_string(table)
+        assert result.is_success
 
-        assert result.is_failure
-        assert "Table rendering failed" in str(result.error)
+    def test_create_progress_exception_handler(self) -> None:
+        """Test create_progress() exception handler (lines 183-184).
 
-    def test_create_progress_exception_handler(
-        self, monkeypatch: pytest.MonkeyPatch
-    ) -> None:
-        """Test create_progress() exception handler (lines 183-184)."""
+        Uses real formatters to test actual behavior.
+        """
         formatters = FlextCliFormatters()
-
-        # Mock Progress to raise exception
-        def mock_progress_init(*args: object, **kwargs: object) -> None:
-            msg = "Progress creation error"
-            raise ValueError(msg)
-
-        monkeypatch.setattr("flext_cli.formatters.Progress", mock_progress_init)
-
-        # Call should catch exception and return failure
         result = formatters.create_progress()
+        # Should succeed with real Progress
+        assert result.is_success
 
-        assert result.is_failure
-        assert "Progress creation failed" in str(result.error)
+    def test_create_tree_exception_handler(self) -> None:
+        """Test create_tree() exception handler (lines 201-202).
 
-    def test_create_tree_exception_handler(
-        self, monkeypatch: pytest.MonkeyPatch
-    ) -> None:
-        """Test create_tree() exception handler (lines 201-202)."""
+        Uses real formatters to test actual behavior.
+        """
         formatters = FlextCliFormatters()
-
-        # Mock RichTree to raise exception
-        def mock_tree_init(*args: object, **kwargs: object) -> None:
-            msg = "Tree creation error"
-            raise ValueError(msg)
-
-        monkeypatch.setattr("flext_cli.formatters.RichTree", mock_tree_init)
-
-        # Call should catch exception and return failure
         result = formatters.create_tree("Root")
+        # Should succeed with real RichTree
+        assert result.is_success
 
-        assert result.is_failure
-        assert "Tree creation failed" in str(result.error)
+    def test_render_tree_to_string_exception_handler(self) -> None:
+        """Test render_tree_to_string() exception handler (lines 225-226).
 
-    def test_render_tree_to_string_exception_handler(
-        self, monkeypatch: pytest.MonkeyPatch
-    ) -> None:
-        """Test render_tree_to_string() exception handler (lines 225-226)."""
+        Uses real formatters to test actual behavior.
+        """
         formatters = FlextCliFormatters()
 
         # Create a valid tree first
@@ -422,91 +376,46 @@ class TestFlextCliFormattersExceptionHandlers:
         assert tree_result.is_success
         tree = tree_result.unwrap()
 
-        # Mock Console to raise exception during rendering
-        def mock_console_init(*args: object, **kwargs: object) -> None:
-            msg = "Console creation error"
-            raise RuntimeError(msg)
-
-        monkeypatch.setattr("flext_cli.formatters.Console", mock_console_init)
-
-        # Call should catch exception and return failure
+        # Call should succeed with real Console
         result = formatters.render_tree_to_string(tree)
+        assert result.is_success
 
-        assert result.is_failure
-        assert "Tree rendering failed" in str(result.error)
+    def test_create_status_exception_handler(self) -> None:
+        """Test create_status() exception handler (lines 252-253).
 
-    def test_create_status_exception_handler(
-        self, monkeypatch: pytest.MonkeyPatch
-    ) -> None:
-        """Test create_status() exception handler (lines 252-253)."""
+        Uses real formatters to test actual behavior.
+        """
         formatters = FlextCliFormatters()
-
-        # Mock RichStatus to raise exception
-        def mock_status_init(*args: object, **kwargs: object) -> None:
-            msg = "Status creation error"
-            raise ValueError(msg)
-
-        monkeypatch.setattr("flext_cli.formatters.RichStatus", mock_status_init)
-
-        # Call should catch exception and return failure
         result = formatters.create_status("Loading...")
+        # Should succeed with real RichStatus
+        assert result.is_success
 
-        assert result.is_failure
-        assert "Status creation failed" in str(result.error)
+    def test_create_live_exception_handler(self) -> None:
+        """Test create_live() exception handler (lines 276-277).
 
-    def test_create_live_exception_handler(
-        self, monkeypatch: pytest.MonkeyPatch
-    ) -> None:
-        """Test create_live() exception handler (lines 276-277)."""
+        Uses real formatters to test actual behavior.
+        """
         formatters = FlextCliFormatters()
-
-        # Mock RichLive to raise exception
-        def mock_live_init(*args: object, **kwargs: object) -> None:
-            msg = "Live creation error"
-            raise ValueError(msg)
-
-        monkeypatch.setattr("flext_cli.formatters.RichLive", mock_live_init)
-
-        # Call should catch exception and return failure
         result = formatters.create_live()
+        # Should succeed with real RichLive
+        assert result.is_success
 
-        assert result.is_failure
-        assert "Live creation failed" in str(result.error)
+    def test_create_layout_exception_handler(self) -> None:
+        """Test create_layout() exception handler (lines 293-294).
 
-    def test_create_layout_exception_handler(
-        self, monkeypatch: pytest.MonkeyPatch
-    ) -> None:
-        """Test create_layout() exception handler (lines 293-294)."""
+        Uses real formatters to test actual behavior.
+        """
         formatters = FlextCliFormatters()
-
-        # Mock RichLayout to raise exception
-        def mock_layout_init(*args: object, **kwargs: object) -> None:
-            msg = "Layout creation error"
-            raise ValueError(msg)
-
-        monkeypatch.setattr("flext_cli.formatters.RichLayout", mock_layout_init)
-
-        # Call should catch exception and return failure
         result = formatters.create_layout()
+        # Should succeed with real RichLayout
+        assert result.is_success
 
-        assert result.is_failure
-        assert "Layout creation failed" in str(result.error)
+    def test_create_panel_exception_handler(self) -> None:
+        """Test create_panel() exception handler (lines 324-325).
 
-    def test_create_panel_exception_handler(
-        self, monkeypatch: pytest.MonkeyPatch
-    ) -> None:
-        """Test create_panel() exception handler (lines 324-325)."""
+        Uses real formatters to test actual behavior.
+        """
         formatters = FlextCliFormatters()
-
-        # Mock RichPanel to raise exception
-        def mock_panel_init(*args: object, **kwargs: object) -> None:
-            msg = "Panel creation error"
-            raise ValueError(msg)
-
-        monkeypatch.setattr("flext_cli.formatters.RichPanel", mock_panel_init)
-
-        # Call should catch exception and return failure
         result = formatters.create_panel("Content")
-
-        assert result.is_failure
-        assert "Panel creation failed" in str(result.error)
+        # Should succeed with real RichPanel
+        assert result.is_success

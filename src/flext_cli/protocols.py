@@ -289,7 +289,8 @@ class FlextCliProtocols(FlextProtocols):
             version: str
 
             def initialize(
-                self, cli_context: FlextTypes.JsonValue
+                self,
+                cli_context: FlextTypes.JsonValue,
             ) -> FlextResult[bool]:
                 """Initialize plugin with CLI context.
 
@@ -301,7 +302,8 @@ class FlextCliProtocols(FlextProtocols):
                 ...
 
             def register_commands(
-                self, cli_context: FlextTypes.JsonValue
+                self,
+                cli_context: FlextTypes.JsonValue,
             ) -> FlextResult[bool]:
                 """Register plugin commands with CLI.
 

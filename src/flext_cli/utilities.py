@@ -106,8 +106,8 @@ class FlextCliUtilities:
             if not isinstance(field_value, str):
                 return FlextResult[bool].fail(
                     FlextCliConstants.MixinsValidationMessages.FIELD_CANNOT_BE_EMPTY.format(
-                        field_name=field_display_name
-                    )
+                        field_name=field_display_name,
+                    ),
                 )
             try:
                 # validate_required_string returns str or raises ValueError
@@ -150,7 +150,7 @@ class FlextCliUtilities:
                     FlextCliConstants.MixinsValidationMessages.INVALID_ENUM_VALUE.format(
                         field_name=field_name,
                         valid_values=valid_values,
-                    )
+                    ),
                 )
             # Use FlextUtilities.Validation.validate_choice
             result = FlextUtilities.Validation.validate_choice(
@@ -233,7 +233,8 @@ class FlextCliUtilities:
 
         @staticmethod
         def validate_string_not_empty(
-            value: object, error_message: str
+            value: object,
+            error_message: str,
         ) -> FlextResult[bool]:
             """Validate that a value is a non-empty string.
 
@@ -299,10 +300,11 @@ class FlextCliUtilities:
             """
             # Validate environment variables explicitly - no fallback
             pytest_test = os.environ.get(
-                FlextCliConstants.EnvironmentConstants.PYTEST_CURRENT_TEST
+                FlextCliConstants.EnvironmentConstants.PYTEST_CURRENT_TEST,
             )
             underscore_value = os.environ.get(
-                FlextCliConstants.EnvironmentConstants.UNDERSCORE, ""
+                FlextCliConstants.EnvironmentConstants.UNDERSCORE,
+                "",
             )
             ci_value = os.environ.get(FlextCliConstants.EnvironmentConstants.CI)
             return (
@@ -385,12 +387,12 @@ class FlextCliUtilities:
             if flext_dir.exists():
                 results.append(
                     FlextCliConstants.Symbols.SUCCESS_MARK
-                    + FlextCliConstants.CmdMessages.CONFIG_DIR_EXISTS
+                    + FlextCliConstants.CmdMessages.CONFIG_DIR_EXISTS,
                 )
             else:
                 results.append(
                     FlextCliConstants.Symbols.FAILURE_MARK
-                    + FlextCliConstants.CmdMessages.CONFIG_DIR_MISSING
+                    + FlextCliConstants.CmdMessages.CONFIG_DIR_MISSING,
                 )
 
             # Check subdirectories using constants
@@ -399,14 +401,16 @@ class FlextCliUtilities:
                 if path.exists():
                     results.append(
                         FlextCliConstants.CmdMessages.SUBDIR_EXISTS.format(
-                            symbol=FlextCliConstants.Symbols.SUCCESS_MARK, subdir=subdir
-                        )
+                            symbol=FlextCliConstants.Symbols.SUCCESS_MARK,
+                            subdir=subdir,
+                        ),
                     )
                 else:
                     results.append(
                         FlextCliConstants.CmdMessages.SUBDIR_MISSING.format(
-                            symbol=FlextCliConstants.Symbols.FAILURE_MARK, subdir=subdir
-                        )
+                            symbol=FlextCliConstants.Symbols.FAILURE_MARK,
+                            subdir=subdir,
+                        ),
                     )
 
             return results
@@ -566,7 +570,8 @@ class FlextCliUtilities:
                     # Reconstruct the generic type with normalized args
                     # Skip ParamSpec and other special forms that don't support indexing
                     if hasattr(annotation, "__class_getitem__") and hasattr(
-                        origin, "__getitem__"
+                        origin,
+                        "__getitem__",
                     ):
                         try:
                             reconstructed: type | types.UnionType = origin[
@@ -619,7 +624,7 @@ class FlextCliUtilities:
             # If only one non-None type without None, use that type directly
             if not has_none and len(non_none_args) == 1:
                 return FlextCliUtilities.TypeNormalizer.normalize_annotation(
-                    non_none_args[0]
+                    non_none_args[0],
                 )
 
             # If multiple types, recursively normalize and combine
@@ -628,7 +633,7 @@ class FlextCliUtilities:
                 normalized_non_none_list = []
                 for arg in non_none_args:
                     normalized = FlextCliUtilities.TypeNormalizer.normalize_annotation(
-                        arg
+                        arg,
                     )
                     if normalized is not None:
                         normalized_non_none_list.append(normalized)
@@ -638,7 +643,8 @@ class FlextCliUtilities:
 
                 # Combine using helper function
                 return FlextCliUtilities.TypeNormalizer.combine_types_with_union(
-                    normalized_non_none_list, include_none=has_none
+                    normalized_non_none_list,
+                    include_none=has_none,
                 )
 
             # Edge case: only None (shouldn't happen normally)
@@ -646,7 +652,9 @@ class FlextCliUtilities:
 
         @staticmethod
         def combine_types_with_union(
-            types_list: list[type | types.UnionType], *, include_none: bool = False
+            types_list: list[type | types.UnionType],
+            *,
+            include_none: bool = False,
         ) -> type | types.UnionType:
             """Combine multiple types using pipe operator to create Union.
 

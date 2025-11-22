@@ -60,7 +60,7 @@ class FlextCliDebug(FlextService[str]):
 
         """
         return FlextResult[str].ok(
-            FlextCliConstants.ServiceMessages.FLEXT_CLI_DEBUG_OPERATIONAL
+            FlextCliConstants.ServiceMessages.FLEXT_CLI_DEBUG_OPERATIONAL,
         )
 
     def get_environment_variables(
@@ -74,11 +74,11 @@ class FlextCliDebug(FlextService[str]):
             for key, value in env_info.variables.items():
                 typed_env_info[key] = value  # value is str, which is JsonValue
             return FlextResult[FlextCliTypes.Data.CliDataDict].ok(typed_env_info)
-        except Exception as e:
+        except Exception as e:  # pragma: no cover - Defensive: Catches unexpected errors during environment info retrieval
             return FlextResult[FlextCliTypes.Data.CliDataDict].fail(
                 FlextCliConstants.DebugErrorMessages.ENVIRONMENT_INFO_FAILED.format(
-                    error=e
-                )
+                    error=e,
+                ),
             )
 
     def validate_environment_setup(
@@ -88,11 +88,11 @@ class FlextCliDebug(FlextService[str]):
         try:
             results = self._validate_filesystem_permissions()
             return FlextResult[list[str]].ok(results)
-        except Exception as e:
+        except Exception as e:  # pragma: no cover - Defensive: Catches unexpected errors during environment validation
             return FlextResult[list[str]].fail(
                 FlextCliConstants.DebugErrorMessages.ENVIRONMENT_VALIDATION_FAILED.format(
-                    error=e
-                )
+                    error=e,
+                ),
             )
 
     def test_connectivity(
@@ -110,8 +110,8 @@ class FlextCliDebug(FlextService[str]):
         except Exception as e:
             return FlextResult[dict[str, str]].fail(
                 FlextCliConstants.DebugErrorMessages.CONNECTIVITY_TEST_FAILED.format(
-                    error=e
-                )
+                    error=e,
+                ),
             )
 
     def execute_health_check(self) -> FlextResult[Types.Data.DebugInfoData]:
@@ -127,7 +127,9 @@ class FlextCliDebug(FlextService[str]):
             return FlextResult[Types.Data.DebugInfoData].ok(health_info)
         except Exception as e:
             return FlextResult[Types.Data.DebugInfoData].fail(
-                FlextCliConstants.DebugErrorMessages.HEALTH_CHECK_FAILED.format(error=e)
+                FlextCliConstants.DebugErrorMessages.HEALTH_CHECK_FAILED.format(
+                    error=e,
+                ),
             )
 
     def execute_trace(self, args: list[str]) -> FlextResult[Types.Data.DebugInfoData]:
@@ -136,7 +138,7 @@ class FlextCliDebug(FlextService[str]):
             trace_info: Types.Data.DebugInfoData = {
                 FlextCliConstants.DebugDictKeys.OPERATION: FlextCliConstants.TRACE,
                 FlextCliConstants.DictKeys.ARGS: list(
-                    args
+                    args,
                 ),  # Cast to list for JsonValue compatibility
                 FlextCliConstants.DebugDictKeys.ARGS_COUNT: len(args),
                 FlextCliConstants.DictKeys.TIMESTAMP: FlextUtilities.Generators.generate_iso_timestamp(),
@@ -146,8 +148,8 @@ class FlextCliDebug(FlextService[str]):
         except Exception as e:
             return FlextResult[Types.Data.DebugInfoData].fail(
                 FlextCliConstants.DebugErrorMessages.TRACE_EXECUTION_FAILED.format(
-                    error=e
-                )
+                    error=e,
+                ),
             )
 
     def get_debug_info(self) -> FlextResult[Types.Data.DebugInfoData]:
@@ -165,7 +167,7 @@ class FlextCliDebug(FlextService[str]):
                 FlextCliConstants.DictKeys.TIMESTAMP: FlextUtilities.Generators.generate_iso_timestamp(),
                 FlextCliConstants.DebugDictKeys.DEBUG_ID: FlextUtilities.Generators.generate_uuid(),
                 FlextCliConstants.DebugDictKeys.SYSTEM_INFO: FlextMixins.ModelConversion.to_dict(
-                    system_info_model
+                    system_info_model,
                 ),
                 FlextCliConstants.DebugDictKeys.ENVIRONMENT_STATUS: FlextCliConstants.ServiceStatus.OPERATIONAL.value,
                 FlextCliConstants.DebugDictKeys.CONNECTIVITY_STATUS: FlextCliConstants.ServiceStatus.CONNECTED.value,
@@ -174,8 +176,8 @@ class FlextCliDebug(FlextService[str]):
         except Exception as e:
             return FlextResult[Types.Data.DebugInfoData].fail(
                 FlextCliConstants.DebugErrorMessages.DEBUG_INFO_COLLECTION_FAILED.format(
-                    error=e
-                )
+                    error=e,
+                ),
             )
 
     def get_system_info(self) -> FlextResult[FlextCliTypes.Data.CliDataDict]:
@@ -196,8 +198,8 @@ class FlextCliDebug(FlextService[str]):
         except Exception as e:
             return FlextResult[FlextCliTypes.Data.CliDataDict].fail(
                 FlextCliConstants.DebugErrorMessages.SYSTEM_INFO_COLLECTION_FAILED.format(
-                    error=e
-                )
+                    error=e,
+                ),
             )
 
     def get_system_paths(self) -> FlextResult[FlextCliTypes.Data.CliDataDict]:
@@ -222,14 +224,14 @@ class FlextCliDebug(FlextService[str]):
             # serialized_paths is list[dict[str, object]] which is compatible with JsonValue
             # list is a valid JsonValue type, cast to ensure type compatibility
             paths_dict: FlextCliTypes.Data.CliDataDict = {
-                "paths": typing.cast("FlextTypes.JsonValue", serialized_paths)
+                "paths": typing.cast("FlextTypes.JsonValue", serialized_paths),
             }
             return FlextResult[FlextCliTypes.Data.CliDataDict].ok(paths_dict)
         except Exception as e:
             return FlextResult[FlextCliTypes.Data.CliDataDict].fail(
                 FlextCliConstants.DebugErrorMessages.SYSTEM_PATHS_COLLECTION_FAILED.format(
-                    error=e
-                )
+                    error=e,
+                ),
             )
 
     def get_comprehensive_debug_info(
@@ -268,7 +270,8 @@ class FlextCliDebug(FlextService[str]):
             if paths_result.is_success:
                 # Type cast: CliDataDict is dict[str, JsonValue] which is compatible with JsonValue
                 comprehensive_info[FlextCliConstants.DebugDictKeys.PATHS] = typing.cast(
-                    "FlextTypes.JsonValue", paths_result.value
+                    "FlextTypes.JsonValue",
+                    paths_result.value,
                 )
             else:
                 comprehensive_info[FlextCliConstants.DebugDictKeys.PATHS_ERROR] = (
@@ -280,7 +283,8 @@ class FlextCliDebug(FlextService[str]):
             if debug_result.is_success:
                 # Type cast: DebugInfoData is dict[str, JsonValue] which is compatible with JsonValue
                 comprehensive_info[FlextCliConstants.DebugDictKeys.DEBUG] = typing.cast(
-                    "FlextTypes.JsonValue", debug_result.value
+                    "FlextTypes.JsonValue",
+                    debug_result.value,
                 )
             else:
                 comprehensive_info[FlextCliConstants.DebugDictKeys.DEBUG_ERROR] = (
@@ -293,8 +297,8 @@ class FlextCliDebug(FlextService[str]):
         except Exception as e:
             return FlextResult[Types.Data.DebugInfoData].fail(
                 FlextCliConstants.DebugErrorMessages.COMPREHENSIVE_DEBUG_INFO_FAILED.format(
-                    error=e
-                )
+                    error=e,
+                ),
             )
 
     # =========================================================================
@@ -368,7 +372,7 @@ class FlextCliDebug(FlextService[str]):
                     path=path,
                     exists=path_obj.exists(),
                     is_dir=path_obj.is_dir() if path_obj.exists() else False,
-                )
+                ),
             )
 
         return paths
@@ -388,22 +392,23 @@ class FlextCliDebug(FlextService[str]):
             test_file = current_dir / "test_write.tmp"
             try:
                 with pathlib.Path(test_file).open(
-                    "w", encoding=FlextCliConstants.Encoding.UTF8
+                    "w",
+                    encoding=FlextCliConstants.Encoding.UTF8,
                 ) as f:
                     f.write("test")
                 pathlib.Path(test_file).unlink()
             except OSError as e:
                 errors.append(
                     FlextCliConstants.ErrorMessages.CANNOT_WRITE_CURRENT_DIR.format(
-                        error=e
-                    )
+                        error=e,
+                    ),
                 )
 
         except Exception as e:
             errors.append(
                 FlextCliConstants.ErrorMessages.FILESYSTEM_VALIDATION_FAILED.format(
-                    error=e
-                )
+                    error=e,
+                ),
             )
 
         return errors

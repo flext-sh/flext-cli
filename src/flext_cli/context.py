@@ -129,7 +129,7 @@ class FlextCliContext(FlextService[FlextCliTypes.Data.CliDataDict]):
         try:
             if self.is_active:
                 return FlextResult[bool].fail(
-                    FlextCliConstants.ContextErrorMessages.CONTEXT_ALREADY_ACTIVE
+                    FlextCliConstants.ContextErrorMessages.CONTEXT_ALREADY_ACTIVE,
                 )
 
             self.is_active = True
@@ -137,8 +137,8 @@ class FlextCliContext(FlextService[FlextCliTypes.Data.CliDataDict]):
         except Exception as e:  # pragma: no cover
             return FlextResult[bool].fail(
                 FlextCliConstants.ContextErrorMessages.CONTEXT_ACTIVATION_FAILED.format(
-                    error=e
-                )
+                    error=e,
+                ),
             )
 
     def deactivate(self) -> FlextResult[bool]:
@@ -151,7 +151,7 @@ class FlextCliContext(FlextService[FlextCliTypes.Data.CliDataDict]):
         try:
             if not self.is_active:
                 return FlextResult[bool].fail(
-                    FlextCliConstants.ContextErrorMessages.CONTEXT_NOT_CURRENTLY_ACTIVE
+                    FlextCliConstants.ContextErrorMessages.CONTEXT_NOT_CURRENTLY_ACTIVE,
                 )
 
             self.is_active = False
@@ -159,8 +159,8 @@ class FlextCliContext(FlextService[FlextCliTypes.Data.CliDataDict]):
         except Exception as e:  # pragma: no cover
             return FlextResult[bool].fail(
                 FlextCliConstants.ContextErrorMessages.CONTEXT_DEACTIVATION_FAILED.format(
-                    error=e
-                )
+                    error=e,
+                ),
             )
 
     def get_environment_variable(self, name: str) -> FlextResult[str]:
@@ -173,13 +173,13 @@ class FlextCliContext(FlextService[FlextCliTypes.Data.CliDataDict]):
             )
         except ValueError as e:
             return FlextResult[str].fail(
-                str(e) or "Environment variable validation failed"
+                str(e) or "Environment variable validation failed",
             )
 
         # Fast-fail if environment_variables is None
         if self.environment_variables is None:
             return FlextResult[str].fail(
-                FlextCliConstants.ContextErrorMessages.ENV_VARS_NOT_INITIALIZED
+                FlextCliConstants.ContextErrorMessages.ENV_VARS_NOT_INITIALIZED,
             )
 
         try:
@@ -188,14 +188,14 @@ class FlextCliContext(FlextService[FlextCliTypes.Data.CliDataDict]):
                 return FlextResult[str].ok(str(value))
             return FlextResult[str].fail(
                 FlextCliConstants.ContextErrorMessages.ENV_VAR_NOT_FOUND.format(
-                    name=name
-                )
+                    name=name,
+                ),
             )
         except Exception as e:  # pragma: no cover
             return FlextResult[str].fail(
                 FlextCliConstants.ContextErrorMessages.ENV_VAR_RETRIEVAL_FAILED.format(
-                    error=e
-                )
+                    error=e,
+                ),
             )
 
     def set_environment_variable(self, name: str, value: str) -> FlextResult[bool]:
@@ -213,18 +213,18 @@ class FlextCliContext(FlextService[FlextCliTypes.Data.CliDataDict]):
             )
         except ValueError as e:
             return FlextResult[bool].fail(
-                str(e) or "Environment variable setting failed"
+                str(e) or "Environment variable setting failed",
             )
 
         if not isinstance(value, str):
             return FlextResult[bool].fail(
-                FlextCliConstants.ContextErrorMessages.VARIABLE_VALUE_MUST_BE_STRING
+                FlextCliConstants.ContextErrorMessages.VARIABLE_VALUE_MUST_BE_STRING,
             )
 
         # Fast-fail if environment_variables is None
         if self.environment_variables is None:
             return FlextResult[bool].fail(
-                FlextCliConstants.ContextErrorMessages.ENV_VARS_NOT_INITIALIZED
+                FlextCliConstants.ContextErrorMessages.ENV_VARS_NOT_INITIALIZED,
             )
 
         try:
@@ -233,8 +233,8 @@ class FlextCliContext(FlextService[FlextCliTypes.Data.CliDataDict]):
         except Exception as e:  # pragma: no cover
             return FlextResult[bool].fail(
                 FlextCliConstants.ContextErrorMessages.ENV_VAR_SETTING_FAILED.format(
-                    error=e
-                )
+                    error=e,
+                ),
             )
 
     def add_argument(self, argument: str) -> FlextResult[bool]:
@@ -256,7 +256,7 @@ class FlextCliContext(FlextService[FlextCliTypes.Data.CliDataDict]):
         # Fast-fail if arguments is None
         if self.arguments is None:
             return FlextResult[bool].fail(
-                FlextCliConstants.ContextErrorMessages.ARGUMENTS_NOT_INITIALIZED
+                FlextCliConstants.ContextErrorMessages.ARGUMENTS_NOT_INITIALIZED,
             )
 
         try:
@@ -265,8 +265,8 @@ class FlextCliContext(FlextService[FlextCliTypes.Data.CliDataDict]):
         except Exception as e:  # pragma: no cover
             return FlextResult[bool].fail(
                 FlextCliConstants.ContextErrorMessages.ARGUMENT_ADDITION_FAILED.format(
-                    error=e
-                )
+                    error=e,
+                ),
             )
 
     def remove_argument(self, argument: str) -> FlextResult[bool]:
@@ -288,7 +288,7 @@ class FlextCliContext(FlextService[FlextCliTypes.Data.CliDataDict]):
         # Fast-fail if arguments is None
         if self.arguments is None:
             return FlextResult[bool].fail(
-                FlextCliConstants.ContextErrorMessages.ARGUMENTS_NOT_INITIALIZED
+                FlextCliConstants.ContextErrorMessages.ARGUMENTS_NOT_INITIALIZED,
             )
 
         try:
@@ -297,14 +297,14 @@ class FlextCliContext(FlextService[FlextCliTypes.Data.CliDataDict]):
                 return FlextResult[bool].ok(True)
             return FlextResult[bool].fail(
                 FlextCliConstants.ContextErrorMessages.ARGUMENT_NOT_FOUND.format(
-                    argument=argument
-                )
+                    argument=argument,
+                ),
             )
         except Exception as e:  # pragma: no cover
             return FlextResult[bool].fail(
                 FlextCliConstants.ContextErrorMessages.ARGUMENT_REMOVAL_FAILED.format(
-                    error=e
-                )
+                    error=e,
+                ),
             )
 
     def set_metadata(self, key: str, value: FlextTypes.JsonValue) -> FlextResult[bool]:
@@ -329,8 +329,8 @@ class FlextCliContext(FlextService[FlextCliTypes.Data.CliDataDict]):
         except Exception as e:  # pragma: no cover
             return FlextResult[bool].fail(
                 FlextCliConstants.ContextErrorMessages.METADATA_SETTING_FAILED.format(
-                    error=e
-                )
+                    error=e,
+                ),
             )
 
     def get_metadata(self, key: str) -> FlextResult[FlextTypes.JsonValue]:
@@ -343,7 +343,7 @@ class FlextCliContext(FlextService[FlextCliTypes.Data.CliDataDict]):
             )
         except ValueError as e:
             return FlextResult[FlextTypes.JsonValue].fail(
-                str(e) or "Metadata validation failed"
+                str(e) or "Metadata validation failed",
             )
 
         try:
@@ -351,14 +351,14 @@ class FlextCliContext(FlextService[FlextCliTypes.Data.CliDataDict]):
                 return FlextResult[FlextTypes.JsonValue].ok(self.context_metadata[key])
             return FlextResult[FlextTypes.JsonValue].fail(
                 FlextCliConstants.ContextErrorMessages.METADATA_KEY_NOT_FOUND.format(
-                    key=key
-                )
+                    key=key,
+                ),
             )
         except Exception as e:  # pragma: no cover
             return FlextResult[FlextTypes.JsonValue].fail(
                 FlextCliConstants.ContextErrorMessages.METADATA_RETRIEVAL_FAILED.format(
-                    error=e
-                )
+                    error=e,
+                ),
             )
 
     def get_context_summary(
@@ -383,16 +383,16 @@ class FlextCliContext(FlextService[FlextCliTypes.Data.CliDataDict]):
                 FlextCliConstants.ContextDictKeys.ARGUMENTS_COUNT: len(arguments_list),
                 FlextCliConstants.ContextDictKeys.ARGUMENTS: list(arguments_list),
                 FlextCliConstants.ContextDictKeys.ENVIRONMENT_VARIABLES_COUNT: len(
-                    env_vars_dict
+                    env_vars_dict,
                 ),
                 FlextCliConstants.ContextDictKeys.WORKING_DIRECTORY: self.working_directory,
                 FlextCliConstants.ContextDictKeys.IS_ACTIVE: self.is_active,
                 FlextCliConstants.ContextDictKeys.CREATED_AT: self.created_at,
                 FlextCliConstants.ContextDictKeys.METADATA_KEYS: list(
-                    self.context_metadata.keys()
+                    self.context_metadata.keys(),
                 ),
                 FlextCliConstants.ContextDictKeys.METADATA_COUNT: len(
-                    self.context_metadata
+                    self.context_metadata,
                 ),
             }
 
@@ -400,7 +400,7 @@ class FlextCliContext(FlextService[FlextCliTypes.Data.CliDataDict]):
         except Exception as e:  # pragma: no cover
             return FlextResult[FlextTypes.JsonDict].fail(
                 FlextCliConstants.ContextErrorMessages.CONTEXT_SUMMARY_GENERATION_FAILED.format(
-                    error=e
+                    error=e,
                 ),
             )
 
@@ -423,7 +423,7 @@ class FlextCliContext(FlextService[FlextCliTypes.Data.CliDataDict]):
             # Fast-fail if arguments is None - no fallback
             if self.arguments is None:
                 return FlextResult[FlextCliTypes.Data.CliDataDict].fail(
-                    FlextCliConstants.ContextErrorMessages.ARGUMENTS_NOT_INITIALIZED
+                    FlextCliConstants.ContextErrorMessages.ARGUMENTS_NOT_INITIALIZED,
                 )
             arguments_count = len(self.arguments)
             result_model = FlextCliModels.ContextExecutionResult(
@@ -438,13 +438,13 @@ class FlextCliContext(FlextService[FlextCliTypes.Data.CliDataDict]):
                 cast(
                     "FlextCliTypes.Data.CliDataDict",
                     FlextMixins.ModelConversion.to_dict(result_model),
-                )
+                ),
             )
         except Exception as e:  # pragma: no cover
             return FlextResult[FlextCliTypes.Data.CliDataDict].fail(
                 FlextCliConstants.ContextErrorMessages.CONTEXT_EXECUTION_FAILED.format(
-                    error=e
-                )
+                    error=e,
+                ),
             )
 
     def to_dict(self) -> FlextResult[FlextTypes.JsonDict]:
@@ -460,13 +460,13 @@ class FlextCliContext(FlextService[FlextCliTypes.Data.CliDataDict]):
             # Fast-fail if arguments is None - no fallback
             if self.arguments is None:
                 return FlextResult[FlextTypes.JsonDict].fail(
-                    FlextCliConstants.ContextErrorMessages.ARGUMENTS_NOT_INITIALIZED
+                    FlextCliConstants.ContextErrorMessages.ARGUMENTS_NOT_INITIALIZED,
                 )
 
             # Fast-fail if environment_variables is None - no fallback
             if self.environment_variables is None:
                 return FlextResult[FlextTypes.JsonDict].fail(
-                    FlextCliConstants.ContextErrorMessages.ENV_VARS_NOT_INITIALIZED
+                    FlextCliConstants.ContextErrorMessages.ENV_VARS_NOT_INITIALIZED,
                 )
 
             # Cast to JsonDict for type checker (dict with JsonValue values is JsonDict at runtime)
@@ -487,8 +487,8 @@ class FlextCliContext(FlextService[FlextCliTypes.Data.CliDataDict]):
         except Exception as e:
             return FlextResult[FlextTypes.JsonDict].fail(
                 FlextCliConstants.ContextErrorMessages.CONTEXT_SERIALIZATION_FAILED.format(
-                    error=e
-                )
+                    error=e,
+                ),
             )
 
 

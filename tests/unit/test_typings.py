@@ -10,14 +10,6 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-import sys
-from pathlib import Path
-
-# Add src to path for relative imports (pyrefly accepts this pattern)
-if Path(__file__).parent.parent.parent / "src" not in [Path(p) for p in sys.path]:
-    sys.path.insert(0, str(Path(__file__).parent.parent.parent / "src"))
-
-
 import math
 import threading
 import time
@@ -71,7 +63,8 @@ class TestFlextCliTypes:
         assert test_function(test_data) is True
 
     def test_types_service_basic_functionality(
-        self, types_service: FlextCliTypes
+        self,
+        types_service: FlextCliTypes,
     ) -> None:
         """Test types service basic functionality with real type usage."""
         # Test that types can be accessed and used
@@ -207,7 +200,10 @@ class TestFlextCliTypes:
 
         # Define function with type hints
         def typed_function(
-            name: str, age: int, *, active: bool = True
+            name: str,
+            age: int,
+            *,
+            active: bool = True,
         ) -> dict[str, object]:
             return {"name": name, "age": age, "active": active}
 
@@ -309,7 +305,9 @@ class TestFlextCliTypes:
 
         # Test type introspection
         def test_function(
-            param1: str, param2: int, param3: list[str] | None = None
+            param1: str,
+            param2: int,
+            param3: list[str] | None = None,
         ) -> dict[str, object]:
             return {"param1": param1, "param2": param2, "param3": param3}
 
@@ -410,7 +408,8 @@ class TestFlextCliTypes:
         assert isinstance(user_response, dict)
         assert user_response.get("status") == "success"
         data: UserData | list[UserData] | dict[str, object] = user_response.get(
-            "data", {}
+            "data",
+            {},
         )
         assert isinstance(data, dict)
         assert data.get("name") == "John Doe"
@@ -639,7 +638,8 @@ class TestFlextCliTypes:
         # Test performance
         test_list = ["hello", "world", "test"]
         test_dict = cast(
-            "dict[str, object]", {"key1": 123, "key2": "value", "key3": True}
+            "dict[str, object]",
+            {"key1": 123, "key2": "value", "key3": True},
         )
 
         # Initialize variables before loop
@@ -707,7 +707,8 @@ class TestFlextCliTypes:
         threads = []
         for _ in range(5):
             thread = threading.Thread(
-                target=thread_safe_operation, args=(test_data, results)
+                target=thread_safe_operation,
+                args=(test_data, results),
             )
             threads.append(thread)
             thread.start()

@@ -28,14 +28,6 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-import sys
-from pathlib import Path
-
-# Add src to path for relative imports (pyrefly accepts this pattern)
-if Path(__file__).parent.parent / "src" not in [Path(p) for p in sys.path]:
-    sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
-
-
 import tempfile
 from pathlib import Path
 from typing import cast
@@ -88,7 +80,8 @@ def save_config(config: FlextCliTypes.Data.CliDataDict, filepath: str) -> bool:
     """Save YOUR config to JSON with proper error handling."""
     # Cast to JsonValue (dict is part of JsonValue union)
     write_result = cli.file_tools.write_json_file(
-        filepath, cast("dict[str, object]", config)
+        filepath,
+        cast("dict[str, object]", config),
     )
 
     if write_result.is_failure:
@@ -165,7 +158,8 @@ def main() -> None:
     cli.print("\n3. File Operations:", style="bold cyan")
     temp_file = Path(tempfile.gettempdir()) / "my_config.json"
     config: FlextCliTypes.Data.CliDataDict = cast(
-        "FlextCliTypes.Data.CliDataDict", {"app": "my-cli-tool", "version": "1.0.0"}
+        "FlextCliTypes.Data.CliDataDict",
+        {"app": "my-cli-tool", "version": "1.0.0"},
     )
 
     save_config(config, str(temp_file))

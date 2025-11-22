@@ -16,6 +16,7 @@ import shutil
 from pathlib import Path
 from typing import Annotated, Self, cast
 
+import yaml
 from dotenv import load_dotenv
 from flext_core import (
     FlextConfig,
@@ -153,7 +154,8 @@ class FlextCliConfig(FlextConfig.AutoConfig):
     )
 
     cli_api_key: SecretStr | None = Field(
-        default=None, description="API key for authentication (sensitive)"
+        default=None,
+        description="API key for authentication (sensitive)",
     )
 
     token_file: Path = Field(
@@ -215,7 +217,8 @@ class FlextCliConfig(FlextConfig.AutoConfig):
     )
 
     config_file: Path | None = Field(
-        default=None, description="Custom configuration file path"
+        default=None,
+        description="Custom configuration file path",
     )
 
     # Network configuration
@@ -279,7 +282,8 @@ class FlextCliConfig(FlextConfig.AutoConfig):
             except (PermissionError, OSError) as e:
                 error_msg = (
                     FlextCliConstants.ErrorMessages.CANNOT_ACCESS_CONFIG_DIR.format(
-                        config_dir=self.config_dir, error=e
+                        config_dir=self.config_dir,
+                        error=e,
                     )
                 )
                 return FlextResult.fail(error_msg)
@@ -304,7 +308,8 @@ class FlextCliConfig(FlextConfig.AutoConfig):
             except Exception as e:
                 # Log but don't fail - context might not be initialized yet
                 logger.debug(
-                    "Context not available during config initialization: %s", e
+                    "Context not available during config initialization: %s",
+                    e,
                 )
                 return FlextResult[bool].ok(True)  # Graceful degradation
 
@@ -320,7 +325,8 @@ class FlextCliConfig(FlextConfig.AutoConfig):
             except Exception as e:
                 # Container might not be initialized yet - continue gracefully
                 logger.debug(
-                    "Container not available during config initialization: %s", e
+                    "Container not available during config initialization: %s",
+                    e,
                 )
                 return FlextResult[bool].ok(True)  # Graceful degradation
 
@@ -390,15 +396,15 @@ class FlextCliConfig(FlextConfig.AutoConfig):
             detect_interactive_mode()
             .flat_map(
                 lambda interactive: get_terminal_width().map(
-                    lambda width: (interactive, width)
-                )
+                    lambda width: (interactive, width),
+                ),
             )
             .map(
                 lambda capabilities: determine_format(
                     capabilities[0],  # is_interactive
                     capabilities[1],  # width
                     bool(self.auto_color_support),  # has_color
-                )
+                ),
             )
         )
         if result.is_success:
@@ -514,7 +520,9 @@ class FlextCliConfig(FlextConfig.AutoConfig):
             if fmt in FlextCliConstants.OUTPUT_FORMATS_LIST:
                 return FlextResult.ok(fmt)
             return FlextResult.fail(
-                FlextCliConstants.ErrorMessages.INVALID_OUTPUT_FORMAT.format(format=fmt)
+                FlextCliConstants.ErrorMessages.INVALID_OUTPUT_FORMAT.format(
+                    format=fmt,
+                ),
             )
 
         # Railway pattern: validate input then check format
@@ -527,31 +535,31 @@ class FlextCliConfig(FlextConfig.AutoConfig):
             if not config_file.exists():
                 return FlextResult[FlextCliConfig].fail(
                     FlextCliConstants.ErrorMessages.CONFIG_FILE_NOT_FOUND.format(
-                        file=config_file
-                    )
+                        file=config_file,
+                    ),
                 )
 
             # Load based on file extension
             if config_file.suffix.lower() == FlextCliConstants.FileExtensions.JSON:
                 with config_file.open(
-                    "r", encoding=FlextCliConstants.Encoding.UTF8
+                    "r",
+                    encoding=FlextCliConstants.Encoding.UTF8,
                 ) as f:
                     data = json.load(f)
             elif (
                 config_file.suffix.lower()
                 in FlextCliConstants.ConfigValidation.YAML_EXTENSIONS
             ):
-                import yaml
-
                 with config_file.open(
-                    "r", encoding=FlextCliConstants.Encoding.UTF8
+                    "r",
+                    encoding=FlextCliConstants.Encoding.UTF8,
                 ) as f:
                     data = yaml.safe_load(f)
             else:
                 return FlextResult[FlextCliConfig].fail(
                     FlextCliConstants.ErrorMessages.UNSUPPORTED_CONFIG_FORMAT.format(
-                        suffix=config_file.suffix
-                    )
+                        suffix=config_file.suffix,
+                    ),
                 )
 
             # Create config instance directly with loaded data
@@ -561,8 +569,9 @@ class FlextCliConfig(FlextConfig.AutoConfig):
         except Exception as e:
             return FlextResult[FlextCliConfig].fail(
                 FlextCliConstants.ErrorMessages.FAILED_LOAD_CONFIG_FROM_FILE.format(
-                    file=config_file, error=e
-                )
+                    file=config_file,
+                    error=e,
+                ),
             )
 
     def execute_as_service(self) -> FlextResult[FlextCliTypes.Data.CliDataDict]:
@@ -636,11 +645,12 @@ class FlextCliConfig(FlextConfig.AutoConfig):
 
         except Exception as e:
             return FlextResult[bool].fail(
-                FlextCliConstants.ErrorMessages.CLI_ARGS_UPDATE_FAILED.format(error=e)
+                FlextCliConstants.ErrorMessages.CLI_ARGS_UPDATE_FAILED.format(error=e),
             )
 
     def validate_cli_overrides(
-        self, **overrides: FlextTypes.JsonValue
+        self,
+        **overrides: FlextTypes.JsonValue,
     ) -> FlextResult[FlextTypes.JsonDict]:
         """Validate CLI overrides without applying them.
 
@@ -670,8 +680,8 @@ class FlextCliConfig(FlextConfig.AutoConfig):
                 if not hasattr(self, key):
                     errors.append(
                         FlextCliConstants.ErrorMessages.UNKNOWN_CONFIG_FIELD.format(
-                            field=key
-                        )
+                            field=key,
+                        ),
                     )
                     continue
 
@@ -681,21 +691,22 @@ class FlextCliConfig(FlextConfig.AutoConfig):
                     test_config = self.model_copy()
                     setattr(test_config, key, value)
                     _ = test_config.model_validate(
-                        FlextMixins.ModelConversion.to_dict(test_config)
+                        FlextMixins.ModelConversion.to_dict(test_config),
                     )
                     valid_overrides[key] = value
                 except Exception as e:
                     errors.append(
                         FlextCliConstants.ErrorMessages.INVALID_VALUE_FOR_FIELD.format(
-                            field=key, error=e
-                        )
+                            field=key,
+                            error=e,
+                        ),
                     )
 
             if errors:
                 return FlextResult[FlextTypes.JsonDict].fail(
                     FlextCliConstants.ErrorMessages.VALIDATION_ERRORS.format(
-                        errors="; ".join(errors)
-                    )
+                        errors="; ".join(errors),
+                    ),
                 )
 
             return FlextResult[FlextTypes.JsonDict].ok(valid_overrides)
@@ -720,11 +731,12 @@ class FlextCliConfig(FlextConfig.AutoConfig):
             return FlextResult[FlextCliTypes.Data.CliConfigData].ok(config_data)
         except Exception as e:
             return FlextResult[FlextCliTypes.Data.CliConfigData].fail(
-                FlextCliConstants.ErrorMessages.CONFIG_LOAD_FAILED_MSG.format(error=e)
+                FlextCliConstants.ErrorMessages.CONFIG_LOAD_FAILED_MSG.format(error=e),
             )
 
     def save_config(
-        self, config: FlextCliTypes.Data.CliConfigData
+        self,
+        config: FlextCliTypes.Data.CliConfigData,
     ) -> FlextResult[bool]:
         """Save CLI configuration - implements CliConfigProvider protocol.
 
@@ -746,7 +758,7 @@ class FlextCliConfig(FlextConfig.AutoConfig):
             return FlextResult[bool].ok(True)
         except Exception as e:
             return FlextResult[bool].fail(
-                FlextCliConstants.ErrorMessages.CONFIG_SAVE_FAILED_MSG.format(error=e)
+                FlextCliConstants.ErrorMessages.CONFIG_SAVE_FAILED_MSG.format(error=e),
             )
 
 

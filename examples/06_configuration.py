@@ -24,14 +24,6 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-import sys
-from pathlib import Path
-
-# Add src to path for relative imports (pyrefly accepts this pattern)
-if Path(__file__).parent.parent / "src" not in [Path(p) for p in sys.path]:
-    sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
-
-
 import os
 from pathlib import Path
 from typing import cast
@@ -220,12 +212,15 @@ def load_profile_config(profile_name: str = "default") -> FlextCliConfig | None:
         output_format="json" if profile_name == "production" else "table",
     )
 
-    # Validate profile config
-    validate_result = profile_config.validate_business_rules()
-
+    # Validate profile config (Pydantic validation happens automatically on init)
+    # validate_configuration is a model validator, not a callable method
+    validate_result = profile_config.validate_output_format_result(
+        profile_config.output_format
+    )
     if validate_result.is_failure:
         cli.print(
-            f"❌ Profile validation failed: {validate_result.error}", style="bold red"
+            f"❌ Profile validation failed: {validate_result.error}",
+            style="bold red",
         )
         return None
 
@@ -296,14 +291,15 @@ def validate_app_config() -> bool:
     # Step 1: Validate base config
     cli.print("\n1. Validating base configuration...", style="cyan")
     config = cli.config
-    validate_result = config.validate_business_rules()
-
+    # validate_configuration is a model validator, not a callable method
+    # Pydantic validation happens automatically, but we can validate output format
+    validate_result = config.validate_output_format_result(config.output_format)
     if validate_result.is_failure:
         cli.print(
-            f"   ❌ Base config invalid: {validate_result.error}", style="bold red"
+            f"   ❌ Base config invalid: {validate_result.error}",
+            style="bold red",
         )
         return False
-
     cli.print("   ✅ Base config valid", style="green")
 
     # Step 2: Validate custom settings

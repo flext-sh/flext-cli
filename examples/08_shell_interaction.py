@@ -30,14 +30,6 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-import sys
-from pathlib import Path
-
-# Add src to path for relative imports (pyrefly accepts this pattern)
-if Path(__file__).parent.parent / "src" not in [Path(p) for p in sys.path]:
-    sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
-
-
 import os
 import time
 from typing import cast
@@ -80,7 +72,8 @@ def handle_list_command(
     if filter_text:
         filtered = [item for item in items if filter_text in item]
         cli.formatters.print(
-            f"📋 Found {len(filtered)} items matching '{filter_text}'", style="cyan"
+            f"📋 Found {len(filtered)} items matching '{filter_text}'",
+            style="cyan",
         )
         # Cast to expected type (runtime type is compatible)
         return FlextResult[list[str]].ok(filtered)
@@ -221,7 +214,8 @@ def main() -> None:
 
     # Example 1: Command handlers
     cli.formatters.print(
-        "\n1. Command Handlers (status, list, config):", style="bold cyan"
+        "\n1. Command Handlers (status, list, config):",
+        style="bold cyan",
     )
     handle_status_command()
     handle_list_command(filter_text="test")
@@ -229,7 +223,8 @@ def main() -> None:
 
     # Example 2: Interactive shell
     cli.formatters.print(
-        "\n2. Interactive Shell (command dispatcher):", style="bold cyan"
+        "\n2. Interactive Shell (command dispatcher):",
+        style="bold cyan",
     )
     shell = InteractiveShell()
     shell.show_help()
@@ -243,7 +238,8 @@ def main() -> None:
 
     # Example 3: Multi-line input
     cli.formatters.print(
-        "\n3. Multi-Line Input (combined processing):", style="bold cyan"
+        "\n3. Multi-Line Input (combined processing):",
+        style="bold cyan",
     )
     lines = ["SELECT * FROM users", "WHERE active = true", "ORDER BY created_at DESC"]
     handle_multiline_input(lines)
@@ -263,14 +259,17 @@ def main() -> None:
     # Integration guide
     cli.formatters.print("\n💡 Integration Tips:", style="bold cyan")
     cli.formatters.print(
-        "  • Create command handlers with FlextResult returns", style="white"
+        "  • Create command handlers with FlextResult returns",
+        style="white",
     )
     cli.formatters.print(
-        "  • Build command dispatcher to route user input", style="white"
+        "  • Build command dispatcher to route user input",
+        style="white",
     )
     cli.formatters.print("  • Add command history for better UX", style="white")
     cli.formatters.print(
-        "  • Support multi-line input for complex commands", style="white"
+        "  • Support multi-line input for complex commands",
+        style="white",
     )
 
 
