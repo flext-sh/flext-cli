@@ -54,7 +54,9 @@ class FlextCliMixins(FlextMixins):
 
         @staticmethod
         def validate_command_execution_state(
-            current_status: str, required_status: str, operation: str
+            current_status: str,
+            required_status: str,
+            operation: str,
         ) -> FlextResult[bool]:
             """Validate command execution state for operations.
 
@@ -73,13 +75,14 @@ class FlextCliMixins(FlextMixins):
                         operation=operation,
                         current_status=current_status,
                         required_status=required_status,
-                    )
+                    ),
                 )
             return FlextResult[bool].ok(True)
 
         @staticmethod
         def validate_session_state(
-            current_status: str, valid_states: list[str]
+            current_status: str,
+            valid_states: list[str],
         ) -> FlextResult[bool]:
             """Validate session state.
 
@@ -94,8 +97,9 @@ class FlextCliMixins(FlextMixins):
             if current_status not in valid_states:
                 return FlextResult[bool].fail(
                     FlextCliConstants.MixinsValidationMessages.SESSION_STATUS_INVALID.format(
-                        current_status=current_status, valid_states=valid_states
-                    )
+                        current_status=current_status,
+                        valid_states=valid_states,
+                    ),
                 )
             return FlextResult[bool].ok(True)
 
@@ -115,29 +119,30 @@ class FlextCliMixins(FlextMixins):
             # Fast-fail if step is None - no fallback
             if step is None:
                 return FlextResult[bool].fail(
-                    FlextCliConstants.MixinsValidationMessages.PIPELINE_STEP_EMPTY
+                    FlextCliConstants.MixinsValidationMessages.PIPELINE_STEP_EMPTY,
                 )
 
             if FlextCliConstants.MixinsFieldNames.PIPELINE_STEP_NAME not in step:
                 return FlextResult[bool].fail(
-                    FlextCliConstants.MixinsValidationMessages.PIPELINE_STEP_NO_NAME
+                    FlextCliConstants.MixinsValidationMessages.PIPELINE_STEP_NO_NAME,
                 )
 
             step_name = step[FlextCliConstants.MixinsFieldNames.PIPELINE_STEP_NAME]
             # Fast-fail validation - no fallback
             if not step_name:
                 return FlextResult[bool].fail(
-                    FlextCliConstants.MixinsValidationMessages.PIPELINE_STEP_NAME_EMPTY
+                    FlextCliConstants.MixinsValidationMessages.PIPELINE_STEP_NAME_EMPTY,
                 )
             step_name_str = str(step_name)
             # Use FlextUtilities.Validation for step name validation
             try:
                 FlextUtilities.Validation.validate_required_string(
-                    step_name_str, "Pipeline step name"
+                    step_name_str,
+                    "Pipeline step name",
                 )
             except ValueError:
                 return FlextResult[bool].fail(
-                    FlextCliConstants.MixinsValidationMessages.PIPELINE_STEP_NAME_EMPTY
+                    FlextCliConstants.MixinsValidationMessages.PIPELINE_STEP_NAME_EMPTY,
                 )
 
             return FlextResult[bool].ok(True)
@@ -161,8 +166,8 @@ class FlextCliMixins(FlextMixins):
             if config_data is None:
                 return FlextResult[bool].fail(
                     FlextCliConstants.MixinsValidationMessages.CONFIG_MISSING_FIELDS.format(
-                        missing_fields=required_fields
-                    )
+                        missing_fields=required_fields,
+                    ),
                 )
             missing_fields = [
                 field for field in required_fields if field not in config_data
@@ -170,8 +175,8 @@ class FlextCliMixins(FlextMixins):
             if missing_fields:
                 return FlextResult[bool].fail(
                     FlextCliConstants.MixinsValidationMessages.CONFIG_MISSING_FIELDS.format(
-                        missing_fields=missing_fields
-                    )
+                        missing_fields=missing_fields,
+                    ),
                 )
 
             return FlextResult[bool].ok(True)
@@ -283,9 +288,9 @@ class FlextCliMixins(FlextMixins):
             wrapped_handler = FlextDecorators.railway()(
                 FlextDecorators.track_performance()(
                     FlextDecorators.log_operation(operation)(
-                        FlextDecorators.with_correlation()(handler)
-                    )
-                )
+                        FlextDecorators.with_correlation()(handler),
+                    ),
+                ),
             )
 
             # Execute with composed decorators
@@ -296,7 +301,8 @@ class FlextCliMixins(FlextMixins):
             handler_result = wrapped_handler(**context_data)
             # Type cast: railway decorator may wrap or return as-is, but we know it's FlextResult[JsonValue]
             result: FlextResult[FlextTypes.JsonValue] = cast(
-                "FlextResult[FlextTypes.JsonValue]", handler_result
+                "FlextResult[FlextTypes.JsonValue]",
+                handler_result,
             )
             return result
 

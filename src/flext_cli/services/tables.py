@@ -141,7 +141,7 @@ class FlextCliTables(FlextService[FlextTypes.JsonDict]):
         """
         if not data:
             return FlextResult[bool].fail(
-                FlextCliConstants.TablesErrorMessages.TABLE_DATA_EMPTY
+                FlextCliConstants.TablesErrorMessages.TABLE_DATA_EMPTY,
             )
 
         if table_format not in FlextCliConstants.TABLE_FORMATS:
@@ -149,7 +149,7 @@ class FlextCliTables(FlextService[FlextTypes.JsonDict]):
                 FlextCliConstants.TablesErrorMessages.INVALID_TABLE_FORMAT.format(
                     table_format=table_format,
                     available_formats=", ".join(FlextCliConstants.TABLE_FORMATS.keys()),
-                )
+                ),
             )
 
         return FlextResult[bool].ok(True)
@@ -166,11 +166,12 @@ class FlextCliTables(FlextService[FlextTypes.JsonDict]):
             and data
             and FlextRuntime.is_dict_like(data[0])
             and isinstance(
-                headers, (list, tuple)
+                headers,
+                (list, tuple),
             )  # tuple check is specific, not dict/list
         ):
             return FlextResult[str | Sequence[str]].ok(
-                FlextCliConstants.TableFormats.KEYS
+                FlextCliConstants.TableFormats.KEYS,
             )
 
         return FlextResult[str | Sequence[str]].ok(headers)
@@ -213,7 +214,7 @@ class FlextCliTables(FlextService[FlextTypes.JsonDict]):
         except Exception as e:
             error_msg = (
                 FlextCliConstants.TablesErrorMessages.TABLE_CREATION_FAILED.format(
-                    error=e
+                    error=e,
                 )
             )
             self.logger.exception(error_msg)
@@ -271,7 +272,9 @@ class FlextCliTables(FlextService[FlextTypes.JsonDict]):
 
         """
         return self._create_formatted_table(
-            data, FlextCliConstants.TableFormats.SIMPLE, headers
+            data,
+            FlextCliConstants.TableFormats.SIMPLE,
+            headers,
         )
 
     def create_grid_table(
@@ -334,7 +337,9 @@ class FlextCliTables(FlextService[FlextTypes.JsonDict]):
 
         """
         return self._create_formatted_table(
-            data, FlextCliConstants.TableFormats.PIPE, headers
+            data,
+            FlextCliConstants.TableFormats.PIPE,
+            headers,
         )
 
     def create_html_table(
@@ -424,7 +429,9 @@ class FlextCliTables(FlextService[FlextTypes.JsonDict]):
 
         """
         return self._create_formatted_table(
-            data, FlextCliConstants.TableFormats.RST, headers
+            data,
+            FlextCliConstants.TableFormats.RST,
+            headers,
         )
 
     # =========================================================================
@@ -453,8 +460,8 @@ class FlextCliTables(FlextService[FlextTypes.JsonDict]):
         if format_name not in FlextCliConstants.TABLE_FORMATS:
             return FlextResult[str].fail(
                 FlextCliConstants.TablesErrorMessages.UNKNOWN_FORMAT.format(
-                    format_name=format_name
-                )
+                    format_name=format_name,
+                ),
             )
 
         return FlextResult[str].ok(FlextCliConstants.TABLE_FORMATS[format_name])
@@ -486,7 +493,7 @@ class FlextCliTables(FlextService[FlextTypes.JsonDict]):
         except Exception as e:
             error_msg = (
                 FlextCliConstants.TablesErrorMessages.PRINT_FORMATS_FAILED.format(
-                    error=e
+                    error=e,
                 )
             )
             self.logger.exception(error_msg)

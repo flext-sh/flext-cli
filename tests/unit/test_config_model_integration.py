@@ -11,14 +11,7 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-import sys
-from pathlib import Path
-
-# Add src to path for relative imports (pyrefly accepts this pattern)
-if Path(__file__).parent.parent.parent / "src" not in [Path(p) for p in sys.path]:
-    sys.path.insert(0, str(Path(__file__).parent.parent.parent / "src"))
-
-
+import os
 from pathlib import Path
 from typing import Any, cast
 
@@ -45,7 +38,7 @@ class TestConfigModelExtraction:
             "TEST_APP_INPUT_DIR=/test/input\n"
             "TEST_APP_OUTPUT_DIR=/test/output\n"
             "TEST_APP_TIMEOUT_SECONDS=60\n"
-            "TEST_APP_VERBOSE=true\n"
+            "TEST_APP_VERBOSE=true\n",
         )
         return env_file
 
@@ -87,8 +80,6 @@ class TestConfigModelExtraction:
 
     def test_config_with_environment_variables(self, tmp_path: Path) -> None:
         """Test config loading from environment variables."""
-        import os
-
         # Set environment variables
         os.environ["TEST_APP_INPUT_DIR"] = "/env/input"
         os.environ["TEST_APP_OUTPUT_DIR"] = "/env/output"
@@ -122,7 +113,9 @@ class TestConfigModelExtraction:
             """Parameter model with aliases."""
 
             input_dir: str | None = Field(
-                default=None, alias="input-dir", description="Input directory"
+                default=None,
+                alias="input-dir",
+                description="Input directory",
             )
             output_dir: str | None = Field(
                 default=None,
@@ -157,7 +150,9 @@ class TestConfigModelExtraction:
 
             input_dir: str = Field(alias="input-dir", description="Required input")
             output_dir: str | None = Field(
-                default=None, alias="output-dir", description="Optional output"
+                default=None,
+                alias="output-dir",
+                description="Optional output",
             )
 
             model_config = {"populate_by_name": True}
@@ -193,7 +188,9 @@ class TestConfigModelExtraction:
             """Application parameters."""
 
             input_dir: str | None = Field(
-                default=None, alias="input-dir", description="Input directory"
+                default=None,
+                alias="input-dir",
+                description="Input directory",
             )
             output_dir: str | None = Field(
                 default=None,
@@ -201,7 +198,9 @@ class TestConfigModelExtraction:
                 description="Output directory",
             )
             verbose_mode: bool = Field(
-                alias="verbose-mode", default=False, description="Verbose mode"
+                alias="verbose-mode",
+                default=False,
+                description="Verbose mode",
             )
 
             model_config = {"populate_by_name": True}
@@ -242,7 +241,8 @@ class TestConfigModelExtraction:
         assert command is not None
 
     def test_model_command_with_optional_fields_and_defaults(
-        self, cli: FlextCliCli
+        self,
+        cli: FlextCliCli,
     ) -> None:
         """Test model_command with optional fields that have defaults."""
 
@@ -258,7 +258,9 @@ class TestConfigModelExtraction:
             """Params with optional fields."""
 
             input_dir: str | None = Field(
-                default=None, alias="input-dir", description="Input"
+                default=None,
+                alias="input-dir",
+                description="Input",
             )
             batch_size: int | None = Field(
                 default=None,
@@ -440,8 +442,6 @@ class TestConfigModelExtraction:
 
     def test_config_with_missing_environment_variable(self) -> None:
         """Test config with missing environment variable uses default."""
-        import os
-
         # Ensure variable doesn't exist
         os.environ.pop("MISSING_VAR", None)
 
@@ -534,10 +534,14 @@ class TestConfigModelExtraction:
             """Full application params."""
 
             input_dir: str | None = Field(
-                default=None, alias="input-dir", description="Input"
+                default=None,
+                alias="input-dir",
+                description="Input",
             )
             output_dir: str | None = Field(
-                default=None, alias="output-dir", description="Output"
+                default=None,
+                alias="output-dir",
+                description="Output",
             )
             batch_size: int | None = Field(
                 default=None,
@@ -545,7 +549,9 @@ class TestConfigModelExtraction:
                 description="Batch size",
             )
             verbose_mode: bool = Field(
-                alias="verbose-mode", default=False, description="Verbose"
+                alias="verbose-mode",
+                default=False,
+                description="Verbose",
             )
 
             model_config = {"populate_by_name": True}

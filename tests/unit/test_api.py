@@ -10,14 +10,6 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-import sys
-from pathlib import Path
-
-# Add src to path for relative imports (pyrefly accepts this pattern)
-if Path(__file__).parent.parent.parent / "src" not in [Path(p) for p in sys.path]:
-    sys.path.insert(0, str(Path(__file__).parent.parent.parent / "src"))
-
-
 import json
 import threading
 from collections.abc import Sequence
@@ -32,6 +24,7 @@ from flext_cli import (
     FlextCli,
     FlextCliConfig,
     FlextCliConstants,
+    FlextCliModels,
     FlextCliTypes,
 )
 
@@ -86,11 +79,12 @@ class TestFlextCli:
                 {"name": "John", "age": 30, "city": "New York"},
                 {"name": "Jane", "age": 25, "city": "London"},
                 {"name": "Bob", "age": 35, "city": "Paris"},
-            ]
+            ],
         }
 
         result = api_service.output.format_data(
-            data=cast("FlextTypes.JsonValue", test_data), format_type="table"
+            data=cast("FlextTypes.JsonValue", test_data),
+            format_type="table",
         )
 
         assert isinstance(result, FlextResult)
@@ -111,7 +105,8 @@ class TestFlextCli:
         }
 
         result = api_service.output.format_data(
-            data=cast("FlextTypes.JsonValue", test_data), format_type="json"
+            data=cast("FlextTypes.JsonValue", test_data),
+            format_type="json",
         )
 
         assert isinstance(result, FlextResult)
@@ -133,7 +128,8 @@ class TestFlextCli:
         }
 
         result = api_service.output.format_data(
-            data=cast("FlextTypes.JsonValue", test_data), format_type="yaml"
+            data=cast("FlextTypes.JsonValue", test_data),
+            format_type="yaml",
         )
 
         assert isinstance(result, FlextResult)
@@ -186,7 +182,10 @@ class TestFlextCli:
         assert test_file.read_text() == test_content
 
     def test_copy_file(
-        self, api_service: FlextCli, temp_file: Path, temp_dir: Path
+        self,
+        api_service: FlextCli,
+        temp_file: Path,
+        temp_dir: Path,
     ) -> None:
         """Test file copying functionality."""
         destination = temp_dir / "copied_file.txt"
@@ -199,11 +198,14 @@ class TestFlextCli:
         # Verify file was copied correctly
         assert destination.exists()
         assert destination.read_text(encoding="utf-8") == temp_file.read_text(
-            encoding="utf-8"
+            encoding="utf-8",
         )
 
     def test_move_file(
-        self, api_service: FlextCli, temp_file: Path, temp_dir: Path
+        self,
+        api_service: FlextCli,
+        temp_file: Path,
+        temp_dir: Path,
     ) -> None:
         """Test file moving functionality."""
         destination = temp_dir / "moved_file.txt"
@@ -254,8 +256,6 @@ class TestFlextCli:
     def test_execute_command(self, api_service: FlextCli) -> None:
         """Test command execution functionality."""
         # Register a test command first
-        from flext_cli import FlextCliModels
-
         test_command = FlextCliModels.CliCommand(
             name="test_command",
             command_line="test_command",
@@ -280,8 +280,6 @@ class TestFlextCli:
     def test_execute_command_with_timeout(self, api_service: FlextCli) -> None:
         """Test command execution with timeout."""
         # Register a test command first
-        from flext_cli import FlextCliModels
-
         test_command = FlextCliModels.CliCommand(
             name="test_timeout_command",
             command_line="test_timeout_command",
@@ -477,7 +475,8 @@ nested:
         """Test error handling with permission denied scenarios."""
         # Try to write to a directory that should be read-only
         result = api_service.file_tools.write_text_file(
-            "/proc/test_file", "test content"
+            "/proc/test_file",
+            "test content",
         )
         assert isinstance(result, FlextResult)
         assert result.is_failure
@@ -491,7 +490,8 @@ nested:
             try:
                 test_file = temp_dir / f"concurrent_test_{worker_id}.txt"
                 result = api_service.file_tools.write_text_file(
-                    str(test_file), f"Worker {worker_id} content"
+                    str(test_file),
+                    f"Worker {worker_id} content",
                 )
                 results.append(result)
             except Exception as e:
@@ -556,7 +556,9 @@ nested:
     # ========================================================================
 
     def test_authenticate_with_token(
-        self, api_service: FlextCli, temp_dir: Path
+        self,
+        api_service: FlextCli,
+        temp_dir: Path,
     ) -> None:
         """Test authentication with token."""
         # Use temp directory for token storage
@@ -594,7 +596,9 @@ nested:
         assert result.is_failure
 
     def test_save_and_get_auth_token(
-        self, api_service: FlextCli, temp_dir: Path
+        self,
+        api_service: FlextCli,
+        temp_dir: Path,
     ) -> None:
         """Test saving and retrieving authentication token."""
         test_token = "test_save_token_67890"
@@ -727,7 +731,9 @@ nested:
         assert isinstance(instance2, FlextCli)
 
     def test_authenticate_with_token_write_to_readonly_dir(
-        self, api_service: FlextCli, tmp_path: Path
+        self,
+        api_service: FlextCli,
+        tmp_path: Path,
     ) -> None:
         """Test authenticate with token when directory is read-only.
 
@@ -742,7 +748,8 @@ nested:
         api_service.config.token_file = readonly_dir / "token.json"
 
         credentials = cast(
-            "FlextCliTypes.Auth.CredentialsData", {"token": "test_token"}
+            "FlextCliTypes.Auth.CredentialsData",
+            {"token": "test_token"},
         )
         result = api_service.authenticate(credentials)
 
@@ -756,7 +763,9 @@ nested:
         assert "permission" in result.error.lower() or "failed" in result.error.lower()
 
     def test_authenticate_with_token_validation_empty_string(
-        self, api_service: FlextCli, tmp_path: Path
+        self,
+        api_service: FlextCli,
+        tmp_path: Path,
     ) -> None:
         """Test authenticate rejects empty/whitespace-only tokens.
 
@@ -776,11 +785,13 @@ nested:
         assert "token" in result.error.lower() or "empty" in result.error.lower()
 
     def test_authenticate_with_credentials_empty_username_password(
-        self, api_service: FlextCli
+        self,
+        api_service: FlextCli,
     ) -> None:
         """Test authenticate with empty username/password (line 237)."""
         credentials = cast(
-            "FlextCliTypes.Auth.CredentialsData", {"username": "", "password": ""}
+            "FlextCliTypes.Auth.CredentialsData",
+            {"username": "", "password": ""},
         )
         result = api_service.authenticate(credentials)
 
@@ -789,7 +800,8 @@ nested:
         assert "username" in result.error.lower() or "password" in result.error.lower()
 
     def test_authenticate_with_credentials_short_username(
-        self, api_service: FlextCli
+        self,
+        api_service: FlextCli,
     ) -> None:
         """Test authenticate with short username (line 242)."""
         credentials = cast(
@@ -806,7 +818,8 @@ nested:
         assert "username" in result.error.lower()
 
     def test_authenticate_with_credentials_short_password(
-        self, api_service: FlextCli
+        self,
+        api_service: FlextCli,
     ) -> None:
         """Test authenticate with short password (line 247)."""
         credentials = cast(
@@ -823,7 +836,9 @@ nested:
         assert "password" in result.error.lower()
 
     def test_save_auth_token_write_to_readonly_directory(
-        self, api_service: FlextCli, tmp_path: Path
+        self,
+        api_service: FlextCli,
+        tmp_path: Path,
     ) -> None:
         """Test save_auth_token with read-only directory.
 
@@ -848,7 +863,8 @@ nested:
         assert "save" in result.error.lower() or "permission" in result.error.lower()
 
     def test_get_auth_token_file_not_found_real_scenario(
-        self, api_service: FlextCli
+        self,
+        api_service: FlextCli,
     ) -> None:
         """Test get_auth_token when token file doesn't exist.
 
@@ -871,7 +887,9 @@ nested:
         assert "not found" in error_msg or "token" in error_msg
 
     def test_get_auth_token_invalid_json_format(
-        self, api_service: FlextCli, tmp_path: Path
+        self,
+        api_service: FlextCli,
+        tmp_path: Path,
     ) -> None:
         """Test get_auth_token when file contains invalid JSON.
 
@@ -890,7 +908,9 @@ nested:
         assert "load" in result.error.lower() or "failed" in result.error.lower()
 
     def test_get_auth_token_empty_file_real_scenario(
-        self, api_service: FlextCli, tmp_path: Path
+        self,
+        api_service: FlextCli,
+        tmp_path: Path,
     ) -> None:
         """Test get_auth_token when token file exists but has empty token.
 
@@ -909,7 +929,9 @@ nested:
         assert "empty" in result.error.lower() or "token" in result.error.lower()
 
     def test_get_auth_token_wrong_data_type(
-        self, api_service: FlextCli, tmp_path: Path
+        self,
+        api_service: FlextCli,
+        tmp_path: Path,
     ) -> None:
         """Test get_auth_token when file contains wrong data type.
 
@@ -927,7 +949,9 @@ nested:
         assert result.error is not None
 
     def test_clear_auth_tokens_readonly_file(
-        self, api_service: FlextCli, tmp_path: Path
+        self,
+        api_service: FlextCli,
+        tmp_path: Path,
     ) -> None:
         """Test clear_auth_tokens when files are read-only.
 
@@ -956,7 +980,9 @@ nested:
         assert "clear" in result.error.lower() or "permission" in result.error.lower()
 
     def test_clear_auth_tokens_success_with_real_files(
-        self, api_service: FlextCli, tmp_path: Path
+        self,
+        api_service: FlextCli,
+        tmp_path: Path,
     ) -> None:
         """Test clear_auth_tokens successfully deletes existing files.
 
@@ -987,7 +1013,9 @@ nested:
         assert len(api_service._valid_tokens) == 0
 
     def test_clear_auth_tokens_handles_missing_files(
-        self, api_service: FlextCli, tmp_path: Path
+        self,
+        api_service: FlextCli,
+        tmp_path: Path,
     ) -> None:
         """Test clear_auth_tokens succeeds when files don't exist.
 
@@ -1007,7 +1035,9 @@ nested:
     # a wrapper method that no longer exists.
 
     def test_get_auth_token_not_dict_real_scenario(
-        self, api_service: FlextCli, tmp_path: Path
+        self,
+        api_service: FlextCli,
+        tmp_path: Path,
     ) -> None:
         """Test get_auth_token when file contains string instead of dict.
 
@@ -1028,7 +1058,9 @@ nested:
         assert "type" in error_lower or "dict" in error_lower or "object" in error_lower
 
     def test_get_auth_token_token_not_string_real_scenario(
-        self, api_service: FlextCli, tmp_path: Path
+        self,
+        api_service: FlextCli,
+        tmp_path: Path,
     ) -> None:
         """Test get_auth_token when token field is number instead of string.
 
@@ -1048,7 +1080,9 @@ nested:
         assert "string" in error_lower or "type" in error_lower
 
     def test_get_auth_token_file_error_indicator(
-        self, api_service: FlextCli, tmp_path: Path
+        self,
+        api_service: FlextCli,
+        tmp_path: Path,
     ) -> None:
         """Test get_auth_token when file error contains FILE_ERROR_INDICATOR.
 
@@ -1071,7 +1105,9 @@ nested:
         # which is "not found". This test verifies the error handling path.
 
     def test_get_auth_token_validation_exception_other_error(
-        self, api_service: FlextCli, tmp_path: Path
+        self,
+        api_service: FlextCli,
+        tmp_path: Path,
     ) -> None:
         """Test get_auth_token when validation exception doesn't match known patterns.
 
@@ -1090,7 +1126,9 @@ nested:
         assert result.error is not None
 
     def test_clear_auth_tokens_delete_refresh_failure_not_file_not_found(
-        self, api_service: FlextCli, tmp_path: Path
+        self,
+        api_service: FlextCli,
+        tmp_path: Path,
     ) -> None:
         """Test clear_auth_tokens when refresh token delete fails with non-file-not-found error.
 
@@ -1145,7 +1183,8 @@ nested:
         """
         data = {"name": "John", "age": 30}
         result = api_service.create_table(
-            data=cast("dict[str, FlextTypes.JsonValue]", data), title="Test Table"
+            data=cast("dict[str, FlextTypes.JsonValue]", data),
+            title="Test Table",
         )
         assert result.is_success
         table_str = result.unwrap()
@@ -1185,7 +1224,9 @@ nested:
         assert tree is not None
 
     def test_get_auth_token_file_not_found(
-        self, api_service: FlextCli, temp_dir: Path
+        self,
+        api_service: FlextCli,
+        temp_dir: Path,
     ) -> None:
         """Test get_auth_token with file not found error - covers line 225.
 
@@ -1215,15 +1256,15 @@ nested:
             api_service.config.token_file = original_token_file
 
     def test_get_auth_token_empty_dict(
-        self, api_service: FlextCli, temp_dir: Path
+        self,
+        api_service: FlextCli,
+        temp_dir: Path,
     ) -> None:
         """Test get_auth_token with empty dict - covers line 243.
 
         Real scenario: Test when token file contains empty dict {}.
         This should return TOKEN_FILE_EMPTY error before Pydantic validation.
         """
-        import json
-
         # Create token file with empty dict - ensure directory exists
         token_file_path = temp_dir / "token.json"
         token_file_path.parent.mkdir(parents=True, exist_ok=True)
@@ -1251,16 +1292,15 @@ nested:
             api_service.config.token_file = original_token_file
 
     def test_get_auth_token_invalid_data_type_other_error(
-        self, api_service: FlextCli, temp_file: Path
+        self,
+        api_service: FlextCli,
+        temp_file: Path,
     ) -> None:
         """Test get_auth_token with invalid data that doesn't match dict/string patterns - covers line 255.
 
         Real scenario: Test when token file contains invalid data that causes validation error
         that doesn't match the expected error patterns (not dict/mapping/object/string/str).
         """
-        import json
-        from pathlib import Path
-
         # Write dict with missing required field - this will cause "field required" error
         # which doesn't contain "dict", "mapping", "object", "string", or "str" in the main message
         invalid_data = {"wrong_field": "value"}  # Missing "token" field

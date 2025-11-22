@@ -10,22 +10,18 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-import sys
-from pathlib import Path
-
-# Add src to path for relative imports (pyrefly accepts this pattern)
-if Path(__file__).parent.parent.parent / "src" not in [Path(p) for p in sys.path]:
-    sys.path.insert(0, str(Path(__file__).parent.parent.parent / "src"))
-
-
 import json
+import os
 import tempfile
-from collections.abc import Generator
+from collections.abc import Callable, Generator
 from pathlib import Path
 
 import pytest
 import yaml
 from click.testing import CliRunner
+from flext_core import FlextContainer, FlextUtilities
+from flext_tests import FlextTestDocker, FlextTestsFactories
+from pydantic import TypeAdapter
 
 from flext_cli import (
     FlextCli,
@@ -60,47 +56,61 @@ def temp_dir() -> Generator[Path]:
         yield Path(tmp_dir)
 
 
+# Factory for creating temporary files with different formats
+def _create_temp_file(
+    temp_dir: Path,
+    filename: str,
+    content: str,
+) -> Path:
+    """Factory helper for creating temporary files with custom content.
+
+    Args:
+        temp_dir: Temporary directory path
+        filename: Target filename with extension
+        content: File content as string
+
+    Returns:
+        Path to created file
+
+    """
+    file_path = temp_dir / filename
+    file_path.write_text(content)
+    return file_path
+
+
 @pytest.fixture
 def temp_file(temp_dir: Path) -> Path:
-    """Create temporary file for tests."""
-    temp_file_path = temp_dir / "test_file.txt"
-    temp_file_path.write_text("test content")
-    return temp_file_path
+    """Create temporary text file for tests."""
+    return _create_temp_file(temp_dir, "test_file.txt", "test content")
 
 
 @pytest.fixture
 def temp_json_file(temp_dir: Path) -> Path:
     """Create temporary JSON file for tests."""
-    temp_file_path = temp_dir / "test_file.json"
     test_data: dict[str, str | int | list[int]] = {
         "key": "value",
         "number": 42,
         "list": [1, 2, 3],
     }
-    temp_file_path.write_text(json.dumps(test_data))
-    return temp_file_path
+    return _create_temp_file(temp_dir, "test_file.json", json.dumps(test_data))
 
 
 @pytest.fixture
 def temp_yaml_file(temp_dir: Path) -> Path:
     """Create temporary YAML file for tests."""
-    temp_file_path = temp_dir / "test_file.yaml"
     test_data: dict[str, str | int | list[int]] = {
         "key": "value",
         "number": 42,
         "list": [1, 2, 3],
     }
-    temp_file_path.write_text(yaml.dump(test_data))
-    return temp_file_path
+    return _create_temp_file(temp_dir, "test_file.yaml", yaml.dump(test_data))
 
 
 @pytest.fixture
 def temp_csv_file(temp_dir: Path) -> Path:
     """Create temporary CSV file for tests."""
-    temp_file_path = temp_dir / "test_file.csv"
     csv_content = "name,age,city\nJohn,30,New York\nJane,25,London\nBob,35,Paris"
-    temp_file_path.write_text(csv_content)
-    return temp_file_path
+    return _create_temp_file(temp_dir, "test_file.csv", csv_content)
 
 
 # ============================================================================
@@ -136,95 +146,287 @@ def flext_cli_api(tmp_path: Path, request: pytest.FixtureRequest) -> FlextCli:
     return FlextCli()
 
 
+# ============================================================================
+# MODEL FACTORY FIXTURES
+# ============================================================================
+# Consolidated model creation fixtures to reduce test code duplication
+# Tests receive these as parameters - no imports needed, follows pytest patterns
+
+
+@pytest.fixture
+def cli_command_factory() -> Callable[..., FlextCliModels.CliCommand]:
+    """Factory fixture for creating CliCommand models with defaults using FlextTestsFactories."""
+
+    def _create(
+        name: str = "test_command",
+        command_line: str = "flext test",
+        description: str = "Test command",
+        status: str = "pending",
+        **kwargs: object,
+    ) -> FlextCliModels.CliCommand:
+        # Use FlextTestsFactories for generating base data, then merge with CLI-specific fields
+        base_data = FlextTestsFactories.create_service(
+            service_type="cli_command",
+            service_id=name,
+        )
+
+        # Override with CLI-specific data
+        cli_data = {
+            "command_line": command_line,
+            "args": [],  # Default empty args
+            "status": status,
+            "exit_code": None,
+            "output": "",
+            "error_output": "",
+            "execution_time": None,
+            "working_directory": None,
+            "environment": {},
+            "metadata": {},
+        }
+
+        # Merge base data with CLI data and kwargs
+        final_data = {**base_data, **cli_data, **kwargs}
+        return FlextCliModels.CliCommand(**final_data)  # type: ignore[arg-type]
+
+    return _create
+
+
+@pytest.fixture
+def cli_session_factory() -> Callable[..., FlextCliModels.CliSession]:
+    """Factory fixture for creating CliSession models with defaults using FlextTestsFactories."""
+
+    def _create(
+        session_id: str = "test-session",
+        user_id: str = "test_user",
+        status: str = "active",
+        **kwargs: object,
+    ) -> FlextCliModels.CliSession:
+        # Use FlextTestsFactories for user data as base
+        base_data = FlextTestsFactories.create_user(
+            user_id=user_id,
+            name=f"Session {session_id}",
+        )
+
+        # Add session-specific fields
+        session_data = {
+            "session_id": session_id,
+            "status": status,
+            "commands": [],
+            "start_time": None,
+            "end_time": None,
+            "total_commands": 0,
+            "successful_commands": 0,
+            "failed_commands": 0,
+        }
+
+        # Merge all data
+        final_data = {**base_data, **session_data, **kwargs}
+        return FlextCliModels.CliSession(**final_data)  # type: ignore[arg-type]
+
+    return _create
+
+
+@pytest.fixture
+def debug_info_factory() -> Callable[..., FlextCliModels.DebugInfo]:
+    """Factory fixture for creating DebugInfo models with defaults using FlextTestsFactories."""
+
+    def _create(
+        service: str = "TestService",
+        status: str = "operational",
+        level: str = "INFO",
+        message: str = "Test message",
+        **kwargs: object,
+    ) -> FlextCliModels.DebugInfo:
+        # Use FlextTestsFactories for config data as base
+        base_data = FlextTestsFactories.create_config(
+            service_type="debug",
+            environment="test",
+            debug=True,
+            log_level=level,
+        )
+
+        # Add debug-specific fields
+        debug_data = {
+            "service": service,
+            "status": status,
+            "level": level,
+            "message": message,
+            "timestamp": None,
+            "context": {},
+            "stack_trace": None,
+            "metadata": {},
+        }
+
+        # Merge all data
+        final_data = {**base_data, **debug_data, **kwargs}
+        return FlextCliModels.DebugInfo(**final_data)  # type: ignore[arg-type]
+
+    return _create
+
+
+@pytest.fixture
+def logging_config_factory() -> Callable[..., FlextCliModels.LoggingConfig]:
+    """Factory fixture for creating LoggingConfig models with defaults using FlextTestsFactories."""
+
+    def _create(
+        log_level: str = "INFO",
+        log_format: str = "%(asctime)s - %(message)s",
+        **kwargs: object,
+    ) -> FlextCliModels.LoggingConfig:
+        # Use FlextTestsFactories for config data as base
+        base_data = FlextTestsFactories.create_config(
+            service_type="logging",
+            environment="test",
+            log_level=log_level,
+        )
+
+        # Add logging-specific fields
+        logging_data = {
+            "log_level": log_level,
+            "log_format": log_format,
+            "handlers": [],
+            "file_path": None,
+            "max_file_size": None,
+            "backup_count": None,
+        }
+
+        # Merge all data
+        final_data = {**base_data, **logging_data, **kwargs}
+        return FlextCliModels.LoggingConfig(**final_data)  # type: ignore[arg-type]
+
+    return _create
+
+
+# ============================================================================
+# SERVICE FIXTURE FACTORY
+# ============================================================================
+# Consolidated service fixtures using factory pattern to reduce code duplication
+
+
+def _create_service_instance(service_class: type) -> object:
+    """Factory helper for creating service instances.
+
+    Args:
+        service_class: The service class to instantiate
+
+    Returns:
+        New instance of the service class
+
+    """
+    # Special handling for FlextCliConfig singleton
+    if service_class is FlextCliConfig:
+        return FlextCliServiceBase.get_cli_config()
+
+    return service_class()
+
+
+# Mapping of service names to classes - consolidates 14 services
+_SERVICE_CLASSES: dict[str, type] = {
+    "cmd": FlextCliCmd,
+    "commands": FlextCliCommands,
+    "config": FlextCliConfig,
+    "constants": FlextCliConstants,
+    "context": FlextCliContext,
+    "core": FlextCliCore,
+    "debug": FlextCliDebug,
+    "file_tools": FlextCliFileTools,
+    "mixins": FlextCliMixins,
+    "models": FlextCliModels,
+    "output": FlextCliOutput,
+    "prompts": FlextCliPrompts,
+    "protocols": FlextCliProtocols,
+    "types": FlextCliTypes,
+}
+
+
+# Generate service fixtures from mapping - each fixture uses factory
 @pytest.fixture
 def flext_cli_cmd() -> FlextCliCmd:
     """Create FlextCliCmd instance for testing."""
-    return FlextCliCmd()
+    return _create_service_instance(FlextCliCmd)  # type: ignore[return-value]
 
 
 @pytest.fixture
 def flext_cli_commands() -> FlextCliCommands:
     """Create FlextCliCommands instance for testing."""
-    return FlextCliCommands()
+    return _create_service_instance(FlextCliCommands)  # type: ignore[return-value]
 
 
 @pytest.fixture
 def flext_cli_config() -> FlextCliConfig:
     """Create FlextCliConfig instance for testing via FlextCliServiceBase."""
-    return FlextCliServiceBase.get_cli_config()
+    return _create_service_instance(FlextCliConfig)  # type: ignore[return-value]
 
 
 @pytest.fixture
 def flext_cli_constants() -> FlextCliConstants:
     """Create FlextCliConstants instance for testing."""
-    return FlextCliConstants()
+    return _create_service_instance(FlextCliConstants)  # type: ignore[return-value]
 
 
 @pytest.fixture
 def flext_cli_context() -> FlextCliContext:
     """Create FlextCliContext instance for testing."""
-    return FlextCliContext()
+    return _create_service_instance(FlextCliContext)  # type: ignore[return-value]
 
 
 @pytest.fixture
 def flext_cli_core() -> FlextCliCore:
     """Create FlextCliCore instance for testing."""
-    return FlextCliCore()
+    return _create_service_instance(FlextCliCore)  # type: ignore[return-value]
 
 
 @pytest.fixture
 def flext_cli_debug() -> FlextCliDebug:
     """Create FlextCliDebug instance for testing."""
-    return FlextCliDebug()
+    return _create_service_instance(FlextCliDebug)  # type: ignore[return-value]
 
 
 @pytest.fixture
 def flext_cli_file_tools() -> FlextCliFileTools:
     """Create FlextCliFileTools instance for testing."""
-    return FlextCliFileTools()
+    return _create_service_instance(FlextCliFileTools)  # type: ignore[return-value]
 
 
 @pytest.fixture
 def flext_cli_mixins() -> FlextCliMixins:
     """Create FlextCliMixins instance for testing."""
-    return FlextCliMixins()
+    return _create_service_instance(FlextCliMixins)  # type: ignore[return-value]
 
 
 @pytest.fixture
 def flext_cli_models() -> FlextCliModels:
     """Create FlextCliModels instance for testing."""
-    return FlextCliModels()
+    return _create_service_instance(FlextCliModels)  # type: ignore[return-value]
 
 
 @pytest.fixture
 def flext_cli_output() -> FlextCliOutput:
     """Create FlextCliOutput instance for testing."""
-    return FlextCliOutput()
+    return _create_service_instance(FlextCliOutput)  # type: ignore[return-value]
 
 
 @pytest.fixture
 def flext_cli_prompts() -> FlextCliPrompts:
     """Create FlextCliPrompts instance for testing."""
-    return FlextCliPrompts()
+    return _create_service_instance(FlextCliPrompts)  # type: ignore[return-value]
 
 
 @pytest.fixture
 def flext_cli_protocols() -> FlextCliProtocols:
     """Create FlextCliProtocols instance for testing."""
-    return FlextCliProtocols()
+    return _create_service_instance(FlextCliProtocols)  # type: ignore[return-value]
 
 
 @pytest.fixture
 def flext_cli_types() -> FlextCliTypes:
     """Create FlextCliTypes instance for testing."""
-    return FlextCliTypes()
+    return _create_service_instance(FlextCliTypes)  # type: ignore[return-value]
 
 
 @pytest.fixture
-def flext_cli_utilities() -> object:
+def flext_cli_utilities() -> type[FlextUtilities]:
     """Provide FlextUtilities class from flext-core for testing."""
-    from flext_core import FlextUtilities
-
     return FlextUtilities
 
 
@@ -242,7 +444,7 @@ def flext_cli_utilities() -> object:
 
 
 @pytest.fixture
-def sample_config_data() -> dict[str, object]:
+def sample_config_data() -> FlextCliTypes.Data.CliDataDict:
     """Provide sample configuration data for tests."""
     return {
         "debug": True,
@@ -257,7 +459,7 @@ def sample_config_data() -> dict[str, object]:
 
 
 @pytest.fixture
-def sample_file_data(temp_dir: Path) -> dict[str, object]:
+def sample_file_data(temp_dir: Path) -> FlextCliTypes.Data.CliDataDict:
     """Provide sample file data for tests."""
     return {
         "content": "This is test content for file operations",
@@ -272,7 +474,7 @@ def sample_file_data(temp_dir: Path) -> dict[str, object]:
 
 
 @pytest.fixture
-def sample_command_data() -> dict[str, object]:
+def sample_command_data() -> FlextCliTypes.Data.CliDataDict:
     """Provide sample command data for tests."""
     return {
         "command": "test_command",
@@ -304,34 +506,57 @@ def fixture_data_csv() -> Path:
 
 
 @pytest.fixture
-def load_fixture_config() -> dict[str, object]:
+def load_fixture_config() -> FlextCliTypes.Data.CliDataDict:
     """Load configuration data from fixtures directory."""
     fixture_path = Path("tests/fixtures/configs/test_config.json")
     with fixture_path.open(encoding="utf-8") as f:
-        return json.load(f)
+        data = json.load(f)
+    adapter: TypeAdapter[FlextCliTypes.Data.CliDataDict] = TypeAdapter(
+        FlextCliTypes.Data.CliDataDict
+    )
+    return adapter.validate_python(data)
 
 
 @pytest.fixture
-def load_fixture_data() -> dict[str, object]:
+def load_fixture_data() -> FlextCliTypes.Data.CliDataDict:
     """Load test data from fixtures directory."""
     fixture_path = Path("tests/fixtures/data/test_data.json")
     with fixture_path.open(encoding="utf-8") as f:
-        return json.load(f)
+        data = json.load(f)
+    adapter: TypeAdapter[FlextCliTypes.Data.CliDataDict] = TypeAdapter(
+        FlextCliTypes.Data.CliDataDict
+    )
+    return adapter.validate_python(data)
 
 
 # ============================================================================
 # DOCKER TEST SUPPORT (CENTRALIZED FIXTURES)
 # ============================================================================
-#
-# Docker test fixtures removed from flext-core production exports
-# For CLI-specific Docker testing, implement container fixtures directly:
-#
-# Example:
-#   @pytest.fixture
-#   def ldap_container():
-#       # Direct Docker container setup for CLI tests
-#       pass
-#
+
+@pytest.fixture(scope="session")
+def flext_test_docker(tmp_path_factory: pytest.TempPathFactory) -> FlextTestDocker:
+    """FlextTestDocker instance for managing test containers.
+
+    Container stays alive after tests for debugging, only recreated on real infra failures.
+    Tests are idempotent with cleanup at start/end. Uses session scope to persist
+    containers across tests but clean up at session end.
+    """
+    # Use the flext-cli directory as workspace root
+    workspace_root = Path(__file__).parent.parent
+    docker_manager = FlextTestDocker(workspace_root=workspace_root)
+
+    # Clean up any existing test containers at start
+    try:
+        docker_manager.cleanup_test_containers()
+    except Exception:
+        # Ignore cleanup errors at startup
+        pass
+
+    yield docker_manager
+
+    # Keep containers alive after tests for debugging (don't clean up)
+    # Only clean up on explicit failures or when requested
+    pass
 
 
 # ============================================================================
@@ -353,10 +578,8 @@ FLEXT_CLI_RETRIES=3
 """
     env_file.write_text(env_content)
 
-    # Store original env vars
-    import os
-
-    original_env: dict[str, str | None] = {}
+    # Store which env vars were originally set (only track existing ones)
+    original_env: dict[str, str] = {}
     env_vars = {
         "FLEXT_CLI_DEBUG": "true",
         "FLEXT_CLI_OUTPUT_FORMAT": "json",
@@ -367,17 +590,21 @@ FLEXT_CLI_RETRIES=3
     }
 
     for key, value in env_vars.items():
-        original_env[key] = os.environ.get(key)
+        # Only store if the variable was already set
+        if key in os.environ:
+            original_env[key] = os.environ[key]
         os.environ[key] = value
 
     yield env_vars
 
     # Restore original environment
-    for key, original_value in original_env.items():
-        if original_value is None:
-            os.environ.pop(key, None)
+    for key in env_vars:
+        if key in original_env:
+            # Restore the original value
+            os.environ[key] = original_env[key]
         else:
-            os.environ[key] = original_value
+            # Variable was not set before, remove it
+            os.environ.pop(key, None)
 
 
 @pytest.fixture(autouse=True)
@@ -397,8 +624,6 @@ def reset_singletons() -> Generator[None]:
 @pytest.fixture
 def clean_flext_container() -> Generator[None]:
     """Ensure clean FlextContainer state for tests."""
-    from flext_core import FlextContainer
-
     # Store original state
     FlextContainer.get_global()
 
@@ -425,7 +650,8 @@ def pytest_configure(config: pytest.Config) -> None:
     config.addinivalue_line("markers", "slow: marks tests as slow running")
     config.addinivalue_line("markers", "docker: marks tests that require Docker")
     config.addinivalue_line(
-        "markers", "real_functionality: marks tests that test real functionality"
+        "markers",
+        "real_functionality: marks tests that test real functionality",
     )
 
 

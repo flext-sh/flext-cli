@@ -29,14 +29,6 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-import sys
-from pathlib import Path
-
-# Add src to path for relative imports (pyrefly accepts this pattern)
-if Path(__file__).parent.parent / "src" not in [Path(p) for p in sys.path]:
-    sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
-
-
 import json
 from collections.abc import Callable
 from pathlib import Path
@@ -44,7 +36,7 @@ from typing import cast
 
 from flext_core import FlextResult, FlextTypes
 
-from flext_cli import FlextCli, FlextCliTables, FlextCliTypes
+from flext_cli import FlextCli, FlextCliModels, FlextCliTables, FlextCliTypes
 
 cli = FlextCli.get_instance()
 
@@ -64,7 +56,9 @@ class DataExportPlugin:
         self.version = "1.0.0"
 
     def execute(
-        self, data: FlextCliTypes.Data.CliDataDict, output_format: str = "json"
+        self,
+        data: FlextCliTypes.Data.CliDataDict,
+        output_format: str = "json",
     ) -> FlextResult[str]:
         """Execute plugin logic in YOUR application."""
         if output_format == "json":
@@ -86,11 +80,12 @@ class ReportGeneratorPlugin:
     def execute(self, data: list[FlextCliTypes.Data.CliDataDict]) -> FlextResult[str]:
         """Generate report from data in YOUR CLI."""
         tables = FlextCliTables()
-        table_result = tables.create_table(data, table_format="grid")
+        config = FlextCliModels.TableConfig(table_format="grid")
+        table_result = tables.create_table(data, config=config)
 
         if table_result.is_failure:
             return FlextResult[str].fail(
-                f"Report generation failed: {table_result.error}"
+                f"Report generation failed: {table_result.error}",
             )
 
         report = table_result.unwrap()
@@ -118,12 +113,14 @@ class MyAppPluginManager:
         cli.print(f"🔌 Registered plugin: {plugin_name}", style="cyan")
 
     def execute_plugin(
-        self, plugin_name: str, **kwargs: object
+        self,
+        plugin_name: str,
+        **kwargs: object,
     ) -> FlextResult[FlextTypes.JsonValue]:
         """Execute plugin by name in YOUR CLI."""
         if plugin_name not in self.plugins:
             return FlextResult[FlextTypes.JsonValue].fail(
-                f"Plugin not found: {plugin_name}"
+                f"Plugin not found: {plugin_name}",
             )
 
         plugin = self.plugins[plugin_name]
@@ -131,18 +128,19 @@ class MyAppPluginManager:
         execute_attr = getattr(plugin, "execute", None)
         if not callable(execute_attr):
             return FlextResult[FlextTypes.JsonValue].fail(
-                f"Plugin {plugin_name} does not have execute method"
+                f"Plugin {plugin_name} does not have execute method",
             )
 
         execute_method = cast(
-            "Callable[..., FlextResult[FlextTypes.JsonValue]]", execute_attr
+            "Callable[..., FlextResult[FlextTypes.JsonValue]]",
+            execute_attr,
         )
 
         try:
             return execute_method(**kwargs)
         except Exception as e:
             return FlextResult[FlextTypes.JsonValue].fail(
-                f"Plugin execution failed: {e}"
+                f"Plugin execution failed: {e}",
             )
 
     def list_plugins(self) -> None:

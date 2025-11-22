@@ -299,7 +299,7 @@ class FlextCliCli:
 
             if result.is_failure:
                 FlextLogger.get_logger().warning(
-                    f"Failed to apply CLI params: {result.error}"
+                    f"Failed to apply CLI params: {result.error}",
                 )
                 return
 
@@ -468,7 +468,10 @@ class FlextCliCli:
     # =========================================================================
 
     def get_choice_type(
-        self, choices: Sequence[str], *, case_sensitive: bool = True
+        self,
+        choices: Sequence[str],
+        *,
+        case_sensitive: bool = True,
     ) -> click.Choice[str]:
         """Get Click Choice parameter type.
 
@@ -644,7 +647,12 @@ class FlextCliCli:
 
         """
         return self._get_range_type(
-            "int", min_val, max_val, min_open=min_open, max_open=max_open, clamp=clamp
+            "int",
+            min_val,
+            max_val,
+            min_open=min_open,
+            max_open=max_open,
+            clamp=clamp,
         )
 
     def get_float_range_type(
@@ -670,7 +678,12 @@ class FlextCliCli:
 
         """
         return self._get_range_type(
-            "float", min_val, max_val, min_open=min_open, max_open=max_open, clamp=clamp
+            "float",
+            min_val,
+            max_val,
+            min_open=min_open,
+            max_open=max_open,
+            clamp=clamp,
         )
 
     def get_datetime_type(
@@ -890,8 +903,8 @@ class FlextCliCli:
         except typer.Abort as e:
             return FlextResult[bool].fail(
                 FlextCliConstants.ErrorMessages.USER_ABORTED_CONFIRMATION.format(
-                    error=e
-                )
+                    error=e,
+                ),
             )
 
     def prompt(
@@ -945,7 +958,7 @@ class FlextCliCli:
             return FlextResult[object].ok(result)
         except typer.Abort as e:
             return FlextResult[object].fail(
-                FlextCliConstants.ErrorMessages.USER_ABORTED_PROMPT.format(error=e)
+                FlextCliConstants.ErrorMessages.USER_ABORTED_PROMPT.format(error=e),
             )
 
     # =========================================================================
@@ -1029,7 +1042,8 @@ class FlextCliCli:
         return FlextResult[bool].ok(True)
 
     def pause(
-        self, info: str = FlextCliConstants.UIDefaults.DEFAULT_PAUSE_MESSAGE
+        self,
+        info: str = FlextCliConstants.UIDefaults.DEFAULT_PAUSE_MESSAGE,
     ) -> FlextResult[bool]:
         """Pause execution until key press.
 

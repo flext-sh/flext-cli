@@ -31,7 +31,10 @@ class FlextCliCommands(FlextService[FlextTypes.JsonDict]):
         """Nested helper for CLI group operations."""
 
         def __init__(
-            self, name: str, description: str, commands: dict[str, dict[str, object]]
+            self,
+            name: str,
+            description: str,
+            commands: dict[str, dict[str, object]],
         ) -> None:
             """Initialize CLI group."""
             self.name = name
@@ -162,8 +165,8 @@ class FlextCliCommands(FlextService[FlextTypes.JsonDict]):
             )
             return FlextResult[bool].fail(
                 FlextCliConstants.ErrorMessages.COMMAND_REGISTRATION_FAILED.format(
-                    error=e
-                )
+                    error=e,
+                ),
             )
 
     def unregister_command(self, name: str) -> FlextResult[bool]:
@@ -209,7 +212,7 @@ class FlextCliCommands(FlextService[FlextTypes.JsonDict]):
             )
 
             return FlextResult[bool].fail(
-                FlextCliConstants.ErrorMessages.COMMAND_NOT_FOUND.format(name=name)
+                FlextCliConstants.ErrorMessages.COMMAND_NOT_FOUND.format(name=name),
             )
         except Exception as e:
             self.logger.exception(
@@ -223,8 +226,8 @@ class FlextCliCommands(FlextService[FlextTypes.JsonDict]):
             )
             return FlextResult[bool].fail(
                 FlextCliConstants.ErrorMessages.COMMAND_UNREGISTRATION_FAILED.format(
-                    error=e
-                )
+                    error=e,
+                ),
             )
 
     def create_command_group(
@@ -265,7 +268,7 @@ class FlextCliCommands(FlextService[FlextTypes.JsonDict]):
                     source="flext-cli/src/flext_cli/commands.py",
                 )
                 return FlextResult[object].fail(
-                    FlextCliConstants.ErrorMessages.COMMANDS_REQUIRED
+                    FlextCliConstants.ErrorMessages.COMMANDS_REQUIRED,
                 )
             validated_commands: dict[str, dict[str, object]] = commands
             group = self._CliGroup(
@@ -294,7 +297,7 @@ class FlextCliCommands(FlextService[FlextTypes.JsonDict]):
                 source="flext-cli/src/flext_cli/commands.py",
             )
             return FlextResult[object].fail(
-                FlextCliConstants.ErrorMessages.GROUP_CREATION_FAILED.format(error=e)
+                FlextCliConstants.ErrorMessages.GROUP_CREATION_FAILED.format(error=e),
             )
 
     def _validate_cli_args(self, args: list[str] | None) -> FlextResult[bool]:
@@ -315,7 +318,7 @@ class FlextCliCommands(FlextService[FlextTypes.JsonDict]):
                 continue  # Skip options
             if arg not in self._commands:
                 return FlextResult[bool].fail(
-                    FlextCliConstants.ErrorMessages.COMMAND_NOT_FOUND.format(name=arg)
+                    FlextCliConstants.ErrorMessages.COMMAND_NOT_FOUND.format(name=arg),
                 )
 
         return FlextResult[bool].ok(True)
@@ -406,7 +409,7 @@ class FlextCliCommands(FlextService[FlextTypes.JsonDict]):
                 source="flext-cli/src/flext_cli/commands.py",
             )
             return FlextResult[bool].fail(
-                FlextCliConstants.ErrorMessages.CLI_EXECUTION_ERROR.format(error=e)
+                FlextCliConstants.ErrorMessages.CLI_EXECUTION_ERROR.format(error=e),
             )
 
     def get_click_group(self) -> FlextCliCommands._CliGroup:
@@ -419,7 +422,9 @@ class FlextCliCommands(FlextService[FlextTypes.JsonDict]):
         return self._cli_group
 
     def _execute_handler(
-        self, handler: Callable[..., object], args: list[str] | None
+        self,
+        handler: Callable[..., object],
+        args: list[str] | None,
     ) -> object:
         """Execute command handler with appropriate arguments.
 
@@ -487,8 +492,8 @@ class FlextCliCommands(FlextService[FlextTypes.JsonDict]):
                 )
                 return FlextResult[FlextTypes.JsonValue].fail(
                     FlextCliConstants.CommandsErrorMessages.COMMAND_NOT_FOUND_DETAIL.format(
-                        command_name=command_name
-                    )
+                        command_name=command_name,
+                    ),
                 )
 
             command_info = self._commands[command_name]
@@ -516,8 +521,8 @@ class FlextCliCommands(FlextService[FlextTypes.JsonDict]):
                 )
                 return FlextResult[FlextTypes.JsonValue].fail(
                     FlextCliConstants.CommandsErrorMessages.INVALID_COMMAND_STRUCTURE.format(
-                        command_name=command_name
-                    )
+                        command_name=command_name,
+                    ),
                 )
 
             # Handler is guaranteed to exist from previous validation
@@ -533,8 +538,8 @@ class FlextCliCommands(FlextService[FlextTypes.JsonDict]):
                 )
                 return FlextResult[FlextTypes.JsonValue].fail(
                     FlextCliConstants.CommandsErrorMessages.HANDLER_NOT_CALLABLE.format(
-                        command_name=command_name
-                    )
+                        command_name=command_name,
+                    ),
                 )
 
             self.logger.debug(
@@ -564,7 +569,7 @@ class FlextCliCommands(FlextService[FlextTypes.JsonDict]):
                     source="flext-cli/src/flext_cli/commands.py",
                 )
                 return FlextResult[FlextTypes.JsonValue].fail(
-                    f"Handler returned invalid type: {type(result).__name__}"
+                    f"Handler returned invalid type: {type(result).__name__}",
                 )
 
             self.logger.debug(
@@ -596,7 +601,9 @@ class FlextCliCommands(FlextService[FlextTypes.JsonDict]):
                 source="flext-cli/src/flext_cli/commands.py",
             )
             return FlextResult[FlextTypes.JsonValue].fail(
-                FlextCliConstants.ErrorMessages.COMMAND_EXECUTION_FAILED.format(error=e)
+                FlextCliConstants.ErrorMessages.COMMAND_EXECUTION_FAILED.format(
+                    error=e,
+                ),
             )
 
     def get_commands(self) -> dict[str, dict[str, object]]:
@@ -645,7 +652,9 @@ class FlextCliCommands(FlextService[FlextTypes.JsonDict]):
                 source="flext-cli/src/flext_cli/commands.py",
             )
             return FlextResult[int].fail(
-                FlextCliConstants.ErrorMessages.COMMAND_EXECUTION_FAILED.format(error=e)
+                FlextCliConstants.ErrorMessages.COMMAND_EXECUTION_FAILED.format(
+                    error=e,
+                ),
             )
 
     def list_commands(self) -> FlextResult[list[str]]:
@@ -685,8 +694,8 @@ class FlextCliCommands(FlextService[FlextTypes.JsonDict]):
             )
             return FlextResult[list[str]].fail(
                 FlextCliConstants.CommandsErrorMessages.FAILED_LIST_COMMANDS.format(
-                    error=e
-                )
+                    error=e,
+                ),
             )
 
     def create_main_cli(self) -> FlextCliCommands:

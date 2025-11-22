@@ -162,10 +162,11 @@ class FlextCli:
         self._container = FlextContainer.get_global()
         # Register in container only if not already registered (avoids test conflicts)
         if not self._container.has_service(
-            FlextCliConstants.APIDefaults.CONTAINER_REGISTRATION_KEY
+            FlextCliConstants.APIDefaults.CONTAINER_REGISTRATION_KEY,
         ):
             self._container.with_service(
-                FlextCliConstants.APIDefaults.CONTAINER_REGISTRATION_KEY, self
+                FlextCliConstants.APIDefaults.CONTAINER_REGISTRATION_KEY,
+                self,
             )
 
         # Domain library components (domain library pattern)
@@ -214,7 +215,8 @@ class FlextCli:
     # =========================================================================
 
     def authenticate(
-        self, credentials: FlextCliTypes.Auth.CredentialsData
+        self,
+        credentials: FlextCliTypes.Auth.CredentialsData,
     ) -> FlextResult[str]:
         """Authenticate user with provided credentials."""
         if FlextCliConstants.DictKeys.TOKEN in credentials:
@@ -225,11 +227,12 @@ class FlextCli:
         ):
             return self._authenticate_with_credentials(credentials)
         return FlextResult[str].fail(
-            FlextCliConstants.ErrorMessages.INVALID_CREDENTIALS
+            FlextCliConstants.ErrorMessages.INVALID_CREDENTIALS,
         )
 
     def _authenticate_with_token(
-        self, credentials: FlextCliTypes.Auth.CredentialsData
+        self,
+        credentials: FlextCliTypes.Auth.CredentialsData,
     ) -> FlextResult[str]:
         """Authenticate using token."""
         token = str(credentials[FlextCliConstants.DictKeys.TOKEN])
@@ -242,13 +245,14 @@ class FlextCli:
         if save_result.is_failure:
             return FlextResult[str].fail(
                 FlextCliConstants.ErrorMessages.TOKEN_SAVE_FAILED.format(
-                    error=save_result.error
-                )
+                    error=save_result.error,
+                ),
             )
         return FlextResult[str].ok(token)
 
     def _authenticate_with_credentials(
-        self, credentials: FlextCliTypes.Auth.CredentialsData
+        self,
+        credentials: FlextCliTypes.Auth.CredentialsData,
     ) -> FlextResult[str]:
         """Authenticate using Pydantic 2 validation - no manual checks."""
         # Validate using Pydantic model - eliminates all manual validation
@@ -259,7 +263,7 @@ class FlextCli:
 
         # Generate token
         token = secrets.token_urlsafe(
-            FlextCliConstants.APIDefaults.TOKEN_GENERATION_BYTES
+            FlextCliConstants.APIDefaults.TOKEN_GENERATION_BYTES,
         )
         self._valid_tokens.add(token)
 
@@ -283,7 +287,7 @@ class FlextCli:
 
         token_path = self.config.token_file
         token_data: FlextCliTypes.Auth.CredentialsData = {
-            FlextCliConstants.DictKeys.TOKEN: token
+            FlextCliConstants.DictKeys.TOKEN: token,
         }
 
         # Use file tools domain library for JSON writing
@@ -294,8 +298,8 @@ class FlextCli:
         if write_result.is_failure:
             return FlextResult[bool].fail(
                 FlextCliConstants.ErrorMessages.TOKEN_SAVE_FAILED.format(
-                    error=write_result.error
-                )
+                    error=write_result.error,
+                ),
             )
 
         self._valid_tokens.add(token)
@@ -318,12 +322,12 @@ class FlextCli:
                 or FlextCliUtilities.FileOps.is_file_not_found_error(error_str)
             ):
                 return FlextResult[str].fail(
-                    FlextCliConstants.ErrorMessages.TOKEN_FILE_NOT_FOUND
+                    FlextCliConstants.ErrorMessages.TOKEN_FILE_NOT_FOUND,
                 )
             return FlextResult[str].fail(
                 FlextCliConstants.ErrorMessages.TOKEN_LOAD_FAILED.format(
-                    error=error_str
-                )
+                    error=error_str,
+                ),
             )
 
         # Validate using Pydantic model - eliminates _validate_token_data + _extract_token_string
@@ -331,7 +335,7 @@ class FlextCli:
         # Check if data is empty or None before validation
         if not data or (FlextRuntime.is_dict_like(data) and not data):
             return FlextResult[str].fail(
-                FlextCliConstants.ErrorMessages.TOKEN_FILE_EMPTY
+                FlextCliConstants.ErrorMessages.TOKEN_FILE_EMPTY,
             )
         try:
             token_data = FlextCliModels.TokenData.model_validate(data)
@@ -341,15 +345,16 @@ class FlextCli:
             error_str = str(e).lower()
             if "dict" in error_str or "mapping" in error_str or "object" in error_str:
                 return FlextResult[str].fail(
-                    FlextCliConstants.APIDefaults.TOKEN_DATA_TYPE_ERROR
+                    FlextCliConstants.APIDefaults.TOKEN_DATA_TYPE_ERROR,
                 )
             if "string" in error_str or "str" in error_str:
                 return FlextResult[str].fail(
-                    FlextCliConstants.APIDefaults.TOKEN_VALUE_TYPE_ERROR
+                    FlextCliConstants.APIDefaults.TOKEN_VALUE_TYPE_ERROR,
                 )
             # Fallback for any other validation errors (e.g., field required, value errors)
+            # pragma: no cover - Defensive: Catches unexpected validation error types not covered by specific checks above
             return FlextResult[str].fail(
-                FlextCliConstants.ErrorMessages.TOKEN_FILE_EMPTY
+                FlextCliConstants.ErrorMessages.TOKEN_FILE_EMPTY,
             )
 
     def is_authenticated(self) -> bool:
@@ -370,25 +375,25 @@ class FlextCli:
         if (
             delete_token_result.is_failure
             and not FlextCliUtilities.FileOps.is_file_not_found_error(
-                str(delete_token_result.error)
+                str(delete_token_result.error),
             )
         ):
             return FlextResult[bool].fail(
                 FlextCliConstants.ErrorMessages.FAILED_CLEAR_CREDENTIALS.format(
-                    error=delete_token_result.error
-                )
+                    error=delete_token_result.error,
+                ),
             )
 
         if (
             delete_refresh_result.is_failure
             and not FlextCliUtilities.FileOps.is_file_not_found_error(
-                str(delete_refresh_result.error)
+                str(delete_refresh_result.error),
             )
         ):
             return FlextResult[bool].fail(
                 FlextCliConstants.ErrorMessages.FAILED_CLEAR_CREDENTIALS.format(
-                    error=delete_refresh_result.error
-                )
+                    error=delete_refresh_result.error,
+                ),
             )
 
         self._valid_tokens.clear()
@@ -428,9 +433,11 @@ class FlextCli:
         return decorator(func)
 
     def command(
-        self, name: str | None = None
+        self,
+        name: str | None = None,
     ) -> Callable[
-        [Callable[..., FlextTypes.JsonValue]], Callable[..., FlextTypes.JsonValue]
+        [Callable[..., FlextTypes.JsonValue]],
+        Callable[..., FlextTypes.JsonValue],
     ]:
         """Register a command using CLI framework abstraction."""
 
@@ -442,9 +449,11 @@ class FlextCli:
         return decorator
 
     def group(
-        self, name: str | None = None
+        self,
+        name: str | None = None,
     ) -> Callable[
-        [Callable[..., FlextTypes.JsonValue]], Callable[..., FlextTypes.JsonValue]
+        [Callable[..., FlextTypes.JsonValue]],
+        Callable[..., FlextTypes.JsonValue],
     ]:
         """Register a command group using CLI framework abstraction."""
 
@@ -482,7 +491,7 @@ class FlextCli:
                     "version": __version__,
                     "components": components,
                 },
-            )
+            ),
         )
 
     # =========================================================================
@@ -519,7 +528,7 @@ class FlextCli:
         # Handle None case - fast fail if data is None
         if data is None:
             return FlextResult[str].fail(
-                FlextCliConstants.ErrorMessages.NO_DATA_PROVIDED
+                FlextCliConstants.ErrorMessages.NO_DATA_PROVIDED,
             )
 
         # table_data is dict|list which are both valid JsonValue types

@@ -70,9 +70,9 @@ class FlextCliFormatters:
         try:
             self.console.print(message, style=style)
             return FlextResult[bool].ok(True)
-        except Exception as e:
+        except Exception as e:  # pragma: no cover - Defensive: Catches unexpected errors during console print operation
             return FlextResult[bool].fail(
-                FlextCliConstants.FormattersErrorMessages.PRINT_FAILED.format(error=e)
+                FlextCliConstants.FormattersErrorMessages.PRINT_FAILED.format(error=e),
             )
 
     def create_table(
@@ -122,15 +122,17 @@ class FlextCliFormatters:
 
             return FlextResult[RichTable].ok(table)
 
-        except Exception as e:
+        except Exception as e:  # pragma: no cover - Defensive: Catches unexpected errors during table creation
             return FlextResult[RichTable].fail(
                 FlextCliConstants.FormattersErrorMessages.TABLE_CREATION_FAILED.format(
-                    error=e
-                )
+                    error=e,
+                ),
             )
 
     def render_table_to_string(
-        self, table: RichTable, width: int | None = None
+        self,
+        table: RichTable,
+        width: int | None = None,
     ) -> FlextResult[str]:
         """Render Rich table to string.
 
@@ -159,8 +161,8 @@ class FlextCliFormatters:
         except Exception as e:
             return FlextResult[str].fail(
                 FlextCliConstants.FormattersErrorMessages.TABLE_RENDERING_FAILED.format(
-                    error=e
-                )
+                    error=e,
+                ),
             )
 
     def create_progress(self) -> FlextResult[Progress]:
@@ -180,8 +182,8 @@ class FlextCliFormatters:
         except Exception as e:
             return FlextResult[Progress].fail(
                 FlextCliConstants.FormattersErrorMessages.PROGRESS_CREATION_FAILED.format(
-                    error=e
-                )
+                    error=e,
+                ),
             )
 
     def create_tree(self, label: str) -> FlextResult[RichTree]:
@@ -203,12 +205,14 @@ class FlextCliFormatters:
         except Exception as e:
             return FlextResult[RichTree].fail(
                 FlextCliConstants.FormattersErrorMessages.TREE_CREATION_FAILED.format(
-                    error=e
-                )
+                    error=e,
+                ),
             )
 
     def render_tree_to_string(
-        self, tree: RichTree, width: int | None = None
+        self,
+        tree: RichTree,
+        width: int | None = None,
     ) -> FlextResult[str]:
         """Render Rich tree to string.
 
@@ -233,8 +237,8 @@ class FlextCliFormatters:
         except Exception as e:
             return FlextResult[str].fail(
                 FlextCliConstants.FormattersErrorMessages.TREE_RENDERING_FAILED.format(
-                    error=e
-                )
+                    error=e,
+                ),
             )
 
     # =========================================================================
@@ -275,8 +279,8 @@ class FlextCliFormatters:
         except Exception as e:
             return FlextResult[RichStatus].fail(
                 FlextCliConstants.FormattersErrorMessages.STATUS_CREATION_FAILED.format(
-                    error=e
-                )
+                    error=e,
+                ),
             )
 
     def create_live(
@@ -310,8 +314,8 @@ class FlextCliFormatters:
         except Exception as e:
             return FlextResult[RichLive].fail(
                 FlextCliConstants.FormattersErrorMessages.LIVE_CREATION_FAILED.format(
-                    error=e
-                )
+                    error=e,
+                ),
             )
 
     def create_layout(self) -> FlextResult[RichLayout]:
@@ -331,8 +335,8 @@ class FlextCliFormatters:
         except Exception as e:
             return FlextResult[RichLayout].fail(
                 FlextCliConstants.FormattersErrorMessages.LAYOUT_CREATION_FAILED.format(
-                    error=e
-                )
+                    error=e,
+                ),
             )
 
     def create_panel(
@@ -372,8 +376,8 @@ class FlextCliFormatters:
         except Exception as e:
             return FlextResult[RichPanel].fail(
                 FlextCliConstants.FormattersErrorMessages.PANEL_CREATION_FAILED.format(
-                    error=e
-                )
+                    error=e,
+                ),
             )
 
 

@@ -14,9 +14,8 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-import typing
-from collections.abc import Sequence
-from typing import Annotated, Protocol, TypeVar
+from collections.abc import Callable as CallableABC, Sequence
+from typing import Annotated, Literal, Protocol, TypeAlias, TypeVar
 
 from flext_core import FlextResult, FlextTypes
 from pydantic import BaseModel, Field
@@ -35,8 +34,6 @@ from rich.status import Status as RichStatusImport
 from rich.table import Table as RichTableImport
 from rich.tree import Tree as RichTreeImport
 
-from flext_cli.constants import FlextCliConstants
-
 # Module-level TypeVars
 TCliCommand = TypeVar("TCliCommand")
 TCliConfig = TypeVar("TCliConfig")
@@ -46,6 +43,12 @@ TCliSession = TypeVar("TCliSession")
 TCliContext = TypeVar("TCliContext")
 TCliPlugin = TypeVar("TCliPlugin")
 TCliFormatter = TypeVar("TCliFormatter")
+
+# Type aliases for CLI data structures
+# Compatible with mypy and replaces FlextTypes.JsonValue usage
+type CliJsonValue = FlextTypes.JsonValue
+CliJsonDict: TypeAlias = dict[str, CliJsonValue]
+CliJsonList: TypeAlias = list[CliJsonValue]
 
 
 class FlextCliTypes(FlextTypes):
@@ -85,12 +88,14 @@ class FlextCliTypes(FlextTypes):
 
         # Command string types with validation
         CommandName = Annotated[
-            str, Field(pattern=r"^[a-z][a-z0-9-]*$", min_length=1, max_length=64)
+            str,
+            Field(pattern=r"^[a-z][a-z0-9-]*$", min_length=1, max_length=64),
         ]
         """Command name with kebab-case pattern validation."""
 
         OptionName = Annotated[
-            str, Field(pattern=r"^--[a-z][a-z0-9-]*$", min_length=3, max_length=64)
+            str,
+            Field(pattern=r"^--[a-z][a-z0-9-]*$", min_length=3, max_length=64),
         ]
         """CLI option name with double-dash prefix."""
 
@@ -121,15 +126,17 @@ class FlextCliTypes(FlextTypes):
         """Non-negative integer (>= 0)."""
 
         # Enum-like types using Literal (Pydantic v2 native)
-        # CRITICAL: All Literals must come from FlextCliConstants
-        OutputFormatEnum = FlextCliConstants.OutputFormatLiteral
-        """Output format options - from constants."""
+        # CRITICAL: Mirrors FlextCliConstants values (avoid circular import)
+        OutputFormatEnum = Literal["json", "yaml", "csv", "table", "plain"]
+        """Output format options - mirrors FlextCliConstants.OutputFormatLiteral."""
 
-        LogLevelEnum = FlextCliConstants.LogLevelLiteral
-        """Log level options - from constants."""
+        LogLevelEnum = Literal["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"]
+        """Log level options - mirrors FlextCliConstants.LogLevelLiteral."""
 
-        CommandStatusEnum = FlextCliConstants.CommandStatusLiteral
-        """Command execution status options - from constants."""
+        CommandStatusEnum = Literal[
+            "pending", "running", "completed", "failed", "cancelled"
+        ]
+        """Command execution status options - mirrors FlextCliConstants.CommandStatusLiteral."""
 
         # Path and file types
         ConfigFilePath = Annotated[str, Field(min_length=1)]
@@ -147,7 +154,8 @@ class FlextCliTypes(FlextTypes):
 
         # Logging and debug types
         LogLevel = Annotated[
-            str, Field(pattern=r"^(DEBUG|INFO|WARNING|ERROR|CRITICAL)$")
+            str,
+            Field(pattern=r"^(DEBUG|INFO|WARNING|ERROR|CRITICAL)$"),
         ]
         """Log level (DEBUG, INFO, WARNING, ERROR, CRITICAL)."""
 
@@ -181,38 +189,38 @@ class FlextCliTypes(FlextTypes):
         """
 
         # Data structures for CLI formatting and configuration
-        CliFormatData = dict[str, FlextTypes.JsonValue]
+        CliFormatData: TypeAlias = CliJsonDict
         """Data structure for CLI formatting operations."""
 
-        CliConfigData = dict[str, FlextTypes.JsonValue]
+        CliConfigData: TypeAlias = CliJsonDict
         """Data structure for CLI configuration (load/save/options)."""
 
-        AuthConfigData = dict[str, FlextTypes.JsonValue]
+        AuthConfigData: TypeAlias = CliJsonDict
         """Data structure for authentication configuration and credentials."""
 
-        DebugInfoData = dict[str, FlextTypes.JsonValue]
+        DebugInfoData: TypeAlias = CliJsonDict
         """Data structure for debug information."""
 
-        CliCommandArgs = dict[str, FlextTypes.JsonValue]
+        CliCommandArgs: TypeAlias = CliJsonDict
         """Data structure for CLI command arguments and kwargs."""
 
-        CliCommandResult = dict[str, FlextTypes.JsonValue]
+        CliCommandResult: TypeAlias = CliJsonDict
         """Data structure for CLI command execution results."""
 
         # Additional CLI data structures
-        CliDataDict = dict[str, FlextTypes.JsonValue]
+        CliDataDict: TypeAlias = CliJsonDict
         """Generic CLI data dictionary for flexible data passing."""
 
-        TableRow = CliDataDict
+        TableRow: TypeAlias = CliJsonDict
         """Single row of tabular CLI data."""
 
-        TableData = Sequence[CliDataDict] | CliDataDict
+        TableData: TypeAlias = Sequence[CliJsonDict] | CliJsonDict
         """Tabular data represented as a sequence of dictionaries or a single row."""
 
-        TabularData = TableData
+        TabularData: TypeAlias = TableData
         """Complete table input supporting rows defined as dictionaries."""
 
-        CliCommandData = dict[str, FlextTypes.JsonValue]
+        CliCommandData: TypeAlias = CliJsonDict
         """Data structure for CLI command data and metadata."""
 
     # =====================================================================
@@ -222,7 +230,7 @@ class FlextCliTypes(FlextTypes):
     class Auth:
         """Authentication data type aliases."""
 
-        CredentialsData = dict[str, FlextTypes.JsonValue]
+        CredentialsData: TypeAlias = CliJsonDict
         """Data structure for credentials (username, password, token)."""
 
     # =====================================================================
@@ -232,13 +240,13 @@ class FlextCliTypes(FlextTypes):
     class CliCommand:
         """CLI command type aliases for command execution framework."""
 
-        CommandDefinition = dict[str, FlextTypes.JsonValue]
+        CommandDefinition: TypeAlias = CliJsonDict
         """Data structure for command definition."""
 
-        CommandContext = dict[str, FlextTypes.JsonValue]
+        CommandContext: TypeAlias = CliJsonDict
         """Data structure for command execution context."""
 
-        CommandResult = dict[str, FlextTypes.JsonValue]
+        CommandResult: TypeAlias = CliJsonDict
         """Data structure for command execution results."""
 
     # =====================================================================
@@ -248,13 +256,13 @@ class FlextCliTypes(FlextTypes):
     class Configuration:
         """Configuration type aliases."""
 
-        CliConfigSchema = dict[str, FlextTypes.JsonValue]
+        CliConfigSchema: TypeAlias = CliJsonDict
         """Data structure for CLI configuration schema."""
 
-        ProfileConfiguration = dict[str, FlextTypes.JsonValue]
+        ProfileConfiguration: TypeAlias = CliJsonDict
         """Data structure for configuration profile."""
 
-        SessionConfiguration = dict[str, FlextTypes.JsonValue]
+        SessionConfiguration: TypeAlias = CliJsonDict
         """Data structure for session configuration."""
 
     # =====================================================================
@@ -266,7 +274,7 @@ class FlextCliTypes(FlextTypes):
 
         # Handler function that processes CLI data and returns result
         # Accepts **kwargs (context_data) and returns FlextResult
-        HandlerFunction = typing.Callable[..., FlextResult[FlextTypes.JsonValue]]
+        HandlerFunction = CallableABC[..., FlextResult[CliJsonValue]]
         """CLI command handler function signature - accepts **kwargs."""
 
         # Result formatter that displays domain-specific result types
@@ -276,8 +284,9 @@ class FlextCliTypes(FlextTypes):
 
             __dict__: dict[str, object]
 
-        ResultFormatter = typing.Callable[
-            [BaseModel | FlextTypes.JsonValue | FormatableResult, str], None
+        ResultFormatter = CallableABC[
+            [BaseModel | CliJsonValue | FormatableResult, str],
+            None,
         ]
         """Result formatter function signature: (result, output_format) -> None."""
 
@@ -321,6 +330,9 @@ class FlextCliTypes(FlextTypes):
 
 
 __all__: list[str] = [
+    "CliJsonDict",
+    "CliJsonList",
+    "CliJsonValue",
     "FlextCliTypes",
     "TCliCommand",
     "TCliConfig",

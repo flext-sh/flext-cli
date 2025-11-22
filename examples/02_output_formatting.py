@@ -33,17 +33,11 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-import sys
-from pathlib import Path
-
-# Add src to path for relative imports (pyrefly accepts this pattern)
-if Path(__file__).parent.parent / "src" not in [Path(p) for p in sys.path]:
-    sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
-
-
 import pathlib
 import time
 from pathlib import Path
+
+from flext_core import FlextResult
 
 from flext_cli import (
     FlextCli,
@@ -116,17 +110,19 @@ def display_database_results(records: list[FlextCliTypes.Data.CliDataDict]) -> N
 
 
 def export_report(
-    data: list[FlextCliTypes.Data.CliDataDict], format_type: str = "grid"
-) -> str | None:
+    data: list[FlextCliTypes.Data.CliDataDict],
+    format_type: str = "grid",
+) -> FlextResult[str]:
     """Create ASCII tables for logs/reports in your app."""
     # Good for: log files, email reports, markdown docs
     # Create table config with specified format
     config = FlextCliModels.TableConfig(table_format=format_type)
     result = tables.create_table(list(data), config=config)
 
+    # Return FlextResult to avoid None types (railway pattern)
     if result.is_success:
-        return result.unwrap()  # Returns string you can save to file
-    return None
+        return FlextResult[str].ok(result.unwrap())
+    return FlextResult[str].fail(result.error or "Failed to create table")
 
 
 # ============================================================================
@@ -274,7 +270,7 @@ def display_with_panels(data: FlextCliTypes.Data.CliDataDict) -> None:
         cli.print("\n📋 Details:", style="bold green")
         # Use FlextCliTables for list[dict] data
         # Cast to expected type for table creation
-        table_result = tables.create_table(list(details_data), table_format="grid")
+        table_result = tables.create_table(list(details_data))
         if table_result.is_success:
             cli.print(f"\n{table_result.unwrap()}", style="white")
 
@@ -309,9 +305,9 @@ def main() -> None:
 
     # Example 3: ASCII tables
     cli.print("\n3. ASCII Tables (for logs/reports):", style="bold cyan")
-    ascii_table = export_report(sample_data, "grid")
-    if ascii_table:
-        pass  # This is plain text - can save to file
+    ascii_result = export_report(sample_data, "grid")
+    if ascii_result.is_success:
+        pass  # This is plain text - can save to file (ascii_result.unwrap())
 
     # Example 4: Progress bars
     cli.print("\n4. Progress Bars (long operations):", style="bold cyan")
@@ -350,7 +346,8 @@ def main() -> None:
     # Integration guide
     cli.print("\n💡 Integration Tips:", style="bold cyan")
     cli.print(
-        "  • Rich tables: Use cli.create_table() for terminal display", style="white"
+        "  • Rich tables: Use cli.create_table() for terminal display",
+        style="white",
     )
     cli.print("  • ASCII tables: Use FlextCliTables for logs/files", style="white")
     cli.print(
@@ -359,12 +356,14 @@ def main() -> None:
     )
     cli.print("  • Status: Use cli.print() with status messages", style="white")
     cli.print(
-        "  • Tables: Use cli.create_table() for auto-refreshing data", style="white"
+        "  • Tables: Use cli.create_table() for auto-refreshing data",
+        style="white",
     )
     cli.print("  • Organization: Use cli.print() with sections", style="white")
     cli.print("  • All methods return FlextResult for error handling", style="white")
     cli.print(
-        "  • NEVER import rich/click/tabulate directly - use FlextCli!", style="white"
+        "  • NEVER import rich/click/tabulate directly - use FlextCli!",
+        style="white",
     )
 
 

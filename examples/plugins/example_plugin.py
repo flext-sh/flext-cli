@@ -83,7 +83,7 @@ class ExamplePlugin:
             cli_main_typed = cast("Any", cli_main)
 
             # Register command group
-            @cli_main_typed.group()
+            @cli_main_typed.group()  # type: ignore[misc]
             def example() -> None:
                 """Example plugin commands."""
 
@@ -109,17 +109,17 @@ class ExamplePlugin:
                 print(f"Configuration: {self._config}")
 
             # Register commands under group
-            @example.command()
+            @example.command()  # type: ignore[misc]
             def hello_cmd(name: str = "World") -> None:
                 """Say hello from the plugin."""
                 hello(name)
 
-            @example.command()
+            @example.command()  # type: ignore[misc]
             def info_cmd() -> None:
                 """Show plugin information."""
                 info()
 
-            @example.command()
+            @example.command()  # type: ignore[misc]
             def status_cmd() -> None:
                 """Show plugin status."""
                 status()
@@ -184,7 +184,7 @@ class DataProcessorPlugin:
             # Cast cli_main to Any for decorator usage (runtime type is correct)
             cli_main_typed = cast("Any", cli_main)
 
-            @cli_main_typed.group()
+            @cli_main_typed.group()  # type: ignore[misc]
             def data() -> None:
                 """Data processing commands."""
 
@@ -215,13 +215,13 @@ class DataProcessorPlugin:
                 """
                 return list(self._processors.keys())
 
-            @data.command()
+            @data.command()  # type: ignore[misc]
             def process_cmd(input_data: str, format_type: str = "json") -> None:
                 """Process data in specified format."""
                 result = process_data(input_data, format_type)
                 print(f"Processed: {result}")
 
-            @data.command()
+            @data.command()  # type: ignore[misc]
             def formats_cmd() -> None:
                 """List available data formats."""
                 formats_list = list_formats()

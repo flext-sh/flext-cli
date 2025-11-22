@@ -10,19 +10,12 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-import sys
-from pathlib import Path
-
-# Add src to path for relative imports (pyrefly accepts this pattern)
-if Path(__file__).parent.parent.parent / "src" not in [Path(p) for p in sys.path]:
-    sys.path.insert(0, str(Path(__file__).parent.parent.parent / "src"))
-
-
 import threading
 import time
-from typing import Protocol, runtime_checkable
+from typing import Protocol, cast, runtime_checkable
 
 import pytest
+from flext_core import FlextResult
 
 from flext_cli import FlextCliProtocols
 
@@ -39,7 +32,8 @@ class TestFlextCliProtocols:
     # INITIALIZATION AND BASIC FUNCTIONALITY
     # ========================================================================
     def test_protocols_service_initialization(
-        self, protocols_service: FlextCliProtocols
+        self,
+        protocols_service: FlextCliProtocols,
     ) -> None:
         """Test protocols service initialization and real protocol access."""
         # Test that protocols service is properly initialized
@@ -49,11 +43,12 @@ class TestFlextCliProtocols:
         # Test that CliFormatter protocol exists and is runtime_checkable
         assert hasattr(protocols_service.Cli, "CliFormatter")
         # Test isinstance check with a real implementation
-        from flext_core import FlextResult
 
         class TestFormatter:
             def format_data(
-                self, data: dict[str, object], **options: dict[str, object]
+                self,
+                data: dict[str, object],
+                **options: dict[str, object],
             ) -> FlextResult[str]:
                 return FlextResult[str].ok("formatted")
 
@@ -62,13 +57,13 @@ class TestFlextCliProtocols:
         assert isinstance(formatter, protocols_service.Cli.CliFormatter)
 
     def test_protocols_service_basic_functionality(
-        self, protocols_service: FlextCliProtocols
+        self,
+        protocols_service: FlextCliProtocols,
     ) -> None:
         """Test protocols service basic functionality with real implementations."""
         # Test that protocols can be accessed and used
         assert protocols_service is not None
         # Test CliConfigProvider protocol with real implementation
-        from flext_core import FlextResult
 
         class TestConfigProvider:
             def load_config(self) -> FlextResult[dict[str, object]]:
@@ -251,7 +246,10 @@ class TestFlextCliProtocols:
         # Compose protocols
         @runtime_checkable
         class DataPipelineProtocol(
-            ReaderProtocol, WriterProtocol, ProcessorProtocol, Protocol
+            ReaderProtocol,
+            WriterProtocol,
+            ProcessorProtocol,
+            Protocol,
         ):
             def run_pipeline(self, source: str, destination: str) -> bool: ...
 
@@ -430,10 +428,14 @@ class TestFlextCliProtocols:
         class ApiClientProtocol(Protocol):
             def get(self, endpoint: str) -> dict[str, object]: ...
             def post(
-                self, endpoint: str, data: dict[str, object]
+                self,
+                endpoint: str,
+                data: dict[str, object],
             ) -> dict[str, object]: ...
             def put(
-                self, endpoint: str, data: dict[str, object]
+                self,
+                endpoint: str,
+                data: dict[str, object],
             ) -> dict[str, object]: ...
             def delete(self, endpoint: str) -> bool: ...
 
@@ -475,7 +477,6 @@ class TestFlextCliProtocols:
         post_result = client.post("/users", {"name": "John"})
         assert post_result["method"] == "POST"
         # Cast to narrow type for dict access
-        from typing import cast
 
         data = cast("dict[str, object]", post_result["data"])
         assert data["name"] == "John"
@@ -498,8 +499,6 @@ class TestFlextCliProtocols:
                 return "id" in data and "name" in data
 
             def transform_data(self, data: dict[str, object]) -> dict[str, object]:
-                from typing import cast
-
                 return {
                     "id": data["id"],
                     "name": cast("str", data["name"]).upper(),
@@ -510,7 +509,6 @@ class TestFlextCliProtocols:
                 return len(data) > 0
 
         # Test data processor protocol
-        from typing import cast
 
         processor = DataProcessor()
         assert isinstance(processor, DataProcessorProtocol)
@@ -712,7 +710,10 @@ class TestFlextCliProtocols:
         # 2. Compose protocols
         @runtime_checkable
         class DataPipelineProtocol(
-            DataSourceProtocol, DataTransformerProtocol, DataSinkProtocol, Protocol
+            DataSourceProtocol,
+            DataTransformerProtocol,
+            DataSinkProtocol,
+            Protocol,
         ):
             def run_pipeline(self) -> bool: ...
 
@@ -725,8 +726,6 @@ class TestFlextCliProtocols:
                 return self._data
 
             def transform(self, data: dict[str, object]) -> dict[str, object]:
-                from typing import cast
-
                 return cast(
                     "dict[str, object]",
                     {
@@ -765,7 +764,8 @@ class TestFlextCliProtocols:
         assert pipeline_success is True
 
     def test_protocol_workflow_integration(
-        self, protocols_service: FlextCliProtocols
+        self,
+        protocols_service: FlextCliProtocols,
     ) -> None:
         """Test protocol workflow integration."""
 

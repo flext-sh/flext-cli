@@ -7,20 +7,13 @@ SPDX-License-Identifier: MIT
 """
 
 from __future__ import annotations
-import sys
-from pathlib import Path
-
-# Add src to path for relative imports (pyrefly accepts this pattern)
-if Path(__file__).parent.parent / "src" not in [Path(p) for p in sys.path]:
-    sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
-
 
 import logging
 import traceback
 
-from flext_core import FlextResult, FlextTypes
+from flext_core import FlextResult
 
-from flext_cli import FlextCli  # noqa: E402
+from flext_cli import FlextCli
 
 
 def main() -> None:
@@ -48,29 +41,24 @@ def main() -> None:
             cli = FlextCli()
 
             # Route operations to appropriate methods
-            result: (
-                FlextResult[list[str]]
-                | FlextResult[None]
-                | FlextResult[FlextTypes.JsonDict]
-                | FlextResult[bool]
+            result: FlextResult[object] = FlextResult[object].fail(
+                f"Unknown operation: {operation}"
             )
             if operation == ["config", "show"]:
-                result = cli.cmd.show_config_paths()
+                result = cli.cmd.show_config_paths()  # type: ignore[assignment]
             elif operation == ["config", "validate"]:
-                result = cli.cmd.validate_config()
+                result = cli.cmd.validate_config()  # type: ignore[assignment]
             elif operation == ["auth", "status"]:
                 # Test authentication status
                 is_authenticated = cli.is_authenticated()
                 result = (
-                    FlextResult[None].ok(None)
+                    FlextResult[object].ok("Authenticated")
                     if is_authenticated
-                    else FlextResult[None].fail("Not authenticated")
+                    else FlextResult[object].fail("Not authenticated")
                 )
             elif operation == ["debug", "check"]:
                 # Test debug functionality - check if services are operational
-                result = cli.execute()
-            else:
-                result = FlextResult[None].fail(f"Unknown operation: {operation}")
+                result = cli.execute()  # type: ignore[assignment]
 
             if result.is_success:
                 logger.info("Operation %s completed successfully", operation)

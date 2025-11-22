@@ -33,7 +33,8 @@ class TestFlextCliConstants:
     # INITIALIZATION AND BASIC FUNCTIONALITY
     # ========================================================================
     def test_constants_service_initialization(
-        self, constants_service: FlextCliConstants
+        self,
+        constants_service: FlextCliConstants,
     ) -> None:
         """Test constants service initialization and basic properties."""
         assert constants_service is not None
@@ -69,7 +70,8 @@ class TestFlextCliConstants:
     # ========================================================================
 
     def test_constants_are_immutable(
-        self, constants_service: FlextCliConstants
+        self,
+        constants_service: FlextCliConstants,
     ) -> None:
         """Test that constants are properly defined and immutable."""
         # Test that constants are strings
@@ -85,7 +87,8 @@ class TestFlextCliConstants:
         assert len(constants_service.REFRESH_TOKEN_FILE_NAME.strip()) > 0
 
     def test_constants_format_validation(
-        self, constants_service: FlextCliConstants
+        self,
+        constants_service: FlextCliConstants,
     ) -> None:
         """Test that constants follow expected formats."""
         # Test directory name format (should start with dot)
@@ -119,7 +122,8 @@ class TestFlextCliConstants:
     # ========================================================================
 
     def test_constants_in_file_paths(
-        self, constants_service: FlextCliConstants
+        self,
+        constants_service: FlextCliConstants,
     ) -> None:
         """Test constants usage in file path construction."""
         # Test constructing paths using constants
@@ -132,7 +136,7 @@ class TestFlextCliConstants:
         assert str(flext_dir).endswith(constants_service.FLEXT_DIR_NAME)
         assert str(token_file).endswith(constants_service.TOKEN_FILE_NAME)
         assert str(refresh_token_file).endswith(
-            constants_service.REFRESH_TOKEN_FILE_NAME
+            constants_service.REFRESH_TOKEN_FILE_NAME,
         )
 
         # Verify paths are valid (don't contain invalid characters)
@@ -143,7 +147,8 @@ class TestFlextCliConstants:
         )
 
     def test_constants_in_configuration(
-        self, constants_service: FlextCliConstants
+        self,
+        constants_service: FlextCliConstants,
     ) -> None:
         """Test constants usage in configuration scenarios."""
         # Test using constants in configuration dictionary
@@ -186,7 +191,8 @@ class TestFlextCliConstants:
     # ========================================================================
 
     def test_constants_cross_platform_compatibility(
-        self, constants_service: FlextCliConstants
+        self,
+        constants_service: FlextCliConstants,
     ) -> None:
         """Test that constants work across different platforms."""
         # Test that constants don't contain platform-specific characters
@@ -206,7 +212,8 @@ class TestFlextCliConstants:
                 assert char not in constants_service.REFRESH_TOKEN_FILE_NAME
 
     def test_constants_encoding_compatibility(
-        self, constants_service: FlextCliConstants
+        self,
+        constants_service: FlextCliConstants,
     ) -> None:
         """Test that constants are compatible with different encodings."""
         # Test UTF-8 encoding
@@ -231,7 +238,8 @@ class TestFlextCliConstants:
     # ========================================================================
 
     def test_validate_constant_format(
-        self, constants_service: FlextCliConstants
+        self,
+        constants_service: FlextCliConstants,
     ) -> None:
         """Test constant format validation."""
         # Test project name format
@@ -257,7 +265,8 @@ class TestFlextCliConstants:
         assert "\\" not in token_file
 
     def test_validate_constant_content(
-        self, constants_service: FlextCliConstants
+        self,
+        constants_service: FlextCliConstants,
     ) -> None:
         """Test constant content validation."""
         # Test that constants contain expected content
@@ -270,7 +279,8 @@ class TestFlextCliConstants:
         assert "refresh" in constants_service.REFRESH_TOKEN_FILE_NAME.lower()
 
     def test_validate_constant_consistency(
-        self, constants_service: FlextCliConstants
+        self,
+        constants_service: FlextCliConstants,
     ) -> None:
         """Test constant consistency validation."""
         # Test that related constants are consistent
@@ -316,7 +326,8 @@ class TestFlextCliConstants:
         assert isinstance(refresh_token_file, str)
 
     def test_constants_multiple_instances(
-        self, constants_service: FlextCliConstants
+        self,
+        constants_service: FlextCliConstants,
     ) -> None:
         """Test that multiple instances return the same constants."""
         # Create another instance
@@ -332,7 +343,8 @@ class TestFlextCliConstants:
         )
 
     def test_constants_expected_values(
-        self, constants_service: FlextCliConstants
+        self,
+        constants_service: FlextCliConstants,
     ) -> None:
         """Test that constants have expected values."""
         # Test that constants have the expected values
@@ -352,7 +364,8 @@ class TestFlextCliConstants:
     # ========================================================================
 
     def test_constants_in_real_world_scenarios(
-        self, constants_service: FlextCliConstants
+        self,
+        constants_service: FlextCliConstants,
     ) -> None:
         """Test constants in real-world usage scenarios."""
         # Scenario 1: Setting up application directories
@@ -380,7 +393,7 @@ class TestFlextCliConstants:
                     "token": constants_service.TOKEN_FILE_NAME,
                     "refresh_token": constants_service.REFRESH_TOKEN_FILE_NAME,
                 },
-            }
+            },
         }
 
         # Test config structure

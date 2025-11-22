@@ -30,20 +30,12 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-import sys
-from pathlib import Path
-
-# Add src to path for relative imports (pyrefly accepts this pattern)
-if Path(__file__).parent.parent / "src" not in [Path(p) for p in sys.path]:
-    sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
-
-
 import pathlib
 import tempfile
 import time
 from functools import lru_cache
 
-from flext_cli import FlextCliOutput, FlextCliTables, FlextCliTypes
+from flext_cli import FlextCliModels, FlextCliOutput, FlextCliTables, FlextCliTypes
 
 output = FlextCliOutput()
 
@@ -60,7 +52,8 @@ def efficient_cli_usage() -> None:
 
     # ✅ FAST: Reuse output instance
     output.print_message(
-        "✅ Using singleton - no re-initialization overhead", style="green"
+        "✅ Using singleton - no re-initialization overhead",
+        style="green",
     )
 
 
@@ -113,7 +106,8 @@ class LazyDataLoader:
         """Load data only when needed."""
         if self._data is None:
             output.print_message(
-                "   📦 Loading data (first access only)...", style="cyan"
+                "   📦 Loading data (first access only)...",
+                style="cyan",
             )
             # Simulate loading
             self._data = list(range(10000))
@@ -127,7 +121,8 @@ def demonstrate_lazy_loading() -> None:
     # Fast startup - data not loaded
     loader = LazyDataLoader()
     output.print_message(
-        "   ✅ Loader created instantly (no data loaded)", style="green"
+        "   ✅ Loader created instantly (no data loaded)",
+        style="green",
     )
 
     # Data loaded only when accessed
@@ -153,18 +148,21 @@ def efficient_table_display(
     total = len(large_dataset)
 
     output.print_message(
-        f"\n📊 Efficient Table (showing {preview_size}/{total} rows):", style="cyan"
+        f"\n📊 Efficient Table (showing {preview_size}/{total} rows):",
+        style="cyan",
     )
 
     # Display only preview
     preview_data = large_dataset[:preview_size]
 
     tables = FlextCliTables()
-    table_result = tables.create_table(preview_data, table_format="simple")
+    config = FlextCliModels.TableConfig(table_format="simple")
+    table_result = tables.create_table(preview_data, config=config)
 
     if table_result.is_success:
         output.print_message(
-            f"   ... ({total - preview_size} more rows)", style="yellow"
+            f"   ... ({total - preview_size} more rows)",
+            style="yellow",
         )
 
 
@@ -176,7 +174,8 @@ def efficient_table_display(
 def process_large_dataset(items: list[int], batch_size: int = 100) -> None:
     """Process large datasets in batches in YOUR CLI."""
     output.print_message(
-        f"\n🔄 Batch Processing ({len(items)} items):", style="bold cyan"
+        f"\n🔄 Batch Processing ({len(items)} items):",
+        style="bold cyan",
     )
 
     total_batches = (len(items) + batch_size - 1) // batch_size
@@ -216,7 +215,8 @@ def stream_large_file(filepath: str) -> None:
                 # Process line
 
         output.print_message(
-            f"   ✅ Processed {line_count} lines (streamed)", style="green"
+            f"   ✅ Processed {line_count} lines (streamed)",
+            style="green",
         )
     except FileNotFoundError:
         output.print_message(f"   ℹ️  Demo: Would stream {filepath}", style="cyan")
@@ -268,10 +268,12 @@ def main() -> None:
     # Integration guide
     output.print_message("\n💡 Performance Tips:", style="bold cyan")
     output.print_message(
-        "  • Always use FlextCli.get_instance() (singleton)", style="white"
+        "  • Always use FlextCli.get_instance() (singleton)",
+        style="white",
     )
     output.print_message(
-        "  • Cache expensive operations with @lru_cache", style="white"
+        "  • Cache expensive operations with @lru_cache",
+        style="white",
     )
     output.print_message("  • Use lazy loading for large datasets", style="white")
     output.print_message("  • Display only necessary table rows", style="white")
