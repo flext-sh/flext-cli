@@ -25,12 +25,16 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 import os
+import time
 from pathlib import Path
 from typing import cast
 
+from example_utils import display_config_table
+from flext_core import FlextResult
+
 from flext_cli import FlextCli, FlextCliConfig, FlextCliTypes
 
-cli = FlextCli.get_instance()
+cli = FlextCli()
 
 
 # ============================================================================
@@ -48,7 +52,7 @@ def get_cli_settings() -> FlextCliConfig:
 
     cli.print("📋 Current Configuration:", style="bold cyan")
     cli.print(f"   Debug Mode: {config.debug}", style="cyan")
-    cli.print(f"   Log Level: {config.log_level}", style="cyan")
+    cli.print(f"   Log Level: {config.cli_log_level}", style="cyan")
     cli.print(f"   Environment: {config.environment}", style="cyan")
     cli.print(f"   Profile: {config.profile}", style="cyan")
 
@@ -60,7 +64,7 @@ def get_cli_settings() -> FlextCliConfig:
 # ============================================================================
 
 
-def load_environment_config() -> dict[str, str]:
+def load_environment_config() -> dict[str, str | int]:
     """Load environment-specific config in YOUR tool."""
     config = cli.config
 
@@ -83,22 +87,19 @@ def load_environment_config() -> dict[str, str]:
         api_url = "http://localhost:8000"
         max_retries = 1
 
-    settings = {
+    settings: dict[str, str | int] = {
         "API URL": api_url,
-        "Max Retries": str(max_retries),
+        "Max Retries": max_retries,
         "Environment": environment,
     }
 
     # Display config
-    settings_data = cast("FlextCliTypes.Data.CliDataDict", settings)
-    table_result = cli.create_table(
-        data=settings_data,
-        headers=["Setting", "Value"],
+    settings_data = cast("dict[str, object]", settings)
+    display_config_table(
+        cli=cli,
+        config_data=settings_data,  # type: ignore[arg-type]
         title=f"🌍 {environment.capitalize()} Configuration",
     )
-
-    if table_result.is_success:
-        cli.print_table(table_result.unwrap())
 
     return settings
 
@@ -138,17 +139,14 @@ class MyAppConfig:
 
     def display(self) -> None:
         """Display YOUR app configuration."""
-        config_data: FlextCliTypes.Data.CliDataDict = cast(
-            "FlextCliTypes.Data.CliDataDict",
-            {
-                "App Name": self.app_name,
-                "API Key": f"{self.api_key[:10]}..." if self.api_key else "Not set",
-                "Max Workers": str(self.max_workers),
-                "Timeout": f"{self.timeout}s",
-                "Debug": str(self.base_config.debug),
-                "Profile": self.base_config.profile,
-            },
-        )
+        config_data: FlextCliTypes.Data.CliDataDict = {
+            "App Name": self.app_name,
+            "API Key": f"{self.api_key[:10]}..." if self.api_key else "Not set",
+            "Max Workers": str(self.max_workers),
+            "Timeout": f"{self.timeout}s",
+            "Debug": str(self.base_config.debug),
+            "Profile": self.base_config.profile,
+        }
 
         table_result = cli.create_table(
             data=config_data,
@@ -183,9 +181,9 @@ def show_config_locations() -> dict[str, str]:
     }
 
     # Display as table
-    locations_data = cast("FlextCliTypes.Data.CliDataDict", locations)
+    locations_data = cast("dict[str, object]", locations)
     table_result = cli.create_table(
-        data=locations_data,
+        data=locations_data,  # type: ignore[arg-type]
         headers=["Location", "Path"],
         title="📂 Configuration Locations",
     )
@@ -227,24 +225,18 @@ def load_profile_config(profile_name: str = "default") -> FlextCliConfig | None:
     cli.print(f"✅ Profile '{profile_name}' loaded successfully", style="green")
 
     # Display profile settings
-    profile_data: FlextCliTypes.Data.CliDataDict = cast(
-        "FlextCliTypes.Data.CliDataDict",
-        {
-            "Profile": profile_config.profile,
-            "Debug": str(profile_config.debug),
-            "Output": profile_config.output_format,
-            "Environment": profile_config.environment,
-        },
-    )
+    profile_data: FlextCliTypes.Data.CliDataDict = {
+        "Profile": profile_config.profile,
+        "Debug": str(profile_config.debug),
+        "Output": profile_config.output_format,
+        "Environment": profile_config.environment,
+    }
 
-    table_result = cli.create_table(
-        data=profile_data,
-        headers=["Setting", "Value"],
+    display_config_table(
+        cli=cli,
+        config_data=profile_data,
         title=f"🎯 Profile: {profile_name}",
     )
-
-    if table_result.is_success:
-        cli.print_table(table_result.unwrap())
 
     return profile_config
 
@@ -321,6 +313,153 @@ def validate_app_config() -> bool:
 
 
 # ============================================================================
+# PATTERN 6: Advanced Config with Environment Variables and Validation
+# ============================================================================
+
+
+class AppConfig:
+    """Advanced application configuration with env var integration."""
+
+    def __init__(self) -> None:
+        """Initialize configuration with environment variables and defaults."""
+        self.database_url = os.getenv(
+            "DATABASE_URL", "postgresql://localhost:5432/myapp"
+        )
+        self.redis_url = os.getenv("REDIS_URL", "redis://localhost:6379")
+        self.api_key = os.getenv("API_KEY", "")
+        self.max_workers = int(os.getenv("MAX_WORKERS", "4"))
+        self.enable_metrics = os.getenv("ENABLE_METRICS", "true").lower() == "true"
+        self.log_level = os.getenv("LOG_LEVEL", "INFO")
+        self.temp_dir = Path(
+            os.getenv("TEMP_DIR", str(Path.home() / ".cache" / "myapp"))
+        )
+
+    def validate(self) -> FlextResult[dict[str, object]]:
+        """Validate configuration with comprehensive checks."""
+        errors = []
+
+        # Validate database URL
+        if not self.database_url.startswith(("postgresql://", "mysql://")):
+            errors.append("DATABASE_URL must be a valid database URL")
+
+        # Validate Redis URL
+        if not self.redis_url.startswith("redis://"):
+            errors.append("REDIS_URL must be a valid Redis URL")
+
+        # Validate API key
+        if not self.api_key and os.getenv("ENVIRONMENT") == "production":
+            errors.append("API_KEY is required in production")
+
+        # Validate workers
+        if not 1 <= self.max_workers <= 100:
+            errors.append("MAX_WORKERS must be between 1 and 100")
+
+        # Validate log level
+        valid_levels = ["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"]
+        if self.log_level.upper() not in valid_levels:
+            errors.append(f"LOG_LEVEL must be one of: {', '.join(valid_levels)}")
+
+        # Validate temp directory
+        if not self.temp_dir.exists():
+            try:
+                self.temp_dir.mkdir(parents=True, exist_ok=True)
+            except Exception as e:
+                errors.append(f"Cannot create TEMP_DIR: {e}")
+        elif not self.temp_dir.is_dir():
+            errors.append("TEMP_DIR must be a directory")
+
+        if errors:
+            return FlextResult[dict[str, object]].fail("; ".join(errors))
+
+        # Return validated config as dict
+        return FlextResult[dict[str, object]].ok({
+            "database_url": self.database_url,
+            "redis_url": self.redis_url,
+            "api_key": "***" if self.api_key else "",
+            "max_workers": self.max_workers,
+            "enable_metrics": self.enable_metrics,
+            "log_level": self.log_level,
+            "temp_dir": str(self.temp_dir),
+        })
+
+
+def load_application_config() -> FlextResult[dict[str, object]]:
+    """Load and validate application configuration from environment."""
+    cli.print("\n⚙️  Loading Application Configuration:", style="bold cyan")
+
+    # Railway Pattern for config loading
+    result: FlextResult[dict[str, object]] = (
+        FlextResult[AppConfig]
+        .ok(AppConfig())
+        .map(
+            lambda config: (
+                cli.print("✅ Config object created", style="green"),
+                config,
+            )[1]
+        )
+        # Step 2: Validate configuration
+        .and_then(lambda config: config.validate())
+        .map(
+            lambda data: (cli.print("✅ Configuration validated", style="green"), data)[
+                1
+            ]
+        )
+        # Step 3: Apply environment-specific overrides
+        .map(apply_environment_overrides)
+        .map(
+            lambda data: (
+                cli.print("✅ Environment overrides applied", style="green"),
+                data,
+            )[1]
+        )
+        # Step 4: Initialize dependent services
+        .map(initialize_services)
+        .map(
+            lambda data: (cli.print("✅ Services initialized", style="green"), data)[1]
+        )
+    )
+
+    if result.is_failure:
+        cli.print(f"❌ Configuration failed: {result.error}", style="bold red")
+        return result
+
+    cli.print("🎉 Application configuration loaded successfully!", style="bold green")
+    return result
+
+
+def apply_environment_overrides(config: dict[str, object]) -> dict[str, object]:
+    """Apply environment-specific configuration overrides."""
+    env = os.getenv("ENVIRONMENT", "development")
+
+    if env == "production":
+        # Production overrides
+        config["max_workers"] = min(
+            int(cast("int", config.get("max_workers", 4))), 20
+        )  # Limit workers in prod
+        config["enable_metrics"] = True  # Always enable metrics in prod
+    elif env == "testing":
+        # Testing overrides
+        config["max_workers"] = 1  # Single worker for tests
+        config["enable_metrics"] = False  # Disable metrics during tests
+
+    return config
+
+
+def initialize_services(config: dict[str, object]) -> dict[str, object]:
+    """Initialize services based on configuration."""
+    # In real code, this would initialize database connections, caches, etc.
+    # For demo, just simulate initialization
+
+    time.sleep(0.05)  # Simulate initialization time
+
+    # Add initialization status to config
+    config["services_initialized"] = True
+    config["initialized_at"] = "2025-11-23T10:00:00Z"
+
+    return config
+
+
+# ============================================================================
 # REAL USAGE EXAMPLES
 # ============================================================================
 
@@ -360,6 +499,19 @@ def main() -> None:
     # Example 7: Config validation
     cli.print("\n7. Config Validation (startup check):", style="bold cyan")
     validate_app_config()
+
+    # Example 8: Advanced config with env vars
+    cli.print("\n8. Advanced Config with Environment Variables:", style="bold cyan")
+    config_result = load_application_config()
+
+    if config_result.is_success:
+        final_config = config_result.unwrap()
+        # Display final config
+        display_config_table(
+            cli=cli,
+            config_data=cast("dict[str, object]", final_config),  # type: ignore[arg-type]
+            title="Final Application Configuration",
+        )
 
     cli.print("\n" + "=" * 70, style="bold blue")
     cli.print("  ✅ Configuration Examples Complete", style="bold green")

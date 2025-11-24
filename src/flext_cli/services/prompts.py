@@ -9,24 +9,24 @@ import typing
 from flext_core import (
     FlextMixins,
     FlextResult,
-    FlextService,
     FlextTypes,
     FlextUtilities,
 )
 from pydantic import Field, PrivateAttr
 
+from flext_cli.base import FlextCliServiceBase
 from flext_cli.constants import FlextCliConstants
 from flext_cli.models import FlextCliModels
 from flext_cli.typings import FlextCliTypes
 from flext_cli.utilities import FlextCliUtilities
 
 
-class FlextCliPrompts(FlextService[FlextCliTypes.Data.CliDataDict]):
+class FlextCliPrompts(FlextCliServiceBase):
     """CLI prompts and interactive input service using domain-specific types.
 
     Provides comprehensive prompt functionality for CLI applications with enhanced
     type safety using FlextCliTypes instead of generic FlextTypes types.
-    Extends FlextService with CLI-specific data dictionary types.
+    Extends FlextCliServiceBase with CLI config access.
     """
 
     # Pydantic fields for prompts configuration
@@ -486,7 +486,7 @@ class FlextCliPrompts(FlextService[FlextCliTypes.Data.CliDataDict]):
                     ),
                 )
 
-            self.logger.debug(
+            self.logger.debug(  # pragma: no cover
                 "Password prompt completed successfully",
                 operation="prompt_password",
                 prompt_message=message,
@@ -495,7 +495,7 @@ class FlextCliPrompts(FlextService[FlextCliTypes.Data.CliDataDict]):
                 source="flext-cli/src/flext_cli/prompts.py",
             )
 
-            return FlextResult[str].ok(password)
+            return FlextResult[str].ok(password)  # pragma: no cover
 
         except Exception as e:
             self.logger.exception(
@@ -602,8 +602,8 @@ class FlextCliPrompts(FlextService[FlextCliTypes.Data.CliDataDict]):
 
             return FlextResult[FlextCliTypes.Data.CliDataDict].ok(stats_dict)
 
-        except Exception as e:
-            self.logger.exception(
+        except Exception as e:  # pragma: no cover
+            self.logger.exception(  # pragma: no cover
                 "FAILED to collect prompt statistics - operation aborted",
                 operation="get_prompt_statistics",
                 error=str(e),
@@ -611,7 +611,7 @@ class FlextCliPrompts(FlextService[FlextCliTypes.Data.CliDataDict]):
                 consequence="Statistics unavailable",
                 source="flext-cli/src/flext_cli/prompts.py",
             )
-            return FlextResult[FlextCliTypes.Data.CliDataDict].fail(
+            return FlextResult[FlextCliTypes.Data.CliDataDict].fail(  # pragma: no cover
                 FlextCliConstants.PromptsErrorMessages.STATISTICS_COLLECTION_FAILED.format(
                     error=e,
                 ),

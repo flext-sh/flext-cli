@@ -12,9 +12,10 @@ from __future__ import annotations
 
 from collections.abc import Iterable, Sequence
 
-from flext_core import FlextResult, FlextRuntime, FlextService, FlextTypes
+from flext_core import FlextResult, FlextRuntime, FlextTypes
 from tabulate import tabulate
 
+from flext_cli.base import FlextCliServiceBase
 from flext_cli.constants import FlextCliConstants
 from flext_cli.models import FlextCliModels
 
@@ -24,7 +25,7 @@ type TableData = Iterable[
 ]
 
 
-class FlextCliTables(FlextService[FlextTypes.JsonDict]):
+class FlextCliTables(FlextCliServiceBase):
     """Tabulate integration for lightweight ASCII tables.
 
     Provides simple, fast table formatting without ANSI codes.

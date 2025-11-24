@@ -32,11 +32,11 @@ from __future__ import annotations
 
 from typing import cast
 
-from flext_core import FlextResult
+from flext_core import FlextResult, FlextTypes
 
-from flext_cli import FlextCli, FlextCliPrompts, FlextCliTypes
+from flext_cli import FlextCli, FlextCliPrompts
 
-cli = FlextCli.get_instance()
+cli = FlextCli()
 prompts = FlextCliPrompts()
 
 
@@ -192,10 +192,9 @@ def database_setup_wizard() -> FlextResult[dict[str, str | int | bool | float]]:
     display_config = {k: v for k, v in config.items() if k != "password"}
     display_config["password"] = "********"
 
-    # Cast to CliDataDict for type safety
-    table_data = cast("FlextCliTypes.Data.CliDataDict", display_config)
+    # Create table from config data
     table_result = cli.create_table(
-        data=table_data,
+        data=cast("FlextTypes.JsonDict", display_config),
         headers=["Setting", "Value"],
         title="Database Configuration",
     )
@@ -483,10 +482,9 @@ def flext_configuration_wizard() -> FlextResult[dict[str, str | int | bool | flo
     # Display configuration
     cli.print("\n📋 Configuration Summary:", style="yellow")
 
-    # Cast to CliDataDict for type safety
-    config_data = cast("FlextCliTypes.Data.CliDataDict", config)
+    # Create table from config data
     table_result = cli.create_table(
-        data=config_data,
+        data=cast("FlextTypes.JsonDict", config),
         headers=["Setting", "Value"],
         title="Application Configuration",
     )

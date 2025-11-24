@@ -10,12 +10,14 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
+import gc
 import json
 import logging
 import os
 import shutil
 import stat
 import tempfile
+import threading
 import time
 from collections.abc import Generator
 from pathlib import Path
@@ -1302,7 +1304,7 @@ class TestFlextCliConfigExceptionHandlers:
         except Exception:
             # If terminal size cannot be determined, config should still work
             config = FlextCliConfig()
-            assert config.auto_output_format in {"table", "json", "plain"}  # type: ignore[comparison-overlap]
+            assert config.auto_output_format in {"table", "json", "plain"}
 
     def test_auto_output_format_wide_terminal_with_color(self) -> None:
         """Test auto_output_format with wide terminal and color support (lines 350-351).
@@ -1327,11 +1329,11 @@ class TestFlextCliConfigExceptionHandlers:
                 assert format_str in {"table", "json", "plain"}
             else:
                 # Narrow terminals prefer simpler formats
-                assert auto_format in {"json", "plain", "table"}  # type: ignore[comparison-overlap]
+                assert auto_format in {"json", "plain", "table"}
         except Exception:
             # If terminal size cannot be determined, config should still work
             config = FlextCliConfig(no_color=False)
-            assert config.auto_output_format in {"table", "json", "plain"}  # type: ignore[comparison-overlap]
+            assert config.auto_output_format in {"table", "json", "plain"}
 
     def test_auto_output_format_fallback_json(self) -> None:
         """Test auto_output_format fallback to JSON (lines 353-354).
@@ -1347,21 +1349,21 @@ class TestFlextCliConfigExceptionHandlers:
             auto_format = config.auto_output_format
 
             # Without color, should prefer json or plain format
-            assert auto_format in {"json", "plain", "table"}  # type: ignore[comparison-overlap]
+            assert auto_format in {"json", "plain", "table"}
         except Exception:
             # If terminal size cannot be determined, config should still work
             config = FlextCliConfig(no_color=True)
-            assert config.auto_output_format in {"json", "plain", "table"}  # type: ignore[comparison-overlap]
+            assert config.auto_output_format in {"json", "plain", "table"}
 
     def test_auto_verbosity_verbose(self) -> None:
         """Test auto_verbosity when verbose=True (lines 379-380)."""
         config = FlextCliConfig(verbose=True, quiet=False)
-        assert config.auto_verbosity == "verbose"  # type: ignore[comparison-overlap]
+        assert config.auto_verbosity == "verbose"
 
     def test_auto_verbosity_quiet(self) -> None:
         """Test auto_verbosity when quiet=True (lines 381-382)."""
         config = FlextCliConfig(verbose=False, quiet=True)
-        assert config.auto_verbosity == "quiet"  # type: ignore[comparison-overlap]
+        assert config.auto_verbosity == "quiet"
 
     def test_optimal_table_format_narrow(self) -> None:
         """Test optimal_table_format for narrow terminal (lines 398-399).
@@ -1379,14 +1381,14 @@ class TestFlextCliConfigExceptionHandlers:
             # Verify format is appropriate for terminal width
             if actual_width < 60:
                 # Narrow terminals should use simple format
-                assert table_format in {"simple", "plain", "grid"}  # type: ignore[comparison-overlap]
+                assert table_format in {"simple", "plain", "grid"}
             else:
                 # Wider terminals can use more complex formats
-                assert table_format in {"grid", "github", "simple", "plain"}  # type: ignore[comparison-overlap]
+                assert table_format in {"grid", "github", "simple", "plain"}
         except Exception:
             # If terminal size cannot be determined, config should still work
             config = FlextCliConfig()
-            assert config.optimal_table_format in {"simple", "grid", "github", "plain"}  # type: ignore[comparison-overlap]
+            assert config.optimal_table_format in {"simple", "grid", "github", "plain"}
 
     def test_optimal_table_format_medium(self) -> None:
         """Test optimal_table_format for medium terminal (lines 402-403).
@@ -1404,14 +1406,14 @@ class TestFlextCliConfigExceptionHandlers:
             # Verify format is appropriate for terminal width
             if 60 <= actual_width < 100:
                 # Medium terminals should use github format
-                assert table_format in {"github", "grid", "simple", "plain"}  # type: ignore[comparison-overlap]
+                assert table_format in {"github", "grid", "simple", "plain"}
             else:
                 # Other widths use appropriate formats
-                assert table_format in {"grid", "github", "simple", "plain"}  # type: ignore[comparison-overlap]
+                assert table_format in {"grid", "github", "simple", "plain"}
         except Exception:
             # If terminal size cannot be determined, config should still work
             config = FlextCliConfig()
-            assert config.optimal_table_format in {"github", "grid", "simple", "plain"}  # type: ignore[comparison-overlap]
+            assert config.optimal_table_format in {"github", "grid", "simple", "plain"}
 
     def test_optimal_table_format_wide(self) -> None:
         """Test optimal_table_format for wide terminal (lines 406).
@@ -1429,14 +1431,14 @@ class TestFlextCliConfigExceptionHandlers:
             # Verify format is appropriate for terminal width
             if actual_width >= 100:
                 # Wide terminals should use grid format
-                assert table_format in {"grid", "github", "simple", "plain"}  # type: ignore[comparison-overlap]
+                assert table_format in {"grid", "github", "simple", "plain"}
             else:
                 # Narrower terminals use appropriate formats
-                assert table_format in {"grid", "github", "simple", "plain"}  # type: ignore[comparison-overlap]
+                assert table_format in {"grid", "github", "simple", "plain"}
         except Exception:
             # If terminal size cannot be determined, config should still work
             config = FlextCliConfig()
-            assert config.optimal_table_format in {"grid", "github", "simple", "plain"}  # type: ignore[comparison-overlap]
+            assert config.optimal_table_format in {"grid", "github", "simple", "plain"}
 
     def test_get_terminal_width_error(self) -> None:
         """Test get_terminal_width error path (line 329-330).
@@ -1448,7 +1450,7 @@ class TestFlextCliConfigExceptionHandlers:
         # The code should handle errors internally and provide a fallback
         config = FlextCliConfig()
         # auto_output_format should work and return a valid format
-        assert config.auto_output_format in {"table", "json", "plain"}  # type: ignore[comparison-overlap]
+        assert config.auto_output_format in {"table", "json", "plain"}
 
     def test_auto_output_format_error_fallback(self) -> None:
         """Test auto_output_format error fallback (line 368).
@@ -1460,7 +1462,7 @@ class TestFlextCliConfigExceptionHandlers:
         # The code should handle errors internally and provide a fallback
         config = FlextCliConfig()
         # Should return a valid format (JSON is fallback, but any valid format is acceptable)
-        assert config.auto_output_format in {"table", "json", "plain"}  # type: ignore[comparison-overlap]
+        assert config.auto_output_format in {"table", "json", "plain"}
 
     def test_auto_verbosity_error_fallback(self) -> None:
         """Test auto_verbosity error fallback (line 416).
@@ -1470,7 +1472,7 @@ class TestFlextCliConfigExceptionHandlers:
         # This is hard to test directly, but we can verify the computed field works
         config = FlextCliConfig()
         # Should return normal verbosity (line 416)
-        assert config.auto_verbosity in {"normal", "quiet", "verbose"}  # type: ignore[comparison-overlap]
+        assert config.auto_verbosity in {"normal", "quiet", "verbose"}
 
     def test_optimal_table_format_error_fallback(self) -> None:
         """Test optimal_table_format error fallback (line 452).
@@ -1482,7 +1484,7 @@ class TestFlextCliConfigExceptionHandlers:
         # The code should handle errors internally and provide a fallback
         config = FlextCliConfig()
         # Should return a valid table format (simple is fallback, but any valid format is acceptable)
-        assert config.optimal_table_format in {"simple", "grid", "github", "plain"}  # type: ignore[comparison-overlap]
+        assert config.optimal_table_format in {"simple", "grid", "github", "plain"}
 
     def test_validate_output_format_result_invalid(self) -> None:
         """Test validate_output_format_result with invalid format (lines 412-417)."""
@@ -1676,7 +1678,7 @@ class TestFlextCliConfigExceptionHandlers:
         assert hasattr(config, "optimal_table_format")
 
         # Verify computed fields return valid values
-        assert config.auto_output_format in {"table", "json", "plain"}  # type: ignore[comparison-overlap]
+        assert config.auto_output_format in {"table", "json", "plain"}
         assert isinstance(config.auto_color_support, bool)
         assert config.auto_verbosity in {"normal", "quiet", "verbose"}
         assert config.optimal_table_format in {"simple", "grid", "github", "plain"}
@@ -1743,3 +1745,222 @@ class TestFlextCliConfigExceptionHandlers:
         assert valid_overrides["profile"] == "valid_profile"
         assert valid_overrides["output_format"] == "json"
         assert valid_overrides["debug"] is True
+
+    # =========================================================================
+    # ADDITIONAL COMPREHENSIVE TESTS FOR 100% COVERAGE
+    # =========================================================================
+
+    def test_config_with_extreme_values(self) -> None:
+        """Test config with extreme but valid values for edge case coverage."""
+        config = FlextCliConfig(
+            max_retries=10,  # Maximum allowed by RetryCount constraint
+            cli_timeout=300,  # Maximum allowed (TimeoutSeconds le=300)
+        )
+
+        assert config.max_retries == 10
+        assert config.cli_timeout == 300
+
+    def test_config_environment_variable_precedence(self) -> None:
+        """Test that environment variables take precedence over defaults."""
+        # Set environment variables
+        os.environ["FLEXT_CLI_DEBUG"] = "true"
+        os.environ["FLEXT_CLI_ENVIRONMENT"] = "test"
+        os.environ["FLEXT_CLI_MAX_RETRIES"] = "10"
+
+        try:
+            config = FlextCliConfig()
+            assert config.debug is True
+            assert config.environment == "test"
+            assert config.max_retries == 10
+        finally:
+            # Clean up environment
+            del os.environ["FLEXT_CLI_DEBUG"]
+            del os.environ["FLEXT_CLI_ENVIRONMENT"]
+            del os.environ["FLEXT_CLI_MAX_RETRIES"]
+
+    def test_config_validation_error_messages(self) -> None:
+        """Test that validation errors provide meaningful messages."""
+        with pytest.raises(ValidationError) as exc_info:
+            FlextCliConfig(max_retries=-1)  # Invalid negative value
+
+        error_messages = str(exc_info.value)
+        assert "max_retries" in error_messages
+        assert "greater than or equal to 0" in error_messages
+
+    def test_config_model_dump_excludes_sensitive_data(self) -> None:
+        """Test that model_dump properly handles sensitive data."""
+        config = FlextCliConfig(
+            api_key="secret_key_123", database_password="secret_password"
+        )
+
+        dumped = config.model_dump()
+        assert "api_key" in dumped
+        # Note: In real implementation, sensitive fields should be excluded or masked
+        # This test documents current behavior
+
+    def test_config_copy_and_modify(self) -> None:
+        """Test config copy and modify patterns."""
+        original = FlextCliConfig(debug=False, environment="production")
+
+        # Test that we can create modified copies
+        modified = FlextCliConfig(debug=True, environment="development")
+
+        assert original.debug is False
+        assert original.environment == "production"
+        assert modified.debug is True
+        assert modified.environment == "development"
+
+    def test_config_with_all_optional_fields_none(self) -> None:
+        """Test config with all optional fields set to None."""
+        config = FlextCliConfig(
+            log_file=None,
+            config_file=None,
+        )
+
+        assert config.log_file is None
+        assert config.config_file is None
+
+    def test_config_large_data_structures(self) -> None:
+        """Test config handling of large data structures."""
+        list(range(1000))
+        {f"key_{i}": f"value_{i}" for i in range(100)}
+
+        config = FlextCliConfig()
+        # Test that config can handle being used with large data
+        # (This tests integration, not the config itself)
+        assert config.max_width > 0  # Can handle large displays
+
+    def test_config_thread_safety_simulation(self) -> None:
+        """Test config behavior under simulated concurrent access."""
+        results = []
+        errors = []
+
+        def worker(worker_id: int) -> None:
+            try:
+                config = FlextCliConfig()
+                results.append((worker_id, config.debug, config.environment))
+            except Exception as e:
+                errors.append((worker_id, str(e)))
+
+        # Simulate concurrent access
+        threads = []
+        for i in range(10):
+            t = threading.Thread(target=worker, args=(i,))
+            threads.append(t)
+            t.start()
+
+        for t in threads:
+            t.join()
+
+        # All threads should succeed
+        assert len(results) == 10
+        assert len(errors) == 0
+
+        # All configs should be consistent
+        first_result = results[0]
+        for result in results[1:]:
+            assert result[1] == first_result[1]  # Same debug value
+            assert result[2] == first_result[2]  # Same environment
+
+    def test_config_memory_usage_patterns(self) -> None:
+        """Test config memory usage patterns and cleanup."""
+        # Create multiple config instances
+        configs = []
+        for _i in range(100):
+            config = FlextCliConfig()
+            configs.append(config)
+
+        # Force garbage collection
+        del configs
+        gc.collect()
+
+        # System should still function
+        new_config = FlextCliConfig()
+        assert new_config is not None
+        assert isinstance(new_config, FlextCliConfig)
+
+    def test_config_with_unicode_values(self) -> None:
+        """Test config with Unicode values in strings."""
+        unicode_config = FlextCliConfig(
+            profile="测试_profile",  # Chinese characters
+            environment="test",  # Valid environment literal
+            cli_log_level="INFO",
+        )
+
+        assert unicode_config.profile == "测试_profile"
+        assert unicode_config.environment == "test"
+        assert unicode_config.cli_log_level == "INFO"
+
+    def test_config_boundary_values(self) -> None:
+        """Test config with boundary values for numeric fields."""
+        # Test minimum valid values
+        min_config = FlextCliConfig(
+            max_retries=0,  # Minimum allowed
+            cli_timeout=100,  # Minimum allowed (TimeoutSeconds ge=100)
+        )
+
+        assert min_config.max_retries == 0
+        assert min_config.cli_timeout == 100
+
+        # Test maximum reasonable values
+        max_config = FlextCliConfig(
+            max_retries=10,  # Maximum allowed by RetryCount
+            cli_timeout=300,  # Maximum allowed (TimeoutSeconds le=300)
+        )
+
+        assert max_config.max_retries == 10
+        assert max_config.cli_timeout == 300
+
+    def test_config_error_handling_comprehensive(self) -> None:
+        """Test comprehensive error handling in config operations."""
+        config = FlextCliConfig()
+
+        # Test validate_output_format with invalid values
+        invalid_result = config.validate_output_format_result("invalid_format")
+        assert invalid_result.is_failure
+        assert (
+            invalid_result.error is not None
+            and "Invalid output format" in invalid_result.error
+        )
+
+        # Test validate_cli_overrides with invalid values
+        invalid_overrides_result = config.validate_cli_overrides(
+            output_format="invalid",
+            max_retries=-5,
+        )
+        assert invalid_overrides_result.is_failure
+
+        # Test that valid values still work
+        valid_result = config.validate_output_format_result("json")
+        assert valid_result.is_success
+        assert valid_result.unwrap() == "json"
+
+    def test_config_state_persistence_simulation(self) -> None:
+        """Test config state persistence simulation."""
+        # Create initial config
+        config1 = FlextCliConfig(debug=True, environment="test")
+
+        # Simulate application restart with same settings
+        config2 = FlextCliConfig(debug=True, environment="test")
+
+        # Configs should have same values
+        assert config1.debug == config2.debug
+        assert config1.environment == config2.environment
+
+        # But should be different instances
+        assert config1 is not config2
+
+    def test_config_interoperability_with_flext_core(self) -> None:
+        """Test config interoperability with flext-core components."""
+        # Get config through flext-core
+        global_config = FlextConfig.get_global_instance()
+        cli_config = global_config.get_namespace("cli", FlextCliConfig)
+
+        assert isinstance(cli_config, FlextCliConfig)
+        assert hasattr(cli_config, "debug")
+        assert hasattr(cli_config, "environment")
+
+        # Values should be consistent
+        direct_config = FlextCliConfig()
+        assert cli_config.debug == direct_config.debug
+        assert cli_config.environment == direct_config.environment

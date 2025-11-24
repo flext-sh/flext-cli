@@ -29,7 +29,6 @@ from flext_core import (
     FlextExceptions,
     FlextLogger,
     FlextResult,
-    FlextRuntime,
     FlextTypes,
     FlextUtilities,
 )
@@ -161,13 +160,18 @@ class FlextCli:
         self.logger = FlextLogger(__name__)
         self._container = FlextContainer.get_global()
         # Register in container only if not already registered (avoids test conflicts)
-        if not self._container.has_service(
+        if not self._container.has(
             FlextCliConstants.APIDefaults.CONTAINER_REGISTRATION_KEY,
         ):
-            self._container.with_service(
+            register_result = self._container.register_service(
                 FlextCliConstants.APIDefaults.CONTAINER_REGISTRATION_KEY,
                 self,
             )
+            if register_result.is_failure:
+                # Log warning but don't fail initialization
+                self.logger.warning(
+                    f"Failed to register CLI service in container: {register_result.error}"
+                )
 
         # Domain library components (domain library pattern)
         self.formatters = FlextCliFormatters()
@@ -333,7 +337,7 @@ class FlextCli:
         # Validate using Pydantic model - eliminates _validate_token_data + _extract_token_string
         data = result.unwrap()
         # Check if data is empty or None before validation
-        if not data or (FlextRuntime.is_dict_like(data) and not data):
+        if not data or (isinstance(data, dict) and not data):
             return FlextResult[str].fail(
                 FlextCliConstants.ErrorMessages.TOKEN_FILE_EMPTY,
             )
@@ -352,7 +356,6 @@ class FlextCli:
                     FlextCliConstants.APIDefaults.TOKEN_VALUE_TYPE_ERROR,
                 )
             # Fallback for any other validation errors (e.g., field required, value errors)
-            # pragma: no cover - Defensive: Catches unexpected validation error types not covered by specific checks above
             return FlextResult[str].fail(
                 FlextCliConstants.ErrorMessages.TOKEN_FILE_EMPTY,
             )
@@ -533,9 +536,9 @@ class FlextCli:
 
         # table_data is dict|list which are both valid JsonValue types
         # Ensure type compatibility for type checker (dict/list are JsonValue at runtime)
-        if FlextRuntime.is_dict_like(data):
+        if isinstance(data, dict):
             table_data = typing.cast("FlextTypes.JsonValue", data)
-        elif FlextRuntime.is_list_like(data):
+        elif isinstance(data, list):
             # Already a list-like structure, cast directly
             table_data = typing.cast("FlextTypes.JsonValue", data)
         else:
@@ -611,7 +614,10 @@ class FlextCliAppBase(ABC):
         self._config = self.config_class.get_instance()
 
         # Log loaded configuration
-        self._log_config_loaded()
+        FlextLogger.get_logger().debug(
+            "CLI configuration loaded",
+            app_name=self.app_name,
+        )
 
         # Create Typer app with common params (--debug, --log-level, --trace)
         self._app = self._cli.create_app_with_common_params(
@@ -631,13 +637,6 @@ class FlextCliAppBase(ABC):
     def _register_commands(self) -> None:
         """Register CLI commands - implement in subclass."""
         ...
-
-    def _log_config_loaded(self) -> None:
-        """Log configuration values. Override in subclass for custom logging."""
-        FlextLogger.get_logger().debug(
-            "CLI configuration loaded",
-            app_name=self.app_name,
-        )
 
     def _handle_pathlib_annotation_error(self, ne: NameError) -> None:
         """Handle Typer annotation issues with pathlib.Path in Python <3.10."""

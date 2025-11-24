@@ -15,12 +15,13 @@ import os
 import tempfile
 from collections.abc import Callable, Generator
 from pathlib import Path
+from typing import cast
 
 import pytest
 import yaml
 from click.testing import CliRunner
 from flext_core import FlextContainer, FlextUtilities
-from flext_tests import FlextTestDocker, FlextTestsFactories
+from flext_tests import FlextTestDocker
 from pydantic import TypeAdapter
 
 from flext_cli import (
@@ -164,13 +165,10 @@ def cli_command_factory() -> Callable[..., FlextCliModels.CliCommand]:
         status: str = "pending",
         **kwargs: object,
     ) -> FlextCliModels.CliCommand:
-        # Use FlextTestsFactories for generating base data, then merge with CLI-specific fields
-        base_data = FlextTestsFactories.create_service(
-            service_type="cli_command",
-            service_id=name,
-        )
+        # No base data needed since CliCommand has extra="forbid"
 
         # Override with CLI-specific data
+        cli_data: dict[str, object]
         cli_data = {
             "command_line": command_line,
             "args": [],  # Default empty args
@@ -179,13 +177,13 @@ def cli_command_factory() -> Callable[..., FlextCliModels.CliCommand]:
             "output": "",
             "error_output": "",
             "execution_time": None,
-            "working_directory": None,
-            "environment": {},
-            "metadata": {},
+            "result": None,
+            "kwargs": {},
+            "name": name,
         }
 
-        # Merge base data with CLI data and kwargs
-        final_data = {**base_data, **cli_data, **kwargs}
+        # Merge CLI data with kwargs
+        final_data = {**cli_data, **kwargs}
         return FlextCliModels.CliCommand(**final_data)  # type: ignore[arg-type]
 
     return _create
@@ -201,26 +199,24 @@ def cli_session_factory() -> Callable[..., FlextCliModels.CliSession]:
         status: str = "active",
         **kwargs: object,
     ) -> FlextCliModels.CliSession:
-        # Use FlextTestsFactories for user data as base
-        base_data = FlextTestsFactories.create_user(
-            user_id=user_id,
-            name=f"Session {session_id}",
-        )
+        # CliSession has extra="forbid", so no extra fields allowed
 
-        # Add session-specific fields
+        # Add session-specific fields - only real fields that exist in CliSession
+        session_data: dict[str, object]
         session_data = {
             "session_id": session_id,
             "status": status,
+            "user_id": user_id,
             "commands": [],
             "start_time": None,
             "end_time": None,
-            "total_commands": 0,
-            "successful_commands": 0,
-            "failed_commands": 0,
+            "last_activity": None,
+            "internal_duration_seconds": 0.0,
+            "commands_executed": 0,
         }
 
-        # Merge all data
-        final_data = {**base_data, **session_data, **kwargs}
+        # Merge session data with kwargs
+        final_data = {**session_data, **kwargs}
         return FlextCliModels.CliSession(**final_data)  # type: ignore[arg-type]
 
     return _create
@@ -237,29 +233,33 @@ def debug_info_factory() -> Callable[..., FlextCliModels.DebugInfo]:
         message: str = "Test message",
         **kwargs: object,
     ) -> FlextCliModels.DebugInfo:
-        # Use FlextTestsFactories for config data as base
-        base_data = FlextTestsFactories.create_config(
-            service_type="debug",
-            environment="test",
-            debug=True,
-            log_level=level,
-        )
+        # DebugInfo has strict validation (extra='forbid'), so only use compatible fields
 
-        # Add debug-specific fields
+        # Add debug-specific fields - only real fields that exist in DebugInfo
         debug_data = {
             "service": service,
             "status": status,
             "level": level,
             "message": message,
-            "timestamp": None,
-            "context": {},
-            "stack_trace": None,
-            "metadata": {},
+            "system_info": {},
+            "config_info": {},
         }
 
-        # Merge all data
-        final_data = {**base_data, **debug_data, **kwargs}
-        return FlextCliModels.DebugInfo(**final_data)  # type: ignore[arg-type]
+        # Filter kwargs to only include valid DebugInfo fields
+        valid_fields = {
+            "service",
+            "status",
+            "timestamp",
+            "system_info",
+            "config_info",
+            "level",
+            "message",
+        }
+        filtered_kwargs = {k: v for k, v in kwargs.items() if k in valid_fields}
+
+        # Merge data
+        final_data = {**debug_data, **filtered_kwargs}
+        return FlextCliModels.DebugInfo(**cast("dict[str, object]", final_data))  # type: ignore[arg-type]
 
     return _create
 
@@ -273,26 +273,20 @@ def logging_config_factory() -> Callable[..., FlextCliModels.LoggingConfig]:
         log_format: str = "%(asctime)s - %(message)s",
         **kwargs: object,
     ) -> FlextCliModels.LoggingConfig:
-        # Use FlextTestsFactories for config data as base
-        base_data = FlextTestsFactories.create_config(
-            service_type="logging",
-            environment="test",
-            log_level=log_level,
-        )
+        # LoggingConfig has strict validation (extra='forbid'), so only use compatible fields
+        # Don't use FlextTestsFactories.create_config as it may have extra fields
 
-        # Add logging-specific fields
+        # Add logging-specific fields - only real fields that exist in LoggingConfig
         logging_data = {
             "log_level": log_level,
             "log_format": log_format,
-            "handlers": [],
-            "file_path": None,
-            "max_file_size": None,
-            "backup_count": None,
+            "console_output": True,
+            "log_file": None,
         }
 
-        # Merge all data
-        final_data = {**base_data, **logging_data, **kwargs}
-        return FlextCliModels.LoggingConfig(**final_data)  # type: ignore[arg-type]
+        # Merge with kwargs, but only if they are valid fields
+        final_data = {**logging_data, **kwargs}
+        return FlextCliModels.LoggingConfig(**cast("dict[str, object]", final_data))  # type: ignore[arg-type]
 
     return _create
 
@@ -343,85 +337,85 @@ _SERVICE_CLASSES: dict[str, type] = {
 @pytest.fixture
 def flext_cli_cmd() -> FlextCliCmd:
     """Create FlextCliCmd instance for testing."""
-    return _create_service_instance(FlextCliCmd)  # type: ignore[return-value]
+    return cast("FlextCliCmd", _create_service_instance(FlextCliCmd))
 
 
 @pytest.fixture
 def flext_cli_commands() -> FlextCliCommands:
     """Create FlextCliCommands instance for testing."""
-    return _create_service_instance(FlextCliCommands)  # type: ignore[return-value]
+    return cast("FlextCliCommands", _create_service_instance(FlextCliCommands))
 
 
 @pytest.fixture
 def flext_cli_config() -> FlextCliConfig:
     """Create FlextCliConfig instance for testing via FlextCliServiceBase."""
-    return _create_service_instance(FlextCliConfig)  # type: ignore[return-value]
+    return cast("FlextCliConfig", _create_service_instance(FlextCliConfig))
 
 
 @pytest.fixture
 def flext_cli_constants() -> FlextCliConstants:
     """Create FlextCliConstants instance for testing."""
-    return _create_service_instance(FlextCliConstants)  # type: ignore[return-value]
+    return cast("FlextCliConstants", _create_service_instance(FlextCliConstants))
 
 
 @pytest.fixture
 def flext_cli_context() -> FlextCliContext:
     """Create FlextCliContext instance for testing."""
-    return _create_service_instance(FlextCliContext)  # type: ignore[return-value]
+    return cast("FlextCliContext", _create_service_instance(FlextCliContext))
 
 
 @pytest.fixture
 def flext_cli_core() -> FlextCliCore:
     """Create FlextCliCore instance for testing."""
-    return _create_service_instance(FlextCliCore)  # type: ignore[return-value]
+    return cast("FlextCliCore", _create_service_instance(FlextCliCore))
 
 
 @pytest.fixture
 def flext_cli_debug() -> FlextCliDebug:
     """Create FlextCliDebug instance for testing."""
-    return _create_service_instance(FlextCliDebug)  # type: ignore[return-value]
+    return cast("FlextCliDebug", _create_service_instance(FlextCliDebug))
 
 
 @pytest.fixture
 def flext_cli_file_tools() -> FlextCliFileTools:
     """Create FlextCliFileTools instance for testing."""
-    return _create_service_instance(FlextCliFileTools)  # type: ignore[return-value]
+    return cast("FlextCliFileTools", _create_service_instance(FlextCliFileTools))
 
 
 @pytest.fixture
 def flext_cli_mixins() -> FlextCliMixins:
     """Create FlextCliMixins instance for testing."""
-    return _create_service_instance(FlextCliMixins)  # type: ignore[return-value]
+    return cast("FlextCliMixins", _create_service_instance(FlextCliMixins))
 
 
 @pytest.fixture
 def flext_cli_models() -> FlextCliModels:
     """Create FlextCliModels instance for testing."""
-    return _create_service_instance(FlextCliModels)  # type: ignore[return-value]
+    return cast("FlextCliModels", _create_service_instance(FlextCliModels))
 
 
 @pytest.fixture
 def flext_cli_output() -> FlextCliOutput:
     """Create FlextCliOutput instance for testing."""
-    return _create_service_instance(FlextCliOutput)  # type: ignore[return-value]
+    return cast("FlextCliOutput", _create_service_instance(FlextCliOutput))
 
 
 @pytest.fixture
 def flext_cli_prompts() -> FlextCliPrompts:
     """Create FlextCliPrompts instance for testing."""
-    return _create_service_instance(FlextCliPrompts)  # type: ignore[return-value]
+    return cast("FlextCliPrompts", _create_service_instance(FlextCliPrompts))
 
 
 @pytest.fixture
 def flext_cli_protocols() -> FlextCliProtocols:
     """Create FlextCliProtocols instance for testing."""
-    return _create_service_instance(FlextCliProtocols)  # type: ignore[return-value]
+    return cast("FlextCliProtocols", _create_service_instance(FlextCliProtocols))
 
 
 @pytest.fixture
 def flext_cli_types() -> FlextCliTypes:
     """Create FlextCliTypes instance for testing."""
-    return _create_service_instance(FlextCliTypes)  # type: ignore[return-value]
+    return cast("FlextCliTypes", _create_service_instance(FlextCliTypes))
 
 
 @pytest.fixture
@@ -533,8 +527,11 @@ def load_fixture_data() -> FlextCliTypes.Data.CliDataDict:
 # DOCKER TEST SUPPORT (CENTRALIZED FIXTURES)
 # ============================================================================
 
+
 @pytest.fixture(scope="session")
-def flext_test_docker(tmp_path_factory: pytest.TempPathFactory) -> FlextTestDocker:
+def flext_test_docker(
+    tmp_path_factory: pytest.TempPathFactory,
+) -> FlextTestDocker:
     """FlextTestDocker instance for managing test containers.
 
     Container stays alive after tests for debugging, only recreated on real infra failures.
@@ -547,16 +544,15 @@ def flext_test_docker(tmp_path_factory: pytest.TempPathFactory) -> FlextTestDock
 
     # Clean up any existing test containers at start
     try:
-        docker_manager.cleanup_test_containers()
+        docker_manager.cleanup_dirty_containers()
     except Exception:
         # Ignore cleanup errors at startup
         pass
 
-    yield docker_manager
+    return docker_manager
 
     # Keep containers alive after tests for debugging (don't clean up)
     # Only clean up on explicit failures or when requested
-    pass
 
 
 # ============================================================================

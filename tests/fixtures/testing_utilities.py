@@ -35,12 +35,7 @@ FLEXT ecosystem standards. Includes test runners, mock scenarios, and fixtures.
 **USAGE PATTERNS**:
 
 ```python
-import sys
-from pathlib import Path
-
-# Add src to path for relative imports (pyrefly accepts this pattern)
-if Path(__file__).parent.parent.parent / "src" not in [Path(p) for p in sys.path]:
-    sys.path.insert(0, str(Path(__file__).parent.parent.parent / "src"))
+# No sys.path manipulation - dependencies must be properly installed
 
 from tests.fixtures.testing_utilities import FlextCliTestRunner, FlextCliMockScenarios
 

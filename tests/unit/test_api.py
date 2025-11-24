@@ -11,7 +11,10 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 import json
+import os
+import sys
 import threading
+import unittest.mock
 from collections.abc import Sequence
 from pathlib import Path
 from typing import cast
@@ -22,11 +25,13 @@ from pydantic import PositiveInt, TypeAdapter, ValidationError
 
 from flext_cli import (
     FlextCli,
+    FlextCliAppBase,
     FlextCliConfig,
     FlextCliConstants,
     FlextCliModels,
     FlextCliTypes,
 )
+from flext_tests import FlextTestsFactories
 
 
 class TestFlextCli:
@@ -1326,3 +1331,203 @@ nested:
         finally:
             # Restore original token file path
             api_service.config.token_file = original_token_file
+
+    def test_get_auth_token_validation_fallback_error(
+        self,
+        api_service: FlextCli,
+        tmp_path: Path,
+    ) -> None:
+        """Test get_auth_token validation fallback error - covers line 356.
+
+        This tests the fallback case where validation error doesn't match expected patterns.
+        We need to create a validation error that triggers the pragma no cover fallback.
+        """
+        # Create a custom validation error that doesn't contain the expected keywords
+        # We'll mock the validation to raise a custom error
+
+        # Create file with valid structure but we'll mock the validation
+        token_file = tmp_path / "token.json"
+        token_file.write_text('{"token": "test"}')
+
+        api_service.config.token_file = token_file
+
+        # Mock Pydantic model validation to raise a custom error that doesn't contain expected keywords
+        with unittest.mock.patch(
+            "flext_cli.api.FlextCliModels.TokenData.model_validate"
+        ) as mock_validate:
+            # Create a validation error that doesn't contain dict/string keywords
+            mock_validate.side_effect = Exception(
+                "Custom validation error without keywords"
+            )
+
+            result = api_service.get_auth_token()
+
+            assert result.is_failure
+            # This should trigger the fallback on line 356 (TOKEN_FILE_EMPTY)
+            assert "empty" in str(result.error).lower()
+
+
+class TestFlextCliAppBase:
+    """Comprehensive tests for FlextCliAppBase functionality."""
+
+    def test_app_base_initialization(self, tmp_path: Path) -> None:
+        """Test FlextCliAppBase initialization - covers lines 605-628."""
+        TestApp = FlextTestsFactories.create_flext_cli_app_base(
+            app_name="test-app",
+            app_help="Test application",
+            config_class=FlextCliConfig,
+        )
+        app = TestApp()
+        assert app.app_name == "test-app"
+        assert app.app_help == "Test application"
+        assert hasattr(app, "_output")
+        assert hasattr(app, "_cli")
+        assert hasattr(app, "_config")
+
+    def test_app_base_log_config_loaded(self, tmp_path: Path) -> None:
+        """Test _log_config_loaded method - covers line 637."""
+        TestApp = FlextTestsFactories.create_flext_cli_app_base()
+        app = TestApp()
+        # Class instantiation should execute without error (config loading is tested in __init__)
+        assert app is not None
+
+    def test_app_base_handle_pathlib_annotation_error(self, tmp_path: Path) -> None:
+        """Test _handle_pathlib_annotation_error - covers lines 644-651."""
+        TestApp = FlextTestsFactories.create_flext_cli_app_base()
+        app = TestApp()
+        # Test with pathlib error
+        pathlib_error = NameError("pathlib.Path")
+        app._handle_pathlib_annotation_error(pathlib_error)  # Should log warning
+
+        # Test with other error - should re-raise
+        other_error = NameError("other error")
+        with pytest.raises(NameError) as exc_info:
+            app._handle_pathlib_annotation_error(other_error)
+        assert exc_info.value is other_error
+
+    def test_app_base_resolve_cli_args_not_in_test(self, tmp_path: Path) -> None:
+        """Test _resolve_cli_args when not in pytest - covers lines 663-668."""
+        TestApp = FlextTestsFactories.create_flext_cli_app_base()
+        app = TestApp()
+        # Mock to not be in test environment
+        original_env = os.environ.get("PYTEST_CURRENT_TEST")
+        if "PYTEST_CURRENT_TEST" in os.environ:
+            del os.environ["PYTEST_CURRENT_TEST"]
+
+        try:
+            args = app._resolve_cli_args(None)
+            # Should return sys.argv[1:] when not in test
+            assert isinstance(args, list)
+        finally:
+            if original_env:
+                os.environ["PYTEST_CURRENT_TEST"] = original_env
+
+    def test_app_base_resolve_cli_args_with_args(self, tmp_path: Path) -> None:
+        """Test _resolve_cli_args with provided args."""
+        TestApp = FlextTestsFactories.create_flext_cli_app_base()
+        app = TestApp()
+        args = ["--help"]
+        result = app._resolve_cli_args(args)
+        assert result == args
+
+    def test_app_base_execute_cli_success(self, tmp_path: Path) -> None:
+        """Test execute_cli successful execution - covers part of 680-719."""
+        TestApp = FlextTestsFactories.create_flext_cli_app_base()
+
+        class TestAppWithCommand(TestApp):
+            def _register_commands(self) -> None:
+                # Add a simple command
+                @self._app.command()
+                def hello() -> None:
+                    pass
+
+        app = TestAppWithCommand()
+        result = app.execute_cli(["hello"])
+        assert result.is_success
+
+    def test_app_base_execute_cli_system_exit_zero(self, tmp_path: Path) -> None:
+        """Test execute_cli with SystemExit code 0 - covers line 698."""
+        TestApp = FlextTestsFactories.create_flext_cli_app_base()
+
+        class TestAppWithExit(TestApp):
+            def _register_commands(self) -> None:
+                # Add command that calls exit(0)
+                @self._app.command()
+                def exit_zero() -> None:
+                    sys.exit(0)
+
+        app = TestAppWithExit()
+        result = app.execute_cli(["exit-zero"])
+        assert result.is_success
+
+    def test_app_base_execute_cli_system_exit_non_zero(self, tmp_path: Path) -> None:
+        """Test execute_cli with SystemExit non-zero code - covers line 699."""
+        TestApp = FlextTestsFactories.create_flext_cli_app_base()
+
+        class TestAppWithExit(TestApp):
+            def _register_commands(self) -> None:
+                # Add command that calls exit(1)
+                @self._app.command()
+                def exit_nonzero() -> None:
+                    sys.exit(1)
+
+        app = TestAppWithExit()
+        result = app.execute_cli(["exit-nonzero"])
+        assert result.is_failure
+        assert "CLI execution failed with code 1" in str(result.error)
+
+    def test_app_base_execute_cli_name_error_pathlib(self, tmp_path: Path) -> None:
+        """Test execute_cli NameError pathlib path - covers lines 692-694."""
+        TestApp = FlextTestsFactories.create_flext_cli_app_base()
+
+        class TestAppWithError(TestApp):
+            def _register_commands(self) -> None:
+                # Command that will trigger pathlib NameError
+                @self._app.command()
+                def trigger_pathlib_error() -> None:
+                    # This should trigger the pathlib error handling
+                    pathlib_error_msg = "pathlib.Path annotation issue"
+                    raise NameError(pathlib_error_msg)
+
+        app = TestAppWithError()
+        result = app.execute_cli(["trigger-pathlib-error"])
+        assert result.is_failure
+        assert "CLI annotation evaluation error" in str(result.error)
+
+    def test_app_base_execute_cli_exception_handling(self, tmp_path: Path) -> None:
+        """Test execute_cli exception handling - covers lines 703-718."""
+        TestApp = FlextTestsFactories.create_flext_cli_app_base()
+
+        class TestAppWithError(TestApp):
+            def _register_commands(self) -> None:
+                # Add command that raises ValueError
+                @self._app.command()
+                def raise_error() -> None:
+                    test_error_msg = "Test error"
+                    raise ValueError(test_error_msg)
+
+        app = TestAppWithError()
+        result = app.execute_cli(["raise-error"])
+        assert result.is_failure
+        assert "CLI execution error: Test error" in str(result.error)
+
+
+class TestFlextCliCreateTableEdgeCases:
+    """Tests for create_table edge cases to achieve 100% coverage."""
+
+    @pytest.fixture
+    def api_service(self, flext_cli_api: FlextCli) -> FlextCli:
+        """Create FlextCli instance for testing."""
+        return flext_cli_api
+
+    def test_create_table_iterable_data(self, api_service: FlextCli) -> None:
+        """Test create_table with iterable data that is not dict or list - covers line 543."""
+        # Create a list (which is a sequence) to trigger the cast on line 543
+        data: list[dict[str, FlextTypes.JsonValue]] = [
+            {"name": "Item1"},
+            {"name": "Item2"},
+        ]
+        result = api_service.create_table(data=data)
+        assert result.is_success
+        table_str = result.unwrap()
+        assert "name" in table_str or "Item1" in table_str

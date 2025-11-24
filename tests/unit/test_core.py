@@ -2999,10 +2999,10 @@ class TestFlextCliCoreExceptionHandlers:
         assert result.is_success
 
         # Test get_cache_stats with real cache
-        result = core_service.get_cache_stats("test_stats")  # type: ignore[assignment]
+        stats_result = core_service.get_cache_stats("test_stats")
         # Should succeed and return stats
-        assert result.is_success
-        stats = result.unwrap()
+        assert stats_result.is_success
+        stats = stats_result.unwrap()
         assert isinstance(stats, dict)
 
     def test_register_plugin_exception_real(self, core_service: FlextCliCore) -> None:

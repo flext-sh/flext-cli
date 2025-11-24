@@ -14,7 +14,7 @@ WHEN TO USE THESE PATTERNS IN YOUR CLI:
 - Building CLI tools with caching needs
 
 WHAT YOU CAN BUILD USING THESE PATTERNS:
-- Singleton pattern (FlextCli.get_instance() already provided)
+- Singleton pattern (FlextCli() constructor provided)
 - Lazy loading for faster startup (using standard Python patterns)
 - Caching with @lru_cache or cachetools library
 - Efficient table rendering (use FlextCliTables efficiently)
@@ -268,7 +268,7 @@ def main() -> None:
     # Integration guide
     output.print_message("\n💡 Performance Tips:", style="bold cyan")
     output.print_message(
-        "  • Always use FlextCli.get_instance() (singleton)",
+        "  • Always use FlextCli() constructor (singleton)",
         style="white",
     )
     output.print_message(

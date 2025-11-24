@@ -17,19 +17,19 @@ from flext_core import (
     FlextConfig,
     FlextMixins,
     FlextResult,
-    FlextService,
     FlextTypes,
     FlextUtilities,
 )
 from pydantic import Field
 
+from flext_cli.base import FlextCliServiceBase
 from flext_cli.constants import FlextCliConstants
 from flext_cli.models import FlextCliModels
 from flext_cli.typings import FlextCliTypes
 
 
-class FlextCliContext(FlextService[FlextCliTypes.Data.CliDataDict]):
-    """CLI execution context model extending FlextService.
+class FlextCliContext(FlextCliServiceBase):
+    """CLI execution context model extending FlextCliServiceBase.
 
     Manages CLI execution context with enhanced type safety using FlextCliTypes
     instead of generic FlextTypes types. Provides CLI-specific context with domain types
