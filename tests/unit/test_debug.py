@@ -38,7 +38,7 @@ class TestFlextCliDebug:
 
         assert isinstance(result, FlextResult)
         assert result.is_success
-        assert isinstance(result.unwrap(), str)
+        assert isinstance(result.unwrap(), dict)
 
     def test_debug_validate_config(self, debug: FlextCliDebug) -> None:
         """Test debug config validation."""

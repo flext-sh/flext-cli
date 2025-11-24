@@ -28,11 +28,10 @@ import os
 import secrets
 import time
 from pathlib import Path
-from typing import cast
 
 from flext_cli import FlextCli, FlextCliTypes
 
-cli = FlextCli.get_instance()
+cli = FlextCli()
 
 
 # ============================================================================
@@ -43,10 +42,10 @@ cli = FlextCli.get_instance()
 def login_to_service(username: str, password: str) -> bool:
     """Login and save token in YOUR CLI application."""
     # Your API authentication logic
-    credentials: FlextCliTypes.Data.CliDataDict = cast(
-        "FlextCliTypes.Data.CliDataDict",
-        {"username": username, "password": password},
-    )
+    credentials: FlextCliTypes.Data.CliDataDict = {
+        "username": username,
+        "password": password,
+    }
 
     # Instead of manually managing tokens:
     # token = authenticate_with_api(username, password)
@@ -186,23 +185,20 @@ def show_session_info() -> None:
     token_file = Path(cli.config.token_file)
 
     # Gather session data
-    session_data: FlextCliTypes.Data.CliDataDict = cast(
-        "FlextCliTypes.Data.CliDataDict",
-        {
-            "User": os.getenv("USER", "unknown"),
-            "Token File": str(token_file),
-            "Token Length": f"{len(token)} chars",
-            "File Size": f"{token_file.stat().st_size} bytes"
-            if token_file.exists()
-            else "N/A",
-            "Modified": time.strftime(
-                "%Y-%m-%d %H:%M:%S",
-                time.localtime(token_file.stat().st_mtime),
-            )
-            if token_file.exists()
-            else "N/A",
-        },
-    )
+    session_data: FlextCliTypes.Data.CliDataDict = {
+        "User": os.getenv("USER", "unknown"),
+        "Token File": str(token_file),
+        "Token Length": f"{len(token)} chars",
+        "File Size": f"{token_file.stat().st_size} bytes"
+        if token_file.exists()
+        else "N/A",
+        "Modified": time.strftime(
+            "%Y-%m-%d %H:%M:%S",
+            time.localtime(token_file.stat().st_mtime),
+        )
+        if token_file.exists()
+        else "N/A",
+    }
 
     # Display as table
     table_result = cli.create_table(

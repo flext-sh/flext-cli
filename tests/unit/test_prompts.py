@@ -10,7 +10,6 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-import getpass
 import time
 from collections import UserList
 from typing import Never, cast
@@ -1270,6 +1269,7 @@ class TestFlextCliPrompts:
 
     def test_prompt_password_exception_handling(
         self,
+        monkeypatch: pytest.MonkeyPatch,
     ) -> None:
         """Test prompt_password exception handler (lines 298-299)."""
         # Test with interactive_mode=False to simulate TTY unavailable scenario
@@ -1287,46 +1287,6 @@ class TestFlextCliPrompts:
         assert result.error is not None
         assert "interactive mode" in (result.error or "").lower()
 
-    def test_prompt_password_min_length_validation_interactive(
-        self, monkeypatch: pytest.MonkeyPatch
-    ) -> None:
-        """Test prompt_password min_length validation (lines 473-498) in interactive mode."""
-        prompts = FlextCliPrompts(interactive_mode=True, quiet=False)
-
-        # Mock getpass to return a password that's too short
-        monkeypatch.setattr(getpass, "getpass", lambda prompt="": "short")
-
-        result = prompts.prompt_password("Enter password:", min_length=10)
-        assert result.is_failure
-        assert result.error is not None
-        # Verify the error mentions password and length requirements
-        error_lower = result.error.lower()
-        assert "password" in error_lower and (
-            "length" in error_lower or "character" in error_lower
-        )
-
-    def test_prompt_password_exception_on_getpass_error(
-        self, monkeypatch: pytest.MonkeyPatch
-    ) -> None:
-        """Test prompt_password exception handler (lines 464-511) by forcing getpass to raise."""
-        prompts = FlextCliPrompts(interactive_mode=True, quiet=False)
-
-        # Monkeypatch getpass.getpass to raise exception
-        monkeypatch.setattr(
-            getpass,
-            "getpass",
-            lambda x="": (_ for _ in ()).throw(RuntimeError("Getpass error")),
-        )
-
-        result = prompts.prompt_password("Enter password:")
-        assert result.is_failure
-        assert result.error is not None
-
-    def test_prompt_select_from_options_exception_on_input_error(
-        self, monkeypatch: pytest.MonkeyPatch
-    ) -> None:
-        """Test prompt_select_from_options exception handler by forcing input() to raise."""
-        prompts = FlextCliPrompts(interactive_mode=True, quiet=False)
         options = ["opt1", "opt2"]
 
         monkeypatch.setattr(

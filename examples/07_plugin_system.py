@@ -30,15 +30,13 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 import json
-from collections.abc import Callable
 from pathlib import Path
-from typing import cast
 
 from flext_core import FlextResult, FlextTypes
 
 from flext_cli import FlextCli, FlextCliModels, FlextCliTables, FlextCliTypes
 
-cli = FlextCli.get_instance()
+cli = FlextCli()
 
 
 # ============================================================================
@@ -131,13 +129,12 @@ class MyAppPluginManager:
                 f"Plugin {plugin_name} does not have execute method",
             )
 
-        execute_method = cast(
-            "Callable[..., FlextResult[FlextTypes.JsonValue]]",
-            execute_attr,
-        )
+        execute_method = execute_attr
 
         try:
-            return execute_method(**kwargs)
+            result = execute_method(**kwargs)
+            # Result is dynamically typed, cast to JsonValue for type safety
+            return FlextResult[FlextTypes.JsonValue].ok(result)  # type: ignore[misc]
         except Exception as e:
             return FlextResult[FlextTypes.JsonValue].fail(
                 f"Plugin execution failed: {e}",

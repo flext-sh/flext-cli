@@ -27,18 +27,18 @@ from typing import override
 from flext_core import (
     FlextMixins,
     FlextResult,
-    FlextService,
     FlextTypes,
     FlextUtilities,
 )
 
+from flext_cli.base import FlextCliServiceBase
 from flext_cli.constants import FlextCliConstants
 from flext_cli.models import FlextCliModels
 from flext_cli.typings import FlextCliTypes, FlextCliTypes as Types
 
 
-class FlextCliDebug(FlextService[str]):
-    """Debug service extending FlextService from flext-core.
+class FlextCliDebug(FlextCliServiceBase):
+    """Debug service extending FlextCliServiceBase.
 
     Implements FlextCliProtocols.CliDebugProvider through structural subtyping.
 
@@ -52,16 +52,17 @@ class FlextCliDebug(FlextService[str]):
         super().__init__()
         # Logger and container inherited from FlextService via FlextMixins
 
-    def execute(self, **_kwargs: object) -> FlextResult[str]:
+    def execute(self, **_kwargs: object) -> FlextResult[FlextCliTypes.Data.CliDataDict]:
         """Execute debug service - required by FlextService.
 
         Args:
             **_kwargs: Additional execution parameters (unused, for FlextService compatibility)
 
         """
-        return FlextResult[str].ok(
-            FlextCliConstants.ServiceMessages.FLEXT_CLI_DEBUG_OPERATIONAL,
-        )
+        return FlextResult[FlextCliTypes.Data.CliDataDict].ok({
+            "status": "operational",
+            "message": FlextCliConstants.ServiceMessages.FLEXT_CLI_DEBUG_OPERATIONAL,
+        })
 
     def get_environment_variables(
         self,

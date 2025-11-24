@@ -18,7 +18,6 @@ from flext_core import (
     FlextMixins,
     FlextResult,
     FlextRuntime,
-    FlextService,
     FlextTypes,
     FlextUtilities,
 )
@@ -30,8 +29,8 @@ from flext_cli.models import FlextCliModels
 from flext_cli.utilities import FlextCliUtilities
 
 
-class FlextCliCmd(FlextService[FlextTypes.JsonDict]):
-    """CMD service extending FlextService from flext-core.
+class FlextCliCmd(FlextCliServiceBase):
+    """CMD service extending FlextCliServiceBase.
 
     Provides essential command functionality using flext-core patterns.
     Follows single-responsibility principle with nested helpers.

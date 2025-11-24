@@ -15,9 +15,10 @@ from io import StringIO
 from typing import cast, override
 
 import yaml
-from flext_core import FlextMixins, FlextResult, FlextRuntime, FlextService, FlextTypes
+from flext_core import FlextMixins, FlextResult, FlextRuntime, FlextTypes
 from pydantic import BaseModel
 
+from flext_cli.base import FlextCliServiceBase
 from flext_cli.constants import FlextCliConstants
 from flext_cli.formatters import FlextCliFormatters
 from flext_cli.models import FlextCliModels
@@ -26,7 +27,7 @@ from flext_cli.typings import FlextCliTypes
 from flext_cli.utilities import FlextCliUtilities
 
 
-class FlextCliOutput(FlextService[FlextTypes.JsonDict]):
+class FlextCliOutput(FlextCliServiceBase):
     """Comprehensive CLI output tools for the flext ecosystem.
 
     REFACTORED to use FlextCliFormatters and FlextCliTables for all output.

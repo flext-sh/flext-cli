@@ -89,13 +89,13 @@ from flext_core import (
     FlextMixins,
     FlextResult,
     FlextRuntime,
-    FlextService,
     FlextTypes,
     FlextUtilities,
     P,
     T,
 )
 
+from flext_cli.base import FlextCliServiceBase
 from flext_cli.config import FlextCliConfig
 from flext_cli.constants import FlextCliConstants
 from flext_cli.models import FlextCliModels
@@ -103,13 +103,13 @@ from flext_cli.protocols import FlextCliProtocols
 from flext_cli.typings import FlextCliTypes
 
 
-class FlextCliCore(FlextService[FlextCliTypes.Data.CliDataDict]):
+class FlextCliCore(FlextCliServiceBase):
     """Core CLI service - comprehensive command-line operations management (Layer 3).
 
     **ARCHITECTURE LAYER**: Application Layer (Layer 3)
-    Extends FlextService[FlextCliTypes.Data.CliDataDict] from flext-core with CLI
-    domain-specific types and operations. Inherits logger and context enrichment from
-    FlextMixins mixin. Type-generic over CliDataDict for type-safe operations.
+    Extends FlextCliServiceBase with CLI domain-specific types and operations.
+    Inherits CLI config access and FlextService foundation. Type-generic over
+    CliDataDict for type-safe operations.
 
     **RAILWAY-ORIENTED PATTERN**:
     All public operations return FlextResult[T] enabling composable error handling:
@@ -787,7 +787,7 @@ class FlextCliCore(FlextService[FlextCliTypes.Data.CliDataDict]):
             # Config is already typed as CliConfigSchema from parameter
             # Cast needed to satisfy pyrefly type checker (pyrefly requires explicit cast)
             return FlextResult[FlextCliTypes.Configuration.CliConfigSchema].ok(
-                cast("FlextCliTypes.Configuration.CliConfigSchema", config)  # type: ignore[redundant-cast]
+                cast("FlextCliTypes.Configuration.CliConfigSchema", config)
             )
 
         def validate_existing_config() -> FlextResult[

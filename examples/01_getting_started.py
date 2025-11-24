@@ -19,7 +19,7 @@ WHEN TO USE:
 HOW TO INTEGRATE INTO YOUR PROJECT:
 1. Install: pip install flext-cli
 2. Import: from flext_cli import FlextCli  # noqa: E402
-3. Use: cli = FlextCli.get_instance()
+3. Use: cli = FlextCli()
 
 Copyright (c) 2025 FLEXT Team. All rights reserved.
 SPDX-License-Identifier: MIT
@@ -30,11 +30,10 @@ from __future__ import annotations
 
 import tempfile
 from pathlib import Path
-from typing import cast
 
 from flext_cli import FlextCli, FlextCliTypes
 
-cli = FlextCli.get_instance()
+cli = FlextCli()
 
 
 # ============================================================================
@@ -60,7 +59,7 @@ def your_function_after() -> None:
 def display_user_data(user: FlextCliTypes.Data.CliDataDict) -> None:
     """Show how to display YOUR data as a table."""
     # Your data (from database, API, etc.)
-    # Cast to expected type for table creation
+    # Create table from user data
     table_result = cli.create_table(
         data=user,
         headers=["Field", "Value"],
@@ -78,33 +77,31 @@ def display_user_data(user: FlextCliTypes.Data.CliDataDict) -> None:
 
 def save_config(config: FlextCliTypes.Data.CliDataDict, filepath: str) -> bool:
     """Save YOUR config to JSON with proper error handling."""
-    # Cast to JsonValue (dict is part of JsonValue union)
     write_result = cli.file_tools.write_json_file(
         filepath,
-        cast("dict[str, object]", config),
+        config,
     )
 
     if write_result.is_failure:
-        cli.print(f"Failed to save: {write_result.error}", style="bold red")
+        cli.output.print_message(f"Failed to save: {write_result.error}")
         return False
 
-    cli.print(f"✅ Saved to {filepath}", style="green")
+    cli.output.print_message(f"✅ Saved to {filepath}")
     return True
 
 
-def load_config(filepath: str) -> FlextCliTypes.Data.CliDataDict | None:
+def load_config(filepath: str) -> dict[str, object] | None:
     """Load YOUR config from JSON with error handling."""
     read_result = cli.file_tools.read_json_file(filepath)
 
     if read_result.is_failure:
-        cli.print(f"Failed to load: {read_result.error}", style="bold red")
+        cli.output.print_message(f"Failed to load: {read_result.error}")
         return None
 
     # Type narrowing: ensure we return a dict
     data = read_result.unwrap()
     if isinstance(data, dict):
-        # Cast to expected type (runtime type is compatible)
-        return cast("FlextCliTypes.Data.CliDataDict", data)
+        return data
     return None
 
 
@@ -157,10 +154,10 @@ def main() -> None:
     # Example 3: File I/O
     cli.print("\n3. File Operations:", style="bold cyan")
     temp_file = Path(tempfile.gettempdir()) / "my_config.json"
-    config: FlextCliTypes.Data.CliDataDict = cast(
-        "FlextCliTypes.Data.CliDataDict",
-        {"app": "my-cli-tool", "version": "1.0.0"},
-    )
+    config: FlextCliTypes.Data.CliDataDict = {
+        "app": "my-cli-tool",
+        "version": "1.0.0",
+    }
 
     save_config(config, str(temp_file))
     loaded = load_config(str(temp_file))
@@ -181,7 +178,7 @@ def main() -> None:
     # Show how to integrate into YOUR code
     cli.print("\n📚 Integration Steps:", style="bold cyan")
     cli.print("  1. Import: from flext_cli import FlextCli", style="white")
-    cli.print("  2. Init:   cli = FlextCli.get_instance()", style="white")
+    cli.print("  2. Init:   cli = FlextCli()", style="white")
     cli.print(
         "  3. Use:    cli.print(), cli.file_tools.write_json_file(), etc.",
         style="white",

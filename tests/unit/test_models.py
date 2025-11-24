@@ -1925,10 +1925,13 @@ class TestFlextCliModelsExceptionHandlers:
                 self.value = value
 
         # Create a field with metadata that has __dict__
-        field_info = Field(
-            default="test",
-            description="Test field with metadata",
-            json_schema_extra={"test_key": "test_value"},
+        field_info = cast(
+            "PydanticFieldInfo",
+            Field(
+                default="test",
+                description="Test field with metadata",
+                json_schema_extra={"test_key": "test_value"},
+            ),
         )
         # Add metadata to field_info
         field_info.metadata = [TestMetadata("custom_key", "custom_value")]
@@ -1936,6 +1939,7 @@ class TestFlextCliModelsExceptionHandlers:
         result = FlextCliModels.CliModelConverter.extract_field_properties(
             "test_field",
             field_info,
+            {},
         )
 
         assert result.is_success
@@ -1945,3 +1949,88 @@ class TestFlextCliModelsExceptionHandlers:
         assert isinstance(props["metadata"], dict)
         # Should contain both json_schema_extra and metadata.__dict__
         assert "test_key" in props["metadata"] or "key" in props["metadata"]
+
+    def test_python_type_to_click_type_various_types(self) -> None:
+        """Test python_type_to_click_type with various Python types - covers multiple lines."""
+        # Test various types that map to different Click types
+        test_cases = [
+            (str, "STRING"),
+            (int, "INT"),
+            (float, "FLOAT"),
+            (bool, "BOOL"),
+            (list, "STRING"),  # Complex types default to STRING
+            (dict, "STRING"),
+        ]
+
+        for python_type, expected_click in test_cases:
+            result = FlextCliModels.CliModelConverter.python_type_to_click_type(
+                python_type
+            )
+            assert result == expected_click
+
+    def test_field_to_cli_param_with_complex_field(self) -> None:
+        """Test field_to_cli_param with complex field having validators and metadata."""
+
+        # Create a field with validators and metadata
+        def validator_func(value: object) -> object:
+            return value
+
+        # Create field with proper type annotation (Pydantic v2 style)
+        field_info = cast(
+            "PydanticFieldInfo",
+            Field(
+                default="test",
+                description="Test field with validators",
+            ),
+        )
+        # Manually set annotation since Field() alone doesn't provide it
+        field_info.annotation = str  # Set the type annotation
+
+        # Add validators and metadata
+        field_info.metadata = [{"validator": validator_func}]
+
+        result = FlextCliModels.CliModelConverter.field_to_cli_param(
+            "complex_field",
+            field_info,
+        )
+
+        assert result.is_success
+        param_spec = result.unwrap()
+        assert param_spec.field_name == "complex_field"
+        assert param_spec.param_type is str
+
+    def test_model_to_cli_params_basic(self) -> None:
+        """Test model_to_cli_params with a simple model - covers model_to_cli_params method."""
+
+        class SimpleModel(BaseModel):
+            name: str
+            age: int = 25
+
+        result = FlextCliModels.CliModelConverter.model_to_cli_params(SimpleModel)
+
+        assert result.is_success
+        params = result.unwrap()
+        assert len(params) == 2  # name and age
+        # params is a list of CliParameterSpec
+        param_dict = {p.field_name: p for p in params}
+        assert "name" in param_dict
+        assert "age" in param_dict
+        assert param_dict["name"].param_type is str
+        assert param_dict["age"].param_type is int
+
+    def test_model_to_click_options_basic(self) -> None:
+        """Test model_to_click_options with a simple model."""
+
+        class SimpleModel(BaseModel):
+            name: str
+            age: int = 25
+
+        result = FlextCliModels.CliModelConverter.model_to_click_options(SimpleModel)
+
+        assert result.is_success
+        options = result.unwrap()
+        assert len(options) == 2  # name and age
+        # Options should have the expected Click option structure
+        for option in options:
+            assert hasattr(option, "option_name")
+            assert hasattr(option, "param_decls")

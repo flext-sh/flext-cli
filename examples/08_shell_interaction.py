@@ -38,7 +38,7 @@ from flext_core import FlextResult
 
 from flext_cli import FlextCli, FlextCliTypes
 
-cli = FlextCli.get_instance()
+cli = FlextCli()
 
 
 # ============================================================================

@@ -10,7 +10,7 @@ WHEN TO USE THIS:
 - Want bordered content panels
 
 FLEXT-CLI PROVIDES:
-- cli.print() - Styled text output (uses Rich)
+- cli.output.print_message() - Styled text output (uses Rich)
 - cli.create_table() - Rich tables with borders/colors
 - FlextCliTables - ASCII tables for plain text (uses Tabulate)
 - Progress bars and spinners
@@ -46,7 +46,7 @@ from flext_cli import (
     FlextCliTypes,
 )
 
-cli = FlextCli.get_instance()
+cli = FlextCli()
 tables = FlextCliTables()
 
 
@@ -93,7 +93,7 @@ def display_database_results(records: list[FlextCliTypes.Data.CliDataDict]) -> N
         for i, record in enumerate(records[:10], 1)
     }
 
-    # Cast to expected type for table creation
+    # Create table from data
     table_result = cli.create_table(
         data=table_data,
         headers=["#", "Data"],
@@ -269,7 +269,6 @@ def display_with_panels(data: FlextCliTypes.Data.CliDataDict) -> None:
     if details_data:
         cli.print("\n📋 Details:", style="bold green")
         # Use FlextCliTables for list[dict] data
-        # Cast to expected type for table creation
         table_result = tables.create_table(list(details_data))
         if table_result.is_success:
             cli.print(f"\n{table_result.unwrap()}", style="white")
