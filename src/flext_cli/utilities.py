@@ -14,11 +14,12 @@ import os
 import sys
 import types
 from pathlib import Path
-from typing import Final, Union, get_args, get_origin
+from typing import Union, get_args, get_origin
 
-from flext_core import FlextResult, FlextTypes, FlextUtilities
+from flext_core import FlextResult, FlextUtilities
 
 from flext_cli.constants import FlextCliConstants
+from flext_cli.typings import CliJsonDict
 
 
 class FlextCliUtilities:
@@ -52,20 +53,6 @@ class FlextCliUtilities:
 
     # =========================================================================
     # BASE UTILITIES - Delegate to flext-core FlextUtilities
-    # =========================================================================
-
-    # Expose all FlextUtilities namespaces for convenience
-    Cache: Final = FlextUtilities.Cache
-    Validation: Final = FlextUtilities.Validation
-    TypeGuards: Final = FlextUtilities.TypeGuards
-    Generators: Final = FlextUtilities.Generators
-    TextProcessor: Final = FlextUtilities.TextProcessor
-    Reliability: Final = FlextUtilities.Reliability
-    TypeChecker: Final = FlextUtilities.TypeChecker
-    Configuration: Final = FlextUtilities.Configuration
-    StringParser: Final = FlextUtilities.StringParser
-    DataMapper: Final = FlextUtilities.DataMapper
-
     # =========================================================================
     # CLI VALIDATION - CLI-specific validation helpers
     # =========================================================================
@@ -159,8 +146,10 @@ class FlextCliUtilities:
                 field_name,
                 case_sensitive=True,
             )
-            # Convert FlextResult[str] to FlextResult[bool] using monadic pattern
-            return result.map(lambda _: True)
+            # Convert FlextResult[str] to FlextResult[bool]
+            if result.is_success:
+                return FlextResult[bool].ok(True)
+            return FlextResult[bool].fail(result.error or "Validation failed")
 
         @staticmethod
         def validate_command_status(status: str) -> FlextResult[bool]:
@@ -203,7 +192,7 @@ class FlextCliUtilities:
             Validates format against list of supported output formats and
             returns normalized lowercase format string.
 
-            Uses FlextUtilities.Validation.validate_choice() internally.
+            Uses FlextUtilitiesValidation.validate_choice() internally.
 
             Args:
                 format_type: Output format to validate (json, yaml, table, csv, plain)
@@ -416,7 +405,7 @@ class FlextCliUtilities:
             return results
 
         @staticmethod
-        def get_config_info() -> FlextTypes.JsonDict:
+        def get_config_info() -> CliJsonDict:
             """Get FLEXT CLI configuration information.
 
             Returns comprehensive configuration information including:
@@ -426,7 +415,7 @@ class FlextCliUtilities:
             - Current timestamp
 
             Returns:
-                FlextTypes.JsonDict: Configuration information dictionary
+                CliJsonDict: Configuration information dictionary
 
             Example:
                 >>> info = FlextCliUtilities.ConfigOps.get_config_info()

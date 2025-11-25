@@ -24,15 +24,15 @@ import hashlib
 import json
 import os
 import shutil
-import stat
 import tempfile
 import zipfile
 from pathlib import Path
 
 import yaml
-from flext_core import FlextResult, FlextRuntime, FlextTypes
+from flext_core import FlextResult, FlextRuntime
 
 from flext_cli.constants import FlextCliConstants
+from flext_cli.typings import CliJsonValue
 
 
 class FlextCliFileTools:
@@ -124,7 +124,7 @@ class FlextCliFileTools:
     def read_json_file(
         self,
         file_path: str | Path,
-    ) -> FlextResult[FlextTypes.JsonValue]:
+    ) -> FlextResult[CliJsonValue]:
         """Read JSON file using internal loader.
 
         Args:
@@ -179,7 +179,7 @@ class FlextCliFileTools:
     def read_yaml_file(
         self,
         file_path: str | Path,
-    ) -> FlextResult[FlextTypes.JsonValue]:
+    ) -> FlextResult[CliJsonValue]:
         """Read YAML file using internal loader.
 
         Args:
@@ -249,7 +249,7 @@ class FlextCliFileTools:
     def load_file_auto_detect(
         self,
         file_path: str | Path,
-    ) -> FlextResult[FlextTypes.JsonValue]:
+    ) -> FlextResult[CliJsonValue]:
         """Load file with automatic format detection."""
         format_result = FlextCliFileTools.detect_file_format(file_path)
         if format_result.is_failure:
@@ -259,7 +259,7 @@ class FlextCliFileTools:
                 if format_result.error is not None
                 else FlextCliConstants.ErrorMessages.FORMAT_DETECTION_FAILED
             )
-            return FlextResult[FlextTypes.JsonValue].fail(error_message)
+            return FlextResult[CliJsonValue].fail(error_message)
 
         file_format = format_result.unwrap()
         if file_format == FlextCliConstants.FileSupportedFormats.JSON:
@@ -267,7 +267,7 @@ class FlextCliFileTools:
         if file_format == FlextCliConstants.FileSupportedFormats.YAML:
             return FlextCliFileTools._FileLoader.load_yaml(str(file_path))
 
-        return FlextResult[FlextTypes.JsonValue].fail(
+        return FlextResult[CliJsonValue].fail(
             FlextCliConstants.ErrorMessages.UNSUPPORTED_FORMAT.format(
                 format=file_format,
             ),
@@ -276,7 +276,7 @@ class FlextCliFileTools:
     def save_file(
         self,
         file_path: str | Path,
-        data: FlextTypes.JsonValue,
+        data: CliJsonValue,
     ) -> FlextResult[bool]:
         """Save data to file with automatic format detection.
 
@@ -310,6 +310,51 @@ class FlextCliFileTools:
         except Exception as e:
             return FlextResult[bool].fail(
                 FlextCliConstants.FileErrorMessages.BINARY_WRITE_FAILED.format(error=e),
+            )
+
+    @staticmethod
+    def get_file_size(file_path: str | Path) -> FlextResult[int]:
+        """Get file size in bytes."""
+        try:
+            size = Path(file_path).stat().st_size
+            return FlextResult[int].ok(size)
+        except Exception as e:
+            return FlextResult[int].fail(
+                f"Failed to get file size for {file_path}: {e}",
+            )
+
+    @staticmethod
+    def get_file_modified_time(file_path: str | Path) -> FlextResult[float]:
+        """Get file modification time as Unix timestamp."""
+        try:
+            mtime = Path(file_path).stat().st_mtime
+            return FlextResult[float].ok(mtime)
+        except Exception as e:
+            return FlextResult[float].fail(
+                f"Failed to get modification time for {file_path}: {e}",
+            )
+
+    @staticmethod
+    def get_file_permissions(file_path: str | Path) -> FlextResult[int]:
+        """Get file permissions as integer (Unix-style)."""
+        try:
+            mode = Path(file_path).stat().st_mode
+            permissions = mode & 0o777  # Extract permission bits
+            return FlextResult[int].ok(permissions)
+        except Exception as e:
+            return FlextResult[int].fail(
+                f"Failed to get permissions for {file_path}: {e}",
+            )
+
+    @staticmethod
+    def set_file_permissions(file_path: str | Path, mode: int) -> FlextResult[bool]:
+        """Set file permissions."""
+        try:
+            Path(file_path).chmod(mode)
+            return FlextResult[bool].ok(True)
+        except Exception as e:
+            return FlextResult[bool].fail(
+                f"Failed to set permissions for {file_path}: {e}",
             )
 
     @staticmethod
@@ -446,32 +491,6 @@ class FlextCliFileTools:
             )
 
     @staticmethod
-    def get_file_size(file_path: str | Path) -> FlextResult[int]:
-        """Get file size in bytes."""
-        try:
-            size = Path(file_path).stat().st_size
-            return FlextResult[int].ok(size)
-        except Exception as e:
-            return FlextResult[int].fail(
-                FlextCliConstants.FileErrorMessages.FILE_SIZE_CHECK_FAILED.format(
-                    error=e,
-                ),
-            )
-
-    @staticmethod
-    def get_file_modified_time(file_path: str | Path) -> FlextResult[float]:
-        """Get file modification time."""
-        try:
-            mtime = Path(file_path).stat().st_mtime
-            return FlextResult[float].ok(mtime)
-        except Exception as e:
-            return FlextResult[float].fail(
-                FlextCliConstants.FileErrorMessages.FILE_TIME_CHECK_FAILED.format(
-                    error=e,
-                ),
-            )
-
-    @staticmethod
     def calculate_file_hash(
         file_path: str | Path,
         algorithm: str = "sha256",
@@ -512,41 +531,6 @@ class FlextCliFileTools:
 
         matches = hash_result.unwrap() == expected_hash
         return FlextResult[bool].ok(matches)
-
-    @staticmethod
-    def get_file_permissions(file_path: str | Path) -> FlextResult[int]:
-        """Get file permissions."""
-        try:
-            mode = Path(file_path).stat().st_mode
-            permissions = stat.S_IMODE(mode)
-            return FlextResult[int].ok(permissions)
-        except Exception as e:
-            return FlextResult[int].fail(
-                FlextCliConstants.FileErrorMessages.PERMISSION_CHECK_FAILED.format(
-                    error=e,
-                ),
-            )
-
-    @staticmethod
-    def set_file_permissions(
-        file_path: str | Path,
-        permissions: int,
-    ) -> FlextResult[bool]:
-        """Set file permissions.
-
-        Returns:
-            FlextResult[bool]: True if permissions set successfully, failure on error
-
-        """
-        try:
-            Path(file_path).chmod(permissions)
-            return FlextResult[bool].ok(True)
-        except Exception as e:
-            return FlextResult[bool].fail(
-                FlextCliConstants.FileErrorMessages.PERMISSION_SET_FAILED.format(
-                    error=e,
-                ),
-            )
 
     @staticmethod
     def create_temp_file() -> FlextResult[str]:
@@ -732,32 +716,32 @@ class FlextCliFileTools:
         """Nested helper for file loading operations."""
 
         @staticmethod
-        def load_json(file_path: str) -> FlextResult[FlextTypes.JsonValue]:
+        def load_json(file_path: str) -> FlextResult[CliJsonValue]:
             """Load JSON file."""
             try:
                 with Path(file_path).open(
                     encoding=FlextCliConstants.Encoding.UTF8,
                 ) as f:
-                    data: FlextTypes.JsonValue = json.load(f)
-                return FlextResult[FlextTypes.JsonValue].ok(data)
+                    data: CliJsonValue = json.load(f)
+                return FlextResult[CliJsonValue].ok(data)
             except Exception as e:
-                return FlextResult[FlextTypes.JsonValue].fail(
+                return FlextResult[CliJsonValue].fail(
                     FlextCliConstants.FileErrorMessages.JSON_LOAD_FAILED.format(
                         error=e,
                     ),
                 )
 
         @staticmethod
-        def load_yaml(file_path: str) -> FlextResult[FlextTypes.JsonValue]:
+        def load_yaml(file_path: str) -> FlextResult[CliJsonValue]:
             """Load YAML file."""
             try:
                 with Path(file_path).open(
                     encoding=FlextCliConstants.Encoding.UTF8,
                 ) as f:
-                    data: FlextTypes.JsonValue = yaml.safe_load(f)
-                return FlextResult[FlextTypes.JsonValue].ok(data)
+                    data: CliJsonValue = yaml.safe_load(f)
+                return FlextResult[CliJsonValue].ok(data)
             except Exception as e:
-                return FlextResult[FlextTypes.JsonValue].fail(
+                return FlextResult[CliJsonValue].fail(
                     FlextCliConstants.FileErrorMessages.YAML_LOAD_FAILED.format(
                         error=e,
                     ),
@@ -769,7 +753,7 @@ class FlextCliFileTools:
         @staticmethod
         def save_file(
             file_path: str | Path,
-            data: FlextTypes.JsonValue,
+            data: CliJsonValue,
         ) -> FlextResult[bool]:
             """Save data to file with automatic format detection.
 

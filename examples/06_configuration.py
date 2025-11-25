@@ -97,7 +97,7 @@ def load_environment_config() -> dict[str, str | int]:
     settings_data = cast("dict[str, object]", settings)
     display_config_table(
         cli=cli,
-        config_data=settings_data,  # type: ignore[arg-type]
+        config_data=settings_data,
         title=f"🌍 {environment.capitalize()} Configuration",
     )
 
@@ -183,7 +183,7 @@ def show_config_locations() -> dict[str, str]:
     # Display as table
     locations_data = cast("dict[str, object]", locations)
     table_result = cli.create_table(
-        data=locations_data,  # type: ignore[arg-type]
+        data=locations_data,
         headers=["Location", "Path"],
         title="📂 Configuration Locations",
     )
@@ -509,7 +509,7 @@ def main() -> None:
         # Display final config
         display_config_table(
             cli=cli,
-            config_data=cast("dict[str, object]", final_config),  # type: ignore[arg-type]
+            config_data=cast("dict[str, object]", final_config),
             title="Final Application Configuration",
         )
 

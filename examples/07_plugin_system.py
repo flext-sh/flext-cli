@@ -134,7 +134,7 @@ class MyAppPluginManager:
         try:
             result = execute_method(**kwargs)
             # Result is dynamically typed, cast to JsonValue for type safety
-            return FlextResult[FlextTypes.JsonValue].ok(result)  # type: ignore[misc]
+            return FlextResult[FlextTypes.JsonValue].ok(result)
         except Exception as e:
             return FlextResult[FlextTypes.JsonValue].fail(
                 f"Plugin execution failed: {e}",

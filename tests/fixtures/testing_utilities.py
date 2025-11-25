@@ -336,7 +336,7 @@ class FlextCliTesting(FlextService[dict[str, object]]):
     # FLEXTSERVICE PROTOCOL IMPLEMENTATION
     # =========================================================================
 
-    def execute(self, **kwargs: object) -> FlextResult[dict[str, object]]:
+    def execute(self, **_kwargs: object) -> FlextResult[dict[str, object]]:
         """Execute testing service.
 
         Args:

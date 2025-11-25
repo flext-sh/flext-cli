@@ -15,7 +15,7 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 from collections.abc import Callable as CallableABC, Sequence
-from typing import Annotated, Literal, Protocol, TypeAlias, TypeVar
+from typing import Annotated, Literal, ParamSpec, Protocol, TypeAlias, TypeVar
 
 from flext_core import FlextResult, FlextTypes
 from pydantic import BaseModel, Field
@@ -34,6 +34,8 @@ from rich.status import Status as RichStatusImport
 from rich.table import Table as RichTableImport
 from rich.tree import Tree as RichTreeImport
 
+P = ParamSpec("P")
+
 # Module-level TypeVars
 TCliCommand = TypeVar("TCliCommand")
 TCliConfig = TypeVar("TCliConfig")
@@ -45,8 +47,8 @@ TCliPlugin = TypeVar("TCliPlugin")
 TCliFormatter = TypeVar("TCliFormatter")
 
 # Type aliases for CLI data structures
-# Compatible with mypy and replaces FlextTypes.JsonValue usage
-type CliJsonValue = FlextTypes.JsonValue
+# Compatible with mypy and replaces CliJsonValue usage
+type CliJsonValue = str | int | float | bool | dict[str, object] | list[object] | None
 CliJsonDict: TypeAlias = dict[str, CliJsonValue]
 CliJsonList: TypeAlias = list[CliJsonValue]
 
@@ -62,7 +64,7 @@ class FlextCliTypes(FlextTypes):
     # CORE TYPE ALIASES - Direct use of FlextTypes domain types
     # =====================================================================
     # Note: JsonValue is inherited from FlextTypes and not redefined here
-    # to avoid override conflicts. Use FlextTypes.JsonValue directly.
+    # to avoid override conflicts. Use CliJsonValue directly.
 
     # =====================================================================
     # ANNOTATED CLI TYPES - Pydantic v2 Annotated types with validation

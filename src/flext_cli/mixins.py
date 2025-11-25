@@ -13,15 +13,14 @@ from __future__ import annotations
 from typing import cast
 
 from flext_core import (
-    FlextDecorators,
     FlextMixins,
     FlextResult,
-    FlextTypes,
     FlextUtilities,
 )
+from flext_core.decorators import FlextDecorators
 
 from flext_cli.constants import FlextCliConstants
-from flext_cli.typings import FlextCliTypes
+from flext_cli.typings import CliJsonValue, FlextCliTypes
 
 
 class FlextCliMixins(FlextMixins):
@@ -227,8 +226,8 @@ class FlextCliMixins(FlextMixins):
         def execute_with_cli_context(
             operation: str,
             handler: FlextCliTypes.Callable.HandlerFunction,
-            **context_data: FlextTypes.JsonValue,
-        ) -> FlextResult[FlextTypes.JsonValue]:
+            **context_data: CliJsonValue,
+        ) -> FlextResult[CliJsonValue]:
             """Execute handler with automatic CLI context management.
 
             Composes flext-core decorators to provide complete context setup:
@@ -257,7 +256,7 @@ class FlextCliMixins(FlextMixins):
                 class client-aOudMigrationCli(FlextCliMixins.CliCommandMixin):
                     def _execute_migrate(
                         self, args: list[str]
-                    ) -> FlextResult[FlextTypes.JsonValue]:
+                    ) -> FlextResult[CliJsonValue]:
                         # Single line replaces 18 lines of boilerplate!
                         return self.execute_with_cli_context(
                             operation="migrate",
@@ -268,7 +267,7 @@ class FlextCliMixins(FlextMixins):
 
                     def _run_migration_service(
                         self, **kwargs
-                    ) -> FlextResult[FlextTypes.JsonValue]:
+                    ) -> FlextResult[CliJsonValue]:
                         # Context auto-managed - just implement logic
                         service = client-aOudMigrationService(**kwargs)
                         return service.execute()
@@ -294,14 +293,14 @@ class FlextCliMixins(FlextMixins):
             )
 
             # Execute with composed decorators
-            # Handler returns FlextResult[FlextTypes.JsonValue]
+            # Handler returns FlextResult[CliJsonValue]
             # context_data is already correctly typed
             # The railway decorator ensures the handler result is wrapped in FlextResult
             # If handler already returns FlextResult, railway returns it as-is (no double wrapping)
             handler_result = wrapped_handler(**context_data)
-            # Type cast: railway decorator may wrap or return as-is, but we know it's FlextResult[JsonValue]
-            result: FlextResult[FlextTypes.JsonValue] = cast(
-                "FlextResult[FlextTypes.JsonValue]",
+            # Type cast: railway decorator may wrap or return as-is, but we know it's FlextResult[CliJsonValue]
+            result: FlextResult[CliJsonValue] = cast(
+                "FlextResult[CliJsonValue]",
                 handler_result,
             )
             return result

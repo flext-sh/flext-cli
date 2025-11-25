@@ -18,11 +18,10 @@ from tabulate import tabulate
 from flext_cli.base import FlextCliServiceBase
 from flext_cli.constants import FlextCliConstants
 from flext_cli.models import FlextCliModels
+from flext_cli.typings import CliJsonValue
 
 # Type alias for table data to avoid long lines
-type TableData = Iterable[
-    Sequence[FlextTypes.JsonValue] | dict[str, FlextTypes.JsonValue]
-]
+type TableData = Iterable[Sequence[CliJsonValue] | dict[str, CliJsonValue]]
 
 
 class FlextCliTables(FlextCliServiceBase):
@@ -123,11 +122,16 @@ class FlextCliTables(FlextCliServiceBase):
         cfg = FlextCliModels.TableConfig() if config is None else config
 
         # Railway pattern: validate → prepare headers → create table
-        return (
-            self._validate_table_data(data, cfg.table_format)
-            .flat_map(lambda _: self._prepare_headers(data, cfg.headers))
-            .flat_map(lambda headers: self._create_table_string(data, cfg, headers))
-        )
+        validation_result = self._validate_table_data(data, cfg.table_format)
+        if validation_result.is_failure:
+            return validation_result  # type: ignore[return-value]
+
+        headers_result = self._prepare_headers(data, cfg.headers)
+        if headers_result.is_failure:
+            return headers_result  # type: ignore[return-value]
+
+        headers = headers_result.unwrap()
+        return self._create_table_string(data, cfg, headers)
 
     def _validate_table_data(
         self,

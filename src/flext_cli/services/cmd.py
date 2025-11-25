@@ -17,7 +17,6 @@ from typing import override
 from flext_core import (
     FlextMixins,
     FlextResult,
-    FlextRuntime,
     FlextTypes,
     FlextUtilities,
 )
@@ -26,6 +25,7 @@ from flext_cli.base import FlextCliServiceBase
 from flext_cli.constants import FlextCliConstants
 from flext_cli.file_tools import FlextCliFileTools
 from flext_cli.models import FlextCliModels
+from flext_cli.typings import CliJsonValue
 from flext_cli.utilities import FlextCliUtilities
 
 
@@ -111,7 +111,7 @@ class FlextCliCmd(FlextCliServiceBase):
             # Set the configuration value using flext-core utilities
 
             # Create configuration data - key and value are strings, directly JSON-compatible
-            config_data: FlextTypes.JsonValue = {key: value}
+            config_data: CliJsonValue = {key: value}
 
             # Save to file using FlextCliFileTools
             config_path = (
@@ -172,7 +172,7 @@ class FlextCliCmd(FlextCliServiceBase):
             config_data = load_result.value
 
             # Ensure config_data is a dict
-            if not FlextRuntime.is_dict_like(config_data):
+            if not isinstance(config_data, dict):
                 return FlextResult[FlextTypes.JsonDict].fail(
                     FlextCliConstants.CmdErrorMessages.CONFIG_NOT_DICT,
                 )

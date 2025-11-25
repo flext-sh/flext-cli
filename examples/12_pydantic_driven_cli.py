@@ -372,7 +372,7 @@ def convert_and_validate_with_pydantic(
     """Convert raw data to validated Pydantic model."""
     try:
         # Pydantic handles type conversion and validation automatically
-        config = AdvancedDatabaseConfig(**data)  # type: ignore[arg-type]
+        config = AdvancedDatabaseConfig(**data)
         return FlextResult[AdvancedDatabaseConfig].ok(config)
     except Exception as e:
         return FlextResult[AdvancedDatabaseConfig].fail(

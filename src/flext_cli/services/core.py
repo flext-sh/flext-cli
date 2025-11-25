@@ -91,8 +91,6 @@ from flext_core import (
     FlextRuntime,
     FlextTypes,
     FlextUtilities,
-    P,
-    T,
 )
 
 from flext_cli.base import FlextCliServiceBase
@@ -100,7 +98,7 @@ from flext_cli.config import FlextCliConfig
 from flext_cli.constants import FlextCliConstants
 from flext_cli.models import FlextCliModels
 from flext_cli.protocols import FlextCliProtocols
-from flext_cli.typings import FlextCliTypes
+from flext_cli.typings import CliJsonValue, FlextCliTypes
 
 
 class FlextCliCore(FlextCliServiceBase):
@@ -279,7 +277,7 @@ class FlextCliCore(FlextCliServiceBase):
     def __init__(
         self,
         config: FlextCliTypes.Configuration.CliConfigSchema | None = None,
-        **data: FlextTypes.JsonValue,
+        **data: object,
     ) -> None:
         """Initialize CLI service with specialized service injection and Phase 1 context enrichment.
 
@@ -295,14 +293,9 @@ class FlextCliCore(FlextCliServiceBase):
         # Logger and container are inherited from FlextService via FlextMixins
 
         # Type-safe configuration initialization
-        # Use FlextTypes.JsonDict type for internal config management
+        # Use CliConfigSchema type for internal config management
         self._config: FlextCliTypes.Configuration.CliConfigSchema = (
-            config
-            if config is not None
-            else cast(
-                "dict[str, FlextTypes.JsonValue]",
-                {},
-            )
+            config if config is not None else {}
         )
         self._commands: FlextTypes.JsonDict = {}
         # Note: stores plugin objects implementing CliPlugin protocol
@@ -315,7 +308,7 @@ class FlextCliCore(FlextCliServiceBase):
         # Cache types are from external library, using generic types
         self._caches: dict[
             str,
-            TTLCache[str, FlextTypes.JsonValue] | LRUCache[str, FlextTypes.JsonValue],
+            TTLCache[str, CliJsonValue] | LRUCache[str, CliJsonValue],
         ] = {}
         self._cache_stats = self._CacheStats()
         self._plugin_manager = pluggy.PluginManager("flext_cli")
@@ -588,8 +581,8 @@ class FlextCliCore(FlextCliServiceBase):
             if FlextRuntime.is_list_like(context):
                 # Convert list of strings to context dict
                 # Type-safe: CommandContext uses JsonValue, strings are valid JsonValue
-                args_list: list[FlextTypes.JsonValue] = [
-                    cast("FlextTypes.JsonValue", arg) for arg in context
+                args_list: list[CliJsonValue] = [
+                    cast("CliJsonValue", arg) for arg in context
                 ]
                 # Type cast: list[JsonValue] is compatible with JsonValue (list is valid JsonValue)
                 execution_context: FlextCliTypes.CliCommand.CommandContext = cast(
@@ -726,9 +719,109 @@ class FlextCliCore(FlextCliServiceBase):
         """Log configuration update - direct logger usage."""
         self.logger.info(FlextCliConstants.LogMessages.CLI_CONFIG_UPDATED)
 
+    def _validate_config_input(
+        self, config: FlextCliTypes.Configuration.CliConfigSchema | dict[str, object]
+    ) -> FlextResult[FlextCliTypes.Configuration.CliConfigSchema]:
+        """Validate input configuration for update operations."""
+        if not config:
+            self.logger.warning(
+                "Configuration input is empty",
+                operation="update_configuration",
+                consequence="Configuration update will fail",
+                source="flext-cli/src/flext_cli/core.py",
+            )
+            return FlextResult.fail(FlextCliConstants.ErrorMessages.CONFIG_NOT_DICT)
+
+        self.logger.debug(
+            "Configuration input validated",
+            operation="update_configuration",
+            config_keys=list(config.keys())
+            if FlextRuntime.is_dict_like(config)
+            else None,
+            source="flext-cli/src/flext_cli/core.py",
+        )
+        return FlextResult[FlextCliTypes.Configuration.CliConfigSchema].ok(
+            config  # type: ignore[arg-type]
+        )
+
+    def _validate_existing_config(
+        self,
+    ) -> FlextResult[FlextCliTypes.Configuration.CliConfigSchema]:
+        """Validate existing configuration state."""
+        if FlextRuntime.is_dict_like(self._config):
+            # self._config is already typed as CliConfigSchema
+            return FlextResult[FlextCliTypes.Configuration.CliConfigSchema].ok(
+                self._config  # type: ignore[arg-type]
+            )
+        return FlextResult.fail(FlextCliConstants.ErrorMessages.CONFIG_NOT_INITIALIZED)
+
+    def _merge_configurations(
+        self,
+        valid_config: FlextCliTypes.Configuration.CliConfigSchema,
+    ) -> FlextResult[bool]:
+        """Merge new configuration with existing one."""
+        try:
+            self.logger.debug(
+                "Merging configurations",
+                operation="update_configuration",
+                new_config_keys=list(valid_config.keys())
+                if FlextRuntime.is_dict_like(valid_config)
+                else None,
+                source="flext-cli/src/flext_cli/core.py",
+            )
+
+            existing_config_result = self._validate_existing_config()
+            if existing_config_result.is_failure:
+                self.logger.warning(
+                    "Existing configuration validation failed",
+                    operation="update_configuration",
+                    error=existing_config_result.error,
+                    consequence="Configuration merge will fail",
+                    source="flext-cli/src/flext_cli/core.py",
+                )
+                return FlextResult[bool].fail(
+                    existing_config_result.error or "Config validation failed",
+                )
+
+            existing_config = existing_config_result.unwrap()
+            for key, value in valid_config.items():
+                if isinstance(value, (bool, dict, float, int, list, str, type(None))):
+                    existing_config[key] = value
+
+            self.logger.debug(
+                "Configuration merged successfully",
+                operation="update_configuration",
+                merged_keys=list(existing_config.keys())
+                if FlextRuntime.is_dict_like(existing_config)
+                else None,
+                source="flext-cli/src/flext_cli/core.py",
+            )
+
+            self._log_config_update()
+            self.logger.info(
+                "Configuration update completed successfully",
+                operation="update_configuration",
+                source="flext-cli/src/flext_cli/core.py",
+            )
+
+            return FlextResult[bool].ok(True)
+
+        except Exception as e:
+            self.logger.exception(
+                "FAILED to merge configurations - operation aborted",
+                operation="update_configuration",
+                error=str(e),
+                error_type=type(e).__name__,
+                consequence="Configuration update failed completely",
+                source="flext-cli/src/flext_cli/core.py",
+            )
+            return FlextResult[bool].fail(
+                FlextCliConstants.ErrorMessages.CONFIG_UPDATE_FAILED.format(error=e),
+            )
+
     def update_configuration(
         self,
-        config: FlextCliTypes.Configuration.CliConfigSchema,
+        config: FlextCliTypes.Configuration.CliConfigSchema | dict[str, object],
     ) -> FlextResult[bool]:
         """Update CLI configuration using railway pattern and functional composition.
 
@@ -762,126 +855,14 @@ class FlextCliCore(FlextCliServiceBase):
             source="flext-cli/src/flext_cli/core.py",
         )
 
-        # Functional configuration validation and update
-        def validate_config_input() -> FlextResult[
-            FlextCliTypes.Configuration.CliConfigSchema
-        ]:
-            """Validate input configuration."""
-            if not config:
-                self.logger.warning(
-                    "Configuration input is empty",
-                    operation="update_configuration",
-                    consequence="Configuration update will fail",
-                    source="flext-cli/src/flext_cli/core.py",
-                )
-                return FlextResult.fail(FlextCliConstants.ErrorMessages.CONFIG_NOT_DICT)
-
-            self.logger.debug(
-                "Configuration input validated",
-                operation="update_configuration",
-                config_keys=list(config.keys())
-                if FlextRuntime.is_dict_like(config)
-                else None,
-                source="flext-cli/src/flext_cli/core.py",
-            )
-            # Config is already typed as CliConfigSchema from parameter
-            # Cast needed to satisfy pyrefly type checker (pyrefly requires explicit cast)
-            return FlextResult[FlextCliTypes.Configuration.CliConfigSchema].ok(
-                cast("FlextCliTypes.Configuration.CliConfigSchema", config)
-            )
-
-        def validate_existing_config() -> FlextResult[
-            FlextCliTypes.Configuration.CliConfigSchema
-        ]:
-            """Validate existing configuration state."""
-            if FlextRuntime.is_dict_like(self._config):
-                # Type narrowing: self._config is dict after is_dict_like check
-                # Empty dicts are valid configurations
-                # Cast to CliConfigSchema for return type
-                return FlextResult[FlextCliTypes.Configuration.CliConfigSchema].ok(
-                    cast(
-                        "dict[str, FlextTypes.JsonValue]",
-                        self._config,
-                    ),
-                )
-            return FlextResult[FlextCliTypes.Configuration.CliConfigSchema].fail(
-                FlextCliConstants.ErrorMessages.CONFIG_NOT_INITIALIZED,
-            )
-
-        def merge_configurations(
-            valid_config: FlextCliTypes.Configuration.CliConfigSchema,
-        ) -> FlextResult[bool]:
-            """Merge new configuration with existing one."""
-            try:
-                self.logger.debug(
-                    "Merging configurations",
-                    operation="update_configuration",
-                    new_config_keys=list(valid_config.keys())
-                    if FlextRuntime.is_dict_like(valid_config)
-                    else None,
-                    source="flext-cli/src/flext_cli/core.py",
-                )
-
-                existing_config_result = validate_existing_config()
-                if existing_config_result.is_failure:
-                    self.logger.warning(
-                        "Existing configuration validation failed",
-                        operation="update_configuration",
-                        error=existing_config_result.error,
-                        consequence="Configuration merge will fail",
-                        source="flext-cli/src/flext_cli/core.py",
-                    )
-                    return FlextResult[bool].fail(
-                        existing_config_result.error or "Config validation failed",
-                    )
-
-                existing_config = existing_config_result.unwrap()
-                # Update with type-safe merge
-                for key, value in valid_config.items():
-                    # value from CliConfigSchema is already typed as JsonValue
-                    # Type narrowing: ensure value matches JsonValue type
-                    if isinstance(
-                        value, (bool, dict, float, int, list, str, type(None))
-                    ):
-                        existing_config[key] = value
-
-                self.logger.debug(
-                    "Configuration merged successfully",
-                    operation="update_configuration",
-                    merged_keys=list(existing_config.keys())
-                    if FlextRuntime.is_dict_like(existing_config)
-                    else None,
-                    source="flext-cli/src/flext_cli/core.py",
-                )
-
-                # Log successful update
-                self._log_config_update()
-
-                self.logger.info(
-                    "Configuration update completed successfully",
-                    operation="update_configuration",
-                    source="flext-cli/src/flext_cli/core.py",
-                )
-
-                return FlextResult[bool].ok(True)
-
-            except Exception as e:
-                self.logger.exception(
-                    "FAILED to merge configurations - operation aborted",
-                    operation="update_configuration",
-                    error=str(e),
-                    error_type=type(e).__name__,
-                    consequence="Configuration update failed completely",
-                    source="flext-cli/src/flext_cli/core.py",
-                )
-                return FlextResult[bool].fail(
-                    FlextCliConstants.ErrorMessages.CONFIG_UPDATE_FAILED.format(
-                        error=e,
-                    ),
-                )
-
         # Railway pattern: validate input then merge configurations
-        return validate_config_input().flat_map(merge_configurations)
+        config_result = self._validate_config_input(config)
+        if config_result.is_failure:
+            return FlextResult[bool].fail(
+                config_result.error or "Configuration validation failed"
+            )
+
+        return self._merge_configurations(config_result.value)
 
     def get_configuration(
         self,
@@ -933,7 +914,7 @@ class FlextCliCore(FlextCliServiceBase):
                     # Cast to CliConfigSchema for return type
                     return FlextResult[FlextCliTypes.Configuration.CliConfigSchema].ok(
                         cast(
-                            "dict[str, FlextTypes.JsonValue]",
+                            "dict[str, CliJsonValue]",
                             self._config,
                         ),
                     )
@@ -1197,11 +1178,11 @@ class FlextCliCore(FlextCliServiceBase):
             commands_count = len(self._commands)
             config_keys = list(self._config.keys()) if self._config else []
 
-            info_data: dict[str, FlextTypes.JsonValue] = {
+            info_data: dict[str, CliJsonValue] = {
                 FlextCliConstants.DictKeys.SERVICE: FlextCliConstants.FLEXT_CLI,
                 FlextCliConstants.CoreServiceDictKeys.COMMANDS_REGISTERED: commands_count,
                 FlextCliConstants.CoreServiceDictKeys.CONFIGURATION_SECTIONS: cast(
-                    "FlextTypes.JsonValue",
+                    "CliJsonValue",
                     config_keys,
                 ),
                 FlextCliConstants.DictKeys.STATUS: (
@@ -1347,7 +1328,7 @@ class FlextCliCore(FlextCliServiceBase):
     @override
     @FlextDecorators.log_operation("cli_core_health_check")
     @FlextDecorators.track_performance()
-    def execute(self, **kwargs: object) -> FlextResult[FlextCliTypes.Data.CliDataDict]:
+    def execute(self, **_kwargs: object) -> FlextResult[FlextCliTypes.Data.CliDataDict]:
         """Execute CLI service operations.
 
         Args:
@@ -1378,7 +1359,7 @@ class FlextCliCore(FlextCliServiceBase):
         self.logger.debug(
             "Starting service execution",
             operation="execute",
-            kwargs_keys=list(kwargs.keys()) if kwargs else [],
+            kwargs_keys=list(_kwargs.keys()) if _kwargs else [],
             source="flext-cli/src/flext_cli/core.py",
         )
 
@@ -1450,7 +1431,7 @@ class FlextCliCore(FlextCliServiceBase):
         self,
         command_name: str,
         user_id: str | None = None,
-        **context_data: FlextTypes.JsonValue,
+        **context_data: CliJsonValue,
     ) -> FlextResult[FlextCliTypes.Data.CliDataDict]:
         """Execute CLI command with automatic context enrichment (Phase 1 pattern).
 
@@ -1569,7 +1550,7 @@ class FlextCliCore(FlextCliServiceBase):
 
     def _get_dict_keys(
         self,
-        data_dict: Mapping[str, FlextTypes.JsonValue] | None,
+        data_dict: Mapping[str, CliJsonValue] | None,
         error_message: str,
     ) -> FlextResult[list[str]]:
         """Generic method to safely get keys from a dictionary.
@@ -1786,7 +1767,7 @@ class FlextCliCore(FlextCliServiceBase):
         name: str,
         maxsize: int = 128,
         ttl: int = 300,
-    ) -> FlextResult[TTLCache[str, FlextTypes.JsonValue]]:
+    ) -> FlextResult[TTLCache[str, CliJsonValue]]:
         """Create TTL cache with time-based expiration.
 
         Args:
@@ -1800,37 +1781,37 @@ class FlextCliCore(FlextCliServiceBase):
         """
         try:
             if name in self._caches:
-                return FlextResult[TTLCache[str, FlextTypes.JsonValue]].fail(
+                return FlextResult[TTLCache[str, CliJsonValue]].fail(
                     f"Cache '{name}' already exists",
                 )
 
             # Validate parameters
             if maxsize < 0:
-                return FlextResult[TTLCache[str, FlextTypes.JsonValue]].fail(
+                return FlextResult[TTLCache[str, CliJsonValue]].fail(
                     f"Invalid maxsize '{maxsize}': must be non-negative",
                 )
             if ttl < 0:
-                return FlextResult[TTLCache[str, FlextTypes.JsonValue]].fail(
+                return FlextResult[TTLCache[str, CliJsonValue]].fail(
                     f"Invalid ttl '{ttl}': must be non-negative",
                 )
 
-            cache: TTLCache[str, FlextTypes.JsonValue] = TTLCache(
+            cache: TTLCache[str, CliJsonValue] = TTLCache(
                 maxsize=maxsize,
                 ttl=ttl,
             )
             self._caches[name] = cache
-            return FlextResult[TTLCache[str, FlextTypes.JsonValue]].ok(cache)
+            return FlextResult[TTLCache[str, CliJsonValue]].ok(cache)
         except Exception as e:
-            return FlextResult[TTLCache[str, FlextTypes.JsonValue]].fail(str(e))
+            return FlextResult[TTLCache[str, CliJsonValue]].fail(str(e))
 
     def memoize(
         self,
         cache_name: str = "default",
         ttl: int | None = None,
-    ) -> Callable[[Callable[P, T]], Callable[P, T]]:
+    ) -> Callable[[Callable[..., CliJsonValue]], Callable[..., CliJsonValue]]:
         """Create memoization decorator for functions."""
 
-        def decorator(func: Callable[P, T]) -> Callable[P, T]:
+        def decorator(func: Callable[..., CliJsonValue]) -> Callable[..., CliJsonValue]:
             if cache_name not in self._caches:
                 if ttl:
                     self._caches[cache_name] = TTLCache(maxsize=128, ttl=ttl)
@@ -1844,7 +1825,7 @@ class FlextCliCore(FlextCliServiceBase):
                 raise TypeError(error_msg)
 
             @functools.wraps(func)
-            def wrapper(*args: P.args, **kwargs: P.kwargs) -> T:
+            def wrapper(*args: object, **kwargs: object) -> CliJsonValue:
                 # Create cache key from function arguments - convert to str for cache
                 cache_key_tuple = (
                     (args, tuple(sorted(kwargs.items()))) if kwargs else args
@@ -1856,7 +1837,7 @@ class FlextCliCore(FlextCliServiceBase):
                     # Try to get result from cache
                     cached_value = cache_obj[cache_key]
                     # Type cast: cache stores JsonValue but we know it's type T
-                    result: T = cast("T", cached_value)
+                    result: CliJsonValue = cached_value
                     time_saved = time.time() - start
                     self._cache_stats.record_hit(time_saved)
                     return result
@@ -1865,7 +1846,7 @@ class FlextCliCore(FlextCliServiceBase):
                     self._cache_stats.record_miss()
                     result = func(*args, **kwargs)
                     # Type cast: store T as JsonValue in cache
-                    cache_obj[cache_key] = cast("FlextTypes.JsonValue", result)
+                    cache_obj[cache_key] = result
                     return result
 
             return wrapper
@@ -1904,10 +1885,10 @@ class FlextCliCore(FlextCliServiceBase):
 
     def run_in_executor(
         self,
-        func: Callable[P, T],
-        *args: P.args,
-        **kwargs: P.kwargs,
-    ) -> FlextResult[T]:
+        func: Callable[..., object],
+        *args: object,
+        **kwargs: object,
+    ) -> FlextResult[object]:
         """Execute function synchronously (formerly in thread pool).
 
         Note: This method now executes synchronously. Thread pool execution
@@ -1924,7 +1905,9 @@ class FlextCliCore(FlextCliServiceBase):
     # PLUGIN SYSTEM - Integrated into core service
     # ==========================================================================
 
-    def register_plugin(self, plugin: FlextTypes.SerializableType) -> FlextResult[bool]:
+    def register_plugin(
+        self, _plugin: FlextTypes.SerializableType
+    ) -> FlextResult[bool]:
         """Register a plugin with the plugin manager.
 
         Returns:
@@ -1932,12 +1915,12 @@ class FlextCliCore(FlextCliServiceBase):
 
         """
         try:
-            plugin_name = self._plugin_manager.register(plugin)
+            plugin_name = self._plugin_manager.register(_plugin)
             if plugin_name:
                 # Type cast: plugin should implement CliPlugin protocol
                 typed_plugin: FlextCliProtocols.Cli.CliPlugin = cast(
                     "FlextCliProtocols.Cli.CliPlugin",
-                    plugin,
+                    _plugin,
                 )
                 self._plugins[plugin_name] = typed_plugin
             return FlextResult[bool].ok(True)
@@ -1973,14 +1956,14 @@ class FlextCliCore(FlextCliServiceBase):
     def call_plugin_hook(
         self,
         hook_name: str,
-        **kwargs: FlextTypes.JsonValue,
-    ) -> FlextResult[list[FlextTypes.JsonValue]]:
+        **kwargs: CliJsonValue,
+    ) -> FlextResult[list[CliJsonValue]]:
         """Call a plugin hook with arguments."""
         try:
             hook_caller = getattr(self._plugin_manager.hook, hook_name, None)
 
             if hook_caller is None:
-                return FlextResult[list[FlextTypes.JsonValue]].fail(
+                return FlextResult[list[CliJsonValue]].fail(
                     f"Hook '{hook_name}' not found",
                 )
 
@@ -1988,16 +1971,16 @@ class FlextCliCore(FlextCliServiceBase):
             # Fast-fail: hook must return list or None (converted to empty list)
             # No fallback to fake data
             if results is None:
-                return FlextResult[list[FlextTypes.JsonValue]].ok([])
+                return FlextResult[list[CliJsonValue]].ok([])
             if not FlextRuntime.is_list_like(results):
                 # Single result - wrap in list (not a fallback, valid conversion)
-                return FlextResult[list[FlextTypes.JsonValue]].ok([results])
+                return FlextResult[list[CliJsonValue]].ok([results])
 
-            return FlextResult[list[FlextTypes.JsonValue]].ok(
-                typing.cast("list[FlextTypes.JsonValue]", results),
+            return FlextResult[list[CliJsonValue]].ok(
+                typing.cast("list[CliJsonValue]", results),
             )
         except Exception as e:
-            return FlextResult[list[FlextTypes.JsonValue]].fail(str(e))
+            return FlextResult[list[CliJsonValue]].fail(str(e))
 
     # ==========================================================================
     # END OF CORE CLI SERVICE METHODS

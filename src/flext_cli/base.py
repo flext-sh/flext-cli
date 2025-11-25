@@ -1,4 +1,7 @@
-"""Base class para flext-cli services.
+"""FlextCliServiceBase - Service base class for flext-cli modules.
+
+Provides a typed base class for all flext-cli services with access to CLI configuration.
+Handles singleton configuration access and typed service inheritance.
 
 Copyright (c) 2025 FLEXT Team. All rights reserved.
 SPDX-License-Identifier: MIT
@@ -6,7 +9,7 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from flext_core import FlextService
+from flext_core import FlextConfig, FlextService
 
 from flext_cli.config import FlextCliConfig
 from flext_cli.typings import FlextCliTypes
@@ -31,7 +34,7 @@ class FlextCliServiceBase(FlextService[FlextCliTypes.Data.CliDataDict]):
     @staticmethod
     def get_cli_config() -> FlextCliConfig:
         """Retorna FlextCliConfig (singleton)."""
-        return FlextCliConfig.get_instance()
+        return FlextConfig.get_global_instance().get_namespace("cli", FlextCliConfig)
 
 
 __all__ = [

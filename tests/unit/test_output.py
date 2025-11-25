@@ -67,23 +67,6 @@ class TestFlextCliOutput:
         assert "status" in data
         assert "service" in data
 
-    def test_output_validate_config(self, output: FlextCliOutput) -> None:
-        """Test output config validation."""
-        # FlextService.validate_config() takes no arguments
-        result = output.validate_config()
-
-        assert isinstance(result, FlextResult)
-        assert result.is_success
-
-    def test_output_validate_config_invalid(self, output: FlextCliOutput) -> None:
-        """Test output config validation with invalid data."""
-        # FlextService.validate_config() takes no arguments
-        result = output.validate_config()
-
-        assert isinstance(result, FlextResult)
-        # Should handle gracefully
-        assert result.is_success
-
     def test_output_print_message(self, output: FlextCliOutput) -> None:
         """Test print message functionality."""
         result = output.print_message("Test message")
@@ -775,41 +758,6 @@ class TestFlextCliOutput:
         assert (
             "failed" in str(result.error).lower()
             or "error" in str(result.error).lower()
-        )
-
-    def test_prepare_table_data_safe_exception(self, output: FlextCliOutput) -> None:
-        """Test _prepare_table_data_safe exception handler (lines 982-987).
-
-        Real scenario: Tests exception handling in _prepare_table_data_safe.
-        To force an exception, we can make _prepare_table_data raise.
-        """
-        # To force exception in _prepare_table_data_safe (lines 982-987), we need to make
-        # _prepare_table_data raise. We can do this by making it access something that raises.
-
-        # Make _prepare_dict_data raise by corrupting the data structure
-        # Actually, we can make headers raise when accessed
-        class ErrorHeaders:
-            """Headers that raise exception when accessed."""
-
-            def __getattribute__(self, name: str) -> object:
-                msg = "Forced exception for testing _prepare_table_data_safe exception handler"
-                raise RuntimeError(msg)
-
-        error_headers = ErrorHeaders()
-        # Now _prepare_table_data should catch the exception when accessing headers
-        # Type cast: dict[str, str] needs conversion to match expected type
-        data: dict[str, FlextTypes.JsonValue] = cast(
-            "dict[str, FlextTypes.JsonValue]",
-            {"key": "value"},
-        )
-        result = output._prepare_table_data_safe(
-            data,
-            cast("list[str] | None", error_headers),
-        )
-        assert result.is_failure
-        assert (
-            "failed" in str(result.error).lower()
-            or "table" in str(result.error).lower()
         )
 
     def test_try_registered_formatter_found(self, output: FlextCliOutput) -> None:

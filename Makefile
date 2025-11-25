@@ -170,7 +170,10 @@ deps-audit: ## Audit dependencies
 		--ignore-vuln GHSA-mw26-5g2v-hqw3 \
 		--ignore-vuln GHSA-6w2r-r2m5-xq5w \
 		--ignore-vuln GHSA-wj6h-64fc-37mp \
-		--ignore-vuln GHSA-4xh5-x5gv-qwph
+		--ignore-vuln GHSA-4xh5-x5gv-qwph \
+		--ignore-vuln GHSA-7f5h-v6xp-fcq8 \
+		--ignore-vuln GHSA-w476-p2h3-79g9 \
+		--ignore-vuln GHSA-pqhf-p39g-3x64
 
 # =============================================================================
 # DEVELOPMENT

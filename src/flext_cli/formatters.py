@@ -12,7 +12,8 @@ from __future__ import annotations
 
 from io import StringIO
 
-from flext_core import FlextResult, FlextRuntime, FlextTypes
+from flext_core import FlextResult, FlextTypes
+from flext_core.runtime import FlextRuntime
 from rich.console import Console
 from rich.layout import Layout as RichLayout
 from rich.live import Live as RichLive

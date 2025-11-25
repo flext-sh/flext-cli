@@ -10,7 +10,6 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-import typing
 from typing import cast
 
 from flext_core import (
@@ -25,7 +24,7 @@ from pydantic import Field
 from flext_cli.base import FlextCliServiceBase
 from flext_cli.constants import FlextCliConstants
 from flext_cli.models import FlextCliModels
-from flext_cli.typings import FlextCliTypes
+from flext_cli.typings import CliJsonValue, FlextCliTypes
 
 
 class FlextCliContext(FlextCliServiceBase):
@@ -43,9 +42,9 @@ class FlextCliContext(FlextCliServiceBase):
     id: str = ""
     command: str | None = None
     arguments: list[str] | None = Field(default_factory=list)
-    environment_variables: FlextTypes.JsonDict | None = Field(default_factory=dict)
+    environment_variables: dict[str, CliJsonValue] | None = Field(default_factory=dict)
     working_directory: str | None = None
-    context_metadata: FlextTypes.JsonDict = Field(default_factory=dict)
+    context_metadata: dict[str, CliJsonValue] = Field(default_factory=dict)
 
     # Context state
     is_active: bool = False
@@ -56,9 +55,9 @@ class FlextCliContext(FlextCliServiceBase):
         self,
         command: str | None = None,
         arguments: list[str] | None = None,
-        environment_variables: FlextTypes.JsonDict | None = None,
+        environment_variables: dict[str, CliJsonValue] | None = None,
         working_directory: str | None = None,
-        **data: FlextTypes.JsonValue,
+        **data: CliJsonValue,
     ) -> None:
         """Initialize CLI context with enhanced type safety.
 
@@ -73,7 +72,7 @@ class FlextCliContext(FlextCliServiceBase):
         # Generate id if not provided using FlextUtilities
         generated_id: str | None = None
         if "id" not in data:
-            generated_id = FlextUtilities.Generators.generate_uuid()
+            generated_id = FlextUtilities.Generators.generate_id()
             data["id"] = generated_id
 
         # Initialize parent FlextService
@@ -93,7 +92,7 @@ class FlextCliContext(FlextCliServiceBase):
         else:
             # Final fallback: generate new id using FlextUtilities (defensive programming)
             # This line is reachable if both self.id and generated_id are None/empty
-            self.id = FlextUtilities.Generators.generate_uuid()
+            self.id = FlextUtilities.Generators.generate_id()
 
         # Set CLI context attributes directly
         # Validate explicitly - no fallback to empty collections
@@ -307,7 +306,7 @@ class FlextCliContext(FlextCliServiceBase):
                 ),
             )
 
-    def set_metadata(self, key: str, value: FlextTypes.JsonValue) -> FlextResult[bool]:
+    def set_metadata(self, key: str, value: CliJsonValue) -> FlextResult[bool]:
         """Set context metadata using CLI-specific data types.
 
         Returns:
@@ -333,7 +332,7 @@ class FlextCliContext(FlextCliServiceBase):
                 ),
             )
 
-    def get_metadata(self, key: str) -> FlextResult[FlextTypes.JsonValue]:
+    def get_metadata(self, key: str) -> FlextResult[CliJsonValue]:
         """Get context metadata value."""
         # Validate using FlextUtilities.Validation
         try:
@@ -342,20 +341,20 @@ class FlextCliContext(FlextCliServiceBase):
                 "Metadata key",
             )
         except ValueError as e:
-            return FlextResult[FlextTypes.JsonValue].fail(
+            return FlextResult[CliJsonValue].fail(
                 str(e) or "Metadata validation failed",
             )
 
         try:
             if key in self.context_metadata:
-                return FlextResult[FlextTypes.JsonValue].ok(self.context_metadata[key])
-            return FlextResult[FlextTypes.JsonValue].fail(
+                return FlextResult[CliJsonValue].ok(self.context_metadata[key])
+            return FlextResult[CliJsonValue].fail(
                 FlextCliConstants.ContextErrorMessages.METADATA_KEY_NOT_FOUND.format(
                     key=key,
                 ),
             )
         except Exception as e:  # pragma: no cover
-            return FlextResult[FlextTypes.JsonValue].fail(
+            return FlextResult[CliJsonValue].fail(
                 FlextCliConstants.ContextErrorMessages.METADATA_RETRIEVAL_FAILED.format(
                     error=e,
                 ),
@@ -363,7 +362,7 @@ class FlextCliContext(FlextCliServiceBase):
 
     def get_context_summary(
         self,
-    ) -> FlextResult[FlextTypes.JsonDict]:
+    ) -> FlextResult[dict[str, FlextTypes.JsonValue]]:
         """Get comprehensive context summary using CLI-specific data types."""
         try:
             # Validate command explicitly - no fallback, use actual value or fail
@@ -377,7 +376,7 @@ class FlextCliContext(FlextCliServiceBase):
                 else {}
             )
 
-            summary: FlextTypes.JsonDict = {
+            summary: dict[str, FlextTypes.JsonValue] = {
                 FlextCliConstants.ContextDictKeys.CONTEXT_ID: self.id,
                 FlextCliConstants.ContextDictKeys.COMMAND: command_value,
                 FlextCliConstants.ContextDictKeys.ARGUMENTS_COUNT: len(arguments_list),
@@ -396,9 +395,9 @@ class FlextCliContext(FlextCliServiceBase):
                 ),
             }
 
-            return FlextResult[FlextTypes.JsonDict].ok(summary)
+            return FlextResult[dict[str, FlextTypes.JsonValue]].ok(summary)
         except Exception as e:  # pragma: no cover
-            return FlextResult[FlextTypes.JsonDict].fail(
+            return FlextResult[dict[str, FlextTypes.JsonValue]].fail(
                 FlextCliConstants.ContextErrorMessages.CONTEXT_SUMMARY_GENERATION_FAILED.format(
                     error=e,
                 ),
@@ -447,11 +446,11 @@ class FlextCliContext(FlextCliServiceBase):
                 ),
             )
 
-    def to_dict(self) -> FlextResult[FlextTypes.JsonDict]:
+    def to_dict(self) -> FlextResult[dict[str, object]]:
         """Convert context to dictionary.
 
         Returns:
-            FlextResult[FlextTypes.JsonDict]: Dictionary representation or error
+            FlextResult[dict[str, object]]: Dictionary representation or error
 
         Fast-fail: No fallbacks - validates that all required data exists.
 
@@ -459,33 +458,30 @@ class FlextCliContext(FlextCliServiceBase):
         try:
             # Fast-fail if arguments is None - no fallback
             if self.arguments is None:
-                return FlextResult[FlextTypes.JsonDict].fail(
+                return FlextResult[dict[str, object]].fail(
                     FlextCliConstants.ContextErrorMessages.ARGUMENTS_NOT_INITIALIZED,
                 )
 
             # Fast-fail if environment_variables is None - no fallback
             if self.environment_variables is None:
-                return FlextResult[FlextTypes.JsonDict].fail(
+                return FlextResult[dict[str, object]].fail(
                     FlextCliConstants.ContextErrorMessages.ENV_VARS_NOT_INITIALIZED,
                 )
 
-            # Cast to JsonDict for type checker (dict with JsonValue values is JsonDict at runtime)
-            result = typing.cast(
-                "FlextTypes.JsonDict",
-                {
-                    FlextCliConstants.ContextDictKeys.ID: self.id,
-                    FlextCliConstants.ContextDictKeys.COMMAND: self.command,
-                    FlextCliConstants.ContextDictKeys.ARGUMENTS: self.arguments,
-                    FlextCliConstants.ContextDictKeys.ENVIRONMENT_VARIABLES: self.environment_variables,
-                    FlextCliConstants.ContextDictKeys.WORKING_DIRECTORY: self.working_directory,
-                    FlextCliConstants.ContextDictKeys.CREATED_AT: self.created_at,
-                    FlextCliConstants.ContextDictKeys.TIMEOUT_SECONDS: self.timeout_seconds,
-                },
-            )
+            # Build dict directly without cast
+            result: dict[str, object] = {
+                FlextCliConstants.ContextDictKeys.ID: self.id,
+                FlextCliConstants.ContextDictKeys.COMMAND: self.command,
+                FlextCliConstants.ContextDictKeys.ARGUMENTS: self.arguments,
+                FlextCliConstants.ContextDictKeys.ENVIRONMENT_VARIABLES: self.environment_variables,
+                FlextCliConstants.ContextDictKeys.WORKING_DIRECTORY: self.working_directory,
+                FlextCliConstants.ContextDictKeys.CREATED_AT: self.created_at,
+                FlextCliConstants.ContextDictKeys.TIMEOUT_SECONDS: self.timeout_seconds,
+            }
 
-            return FlextResult[FlextTypes.JsonDict].ok(result)
+            return FlextResult[dict[str, object]].ok(result)
         except Exception as e:
-            return FlextResult[FlextTypes.JsonDict].fail(
+            return FlextResult[dict[str, object]].fail(
                 FlextCliConstants.ContextErrorMessages.CONTEXT_SERIALIZATION_FAILED.format(
                     error=e,
                 ),
