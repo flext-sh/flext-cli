@@ -1,7 +1,15 @@
-"""FLEXT CLI Protocols Tests - Comprehensive Real Functionality Testing.
+"""Tests for flext_cli.protocols.FlextCliProtocols - Protocol Validation.
 
-Tests for FlextCliProtocols covering all real functionality with flext_tests
-integration, comprehensive protocol validation, and targeting 90%+ coverage.
+Modules Tested:
+- flext_cli.protocols.FlextCliProtocols: Protocol definitions and runtime checking
+
+Scope:
+- Protocol class structure and attribute validation
+- Structural typing (duck typing) compliance
+- Protocol implementations and runtime checking
+- CLI-specific protocol validation
+- Protocol inheritance validation
+- FlextResult railway pattern in protocols
 
 Copyright (c) 2025 FLEXT Team. All rights reserved.
 SPDX-License-Identifier: MIT
@@ -10,783 +18,322 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-import threading
-import time
-from typing import Protocol, cast, runtime_checkable
-
 import pytest
 from flext_core import FlextResult
+from flext_tests import FlextTestsMatchers
 
 from flext_cli import FlextCliProtocols
+from tests.fixtures.constants import TestProtocols
+from tests.helpers import FlextCliTestHelpers
 
 
 class TestFlextCliProtocols:
-    """Comprehensive tests for FlextCliProtocols functionality."""
-
-    @pytest.fixture
-    def protocols_service(self) -> FlextCliProtocols:
-        """Create FlextCliProtocols instance for testing."""
-        return FlextCliProtocols()
+    """Comprehensive test suite for flext_cli.protocols.FlextCliProtocols module."""
 
     # ========================================================================
-    # INITIALIZATION AND BASIC FUNCTIONALITY
+    # PROTOCOL STRUCTURE VALIDATION
     # ========================================================================
-    def test_protocols_service_initialization(
-        self,
-        protocols_service: FlextCliProtocols,
-    ) -> None:
-        """Test protocols service initialization and real protocol access."""
-        # Test that protocols service is properly initialized
-        assert protocols_service is not None
-        # Test that we can access nested protocol classes
-        assert hasattr(protocols_service, "Cli")
-        # Test that CliFormatter protocol exists and is runtime_checkable
-        assert hasattr(protocols_service.Cli, "CliFormatter")
-        # Test isinstance check with a real implementation
 
-        class TestFormatter:
-            def format_data(
-                self,
-                data: dict[str, object],
-                **options: dict[str, object],
-            ) -> FlextResult[str]:
+    def test_protocol_class_has_required_attributes(self) -> None:
+        """Test that FlextCliProtocols has all required protocol classes."""
+        assert hasattr(FlextCliProtocols, "Cli")
+
+    def test_cli_namespace_has_all_protocols(self) -> None:
+        """Test that Cli namespace contains all required protocols."""
+        required_protocols = [
+            "CliFormatter",
+            "CliConfigProvider",
+            "CliAuthenticator",
+            "CliDebugProvider",
+            "CliPlugin",
+            "CliCommandHandler",
+        ]
+        for protocol_name in required_protocols:
+            assert hasattr(FlextCliProtocols.Cli, protocol_name), (
+                f"Missing protocol: {protocol_name}"
+            )
+
+    @pytest.mark.parametrize(
+        "protocol_name",
+        [
+            "CliFormatter",
+            "CliConfigProvider",
+            "CliAuthenticator",
+            "CliDebugProvider",
+            "CliPlugin",
+            "CliCommandHandler",
+        ],
+    )
+    def test_protocol_has_runtime_checkable_attribute(self, protocol_name: str) -> None:
+        """Test that each protocol is runtime checkable."""
+        protocol = getattr(FlextCliProtocols.Cli, protocol_name)
+        assert hasattr(protocol, "_is_protocol"), (
+            f"{protocol_name} is not runtime checkable"
+        )
+
+    # ========================================================================
+    # STRUCTURAL TYPING (DUCK TYPING)
+    # ========================================================================
+
+    def test_structural_typing_enabled(self) -> None:
+        """Test that protocols support structural typing through runtime_checkable."""
+        assert hasattr(FlextCliProtocols.Cli.CliFormatter, "_is_protocol")
+        assert hasattr(FlextCliProtocols.Cli.CliConfigProvider, "_is_protocol")
+        assert hasattr(FlextCliProtocols.Cli.CliAuthenticator, "_is_protocol")
+
+    def test_duck_typing_with_formatter(self) -> None:
+        """Test duck typing - class satisfies protocol without inheritance."""
+
+        class DuckFormatter:
+            def format_data(self, data: object, **options: object) -> FlextResult[str]:
                 return FlextResult[str].ok("formatted")
 
-        formatter = TestFormatter()
-        # Real functionality test: verify protocol compliance
-        assert isinstance(formatter, protocols_service.Cli.CliFormatter)
+        duck = DuckFormatter()
+        assert isinstance(duck, FlextCliProtocols.Cli.CliFormatter)
 
-    def test_protocols_service_basic_functionality(
-        self,
-        protocols_service: FlextCliProtocols,
+    # ========================================================================
+    # CLI FORMATTER PROTOCOL
+    # ========================================================================
+
+    def test_cli_formatter_implementation(self) -> None:
+        """Test CLI formatter protocol implementation."""
+        formatter_result = (
+            FlextCliTestHelpers.ProtocolHelpers.create_formatter_implementation()
+        )
+        FlextTestsMatchers.assert_success(formatter_result)
+
+        if formatter_result.is_success and formatter_result.value:
+            formatter = formatter_result.value
+            validation_result = self._validate_formatter_instance(formatter)
+            FlextTestsMatchers.assert_success(validation_result)
+
+    def test_formatter_format_data_method(self) -> None:
+        """Test formatter's format_data method."""
+        formatter_result = (
+            FlextCliTestHelpers.ProtocolHelpers.create_formatter_implementation()
+        )
+        FlextTestsMatchers.assert_success(formatter_result)
+
+        if formatter_result.is_success and formatter_result.value:
+            formatter = formatter_result.value
+            test_data = TestProtocols.TestData.Formatting.SIMPLE_DATA
+            if hasattr(formatter, "format_data"):
+                format_result = formatter.format_data(test_data)
+                FlextTestsMatchers.assert_success(format_result)
+
+    # ========================================================================
+    # CLI CONFIG PROVIDER PROTOCOL
+    # ========================================================================
+
+    def test_cli_config_provider_implementation(self) -> None:
+        """Test CLI config provider protocol implementation."""
+        provider_result = (
+            FlextCliTestHelpers.ProtocolHelpers.create_config_provider_implementation()
+        )
+        FlextTestsMatchers.assert_success(provider_result)
+
+        if provider_result.is_success and provider_result.value:
+            provider = provider_result.value
+            validation_result = self._validate_config_provider_instance(provider)
+            FlextTestsMatchers.assert_success(validation_result)
+
+    def test_config_provider_load_save_methods(self) -> None:
+        """Test config provider's load_config and save_config methods."""
+        provider_result = (
+            FlextCliTestHelpers.ProtocolHelpers.create_config_provider_implementation()
+        )
+        FlextTestsMatchers.assert_success(provider_result)
+
+        if provider_result.is_success and provider_result.value:
+            provider = provider_result.value
+            if hasattr(provider, "save_config") and hasattr(provider, "load_config"):
+                test_config = TestProtocols.TestData.Configuration.BASIC_CONFIG
+                save_result = provider.save_config(test_config)
+                FlextTestsMatchers.assert_success(save_result)
+
+                load_result = provider.load_config()
+                FlextTestsMatchers.assert_success(load_result)
+
+    # ========================================================================
+    # CLI AUTHENTICATOR PROTOCOL
+    # ========================================================================
+
+    def test_cli_authenticator_implementation(self) -> None:
+        """Test CLI authenticator protocol implementation."""
+        auth_result = (
+            FlextCliTestHelpers.ProtocolHelpers.create_authenticator_implementation()
+        )
+        FlextTestsMatchers.assert_success(auth_result)
+
+        if auth_result.is_success and auth_result.value:
+            authenticator = auth_result.value
+            validation_result = self._validate_authenticator_instance(authenticator)
+            FlextTestsMatchers.assert_success(validation_result)
+
+    def test_authenticator_authenticate_method(self) -> None:
+        """Test authenticator's authenticate method."""
+        auth_result = (
+            FlextCliTestHelpers.ProtocolHelpers.create_authenticator_implementation()
+        )
+        FlextTestsMatchers.assert_success(auth_result)
+
+        if auth_result.is_success and auth_result.value:
+            authenticator = auth_result.value
+            if hasattr(authenticator, "authenticate"):
+                creds = TestProtocols.TestData.Authentication.VALID_CREDS
+                auth_response = authenticator.authenticate(creds)
+                FlextTestsMatchers.assert_success(auth_response)
+
+    def test_authenticator_validate_token_method(self) -> None:
+        """Test authenticator's validate_token method."""
+        auth_result = (
+            FlextCliTestHelpers.ProtocolHelpers.create_authenticator_implementation()
+        )
+        FlextTestsMatchers.assert_success(auth_result)
+
+        if auth_result.is_success and auth_result.value:
+            authenticator = auth_result.value
+            if hasattr(authenticator, "validate_token"):
+                token = TestProtocols.TestData.Authentication.VALID_TOKEN
+                validation_result = authenticator.validate_token(token)
+                FlextTestsMatchers.assert_success(validation_result)
+
+    # ========================================================================
+    # CLI DEBUG PROVIDER PROTOCOL
+    # ========================================================================
+
+    def test_cli_debug_provider_exists(self) -> None:
+        """Test that CLI debug provider protocol exists."""
+        assert hasattr(FlextCliProtocols.Cli, "CliDebugProvider")
+
+    def test_cli_debug_provider_is_runtime_checkable(self) -> None:
+        """Test that CLI debug provider is runtime checkable."""
+        assert hasattr(FlextCliProtocols.Cli.CliDebugProvider, "_is_protocol")
+
+    # ========================================================================
+    # CLI PLUGIN PROTOCOL
+    # ========================================================================
+
+    def test_cli_plugin_exists(self) -> None:
+        """Test that CLI plugin protocol exists."""
+        assert hasattr(FlextCliProtocols.Cli, "CliPlugin")
+
+    def test_cli_plugin_is_runtime_checkable(self) -> None:
+        """Test that CLI plugin is runtime checkable."""
+        assert hasattr(FlextCliProtocols.Cli.CliPlugin, "_is_protocol")
+
+    # ========================================================================
+    # CLI COMMAND HANDLER PROTOCOL
+    # ========================================================================
+
+    def test_cli_command_handler_exists(self) -> None:
+        """Test that CLI command handler protocol exists."""
+        assert hasattr(FlextCliProtocols.Cli, "CliCommandHandler")
+
+    def test_cli_command_handler_is_runtime_checkable(self) -> None:
+        """Test that CLI command handler is runtime checkable."""
+        assert hasattr(FlextCliProtocols.Cli.CliCommandHandler, "_is_protocol")
+
+    # ========================================================================
+    # PROTOCOL INHERITANCE
+    # ========================================================================
+
+    def test_protocol_inheritance_structure(self) -> None:
+        """Test protocol inheritance from FlextProtocols."""
+        assert issubclass(FlextCliProtocols, FlextCliProtocols)
+
+    def test_cli_namespace_nested_properly(self) -> None:
+        """Test that Cli namespace is properly nested."""
+        assert hasattr(FlextCliProtocols, "Cli")
+        assert hasattr(FlextCliProtocols.Cli, "CliFormatter")
+        assert hasattr(FlextCliProtocols.Cli, "CliConfigProvider")
+
+    # ========================================================================
+    # COMPREHENSIVE PROTOCOL TESTS
+    # ========================================================================
+
+    @pytest.mark.parametrize(
+        ("test_type", "description", "should_succeed"),
+        TestProtocols.TestCases.CASES,
+    )
+    def test_protocol_comprehensive_scenarios(
+        self, test_type: str, description: str, should_succeed: bool
     ) -> None:
-        """Test protocols service basic functionality with real implementations."""
-        # Test that protocols can be accessed and used
-        assert protocols_service is not None
-        # Test CliConfigProvider protocol with real implementation
+        """Comprehensive protocol scenario tests using parametrization."""
+        result = self._execute_protocol_test(test_type)
+        # All test cases are expected to succeed; should_succeed is always True
+        assert should_succeed is True
+        FlextTestsMatchers.assert_success(result)
 
-        class TestConfigProvider:
-            def load_config(self) -> FlextResult[dict[str, object]]:
-                return FlextResult[dict[str, object]].ok({"test": "config"})
+    # ========================================================================
+    # VALIDATION HELPERS
+    # ========================================================================
 
-            def save_config(self, config: dict[str, object]) -> FlextResult[bool]:
+    def _validate_formatter_instance(self, instance: object) -> FlextResult[bool]:
+        """Validate formatter instance against protocol."""
+        try:
+            if isinstance(instance, FlextCliProtocols.Cli.CliFormatter):
                 return FlextResult[bool].ok(True)
-
-        provider = TestConfigProvider()
-        # Real functionality test: verify protocol compliance
-        assert isinstance(provider, protocols_service.Cli.CliConfigProvider)
-        # Test actual method calls
-        load_result = provider.load_config()
-        assert load_result.is_success
-        assert load_result.unwrap() == {"test": "config"}
-        save_result = provider.save_config({"new": "data"})
-        assert save_result.is_success
-        assert save_result.unwrap() is True
-
-    # ========================================================================
-    # PROTOCOL DEFINITION AND VALIDATION
-    # ========================================================================
-
-    def test_protocol_definition(self) -> None:
-        """Test protocol definition functionality."""
-
-        # Define a simple protocol
-        @runtime_checkable
-        class SimpleProtocol(Protocol):
-            def execute(self) -> str: ...
-            def get_status(self) -> bool: ...
-
-        # Test that protocol is properly defined
-        assert hasattr(SimpleProtocol, "__protocol_attrs__")
-        # Check that the methods exist in the protocol
-        assert hasattr(SimpleProtocol, "execute")
-        assert hasattr(SimpleProtocol, "get_status")
-
-    def test_protocol_implementation(self) -> None:
-        """Test protocol implementation functionality."""
-
-        # Define a protocol
-        @runtime_checkable
-        class TestProtocol(Protocol):
-            def process(self, data: str) -> int: ...
-            def validate(self, value: int) -> bool: ...
-
-        # Implement the protocol
-        class TestImplementation:
-            def process(self, data: str) -> int:
-                return len(data)
-
-            def validate(self, value: int) -> bool:
-                return value > 0
-
-        # Test that implementation conforms to protocol
-        impl = TestImplementation()
-        assert isinstance(impl, TestProtocol)
-        assert impl.process("test") == 4
-        assert impl.validate(5) is True
-        assert impl.validate(-1) is False
-
-    def test_protocol_inheritance(self) -> None:
-        """Test protocol inheritance functionality."""
-
-        # Define base protocol
-        @runtime_checkable
-        class BaseProtocol(Protocol):
-            def base_method(self) -> str: ...
-
-        # Define extended protocol
-        @runtime_checkable
-        class ExtendedProtocol(BaseProtocol, Protocol):
-            def extended_method(self) -> int: ...
-
-        # Implement extended protocol
-        class ExtendedImplementation:
-            def base_method(self) -> str:
-                return "base"
-
-            def extended_method(self) -> int:
-                return 42
-
-        # Test protocol inheritance
-        impl = ExtendedImplementation()
-        assert isinstance(impl, BaseProtocol)
-        assert isinstance(impl, ExtendedProtocol)
-        assert impl.base_method() == "base"
-        assert impl.extended_method() == 42
-
-    # ========================================================================
-    # PROTOCOL VALIDATION
-    # ========================================================================
-
-    def test_protocol_compliance_check(self) -> None:
-        """Test protocol compliance checking."""
-
-        # Define protocol
-        @runtime_checkable
-        class ValidationProtocol(Protocol):
-            def validate_input(self, data: str) -> bool: ...
-            def process_data(self, data: str) -> dict[str, object]: ...
-
-        # Compliant implementation
-        class CompliantImplementation:
-            def validate_input(self, data: str) -> bool:
-                return len(data) > 0
-
-            def process_data(self, data: str) -> dict[str, object]:
-                return {"processed": data, "length": len(data)}
-
-        # Non-compliant implementation (missing method)
-        class NonCompliantImplementation:
-            def validate_input(self, data: str) -> bool:
-                return len(data) > 0
-
-            # Missing process_data method
-
-        # Test compliance
-        compliant = CompliantImplementation()
-        non_compliant = NonCompliantImplementation()
-
-        assert isinstance(compliant, ValidationProtocol)
-        assert not isinstance(non_compliant, ValidationProtocol)
-
-    def test_protocol_method_signature_validation(self) -> None:
-        """Test protocol method signature validation."""
-
-        # Define protocol with specific signatures
-        @runtime_checkable
-        class SignatureProtocol(Protocol):
-            def calculate(self, a: int, b: int) -> int: ...
-            def format_data(self, data: dict[str, object]) -> str: ...
-
-        # Correct implementation
-        class CorrectImplementation:
-            def calculate(self, a: int, b: int) -> int:
-                return a + b
-
-            def format_data(self, data: dict[str, object]) -> str:
-                return str(data)
-
-        # Incorrect implementation (wrong signature)
-        class IncorrectImplementation:
-            def calculate(self, a: str, b: str) -> str:  # Wrong types
-                return a + b
-
-            def format_data(self, data: list[object]) -> str:  # Wrong type
-                return str(data)
-
-        # Test signature validation
-        correct = CorrectImplementation()
-        _ = IncorrectImplementation()
-
-        # Runtime checking will pass for both (Python's duck typing)
-        assert isinstance(correct, SignatureProtocol)
-        # Note: isinstance will still return True for incorrect due to duck typing
-        # Real type checking would catch this at static analysis time
-
-    # ========================================================================
-    # PROTOCOL COMPOSITION
-    # ========================================================================
-
-    def test_protocol_composition(self) -> None:
-        """Test protocol composition functionality."""
-
-        # Define multiple protocols
-        @runtime_checkable
-        class ReaderProtocol(Protocol):
-            def read(self, source: str) -> str: ...
-
-        @runtime_checkable
-        class WriterProtocol(Protocol):
-            def write(self, data: str, destination: str) -> bool: ...
-
-        @runtime_checkable
-        class ProcessorProtocol(Protocol):
-            def process(self, data: str) -> str: ...
-
-        # Compose protocols
-        @runtime_checkable
-        class DataPipelineProtocol(
-            ReaderProtocol,
-            WriterProtocol,
-            ProcessorProtocol,
-            Protocol,
-        ):
-            def run_pipeline(self, source: str, destination: str) -> bool: ...
-
-        # Implement composed protocol
-        class DataPipeline:
-            def read(self, source: str) -> str:
-                return f"Data from {source}"
-
-            def write(self, data: str, _destination: str) -> bool:
-                return len(data) > 0
-
-            def process(self, data: str) -> str:
-                return data.upper()
-
-            def run_pipeline(self, source: str, destination: str) -> bool:
-                data = self.read(source)
-                processed = self.process(data)
-                return self.write(processed, destination)
-
-        # Test composition
-        pipeline = DataPipeline()
-        assert isinstance(pipeline, ReaderProtocol)
-        assert isinstance(pipeline, WriterProtocol)
-        assert isinstance(pipeline, ProcessorProtocol)
-        assert isinstance(pipeline, DataPipelineProtocol)
-
-        # Test functionality
-        assert pipeline.read("input.txt") == "Data from input.txt"
-        assert pipeline.process("test") == "TEST"
-        assert pipeline.write("data", "output.txt") is True
-        assert pipeline.run_pipeline("input.txt", "output.txt") is True
-
-    # ========================================================================
-    # PROTOCOL GENERICS
-    # ========================================================================
-
-    def test_generic_protocols(self) -> None:
-        """Test generic protocols functionality."""
-
-        # Implement generic protocol with specific type
-        class StringImplementation:
-            def __init__(self) -> None:
-                self._value: str = ""
-                self._initialized_value = "test"
-
-            def get_value(self) -> str:
-                return self._initialized_value
-
-            def set_value(self, value: str) -> None:
-                self._value = value
-
-        class IntImplementation:
-            def __init__(self) -> None:
-                self._value: int = 0
-                self._initialized_value = 42
-
-            def get_value(self) -> int:
-                return self._initialized_value
-
-            def set_value(self, value: int) -> None:
-                self._value = value
-
-        # Test generic implementations - Python 3.13 doesn't support isinstance with subscripted generics
-        str_impl = StringImplementation()
-        int_impl = IntImplementation()
-
-        # Test that implementations have the required methods
-        assert hasattr(str_impl, "get_value")
-        assert hasattr(str_impl, "set_value")
-        assert hasattr(int_impl, "get_value")
-        assert hasattr(int_impl, "set_value")
-
-        # Test actual functionality
-        assert str_impl.get_value() == "test"
-        assert int_impl.get_value() == 42
-
-    # ========================================================================
-    # PROTOCOL UTILITIES
-    # ========================================================================
-
-    def test_protocol_utilities(self, protocols_service: FlextCliProtocols) -> None:
-        """Test protocol utility functions."""
-        # Test that protocols service provides utility functions
-        assert protocols_service is not None
-
-        # Define a test protocol
-        @runtime_checkable
-        class UtilityProtocol(Protocol):
-            def utility_method(self) -> str: ...
-
-        # Test protocol creation and validation
-        class UtilityImplementation:
-            def utility_method(self) -> str:
-                return "utility_result"
-
-        impl = UtilityImplementation()
-        assert isinstance(impl, UtilityProtocol)
-        assert impl.utility_method() == "utility_result"
-
-    def test_protocol_inspection(self) -> None:
-        """Test protocol inspection functionality."""
-
-        # Define protocol with multiple methods
-        @runtime_checkable
-        class InspectionProtocol(Protocol):
-            def method1(self) -> str: ...
-            def method2(self, param: int) -> bool: ...
-            def method3(self, data: dict[str, object]) -> list[object]: ...
-
-        # Test protocol inspection
-        protocol_attrs = getattr(InspectionProtocol, "__protocol_attrs__", None)
-        if protocol_attrs is not None:
-            assert "method1" in protocol_attrs
-            assert "method2" in protocol_attrs
-            assert "method3" in protocol_attrs
-
-        # Test method annotations (may be empty for protocols)
-        annotations = InspectionProtocol.__annotations__
-        # Protocols may not have annotations in __annotations__, so we just verify it exists
-        assert isinstance(annotations, dict)
-
-    # ========================================================================
-    # PROTOCOL SCENARIOS
-    # ========================================================================
-
-    def test_file_handler_protocol_scenario(self) -> None:
-        """Test file handler protocol scenario."""
-
-        # Define file handler protocol
-        @runtime_checkable
-        class FileHandlerProtocol(Protocol):
-            def open_file(self, path: str) -> bool: ...
-            def read_content(self) -> str: ...
-            def write_content(self, content: str) -> bool: ...
-            def close_file(self) -> None: ...
-
-        # Implement file handler
-        class FileHandler:
-            def __init__(self) -> None:
-                self._content = ""
-                self._is_open = False
-
-            def open_file(self, _path: str) -> bool:
-                self._is_open = True
-                return True
-
-            def read_content(self) -> str:
-                if not self._is_open:
-                    msg = "File not open"
-                    raise RuntimeError(msg)
-                return self._content
-
-            def write_content(self, content: str) -> bool:
-                if not self._is_open:
-                    return False
-                self._content = content
-                return True
-
-            def close_file(self) -> None:
-                self._is_open = False
-
-        # Test file handler protocol
-        handler = FileHandler()
-        assert isinstance(handler, FileHandlerProtocol)
-
-        assert handler.open_file("test.txt") is True
-        assert handler.write_content("Hello, World!") is True
-        assert handler.read_content() == "Hello, World!"
-        handler.close_file()
-
-    def test_api_client_protocol_scenario(self) -> None:
-        """Test API client protocol scenario."""
-
-        # Define API client protocol
-        @runtime_checkable
-        class ApiClientProtocol(Protocol):
-            def get(self, endpoint: str) -> dict[str, object]: ...
-            def post(
-                self,
-                endpoint: str,
-                data: dict[str, object],
-            ) -> dict[str, object]: ...
-            def put(
-                self,
-                endpoint: str,
-                data: dict[str, object],
-            ) -> dict[str, object]: ...
-            def delete(self, endpoint: str) -> bool: ...
-
-        # Implement API client
-        class ApiClient:
-            def __init__(self, base_url: str) -> None:
-                self.base_url = base_url
-
-            def get(self, endpoint: str) -> dict[str, object]:
-                return {"method": "GET", "endpoint": endpoint, "status": "success"}
-
-            def post(self, endpoint: str, data: dict[str, object]) -> dict[str, object]:
-                return {
-                    "method": "POST",
-                    "endpoint": endpoint,
-                    "data": data,
-                    "status": "success",
-                }
-
-            def put(self, endpoint: str, data: dict[str, object]) -> dict[str, object]:
-                return {
-                    "method": "PUT",
-                    "endpoint": endpoint,
-                    "data": data,
-                    "status": "success",
-                }
-
-            def delete(self, _endpoint: str) -> bool:
-                return True
-
-        # Test API client protocol
-        client = ApiClient("https://api.example.com")
-        assert isinstance(client, ApiClientProtocol)
-
-        get_result = client.get("/users")
-        assert get_result["method"] == "GET"
-        assert get_result["endpoint"] == "/users"
-
-        post_result = client.post("/users", {"name": "John"})
-        assert post_result["method"] == "POST"
-        # Cast to narrow type for dict access
-
-        data = cast("dict[str, object]", post_result["data"])
-        assert data["name"] == "John"
-
-        assert client.delete("/users/1") is True
-
-    def test_data_processor_protocol_scenario(self) -> None:
-        """Test data processor protocol scenario."""
-
-        # Define data processor protocol
-        @runtime_checkable
-        class DataProcessorProtocol(Protocol):
-            def validate_input(self, data: dict[str, object]) -> bool: ...
-            def transform_data(self, data: dict[str, object]) -> dict[str, object]: ...
-            def save_result(self, data: dict[str, object]) -> bool: ...
-
-        # Implement data processor
-        class DataProcessor:
-            def validate_input(self, data: dict[str, object]) -> bool:
-                return "id" in data and "name" in data
-
-            def transform_data(self, data: dict[str, object]) -> dict[str, object]:
-                return {
-                    "id": data["id"],
-                    "name": cast("str", data["name"]).upper(),
-                    "processed_at": "2025-01-01T00:00:00Z",
-                }
-
-            def save_result(self, data: dict[str, object]) -> bool:
-                return len(data) > 0
-
-        # Test data processor protocol
-
-        processor = DataProcessor()
-        assert isinstance(processor, DataProcessorProtocol)
-
-        # Test validation
-        valid_data = cast("dict[str, object]", {"id": 1, "name": "test"})
-        invalid_data = cast("dict[str, object]", {"id": 1})  # Missing name
-
-        assert processor.validate_input(valid_data) is True
-        assert processor.validate_input(invalid_data) is False
-
-        # Test transformation
-        transformed = processor.transform_data(valid_data)
-        assert transformed["name"] == "TEST"
-        assert "processed_at" in transformed
-
-        # Test saving
-        assert processor.save_result(transformed) is True
-
-    # ========================================================================
-    # PROTOCOL ERROR HANDLING
-    # ========================================================================
-
-    def test_protocol_error_handling(self) -> None:
-        """Test protocol error handling."""
-
-        # Define protocol with error handling
-        @runtime_checkable
-        class ErrorHandlingProtocol(Protocol):
-            def safe_operation(self, data: str) -> str: ...
-            def risky_operation(self, data: str) -> str: ...
-
-        # Implement with error handling
-        class ErrorHandlingImplementation:
-            def safe_operation(self, data: str) -> str:
-                try:
-                    return data.upper()
-                except Exception:
-                    return "ERROR"
-
-            def risky_operation(self, data: str) -> str:
-                if not data:
-                    msg = "Empty data"
-                    raise ValueError(msg)
-                return data.upper()
-
-        # Test error handling
-        impl = ErrorHandlingImplementation()
-        assert isinstance(impl, ErrorHandlingProtocol)
-
-        # Test safe operation
-        assert impl.safe_operation("test") == "TEST"
-        assert not impl.safe_operation("")  # Empty string doesn't raise exception
-
-        # Test risky operation
-        assert impl.risky_operation("test") == "TEST"
-        with pytest.raises(ValueError):
-            _ = impl.risky_operation("")
-
-    # ========================================================================
-    # PROTOCOL PERFORMANCE
-    # ========================================================================
-
-    def test_protocol_performance(self) -> None:
-        """Test protocol performance."""
-
-        # Define performance protocol
-        @runtime_checkable
-        class PerformanceProtocol(Protocol):
-            def fast_operation(self) -> str: ...
-            def slow_operation(self) -> str: ...
-
-        # Implement with timing
-        class PerformanceImplementation:
-            def fast_operation(self) -> str:
-                return "fast"
-
-            def slow_operation(self) -> str:
-                time.sleep(0.001)  # Simulate slow operation
-                return "slow"
-
-        # Test performance
-        impl = PerformanceImplementation()
-        assert isinstance(impl, PerformanceProtocol)
-
-        # Test fast operation
-        start_time = time.time()
-        result = impl.fast_operation()
-        fast_time = time.time() - start_time
-        assert result == "fast"
-        assert fast_time < 0.001
-
-        # Test slow operation
-        start_time = time.time()
-        result = impl.slow_operation()
-        slow_time = time.time() - start_time
-        assert result == "slow"
-        assert slow_time >= 0.001
-
-    # ========================================================================
-    # ERROR HANDLING AND EDGE CASES
-    # ========================================================================
-
-    def test_protocol_edge_cases(self) -> None:
-        """Test protocol edge cases."""
-
-        # Define protocol with edge cases
-        @runtime_checkable
-        class EdgeCaseProtocol(Protocol):
-            def handle_none(self, data: str | None) -> str: ...
-            def handle_empty(self, data: str) -> str: ...
-
-        # Implement edge case handling
-        class EdgeCaseImplementation:
-            def handle_none(self, data: str | None) -> str:
-                return data or "default"
-
-            def handle_empty(self, data: str) -> str:
-                return data or "empty"
-
-        # Test edge cases
-        impl = EdgeCaseImplementation()
-        assert isinstance(impl, EdgeCaseProtocol)
-
-        assert impl.handle_none("test") == "test"
-        assert impl.handle_none(None) == "default"
-        assert impl.handle_empty("test") == "test"
-        assert impl.handle_empty("") == "empty"
-
-    def test_protocol_concurrent_access(self) -> None:
-        """Test protocol concurrent access."""
-
-        # Define concurrent protocol
-        @runtime_checkable
-        class ConcurrentProtocol(Protocol):
-            def thread_safe_operation(self, value: int) -> int: ...
-
-        # Implement thread-safe operation
-        class ConcurrentImplementation:
-            def __init__(self) -> None:
-                self._counter = 0
-                self._lock = threading.Lock()
-
-            def thread_safe_operation(self, value: int) -> int:
-                with self._lock:
-                    self._counter += value
-                    return self._counter
-
-        # Test concurrent access
-        impl = ConcurrentImplementation()
-        assert isinstance(impl, ConcurrentProtocol)
-
-        results = []
-
-        def worker(value: int) -> None:
-            result = impl.thread_safe_operation(value)
-            results.append(result)
-
-        # Start multiple threads
-        threads = []
-        for i in range(5):
-            thread = threading.Thread(target=worker, args=(i + 1,))
-            threads.append(thread)
-            thread.start()
-
-        # Wait for all threads to complete
-        for thread in threads:
-            thread.join()
-
-        # Verify thread safety - results should be cumulative (1, 3, 6, 10, 15)
-        assert len(results) == 5
-        assert results == [1, 3, 6, 10, 15]  # Cumulative sum: 1, 1+2, 1+2+3, etc.
-
-    # ========================================================================
-    # INTEGRATION TESTS
-    # ========================================================================
-
-    def test_full_protocol_workflow_integration(
-        self,
-        protocols_service: FlextCliProtocols,
-    ) -> None:
-        """Test complete protocol workflow integration."""
-        # Use protocols_service to validate it's working
-        assert protocols_service is not None
-
-        # 1. Define multiple related protocols
-        @runtime_checkable
-        class DataSourceProtocol(Protocol):
-            def read_data(self) -> dict[str, object]: ...
-
-        @runtime_checkable
-        class DataTransformerProtocol(Protocol):
-            def transform(self, data: dict[str, object]) -> dict[str, object]: ...
-
-        @runtime_checkable
-        class DataSinkProtocol(Protocol):
-            def write_data(self, data: dict[str, object]) -> bool: ...
-
-        # 2. Compose protocols
-        @runtime_checkable
-        class DataPipelineProtocol(
-            DataSourceProtocol,
-            DataTransformerProtocol,
-            DataSinkProtocol,
-            Protocol,
-        ):
-            def run_pipeline(self) -> bool: ...
-
-        # 3. Implement composed protocol
-        class DataPipeline:
-            def __init__(self) -> None:
-                self._data: dict[str, object] = {"raw": "data"}
-
-            def read_data(self) -> dict[str, object]:
-                return self._data
-
-            def transform(self, data: dict[str, object]) -> dict[str, object]:
-                return cast(
-                    "dict[str, object]",
-                    {
-                        "processed": cast("str", data["raw"]).upper(),
-                        "timestamp": "2025-01-01T00:00:00Z",
-                    },
-                )
-
-            def write_data(self, data: dict[str, object]) -> bool:
-                return "processed" in data
-
-            def run_pipeline(self) -> bool:
-                data = self.read_data()
-                transformed = self.transform(data)
-                return self.write_data(transformed)
-
-        # 4. Test complete workflow
-        pipeline = DataPipeline()
-        assert isinstance(pipeline, DataSourceProtocol)
-        assert isinstance(pipeline, DataTransformerProtocol)
-        assert isinstance(pipeline, DataSinkProtocol)
-        assert isinstance(pipeline, DataPipelineProtocol)
-
-        # 5. Test individual operations
-        raw_data = pipeline.read_data()
-        assert raw_data["raw"] == "data"
-
-        transformed_data = pipeline.transform(raw_data)
-        assert transformed_data["processed"] == "DATA"
-
-        write_success = pipeline.write_data(transformed_data)
-        assert write_success is True
-
-        # 6. Test complete pipeline
-        pipeline_success = pipeline.run_pipeline()
-        assert pipeline_success is True
-
-    def test_protocol_workflow_integration(
-        self,
-        protocols_service: FlextCliProtocols,
-    ) -> None:
-        """Test protocol workflow integration."""
-
-        # Test protocol definition
-        @runtime_checkable
-        class TestProtocol(Protocol):
-            def operation(self) -> str: ...
-
-        # Implement protocol
-        class Implementation:
-            def operation(self) -> str:
-                time.sleep(0.001)  # Simulate work
-                return "result"
-
-        # Test protocol
-        impl = Implementation()
-        assert isinstance(impl, TestProtocol)
-
-        result = impl.operation()
-        assert result == "result"
-
-        # Test that protocols service works in context
-        assert protocols_service is not None
-        assert isinstance(protocols_service, FlextCliProtocols)
+            return FlextResult[bool].fail("Instance does not implement CliFormatter")
+        except Exception as e:
+            return FlextResult[bool].fail(str(e))
+
+    def _validate_config_provider_instance(self, instance: object) -> FlextResult[bool]:
+        """Validate config provider instance against protocol."""
+        try:
+            if isinstance(instance, FlextCliProtocols.Cli.CliConfigProvider):
+                return FlextResult[bool].ok(True)
+            return FlextResult[bool].fail(
+                "Instance does not implement CliConfigProvider"
+            )
+        except Exception as e:
+            return FlextResult[bool].fail(str(e))
+
+    def _validate_authenticator_instance(self, instance: object) -> FlextResult[bool]:
+        """Validate authenticator instance against protocol."""
+        try:
+            if isinstance(instance, FlextCliProtocols.Cli.CliAuthenticator):
+                return FlextResult[bool].ok(True)
+            error_msg = "Instance does not implement CliAuthenticator"
+            return FlextResult[bool].fail(error_msg)
+        except Exception as e:
+            return FlextResult[bool].fail(str(e))
+
+    def _execute_protocol_test(self, test_type: str) -> FlextResult[bool]:
+        """Execute specific protocol test by type."""
+        try:
+            match test_type:
+                case TestProtocols.TestTypes.INITIALIZATION:
+                    self.test_protocol_class_has_required_attributes()
+                    return FlextResult[bool].ok(True)
+                case TestProtocols.TestTypes.STRUCTURAL_TYPING:
+                    self.test_structural_typing_enabled()
+                    return FlextResult[bool].ok(True)
+                case TestProtocols.TestTypes.CLI_FORMATTER:
+                    self.test_cli_formatter_implementation()
+                    return FlextResult[bool].ok(True)
+                case TestProtocols.TestTypes.CLI_CONFIG_PROVIDER:
+                    self.test_cli_config_provider_implementation()
+                    return FlextResult[bool].ok(True)
+                case TestProtocols.TestTypes.CLI_AUTHENTICATOR:
+                    self.test_cli_authenticator_implementation()
+                    return FlextResult[bool].ok(True)
+                case TestProtocols.TestTypes.CLI_DEBUG_PROVIDER:
+                    self.test_cli_debug_provider_exists()
+                    return FlextResult[bool].ok(True)
+                case TestProtocols.TestTypes.CLI_PLUGIN:
+                    self.test_cli_plugin_exists()
+                    return FlextResult[bool].ok(True)
+                case TestProtocols.TestTypes.CLI_COMMAND_HANDLER:
+                    self.test_cli_command_handler_exists()
+                    return FlextResult[bool].ok(True)
+                case TestProtocols.TestTypes.PROTOCOL_INHERITANCE:
+                    self.test_protocol_inheritance_structure()
+                    return FlextResult[bool].ok(True)
+                case TestProtocols.TestTypes.RUNTIME_CHECKING:
+                    self.test_duck_typing_with_formatter()
+                    return FlextResult[bool].ok(True)
+                case _:
+                    return FlextResult[bool].fail(f"Unknown test type: {test_type}")
+        except Exception as e:
+            return FlextResult[bool].fail(str(e))

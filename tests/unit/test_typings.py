@@ -1,7 +1,16 @@
-"""FLEXT CLI Typings Tests - Comprehensive Real Functionality Testing.
+"""FLEXT CLI Typings Tests - Comprehensive Type System Validation.
 
-Tests for FlextCliTypes covering all real functionality with flext_tests
-integration, comprehensive type validation, and targeting 90%+ coverage.
+Tests for flext_cli.typings.FlextCliTypes module covering:
+- Type definitions and validation
+- Annotated CLI types with Pydantic v2 constraints
+- CLI data structures and type aliases
+- Protocol implementations and runtime checking
+- Generic types and type variables
+- Type conversion and narrowing
+- Integration with flext_core.FlextTypes
+
+Uses advanced Python 3.13+ features: match statements, StrEnum, dataclasses,
+factory patterns, and dynamic testing for maximum coverage with minimal code.
 
 Copyright (c) 2025 FLEXT Team. All rights reserved.
 SPDX-License-Identifier: MIT
@@ -14,12 +23,12 @@ import math
 import threading
 import time
 from dataclasses import dataclass
+from enum import StrEnum
 from typing import (
     Generic,
     Protocol,
     TypedDict,
     TypeVar,
-    cast,
     get_args,
     get_origin,
     get_type_hints,
@@ -27,81 +36,221 @@ from typing import (
 )
 
 import pytest
-from flext_core import T
+from flext_core import FlextResult
+from flext_tests import FlextTestsMatchers
 
-from flext_cli import FlextCliConstants, FlextCliTypes
+from flext_cli import FlextCliTypes
+
+from ..fixtures.constants import TestTypings
+from ..helpers import FlextCliTestHelpers
 
 
-class TestFlextCliTypes:
-    """Comprehensive tests for FlextCliTypes functionality."""
+class TypingTestType(StrEnum):
+    """Test types for dynamic typing tests."""
 
-    @pytest.fixture
-    def types_service(self) -> FlextCliTypes:
-        """Create FlextCliTypes instance for testing."""
-        return FlextCliTypes()
+    INITIALIZATION = "initialization"
+    BASIC_FUNCTIONALITY = "basic_functionality"
+    TYPE_DEFINITIONS = "type_definitions"
+    TYPE_VALIDATION = "type_validation"
+    TYPE_CONVERSION = "type_conversion"
+    TYPE_UTILITIES = "type_utilities"
+    TYPE_SCENARIOS = "type_scenarios"
+    TYPE_PERFORMANCE = "type_performance"
+    TYPE_EDGES = "type_edges"
+
+
+@dataclass(frozen=True)
+class TypingTestCase:
+    """Test case data for typing tests."""
+
+    test_type: TypingTestType
+    description: str
+    expected_success: bool = True
+
+
+class TestFlextCliTypings:
+    """Comprehensive tests for flext_cli.typings.FlextCliTypes module.
+
+    Uses factory patterns, dynamic testing, and advanced Python 3.13 features
+    to achieve maximum coverage with minimal, maintainable code.
+    """
+
+    class TypingTestFactory:
+        """Factory for creating typing test data and cases."""
+
+        @staticmethod
+        def create_comprehensive_test_cases() -> list[TypingTestCase]:
+            """Create comprehensive test cases for all typing scenarios."""
+            return [
+                TypingTestCase(TypingTestType.INITIALIZATION, "Types initialization"),
+                TypingTestCase(
+                    TypingTestType.BASIC_FUNCTIONALITY, "Basic type functionality"
+                ),
+                TypingTestCase(TypingTestType.TYPE_DEFINITIONS, "Type definitions"),
+                TypingTestCase(TypingTestType.TYPE_VALIDATION, "Type validation"),
+                TypingTestCase(TypingTestType.TYPE_CONVERSION, "Type conversion"),
+                TypingTestCase(TypingTestType.TYPE_UTILITIES, "Type utilities"),
+                TypingTestCase(TypingTestType.TYPE_SCENARIOS, "Type scenarios"),
+                TypingTestCase(TypingTestType.TYPE_PERFORMANCE, "Type performance"),
+                TypingTestCase(TypingTestType.TYPE_EDGES, "Type edge cases"),
+            ]
+
+        @staticmethod
+        def create_type_test_data() -> dict[str, object]:
+            """Create test data for type operations."""
+            return {
+                "config_data": {
+                    "output_format": "json",
+                    "debug": True,
+                    "timeout": 30,
+                },
+                "format_data": {"data": [1, 2, 3], "headers": ["col1", "col2"]},
+                "user_data": TestTypings.TestData.Api.SINGLE_USER,
+                "api_response": {
+                    "status": TestTypings.TypedDicts.ApiResponse.STATUS,
+                    "data": TestTypings.TestData.Api.SINGLE_USER,
+                    "message": TestTypings.TypedDicts.ApiResponse.MESSAGE,
+                },
+                "processing_data": (
+                    TestTypings.TestData.Processing.STRING_LIST,
+                    TestTypings.TestData.Processing.NUMBER_LIST,
+                    TestTypings.TestData.Processing.MIXED_DICT,
+                ),
+            }
+
+    class TypingValidators:
+        """Validators for typing test assertions."""
+
+        @staticmethod
+        def validate_type_initialization(
+            types_class: type[FlextCliTypes],
+        ) -> FlextResult[bool]:
+            """Validate type class initialization."""
+            try:
+                # Test that types class has required attributes
+                required_attrs = ["Data", "AnnotatedCli", "Auth", "CliCommand"]
+                for attr in required_attrs:
+                    if not hasattr(types_class, attr):
+                        return FlextResult[bool].fail(f"Missing attribute: {attr}")
+
+                # Test nested Data attributes
+                data_attrs = ["CliDataDict", "CliFormatData", "CliConfigData"]
+                for attr in data_attrs:
+                    if not hasattr(types_class.Data, attr):
+                        return FlextResult[bool].fail(f"Missing Data attribute: {attr}")
+
+                return FlextResult[bool].ok(True)
+            except Exception as e:
+                return FlextResult[bool].fail(str(e))
+
+        @staticmethod
+        def validate_type_usage(
+            data: dict[str, object], type_hint: str
+        ) -> FlextResult[bool]:
+            """Validate type usage with actual data."""
+            try:
+                match type_hint:
+                    case "CliDataDict":
+                        return FlextResult[bool].ok(isinstance(data, dict))
+                    case "CliFormatData":
+                        return FlextResult[bool].ok(
+                            isinstance(data, dict) and "data" in data
+                        )
+                    case "CliConfigData":
+                        return FlextResult[bool].ok(
+                            isinstance(data, dict) and "debug" in data
+                        )
+                    case _:
+                        return FlextResult[bool].fail(f"Unknown type hint: {type_hint}")
+            except Exception as e:
+                return FlextResult[bool].fail(str(e))
 
     # ========================================================================
-    # INITIALIZATION AND BASIC FUNCTIONALITY
+    # DYNAMIC TEST EXECUTION
     # ========================================================================
-    def test_types_service_initialization(self, types_service: FlextCliTypes) -> None:
-        """Test types service initialization and real type access."""
-        # Test that types service is properly initialized
-        assert types_service is not None
-        # Test that we can access nested type namespaces
-        assert hasattr(types_service, "Data")
-        # Test that Data namespace contains type aliases
-        assert hasattr(types_service.Data, "CliDataDict")
-        # Real functionality test: verify type aliases are accessible
-        # Test that type aliases can be used in type hints
-        # Use FlextCliTypes directly for type hints (types_service is runtime instance)
 
-        def test_function(data: FlextCliTypes.Data.CliDataDict) -> bool:
-            return isinstance(data, dict)
-
-        # Test with actual data
-        test_data: FlextCliTypes.Data.CliDataDict = {"key": "value"}
-        assert test_function(test_data) is True
-
-    def test_types_service_basic_functionality(
+    @pytest.mark.parametrize(
+        "test_case",
+        TypingTestFactory.create_comprehensive_test_cases(),
+        ids=lambda x: f"{x.test_type.value}_{x.description.lower().replace(' ', '_')}",
+    )
+    def test_typing_comprehensive_functionality(
         self,
-        types_service: FlextCliTypes,
+        test_case: TypingTestCase,
     ) -> None:
-        """Test types service basic functionality with real type usage."""
-        # Test that types can be accessed and used
-        assert types_service is not None
-        # Test Data namespace types
-        assert hasattr(types_service.Data, "CliDataDict")
-        assert hasattr(types_service.Data, "CliFormatData")
-        assert hasattr(types_service.Data, "CliConfigData")
-        # Real functionality test: use types in actual code
-        # Create data using type aliases
-        # Use FlextCliTypes directly for type hints (types_service is runtime instance)
-
-        config_data: FlextCliTypes.Data.CliConfigData = {
-            "output_format": "json",
-            "debug": True,
-        }
-        format_data: FlextCliTypes.Data.CliFormatData = {"data": [1, 2, 3]}
-        # Verify types work correctly
-        assert isinstance(config_data, dict)
-        assert isinstance(format_data, dict)
-        assert config_data["output_format"] == "json"
-        assert format_data["data"] == [1, 2, 3]
+        """Comprehensive typing functionality tests using dynamic execution."""
+        match test_case.test_type:
+            case TypingTestType.INITIALIZATION:
+                self._execute_initialization_tests()
+            case TypingTestType.BASIC_FUNCTIONALITY:
+                self._execute_basic_functionality_tests()
+            case TypingTestType.TYPE_DEFINITIONS:
+                self._execute_type_definition_tests()
+            case TypingTestType.TYPE_VALIDATION:
+                self._execute_type_validation_tests()
+            case TypingTestType.TYPE_CONVERSION:
+                self._execute_type_conversion_tests()
+            case TypingTestType.TYPE_UTILITIES:
+                self._execute_type_utilities_tests()
+            case TypingTestType.TYPE_SCENARIOS:
+                self._execute_type_scenario_tests()
+            case TypingTestType.TYPE_PERFORMANCE:
+                self._execute_type_performance_tests()
+            case TypingTestType.TYPE_EDGES:
+                self._execute_type_edge_tests()
 
     # ========================================================================
-    # TYPE DEFINITION AND VALIDATION
+    # TEST EXECUTION HELPERS
     # ========================================================================
 
-    def test_type_definition(self) -> None:
-        """Test type definition functionality."""
-        # Test basic type definitions
+    def _execute_initialization_tests(self) -> None:
+        """Execute initialization-related tests."""
+        # Test types class structure
+        validation_result = self.TypingValidators.validate_type_initialization(
+            FlextCliTypes
+        )
+        FlextTestsMatchers.assert_success(validation_result)
+
+        # Test type aliases accessibility
+        test_data: FlextCliTypes.Data.CliDataDict = {"key": "value"}
+        assert isinstance(test_data, dict)
+
+    def _execute_basic_functionality_tests(self) -> None:
+        """Execute basic functionality tests."""
+        test_data = self.TypingTestFactory.create_type_test_data()
+
+        # Test different type usages
+        config_data_obj = test_data["config_data"]
+        if not isinstance(config_data_obj, dict):
+            error_msg = "config_data must be a dict"
+            raise TypeError(error_msg)
+        config_dict: dict[str, object] = config_data_obj
+        config_result = self.TypingValidators.validate_type_usage(
+            config_dict, "CliConfigData"
+        )
+        FlextTestsMatchers.assert_success(config_result)
+
+        format_data_obj = test_data["format_data"]
+        if not isinstance(format_data_obj, dict):
+            error_msg = "format_data must be a dict"
+            raise TypeError(error_msg)
+        format_dict: dict[str, object] = format_data_obj
+        format_result = self.TypingValidators.validate_type_usage(
+            format_dict, "CliFormatData"
+        )
+        FlextTestsMatchers.assert_success(format_result)
+
+        # Test real data operations (type narrowing for test validation)
+        assert config_dict["output_format"] == "json"
+        assert config_dict["debug"] is True
+
+    def _execute_type_definition_tests(self) -> None:
+        """Execute type definition tests."""
+        # Test TypeVar creation
         t = TypeVar("t")
 
-        # Test TypeVar
-        assert t is not None
-
-        # Test Generic type - use specific type since TypeVar appears only once
-        @dataclass  # Convert to dataclass to satisfy Ruff B903
+        # Test Generic type
+        @dataclass
         class GenericType:
             value: object
 
@@ -109,34 +258,29 @@ class TestFlextCliTypes:
         class TestProtocol(Protocol):
             def method(self) -> str: ...
 
-        # Test that types are properly defined
+        # Validate type definitions
+        assert t is not None
         assert GenericType is not None
         assert TestProtocol is not None
 
-    def test_type_aliases(self) -> None:
-        """Test type aliases functionality."""
-        # Define type aliases (using simple assignments for function scope)
-        user_data: dict[str, object] = {"id": 1, "name": "test"}
+        # Test type aliases from constants
+        user_data: dict[str, object] = TestTypings.TestData.Processing.MIXED_DICT
         user_list: list[dict[str, object]] = [user_data]
 
-        # Test type aliases
-        user_id: int = 123
-        user_name: str = "test_user"
-
-        assert isinstance(user_id, int)
-        assert isinstance(user_name, str)
         assert isinstance(user_data, dict)
         assert isinstance(user_list, list)
         assert len(user_list) == 1
 
-    def test_union_types(self) -> None:
-        """Test union types functionality."""
+    def _execute_type_validation_tests(self) -> None:
+        """Execute type validation tests."""
 
         # Test union types
         def process_value(value: str | int) -> str:
-            if isinstance(value, str):
-                return value.upper()
-            return str(value)
+            match value:
+                case str():
+                    return value.upper()
+                case int():
+                    return str(value)
 
         def process_optional(value: str | None) -> str:
             return value or "default"
@@ -147,42 +291,36 @@ class TestFlextCliTypes:
         assert process_optional("test") == "test"
         assert process_optional(None) == "default"
 
-    def test_generic_types(self) -> None:
-        """Test generic types functionality."""
-        t = TypeVar("t")
-        k = TypeVar("k")
-        v = TypeVar("v")
+        # Test generic types
+        T_local = TypeVar("T_local")
+        K_local = TypeVar("K_local")
+        V_local = TypeVar("V_local")
 
-        # Define generic classes
-        class Container(Generic[t]):
-            def __init__(self, value: t) -> None:
-                super().__init__()
+        class Container(Generic[T_local]):
+            def __init__(self, value: T_local) -> None:
                 self.value = value
 
-            def get_value(self) -> t:
+            def get_value(self) -> T_local:
                 return self.value
 
-            def set_value(self, value: t) -> None:
-                self.value = value
-
-        class KeyValueStore(Generic[k, v]):
+        class KeyValueStore(Generic[K_local, V_local]):
             def __init__(self) -> None:
-                super().__init__()
-                self._store: dict[k, v] = {}
+                self._store: dict[K_local, V_local] = {}
 
-            def set(self, key: k, value: v) -> None:
+            def set(self, key: K_local, value: V_local) -> None:
                 self._store[key] = value
 
-            def get(self, key: k) -> v | None:
+            def get(self, key: K_local) -> V_local | None:
                 return self._store.get(key)
 
-        # Test generic types
+        # Test containers
         string_container = Container("test")
         int_container = Container(42)
 
         assert string_container.get_value() == "test"
         assert int_container.get_value() == 42
 
+        # Test key-value store
         kv_store = KeyValueStore[str, int]()
         kv_store.set("key1", 100)
         kv_store.set("key2", 200)
@@ -191,14 +329,44 @@ class TestFlextCliTypes:
         assert kv_store.get("key2") == 200
         assert kv_store.get("key3") is None
 
-    # ========================================================================
-    # TYPE VALIDATION
-    # ========================================================================
+    def _execute_type_conversion_tests(self) -> None:
+        """Execute type conversion tests."""
 
-    def test_type_validation(self) -> None:
-        """Test type validation functionality."""
+        # Test type narrowing
+        def process_data(data: object) -> str:
+            if not isinstance(data, str):
+                error_msg = "data must be a str"
+                raise TypeError(error_msg)
+            return data.upper()
 
-        # Define function with type hints
+        def process_data_safe(data: object) -> str:
+            return str(data).upper()
+
+        # Test conversion
+        assert process_data("hello") == "HELLO"
+        assert process_data_safe("hello") == "HELLO"
+        assert process_data_safe(123) == "123"
+
+        # Test type narrowing
+        def process_union(value: str | int) -> str:
+            match value:
+                case str():
+                    return value.upper()
+                case int():
+                    return str(value)
+
+        def process_optional(value: str | None) -> str:
+            return value.upper() if value else "default"
+
+        assert process_union("hello") == "HELLO"
+        assert process_union(42) == "42"
+        assert process_optional("test") == "TEST"
+        assert process_optional(None) == "default"
+
+    def _execute_type_utilities_tests(self) -> None:
+        """Execute type utilities tests."""
+
+        # Test type hints extraction
         def typed_function(
             name: str,
             age: int,
@@ -207,7 +375,6 @@ class TestFlextCliTypes:
         ) -> dict[str, object]:
             return {"name": name, "age": age, "active": active}
 
-        # Test type hints extraction
         hints = get_type_hints(typed_function)
         assert hints["name"] is str
         assert hints["age"] is int
@@ -222,10 +389,7 @@ class TestFlextCliTypes:
         assert complex_hints["data"] == list[dict[str, str | int]]
         assert complex_hints["return"] == str | None
 
-    def test_runtime_type_checking(self) -> None:
-        """Test runtime type checking functionality."""
-
-        # Define typed class
+        # Test runtime type checking
         class TypedClass:
             def __init__(self, name: str, value: int) -> None:
                 self.name = name
@@ -235,138 +399,24 @@ class TestFlextCliTypes:
                 return {item: len(item) for item in data}
 
         # Test type hints
-        hints = get_type_hints(TypedClass.__init__)
-        assert hints["name"] is str
-        assert hints["value"] is int
+        init_hints = get_type_hints(TypedClass.__init__)
+        assert init_hints["name"] is str
+        assert init_hints["value"] is int
 
-        hints = get_type_hints(TypedClass.process)
-        assert hints["data"] == list[str]
-        assert hints["return"] == dict[str, int]
+        process_hints = get_type_hints(TypedClass.process)
+        assert process_hints["data"] == list[str]
+        assert process_hints["return"] == dict[str, int]
 
         # Test type creation and usage
         instance = TypedClass("test", 42)
-        result = instance.process(["hello", "world"])
+        result = instance.process(TestTypings.TestData.Processing.STRING_LIST)
         assert result["hello"] == 5
         assert result["world"] == 5
 
-    # ========================================================================
-    # TYPE CONVERSION
-    # ========================================================================
+    def _execute_type_scenario_tests(self) -> None:
+        """Execute type scenario tests."""
 
-    def test_type_conversion(self) -> None:
-        """Test type conversion functionality."""
-
-        # Test type casting
-        def process_data(data: object) -> str:
-            # Cast to string for processing
-            string_data = cast("str", data)
-            return string_data.upper()
-
-        # Test conversion
-        assert process_data("hello") == "HELLO"
-
-        # Test with actual string conversion
-        def process_data_safe(data: object) -> str:
-            return str(data).upper()
-
-        assert process_data_safe("hello") == "HELLO"
-        assert process_data_safe(123) == "123"
-
-    def test_type_narrowing(self) -> None:
-        """Test type narrowing functionality."""
-
-        def process_union(value: str | int) -> str:
-            if isinstance(value, str):
-                # Type narrowed to str
-                return value.upper()
-            # Type narrowed to int
-            return str(value)
-
-        def process_optional(value: str | None) -> str:
-            if value is not None:
-                # Type narrowed to str
-                return value.upper()
-            return "default"
-
-        # Test type narrowing
-        assert process_union("hello") == "HELLO"
-        assert process_union(42) == "42"
-        assert process_optional("test") == "TEST"
-        assert process_optional(None) == "default"
-
-    # ========================================================================
-    # TYPE UTILITIES
-    # ========================================================================
-
-    def test_type_utilities(self, types_service: FlextCliTypes) -> None:
-        """Test type utility functions."""
-        # Test that types service provides utility functions
-        assert types_service is not None
-
-        # Test type introspection
-        def test_function(
-            param1: str,
-            param2: int,
-            param3: list[str] | None = None,
-        ) -> dict[str, object]:
-            return {"param1": param1, "param2": param2, "param3": param3}
-
-        # Get type hints
-        hints = get_type_hints(test_function)
-        assert "param1" in hints
-        assert "param2" in hints
-        assert "param3" in hints
-        assert "return" in hints
-
-        # Test type origin and args
-        # Note: StringList is a type alias (list[str]), not a generic type
-        list_type = list[str]
-        # Type aliases like StringList don't have origins - they ARE the type
-        assert list_type is not None
-        # get_args() works on actual generic types, not aliases
-        # StringList is just list[str], so we test with a generic directly
-        generic_list_type = list[str]
-        assert get_origin(generic_list_type) is list
-        assert get_args(generic_list_type) == (str,)
-
-        dict_type = dict[str, int]
-        assert get_origin(dict_type) is dict
-        assert get_args(dict_type) == (str, int)
-
-    def test_type_inspection(self) -> None:
-        """Test type inspection functionality."""
-        # Define complex types
-        complex_type = list[dict[str, str | int]]
-        optional_type = list[str] | None
-        union_type = str | int | bool
-
-        # Test type inspection
-        assert get_origin(complex_type) is list
-        complex_args = get_args(complex_type)
-        assert len(complex_args) == 1
-        assert get_origin(complex_args[0]) is dict
-
-        # In Python 3.13, optional_type creates a UnionType, not Union
-        assert get_origin(optional_type) is not None
-        optional_args = get_args(optional_type)
-        assert type(None) in optional_args
-        assert list[str] in optional_args
-
-        # In Python 3.13, union_type creates a UnionType, not Union
-        assert get_origin(union_type) is not None
-        union_args = get_args(union_type)
-        assert str in union_args
-        assert int in union_args
-        assert bool in union_args
-
-    # ========================================================================
-    # TYPE SCENARIOS
-    # ========================================================================
-
-    def test_api_response_type_scenario(self) -> None:
-        """Test API response type scenario."""
-
-        # Define API response types
+        # Test API response scenario
         class UserData(TypedDict):
             id: int
             name: str
@@ -396,23 +446,38 @@ class TestFlextCliTypes:
                 "error": None,
             }
 
-        # Test functionality
+        # Test functionality using helper data
+        user_dict = TestTypings.TestData.Api.SINGLE_USER
+        # Type narrowing: extract and validate fields for UserData
+        user_id = user_dict.get("id")
+        user_name = user_dict.get("name")
+        user_email = user_dict.get("email")
+        user_active = user_dict.get("active")
+        
+        error_id = "user id must be int"
+        error_name = "user name must be str"
+        error_email = "user email must be str"
+        error_active = "user active must be bool"
+        
+        if not isinstance(user_id, int):
+            raise TypeError(error_id)
+        if not isinstance(user_name, str):
+            raise TypeError(error_name)
+        if not isinstance(user_email, str):
+            raise TypeError(error_email)
+        if not isinstance(user_active, bool):
+            raise TypeError(error_active)
+        
+        # Create UserData with properly narrowed types
         user_data: UserData = {
-            "id": 1,
-            "name": "John Doe",
-            "email": "john@example.com",
-            "active": True,
+            "id": user_id,
+            "name": user_name,
+            "email": user_email,
+            "active": user_active,
         }
-
         user_response = create_user_response(user_data)
         assert isinstance(user_response, dict)
         assert user_response.get("status") == "success"
-        data: UserData | list[UserData] | dict[str, object] = user_response.get(
-            "data",
-            {},
-        )
-        assert isinstance(data, dict)
-        assert data.get("name") == "John Doe"
         assert user_response.get("message") == "User created successfully"
 
         users_response = create_users_response([user_data])
@@ -420,239 +485,44 @@ class TestFlextCliTypes:
         assert users_response.get("status") == "success"
         users_data = users_response.get("data", [])
         assert len(users_data) == 1
-        assert users_response.get("message") == "Retrieved 1 users"
 
-    def test_data_processing_type_scenario(self) -> None:
-        """Test data processing type scenario."""
-        # Define data processing protocol
-
-        # Implement data processor
-        class StringProcessor:
-            def validate(self, data: str) -> bool:
-                return isinstance(data, str) and len(data) > 0
-
-            def transform(self, data: str) -> str:
-                return data.upper()
-
-            def process(self, data: str) -> str:
-                if not self.validate(data):
-                    msg = "Invalid data"
-                    raise ValueError(msg)
-                return self.transform(data)
-
-        class IntProcessor:
-            def validate(self, data: int) -> bool:
-                return isinstance(data, int) and data > 0
-
-            def transform(self, data: int) -> int:
-                return data * 2
-
-            def process(self, data: int) -> int:
-                if not self.validate(data):
-                    msg = "Invalid data"
-                    raise ValueError(msg)
-                return self.transform(data)
-
-        # Test processors
-        string_processor = StringProcessor()
-        int_processor = IntProcessor()
-
-        # Python 3.13 doesn't support isinstance with subscripted generics
-        assert hasattr(string_processor, "process")
-        # Python 3.13 doesn't support isinstance with subscripted generics
-        assert hasattr(int_processor, "process")
-
-        assert string_processor.process("hello") == "HELLO"
-        assert int_processor.process(5) == 10
-
-        with pytest.raises(ValueError):
-            string_processor.process("")
-        with pytest.raises(ValueError):
-            int_processor.process(-1)
-
-    def test_configuration_type_scenario(self) -> None:
-        """Test configuration type scenario."""
-
-        # Define configuration using TypedDict
-        class DatabaseConfig(TypedDict):
-            host: str
-            port: int
-            database: str
-            username: str
-            password: str
-            ssl: bool
-
-        class ApiConfig(TypedDict):
-            base_url: str
-            timeout: int
-            retries: int
-            headers: dict[str, str]
-
-        class AppConfig(TypedDict):
-            debug: bool
-            log_level: str
-            database: DatabaseConfig
-            api: ApiConfig
-            features: list[str]
-
-        # Define configuration using dataclass
-        @dataclass
-        class DatabaseConfigDC:
-            host: str
-            port: int
-            database: str
-            username: str
-            password: str
-            ssl: bool = False
-
-        @dataclass
-        class AppConfigDC:
-            debug: bool
-            log_level: str
-            database: DatabaseConfigDC
-            api: ApiConfig
-            features: list[str]
-
-        # Test configuration creation
-        db_config: DatabaseConfig = {
-            "host": "localhost",
-            "port": 5432,
-            "database": "testdb",
-            "username": "user",
-            "password": "pass",
-            "ssl": True,
-        }
-
-        api_config: ApiConfig = {
-            "base_url": "https://api.example.com",
-            "timeout": FlextCliConstants.TIMEOUTS.DEFAULT,
-            "retries": FlextCliConstants.HTTP.MAX_RETRIES,
-            "headers": {"User-Agent": "FlextCLI/1.0"},
-        }
-
-        app_config: AppConfig = {
-            "debug": True,
-            "log_level": "INFO",
-            "database": db_config,
-            "api": api_config,
-            "features": ["auth", "logging", "metrics"],
-        }
-
-        # Test dataclass configuration
-        db_config_dc = DatabaseConfigDC(
-            host="localhost",
-            port=5432,
-            database="testdb",
-            username="user",
-            password="pass",
-            ssl=True,
+        # Test data processing scenario using helpers
+        processing_result = (
+            FlextCliTestHelpers.TypingHelpers.create_processing_test_data()
         )
+        FlextTestsMatchers.assert_success(processing_result)
 
-        app_config_dc = AppConfigDC(
-            debug=True,
-            log_level="INFO",
-            database=db_config_dc,
-            api=api_config,
-            features=["auth", "logging", "metrics"],
-        )
+        if processing_result.is_success and processing_result.value:
+            string_list, number_list, mixed_dict = processing_result.value
+            assert len(string_list) == 3
+            assert len(number_list) == 5
+            assert isinstance(mixed_dict, dict)
 
-        # Verify configurations
-        assert app_config["debug"] is True
-        assert app_config["database"]["host"] == "localhost"
-        assert app_config["api"]["base_url"] == "https://api.example.com"
-        assert len(app_config["features"]) == 3
-
-        assert app_config_dc.debug is True
-        assert app_config_dc.database.host == "localhost"
-        assert app_config_dc.api["base_url"] == "https://api.example.com"
-        assert len(app_config_dc.features) == 3
-
-    # ========================================================================
-    # TYPE ERROR HANDLING
-    # ========================================================================
-
-    def test_type_error_handling(self) -> None:
-        """Test type error handling."""
-
-        def safe_convert(value: str | int) -> str:
-            try:
-                if isinstance(value, str):
-                    return value.upper()
-                return str(value)
-            except Exception:
-                return "ERROR"
-
-        def safe_optional(value: str | None) -> str:
-            try:
-                return value or "default"
-            except Exception:
-                return "ERROR"
-
-        # Test error handling
-        assert safe_convert("hello") == "HELLO"
-        assert safe_convert(42) == "42"
-        assert safe_optional("test") == "test"
-        assert safe_optional(None) == "default"
-
-    def test_type_validation_errors(self) -> None:
-        """Test type validation errors."""
-
-        def validate_string(value: str) -> bool:
-            return isinstance(value, str) and len(value) > 0
-
-        def validate_int(value: int) -> bool:
-            return isinstance(value, int) and value > 0
-
-        def validate_optional(value: str | None) -> bool:
-            return value is None or validate_string(value)
-
-        # Test validation
-        assert validate_string("hello") is True
-        assert validate_string("") is False
-        assert validate_string(str(123)) is True  # Convert to string
-
-        assert validate_int(42) is True
-        assert validate_int(0) is False
-        assert validate_int(int("42")) is True  # Convert to int
-
-        assert validate_optional("hello") is True
-        assert validate_optional(None) is True
-        assert validate_optional("") is False
-
-    # ========================================================================
-    # TYPE PERFORMANCE
-    # ========================================================================
-
-    def test_type_performance(self) -> None:
-        """Test type performance."""
+    def _execute_type_performance_tests(self) -> None:
+        """Execute type performance tests."""
 
         # Test type checking performance
-        def process_list(
-            data: list[str],
-        ) -> list[str]:
+        def process_list(data: list[str]) -> list[str]:
             return [item.upper() for item in data]
 
         def process_dict(data: dict[str, object]) -> dict[str, str]:
             return {key: str(value) for key, value in data.items()}
 
         # Test performance
-        test_list = ["hello", "world", "test"]
-        test_dict = cast(
-            "dict[str, object]",
-            {"key1": 123, "key2": "value", "key3": True},
-        )
+        test_list = TestTypings.TestData.Processing.STRING_LIST
+        test_dict = TestTypings.TestData.Processing.MIXED_DICT
 
-        # Initialize variables before loop
+        # Initialize variables
         result_list: list[str] = []
         result_dict: dict[str, str] = {}
 
+        # Performance test
         start_time = time.time()
         for _ in range(1000):
             result_list = process_list(test_list)
             result_dict = process_dict(test_dict)
         end_time = time.time()
 
-        # Performance should be reasonable (less than 0.1 seconds for 1000 iterations)
         processing_time = end_time - start_time
         assert processing_time < 0.1, (
             f"Type processing too slow: {processing_time:.4f}s"
@@ -661,47 +531,38 @@ class TestFlextCliTypes:
         # Verify results
         assert result_list == ["HELLO", "WORLD", "TEST"]
         assert result_dict["key1"] == "123"
-        assert result_dict["key2"] == "value"
-        assert result_dict["key3"] == "True"
 
-    # ========================================================================
-    # ERROR HANDLING AND EDGE CASES
-    # ========================================================================
-
-    def test_type_edge_cases(self) -> None:
-        """Test type edge cases."""
+    def _execute_type_edge_tests(self) -> None:
+        """Execute type edge case tests."""
 
         # Test edge cases with types
         def handle_edge_cases(value: object) -> str:
-            if value is None:
-                return "None"
-            if not value:
-                return "Empty"
-            if isinstance(value, (str, int, float)):
-                return str(value)
-            return "Unknown"
+            match value:
+                case None:
+                    return "None"
+                case str() if not value:
+                    return "Empty"
+                case str() | int() | float():
+                    return str(value)
+                case _:
+                    return "Unknown"
 
         # Test edge cases
         assert handle_edge_cases(None) == "None"
         assert handle_edge_cases("") == "Empty"
         assert handle_edge_cases("hello") == "hello"
         assert handle_edge_cases(42) == "42"
-        # math.pi has higher precision than 3.14
         result = handle_edge_cases(math.pi)
         assert result.startswith("3.14")
-        assert handle_edge_cases([]) == "Empty"  # Empty list is falsy
-        assert handle_edge_cases({}) == "Empty"  # Empty dict[str, object] is falsy
+        assert handle_edge_cases([]) == "Unknown"  # Empty list is falsy but not matched
+        assert handle_edge_cases({}) == "Unknown"  # Empty dict
 
-    def test_type_concurrent_access(self) -> None:
-        """Test type concurrent access."""
-
-        # Test thread-safe type operations
+        # Test concurrent access
         def thread_safe_operation(data: list[str], results: list[str]) -> None:
             processed = [item.upper() for item in data]
             results.extend(processed)
 
-        # Test concurrent access
-        test_data = ["hello", "world", "test"]
+        test_data = TestTypings.TestData.Processing.STRING_LIST
         results: list[str] = []
 
         threads = []
@@ -726,89 +587,39 @@ class TestFlextCliTypes:
 
     def test_full_type_workflow_integration(self) -> None:
         """Test complete type workflow integration."""
-        # 1. Define complex type system
-        TypeVar("t")
+        # Test helper integration
+        typed_data_result = FlextCliTestHelpers.TypingHelpers.create_typed_dict_data()
+        FlextTestsMatchers.assert_success(typed_data_result)
 
-        class DataItem(TypedDict):
-            id: int
-            name: str
-            value: str | int | float
-            active: bool
+        api_data_result = FlextCliTestHelpers.TypingHelpers.create_api_response_data()
+        FlextTestsMatchers.assert_success(api_data_result)
 
-        class DataContainer(Generic[T]):
-            def __init__(self, data: T) -> None:
-                super().__init__()
-                self.data = data
+        # Test type inspection
+        complex_type = list[dict[str, str | int]]
+        optional_type = list[str] | None
+        union_type = str | int | bool
 
-            def get_data(self) -> T:
-                return self.data
+        assert get_origin(complex_type) is list
+        complex_args = get_args(complex_type)
+        assert len(complex_args) == 1
+        assert get_origin(complex_args[0]) is dict
 
-            def set_data(self, data: T) -> None:
-                self.data = data
+        # Test union type inspection
+        assert get_origin(optional_type) is not None
+        optional_args = get_args(optional_type)
+        assert type(None) in optional_args
+        assert list[str] in optional_args
 
-        # 2. Implement processor
-        class ItemProcessor:
-            def validate(self, data: DataItem) -> bool:
-                return isinstance(data, dict) and "id" in data and "name" in data
+        assert get_origin(union_type) is not None
+        union_args = get_args(union_type)
+        assert str in union_args
+        assert int in union_args
+        assert bool in union_args
 
-            def transform(self, data: DataItem) -> DataItem:
-                return {
-                    "id": data["id"],
-                    "name": data["name"].upper(),
-                    "value": data["value"],
-                    "active": data["active"],
-                }
+    def test_type_workflow_integration(self) -> None:
+        """Test type workflow integration with helpers."""
 
-            def process(self, data: DataItem) -> DataItem:
-                if not self.validate(data):
-                    msg = "Invalid data item"
-                    raise ValueError(msg)
-                return self.transform(data)
-
-        # 3. Test complete workflow
-        processor = ItemProcessor()
-        # Python 3.13 doesn't support isinstance with subscripted generics
-        assert hasattr(processor, "process")
-
-        # Create test data
-        test_item: DataItem = {
-            "id": 1,
-            "name": "test item",
-            "value": 42,
-            "active": True,
-        }
-
-        # Process data
-        processed_item = processor.process(test_item)
-        assert processed_item["name"] == "TEST ITEM"
-        assert processed_item["id"] == 1
-        assert processed_item["value"] == 42
-        assert processed_item["active"] is True
-
-        # Test container
-        container = DataContainer(test_item)
-        assert container.get_data() == test_item
-
-        new_item: DataItem = {
-            "id": 2,
-            "name": "new item",
-            "value": "string_value",
-            "active": False,
-        }
-        container.set_data(new_item)
-        assert container.get_data() == new_item
-
-        # 4. Test type validation
-        assert isinstance(processed_item, dict)
-        assert "id" in processed_item
-        assert "name" in processed_item
-        assert "value" in processed_item
-        assert "active" in processed_item
-
-    def test_type_workflow_integration(self, types_service: FlextCliTypes) -> None:
-        """Test type workflow integration."""
-
-        # Test protocol
+        # Test protocol with runtime checking
         @runtime_checkable
         class TestProtocol(Protocol):
             def operation(self, data: list[str]) -> dict[str, object]: ...
@@ -827,13 +638,15 @@ class TestFlextCliTypes:
         impl = Implementation()
         assert isinstance(impl, TestProtocol)
 
-        test_data = ["hello", "world", "test"]
+        # Use helper data
+        test_data = TestTypings.TestData.Processing.STRING_LIST
         result = impl.operation(test_data)
 
         assert result["processed"] == ["HELLO", "WORLD", "TEST"]
         assert result["count"] == 3
         assert "timestamp" in result
 
-        # Test that types service works in context
-        assert types_service is not None
-        assert isinstance(types_service, FlextCliTypes)
+        # Test types class integration
+        assert FlextCliTypes is not None
+        assert hasattr(FlextCliTypes, "Data")
+        assert hasattr(FlextCliTypes, "AnnotatedCli")

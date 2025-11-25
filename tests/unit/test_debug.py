@@ -40,13 +40,6 @@ class TestFlextCliDebug:
         assert result.is_success
         assert isinstance(result.unwrap(), dict)
 
-    def test_debug_validate_config(self, debug: FlextCliDebug) -> None:
-        """Test debug config validation."""
-        result = debug.validate_config()
-
-        assert isinstance(result, FlextResult)
-        assert result.is_success
-
     def test_debug_get_system_paths(self, debug: FlextCliDebug) -> None:
         """Test getting system paths."""
         result = debug.get_system_paths()
@@ -229,14 +222,6 @@ class TestFlextCliDebug:
                 for sens in ["password", "token", "secret", "key", "auth"]
             ):
                 assert value == "***MASKED***"
-
-    def test_validate_config(self, debug: FlextCliDebug) -> None:
-        """Test validate_config method."""
-        result = debug.validate_config()
-
-        assert isinstance(result, FlextResult)
-        # Should succeed or fail gracefully
-        assert result.is_success or result.is_failure
 
 
 class TestFlextCliDebugExceptionHandlers:

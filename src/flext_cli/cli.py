@@ -29,7 +29,6 @@ from flext_core import (
     FlextLogger,
     FlextResult,
     FlextRuntime,
-    FlextTypes,
 )
 from pydantic import BaseModel
 from typer.testing import CliRunner
@@ -38,6 +37,7 @@ from flext_cli.cli_params import FlextCliCommonParams
 from flext_cli.config import FlextCliConfig
 from flext_cli.constants import FlextCliConstants
 from flext_cli.models import FlextCliModels
+from flext_cli.typings import CliJsonValue
 
 
 class FlextCliCli:
@@ -363,18 +363,18 @@ class FlextCliCli:
     def create_option_decorator(
         self,
         *param_decls: str,
-        default: FlextTypes.JsonValue | None = None,
+        default: CliJsonValue | None = None,
         type_hint: click.ParamType | type | None = None,
         required: bool = False,
         help_text: str | None = None,
         is_flag: bool = False,
-        flag_value: FlextTypes.JsonValue | None = None,
+        flag_value: CliJsonValue | None = None,
         multiple: bool = False,
         count: bool = False,
         show_default: bool = False,
     ) -> Callable[
-        [Callable[..., FlextTypes.JsonValue]],
-        Callable[..., FlextTypes.JsonValue],
+        [Callable[..., CliJsonValue]],
+        Callable[..., CliJsonValue],
     ]:
         """Create Click option decorator with explicit parameters.
 
@@ -444,9 +444,10 @@ class FlextCliCli:
             For advanced Click arguments, import Click directly in cli.py only.
 
         Example:
+            >>> import click
             >>> cli = FlextCliCli()
             >>> argument = cli.create_argument_decorator(
-            ...     "filename", type_hint=cli.get_path_type()
+            ...     "filename", type_hint=click.Path(exists=True)
             ... )
 
         """
@@ -466,225 +467,6 @@ class FlextCliCli:
     # =========================================================================
     # PARAMETER TYPES
     # =========================================================================
-
-    def get_choice_type(
-        self,
-        choices: Sequence[str],
-        *,
-        case_sensitive: bool = True,
-    ) -> click.Choice[str]:
-        """Get Click Choice parameter type.
-
-        Args:
-            choices: Available choices
-            case_sensitive: Whether choices are case-sensitive
-
-        Returns:
-            Click Choice type
-
-        Example:
-            >>> cli = FlextCliCli()
-            >>> choice_type = cli.get_choice_type(["json", "yaml", "csv"])
-
-        """
-        return click.Choice(choices, case_sensitive=case_sensitive)
-
-    def get_path_type(
-        self,
-        *,
-        exists: bool = False,
-        file_okay: bool = True,
-        dir_okay: bool = True,
-        writable: bool = False,
-        readable: bool = True,
-        resolve_path: bool = False,
-        path_type: type[str | Path] = str,
-    ) -> click.Path:
-        """Get Click Path parameter type.
-
-        Args:
-            exists: Path must exist
-            file_okay: Accept files
-            dir_okay: Accept directories
-            writable: Path must be writable
-            readable: Path must be readable
-            resolve_path: Resolve to absolute path
-            path_type: Return type (str or Path)
-
-        Returns:
-            Click Path type
-
-        """
-        return click.Path(
-            exists=exists,
-            file_okay=file_okay,
-            dir_okay=dir_okay,
-            writable=writable,
-            readable=readable,
-            resolve_path=resolve_path,
-            path_type=path_type,
-        )
-
-    def get_file_type(
-        self,
-        mode: str = FlextCliConstants.FileDefaults.DEFAULT_FILE_MODE,
-        encoding: str | None = None,
-        errors: str | None = FlextCliConstants.FileDefaults.DEFAULT_ERROR_HANDLING,
-        *,
-        lazy: bool | None = None,
-        atomic: bool = False,
-    ) -> click.File:
-        """Get Click File parameter type.
-
-        Args:
-            mode: File mode (r, w, rb, wb, etc.)
-            encoding: Text encoding
-            errors: Error handling strategy
-            lazy: Lazy file opening
-            atomic: Atomic file writing
-
-        Returns:
-            Click File type
-
-        """
-        return click.File(
-            mode=mode,
-            encoding=encoding,
-            errors=errors,
-            lazy=lazy,
-            atomic=atomic,
-        )
-
-    # =========================================================================
-    # RANGE TYPE HELPERS - DRY pattern with overload for type safety
-    # =========================================================================
-
-    @typing.overload
-    def _get_range_type(
-        self,
-        range_type: typing.Literal["int"],
-        min_val: int | None,
-        max_val: int | None,
-        *,
-        min_open: bool,
-        max_open: bool,
-        clamp: bool,
-    ) -> click.IntRange: ...
-
-    @typing.overload
-    def _get_range_type(
-        self,
-        range_type: typing.Literal["float"],
-        min_val: float | None,
-        max_val: float | None,
-        *,
-        min_open: bool,
-        max_open: bool,
-        clamp: bool,
-    ) -> click.FloatRange: ...
-
-    def _get_range_type(
-        self,
-        range_type: FlextCliConstants.RangeTypeLiteral,
-        min_val: float | None,
-        max_val: float | None,
-        *,
-        min_open: bool,
-        max_open: bool,
-        clamp: bool,
-    ) -> click.IntRange | click.FloatRange:
-        """Create Click range type (IntRange or FloatRange) - DRY helper.
-
-        Args:
-            range_type: Type of range to create ("int" or "float")
-            min_val: Minimum value (inclusive unless min_open=True)
-            max_val: Maximum value (inclusive unless max_open=True)
-            min_open: Minimum is exclusive
-            max_open: Maximum is exclusive
-            clamp: Clamp values to range instead of error
-
-        Returns:
-            Click IntRange or FloatRange based on range_type
-
-        """
-        if range_type == "int":
-            return click.IntRange(
-                min=min_val,
-                max=max_val,
-                min_open=min_open,
-                max_open=max_open,
-                clamp=clamp,
-            )
-        # float
-        return click.FloatRange(
-            min=min_val,
-            max=max_val,
-            min_open=min_open,
-            max_open=max_open,
-            clamp=clamp,
-        )
-
-    def get_int_range_type(
-        self,
-        min_val: int | None = None,
-        max_val: int | None = None,
-        *,
-        min_open: bool = False,
-        max_open: bool = False,
-        clamp: bool = False,
-    ) -> click.IntRange:
-        """Get Click IntRange parameter type.
-
-        Args:
-            min_val: Minimum value (inclusive unless min_open=True)
-            max_val: Maximum value (inclusive unless max_open=True)
-            min_open: Minimum is exclusive
-            max_open: Maximum is exclusive
-            clamp: Clamp values to range instead of error
-
-        Returns:
-            Click IntRange type
-
-        """
-        return self._get_range_type(
-            "int",
-            min_val,
-            max_val,
-            min_open=min_open,
-            max_open=max_open,
-            clamp=clamp,
-        )
-
-    def get_float_range_type(
-        self,
-        min_val: float | None = None,
-        max_val: float | None = None,
-        *,
-        min_open: bool = False,
-        max_open: bool = False,
-        clamp: bool = False,
-    ) -> click.FloatRange:
-        """Get Click FloatRange parameter type.
-
-        Args:
-            min_val: Minimum value (inclusive unless min_open=True)
-            max_val: Maximum value (inclusive unless max_open=True)
-            min_open: Minimum is exclusive
-            max_open: Maximum is exclusive
-            clamp: Clamp values to range instead of error
-
-        Returns:
-            Click FloatRange type
-
-        """
-        return self._get_range_type(
-            "float",
-            min_val,
-            max_val,
-            min_open=min_open,
-            max_open=max_open,
-            clamp=clamp,
-        )
 
     def get_datetime_type(
         self,
@@ -723,7 +505,7 @@ class FlextCliCli:
 
     def get_tuple_type(
         self,
-        types: Sequence[type[FlextTypes.JsonValue] | click.ParamType],
+        types: Sequence[type[CliJsonValue] | click.ParamType],
     ) -> click.Tuple:
         """Get Click Tuple parameter type.
 
@@ -910,9 +692,9 @@ class FlextCliCli:
     def prompt(
         self,
         text: str,
-        default: FlextTypes.JsonValue | None = None,
-        type_hint: FlextTypes.JsonValue | None = None,
-        value_proc: Callable[[str], FlextTypes.JsonValue] | None = None,
+        default: CliJsonValue | None = None,
+        type_hint: CliJsonValue | None = None,
+        value_proc: Callable[[str], CliJsonValue] | None = None,
         prompt_suffix: str = FlextCliConstants.UIDefaults.DEFAULT_PROMPT_SUFFIX,
         *,
         hide_input: bool = False,
@@ -1060,7 +842,7 @@ class FlextCliCli:
     def model_command(
         self,
         model_class: type,
-        handler: typing.Callable[..., FlextTypes.JsonValue],
+        handler: typing.Callable[..., CliJsonValue],
         config: FlextCliConfig | None = None,
     ) -> Callable[..., None]:
         """Create Typer command from Pydantic model with automatic config integration.

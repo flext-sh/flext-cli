@@ -52,7 +52,7 @@ from flext_cli.services.core import FlextCliCore
 from flext_cli.services.output import FlextCliOutput
 from flext_cli.services.prompts import FlextCliPrompts
 from flext_cli.services.tables import FlextCliTables
-from flext_cli.typings import FlextCliTypes
+from flext_cli.typings import CliJsonValue, FlextCliTypes
 from flext_cli.utilities import FlextCliUtilities
 
 
@@ -158,12 +158,12 @@ class FlextCli:
 
         # Core initialization
         self.logger = FlextLogger(__name__)
-        self._container = FlextContainer.get_global()
+        self._container = FlextContainer()
         # Register in container only if not already registered (avoids test conflicts)
-        if not self._container.has(
+        if not self._container.has_service(
             FlextCliConstants.APIDefaults.CONTAINER_REGISTRATION_KEY,
         ):
-            register_result = self._container.register_service(
+            register_result = self._container.register(
                 FlextCliConstants.APIDefaults.CONTAINER_REGISTRATION_KEY,
                 self,
             )
@@ -184,9 +184,9 @@ class FlextCli:
         # CLI framework abstraction (domain library pattern)
         self._cli = FlextCliCli()
         # Commands and groups store Callable functions, not JSON data
-        self._commands: dict[str, Callable[..., FlextTypes.JsonValue]] = {}
-        self._groups: dict[str, Callable[..., FlextTypes.JsonValue]] = {}
-        self._plugin_commands: dict[str, Callable[..., FlextTypes.JsonValue]] = {}
+        self._commands: dict[str, Callable[..., CliJsonValue]] = {}
+        self._groups: dict[str, Callable[..., CliJsonValue]] = {}
+        self._plugin_commands: dict[str, Callable[..., CliJsonValue]] = {}
 
         # Auth state (consolidated from FlextCliAuth)
         # Use new config pattern with automatic namespaces
@@ -297,7 +297,7 @@ class FlextCli:
         # Use file tools domain library for JSON writing
         # token_data is CredentialsData (dict[str, JsonValue]) which is compatible with JsonValue
         # Cast to JsonValue for type checker (dict is a valid JsonValue at runtime)
-        json_data = typing.cast("FlextTypes.JsonValue", token_data)
+        json_data = typing.cast("CliJsonValue", token_data)
         write_result = self.file_tools.write_json_file(str(token_path), json_data)
         if write_result.is_failure:
             return FlextResult[bool].fail(
@@ -410,8 +410,8 @@ class FlextCli:
         self,
         entity_type: FlextCliConstants.EntityTypeLiteral,
         name: str | None,
-        func: Callable[..., FlextTypes.JsonValue],
-    ) -> Callable[..., FlextTypes.JsonValue]:
+        func: Callable[..., CliJsonValue],
+    ) -> Callable[..., CliJsonValue]:
         """Register a CLI entity (command or group) with framework abstraction.
 
         Args:
@@ -439,14 +439,14 @@ class FlextCli:
         self,
         name: str | None = None,
     ) -> Callable[
-        [Callable[..., FlextTypes.JsonValue]],
-        Callable[..., FlextTypes.JsonValue],
+        [Callable[..., CliJsonValue]],
+        Callable[..., CliJsonValue],
     ]:
         """Register a command using CLI framework abstraction."""
 
         def decorator(
-            func: Callable[..., FlextTypes.JsonValue],
-        ) -> Callable[..., FlextTypes.JsonValue]:
+            func: Callable[..., CliJsonValue],
+        ) -> Callable[..., CliJsonValue]:
             return self._register_cli_entity("command", name, func)
 
         return decorator
@@ -455,14 +455,14 @@ class FlextCli:
         self,
         name: str | None = None,
     ) -> Callable[
-        [Callable[..., FlextTypes.JsonValue]],
-        Callable[..., FlextTypes.JsonValue],
+        [Callable[..., CliJsonValue]],
+        Callable[..., CliJsonValue],
     ]:
         """Register a command group using CLI framework abstraction."""
 
         def decorator(
-            func: Callable[..., FlextTypes.JsonValue],
-        ) -> Callable[..., FlextTypes.JsonValue]:
+            func: Callable[..., CliJsonValue],
+        ) -> Callable[..., CliJsonValue]:
             return self._register_cli_entity("group", name, func)
 
         return decorator
@@ -511,9 +511,7 @@ class FlextCli:
 
     def create_table(
         self,
-        data: Sequence[dict[str, FlextTypes.JsonValue]]
-        | dict[str, FlextTypes.JsonValue]
-        | None = None,
+        data: Sequence[dict[str, CliJsonValue]] | dict[str, CliJsonValue] | None = None,
         headers: list[str] | None = None,
         title: str | None = None,
     ) -> FlextResult[str]:
@@ -537,14 +535,14 @@ class FlextCli:
         # table_data is dict|list which are both valid JsonValue types
         # Ensure type compatibility for type checker (dict/list are JsonValue at runtime)
         if isinstance(data, dict):
-            table_data = typing.cast("FlextTypes.JsonValue", data)
+            table_data = typing.cast("CliJsonValue", data)
         elif isinstance(data, list):
             # Already a list-like structure, cast directly
-            table_data = typing.cast("FlextTypes.JsonValue", data)
+            table_data = typing.cast("CliJsonValue", data)
         else:
             # Convert iterable to list and ensure JsonValue compatibility
             table_data = typing.cast(
-                "FlextTypes.JsonValue",
+                "CliJsonValue",
                 list(data) if isinstance(data, Sequence) else [data],
             )
 

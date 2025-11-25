@@ -1,6 +1,8 @@
-"""FLEXT CLI Config - Single flat Pydantic 2 Settings class for flext-cli.
+"""FLEXT CLI Configuration Module.
 
-Single FlextCliConfig class with nested configuration subclasses following FLEXT pattern.
+**MODULE**: FlextCliConfig - Enterprise CLI configuration management
+**SCOPE**: Pydantic 2 settings, environment variables, terminal detection, output formatting,
+          singleton pattern, functional validation, railway-oriented error handling
 
 Copyright (c) 2025 FLEXT Team. All rights reserved.
 SPDX-License-Identifier: MIT
@@ -13,11 +15,11 @@ import importlib
 import json
 import os
 import shutil
+from collections.abc import Callable
 from pathlib import Path
 from typing import Annotated, Self, cast
 
 import yaml
-from dotenv import load_dotenv
 from flext_core import (
     FlextConfig,
     FlextConstants,
@@ -28,8 +30,6 @@ from flext_core import (
     FlextResult,
     FlextTypes,
     FlextUtilities,
-    RetryCount,
-    TimeoutSeconds,
 )
 from pydantic import (
     Field,
@@ -38,10 +38,10 @@ from pydantic import (
     computed_field,
     model_validator,
 )
-from pydantic_settings import SettingsConfigDict
+from pydantic_settings import BaseSettings, SettingsConfigDict
 
 from flext_cli.constants import FlextCliConstants
-from flext_cli.typings import FlextCliTypes
+from flext_cli.typings import CliJsonValue, FlextCliTypes
 
 # Alias LogLevel from FlextConstants (moved from flext_core direct export)
 LogLevel = FlextConstants.Settings.LogLevel
@@ -50,7 +50,7 @@ logger = FlextLogger(__name__)
 
 
 @FlextConfig.auto_register("cli")
-class FlextCliConfig(FlextConfig.AutoConfig):
+class FlextCliConfig(BaseSettings):
     """Single flat Pydantic 2 BaseModel class for flext-cli using AutoConfig pattern.
 
     **ARCHITECTURAL PATTERN**: Zero-Boilerplate Auto-Registration
@@ -81,12 +81,13 @@ class FlextCliConfig(FlextConfig.AutoConfig):
     - Uses Python 3.13 + Pydantic 2 features
     """
 
+    # Use FlextConfig.resolve_env_file() to ensure all FLEXT configs use same .env
     model_config = SettingsConfigDict(
         case_sensitive=False,
         extra="allow",
         # Pydantic Settings environment variable support
         env_prefix="FLEXT_CLI_",
-        env_file=".env",
+        env_file=FlextConfig.resolve_env_file(),
         env_file_encoding="utf-8",
         env_nested_delimiter="__",
         # Inherit enhanced Pydantic 2.11+ features
@@ -102,21 +103,6 @@ class FlextCliConfig(FlextConfig.AutoConfig):
             FlextCliConstants.JsonSchemaKeys.DESCRIPTION: "Enterprise CLI configuration using AutoConfig pattern",
         },
     )
-
-    def __init__(self, **data: object) -> None:
-        """Initialize FlextCliConfig with .env file loading from current directory.
-
-        This custom __init__ ensures that .env files are loaded from the current
-        working directory, which is important for tests that change the working
-        directory after module import.
-        """
-        # Load .env from current working directory if it exists
-        env_path = Path.cwd() / ".env"
-        if env_path.exists():
-            load_dotenv(env_path, override=False)
-
-        # Call parent __init__ to initialize Pydantic model
-        super().__init__(**data)
 
     # CLI-specific configuration fields using FlextCliConstants for defaults
     # Using Annotated with StringConstraints for automatic validation (Pydantic 2)
@@ -222,14 +208,18 @@ class FlextCliConfig(FlextConfig.AutoConfig):
     )
 
     # Network configuration
-    cli_timeout: TimeoutSeconds = Field(
+    cli_timeout: float = Field(
         default=FlextCliConstants.NetworkDefaults.DEFAULT_TIMEOUT,
         description="CLI network timeout in seconds",
+        ge=0,
+        le=300,
     )
 
-    max_retries: RetryCount = Field(
+    max_retries: int = Field(
         default=FlextCliConstants.NetworkDefaults.DEFAULT_MAX_RETRIES,
         description="Maximum number of retry attempts",
+        ge=0,
+        le=10,
     )
 
     # Logging configuration - centralized for all FLEXT projects
@@ -317,7 +307,7 @@ class FlextCliConfig(FlextConfig.AutoConfig):
         def register_in_container() -> FlextResult[bool]:
             """Register configuration in FlextContainer for dependency injection."""
             try:
-                container = FlextContainer.get_global()
+                container = FlextContainer()
                 # Register only if not already registered (avoids test conflicts)
                 if not container.has_service("flext_cli_config"):
                     _ = container.with_service("flext_cli_config", self)
@@ -333,8 +323,8 @@ class FlextCliConfig(FlextConfig.AutoConfig):
         # Execute validation pipeline using railway pattern
         validation_result = (
             ensure_config_directory()
-            .flat_map(lambda _: propagate_to_context())
-            .flat_map(lambda _: register_in_container())
+            .flat_map(lambda _: cast("FlextResult[object]", propagate_to_context()))
+            .flat_map(lambda _: cast("FlextResult[object]", register_in_container()))
         )
 
         # Convert validation result to configuration result
@@ -401,14 +391,14 @@ class FlextCliConfig(FlextConfig.AutoConfig):
             )
             .map(
                 lambda capabilities: determine_format(
-                    capabilities[0],  # is_interactive
-                    capabilities[1],  # width
+                    cast("tuple[bool, int]", capabilities)[0],  # is_interactive
+                    cast("tuple[bool, int]", capabilities)[1],  # width
                     bool(self.auto_color_support),  # has_color
                 ),
             )
         )
         if result.is_success:
-            return result.unwrap()
+            return cast("str", result.unwrap())
         # Fast-fail: return error format on failure
         return FlextCliConstants.OutputFormats.JSON.value
 
@@ -458,7 +448,7 @@ class FlextCliConfig(FlextConfig.AutoConfig):
 
         result = FlextResult.ok((self.verbose, self.quiet)).map(map_to_verbosity)
         if result.is_success:
-            return result.unwrap()
+            return cast("str", result.unwrap())
         # Fast-fail: return normal verbosity on failure
         return FlextCliConstants.ConfigDefaults.NORMAL_VERBOSITY
 
@@ -494,7 +484,7 @@ class FlextCliConfig(FlextConfig.AutoConfig):
         # Railway pattern: get width then select format
         result = get_terminal_width().map(select_table_format)
         if result.is_success:
-            return result.unwrap()
+            return cast("str", result.unwrap())
         # Fast-fail: return simple format on failure
         return FlextCliConstants.TableFormats.SIMPLE
 
@@ -526,7 +516,12 @@ class FlextCliConfig(FlextConfig.AutoConfig):
             )
 
         # Railway pattern: validate input then check format
-        return FlextResult.ok(value).flat_map(check_format_exists)
+        return cast(
+            "FlextResult[str]",
+            FlextResult.ok(value).flat_map(
+                cast("Callable[[str], FlextResult[object]]", check_format_exists)
+            ),
+        )
 
     @classmethod
     def load_from_config_file(cls, config_file: Path) -> FlextResult[FlextCliConfig]:
@@ -585,14 +580,14 @@ class FlextCliConfig(FlextConfig.AutoConfig):
         """
         # Convert Path objects to strings for JSON compatibility
         config_dict_raw = FlextMixins.ModelConversion.to_dict(self)
-        config_dict: dict[str, FlextTypes.JsonValue] = {}
+        config_dict: dict[str, CliJsonValue] = {}
         # Convert PosixPath to str for JSON serialization and ensure JsonValue compatibility
         for key, value in config_dict_raw.items():
             if isinstance(value, Path):
                 config_dict[key] = str(value)
             else:
                 # Type narrowing: value is already JsonValue compatible after Path conversion
-                config_dict[key] = cast("FlextTypes.JsonValue", value)
+                config_dict[key] = cast("CliJsonValue", value)
 
         # Create result dict with service execution information
         result_dict: FlextCliTypes.Data.CliDataDict = cast(
@@ -607,7 +602,7 @@ class FlextCliConfig(FlextConfig.AutoConfig):
         )
         return FlextResult[FlextCliTypes.Data.CliDataDict].ok(result_dict)
 
-    def update_from_cli_args(self, **kwargs: FlextTypes.JsonValue) -> FlextResult[bool]:
+    def update_from_cli_args(self, **kwargs: CliJsonValue) -> FlextResult[bool]:
         """Update configuration from CLI arguments with validation.
 
         Allows CLI commands to override configuration values dynamically.
@@ -650,7 +645,7 @@ class FlextCliConfig(FlextConfig.AutoConfig):
 
     def validate_cli_overrides(
         self,
-        **overrides: FlextTypes.JsonValue,
+        **overrides: CliJsonValue,
     ) -> FlextResult[FlextTypes.JsonDict]:
         """Validate CLI overrides without applying them.
 
@@ -760,6 +755,29 @@ class FlextCliConfig(FlextConfig.AutoConfig):
             return FlextResult[bool].fail(
                 FlextCliConstants.ErrorMessages.CONFIG_SAVE_FAILED_MSG.format(error=e),
             )
+
+    _instance: Self | None = None
+
+    @classmethod
+    def get_instance(cls) -> Self:
+        """Get singleton instance of FlextCliConfig.
+
+        Returns:
+            Singleton instance of FlextCliConfig
+
+        """
+        if cls._instance is None:
+            cls._instance = cls()
+        return cls._instance
+
+    @classmethod
+    def _reset_instance(cls) -> None:
+        """Reset singleton instance for testing purposes.
+
+        This method is intended for use in tests only to allow
+        clean state between test runs.
+        """
+        cls._instance = None
 
 
 __all__ = [

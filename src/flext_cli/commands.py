@@ -11,12 +11,15 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 from collections.abc import Callable
-from typing import override
+from typing import TypeVar, override
 
 from flext_core import FlextResult, FlextRuntime, FlextTypes
 
 from flext_cli.base import FlextCliServiceBase
 from flext_cli.constants import FlextCliConstants
+from flext_cli.typings import CliJsonValue
+
+T = TypeVar("T")
 
 
 class FlextCliCommands(FlextCliServiceBase):
@@ -47,7 +50,7 @@ class FlextCliCommands(FlextCliServiceBase):
         self,
         name: str = FlextCliConstants.CommandsDefaults.DEFAULT_CLI_NAME,
         description: str = FlextCliConstants.CommandsDefaults.DEFAULT_DESCRIPTION,
-        **data: FlextTypes.JsonValue,
+        **data: CliJsonValue,
     ) -> None:
         """Initialize CLI commands manager with Phase 1 context enrichment."""
         super().__init__(**data)
@@ -113,8 +116,7 @@ class FlextCliCommands(FlextCliServiceBase):
     def register_command(
         self,
         name: str,
-        handler: Callable[[], FlextTypes.JsonValue]
-        | Callable[[list[str]], FlextTypes.JsonValue],
+        handler: Callable[[], CliJsonValue] | Callable[[list[str]], CliJsonValue],
         description: str = FlextCliConstants.CommandsDefaults.DEFAULT_DESCRIPTION,
     ) -> FlextResult[bool]:
         """Register a command.
@@ -398,7 +400,9 @@ class FlextCliCommands(FlextCliServiceBase):
                 consequence="CLI execution aborted",  # pragma: no cover
                 source="flext-cli/src/flext_cli/commands.py",  # pragma: no cover
             )  # pragma: no cover
-            return FlextResult[bool].fail(result.error or "Unknown error")  # pragma: no cover
+            return FlextResult[bool].fail(
+                result.error or "Unknown error"
+            )  # pragma: no cover
         except Exception as e:  # pragma: no cover
             self.logger.exception(  # pragma: no cover
                 "FATAL ERROR during CLI execution - execution aborted",  # pragma: no cover
@@ -424,9 +428,9 @@ class FlextCliCommands(FlextCliServiceBase):
 
     def _execute_handler(
         self,
-        handler: Callable[..., object],
+        handler: Callable[..., T],
         args: list[str] | None,
-    ) -> object:
+    ) -> T:
         """Execute command handler with appropriate arguments.
 
         Args:
@@ -450,7 +454,7 @@ class FlextCliCommands(FlextCliServiceBase):
         command_name: str,
         args: list[str] | None = None,
         timeout: int = FlextCliConstants.TIMEOUTS.DEFAULT,
-    ) -> FlextResult[FlextTypes.JsonValue]:
+    ) -> FlextResult[CliJsonValue]:
         """Execute a specific command.
 
         Args:
@@ -459,7 +463,7 @@ class FlextCliCommands(FlextCliServiceBase):
             timeout: Command timeout in seconds
 
         Returns:
-            FlextResult[FlextTypes.JsonValue]: Command result
+            FlextResult[CliJsonValue]: Command result
 
         """
         self.logger.info(
@@ -491,7 +495,7 @@ class FlextCliCommands(FlextCliServiceBase):
                     consequence="Command execution aborted",
                     source="flext-cli/src/flext_cli/commands.py",
                 )
-                return FlextResult[FlextTypes.JsonValue].fail(
+                return FlextResult[CliJsonValue].fail(
                     FlextCliConstants.CommandsErrorMessages.COMMAND_NOT_FOUND_DETAIL.format(
                         command_name=command_name,
                     ),
@@ -520,7 +524,7 @@ class FlextCliCommands(FlextCliServiceBase):
                     consequence="Command execution aborted",
                     source="flext-cli/src/flext_cli/commands.py",
                 )
-                return FlextResult[FlextTypes.JsonValue].fail(
+                return FlextResult[CliJsonValue].fail(
                     FlextCliConstants.CommandsErrorMessages.INVALID_COMMAND_STRUCTURE.format(
                         command_name=command_name,
                     ),
@@ -537,7 +541,7 @@ class FlextCliCommands(FlextCliServiceBase):
                     consequence="Command execution aborted",
                     source="flext-cli/src/flext_cli/commands.py",
                 )
-                return FlextResult[FlextTypes.JsonValue].fail(
+                return FlextResult[CliJsonValue].fail(
                     FlextCliConstants.CommandsErrorMessages.HANDLER_NOT_CALLABLE.format(
                         command_name=command_name,
                     ),
@@ -569,7 +573,7 @@ class FlextCliCommands(FlextCliServiceBase):
                     consequence="Command execution aborted",
                     source="flext-cli/src/flext_cli/commands.py",
                 )
-                return FlextResult[FlextTypes.JsonValue].fail(
+                return FlextResult[CliJsonValue].fail(
                     f"Handler returned invalid type: {type(result).__name__}",
                 )
 
@@ -589,7 +593,7 @@ class FlextCliCommands(FlextCliServiceBase):
                 source="flext-cli/src/flext_cli/commands.py",
             )
 
-            return FlextResult[FlextTypes.JsonValue].ok(result)
+            return FlextResult[CliJsonValue].ok(result)
         except Exception as e:
             self.logger.exception(
                 "FATAL ERROR during command execution - execution aborted",
@@ -601,7 +605,7 @@ class FlextCliCommands(FlextCliServiceBase):
                 severity="critical",
                 source="flext-cli/src/flext_cli/commands.py",
             )
-            return FlextResult[FlextTypes.JsonValue].fail(
+            return FlextResult[CliJsonValue].fail(
                 FlextCliConstants.ErrorMessages.COMMAND_EXECUTION_FAILED.format(
                     error=e,
                 ),

@@ -27,14 +27,13 @@ from typing import override
 from flext_core import (
     FlextMixins,
     FlextResult,
-    FlextTypes,
     FlextUtilities,
 )
 
 from flext_cli.base import FlextCliServiceBase
 from flext_cli.constants import FlextCliConstants
 from flext_cli.models import FlextCliModels
-from flext_cli.typings import FlextCliTypes, FlextCliTypes as Types
+from flext_cli.typings import CliJsonValue, FlextCliTypes, FlextCliTypes as Types
 
 
 class FlextCliDebug(FlextCliServiceBase):
@@ -47,7 +46,7 @@ class FlextCliDebug(FlextCliServiceBase):
     """
 
     @override
-    def __init__(self, **_data: FlextTypes.JsonValue) -> None:
+    def __init__(self, **_data: CliJsonValue) -> None:
         """Initialize debug service with flext-core integration and Phase 1 context enrichment."""
         super().__init__()
         # Logger and container inherited from FlextService via FlextMixins
@@ -122,7 +121,7 @@ class FlextCliDebug(FlextCliServiceBase):
                 FlextCliConstants.DictKeys.STATUS: FlextCliConstants.ServiceStatus.HEALTHY.value,
                 FlextCliConstants.DictKeys.TIMESTAMP: FlextUtilities.Generators.generate_iso_timestamp(),
                 FlextCliConstants.DictKeys.SERVICE: FlextCliConstants.DebugDefaults.SERVICE_NAME,
-                FlextCliConstants.DebugDictKeys.CHECK_ID: FlextUtilities.Generators.generate_uuid(),
+                FlextCliConstants.DebugDictKeys.CHECK_ID: FlextUtilities.Generators.generate_id(),
                 FlextCliConstants.DebugDictKeys.CHECKS_PASSED: True,
             }
             return FlextResult[Types.Data.DebugInfoData].ok(health_info)
@@ -143,7 +142,7 @@ class FlextCliDebug(FlextCliServiceBase):
                 ),  # Cast to list for JsonValue compatibility
                 FlextCliConstants.DebugDictKeys.ARGS_COUNT: len(args),
                 FlextCliConstants.DictKeys.TIMESTAMP: FlextUtilities.Generators.generate_iso_timestamp(),
-                FlextCliConstants.DebugDictKeys.TRACE_ID: FlextUtilities.Generators.generate_uuid(),
+                FlextCliConstants.DebugDictKeys.TRACE_ID: FlextUtilities.Generators.generate_id(),
             }
             return FlextResult[Types.Data.DebugInfoData].ok(trace_info)
         except Exception as e:
@@ -166,7 +165,7 @@ class FlextCliDebug(FlextCliServiceBase):
             debug_info: Types.Data.DebugInfoData = {
                 FlextCliConstants.DictKeys.SERVICE: FlextCliConstants.DebugDefaults.SERVICE_NAME,
                 FlextCliConstants.DictKeys.TIMESTAMP: FlextUtilities.Generators.generate_iso_timestamp(),
-                FlextCliConstants.DebugDictKeys.DEBUG_ID: FlextUtilities.Generators.generate_uuid(),
+                FlextCliConstants.DebugDictKeys.DEBUG_ID: FlextUtilities.Generators.generate_id(),
                 FlextCliConstants.DebugDictKeys.SYSTEM_INFO: FlextMixins.ModelConversion.to_dict(
                     system_info_model,
                 ),
@@ -225,7 +224,7 @@ class FlextCliDebug(FlextCliServiceBase):
             # serialized_paths is list[dict[str, object]] which is compatible with JsonValue
             # list is a valid JsonValue type, cast to ensure type compatibility
             paths_dict: FlextCliTypes.Data.CliDataDict = {
-                "paths": typing.cast("FlextTypes.JsonValue", serialized_paths),
+                "paths": typing.cast("CliJsonValue", serialized_paths),
             }
             return FlextResult[FlextCliTypes.Data.CliDataDict].ok(paths_dict)
         except Exception as e:
@@ -247,7 +246,7 @@ class FlextCliDebug(FlextCliServiceBase):
             if system_result.is_success:
                 # Type cast: CliDataDict is dict[str, JsonValue] which is compatible with JsonValue
                 comprehensive_info[FlextCliConstants.DebugDictKeys.SYSTEM] = (
-                    typing.cast("FlextTypes.JsonValue", system_result.value)
+                    typing.cast("CliJsonValue", system_result.value)
                 )
             else:
                 comprehensive_info[FlextCliConstants.DebugDictKeys.SYSTEM_ERROR] = (
@@ -259,7 +258,7 @@ class FlextCliDebug(FlextCliServiceBase):
             if env_result.is_success:
                 # Type cast: CliDataDict is dict[str, JsonValue] which is compatible with JsonValue
                 comprehensive_info[FlextCliConstants.DebugDictKeys.ENVIRONMENT] = (
-                    typing.cast("FlextTypes.JsonValue", env_result.value)
+                    typing.cast("CliJsonValue", env_result.value)
                 )
             else:
                 comprehensive_info[
@@ -271,7 +270,7 @@ class FlextCliDebug(FlextCliServiceBase):
             if paths_result.is_success:
                 # Type cast: CliDataDict is dict[str, JsonValue] which is compatible with JsonValue
                 comprehensive_info[FlextCliConstants.DebugDictKeys.PATHS] = typing.cast(
-                    "FlextTypes.JsonValue",
+                    "CliJsonValue",
                     paths_result.value,
                 )
             else:
@@ -284,7 +283,7 @@ class FlextCliDebug(FlextCliServiceBase):
             if debug_result.is_success:
                 # Type cast: DebugInfoData is dict[str, JsonValue] which is compatible with JsonValue
                 comprehensive_info[FlextCliConstants.DebugDictKeys.DEBUG] = typing.cast(
-                    "FlextTypes.JsonValue",
+                    "CliJsonValue",
                     debug_result.value,
                 )
             else:

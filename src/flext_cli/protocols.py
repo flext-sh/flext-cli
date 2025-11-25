@@ -71,9 +71,9 @@ from __future__ import annotations
 import inspect
 from typing import Protocol, runtime_checkable
 
-from flext_core import FlextProtocols, FlextResult, FlextTypes
+from flext_core import FlextProtocols, FlextResult
 
-from flext_cli.typings import FlextCliTypes
+from flext_cli.typings import CliJsonValue, FlextCliTypes
 
 
 class FlextCliProtocols(FlextProtocols):
@@ -290,7 +290,7 @@ class FlextCliProtocols(FlextProtocols):
 
             def initialize(
                 self,
-                cli_context: FlextTypes.JsonValue,
+                cli_context: CliJsonValue,
             ) -> FlextResult[bool]:
                 """Initialize plugin with CLI context.
 
@@ -303,7 +303,7 @@ class FlextCliProtocols(FlextProtocols):
 
             def register_commands(
                 self,
-                cli_context: FlextTypes.JsonValue,
+                cli_context: CliJsonValue,
             ) -> FlextResult[bool]:
                 """Register plugin commands with CLI.
 

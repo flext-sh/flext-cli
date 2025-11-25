@@ -23,7 +23,6 @@ from datetime import datetime
 from enum import Enum
 from types import UnionType
 from typing import (
-    TYPE_CHECKING,
     Annotated,
     Self,
     Union,
@@ -32,9 +31,6 @@ from typing import (
     get_origin,
     get_type_hints,
 )
-
-if TYPE_CHECKING:
-    from flext_cli.config import FlextCliConfig
 
 import typer
 from flext_core import (
@@ -72,18 +68,25 @@ from flext_cli.utilities import FlextCliUtilities
 
 logger = FlextLogger(__name__)
 
-# Type alias for intermediate field metadata dictionaries
-# Contains Python types (type) which are not JsonValue
-type FieldMetadataDict = dict[
+# Local type alias for JSON values - expanded from JsonValue
+# This is needed because Pydantic cannot resolve nested type aliases during class construction
+type JsonValue = str | int | float | bool | dict[str, object] | list[object] | None
+
+# Type aliases for intermediate field conversion results
+type FieldTypeResult = type
+type FieldTypesDict = dict[str, type | str]  # python_type, click_type
+type FieldPropertiesDict = dict[
     str,
     type
     | str
     | bool
-    | FlextTypes.JsonValue
-    | list[Callable[[FlextTypes.JsonValue], FlextTypes.JsonValue]]
-    | dict[str, FlextTypes.JsonValue]
+    | JsonValue
+    | list[Callable[[JsonValue], JsonValue]]
+    | dict[str, JsonValue]
     | None,
 ]
+# Legacy alias for compatibility
+type FieldMetadataDict = FieldPropertiesDict
 
 # Type alias for field validation result tuple
 type FieldValidationResult = tuple[
@@ -91,8 +94,8 @@ type FieldValidationResult = tuple[
     str,
     bool,
     str,
-    list[Callable[[FlextTypes.JsonValue], FlextTypes.JsonValue]],
-    dict[str, FlextTypes.JsonValue],
+    list[Callable[[JsonValue], JsonValue]],
+    dict[str, JsonValue],
 ]
 
 
@@ -193,20 +196,18 @@ class FlextCliModels(FlextModels):
         required: bool = Field(
             description=FlextCliConstants.CliParameterSpecDescriptions.REQUIRED,
         )
-        default: FlextTypes.JsonValue | None = Field(
+        default: JsonValue | None = Field(
             default=None,
             description=FlextCliConstants.CliParameterSpecDescriptions.DEFAULT,
         )
         help: str = Field(
             description=FlextCliConstants.CliParameterSpecDescriptions.HELP,
         )
-        validators: list[Callable[[FlextTypes.JsonValue], FlextTypes.JsonValue]] = (
-            Field(
-                default_factory=list,
-                description=FlextCliConstants.CliParameterSpecDescriptions.VALIDATORS,
-            )
+        validators: list[Callable[[JsonValue], JsonValue]] = Field(
+            default_factory=list,
+            description=FlextCliConstants.CliParameterSpecDescriptions.VALIDATORS,
         )
-        metadata: dict[str, FlextTypes.JsonValue] = Field(
+        metadata: dict[str, JsonValue] = Field(
             default_factory=dict,
             description=FlextCliConstants.CliParameterSpecDescriptions.METADATA,
         )
@@ -227,7 +228,7 @@ class FlextCliModels(FlextModels):
             description=FlextCliConstants.CliOptionSpecDescriptions.PARAM_DECLS,
         )
         type: str = Field(description=FlextCliConstants.CliOptionSpecDescriptions.TYPE)
-        default: FlextTypes.JsonValue | None = Field(
+        default: JsonValue | None = Field(
             default=None,
             description=FlextCliConstants.CliOptionSpecDescriptions.DEFAULT,
         )
@@ -238,7 +239,7 @@ class FlextCliModels(FlextModels):
         show_default: bool = Field(
             description=FlextCliConstants.CliOptionSpecDescriptions.SHOW_DEFAULT,
         )
-        metadata: dict[str, FlextTypes.JsonValue] = Field(
+        metadata: dict[str, JsonValue] = Field(
             default_factory=dict,
             description=FlextCliConstants.CliOptionSpecDescriptions.METADATA,
         )
@@ -301,18 +302,27 @@ class FlextCliModels(FlextModels):
 
             """
             converter = FlextCliModels.CliModelConverter
-            return (
-                converter.validate_field_type(field_name, field_info)
-                .flat_map(converter.convert_field_types)
-                .flat_map(
-                    lambda types: converter.extract_field_properties(
-                        field_name,
-                        field_info,
-                        types,
-                    ),
-                )
-                .flat_map(lambda data: converter.build_cli_param_spec(field_name, data))
+
+            # Railway pattern: validate → convert types → extract properties → build spec
+            field_type_result = converter.validate_field_type(field_name, field_info)
+            if field_type_result.is_failure:
+                # Return failure result as CliParameterSpec type (failure is compatible)
+                return field_type_result  # type: ignore[return-value]
+
+            field_type = field_type_result.unwrap()
+            types_result = converter.convert_field_types(field_type)
+            if types_result.is_failure:
+                return types_result  # type: ignore[return-value]
+
+            types_dict = types_result.unwrap()
+            properties_result = converter.extract_field_properties(
+                field_name, field_info, types_dict
             )
+            if properties_result.is_failure:
+                return properties_result  # type: ignore[return-value]
+
+            properties_dict = properties_result.unwrap()
+            return converter.build_cli_param_spec(field_name, properties_dict)
 
         @staticmethod
         def pydantic_type_to_python_type(  # noqa: C901
@@ -417,21 +427,21 @@ class FlextCliModels(FlextModels):
         def validate_field_type(
             field_name: str,
             field_info: fields.FieldInfo,
-        ) -> FlextResult[type]:
+        ) -> FlextResult[FieldTypeResult]:
             """Validate field has type annotation."""
             field_type = field_info.annotation
             if field_type is None:
-                return FlextResult[type].fail(
+                return FlextResult[FieldTypeResult].fail(
                     FlextCliConstants.ModelsErrorMessages.FIELD_NO_TYPE_ANNOTATION.format(
                         field_name=field_name,
                     ),
                 )
-            return FlextResult[type].ok(field_type)
+            return FlextResult[FieldTypeResult].ok(field_type)
 
         @staticmethod
         def convert_field_types(
-            field_type: type,
-        ) -> FlextResult[FieldMetadataDict]:
+            field_type: FieldTypeResult,
+        ) -> FlextResult[FieldTypesDict]:
             """Convert Pydantic type to Python and Click types."""
             python_type = FlextCliModels.CliModelConverter.pydantic_type_to_python_type(
                 field_type,
@@ -439,7 +449,7 @@ class FlextCliModels(FlextModels):
             click_type = FlextCliModels.CliModelConverter.python_type_to_click_type(
                 python_type,
             )
-            return FlextResult[FieldMetadataDict].ok({
+            return FlextResult[FieldTypesDict].ok({
                 "python_type": python_type,
                 "click_type": click_type,
             })
@@ -448,8 +458,8 @@ class FlextCliModels(FlextModels):
         def extract_field_properties(
             field_name: str,
             field_info: fields.FieldInfo,
-            types: FieldMetadataDict,
-        ) -> FlextResult[FieldMetadataDict]:
+            types: FieldTypesDict,
+        ) -> FlextResult[FieldPropertiesDict]:
             """Extract all field properties (defaults, description, metadata)."""
             # Extract defaults
             is_required = field_info.default is PydanticUndefined
@@ -466,10 +476,8 @@ class FlextCliModels(FlextModels):
             )
 
             # Extract metadata
-            validators: list[
-                Callable[[FlextTypes.JsonValue], FlextTypes.JsonValue]
-            ] = []
-            metadata: dict[str, FlextTypes.JsonValue] = {}
+            validators: list[Callable[[JsonValue], JsonValue]] = []
+            metadata: dict[str, JsonValue] = {}
 
             if hasattr(field_info, "metadata"):
                 for meta_item in field_info.metadata:
@@ -477,7 +485,7 @@ class FlextCliModels(FlextModels):
                         metadata.update(meta_item.__dict__)
 
             # Combine all data
-            return FlextResult[FieldMetadataDict].ok({
+            return FlextResult[FieldPropertiesDict].ok({
                 **types,
                 "is_required": is_required,
                 "default_value": default_value,
@@ -540,11 +548,11 @@ class FlextCliModels(FlextModels):
                 is_required,
                 description,
                 cast(
-                    "list[Callable[[FlextTypes.JsonValue], FlextTypes.JsonValue]]",
+                    "list[Callable[[JsonValue], JsonValue]]",
                     validators_raw,
                 ),
                 cast(
-                    "dict[str, FlextTypes.JsonValue]",
+                    "dict[str, JsonValue]",
                     metadata_raw,
                 ),
             ))
@@ -552,15 +560,13 @@ class FlextCliModels(FlextModels):
         @staticmethod
         def _process_validators(
             validators_raw: list[object],
-        ) -> list[Callable[[FlextTypes.JsonValue], FlextTypes.JsonValue]]:
+        ) -> list[Callable[[JsonValue], JsonValue]]:
             """Process and type-narrow validators list."""
-            validators: list[
-                Callable[[FlextTypes.JsonValue], FlextTypes.JsonValue]
-            ] = []
+            validators: list[Callable[[JsonValue], JsonValue]] = []
             for validator in validators_raw:
                 if callable(validator):
                     typed_validator = typing.cast(
-                        "Callable[[FlextTypes.JsonValue], FlextTypes.JsonValue]",
+                        "Callable[[JsonValue], JsonValue]",
                         validator,
                     )
                     validators.append(typed_validator)
@@ -569,7 +575,7 @@ class FlextCliModels(FlextModels):
         @staticmethod
         def _process_metadata(
             metadata_raw: dict[str, object],
-        ) -> dict[str, FlextTypes.JsonValue]:
+        ) -> dict[str, JsonValue]:
             """Process and type-narrow metadata dict."""
             return {
                 key: value
@@ -585,12 +591,12 @@ class FlextCliModels(FlextModels):
         @staticmethod
         def build_cli_param_spec(
             field_name: str,
-            data: FieldMetadataDict,
+            data: FieldPropertiesDict,
         ) -> FlextResult[FlextCliModels.CliParameterSpec]:
             """Build CLI parameter specification from extracted data."""
             # Extract and type-narrow default value
             default_value_raw = data["default_value"]
-            default_value: FlextTypes.JsonValue | None = None
+            default_value: JsonValue | None = None
             if default_value_raw is not None and (
                 isinstance(default_value_raw, (str, int, float, bool, type(None)))
                 or FlextRuntime.is_dict_like(default_value_raw)
@@ -816,8 +822,8 @@ class FlextCliModels(FlextModels):
             model_class: type[BaseModel],
             command_name: str | None = None,
         ) -> Callable[
-            [Callable[[BaseModel], FlextTypes.JsonValue | FlextResult[object]]],
-            Callable[..., FlextTypes.JsonValue | FlextResult[object]],
+            [Callable[[BaseModel], JsonValue | FlextResult[object]]],
+            Callable[..., JsonValue | FlextResult[object]],
         ]:
             """Decorator that generates CLI command from Pydantic model.
 
@@ -837,8 +843,8 @@ class FlextCliModels(FlextModels):
             """
 
             def decorator(
-                func: Callable[[BaseModel], FlextTypes.JsonValue | FlextResult[object]],
-            ) -> Callable[..., FlextTypes.JsonValue | FlextResult[object]]:
+                func: Callable[[BaseModel], JsonValue | FlextResult[object]],
+            ) -> Callable[..., JsonValue | FlextResult[object]]:
                 # Store model metadata on function for CLI builder inspection
                 setattr(
                     func,
@@ -856,8 +862,8 @@ class FlextCliModels(FlextModels):
                 )
 
                 def wrapper(
-                    **cli_kwargs: FlextTypes.JsonValue,
-                ) -> FlextTypes.JsonValue | FlextResult[object]:
+                    **cli_kwargs: JsonValue,
+                ) -> JsonValue | FlextResult[object]:
                     # Validate CLI input with Pydantic model
                     # kwargs is always a dict, type is correct
                     validation_result = (
@@ -889,8 +895,8 @@ class FlextCliModels(FlextModels):
             *model_classes: type[BaseModel],
             command_name: str | None = None,
         ) -> Callable[
-            [Callable[..., FlextTypes.JsonValue | FlextResult[object]]],
-            Callable[..., FlextTypes.JsonValue | FlextResult[object]],
+            [Callable[..., JsonValue | FlextResult[object]]],
+            Callable[..., JsonValue | FlextResult[object]],
         ]:
             """Decorator for CLI command with multiple model inputs.
 
@@ -910,8 +916,8 @@ class FlextCliModels(FlextModels):
             """
 
             def decorator(
-                func: Callable[..., FlextTypes.JsonValue | FlextResult[object]],
-            ) -> Callable[..., FlextTypes.JsonValue | FlextResult[object]]:
+                func: Callable[..., JsonValue | FlextResult[object]],
+            ) -> Callable[..., JsonValue | FlextResult[object]]:
                 # Store multiple models metadata
                 setattr(
                     func,
@@ -929,8 +935,8 @@ class FlextCliModels(FlextModels):
                 )
 
                 def wrapper(
-                    **cli_kwargs: FlextTypes.JsonValue,
-                ) -> FlextTypes.JsonValue | FlextResult[object]:
+                    **cli_kwargs: JsonValue,
+                ) -> JsonValue | FlextResult[object]:
                     validated_models: list[BaseModel] = []
 
                     # Validate with each model
@@ -975,8 +981,8 @@ class FlextCliModels(FlextModels):
         def __init__(
             self,
             model_class: type[BaseModel],
-            handler: Callable[..., FlextTypes.JsonValue],
-            config: FlextCliConfig | None = None,
+            handler: Callable[..., JsonValue],
+            config: object = None,  # Config object (uses hasattr/getattr only)
         ) -> None:
             """Initialize builder.
 
@@ -1220,15 +1226,15 @@ class FlextCliModels(FlextModels):
         def _map_params_to_cli_config(
             self,
             filtered_params: dict[str, object],
-        ) -> dict[str, FlextTypes.JsonValue]:
+        ) -> dict[str, JsonValue]:
             """Map filtered params to CliParamsConfig field names."""
-            cli_params_dict: dict[str, FlextTypes.JsonValue] = {}
+            cli_params_dict: dict[str, JsonValue] = {}
             for key, value in filtered_params.items():
                 # Map cli_log_level to log_level for CliParamsConfig
                 if key == "cli_log_level":
                     # Type narrowing: value might be an enum with .value attribute
                     if isinstance(value, Enum):
-                        mapped_value: FlextTypes.JsonValue = value.value
+                        mapped_value: JsonValue = value.value
                     else:
                         mapped_value = str(value)
                     cli_params_dict["log_level"] = mapped_value
@@ -1242,13 +1248,13 @@ class FlextCliModels(FlextModels):
                     cli_params_dict["log_format"] = mapped_value
                 else:
                     # Type narrow: value is already JsonValue compatible from filtered_params
-                    mapped_value = typing.cast("FlextTypes.JsonValue", value)
+                    mapped_value = typing.cast("JsonValue", value)
                     cli_params_dict[key] = mapped_value
             return cli_params_dict
 
         def _build_and_apply_params_model(
             self,
-            cli_params_dict: dict[str, FlextTypes.JsonValue],
+            cli_params_dict: dict[str, JsonValue],
         ) -> bool:
             """Build CliParamsConfig model and apply to config."""
             # Type guard: ensure config is not None
@@ -1370,7 +1376,7 @@ class FlextCliModels(FlextModels):
             self,
             field_name: str,
             field_info: fields.FieldInfo,
-        ) -> FlextTypes.JsonValue | None:
+        ) -> JsonValue | None:
             """Get default value for field using fast-fail pattern.
 
             Tries in order: config → field default → default factory
@@ -1405,13 +1411,13 @@ class FlextCliModels(FlextModels):
         def _try_config_default(
             self,
             field_name: str,
-        ) -> FlextResult[FlextTypes.JsonValue]:
+        ) -> FlextResult[JsonValue]:
             """Try to get default from config attribute."""
             # Fast fail validation
             if self.config is None:
-                return FlextResult[FlextTypes.JsonValue].fail("No config value")
+                return FlextResult[JsonValue].fail("No config value")
             if not hasattr(self.config, field_name):
-                return FlextResult[FlextTypes.JsonValue].fail("No config value")
+                return FlextResult[JsonValue].fail("No config value")
 
             value = getattr(self.config, field_name)
             if (
@@ -1419,42 +1425,42 @@ class FlextCliModels(FlextModels):
                 or FlextRuntime.is_dict_like(value)
                 or FlextRuntime.is_list_like(value)
             ):
-                return FlextResult[FlextTypes.JsonValue].ok(value)
-            return FlextResult[FlextTypes.JsonValue].ok(str(value))
+                return FlextResult[JsonValue].ok(value)
+            return FlextResult[JsonValue].ok(str(value))
 
         def _try_field_default(
             self,
             field_info: fields.FieldInfo,
-        ) -> FlextResult[FlextTypes.JsonValue]:
+        ) -> FlextResult[JsonValue]:
             """Try to get default from field definition."""
             if field_info.default is PydanticUndefined:
-                return FlextResult[FlextTypes.JsonValue].fail("No field default")
+                return FlextResult[JsonValue].fail("No field default")
 
             default = field_info.default
             if default is None:
-                return FlextResult[FlextTypes.JsonValue].fail("Field default is None")
+                return FlextResult[JsonValue].fail("Field default is None")
             if (
                 isinstance(default, (str, int, float, bool))
                 or FlextRuntime.is_dict_like(default)
                 or FlextRuntime.is_list_like(default)
             ):
-                return FlextResult[FlextTypes.JsonValue].ok(default)
-            return FlextResult[FlextTypes.JsonValue].ok(str(default))
+                return FlextResult[JsonValue].ok(default)
+            return FlextResult[JsonValue].ok(str(default))
 
         def _try_default_factory(
             self,
             field_info: fields.FieldInfo,
-        ) -> FlextResult[FlextTypes.JsonValue]:
+        ) -> FlextResult[JsonValue]:
             """Try to get default from factory callable."""
             default_factory = field_info.default_factory
             # Fast fail validation
             if default_factory is None:
-                return FlextResult[FlextTypes.JsonValue].fail("No factory")
+                return FlextResult[JsonValue].fail("No factory")
             if not callable(default_factory):
-                return FlextResult[FlextTypes.JsonValue].fail("No factory")
+                return FlextResult[JsonValue].fail("No factory")
 
             if not self._factory_accepts_no_arguments(default_factory):
-                return FlextResult[FlextTypes.JsonValue].fail("Factory needs arguments")
+                return FlextResult[JsonValue].fail("Factory needs arguments")
 
             # Type narrowing: default_factory is callable with no required args
             # Call factory - validated above that it accepts no arguments
@@ -1463,7 +1469,7 @@ class FlextCliModels(FlextModels):
             try:
                 factory_result = factory_callable()
             except (TypeError, ValueError) as e:
-                return FlextResult[FlextTypes.JsonValue].fail(
+                return FlextResult[JsonValue].fail(
                     f"Factory call failed: {e}",
                 )
 
@@ -1471,8 +1477,8 @@ class FlextCliModels(FlextModels):
                 factory_result,
                 (str, int, float, bool, list, dict, type(None)),
             ):
-                return FlextResult[FlextTypes.JsonValue].ok(factory_result)
-            return FlextResult[FlextTypes.JsonValue].ok(str(factory_result))
+                return FlextResult[JsonValue].ok(factory_result)
+            return FlextResult[JsonValue].ok(str(factory_result))
 
         def _inject_common_param_signatures(
             self,
@@ -1618,7 +1624,7 @@ class FlextCliModels(FlextModels):
                 )
                 parameters.append(param)
 
-            def generated_command(**kwargs: FlextTypes.JsonValue) -> None:
+            def generated_command(**kwargs: JsonValue) -> None:
                 """Dynamically generated command function with automatic logger reconfiguration.
 
                 Uses closure to capture model_class, handler, and field_mapping
@@ -1648,7 +1654,7 @@ class FlextCliModels(FlextModels):
                 model_args: FlextTypes.JsonDict = {}
                 for field_name, value in model_params.items():
                     if value is not None:
-                        model_args[field_name] = cast("FlextTypes.JsonValue", value)
+                        model_args[field_name] = cast("JsonValue", value)
 
                 # ✅ EXECUTE: Create model instance and call handler
                 model_instance = model_class(**model_args)
@@ -1678,7 +1684,7 @@ class FlextCliModels(FlextModels):
             """
 
             @functools.wraps(func)
-            def wrapped(**kwargs: FlextTypes.JsonValue) -> None:
+            def wrapped(**kwargs: JsonValue) -> None:
                 """Update config and call wrapped function."""
                 if self.config is not None:
                     # Update config fields from CLI args
@@ -1843,7 +1849,7 @@ class FlextCliModels(FlextModels):
 
             return param_decls
 
-        def _get_default_value(self) -> FlextTypes.JsonValue:
+        def _get_default_value(self) -> JsonValue:
             """Get default value from field."""
             default_value = self.field_info.default
 
@@ -1895,12 +1901,12 @@ class FlextCliModels(FlextModels):
 
             return help_text
 
-        def _extract_constraints(self) -> dict[str, FlextTypes.JsonValue]:
+        def _extract_constraints(self) -> dict[str, JsonValue]:
             """Extract constraints (min, max, case_sensitive)."""
             reg = FlextCliConstants.CliParamsRegistry
             json_keys = FlextCliConstants.JsonSchemaKeys
 
-            constraints: dict[str, FlextTypes.JsonValue] = {}
+            constraints: dict[str, JsonValue] = {}
 
             # Case sensitivity
             if reg.KEY_CASE_SENSITIVE in self.param_meta:
@@ -2084,7 +2090,7 @@ class FlextCliModels(FlextModels):
         @classmethod
         def validate_command_input(
             cls,
-            data: FlextTypes.JsonValue,
+            data: JsonValue,
         ) -> FlextResult[FlextCliTypes.Data.CliCommandData]:
             """Validate and normalize command input data using railway pattern.
 
@@ -2795,9 +2801,9 @@ class FlextCliModels(FlextModels):
         @classmethod
         def _get_config_value(
             cls,
-            config: FlextCliConfig,
+            config: object,  # Config object (uses hasattr/getattr only)
             field_name: str,
-        ) -> FlextTypes.JsonValue | None:
+        ) -> JsonValue | None:
             """Get config value for field if available."""
             if not hasattr(config, field_name):
                 return None
@@ -2826,7 +2832,7 @@ class FlextCliModels(FlextModels):
         def _fill_field_from_config(
             cls,
             result: dict[str, object],
-            config: FlextCliConfig,
+            config: object,  # Config object (uses hasattr/getattr only)
             field_name: str,
         ) -> None:
             """Fill single field from config if None."""
@@ -2953,7 +2959,7 @@ class FlextCliModels(FlextModels):
     # System Information Models (replaces dict usage in debug.py)
 
     class SystemInfo(FlextModels.ArbitraryTypesModel):
-        """System information model - replaces dict[str, FlextTypes.JsonValue].
+        """System information model - replaces dict[str, JsonValue].
 
         Pydantic 2 Features:
         - Explicit field types instead of generic JsonValue
@@ -3163,7 +3169,7 @@ class FlextCliModels(FlextModels):
 
         command: str = Field(description="Command name")
         status: bool = Field(description="Execution status")
-        context: dict[str, FlextTypes.JsonValue] = Field(
+        context: dict[str, JsonValue] = Field(
             default_factory=dict,
             description="Context data",
         )
@@ -3196,7 +3202,7 @@ class FlextCliModels(FlextModels):
         service: str = Field(description="Service name")
         timestamp: str = Field(default="", description="Execution timestamp (ISO)")
         version: str = Field(description="Service version")
-        config: dict[str, FlextTypes.JsonValue] = Field(
+        config: dict[str, JsonValue] = Field(
             default_factory=dict,
             description="Complete configuration dump",
         )

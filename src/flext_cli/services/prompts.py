@@ -9,7 +9,6 @@ import typing
 from flext_core import (
     FlextMixins,
     FlextResult,
-    FlextTypes,
     FlextUtilities,
 )
 from pydantic import Field, PrivateAttr
@@ -17,7 +16,7 @@ from pydantic import Field, PrivateAttr
 from flext_cli.base import FlextCliServiceBase
 from flext_cli.constants import FlextCliConstants
 from flext_cli.models import FlextCliModels
-from flext_cli.typings import FlextCliTypes
+from flext_cli.typings import CliJsonValue, FlextCliTypes
 from flext_cli.utilities import FlextCliUtilities
 
 
@@ -51,7 +50,7 @@ class FlextCliPrompts(FlextCliServiceBase):
         *,
         interactive_mode: bool = True,
         quiet: bool = False,
-        **data: FlextTypes.JsonValue,
+        **data: CliJsonValue,
     ) -> None:
         """Initialize CLI prompts service with enhanced configuration and Phase 1 context enrichment.
 
