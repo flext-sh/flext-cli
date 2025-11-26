@@ -1,7 +1,7 @@
 """FLEXT CLI Context - CLI execution context management.
 
-Provides CLI execution context with type-safe operations and FlextResult patterns.
-Follows FLEXT standards with single CliContext class per module.
+**MODULE**: FlextCliContext - Single primary class for CLI execution context
+**SCOPE**: Context management, environment variables, arguments, metadata with type-safe operations
 
 Copyright (c) 2025 FLEXT Team. All rights reserved.
 SPDX-License-Identifier: MIT
@@ -10,11 +10,8 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from typing import cast
-
 from flext_core import (
     FlextConfig,
-    FlextMixins,
     FlextResult,
     FlextTypes,
     FlextUtilities,
@@ -25,17 +22,14 @@ from flext_cli.base import FlextCliServiceBase
 from flext_cli.constants import FlextCliConstants
 from flext_cli.models import FlextCliModels
 from flext_cli.typings import CliJsonValue, FlextCliTypes
+from flext_cli.utilities import FlextCliUtilities
 
 
 class FlextCliContext(FlextCliServiceBase):
-    """CLI execution context model extending FlextCliServiceBase.
+    """CLI execution context with type-safe operations and FlextResult patterns.
 
-    Manages CLI execution context with enhanced type safety using FlextCliTypes
-    instead of generic FlextTypes types. Provides CLI-specific context with domain types
-    and uses FlextResult railway pattern for all operations.
-
-    CRITICAL: Moved from models.py to follow FLEXT standards requiring
-    service classes to be in appropriate modules, not mixed with data models.
+    Manages CLI execution context using FlextCliTypes for domain-specific type safety.
+    All operations use FlextResult railway pattern for error handling.
     """
 
     # Direct attributes - no properties needed
@@ -64,430 +58,398 @@ class FlextCliContext(FlextCliServiceBase):
         Args:
             command: Command being executed
             arguments: Command line arguments
-            environment_variables: Environment variables using CLI-specific config data types
+            environment_variables: Environment variables using CLI-specific types
             working_directory: Current working directory
             **data: Additional entity initialization data
 
         """
-        # Generate id if not provided using FlextUtilities
-        generated_id: str | None = None
+        # Generate id if not provided
         if "id" not in data:
-            generated_id = FlextUtilities.Generators.generate_id()
-            data["id"] = generated_id
+            data["id"] = FlextUtilities.Generators.generate_id()
 
-        # Initialize parent FlextService
         super().__init__(**data)
 
-        # Set id from data - check both self.id (after super().__init__) and generated_id
-        # This ensures all paths are reachable for comprehensive coverage
-        # Check self.id first (set by super().__init__ from data), then fallback to generated_id
-        if self.id:
-            # Normal path: id was set by super().__init__ from data and is truthy
-            # Ensure it's a string
-            self.id = str(self.id)
-        elif generated_id is not None:
-            # Fallback path: id was generated but self.id is falsy after super().__init__
-            # This can happen if super().__init__ doesn't set id or sets it to falsy value
-            self.id = generated_id
-        else:
-            # Final fallback: generate new id using FlextUtilities (defensive programming)
-            # This line is reachable if both self.id and generated_id are None/empty
-            self.id = FlextUtilities.Generators.generate_id()
+        # Ensure id is set
+        self.id = str(self.id) if self.id else FlextUtilities.Generators.generate_id()
 
-        # Set CLI context attributes directly
-        # Validate explicitly - no fallback to empty collections
+        # Set CLI context attributes with defaults
         self.command = command
-        if arguments is not None:
-            self.arguments = arguments
-        else:
-            self.arguments = []
-        if environment_variables is not None:
-            self.environment_variables = environment_variables
-        else:
-            self.environment_variables = {}
+        self.arguments = arguments if arguments is not None else []
+        self.environment_variables = (
+            environment_variables if environment_variables is not None else {}
+        )
         self.working_directory = working_directory
-        # Initialize context_metadata as empty dict (JsonDict type)
         if not self.context_metadata:
             self.context_metadata = {}
 
         # Context state
         self.is_active = False
         self.created_at = FlextUtilities.Generators.generate_iso_timestamp()
-        # Get timeout_seconds from FlextConfig base (not FlextCliConfig)
         global_config = FlextConfig.get_global_instance()
-        # timeout_seconds is float in FlextConfig, convert to int for context
         self.timeout_seconds = int(global_config.timeout_seconds)
 
-    def activate(self) -> FlextResult[bool]:
-        """Activate CLI context for execution.
+    # ==========================================================================
+    # PRIVATE HELPERS - Generalize common patterns
+    # ==========================================================================
 
-        Returns:
-            FlextResult[bool]: True if activated successfully, False if already active, or error
-
-        """
+    def _validate_string(
+        self, value: str, field_name: str, error_template: str
+    ) -> FlextResult[bool]:
+        """Generalized string validation helper."""
         try:
-            if self.is_active:
-                return FlextResult[bool].fail(
-                    FlextCliConstants.ContextErrorMessages.CONTEXT_ALREADY_ACTIVE,
-                )
-
-            self.is_active = True
+            FlextUtilities.Validation.validate_required_string(value, field_name)
             return FlextResult[bool].ok(True)
-        except Exception as e:  # pragma: no cover
-            return FlextResult[bool].fail(
-                FlextCliConstants.ContextErrorMessages.CONTEXT_ACTIVATION_FAILED.format(
-                    error=e,
-                ),
+        except ValueError as e:
+            return FlextResult[bool].fail(str(e) or error_template)
+
+    def _ensure_initialized(
+        self, value: object | None, error_message: str
+    ) -> FlextResult[bool]:
+        """Generalized initialization check helper."""
+        if value is None:
+            return FlextResult[bool].fail(error_message)
+        return FlextResult[bool].ok(True)
+
+    def _safe_dict_operation(
+        self,
+        operation: str,
+        dict_obj: dict[str, CliJsonValue] | None,
+        key: str,
+        value: CliJsonValue | None = None,
+        error_messages: dict[str, str] | None = None,
+    ) -> FlextResult[CliJsonValue | bool]:
+        """Generalized dict operation helper (get/set/check)."""
+        default_errors = {
+            "not_initialized": FlextCliConstants.ContextErrorMessages.ENV_VARS_NOT_INITIALIZED,
+            "not_found": FlextCliConstants.ContextErrorMessages.ENV_VAR_NOT_FOUND.format(
+                name=key
+            ),
+            "failed": "Operation failed",
+        }
+        # Merge error_messages with default_errors, preserving defaults
+        errors = {**default_errors, **(error_messages or {})}
+
+        init_check = self._ensure_initialized(dict_obj, errors["not_initialized"])
+        if init_check.is_failure:
+            return FlextResult[CliJsonValue | bool].fail(init_check.error or "")
+
+        # Type narrowing: dict_obj is not None after _ensure_initialized check
+        if dict_obj is None:
+            return FlextResult[CliJsonValue | bool].fail(errors["not_initialized"])
+
+        try:
+            if operation == "get":
+                if key in dict_obj:
+                    return FlextResult[CliJsonValue | bool].ok(dict_obj[key])
+                return FlextResult[CliJsonValue | bool].fail(errors["not_found"])
+            if operation == "set" and value is not None:
+                dict_obj[key] = value
+                return FlextResult[CliJsonValue | bool].ok(True)
+            return FlextResult[CliJsonValue | bool].fail(errors["failed"])
+        except Exception as e:
+            return FlextResult[CliJsonValue | bool].fail(
+                errors.get("exception", str(e)) or errors["failed"]
             )
+
+    def _safe_list_operation(
+        self,
+        operation: str,
+        list_obj: list[str] | None,
+        value: str,
+        error_messages: dict[str, str] | None = None,
+    ) -> FlextResult[bool]:
+        """Generalized list operation helper (add/remove/check)."""
+        default_errors = {
+            "not_initialized": FlextCliConstants.ContextErrorMessages.ARGUMENTS_NOT_INITIALIZED,
+            "not_found": FlextCliConstants.ContextErrorMessages.ARGUMENT_NOT_FOUND.format(
+                argument=value
+            ),
+            "failed": "Operation failed",
+        }
+        # Merge error_messages with default_errors, preserving defaults
+        errors = {**default_errors, **(error_messages or {})}
+
+        init_check = self._ensure_initialized(list_obj, errors["not_initialized"])
+        if init_check.is_failure:
+            return FlextResult[bool].fail(init_check.error or "")
+
+        # Type narrowing: list_obj is not None after _ensure_initialized check
+        if list_obj is None:
+            return FlextResult[bool].fail(errors["not_initialized"])
+
+        try:
+            if operation == "add":
+                list_obj.append(value)
+                return FlextResult[bool].ok(True)
+            if operation == "remove":
+                if value in list_obj:
+                    list_obj.remove(value)
+                    return FlextResult[bool].ok(True)
+                return FlextResult[bool].fail(errors["not_found"])
+            return FlextResult[bool].fail(errors["failed"])
+        except Exception as e:
+            # Format exception message if template provided
+            exception_template = errors.get("exception", "")
+            if exception_template and "{error}" in exception_template:
+                exception_msg = exception_template.format(error=str(e))
+            else:
+                exception_msg = str(e) if exception_template else errors["failed"]
+            return FlextResult[bool].fail(exception_msg)
+
+    # ==========================================================================
+    # CONTEXT STATE MANAGEMENT
+    # ==========================================================================
+
+    def activate(self) -> FlextResult[bool]:
+        """Activate CLI context for execution."""
+        if self.is_active:
+            return FlextResult[bool].fail(
+                FlextCliConstants.ContextErrorMessages.CONTEXT_ALREADY_ACTIVE
+            )
+        self.is_active = True
+        return FlextResult[bool].ok(True)
 
     def deactivate(self) -> FlextResult[bool]:
-        """Deactivate CLI context.
-
-        Returns:
-            FlextResult[bool]: True if deactivated successfully, False if not active, or error
-
-        """
-        try:
-            if not self.is_active:
-                return FlextResult[bool].fail(
-                    FlextCliConstants.ContextErrorMessages.CONTEXT_NOT_CURRENTLY_ACTIVE,
-                )
-
-            self.is_active = False
-            return FlextResult[bool].ok(True)
-        except Exception as e:  # pragma: no cover
+        """Deactivate CLI context."""
+        if not self.is_active:
             return FlextResult[bool].fail(
-                FlextCliConstants.ContextErrorMessages.CONTEXT_DEACTIVATION_FAILED.format(
-                    error=e,
-                ),
+                FlextCliConstants.ContextErrorMessages.CONTEXT_NOT_CURRENTLY_ACTIVE
             )
+        self.is_active = False
+        return FlextResult[bool].ok(True)
+
+    # ==========================================================================
+    # ENVIRONMENT VARIABLES
+    # ==========================================================================
 
     def get_environment_variable(self, name: str) -> FlextResult[str]:
         """Get specific environment variable value."""
-        # Validate using FlextUtilities.Validation
-        try:
-            FlextUtilities.Validation.validate_required_string(
-                name,
-                "Variable name",
-            )
-        except ValueError as e:
-            return FlextResult[str].fail(
-                str(e) or "Environment variable validation failed",
-            )
+        validation = self._validate_string(
+            name, "Variable name", "Environment variable validation failed"
+        )
+        if validation.is_failure:
+            return FlextResult[str].fail(validation.error or "")
 
-        # Fast-fail if environment_variables is None
-        if self.environment_variables is None:
-            return FlextResult[str].fail(
-                FlextCliConstants.ContextErrorMessages.ENV_VARS_NOT_INITIALIZED,
-            )
-
-        try:
-            if name in self.environment_variables:
-                value = self.environment_variables[name]
-                return FlextResult[str].ok(str(value))
-            return FlextResult[str].fail(
-                FlextCliConstants.ContextErrorMessages.ENV_VAR_NOT_FOUND.format(
-                    name=name,
+        result = self._safe_dict_operation(
+            "get",
+            self.environment_variables,
+            name,
+            error_messages={
+                "not_initialized": FlextCliConstants.ContextErrorMessages.ENV_VARS_NOT_INITIALIZED,
+                "not_found": FlextCliConstants.ContextErrorMessages.ENV_VAR_NOT_FOUND.format(
+                    name=name
                 ),
-            )
-        except Exception as e:  # pragma: no cover
-            return FlextResult[str].fail(
-                FlextCliConstants.ContextErrorMessages.ENV_VAR_RETRIEVAL_FAILED.format(
-                    error=e,
+                "exception": FlextCliConstants.ContextErrorMessages.ENV_VAR_RETRIEVAL_FAILED.format(
+                    error="{error}"
                 ),
-            )
+            },
+        )
+        if result.is_success:
+            return FlextResult[str].ok(str(result.unwrap()))
+        return FlextResult[str].fail(result.error or "")
 
     def set_environment_variable(self, name: str, value: str) -> FlextResult[bool]:
-        """Set environment variable value.
-
-        Returns:
-            FlextResult[bool]: True if set successfully, or error
-
-        """
-        # Validate using FlextUtilities.Validation
-        try:
-            FlextUtilities.Validation.validate_required_string(
-                name,
-                "Variable name",
-            )
-        except ValueError as e:
-            return FlextResult[bool].fail(
-                str(e) or "Environment variable setting failed",
-            )
+        """Set environment variable value."""
+        validation = self._validate_string(
+            name, "Variable name", "Environment variable setting failed"
+        )
+        if validation.is_failure:
+            return FlextResult[bool].fail(validation.error or "")
 
         if not isinstance(value, str):
             return FlextResult[bool].fail(
-                FlextCliConstants.ContextErrorMessages.VARIABLE_VALUE_MUST_BE_STRING,
+                FlextCliConstants.ContextErrorMessages.VARIABLE_VALUE_MUST_BE_STRING
             )
 
-        # Fast-fail if environment_variables is None
-        if self.environment_variables is None:
-            return FlextResult[bool].fail(
-                FlextCliConstants.ContextErrorMessages.ENV_VARS_NOT_INITIALIZED,
-            )
-
-        try:
-            self.environment_variables[name] = value
-            return FlextResult[bool].ok(True)
-        except Exception as e:  # pragma: no cover
-            return FlextResult[bool].fail(
-                FlextCliConstants.ContextErrorMessages.ENV_VAR_SETTING_FAILED.format(
-                    error=e,
+        result = self._safe_dict_operation(
+            "set",
+            self.environment_variables,
+            name,
+            value,
+            error_messages={
+                "not_initialized": FlextCliConstants.ContextErrorMessages.ENV_VARS_NOT_INITIALIZED,
+                "exception": FlextCliConstants.ContextErrorMessages.ENV_VAR_SETTING_FAILED.format(
+                    error="{error}"
                 ),
-            )
+            },
+        )
+        if result.is_success:
+            return FlextResult[bool].ok(True)
+        return FlextResult[bool].fail(result.error or "")
+
+    # ==========================================================================
+    # ARGUMENTS MANAGEMENT
+    # ==========================================================================
 
     def add_argument(self, argument: str) -> FlextResult[bool]:
-        """Add command line argument.
+        """Add command line argument."""
+        validation = self._validate_string(argument, "Argument", "Validation failed")
+        if validation.is_failure:
+            return FlextResult[bool].fail(validation.error or "")
 
-        Returns:
-            FlextResult[bool]: True if added successfully, or error
-
-        """
-        # Validate using FlextUtilities.Validation
-        try:
-            FlextUtilities.Validation.validate_required_string(
-                argument,
-                "Argument",
-            )
-        except ValueError as e:
-            return FlextResult[bool].fail(str(e) or "Validation failed")
-
-        # Fast-fail if arguments is None
-        if self.arguments is None:
-            return FlextResult[bool].fail(
-                FlextCliConstants.ContextErrorMessages.ARGUMENTS_NOT_INITIALIZED,
-            )
-
-        try:
-            self.arguments.append(argument)
-            return FlextResult[bool].ok(True)
-        except Exception as e:  # pragma: no cover
-            return FlextResult[bool].fail(
-                FlextCliConstants.ContextErrorMessages.ARGUMENT_ADDITION_FAILED.format(
-                    error=e,
+        return self._safe_list_operation(
+            "add",
+            self.arguments,
+            argument,
+            error_messages={
+                "not_initialized": FlextCliConstants.ContextErrorMessages.ARGUMENTS_NOT_INITIALIZED,
+                "exception": FlextCliConstants.ContextErrorMessages.ARGUMENT_ADDITION_FAILED.format(
+                    error="{error}"
                 ),
-            )
+            },
+        )
 
     def remove_argument(self, argument: str) -> FlextResult[bool]:
-        """Remove command line argument.
+        """Remove command line argument."""
+        validation = self._validate_string(argument, "Argument", "Validation failed")
+        if validation.is_failure:
+            return FlextResult[bool].fail(validation.error or "")
 
-        Returns:
-            FlextResult[bool]: True if removed successfully, False if not found, or error
-
-        """
-        # Validate using FlextUtilities.Validation
-        try:
-            FlextUtilities.Validation.validate_required_string(
-                argument,
-                "Argument",
-            )
-        except ValueError as e:
-            return FlextResult[bool].fail(str(e) or "Validation failed")
-
-        # Fast-fail if arguments is None
-        if self.arguments is None:
-            return FlextResult[bool].fail(
-                FlextCliConstants.ContextErrorMessages.ARGUMENTS_NOT_INITIALIZED,
-            )
-
-        try:
-            if argument in self.arguments:
-                self.arguments.remove(argument)
-                return FlextResult[bool].ok(True)
-            return FlextResult[bool].fail(
-                FlextCliConstants.ContextErrorMessages.ARGUMENT_NOT_FOUND.format(
-                    argument=argument,
+        return self._safe_list_operation(
+            "remove",
+            self.arguments,
+            argument,
+            error_messages={
+                "not_initialized": FlextCliConstants.ContextErrorMessages.ARGUMENTS_NOT_INITIALIZED,
+                "exception": FlextCliConstants.ContextErrorMessages.ARGUMENT_REMOVAL_FAILED.format(
+                    error="{error}"
                 ),
-            )
-        except Exception as e:  # pragma: no cover
-            return FlextResult[bool].fail(
-                FlextCliConstants.ContextErrorMessages.ARGUMENT_REMOVAL_FAILED.format(
-                    error=e,
-                ),
-            )
+            },
+        )
+
+    # ==========================================================================
+    # METADATA MANAGEMENT
+    # ==========================================================================
 
     def set_metadata(self, key: str, value: CliJsonValue) -> FlextResult[bool]:
-        """Set context metadata using CLI-specific data types.
-
-        Returns:
-            FlextResult[bool]: True if set successfully, or error
-
-        """
-        # Validate using FlextUtilities.Validation
-        try:
-            FlextUtilities.Validation.validate_required_string(
-                key,
-                "Metadata key",
-            )
-        except ValueError as e:
-            return FlextResult[bool].fail(str(e) or "Validation failed")
+        """Set context metadata using CLI-specific data types."""
+        validation = self._validate_string(key, "Metadata key", "Validation failed")
+        if validation.is_failure:
+            return FlextResult[bool].fail(validation.error or "")
 
         try:
             self.context_metadata[key] = value
             return FlextResult[bool].ok(True)
-        except Exception as e:  # pragma: no cover
+        except Exception as e:
             return FlextResult[bool].fail(
                 FlextCliConstants.ContextErrorMessages.METADATA_SETTING_FAILED.format(
-                    error=e,
-                ),
+                    error=e
+                )
             )
 
     def get_metadata(self, key: str) -> FlextResult[CliJsonValue]:
         """Get context metadata value."""
-        # Validate using FlextUtilities.Validation
-        try:
-            FlextUtilities.Validation.validate_required_string(
-                key,
-                "Metadata key",
-            )
-        except ValueError as e:
-            return FlextResult[CliJsonValue].fail(
-                str(e) or "Metadata validation failed",
-            )
+        validation = self._validate_string(
+            key, "Metadata key", "Metadata validation failed"
+        )
+        if validation.is_failure:
+            return FlextResult[CliJsonValue].fail(validation.error or "")
 
-        try:
-            if key in self.context_metadata:
-                return FlextResult[CliJsonValue].ok(self.context_metadata[key])
-            return FlextResult[CliJsonValue].fail(
-                FlextCliConstants.ContextErrorMessages.METADATA_KEY_NOT_FOUND.format(
-                    key=key,
-                ),
+        if key in self.context_metadata:
+            return FlextResult[CliJsonValue].ok(self.context_metadata[key])
+        return FlextResult[CliJsonValue].fail(
+            FlextCliConstants.ContextErrorMessages.METADATA_KEY_NOT_FOUND.format(
+                key=key
             )
-        except Exception as e:  # pragma: no cover
-            return FlextResult[CliJsonValue].fail(
-                FlextCliConstants.ContextErrorMessages.METADATA_RETRIEVAL_FAILED.format(
-                    error=e,
-                ),
-            )
+        )
+
+    # ==========================================================================
+    # CONTEXT INFORMATION
+    # ==========================================================================
 
     def get_context_summary(
         self,
     ) -> FlextResult[dict[str, FlextTypes.JsonValue]]:
-        """Get comprehensive context summary using CLI-specific data types."""
-        try:
-            # Validate command explicitly - no fallback, use actual value or fail
-            command_value: str | None = self.command
+        """Get comprehensive context summary."""
+        arguments_list = self.arguments if self.arguments is not None else []
+        env_vars_dict = (
+            self.environment_variables if self.environment_variables is not None else {}
+        )
 
-            # Handle None values for arguments and environment_variables
-            arguments_list = self.arguments if self.arguments is not None else []
-            env_vars_dict = (
-                self.environment_variables
-                if self.environment_variables is not None
-                else {}
-            )
+        summary: dict[str, FlextTypes.JsonValue] = {
+            FlextCliConstants.ContextDictKeys.CONTEXT_ID: self.id,
+            FlextCliConstants.ContextDictKeys.COMMAND: self.command,
+            FlextCliConstants.ContextDictKeys.ARGUMENTS_COUNT: len(arguments_list),
+            FlextCliConstants.ContextDictKeys.ARGUMENTS: list(arguments_list),
+            FlextCliConstants.ContextDictKeys.ENVIRONMENT_VARIABLES_COUNT: len(
+                env_vars_dict
+            ),
+            FlextCliConstants.ContextDictKeys.WORKING_DIRECTORY: self.working_directory,
+            FlextCliConstants.ContextDictKeys.IS_ACTIVE: self.is_active,
+            FlextCliConstants.ContextDictKeys.CREATED_AT: self.created_at,
+            FlextCliConstants.ContextDictKeys.METADATA_KEYS: list(
+                self.context_metadata.keys()
+            ),
+            FlextCliConstants.ContextDictKeys.METADATA_COUNT: len(
+                self.context_metadata
+            ),
+        }
 
-            summary: dict[str, FlextTypes.JsonValue] = {
-                FlextCliConstants.ContextDictKeys.CONTEXT_ID: self.id,
-                FlextCliConstants.ContextDictKeys.COMMAND: command_value,
-                FlextCliConstants.ContextDictKeys.ARGUMENTS_COUNT: len(arguments_list),
-                FlextCliConstants.ContextDictKeys.ARGUMENTS: list(arguments_list),
-                FlextCliConstants.ContextDictKeys.ENVIRONMENT_VARIABLES_COUNT: len(
-                    env_vars_dict,
-                ),
-                FlextCliConstants.ContextDictKeys.WORKING_DIRECTORY: self.working_directory,
-                FlextCliConstants.ContextDictKeys.IS_ACTIVE: self.is_active,
-                FlextCliConstants.ContextDictKeys.CREATED_AT: self.created_at,
-                FlextCliConstants.ContextDictKeys.METADATA_KEYS: list(
-                    self.context_metadata.keys(),
-                ),
-                FlextCliConstants.ContextDictKeys.METADATA_COUNT: len(
-                    self.context_metadata,
-                ),
-            }
-
-            return FlextResult[dict[str, FlextTypes.JsonValue]].ok(summary)
-        except Exception as e:  # pragma: no cover
-            return FlextResult[dict[str, FlextTypes.JsonValue]].fail(
-                FlextCliConstants.ContextErrorMessages.CONTEXT_SUMMARY_GENERATION_FAILED.format(
-                    error=e,
-                ),
-            )
+        return FlextResult[dict[str, FlextTypes.JsonValue]].ok(summary)
 
     def execute(self, **_kwargs: object) -> FlextResult[FlextCliTypes.Data.CliDataDict]:
         """Execute the CLI context.
 
-        Args:
-            **_kwargs: Additional execution parameters (unused, for FlextService compatibility)
-
         Returns:
             FlextResult with ContextExecutionResult serialized as dict
 
-        Pydantic 2 Modernization:
-            - Uses ContextExecutionResult model internally
-            - Serializes to dict for API compatibility
-            - Type-safe with automatic validation
-
         """
-        try:
-            # Fast-fail if arguments is None - no fallback
-            if self.arguments is None:
-                return FlextResult[FlextCliTypes.Data.CliDataDict].fail(
-                    FlextCliConstants.ContextErrorMessages.ARGUMENTS_NOT_INITIALIZED,
-                )
-            arguments_count = len(self.arguments)
-            result_model = FlextCliModels.ContextExecutionResult(
-                context_executed=True,
-                command=self.command,
-                arguments_count=arguments_count,
-                timestamp=FlextUtilities.Generators.generate_iso_timestamp(),
-            )
-            # Use model directly - no conversion needed
-            # Return model data as dict for API compatibility
-            return FlextResult[FlextCliTypes.Data.CliDataDict].ok(
-                cast(
-                    "FlextCliTypes.Data.CliDataDict",
-                    FlextMixins.ModelConversion.to_dict(result_model),
-                ),
-            )
-        except Exception as e:  # pragma: no cover
+        init_check = self._ensure_initialized(
+            self.arguments,
+            FlextCliConstants.ContextErrorMessages.ARGUMENTS_NOT_INITIALIZED,
+        )
+        if init_check.is_failure:
             return FlextResult[FlextCliTypes.Data.CliDataDict].fail(
-                FlextCliConstants.ContextErrorMessages.CONTEXT_EXECUTION_FAILED.format(
-                    error=e,
-                ),
+                init_check.error or ""
             )
+
+        # Type narrowing: self.arguments is not None after _ensure_initialized check
+        if self.arguments is None:
+            return FlextResult[FlextCliTypes.Data.CliDataDict].fail(
+                FlextCliConstants.ContextErrorMessages.ARGUMENTS_NOT_INITIALIZED
+            )
+
+        result_model = FlextCliModels.ContextExecutionResult(
+            context_executed=True,
+            command=self.command,
+            arguments_count=len(self.arguments),
+            timestamp=FlextUtilities.Generators.generate_iso_timestamp(),
+        )
+
+        # Convert to CliDataDict using CliDataMapper
+        result_dict = FlextCliUtilities.CliDataMapper.convert_dict_to_json(
+            result_model.model_dump()
+        )
+        return FlextResult[FlextCliTypes.Data.CliDataDict].ok(result_dict)
 
     def to_dict(self) -> FlextResult[dict[str, object]]:
-        """Convert context to dictionary.
+        """Convert context to dictionary."""
+        init_checks = [
+            self._ensure_initialized(
+                self.arguments,
+                FlextCliConstants.ContextErrorMessages.ARGUMENTS_NOT_INITIALIZED,
+            ),
+            self._ensure_initialized(
+                self.environment_variables,
+                FlextCliConstants.ContextErrorMessages.ENV_VARS_NOT_INITIALIZED,
+            ),
+        ]
 
-        Returns:
-            FlextResult[dict[str, object]]: Dictionary representation or error
+        for check in init_checks:
+            if check.is_failure:
+                return FlextResult[dict[str, object]].fail(check.error or "")
 
-        Fast-fail: No fallbacks - validates that all required data exists.
+        result: dict[str, object] = {
+            FlextCliConstants.ContextDictKeys.ID: self.id,
+            FlextCliConstants.ContextDictKeys.COMMAND: self.command,
+            FlextCliConstants.ContextDictKeys.ARGUMENTS: self.arguments,
+            FlextCliConstants.ContextDictKeys.ENVIRONMENT_VARIABLES: self.environment_variables,
+            FlextCliConstants.ContextDictKeys.WORKING_DIRECTORY: self.working_directory,
+            FlextCliConstants.ContextDictKeys.CREATED_AT: self.created_at,
+            FlextCliConstants.ContextDictKeys.TIMEOUT_SECONDS: self.timeout_seconds,
+        }
 
-        """
-        try:
-            # Fast-fail if arguments is None - no fallback
-            if self.arguments is None:
-                return FlextResult[dict[str, object]].fail(
-                    FlextCliConstants.ContextErrorMessages.ARGUMENTS_NOT_INITIALIZED,
-                )
-
-            # Fast-fail if environment_variables is None - no fallback
-            if self.environment_variables is None:
-                return FlextResult[dict[str, object]].fail(
-                    FlextCliConstants.ContextErrorMessages.ENV_VARS_NOT_INITIALIZED,
-                )
-
-            # Build dict directly without cast
-            result: dict[str, object] = {
-                FlextCliConstants.ContextDictKeys.ID: self.id,
-                FlextCliConstants.ContextDictKeys.COMMAND: self.command,
-                FlextCliConstants.ContextDictKeys.ARGUMENTS: self.arguments,
-                FlextCliConstants.ContextDictKeys.ENVIRONMENT_VARIABLES: self.environment_variables,
-                FlextCliConstants.ContextDictKeys.WORKING_DIRECTORY: self.working_directory,
-                FlextCliConstants.ContextDictKeys.CREATED_AT: self.created_at,
-                FlextCliConstants.ContextDictKeys.TIMEOUT_SECONDS: self.timeout_seconds,
-            }
-
-            return FlextResult[dict[str, object]].ok(result)
-        except Exception as e:
-            return FlextResult[dict[str, object]].fail(
-                FlextCliConstants.ContextErrorMessages.CONTEXT_SERIALIZATION_FAILED.format(
-                    error=e,
-                ),
-            )
+        return FlextResult[dict[str, object]].ok(result)
 
 
-__all__ = [
-    "FlextCliContext",
-]
+__all__ = ["FlextCliContext"]

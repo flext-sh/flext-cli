@@ -31,6 +31,7 @@ from flext_cli import (
     FlextCliTables,
     FlextCliTypes,
 )
+from flext_cli.typings import CliJsonValue
 
 from .fixtures.constants import (
     TestCli,
@@ -767,9 +768,10 @@ class FlextCliTestHelpers(FlextService[dict[str, object]]):
                 )
 
                 @decorator
-                def test_func() -> None:
+                def test_func(*args: object, **kwargs: object) -> CliJsonValue:
                     """Test command function."""
                     echo("Test")
+                    return None
 
                 return FlextResult[object].ok(test_func)
             except Exception as e:
@@ -788,8 +790,9 @@ class FlextCliTestHelpers(FlextService[dict[str, object]]):
                 )
 
                 @decorator
-                def test_group_func() -> None:
+                def test_group_func(*args: object, **kwargs: object) -> CliJsonValue:
                     """Group function."""
+                    return None
 
                 return FlextResult[object].ok(test_group_func)
             except Exception as e:
@@ -811,8 +814,11 @@ class FlextCliTestHelpers(FlextService[dict[str, object]]):
 
                 @command_decorator
                 @option_decorator
-                def test_command(value: object) -> None:
+                def test_command(*args: object, **kwargs: object) -> CliJsonValue:
+                    """Test command with options."""
+                    value = kwargs.get("value") if kwargs else args[0] if args else None
                     echo(f"Value: {value}")
+                    return None
 
                 return FlextResult[object].ok(test_command)
             except Exception as e:

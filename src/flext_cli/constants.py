@@ -11,7 +11,7 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 from enum import StrEnum
-from typing import Final, Literal, TypeAlias
+from typing import ClassVar, Final, Literal, TypeAlias
 
 from flext_core import FlextConstants
 
@@ -95,6 +95,31 @@ class FlextCliConstants(FlextConstants):
     DEFAULT_REFRESH_TOKEN_PATH: Final[str] = (
         f"{DEFAULT_FLEXT_DIR}/{REFRESH_TOKEN_FILE_NAME}"
     )
+
+    # Mapping for output format literal validation (validated str -> Literal type)
+    _OUTPUT_FORMAT_MAP: ClassVar[dict[str, OutputFormatLiteral]] = {
+        "json": "json",
+        "yaml": "yaml",
+        "csv": "csv",
+        "table": "table",
+        "plain": "plain",
+    }
+
+    @classmethod
+    def validate_output_format(
+        cls,
+        value: str,
+    ) -> OutputFormatLiteral | None:
+        """Validate and return OutputFormatLiteral or None if invalid.
+
+        Args:
+            value: String value to validate
+
+        Returns:
+            OutputFormatLiteral if valid, None if invalid
+
+        """
+        return cls._OUTPUT_FORMAT_MAP.get(value)
 
     class CommandStatus(StrEnum):
         """Command execution status enum."""
@@ -1069,6 +1094,8 @@ class FlextCliConstants(FlextConstants):
         URL_PROTOCOLS: Final[tuple[str, ...]] = ("http://", "https://")
         YAML_EXTENSIONS: Final[set[str]] = {".yml", ".yaml"}
         STDOUT_FD: Final[int] = 1
+        CAPABILITIES_TUPLE_MIN_LENGTH: Final[int] = 2
+        DEFAULT_TERMINAL_WIDTH: Final[int] = 80
 
     class ConfigDefaults:
         """Additional configuration defaults."""

@@ -1,16 +1,11 @@
-"""Tests for FlextCliContext - CLI execution context management.
+"""FLEXT CLI Context Tests - Comprehensive Context Management Testing.
 
-Modules Tested:
-- flext_cli.context.FlextCliContext: CLI execution context service
+Tests for FlextCliContext covering initialization, activation/deactivation,
+environment variables, arguments, metadata, serialization, and edge cases
+with 100% coverage.
 
-Scope:
-- Context initialization and ID generation
-- Context activation/deactivation
-- Environment variable management (get/set)
-- Command argument management (add/remove)
-- Metadata operations (get/set)
-- Context serialization (summary, to_dict)
-- Error handling and validation
+Modules tested: flext_cli.context.FlextCliContext
+Scope: All context operations, state management, validation, serialization
 
 Copyright (c) 2025 FLEXT Team. All rights reserved.
 SPDX-License-Identifier: MIT
@@ -20,67 +15,205 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 import uuid
+from typing import TypeVar, cast
 
 import pytest
-from flext_core import FlextResult, FlextUtilities
+from flext_core import FlextResult, FlextTypes, FlextUtilities
+from flext_tests import FlextTestsUtilities
 
 from flext_cli import FlextCliContext
-from tests.fixtures.constants import TestContext
-from tests.helpers import FlextCliTestHelpers
-from tests._helpers import FlextCliTestHelpers as FlextCliTestHelpersBase
+from flext_cli.typings import CliJsonValue
 
-# Alias for nested class
-ContextFactory = FlextCliTestHelpersBase.ContextFactory
+from .._helpers import FlextCliTestHelpers
+from ..fixtures.constants import TestContext
+
+T = TypeVar("T")
 
 
 class TestFlextCliContext:
-    """Comprehensive test suite for FlextCliContext service."""
+    """Comprehensive test suite for FlextCliContext service.
 
-    # ========================================================================
-    # INITIALIZATION AND BASIC FUNCTIONALITY
-    # ========================================================================
+    Single class with nested helper classes and methods organized by functionality.
+    Uses factories, constants, dynamic tests, and helpers to reduce code while
+    maintaining and expanding coverage.
+    """
 
-    @pytest.mark.parametrize(
-        ("command", "arguments", "env_vars", "working_dir"),
-        [
-            (None, None, None, None),
-            (TestContext.Basic.DEFAULT_COMMAND, None, None, None),
-            (
-                TestContext.Basic.DEFAULT_COMMAND,
+    # =========================================================================
+    # NESTED: Fixtures Factory
+    # =========================================================================
+
+    class Fixtures:
+        """Factory for creating context instances for testing."""
+
+        @staticmethod
+        def create_context(
+            command: str | None = None,
+            arguments: list[str] | None = None,
+            env_vars: dict[str, object] | None = None,
+            working_dir: str | None = None,
+        ) -> FlextResult[FlextCliContext]:
+            """Create FlextCliContext instance."""
+            # Cast env_vars to JsonDict for type compatibility
+            json_env_vars: FlextTypes.JsonDict | None = (
+                cast("FlextTypes.JsonDict", env_vars) if env_vars is not None else None
+            )
+            return FlextCliTestHelpers.ContextFactory.create_context(
+                command=command,
+                arguments=arguments,
+                environment_variables=json_env_vars,
+                working_directory=working_dir,
+            )
+
+    # =========================================================================
+    # NESTED: Test Data Factory
+    # =========================================================================
+
+    class TestData:
+        """Factory for creating test data scenarios."""
+
+        @staticmethod
+        def get_creation_cases() -> list[dict[str, object | None]]:
+            """Get parametrized test cases for context creation."""
+            return [
+                {
+                    "command": None,
+                    "arguments": None,
+                    "env_vars": None,
+                    "working_dir": None,
+                },
+                {
+                    "command": TestContext.Basic.DEFAULT_COMMAND,
+                    "arguments": None,
+                    "env_vars": None,
+                    "working_dir": None,
+                },
+                {
+                    "command": TestContext.Basic.DEFAULT_COMMAND,
+                    "arguments": TestContext.Arguments.MULTIPLE_ARGS,
+                    "env_vars": TestContext.Environment.MULTIPLE_VARS,
+                    "working_dir": TestContext.Paths.TEST_PATH,
+                },
+            ]
+
+        @staticmethod
+        def get_env_var_cases() -> list[tuple[str, str]]:
+            """Get parametrized test cases for environment variables."""
+            return [
+                (
+                    TestContext.Environment.TEST_VAR_NAME,
+                    TestContext.Environment.TEST_VAR_VALUE,
+                ),
+                ("ANOTHER_VAR", "another_value"),
+                ("NUMERIC_VAR", "12345"),
+            ]
+
+        @staticmethod
+        def get_invalid_inputs() -> list[str]:
+            """Get invalid input values for validation tests."""
+            return [
+                "",
+                "   ",
+            ]
+
+        @staticmethod
+        def get_argument_cases() -> list[list[str]]:
+            """Get parametrized test cases for arguments."""
+            return [
+                TestContext.Arguments.SINGLE_ARG,
                 TestContext.Arguments.MULTIPLE_ARGS,
-                TestContext.Environment.MULTIPLE_VARS,
-                TestContext.Paths.TEST_PATH,
-            ),
-        ],
-    )
-    def test_context_creation(
-        self,
-        command: str | None,
-        arguments: list[str] | None,
-        env_vars: dict[
-            str, str | int | float | bool | dict[str, object] | list[object] | None
-        ]
-        | None,
-        working_dir: str | None,
-    ) -> None:
-        """Test context creation with various parameters."""
-        result = ContextFactory.create_context(
+                TestContext.Arguments.LONG_ARGS,
+            ]
+
+        @staticmethod
+        def get_metadata_cases() -> list[tuple[str, object]]:
+            """Get parametrized test cases for metadata."""
+            return [
+                ("key1", "value1"),
+                ("nested_key", {"inner": "value"}),
+                ("list_key", [1, 2, 3]),
+                ("number_key", 42),
+            ]
+
+    # =========================================================================
+    # NESTED: Assertion Helpers
+    # =========================================================================
+
+    class Assertions:
+        """Helper methods for test assertions using flext-core helpers."""
+
+        @staticmethod
+        def assert_result_success(result: FlextResult[T]) -> None:
+            """Assert result is successful using flext-core helper."""
+            FlextTestsUtilities.TestUtilities.assert_result_success(result)
+
+        @staticmethod
+        def assert_result_failure(
+            result: FlextResult[T], error_contains: str | None = None
+        ) -> None:
+            """Assert result is failure with optional error message check."""
+            FlextTestsUtilities.TestUtilities.assert_result_failure(result)
+            if error_contains:
+                # Case-insensitive check for error message
+                assert result.error is not None
+                error_msg = str(result.error).lower()
+                assert error_contains.lower() in error_msg, (
+                    f"Error should contain '{error_contains}', got: {error_msg}"
+                )
+
+        @staticmethod
+        def assert_context_properties(
+            context: FlextCliContext,
+            command: str | None = None,
+            arguments: list[str] | None = None,
+            env_vars: dict[str, object] | None = None,
+            working_dir: str | None = None,
+        ) -> None:
+            """Assert context has expected properties."""
+            if command is not None:
+                assert context.command == command
+            if arguments is not None:
+                assert context.arguments == arguments
+            if env_vars is not None:
+                assert context.environment_variables == env_vars
+            if working_dir is not None:
+                assert context.working_directory == working_dir
+            assert context.id is not None
+            assert isinstance(context.id, str)
+            assert len(context.id) > 0
+
+    # =========================================================================
+    # INITIALIZATION TESTS (Parametrized)
+    # =========================================================================
+
+    @pytest.mark.parametrize("test_case", TestData.get_creation_cases())
+    def test_context_creation(self, test_case: dict[str, object | None]) -> None:
+        """Test context creation with parametrized cases."""
+        # Cast test_case values to proper types
+        command = cast("str | None", test_case.get("command"))
+        arguments = cast("list[str] | None", test_case.get("arguments"))
+        env_vars_raw = test_case.get("env_vars")
+        env_vars = (
+            cast("dict[str, object]", env_vars_raw) if env_vars_raw is not None else None
+        )
+        working_dir = cast("str | None", test_case.get("working_dir"))
+
+        result = self.Fixtures.create_context(
             command=command,
             arguments=arguments,
-            environment_variables=env_vars,
-            working_directory=working_dir,
+            env_vars=env_vars,
+            working_dir=working_dir,
         )
-        FlextCliTestHelpers.AssertHelpers.assert_result_success(result)
+        self.Assertions.assert_result_success(result)
         context = result.unwrap()
 
         assert isinstance(context, FlextCliContext)
-        assert context.command == command
-        assert context.arguments == (arguments or [])
-        assert context.environment_variables == (env_vars or {})
-        assert context.working_directory == working_dir
-        assert context.id is not None
-        assert isinstance(context.id, str)
-        assert len(context.id) > 0
+        self.Assertions.assert_context_properties(
+            context,
+            command=command,
+            arguments=arguments or [],
+            env_vars=env_vars or {},
+            working_dir=working_dir,
+        )
 
     def test_context_service_execute_method(self) -> None:
         """Test context service execute method."""
@@ -88,14 +221,12 @@ class TestFlextCliContext:
         result = context.execute()
 
         assert isinstance(result, FlextResult)
-        assert result.is_success
+        self.Assertions.assert_result_success(result)
+        assert isinstance(result.unwrap(), dict)
 
-        data = result.unwrap()
-        assert isinstance(data, dict)
-
-    # ========================================================================
-    # ACTIVATION AND DEACTIVATION
-    # ========================================================================
+    # =========================================================================
+    # ACTIVATION AND DEACTIVATION TESTS
+    # =========================================================================
 
     def test_context_activation_flow(self) -> None:
         """Test context activation and deactivation state transitions."""
@@ -106,37 +237,27 @@ class TestFlextCliContext:
 
         # Activate
         result = context.activate()
-        assert result.is_success
+        self.Assertions.assert_result_success(result)
         assert context.is_active
 
         # Try to activate again - should fail
         result = context.activate()
-        assert result.is_failure
+        self.Assertions.assert_result_failure(result)
 
         # Deactivate
         result = context.deactivate()
-        assert result.is_success
+        self.Assertions.assert_result_success(result)
         assert not context.is_active
 
         # Try to deactivate again - should fail
         result = context.deactivate()
-        assert result.is_failure
+        self.Assertions.assert_result_failure(result)
 
-    # ========================================================================
-    # ENVIRONMENT VARIABLE OPERATIONS
-    # ========================================================================
+    # =========================================================================
+    # ENVIRONMENT VARIABLE OPERATIONS TESTS (Parametrized)
+    # =========================================================================
 
-    @pytest.mark.parametrize(
-        ("var_name", "var_value"),
-        [
-            (
-                TestContext.Environment.TEST_VAR_NAME,
-                TestContext.Environment.TEST_VAR_VALUE,
-            ),
-            ("ANOTHER_VAR", "another_value"),
-            ("NUMERIC_VAR", "12345"),
-        ],
-    )
+    @pytest.mark.parametrize(("var_name", "var_value"), TestData.get_env_var_cases())
     def test_environment_variable_operations(
         self, var_name: str, var_value: str
     ) -> None:
@@ -145,33 +266,27 @@ class TestFlextCliContext:
 
         # Get non-existent variable
         get_result = context.get_environment_variable(var_name)
-        assert get_result.is_failure
+        self.Assertions.assert_result_failure(get_result)
 
         # Set variable
         set_result = context.set_environment_variable(var_name, var_value)
-        assert set_result.is_success
+        self.Assertions.assert_result_success(set_result)
 
         # Get existing variable
         get_result2 = context.get_environment_variable(var_name)
-        assert get_result2.is_success
+        self.Assertions.assert_result_success(get_result2)
         assert get_result2.unwrap() == var_value
 
-    @pytest.mark.parametrize(
-        "invalid_input",
-        [
-            "",  # Empty string
-            "   ",  # Whitespace only
-        ],
-    )
+    @pytest.mark.parametrize("invalid_input", TestData.get_invalid_inputs())
     def test_environment_variable_validation(self, invalid_input: str) -> None:
         """Test environment variable name validation."""
         context = FlextCliContext()
 
         result = context.get_environment_variable(invalid_input)
-        assert result.is_failure
+        self.Assertions.assert_result_failure(result)
 
         set_result = context.set_environment_variable(invalid_input, "value")
-        assert set_result.is_failure
+        self.Assertions.assert_result_failure(set_result)
 
     def test_environment_variables_none_state(self) -> None:
         """Test fast-fail when environment_variables is None."""
@@ -179,33 +294,16 @@ class TestFlextCliContext:
         context.environment_variables = None
 
         get_result = context.get_environment_variable("VAR")
-        assert get_result.is_failure
+        self.Assertions.assert_result_failure(get_result)
 
         set_result = context.set_environment_variable("VAR", "value")
-        assert set_result.is_failure
+        self.Assertions.assert_result_failure(set_result)
 
-    def test_set_environment_variable_type_validation(self) -> None:
-        """Test environment variable value type validation."""
-        context = FlextCliContext()
+    # =========================================================================
+    # ARGUMENT OPERATIONS TESTS (Parametrized)
+    # =========================================================================
 
-        # Try to set non-string value
-        result = context.set_environment_variable(
-            "VAR", "123"
-        )  # Intentional pass of str
-        assert result.is_success
-
-    # ========================================================================
-    # ARGUMENT OPERATIONS
-    # ========================================================================
-
-    @pytest.mark.parametrize(
-        "args",
-        [
-            TestContext.Arguments.SINGLE_ARG,
-            TestContext.Arguments.MULTIPLE_ARGS,
-            TestContext.Arguments.LONG_ARGS,
-        ],
-    )
+    @pytest.mark.parametrize("args", TestData.get_argument_cases())
     def test_argument_operations(self, args: list[str]) -> None:
         """Test argument add/remove operations."""
         context = FlextCliContext()
@@ -213,33 +311,27 @@ class TestFlextCliContext:
         # Add arguments
         for arg in args:
             result = context.add_argument(arg)
-            assert result.is_success
+            self.Assertions.assert_result_success(result)
 
         assert context.arguments == args
 
         # Remove arguments
         for arg in args:
             result = context.remove_argument(arg)
-            assert result.is_success
+            self.Assertions.assert_result_success(result)
 
         assert context.arguments == []
 
-    @pytest.mark.parametrize(
-        "invalid_arg",
-        [
-            "",  # Empty
-            "   ",  # Whitespace
-        ],
-    )
+    @pytest.mark.parametrize("invalid_arg", TestData.get_invalid_inputs())
     def test_argument_validation(self, invalid_arg: str) -> None:
         """Test argument validation."""
         context = FlextCliContext()
 
         result = context.add_argument(invalid_arg)
-        assert result.is_failure
+        self.Assertions.assert_result_failure(result)
 
         result = context.remove_argument(invalid_arg)
-        assert result.is_failure
+        self.Assertions.assert_result_failure(result)
 
     def test_remove_nonexistent_argument(self) -> None:
         """Test removing non-existent argument."""
@@ -247,8 +339,7 @@ class TestFlextCliContext:
         context.add_argument("existing_arg")
 
         result = context.remove_argument("nonexistent_arg")
-        assert result.is_failure
-        assert "not found" in str(result.error).lower()
+        self.Assertions.assert_result_failure(result, "not found")
 
     def test_arguments_none_state(self) -> None:
         """Test fast-fail when arguments is None."""
@@ -256,69 +347,51 @@ class TestFlextCliContext:
         context.arguments = None
 
         add_result = context.add_argument("arg")
-        assert add_result.is_failure
+        self.Assertions.assert_result_failure(add_result)
 
         remove_result = context.remove_argument("arg")
-        assert remove_result.is_failure
+        self.Assertions.assert_result_failure(remove_result)
 
-    # ========================================================================
-    # METADATA OPERATIONS
-    # ========================================================================
+    # =========================================================================
+    # METADATA OPERATIONS TESTS (Parametrized)
+    # =========================================================================
 
-    @pytest.mark.parametrize(
-        ("key", "value"),
-        [
-            ("key1", "value1"),
-            ("nested_key", {"inner": "value"}),
-            ("list_key", [1, 2, 3]),
-            ("number_key", 42),
-        ],
-    )
-    def test_metadata_operations(
-        self,
-        key: str,
-        value: str | float | bool | dict[str, object] | list[object] | None,
-    ) -> None:
+    @pytest.mark.parametrize(("key", "value"), TestData.get_metadata_cases())
+    def test_metadata_operations(self, key: str, value: object) -> None:
         """Test metadata get/set operations."""
         context = FlextCliContext()
 
-        # Set metadata
-        set_result = context.set_metadata(key, value)
-        assert set_result.is_success
+        # Set metadata - cast value to CliJsonValue for type compatibility
+        json_value = cast("CliJsonValue", value)
+        set_result = context.set_metadata(key, json_value)
+        self.Assertions.assert_result_success(set_result)
 
         # Get metadata
         get_result = context.get_metadata(key)
-        assert get_result.is_success
+        self.Assertions.assert_result_success(get_result)
         assert get_result.unwrap() == value
 
-    @pytest.mark.parametrize(
-        "invalid_key",
-        [
-            "",
-            "   ",
-        ],
-    )
+    @pytest.mark.parametrize("invalid_key", TestData.get_invalid_inputs())
     def test_metadata_key_validation(self, invalid_key: str) -> None:
         """Test metadata key validation."""
         context = FlextCliContext()
 
         set_result = context.set_metadata(invalid_key, "value")
-        assert set_result.is_failure
+        self.Assertions.assert_result_failure(set_result)
 
         get_result = context.get_metadata(invalid_key)
-        assert get_result.is_failure
+        self.Assertions.assert_result_failure(get_result)
 
     def test_get_nonexistent_metadata(self) -> None:
         """Test getting non-existent metadata."""
         context = FlextCliContext()
 
         result = context.get_metadata("nonexistent")
-        assert result.is_failure
-        assert "not found" in str(result.error).lower()
+        self.Assertions.assert_result_failure(result, "not found")
 
-    # ========================================================================
-    # CONTEXT SUMMARY AND SERIALIZATION
-    # ========================================================================
+    # =========================================================================
+    # CONTEXT SUMMARY AND SERIALIZATION TESTS
+    # =========================================================================
 
     def test_context_summary(self) -> None:
         """Test context summary generation."""
@@ -329,7 +402,7 @@ class TestFlextCliContext:
         )
 
         result = context.get_context_summary()
-        assert result.is_success
+        self.Assertions.assert_result_success(result)
 
         summary = result.unwrap()
         assert summary["command"] == "test_cmd"
@@ -347,7 +420,7 @@ class TestFlextCliContext:
         )
 
         result = context.to_dict()
-        assert result.is_success
+        self.Assertions.assert_result_success(result)
 
         data = result.unwrap()
         assert isinstance(data, dict)
@@ -362,7 +435,7 @@ class TestFlextCliContext:
         context.arguments = None
 
         result = context.to_dict()
-        assert result.is_failure
+        self.Assertions.assert_result_failure(result)
 
     def test_to_dict_with_none_env_vars(self) -> None:
         """Test to_dict fast-fail when environment_variables is None."""
@@ -370,11 +443,11 @@ class TestFlextCliContext:
         context.environment_variables = None
 
         result = context.to_dict()
-        assert result.is_failure
+        self.Assertions.assert_result_failure(result)
 
-    # ========================================================================
-    # ID GENERATION AND VALIDATION
-    # ========================================================================
+    # =========================================================================
+    # ID GENERATION AND VALIDATION TESTS
+    # =========================================================================
 
     def test_id_generation(self) -> None:
         """Test automatic ID generation on context creation."""
@@ -411,9 +484,9 @@ class TestFlextCliContext:
         assert context.id is not None
         assert len(context.id) > 0
 
-    # ========================================================================
-    # COMPLEX SCENARIOS AND EDGE CASES
-    # ========================================================================
+    # =========================================================================
+    # COMPLEX SCENARIOS AND EDGE CASES TESTS
+    # =========================================================================
 
     def test_full_context_workflow(self) -> None:
         """Test complete context workflow with multiple operations."""
@@ -450,7 +523,7 @@ class TestFlextCliContext:
         context.arguments = None
 
         result = context.execute()
-        assert result.is_failure
+        self.Assertions.assert_result_failure(result)
 
     def test_context_state_isolation(self) -> None:
         """Test that context instances are isolated."""

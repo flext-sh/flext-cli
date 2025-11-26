@@ -41,10 +41,10 @@ class FlextCliDebugE2E:
 
         # Define test operations as mapping for O(1) lookup
         self.operations: dict[tuple[str, str], Callable[[FlextCli], FlextResult[object]]] = {
-            ("config", "show"): lambda cli: cast(FlextResult[object], cli.cmd.show_config_paths()),
-            ("config", "validate"): lambda cli: cast(FlextResult[object], cli.cmd.validate_config()),
+            ("config", "show"): lambda cli: cast("FlextResult[object]", cli.cmd.show_config_paths()),
+            ("config", "validate"): lambda cli: cast("FlextResult[object]", cli.cmd.validate_config()),
             ("auth", "status"): self._execute_auth_status,
-            ("debug", "check"): lambda cli: cast(FlextResult[object], cli.execute()),
+            ("debug", "check"): lambda cli: cast("FlextResult[object]", cli.execute()),
         }
 
     def run_debug_tests(self) -> None:
@@ -80,7 +80,7 @@ class FlextCliDebugE2E:
 
     def _execute_operation(self, cli: FlextCli, operation: list[str]) -> FlextResult[object]:
         """Execute the specified operation using flext-cli API."""
-        operation_key = cast(tuple[str, str], tuple(operation))
+        operation_key = cast("tuple[str, str]", tuple(operation))
         if operation_key in self.operations:
             return self.operations[operation_key](cli)
         return FlextResult[object].fail(f"Unknown operation: {operation}")

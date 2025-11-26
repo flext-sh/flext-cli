@@ -1,15 +1,11 @@
-"""Tests for flext_cli.FlextCliCli - Click Abstraction Validation.
+"""FLEXT CLI Click Tests - Comprehensive Click Abstraction Validation Testing.
 
-Modules Tested:
-- flext_cli.FlextCliCli: Click decorators, parameters, context, utilities
+Tests for FlextCliCli covering Click decorators, parameters, context management,
+utility methods, model command generation, integration workflows, and edge cases
+with 100% coverage.
 
-Scope:
-- Click decorators (command, group, option, argument) validation
-- Parameter types and validation with Click types
-- Context management and CLI runner functionality
-- Utility methods (echo, confirm, prompt)
-- Model command generation with Pydantic v2
-- CLI integration workflows and edge cases
+Modules tested: flext_cli.cli.FlextCliCli
+Scope: All Click decorators, parameter types, context management, utility methods
 
 Copyright (c) 2025 FLEXT Team. All rights reserved.
 SPDX-License-Identifier: MIT
@@ -25,8 +21,9 @@ from flext_core import FlextResult
 from flext_tests import FlextTestsMatchers
 
 from flext_cli import FlextCliCli
-from tests.fixtures.constants import TestCli
-from tests.helpers import FlextCliTestHelpers
+
+from ..fixtures.constants import TestCli
+from ..helpers import FlextCliTestHelpers
 
 
 class TestFlextCliCli:

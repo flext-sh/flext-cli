@@ -15,9 +15,8 @@ import importlib
 import json
 import os
 import shutil
-from collections.abc import Callable
 from pathlib import Path
-from typing import Annotated, Self, cast
+from typing import Annotated, ClassVar, Self
 
 import yaml
 from flext_core import (
@@ -26,7 +25,6 @@ from flext_core import (
     FlextContainer,
     FlextContext,
     FlextLogger,
-    FlextMixins,
     FlextResult,
     FlextTypes,
     FlextUtilities,
@@ -42,6 +40,7 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 
 from flext_cli.constants import FlextCliConstants
 from flext_cli.typings import CliJsonValue, FlextCliTypes
+from flext_cli.utilities import FlextCliUtilities
 
 # Alias LogLevel from FlextConstants (moved from flext_core direct export)
 LogLevel = FlextConstants.Settings.LogLevel
@@ -248,90 +247,57 @@ class FlextCliConfig(BaseSettings):
         description="Enable console logging output",
     )
 
+    def _ensure_config_directory(self) -> FlextResult[Path]:
+        """Ensure config directory exists with proper error handling."""
+        try:
+            self.config_dir.mkdir(parents=True, exist_ok=True)
+            return FlextResult.ok(self.config_dir)
+        except (PermissionError, OSError) as e:
+            error_msg = FlextCliConstants.ErrorMessages.CANNOT_ACCESS_CONFIG_DIR.format(
+                config_dir=self.config_dir,
+                error=e,
+            )
+            return FlextResult.fail(error_msg)
+
+    def _propagate_to_context(self) -> FlextResult[object]:
+        """Propagate configuration to FlextContext with error recovery."""
+        try:
+            flext_core_module = importlib.import_module("flext_core")
+            context_cls = getattr(flext_core_module, "FlextContext", FlextContext)
+            context = context_cls() if context_cls else FlextContext()
+            _ = context.set("cli_config", self)
+            _ = context.set("cli_auto_output_format", self.auto_output_format)
+            _ = context.set("cli_auto_color_support", self.auto_color_support)
+            _ = context.set("cli_auto_verbosity", self.auto_verbosity)
+            _ = context.set("cli_optimal_table_format", self.optimal_table_format)
+            return FlextResult[object].ok(True)
+        except Exception as e:
+            logger.debug("Context not available during config initialization: %s", e)
+            return FlextResult[object].ok(True)
+
+    def _register_in_container(self) -> FlextResult[object]:
+        """Register configuration in FlextContainer for dependency injection."""
+        try:
+            container = FlextContainer()
+            if not container.has_service("flext_cli_config"):
+                _ = container.with_service("flext_cli_config", self)
+            return FlextResult[object].ok(True)
+        except Exception as e:
+            logger.debug("Container not available during config initialization: %s", e)
+            return FlextResult[object].ok(True)
+
     # Pydantic 2.11 model validator (runs after all field validators)
     @model_validator(mode="after")
     def validate_configuration(self) -> Self:
-        """Validate configuration using functional composition and railway pattern.
-
-        This method runs AFTER all field validators, implementing comprehensive
-        configuration validation with functional error handling and auto-setup.
-
-        Uses railway pattern for:
-        1. Directory creation with proper error handling
-        2. Context propagation with graceful degradation
-        3. Container registration with conflict avoidance
-
-        """
-
-        # Functional directory validation using railway pattern
-        def ensure_config_directory() -> FlextResult[Path]:
-            """Ensure config directory exists with proper error handling."""
-            try:
-                self.config_dir.mkdir(parents=True, exist_ok=True)
-                return FlextResult.ok(self.config_dir)
-            except (PermissionError, OSError) as e:
-                error_msg = (
-                    FlextCliConstants.ErrorMessages.CANNOT_ACCESS_CONFIG_DIR.format(
-                        config_dir=self.config_dir,
-                        error=e,
-                    )
-                )
-                return FlextResult.fail(error_msg)
-
-        # Functional context propagation with graceful degradation
-        def propagate_to_context() -> FlextResult[bool]:
-            """Propagate configuration to FlextContext with error recovery."""
-            try:
-                # Resolve context dynamically for test compatibility
-                flext_core_module = importlib.import_module("flext_core")
-                context_cls = getattr(flext_core_module, "FlextContext", FlextContext)
-                context = context_cls() if context_cls else FlextContext()
-
-                # Propagate configuration values
-                _ = context.set("cli_config", self)
-                _ = context.set("cli_auto_output_format", self.auto_output_format)
-                _ = context.set("cli_auto_color_support", self.auto_color_support)
-                _ = context.set("cli_auto_verbosity", self.auto_verbosity)
-                _ = context.set("cli_optimal_table_format", self.optimal_table_format)
-
-                return FlextResult[bool].ok(True)
-            except Exception as e:
-                # Log but don't fail - context might not be initialized yet
-                logger.debug(
-                    "Context not available during config initialization: %s",
-                    e,
-                )
-                return FlextResult[bool].ok(True)  # Graceful degradation
-
-        # Functional container registration with conflict avoidance
-        def register_in_container() -> FlextResult[bool]:
-            """Register configuration in FlextContainer for dependency injection."""
-            try:
-                container = FlextContainer()
-                # Register only if not already registered (avoids test conflicts)
-                if not container.has_service("flext_cli_config"):
-                    _ = container.with_service("flext_cli_config", self)
-                return FlextResult[bool].ok(True)
-            except Exception as e:
-                # Container might not be initialized yet - continue gracefully
-                logger.debug(
-                    "Container not available during config initialization: %s",
-                    e,
-                )
-                return FlextResult[bool].ok(True)  # Graceful degradation
-
-        # Execute validation pipeline using railway pattern
+        """Validate configuration using functional composition and railway pattern."""
         validation_result = (
-            ensure_config_directory()
-            .flat_map(lambda _: cast("FlextResult[object]", propagate_to_context()))
-            .flat_map(lambda _: cast("FlextResult[object]", register_in_container()))
+            self._ensure_config_directory()
+            .flat_map(lambda _: self._propagate_to_context())
+            .flat_map(lambda _: self._register_in_container())
         )
-
-        # Convert validation result to configuration result
         if validation_result.is_failure:
             msg = f"Configuration validation failed: {validation_result.error}"
             raise ValueError(msg)
-
         return self
 
     # Pydantic 2 computed fields for smart auto-configuration
@@ -391,14 +357,25 @@ class FlextCliConfig(BaseSettings):
             )
             .map(
                 lambda capabilities: determine_format(
-                    cast("tuple[bool, int]", capabilities)[0],  # is_interactive
-                    cast("tuple[bool, int]", capabilities)[1],  # width
+                    capabilities[0]
+                    if isinstance(capabilities, tuple)
+                    and len(capabilities)
+                    >= FlextCliConstants.ConfigValidation.CAPABILITIES_TUPLE_MIN_LENGTH
+                    else False,  # is_interactive
+                    capabilities[1]
+                    if isinstance(capabilities, tuple)
+                    and len(capabilities)
+                    >= FlextCliConstants.ConfigValidation.CAPABILITIES_TUPLE_MIN_LENGTH
+                    else FlextCliConstants.ConfigValidation.DEFAULT_TERMINAL_WIDTH,
                     bool(self.auto_color_support),  # has_color
                 ),
             )
         )
         if result.is_success:
-            return cast("str", result.unwrap())
+            format_result = result.unwrap()
+            # Type narrowing: determine_format returns str
+            if isinstance(format_result, str):
+                return format_result
         # Fast-fail: return error format on failure
         return FlextCliConstants.OutputFormats.JSON.value
 
@@ -448,7 +425,10 @@ class FlextCliConfig(BaseSettings):
 
         result = FlextResult.ok((self.verbose, self.quiet)).map(map_to_verbosity)
         if result.is_success:
-            return cast("str", result.unwrap())
+            verbosity_result = result.unwrap()
+            # Type narrowing: map_to_verbosity returns str
+            if isinstance(verbosity_result, str):
+                return verbosity_result
         # Fast-fail: return normal verbosity on failure
         return FlextCliConstants.ConfigDefaults.NORMAL_VERBOSITY
 
@@ -484,7 +464,10 @@ class FlextCliConfig(BaseSettings):
         # Railway pattern: get width then select format
         result = get_terminal_width().map(select_table_format)
         if result.is_success:
-            return cast("str", result.unwrap())
+            format_result = result.unwrap()
+            # Type narrowing: select_table_format returns str
+            if isinstance(format_result, str):
+                return format_result
         # Fast-fail: return simple format on failure
         return FlextCliConstants.TableFormats.SIMPLE
 
@@ -516,12 +499,21 @@ class FlextCliConfig(BaseSettings):
             )
 
         # Railway pattern: validate input then check format
-        return cast(
-            "FlextResult[str]",
-            FlextResult.ok(value).flat_map(
-                cast("Callable[[str], FlextResult[object]]", check_format_exists)
-            ),
-        )
+        # Create wrapper to ensure type compatibility with flat_map
+        def check_format_wrapper(fmt: str) -> FlextResult[object]:
+            """Wrapper to convert FlextResult[str] to FlextResult[object]."""
+            result = check_format_exists(fmt)
+            if result.is_success:
+                return FlextResult[object].ok(result.unwrap())
+            return FlextResult[object].fail(result.error or "Format validation failed")
+
+        format_result = FlextResult.ok(value).flat_map(check_format_wrapper)
+        # Convert back to FlextResult[str]
+        if format_result.is_success:
+            format_value = format_result.unwrap()
+            if isinstance(format_value, str):
+                return FlextResult[str].ok(format_value)
+        return FlextResult[str].fail(format_result.error or "Format validation failed")
 
     @classmethod
     def load_from_config_file(cls, config_file: Path) -> FlextResult[FlextCliConfig]:
@@ -578,28 +570,19 @@ class FlextCliConfig(BaseSettings):
             - Type-safe with field validation
 
         """
-        # Convert Path objects to strings for JSON compatibility
-        config_dict_raw = FlextMixins.ModelConversion.to_dict(self)
-        config_dict: dict[str, CliJsonValue] = {}
-        # Convert PosixPath to str for JSON serialization and ensure JsonValue compatibility
-        for key, value in config_dict_raw.items():
-            if isinstance(value, Path):
-                config_dict[key] = str(value)
-            else:
-                # Type narrowing: value is already JsonValue compatible after Path conversion
-                config_dict[key] = cast("CliJsonValue", value)
-
-        # Create result dict with service execution information
-        result_dict: FlextCliTypes.Data.CliDataDict = cast(
-            "FlextCliTypes.Data.CliDataDict",
-            {
-                "status": FlextCliConstants.ServiceStatus.OPERATIONAL.value,
-                "service": FlextCliConstants.ConfigDefaults.DEFAULT_SERVICE_NAME,
-                "timestamp": FlextUtilities.Generators.generate_iso_timestamp(),
-                "version": FlextCliConstants.ConfigDefaults.DEFAULT_VERSION_STRING,
-                "config": config_dict,
-            },
+        # Convert to JSON-compatible dict using model_dump() and DataMapper
+        # Handles Path→str, primitives as-is, nested dicts/lists, and other types via str()
+        config_dict_raw = self.model_dump()
+        config_as_json_value = FlextUtilities.DataMapper.convert_dict_to_json(
+            config_dict_raw
         )
+        result_dict: FlextCliTypes.Data.CliDataDict = {
+            "status": FlextCliConstants.ServiceStatus.OPERATIONAL.value,
+            "service": FlextCliConstants.ConfigDefaults.DEFAULT_SERVICE_NAME,
+            "timestamp": FlextUtilities.Generators.generate_iso_timestamp(),
+            "version": FlextCliConstants.ConfigDefaults.DEFAULT_VERSION_STRING,
+            "config": config_as_json_value,  # dict[str, object] is compatible with CliJsonValue
+        }
         return FlextResult[FlextCliTypes.Data.CliDataDict].ok(result_dict)
 
     def update_from_cli_args(self, **kwargs: CliJsonValue) -> FlextResult[bool]:
@@ -634,7 +617,7 @@ class FlextCliConfig(BaseSettings):
                 setattr(self, key, value)
 
             # Re-validate entire model to ensure consistency
-            _ = self.model_validate(FlextMixins.ModelConversion.to_dict(self))
+            _ = self.model_validate(self.model_dump())
 
             return FlextResult[bool].ok(True)
 
@@ -685,9 +668,7 @@ class FlextCliConfig(BaseSettings):
                     # Create test instance with override
                     test_config = self.model_copy()
                     setattr(test_config, key, value)
-                    _ = test_config.model_validate(
-                        FlextMixins.ModelConversion.to_dict(test_config),
-                    )
+                    _ = test_config.model_validate(test_config.model_dump())
                     valid_overrides[key] = value
                 except Exception as e:
                     errors.append(
@@ -718,10 +699,12 @@ class FlextCliConfig(BaseSettings):
 
         """
         try:
-            # Convert model to dictionary format expected by protocol
-            config_data = cast(
-                "FlextCliTypes.Data.CliConfigData",
-                FlextMixins.ModelConversion.to_dict(self),
+            # Convert model to dictionary format using model_dump()
+            # FlextUtilities.DataMapper handles all type conversions automatically
+            config_dict_raw = self.model_dump()
+            # Use CliDataMapper for type compatibility
+            config_data = FlextCliUtilities.CliDataMapper.convert_dict_to_json(
+                config_dict_raw
             )
             return FlextResult[FlextCliTypes.Data.CliConfigData].ok(config_data)
         except Exception as e:
@@ -749,17 +732,17 @@ class FlextCliConfig(BaseSettings):
                     setattr(self, key, value)
 
             # Validate the updated configuration
-            _ = self.model_validate(FlextMixins.ModelConversion.to_dict(self))
+            _ = self.model_validate(self.model_dump())
             return FlextResult[bool].ok(True)
         except Exception as e:
             return FlextResult[bool].fail(
                 FlextCliConstants.ErrorMessages.CONFIG_SAVE_FAILED_MSG.format(error=e),
             )
 
-    _instance: Self | None = None
+    _instance: ClassVar[FlextCliConfig | None] = None
 
     @classmethod
-    def get_instance(cls) -> Self:
+    def get_instance(cls) -> FlextCliConfig:
         """Get singleton instance of FlextCliConfig.
 
         Returns:

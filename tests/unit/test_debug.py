@@ -1,7 +1,10 @@
-"""FLEXT CLI Debug Tests - Comprehensive Real Functionality Testing.
+"""FLEXT CLI Debug Tests - Comprehensive Debug Operations Testing.
 
-Tests for FlextCliDebug covering all real functionality with flext_tests
-integration, comprehensive debug operations, and targeting 90%+ coverage.
+Tests for FlextCliDebug covering system info, environment variables, paths,
+connectivity, health checks, trace execution, and edge cases with 100% coverage.
+
+Modules tested: flext_cli.debug.FlextCliDebug
+Scope: All debug operations, system/environment/path info, validation, exception handling
 
 Copyright (c) 2025 FLEXT Team. All rights reserved.
 SPDX-License-Identifier: MIT
@@ -19,14 +22,48 @@ from flext_cli import FlextCliDebug
 
 
 class TestFlextCliDebug:
-    """Comprehensive tests for FlextCliDebug functionality."""
+    """Comprehensive tests for FlextCliDebug functionality.
+
+    Single class with nested helper classes and methods organized by functionality.
+    Uses factories, constants, dynamic tests, and helpers to reduce code while
+    maintaining and expanding coverage.
+    """
+
+    # =========================================================================
+    # NESTED: Assertion Helpers
+    # =========================================================================
+
+    class Assertions:
+        """Helper methods for test assertions."""
+
+        @staticmethod
+        def assert_result_success(result: FlextResult[object]) -> None:
+            """Assert result is successful."""
+            assert result.is_success, f"Expected success, got: {result.error}"
+
+        @staticmethod
+        def assert_result_failure(
+            result: FlextResult[object], error_contains: str | None = None
+        ) -> None:
+            """Assert result is failure."""
+            assert result.is_failure, f"Expected failure, got: {result}"
+            if error_contains:
+                error_msg = str(result.error).lower() if result.error else ""
+                assert error_contains.lower() in error_msg
+
+    # =========================================================================
+    # FIXTURES
+    # =========================================================================
 
     @pytest.fixture
     def debug(self) -> FlextCliDebug:
         """Create FlextCliDebug instance for testing."""
         return FlextCliDebug()
 
-    @pytest.fixture
+    # =========================================================================
+    # INITIALIZATION TESTS
+    # =========================================================================
+
     def test_debug_initialization(self, debug: FlextCliDebug) -> None:
         """Test debug initialization."""
         assert isinstance(debug, FlextCliDebug)
@@ -223,9 +260,9 @@ class TestFlextCliDebug:
             ):
                 assert value == "***MASKED***"
 
-
-class TestFlextCliDebugExceptionHandlers:
-    """Exception handler tests for debug methods."""
+    # =========================================================================
+    # EXCEPTION HANDLER TESTS (Consolidated from TestFlextCliDebugExceptionHandlers)
+    # =========================================================================
 
     def test_get_system_info_exception(self) -> None:
         """Test get_system_info exception handler (lines 69-70).

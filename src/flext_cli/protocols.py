@@ -326,6 +326,57 @@ class FlextCliProtocols(FlextProtocols):
                 ...
 
         @runtime_checkable
+        class CliCommandFunction(Protocol):
+            """Protocol for CLI command functions with arbitrary signatures.
+
+            Used for command/group decorators that accept functions with any
+            Click/Typer parameter signature. Returns CliJsonValue instead of
+            FlextResult for compatibility with CLI frameworks.
+
+            This protocol uses `object` instead of `Any` to satisfy mypy --strict
+            while allowing functions with any parameter signature.
+            """
+
+            __name__: str
+            """Function name for registration."""
+
+            def __call__(self, *args: object, **kwargs: object) -> CliJsonValue:
+                """Execute command function with arbitrary arguments."""
+                ...
+
+        @runtime_checkable
+        class ModelCommandHandler(Protocol):
+            """Protocol for model-based CLI command handlers.
+
+            Used specifically for model_command() that passes a validated Pydantic
+            model instance to the handler function. Handlers take a single params
+            argument with the validated model and return None.
+
+            This is more permissive than CliCommandFunction for model-driven CLIs.
+            Uses Callable signature compatible with pyrefly's variance checking.
+            """
+
+            def __call__(self, __params: object, /) -> None:
+                """Execute command with validated model instance."""
+                ...
+
+        @runtime_checkable
+        class CliRegisteredCommand(Protocol):
+            """Protocol for registered CLI commands (matches click.Command signature).
+
+            This protocol allows api.py to type command registration results without
+            importing click directly, following FLEXT convention that only cli.py
+            imports Click/Typer directly.
+            """
+
+            name: str | None
+            """Command name."""
+
+            def __call__(self, *args: object, **kwargs: object) -> object:
+                """Execute the command with arbitrary arguments."""
+                ...
+
+        @runtime_checkable
         class InspectableCallable(Protocol):
             """Protocol for callables with __signature__ attribute for CLI introspection.
 

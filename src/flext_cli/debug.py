@@ -1,13 +1,7 @@
 """FLEXT CLI Debug - Unified debug service using flext-core directly.
 
-Single responsibility debug service eliminating ALL loose functions and
-wrapper patterns. Uses flext-core utilities directly with SOURCE OF TRUTH
-principle for all configurations and metadata.
-
-EXPECTED MYPY ISSUES (documented for awareness):
-- Unreachable statement in get_environment_variables method:
-  This is defensive type checking that mypy proves is unnecessary at compile time
-  due to type analysis, but is kept for runtime safety.
+**MODULE**: FlextCliDebug - Single primary class for debug operations
+**SCOPE**: System info, environment variables, paths, health checks, trace operations
 
 Copyright (c) 2025 FLEXT Team. All rights reserved.
 SPDX-License-Identifier: MIT
@@ -21,11 +15,9 @@ import pathlib
 import platform
 import sys
 import tempfile
-import typing
 from typing import override
 
 from flext_core import (
-    FlextMixins,
     FlextResult,
     FlextUtilities,
 )
@@ -34,12 +26,11 @@ from flext_cli.base import FlextCliServiceBase
 from flext_cli.constants import FlextCliConstants
 from flext_cli.models import FlextCliModels
 from flext_cli.typings import CliJsonValue, FlextCliTypes, FlextCliTypes as Types
+from flext_cli.utilities import FlextCliUtilities
 
 
 class FlextCliDebug(FlextCliServiceBase):
     """Debug service extending FlextCliServiceBase.
-
-    Implements FlextCliProtocols.CliDebugProvider through structural subtyping.
 
     Provides essential debugging functionality using flext-core patterns.
     Follows single-responsibility principle with nested helpers.
@@ -47,17 +38,65 @@ class FlextCliDebug(FlextCliServiceBase):
 
     @override
     def __init__(self, **_data: CliJsonValue) -> None:
-        """Initialize debug service with flext-core integration and Phase 1 context enrichment."""
+        """Initialize debug service with flext-core integration."""
         super().__init__()
-        # Logger and container inherited from FlextService via FlextMixins
+
+    # =========================================================================
+    # PRIVATE HELPERS - Generalize common patterns
+    # =========================================================================
+
+    def _convert_model_to_dict(
+        self,
+        model: FlextCliModels.SystemInfo
+        | FlextCliModels.EnvironmentInfo
+        | FlextCliModels.PathInfo,
+    ) -> FlextCliTypes.Data.CliDataDict:
+        """Generalized model to dict conversion helper."""
+        # Use model_dump() directly and convert with CliDataMapper
+        raw_dict = model.model_dump()
+        return FlextCliUtilities.CliDataMapper.convert_dict_to_json(raw_dict)
+
+    def _convert_result_to_json_value(
+        self, result: FlextResult[FlextCliTypes.Data.CliDataDict]
+    ) -> CliJsonValue:
+        """Convert FlextResult[CliDataDict] to CliJsonValue."""
+        if result.is_success:
+            # CliDataDict is dict[str, CliJsonValue], which is compatible with CliJsonValue
+            # Direct return - dict[str, CliJsonValue] is a valid CliJsonValue
+            # CliDataDict is dict[str, CliJsonValue], which needs explicit conversion
+            # to be compatible with CliJsonValue return type
+            cli_data = result.unwrap()
+            # Build new dict with explicit object values for compatibility
+            json_dict: dict[str, object] = {
+                key: val for key, val in cli_data.items() if isinstance(key, str)
+            }
+            # dict[str, object] is compatible with CliJsonValue
+            return json_dict
+        # Return error as string
+        return result.error or "Unknown error"
+
+    def _collect_info_safely(
+        self,
+        method_name: str,
+        error_key: str,
+        info_dict: Types.Data.DebugInfoData,
+    ) -> None:
+        """Generalized info collection helper with error handling."""
+        method = getattr(self, method_name)
+        result = method()
+        if result.is_success:
+            info_dict[error_key.replace("_ERROR", "")] = (
+                self._convert_result_to_json_value(result)
+            )
+        else:
+            info_dict[error_key] = result.error or "Unknown error"
+
+    # =========================================================================
+    # PUBLIC API METHODS
+    # =========================================================================
 
     def execute(self, **_kwargs: object) -> FlextResult[FlextCliTypes.Data.CliDataDict]:
-        """Execute debug service - required by FlextService.
-
-        Args:
-            **_kwargs: Additional execution parameters (unused, for FlextService compatibility)
-
-        """
+        """Execute debug service - required by FlextService."""
         return FlextResult[FlextCliTypes.Data.CliDataDict].ok({
             "status": "operational",
             "message": FlextCliConstants.ServiceMessages.FLEXT_CLI_DEBUG_OPERATIONAL,
@@ -69,12 +108,11 @@ class FlextCliDebug(FlextCliServiceBase):
         """Get environment variables with sensitive data masked."""
         try:
             env_info = self._get_environment_info()
-            # env_info is EnvironmentInfo model, access variables dict
             typed_env_info: FlextCliTypes.Data.CliDataDict = {}
             for key, value in env_info.variables.items():
-                typed_env_info[key] = value  # value is str, which is JsonValue
+                typed_env_info[key] = value
             return FlextResult[FlextCliTypes.Data.CliDataDict].ok(typed_env_info)
-        except Exception as e:  # pragma: no cover - Defensive: Catches unexpected errors during environment info retrieval
+        except Exception as e:
             return FlextResult[FlextCliTypes.Data.CliDataDict].fail(
                 FlextCliConstants.DebugErrorMessages.ENVIRONMENT_INFO_FAILED.format(
                     error=e,
@@ -88,7 +126,7 @@ class FlextCliDebug(FlextCliServiceBase):
         try:
             results = self._validate_filesystem_permissions()
             return FlextResult[list[str]].ok(results)
-        except Exception as e:  # pragma: no cover - Defensive: Catches unexpected errors during environment validation
+        except Exception as e:
             return FlextResult[list[str]].fail(
                 FlextCliConstants.DebugErrorMessages.ENVIRONMENT_VALIDATION_FAILED.format(
                     error=e,
@@ -137,9 +175,7 @@ class FlextCliDebug(FlextCliServiceBase):
         try:
             trace_info: Types.Data.DebugInfoData = {
                 FlextCliConstants.DebugDictKeys.OPERATION: FlextCliConstants.TRACE,
-                FlextCliConstants.DictKeys.ARGS: list(
-                    args,
-                ),  # Cast to list for JsonValue compatibility
+                FlextCliConstants.DictKeys.ARGS: list(args),
                 FlextCliConstants.DebugDictKeys.ARGS_COUNT: len(args),
                 FlextCliConstants.DictKeys.TIMESTAMP: FlextUtilities.Generators.generate_iso_timestamp(),
                 FlextCliConstants.DebugDictKeys.TRACE_ID: FlextUtilities.Generators.generate_id(),
@@ -153,22 +189,22 @@ class FlextCliDebug(FlextCliServiceBase):
             )
 
     def get_debug_info(self) -> FlextResult[Types.Data.DebugInfoData]:
-        """Get comprehensive debug information.
-
-        Returns:
-            FlextResult[Types.Data.DebugInfoData]: Debug information or error
-
-        """
+        """Get comprehensive debug information."""
         try:
-            # Serialize SystemInfo model to dict using Pydantic 2 model_dump()
             system_info_model = self._get_system_info()
+            system_info_dict = self._convert_model_to_dict(system_info_model)
+            # Build DebugInfoData - convert system_info_dict to explicit dict[str, object]
+            system_info_json: dict[str, object] = {
+                key: val
+                for key, val in system_info_dict.items()
+                if isinstance(key, str)
+            }
+
             debug_info: Types.Data.DebugInfoData = {
                 FlextCliConstants.DictKeys.SERVICE: FlextCliConstants.DebugDefaults.SERVICE_NAME,
                 FlextCliConstants.DictKeys.TIMESTAMP: FlextUtilities.Generators.generate_iso_timestamp(),
                 FlextCliConstants.DebugDictKeys.DEBUG_ID: FlextUtilities.Generators.generate_id(),
-                FlextCliConstants.DebugDictKeys.SYSTEM_INFO: FlextMixins.ModelConversion.to_dict(
-                    system_info_model,
-                ),
+                FlextCliConstants.DebugDictKeys.SYSTEM_INFO: system_info_json,
                 FlextCliConstants.DebugDictKeys.ENVIRONMENT_STATUS: FlextCliConstants.ServiceStatus.OPERATIONAL.value,
                 FlextCliConstants.DebugDictKeys.CONNECTIVITY_STATUS: FlextCliConstants.ServiceStatus.CONNECTED.value,
             }
@@ -181,18 +217,11 @@ class FlextCliDebug(FlextCliServiceBase):
             )
 
     def get_system_info(self) -> FlextResult[FlextCliTypes.Data.CliDataDict]:
-        """Get system information - public API method.
-
-        Returns:
-            FlextResult[FlextCliTypes.Data.CliDataDict]: System information or error
-
-        """
+        """Get system information - public API method."""
         try:
             info_model = self._get_system_info()
-            # Serialize SystemInfo model to dict using Pydantic 2 model_dump()
-            info_dict: FlextCliTypes.Data.CliDataDict = typing.cast(
-                "FlextCliTypes.Data.CliDataDict",
-                FlextMixins.ModelConversion.to_dict(info_model),
+            info_dict: FlextCliTypes.Data.CliDataDict = self._convert_model_to_dict(
+                info_model
             )
             return FlextResult[FlextCliTypes.Data.CliDataDict].ok(info_dict)
         except Exception as e:
@@ -203,28 +232,22 @@ class FlextCliDebug(FlextCliServiceBase):
             )
 
     def get_system_paths(self) -> FlextResult[FlextCliTypes.Data.CliDataDict]:
-        """Get system path information - public API method.
-
-        Returns:
-            FlextResult[FlextCliTypes.Data.CliDataDict]: Path information list as dict or error
-
-        Note:
-            Returns type-safe PathInfo models serialized to dict format
-
-        """
+        """Get system path information - public API method."""
         try:
             paths_data = self._get_path_info()
-            # Serialize PathInfo models to dicts using model_dump()
-            serialized_paths: list[dict[str, object]] = [
-                FlextMixins.ModelConversion.to_dict(path_info)
-                for path_info in paths_data
-            ]
+            # Convert each PathInfo model to dict
+            serialized_paths: list[object] = []
+            for path_info in paths_data:
+                path_dict = self._convert_model_to_dict(path_info)
+                # Convert CliDataDict to dict[str, object] for compatibility
+                path_obj_dict: dict[str, object] = {
+                    key: val for key, val in path_dict.items() if isinstance(key, str)
+                }
+                serialized_paths.append(path_obj_dict)
 
-            # Type-safe dict construction
-            # serialized_paths is list[dict[str, object]] which is compatible with JsonValue
-            # list is a valid JsonValue type, cast to ensure type compatibility
+            # Type narrowing: list[object] is compatible with CliJsonValue
             paths_dict: FlextCliTypes.Data.CliDataDict = {
-                "paths": typing.cast("CliJsonValue", serialized_paths),
+                "paths": serialized_paths,
             }
             return FlextResult[FlextCliTypes.Data.CliDataDict].ok(paths_dict)
         except Exception as e:
@@ -241,59 +264,29 @@ class FlextCliDebug(FlextCliServiceBase):
         try:
             comprehensive_info: Types.Data.DebugInfoData = {}
 
-            # Collect system info
-            system_result = self.get_system_info()
-            if system_result.is_success:
-                # Type cast: CliDataDict is dict[str, JsonValue] which is compatible with JsonValue
-                comprehensive_info[FlextCliConstants.DebugDictKeys.SYSTEM] = (
-                    typing.cast("CliJsonValue", system_result.value)
-                )
-            else:
-                comprehensive_info[FlextCliConstants.DebugDictKeys.SYSTEM_ERROR] = (
-                    system_result.error
-                )
+            # Collect all info using generalized helper
+            self._collect_info_safely(
+                "get_system_info",
+                FlextCliConstants.DebugDictKeys.SYSTEM_ERROR,
+                comprehensive_info,
+            )
+            self._collect_info_safely(
+                "get_environment_variables",
+                FlextCliConstants.DebugDictKeys.ENVIRONMENT_ERROR,
+                comprehensive_info,
+            )
+            self._collect_info_safely(
+                "get_system_paths",
+                FlextCliConstants.DebugDictKeys.PATHS_ERROR,
+                comprehensive_info,
+            )
+            self._collect_info_safely(
+                "get_debug_info",
+                FlextCliConstants.DebugDictKeys.DEBUG_ERROR,
+                comprehensive_info,
+            )
 
-            # Collect environment info
-            env_result = self.get_environment_variables()
-            if env_result.is_success:
-                # Type cast: CliDataDict is dict[str, JsonValue] which is compatible with JsonValue
-                comprehensive_info[FlextCliConstants.DebugDictKeys.ENVIRONMENT] = (
-                    typing.cast("CliJsonValue", env_result.value)
-                )
-            else:
-                comprehensive_info[
-                    FlextCliConstants.DebugDictKeys.ENVIRONMENT_ERROR
-                ] = env_result.error
-
-            # Collect paths info
-            paths_result = self.get_system_paths()
-            if paths_result.is_success:
-                # Type cast: CliDataDict is dict[str, JsonValue] which is compatible with JsonValue
-                comprehensive_info[FlextCliConstants.DebugDictKeys.PATHS] = typing.cast(
-                    "CliJsonValue",
-                    paths_result.value,
-                )
-            else:
-                comprehensive_info[FlextCliConstants.DebugDictKeys.PATHS_ERROR] = (
-                    paths_result.error
-                )
-
-            # Collect debug info
-            debug_result = self.get_debug_info()
-            if debug_result.is_success:
-                # Type cast: DebugInfoData is dict[str, JsonValue] which is compatible with JsonValue
-                comprehensive_info[FlextCliConstants.DebugDictKeys.DEBUG] = typing.cast(
-                    "CliJsonValue",
-                    debug_result.value,
-                )
-            else:
-                comprehensive_info[FlextCliConstants.DebugDictKeys.DEBUG_ERROR] = (
-                    debug_result.error
-                )
-
-            # comprehensive_info is already correctly typed as DebugInfoData
             return FlextResult[Types.Data.DebugInfoData].ok(comprehensive_info)
-
         except Exception as e:
             return FlextResult[Types.Data.DebugInfoData].fail(
                 FlextCliConstants.DebugErrorMessages.COMPREHENSIVE_DEBUG_INFO_FAILED.format(
@@ -306,17 +299,7 @@ class FlextCliDebug(FlextCliServiceBase):
     # =========================================================================
 
     def _get_system_info(self) -> FlextCliModels.SystemInfo:
-        """Get basic system information as Pydantic model.
-
-        Returns:
-            SystemInfo model with python_version, platform, architecture, etc.
-
-        Pydantic 2 Features:
-            - Type-safe model instead of dict[str, JsonValue]
-            - Automatic validation on creation
-            - Clean serialization with model_dump()
-
-        """
+        """Get basic system information as Pydantic model."""
         arch_tuple = platform.architecture()
         return FlextCliModels.SystemInfo(
             python_version=sys.version,
@@ -327,17 +310,7 @@ class FlextCliDebug(FlextCliServiceBase):
         )
 
     def _get_environment_info(self) -> FlextCliModels.EnvironmentInfo:
-        """Get environment variables with sensitive data masked as Pydantic model.
-
-        Returns:
-            EnvironmentInfo model with masked sensitive variables
-
-        Pydantic 2 Features:
-            - Type-safe model instead of dict[str, str]
-            - Validates all values are strings
-            - Immutable with frozen=False for assignment validation
-
-        """
+        """Get environment variables with sensitive data masked as Pydantic model."""
         env_info: dict[str, str] = {}
 
         for key, value in os.environ.items():
@@ -352,17 +325,7 @@ class FlextCliDebug(FlextCliServiceBase):
         return FlextCliModels.EnvironmentInfo(variables=env_info)
 
     def _get_path_info(self) -> list[FlextCliModels.PathInfo]:
-        """Get system path information as list of Pydantic models.
-
-        Returns:
-            List of PathInfo models with index, path, exists, is_dir
-
-        Pydantic 2 Features:
-            - Type-safe models instead of list[dict[str, object]]
-            - Automatic validation for each path entry
-            - Clean iteration and serialization
-
-        """
+        """Get system path information as list of Pydantic models."""
         paths: list[FlextCliModels.PathInfo] = []
         for i, path in enumerate(sys.path):
             path_obj = pathlib.Path(path)
@@ -414,6 +377,4 @@ class FlextCliDebug(FlextCliServiceBase):
         return errors
 
 
-__all__ = [
-    "FlextCliDebug",
-]
+__all__ = ["FlextCliDebug"]

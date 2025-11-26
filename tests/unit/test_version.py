@@ -1,10 +1,10 @@
-"""Tests for flext_cli.__version__ - Version validation using modern patterns.
+"""FLEXT CLI Version Tests - Comprehensive Version Validation Testing.
 
-**TESTED MODULES**: flext_cli.__version__, flext_cli.__version_info__
-**SCOPE**: Version semver compliance, immutability, consistency, edge cases
+Tests for flext_cli.__version__ and __version_info__ covering semver compliance,
+immutability, consistency, and edge cases with 100% coverage.
 
-Uses StrEnum, dataclass, parametrization, and dynamic tests for maximum coverage
-with minimal code (DRY principle).
+Modules tested: flext_cli.__version__, flext_cli.__version_info__
+Scope: Version string validation, version info validation, consistency checks
 
 Copyright (c) 2025 FLEXT Team. All rights reserved.
 SPDX-License-Identifier: MIT
@@ -14,122 +14,180 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 import re
+import sys
 from dataclasses import dataclass
 from enum import StrEnum
-from typing import Final
+from typing import Final, TypeVar
 
 import pytest
+from flext_core import FlextResult
 
 from flext_cli import __version__, __version_info__
-from tests.fixtures.constants import TestVersions
-from tests.helpers import FlextCliTestHelpers
 
+from .._helpers import FlextCliTestHelpers
+from ..fixtures.constants import TestVersions
 
-class VersionValidationType(StrEnum):
-    """Types of version validation."""
-
-    STRING_VALIDATION = "string_validation"
-    INFO_VALIDATION = "info_validation"
-    CONSISTENCY = "consistency"
-
-
-@dataclass(frozen=True)
-class VersionTestScenario:
-    """Version test scenario mapping."""
-
-    name: str
-    version_string: str | None = None
-    version_info: tuple[int | str, ...] | None = None
-    should_pass: bool = True
-
-    @property
-    def validation_type(self) -> VersionValidationType:
-        """Determine validation type based on data provided."""
-        if self.version_string and self.version_info:
-            return VersionValidationType.CONSISTENCY
-        if self.version_info:
-            return VersionValidationType.INFO_VALIDATION
-        return VersionValidationType.STRING_VALIDATION
-
-
-class VersionTestCases:
-    """Consolidated version test cases using mapping."""
-
-    STRING_TESTS: Final[dict[str, VersionTestScenario]] = {
-        "valid_semver": VersionTestScenario(
-            "valid_semver",
-            version_string=TestVersions.Examples.VALID_SEMVER,
-            should_pass=True,
-        ),
-        "valid_complex": VersionTestScenario(
-            "valid_complex",
-            version_string=TestVersions.Examples.VALID_SEMVER_COMPLEX,
-            should_pass=True,
-        ),
-        "invalid_no_dots": VersionTestScenario(
-            "invalid_no_dots",
-            version_string=TestVersions.Examples.INVALID_NO_DOTS,
-            should_pass=False,
-        ),
-        "invalid_non_numeric": VersionTestScenario(
-            "invalid_non_numeric",
-            version_string=TestVersions.Examples.INVALID_NON_NUMERIC,
-            should_pass=False,
-        ),
-        "invalid_empty": VersionTestScenario(
-            "invalid_empty",
-            version_string=TestVersions.Examples.INVALID_EMPTY,
-            should_pass=False,
-        ),
-    }
-
-    INFO_TESTS: Final[dict[str, VersionTestScenario]] = {
-        "valid_tuple": VersionTestScenario(
-            "valid_tuple",
-            version_info=TestVersions.InfoTuples.VALID_TUPLE,
-            should_pass=True,
-        ),
-        "valid_complex_tuple": VersionTestScenario(
-            "valid_complex_tuple",
-            version_info=TestVersions.InfoTuples.VALID_COMPLEX_TUPLE,
-            should_pass=True,
-        ),
-        "short_tuple": VersionTestScenario(
-            "short_tuple",
-            version_info=TestVersions.InfoTuples.SHORT_TUPLE,
-            should_pass=False,
-        ),
-        "empty_tuple": VersionTestScenario(
-            "empty_tuple",
-            version_info=TestVersions.InfoTuples.EMPTY_TUPLE,
-            should_pass=False,
-        ),
-    }
-
-    CONSISTENCY_TESTS: Final[dict[str, VersionTestScenario]] = {
-        "valid_match": VersionTestScenario(
-            "valid_match",
-            version_string=TestVersions.Examples.VALID_SEMVER,
-            version_info=TestVersions.InfoTuples.VALID_TUPLE,
-            should_pass=True,
-        ),
-        "valid_complex_match": VersionTestScenario(
-            "valid_complex_match",
-            version_string=TestVersions.Examples.VALID_SEMVER_COMPLEX,
-            version_info=TestVersions.InfoTuples.VALID_COMPLEX_TUPLE,
-            should_pass=True,
-        ),
-        "invalid_mismatch": VersionTestScenario(
-            "invalid_mismatch",
-            version_string=TestVersions.Examples.INVALID_NO_DOTS,
-            version_info=TestVersions.InfoTuples.SHORT_TUPLE,
-            should_pass=False,
-        ),
-    }
+T = TypeVar("T")
 
 
 class TestFlextCliVersion:
-    """Comprehensive version validation test suite."""
+    """Comprehensive version validation test suite.
+
+    Single class with nested helper classes and methods organized by functionality.
+    Uses factories, constants, dynamic tests, and helpers to reduce code while
+    maintaining and expanding coverage.
+    """
+
+    # =========================================================================
+    # NESTED: Version Validation Types
+    # =========================================================================
+
+    class ValidationType(StrEnum):
+        """Types of version validation."""
+
+        STRING = "string_validation"
+        INFO = "info_validation"
+        CONSISTENCY = "consistency"
+
+    # =========================================================================
+    # NESTED: Test Scenario Factory
+    # =========================================================================
+
+    class TestScenario:
+        """Version test scenario data class."""
+
+        @dataclass(frozen=True)
+        class Data:
+            """Version test scenario data."""
+
+            name: str
+            version_string: str | None = None
+            version_info: tuple[int | str, ...] | None = None
+            should_pass: bool = True
+
+            @property
+            def validation_type(self) -> TestFlextCliVersion.ValidationType:
+                """Determine validation type based on data provided."""
+                # Access ValidationType enum from outer class scope
+                # Use module-level lookup to avoid forward reference issues
+                current_module = sys.modules[__name__]
+                test_class: type[TestFlextCliVersion] = (
+                    current_module.TestFlextCliVersion
+                )
+                validation_enum = test_class.ValidationType
+                if self.version_string and self.version_info:
+                    return validation_enum.CONSISTENCY
+                if self.version_info:
+                    return validation_enum.INFO
+                return validation_enum.STRING
+
+        @classmethod
+        def get_string_cases(cls) -> list[TestFlextCliVersion.TestScenario.Data]:
+            """Get parametrized test cases for version string validation."""
+            # Use cls to reference the nested Data class
+            data_class = cls.Data
+            return [
+                data_class(
+                    "valid_semver",
+                    version_string=TestVersions.Examples.VALID_SEMVER,
+                    should_pass=True,
+                ),
+                data_class(
+                    "valid_complex",
+                    version_string=TestVersions.Examples.VALID_SEMVER_COMPLEX,
+                    should_pass=True,
+                ),
+                data_class(
+                    "invalid_no_dots",
+                    version_string=TestVersions.Examples.INVALID_NO_DOTS,
+                    should_pass=False,
+                ),
+                data_class(
+                    "invalid_non_numeric",
+                    version_string=TestVersions.Examples.INVALID_NON_NUMERIC,
+                    should_pass=False,
+                ),
+                data_class(
+                    "invalid_empty",
+                    version_string=TestVersions.Examples.INVALID_EMPTY,
+                    should_pass=False,
+                ),
+            ]
+
+        @classmethod
+        def get_info_cases(cls) -> list[TestFlextCliVersion.TestScenario.Data]:
+            """Get parametrized test cases for version info validation."""
+            # Use cls to reference the nested Data class
+            data_class = cls.Data
+            return [
+                data_class(
+                    "valid_tuple",
+                    version_info=TestVersions.InfoTuples.VALID_TUPLE,
+                    should_pass=True,
+                ),
+                data_class(
+                    "valid_complex_tuple",
+                    version_info=TestVersions.InfoTuples.VALID_COMPLEX_TUPLE,
+                    should_pass=True,
+                ),
+                data_class(
+                    "short_tuple",
+                    version_info=TestVersions.InfoTuples.SHORT_TUPLE,
+                    should_pass=False,
+                ),
+                data_class(
+                    "empty_tuple",
+                    version_info=TestVersions.InfoTuples.EMPTY_TUPLE,
+                    should_pass=False,
+                ),
+            ]
+
+        @classmethod
+        def get_consistency_cases(cls) -> list[TestFlextCliVersion.TestScenario.Data]:
+            """Get parametrized test cases for version consistency validation."""
+            # Use cls to reference the nested Data class
+            data_class = cls.Data
+            return [
+                data_class(
+                    "valid_match",
+                    version_string=TestVersions.Examples.VALID_SEMVER,
+                    version_info=TestVersions.InfoTuples.VALID_TUPLE,
+                    should_pass=True,
+                ),
+                data_class(
+                    "valid_complex_match",
+                    version_string=TestVersions.Examples.VALID_SEMVER_COMPLEX,
+                    version_info=TestVersions.InfoTuples.VALID_COMPLEX_TUPLE,
+                    should_pass=True,
+                ),
+                data_class(
+                    "invalid_mismatch",
+                    version_string=TestVersions.Examples.INVALID_NO_DOTS,
+                    version_info=TestVersions.InfoTuples.SHORT_TUPLE,
+                    should_pass=False,
+                ),
+            ]
+
+    # =========================================================================
+    # NESTED: Assertion Helpers
+    # =========================================================================
+
+    class Assertions:
+        """Helper methods for test assertions."""
+
+        @staticmethod
+        def assert_result_success(result: FlextResult[T], message: str = "") -> None:
+            """Assert result is successful."""
+            assert result.is_success, f"{message}Failed: {result.error}"
+
+        @staticmethod
+        def assert_result_failure(result: FlextResult[T], message: str = "") -> None:
+            """Assert result is failure."""
+            assert result.is_failure, f"{message}Should fail but succeeded: {result}"
+
+    # =========================================================================
+    # ACTUAL VERSION TESTS
+    # =========================================================================
 
     def test_actual_version_string_type(self) -> None:
         """Test __version__ is a non-empty string."""
@@ -141,6 +199,12 @@ class TestFlextCliVersion:
         """Test __version__ matches semver pattern."""
         pattern: Final[str] = TestVersions.Formats.SEMVER_PATTERN
         assert re.match(pattern, __version__) is not None
+
+    def test_actual_version_string_length_bounds(self) -> None:
+        """Test version string length is within acceptable bounds."""
+        min_len: Final[int] = TestVersions.Formats.MIN_VERSION_LENGTH
+        max_len: Final[int] = TestVersions.Formats.MAX_VERSION_LENGTH
+        assert min_len <= len(__version__) <= max_len
 
     def test_actual_version_info_structure(self) -> None:
         """Test __version_info__ is a valid tuple."""
@@ -154,12 +218,22 @@ class TestFlextCliVersion:
             else:
                 assert len(part) > 0, f"Part {i} empty string"
 
+    def test_actual_version_parts_extraction(self) -> None:
+        """Test major.minor.patch can be extracted from version."""
+        parts: list[str] = __version__.split(".")
+        assert len(parts) >= TestVersions.Formats.MAJOR_MINOR_PATCH
+
+        major_str, minor_str, patch_str = parts[0], parts[1], parts[2]
+        assert major_str.isdigit()
+        assert minor_str.isdigit()
+        assert patch_str[0].isdigit()
+
     def test_actual_version_consistency(self) -> None:
         """Test __version__ and __version_info__ are consistent."""
         result = FlextCliTestHelpers.VersionTestFactory.validate_consistency(
             __version__, __version_info__
         )
-        assert result.is_success
+        self.Assertions.assert_result_success(result)
 
     def test_actual_version_immutability(self) -> None:
         """Test version values are immutable."""
@@ -170,49 +244,68 @@ class TestFlextCliVersion:
         assert __version_info__ == original_info
         assert isinstance(__version_info__, tuple)
 
+    # =========================================================================
+    # VERSION STRING VALIDATION TESTS (Parametrized)
+    # =========================================================================
+
     @pytest.mark.parametrize(
-        ("scenario"),
-        list(VersionTestCases.STRING_TESTS.values()),
-        ids=list(VersionTestCases.STRING_TESTS),
+        "scenario",
+        TestScenario.get_string_cases(),
+        ids=[s.name for s in TestScenario.get_string_cases()],
     )
-    def test_version_string_validation(self, scenario: VersionTestScenario) -> None:
-        """Test version string validation with mapped scenarios."""
+    def test_version_string_validation(
+        self,
+        scenario: TestScenario.Data,
+    ) -> None:
+        """Test version string validation with parametrized cases."""
         assert scenario.version_string is not None
         result = FlextCliTestHelpers.VersionTestFactory.validate_version_string(
             scenario.version_string
         )
 
         if scenario.should_pass:
-            assert result.is_success, f"Failed: {scenario.name}"
+            self.Assertions.assert_result_success(result, f"{scenario.name}: ")
         else:
-            assert result.is_failure, f"Should fail: {scenario.name}"
+            self.Assertions.assert_result_failure(result, f"{scenario.name}: ")
+
+    # =========================================================================
+    # VERSION INFO VALIDATION TESTS (Parametrized)
+    # =========================================================================
 
     @pytest.mark.parametrize(
-        ("scenario"),
-        list(VersionTestCases.INFO_TESTS.values()),
-        ids=list(VersionTestCases.INFO_TESTS),
+        "scenario",
+        TestScenario.get_info_cases(),
+        ids=[s.name for s in TestScenario.get_info_cases()],
     )
-    def test_version_info_validation(self, scenario: VersionTestScenario) -> None:
-        """Test version info tuple validation with mapped scenarios."""
+    def test_version_info_validation(
+        self,
+        scenario: TestScenario.Data,
+    ) -> None:
+        """Test version info tuple validation with parametrized cases."""
         assert scenario.version_info is not None
         result = FlextCliTestHelpers.VersionTestFactory.validate_version_info(
             scenario.version_info
         )
 
         if scenario.should_pass:
-            assert result.is_success, f"Failed: {scenario.name}"
+            self.Assertions.assert_result_success(result, f"{scenario.name}: ")
         else:
-            assert result.is_failure, f"Should fail: {scenario.name}"
+            self.Assertions.assert_result_failure(result, f"{scenario.name}: ")
+
+    # =========================================================================
+    # VERSION CONSISTENCY VALIDATION TESTS (Parametrized)
+    # =========================================================================
 
     @pytest.mark.parametrize(
-        ("scenario"),
-        list(VersionTestCases.CONSISTENCY_TESTS.values()),
-        ids=list(VersionTestCases.CONSISTENCY_TESTS),
+        "scenario",
+        TestScenario.get_consistency_cases(),
+        ids=[s.name for s in TestScenario.get_consistency_cases()],
     )
     def test_version_consistency_validation(
-        self, scenario: VersionTestScenario
+        self,
+        scenario: TestScenario.Data,
     ) -> None:
-        """Test consistency between version string and info with mapped scenarios."""
+        """Test consistency between version string and info with parametrized cases."""
         assert scenario.version_string is not None
         assert scenario.version_info is not None
 
@@ -221,22 +314,6 @@ class TestFlextCliVersion:
         )
 
         if scenario.should_pass:
-            assert result.is_success, f"Failed: {scenario.name}"
+            self.Assertions.assert_result_success(result, f"{scenario.name}: ")
         else:
-            assert result.is_failure, f"Should fail: {scenario.name}"
-
-    def test_version_string_length_bounds(self) -> None:
-        """Test version string length is within acceptable bounds."""
-        min_len: Final[int] = TestVersions.Formats.MIN_VERSION_LENGTH
-        max_len: Final[int] = TestVersions.Formats.MAX_VERSION_LENGTH
-        assert min_len <= len(__version__) <= max_len
-
-    def test_version_parts_extraction(self) -> None:
-        """Test major.minor.patch can be extracted from version."""
-        parts: list[str] = __version__.split(".")
-        assert len(parts) >= TestVersions.Formats.MAJOR_MINOR_PATCH
-
-        major_str, minor_str, patch_str = parts[0], parts[1], parts[2]
-        assert major_str.isdigit()
-        assert minor_str.isdigit()
-        assert patch_str[0].isdigit()
+            self.Assertions.assert_result_failure(result, f"{scenario.name}: ")

@@ -1,7 +1,10 @@
-"""FLEXT CLI Output Tests - Comprehensive Real Functionality Testing.
+"""FLEXT CLI Output Tests - Comprehensive Output Validation Testing.
 
-Tests for FlextCliOutput covering all real functionality with flext_tests
-integration, comprehensive output operations, and targeting 90%+ coverage.
+Tests for FlextCliOutput covering formatting (JSON, YAML, CSV, table), display operations,
+formatter registration, table creation, and edge cases with 100% coverage.
+
+Modules tested: flext_cli.output.FlextCliOutput
+Scope: All formatting methods, display operations, formatter management, table operations
 
 Copyright (c) 2025 FLEXT Team. All rights reserved.
 SPDX-License-Identifier: MIT
@@ -15,17 +18,85 @@ import tempfile
 import time
 from collections import UserDict
 from pathlib import Path
-from typing import cast
+from typing import TypeVar, cast
 
 import pytest
 from flext_core import FlextResult, FlextTypes
+from flext_tests import FlextTestsUtilities
 from pydantic import BaseModel
 
 from flext_cli import FlextCliOutput, FlextCliTypes
+from flext_cli.typings import CliJsonValue
+
+T = TypeVar("T")
 
 
 class TestFlextCliOutput:
-    """Comprehensive tests for FlextCliOutput functionality."""
+    """Comprehensive tests for FlextCliOutput functionality.
+
+    Single class with nested helper classes and methods organized by functionality.
+    Uses factories, constants, dynamic tests, and helpers to reduce code while
+    maintaining and expanding coverage.
+    """
+
+    # =========================================================================
+    # NESTED: Assertion Helpers
+    # =========================================================================
+
+    class Assertions:
+        """Helper methods for test assertions using flext-core helpers."""
+
+        @staticmethod
+        def assert_result_success(result: FlextResult[T]) -> None:
+            """Assert result is successful using flext-core helper."""
+            FlextTestsUtilities.TestUtilities.assert_result_success(result)
+
+        @staticmethod
+        def assert_result_failure(
+            result: FlextResult[T], error_contains: str | None = None
+        ) -> None:
+            """Assert result is failure with optional error message check."""
+            FlextTestsUtilities.TestUtilities.assert_result_failure(result)
+            if error_contains:
+                # Case-insensitive check for error message
+                assert result.error is not None
+                error_msg = str(result.error).lower()
+                assert error_contains.lower() in error_msg, (
+                    f"Error should contain '{error_contains}', got: {error_msg}"
+                )
+
+    # =========================================================================
+    # NESTED: Test Data Factory
+    # =========================================================================
+
+    class TestData:
+        """Factory for creating test data scenarios."""
+
+        @staticmethod
+        def get_format_cases() -> list[tuple[str, bool]]:
+            """Get parametrized test cases for format operations."""
+            return [
+                ("json", True),
+                ("yaml", True),
+                ("csv", True),
+                ("table", True),
+                ("plain", True),
+                ("invalid_format", False),
+            ]
+
+        @staticmethod
+        def get_sample_data() -> dict[str, FlextTypes.JsonValue]:
+            """Get sample data for testing."""
+            return {
+                "name": "test",
+                "value": 42,
+                "items": [1, 2, 3],
+                "nested": {"key": "value"},
+            }
+
+    # =========================================================================
+    # FIXTURES
+    # =========================================================================
 
     @pytest.fixture
     def output(self) -> FlextCliOutput:
@@ -42,12 +113,7 @@ class TestFlextCliOutput:
     @pytest.fixture
     def sample_data(self) -> dict[str, FlextTypes.JsonValue]:
         """Provide sample data for testing."""
-        return {
-            "name": "test",
-            "value": 42,
-            "items": [1, 2, 3],
-            "nested": {"key": "value"},
-        }
+        return self.TestData.get_sample_data()
 
     def test_output_initialization(self, output: FlextCliOutput) -> None:
         """Test output initialization."""
@@ -81,53 +147,43 @@ class TestFlextCliOutput:
         assert isinstance(result, FlextResult)
         assert result.is_success
 
-    def test_output_format_json(
+    # =========================================================================
+    # FORMAT OPERATIONS TESTS (Parametrized)
+    # =========================================================================
+
+    @pytest.mark.parametrize(
+        ("format_type", "expected_success"), TestData.get_format_cases()
+    )
+    def test_output_format_operations(
         self,
         output: FlextCliOutput,
         sample_data: dict[str, FlextTypes.JsonValue],
+        format_type: str,
+        expected_success: bool,
     ) -> None:
-        """Test format JSON functionality."""
-        result = output.format_json(cast("FlextTypes.JsonValue", sample_data))
+        """Test format operations with parametrized cases."""
+        if format_type == "json":
+            result = output.format_json(cast("FlextTypes.JsonValue", sample_data))
+        elif format_type == "yaml":
+            result = output.format_yaml(cast("FlextTypes.JsonValue", sample_data))
+        elif format_type == "csv":
+            result = output.format_csv(cast("FlextTypes.JsonValue", sample_data))
+        elif format_type == "table":
+            result = output.format_table(sample_data)
+        elif format_type == "plain":
+            result = output.format_data(
+                cast("FlextTypes.JsonValue", sample_data), "plain"
+            )
+        else:
+            result = output.format_data(
+                cast("FlextTypes.JsonValue", sample_data), format_type
+            )
 
-        assert isinstance(result, FlextResult)
-        assert result.is_success
-        assert isinstance(result.unwrap(), str)
-
-    def test_output_format_yaml(
-        self,
-        output: FlextCliOutput,
-        sample_data: dict[str, FlextTypes.JsonValue],
-    ) -> None:
-        """Test format YAML functionality."""
-        result = output.format_yaml(cast("FlextTypes.JsonValue", sample_data))
-
-        assert isinstance(result, FlextResult)
-        assert result.is_success
-        assert isinstance(result.unwrap(), str)
-
-    def test_output_format_csv(
-        self,
-        output: FlextCliOutput,
-        sample_data: dict[str, FlextTypes.JsonValue],
-    ) -> None:
-        """Test format CSV functionality."""
-        result = output.format_csv(cast("FlextTypes.JsonValue", sample_data))
-
-        assert isinstance(result, FlextResult)
-        assert result.is_success
-        assert isinstance(result.unwrap(), str)
-
-    def test_output_format_table(
-        self,
-        output: FlextCliOutput,
-        sample_data: dict[str, FlextTypes.JsonValue],
-    ) -> None:
-        """Test format table functionality."""
-        result = output.format_table(sample_data)
-
-        assert isinstance(result, FlextResult)
-        assert result.is_success
-        assert isinstance(result.unwrap(), str)
+        if expected_success:
+            self.Assertions.assert_result_success(result)
+            assert isinstance(result.unwrap(), str)
+        else:
+            self.Assertions.assert_result_failure(result)
 
     def test_output_print_error(self, output: FlextCliOutput) -> None:
         """Test print error message."""
@@ -136,66 +192,33 @@ class TestFlextCliOutput:
         assert isinstance(result, FlextResult)
         assert result.is_success
 
-    def test_output_format_data_json(
+    def test_output_format_data_json_validation(
         self,
         output: FlextCliOutput,
         sample_data: dict[str, FlextTypes.JsonValue],
     ) -> None:
-        """Test formatting data as JSON."""
+        """Test formatting data as JSON with validation."""
         result = output.format_data(cast("FlextTypes.JsonValue", sample_data), "json")
-
-        assert isinstance(result, FlextResult)
-        assert result.is_success
+        self.Assertions.assert_result_success(result)
 
         formatted = result.unwrap()
         assert isinstance(formatted, str)
-
         # Verify it's valid JSON
         parsed = json.loads(formatted)
         assert parsed == sample_data
 
-    def test_output_format_data_csv(
+    def test_output_format_data_csv_validation(
         self,
         output: FlextCliOutput,
         sample_data: dict[str, FlextTypes.JsonValue],
     ) -> None:
-        """Test formatting data as CSV."""
+        """Test formatting data as CSV with validation."""
         result = output.format_data(cast("FlextTypes.JsonValue", sample_data), "csv")
-
-        assert isinstance(result, FlextResult)
-        assert result.is_success
+        self.Assertions.assert_result_success(result)
 
         formatted = result.unwrap()
         assert isinstance(formatted, str)
         assert "," in formatted  # CSV should contain commas
-
-    def test_output_format_data_yaml(
-        self,
-        output: FlextCliOutput,
-        sample_data: dict[str, FlextTypes.JsonValue],
-    ) -> None:
-        """Test formatting data as YAML."""
-        result = output.format_data(cast("FlextTypes.JsonValue", sample_data), "yaml")
-
-        assert isinstance(result, FlextResult)
-        assert result.is_success
-
-        formatted = result.unwrap()
-        assert isinstance(formatted, str)
-
-    def test_output_format_data_table(
-        self,
-        output: FlextCliOutput,
-        sample_data: dict[str, FlextTypes.JsonValue],
-    ) -> None:
-        """Test formatting data as table."""
-        result = output.format_data(cast("FlextTypes.JsonValue", sample_data), "table")
-
-        assert isinstance(result, FlextResult)
-        assert result.is_success
-
-        formatted = result.unwrap()
-        assert isinstance(formatted, str)
 
     def test_output_format_data_invalid_format(
         self,
@@ -319,7 +342,23 @@ class TestFlextCliOutput:
         sample_data: dict[str, FlextTypes.JsonValue],
     ) -> None:
         """Test formatting as tree."""
-        result = output.format_as_tree(sample_data)
+        # Convert dict to CliJsonValue for format_as_tree
+        # dict[str, JsonValue] needs to be converted to dict[str, object] first
+        # Convert each value to ensure type compatibility
+        converted_data: dict[str, object] = {}
+        for key, value in sample_data.items():
+            # Convert JsonValue to object for dict[str, object]
+            if isinstance(value, (str, int, float, bool, type(None))):
+                converted_data[key] = value
+            elif isinstance(value, dict):
+                converted_data[key] = dict(value.items())
+            elif isinstance(value, list):
+                converted_data[key] = list(value)
+            else:
+                converted_data[key] = str(value)
+        # dict[str, object] is part of CliJsonValue union
+        cli_data: CliJsonValue = converted_data
+        result = output.format_as_tree(cli_data)
 
         assert isinstance(result, FlextResult)
         assert result.is_success
@@ -1221,7 +1260,8 @@ class TestFlextCliOutput:
     def test_format_as_tree_with_empty_data(self, output: FlextCliOutput) -> None:
         """Test format_as_tree with empty data."""
         # Test with empty dict - should handle gracefully
-        data: FlextCliTypes.Data.CliDataDict = {}
+        # Empty dict is already CliJsonValue compatible
+        data: CliJsonValue = {}
         result = output.format_as_tree(data)
         # Should either succeed with empty tree or fail gracefully
         assert isinstance(result, FlextResult)

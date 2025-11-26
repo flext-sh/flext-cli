@@ -47,8 +47,11 @@ TCliPlugin = TypeVar("TCliPlugin")
 TCliFormatter = TypeVar("TCliFormatter")
 
 # Type aliases for CLI data structures
-# Compatible with mypy and replaces CliJsonValue usage
-type CliJsonValue = str | int | float | bool | dict[str, object] | list[object] | None
+# Recursive type using Python 3.12+ type statement
+# dict values and list elements are CliJsonValue itself for proper recursion
+type CliJsonValue = (
+    str | int | float | bool | dict[str, CliJsonValue] | list[CliJsonValue] | None
+)
 CliJsonDict: TypeAlias = dict[str, CliJsonValue]
 CliJsonList: TypeAlias = list[CliJsonValue]
 

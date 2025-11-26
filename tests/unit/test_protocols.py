@@ -1,15 +1,11 @@
-"""Tests for flext_cli.protocols.FlextCliProtocols - Protocol Validation.
+"""FLEXT CLI Protocols Tests - Comprehensive Protocol Validation Testing.
 
-Modules Tested:
-- flext_cli.protocols.FlextCliProtocols: Protocol definitions and runtime checking
+Tests for FlextCliProtocols covering protocol structure, structural typing compliance,
+protocol implementations, runtime checking, CLI-specific protocol validation,
+protocol inheritance, and edge cases with 100% coverage.
 
-Scope:
-- Protocol class structure and attribute validation
-- Structural typing (duck typing) compliance
-- Protocol implementations and runtime checking
-- CLI-specific protocol validation
-- Protocol inheritance validation
-- FlextResult railway pattern in protocols
+Modules tested: flext_cli.protocols.FlextCliProtocols
+Scope: All protocol operations, structural typing, runtime checking, validation
 
 Copyright (c) 2025 FLEXT Team. All rights reserved.
 SPDX-License-Identifier: MIT
@@ -18,13 +14,16 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
+from typing import cast
+
 import pytest
 from flext_core import FlextResult
 from flext_tests import FlextTestsMatchers
 
-from flext_cli import FlextCliProtocols
-from tests.fixtures.constants import TestProtocols
-from tests.helpers import FlextCliTestHelpers
+from flext_cli import FlextCliProtocols, FlextCliTypes
+
+from ..fixtures.constants import TestProtocols
+from ..helpers import FlextCliTestHelpers
 
 
 class TestFlextCliProtocols:
@@ -116,8 +115,11 @@ class TestFlextCliProtocols:
 
         if formatter_result.is_success and formatter_result.value:
             formatter = formatter_result.value
-            test_data = TestProtocols.TestData.Formatting.SIMPLE_DATA
-            if hasattr(formatter, "format_data"):
+            # Type narrowing using protocol check
+            if isinstance(formatter, FlextCliProtocols.Cli.CliFormatter):
+                test_data_raw = TestProtocols.TestData.Formatting.SIMPLE_DATA
+                # Cast to CliFormatData (which is CliJsonDict)
+                test_data = cast("FlextCliTypes.Data.CliFormatData", test_data_raw)
                 format_result = formatter.format_data(test_data)
                 FlextTestsMatchers.assert_success(format_result)
 
@@ -146,8 +148,11 @@ class TestFlextCliProtocols:
 
         if provider_result.is_success and provider_result.value:
             provider = provider_result.value
-            if hasattr(provider, "save_config") and hasattr(provider, "load_config"):
-                test_config = TestProtocols.TestData.Configuration.BASIC_CONFIG
+            # Type narrowing using protocol check
+            if isinstance(provider, FlextCliProtocols.Cli.CliConfigProvider):
+                test_config_raw = TestProtocols.TestData.Configuration.BASIC_CONFIG
+                # Cast to CliConfigData
+                test_config = cast("FlextCliTypes.Data.CliConfigData", test_config_raw)
                 save_result = provider.save_config(test_config)
                 FlextTestsMatchers.assert_success(save_result)
 
@@ -179,8 +184,11 @@ class TestFlextCliProtocols:
 
         if auth_result.is_success and auth_result.value:
             authenticator = auth_result.value
-            if hasattr(authenticator, "authenticate"):
-                creds = TestProtocols.TestData.Authentication.VALID_CREDS
+            # Type narrowing using protocol check
+            if isinstance(authenticator, FlextCliProtocols.Cli.CliAuthenticator):
+                creds_raw = TestProtocols.TestData.Authentication.VALID_CREDS
+                # Cast to AuthConfigData for authenticate method
+                creds = cast("FlextCliTypes.Data.AuthConfigData", creds_raw)
                 auth_response = authenticator.authenticate(creds)
                 FlextTestsMatchers.assert_success(auth_response)
 
@@ -193,7 +201,8 @@ class TestFlextCliProtocols:
 
         if auth_result.is_success and auth_result.value:
             authenticator = auth_result.value
-            if hasattr(authenticator, "validate_token"):
+            # Type narrowing using protocol check
+            if isinstance(authenticator, FlextCliProtocols.Cli.CliAuthenticator):
                 token = TestProtocols.TestData.Authentication.VALID_TOKEN
                 validation_result = authenticator.validate_token(token)
                 FlextTestsMatchers.assert_success(validation_result)

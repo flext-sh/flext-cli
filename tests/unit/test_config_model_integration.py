@@ -1,16 +1,11 @@
-"""FLEXT CLI Config Model Integration Tests.
+"""FLEXT CLI Config Model Integration Tests - Comprehensive Integration Validation Testing.
 
-Comprehensive tests for FlextCli.model_command() configuration integration
-with real functionality testing, targeting 100% coverage of config extraction
-and default value propagation to Typer parameters.
+Tests for FlextCli.model_command() covering configuration integration, config extraction,
+default value propagation, parameter validation, alias handling, field precedence rules,
+and edge cases with 100% coverage.
 
-**Modules Tested**:
-- flext_cli.cli: FlextCliCli.model_command() method
-- flext_cli.config: FlextCliConfig integration
-- Pydantic BaseSettings and BaseModel patterns
-
-**Coverage**: Config extraction, default propagation, parameter validation,
-alias handling, and field precedence rules.
+Modules tested: flext_cli.cli.FlextCliCli.model_command(), FlextCliConfig integration
+Scope: All config-model integration operations, parameter validation, precedence rules
 
 Copyright (c) 2025 FLEXT Team. All rights reserved.
 SPDX-License-Identifier: MIT

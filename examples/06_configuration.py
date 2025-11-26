@@ -33,6 +33,7 @@ from example_utils import display_config_table
 from flext_core import FlextResult
 
 from flext_cli import FlextCli, FlextCliConfig, FlextCliTypes
+from flext_cli.utilities import FlextCliUtilities
 
 cli = FlextCli()
 
@@ -93,8 +94,10 @@ def load_environment_config() -> dict[str, str | int]:
         "Environment": environment,
     }
 
-    # Display config
-    settings_data = cast("dict[str, object]", settings)
+    # Display config - convert to CliDataDict
+    settings_data = FlextCliUtilities.CliDataMapper.convert_dict_to_json(
+        cast("dict[str, object]", settings)
+    )
     display_config_table(
         cli=cli,
         config_data=settings_data,
@@ -180,8 +183,10 @@ def show_config_locations() -> dict[str, str]:
         "Token Exists": "Yes" if token_file.exists() else "No",
     }
 
-    # Display as table
-    locations_data = cast("dict[str, object]", locations)
+    # Display as table - convert to CliDataDict
+    locations_data = FlextCliUtilities.CliDataMapper.convert_dict_to_json(
+        cast("dict[str, object]", locations)
+    )
     table_result = cli.create_table(
         data=locations_data,
         headers=["Location", "Path"],
@@ -388,35 +393,27 @@ def load_application_config() -> FlextResult[dict[str, object]]:
     cli.print("\n⚙️  Loading Application Configuration:", style="bold cyan")
 
     # Railway Pattern for config loading
-    result: FlextResult[dict[str, object]] = (
-        FlextResult[AppConfig]
-        .ok(AppConfig())
-        .map(
-            lambda config: (
-                cli.print("✅ Config object created", style="green"),
-                config,
-            )[1]
-        )
-        # Step 2: Validate configuration
-        .and_then(lambda config: config.validate())
-        .map(
-            lambda data: (cli.print("✅ Configuration validated", style="green"), data)[
-                1
-            ]
-        )
-        # Step 3: Apply environment-specific overrides
-        .map(apply_environment_overrides)
-        .map(
-            lambda data: (
-                cli.print("✅ Environment overrides applied", style="green"),
-                data,
-            )[1]
-        )
-        # Step 4: Initialize dependent services
-        .map(initialize_services)
-        .map(
-            lambda data: (cli.print("✅ Services initialized", style="green"), data)[1]
-        )
+    config_obj = AppConfig()
+    cli.print("✅ Config object created", style="green")
+
+    # Step 2: Validate configuration
+    validate_result = config_obj.validate()
+    if validate_result.is_failure:
+        return validate_result
+    cli.print("✅ Configuration validated", style="green")
+
+    config_data = validate_result.unwrap()
+
+    # Step 3: Apply environment-specific overrides
+    overridden_data = apply_environment_overrides(config_data)
+    cli.print("✅ Environment overrides applied", style="green")
+
+    # Step 4: Initialize dependent services
+    final_data = initialize_services(overridden_data)
+    cli.print("✅ Services initialized", style="green")
+
+    result: FlextResult[dict[str, object]] = FlextResult[dict[str, object]].ok(
+        final_data
     )
 
     if result.is_failure:
@@ -506,10 +503,13 @@ def main() -> None:
 
     if config_result.is_success:
         final_config = config_result.unwrap()
-        # Display final config
+        # Display final config - convert to CliDataDict
+        final_config_data = FlextCliUtilities.CliDataMapper.convert_dict_to_json(
+            final_config
+        )
         display_config_table(
             cli=cli,
-            config_data=cast("dict[str, object]", final_config),
+            config_data=final_config_data,
             title="Final Application Configuration",
         )
 

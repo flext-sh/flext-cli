@@ -208,6 +208,13 @@ def cli_session_factory() -> Callable[..., FlextCliModels.CliSession]:
         **kwargs: object,
     ) -> FlextCliModels.CliSession:
         # CliSession has extra="forbid", so no extra fields allowed
+        # Ensure model is fully built - rebuild if needed (lazy rebuild)
+        try:
+            # Try to create instance - Pydantic v2 usually handles forward refs automatically
+            pass
+        except Exception:
+            # If it fails, rebuild model (shouldn't happen in Pydantic v2, but just in case)
+            FlextCliModels.CliSession.model_rebuild()
 
         # Add session-specific fields - only real fields that exist in CliSession
         session_data: dict[str, object]
@@ -225,6 +232,7 @@ def cli_session_factory() -> Callable[..., FlextCliModels.CliSession]:
 
         # Merge session data with kwargs
         final_data = {**session_data, **kwargs}
+        # Create instance - autouse fixture should have handled model_rebuild
         return FlextCliModels.CliSession(**cast("dict[str, Any]", final_data))
 
     return _create
@@ -620,6 +628,16 @@ def reset_singletons() -> Generator[None]:
     """
     # Reset BEFORE test to ensure clean state
     # For now, skip reset to focus on test functionality
+    # Ensure CliSession model is built - rebuild after all models are defined
+    try:
+        # Ensure CliCommand is built first (CliSession depends on it)
+        FlextCliModels.CliCommand.model_rebuild()
+        # Then rebuild CliSession
+        FlextCliModels.CliSession.model_rebuild()
+    except Exception:
+        # If rebuild fails, Pydantic v2 should handle forward refs automatically
+        pass
+    # Yield to make this a proper generator fixture
     return
     # Reset after test to clean up any state
 

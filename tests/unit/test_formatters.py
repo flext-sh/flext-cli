@@ -1,14 +1,19 @@
-"""Tests for FlextCliFormatters - SIMPLIFIED.
+"""FLEXT CLI Formatters Tests - Comprehensive Formatters Validation Testing.
 
-Tests ONLY the 8 core methods actually used by output.py.
-Following zero-tolerance principle: Don't test library features (Rich).
-Test business logic only.
+Tests for FlextCliFormatters covering console operations, table/tree creation,
+rendering, progress, status, layout, panel operations, and edge cases with 100% coverage.
+
+Modules tested: flext_cli.formatters.FlextCliFormatters
+Scope: All formatter operations, Rich integration, rendering, exception handling
 
 Copyright (c) 2025 FLEXT Team. All rights reserved.
 SPDX-License-Identifier: MIT
 
 """
 
+from __future__ import annotations
+
+import pytest
 from rich.console import Console
 from rich.progress import Progress
 from rich.table import Table as RichTable
@@ -16,19 +21,60 @@ from rich.tree import Tree as RichTree
 
 from flext_cli import FlextCliFormatters, FlextCliTypes
 
+from ..fixtures.constants import TestData
+from ..helpers import FlextCliTestHelpers
 
-class TestFlextCliFormattersCore:
-    """Test core FlextCliFormatters methods used by output.py."""
+
+class TestFlextCliFormatters:
+    """Comprehensive tests for FlextCliFormatters functionality.
+
+    Single class with nested helper classes and methods organized by functionality.
+    Uses factories, constants, dynamic tests, and helpers to reduce code while
+    maintaining and expanding coverage.
+    """
+
+    # =========================================================================
+    # NESTED: Factories
+    # =========================================================================
+
+    class Factories:
+        """Factory methods for creating test instances."""
+
+        @staticmethod
+        def create_formatters() -> FlextCliFormatters:
+            """Create a new FlextCliFormatters instance."""
+            return FlextCliFormatters()
+
+        @staticmethod
+        def create_test_data() -> FlextCliTypes.Data.CliDataDict:
+            """Create test data dictionary."""
+            return {
+                TestData.Output.SUCCESS_MESSAGE: TestData.Output.INFO_MESSAGE,
+                "key2": "value2",
+            }
+
+        @staticmethod
+        def create_table_data() -> FlextCliTypes.Data.CliDataDict:
+            """Create table test data."""
+            return {
+                "Name": "Alice",
+                "Age": "30",
+                "City": "NYC",
+            }
+
+    # =========================================================================
+    # INITIALIZATION TESTS
+    # =========================================================================
 
     def test_formatters_init(self) -> None:
         """Test formatters initialization."""
-        formatters = FlextCliFormatters()
+        formatters = self.Factories.create_formatters()
         assert formatters is not None
         assert isinstance(formatters, FlextCliFormatters)
 
     def test_console_property(self) -> None:
         """Test console property access."""
-        formatters = FlextCliFormatters()
+        formatters = self.Factories.create_formatters()
         console = formatters.console
         assert console is not None
         assert isinstance(console, Console)
@@ -38,82 +84,63 @@ class TestFlextCliFormattersCore:
 
     def test_execute(self) -> None:
         """Test service execute() method."""
-        formatters = FlextCliFormatters()
+        formatters = self.Factories.create_formatters()
         result = formatters.execute()
-        assert result.is_success
+        FlextCliTestHelpers.AssertHelpers.assert_result_success(result)
         data = result.unwrap()
         assert "status" in data
         assert "service" in data
 
-    def test_print_simple(self) -> None:
-        """Test print() method."""
-        formatters = FlextCliFormatters()
-        result = formatters.print("Test message")
-        assert result.is_success
+    @pytest.mark.parametrize(
+        ("message", "style"),
+        [
+            (TestData.Output.SUCCESS_MESSAGE, None),
+            ("Test", "bold red"),
+            (TestData.Output.INFO_MESSAGE, TestData.Output.STYLE_GREEN),
+        ],
+    )
+    def test_print(self, message: str, style: str | None) -> None:
+        """Test print() method with various messages and styles."""
+        formatters = self.Factories.create_formatters()
+        result = formatters.print(message, style=style)
+        FlextCliTestHelpers.AssertHelpers.assert_result_success(result)
 
-    def test_print_with_style(self) -> None:
-        """Test print() with style."""
-        formatters = FlextCliFormatters()
-        result = formatters.print("Test", style="bold red")
-        assert result.is_success
-
-    def test_create_table_empty(self) -> None:
-        """Test create_table() with no data."""
-        formatters = FlextCliFormatters()
-        result = formatters.create_table()
-        assert result.is_success
+    @pytest.mark.parametrize(
+        ("data", "headers", "title"),
+        [
+            (None, None, None),
+            (None, None, "Test Table"),
+            (None, ["Name", "Value"], None),
+            (Factories.create_test_data(), ["Key", "Value"], None),
+            (Factories.create_table_data(), ["Key", "Value"], "User Info"),
+        ],
+    )
+    def test_create_table(
+        self,
+        data: FlextCliTypes.Data.CliDataDict | None,
+        headers: list[str] | None,
+        title: str | None,
+    ) -> None:
+        """Test create_table() with various configurations."""
+        formatters = self.Factories.create_formatters()
+        result = formatters.create_table(data=data, headers=headers, title=title)
+        FlextCliTestHelpers.AssertHelpers.assert_result_success(result)
         table = result.unwrap()
         assert isinstance(table, RichTable)
 
-    def test_create_table_with_title(self) -> None:
-        """Test create_table() with title."""
-        formatters = FlextCliFormatters()
-        result = formatters.create_table(title="Test Table")
-        assert result.is_success
-        table = result.unwrap()
-        assert isinstance(table, RichTable)
-
-    def test_create_table_with_headers(self) -> None:
-        """Test create_table() with headers."""
-        formatters = FlextCliFormatters()
-        result = formatters.create_table(headers=["Name", "Value"])
-        assert result.is_success
-        table = result.unwrap()
-        assert isinstance(table, RichTable)
-
-    def test_create_table_with_data(self) -> None:
-        """Test create_table() with data."""
-        formatters = FlextCliFormatters()
-        data: FlextCliTypes.Data.CliDataDict = {"key1": "value1", "key2": "value2"}
-        result = formatters.create_table(data=data, headers=["Key", "Value"])
-        assert result.is_success
-        table = result.unwrap()
-        assert isinstance(table, RichTable)
-
-    def test_render_table_to_string(self) -> None:
-        """Test render_table_to_string()."""
-        formatters = FlextCliFormatters()
+    @pytest.mark.parametrize("width", [None, 80, 120])
+    def test_render_table_to_string(self, width: int | None) -> None:
+        """Test render_table_to_string() with various widths."""
+        formatters = self.Factories.create_formatters()
         table_result = formatters.create_table(title="Test")
-        assert table_result.is_success
+        FlextCliTestHelpers.AssertHelpers.assert_result_success(table_result)
         table = table_result.unwrap()
 
-        render_result = formatters.render_table_to_string(table)
-        assert render_result.is_success
+        render_result = formatters.render_table_to_string(table, width=width)
+        FlextCliTestHelpers.AssertHelpers.assert_result_success(render_result)
         output = render_result.unwrap()
         assert isinstance(output, str)
         assert len(output) > 0
-
-    def test_render_table_to_string_with_width(self) -> None:
-        """Test render_table_to_string() with custom width."""
-        formatters = FlextCliFormatters()
-        table_result = formatters.create_table(title="Test")
-        assert table_result.is_success
-        table = table_result.unwrap()
-
-        render_result = formatters.render_table_to_string(table, width=120)
-        assert render_result.is_success
-        output = render_result.unwrap()
-        assert isinstance(output, str)
 
     def test_create_progress(self) -> None:
         """Test create_progress()."""
@@ -166,9 +193,9 @@ class TestFlextCliFormattersCore:
         output = render_result.unwrap()
         assert isinstance(output, str)
 
-
-class TestFlextCliFormattersIntegration:
-    """Integration tests for formatters."""
+    # =========================================================================
+    # INTEGRATION TESTS (Consolidated from TestFlextCliFormattersIntegration)
+    # =========================================================================
 
     def test_complete_table_workflow(self) -> None:
         """Test complete table creation and rendering workflow."""
@@ -304,9 +331,9 @@ class TestFlextCliFormattersIntegration:
         table = result.unwrap()
         assert isinstance(table, RichTable)
 
-
-class TestFlextCliFormattersExceptionHandlers:
-    """Test exception handlers for formatters methods."""
+    # =========================================================================
+    # EXCEPTION HANDLER TESTS (Consolidated from TestFlextCliFormattersExceptionHandlers)
+    # =========================================================================
 
     def test_print_exception_handler(self) -> None:
         """Test print() exception handler (lines 92-93).

@@ -203,16 +203,16 @@ def process_with_railway_pattern(
     # Removed unused temp_file variable
 
     # Chain operations using FlextResult
-    result: FlextResult[FlextCliTypes.Data.CliDataDict] = (
-        # Step 1: Validate
-        FlextResult[FlextCliTypes.Data.CliDataDict]
-        .ok(input_data)
-        .map(lambda d: {**d, "validated": True})
-        # Step 2: Transform
-        .map(lambda d: {**d, "processed": True})
-        # Step 3: Enrich
-        .map(lambda d: {**d, "enriched": True})
-    )
+    # Step 1: Validate
+    step1_data: FlextCliTypes.Data.CliDataDict = {**input_data, "validated": True}
+    # Step 2: Transform
+    step2_data: FlextCliTypes.Data.CliDataDict = {**step1_data, "processed": True}
+    # Step 3: Enrich
+    final_data: FlextCliTypes.Data.CliDataDict = {**step2_data, "enriched": True}
+
+    result: FlextResult[FlextCliTypes.Data.CliDataDict] = FlextResult[
+        FlextCliTypes.Data.CliDataDict
+    ].ok(final_data)
 
     if result.is_failure:
         cli.output.print_message(

@@ -79,7 +79,7 @@ class TestCompleteWorkflowIntegration:
     @pytest.fixture
     def config(self) -> FlextCliConfig:
         """Create FlextCliConfig with test settings."""
-        return FlextCliConfig(debug=True, environment="testing")
+        return FlextCliConfig(debug=True, environment="test")
 
     @pytest.fixture
     def file_tools(self) -> FlextCliFileTools:
@@ -177,7 +177,7 @@ class TestCompleteWorkflowIntegration:
                     )[1]
                 )
                 # Step 4: Generate processing statistics
-                .map(self._generate_pipeline_stats)
+                .map(lambda data: self._generate_pipeline_stats(cast("dict[str, object]", data)))
                 .map(
                     lambda data: (
                         cli.output.print_message("✅ Processing statistics generated"),
@@ -405,7 +405,7 @@ class TestCompleteWorkflowIntegration:
                     )
                 )
                 # Step 4: Create report summary
-                .map(lambda reports: self._create_report_summary(reports, config))
+                .map(lambda reports: self._create_report_summary(cast("list[dict[str, object]]", reports), config))
             ),
         )
 
@@ -434,7 +434,8 @@ class TestCompleteWorkflowIntegration:
             raise ValueError(msg)
 
         # Apply configuration-based filtering
-        if config.environment == "production":
+        config_obj = cast("FlextCliConfig", config)
+        if config_obj.environment == "production":
             # In production, only include Q1 data
             filtered_sales = [sale for sale in sales if sale.get("quarter") == "Q1"]
         else:
@@ -448,7 +449,7 @@ class TestCompleteWorkflowIntegration:
         })
 
         return {
-            "config": {"environment": config.environment, "debug": config.debug},
+            "config": {"environment": config_obj.environment, "debug": config_obj.debug},
             "sales_data": filtered_sales,
             "aggregates": {
                 "total_amount": total_amount,
@@ -470,22 +471,22 @@ class TestCompleteWorkflowIntegration:
         """Generate reports in multiple formats."""
         processed_dict = cast("dict[str, object]", processed_data)
         report_dir.mkdir(exist_ok=True)
-        sales_data = processed_dict["sales_data"]
-        aggregates = processed_dict["aggregates"]
+        sales_data = processed_dict.get("sales_data")
+        aggregates = processed_dict.get("aggregates")
 
         reports = []
 
         # JSON Report
         json_report = {
             "report_type": "sales_summary",
-            "generated_at": processed_data["processed_at"],
+            "generated_at": processed_dict.get("processed_at"),
             "summary": aggregates,
             "data": sales_data,
         }
 
         json_result = FlextCliFileTools().write_json_file(
             str(report_dir / "sales_report.json"),
-            cast("dict[str, object]", json_report),
+            json_report,
         )
         if json_result.is_failure:
             return FlextResult.fail(f"JSON report failed: {json_result.error}")
@@ -603,7 +604,7 @@ class TestCompleteWorkflowIntegration:
                     )[1]
                 )
                 # Step 2: Process data (may have partial failures)
-                .flat_map(self._process_with_partial_recovery)
+                .flat_map(lambda data: cast("FlextResult[object]", self._process_with_partial_recovery(cast("dict[str, object]", data)) if isinstance(data, dict) else FlextResult[dict[str, object]].fail("Invalid data type")))
                 .map(
                     lambda data: (
                         cli.output.print_message("✅ Data processed (with recovery)"),
@@ -612,7 +613,7 @@ class TestCompleteWorkflowIntegration:
                 )
                 # Step 3: Save results (with retry mechanism)
                 .flat_map(
-                    lambda data: self._save_with_retry(data, output_file, max_retries=3)
+                    lambda data: cast("FlextResult[object]", self._save_with_retry(cast("dict[str, object]", data), output_file, max_retries=3) if isinstance(data, dict) else FlextResult[dict[str, object]].fail("Invalid data type"))
                 )
                 .map(
                     lambda data: (
@@ -621,7 +622,7 @@ class TestCompleteWorkflowIntegration:
                     )[1]
                 )
                 # Step 4: Generate recovery report
-                .map(self._generate_recovery_report)
+                .map(lambda data: self._generate_recovery_report(cast("dict[str, object]", data)) if isinstance(data, dict) else {})
             ),
         )
 
