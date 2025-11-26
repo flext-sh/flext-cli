@@ -1,7 +1,7 @@
 """FLEXT CLI Mixins - Single unified class following FLEXT standards.
 
-Common validation and factory patterns for CLI operations.
-Single FlextCliMixins class with nested mixin subclasses following FLEXT pattern.
+**MODULE**: FlextCliMixins - Single primary class for CLI mixins
+**SCOPE**: Business rules validation, CLI command execution patterns with decorator composition
 
 Copyright (c) 2025 FLEXT Team. All rights reserved.
 SPDX-License-Identifier: MIT
@@ -10,11 +10,10 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from typing import cast
-
 from flext_core import (
     FlextMixins,
     FlextResult,
+    FlextRuntime,
     FlextUtilities,
 )
 from flext_core.decorators import FlextDecorators
@@ -29,17 +28,6 @@ class FlextCliMixins(FlextMixins):
     Contains all mixin subclasses for CLI domain operations.
     Follows FLEXT pattern: one class per module with nested subclasses.
     """
-
-    # =========================================================================
-    # VALIDATION MIXIN - REMOVED
-    # All validation logic moved to Pydantic v2 field constraints
-    # =========================================================================
-
-    # =========================================================================
-    # FACTORY MIXIN - Common factory patterns
-    # =========================================================================
-
-    # Removed - use FlextResult[T].ok() and FlextResult[T].fail() directly
 
     # =========================================================================
     # BUSINESS RULES MIXIN - Common business rule validation patterns
@@ -57,17 +45,7 @@ class FlextCliMixins(FlextMixins):
             required_status: str,
             operation: str,
         ) -> FlextResult[bool]:
-            """Validate command execution state for operations.
-
-            Args:
-                current_status: Current command status
-                required_status: Required status for the operation
-                operation: Name of the operation being performed
-
-            Returns:
-                FlextResult[bool]: True if validation passed, failure on error
-
-            """
+            """Validate command execution state for operations."""
             if current_status != required_status:
                 return FlextResult[bool].fail(
                     FlextCliConstants.MixinsValidationMessages.COMMAND_STATE_INVALID.format(
@@ -83,16 +61,7 @@ class FlextCliMixins(FlextMixins):
             current_status: str,
             valid_states: list[str],
         ) -> FlextResult[bool]:
-            """Validate session state.
-
-            Args:
-                current_status: Current session status
-                valid_states: List of valid session states
-
-            Returns:
-                FlextResult[bool]: True if validation passed, failure on error
-
-            """
+            """Validate session state."""
             if current_status not in valid_states:
                 return FlextResult[bool].fail(
                     FlextCliConstants.MixinsValidationMessages.SESSION_STATUS_INVALID.format(
@@ -106,16 +75,7 @@ class FlextCliMixins(FlextMixins):
         def validate_pipeline_step(
             step: FlextCliTypes.Data.CliDataDict | None,
         ) -> FlextResult[bool]:
-            """Validate pipeline step configuration.
-
-            Args:
-                step: Pipeline step dictionary to validate
-
-            Returns:
-                FlextResult[bool]: True if validation passed, failure on error
-
-            """
-            # Fast-fail if step is None - no fallback
+            """Validate pipeline step configuration."""
             if step is None:
                 return FlextResult[bool].fail(
                     FlextCliConstants.MixinsValidationMessages.PIPELINE_STEP_EMPTY,
@@ -127,13 +87,12 @@ class FlextCliMixins(FlextMixins):
                 )
 
             step_name = step[FlextCliConstants.MixinsFieldNames.PIPELINE_STEP_NAME]
-            # Fast-fail validation - no fallback
             if not step_name:
                 return FlextResult[bool].fail(
                     FlextCliConstants.MixinsValidationMessages.PIPELINE_STEP_NAME_EMPTY,
                 )
+
             step_name_str = str(step_name)
-            # Use FlextUtilities.Validation for step name validation
             try:
                 FlextUtilities.Validation.validate_required_string(
                     step_name_str,
@@ -151,23 +110,14 @@ class FlextCliMixins(FlextMixins):
             config_data: FlextCliTypes.Data.CliDataDict | None,
             required_fields: list[str],
         ) -> FlextResult[bool]:
-            """Validate configuration consistency.
-
-            Args:
-                config_data: Configuration data to validate
-                required_fields: List of required field names
-
-            Returns:
-                FlextResult[bool]: True if validation passed, failure on error
-
-            """
-            # Fast-fail if config_data is None - no fallback
+            """Validate configuration consistency."""
             if config_data is None:
                 return FlextResult[bool].fail(
                     FlextCliConstants.MixinsValidationMessages.CONFIG_MISSING_FIELDS.format(
                         missing_fields=required_fields,
                     ),
                 )
+
             missing_fields = [
                 field for field in required_fields if field not in config_data
             ]
@@ -192,34 +142,6 @@ class FlextCliMixins(FlextMixins):
         Provides helper methods that compose flext-core decorators for common
         CLI command patterns. Reduces 18 lines of context setup per command to
         a single method call.
-
-        **ELIMINATES**:
-        - Manual correlation_id generation (2 lines)
-        - FlextContext setup calls (4 lines)
-        - Scoped context manager boilerplate (8 lines)
-        - Manual context cleanup (4 lines)
-        Total: 18 lines per command
-
-        **USAGE**:
-            ```python
-            from flext_cli import FlextCliMixins
-            from flext_core import FlextDecorators, FlextResult
-
-
-            class MyCli(FlextCliMixins.CliCommandMixin):
-                def execute_command(self, operation: str) -> FlextResult[bool]:
-                    # Use mixin method for automatic decorator composition
-                    return self.execute_with_cli_context(
-                        operation="migrate",
-                        handler=self._do_migration,
-                        input_dir="data",
-                        output_dir="out",
-                    )
-
-                def _do_migration(self, **kwargs) -> FlextResult[bool]:
-                    # Just implement logic - context already set up!
-                    return FlextResult[bool].ok(True)
-            ```
         """
 
         @staticmethod
@@ -236,13 +158,6 @@ class FlextCliMixins(FlextMixins):
             - Performance tracking
             - Railway pattern error handling
 
-            **ELIMINATES**:
-            - Manual correlation_id = FlextContext.Correlation.generate_correlation_id()
-            - Manual FlextContext.Correlation.set_correlation_id(correlation_id)
-            - Manual FlextContext.Request.set_operation_name(operation)
-            - Manual with FlextLogger.scoped_context(...)
-            - Manual context cleanup
-
             Args:
                 operation: Operation name (e.g., "migrate", "validate")
                 handler: Handler function to execute with context
@@ -251,39 +166,8 @@ class FlextCliMixins(FlextMixins):
             Returns:
                 FlextResult from handler execution
 
-            Example:
-                ```python
-                class AlgarOudMigrationCli(FlextCliMixins.CliCommandMixin):
-                    def _execute_migrate(
-                        self, args: list[str]
-                    ) -> FlextResult[CliJsonValue]:
-                        # Single line replaces 18 lines of boilerplate!
-                        return self.execute_with_cli_context(
-                            operation="migrate",
-                            handler=self._run_migration_service,
-                            input_dir=args[0],
-                            output_dir=args[1],
-                        )
-
-                    def _run_migration_service(
-                        self, **kwargs
-                    ) -> FlextResult[CliJsonValue]:
-                        # Context auto-managed - just implement logic
-                        service = AlgarOudMigrationService(**kwargs)
-                        return service.execute()
-                ```
-
-            **DECORATOR COMPOSITION** (applied in correct order):
-            ```
-            @FlextDecorators.railway          # Outermost - converts exceptions
-            @FlextDecorators.track_performance # Track execution time
-            @FlextDecorators.log_operation     # Log with context
-            @FlextDecorators.with_correlation  # Correlation ID management
-            ```
-
             """
             # Compose decorators in correct order (outermost to innermost)
-            # Railway must be outermost to catch all exceptions
             wrapped_handler = FlextDecorators.railway()(
                 FlextDecorators.track_performance()(
                     FlextDecorators.log_operation(operation)(
@@ -293,19 +177,36 @@ class FlextCliMixins(FlextMixins):
             )
 
             # Execute with composed decorators
-            # Handler returns FlextResult[CliJsonValue]
-            # context_data is already correctly typed
-            # The railway decorator ensures the handler result is wrapped in FlextResult
-            # If handler already returns FlextResult, railway returns it as-is (no double wrapping)
             handler_result = wrapped_handler(**context_data)
-            # Type cast: railway decorator may wrap or return as-is, but we know it's FlextResult[CliJsonValue]
-            result: FlextResult[CliJsonValue] = cast(
-                "FlextResult[CliJsonValue]",
-                handler_result,
-            )
-            return result
+
+            # Type narrowing: railway decorator ensures FlextResult return
+            # Handle both single and double-wrapped FlextResult cases
+            if isinstance(handler_result, FlextResult):
+                # Check if it's a double-wrapped FlextResult[FlextResult[...]]
+                if handler_result.is_success:
+                    inner_value = handler_result.unwrap()
+                    if isinstance(inner_value, FlextResult):
+                        # Double-wrapped: unwrap inner FlextResult
+                        # Type narrowing: inner_value is FlextResult[CliJsonValue]
+                        return inner_value
+                    # Single-wrapped with value: extract value and wrap in new FlextResult
+                    # inner_value is CliJsonValue
+                    return FlextResult[CliJsonValue].ok(inner_value)
+                # Failure case: unwrap and re-wrap to ensure correct type
+                error_msg = handler_result.error or "Unknown error"
+                return FlextResult[CliJsonValue].fail(error_msg)
+
+            # If not FlextResult, wrap it (railway should have done this, but defensive)
+            # This should not happen if decorators work correctly
+            if FlextRuntime.is_dict_like(handler_result):
+                return FlextResult[CliJsonValue].ok(handler_result)
+            if FlextRuntime.is_list_like(handler_result):
+                return FlextResult[CliJsonValue].ok(handler_result)
+            if isinstance(handler_result, (str, int, float, bool, type(None))):
+                return FlextResult[CliJsonValue].ok(handler_result)
+
+            # Fallback: wrap any other type
+            return FlextResult[CliJsonValue].ok(handler_result)
 
 
-__all__ = [
-    "FlextCliMixins",
-]
+__all__ = ["FlextCliMixins"]

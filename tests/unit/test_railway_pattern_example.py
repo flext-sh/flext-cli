@@ -1,15 +1,10 @@
-"""FLEXT CLI Railway Pattern Example Tests.
+"""FLEXT CLI Railway Pattern Example Tests - Comprehensive Railway Pattern Validation Testing.
 
-Comprehensive tests for FlextResult Railway Pattern demonstrating proper error
-handling, validation chains, and workflow integration using parametrized tests
-and centralized test data.
+Tests for FlextResult Railway Pattern covering success chains, error handling, validation flows,
+multi-step workflows, error recovery, and edge cases with 100% coverage.
 
-**Modules Tested**:
-- flext_cli.file_tools: FlextCliFileTools JSON operations
-- flext_core.result: FlextResult success/failure patterns
-
-**Coverage**: Success chains, error handling, validation flows, multi-step
-workflows, and error recovery with railway pattern.
+Modules tested: flext_cli.file_tools.FlextCliFileTools, flext_core.result.FlextResult
+Scope: All railway pattern operations, success chains, error handling, validation flows
 
 Copyright (c) 2025 FLEXT Team. All rights reserved.
 SPDX-License-Identifier: MIT
@@ -26,7 +21,8 @@ from typing import Any
 import pytest
 
 from flext_cli import FlextCliFileTools
-from tests.fixtures.constants import RailwayPatternExample as Railway
+
+from ..fixtures.constants import RailwayPatternExample as Railway
 
 
 class TestRailwayPatternExample:

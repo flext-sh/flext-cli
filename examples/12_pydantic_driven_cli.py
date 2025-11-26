@@ -293,7 +293,7 @@ def create_database_config_from_cli() -> FlextResult[AdvancedDatabaseConfig]:
     )
 
     # Simulate CLI argument collection (normally from Click decorators)
-    cli_args = {
+    cli_args: dict[str, object] = {
         "host": "db.example.com",
         "port": 5432,
         "name": "production_db",
@@ -304,54 +304,27 @@ def create_database_config_from_cli() -> FlextResult[AdvancedDatabaseConfig]:
     }
 
     # Railway Pattern: Chain validation steps
-    result: FlextResult[AdvancedDatabaseConfig] = (
-        FlextResult[dict[str, object]]
-        .ok(cast("dict[str, object]", cli_args))
-        # Step 1: Validate required fields
-        .map(validate_required_fields)
-        .map(
-            lambda data: (
-                cli.output.print_message("✅ Required fields validated", style="green"),
-                data,
-            )[1]
-        )
-        # Step 2: Type conversion and Pydantic validation
-        .and_then(convert_and_validate_with_pydantic)
-        .map(
-            lambda config: (
-                cli.output.print_message(
-                    "✅ Pydantic validation passed", style="green"
-                ),
-                config,
-            )[1]
-        )
-        # Step 3: Business logic validation
-        .map(validate_business_rules)
-        .map(
-            lambda config: (
-                cli.output.print_message("✅ Business rules validated", style="green"),
-                config,
-            )[1]
-        )
-        # Step 4: Connection test (simulated)
-        .map(perform_connection_test)
-        .map(
-            lambda config: (
-                cli.output.print_message("✅ Connection test passed", style="green"),
-                config,
-            )[1]
-        )
-    )
+    validated_data = validate_required_fields(cli_args)
+    cli.output.print_message("✅ Required fields validated", style="green")
 
-    if result.is_failure:
-        cli.output.print_message(
-            f"❌ Configuration failed: {result.error}", style="bold red"
-        )
-        return result
+    # Step 2: Type conversion and Pydantic validation
+    pydantic_result = convert_and_validate_with_pydantic(validated_data)
+    if pydantic_result.is_failure:
+        return pydantic_result
+    cli.output.print_message("✅ Pydantic validation passed", style="green")
 
-    config = result.unwrap()
+    config = pydantic_result.unwrap()
+
+    # Step 3: Business logic validation
+    final_config = validate_business_rules(config)
+    cli.output.print_message("✅ Business rules validated", style="green")
+
+    # Step 4: Connection test (simulated)
+    tested_config = perform_connection_test(final_config)
+    cli.output.print_message("✅ Connection test passed", style="green")
+
     display_success_summary(cli, "Database configuration")
-    return FlextResult[AdvancedDatabaseConfig].ok(config)
+    return FlextResult[AdvancedDatabaseConfig].ok(tested_config)
 
 
 def validate_required_fields(data: dict[str, object]) -> dict[str, object]:
@@ -371,8 +344,28 @@ def convert_and_validate_with_pydantic(
 ) -> FlextResult[AdvancedDatabaseConfig]:
     """Convert raw data to validated Pydantic model."""
     try:
+        # Convert dict[str, object] to proper types for Pydantic
+        # Pydantic will handle type conversion, but we need to ensure types are compatible
+        port_value = data.get("port", 5432)
+        port_int = int(port_value) if isinstance(port_value, (int, str)) else 5432
+
+        ssl_value = data.get("ssl_enabled", True)
+        ssl_bool = bool(ssl_value) if isinstance(ssl_value, (bool, str, int)) else True
+
+        pool_value = data.get("connection_pool", 10)
+        pool_int = int(pool_value) if isinstance(pool_value, (int, str)) else 10
+
+        converted_data: dict[str, object] = {
+            "host": str(data.get("host", "localhost")),
+            "port": port_int,
+            "name": str(data.get("name", "")),
+            "username": str(data.get("username", "")),
+            "password": str(data.get("password", "")),
+            "ssl_enabled": ssl_bool,
+            "connection_pool": pool_int,
+        }
         # Pydantic handles type conversion and validation automatically
-        config = AdvancedDatabaseConfig(**data)
+        config = AdvancedDatabaseConfig(**converted_data)
         return FlextResult[AdvancedDatabaseConfig].ok(config)
     except Exception as e:
         return FlextResult[AdvancedDatabaseConfig].fail(

@@ -9,7 +9,7 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from flext_core import FlextConfig, FlextService
+from flext_core import FlextService
 
 from flext_cli.config import FlextCliConfig
 from flext_cli.typings import FlextCliTypes
@@ -28,13 +28,13 @@ class FlextCliServiceBase(FlextService[FlextCliTypes.Data.CliDataDict]):
 
     @property
     def cli_config(self) -> FlextCliConfig:
-        """Retorna FlextCliConfig tipado."""
-        return self.config.get_namespace("cli", FlextCliConfig)
+        """Retorna FlextCliConfig tipado (singleton)."""
+        return FlextCliConfig.get_instance()
 
     @staticmethod
     def get_cli_config() -> FlextCliConfig:
         """Retorna FlextCliConfig (singleton)."""
-        return FlextConfig.get_global_instance().get_namespace("cli", FlextCliConfig)
+        return FlextCliConfig.get_instance()
 
 
 __all__ = [

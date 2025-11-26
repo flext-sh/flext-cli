@@ -14,7 +14,7 @@ from __future__ import annotations
 
 import sys
 from collections.abc import Callable
-from typing import ClassVar, TypeVar, cast
+from typing import ClassVar
 
 from flext_core import FlextConstants, FlextResult
 from typer.models import OptionInfo
@@ -22,9 +22,10 @@ from typer.models import OptionInfo
 from flext_cli.config import FlextCliConfig
 from flext_cli.constants import FlextCliConstants
 from flext_cli.models import FlextCliModels
+from flext_cli.protocols import FlextCliProtocols
 
-# Type variable for generic decorator
-F = TypeVar("F", bound=Callable[..., object])
+# Type alias for CLI command functions (avoids Callable[..., T] which uses Any)
+CliCommandFunc = FlextCliProtocols.Cli.CliCommandFunction
 
 
 class FlextCliCommonParams:
@@ -340,24 +341,17 @@ class FlextCliCommonParams:
                 )
             config.log_verbosity = params.log_format
 
-        # output_format
+        # output_format - use validator that returns proper Literal type
         if params.output_format is not None:
-            output_format_value = params.output_format
-            if (
-                output_format_value
-                not in FlextCliConstants.CliParamsDefaults.VALID_OUTPUT_FORMATS
-            ):
+            validated_format = FlextCliConstants.validate_output_format(
+                params.output_format
+            )
+            if validated_format is None:
                 valid = FlextCliConstants.CliParamsDefaults.VALID_OUTPUT_FORMATS
                 return FlextResult[FlextCliConfig].fail(
-                    f"invalid output format: {output_format_value}. valid options: {', '.join(valid)}",
+                    f"invalid output format: {params.output_format}. valid options: {', '.join(valid)}",
                 )
-            # After validation, we know output_format_value is in VALID_OUTPUT_FORMATS
-            # Cast to Literal type since validation guarantees it's one of the valid values
-            # Type narrowing: validation above ensures this is a valid OutputFormatLiteral
-            config.output_format = cast(
-                "FlextCliConstants.OutputFormatLiteral",
-                output_format_value,
-            )
+            config.output_format = validated_format
 
         return FlextResult[FlextCliConfig].ok(config)
 
@@ -401,7 +395,7 @@ class FlextCliCommonParams:
     @classmethod
     def create_decorator(
         cls,
-    ) -> Callable[[F], F]:
+    ) -> Callable[[CliCommandFunc], CliCommandFunc]:
         """Create decorator to validate common CLI parameters are used.
 
         By default, ALL parameters are included and this is MANDATORY.
@@ -444,7 +438,7 @@ class FlextCliCommonParams:
 
         """
 
-        def decorator(func: F) -> F:
+        def decorator(func: CliCommandFunc) -> CliCommandFunc:
             # Validate enforcement
             validation = cls.validate_enabled()
             if validation.is_failure and cls._enforcement_mode:

@@ -1,16 +1,11 @@
-"""FLEXT CLI Typings Tests - Comprehensive Type System Validation.
+"""FLEXT CLI Typings Tests - Comprehensive Type System Validation Testing.
 
-Tests for flext_cli.typings.FlextCliTypes module covering:
-- Type definitions and validation
-- Annotated CLI types with Pydantic v2 constraints
-- CLI data structures and type aliases
-- Protocol implementations and runtime checking
-- Generic types and type variables
-- Type conversion and narrowing
-- Integration with flext_core.FlextTypes
+Tests for FlextCliTypes covering type definitions, validation, annotated CLI types,
+CLI data structures, type aliases, protocol implementations, generic types,
+type conversion, narrowing, integration, and edge cases with 100% coverage.
 
-Uses advanced Python 3.13+ features: match statements, StrEnum, dataclasses,
-factory patterns, and dynamic testing for maximum coverage with minimal code.
+Modules tested: flext_cli.typings.FlextCliTypes
+Scope: All type operations, validation, conversion, protocol implementations
 
 Copyright (c) 2025 FLEXT Team. All rights reserved.
 SPDX-License-Identifier: MIT
@@ -276,10 +271,13 @@ class TestFlextCliTypings:
 
         # Test union types
         def process_value(value: str | int) -> str:
+            """Process value and return string."""
             match value:
                 case str():
                     return value.upper()
                 case int():
+                    return str(value)
+                case _:
                     return str(value)
 
         def process_optional(value: str | None) -> str:
@@ -349,10 +347,13 @@ class TestFlextCliTypings:
 
         # Test type narrowing
         def process_union(value: str | int) -> str:
+            """Process union value and return string."""
             match value:
                 case str():
                     return value.upper()
                 case int():
+                    return str(value)
+                case _:
                     return str(value)
 
         def process_optional(value: str | None) -> str:
@@ -453,12 +454,12 @@ class TestFlextCliTypings:
         user_name = user_dict.get("name")
         user_email = user_dict.get("email")
         user_active = user_dict.get("active")
-        
+
         error_id = "user id must be int"
         error_name = "user name must be str"
         error_email = "user email must be str"
         error_active = "user active must be bool"
-        
+
         if not isinstance(user_id, int):
             raise TypeError(error_id)
         if not isinstance(user_name, str):
@@ -467,7 +468,7 @@ class TestFlextCliTypings:
             raise TypeError(error_email)
         if not isinstance(user_active, bool):
             raise TypeError(error_active)
-        
+
         # Create UserData with properly narrowed types
         user_data: UserData = {
             "id": user_id,

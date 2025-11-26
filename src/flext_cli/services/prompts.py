@@ -4,10 +4,8 @@ from __future__ import annotations
 
 import getpass
 import re
-import typing
 
 from flext_core import (
-    FlextMixins,
     FlextResult,
     FlextUtilities,
 )
@@ -52,19 +50,19 @@ class FlextCliPrompts(FlextCliServiceBase):
         quiet: bool = False,
         **data: CliJsonValue,
     ) -> None:
-        """Initialize CLI prompts service with enhanced configuration and Phase 1 context enrichment.
+        """Initialize CLI prompts service.
 
         Args:
+            default_timeout: Default timeout for prompt operations in seconds
             interactive_mode: Enable interactive prompt features
             quiet: Enable quiet mode (non-interactive)
-            default_timeout: Default timeout for prompt operations in seconds
             **data: Additional service initialization data
 
         """
         # If quiet mode is enabled, disable interactive mode
         final_interactive = interactive_mode and not quiet
 
-        # Set fields in data FlextTypes.JsonDict for Pydantic initialization
+        # Direct assignment - no type conversions needed
         data["interactive_mode"] = final_interactive
         data["quiet"] = quiet
         data["default_timeout"] = default_timeout
@@ -578,10 +576,9 @@ class FlextCliPrompts(FlextCliServiceBase):
                 timestamp=FlextUtilities.Generators.generate_iso_timestamp(),
             )
 
-            # Serialize to dict for API compatibility
-            stats_dict: FlextCliTypes.Data.CliDataDict = typing.cast(
-                "FlextCliTypes.Data.CliDataDict",
-                FlextMixins.ModelConversion.to_dict(stats_model),
+            # Serialize to dict using Pydantic model_dump - no cast needed
+            stats_dict = FlextCliUtilities.CliDataMapper.convert_dict_to_json(
+                stats_model.model_dump()
             )
 
             self.logger.debug(

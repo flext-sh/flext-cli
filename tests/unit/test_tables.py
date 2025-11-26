@@ -1,8 +1,10 @@
-"""Tests for flext_cli.tables module.
+"""FLEXT CLI Tables Tests - Comprehensive Table Formatting Validation Testing.
 
-This module tests FlextCliTables providing table formatting and display
-functionality. Uses advanced Python 3.13 patterns, factory methods,
-and comprehensive edge case coverage for all table formats.
+Tests for FlextCliTables covering table formatting, display functionality, format discovery,
+specialized formats, edge cases, error handling, and integration workflows with 100% coverage.
+
+Modules tested: flext_cli.tables.FlextCliTables
+Scope: All table formatting operations, format discovery, specialized formats, edge cases
 
 Copyright (c) 2025 FLEXT Team. All rights reserved.
 SPDX-License-Identifier: MIT

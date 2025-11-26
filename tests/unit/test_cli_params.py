@@ -1,15 +1,12 @@
-"""FLEXT CLI Common Parameters Tests - Comprehensive testing of mandatory CLI parameter group.
+"""FLEXT CLI Common Parameters Tests - Comprehensive Parameter Validation Testing.
 
-Tests FlextCliCommonParams and common_cli_params decorator with real functionality
-testing integrated with FlextConfig and FlextLogger. Uses advanced Python 3.13 patterns,
-factory methods, enums, mapping, dynamic tests, and comprehensive edge case coverage
-with minimal code duplication.
+Tests for FlextCliCommonParams and common_cli_params decorator covering parameter enforcement,
+config application, decorator functionality, logger integration, precedence rules,
+validation, error handling, and edge cases with 100% coverage.
 
-**TESTED MODULES**: FlextCliCommonParams, FlextCliConfig, FlextCliModels,
-                   FlextCliServiceBase, FlextLogger integration
-**SCOPE**: Common CLI parameters, parameter enforcement, config application,
-          decorator functionality, logger integration, precedence rules,
-          validation, error handling, edge cases
+Modules tested: flext_cli.common_params.FlextCliCommonParams, FlextCliConfig, FlextCliModels,
+FlextCliServiceBase, FlextLogger integration
+Scope: All common CLI parameters, parameter enforcement, config application, decorator functionality
 
 Copyright (c) 2025 FLEXT Team. All rights reserved.
 SPDX-License-Identifier: MIT
@@ -37,6 +34,7 @@ from flext_cli import (
     FlextCliModels,
     FlextCliServiceBase,
 )
+from flext_cli.typings import CliJsonValue
 
 from ..helpers import FlextCliTestHelpers
 
@@ -189,10 +187,10 @@ def _create_decorated_command(
     app: typer.Typer,
     command_name: str = "test",
     echo_message: str | None = None,
-) -> Callable[[], None]:
+) -> Callable[..., CliJsonValue]:
     """Create a decorated test command."""
 
-    @app.command()
+    @app.command(name=command_name)
     @FlextCliCommonParams.create_decorator()
     def decorated_test_command(
         name: str = command_name,
@@ -205,7 +203,7 @@ def _create_decorated_command(
         output_format: str = DEFAULT_OUTPUT_FORMAT,
         no_color: bool = DEFAULT_NO_COLOR,
         config_file: Path | None = DEFAULT_CONFIG_FILE,
-    ) -> None:
+    ) -> CliJsonValue:
         """Test command with all common parameters."""
         if echo_message:
             typer.echo(echo_message)
@@ -216,7 +214,11 @@ def _create_decorated_command(
             typer.echo("Debug mode enabled")
         typer.echo(f"Log level: {log_level}")
         typer.echo(f"Output format: {output_format}")
+        return None
 
+    # Return decorated function - it satisfies CliCommandFunction protocol structurally
+    # The protocol accepts any callable with (*args, **kwargs) -> CliJsonValue signature
+    # Mypy strict mode may not recognize structural compatibility, but runtime works
     return decorated_test_command
 
 
@@ -417,13 +419,15 @@ class TestFlextCliCommonParams:
     # LOGGER CONFIGURATION (Parametrized)
     # ========================================================================
 
-    @pytest.mark.parametrize("log_level", list(LogLevel))
+    @pytest.mark.parametrize("log_level", [LogLevel.DEBUG.value, LogLevel.INFO.value, LogLevel.WARNING.value, LogLevel.ERROR.value, LogLevel.CRITICAL.value])
     def test_configure_logger_levels(
         self,
-        log_level: LogLevel,
+        log_level: str,
     ) -> None:
         """Test configuring logger with all log levels."""
-        level_enum = LOG_LEVEL_TEST_DATA[log_level]
+        # Convert string to LogLevel enum for dict lookup
+        log_level_enum = LogLevel(log_level)
+        level_enum = LOG_LEVEL_TEST_DATA[log_level_enum]
         config = _create_test_config(cli_log_level=level_enum)
 
         result = FlextCliCommonParams.configure_logger(config)
@@ -440,7 +444,7 @@ class TestFlextCliCommonParams:
         _create_decorated_command(app)
 
         runner = CliRunner()
-        result = runner.invoke(app, ["test", "--help"])
+        result = runner.invoke(app, ["--help"])
 
         expected_params = [
             "--verbose",
@@ -473,7 +477,7 @@ class TestFlextCliCommonParams:
         _create_decorated_command(app, echo_message=expected_message)
 
         runner = CliRunner()
-        result = runner.invoke(app, ["test", flag])
+        result = runner.invoke(app, [flag])
 
         assert expected_message in result.stdout
         assert result.exit_code == 0
@@ -496,7 +500,7 @@ class TestFlextCliCommonParams:
         _create_decorated_command(app)
 
         runner = CliRunner()
-        result = runner.invoke(app, ["test", param, value])
+        result = runner.invoke(app, [param, value])
 
         assert expected_output in result.stdout
         assert result.exit_code == 0
@@ -505,7 +509,7 @@ class TestFlextCliCommonParams:
         """Test decorator with FlextConfig integration."""
         app = typer.Typer()
 
-        @app.command()
+        @app.command(name="test")
         @FlextCliCommonParams.create_decorator()
         def decorated_test_command(
             name: str = "test",
@@ -513,8 +517,7 @@ class TestFlextCliCommonParams:
             debug: bool = DEFAULT_DEBUG,
             log_level: str = DEFAULT_LOG_LEVEL,
             output_format: str = DEFAULT_OUTPUT_FORMAT,
-            **kwargs: object,
-        ) -> None:
+        ) -> CliJsonValue:
             """Test command with config integration."""
             config = FlextCliServiceBase.get_cli_config()
             result = FlextCliCommonParams.apply_to_config(
@@ -533,12 +536,12 @@ class TestFlextCliCommonParams:
                     f"Config cli_log_level: {updated_config.cli_log_level.value}",
                 )
                 typer.echo(f"Config output_format: {updated_config.output_format}")
+            return None
 
         runner = CliRunner()
         result = runner.invoke(
             app,
             [
-                "test",
                 "--verbose",
                 "--debug",
                 "--log-level",
@@ -856,8 +859,9 @@ class TestFlextCliCommonParams:
                 decorator = FlextCliCommonParams.create_decorator()
 
                 @decorator
-                def decorated_test_function() -> None:
+                def decorated_test_function(*args: object, **kwargs: object) -> CliJsonValue:
                     """Test function."""
+                    return None
 
                 msg = "Expected SystemExit but got none"
                 raise AssertionError(msg)

@@ -1,14 +1,12 @@
-"""FLEXT CLI API Tests - FlextCli Core Functionality with Railway Patterns.
+"""FLEXT CLI API Tests - Comprehensive API Validation Testing.
 
-**TESTED MODULES**: FlextCli (main API), FlextCliConfig, FlextCliModels,
-                   FlextCliConstants, FlextCliOutput, FlextCliFileTools,
-                   FlextCliCore, FlextCliPrompts, FlextCliCmd
-**SCOPE**: Core CLI functionality, authentication, file operations,
-          command execution, configuration, output formatting, error handling,
-          concurrent operations, token management, validation, decorators
+Tests for FlextCli covering core CLI functionality, authentication, file operations,
+command execution, configuration, output formatting, error handling, concurrent operations,
+token management, validation, decorators, and edge cases with 100% coverage.
 
-Uses advanced Python 3.13+ features: match statements, StrEnum, dataclasses,
-factory patterns, mapping, dynamic tests for maximum coverage with minimal code.
+Modules tested: flext_cli.FlextCli (main API), FlextCliConfig, FlextCliModels,
+FlextCliConstants, FlextCliOutput, FlextCliFileTools, FlextCliCore, FlextCliPrompts, FlextCliCmd
+Scope: All API operations, authentication, file operations, command execution, configuration
 
 Copyright (c) 2025 FLEXT Team. All rights reserved.
 SPDX-License-Identifier: MIT
@@ -248,21 +246,40 @@ class TestFlextCli:
         """Execute initialization tests."""
         assert isinstance(api_service, FlextCli) and all(
             hasattr(api_service, attr)
-            for attr in ("logger", "_container", "output", "file_tools", "core", "prompts", "cmd")
+            for attr in (
+                "logger",
+                "_container",
+                "output",
+                "file_tools",
+                "core",
+                "prompts",
+                "cmd",
+            )
         )
         execute_result = api_service.execute()
         FlextTestsMatchers.assert_success(execute_result)
         data = execute_result.unwrap()
-        assert isinstance(data, dict) and data.get("service") == "flext-cli" and data.get("status") == "operational"
+        assert (
+            isinstance(data, dict)
+            and data.get("service") == "flext-cli"
+            and data.get("status") == "operational"
+        )
 
     def _execute_output_formatting_tests(self, api_service: FlextCli) -> None:
         """Execute output formatting tests."""
-        for format_type, config in ApiTestFactory.create_output_format_test_data().items():
-            if (data := config.get("data")) is None or (validator := config.get("validator")) is None:
+        for (
+            format_type,
+            config,
+        ) in ApiTestFactory.create_output_format_test_data().items():
+            if (data := config.get("data")) is None or (
+                validator := config.get("validator")
+            ) is None:
                 continue
             result = api_service.output.format_data(data=data, format_type=format_type)
             FlextTestsMatchers.assert_success(result)
-            assert isinstance((output := result.unwrap()), str) and validator(output, data)
+            assert isinstance((output := result.unwrap()), str) and validator(
+                output, data
+            )
 
     def _execute_authentication_tests(self, api_service: FlextCli) -> None:
         """Execute authentication tests."""
@@ -293,7 +310,9 @@ class TestFlextCli:
                     else:
                         assert read_res.is_failure
                 case "write":
-                    write_res = api_service.file_tools.write_text_file(str(file), "new content")
+                    write_res = api_service.file_tools.write_text_file(
+                        str(file), "new content"
+                    )
                     FlextTestsMatchers.assert_success(write_res)
                     assert file.read_text() == "new content"
                 case "delete":

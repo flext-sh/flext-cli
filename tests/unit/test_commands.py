@@ -1,8 +1,10 @@
-"""FLEXT CLI Commands Tests - Comprehensive commands functionality testing.
+"""FLEXT CLI Commands Tests - Comprehensive Commands Functionality Testing.
 
-Tests for FlextCliCommands class using flext_tests infrastructure with real
-functionality testing, no mocks, and comprehensive coverage following FLEXT
-standards.
+Tests for FlextCliCommands covering command registration, execution, lifecycle management,
+error handling, integration workflows, and edge cases with 100% coverage.
+
+Modules tested: flext_cli.commands.FlextCliCommands
+Scope: All command operations, registration, execution, lifecycle management
 
 Copyright (c) 2025 FLEXT Team. All rights reserved.
 SPDX-License-Identifier: MIT
@@ -16,8 +18,9 @@ import time
 from flext_core import FlextResult
 
 from flext_cli import FlextCliCommands, FlextCliConstants
-from tests.fixtures.constants import TestCommands
-from tests.helpers import CommandsFactory
+
+from ..fixtures.constants import TestCommands
+from ..helpers import CommandsFactory
 
 
 class TestFlextCliCommands:

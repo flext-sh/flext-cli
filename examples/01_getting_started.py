@@ -118,6 +118,15 @@ class FlextCliGettingStarted:
             self.cli.print(f"Error: {result.error}", style="yellow")
             # Continue execution - no crash!
 
+    def run_examples(self) -> None:
+        """Run all getting started examples."""
+        self.cli.print("=== Flext CLI Getting Started Examples ===", style="bold blue")
+        self.cli.print("\n1. Styled Output Examples:", style="bold")
+        self.your_function_after()
+        self.cli.print("\n2. File I/O Examples:", style="bold")
+        self.process_data_with_flext_result()
+        self.cli.print("\n✅ All examples completed!", style="bold green")
+
 
 # ============================================================================
 # REAL USAGE EXAMPLE

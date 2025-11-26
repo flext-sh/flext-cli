@@ -1312,3 +1312,109 @@ class TestVersions:
         VALID_COMPLEX_TUPLE: Final[tuple[int, int, str]] = (2, 1, "3-alpha")
         SHORT_TUPLE: Final[tuple[int, int]] = (1, 0)
         EMPTY_TUPLE: Final[tuple[()]] = ()
+
+
+class TestPrompts:
+    """Prompts-related test constants and data."""
+
+    class Messages:
+        """Prompt message constants."""
+
+        SIMPLE: Final[str] = "Enter text:"
+        WITH_DEFAULT: Final[str] = "Enter value:"
+        CONFIRM: Final[str] = "Are you sure?"
+        CHOOSE: Final[str] = "Choose an option:"
+        PASSWORD: Final[str] = "Enter password:"
+        EMPTY: Final[str] = ""
+        LONG: Final[str] = "x" * 1000
+        SPECIAL: Final[str] = "Enter data: !@#$%^&*()_+-=[]{}|;':\",./<>?"
+        UNICODE: Final[str] = "Test with 特殊字符 and émojis 🎉"
+
+    class Defaults:
+        """Default value constants."""
+
+        TEXT: Final[str] = "default_value"
+        TEXT_EMPTY: Final[str] = ""
+        CONFIRM_TRUE: Final[bool] = True
+        CONFIRM_FALSE: Final[bool] = False
+        CHOICE: Final[str] = "option1"
+        CHOICE_INVALID: Final[str] = "invalid_option"
+
+    class Options:
+        """Option list constants."""
+
+        SIMPLE: Final[list[str]] = ["option1", "option2", "option3"]
+        TWO: Final[list[str]] = ["opt1", "opt2"]
+        EMPTY: Final[list[str]] = []
+        SINGLE: Final[list[str]] = ["single"]
+
+    class Validation:
+        """Validation pattern constants."""
+
+        EMAIL: Final[str] = r".+@.+\..+"
+        SIMPLE: Final[str] = ".*"
+        NONE: Final[None] = None
+
+    class Statuses:
+        """Status type constants for print_status."""
+
+        INFO: Final[str] = "info"
+        WARNING: Final[str] = "warning"
+        ERROR: Final[str] = "error"
+        SUCCESS: Final[str] = "success"
+        CUSTOM: Final[str] = "custom"
+        ALL: Final[list[str]] = [INFO, WARNING, ERROR, SUCCESS, CUSTOM]
+
+    class Progress:
+        """Progress-related constants."""
+
+        DESCRIPTIONS: Final[list[str]] = ["Loading...", "Processing...", "Complete!"]
+        LARGE_DATASET_SIZE: Final[int] = 100
+        SMALL_DATASET_SIZE: Final[int] = 3
+
+    class Timeouts:
+        """Timeout constants."""
+
+        DEFAULT: Final[int] = 30
+        CUSTOM: Final[int] = 60
+        FAST: Final[float] = 0.1
+        NORMAL: Final[float] = 5.0
+        SLOW: Final[float] = 30.0
+        PERFORMANCE_THRESHOLD: Final[float] = 15.0
+
+    class Password:
+        """Password-related constants."""
+
+        MIN_LENGTH_DEFAULT: Final[int] = 8
+        MIN_LENGTH_STRICT: Final[int] = 10
+
+    class TestCases:
+        """Test case definitions for prompts comprehensive testing."""
+
+        INITIALIZATION: Final[str] = "initialization"
+        PROMPT_TEXT: Final[str] = "prompt_text"
+        PROMPT_CONFIRMATION: Final[str] = "prompt_confirmation"
+        PROMPT_CHOICE: Final[str] = "prompt_choice"
+        PROMPT_PASSWORD: Final[str] = "prompt_password"
+        PRINT_OPERATIONS: Final[str] = "print_operations"
+        PROGRESS_OPERATIONS: Final[str] = "progress_operations"
+        HISTORY_OPERATIONS: Final[str] = "history_operations"
+        EDGE_CASES: Final[str] = "edge_cases"
+        ERROR_HANDLING: Final[str] = "error_handling"
+        PERFORMANCE: Final[str] = "performance"
+        INTEGRATION: Final[str] = "integration"
+
+        CASES: Final[list[tuple[str, str, bool]]] = [
+            (INITIALIZATION, "Prompts initialization", True),
+            (PROMPT_TEXT, "Text prompt functionality", True),
+            (PROMPT_CONFIRMATION, "Confirmation prompt functionality", True),
+            (PROMPT_CHOICE, "Choice prompt functionality", True),
+            (PROMPT_PASSWORD, "Password prompt functionality", True),
+            (PRINT_OPERATIONS, "Print operations", True),
+            (PROGRESS_OPERATIONS, "Progress operations", True),
+            (HISTORY_OPERATIONS, "History operations", True),
+            (EDGE_CASES, "Edge cases and boundaries", True),
+            (ERROR_HANDLING, "Error handling", True),
+            (PERFORMANCE, "Performance characteristics", True),
+            (INTEGRATION, "Integration workflows", True),
+        ]

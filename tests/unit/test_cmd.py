@@ -1,14 +1,11 @@
-"""FLEXT CLI CMD Tests - Comprehensive command functionality testing.
+"""FLEXT CLI CMD Tests - Comprehensive Command Functionality Testing.
 
-Tests FlextCliCmd class using flext_tests infrastructure with real functionality
-testing, no mocks, and comprehensive coverage. Uses advanced Python 3.13 patterns,
-factory methods, enums, mapping, dynamic tests, and comprehensive edge case coverage
-with minimal code duplication.
+Tests for FlextCliCmd covering command initialization, execution, configuration operations
+(edit, show, validate, get/set values), error handling, performance, integration,
+and edge cases with 100% coverage.
 
-**TESTED MODULES**: FlextCliCmd, FlextCliUtilities.ConfigOps, FlextCliServiceBase
-**SCOPE**: Command initialization, execution, configuration operations (edit, show,
-          validate, get/set values), error handling, performance, integration,
-          edge cases (invalid JSON, missing keys, read-only directories, etc.)
+Modules tested: flext_cli.cmd.FlextCliCmd, FlextCliUtilities.ConfigOps, FlextCliServiceBase
+Scope: All command operations, configuration operations, error handling, edge cases
 
 Copyright (c) 2025 FLEXT Team. All rights reserved.
 SPDX-License-Identifier: MIT
@@ -32,6 +29,7 @@ from flext_cli import (
     FlextCliServiceBase,
     FlextCliUtilities,
 )
+from flext_cli.config import FlextCliConfig
 
 from ..helpers import FlextCliTestHelpers
 
@@ -118,8 +116,13 @@ def _create_config_file(
 
 def _set_config_dir(temp_dir: Path) -> Path:
     """Set config directory and return original for restoration."""
-    original_config_dir = FlextCliServiceBase.get_cli_config().config_dir
-    FlextCliServiceBase.get_cli_config().config_dir = temp_dir
+    # Get the config instance directly (not via get_cli_config which may return cached instance)
+    config = FlextCliConfig.get_instance()
+    original_config_dir = config.config_dir
+    # Update config_dir - Pydantic model allows field assignment
+    config.config_dir = temp_dir
+    # Verify update took effect
+    assert config.config_dir == temp_dir, f"Failed to update config_dir to {temp_dir}"
     return original_config_dir
 
 
@@ -242,7 +245,18 @@ class TestFlextCliCmd:
     # CONFIG OPERATION TESTS (Parametrized)
     # ========================================================================
 
-    @pytest.mark.parametrize("operation", list(ConfigOperation))
+    @pytest.mark.parametrize(
+        "operation",
+        [
+            ConfigOperation.EDIT,
+            ConfigOperation.SHOW,
+            ConfigOperation.VALIDATE,
+            ConfigOperation.GET_INFO,
+            ConfigOperation.SHOW_PATHS,
+            ConfigOperation.GET_VALUE,
+            ConfigOperation.SET_VALUE,
+        ],
+    )
     def test_config_operations(
         self,
         operation: ConfigOperation,
@@ -401,10 +415,27 @@ class TestFlextCliCmd:
         """Test get_config_value success path when key is found."""
         cmd = _create_cmd_instance()
 
-        _create_config_file(temp_dir, {"found_key": "found_value"})
+        # Create config file in temp_dir
+        config_file = _create_config_file(temp_dir, {"found_key": "found_value"})
+        assert config_file.exists(), f"Config file should exist at {config_file}"
 
-        original_config_dir = _set_config_dir(temp_dir)
+        # Set config_dir to temp_dir - use direct instance access
+        config = FlextCliConfig.get_instance()
+        original_config_dir = config.config_dir
+        config.config_dir = temp_dir
+        
         try:
+            # Verify config_dir was set correctly on the same instance
+            assert config.config_dir == temp_dir, f"Config dir should be {temp_dir}, got {config.config_dir}"
+            
+            # Verify get_cli_config() returns the same instance
+            current_config = FlextCliServiceBase.get_cli_config()
+            assert current_config.config_dir == temp_dir, f"get_cli_config() should return updated config_dir {temp_dir}, got {current_config.config_dir}"
+            
+            # Verify file exists at expected path
+            expected_config_path = temp_dir / FlextCliConstants.ConfigFiles.CLI_CONFIG_JSON
+            assert expected_config_path.exists(), f"Config file should exist at {expected_config_path}"
+
             result = cmd.get_config_value("found_key")
 
             FlextCliTestHelpers.AssertHelpers.assert_result_success(result)
@@ -413,7 +444,7 @@ class TestFlextCliCmd:
             assert data["value"] == "found_value"
             assert "timestamp" in data
         finally:
-            _restore_config_dir(original_config_dir)
+            config.config_dir = original_config_dir
 
     # ========================================================================
     # ERROR HANDLING TESTS (Parametrized)

@@ -12,7 +12,7 @@ from __future__ import annotations
 
 from collections.abc import Iterable, Sequence
 
-from flext_core import FlextResult, FlextRuntime, FlextTypes
+from flext_core import FlextResult, FlextRuntime, FlextTypes, FlextUtilities
 from tabulate import tabulate
 
 from flext_cli.base import FlextCliServiceBase
@@ -96,13 +96,17 @@ class FlextCliTables(FlextCliServiceBase):
         self,
         data: TableData,
         config: FlextCliModels.TableConfig | None = None,
+        **config_kwargs: object,
     ) -> FlextResult[str]:
         """Create formatted ASCII table using tabulate with Pydantic config.
+
+        Uses build_options_from_kwargs pattern for automatic kwargs to Model conversion.
 
         Args:
             data: Table data (list of dicts, list of lists, etc.)
             config: Table configuration (TableConfig model with all settings)
                    If None, uses default configuration
+            **config_kwargs: Individual config option overrides (snake_case field names)
 
         Returns:
             FlextResult containing formatted table string
@@ -113,22 +117,43 @@ class FlextCliTables(FlextCliServiceBase):
             >>> # With config object
             >>> config = FlextCliModels.TableConfig(table_format="grid")
             >>> result = tables.create_table(data, config)
+            >>> # With kwargs (automatic conversion)
+            >>> result = tables.create_table(
+            ...     data, table_format="grid", headers=["Name", "Age"]
+            ... )
             >>> # Without config (uses defaults)
             >>> result = tables.create_table(data)
 
         """
-        # Create config explicitly if None - no fallback to defaults
-        # This ensures all config values are explicit and validated
-        cfg = FlextCliModels.TableConfig() if config is None else config
+        # Use build_options_from_kwargs pattern for automatic conversion
+        config_result = FlextUtilities.Configuration.build_options_from_kwargs(
+            model_class=FlextCliModels.TableConfig,
+            explicit_options=config,
+            default_factory=FlextCliModels.TableConfig,
+            **config_kwargs,
+        )
+        if config_result.is_failure:
+            return FlextResult[str].fail(
+                f"Invalid table configuration: {config_result.error}",
+            )
+        cfg = config_result.unwrap()
 
         # Railway pattern: validate → prepare headers → create table
         validation_result = self._validate_table_data(data, cfg.table_format)
         if validation_result.is_failure:
-            return validation_result  # type: ignore[return-value]
+            return FlextResult[str].fail(
+                validation_result.error or "Table data validation failed",
+                error_code=validation_result.error_code,
+                error_data=validation_result.error_data,
+            )
 
         headers_result = self._prepare_headers(data, cfg.headers)
         if headers_result.is_failure:
-            return headers_result  # type: ignore[return-value]
+            return FlextResult[str].fail(
+                headers_result.error or "Headers preparation failed",
+                error_code=headers_result.error_code,
+                error_data=headers_result.error_data,
+            )
 
         headers = headers_result.unwrap()
         return self._create_table_string(data, cfg, headers)
@@ -244,15 +269,16 @@ class FlextCliTables(FlextCliServiceBase):
             FlextResult containing formatted table string
 
         """
-        # Validate headers explicitly - no fallback
+        # Use build_options_from_kwargs pattern - pass kwargs directly
         validated_headers = (
             headers if headers is not None else FlextCliConstants.TableFormats.KEYS
         )
-        config = FlextCliModels.TableConfig(
+        return self.create_table(
+            data,
+            config=None,
             table_format=table_format,
             headers=validated_headers,
         )
-        return self.create_table(data, config)
 
     def create_simple_table(
         self,
