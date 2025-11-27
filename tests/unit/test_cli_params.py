@@ -419,7 +419,16 @@ class TestFlextCliCommonParams:
     # LOGGER CONFIGURATION (Parametrized)
     # ========================================================================
 
-    @pytest.mark.parametrize("log_level", [LogLevel.DEBUG.value, LogLevel.INFO.value, LogLevel.WARNING.value, LogLevel.ERROR.value, LogLevel.CRITICAL.value])
+    @pytest.mark.parametrize(
+        "log_level",
+        [
+            LogLevel.DEBUG.value,
+            LogLevel.INFO.value,
+            LogLevel.WARNING.value,
+            LogLevel.ERROR.value,
+            LogLevel.CRITICAL.value,
+        ],
+    )
     def test_configure_logger_levels(
         self,
         log_level: str,
@@ -859,7 +868,9 @@ class TestFlextCliCommonParams:
                 decorator = FlextCliCommonParams.create_decorator()
 
                 @decorator
-                def decorated_test_function(*args: object, **kwargs: object) -> CliJsonValue:
+                def decorated_test_function(
+                    *args: object, **kwargs: object
+                ) -> CliJsonValue:
                     """Test function."""
                     return None
 

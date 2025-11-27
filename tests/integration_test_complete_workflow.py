@@ -177,7 +177,11 @@ class TestCompleteWorkflowIntegration:
                     )[1]
                 )
                 # Step 4: Generate processing statistics
-                .map(lambda data: self._generate_pipeline_stats(cast("dict[str, object]", data)))
+                .map(
+                    lambda data: self._generate_pipeline_stats(
+                        cast("dict[str, object]", data)
+                    )
+                )
                 .map(
                     lambda data: (
                         cli.output.print_message("✅ Processing statistics generated"),
@@ -405,7 +409,11 @@ class TestCompleteWorkflowIntegration:
                     )
                 )
                 # Step 4: Create report summary
-                .map(lambda reports: self._create_report_summary(cast("list[dict[str, object]]", reports), config))
+                .map(
+                    lambda reports: self._create_report_summary(
+                        cast("list[dict[str, object]]", reports), config
+                    )
+                )
             ),
         )
 
@@ -449,7 +457,10 @@ class TestCompleteWorkflowIntegration:
         })
 
         return {
-            "config": {"environment": config_obj.environment, "debug": config_obj.debug},
+            "config": {
+                "environment": config_obj.environment,
+                "debug": config_obj.debug,
+            },
             "sales_data": filtered_sales,
             "aggregates": {
                 "total_amount": total_amount,
@@ -604,7 +615,16 @@ class TestCompleteWorkflowIntegration:
                     )[1]
                 )
                 # Step 2: Process data (may have partial failures)
-                .flat_map(lambda data: cast("FlextResult[object]", self._process_with_partial_recovery(cast("dict[str, object]", data)) if isinstance(data, dict) else FlextResult[dict[str, object]].fail("Invalid data type")))
+                .flat_map(
+                    lambda data: cast(
+                        "FlextResult[object]",
+                        self._process_with_partial_recovery(
+                            cast("dict[str, object]", data)
+                        )
+                        if isinstance(data, dict)
+                        else FlextResult[dict[str, object]].fail("Invalid data type"),
+                    )
+                )
                 .map(
                     lambda data: (
                         cli.output.print_message("✅ Data processed (with recovery)"),
@@ -613,7 +633,14 @@ class TestCompleteWorkflowIntegration:
                 )
                 # Step 3: Save results (with retry mechanism)
                 .flat_map(
-                    lambda data: cast("FlextResult[object]", self._save_with_retry(cast("dict[str, object]", data), output_file, max_retries=3) if isinstance(data, dict) else FlextResult[dict[str, object]].fail("Invalid data type"))
+                    lambda data: cast(
+                        "FlextResult[object]",
+                        self._save_with_retry(
+                            cast("dict[str, object]", data), output_file, max_retries=3
+                        )
+                        if isinstance(data, dict)
+                        else FlextResult[dict[str, object]].fail("Invalid data type"),
+                    )
                 )
                 .map(
                     lambda data: (
@@ -622,7 +649,13 @@ class TestCompleteWorkflowIntegration:
                     )[1]
                 )
                 # Step 4: Generate recovery report
-                .map(lambda data: self._generate_recovery_report(cast("dict[str, object]", data)) if isinstance(data, dict) else {})
+                .map(
+                    lambda data: self._generate_recovery_report(
+                        cast("dict[str, object]", data)
+                    )
+                    if isinstance(data, dict)
+                    else {}
+                )
             ),
         )
 

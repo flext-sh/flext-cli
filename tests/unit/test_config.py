@@ -188,7 +188,13 @@ class TestLoggingConfig:
     def test_logging_levels(self, level: str, expected: str) -> None:
         """Test all logging levels with single parametrized test."""
         # Validate level is a valid log level before creating config
-        valid_levels: tuple[str, ...] = ("DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL")
+        valid_levels: tuple[str, ...] = (
+            "DEBUG",
+            "INFO",
+            "WARNING",
+            "ERROR",
+            "CRITICAL",
+        )
         if level not in valid_levels:
             pytest.skip(f"Invalid log level: {level}")
         # Type narrowing: level is now known to be one of the valid levels
