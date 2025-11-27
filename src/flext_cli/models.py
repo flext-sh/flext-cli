@@ -56,7 +56,6 @@ from pydantic_core import PydanticUndefined
 from typer.models import OptionInfo
 
 from flext_cli import (
-    base as _base_module,
     cli_params as _cli_params_module,
     config as _config_module,
 )
@@ -340,7 +339,7 @@ class FlextCliModels(FlextModels):
             return converter.build_cli_param_spec(field_name, properties_dict)
 
         @staticmethod
-        def pydantic_type_to_python_type(  # noqa: C901
+        def pydantic_type_to_python_type(
             field_type: type | UnionType,
         ) -> type[str | int | float | bool | list[object] | dict[str, object]]:
             """Convert Pydantic field type to Python native type.
@@ -559,12 +558,12 @@ class FlextCliModels(FlextModels):
 
             # Process validators and metadata with type narrowing
             # SLF001: Accessing private method is intentional - it's a static method within the same class
-            validators = FlextCliModels.CliModelConverter._process_validators(  # noqa: SLF001
+            validators = FlextCliModels.CliModelConverter._process_validators(
                 list(validators_raw)
                 if FlextRuntime.is_list_like(validators_raw)
                 else []
             )
-            metadata = FlextCliModels.CliModelConverter._process_metadata(  # noqa: SLF001
+            metadata = FlextCliModels.CliModelConverter._process_metadata(
                 dict(metadata_raw) if FlextRuntime.is_dict_like(metadata_raw) else {}
             )
 
@@ -642,7 +641,7 @@ class FlextCliModels(FlextModels):
 
             # Validate and extract field data
             # SLF001: Accessing private method is intentional - it's a static method within the same class
-            validation_result = FlextCliModels.CliModelConverter._validate_field_data(  # noqa: SLF001
+            validation_result = FlextCliModels.CliModelConverter._validate_field_data(
                 field_name,
                 data,
             )
@@ -663,12 +662,12 @@ class FlextCliModels(FlextModels):
             # Process validators and metadata
             # Type cast: validators_raw is already validated as list[Callable[...]]
             # SLF001: Accessing private method is intentional - it's a static method within the same class
-            validators = FlextCliModels.CliModelConverter._process_validators(  # noqa: SLF001
+            validators = FlextCliModels.CliModelConverter._process_validators(
                 list(validators_raw),
             )
             # Type cast: metadata_raw is already validated as dict[str, JsonValue]
             # SLF001: Accessing private method is intentional - it's a static method within the same class
-            metadata = FlextCliModels.CliModelConverter._process_metadata(  # noqa: SLF001
+            metadata = FlextCliModels.CliModelConverter._process_metadata(
                 dict(metadata_raw),
             )
 
@@ -1744,7 +1743,7 @@ class FlextCliModels(FlextModels):
             signature = inspect.Signature(parameters)
             # Use setattr to avoid type checker issues with dynamic attributes
             # B010: setattr with constant - this is intentional for dynamic attribute assignment
-            setattr(generated_command, "__signature__", signature)  # noqa: B010
+            generated_command.__signature__ = signature
 
             return generated_command
 
@@ -1786,7 +1785,7 @@ class FlextCliModels(FlextModels):
                 if func_signature is not None:
                     # Use setattr to avoid type checker issues with dynamic attributes
                     # B010: setattr with constant - this is intentional for dynamic attribute assignment
-                    setattr(wrapped, "__signature__", func_signature)  # noqa: B010
+                    wrapped.__signature__ = func_signature
 
             return wrapped
 

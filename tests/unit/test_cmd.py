@@ -423,18 +423,26 @@ class TestFlextCliCmd:
         config = FlextCliConfig.get_instance()
         original_config_dir = config.config_dir
         config.config_dir = temp_dir
-        
+
         try:
             # Verify config_dir was set correctly on the same instance
-            assert config.config_dir == temp_dir, f"Config dir should be {temp_dir}, got {config.config_dir}"
-            
+            assert config.config_dir == temp_dir, (
+                f"Config dir should be {temp_dir}, got {config.config_dir}"
+            )
+
             # Verify get_cli_config() returns the same instance
             current_config = FlextCliServiceBase.get_cli_config()
-            assert current_config.config_dir == temp_dir, f"get_cli_config() should return updated config_dir {temp_dir}, got {current_config.config_dir}"
-            
+            assert current_config.config_dir == temp_dir, (
+                f"get_cli_config() should return updated config_dir {temp_dir}, got {current_config.config_dir}"
+            )
+
             # Verify file exists at expected path
-            expected_config_path = temp_dir / FlextCliConstants.ConfigFiles.CLI_CONFIG_JSON
-            assert expected_config_path.exists(), f"Config file should exist at {expected_config_path}"
+            expected_config_path = (
+                temp_dir / FlextCliConstants.ConfigFiles.CLI_CONFIG_JSON
+            )
+            assert expected_config_path.exists(), (
+                f"Config file should exist at {expected_config_path}"
+            )
 
             result = cmd.get_config_value("found_key")
 

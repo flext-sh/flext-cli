@@ -48,8 +48,7 @@ class TestFlextCliMixins:
 
         @staticmethod
         def assert_result_failure(
-            result: FlextResult[T],
-            error_contains: str | None = None
+            result: FlextResult[T], error_contains: str | None = None
         ) -> None:
             """Assert result is failure."""
             assert result.is_failure, f"Expected failure, got: {result}"

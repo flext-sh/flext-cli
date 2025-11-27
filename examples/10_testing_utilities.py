@@ -333,7 +333,7 @@ def main() -> None:
     cli.output.print_message(
         """
 def test_my_command():
-    from flext_cli import FlextCli  # noqa: E402
+    from flext_cli import FlextCli
     cli = FlextCli()
 
     result = my_command(param="test")

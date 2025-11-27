@@ -136,7 +136,15 @@ class MyAppPluginManager:
             result = execute_method(**kwargs)
             # Result is dynamically typed, cast to JsonValue for type safety
             # Type narrowing: ensure result is JsonValue compatible
-            json_result: FlextTypes.JsonValue = cast("FlextTypes.JsonValue", result) if isinstance(result, (str, int, float, bool, type(None))) or (isinstance(result, dict) and all(isinstance(k, str) for k in result)) or isinstance(result, list) else str(result)
+            json_result: FlextTypes.JsonValue = (
+                cast("FlextTypes.JsonValue", result)
+                if isinstance(result, (str, int, float, bool, type(None)))
+                or (
+                    isinstance(result, dict) and all(isinstance(k, str) for k in result)
+                )
+                or isinstance(result, list)
+                else str(result)
+            )
             return FlextResult[FlextTypes.JsonValue].ok(json_result)
         except Exception as e:
             return FlextResult[FlextTypes.JsonValue].fail(

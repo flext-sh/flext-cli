@@ -208,13 +208,7 @@ def cli_session_factory() -> Callable[..., FlextCliModels.CliSession]:
         **kwargs: object,
     ) -> FlextCliModels.CliSession:
         # CliSession has extra="forbid", so no extra fields allowed
-        # Ensure model is fully built - rebuild if needed (lazy rebuild)
-        try:
-            # Try to create instance - Pydantic v2 usually handles forward refs automatically
-            pass
-        except Exception:
-            # If it fails, rebuild model (shouldn't happen in Pydantic v2, but just in case)
-            FlextCliModels.CliSession.model_rebuild()
+        # Pydantic v2 with 'from __future__ import annotations' automatically resolves forward refs
 
         # Add session-specific fields - only real fields that exist in CliSession
         session_data: dict[str, object]
@@ -628,15 +622,8 @@ def reset_singletons() -> Generator[None]:
     """
     # Reset BEFORE test to ensure clean state
     # For now, skip reset to focus on test functionality
-    # Ensure CliSession model is built - rebuild after all models are defined
-    try:
-        # Ensure CliCommand is built first (CliSession depends on it)
-        FlextCliModels.CliCommand.model_rebuild()
-        # Then rebuild CliSession
-        FlextCliModels.CliSession.model_rebuild()
-    except Exception:
-        # If rebuild fails, Pydantic v2 should handle forward refs automatically
-        pass
+    # Pydantic v2 with 'from __future__ import annotations' automatically resolves forward refs
+    # No manual model_rebuild() needed - annotations are stringified and resolved at runtime
     # Yield to make this a proper generator fixture
     return
     # Reset after test to clean up any state
@@ -645,7 +632,7 @@ def reset_singletons() -> Generator[None]:
 @pytest.fixture
 def clean_flext_container() -> Generator[None]:
     """Ensure clean FlextContainer state for tests."""
-    from flext_core import FlextContainer  # noqa: PLC0415
+    from flext_core import FlextContainer
 
     # Get or create container instance (singleton pattern)
     container = FlextContainer()

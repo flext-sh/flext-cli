@@ -596,7 +596,7 @@ class FlextCliTestHelpers:
 
             """
             try:
-                import click  # noqa: PLC0415
+                import click
 
                 @click.command(name=command_name)
                 def test_cmd() -> None:
@@ -619,7 +619,7 @@ class FlextCliTestHelpers:
 
             """
             try:
-                import click  # noqa: PLC0415
+                import click
 
                 @click.group(name=group_name)
                 def test_grp() -> None:
@@ -646,7 +646,7 @@ class FlextCliTestHelpers:
 
             """
             try:
-                import click  # noqa: PLC0415
+                import click
 
                 @click.command(name=command_name)
                 @click.option(option_name, default=default)

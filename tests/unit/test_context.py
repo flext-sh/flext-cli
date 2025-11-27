@@ -193,7 +193,9 @@ class TestFlextCliContext:
         arguments = cast("list[str] | None", test_case.get("arguments"))
         env_vars_raw = test_case.get("env_vars")
         env_vars = (
-            cast("dict[str, object]", env_vars_raw) if env_vars_raw is not None else None
+            cast("dict[str, object]", env_vars_raw)
+            if env_vars_raw is not None
+            else None
         )
         working_dir = cast("str | None", test_case.get("working_dir"))
 
