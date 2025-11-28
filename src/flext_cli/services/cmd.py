@@ -23,7 +23,7 @@ from flext_cli.base import FlextCliServiceBase
 from flext_cli.constants import FlextCliConstants
 from flext_cli.file_tools import FlextCliFileTools
 from flext_cli.models import FlextCliModels
-from flext_cli.typings import CliJsonValue
+from flext_cli.typings import FlextCliTypes
 from flext_cli.utilities import FlextCliUtilities
 
 
@@ -45,7 +45,9 @@ class FlextCliCmd(FlextCliServiceBase):
         # Logger is automatically provided by FlextMixins mixin
         self._file_tools = FlextCliFileTools()
 
-    def execute(self, **_kwargs: object) -> FlextResult[FlextTypes.JsonDict]:
+    def execute(
+        self, **_kwargs: FlextCliTypes.Data.ExecutionKwargs
+    ) -> FlextResult[FlextTypes.JsonDict]:
         """Execute command service - required by FlextService.
 
         Args:
@@ -107,7 +109,7 @@ class FlextCliCmd(FlextCliServiceBase):
                 FlextCliServiceBase.get_cli_config().config_dir
                 / FlextCliConstants.ConfigFiles.CLI_CONFIG_JSON
             )
-            config_data: CliJsonValue = {key: value}
+            config_data: FlextCliTypes.CliJsonValue = {key: value}
             save_result = self._file_tools.write_json_file(
                 file_path=str(config_path),
                 data=config_data,
@@ -166,7 +168,7 @@ class FlextCliCmd(FlextCliServiceBase):
                 )
 
             value = config_data[key]
-            result_data = FlextCliUtilities.CliDataMapper.convert_dict_to_json({
+            result_data = FlextCliUtilities.DataMapper.convert_dict_to_json({
                 FlextCliConstants.DictKeys.KEY: key,
                 FlextCliConstants.DictKeys.VALUE: value,
                 FlextCliConstants.DictKeys.TIMESTAMP: FlextUtilities.Generators.generate_iso_timestamp(),

@@ -132,7 +132,9 @@ else:
 cmd_result = cli.execute_command("list-users", context={"limit": 10})
 
 # Output formatting
-fmt_result = cli.format_output(data={"users": []}, format="json")
+fmt_result = cli.format_output(
+    data={"users": []}, format=FlextCliConstants.OutputFormats.JSON.value
+)
 
 # File operations
 json_result = cli.read_json_file("config.json")

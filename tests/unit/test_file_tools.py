@@ -29,7 +29,7 @@ import pytest
 import yaml
 from flext_core import FlextResult, FlextTypes
 
-from flext_cli import FlextCliFileTools
+from flext_cli import FlextCliConstants, FlextCliFileTools
 
 
 class TestFlextCliFileTools:
@@ -935,7 +935,7 @@ class TestFlextCliFileTools:
         """Test file format detection."""
         result = file_tools.detect_file_format(str(temp_json_file))
         assert result.is_success
-        assert result.unwrap() == "json"
+        assert result.unwrap() == FlextCliConstants.OutputFormats.JSON.value
 
     def test_get_supported_formats(self, file_tools: FlextCliFileTools) -> None:
         """Test getting supported file formats."""

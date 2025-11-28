@@ -13,14 +13,15 @@ from __future__ import annotations
 import os
 import sys
 import types
-from collections.abc import Mapping
+from collections.abc import Mapping, Sequence
 from pathlib import Path
-from typing import Union, get_args, get_origin
+from typing import Union, cast, get_args, get_origin
 
-from flext_core import FlextResult, FlextUtilities
+from flext_core import FlextResult, FlextTypes, FlextUtilities
 
 from flext_cli.constants import FlextCliConstants
-from flext_cli.typings import CliJsonDict, CliJsonValue
+from flext_cli.models import FlextCliModels
+from flext_cli.typings import FlextCliTypes
 
 
 class FlextCliUtilities:
@@ -53,111 +54,145 @@ class FlextCliUtilities:
     """
 
     # =========================================================================
-    # BASE UTILITIES - Delegate to flext-core FlextUtilities
+    # BASE UTILITIES - Direct delegation to flext-core FlextUtilities
     # =========================================================================
-    # CLI DATA MAPPER - Type-safe wrappers for FlextUtilities.DataMapper
+    # All data mapping operations delegate directly to FlextUtilities.DataMapper
+    # CliJsonValue and GeneralValueType are structurally compatible JSON types
+    # Simple helpers provide type casting from GeneralValueType to CliJsonValue
     # =========================================================================
 
-    class CliDataMapper:
-        """Type-safe data mapping for CLI types.
+    class DataMapper:
+        """Direct delegation to FlextUtilities.DataMapper with CliJsonValue casting.
 
-        Wraps FlextUtilities.DataMapper methods with CLI-specific return types
-        (CliDataDict, CliJsonValue) to avoid isinstance patterns throughout
-        the codebase while maintaining strict type safety.
-
-        All methods delegate to FlextUtilities.DataMapper and return properly
-        typed results compatible with FlextResult[CliDataDict] etc.
-
+        These helpers eliminate wrapper overhead by directly using FlextUtilities.DataMapper
+        and casting results to CLI-specific types. All conversion logic is in flext-core.
         """
 
         @staticmethod
-        def convert_dict_to_json(data: Mapping[str, object]) -> CliJsonDict:
-            """Convert mapping to CLI-typed JSON dict.
-
-            Delegates to FlextUtilities.DataMapper.convert_dict_to_json() and
-            returns as CliJsonDict for type safety with CLI FlextResult types.
+        def convert_to_json_value(
+            value: FlextTypes.GeneralValueType,
+        ) -> FlextCliTypes.CliJsonValue:
+            """Convert value to CliJsonValue using flext-core DataMapper.
 
             Args:
-                data: Source mapping with any values (covariant)
+                value: Value to convert (any JSON-compatible type)
 
             Returns:
-                CliJsonDict: Dictionary with CLI-compatible JSON values
+                FlextCliTypes.CliJsonValue: CLI-compatible JSON value
 
             """
-            # FlextUtilities.DataMapper.convert_dict_to_json returns dict[str, object]
-            # which is structurally compatible with CliJsonDict at runtime
-            # The values are guaranteed JSON-compatible by convert_to_json_value contract
-            # Convert values to ensure CliJsonValue compatibility
-            result = FlextUtilities.DataMapper.convert_dict_to_json(dict(data))
-            # Convert each value to CliJsonValue for type safety
-            converted: CliJsonDict = {}
-            for key, value in result.items():
-                json_value = FlextUtilities.DataMapper.convert_to_json_value(value)
-                # Runtime validation ensures CliJsonValue compatibility
-                if isinstance(
-                    json_value, (str, int, float, bool, dict, list, type(None))
-                ):
-                    converted[key] = json_value
-                else:
-                    converted[key] = str(json_value)
-            return converted
+            # Use flext-core directly - GeneralValueType and CliJsonValue are structurally identical
+            return cast(
+                "FlextCliTypes.CliJsonValue",
+                FlextUtilities.DataMapper.convert_to_json_value(value),
+            )
 
         @staticmethod
-        def convert_list_to_json(data: list[object]) -> list[CliJsonDict]:
-            """Convert list to CLI-typed JSON list.
+        def convert_dict_to_json(
+            data: Mapping[str, FlextTypes.GeneralValueType],
+        ) -> FlextCliTypes.CliJsonDict:
+            """Convert mapping to CliJsonDict using flext-core DataMapper.
 
-            Delegates to FlextUtilities.DataMapper.convert_list_to_json() and
-            returns as list[CliJsonDict] for type safety with CLI FlextResult types.
+            Args:
+                data: Source mapping with any values
+
+            Returns:
+                FlextCliTypes.CliJsonDict: Dictionary with CLI-compatible JSON values
+
+            """
+            # Use flext-core directly - convert_dict_to_json returns dict[str, GeneralValueType]
+            # which is structurally compatible with CliJsonDict
+            result = FlextUtilities.DataMapper.convert_dict_to_json(dict(data))
+            # Cast to CliJsonDict - types are structurally compatible
+            return cast("FlextCliTypes.CliJsonDict", result)
+
+        @staticmethod
+        def convert_list_to_json(
+            data: list[FlextTypes.GeneralValueType]
+            | Sequence[FlextTypes.GeneralValueType],
+        ) -> list[FlextCliTypes.CliJsonDict]:
+            """Convert list to list of CliJsonDict using flext-core DataMapper.
 
             Args:
                 data: Source list of dict-like items
 
             Returns:
-                list[CliJsonDict]: List of CLI-compatible JSON dictionaries
+                list[FlextCliTypes.CliJsonDict]: List of CLI-compatible JSON dictionaries
 
             """
-            # Convert list of dicts to list of CliJsonDict
-            # Each dict in the list needs to be converted to CliJsonDict
-            result = FlextUtilities.DataMapper.convert_list_to_json(data)
-            converted: list[CliJsonDict] = []
-            for item in result:
-                if isinstance(item, dict):
-                    item_dict: CliJsonDict = {}
-                    for key, value in item.items():
-                        json_value = FlextUtilities.DataMapper.convert_to_json_value(
-                            value
-                        )
-                        # Runtime validation ensures CliJsonValue compatibility
-                        if isinstance(
-                            json_value, (str, int, float, bool, dict, list, type(None))
-                        ):
-                            item_dict[key] = json_value
-                        else:
-                            item_dict[key] = str(json_value)
-                    converted.append(item_dict)
-            return converted
+            # Use flext-core directly - convert_list_to_json expects list[object]
+            data_list: list[FlextTypes.GeneralValueType] = (
+                list(data) if isinstance(data, Sequence) else [data]
+            )
+            result = FlextUtilities.DataMapper.convert_list_to_json(
+                cast("list[object]", data_list)
+            )
+            # Cast to list[CliJsonDict] - types are structurally compatible
+            return cast("list[FlextCliTypes.CliJsonDict]", result)
+
+    class TypeConversion:
+        """Simple type conversion helpers using flext-core DataMapper directly.
+
+        These helpers provide convenient methods for converting object types
+        to CliJsonValue types using flext-core conversion logic.
+        """
 
         @staticmethod
-        def convert_to_json_value(value: object) -> CliJsonValue:
-            """Convert value to CLI-typed JSON value.
-
-            Delegates to FlextUtilities.DataMapper.convert_to_json_value() and
-            returns as CliJsonValue for type safety with CLI FlextResult types.
+        def normalize_to_cli_json_value(
+            value: object,
+        ) -> FlextCliTypes.CliJsonValue:
+            """Convert any value to CliJsonValue with proper type narrowing.
 
             Args:
                 value: Any value to convert
 
             Returns:
-                CliJsonValue: CLI-compatible JSON value
+                FlextCliTypes.CliJsonValue: Properly typed JSON-compatible value
 
             """
-            # Convert value to CliJsonValue - validate it's a JSON-compatible type
-            json_value = FlextUtilities.DataMapper.convert_to_json_value(value)
-            # Runtime validation ensures CliJsonValue compatibility
-            if isinstance(json_value, (str, int, float, bool, dict, list, type(None))):
-                return json_value
-            # Fallback: convert to string if not JSON-compatible (shouldn't happen)
-            return str(json_value)
+            # Convert object to GeneralValueType first, then to CliJsonValue
+            general_value = FlextUtilities.DataMapper.convert_to_json_value(
+                cast("FlextTypes.GeneralValueType", value)
+            )
+            return cast("FlextCliTypes.CliJsonValue", general_value)
+
+        @staticmethod
+        def normalize_dict_to_cli_json_dict(
+            data: dict[str, object] | Mapping[str, object],
+        ) -> FlextCliTypes.CliJsonDict:
+            """Convert dict to CliJsonDict with proper type narrowing.
+
+            Args:
+                data: Dictionary or mapping to convert
+
+            Returns:
+                FlextCliTypes.CliJsonDict: Properly typed JSON dictionary
+
+            """
+            # Use flext-core DataMapper directly
+            result = FlextUtilities.DataMapper.convert_dict_to_json(
+                cast("dict[str, FlextTypes.GeneralValueType]", dict(data))
+            )
+            return cast("FlextCliTypes.CliJsonDict", result)
+
+        @staticmethod
+        def normalize_list_to_cli_json_list(
+            data: list[object] | Sequence[object],
+        ) -> list[FlextCliTypes.CliJsonValue]:
+            """Convert list to list[CliJsonValue] with proper type narrowing.
+
+            Args:
+                data: List or sequence to convert
+
+            Returns:
+                list[FlextCliTypes.CliJsonValue]: Properly typed JSON list
+
+            """
+            # Convert each item using flext-core DataMapper
+            return [
+                FlextCliUtilities.TypeConversion.normalize_to_cli_json_value(item)
+                for item in data
+            ]
 
     # =========================================================================
     # CLI VALIDATION - CLI-specific validation helpers
@@ -173,7 +208,7 @@ class FlextCliUtilities:
 
         @staticmethod
         def validate_field_not_empty(
-            field_value: object,
+            field_value: FlextTypes.GeneralValueType | None,
             field_display_name: str,
         ) -> FlextResult[bool]:
             """Validate that a field is not empty.
@@ -214,7 +249,8 @@ class FlextCliUtilities:
 
         @staticmethod
         def validate_field_in_list(
-            field_value: object,
+            field_value: str | float | None,
+            *,
             valid_values: list[str],
             field_name: str,
         ) -> FlextResult[bool]:
@@ -232,7 +268,13 @@ class FlextCliUtilities:
 
             Example:
                 >>> result = FlextCliUtilities.CliValidation.validate_field_in_list(
-                ...     status, ["pending", "running", "completed"], "status"
+                ...     status,
+                ...     [
+                ...         FlextCliConstants.CommandStatus.PENDING.value,
+                ...         FlextCliConstants.CommandStatus.RUNNING.value,
+                ...         FlextCliConstants.CommandStatus.COMPLETED.value,
+                ...     ],
+                ...     "status",
                 ... )
                 >>> if result.is_failure:
                 ...     print(result.error)
@@ -270,8 +312,8 @@ class FlextCliUtilities:
             """
             return FlextCliUtilities.CliValidation.validate_field_in_list(
                 status,
-                FlextCliConstants.COMMAND_STATUSES_LIST,
-                "status",
+                valid_values=FlextCliConstants.COMMAND_STATUSES_LIST,
+                field_name="status",
             )
 
         @staticmethod
@@ -287,8 +329,8 @@ class FlextCliUtilities:
             """
             return FlextCliUtilities.CliValidation.validate_field_in_list(
                 level,
-                FlextCliConstants.DEBUG_LEVELS_LIST,
-                "level",
+                valid_values=FlextCliConstants.DEBUG_LEVELS_LIST,
+                field_name="level",
             )
 
         @staticmethod
@@ -328,7 +370,7 @@ class FlextCliUtilities:
 
         @staticmethod
         def validate_string_not_empty(
-            value: object,
+            value: str | None,
             error_message: str,
         ) -> FlextResult[bool]:
             """Validate that a value is a non-empty string.
@@ -511,7 +553,7 @@ class FlextCliUtilities:
             return results
 
         @staticmethod
-        def get_config_info() -> CliJsonDict:
+        def get_config_info() -> FlextCliTypes.CliJsonDict:
             """Get FLEXT CLI configuration information.
 
             Returns comprehensive configuration information including:
@@ -521,7 +563,7 @@ class FlextCliUtilities:
             - Current timestamp
 
             Returns:
-                CliJsonDict: Configuration information dictionary
+                FlextCliTypes.CliJsonDict: Configuration information dictionary
 
             Example:
                 >>> info = FlextCliUtilities.ConfigOps.get_config_info()
@@ -773,6 +815,13 @@ class FlextCliUtilities:
             return result_type
 
 
+# Aliases for utilities - moved from models for better organization
+CliModelConverter = FlextCliModels.CliModelConverter
+CliModelDecorators = FlextCliModels.CliModelDecorators
+
+
 __all__ = [
+    "CliModelConverter",
+    "CliModelDecorators",
     "FlextCliUtilities",
 ]

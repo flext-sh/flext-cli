@@ -29,6 +29,7 @@ from flext_tests import FlextTestsMatchers
 
 from flext_cli import (
     FlextCli,
+    FlextCliConstants,
 )
 
 from .._helpers import AuthHelpers, CommandHelpers, OutputHelpers
@@ -328,7 +329,10 @@ class TestFlextCli:
         cmd_result = CommandHelpers.create_command_model()
         FlextTestsMatchers.assert_success(cmd_result)
         cmd = cmd_result.unwrap()
-        assert cmd.name == TestData.Commands.TEST_COMMAND and cmd.status == "pending"
+        assert (
+            cmd.name == TestData.Commands.TEST_COMMAND
+            and cmd.status == FlextCliConstants.CommandStatus.PENDING.value
+        )
 
     def _execute_configuration_tests(self, api_service: FlextCli) -> None:
         """Execute configuration tests."""

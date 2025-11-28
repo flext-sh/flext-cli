@@ -22,7 +22,8 @@ from typing import cast
 
 from flext_core import FlextResult
 
-from flext_cli import FlextCli
+from flext_cli import FlextCli, FlextCliTypes
+from flext_cli.constants import FlextCliConstants
 
 
 class FlextCliDebugE2E:
@@ -39,7 +40,7 @@ class FlextCliDebugE2E:
         logging.basicConfig(level=logging.INFO, format="%(levelname)s: %(message)s")
         self.logger = logging.getLogger(__name__)
 
-        # Define test operations as mapping for O(1) lookup
+        # Define test operations using collections.abc.Mapping for O(1) lookup
         self.operations: dict[tuple[str, str], Callable[[FlextCli], FlextResult[object]]] = {
             ("config", "show"): lambda cli: cast("FlextResult[object]", cli.cmd.show_config_paths()),
             ("config", "validate"): lambda cli: cast("FlextResult[object]", cli.cmd.validate_config()),
@@ -94,11 +95,46 @@ class FlextCliDebugE2E:
             else FlextResult[object].fail("Not authenticated")
         )
 
+    def demonstrate_advanced_types(self) -> None:
+        """Demonstrate advanced Python 3.13+ typing patterns in scripts.
+
+        Shows how to use:
+        - StrEnum for runtime validation
+        - collections.abc.Mapping for immutable data
+        - Advanced Literal unions from constants
+        """
+        self.logger.info("Demonstrating advanced Python 3.13+ typing patterns")
+
+        # Using StrEnum from constants for runtime validation
+        output_format = FlextCliConstants.OutputFormats.JSON
+        self.logger.info(f"Selected output format: {output_format.value}")
+
+        # Using collections.abc.Mapping for immutable configuration
+        config: FlextCliTypes.Data.CliConfigMapping = {
+            "output_format": "json",
+            "timeout": 30,
+            "debug": True,
+        }
+
+        # Demonstrate discriminated union validation
+        valid_formats = FlextCliConstants.get_valid_output_formats()
+        self.logger.info(f"Available formats: {', '.join(valid_formats)}")
+
+        # Using advanced type aliases from typings
+        sample_data: FlextCliTypes.CliJsonDict = {
+            "status": FlextCliConstants.CommandStatus.COMPLETED.value,
+            "data": [1, 2, 3],
+            "metadata": {"version": "1.0"},
+        }
+
+        self.logger.info(f"Sample data structure: {sample_data}")
+
 
 def main() -> None:
     """Main entry point for debug E2E testing."""
     debugger = FlextCliDebugE2E()
     debugger.run_debug_tests()
+    debugger.demonstrate_advanced_types()
 
 
 if __name__ == "__main__":

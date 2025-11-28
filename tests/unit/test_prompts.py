@@ -15,7 +15,7 @@ from __future__ import annotations
 
 import time
 from collections import UserList
-from typing import Never, TypeVar
+from typing import Never, TypeVar, cast
 
 import pytest
 from flext_core import FlextResult
@@ -24,6 +24,7 @@ from flext_tests import FlextTestsUtilities
 from flext_cli import FlextCliPrompts
 
 from ..fixtures.constants import TestPrompts
+from ..fixtures.typing import GenericTestCaseDict
 
 T = TypeVar("T")
 
@@ -107,48 +108,66 @@ class TestFlextCliPrompts:
             ]
 
         @staticmethod
-        def get_confirm_cases() -> list[dict[str, object]]:
+        def get_confirm_cases() -> list[GenericTestCaseDict]:
             """Get parametrized test cases for confirm."""
             return [
-                {
-                    "message": TestPrompts.Messages.CONFIRM,
-                    "default": TestPrompts.Defaults.CONFIRM_TRUE,
-                    "expected_value": True,
-                },
-                {
-                    "message": TestPrompts.Messages.CONFIRM,
-                    "default": TestPrompts.Defaults.CONFIRM_FALSE,
-                    "expected_value": False,
-                },
-                {
-                    "message": TestPrompts.Messages.EMPTY,
-                    "default": TestPrompts.Defaults.CONFIRM_TRUE,
-                    "expected_value": True,
-                },
+                cast(
+                    "GenericTestCaseDict",
+                    {
+                        "message": TestPrompts.Messages.CONFIRM,
+                        "default": TestPrompts.Defaults.CONFIRM_TRUE,
+                        "expected_value": True,
+                    },
+                ),
+                cast(
+                    "GenericTestCaseDict",
+                    {
+                        "message": TestPrompts.Messages.CONFIRM,
+                        "default": TestPrompts.Defaults.CONFIRM_FALSE,
+                        "expected_value": False,
+                    },
+                ),
+                cast(
+                    "GenericTestCaseDict",
+                    {
+                        "message": TestPrompts.Messages.EMPTY,
+                        "default": TestPrompts.Defaults.CONFIRM_TRUE,
+                        "expected_value": True,
+                    },
+                ),
             ]
 
         @staticmethod
-        def get_choice_cases() -> list[dict[str, object]]:
+        def get_choice_cases() -> list[GenericTestCaseDict]:
             """Get parametrized test cases for prompt_choice."""
             return [
-                {
-                    "message": TestPrompts.Messages.CHOOSE,
-                    "choices": TestPrompts.Options.SIMPLE,
-                    "default": TestPrompts.Defaults.CHOICE,
-                    "expected_success": True,
-                },
-                {
-                    "message": TestPrompts.Messages.CHOOSE,
-                    "choices": TestPrompts.Options.EMPTY,
-                    "default": None,
-                    "expected_success": False,
-                },
-                {
-                    "message": TestPrompts.Messages.CHOOSE,
-                    "choices": TestPrompts.Options.SIMPLE,
-                    "default": TestPrompts.Defaults.CHOICE_INVALID,
-                    "expected_success": False,
-                },
+                cast(
+                    "GenericTestCaseDict",
+                    {
+                        "message": TestPrompts.Messages.CHOOSE,
+                        "choices": TestPrompts.Options.SIMPLE,
+                        "default": TestPrompts.Defaults.CHOICE,
+                        "expected_success": True,
+                    },
+                ),
+                cast(
+                    "GenericTestCaseDict",
+                    {
+                        "message": TestPrompts.Messages.CHOOSE,
+                        "choices": TestPrompts.Options.EMPTY,
+                        "default": None,
+                        "expected_success": False,
+                    },
+                ),
+                cast(
+                    "GenericTestCaseDict",
+                    {
+                        "message": TestPrompts.Messages.CHOOSE,
+                        "choices": TestPrompts.Options.SIMPLE,
+                        "default": TestPrompts.Defaults.CHOICE_INVALID,
+                        "expected_success": False,
+                    },
+                ),
             ]
 
         @staticmethod
@@ -274,7 +293,7 @@ class TestFlextCliPrompts:
     @pytest.mark.parametrize("test_case", TestData.get_prompt_text_cases())
     def test_prompt_text_parametrized(
         self,
-        test_case: dict[str, object],
+        test_case: GenericTestCaseDict,
         prompts: FlextCliPrompts,
     ) -> None:
         """Test prompt_text with parametrized cases."""
@@ -322,7 +341,7 @@ class TestFlextCliPrompts:
     @pytest.mark.parametrize("test_case", TestData.get_confirm_cases())
     def test_prompt_confirmation_parametrized(
         self,
-        test_case: dict[str, object],
+        test_case: GenericTestCaseDict,
     ) -> None:
         """Test prompt_confirmation with parametrized cases."""
         prompts = self.Fixtures.create_quiet_prompts()
@@ -353,7 +372,7 @@ class TestFlextCliPrompts:
     @pytest.mark.parametrize("test_case", TestData.get_choice_cases())
     def test_prompt_choice_parametrized(
         self,
-        test_case: dict[str, object],
+        test_case: GenericTestCaseDict,
     ) -> None:
         """Test prompt_choice with parametrized cases."""
         prompts = self.Fixtures.create_quiet_prompts()

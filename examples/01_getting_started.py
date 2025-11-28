@@ -16,6 +16,7 @@ import tempfile
 from pathlib import Path
 
 from flext_cli import FlextCli, FlextCliTypes
+from flext_cli.constants import FlextCliConstants
 
 
 class FlextCliGettingStarted:
@@ -85,7 +86,7 @@ class FlextCliGettingStarted:
         self.cli.output.print_message(f"✅ Saved to {filepath}")
         return True
 
-    def load_config(self, filepath: str) -> dict[str, object] | None:
+    def load_config(self, filepath: str) -> FlextCliTypes.CliJsonDict | None:
         """Load YOUR config from JSON with error handling."""
         read_result = self.cli.file_tools.read_json_file(filepath)
 
@@ -118,6 +119,38 @@ class FlextCliGettingStarted:
             self.cli.print(f"Error: {result.error}", style="yellow")
             # Continue execution - no crash!
 
+    # ============================================================================
+    # ADVANCED PATTERNS: Using Python 3.13+ types and constants
+    # ============================================================================
+
+    def advanced_types_example(self) -> None:
+        """Demonstrate advanced Python 3.13+ typing patterns with flext-cli.
+
+        Shows how to use:
+        - StrEnum for runtime validation
+        - collections.abc.Mapping for immutable data
+        - PEP 695 type aliases
+        - Advanced Literal unions
+        """
+        # Using StrEnum from constants for runtime validation
+        output_format = FlextCliConstants.OutputFormats.JSON
+        self.cli.print(f"Selected format: {output_format.value}", style="blue")
+
+        # Using collections.abc.Mapping for immutable configuration
+
+        # Demonstrate discriminated union validation
+        valid_formats = FlextCliConstants.get_valid_output_formats()
+        self.cli.print(f"Available formats: {', '.join(valid_formats)}")
+
+        # Using advanced type aliases from typings
+        sample_data: FlextCliTypes.CliJsonDict = {
+            "status": FlextCliConstants.CommandStatus.COMPLETED.value,
+            "data": [1, 2, 3],
+            "metadata": {"version": "1.0"},
+        }
+
+        self.cli.print(f"Sample data: {sample_data}", style="green")
+
     def run_examples(self) -> None:
         """Run all getting started examples."""
         self.cli.print("=== Flext CLI Getting Started Examples ===", style="bold blue")
@@ -125,6 +158,8 @@ class FlextCliGettingStarted:
         self.your_function_after()
         self.cli.print("\n2. File I/O Examples:", style="bold")
         self.process_data_with_flext_result()
+        self.cli.print("\n3. Advanced Types Examples:", style="bold")
+        self.advanced_types_example()
         self.cli.print("\n✅ All examples completed!", style="bold green")
 
 

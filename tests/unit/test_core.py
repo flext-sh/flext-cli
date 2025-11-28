@@ -21,7 +21,7 @@ from collections.abc import Generator
 from pathlib import Path
 
 import pytest
-from flext_core import FlextResult, FlextTypes, FlextUtilities
+from flext_core import FlextResult, FlextTypes
 from pydantic import ValidationError
 
 from flext_cli import (
@@ -152,7 +152,10 @@ class TestFlextCliCore:
             config_data = result.unwrap()
             assert isinstance(config_data, dict)
             assert config_data["debug"] is True
-            assert config_data["output_format"] == "json"
+            assert (
+                config_data["output_format"]
+                == FlextCliConstants.OutputFormats.JSON.value
+            )
 
         def test_load_configuration_nonexistent_file(
             self, core_service: FlextCliCore
@@ -365,22 +368,9 @@ class TestFlextCliCore:
                     msg = "Forced exception for testing register_command exception handler"
                     raise RuntimeError(msg)
 
-            # Assign ErrorDict - convert to JsonDict
-            # The exception will be raised when register_command tries to set the command
-            error_dict_raw = ErrorDict()
-            error_dict: FlextTypes.JsonDict = {}
-            for key, value in error_dict_raw.items():
-                json_value = FlextUtilities.DataMapper.convert_to_json_value(value)
-                # Ensure json_value is compatible with JsonValue type
-                if isinstance(json_value, (str, int, float, bool, type(None))):
-                    error_dict[key] = json_value
-                elif isinstance(json_value, dict):
-                    error_dict[key] = dict(json_value.items())
-                elif isinstance(json_value, list):
-                    error_dict[key] = list(json_value)
-                else:
-                    error_dict[key] = str(json_value)
-            core_service._commands = error_dict
+            # Assign ErrorDict directly - the exception will be raised when register_command tries to set the command
+            error_dict = ErrorDict()
+            core_service._commands = error_dict  # type: ignore[assignment]
 
             result = core_service.register_command(cmd)
             assert result.is_failure

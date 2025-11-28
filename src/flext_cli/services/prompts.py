@@ -14,7 +14,7 @@ from pydantic import Field, PrivateAttr
 from flext_cli.base import FlextCliServiceBase
 from flext_cli.constants import FlextCliConstants
 from flext_cli.models import FlextCliModels
-from flext_cli.typings import CliJsonValue, FlextCliTypes
+from flext_cli.typings import FlextCliTypes
 from flext_cli.utilities import FlextCliUtilities
 
 
@@ -48,7 +48,7 @@ class FlextCliPrompts(FlextCliServiceBase):
         *,
         interactive_mode: bool = True,
         quiet: bool = False,
-        **data: CliJsonValue,
+        **data: FlextCliTypes.CliJsonValue,
     ) -> None:
         """Initialize CLI prompts service.
 
@@ -577,7 +577,7 @@ class FlextCliPrompts(FlextCliServiceBase):
             )
 
             # Serialize to dict using Pydantic model_dump - no cast needed
-            stats_dict = FlextCliUtilities.CliDataMapper.convert_dict_to_json(
+            stats_dict = FlextCliUtilities.DataMapper.convert_dict_to_json(
                 stats_model.model_dump()
             )
 
@@ -613,7 +613,9 @@ class FlextCliPrompts(FlextCliServiceBase):
                 ),
             )
 
-    def execute(self, **_kwargs: object) -> FlextResult[FlextCliTypes.Data.CliDataDict]:
+    def execute(
+        self, **_kwargs: FlextCliTypes.Data.ExecutionKwargs
+    ) -> FlextResult[FlextCliTypes.Data.CliDataDict]:
         """Execute prompt service operation.
 
         Args:
@@ -1273,14 +1275,14 @@ class FlextCliPrompts(FlextCliServiceBase):
     def create_progress(
         self,
         description: str = FlextCliConstants.PromptsDefaults.DEFAULT_PROCESSING_DESCRIPTION,
-    ) -> FlextResult[object]:
+    ) -> FlextResult[str]:
         """Create progress indicator.
 
         Args:
             description: Progress description
 
         Returns:
-            FlextResult[object]: Progress indicator or error
+            FlextResult[str]: Progress indicator description or error
 
         """
         self.logger.debug(
@@ -1322,7 +1324,7 @@ class FlextCliPrompts(FlextCliServiceBase):
             )
 
             # Return the original description as expected by tests
-            return FlextResult[object].ok(description)
+            return FlextResult[str].ok(description)
         except Exception as e:
             self.logger.exception(
                 "FAILED to create progress indicator - operation aborted",
@@ -1333,7 +1335,7 @@ class FlextCliPrompts(FlextCliServiceBase):
                 consequence="Progress indicator not created",
                 source="flext-cli/src/flext_cli/prompts.py",
             )
-            return FlextResult[object].fail(
+            return FlextResult[str].fail(
                 FlextCliConstants.PromptsErrorMessages.PROGRESS_CREATION_FAILED.format(
                     error=e,
                 ),
@@ -1341,9 +1343,9 @@ class FlextCliPrompts(FlextCliServiceBase):
 
     def with_progress(
         self,
-        items: list[object],
+        items: list[FlextCliTypes.CliJsonValue],
         description: str = FlextCliConstants.PromptsDefaults.DEFAULT_PROCESSING_DESCRIPTION,
-    ) -> FlextResult[object]:
+    ) -> FlextResult[list[FlextCliTypes.CliJsonValue]]:
         """Execute with progress indicator.
 
         Args:
@@ -1351,7 +1353,7 @@ class FlextCliPrompts(FlextCliServiceBase):
             description: Progress description
 
         Returns:
-            FlextResult[object]: Result with original items or error
+            FlextResult[list[CliJsonValue]]: Result with original items or error
 
         """
         try:
@@ -1453,7 +1455,7 @@ class FlextCliPrompts(FlextCliServiceBase):
             )
 
             # Return the original items as expected by tests
-            return FlextResult[object].ok(items)
+            return FlextResult[list[FlextCliTypes.CliJsonValue]].ok(items)
         except Exception as e:
             self.logger.exception(
                 "FATAL ERROR during progress operation - operation aborted",
@@ -1466,7 +1468,7 @@ class FlextCliPrompts(FlextCliServiceBase):
                 severity="critical",
                 source="flext-cli/src/flext_cli/prompts.py",
             )
-            return FlextResult[object].fail(
+            return FlextResult[list[FlextCliTypes.CliJsonValue]].fail(
                 FlextCliConstants.PromptsErrorMessages.PROGRESS_PROCESSING_FAILED.format(
                     error=e,
                 ),

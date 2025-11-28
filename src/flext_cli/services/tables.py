@@ -18,10 +18,12 @@ from tabulate import tabulate
 from flext_cli.base import FlextCliServiceBase
 from flext_cli.constants import FlextCliConstants
 from flext_cli.models import FlextCliModels
-from flext_cli.typings import CliJsonValue
+from flext_cli.typings import FlextCliTypes
 
 # Type alias for table data to avoid long lines
-type TableData = Iterable[Sequence[CliJsonValue] | dict[str, CliJsonValue]]
+type TableData = Iterable[
+    Sequence[FlextCliTypes.CliJsonValue] | dict[str, FlextCliTypes.CliJsonValue]
+]
 
 
 class FlextCliTables(FlextCliServiceBase):
@@ -76,7 +78,9 @@ class FlextCliTables(FlextCliServiceBase):
         """Initialize Tabulate tables layer with Phase 1 context enrichment."""
         super().__init__()
 
-    def execute(self, **_kwargs: object) -> FlextResult[FlextTypes.JsonDict]:
+    def execute(
+        self, **_kwargs: FlextCliTypes.Data.ExecutionKwargs
+    ) -> FlextResult[FlextTypes.JsonDict]:
         """Execute the main domain service operation - required by FlextService.
 
         Args:
@@ -96,7 +100,7 @@ class FlextCliTables(FlextCliServiceBase):
         self,
         data: TableData,
         config: FlextCliModels.TableConfig | None = None,
-        **config_kwargs: object,
+        **config_kwargs: FlextCliTypes.CliJsonValue,
     ) -> FlextResult[str]:
         """Create formatted ASCII table using tabulate with Pydantic config.
 

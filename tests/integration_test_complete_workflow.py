@@ -27,6 +27,7 @@ from flext_core import FlextResult
 from flext_cli import (
     FlextCli,
     FlextCliConfig,
+    FlextCliConstants,
     FlextCliFileTools,
     FlextCliOutput,
     FlextCliTables,
@@ -217,7 +218,10 @@ class TestCompleteWorkflowIntegration:
         final_report = pipeline_result.unwrap()
 
         # Verify report structure
-        assert final_report["pipeline_status"] == "completed"
+        assert (
+            final_report["pipeline_status"]
+            == FlextCliConstants.CommandStatus.COMPLETED.value
+        )
         assert final_report["input_records"] == 3
         assert final_report["processed_records"] == 2  # Only active users
         assert final_report["success_rate"] == 1.0
@@ -312,7 +316,7 @@ class TestCompleteWorkflowIntegration:
         """Create comprehensive pipeline report."""
         data_dict = cast("dict[str, object]", data)
         return {
-            "pipeline_status": "completed",
+            "pipeline_status": FlextCliConstants.CommandStatus.COMPLETED.value,
             "timestamp": cast("str", data_dict["processed_at"]),
             "pipeline_version": cast("str", data_dict["pipeline_version"]),
             "input_records": cast("int", data_dict["total_users"]),
@@ -564,7 +568,7 @@ class TestCompleteWorkflowIntegration:
             aggregates = {}
 
         return {
-            "report_generation_status": "completed",
+            "report_generation_status": FlextCliConstants.CommandStatus.COMPLETED.value,
             "total_reports": len(reports),
             "formats_generated": [r["format"] for r in reports],
             "config_used": {

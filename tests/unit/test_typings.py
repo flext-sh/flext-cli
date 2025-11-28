@@ -95,7 +95,7 @@ class TestFlextCliTypings:
             """Create test data for type operations."""
             return {
                 "config_data": {
-                    "output_format": "json",
+                    "output_format": FlextCliConstants.OutputFormats.JSON.value,
                     "debug": True,
                     "timeout": 30,
                 },
@@ -236,7 +236,11 @@ class TestFlextCliTypings:
         FlextTestsMatchers.assert_success(format_result)
 
         # Test real data operations (type narrowing for test validation)
-        assert config_dict["output_format"] == "json"
+        from flext_cli.constants import FlextCliConstants
+
+        assert (
+            config_dict["output_format"] == FlextCliConstants.OutputFormats.JSON.value
+        )
         assert config_dict["debug"] is True
 
     def _execute_type_definition_tests(self) -> None:

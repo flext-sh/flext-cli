@@ -19,7 +19,7 @@ from flext_core import (
 from flext_core.decorators import FlextDecorators
 
 from flext_cli.constants import FlextCliConstants
-from flext_cli.typings import CliJsonValue, FlextCliTypes
+from flext_cli.typings import FlextCliTypes
 
 
 class FlextCliMixins(FlextMixins):
@@ -148,8 +148,8 @@ class FlextCliMixins(FlextMixins):
         def execute_with_cli_context(
             operation: str,
             handler: FlextCliTypes.Callable.HandlerFunction,
-            **context_data: CliJsonValue,
-        ) -> FlextResult[CliJsonValue]:
+            **context_data: FlextCliTypes.CliJsonValue,
+        ) -> FlextResult[FlextCliTypes.CliJsonValue]:
             """Execute handler with automatic CLI context management.
 
             Composes flext-core decorators to provide complete context setup:
@@ -187,26 +187,26 @@ class FlextCliMixins(FlextMixins):
                     inner_value = handler_result.unwrap()
                     if isinstance(inner_value, FlextResult):
                         # Double-wrapped: unwrap inner FlextResult
-                        # Type narrowing: inner_value is FlextResult[CliJsonValue]
+                        # Type narrowing: inner_value is FlextResult[FlextCliTypes.CliJsonValue]
                         return inner_value
                     # Single-wrapped with value: extract value and wrap in new FlextResult
-                    # inner_value is CliJsonValue
-                    return FlextResult[CliJsonValue].ok(inner_value)
+                    # inner_value is FlextCliTypes.CliJsonValue
+                    return FlextResult[FlextCliTypes.CliJsonValue].ok(inner_value)
                 # Failure case: unwrap and re-wrap to ensure correct type
                 error_msg = handler_result.error or "Unknown error"
-                return FlextResult[CliJsonValue].fail(error_msg)
+                return FlextResult[FlextCliTypes.CliJsonValue].fail(error_msg)
 
             # If not FlextResult, wrap it (railway should have done this, but defensive)
             # This should not happen if decorators work correctly
             if FlextRuntime.is_dict_like(handler_result):
-                return FlextResult[CliJsonValue].ok(handler_result)
+                return FlextResult[FlextCliTypes.CliJsonValue].ok(handler_result)
             if FlextRuntime.is_list_like(handler_result):
-                return FlextResult[CliJsonValue].ok(handler_result)
+                return FlextResult[FlextCliTypes.CliJsonValue].ok(handler_result)
             if isinstance(handler_result, (str, int, float, bool, type(None))):
-                return FlextResult[CliJsonValue].ok(handler_result)
+                return FlextResult[FlextCliTypes.CliJsonValue].ok(handler_result)
 
             # Fallback: wrap any other type
-            return FlextResult[CliJsonValue].ok(handler_result)
+            return FlextResult[FlextCliTypes.CliJsonValue].ok(handler_result)
 
 
 __all__ = ["FlextCliMixins"]

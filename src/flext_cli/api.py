@@ -18,6 +18,7 @@ import sys
 import traceback
 from abc import ABC, abstractmethod
 from collections.abc import Callable, Sequence
+from datetime import UTC, datetime
 from typing import ClassVar
 
 import typer
@@ -50,7 +51,7 @@ from flext_cli.services.core import FlextCliCore
 from flext_cli.services.output import FlextCliOutput
 from flext_cli.services.prompts import FlextCliPrompts
 from flext_cli.services.tables import FlextCliTables
-from flext_cli.typings import CliJsonValue, FlextCliTypes
+from flext_cli.typings import FlextCliTypes
 from flext_cli.utilities import FlextCliUtilities
 
 # Type aliases for command functions
@@ -237,8 +238,8 @@ class FlextCli:
             FlextCliConstants.DictKeys.TOKEN: token,
         }
 
-        # Use CliDataMapper for type-safe conversion - type ignore for dict invariance
-        json_data = FlextCliUtilities.CliDataMapper.convert_dict_to_json(token_data)
+        # Use DataMapper for type-safe conversion
+        json_data = FlextCliUtilities.DataMapper.convert_dict_to_json(token_data)
         write_result = self.file_tools.write_json_file(str(token_path), json_data)
         if write_result.is_failure:
             return FlextResult[bool].fail(
@@ -419,7 +420,9 @@ class FlextCli:
 
     def create_table(
         self,
-        data: Sequence[dict[str, CliJsonValue]] | dict[str, CliJsonValue] | None = None,
+        data: Sequence[dict[str, FlextCliTypes.CliJsonValue]]
+        | dict[str, FlextCliTypes.CliJsonValue]
+        | None = None,
         headers: list[str] | None = None,
         title: str | None = None,
     ) -> FlextResult[str]:
@@ -429,20 +432,20 @@ class FlextCli:
                 FlextCliConstants.ErrorMessages.NO_DATA_PROVIDED,
             )
 
-        # Convert data using CliDataMapper for type-safe conversion
-        table_data: CliJsonValue
+        # Convert data using DataMapper for type-safe conversion
+        table_data: FlextCliTypes.CliJsonValue
         if isinstance(data, dict):
-            table_data = FlextCliUtilities.CliDataMapper.convert_dict_to_json(data)
+            table_data = FlextCliUtilities.DataMapper.convert_dict_to_json(data)
         else:
             # Handle all Sequence types (list, tuple, or other sequences)
-            converted_list = FlextCliUtilities.CliDataMapper.convert_list_to_json(
+            converted_list = FlextCliUtilities.DataMapper.convert_list_to_json(
                 list(data)
             )
             table_data = converted_list
 
         return self.output.format_data(
             data=table_data,
-            format_type="table",
+            format_type=FlextCliConstants.OutputFormats.TABLE.value,
             title=title,
             headers=headers,
         )
@@ -528,6 +531,170 @@ class FlextCliAppBase(ABC):
                 return []
             return sys.argv[1:] if len(sys.argv) > 1 else []
         return args
+
+    def orchestrate_workflow(
+        self,
+        steps: Sequence[
+            Callable[[], FlextResult[FlextCliTypes.Workflow.WorkflowStepResult]]
+        ],
+        *,
+        step_names: Sequence[str] | None = None,
+        continue_on_failure: bool = False,
+        progress_callback: Callable[
+            [int, int, str, FlextCliTypes.Workflow.WorkflowProgress], None
+        ]
+        | None = None,
+    ) -> FlextResult[FlextCliModels.WorkflowResult]:
+        """Orchestrate a complex multi-step workflow with progress tracking.
+
+        Generic orchestration method that executes a sequence of workflow steps,
+        tracks progress, and aggregates results. Each step is a callable that returns
+        a FlextResult with step-specific data.
+
+        Args:
+            steps: Sequence of step functions, each returning FlextResult[WorkflowStepResult]
+            step_names: Optional names for steps (defaults to "Step 1", "Step 2", etc.)
+            continue_on_failure: If True, continue executing remaining steps on failure
+            progress_callback: Optional callback(current_step, total_steps, step_name, progress)
+
+        Returns:
+            FlextResult containing WorkflowResult with aggregated step results and statistics
+
+        Example:
+            def parse_step() -> FlextResult[WorkflowStepResult]:
+                # Parse LDIF files
+                return FlextResult.ok(WorkflowStepResult(
+                    step_name="parse",
+                    success=True,
+                    data={"entries": 100}
+                ))
+
+            def migrate_step() -> FlextResult[WorkflowStepResult]:
+                # Migrate entries
+                return FlextResult.ok(WorkflowStepResult(
+                    step_name="migrate",
+                    success=True,
+                    data={"migrated": 95}
+                ))
+
+            result = cli.orchestrate_workflow(
+                [parse_step, migrate_step],
+                step_names=["Parse LDIF", "Migrate Entries"]
+            )
+            if result.is_success:
+                workflow = result.unwrap()
+                print(f"Workflow completed: {workflow.total_steps} steps, {workflow.successful_steps} successful")
+
+        """
+        total_steps = len(steps)
+        if total_steps == 0:
+            return FlextResult[FlextCliModels.WorkflowResult].ok(
+                FlextCliModels.WorkflowResult(
+                    step_results=[],
+                    total_steps=0,
+                    successful_steps=0,
+                    failed_steps=0,
+                    overall_success=True,
+                    total_duration_seconds=0.0,
+                )
+            )
+
+        start_time = datetime.now(UTC)
+        step_results = []
+        successful_steps = 0
+        failed_steps = 0
+
+        # Generate step names if not provided
+        if step_names is None:
+            step_names = [f"Step {i + 1}" for i in range(total_steps)]
+        elif len(step_names) != total_steps:
+            return FlextResult[FlextCliModels.WorkflowResult].fail(
+                f"step_names length ({len(step_names)}) must match steps length ({total_steps})"
+            )
+
+        for step_idx, (step_func, step_name) in enumerate(
+            zip(steps, step_names, strict=False)
+        ):
+            step_start_time = datetime.now(UTC)
+
+            # Execute step
+            step_result = step_func()
+            step_duration = (datetime.now(UTC) - step_start_time).total_seconds()
+
+            if step_result.is_success:
+                successful_steps += 1
+                step_data = step_result.unwrap()
+                step_data.duration_seconds = step_duration
+                step_results.append(step_data)
+                self.logger.info(
+                    "Step completed successfully",
+                    step=step_name,
+                    step_index=step_idx + 1,
+                    duration_seconds=f"{step_duration:.2f}s",
+                )
+            else:
+                failed_steps += 1
+                # Create failed step result
+                failed_step = FlextCliModels.WorkflowStepResult(
+                    step_name=step_name,
+                    success=False,
+                    error=str(step_result.error),
+                    duration_seconds=step_duration,
+                    data={},
+                )
+                step_results.append(failed_step)
+                self.logger.error(
+                    "Step failed",
+                    step=step_name,
+                    step_index=step_idx + 1,
+                    error=str(step_result.error),
+                    duration_seconds=f"{step_duration:.2f}s",
+                )
+
+                if not continue_on_failure:
+                    break
+
+            # Progress callback
+            if progress_callback:
+                progress = FlextCliModels.WorkflowProgress(
+                    current_step=step_idx + 1,
+                    total_steps=total_steps,
+                    current_step_name=step_name,
+                    successful_steps=successful_steps,
+                    failed_steps=failed_steps,
+                    overall_success=failed_steps == 0,
+                )
+                progress_callback(step_idx + 1, total_steps, step_name, progress)
+
+        total_duration = (datetime.now(UTC) - start_time).total_seconds()
+        overall_success = failed_steps == 0
+
+        workflow_result = FlextCliModels.WorkflowResult(
+            step_results=step_results,
+            total_steps=total_steps,
+            successful_steps=successful_steps,
+            failed_steps=failed_steps,
+            overall_success=overall_success,
+            total_duration_seconds=total_duration,
+        )
+
+        if overall_success:
+            self.logger.info(
+                "Workflow completed successfully",
+                total_steps=total_steps,
+                successful_steps=successful_steps,
+                total_duration_seconds=f"{total_duration:.2f}s",
+            )
+        else:
+            self.logger.warning(
+                "Workflow completed with failures",
+                total_steps=total_steps,
+                successful_steps=successful_steps,
+                failed_steps=failed_steps,
+                total_duration_seconds=f"{total_duration:.2f}s",
+            )
+
+        return FlextResult[FlextCliModels.WorkflowResult].ok(workflow_result)
 
     def execute_cli(self, args: list[str] | None = None) -> FlextResult[bool]:
         """Execute the CLI with Railway-pattern error handling."""

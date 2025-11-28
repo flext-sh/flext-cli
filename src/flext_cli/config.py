@@ -16,7 +16,7 @@ import json
 import os
 import shutil
 from pathlib import Path
-from typing import Annotated, ClassVar, Self
+from typing import Annotated, ClassVar, Self, cast
 
 import yaml
 from flext_core import (
@@ -39,7 +39,7 @@ from pydantic import (
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 from flext_cli.constants import FlextCliConstants
-from flext_cli.typings import CliJsonValue, FlextCliTypes
+from flext_cli.typings import FlextCliTypes
 from flext_cli.utilities import FlextCliUtilities
 
 # Alias LogLevel from FlextConstants (moved from flext_core direct export)
@@ -112,8 +112,10 @@ class FlextCliConfig(BaseSettings):
         )
     )
 
+    # Python 3.13+ best practice: Use Enum value for default consistency
+    # Pydantic 2 accepts Enum values in Literal-typed fields
     output_format: FlextCliConstants.OutputFormatLiteral = Field(
-        default="table",  # FlextCliConstants.OutputFormats.TABLE.value - Literal requires literal value
+        default=FlextCliConstants.OutputFormats.TABLE.value,
         description="Default output format for CLI commands",
     )
 
@@ -190,7 +192,7 @@ class FlextCliConfig(BaseSettings):
         description="Enable interactive mode",
     )
     environment: FlextCliConstants.EnvironmentLiteral = Field(
-        default="development",  # FlextCliConstants.CliDefaults.DEFAULT_ENVIRONMENT
+        default=FlextCliConstants.Environment.DEVELOPMENT.value,  # Python 3.13+ best practice: Use Enum value
         description="Deployment environment",
     )
 
@@ -223,7 +225,7 @@ class FlextCliConfig(BaseSettings):
 
     # Logging configuration - centralized for all FLEXT projects
     log_verbosity: str = Field(  # Must match FlextConfig.log_verbosity type
-        default="detailed",  # FlextCliConstants.CliDefaults.DEFAULT_LOG_VERBOSITY
+        default=FlextCliConstants.LogVerbosity.DETAILED.value,  # Python 3.13+ best practice: Use Enum value
         description="Logging verbosity (compact, detailed, full)",
     )
 
@@ -233,7 +235,7 @@ class FlextCliConfig(BaseSettings):
     )
 
     cli_log_verbosity: FlextCliConstants.LogVerbosityLiteral = Field(
-        default="detailed",  # FlextCliConstants.CliDefaults.DEFAULT_CLI_LOG_VERBOSITY
+        default=FlextCliConstants.LogVerbosity.DETAILED.value,  # Python 3.13+ best practice: Use Enum value
         description="CLI-specific logging verbosity",
     )
 
@@ -259,7 +261,7 @@ class FlextCliConfig(BaseSettings):
             )
             return FlextResult.fail(error_msg)
 
-    def _propagate_to_context(self) -> FlextResult[object]:
+    def _propagate_to_context(self) -> FlextResult[bool]:
         """Propagate configuration to FlextContext with error recovery."""
         try:
             flext_core_module = importlib.import_module("flext_core")
@@ -270,21 +272,21 @@ class FlextCliConfig(BaseSettings):
             _ = context.set("cli_auto_color_support", self.auto_color_support)
             _ = context.set("cli_auto_verbosity", self.auto_verbosity)
             _ = context.set("cli_optimal_table_format", self.optimal_table_format)
-            return FlextResult[object].ok(True)
+            return FlextResult[bool].ok(True)
         except Exception as e:
             logger.debug("Context not available during config initialization: %s", e)
-            return FlextResult[object].ok(True)
+            return FlextResult[bool].ok(True)
 
-    def _register_in_container(self) -> FlextResult[object]:
+    def _register_in_container(self) -> FlextResult[bool]:
         """Register configuration in FlextContainer for dependency injection."""
         try:
             container = FlextContainer()
             if not container.has_service("flext_cli_config"):
                 _ = container.with_service("flext_cli_config", self)
-            return FlextResult[object].ok(True)
+            return FlextResult[bool].ok(True)
         except Exception as e:
             logger.debug("Container not available during config initialization: %s", e)
-            return FlextResult[object].ok(True)
+            return FlextResult[bool].ok(True)
 
     # Pydantic 2.11 model validator (runs after all field validators)
     @model_validator(mode="after")
@@ -500,12 +502,12 @@ class FlextCliConfig(BaseSettings):
 
         # Railway pattern: validate input then check format
         # Create wrapper to ensure type compatibility with flat_map
-        def check_format_wrapper(fmt: str) -> FlextResult[object]:
-            """Wrapper to convert FlextResult[str] to FlextResult[object]."""
+        def check_format_wrapper(fmt: str) -> FlextResult[str]:
+            """Wrapper to convert FlextResult[str] to FlextResult[str]."""
             result = check_format_exists(fmt)
             if result.is_success:
-                return FlextResult[object].ok(result.unwrap())
-            return FlextResult[object].fail(result.error or "Format validation failed")
+                return FlextResult[str].ok(result.unwrap())
+            return FlextResult[str].fail(result.error or "Format validation failed")
 
         format_result = FlextResult.ok(value).flat_map(check_format_wrapper)
         # Convert back to FlextResult[str]
@@ -573,7 +575,8 @@ class FlextCliConfig(BaseSettings):
         # Convert to JSON-compatible dict using model_dump() and DataMapper
         # Handles Path→str, primitives as-is, nested dicts/lists, and other types via str()
         config_dict_raw = self.model_dump()
-        config_as_json_value = FlextUtilities.DataMapper.convert_dict_to_json(
+        # Use DataMapper to get CliJsonDict (dict[str, CliJsonValue])
+        config_as_json_value = FlextCliUtilities.DataMapper.convert_dict_to_json(
             config_dict_raw
         )
         result_dict: FlextCliTypes.Data.CliDataDict = {
@@ -581,11 +584,13 @@ class FlextCliConfig(BaseSettings):
             "service": FlextCliConstants.ConfigDefaults.DEFAULT_SERVICE_NAME,
             "timestamp": FlextUtilities.Generators.generate_iso_timestamp(),
             "version": FlextCliConstants.ConfigDefaults.DEFAULT_VERSION_STRING,
-            "config": config_as_json_value,  # dict[str, object] is compatible with CliJsonValue
+            "config": config_as_json_value,  # CliJsonDict is compatible with CliJsonValue
         }
         return FlextResult[FlextCliTypes.Data.CliDataDict].ok(result_dict)
 
-    def update_from_cli_args(self, **kwargs: CliJsonValue) -> FlextResult[bool]:
+    def update_from_cli_args(
+        self, **kwargs: FlextCliTypes.CliJsonValue
+    ) -> FlextResult[bool]:
         """Update configuration from CLI arguments with validation.
 
         Allows CLI commands to override configuration values dynamically.
@@ -628,7 +633,7 @@ class FlextCliConfig(BaseSettings):
 
     def validate_cli_overrides(
         self,
-        **overrides: CliJsonValue,
+        **overrides: FlextCliTypes.CliJsonValue,
     ) -> FlextResult[FlextTypes.JsonDict]:
         """Validate CLI overrides without applying them.
 
@@ -650,7 +655,8 @@ class FlextCliConfig(BaseSettings):
 
         """
         try:
-            valid_overrides: FlextTypes.JsonDict = {}
+            # Use mutable dict for building, then convert to JsonDict for return
+            valid_overrides: dict[str, FlextTypes.Json.JsonValue] = {}
             errors: list[str] = []
 
             for key, value in overrides.items():
@@ -669,7 +675,11 @@ class FlextCliConfig(BaseSettings):
                     test_config = self.model_copy()
                     setattr(test_config, key, value)
                     _ = test_config.model_validate(test_config.model_dump())
-                    valid_overrides[key] = value
+                    # Convert value to JsonValue for type safety
+                    json_value = FlextCliUtilities.DataMapper.convert_to_json_value(
+                        value
+                    )
+                    valid_overrides[key] = cast("FlextTypes.Json.JsonValue", json_value)
                 except Exception as e:
                     errors.append(
                         FlextCliConstants.ErrorMessages.INVALID_VALUE_FOR_FIELD.format(
@@ -685,7 +695,9 @@ class FlextCliConfig(BaseSettings):
                     ),
                 )
 
-            return FlextResult[FlextTypes.JsonDict].ok(valid_overrides)
+            # Convert mutable dict to JsonDict (Mapping) for return type
+            json_dict: FlextTypes.JsonDict = dict(valid_overrides)
+            return FlextResult[FlextTypes.JsonDict].ok(json_dict)
 
         except Exception as e:
             return FlextResult[FlextTypes.JsonDict].fail(f"Validation failed: {e}")
@@ -702,8 +714,8 @@ class FlextCliConfig(BaseSettings):
             # Convert model to dictionary format using model_dump()
             # FlextUtilities.DataMapper handles all type conversions automatically
             config_dict_raw = self.model_dump()
-            # Use CliDataMapper for type compatibility
-            config_data = FlextCliUtilities.CliDataMapper.convert_dict_to_json(
+            # Use DataMapper for type compatibility
+            config_data = FlextCliUtilities.DataMapper.convert_dict_to_json(
                 config_dict_raw
             )
             return FlextResult[FlextCliTypes.Data.CliConfigData].ok(config_data)

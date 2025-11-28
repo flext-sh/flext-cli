@@ -31,7 +31,7 @@ from flext_cli import (
     FlextCliTables,
     FlextCliTypes,
 )
-from flext_cli.typings import CliJsonValue
+from flext_cli.typings import FlextCliTypes
 
 from .fixtures.constants import (
     TestCli,
@@ -41,12 +41,13 @@ from .fixtures.constants import (
     TestTypings,
     TestVersions,
 )
+from .fixtures.typing import GenericFieldsDict
 
 T = TypeVar("T")
 P = ParamSpec("P")
 
 # Type alias for CLI option defaults
-DefaultType = str | int | float | bool | dict[str, object] | list[object] | None
+DefaultType = str | int | float | bool | GenericFieldsDict | list[object] | None
 
 
 class CommandsFactory:
@@ -100,7 +101,7 @@ class CommandsFactory:
             return FlextResult[bool].fail(str(e))
 
 
-class FlextCliTestHelpers(FlextService[dict[str, object]]):
+class FlextCliTestHelpers(FlextService[GenericFieldsDict]):
     """Generic and specialized test helpers for flext-cli following FLEXT patterns.
 
     Highly reusable helpers that reduce test code by >5 lines per test.
@@ -146,9 +147,9 @@ class FlextCliTestHelpers(FlextService[dict[str, object]]):
 
         @staticmethod
         def create_parametrized_test_cases(
-            base_config: dict[str, object],
-            variations: list[dict[str, object]],
-        ) -> list[dict[str, object]]:
+            base_config: GenericFieldsDict,
+            variations: list[GenericFieldsDict],
+        ) -> list[GenericFieldsDict]:
             """Generate parametrized test cases from base config - reduces boilerplate.
 
             Args:
@@ -464,7 +465,7 @@ class FlextCliTestHelpers(FlextService[dict[str, object]]):
 
         @staticmethod
         def create_temp_json_file(
-            data: dict[str, object] | None = None,
+            data: GenericFieldsDict | None = None,
         ) -> FlextResult[Path]:
             """Create a temporary JSON file.
 
@@ -601,25 +602,27 @@ class FlextCliTestHelpers(FlextService[dict[str, object]]):
         """Helpers for type testing scenarios."""
 
         @staticmethod
-        def create_typed_dict_data() -> FlextResult[dict[str, object]]:
+        def create_typed_dict_data() -> FlextResult[GenericFieldsDict]:
             """Create TypedDict-compatible test data.
 
             Returns:
-                FlextResult[dict[str, object]]: TypedDict test data
+                FlextResult[GenericFieldsDict]: TypedDict test data
 
             """
             try:
                 data = TestTypings.TestData.Processing.MIXED_DICT
-                return FlextResult[dict[str, object]].ok(data)
+                return FlextResult[GenericFieldsDict].ok(
+                    cast("GenericFieldsDict", data)
+                )
             except Exception as e:
-                return FlextResult[dict[str, object]].fail(str(e))
+                return FlextResult[GenericFieldsDict].fail(str(e))
 
         @staticmethod
         def create_api_response_data(
             status: str = TestTypings.TypedDicts.ApiResponse.STATUS,
             *,
             single_user: bool = True,
-        ) -> FlextResult[dict[str, object]]:
+        ) -> FlextResult[GenericFieldsDict]:
             """Create API response test data.
 
             Args:
@@ -627,25 +630,28 @@ class FlextCliTestHelpers(FlextService[dict[str, object]]):
                 single_user: Whether to return single user or list
 
             Returns:
-                FlextResult[dict[str, Any]]: API response data
+                FlextResult[GenericFieldsDict]: API response data
 
             """
             try:
-                data: dict[str, object] = {
-                    "status": status,
-                    "data": TestTypings.TestData.Api.SINGLE_USER
-                    if single_user
-                    else TestTypings.TestData.Api.MULTI_USERS,
-                    "message": TestTypings.TypedDicts.ApiResponse.MESSAGE,
-                    "error": TestTypings.TypedDicts.ApiResponse.ERROR,
-                }
-                return FlextResult[dict[str, object]].ok(data)
+                data: GenericFieldsDict = cast(
+                    "GenericFieldsDict",
+                    {
+                        "status": status,
+                        "data": TestTypings.TestData.Api.SINGLE_USER
+                        if single_user
+                        else TestTypings.TestData.Api.MULTI_USERS,
+                        "message": TestTypings.TypedDicts.ApiResponse.MESSAGE,
+                        "error": TestTypings.TypedDicts.ApiResponse.ERROR,
+                    },
+                )
+                return FlextResult[GenericFieldsDict].ok(data)
             except Exception as e:
-                return FlextResult[dict[str, object]].fail(str(e))
+                return FlextResult[GenericFieldsDict].fail(str(e))
 
         @staticmethod
         def create_processing_test_data() -> FlextResult[
-            tuple[list[str], list[int], dict[str, object]]
+            tuple[list[str], list[int], GenericFieldsDict]
         ]:
             """Create processing test data tuple.
 
@@ -657,13 +663,15 @@ class FlextCliTestHelpers(FlextService[dict[str, object]]):
                 data = (
                     TestTypings.TestData.Processing.STRING_LIST,
                     TestTypings.TestData.Processing.NUMBER_LIST,
-                    TestTypings.TestData.Processing.MIXED_DICT,
+                    cast(
+                        "GenericFieldsDict", TestTypings.TestData.Processing.MIXED_DICT
+                    ),
                 )
-                return FlextResult[tuple[list[str], list[int], dict[str, object]]].ok(
+                return FlextResult[tuple[list[str], list[int], GenericFieldsDict]].ok(
                     data
                 )
             except Exception as e:
-                return FlextResult[tuple[list[str], list[int], dict[str, object]]].fail(
+                return FlextResult[tuple[list[str], list[int], GenericFieldsDict]].fail(
                     str(e)
                 )
 
@@ -681,7 +689,7 @@ class FlextCliTestHelpers(FlextService[dict[str, object]]):
 
                 class TestFormatter:
                     def format_data(
-                        self, data: dict[str, object], **options: dict[str, object]
+                        self, data: GenericFieldsDict, **options: GenericFieldsDict
                     ) -> FlextResult[str]:
                         try:
                             indent_value: int | None = None
@@ -706,13 +714,15 @@ class FlextCliTestHelpers(FlextService[dict[str, object]]):
 
                 class TestConfigProvider:
                     def __init__(self) -> None:
-                        self._config: dict[str, object] = {}
+                        self._config: GenericFieldsDict = cast("GenericFieldsDict", {})
 
-                    def load_config(self) -> FlextResult[dict[str, object]]:
-                        return FlextResult[dict[str, object]].ok(self._config.copy())
+                    def load_config(self) -> FlextResult[GenericFieldsDict]:
+                        return FlextResult[GenericFieldsDict].ok(
+                            cast("GenericFieldsDict", self._config.copy())
+                        )
 
                     def save_config(
-                        self, config: dict[str, object]
+                        self, config: GenericFieldsDict
                     ) -> FlextResult[bool]:
                         self._config.update(config)
                         return FlextResult[bool].ok(True)
@@ -728,16 +738,21 @@ class FlextCliTestHelpers(FlextService[dict[str, object]]):
 
                 class TestAuthenticator:
                     def authenticate(
-                        self, credentials: dict[str, object]
-                    ) -> FlextResult[dict[str, object]]:
+                        self, credentials: GenericFieldsDict
+                    ) -> FlextResult[GenericFieldsDict]:
                         username = credentials.get("username")
                         password = credentials.get("password")
                         if username == "testuser" and password == "testpass":
-                            return FlextResult[dict[str, object]].ok({
-                                "token": "valid_token",
-                                "user": username,
-                            })
-                        return FlextResult[dict[str, object]].fail(
+                            return FlextResult[GenericFieldsDict].ok(
+                                cast(
+                                    "GenericFieldsDict",
+                                    {
+                                        "token": "valid_token",
+                                        "user": username,
+                                    },
+                                )
+                            )
+                        return FlextResult[GenericFieldsDict].fail(
                             "Invalid credentials"
                         )
 
@@ -768,7 +783,9 @@ class FlextCliTestHelpers(FlextService[dict[str, object]]):
                 )
 
                 @decorator
-                def test_func(*args: object, **kwargs: object) -> CliJsonValue:
+                def test_func(
+                    *args: object, **kwargs: object
+                ) -> FlextCliTypes.CliJsonValue:
                     """Test command function."""
                     echo("Test")
                     return None
@@ -790,7 +807,9 @@ class FlextCliTestHelpers(FlextService[dict[str, object]]):
                 )
 
                 @decorator
-                def test_group_func(*args: object, **kwargs: object) -> CliJsonValue:
+                def test_group_func(
+                    *args: object, **kwargs: object
+                ) -> FlextCliTypes.CliJsonValue:
                     """Group function."""
                     return None
 
@@ -814,7 +833,9 @@ class FlextCliTestHelpers(FlextService[dict[str, object]]):
 
                 @command_decorator
                 @option_decorator
-                def test_command(*args: object, **kwargs: object) -> CliJsonValue:
+                def test_command(
+                    *args: object, **kwargs: object
+                ) -> FlextCliTypes.CliJsonValue:
                     """Test command with options."""
                     value = kwargs.get("value") if kwargs else args[0] if args else None
                     echo(f"Value: {value}")

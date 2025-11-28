@@ -25,8 +25,8 @@ from flext_core import FlextResult, FlextTypes
 from flext_tests import FlextTestsUtilities
 from pydantic import BaseModel
 
-from flext_cli import FlextCliOutput, FlextCliTypes
-from flext_cli.typings import CliJsonValue
+from flext_cli import FlextCliConstants, FlextCliOutput, FlextCliTypes
+from flext_cli.typings import FlextCliTypes
 
 T = TypeVar("T")
 
@@ -162,13 +162,13 @@ class TestFlextCliOutput:
         expected_success: bool,
     ) -> None:
         """Test format operations with parametrized cases."""
-        if format_type == "json":
+        if format_type == FlextCliConstants.OutputFormats.JSON.value:
             result = output.format_json(cast("FlextTypes.JsonValue", sample_data))
-        elif format_type == "yaml":
+        elif format_type == FlextCliConstants.OutputFormats.YAML.value:
             result = output.format_yaml(cast("FlextTypes.JsonValue", sample_data))
-        elif format_type == "csv":
+        elif format_type == FlextCliConstants.OutputFormats.CSV.value:
             result = output.format_csv(cast("FlextTypes.JsonValue", sample_data))
-        elif format_type == "table":
+        elif format_type == FlextCliConstants.OutputFormats.TABLE.value:
             result = output.format_table(sample_data)
         elif format_type == "plain":
             result = output.format_data(
@@ -342,7 +342,7 @@ class TestFlextCliOutput:
         sample_data: dict[str, FlextTypes.JsonValue],
     ) -> None:
         """Test formatting as tree."""
-        # Convert dict to CliJsonValue for format_as_tree
+        # Convert dict to FlextCliTypes.CliJsonValue for format_as_tree
         # dict[str, JsonValue] needs to be converted to dict[str, object] first
         # Convert each value to ensure type compatibility
         converted_data: dict[str, object] = {}
@@ -356,8 +356,8 @@ class TestFlextCliOutput:
                 converted_data[key] = list(value)
             else:
                 converted_data[key] = str(value)
-        # dict[str, object] is part of CliJsonValue union
-        cli_data: CliJsonValue = converted_data
+        # dict[str, object] is part of FlextCliTypes.CliJsonValue union
+        cli_data: FlextCliTypes.CliJsonValue = converted_data
         result = output.format_as_tree(cli_data)
 
         assert isinstance(result, FlextResult)
@@ -1260,8 +1260,8 @@ class TestFlextCliOutput:
     def test_format_as_tree_with_empty_data(self, output: FlextCliOutput) -> None:
         """Test format_as_tree with empty data."""
         # Test with empty dict - should handle gracefully
-        # Empty dict is already CliJsonValue compatible
-        data: CliJsonValue = {}
+        # Empty dict is already FlextCliTypes.CliJsonValue compatible
+        data: FlextCliTypes.CliJsonValue = {}
         result = output.format_as_tree(data)
         # Should either succeed with empty tree or fail gracefully
         assert isinstance(result, FlextResult)

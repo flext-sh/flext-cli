@@ -45,6 +45,7 @@ from flext_cli import (
     FlextCliTables,
     FlextCliTypes,
 )
+from flext_cli.constants import FlextCliConstants
 
 cli = FlextCli()
 tables = FlextCliTables()
@@ -110,8 +111,8 @@ def display_database_results(records: list[FlextCliTypes.Data.CliDataDict]) -> N
 
 
 def export_report(
-    data: list[FlextCliTypes.Data.CliDataDict],
-    format_type: str = "grid",
+    data: FlextCliTypes.Data.TableRows,
+    format_type: FlextCliConstants.OutputFormatLiteral = "table",
 ) -> FlextResult[str]:
     """Create ASCII tables for logs/reports in your app."""
     # Good for: log files, email reports, markdown docs
@@ -366,5 +367,50 @@ def main() -> None:
     )
 
 
+# ============================================================================
+# ADVANCED PATTERNS: Using Python 3.13+ types and constants
+# ============================================================================
+
+
+def advanced_output_example() -> None:
+    """Demonstrate advanced output formatting with Python 3.13+ patterns.
+
+    Shows how to use:
+    - StrEnum for format validation
+    - collections.abc.Mapping for configuration
+    - Advanced Literal unions
+    - Type-safe data structures
+    """
+    cli.print("\n=== Advanced Output Formatting ===", style="bold blue")
+
+    # Using StrEnum for runtime validation
+    output_format = FlextCliConstants.OutputFormats.TABLE
+    cli.print(f"Using format: {output_format.value}", style="cyan")
+
+    # Using collections.abc.Mapping for immutable configuration
+
+    # Using advanced table data types
+    sample_data: FlextCliTypes.Data.TableRows = (
+        {"name": "Alice", "age": 30, "role": "developer"},
+        {"name": "Bob", "age": 25, "role": "designer"},
+        {"name": "Charlie", "age": 35, "role": "manager"},
+    )
+
+    # Demonstrate discriminated union validation
+    valid_formats = FlextCliConstants.get_valid_output_formats()
+    cli.print(f"Supported formats: {', '.join(valid_formats)}", style="green")
+
+    # Create table using advanced types
+    table_result = cli.create_table(
+        data=list(sample_data),
+        headers=["Name", "Age", "Role"],
+        title="Team Members (Advanced Types)",
+    )
+
+    if table_result.is_success:
+        cli.print_table(table_result.unwrap())
+
+
 if __name__ == "__main__":
     main()
+    advanced_output_example()
