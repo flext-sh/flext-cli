@@ -27,7 +27,8 @@ from __future__ import annotations
 #           return FlextResult[str].ok(json.dumps(data))
 #
 #   formatter = MyFormatter()
-#   assert isinstance(formatter, FlextCliProtocols.Cli.CliFormatter)  # True (duck typing)
+#   assert isinstance(formatter, FlextCliProtocols.Cli.CliFormatter)
+#   # True (duck typing)
 #
 # **CORE PROTOCOLS** (6 CLI-specific extensions):
 # 1. CliFormatter - Output formatting abstraction (format_data returns styled string)
@@ -73,11 +74,13 @@ from typing import Protocol, runtime_checkable
 
 from flext_core import FlextProtocols, FlextResult
 
-from flext_cli.typings import CliJsonValue, FlextCliTypes
+from flext_cli.typings import FlextCliTypes
 
 
 class FlextCliProtocols(FlextProtocols):
-    """Single unified CLI protocols class extending FLEXT foundation (Layer 3+ Application).
+    """Single unified CLI protocols class.
+
+    Extends FLEXT foundation (Layer 3+ Application).
 
     **ARCHITECTURE LAYER**: Application Layer (Layer 3) - CLI-specific extension
     Extends FlextProtocols (flext-core Layer 3) with CLI operation abstractions.
@@ -290,7 +293,7 @@ class FlextCliProtocols(FlextProtocols):
 
             def initialize(
                 self,
-                cli_context: CliJsonValue,
+                cli_context: FlextCliTypes.CliJsonValue,
             ) -> FlextResult[bool]:
                 """Initialize plugin with CLI context.
 
@@ -303,7 +306,7 @@ class FlextCliProtocols(FlextProtocols):
 
             def register_commands(
                 self,
-                cli_context: CliJsonValue,
+                cli_context: FlextCliTypes.CliJsonValue,
             ) -> FlextResult[bool]:
                 """Register plugin commands with CLI.
 
@@ -330,17 +333,21 @@ class FlextCliProtocols(FlextProtocols):
             """Protocol for CLI command functions with arbitrary signatures.
 
             Used for command/group decorators that accept functions with any
-            Click/Typer parameter signature. Returns CliJsonValue instead of
+            Click/Typer parameter signature. Returns FlextCliTypes.CliJsonValue instead of
             FlextResult for compatibility with CLI frameworks.
 
-            This protocol uses `object` instead of `Any` to satisfy mypy --strict
-            while allowing functions with any parameter signature.
+            Uses proper types (CliJsonValue, ExecutionKwargs) for type safety
+            while allowing functions with flexible parameter signatures.
             """
 
             __name__: str
             """Function name for registration."""
 
-            def __call__(self, *args: object, **kwargs: object) -> CliJsonValue:
+            def __call__(
+                self,
+                *args: FlextCliTypes.CliJsonValue,
+                **kwargs: FlextCliTypes.Data.ExecutionKwargs,
+            ) -> FlextCliTypes.CliJsonValue:
                 """Execute command function with arbitrary arguments."""
                 ...
 
@@ -356,8 +363,15 @@ class FlextCliProtocols(FlextProtocols):
             Uses Callable signature compatible with pyrefly's variance checking.
             """
 
-            def __call__(self, __params: object, /) -> None:
-                """Execute command with validated model instance."""
+            def __call__(
+                self, __params: FlextProtocols.HasModelDump, /
+            ) -> None:
+                """Execute command with validated model instance.
+                
+                Uses FlextProtocols.HasModelDump protocol instead of BaseModel
+                to avoid importing Pydantic models directly, following protocol
+                composition pattern.
+                """
                 ...
 
         @runtime_checkable
@@ -372,21 +386,30 @@ class FlextCliProtocols(FlextProtocols):
             name: str | None
             """Command name."""
 
-            def __call__(self, *args: object, **kwargs: object) -> object:
+            def __call__(
+                self,
+                *args: FlextCliTypes.CliJsonValue,
+                **kwargs: FlextCliTypes.Data.ExecutionKwargs,
+            ) -> FlextCliTypes.CliJsonValue:
                 """Execute the command with arbitrary arguments."""
                 ...
 
         @runtime_checkable
         class InspectableCallable(Protocol):
-            """Protocol for callables with __signature__ attribute for CLI introspection.
+            """Protocol for callables with __signature__ attribute.
 
-            Used by Click/Typer frameworks to introspect function signatures at runtime.
-            Functions can have __signature__ set dynamically for framework compatibility.
+            Used for CLI introspection by Click/Typer frameworks.
+            Functions can have __signature__ set dynamically for
+            framework compatibility.
             """
 
             __signature__: inspect.Signature
 
-            def __call__(self, *args: object, **kwargs: object) -> object:
+            def __call__(
+                self,
+                *args: FlextCliTypes.CliJsonValue,
+                **kwargs: FlextCliTypes.Data.ExecutionKwargs,
+            ) -> FlextCliTypes.CliJsonValue:
                 """Callable interface."""
                 ...
 

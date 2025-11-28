@@ -31,6 +31,8 @@ from pydantic.fields import FieldInfo as PydanticFieldInfo
 from flext_cli import FlextCliConstants, FlextCliModels
 from flext_cli.models import FieldMetadataDict
 
+from ..fixtures.typing import GenericFieldsDict
+
 # FieldTypesDict is a type statement and cannot be imported directly
 # Use dict[str, type | str] directly in tests if needed
 
@@ -162,7 +164,7 @@ class TestFlextCliModels:
         )
         assert command.name == "test_command"
         assert command.command_line == "flext test --verbose"
-        assert command.status == "pending"
+        assert command.status == FlextCliConstants.CommandStatus.PENDING.value
 
     def test_cli_command_serialization(
         self,
@@ -172,12 +174,12 @@ class TestFlextCliModels:
         command = cli_command_factory(
             name="test_cmd",
             command_line="flext run",
-            status="completed",
+            status=FlextCliConstants.CommandStatus.COMPLETED.value,
         )
         data = command.model_dump()
         assert isinstance(data, dict)
         assert data["name"] == "test_cmd"
-        assert data["status"] == "completed"
+        assert data["status"] == FlextCliConstants.CommandStatus.COMPLETED.value
 
     # =========================================================================
     # CLISESSION MODEL TESTS
@@ -193,7 +195,7 @@ class TestFlextCliModels:
             user_id="test_user",
         )
         assert session.session_id == "test-session-001"
-        assert session.status == "active"
+        assert session.status == FlextCliConstants.SessionStatus.ACTIVE.value
 
     def test_cli_session_serialization(
         self,
@@ -320,7 +322,7 @@ class TestFlextCliModels:
         )
         # Validation happens automatically - if we got here, validation passed
         assert isinstance(command, FlextCliModels.CliCommand)
-        assert command.status == "pending"
+        assert command.status == FlextCliConstants.CommandStatus.PENDING.value
 
     def test_cli_command_update_status(
         self,
@@ -377,7 +379,7 @@ class TestFlextCliModels:
         # Validation happens automatically - if we got here, validation passed
         assert isinstance(session, FlextCliModels.CliSession)
         assert session.session_id == "test-session"
-        assert session.status == "active"
+        assert session.status == FlextCliConstants.SessionStatus.ACTIVE.value
 
     def test_cli_session_add_command(
         self,
@@ -411,13 +413,18 @@ class TestFlextCliModels:
         """Test CliSession commands_by_status computed field."""
         session = cli_session_factory(session_id="test-session")
         command1 = cli_command_factory(name="test1")
-        command2 = cli_command_factory(name="test2", status="completed")
+        command2 = cli_command_factory(
+            name="test2", status=FlextCliConstants.CommandStatus.COMPLETED.value
+        )
         _ = session.add_command(command1)
         _ = session.add_command(command2)
 
         commands_by_status = session.commands_by_status
         assert isinstance(commands_by_status, dict)
-        assert "pending" in commands_by_status or "completed" in commands_by_status
+        assert (
+            FlextCliConstants.CommandStatus.PENDING.value in commands_by_status
+            or FlextCliConstants.CommandStatus.COMPLETED.value in commands_by_status
+        )
 
     def test_logging_config_validation(
         self,
@@ -489,7 +496,7 @@ class TestFlextCliModels:
         command = cli_command_factory(
             name="test",
             command_line="flext test arg1 arg2",
-            status="completed",
+            status=FlextCliConstants.CommandStatus.COMPLETED.value,
             args=["arg1", "arg2"],
             output="test output",
             error_output="test errors",
@@ -502,7 +509,7 @@ class TestFlextCliModels:
         assert data["name"] == "test"
         assert "command_line" in data
         assert data["args"] == ["arg1", "arg2"]
-        assert data["status"] == "completed"
+        assert data["status"] == FlextCliConstants.CommandStatus.COMPLETED.value
 
     def test_debug_info_sensitive_data_masking(
         self,
@@ -580,7 +587,7 @@ class TestFlextCliModels:
         # validate_command_consistency is a Pydantic model validator, not directly callable
         # It's automatically invoked during model validation
         assert isinstance(command, FlextCliModels.CliCommand)
-        assert command.status == "pending"
+        assert command.status == FlextCliConstants.CommandStatus.PENDING.value
 
     def test_cli_session_edge_cases_comprehensive(
         self,
@@ -632,13 +639,17 @@ class TestFlextCliModels:
             "id": source_data["user_id"],
             "name": source_data["user_name"],
             "email": source_data["user_email"],
-            "status": "active" if source_data["user_active"] else "inactive",
+            "status": FlextCliConstants.SessionStatus.ACTIVE.value
+            if source_data["user_active"]
+            else "inactive",
         }
 
         assert transformed_data["id"] == 123
         assert transformed_data["name"] == "john_doe"
         assert transformed_data["email"] == "john@example.com"
-        assert transformed_data["status"] == "active"
+        assert (
+            transformed_data["status"] == FlextCliConstants.SessionStatus.ACTIVE.value
+        )
 
     def test_merge_data_models(self) -> None:
         """Test data model merging functionality."""
@@ -1009,7 +1020,7 @@ class TestFlextCliModels:
         assert models_service is not None
 
         # Test with empty data
-        empty_data: dict[str, object] = {}
+        empty_data: GenericFieldsDict = cast("GenericFieldsDict", {})
         assert len(empty_data) == 0
 
         # Test with malformed JSON
@@ -1443,7 +1454,7 @@ class TestFlextCliModels:
                 name="test",
                 command_line="flext test",
                 description="Test",
-                status="pending",
+                status=FlextCliConstants.CommandStatus.PENDING.value,
                 exit_code=0,  # This should trigger validation error
             )  # The business rules method only checks command_line and status
 
@@ -1480,7 +1491,7 @@ class TestFlextCliModels:
             name="test",
             command_line="flext login --password secret123 --token abcdef",
             description="Test",
-            status="completed",
+            status=FlextCliConstants.CommandStatus.COMPLETED.value,
         )
 
         # Test serialization - should mask sensitive data
@@ -1520,14 +1531,16 @@ class TestFlextCliModels:
 
     def test_cli_session_add_command_success(self) -> None:
         """Test CliSession add_command success case."""
-        session = FlextCliModels.CliSession(session_id="test", status="active")
+        session = FlextCliModels.CliSession(
+            session_id="test", status=FlextCliConstants.SessionStatus.ACTIVE.value
+        )
 
         # Test successful command addition
         command = FlextCliModels.CliCommand(
             name="test",
             command_line="flext test",
             description="Test",
-            status="pending",
+            status=FlextCliConstants.CommandStatus.PENDING.value,
         )
 
         result = session.add_command(command)
@@ -1543,7 +1556,7 @@ class TestFlextCliModels:
             name="test",
             command_line="flext test",
             description="Test",
-            status="completed",  # Status completed but no exit_code
+            status=FlextCliConstants.CommandStatus.COMPLETED.value,  # Status completed but no exit_code
             output="some output",  # Output but no exit_code
         )
         assert command is not None
@@ -1553,7 +1566,7 @@ class TestFlextCliModels:
         # Test CliSession computed fields with None values
         session = FlextCliModels.CliSession(
             session_id="test",
-            status="active",
+            status=FlextCliConstants.SessionStatus.ACTIVE.value,
             start_time=None,  # None start_time
             end_time=None,  # None end_time
         )
@@ -1576,7 +1589,7 @@ class TestFlextCliModels:
             name="test",
             command_line="flext deploy --env prod --secret-key abc123 --password secret --token xyz789",
             description="Test",
-            status="completed",
+            status=FlextCliConstants.CommandStatus.COMPLETED.value,
         )
 
         # Test serialization handles sensitive data masking
@@ -1597,14 +1610,17 @@ class TestFlextCliModels:
     def test_validate_field_data_invalid_python_type(self) -> None:
         """Test _validate_field_data with invalid python_type - covers line 462."""
         # Create invalid data with non-type python_type
-        invalid_data: dict[str, object] = {
-            "python_type": "not_a_type",  # Should be a type, not a string
-            "click_type": "STRING",
-            "is_required": True,
-            "description": "Test field",
-            "validators": [],
-            "metadata": {},
-        }
+        invalid_data: GenericFieldsDict = cast(
+            "GenericFieldsDict",
+            {
+                "python_type": "not_a_type",  # Should be a type, not a string
+                "click_type": "STRING",
+                "is_required": True,
+                "description": "Test field",
+                "validators": [],
+                "metadata": {},
+            },
+        )
 
         result = FlextCliModels.CliModelConverter._validate_field_data(
             "test_field",
@@ -1616,14 +1632,17 @@ class TestFlextCliModels:
     def test_validate_field_data_invalid_click_type(self) -> None:
         """Test _validate_field_data with invalid click_type - covers line 469."""
         # Create invalid data with non-string click_type
-        invalid_data: dict[str, object] = {
-            "python_type": str,
-            "click_type": 123,  # Should be a string, not an int
-            "is_required": True,
-            "description": "Test field",
-            "validators": [],
-            "metadata": {},
-        }
+        invalid_data: GenericFieldsDict = cast(
+            "GenericFieldsDict",
+            {
+                "python_type": str,
+                "click_type": 123,  # Should be a string, not an int
+                "is_required": True,
+                "description": "Test field",
+                "validators": [],
+                "metadata": {},
+            },
+        )
 
         result = FlextCliModels.CliModelConverter._validate_field_data(
             "test_field",
@@ -1635,14 +1654,17 @@ class TestFlextCliModels:
     def test_validate_field_data_invalid_is_required(self) -> None:
         """Test _validate_field_data with invalid is_required - covers line 476."""
         # Create invalid data with non-bool is_required
-        invalid_data: dict[str, object] = {
-            "python_type": str,
-            "click_type": "STRING",
-            "is_required": "yes",  # Should be a bool, not a string
-            "description": "Test field",
-            "validators": [],
-            "metadata": {},
-        }
+        invalid_data: GenericFieldsDict = cast(
+            "GenericFieldsDict",
+            {
+                "python_type": str,
+                "click_type": "STRING",
+                "is_required": "yes",  # Should be a bool, not a string
+                "description": "Test field",
+                "validators": [],
+                "metadata": {},
+            },
+        )
 
         result = FlextCliModels.CliModelConverter._validate_field_data(
             "test_field",
@@ -1654,14 +1676,17 @@ class TestFlextCliModels:
     def test_validate_field_data_invalid_description(self) -> None:
         """Test _validate_field_data with invalid description - covers line 483."""
         # Create invalid data with non-string description
-        invalid_data: dict[str, object] = {
-            "python_type": str,
-            "click_type": "STRING",
-            "is_required": True,
-            "description": 123,  # Should be a string, not an int
-            "validators": [],
-            "metadata": {},
-        }
+        invalid_data: GenericFieldsDict = cast(
+            "GenericFieldsDict",
+            {
+                "python_type": str,
+                "click_type": "STRING",
+                "is_required": True,
+                "description": 123,  # Should be a string, not an int
+                "validators": [],
+                "metadata": {},
+            },
+        )
 
         result = FlextCliModels.CliModelConverter._validate_field_data(
             "test_field",
@@ -1673,14 +1698,17 @@ class TestFlextCliModels:
     def test_validate_field_data_invalid_validators(self) -> None:
         """Test _validate_field_data with invalid validators - covers line 490."""
         # Create invalid data with non-list validators
-        invalid_data: dict[str, object] = {
-            "python_type": str,
-            "click_type": "STRING",
-            "is_required": True,
-            "description": "Test field",
-            "validators": "not_a_list",  # Should be a list, not a string
-            "metadata": {},
-        }
+        invalid_data: GenericFieldsDict = cast(
+            "GenericFieldsDict",
+            {
+                "python_type": str,
+                "click_type": "STRING",
+                "is_required": True,
+                "description": "Test field",
+                "validators": "not_a_list",  # Should be a list, not a string
+                "metadata": {},
+            },
+        )
 
         result = FlextCliModels.CliModelConverter._validate_field_data(
             "test_field",
@@ -1692,14 +1720,17 @@ class TestFlextCliModels:
     def test_validate_field_data_invalid_metadata(self) -> None:
         """Test _validate_field_data with invalid metadata - covers line 497."""
         # Create invalid data with non-dict metadata
-        invalid_data: dict[str, object] = {
-            "python_type": str,
-            "click_type": "STRING",
-            "is_required": True,
-            "description": "Test field",
-            "validators": [],
-            "metadata": "not_a_dict",  # Should be a dict, not a string
-        }
+        invalid_data: GenericFieldsDict = cast(
+            "GenericFieldsDict",
+            {
+                "python_type": str,
+                "click_type": "STRING",
+                "is_required": True,
+                "description": "Test field",
+                "validators": [],
+                "metadata": "not_a_dict",  # Should be a dict, not a string
+            },
+        )
 
         result = FlextCliModels.CliModelConverter._validate_field_data(
             "test_field",

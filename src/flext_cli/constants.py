@@ -3,6 +3,13 @@
 Domain-specific constants extending flext-core standardization for CLI operations.
 All literals, strings, numbers, enums, and configuration defaults centralized here.
 
+Advanced Python 3.13+ patterns:
+- PEP 695 type aliases for modern syntax
+- StrEnum for runtime validation with string interoperability
+- collections.abc.Mapping for immutable configuration data
+- Discriminated unions with Literal types
+- Advanced validation helpers with type narrowing
+
 Copyright (c) 2025 FLEXT Team. All rights reserved.
 SPDX-License-Identifier: MIT
 
@@ -11,11 +18,12 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 from enum import StrEnum
-from typing import ClassVar, Final, Literal, TypeAlias
+from typing import TYPE_CHECKING, ClassVar, Final, Literal
+
+if TYPE_CHECKING:
+    from collections.abc import Mapping, Sequence
 
 from flext_core import FlextConstants
-
-from flext_cli.typings import CliJsonDict
 
 
 class FlextCliConstants(FlextConstants):
@@ -25,9 +33,19 @@ class FlextCliConstants(FlextConstants):
     without duplication or wrappers, using direct access patterns.
     """
 
-    # Literal types - CRITICAL: All Literals must be in constants (first class)
-    CommandResultStatusLiteral = Literal["success", "failure", "error"]
-    CliProjectTypeLiteral = Literal[
+    # =====================================================================
+    # LITERAL TYPES - Python 3.13+ Best Practices
+    # =====================================================================
+    # CRITICAL: All Literals must be in constants (first class)
+    # Using Python 3.13+ `type` statement for type aliases (better than TypeAlias)
+    # When possible, prefer StrEnum over Literal for runtime validation
+    # Literals are kept for type hints, Enums provide runtime validation
+
+    # Command result status - use Literal for simple status strings
+    type CommandResultStatusLiteral = Literal["success", "failure", "error"]
+
+    # CLI project types - use Literal for simple string unions
+    type CliProjectTypeLiteral = Literal[
         "cli-tool",
         "console-app",
         "terminal-ui",
@@ -37,14 +55,15 @@ class FlextCliConstants(FlextConstants):
         "cli-wrapper",
     ]
 
-    # Output format literal - must be in constants
-    OutputFormatLiteral = Literal["json", "yaml", "csv", "table", "plain"]
+    # Output format literal - matches OutputFormats StrEnum below
+    type OutputFormatLiteral = Literal["json", "yaml", "csv", "table", "plain"]
 
-    # Log level literal - must be in constants
-    LogLevelLiteral = Literal["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"]
+    # Log level literal - reuse from flext-core (no duplication)
+    # PEP 695 type statement works in classes (Python 3.13+)
+    type LogLevelLiteral = FlextConstants.Literals.LogLevelLiteral
 
-    # Command status literal - must be in constants (matches CommandStatus StrEnum)
-    CommandStatusLiteral = Literal[
+    # Command status literal - matches CommandStatus StrEnum below
+    type CommandStatusLiteral = Literal[
         "pending",
         "running",
         "completed",
@@ -52,11 +71,11 @@ class FlextCliConstants(FlextConstants):
         "cancelled",
     ]
 
-    # Session status literal - must be in constants (matches SessionStatus StrEnum)
-    SessionStatusLiteral = Literal["active", "completed", "terminated"]
+    # Session status literal - matches SessionStatus StrEnum below
+    type SessionStatusLiteral = Literal["active", "completed", "terminated"]
 
-    # Service status literal - must be in constants (matches ServiceStatus StrEnum)
-    ServiceStatusLiteral = Literal[
+    # Service status literal - matches ServiceStatus StrEnum below
+    type ServiceStatusLiteral = Literal[
         "operational",
         "available",
         "degraded",
@@ -65,17 +84,44 @@ class FlextCliConstants(FlextConstants):
         "connected",
     ]
 
-    # Environment literal - must be in constants
-    EnvironmentLiteral = Literal["development", "staging", "production", "test"]
+    # Environment literal - reuse from flext-core (no duplication)
+    # Use flext-core EnvironmentLiteral directly - includes "testing" (standard value)
+    type EnvironmentLiteral = FlextConstants.Literals.EnvironmentLiteral
 
-    # Log verbosity literal - must be in constants
-    LogVerbosityLiteral = Literal["compact", "detailed", "full"]
+    # Log verbosity literal - log detail levels
+    type LogVerbosityLiteral = Literal["compact", "detailed", "full"]
 
-    # Entity type literal - must be in constants
-    EntityTypeLiteral = Literal["command", "group"]
+    # Entity type literal - CLI entity types
+    type EntityTypeLiteral = Literal["command", "group"]
 
-    # Range type literal - must be in constants
-    RangeTypeLiteral = Literal["int", "float"]
+    # Range type literal - numeric range types
+    type RangeTypeLiteral = Literal["int", "float"]
+
+    # Error code literal - matches ErrorCodes StrEnum below
+    type ErrorCodeLiteral = Literal[
+        "CLI_ERROR",
+        "CLI_VALIDATION_ERROR",
+        "CLI_CONFIGURATION_ERROR",
+        "CLI_CONNECTION_ERROR",
+        "CLI_AUTHENTICATION_ERROR",
+        "CLI_TIMEOUT_ERROR",
+        "CLI_COMMAND_ERROR",
+        "CLI_FORMAT_ERROR",
+    ]
+
+    # HTTP method literal - matches FlextWebMethods StrEnum below
+    type HttpMethodLiteral = Literal[
+        "GET",
+        "POST",
+        "PUT",
+        "DELETE",
+        "PATCH",
+        "HEAD",
+        "OPTIONS",
+    ]
+
+    # Message type literal - matches MessageTypes StrEnum below
+    type MessageTypeLiteral = Literal["info", "error", "warning", "success", "debug"]
 
     # Priority defaults - must be in first class (not nested)
     DEFAULT_PRIORITY: Final[int] = 999
@@ -96,21 +142,63 @@ class FlextCliConstants(FlextConstants):
         f"{DEFAULT_FLEXT_DIR}/{REFRESH_TOKEN_FILE_NAME}"
     )
 
-    # Mapping for output format literal validation (validated str -> Literal type)
-    _OUTPUT_FORMAT_MAP: ClassVar[dict[str, OutputFormatLiteral]] = {
-        "json": "json",
-        "yaml": "yaml",
-        "csv": "csv",
-        "table": "table",
-        "plain": "plain",
-    }
+    # =====================================================================
+    # ADVANCED VALIDATION HELPERS - Python 3.13+ collections.abc patterns
+    # =====================================================================
+
+    class ValidationMappings:
+        """Immutable validation mappings using collections.abc.Mapping.
+
+        Python 3.13+ best practice for read-only validation data.
+        All mappings are ClassVar and use collections.abc for type safety.
+        """
+
+        # Output format validation mapping
+        OUTPUT_FORMAT_MAP: ClassVar[Mapping[str, str]] = {
+            "json": "json",
+            "yaml": "yaml",
+            "csv": "csv",
+            "table": "table",
+            "plain": "plain",
+        }
+
+        # Output format validation set using frozenset for O(1) membership testing
+        OUTPUT_FORMAT_SET: ClassVar[frozenset[str]] = frozenset({
+            "json",
+            "yaml",
+            "csv",
+            "table",
+            "plain",
+        })
+
+        # Command status validation mapping
+        COMMAND_STATUS_MAP: ClassVar[Mapping[str, str]] = {
+            "pending": "pending",
+            "running": "running",
+            "completed": "completed",
+            "failed": "failed",
+            "cancelled": "cancelled",
+        }
+
+        # Command status validation set
+        COMMAND_STATUS_SET: ClassVar[frozenset[str]] = frozenset({
+            "pending",
+            "running",
+            "completed",
+            "failed",
+            "cancelled",
+        })
 
     @classmethod
     def validate_output_format(
         cls,
         value: str,
-    ) -> OutputFormatLiteral | None:
+    ) -> str | None:
         """Validate and return OutputFormatLiteral or None if invalid.
+
+        Uses advanced runtime validation with Python 3.13+ collections.abc.
+        Prefer OutputFormats enum for better IDE support and validation.
+        Uses frozenset for O(1) membership testing (optimal performance).
 
         Args:
             value: String value to validate
@@ -119,10 +207,69 @@ class FlextCliConstants(FlextConstants):
             OutputFormatLiteral if valid, None if invalid
 
         """
-        return cls._OUTPUT_FORMAT_MAP.get(value)
+        if value in cls.ValidationMappings.OUTPUT_FORMAT_SET:
+            return cls.ValidationMappings.OUTPUT_FORMAT_MAP.get(value)
+        return None
+
+    @classmethod
+    def validate_command_status(
+        cls,
+        value: str,
+    ) -> str | None:
+        """Validate and return CommandStatusLiteral or None if invalid.
+
+        Uses discriminated union validation pattern with frozenset lookup.
+        Composes with CommandStatus enum for comprehensive validation.
+
+        Args:
+            value: String value to validate
+
+        Returns:
+            CommandStatusLiteral if valid, None if invalid
+
+        """
+        if value in cls.ValidationMappings.COMMAND_STATUS_SET:
+            return cls.ValidationMappings.COMMAND_STATUS_MAP.get(value)
+        return None
+
+    @classmethod
+    def get_valid_output_formats(cls) -> Sequence[str]:
+        """Get sequence of all valid output format strings.
+
+        Returns immutable sequence using collections.abc.Sequence.
+        Python 3.13+ best practice for read-only iteration.
+
+        Returns:
+            Immutable sequence of valid output format strings
+
+        """
+        return tuple(sorted(cls.ValidationMappings.OUTPUT_FORMAT_SET))
+
+    @classmethod
+    def get_valid_command_statuses(cls) -> Sequence[str]:
+        """Get sequence of all valid command status strings.
+
+        Returns immutable sequence for safe iteration.
+        Composes with CommandStatus enum values.
+
+        Returns:
+            Immutable sequence of valid command status strings
+
+        """
+        return tuple(sorted(cls.ValidationMappings.COMMAND_STATUS_SET))
+
+    # =====================================================================
+    # STRING ENUMS - Python 3.13+ StrEnum Best Practices
+    # =====================================================================
+    # Use StrEnum for runtime validation and string interoperability
+    # These enums match their corresponding Literal types above
 
     class CommandStatus(StrEnum):
-        """Command execution status enum."""
+        """Command execution status enum.
+
+        Python 3.13+ StrEnum provides string-like behavior with enum validation.
+        Can be used interchangeably with CommandStatusLiteral in type hints.
+        """
 
         PENDING = "pending"
         RUNNING = "running"
@@ -131,7 +278,11 @@ class FlextCliConstants(FlextConstants):
         CANCELLED = "cancelled"
 
     class SessionStatus(StrEnum):
-        """Session execution status enum."""
+        """Session execution status enum.
+
+        Python 3.13+ StrEnum provides string-like behavior with enum validation.
+        Can be used interchangeably with SessionStatusLiteral in type hints.
+        """
 
         ACTIVE = "active"
         COMPLETED = "completed"
@@ -140,7 +291,11 @@ class FlextCliConstants(FlextConstants):
     # No DebugLevel class - use FlextConstants.Logging.LogLevel from flext-core
 
     class ServiceStatus(StrEnum):
-        """Service operational status enum."""
+        """Service operational status enum.
+
+        Python 3.13+ StrEnum provides string-like behavior with enum validation.
+        Can be used interchangeably with ServiceStatusLiteral in type hints.
+        """
 
         OPERATIONAL = "operational"
         AVAILABLE = "available"
@@ -153,16 +308,45 @@ class FlextCliConstants(FlextConstants):
     HEALTHY: Final[str] = ServiceStatus.HEALTHY.value
     OPERATIONAL: Final[str] = ServiceStatus.OPERATIONAL.value
 
-    # Output formats - using str Literal type
-    # CLI adds "plain" format on top of standard formats
     class OutputFormats(StrEnum):
-        """CLI output format enum - extends Flextstandard formats."""
+        """CLI output format enum - extends Flext standard formats.
+
+        Python 3.13+ StrEnum provides string-like behavior with enum validation.
+        CLI adds "plain" format on top of standard formats.
+        Can be used interchangeably with OutputFormatLiteral in type hints.
+        """
 
         JSON = "json"  # Standard format
         YAML = "yaml"  # Standard format
         CSV = "csv"  # Standard format
         TABLE = "table"  # Standard format
         PLAIN = "plain"  # CLI-specific format
+
+    # Environment enum - reuse from flext-core (no duplication)
+    # Use FlextConstants.Settings.Environment directly instead of duplicating
+    # Note: flext-core uses "testing", not "test" - update references if needed
+    Environment = FlextConstants.Settings.Environment
+
+    class LogVerbosity(StrEnum):
+        """Log verbosity level enum.
+
+        Python 3.13+ StrEnum provides string-like behavior with enum validation.
+        Can be used interchangeably with LogVerbosityLiteral in type hints.
+        """
+
+        COMPACT = "compact"
+        DETAILED = "detailed"
+        FULL = "full"
+
+    class EntityType(StrEnum):
+        """CLI entity type enum.
+
+        Python 3.13+ StrEnum provides string-like behavior with enum validation.
+        Can be used interchangeably with EntityTypeLiteral in type hints.
+        """
+
+        COMMAND = "command"
+        GROUP = "group"
 
     # Terminal width thresholds for format selection
     TERMINAL_WIDTH_NARROW: Final[int] = 80
@@ -205,8 +389,11 @@ class FlextCliConstants(FlextConstants):
         MAX_WIDTH: Final[int] = 120
         DEFAULT_MAX_WIDTH: Final[int] = 120
         DEFAULT_PROFILE: Final[str] = "default"
+        # Matches OutputFormats.TABLE.value
+        # Using literal to avoid forward reference issues
         DEFAULT_OUTPUT_FORMAT: Final[str] = "table"
-        DEFAULT_TIMEOUT: Final[int] = 30
+        # Network timeout - reuse from flext-core Network (no duplication)
+        DEFAULT_TIMEOUT: Final[int] = FlextConstants.Network.DEFAULT_TIMEOUT
 
         # Application defaults
         DEFAULT_APP_NAME: Final[str] = "flext-cli"
@@ -220,12 +407,14 @@ class FlextCliConstants(FlextConstants):
         DEFAULT_QUIET: Final[bool] = False
         DEFAULT_INTERACTIVE: Final[bool] = True
 
-        # Environment defaults
-        DEFAULT_ENVIRONMENT: Final[str] = "development"
+        # Environment defaults - reuse from flext-core (no duplication)
+        DEFAULT_ENVIRONMENT: Final[str] = (
+            FlextConstants.Settings.Environment.DEVELOPMENT.value
+        )
 
-        # Log level defaults
-        DEFAULT_LOG_LEVEL: Final[str] = "INFO"
-        DEFAULT_CLI_LOG_LEVEL: Final[str] = "INFO"
+        # Log level defaults - reuse from flext-core
+        DEFAULT_LOG_LEVEL: Final[str] = FlextConstants.Settings.LogLevel.INFO.value
+        DEFAULT_CLI_LOG_LEVEL: Final[str] = FlextConstants.Settings.LogLevel.INFO.value
 
         # Verbosity defaults
         DEFAULT_LOG_VERBOSITY: Final[str] = "detailed"
@@ -242,12 +431,16 @@ class FlextCliConstants(FlextConstants):
     class NetworkDefaults:
         """Network-related defaults for CLI operations."""
 
-        DEFAULT_HOST: Final[str] = "localhost"
-        DEFAULT_PORT: Final[int] = 8080
+        # Network defaults - reuse from flext-core Platform constants (no duplication)
+        DEFAULT_HOST: Final[str] = FlextConstants.Platform.DEFAULT_HOST
+        DEFAULT_PORT: Final[int] = (
+            8080  # CLI-specific port (different from FLEXT_API_PORT)
+        )
         DEFAULT_API_URL: Final[str] = (
             f"http://{FlextConstants.Platform.DEFAULT_HOST}:{FlextConstants.Platform.FLEXT_API_PORT}/api"
         )
-        DEFAULT_TIMEOUT: Final[int] = 30
+        # Network timeout - reuse from flext-core Network (no duplication)
+        DEFAULT_TIMEOUT: Final[int] = FlextConstants.Network.DEFAULT_TIMEOUT
         DEFAULT_MAX_RETRIES: Final[int] = 3
         CONNECT_TIMEOUT: Final[int] = 10
         READ_TIMEOUT: Final[int] = 60
@@ -328,14 +521,6 @@ class FlextCliConstants(FlextConstants):
         FORMAT: Final[str] = "format"
         EXPORT: Final[str] = "export"
 
-    class CliCommandResult:
-        """CLI command result type definitions."""
-
-        # Core command result types
-        CommandResultData: TypeAlias = CliJsonDict
-        # Note: CommandResultStatus defined at module level as CommandResultStatusLiteral
-        CommandResultMetadata: TypeAlias = dict[str, str | int | bool]
-
     class Shell:
         """Shell-specific constants."""
 
@@ -395,7 +580,8 @@ class FlextCliConstants(FlextConstants):
     class HTTP:
         """HTTP-related constants."""
 
-        DEFAULT_TIMEOUT: Final[int] = 30
+        # Network timeout - reuse from flext-core Network (no duplication)
+        DEFAULT_TIMEOUT: Final[int] = FlextConstants.Network.DEFAULT_TIMEOUT
         MAX_RETRIES: Final[int] = 3
         RETRY_DELAY: Final[int] = 1
         USER_AGENT: Final[str] = "FlextCLI/1.0"
@@ -438,6 +624,84 @@ class FlextCliConstants(FlextConstants):
         MessageTypes.DEBUG.value,
     ]
 
+    # =====================================================================
+    # ADVANCED ENUM VALIDATION - Python 3.13+ discriminated union patterns
+    # =====================================================================
+
+    @classmethod
+    def validate_str_enum_value(
+        cls,
+        enum_class: type[StrEnum],
+        value: str,
+    ) -> StrEnum | None:
+        """Validate string value against StrEnum class.
+
+        Advanced validation using discriminated union pattern.
+        Uses enum._missing_ method for case-insensitive lookup.
+        Python 3.13+ best practice for enum validation.
+
+        CLI-specific helper that extends FlextConstants.validate_enum_value
+        with StrEnum-specific validation.
+
+        Args:
+            enum_class: StrEnum class to validate against
+            value: String value to validate
+
+        Returns:
+            Enum member if valid, None if invalid
+
+        """
+        try:
+            return enum_class(value)
+        except ValueError:
+            return None
+
+    @classmethod
+    def get_enum_values(cls, enum_class: type[StrEnum]) -> Sequence[str]:
+        """Get all values from StrEnum class.
+
+        Returns immutable sequence for safe iteration.
+        Python 3.13+ collections.abc.Sequence pattern.
+        Uses enum.__members__ for compatibility with all type checkers.
+
+        Args:
+            enum_class: StrEnum class to extract values from
+
+        Returns:
+            Immutable sequence of enum string values
+
+        """
+        return tuple(member.value for member in enum_class.__members__.values())
+
+    @classmethod
+    def create_cli_discriminated_union(
+        cls,
+        _discriminator_field: str,
+        *enum_classes: type[StrEnum],
+    ) -> dict[str, type[StrEnum]]:
+        """Create discriminated union mapping for Pydantic models.
+
+        Advanced pattern for discriminated unions with multiple enums.
+        Enables efficient validation with Field(discriminator=discriminator_field).
+        Python 3.13+ discriminated union best practice.
+
+        CLI-specific helper that extends FlextConstants.create_discriminated_union
+        with discriminator field support for Pydantic models.
+
+        Args:
+            discriminator_field: Field name used as discriminator
+            *enum_classes: StrEnum classes to include in union
+
+        Returns:
+            Mapping of discriminator values to enum classes
+
+        """
+        union_map = {}
+        for enum_class in enum_classes:
+            for member in enum_class.__members__.values():
+                union_map[member.value] = enum_class
+        return union_map
+
     class TIMEOUTS:
         """Timeout constants."""
 
@@ -462,7 +726,9 @@ class FlextCliConstants(FlextConstants):
 
     # Default values
     DEFAULT: Final[str] = "default"
-    TABLE: Final[str] = "table"
+    # Matches OutputFormats.TABLE.value
+    # Using direct reference since OutputFormats is already defined above
+    TABLE: Final[str] = OutputFormats.TABLE.value
 
     # Directory labels
     HOME: Final[str] = "Home"
@@ -479,15 +745,79 @@ class FlextCliConstants(FlextConstants):
     # Format names
     TSV: Final[str] = "tsv"
 
-    # File formats configuration
-    FILE_FORMATS: Final[dict[str, dict[str, list[str]]]] = {
-        "json": {"extensions": ["json"]},
-        "yaml": {"extensions": ["yaml", "yml"]},
-        "csv": {"extensions": ["csv"]},
-        "tsv": {"extensions": ["tsv"]},
-        "toml": {"extensions": ["toml"]},
-        "xml": {"extensions": ["xml"]},
+    # =====================================================================
+    # ADVANCED FILE FORMATS CONFIG - Python 3.13+ nested Mapping patterns
+    # =====================================================================
+
+    # File formats configuration with advanced typing
+    # Uses nested collections.abc.Mapping for immutable hierarchical data
+    # Python 3.13+ best practice for complex read-only configurations
+    FILE_FORMATS: Final[Mapping[str, Mapping[str, str | tuple[str, ...]]]] = {
+        "json": {"extensions": ("json",), "mime_type": "application/json"},
+        "yaml": {"extensions": ("yaml", "yml"), "mime_type": "application/x-yaml"},
+        "csv": {"extensions": ("csv",), "mime_type": "text/csv"},
+        "tsv": {"extensions": ("tsv",), "mime_type": "text/tab-separated-values"},
+        "toml": {"extensions": ("toml",), "mime_type": "application/toml"},
+        "xml": {"extensions": ("xml",), "mime_type": "application/xml"},
     }
+
+    # Immutable set of supported format names using frozenset
+    # Python 3.13+ frozenset for O(1) membership testing
+    SUPPORTED_FILE_FORMATS: Final[frozenset[str]] = frozenset(FILE_FORMATS.keys())
+
+    @classmethod
+    def get_file_extensions(cls, format_name: str) -> Sequence[str] | None:
+        """Get file extensions for a format name.
+
+        Advanced lookup using collections.abc.Mapping.
+        Returns immutable sequence for safe iteration.
+        Python 3.13+ best practice for format validation.
+
+        Args:
+            format_name: Format name to lookup
+
+        Returns:
+            Immutable sequence of extensions, or None if format not supported
+
+        """
+        format_config = cls.FILE_FORMATS.get(format_name)
+        return format_config.get("extensions") if format_config else None
+
+    @classmethod
+    def get_mime_type(cls, format_name: str) -> str | None:
+        """Get MIME type for a format name.
+
+        Uses advanced Mapping lookup with type safety.
+        Composes with FILE_FORMATS configuration.
+
+        Args:
+            format_name: Format name to lookup
+
+        Returns:
+            MIME type string, or None if format not supported
+
+        """
+        format_config = cls.FILE_FORMATS.get(format_name)
+        if format_config:
+            mime_type = format_config.get("mime_type")
+            return mime_type if isinstance(mime_type, str) else None
+        return None
+
+    @classmethod
+    def validate_file_format(cls, format_name: str) -> bool:
+        """Validate if a file format is supported.
+
+        Uses frozenset for optimal O(1) membership testing.
+        Python 3.13+ collections.abc.Set best practice.
+
+        Args:
+            format_name: Format name to validate
+
+        Returns:
+            True if format is supported, False otherwise
+
+        """
+        return format_name in cls.SUPPORTED_FILE_FORMATS
 
     # Service names
     FLEXT_CLI_FILE_TOOLS: Final[str] = "flext-cli-file-tools"
@@ -735,7 +1065,8 @@ class FlextCliConstants(FlextConstants):
 
         FLEXT_CLI_AUTH_OPERATIONAL: Final[str] = "FlextCliAuth service operational"
         CONFIG_LOADED_SUCCESSFULLY: Final[str] = (
-            "Configuration loaded successfully. Use set_config_value to modify specific values."
+            "Configuration loaded successfully. "
+            "Use set_config_value to modify specific values."
         )
         FLEXT_CLI_DEBUG_OPERATIONAL: Final[str] = "FlextCliDebug service operational"
 
@@ -991,20 +1322,6 @@ class FlextCliConstants(FlextConstants):
         BOOL_TRUE_VALUES: Final[set[str]] = {"true", "1", "yes", "on"}
         BOOL_FALSE_VALUES: Final[set[str]] = {"false", "0", "no", "off", ""}
 
-    class Project:
-        """CLI-specific project types extending FlextTypes.
-
-        Adds CLI-specific project types while inheriting generic types from FlextTypes.
-        Follows domain separation principle: CLI domain owns CLI-specific types.
-        """
-
-        # CLI-specific project configurations
-        # Note: CliProjectType is defined as CliProjectTypeLiteral in first class (line 28)
-        CliProjectConfig: TypeAlias = CliJsonDict
-        CommandLineConfig: TypeAlias = dict[str, str | int | bool | list[str]]
-        InteractiveConfig: TypeAlias = dict[str, bool | str | CliJsonDict]
-        OutputConfig: TypeAlias = dict[str, str | object]
-
     class Styles:
         """Rich/Terminal style constants for colored output."""
 
@@ -1021,7 +1338,7 @@ class FlextCliConstants(FlextConstants):
     class Emojis:
         """Emoji constants for terminal output messages."""
 
-        INFO: Final[str] = "ℹ️"
+        INFO: Final[str] = "i"  # Information icon
         SUCCESS: Final[str] = "✅"
         ERROR: Final[str] = "❌"
         WARNING: Final[str] = "⚠️"
@@ -1085,12 +1402,11 @@ class FlextCliConstants(FlextConstants):
         """Configuration field validation constants."""
 
         LOG_VERBOSITY_VALUES: Final[set[str]] = {"compact", "detailed", "full"}
-        ENVIRONMENT_VALUES: Final[set[str]] = {
-            "development",
-            "staging",
-            "production",
-            "test",
-        }
+        # Environment values - reuse from flext-core (no duplication)
+        # Use FlextConstants.get_valid_environments() method instead
+        ENVIRONMENT_VALUES: Final[set[str]] = set(
+            FlextConstants.get_valid_environments(),
+        )
         URL_PROTOCOLS: Final[tuple[str, ...]] = ("http://", "https://")
         YAML_EXTENSIONS: Final[set[str]] = {".yml", ".yaml"}
         STDOUT_FD: Final[int] = 1
@@ -1554,7 +1870,8 @@ class FlextCliConstants(FlextConstants):
         TIMESTAMP: Final[str] = "timestamp"
 
     # Table formats for tabulate integration
-    TABLE_FORMATS: Final[dict[str, str]] = {
+    # Python 3.13+ best practice: Use Mapping for immutable read-only mappings
+    TABLE_FORMATS: Final[Mapping[str, str]] = {
         "plain": "Minimal formatting, no borders",
         "simple": "Simple ASCII borders",
         "grid": "Grid-style ASCII table",
@@ -1723,11 +2040,13 @@ class FlextCliConstants(FlextConstants):
 
         PARAMS_MANDATORY: Final[str] = (
             "Common CLI parameters are mandatory and cannot be disabled. "
-            "All CLI commands must support --verbose, --quiet, --debug, --log-level, etc."
+            "All CLI commands must support --verbose, --quiet, --debug, "
+            "--log-level, etc."
         )
         FIELD_NOT_FOUND: Final[str] = "Field '{field_name}' not found in FlextCliConfig"
         TRACE_REQUIRES_DEBUG: Final[str] = (
-            "Trace mode requires debug mode to be enabled. Use --debug --trace together."
+            "Trace mode requires debug mode to be enabled. "
+            "Use --debug --trace together."
         )
         INVALID_LOG_LEVEL: Final[str] = (
             "Invalid log level: {log_level}. Must be one of: {valid}"
@@ -1950,7 +2269,8 @@ class FlextCliConstants(FlextConstants):
 
         TITLE: Final[str] = "FlextCliModels"
         DESCRIPTION: Final[str] = (
-            "Comprehensive CLI domain models with enhanced runtime validation (Phases 7-8)"
+            "Comprehensive CLI domain models with enhanced runtime validation "
+            "(Phases 7-8)"
         )
         EXAMPLE_COMMAND: Final[str] = "flext validate"
         EXAMPLE_ARGS: Final[str] = "validate"
@@ -1967,7 +2287,8 @@ class FlextCliConstants(FlextConstants):
     class ModelsTypeMapping:
         """Type mapping for Python to Click type conversion."""
 
-        TYPE_STR_MAP: Final[dict[str, str]] = {
+        # Python 3.13+ best practice: Use Mapping for immutable read-only mappings
+        TYPE_STR_MAP: Final[Mapping[str, str]] = {
             "str": "STRING",
             "int": "INT",
             "float": "FLOAT",

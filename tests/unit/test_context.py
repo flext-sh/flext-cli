@@ -22,7 +22,7 @@ from flext_core import FlextResult, FlextTypes, FlextUtilities
 from flext_tests import FlextTestsUtilities
 
 from flext_cli import FlextCliContext
-from flext_cli.typings import CliJsonValue
+from flext_cli.typings import FlextCliTypes
 
 from .._helpers import FlextCliTestHelpers
 from ..fixtures.constants import TestContext
@@ -363,8 +363,8 @@ class TestFlextCliContext:
         """Test metadata get/set operations."""
         context = FlextCliContext()
 
-        # Set metadata - cast value to CliJsonValue for type compatibility
-        json_value = cast("CliJsonValue", value)
+        # Set metadata - cast value to FlextCliTypes.CliJsonValue for type compatibility
+        json_value = cast("FlextCliTypes.CliJsonValue", value)
         set_result = context.set_metadata(key, json_value)
         self.Assertions.assert_result_success(set_result)
 

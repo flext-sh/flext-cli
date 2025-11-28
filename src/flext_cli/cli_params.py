@@ -14,15 +14,18 @@ from __future__ import annotations
 
 import sys
 from collections.abc import Callable
-from typing import ClassVar
+from typing import TYPE_CHECKING, ClassVar
 
 from flext_core import FlextConstants, FlextResult
 from typer.models import OptionInfo
 
-from flext_cli.config import FlextCliConfig
 from flext_cli.constants import FlextCliConstants
+
+if TYPE_CHECKING:
+    from flext_cli.config import FlextCliConfig
 from flext_cli.models import FlextCliModels
 from flext_cli.protocols import FlextCliProtocols
+from flext_cli.typings import FlextCliTypes
 
 # Type alias for CLI command functions (avoids Callable[..., T] which uses Any)
 CliCommandFunc = FlextCliProtocols.Cli.CliCommandFunction
@@ -280,7 +283,7 @@ class FlextCliCommonParams:
         # Update all attributes at once using model_copy to avoid triggering
         # validate_assignment for each individual field (which would see intermediate states)
         # Then update the original config object's attributes
-        update_data: dict[str, object] = {}
+        update_data: FlextCliTypes.CliJsonDict = {}
         if params.verbose is not None:
             update_data["verbose"] = params.verbose
         if params.quiet is not None:

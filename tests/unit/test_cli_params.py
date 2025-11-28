@@ -31,10 +31,11 @@ from typer.testing import CliRunner
 from flext_cli import (
     FlextCliCommonParams,
     FlextCliConfig,
+    FlextCliConstants,
     FlextCliModels,
     FlextCliServiceBase,
 )
-from flext_cli.typings import CliJsonValue
+from flext_cli.typings import FlextCliTypes
 
 from ..helpers import FlextCliTestHelpers
 
@@ -187,7 +188,7 @@ def _create_decorated_command(
     app: typer.Typer,
     command_name: str = "test",
     echo_message: str | None = None,
-) -> Callable[..., CliJsonValue]:
+) -> Callable[..., FlextCliTypes.CliJsonValue]:
     """Create a decorated test command."""
 
     @app.command(name=command_name)
@@ -203,7 +204,7 @@ def _create_decorated_command(
         output_format: str = DEFAULT_OUTPUT_FORMAT,
         no_color: bool = DEFAULT_NO_COLOR,
         config_file: Path | None = DEFAULT_CONFIG_FILE,
-    ) -> CliJsonValue:
+    ) -> FlextCliTypes.CliJsonValue:
         """Test command with all common parameters."""
         if echo_message:
             typer.echo(echo_message)
@@ -217,7 +218,7 @@ def _create_decorated_command(
         return None
 
     # Return decorated function - it satisfies CliCommandFunction protocol structurally
-    # The protocol accepts any callable with (*args, **kwargs) -> CliJsonValue signature
+    # The protocol accepts any callable with (*args, **kwargs) -> FlextCliTypes.CliJsonValue signature
     # Mypy strict mode may not recognize structural compatibility, but runtime works
     return decorated_test_command
 
@@ -395,7 +396,9 @@ class TestFlextCliCommonParams:
         assert updated_config.verbose is True
         assert updated_config.debug is True
         assert updated_config.cli_log_level.value == "DEBUG"
-        assert updated_config.output_format == "json"
+        assert (
+            updated_config.output_format == FlextCliConstants.OutputFormats.JSON.value
+        )
         assert updated_config.no_color is True
 
     def test_apply_to_config_none_values_ignored(self) -> None:
@@ -526,7 +529,7 @@ class TestFlextCliCommonParams:
             debug: bool = DEFAULT_DEBUG,
             log_level: str = DEFAULT_LOG_LEVEL,
             output_format: str = DEFAULT_OUTPUT_FORMAT,
-        ) -> CliJsonValue:
+        ) -> FlextCliTypes.CliJsonValue:
             """Test command with config integration."""
             config = FlextCliServiceBase.get_cli_config()
             result = FlextCliCommonParams.apply_to_config(
@@ -870,7 +873,7 @@ class TestFlextCliCommonParams:
                 @decorator
                 def decorated_test_function(
                     *args: object, **kwargs: object
-                ) -> CliJsonValue:
+                ) -> FlextCliTypes.CliJsonValue:
                     """Test function."""
                     return None
 

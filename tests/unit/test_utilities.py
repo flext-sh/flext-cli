@@ -556,7 +556,7 @@ class TestFlextCliUtilities:
             TestUtilities.Validation.OutputFormats.UPPERCASE_FORMAT
         )
         FlextTestsMatchers.assert_success(result2)
-        assert result2.unwrap() == "json"
+        assert result2.unwrap() == FlextCliConstants.OutputFormats.JSON.value
 
         # 3. Validate string not empty
         result3 = FlextCliUtilities.CliValidation.validate_string_not_empty(

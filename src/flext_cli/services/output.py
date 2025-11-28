@@ -9,9 +9,9 @@ from __future__ import annotations
 
 import csv
 import json
-from collections.abc import Sequence
+from collections.abc import Mapping, Sequence
 from io import StringIO
-from typing import override
+from typing import cast, override
 
 import yaml
 from flext_core import (
@@ -26,7 +26,7 @@ from flext_cli.constants import FlextCliConstants
 from flext_cli.formatters import FlextCliFormatters
 from flext_cli.models import FlextCliModels
 from flext_cli.services.tables import FlextCliTables
-from flext_cli.typings import CliJsonValue, FlextCliTypes
+from flext_cli.typings import FlextCliTypes
 from flext_cli.utilities import FlextCliUtilities
 
 
@@ -48,7 +48,10 @@ class FlextCliOutput(FlextCliServiceBase):
         >>> output = FlextCliOutput()
         >>>
         >>> # Format data in various formats
-        >>> result = output.format_data(data={"key": "value"}, format_type="json")
+        >>> result = output.format_data(
+        ...     data={"key": "value"},
+        ...     format_type=FlextCliConstants.OutputFormats.JSON.value,
+        ... )
         >>>
         >>> # Create Rich table
         >>> table_result = output.create_rich_table(
@@ -84,15 +87,20 @@ class FlextCliOutput(FlextCliServiceBase):
         self._result_formatters: dict[type, FlextCliTypes.Callable.ResultFormatter] = {}
 
     @override
-    def execute(self, **_kwargs: object) -> FlextResult[FlextTypes.JsonDict]:
+    def execute(
+        self, **_kwargs: FlextCliTypes.Data.ExecutionKwargs
+    ) -> FlextResult[FlextCliTypes.Data.CliDataDict]:
         """Execute the main domain service operation - required by FlextService.
 
         Args:
-            **_kwargs: Additional execution parameters (unused, for FlextService compatibility)
+            **_kwargs: Additional execution parameters
+                (unused, for FlextService compatibility)
 
         """
-        return FlextResult[FlextTypes.JsonDict].ok({
-            FlextCliConstants.DictKeys.STATUS: FlextCliConstants.ServiceStatus.OPERATIONAL.value,
+        return FlextResult[FlextCliTypes.Data.CliDataDict].ok({
+            FlextCliConstants.DictKeys.STATUS: (
+                FlextCliConstants.ServiceStatus.OPERATIONAL.value
+            ),
             FlextCliConstants.DictKeys.SERVICE: FlextCliConstants.FLEXT_CLI,
         })
 
@@ -102,7 +110,7 @@ class FlextCliOutput(FlextCliServiceBase):
 
     def format_data(
         self,
-        data: CliJsonValue,
+        data: FlextCliTypes.CliJsonValue,
         format_type: str = FlextCliConstants.OutputFormats.TABLE.value,
         title: str | None = None,
         headers: list[str] | None = None,
@@ -121,7 +129,8 @@ class FlextCliOutput(FlextCliServiceBase):
         Example:
             >>> output = FlextCliOutput()
             >>> result = output.format_data(
-            ...     data={"name": "Alice", "age": 30}, format_type="json"
+            ...     data={"name": "Alice", "age": 30},
+            ...     format_type=FlextCliConstants.OutputFormats.JSON.value,
             ... )
 
         """
@@ -135,12 +144,13 @@ class FlextCliOutput(FlextCliServiceBase):
         fmt = format_result.unwrap()
         return self._dispatch_formatter(fmt, data, title, headers)
 
-    # Helper _validate_format_type moved to FlextCliUtilities.CliValidation.validate_output_format()
+    # Helper _validate_format_type moved to
+    # FlextCliUtilities.CliValidation.validate_output_format()
 
     def _dispatch_formatter(
         self,
         format_type: str,
-        data: CliJsonValue,
+        data: FlextCliTypes.CliJsonValue,
         title: str | None,
         headers: list[str] | None,
     ) -> FlextResult[str]:
@@ -172,14 +182,19 @@ class FlextCliOutput(FlextCliServiceBase):
 
     def _format_table_data(
         self,
-        data: CliJsonValue,
+        data: FlextCliTypes.CliJsonValue,
         title: str | None,
         headers: list[str] | None,
     ) -> FlextResult[str]:
         """Format data as table with type validation."""
         if FlextRuntime.is_dict_like(data):
+            # Type narrowing: CliJsonValue dict -> Mapping[str, FlextTypes.GeneralValueType]
+            # CliJsonValue is compatible with GeneralValueType at runtime
+            data_dict: dict[str, FlextTypes.GeneralValueType] = cast(
+                "dict[str, FlextTypes.GeneralValueType]", dict(data)
+            )
             return self.format_table(
-                FlextCliUtilities.CliDataMapper.convert_dict_to_json(data),
+                FlextCliUtilities.DataMapper.convert_dict_to_json(data_dict),
                 title=title,
                 headers=headers,
             )
@@ -193,8 +208,13 @@ class FlextCliOutput(FlextCliServiceBase):
                 return FlextResult[str].fail(
                     FlextCliConstants.ErrorMessages.TABLE_FORMAT_REQUIRED_DICT
                 )
+            # Type narrowing: CliJsonValue list -> list[FlextTypes.GeneralValueType]
+            # CliJsonValue is compatible with GeneralValueType at runtime
+            data_list: list[FlextTypes.GeneralValueType] = cast(
+                "list[FlextTypes.GeneralValueType]", list(data)
+            )
             return self.format_table(
-                FlextCliUtilities.CliDataMapper.convert_list_to_json(data),
+                FlextCliUtilities.DataMapper.convert_list_to_json(data_list),
                 title=title,
                 headers=headers,
             )
@@ -212,7 +232,7 @@ class FlextCliOutput(FlextCliServiceBase):
             format_type: Format type to create formatter for
 
         Returns:
-            FlextResult[object]: Formatter instance or error
+            FlextResult[FlextCliOutput]: Formatter instance or error
 
         """
         try:
@@ -252,7 +272,7 @@ class FlextCliOutput(FlextCliServiceBase):
         Args:
             result_type: Type of result to format (e.g., MigrationResult)
             formatter: Callable that formats and displays the result
-                Signature: (result: object, output_format: str) -> None
+                Signature: (result: FlextCliTypes.Callable.FormatableResult, output_format: str) -> None
 
         Returns:
             FlextResult[bool]: True on success, False on failure
@@ -267,7 +287,7 @@ class FlextCliOutput(FlextCliServiceBase):
 
             # Register formatter for MigrationResult
             def format_migration(result: MigrationResult, fmt: str) -> None:
-                if fmt == "table":
+                if fmt == FlextCliConstants.OutputFormats.TABLE.value:
                     # Create Rich table from result
                     console = output._formatters.console
                     panel = output._formatters.create_panel(
@@ -276,7 +296,7 @@ class FlextCliOutput(FlextCliServiceBase):
                         title="✅ Migration Result",
                     )
                     console.print(panel.unwrap())
-                elif fmt == "json":
+                elif fmt == FlextCliConstants.OutputFormats.JSON.value:
                     print(result.model_dump_json())
 
 
@@ -308,8 +328,10 @@ class FlextCliOutput(FlextCliServiceBase):
 
     def format_and_display_result(
         self,
-        result: BaseModel | CliJsonValue | FlextCliTypes.Callable.FormatableResult,
-        output_format: str = "table",
+        result: BaseModel
+        | FlextCliTypes.CliJsonValue
+        | FlextCliTypes.Callable.FormatableResult,
+        output_format: str = FlextCliConstants.OutputFormats.TABLE.value,
     ) -> FlextResult[bool]:
         """Auto-detect result type and apply registered formatter with extracted helpers.
 
@@ -349,7 +371,9 @@ class FlextCliOutput(FlextCliServiceBase):
 
     def _try_registered_formatter(
         self,
-        result: BaseModel | CliJsonValue | FlextCliTypes.Callable.FormatableResult,
+        result: BaseModel
+        | FlextCliTypes.CliJsonValue
+        | FlextCliTypes.Callable.FormatableResult,
         output_format: str,
     ) -> FlextResult[bool]:
         """Try to use registered formatter for result type.
@@ -372,7 +396,9 @@ class FlextCliOutput(FlextCliServiceBase):
 
     def _convert_result_to_formattable(
         self,
-        result: BaseModel | CliJsonValue | FlextCliTypes.Callable.FormatableResult,
+        result: BaseModel
+        | FlextCliTypes.CliJsonValue
+        | FlextCliTypes.Callable.FormatableResult,
         output_format: str,
     ) -> FlextResult[str]:
         """Convert result object to formattable string.
@@ -407,7 +433,7 @@ class FlextCliOutput(FlextCliServiceBase):
         output_format: str,
     ) -> FlextResult[str]:
         """Format Pydantic model to string."""
-        # Use model_dump() directly - dict is compatible with CliJsonValue
+        # Use model_dump() directly - dict is compatible with FlextCliTypes.CliJsonValue
         result_dict = result.model_dump()
         return self.format_data(result_dict, output_format)
 
@@ -418,17 +444,25 @@ class FlextCliOutput(FlextCliServiceBase):
     ) -> FlextResult[str]:
         """Format object with __dict__ to string."""
         raw_dict = result.__dict__
-        # Convert dict[str, object] to dict[str, object] compatible with CliJsonValue
-        # CliJsonValue includes dict[str, object], but dict is invariant
+        # Convert dict[str, object] to dict[str, object] compatible with FlextCliTypes.CliJsonValue
+        # FlextCliTypes.CliJsonValue includes dict[str, object], but dict is invariant
         # Convert each value to ensure compatibility
-        json_dict: dict[str, object] = {}
+        json_dict: dict[str, FlextTypes.GeneralValueType] = {}
         for key, value in raw_dict.items():
-            json_value = FlextCliUtilities.CliDataMapper.convert_to_json_value(value)
-            # json_value is CliJsonValue which includes object types
-            json_dict[key] = json_value
-        # dict[str, object] is part of CliJsonValue union, use as-is
-        # format_data accepts CliJsonValue which includes dict[str, object]
-        return self.format_data(json_dict, output_format)
+            json_value = FlextCliUtilities.DataMapper.convert_to_json_value(value)
+            # json_value is GeneralValueType from convert_to_json_value
+            json_dict[key] = cast("FlextTypes.GeneralValueType", json_value)
+        # Convert dict[str, object] to CliJsonDict (dict[str, FlextCliTypes.CliJsonValue])
+        cli_json_dict: dict[str, FlextCliTypes.CliJsonValue] = {}
+        for key, value in json_dict.items():
+            # value is GeneralValueType from convert_to_json_value, cast to CliJsonValue
+            # GeneralValueType is compatible with CliJsonValue at runtime
+            if isinstance(value, (str, int, float, bool, dict, list, type(None))):
+                cli_json_dict[key] = cast("FlextCliTypes.CliJsonValue", value)
+            else:
+                # Convert non-JSON types to string
+                cli_json_dict[key] = str(value)
+        return self.format_data(cli_json_dict, output_format)
 
     def _display_formatted_result(self, formatted: str) -> FlextResult[bool]:
         """Display formatted result string using Rich console."""
@@ -442,7 +476,7 @@ class FlextCliOutput(FlextCliServiceBase):
 
     def create_rich_table(
         self,
-        data: list[dict[str, CliJsonValue]],
+        data: list[dict[str, FlextCliTypes.CliJsonValue]],
         title: str | None = None,
         headers: list[str] | None = None,
     ) -> FlextResult[FlextCliTypes.Display.RichTable]:
@@ -538,7 +572,7 @@ class FlextCliOutput(FlextCliServiceBase):
 
     def create_ascii_table(
         self,
-        data: list[dict[str, CliJsonValue]],
+        data: list[dict[str, FlextCliTypes.CliJsonValue]],
         headers: list[str] | None = None,
         table_format: str = FlextCliConstants.TableFormats.SIMPLE,
         *,
@@ -800,7 +834,7 @@ class FlextCliOutput(FlextCliServiceBase):
 
     def display_data(
         self,
-        data: CliJsonValue,
+        data: FlextCliTypes.CliJsonValue,
         format_type: str | None = None,
         *,
         title: str | None = None,
@@ -819,7 +853,10 @@ class FlextCliOutput(FlextCliServiceBase):
 
         Example:
             >>> output = FlextCliOutput()
-            >>> output.display_data({"key": "value"}, format_type="json")
+            >>> output.display_data(
+            ...     {"key": "value"},
+            ...     format_type=FlextCliConstants.OutputFormats.JSON.value,
+            ... )
 
         """
         # Validate format type explicitly - no fallback
@@ -849,7 +886,7 @@ class FlextCliOutput(FlextCliServiceBase):
     # DATA FORMAT METHODS (Built-in)
     # =========================================================================
 
-    def format_json(self, data: CliJsonValue) -> FlextResult[str]:
+    def format_json(self, data: FlextCliTypes.CliJsonValue) -> FlextResult[str]:
         """Format data as JSON.
 
         Args:
@@ -878,7 +915,7 @@ class FlextCliOutput(FlextCliServiceBase):
             self.logger.exception(error_msg)
             return FlextResult[str].fail(error_msg)
 
-    def format_yaml(self, data: CliJsonValue) -> FlextResult[str]:
+    def format_yaml(self, data: FlextCliTypes.CliJsonValue) -> FlextResult[str]:
         """Format data as YAML.
 
         Args:
@@ -906,7 +943,7 @@ class FlextCliOutput(FlextCliServiceBase):
             self.logger.exception(error_msg)
             return FlextResult[str].fail(error_msg)
 
-    def format_csv(self, data: CliJsonValue) -> FlextResult[str]:
+    def format_csv(self, data: FlextCliTypes.CliJsonValue) -> FlextResult[str]:
         """Format data as CSV.
 
         Args:
@@ -933,8 +970,13 @@ class FlextCliOutput(FlextCliServiceBase):
 
                 # Convert JsonValue to object for csv.DictWriter compatibility
                 # csv.DictWriter expects Mapping[str, object], not dict[str, JsonValue]
-                csv_rows: list[dict[str, object]] = [
-                    {k: v if v is not None else "" for k, v in row.items()}
+                # Use cast since CliJsonValue values are structurally compatible with object
+                # (CliJsonValue includes str, int, float, bool, None, dict, list - all compatible with object)
+                csv_rows: list[Mapping[str, object]] = [
+                    cast(
+                        "Mapping[str, object]",
+                        {k: v if v is not None else "" for k, v in row.items()},
+                    )
                     for row in data
                     if FlextRuntime.is_dict_like(row)
                 ]
@@ -963,7 +1005,9 @@ class FlextCliOutput(FlextCliServiceBase):
 
     def format_table(
         self,
-        data: dict[str, CliJsonValue] | list[dict[str, CliJsonValue]] | str,
+        data: dict[str, FlextCliTypes.CliJsonValue]
+        | list[dict[str, FlextCliTypes.CliJsonValue]]
+        | str,
         title: str | None = None,
         headers: list[str] | None = None,
     ) -> FlextResult[str]:
@@ -1003,9 +1047,13 @@ class FlextCliOutput(FlextCliServiceBase):
 
     def _prepare_table_data_safe(
         self,
-        data: dict[str, CliJsonValue] | list[dict[str, CliJsonValue]] | str,
+        data: dict[str, FlextCliTypes.CliJsonValue]
+        | list[dict[str, FlextCliTypes.CliJsonValue]]
+        | str,
         headers: list[str] | None,
-    ) -> FlextResult[tuple[list[dict[str, CliJsonValue]], str | list[str]]]:
+    ) -> FlextResult[
+        tuple[list[dict[str, FlextCliTypes.CliJsonValue]], str | list[str]]
+    ]:
         """Safely prepare table data with exception handling."""
         try:
             return self._prepare_table_data(data, headers)
@@ -1015,42 +1063,52 @@ class FlextCliOutput(FlextCliServiceBase):
             )
             self.logger.exception(error_msg)
             return FlextResult[
-                tuple[list[dict[str, CliJsonValue]], str | list[str]]
+                tuple[list[dict[str, FlextCliTypes.CliJsonValue]], str | list[str]]
             ].fail(error_msg)
 
     def _prepare_table_data(
         self,
-        data: dict[str, CliJsonValue] | list[dict[str, CliJsonValue]] | str,
+        data: dict[str, FlextCliTypes.CliJsonValue]
+        | list[dict[str, FlextCliTypes.CliJsonValue]]
+        | str,
         headers: list[str] | None,
-    ) -> FlextResult[tuple[list[dict[str, CliJsonValue]], str | list[str]]]:
+    ) -> FlextResult[
+        tuple[list[dict[str, FlextCliTypes.CliJsonValue]], str | list[str]]
+    ]:
         """Prepare and validate table data and headers."""
         if FlextRuntime.is_dict_like(data):
             return self._prepare_dict_data(
-                FlextCliUtilities.CliDataMapper.convert_dict_to_json(data),
+                FlextCliUtilities.DataMapper.convert_dict_to_json(
+                    cast("dict[str, FlextTypes.GeneralValueType]", dict(data))
+                ),
                 headers,
             )
         if FlextRuntime.is_list_like(data):
             return self._prepare_list_data(
-                FlextCliUtilities.CliDataMapper.convert_list_to_json(data),
+                FlextCliUtilities.DataMapper.convert_list_to_json(
+                    cast("list[FlextTypes.GeneralValueType]", list(data))
+                ),
                 headers,
             )
-        return FlextResult[tuple[list[dict[str, CliJsonValue]], str | list[str]]].fail(
-            FlextCliConstants.ErrorMessages.TABLE_FORMAT_REQUIRED_DICT
-        )
+        return FlextResult[
+            tuple[list[dict[str, FlextCliTypes.CliJsonValue]], str | list[str]]
+        ].fail(FlextCliConstants.ErrorMessages.TABLE_FORMAT_REQUIRED_DICT)
 
     def _prepare_dict_data(
         self,
-        data: dict[str, CliJsonValue],
+        data: dict[str, FlextCliTypes.CliJsonValue],
         headers: list[str] | None,
-    ) -> FlextResult[tuple[list[dict[str, CliJsonValue]], str | list[str]]]:
+    ) -> FlextResult[
+        tuple[list[dict[str, FlextCliTypes.CliJsonValue]], str | list[str]]
+    ]:
         """Prepare dict data for table display."""
         # Reject test invalid key
         if FlextCliConstants.OutputDefaults.TEST_INVALID_KEY in data and len(data) == 1:
             return FlextResult[
-                tuple[list[dict[str, CliJsonValue]], str | list[str]]
+                tuple[list[dict[str, FlextCliTypes.CliJsonValue]], str | list[str]]
             ].fail(FlextCliConstants.ErrorMessages.TABLE_FORMAT_REQUIRED_DICT)
 
-        table_data: list[dict[str, CliJsonValue]] = [
+        table_data: list[dict[str, FlextCliTypes.CliJsonValue]] = [
             {
                 FlextCliConstants.OutputFieldNames.KEY: k,
                 FlextCliConstants.OutputFieldNames.VALUE: str(v),
@@ -1062,46 +1120,52 @@ class FlextCliOutput(FlextCliServiceBase):
             headers if headers is not None else FlextCliConstants.TableFormats.KEYS
         )
         table_headers: str | list[str] = validated_headers
-        return FlextResult[tuple[list[dict[str, CliJsonValue]], str | list[str]]].ok((
+        return FlextResult[
+            tuple[list[dict[str, FlextCliTypes.CliJsonValue]], str | list[str]]
+        ].ok((
             table_data,
             table_headers,
         ))
 
     def _prepare_list_data(
         self,
-        data: list[dict[str, CliJsonValue]],
+        data: list[dict[str, FlextCliTypes.CliJsonValue]],
         headers: list[str] | None,
-    ) -> FlextResult[tuple[list[dict[str, CliJsonValue]], str | list[str]]]:
+    ) -> FlextResult[
+        tuple[list[dict[str, FlextCliTypes.CliJsonValue]], str | list[str]]
+    ]:
         """Prepare list data for table display."""
         if not data:
             return FlextResult[
-                tuple[list[dict[str, CliJsonValue]], str | list[str]]
+                tuple[list[dict[str, FlextCliTypes.CliJsonValue]], str | list[str]]
             ].fail(FlextCliConstants.ErrorMessages.NO_DATA_PROVIDED)
 
         # Validate headers type
         if headers is not None and not FlextRuntime.is_list_like(headers):
             return FlextResult[
-                tuple[list[dict[str, CliJsonValue]], str | list[str]]
+                tuple[list[dict[str, FlextCliTypes.CliJsonValue]], str | list[str]]
             ].fail(FlextCliConstants.ErrorMessages.TABLE_HEADERS_MUST_BE_LIST)
 
         # Validate headers explicitly - no fallback
+        # headers is list[str] | None, so it's always a list or None
         if headers is not None:
-            if isinstance(headers, str):
-                table_headers: str | list[str] = headers
-            elif FlextRuntime.is_list_like(headers):
+            if FlextRuntime.is_list_like(headers):
                 table_headers = [str(item) for item in headers]
             else:
-                table_headers = str(headers)
+                # Should not happen since headers is list[str] | None
+                table_headers = [str(headers)]
         else:
-            table_headers = FlextCliConstants.TableFormats.KEYS
-        return FlextResult[tuple[list[dict[str, CliJsonValue]], str | list[str]]].ok((
+            table_headers = [FlextCliConstants.TableFormats.KEYS]
+        return FlextResult[
+            tuple[list[dict[str, FlextCliTypes.CliJsonValue]], str | list[str]]
+        ].ok((
             data,
             table_headers,
         ))
 
     def _create_table_string(
         self,
-        table_data: list[dict[str, CliJsonValue]],
+        table_data: list[dict[str, FlextCliTypes.CliJsonValue]],
         table_headers: str | list[str],
     ) -> FlextResult[str]:
         """Create table string using FlextCliTables."""
@@ -1133,7 +1197,7 @@ class FlextCliOutput(FlextCliServiceBase):
 
     def format_as_tree(
         self,
-        data: CliJsonValue,
+        data: FlextCliTypes.CliJsonValue,
         title: str | None = None,
     ) -> FlextResult[str]:
         """Format hierarchical data as tree view using FlextCliFormatters.
@@ -1168,18 +1232,9 @@ class FlextCliOutput(FlextCliServiceBase):
 
         tree = tree_result.unwrap()
 
-        # Build tree structure - data is CliJsonValue
-        # Ensure data is properly typed for _build_tree
-        if isinstance(data, dict):
-            # dict[str, object] is part of CliJsonValue union
-            # Convert to ensure type compatibility
-            tree_data: CliJsonValue = {
-                key: FlextCliUtilities.CliDataMapper.convert_to_json_value(value)
-                for key, value in data.items()
-            }
-        else:
-            tree_data = data
-        self._build_tree(tree, tree_data)
+        # Build tree structure - data is already FlextCliTypes.CliJsonValue
+        # _build_tree now accepts CliJsonValue directly, no conversion needed
+        self._build_tree(tree, data)
 
         # Render to string using formatters
         return self._formatters.render_tree_to_string(
@@ -1190,42 +1245,40 @@ class FlextCliOutput(FlextCliServiceBase):
     def _build_tree(
         self,
         tree: FlextCliTypes.Display.RichTree,
-        data: CliJsonValue,
+        data: FlextCliTypes.CliJsonValue,
     ) -> None:
         """Build tree recursively (helper for format_as_tree).
 
         Args:
             tree: Tree object from formatters
-            data: Data to build tree from
+            data: Data to build tree from (CliJsonValue - can be dict, list, or primitive)
 
         """
-        if FlextRuntime.is_dict_like(data):
+        if isinstance(data, dict):
+            # Type narrowing: data is dict -> process as dict[str, CliJsonValue]
             for key, value in data.items():
-                if FlextRuntime.is_dict_like(value):
+                if isinstance(value, dict):
                     branch = tree.add(str(key))
-                    # value is dict, which is a valid JsonValue type, no cast needed
                     self._build_tree(branch, value)
-                elif FlextRuntime.is_list_like(value):
+                elif isinstance(value, list):
                     branch = tree.add(
                         f"{key}{FlextCliConstants.OutputDefaults.TREE_BRANCH_LIST_SUFFIX}",
                     )
                     for item in value:
-                        # Convert item to CliJsonValue using DataMapper
-                        branch_item = (
-                            FlextCliUtilities.CliDataMapper.convert_to_json_value(item)
-                        )
-                        self._build_tree(branch, branch_item)
+                        # item is already CliJsonValue from dict
+                        self._build_tree(branch, item)
                 else:
+                    # value is primitive (str, int, float, bool, None)
                     tree.add(
                         f"{key}{FlextCliConstants.OutputDefaults.TREE_VALUE_SEPARATOR}{value}",
                     )
-        elif FlextRuntime.is_list_like(data):
+        elif isinstance(data, list):
+            # Type narrowing: data is list -> process each item
             for item in data:
-                # Convert item to CliJsonValue using DataMapper
-                item_json = FlextCliUtilities.CliDataMapper.convert_to_json_value(item)
-                self._build_tree(tree, item_json)
+                # item is already CliJsonValue from list
+                self._build_tree(tree, item)
         else:
-            # data is primitive JsonValue (str, int, float, bool, None), no cast needed
+            # data is primitive JsonValue (str, int, float, bool, None)
             tree.add(str(data))
 
     # =========================================================================

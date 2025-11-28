@@ -19,7 +19,7 @@ import logging
 import shutil
 from collections.abc import Callable, Sequence
 from pathlib import Path
-from typing import IO, Annotated, Literal, overload
+from typing import IO, Annotated, cast, overload
 
 import click
 import typer
@@ -37,7 +37,8 @@ from flext_cli.config import FlextCliConfig
 from flext_cli.constants import FlextCliConstants
 from flext_cli.models import FlextCliModels
 from flext_cli.protocols import FlextCliProtocols
-from flext_cli.typings import CliJsonValue
+from flext_cli.typings import FlextCliTypes
+from flext_cli.utilities import FlextCliUtilities
 
 # Type alias for command functions to avoid Callable[..., T]
 CliCommandFunc = FlextCliProtocols.Cli.CliCommandFunction
@@ -95,7 +96,7 @@ class FlextCliCli:
     @overload
     def _create_cli_decorator(
         self,
-        entity_type: Literal["command"],
+        entity_type: FlextCliConstants.EntityTypeLiteral,
         name: str | None,
         help_text: str | None,
     ) -> Callable[[CliCommandFunc], click.Command]: ...
@@ -103,7 +104,7 @@ class FlextCliCli:
     @overload
     def _create_cli_decorator(
         self,
-        entity_type: Literal["group"],
+        entity_type: FlextCliConstants.EntityTypeLiteral,
         name: str | None,
         help_text: str | None,
     ) -> Callable[[CliCommandFunc], click.Group]: ...
@@ -172,7 +173,7 @@ class FlextCliCli:
         self,
         name: str,
         help_text: str,
-        config: object | None = None,
+        config: FlextCliTypes.Configuration.CliConfigSchema | None = None,
         *,
         add_completion: bool = True,
     ) -> typer.Typer:
@@ -375,12 +376,12 @@ class FlextCliCli:
     def create_option_decorator(
         self,
         *param_decls: str,
-        default: CliJsonValue | None = None,
+        default: FlextCliTypes.CliJsonValue | None = None,
         type_hint: click.ParamType | type | None = None,
         required: bool = False,
         help_text: str | None = None,
         is_flag: bool = False,
-        flag_value: CliJsonValue | None = None,
+        flag_value: FlextCliTypes.CliJsonValue | None = None,
         multiple: bool = False,
         count: bool = False,
         show_default: bool = False,
@@ -514,7 +515,7 @@ class FlextCliCli:
 
     def get_tuple_type(
         self,
-        types: Sequence[type[CliJsonValue] | click.ParamType],
+        types: Sequence[type[FlextCliTypes.CliJsonValue] | click.ParamType],
     ) -> click.Tuple:
         """Get Click Tuple parameter type.
 
@@ -608,7 +609,10 @@ class FlextCliCli:
 
     def create_pass_context_decorator(
         self,
-    ) -> object:
+    ) -> Callable[
+        [Callable[..., FlextCliTypes.CliJsonValue]],
+        Callable[..., FlextCliTypes.CliJsonValue],
+    ]:
         """Create pass_context decorator.
 
         Returns:
@@ -701,9 +705,9 @@ class FlextCliCli:
     def prompt(
         self,
         text: str,
-        default: CliJsonValue | None = None,
-        type_hint: CliJsonValue | None = None,
-        value_proc: Callable[[str], CliJsonValue] | None = None,
+        default: FlextCliTypes.CliJsonValue | None = None,
+        type_hint: FlextCliTypes.CliJsonValue | None = None,
+        value_proc: Callable[[str], FlextCliTypes.CliJsonValue] | None = None,
         prompt_suffix: str = FlextCliConstants.UIDefaults.DEFAULT_PROMPT_SUFFIX,
         *,
         hide_input: bool = False,
@@ -711,7 +715,7 @@ class FlextCliCli:
         show_default: bool = True,
         err: bool = False,
         show_choices: bool = True,
-    ) -> FlextResult[object]:
+    ) -> FlextResult[FlextCliTypes.CliJsonValue]:
         """Prompt for input using Typer backend.
 
         Args:
@@ -727,7 +731,7 @@ class FlextCliCli:
             show_choices: Show available choices
 
         Returns:
-            FlextResult[object]: Success with user input or failure
+            FlextResult[CliJsonValue]: Success with user input or failure
 
         Raises:
             typer.Abort: If user aborts
@@ -746,9 +750,13 @@ class FlextCliCli:
                 err=err,
                 show_choices=show_choices,
             )
-            return FlextResult[object].ok(result)
+            # Convert result to CliJsonValue - typer.prompt returns various types
+            json_value = FlextCliUtilities.DataMapper.convert_to_json_value(result)
+            return FlextResult[FlextCliTypes.CliJsonValue].ok(
+                cast("FlextCliTypes.CliJsonValue", json_value)
+            )
         except typer.Abort as e:
-            return FlextResult[object].fail(
+            return FlextResult[FlextCliTypes.CliJsonValue].fail(
                 FlextCliConstants.ErrorMessages.USER_ABORTED_PROMPT.format(error=e),
             )
 
@@ -947,14 +955,14 @@ class FlextCliCli:
         builder = FlextCliModels.ModelCommandBuilder(model_class, handler, config)
         return builder.build()
 
-    def execute(self) -> FlextResult[object]:
+    def execute(self) -> FlextResult[FlextCliTypes.Data.CliCommandResult]:
         """Execute Click abstraction layer operations.
 
         Returns:
-            FlextResult[object]: Success with CLI status or failure with error
+            FlextResult[CliCommandResult]: Success with CLI status or failure with error
 
         """
-        return FlextResult[object].ok({
+        return FlextResult[FlextCliTypes.Data.CliCommandResult].ok({
             FlextCliConstants.DictKeys.SERVICE: FlextCliConstants.FLEXT_CLI,
             FlextCliConstants.DictKeys.STATUS: FlextCliConstants.ServiceStatus.OPERATIONAL.value,
         })
