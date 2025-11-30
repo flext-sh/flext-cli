@@ -13,18 +13,23 @@ from __future__ import annotations
 import os
 import sys
 import types
-from collections.abc import Mapping, Sequence
+from collections.abc import Callable, Iterable, Mapping, Sequence
+from enum import StrEnum
+from functools import cache, wraps
 from pathlib import Path
-from typing import Union, cast, get_args, get_origin
+from typing import Annotated, TypeIs, Union, cast, get_args, get_origin, get_type_hints
 
 from flext_core import FlextResult, FlextTypes, FlextUtilities
+from pydantic import BeforeValidator, ConfigDict, ValidationError, validate_call
 
 from flext_cli.constants import FlextCliConstants
-from flext_cli.models import FlextCliModels
 from flext_cli.typings import FlextCliTypes
 
+# Type aliases for complex callable types
+type TypingCallable[P, R] = Callable[..., R]
 
-class FlextCliUtilities:
+
+class FlextCliUtilities(FlextUtilities):
     """FLEXT CLI Utilities - Centralized helpers eliminating code duplication.
 
     **PURPOSE**: Single source of truth for CLI utility operations.
@@ -57,8 +62,8 @@ class FlextCliUtilities:
     # BASE UTILITIES - Direct delegation to flext-core FlextUtilities
     # =========================================================================
     # All data mapping operations delegate directly to FlextUtilities.DataMapper
-    # CliJsonValue and GeneralValueType are structurally compatible JSON types
-    # Simple helpers provide type casting from GeneralValueType to CliJsonValue
+    # CliJsonValue and ParameterValueType are structurally compatible JSON types
+    # Simple helpers provide type casting from ParameterValueType to CliJsonValue
     # =========================================================================
 
     class DataMapper:
@@ -70,7 +75,7 @@ class FlextCliUtilities:
 
         @staticmethod
         def convert_to_json_value(
-            value: FlextTypes.GeneralValueType,
+            value: FlextTypes.ParameterValueType,
         ) -> FlextCliTypes.CliJsonValue:
             """Convert value to CliJsonValue using flext-core DataMapper.
 
@@ -81,7 +86,7 @@ class FlextCliUtilities:
                 FlextCliTypes.CliJsonValue: CLI-compatible JSON value
 
             """
-            # Use flext-core directly - GeneralValueType and CliJsonValue are structurally identical
+            # Use flext-core directly - FlextTypes.GeneralValueType and CliJsonValue are structurally identical
             return cast(
                 "FlextCliTypes.CliJsonValue",
                 FlextUtilities.DataMapper.convert_to_json_value(value),
@@ -89,7 +94,7 @@ class FlextCliUtilities:
 
         @staticmethod
         def convert_dict_to_json(
-            data: Mapping[str, FlextTypes.GeneralValueType],
+            data: Mapping[str, FlextTypes.ParameterValueType],
         ) -> FlextCliTypes.CliJsonDict:
             """Convert mapping to CliJsonDict using flext-core DataMapper.
 
@@ -100,7 +105,7 @@ class FlextCliUtilities:
                 FlextCliTypes.CliJsonDict: Dictionary with CLI-compatible JSON values
 
             """
-            # Use flext-core directly - convert_dict_to_json returns dict[str, GeneralValueType]
+            # Use flext-core directly - convert_dict_to_json returns dict[str, FlextTypes.GeneralValueType]
             # which is structurally compatible with CliJsonDict
             result = FlextUtilities.DataMapper.convert_dict_to_json(dict(data))
             # Cast to CliJsonDict - types are structurally compatible
@@ -108,8 +113,8 @@ class FlextCliUtilities:
 
         @staticmethod
         def convert_list_to_json(
-            data: list[FlextTypes.GeneralValueType]
-            | Sequence[FlextTypes.GeneralValueType],
+            data: list[FlextTypes.ParameterValueType]
+            | Sequence[FlextTypes.ParameterValueType],
         ) -> list[FlextCliTypes.CliJsonDict]:
             """Convert list to list of CliJsonDict using flext-core DataMapper.
 
@@ -121,7 +126,7 @@ class FlextCliUtilities:
 
             """
             # Use flext-core directly - convert_list_to_json expects list[object]
-            data_list: list[FlextTypes.GeneralValueType] = (
+            data_list: list[FlextTypes.ParameterValueType] = (
                 list(data) if isinstance(data, Sequence) else [data]
             )
             result = FlextUtilities.DataMapper.convert_list_to_json(
@@ -144,15 +149,15 @@ class FlextCliUtilities:
             """Convert any value to CliJsonValue with proper type narrowing.
 
             Args:
-                value: Any value to convert
+                value: Object value to convert
 
             Returns:
                 FlextCliTypes.CliJsonValue: Properly typed JSON-compatible value
 
             """
-            # Convert object to GeneralValueType first, then to CliJsonValue
+            # Convert object to FlextTypes.GeneralValueType first, then to CliJsonValue
             general_value = FlextUtilities.DataMapper.convert_to_json_value(
-                cast("FlextTypes.GeneralValueType", value)
+                cast("FlextTypes.ParameterValueType", value)
             )
             return cast("FlextCliTypes.CliJsonValue", general_value)
 
@@ -171,7 +176,7 @@ class FlextCliUtilities:
             """
             # Use flext-core DataMapper directly
             result = FlextUtilities.DataMapper.convert_dict_to_json(
-                cast("dict[str, FlextTypes.GeneralValueType]", dict(data))
+                cast("dict[str, FlextTypes.ParameterValueType]", dict(data))
             )
             return cast("FlextCliTypes.CliJsonDict", result)
 
@@ -208,7 +213,7 @@ class FlextCliUtilities:
 
         @staticmethod
         def validate_field_not_empty(
-            field_value: FlextTypes.GeneralValueType | None,
+            field_value: FlextTypes.ParameterValueType | None,
             field_display_name: str,
         ) -> FlextResult[bool]:
             """Validate that a field is not empty.
@@ -814,14 +819,496 @@ class FlextCliUtilities:
 
             return result_type
 
+        # ═══════════════════════════════════════════════════════════════════
+        # NESTED CLASS: Enum Utilities
+        # ═══════════════════════════════════════════════════════════════════
 
-# Aliases for utilities - moved from models for better organization
-CliModelConverter = FlextCliModels.CliModelConverter
-CliModelDecorators = FlextCliModels.CliModelDecorators
+        class Enum:
+            """Utilities para trabalhar com StrEnum de forma type-safe.
+
+            FILOSOFIA:
+            ──────────
+            - TypeIs para narrowing que funciona em if/else
+            - Métodos genéricos que aceitam QUALQUER StrEnum
+            - Caching para performance em validações frequentes
+            - Integração direta com Pydantic BeforeValidator
+            """
+
+            # ─────────────────────────────────────────────────────────────
+            # TYPEIS FACTORIES: Gera funções TypeIs para qualquer StrEnum
+            # ─────────────────────────────────────────────────────────────
+
+            @staticmethod
+            def is_member[E: StrEnum](enum_cls: type[E], value: object) -> TypeIs[E]:
+                """TypeIs genérico para qualquer StrEnum.
+
+                VANTAGEM sobre TypeGuard:
+                - Narrowing funciona em AMBAS branches (if/else)
+                - Type checker entende que no 'else' NÃO é E
+
+                Exemplo:
+                    if FlextCliUtilities.Enum.is_member(Status, value):
+                        # value: Status
+                        process_status(value)
+                    else:
+                        # value: str (narrowed corretamente!)
+                        handle_invalid(value)
+                """
+                if isinstance(value, enum_cls):
+                    return True
+                if isinstance(value, str):
+                    return value in enum_cls._value2member_map_
+                return False
+
+            @staticmethod
+            def is_subset[E: StrEnum](
+                enum_cls: type[E],
+                valid_members: frozenset[E],
+                value: object,
+            ) -> TypeIs[E]:
+                """TypeIs para subset de um StrEnum.
+
+                Exemplo:
+                    ACTIVE_STATES = frozenset({Status.ACTIVE, Status.PENDING})
+
+                    if FlextCliUtilities.Enum.is_subset(Status, ACTIVE_STATES, value):
+                        # value: Status (e sabemos que é ACTIVE ou PENDING)
+                        process_active(value)
+                """
+                if isinstance(value, enum_cls) and value in valid_members:
+                    return True
+                if isinstance(value, str):
+                    try:
+                        member = enum_cls(value)
+                        return member in valid_members
+                    except ValueError:
+                        return False
+                return False
+
+            # ─────────────────────────────────────────────────────────────
+            # CONVERSÃO: String → StrEnum (type-safe)
+            # ─────────────────────────────────────────────────────────────
+
+            @staticmethod
+            def parse[E: StrEnum](enum_cls: type[E], value: str | E) -> FlextResult[E]:
+                """Converte string para StrEnum com FlextResult.
+
+                Exemplo:
+                    result = FlextCliUtilities.Enum.parse(Status, "active")
+                    if result.is_success:
+                        status: Status = result.value
+                """
+                if isinstance(value, enum_cls):
+                    return FlextResult.ok(value)
+                try:
+                    return FlextResult.ok(enum_cls(value))
+                except ValueError:
+                    valid = ", ".join(m.value for m in enum_cls)
+                    return FlextResult.fail(
+                        f"Invalid {enum_cls.__name__}: '{value}'. Valid: {valid}"
+                    )
+
+            @staticmethod
+            def parse_or_default[E: StrEnum](
+                enum_cls: type[E],
+                value: str | E | None,
+                default: E,
+            ) -> E:
+                """Converte com fallback para default (nunca falha).
+
+                Exemplo:
+                    status = FlextCliUtilities.Enum.parse_or_default(
+                        Status, user_input, Status.PENDING
+                    )
+                """
+                if value is None:
+                    return default
+                if isinstance(value, enum_cls):
+                    return value
+                try:
+                    return enum_cls(value)
+                except ValueError:
+                    return default
+
+            # ─────────────────────────────────────────────────────────────
+            # PYDANTIC VALIDATORS: BeforeValidator factories
+            # ─────────────────────────────────────────────────────────────
+
+            @staticmethod
+            def coerce_validator[E: StrEnum](
+                enum_cls: type[E],
+            ) -> type:  # Actually returns a callable, but type hints are complex
+                """Cria BeforeValidator para coerção automática no Pydantic.
+
+                PADRÃO RECOMENDADO para campos Pydantic:
+
+                Exemplo:
+                    from pydantic import BaseModel
+                    from typing import Annotated
+
+                    # Cria o tipo anotado uma vez
+                    CoercedStatus = Annotated[
+                        Status,
+                        BeforeValidator(FlextCliUtilities.Enum.coerce_validator(Status))
+                    ]
+
+                    class MyModel(BaseModel):
+                        status: CoercedStatus  # Aceita "active" ou Status.ACTIVE
+                """
+
+                def _coerce(value: object) -> E:
+                    if isinstance(value, enum_cls):
+                        return value
+                    if isinstance(value, str):
+                        try:
+                            return enum_cls(value)
+                        except ValueError:
+                            pass
+                    msg = f"Invalid {enum_cls.__name__}: {value!r}"
+                    raise ValueError(msg)
+
+                return _coerce
+
+            @staticmethod
+            def coerce_by_name_validator[E: StrEnum](
+                enum_cls: type[E],
+            ) -> type:
+                """BeforeValidator que aceita nome OU valor do enum.
+
+                Aceita:
+                    - "ACTIVE" (nome do membro)
+                    - "active" (valor do membro)
+                    - Status.ACTIVE (membro direto)
+
+                Exemplo:
+                    StatusByName = Annotated[
+                        Status,
+                        BeforeValidator(FlextCliUtilities.Enum.coerce_by_name_validator(Status))
+                    ]
+                """
+
+                def _coerce(value: object) -> E:
+                    if isinstance(value, enum_cls):
+                        return value
+                    if isinstance(value, str):
+                        # Tenta por nome primeiro
+                        if value in enum_cls.__members__:
+                            return enum_cls[value]
+                        # Depois por valor
+                        try:
+                            return enum_cls(value)
+                        except ValueError:
+                            pass
+                    msg = f"Invalid {enum_cls.__name__}: {value!r}"
+                    raise ValueError(msg)
+
+                return _coerce
+
+            # ─────────────────────────────────────────────────────────────
+            # METADATA: Informações sobre StrEnums
+            # ─────────────────────────────────────────────────────────────
+
+            @staticmethod
+            @cache
+            def values[E: StrEnum](enum_cls: type[E]) -> frozenset[str]:
+                """Retorna frozenset dos valores (cached para performance)."""
+                return frozenset(m.value for m in enum_cls)
+
+            @staticmethod
+            @cache
+            def names[E: StrEnum](enum_cls: type[E]) -> frozenset[str]:
+                """Retorna frozenset dos nomes dos membros (cached)."""
+                return frozenset(enum_cls.__members__.keys())
+
+            @staticmethod
+            @cache
+            def members[E: StrEnum](enum_cls: type[E]) -> frozenset[E]:
+                """Retorna frozenset dos membros (cached)."""
+                return frozenset(enum_cls)
+
+        # ═══════════════════════════════════════════════════════════════════
+        # NESTED CLASS: Collection Utilities
+        # ═══════════════════════════════════════════════════════════════════
+
+        class Collection:
+            """Utilities para conversão de coleções com StrEnums.
+
+            PADRÕES collections.abc:
+            ────────────────────────
+            - Sequence[E] para listas imutáveis
+            - Mapping[str, E] para dicts imutáveis
+            - Iterable[E] para qualquer iterável
+            """
+
+            # ─────────────────────────────────────────────────────────────
+            # LIST CONVERSIONS
+            # ─────────────────────────────────────────────────────────────
+
+            @staticmethod
+            def parse_sequence[E: StrEnum](
+                enum_cls: type[E],
+                values: Iterable[str | E],
+            ) -> FlextResult[tuple[E, ...]]:
+                """Converte sequência de strings para tuple de StrEnum.
+
+                Exemplo:
+                    result = FlextCliUtilities.Collection.parse_sequence(
+                        Status, ["active", "pending"]
+                    )
+                    if result.is_success:
+                        statuses: tuple[Status, ...] = result.value
+                """
+                parsed: list[E] = []
+                errors: list[str] = []
+
+                for idx, val in enumerate(values):
+                    if isinstance(val, enum_cls):
+                        parsed.append(val)
+                    else:
+                        try:
+                            parsed.append(enum_cls(val))
+                        except ValueError:
+                            errors.append(f"[{idx}]: '{val}'")
+
+                if errors:
+                    return FlextResult.fail(
+                        f"Invalid {enum_cls.__name__} values: {', '.join(errors)}"
+                    )
+                return FlextResult.ok(tuple(parsed))
+
+            @staticmethod
+            def coerce_list_validator[E: StrEnum](
+                enum_cls: type[E],
+            ) -> type:
+                """BeforeValidator para lista de StrEnums.
+
+                Exemplo:
+                    StatusList = Annotated[
+                        list[Status],
+                        BeforeValidator(FlextCliUtilities.Collection.coerce_list_validator(Status))
+                    ]
+
+                    class MyModel(BaseModel):
+                        statuses: StatusList  # Aceita ["active", "pending"]
+                """
+
+                def _coerce(value: object) -> list[E]:
+                    if not isinstance(value, (list, tuple, set, frozenset)):
+                        msg = f"Expected sequence, got {type(value).__name__}"
+                        raise TypeError(msg)
+
+                    result: list[E] = []
+                    for idx, item in enumerate(value):
+                        if isinstance(item, enum_cls):
+                            result.append(item)
+                        elif isinstance(item, str):
+                            try:
+                                result.append(enum_cls(item))
+                            except ValueError as err:
+                                msg = (
+                                    f"Invalid {enum_cls.__name__} at [{idx}]: {item!r}"
+                                )
+                                raise ValueError(msg) from err
+                        else:
+                            msg = f"Expected str at [{idx}], got {type(item).__name__}"
+                            raise TypeError(msg)
+                    return result
+
+                return _coerce
+
+            # ─────────────────────────────────────────────────────────────
+            # DICT CONVERSIONS
+            # ─────────────────────────────────────────────────────────────
+
+            @staticmethod
+            def parse_mapping[E: StrEnum](
+                enum_cls: type[E],
+                mapping: Mapping[str, str | E],
+            ) -> FlextResult[dict[str, E]]:
+                """Converte Mapping com valores string para dict com StrEnum.
+
+                Exemplo:
+                    result = FlextCliUtilities.Collection.parse_mapping(
+                        Status, {"user1": "active", "user2": "pending"}
+                    )
+                """
+                parsed: dict[str, E] = {}
+                errors: list[str] = []
+
+                for key, val in mapping.items():
+                    if isinstance(val, enum_cls):
+                        parsed[key] = val
+                    else:
+                        try:
+                            parsed[key] = enum_cls(val)
+                        except ValueError:
+                            errors.append(f"'{key}': '{val}'")
+
+                if errors:
+                    return FlextResult.fail(
+                        f"Invalid {enum_cls.__name__} values: {', '.join(errors)}"
+                    )
+                return FlextResult.ok(parsed)
+
+            @staticmethod
+            def coerce_dict_validator[E: StrEnum](
+                enum_cls: type[E],
+            ) -> type:
+                """BeforeValidator para dict com valores StrEnum.
+
+                Exemplo:
+                    StatusDict = Annotated[
+                        dict[str, Status],
+                        BeforeValidator(FlextCliUtilities.Collection.coerce_dict_validator(Status))
+                    ]
+                """
+
+                def _coerce(value: object) -> dict[str, E]:
+                    if not isinstance(value, dict):
+                        msg = f"Expected dict, got {type(value).__name__}"
+                        raise TypeError(msg)
+
+                    result: dict[str, E] = {}
+                    for key, val in value.items():
+                        if isinstance(val, enum_cls):
+                            result[key] = val
+                        elif isinstance(val, str):
+                            try:
+                                result[key] = enum_cls(val)
+                            except ValueError as err:
+                                msg = f"Invalid {enum_cls.__name__} at '{key}': {val!r}"
+                                raise ValueError(msg) from err
+                        else:
+                            msg = f"Expected str at '{key}', got {type(val).__name__}"
+                            raise TypeError(msg)
+                    return result
+
+                return _coerce
+
+        # ═══════════════════════════════════════════════════════════════════
+        # NESTED CLASS: Args Utilities
+        # ═══════════════════════════════════════════════════════════════════
+
+        class Args:
+            """@validated, parse_kwargs - ZERO boilerplate de validação."""
+
+            @staticmethod
+            def validated[P, R](func: type) -> type:  # Actually returns a callable
+                """Decorator com validate_call - aceita str OU enum, converte auto."""
+                return validate_call(
+                    config=ConfigDict(
+                        arbitrary_types_allowed=True, use_enum_values=False
+                    ),
+                    validate_return=False,
+                )(func)
+
+            @staticmethod
+            def validated_with_result[P, R](func: type) -> type:
+                """ValidationError → FlextResult.fail()."""
+
+                @wraps(func)
+                def wrapper(*args: P.args, **kwargs: P.kwargs) -> FlextResult[R]:
+                    try:
+                        return validate_call(
+                            config=ConfigDict(arbitrary_types_allowed=True),
+                            validate_return=False,
+                        )(func)(*args, **kwargs)
+                    except ValidationError as e:
+                        return FlextResult.fail(str(e))
+
+                return wrapper
+
+            @staticmethod
+            def parse_kwargs[E: StrEnum](
+                kwargs: Mapping[str, object], enum_fields: Mapping[str, type[E]]
+            ) -> FlextResult[dict[str, object]]:
+                """Parse kwargs converting string enum values to enum instances."""
+                parsed, errors = dict(kwargs), []
+                for field, enum_cls in enum_fields.items():
+                    if field in parsed and isinstance(parsed[field], str):
+                        try:
+                            parsed[field] = enum_cls(parsed[field])
+                        except ValueError:
+                            errors.append(f"{field}: '{parsed[field]}'")
+                return (
+                    FlextResult.fail(f"Invalid: {errors}")
+                    if errors
+                    else FlextResult.ok(parsed)
+                )
+
+            @staticmethod
+            def get_enum_params(func: type) -> dict[str, type[StrEnum]]:
+                """Extrai parâmetros StrEnum da signature."""
+                try:
+                    hints = get_type_hints(func)
+                    return {
+                        n: h
+                        for n, h in hints.items()
+                        if n != "return"
+                        and isinstance(h, type)
+                        and issubclass(h, StrEnum)
+                    }
+                except Exception:
+                    return {}
+
+        # ═══════════════════════════════════════════════════════════════════
+        # NESTED CLASS: Model Utilities
+        # ═══════════════════════════════════════════════════════════════════
+
+        class Model:
+            """from_dict, merge_defaults, update - ZERO try/except."""
+
+            @staticmethod
+            def from_dict[M](
+                model_cls: type[M], data: Mapping[str, object], *, strict: bool = False
+            ) -> FlextResult[M]:
+                """Create model from dict with FlextResult."""
+                try:
+                    return FlextResult.ok(model_cls.model_validate(data, strict=strict))
+                except Exception as e:
+                    return FlextResult.fail(f"Validation failed: {e}")
+
+            @staticmethod
+            def merge_defaults[M](
+                model_cls: type[M],
+                defaults: Mapping[str, object],
+                overrides: Mapping[str, object],
+            ) -> FlextResult[M]:
+                """Merge defaults with overrides and create model."""
+                return FlextCliUtilities.Model.from_dict(
+                    model_cls, {**defaults, **overrides}
+                )
+
+            @staticmethod
+            def update[M](instance: M, **updates: object) -> FlextResult[M]:
+                """Update model with new values."""
+                try:
+                    current = instance.model_dump()
+                    current.update(updates)
+                    return FlextResult.ok(type(instance).model_validate(current))
+                except Exception as e:
+                    return FlextResult.fail(f"Update failed: {e}")
+
+        # ═══════════════════════════════════════════════════════════════════
+        # NESTED CLASS: Pydantic Type Factories
+        # ═══════════════════════════════════════════════════════════════════
+
+        class Pydantic:
+            """Fábricas de Annotated types."""
+
+            @staticmethod
+            def coerced_enum[E: StrEnum](enum_cls: type[E]) -> type:
+                """Retorna tipo Annotated para StrEnum com coerção."""
+                return Annotated[
+                    enum_cls,
+                    BeforeValidator(FlextCliUtilities.Enum.coerce_validator(enum_cls)),
+                ]
+
+
+# Note: Aliases moved to avoid circular imports
+# Use FlextCliModels.CliModelConverter and FlextCliModels.CliModelDecorators directly
 
 
 __all__ = [
-    "CliModelConverter",
-    "CliModelDecorators",
     "FlextCliUtilities",
 ]

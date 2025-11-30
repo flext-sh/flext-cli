@@ -338,6 +338,18 @@ class FlextCliConstants(FlextConstants):
         DETAILED = "detailed"
         FULL = "full"
 
+    class ServerType(StrEnum):
+        """Server type enum.
+
+        Python 3.13+ StrEnum provides string-like behavior with enum validation.
+        """
+
+        OUD = "oud"
+        OID = "oid"
+        RFC = "rfc"
+        AD = "ad"
+        OPENLDAP = "openldap"
+
     class EntityType(StrEnum):
         """CLI entity type enum.
 
@@ -2481,6 +2493,46 @@ class FlextCliConstants(FlextConstants):
             "/var/log/flext-cli.log",
             "~/.flext/cli.log",
         ]
+
+    class Defaults:
+        """Default values for CLI operations."""
+
+        # Basic defaults
+        DEFAULT_PROFILE: Final[str] = "default"
+        DEFAULT_APP_NAME: Final[str] = "flext-cli"
+        DEFAULT_APP_DESCRIPTION_SUFFIX: Final[str] = " - FLEXT CLI Framework"
+        DEFAULT_TIMEOUT: Final[int] = 30
+        DEFAULT_LOG_LEVEL: Final[str] = "INFO"
+        DEFAULT_VERSION: Final[str] = "2.0.0"
+
+        # UI defaults
+        DEFAULT_NO_COLOR: Final[bool] = False
+        DEFAULT_AUTO_REFRESH: Final[bool] = True
+        DEFAULT_VERBOSE: Final[bool] = False
+        DEFAULT_DEBUG: Final[bool] = False
+        DEFAULT_QUIET: Final[bool] = False
+        DEFAULT_INTERACTIVE: Final[bool] = True
+        DEFAULT_MAX_WIDTH: Final[int] = 120
+        DEFAULT_ENVIRONMENT: Final[str] = "development"
+        DEFAULT_CLI_LOG_LEVEL: Final[str] = "INFO"
+        DEFAULT_LOG_VERBOSITY: Final[str] = "detailed"
+        DEFAULT_CLI_LOG_VERBOSITY: Final[str] = "detailed"
+
+    class Lists:
+        """List constants."""
+
+        LOG_LEVELS_LIST: Final[list[str]] = [
+            "DEBUG",
+            "INFO",
+            "WARNING",
+            "ERROR",
+            "CRITICAL",
+        ]
+
+    class CliParamsErrorMessages:
+        """CLI parameters error messages."""
+
+        INVALID_LOG_FORMAT: Final[str] = "Invalid log format: {}"
 
 
 __all__ = [

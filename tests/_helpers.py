@@ -29,7 +29,6 @@ from flext_cli import (
     FlextCliContext,
     FlextCliModels,
     FlextCliTables,
-    FlextCliTypes,
 )
 from flext_cli.typings import FlextCliTypes
 

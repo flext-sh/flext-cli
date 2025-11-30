@@ -370,7 +370,7 @@ class TestFlextCliCore:
 
             # Assign ErrorDict directly - the exception will be raised when register_command tries to set the command
             error_dict = ErrorDict()
-            core_service._commands = error_dict  # type: ignore[assignment]
+            core_service._commands = error_dict
 
             result = core_service.register_command(cmd)
             assert result.is_failure

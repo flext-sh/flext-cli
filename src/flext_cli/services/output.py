@@ -189,7 +189,7 @@ class FlextCliOutput(FlextCliServiceBase):
         """Format data as table with type validation."""
         if FlextRuntime.is_dict_like(data):
             # Type narrowing: CliJsonValue dict -> Mapping[str, FlextTypes.GeneralValueType]
-            # CliJsonValue is compatible with GeneralValueType at runtime
+            # CliJsonValue is compatible with FlextTypes.GeneralValueType at runtime
             data_dict: dict[str, FlextTypes.GeneralValueType] = cast(
                 "dict[str, FlextTypes.GeneralValueType]", dict(data)
             )
@@ -209,7 +209,7 @@ class FlextCliOutput(FlextCliServiceBase):
                     FlextCliConstants.ErrorMessages.TABLE_FORMAT_REQUIRED_DICT
                 )
             # Type narrowing: CliJsonValue list -> list[FlextTypes.GeneralValueType]
-            # CliJsonValue is compatible with GeneralValueType at runtime
+            # CliJsonValue is compatible with FlextTypes.GeneralValueType at runtime
             data_list: list[FlextTypes.GeneralValueType] = cast(
                 "list[FlextTypes.GeneralValueType]", list(data)
             )
@@ -450,13 +450,13 @@ class FlextCliOutput(FlextCliServiceBase):
         json_dict: dict[str, FlextTypes.GeneralValueType] = {}
         for key, value in raw_dict.items():
             json_value = FlextCliUtilities.DataMapper.convert_to_json_value(value)
-            # json_value is GeneralValueType from convert_to_json_value
+            # json_value is FlextTypes.GeneralValueType from convert_to_json_value
             json_dict[key] = cast("FlextTypes.GeneralValueType", json_value)
         # Convert dict[str, object] to CliJsonDict (dict[str, FlextCliTypes.CliJsonValue])
         cli_json_dict: dict[str, FlextCliTypes.CliJsonValue] = {}
         for key, value in json_dict.items():
-            # value is GeneralValueType from convert_to_json_value, cast to CliJsonValue
-            # GeneralValueType is compatible with CliJsonValue at runtime
+            # value is FlextTypes.GeneralValueType from convert_to_json_value, cast to CliJsonValue
+            # FlextTypes.GeneralValueType is compatible with CliJsonValue at runtime
             if isinstance(value, (str, int, float, bool, dict, list, type(None))):
                 cli_json_dict[key] = cast("FlextCliTypes.CliJsonValue", value)
             else:

@@ -43,7 +43,7 @@ from flext_cli.utilities import FlextCliUtilities
 # Type alias for command functions to avoid Callable[..., T]
 CliCommandFunc = FlextCliProtocols.Cli.CliCommandFunction
 # Type alias for model-based command handlers (used by model_command)
-ModelCommandFunc = FlextCliProtocols.Cli.ModelCommandHandler
+ModelCommandFunc = FlextCliProtocols.Cli.CliHandlerProtocol
 
 
 class FlextCliCli:
