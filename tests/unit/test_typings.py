@@ -34,7 +34,7 @@ import pytest
 from flext_core import FlextResult
 from flext_tests import FlextTestsMatchers
 
-from flext_cli import FlextCliTypes
+from flext_cli import FlextCliConstants, FlextCliTypes
 
 from ..fixtures.constants import TestTypings
 from ..helpers import FlextCliTestHelpers
@@ -236,8 +236,6 @@ class TestFlextCliTypings:
         FlextTestsMatchers.assert_success(format_result)
 
         # Test real data operations (type narrowing for test validation)
-        from flext_cli.constants import FlextCliConstants
-
         assert (
             config_dict["output_format"] == FlextCliConstants.OutputFormats.JSON.value
         )

@@ -20,7 +20,7 @@ from typing import Any, cast
 import pytest
 import yaml
 from click.testing import CliRunner
-from flext_core import FlextConfig, FlextUtilities
+from flext_core import FlextConfig, FlextContainer, FlextUtilities
 from flext_tests.docker import FlextTestDocker
 from pydantic import TypeAdapter
 
@@ -632,8 +632,6 @@ def reset_singletons() -> Generator[None]:
 @pytest.fixture
 def clean_flext_container() -> Generator[None]:
     """Ensure clean FlextContainer state for tests."""
-    from flext_core import FlextContainer
-
     # Get or create container instance (singleton pattern)
     container = FlextContainer()
 

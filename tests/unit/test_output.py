@@ -25,7 +25,7 @@ from flext_core import FlextResult, FlextTypes
 from flext_tests import FlextTestsUtilities
 from pydantic import BaseModel
 
-from flext_cli import FlextCliConstants, FlextCliOutput, FlextCliTypes
+from flext_cli import FlextCliConstants, FlextCliOutput
 from flext_cli.typings import FlextCliTypes
 
 T = TypeVar("T")

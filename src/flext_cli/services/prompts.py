@@ -1087,7 +1087,7 @@ class FlextCliPrompts(FlextCliServiceBase):
     def print_status(
         self,
         message: str,
-        status: str = FlextCliConstants.MessageTypes.INFO.value,
+        status: str = FlextCliConstants.Domain.MessageTypes.INFO.value,
     ) -> FlextResult[bool]:
         """Print status message.
 

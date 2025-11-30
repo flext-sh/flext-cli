@@ -14,15 +14,13 @@ from __future__ import annotations
 
 import sys
 from collections.abc import Callable
-from typing import TYPE_CHECKING, ClassVar
+from typing import ClassVar
 
 from flext_core import FlextConstants, FlextResult
 from typer.models import OptionInfo
 
+from flext_cli.config import FlextCliConfig
 from flext_cli.constants import FlextCliConstants
-
-if TYPE_CHECKING:
-    from flext_cli.config import FlextCliConfig
 from flext_cli.models import FlextCliModels
 from flext_cli.protocols import FlextCliProtocols
 from flext_cli.typings import FlextCliTypes
@@ -83,7 +81,7 @@ class FlextCliCommonParams:
         "cli_log_level": {
             _reg.KEY_SHORT: _reg.SHORT_FLAG_LOG_LEVEL,
             _reg.KEY_PRIORITY: _reg.PRIORITY_LOG_LEVEL,
-            _reg.KEY_CHOICES: FlextCliConstants.LOG_LEVELS_LIST,
+            _reg.KEY_CHOICES: FlextCliConstants.Lists.LOG_LEVELS_LIST,
             _reg.KEY_CASE_SENSITIVE: _reg.CASE_INSENSITIVE,
             _reg.KEY_FIELD_NAME_OVERRIDE: "log_level",  # CLI param name is --log-level, maps to cli_log_level field
         },

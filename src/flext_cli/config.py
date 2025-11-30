@@ -36,7 +36,7 @@ from pydantic import (
     computed_field,
     model_validator,
 )
-from pydantic_settings import BaseSettings, SettingsConfigDict
+from pydantic_settings import SettingsConfigDict
 
 from flext_cli.constants import FlextCliConstants
 from flext_cli.typings import FlextCliTypes
@@ -49,7 +49,7 @@ logger = FlextLogger(__name__)
 
 
 @FlextConfig.auto_register("cli")
-class FlextCliConfig(BaseSettings):
+class FlextCliConfig(FlextConfig):
     """Single flat Pydantic 2 BaseModel class for flext-cli using AutoConfig pattern.
 
     **ARCHITECTURAL PATTERN**: Zero-Boilerplate Auto-Registration
@@ -82,24 +82,14 @@ class FlextCliConfig(BaseSettings):
 
     # Use FlextConfig.resolve_env_file() to ensure all FLEXT configs use same .env
     model_config = SettingsConfigDict(
-        case_sensitive=False,
-        extra="allow",
-        # Pydantic Settings environment variable support
         env_prefix="FLEXT_CLI_",
-        env_file=FlextConfig.resolve_env_file(),
+        env_file=".env",
         env_file_encoding="utf-8",
-        env_nested_delimiter="__",
-        # Inherit enhanced Pydantic 2.11+ features
-        validate_assignment=True,
-        str_strip_whitespace=True,
-        validate_default=True,
-        frozen=False,
-        arbitrary_types_allowed=True,
-        # Allow type coercion from environment variables (required for bool, int, etc.)
-        strict=False,
+        extra="forbid",
+        use_enum_values=True,
         json_schema_extra={
-            FlextCliConstants.JsonSchemaKeys.TITLE: "FLEXT CLI Configuration",
-            FlextCliConstants.JsonSchemaKeys.DESCRIPTION: "Enterprise CLI configuration using AutoConfig pattern",
+            "title": "FLEXT CLI Configuration",
+            "description": "Enterprise CLI configuration using AutoConfig pattern",
         },
     )
 
@@ -115,7 +105,7 @@ class FlextCliConfig(BaseSettings):
     # Python 3.13+ best practice: Use Enum value for default consistency
     # Pydantic 2 accepts Enum values in Literal-typed fields
     output_format: FlextCliConstants.OutputFormatLiteral = Field(
-        default=FlextCliConstants.OutputFormats.TABLE.value,
+        default="table",
         description="Default output format for CLI commands",
     )
 
@@ -130,13 +120,13 @@ class FlextCliConfig(BaseSettings):
     )
 
     project_name: str = Field(
-        default=FlextCliConstants.PROJECT_NAME,
+        default="flext-cli",
         description="Project name for CLI operations",
     )
 
     # Authentication configuration using SecretStr for sensitive data
     api_url: str = Field(
-        default=FlextCliConstants.NetworkDefaults.DEFAULT_API_URL,
+        default="http://localhost:8080/api",
         description="API URL for remote operations",
     )
 
@@ -160,7 +150,7 @@ class FlextCliConfig(BaseSettings):
     )
 
     auto_refresh: bool = Field(
-        default=FlextCliConstants.ConfigDefaults.AUTO_REFRESH,
+        default=True,
         description="Automatically refresh authentication tokens",
     )
 
@@ -192,7 +182,7 @@ class FlextCliConfig(BaseSettings):
         description="Enable interactive mode",
     )
     environment: FlextCliConstants.EnvironmentLiteral = Field(
-        default=FlextCliConstants.Environment.DEVELOPMENT.value,  # Python 3.13+ best practice: Use Enum value
+        default=FlextCliConstants.Environment.DEVELOPMENT,  # Already a string constant
         description="Deployment environment",
     )
 
@@ -210,14 +200,14 @@ class FlextCliConfig(BaseSettings):
 
     # Network configuration
     cli_timeout: float = Field(
-        default=FlextCliConstants.NetworkDefaults.DEFAULT_TIMEOUT,
+        default=30,
         description="CLI network timeout in seconds",
         ge=0,
         le=300,
     )
 
     max_retries: int = Field(
-        default=FlextCliConstants.NetworkDefaults.DEFAULT_MAX_RETRIES,
+        default=3,
         description="Maximum number of retry attempts",
         ge=0,
         le=10,
@@ -225,7 +215,7 @@ class FlextCliConfig(BaseSettings):
 
     # Logging configuration - centralized for all FLEXT projects
     log_verbosity: str = Field(  # Must match FlextConfig.log_verbosity type
-        default=FlextCliConstants.LogVerbosity.DETAILED.value,  # Python 3.13+ best practice: Use Enum value
+        default=FlextCliConstants.LogVerbosity.DETAILED,  # Python 3.13+ best practice: Use Enum value
         description="Logging verbosity (compact, detailed, full)",
     )
 
@@ -235,7 +225,7 @@ class FlextCliConfig(BaseSettings):
     )
 
     cli_log_verbosity: FlextCliConstants.LogVerbosityLiteral = Field(
-        default=FlextCliConstants.LogVerbosity.DETAILED.value,  # Python 3.13+ best practice: Use Enum value
+        default=FlextCliConstants.LogVerbosity.DETAILED,  # Python 3.13+ best practice: Use Enum value
         description="CLI-specific logging verbosity",
     )
 
@@ -336,18 +326,18 @@ class FlextCliConfig(BaseSettings):
             """Determine optimal format based on capabilities."""
             # Non-interactive always uses JSON
             if not is_interactive:
-                return FlextCliConstants.OutputFormats.JSON.value
+                return FlextCliConstants.OutputFormats.JSON
 
             # Narrow terminals use plain format
             if width < FlextCliConstants.TERMINAL_WIDTH_NARROW:
-                return FlextCliConstants.OutputFormats.PLAIN.value
+                return FlextCliConstants.OutputFormats.PLAIN
 
             # Color terminals use table format
             if has_color:
-                return FlextCliConstants.OutputFormats.TABLE.value
+                return FlextCliConstants.OutputFormats.TABLE
 
             # Default to JSON for non-color interactive terminals
-            return FlextCliConstants.OutputFormats.JSON.value
+            return FlextCliConstants.OutputFormats.JSON
 
         # Railway pattern: detect capabilities then determine format
         result = (

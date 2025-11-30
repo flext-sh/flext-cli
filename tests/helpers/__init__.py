@@ -13,6 +13,7 @@ from __future__ import annotations
 import re
 from typing import Final, TypeAlias, TypeVar
 
+import click
 from flext_core import FlextResult
 from pydantic import BaseModel, Field
 from pydantic.fields import FieldInfo
@@ -596,7 +597,6 @@ class FlextCliTestHelpers:
 
             """
             try:
-                import click
 
                 @click.command(name=command_name)
                 def test_cmd() -> None:
@@ -619,7 +619,6 @@ class FlextCliTestHelpers:
 
             """
             try:
-                import click
 
                 @click.group(name=group_name)
                 def test_grp() -> None:
@@ -646,7 +645,6 @@ class FlextCliTestHelpers:
 
             """
             try:
-                import click
 
                 @click.command(name=command_name)
                 @click.option(option_name, default=default)

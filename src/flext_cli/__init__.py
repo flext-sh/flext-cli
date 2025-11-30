@@ -185,11 +185,9 @@ from flext_cli.typings import FlextCliTypes
 from flext_cli.utilities import FlextCliUtilities
 
 # Re-export for convenience
-ConfigServiceExecutionResult = FlextCliModels.ConfigServiceExecutionResult
+ServiceExecutionResult = FlextCliModels.ServiceExecutionResult
 
 __all__ = [
-    # Core API (alphabetically sorted per FLEXT standards)
-    "ConfigServiceExecutionResult",
     "FlextCli",
     "FlextCliAppBase",
     "FlextCliCli",
@@ -212,7 +210,8 @@ __all__ = [
     "FlextCliTables",
     "FlextCliTypes",
     "FlextCliUtilities",
-    # Version
+    "ServiceExecutionResult",
+    # Core API (alphabetically sorted per FLEXT standards)
     "__version__",
     "__version_info__",
 ]
