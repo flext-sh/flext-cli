@@ -37,9 +37,8 @@ import platform
 import shutil
 import tempfile
 from pathlib import Path
-from typing import cast
 
-from flext_core import FlextResult, FlextTypes
+from flext_core import FlextResult, FlextTypes, FlextUtilities
 
 from flext_cli import (
     FlextCli,
@@ -272,8 +271,9 @@ def validate_and_import_data(input_file: Path) -> FlextCliTypes.Data.CliDataDict
         cli.print("❌ Data is not a dictionary", style="bold red")
         return None
 
-    # Cast to expected type for validation function
-    validated = validate_structure(cast("FlextTypes.JsonDict", data))
+    # Convert to JsonDict-compatible dict using FlextUtilities
+    json_data: FlextTypes.JsonDict = FlextUtilities.DataMapper.convert_dict_to_json(data)
+    validated = validate_structure(json_data)
 
     if validated.is_failure:
         cli.print(f"❌ Validation failed: {validated.error}", style="bold red")
@@ -383,9 +383,9 @@ def import_from_csv(input_file: Path) -> list[dict[str, str]] | None:
         sample_rows: list[dict[str, str]] = rows[:5]
         # Create table config for grid format
         config = FlextCliModels.TableConfig(table_format="grid")
-        table_result = tables.create_table(
-            cast("FlextCliTypes.Data.TabularData", sample_rows), config=config
-        )
+        # Convert to JsonDict-compatible format using FlextUtilities
+        tabular_data: FlextCliTypes.Data.TabularData = FlextUtilities.DataMapper.convert_list_to_json(sample_rows)
+        table_result = tables.create_table(tabular_data, config=config)
         if table_result.is_success:
             cli.print("\n📋 Sample Data:", style="yellow")
 
@@ -467,7 +467,8 @@ def load_config_auto_detect(config_file: Path) -> dict[str, object] | None:
 
     # Display loaded data
     if isinstance(data, dict):
-        display_data = cast("FlextCliTypes.Data.CliDataDict", data)
+        # Convert to JsonDict-compatible dict using FlextUtilities
+        display_data: FlextCliTypes.Data.CliDataDict = FlextUtilities.DataMapper.convert_dict_to_json(data)
         table_result = cli.create_table(
             data=display_data,
             headers=["Key", "Value"],

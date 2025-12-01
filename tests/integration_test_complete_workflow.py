@@ -31,9 +31,11 @@ from flext_cli import (
     FlextCliFileTools,
     FlextCliOutput,
     FlextCliTables,
-    FlextCliTypes,
 )
 
+
+from flext_cli.typings import FlextCliTypes
+from flext_core import FlextTypes
 
 class FlextCliIntegrationTestTypes(FlextCliTypes):
     """Integration test specific types following FLEXT standards.
@@ -540,7 +542,7 @@ class TestCompleteWorkflowIntegration:
 
         # Table Report (ASCII)
         table_result = tables.create_table(
-            cast("FlextCliTypes.Data.TabularData", sales_list)
+            cast("FlextTypes.JsonDict", sales_list)
         )
         if table_result.is_success:
             table_content = table_result.unwrap()

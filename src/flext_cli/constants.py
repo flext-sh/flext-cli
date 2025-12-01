@@ -17,11 +17,9 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
+from collections.abc import Mapping, Sequence
 from enum import StrEnum
-from typing import TYPE_CHECKING, ClassVar, Final, Literal
-
-if TYPE_CHECKING:
-    from collections.abc import Mapping, Sequence
+from typing import ClassVar, Final, Literal
 
 from flext_core import FlextConstants
 
@@ -189,48 +187,6 @@ class FlextCliConstants(FlextConstants):
             "cancelled",
         })
 
-    @classmethod
-    def validate_output_format(
-        cls,
-        value: str,
-    ) -> str | None:
-        """Validate and return OutputFormatLiteral or None if invalid.
-
-        Uses advanced runtime validation with Python 3.13+ collections.abc.
-        Prefer OutputFormats enum for better IDE support and validation.
-        Uses frozenset for O(1) membership testing (optimal performance).
-
-        Args:
-            value: String value to validate
-
-        Returns:
-            OutputFormatLiteral if valid, None if invalid
-
-        """
-        if value in cls.ValidationMappings.OUTPUT_FORMAT_SET:
-            return cls.ValidationMappings.OUTPUT_FORMAT_MAP.get(value)
-        return None
-
-    @classmethod
-    def validate_command_status(
-        cls,
-        value: str,
-    ) -> str | None:
-        """Validate and return CommandStatusLiteral or None if invalid.
-
-        Uses discriminated union validation pattern with frozenset lookup.
-        Composes with CommandStatus enum for comprehensive validation.
-
-        Args:
-            value: String value to validate
-
-        Returns:
-            CommandStatusLiteral if valid, None if invalid
-
-        """
-        if value in cls.ValidationMappings.COMMAND_STATUS_SET:
-            return cls.ValidationMappings.COMMAND_STATUS_MAP.get(value)
-        return None
 
     @classmethod
     def get_valid_output_formats(cls) -> Sequence[str]:
@@ -639,34 +595,6 @@ class FlextCliConstants(FlextConstants):
     # =====================================================================
     # ADVANCED ENUM VALIDATION - Python 3.13+ discriminated union patterns
     # =====================================================================
-
-    @classmethod
-    def validate_str_enum_value(
-        cls,
-        enum_class: type[StrEnum],
-        value: str,
-    ) -> StrEnum | None:
-        """Validate string value against StrEnum class.
-
-        Advanced validation using discriminated union pattern.
-        Uses enum._missing_ method for case-insensitive lookup.
-        Python 3.13+ best practice for enum validation.
-
-        CLI-specific helper that extends FlextConstants.validate_enum_value
-        with StrEnum-specific validation.
-
-        Args:
-            enum_class: StrEnum class to validate against
-            value: String value to validate
-
-        Returns:
-            Enum member if valid, None if invalid
-
-        """
-        try:
-            return enum_class(value)
-        except ValueError:
-            return None
 
     @classmethod
     def get_enum_values(cls, enum_class: type[StrEnum]) -> Sequence[str]:
@@ -2528,11 +2456,6 @@ class FlextCliConstants(FlextConstants):
             "ERROR",
             "CRITICAL",
         ]
-
-    class CliParamsErrorMessages:
-        """CLI parameters error messages."""
-
-        INVALID_LOG_FORMAT: Final[str] = "Invalid log format: {}"
 
 
 __all__ = [

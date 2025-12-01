@@ -32,9 +32,8 @@ from __future__ import annotations
 
 import os
 import time
-from typing import cast
 
-from flext_core import FlextResult
+from flext_core import FlextResult, FlextUtilities
 
 from flext_cli import FlextCli, FlextCliTypes
 
@@ -58,8 +57,8 @@ def handle_status_command() -> FlextResult[FlextCliTypes.Data.CliDataDict]:
     cli.formatters.print(f"   User: {status['user']}", style="cyan")
     cli.formatters.print(f"   Time: {status['timestamp']}", style="cyan")
 
-    # Cast to expected type (runtime type is compatible)
-    typed_status = cast("FlextCliTypes.Data.CliDataDict", status)
+    # Convert to JsonDict-compatible dict using FlextUtilities
+    typed_status: FlextCliTypes.Data.CliDataDict = FlextUtilities.DataMapper.convert_dict_to_json(status)
     return FlextResult[FlextCliTypes.Data.CliDataDict].ok(typed_status)
 
 
@@ -147,7 +146,11 @@ class InteractiveShell:
             # Call handler with args - type narrowing
             if callable(handler):
                 result = handler(*args) if args else handler()
-                return cast("FlextResult[object]", result)
+                # Type narrowing: ensure FlextResult
+                if isinstance(result, FlextResult):
+                    return result
+                # Wrap non-FlextResult in FlextResult
+                return FlextResult[object].ok(result)
             return FlextResult[object].fail("Handler is not callable")
         except Exception as e:
             return FlextResult[object].fail(f"Command error: {e}")

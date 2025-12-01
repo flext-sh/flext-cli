@@ -27,13 +27,11 @@ from __future__ import annotations
 import os
 import time
 from pathlib import Path
-from typing import cast
 
 from example_utils import display_config_table
-from flext_core import FlextResult
+from flext_core import FlextResult, FlextUtilities
 
 from flext_cli import FlextCli, FlextCliConfig, FlextCliTypes
-from flext_cli.utilities import FlextCliUtilities
 
 cli = FlextCli()
 
@@ -94,10 +92,8 @@ def load_environment_config() -> dict[str, str | int]:
         "Environment": environment,
     }
 
-    # Display config - convert to CliDataDict
-    settings_data = FlextCliUtilities.CliDataMapper.convert_dict_to_json(
-        cast("dict[str, object]", settings)
-    )
+    # Display config - convert to CliDataDict using FlextUtilities directly
+    settings_data = FlextUtilities.DataMapper.convert_dict_to_json(settings)
     display_config_table(
         cli=cli,
         config_data=settings_data,
@@ -183,10 +179,8 @@ def show_config_locations() -> dict[str, str]:
         "Token Exists": "Yes" if token_file.exists() else "No",
     }
 
-    # Display as table - convert to CliDataDict
-    locations_data = FlextCliUtilities.CliDataMapper.convert_dict_to_json(
-        cast("dict[str, object]", locations)
-    )
+    # Display as table - convert to CliDataDict using FlextUtilities directly
+    locations_data = FlextUtilities.DataMapper.convert_dict_to_json(locations)
     table_result = cli.create_table(
         data=locations_data,
         headers=["Location", "Path"],
@@ -430,9 +424,14 @@ def apply_environment_overrides(config: dict[str, object]) -> dict[str, object]:
 
     if env == "production":
         # Production overrides
-        config["max_workers"] = min(
-            int(cast("int", config.get("max_workers", 4))), 20
-        )  # Limit workers in prod
+        max_workers_value = config.get("max_workers", 4)
+        # Type narrowing: ensure int before conversion
+        if isinstance(max_workers_value, int):
+            config["max_workers"] = min(max_workers_value, 20)  # Limit workers in prod
+        elif isinstance(max_workers_value, str):
+            config["max_workers"] = min(int(max_workers_value), 20)
+        else:
+            config["max_workers"] = 4
         config["enable_metrics"] = True  # Always enable metrics in prod
     elif env == "testing":
         # Testing overrides
@@ -504,7 +503,7 @@ def main() -> None:
     if config_result.is_success:
         final_config = config_result.unwrap()
         # Display final config - convert to CliDataDict
-        final_config_data = FlextCliUtilities.CliDataMapper.convert_dict_to_json(
+        final_config_data = FlextUtilities.DataMapper.convert_dict_to_json(
             final_config
         )
         display_config_table(

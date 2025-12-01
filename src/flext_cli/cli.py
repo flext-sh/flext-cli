@@ -19,15 +19,18 @@ import logging
 import shutil
 from collections.abc import Callable, Sequence
 from pathlib import Path
-from typing import IO, Annotated, cast, overload
+from typing import IO, Annotated
 
 import click
 import typer
 from flext_core import (
     FlextContainer,
     FlextLogger,
+    FlextModels,
     FlextResult,
     FlextRuntime,
+    FlextTypes,
+    FlextUtilities,
 )
 from pydantic import BaseModel
 from typer.testing import CliRunner
@@ -37,13 +40,6 @@ from flext_cli.config import FlextCliConfig
 from flext_cli.constants import FlextCliConstants
 from flext_cli.models import FlextCliModels
 from flext_cli.protocols import FlextCliProtocols
-from flext_cli.typings import FlextCliTypes
-from flext_cli.utilities import FlextCliUtilities
-
-# Type alias for command functions to avoid Callable[..., T]
-CliCommandFunc = FlextCliProtocols.Cli.CliCommandFunction
-# Type alias for model-based command handlers (used by model_command)
-ModelCommandFunc = FlextCliProtocols.Cli.CliHandlerProtocol
 
 
 class FlextCliCli:
@@ -93,28 +89,14 @@ class FlextCliCli:
     # COMMAND AND GROUP CREATION
     # =========================================================================
 
-    @overload
     def _create_cli_decorator(
         self,
         entity_type: FlextCliConstants.EntityTypeLiteral,
         name: str | None,
         help_text: str | None,
-    ) -> Callable[[CliCommandFunc], click.Command]: ...
-
-    @overload
-    def _create_cli_decorator(
-        self,
-        entity_type: FlextCliConstants.EntityTypeLiteral,
-        name: str | None,
-        help_text: str | None,
-    ) -> Callable[[CliCommandFunc], click.Group]: ...
-
-    def _create_cli_decorator(
-        self,
-        entity_type: FlextCliConstants.EntityTypeLiteral,
-        name: str | None,
-        help_text: str | None,
-    ) -> Callable[[CliCommandFunc], click.Command | click.Group]:
+    ) -> Callable[
+        [FlextCliProtocols.Cli.CliCommandFunction], click.Command | click.Group
+    ]:
         """Create Click decorator (command or group) - DRY helper.
 
         Args:
@@ -137,13 +119,15 @@ class FlextCliCli:
             extra_key = "group_name"
 
         self.logger.debug(log_msg, extra={extra_key: name, "help": help_text})
-        return decorator
+        # Click decorators return types that implement CliCommandFunction protocol structurally
+        # Type checker needs help with structural typing - this is correct usage
+        return decorator  # type: ignore[return-value]
 
     def create_command_decorator(
         self,
         name: str | None = None,
         help_text: str | None = None,
-    ) -> Callable[[CliCommandFunc], click.Command]:
+    ) -> Callable[[FlextCliProtocols.Cli.CliCommandFunction], click.Command]:
         """Create Click command decorator.
 
         Args:
@@ -173,7 +157,7 @@ class FlextCliCli:
         self,
         name: str,
         help_text: str,
-        config: FlextCliTypes.Configuration.CliConfigSchema | None = None,
+        config: FlextTypes.JsonDict | None = None,
         *,
         add_completion: bool = True,
     ) -> typer.Typer:
@@ -273,21 +257,17 @@ class FlextCliCli:
 
             # ✅ FILTER: Only apply params that exist in config
             # Config may not have all common params (e.g., quiet)
-            # Type narrowing: check if config has model_fields (Pydantic BaseModel)
+            # Type narrowing: check if config is FlextCliConfig (which extends BaseModel)
+            if not isinstance(config, FlextCliConfig):
+                return
 
-            config_fields: set[str] = set()
-            if isinstance(config, BaseModel):
-                config_fields = set(type(config).model_fields.keys())
+            # Type narrowed: config is FlextCliConfig (which is BaseModel)
+            config_fields: set[str] = set(type(config).model_fields.keys())
             filtered_params = {
                 k: v for k, v in active_params.items() if k in config_fields
             }
 
             if not filtered_params:
-                return
-
-            # Apply to config and reconfigure logger
-            # Type guard: config is FlextCliConfig if we reached this point
-            if not isinstance(config, FlextCliConfig):
                 return
 
             # Unpack filtered_params as keyword arguments
@@ -343,7 +323,7 @@ class FlextCliCli:
         self,
         name: str | None = None,
         help_text: str | None = None,
-    ) -> Callable[[CliCommandFunc], click.Group]:
+    ) -> Callable[[FlextCliProtocols.Cli.CliCommandFunction], click.Group]:
         """Create Click group decorator for command groups.
 
         Args:
@@ -366,8 +346,9 @@ class FlextCliCli:
             ...     pass
 
         """
-        # Type checker resolves overload based on Literal["group"] parameter
-        return self._create_cli_decorator("group", name, help_text)
+        # Click group decorator returns compatible type with CliCommandFunction protocol
+        decorator = self._create_cli_decorator("group", name, help_text)
+        return decorator  # type: ignore[return-value]
 
     # =========================================================================
     # PARAMETER DECORATORS (OPTION, ARGUMENT)
@@ -376,16 +357,19 @@ class FlextCliCli:
     def create_option_decorator(
         self,
         *param_decls: str,
-        default: FlextCliTypes.CliJsonValue | None = None,
+        default: FlextTypes.GeneralValueType | None = None,
         type_hint: click.ParamType | type | None = None,
         required: bool = False,
         help_text: str | None = None,
         is_flag: bool = False,
-        flag_value: FlextCliTypes.CliJsonValue | None = None,
+        flag_value: FlextTypes.GeneralValueType | None = None,
         multiple: bool = False,
         count: bool = False,
         show_default: bool = False,
-    ) -> Callable[[CliCommandFunc], CliCommandFunc]:
+    ) -> Callable[
+        [FlextCliProtocols.Cli.CliCommandFunction],
+        FlextCliProtocols.Cli.CliCommandFunction,
+    ]:
         """Create Click option decorator with explicit parameters.
 
         Args:
@@ -430,7 +414,8 @@ class FlextCliCli:
             "Created option decorator",
             extra={"param_decls": param_decls, "required": required},
         )
-        return decorator
+        # Click option decorator wraps function but preserves CliCommandFunction protocol
+        return decorator  # type: ignore[return-value]
 
     def create_argument_decorator(
         self,
@@ -438,7 +423,10 @@ class FlextCliCli:
         type_hint: click.ParamType | type | None = None,
         required: bool = True,
         nargs: int = 1,
-    ) -> Callable[[CliCommandFunc], CliCommandFunc]:
+    ) -> Callable[
+        [FlextCliProtocols.Cli.CliCommandFunction],
+        FlextCliProtocols.Cli.CliCommandFunction,
+    ]:
         """Create Click argument decorator with explicit parameters.
 
         Args:
@@ -472,14 +460,15 @@ class FlextCliCli:
             "Created argument decorator",
             extra={"param_decls": param_decls, "required": required},
         )
-        return decorator
+        # Click argument decorator wraps function but preserves CliCommandFunction protocol
+        return decorator  # type: ignore[return-value]
 
     # =========================================================================
     # PARAMETER TYPES
     # =========================================================================
 
+    @staticmethod
     def get_datetime_type(
-        self,
         formats: Sequence[str] | None = None,
     ) -> click.DateTime:
         """Get Click DateTime parameter type.
@@ -499,7 +488,8 @@ class FlextCliCli:
             formats = FlextCliConstants.FileDefaults.DEFAULT_DATETIME_FORMATS
         return click.DateTime(formats=formats)
 
-    def get_uuid_type(self) -> click.ParamType:
+    @staticmethod
+    def get_uuid_type() -> click.ParamType:
         """Get Click UUID parameter type.
 
         Returns:
@@ -513,9 +503,9 @@ class FlextCliCli:
         """
         return click.UUID
 
+    @staticmethod
     def get_tuple_type(
-        self,
-        types: Sequence[type[FlextCliTypes.CliJsonValue] | click.ParamType],
+        types: Sequence[type[FlextTypes.GeneralValueType] | click.ParamType],
     ) -> click.Tuple:
         """Get Click Tuple parameter type.
 
@@ -535,7 +525,8 @@ class FlextCliCli:
         """
         return click.Tuple(types)
 
-    def get_bool_type(self) -> type[bool]:
+    @staticmethod
+    def get_bool_type() -> type[bool]:
         """Get bool parameter type.
 
         Returns:
@@ -549,7 +540,8 @@ class FlextCliCli:
         """
         return bool
 
-    def get_string_type(self) -> type[str]:
+    @staticmethod
+    def get_string_type() -> type[str]:
         """Get string parameter type.
 
         Returns:
@@ -562,7 +554,8 @@ class FlextCliCli:
         """
         return str
 
-    def get_int_type(self) -> type[int]:
+    @staticmethod
+    def get_int_type() -> type[int]:
         """Get integer parameter type.
 
         Returns:
@@ -575,7 +568,8 @@ class FlextCliCli:
         """
         return int
 
-    def get_float_type(self) -> type[float]:
+    @staticmethod
+    def get_float_type() -> type[float]:
         """Get float parameter type.
 
         Returns:
@@ -592,7 +586,8 @@ class FlextCliCli:
     # CONTEXT MANAGEMENT
     # =========================================================================
 
-    def get_current_context(self) -> click.Context | None:
+    @staticmethod
+    def get_current_context() -> click.Context | None:
         """Get current CLI context.
 
         Returns:
@@ -607,11 +602,10 @@ class FlextCliCli:
         """
         return click.get_current_context(silent=True)
 
-    def create_pass_context_decorator(
-        self,
-    ) -> Callable[
-        [Callable[..., FlextCliTypes.CliJsonValue]],
-        Callable[..., FlextCliTypes.CliJsonValue],
+    @staticmethod
+    def create_pass_context_decorator() -> Callable[
+        [Callable[..., FlextTypes.GeneralValueType]],
+        Callable[..., FlextTypes.GeneralValueType],
     ]:
         """Create pass_context decorator.
 
@@ -633,8 +627,8 @@ class FlextCliCli:
     # COMMAND EXECUTION
     # =========================================================================
 
+    @staticmethod
     def echo(
-        self,
         message: str | None = None,
         file: IO[str] | None = None,
         *,
@@ -658,8 +652,8 @@ class FlextCliCli:
         typer.echo(message=message, file=file, nl=nl, err=err, color=color)
         return FlextResult[bool].ok(True)
 
+    @staticmethod
     def confirm(
-        self,
         text: str,
         *,
         default: bool = False,
@@ -702,12 +696,12 @@ class FlextCliCli:
                 ),
             )
 
+    @staticmethod
     def prompt(
-        self,
         text: str,
-        default: FlextCliTypes.CliJsonValue | None = None,
-        type_hint: FlextCliTypes.CliJsonValue | None = None,
-        value_proc: Callable[[str], FlextCliTypes.CliJsonValue] | None = None,
+        default: FlextTypes.GeneralValueType | None = None,
+        type_hint: FlextTypes.GeneralValueType | None = None,
+        value_proc: Callable[[str], FlextTypes.GeneralValueType] | None = None,
         prompt_suffix: str = FlextCliConstants.UIDefaults.DEFAULT_PROMPT_SUFFIX,
         *,
         hide_input: bool = False,
@@ -715,7 +709,7 @@ class FlextCliCli:
         show_default: bool = True,
         err: bool = False,
         show_choices: bool = True,
-    ) -> FlextResult[FlextCliTypes.CliJsonValue]:
+    ) -> FlextResult[FlextTypes.GeneralValueType]:
         """Prompt for input using Typer backend.
 
         Args:
@@ -751,12 +745,11 @@ class FlextCliCli:
                 show_choices=show_choices,
             )
             # Convert result to CliJsonValue - typer.prompt returns various types
-            json_value = FlextCliUtilities.DataMapper.convert_to_json_value(result)
-            return FlextResult[FlextCliTypes.CliJsonValue].ok(
-                cast("FlextCliTypes.CliJsonValue", json_value)
-            )
+            # CliJsonValue is alias of GeneralValueType, so no cast needed
+            json_value = FlextUtilities.DataMapper.convert_to_json_value(result)
+            return FlextResult[FlextTypes.GeneralValueType].ok(json_value)
         except typer.Abort as e:
-            return FlextResult[FlextCliTypes.CliJsonValue].fail(
+            return FlextResult[FlextTypes.GeneralValueType].fail(
                 FlextCliConstants.ErrorMessages.USER_ABORTED_PROMPT.format(error=e),
             )
 
@@ -802,8 +795,8 @@ class FlextCliCli:
     # UTILITIES
     # =========================================================================
 
+    @staticmethod
     def format_filename(
-        self,
         filename: str | Path,
         *,
         shorten: bool = False,
@@ -820,7 +813,8 @@ class FlextCliCli:
         """
         return click.format_filename(filename, shorten=shorten)
 
-    def get_terminal_size(self) -> tuple[int, int]:
+    @staticmethod
+    def get_terminal_size() -> tuple[int, int]:
         """Get terminal size.
 
         Returns:
@@ -830,7 +824,8 @@ class FlextCliCli:
         size = shutil.get_terminal_size()
         return (size.columns, size.lines)
 
-    def clear_screen(self) -> FlextResult[bool]:
+    @staticmethod
+    def clear_screen() -> FlextResult[bool]:
         """Clear terminal screen.
 
         Returns:
@@ -840,8 +835,8 @@ class FlextCliCli:
         click.clear()
         return FlextResult[bool].ok(True)
 
+    @staticmethod
     def pause(
-        self,
         info: str = FlextCliConstants.UIDefaults.DEFAULT_PAUSE_MESSAGE,
     ) -> FlextResult[bool]:
         """Pause execution until key press.
@@ -856,12 +851,12 @@ class FlextCliCli:
         click.pause(info=info)
         return FlextResult[bool].ok(True)
 
+    @staticmethod
     def model_command(
-        self,
         model_class: type[BaseModel],
         handler: Callable[..., None],
         config: FlextCliConfig | None = None,
-    ) -> CliCommandFunc:
+    ) -> FlextCliProtocols.Cli.CliCommandFunction:
         """Create Typer command from Pydantic model with automatic config integration.
 
         Generic model-driven CLI automation using Field metadata introspection.
@@ -953,16 +948,18 @@ class FlextCliCli:
             raise TypeError(msg)
 
         builder = FlextCliModels.ModelCommandBuilder(model_class, handler, config)
-        return builder.build()
+        # ModelCommandBuilder.build() returns a function implementing CliCommandFunction protocol
+        return builder.build()  # type: ignore[return-value]
 
-    def execute(self) -> FlextResult[FlextCliTypes.Data.CliCommandResult]:
+    @staticmethod
+    def execute() -> FlextResult[FlextTypes.JsonDict]:
         """Execute Click abstraction layer operations.
 
         Returns:
-            FlextResult[CliCommandResult]: Success with CLI status or failure with error
+            FlextResult[FlextTypes.JsonDict]: Success with CLI status or failure with error
 
         """
-        return FlextResult[FlextCliTypes.Data.CliCommandResult].ok({
+        return FlextResult[FlextTypes.JsonDict].ok({
             FlextCliConstants.DictKeys.SERVICE: FlextCliConstants.FLEXT_CLI,
             FlextCliConstants.DictKeys.STATUS: FlextCliConstants.ServiceStatus.OPERATIONAL.value,
         })

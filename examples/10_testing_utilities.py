@@ -26,9 +26,8 @@ from __future__ import annotations
 
 import tempfile
 from pathlib import Path
-from typing import cast
 
-from flext_core import FlextResult
+from flext_core import FlextResult, FlextUtilities
 
 from flext_cli import FlextCli, FlextCliPrompts, FlextCliTypes
 
@@ -104,8 +103,8 @@ def test_file_operations() -> None:
 
     # Test save
     config_data = {"test": True, "value": 123}
-    # Cast to expected type (runtime type is compatible)
-    config = cast("FlextCliTypes.Data.CliDataDict", config_data)
+    # Convert to JsonDict-compatible dict using FlextUtilities
+    config: FlextCliTypes.Data.CliDataDict = FlextUtilities.DataMapper.convert_dict_to_json(config_data)
     result = save_config_command(config)
 
     if not result.is_success:
@@ -269,8 +268,8 @@ def full_workflow_command() -> FlextResult[FlextCliTypes.Data.CliDataDict]:
     # Cleanup
     temp_file.unlink(missing_ok=True)
 
-    # Cast to expected type (runtime type is compatible)
-    typed_data = cast("FlextCliTypes.Data.CliDataDict", loaded)
+    # Convert to JsonDict-compatible dict using FlextUtilities
+    typed_data: FlextCliTypes.Data.CliDataDict = FlextUtilities.DataMapper.convert_dict_to_json(loaded)
     return FlextResult[FlextCliTypes.Data.CliDataDict].ok(typed_data)
 
 

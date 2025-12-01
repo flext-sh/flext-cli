@@ -30,9 +30,8 @@ import hashlib
 import shutil
 import tempfile
 from pathlib import Path
-from typing import cast
 
-from flext_core import FlextTypes
+from flext_core import FlextUtilities
 
 from flext_cli import FlextCli, FlextCliModels, FlextCliTables, FlextCliTypes
 
@@ -100,11 +99,11 @@ def import_from_csv(input_file: Path) -> list[FlextCliTypes.Data.CliDataDict] | 
     # Display sample rows
     if rows:
         cli.output.print_message("\n📋 Sample Data:", style="yellow")
-        # Cast to expected type
-        sample_rows: list[FlextCliTypes.Data.CliDataDict] = cast(
-            "list[FlextCliTypes.Data.CliDataDict]",
-            rows[:5],
-        )
+        # Convert to JsonDict-compatible format using FlextUtilities
+        sample_rows_raw = rows[:5]
+        sample_rows: list[FlextCliTypes.Data.CliDataDict] = [
+            FlextUtilities.DataMapper.convert_dict_to_json(row) for row in sample_rows_raw
+        ]
         # Cast to expected type for table creation
         config = FlextCliModels.TableConfig(table_format="grid")
         table_result = tables.create_table(
@@ -114,8 +113,11 @@ def import_from_csv(input_file: Path) -> list[FlextCliTypes.Data.CliDataDict] | 
         if table_result.is_success:
             pass
 
-    # Cast to expected return type (runtime type is compatible)
-    return cast("list[FlextCliTypes.Data.CliDataDict]", rows)
+    # Convert to JsonDict-compatible format using FlextUtilities
+    converted_rows: list[FlextCliTypes.Data.CliDataDict] = [
+        FlextUtilities.DataMapper.convert_dict_to_json(row) for row in rows
+    ]
+    return converted_rows
 
 
 # ============================================================================
@@ -210,11 +212,8 @@ def load_any_format_file(file_path: Path) -> FlextCliTypes.Data.CliDataDict | No
         return None
 
     # Display loaded data
-    # Cast to expected type
-    display_data: FlextCliTypes.Data.CliDataDict = cast(
-        "FlextCliTypes.Data.CliDataDict",
-        data,
-    )
+    # Convert to JsonDict-compatible dict using FlextUtilities
+    display_data: FlextCliTypes.Data.CliDataDict = FlextUtilities.DataMapper.convert_dict_to_json(data)
     table_result = cli.create_table(
         data=display_data,
         headers=["Key", "Value"],
@@ -223,8 +222,8 @@ def load_any_format_file(file_path: Path) -> FlextCliTypes.Data.CliDataDict | No
     if table_result.is_success:
         cli.print_table(table_result.unwrap())
 
-    # Cast to expected return type (runtime type is compatible)
-    return cast("FlextCliTypes.Data.CliDataDict", data)
+    # Convert to JsonDict-compatible dict using FlextUtilities
+    return FlextUtilities.DataMapper.convert_dict_to_json(data)
 
 
 # ============================================================================
@@ -245,8 +244,8 @@ def export_data_multi_format(
 
     # Export to JSON
     json_path = base_path.with_suffix(".json")
-    # Handle both single dict and list of dicts
-    json_payload = cast("FlextTypes.JsonValue", data)
+    # Handle both single dict and list of dicts - data is already JsonValue-compatible
+    json_payload = data
     json_result = cli.file_tools.write_json_file(json_path, json_payload, indent=2)
     if json_result.is_success:
         size = json_path.stat().st_size
@@ -257,7 +256,8 @@ def export_data_multi_format(
 
     # Export to YAML
     yaml_path = base_path.with_suffix(".yaml")
-    yaml_payload = cast("FlextTypes.JsonValue", data)
+    # Data is already JsonValue-compatible
+    yaml_payload = data
     yaml_result = cli.file_tools.write_yaml_file(yaml_path, yaml_payload)
     if yaml_result.is_success:
         size = yaml_path.stat().st_size
@@ -399,8 +399,10 @@ def main() -> None:
     ]
 
     csv_file = temp_dir / "employees.csv"
-    # Cast to expected type for export function
-    typed_sample_data = cast("list[FlextCliTypes.Data.CliDataDict]", sample_data)
+    # Convert to JsonDict-compatible format using FlextUtilities
+    typed_sample_data: list[FlextCliTypes.Data.CliDataDict] = [
+        FlextUtilities.DataMapper.convert_dict_to_json(row) for row in sample_data
+    ]
     export_to_csv(typed_sample_data, csv_file)
     import_from_csv(csv_file)
 

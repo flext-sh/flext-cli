@@ -17,10 +17,10 @@ from __future__ import annotations
 from typing import cast
 
 import pytest
-from flext_core import FlextResult
+from flext_core import FlextResult, FlextTypes
 from flext_tests import FlextTestsMatchers
 
-from flext_cli import FlextCliProtocols, FlextCliTypes
+from flext_cli import FlextCliProtocols
 
 from ..fixtures.constants import TestProtocols
 from ..helpers import FlextCliTestHelpers
@@ -119,7 +119,7 @@ class TestFlextCliProtocols:
             if isinstance(formatter, FlextCliProtocols.Cli.CliFormatter):
                 test_data_raw = TestProtocols.TestData.Formatting.SIMPLE_DATA
                 # Cast to CliFormatData (which is CliJsonDict)
-                test_data = cast("FlextCliTypes.Data.CliFormatData", test_data_raw)
+                test_data = cast("FlextTypes.JsonDict", test_data_raw)
                 format_result = formatter.format_data(test_data)
                 FlextTestsMatchers.assert_success(format_result)
 
@@ -152,7 +152,7 @@ class TestFlextCliProtocols:
             if isinstance(provider, FlextCliProtocols.Cli.CliConfigProvider):
                 test_config_raw = TestProtocols.TestData.Configuration.BASIC_CONFIG
                 # Cast to CliConfigData
-                test_config = cast("FlextCliTypes.Data.CliConfigData", test_config_raw)
+                test_config = cast("FlextTypes.JsonDict", test_config_raw)
                 save_result = provider.save_config(test_config)
                 FlextTestsMatchers.assert_success(save_result)
 
@@ -188,7 +188,7 @@ class TestFlextCliProtocols:
             if isinstance(authenticator, FlextCliProtocols.Cli.CliAuthenticator):
                 creds_raw = TestProtocols.TestData.Authentication.VALID_CREDS
                 # Cast to AuthConfigData for authenticate method
-                creds = cast("FlextCliTypes.Data.AuthConfigData", creds_raw)
+                creds = cast("FlextTypes.JsonDict", creds_raw)
                 auth_response = authenticator.authenticate(creds)
                 FlextTestsMatchers.assert_success(auth_response)
 

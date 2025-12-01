@@ -16,17 +16,16 @@ import sys
 from collections.abc import Callable
 from typing import ClassVar
 
-from flext_core import FlextConstants, FlextResult
+from flext_core import FlextConstants, FlextResult, FlextTypes
 from typer.models import OptionInfo
 
 from flext_cli.config import FlextCliConfig
 from flext_cli.constants import FlextCliConstants
 from flext_cli.models import FlextCliModels
 from flext_cli.protocols import FlextCliProtocols
-from flext_cli.typings import FlextCliTypes
+from flext_cli.utilities import FlextCliUtilities
 
-# Type alias for CLI command functions (avoids Callable[..., T] which uses Any)
-CliCommandFunc = FlextCliProtocols.Cli.CliCommandFunction
+# Direct type references - use FlextCliProtocols.Cli.CliCommandFunction directly
 
 
 class FlextCliCommonParams:
@@ -152,9 +151,20 @@ class FlextCliCommonParams:
         Returns:
             typer.Option instance
 
+        Raises:
+            ValueError: If field_name is not in CLI parameter registry
+
         """
+        if field_name not in cls.CLI_PARAM_REGISTRY:
+            raise ValueError(f"Field '{field_name}' not found in CLI parameter registry")
+
         builder = FlextCliModels.OptionBuilder(field_name, cls.CLI_PARAM_REGISTRY)
-        return builder.build()
+        built_option = builder.build()
+        # OptionBuilder.build() returns object, cast to OptionInfo for type checker
+        if isinstance(built_option, OptionInfo):
+            return built_option
+        # Fallback: create OptionInfo if builder returns something else
+        return OptionInfo(default=None)
 
     @classmethod
     def get_all_common_params(cls) -> dict[str, OptionInfo]:
@@ -281,7 +291,8 @@ class FlextCliCommonParams:
         # Update all attributes at once using model_copy to avoid triggering
         # validate_assignment for each individual field (which would see intermediate states)
         # Then update the original config object's attributes
-        update_data: FlextCliTypes.CliJsonDict = {}
+        # Use mutable dict for building updates
+        update_data: dict[str, FlextTypes.GeneralValueType] = {}
         if params.verbose is not None:
             update_data["verbose"] = params.verbose
         if params.quiet is not None:
@@ -344,15 +355,17 @@ class FlextCliCommonParams:
 
         # output_format - use validator that returns proper Literal type
         if params.output_format is not None:
-            validated_format = FlextCliConstants.validate_output_format(
+            validated_result = FlextCliUtilities.CliValidation.validate_output_format(
                 params.output_format
             )
-            if validated_format is None:
+            if validated_result.is_failure:
                 valid = FlextCliConstants.CliParamsDefaults.VALID_OUTPUT_FORMATS
                 return FlextResult[FlextCliConfig].fail(
                     f"invalid output format: {params.output_format}. valid options: {', '.join(valid)}",
                 )
-            config.output_format = validated_format
+            # Update config using model_copy to handle Literal type correctly
+            validated_format = validated_result.unwrap()
+            config = config.model_copy(update={"output_format": validated_format})
 
         return FlextResult[FlextCliConfig].ok(config)
 
@@ -396,7 +409,7 @@ class FlextCliCommonParams:
     @classmethod
     def create_decorator(
         cls,
-    ) -> Callable[[CliCommandFunc], CliCommandFunc]:
+    ) -> Callable[[FlextCliProtocols.Cli.CliCommandFunction], FlextCliProtocols.Cli.CliCommandFunction]:
         """Create decorator to validate common CLI parameters are used.
 
         By default, ALL parameters are included and this is MANDATORY.
@@ -439,7 +452,7 @@ class FlextCliCommonParams:
 
         """
 
-        def decorator(func: CliCommandFunc) -> CliCommandFunc:
+        def decorator(func: FlextCliProtocols.Cli.CliCommandFunction) -> FlextCliProtocols.Cli.CliCommandFunction:
             # Validate enforcement
             validation = cls.validate_enabled()
             if validation.is_failure and cls._enforcement_mode:

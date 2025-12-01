@@ -15,12 +15,11 @@ import os
 import tempfile
 from collections.abc import Callable, Generator
 from pathlib import Path
-from typing import Any, cast
 
 import pytest
 import yaml
 from click.testing import CliRunner
-from flext_core import FlextConfig, FlextContainer, FlextUtilities
+from flext_core import FlextConfig, FlextContainer, FlextTypes, FlextUtilities
 from flext_tests.docker import FlextTestDocker
 from pydantic import TypeAdapter
 
@@ -40,7 +39,6 @@ from flext_cli import (
     FlextCliPrompts,
     FlextCliProtocols,
     FlextCliServiceBase,
-    FlextCliTypes,
 )
 
 
@@ -188,11 +186,13 @@ def cli_command_factory() -> Callable[..., FlextCliModels.CliCommand]:
             "result": None,
             "kwargs": {},
             "name": name,
+            "description": description,  # Add description field
         }
 
         # Merge CLI data with kwargs
-        final_data = {**cli_data, **kwargs}
-        return FlextCliModels.CliCommand(**cast("dict[str, Any]", final_data))
+        # Convert to JsonDict-compatible dict using FlextUtilities
+        final_data: FlextTypes.JsonDict = FlextUtilities.DataMapper.convert_dict_to_json({**cli_data, **kwargs})
+        return FlextCliModels.CliCommand(**final_data)
 
     return _create
 
@@ -225,9 +225,10 @@ def cli_session_factory() -> Callable[..., FlextCliModels.CliSession]:
         }
 
         # Merge session data with kwargs
-        final_data = {**session_data, **kwargs}
+        # Convert to JsonDict-compatible dict using FlextUtilities
+        final_data: FlextTypes.JsonDict = FlextUtilities.DataMapper.convert_dict_to_json({**session_data, **kwargs})
         # Create instance - autouse fixture should have handled model_rebuild
-        return FlextCliModels.CliSession(**cast("dict[str, Any]", final_data))
+        return FlextCliModels.CliSession(**final_data)
 
     return _create
 
@@ -238,9 +239,8 @@ def debug_info_factory() -> Callable[..., FlextCliModels.DebugInfo]:
 
     def _create(
         service: str = "TestService",
-        status: str = "operational",
         level: str = "INFO",
-        message: str = "Test message",
+        message: str = "",
         **kwargs: object,
     ) -> FlextCliModels.DebugInfo:
         # DebugInfo has strict validation (extra='forbid'), so only use compatible fields
@@ -248,9 +248,8 @@ def debug_info_factory() -> Callable[..., FlextCliModels.DebugInfo]:
         # Add debug-specific fields - only real fields that exist in DebugInfo
         debug_data = {
             "service": service,
-            "status": status,
             "level": level,
-            "message": message,
+            "message": message or "",
             "system_info": {},
             "config_info": {},
         }
@@ -258,7 +257,6 @@ def debug_info_factory() -> Callable[..., FlextCliModels.DebugInfo]:
         # Filter kwargs to only include valid DebugInfo fields
         valid_fields = {
             "service",
-            "status",
             "timestamp",
             "system_info",
             "config_info",
@@ -268,8 +266,9 @@ def debug_info_factory() -> Callable[..., FlextCliModels.DebugInfo]:
         filtered_kwargs = {k: v for k, v in kwargs.items() if k in valid_fields}
 
         # Merge data
-        final_data = {**debug_data, **filtered_kwargs}
-        return FlextCliModels.DebugInfo(**cast("dict[str, Any]", final_data))
+        # Convert to JsonDict-compatible dict using FlextUtilities
+        final_data: FlextTypes.JsonDict = FlextUtilities.DataMapper.convert_dict_to_json({**debug_data, **filtered_kwargs})
+        return FlextCliModels.DebugInfo(**final_data)
 
     return _create
 
@@ -291,12 +290,13 @@ def logging_config_factory() -> Callable[..., FlextCliModels.LoggingConfig]:
             "log_level": log_level,
             "log_format": log_format,
             "console_output": True,
-            "log_file": None,
+            "log_file": "",
         }
 
         # Merge with kwargs, but only if they are valid fields
-        final_data = {**logging_data, **kwargs}
-        return FlextCliModels.LoggingConfig(**cast("dict[str, Any]", final_data))
+        # Convert to JsonDict-compatible dict using FlextUtilities
+        final_data: FlextTypes.JsonDict = FlextUtilities.DataMapper.convert_dict_to_json({**logging_data, **kwargs})
+        return FlextCliModels.LoggingConfig(**final_data)
 
     return _create
 
@@ -339,7 +339,6 @@ _SERVICE_CLASSES: dict[str, type] = {
     "output": FlextCliOutput,
     "prompts": FlextCliPrompts,
     "protocols": FlextCliProtocols,
-    "types": FlextCliTypes,
 }
 
 
@@ -347,85 +346,105 @@ _SERVICE_CLASSES: dict[str, type] = {
 @pytest.fixture
 def flext_cli_cmd() -> FlextCliCmd:
     """Create FlextCliCmd instance for testing."""
-    return cast("FlextCliCmd", _create_service_instance(FlextCliCmd))
+    instance = _create_service_instance(FlextCliCmd)
+    assert isinstance(instance, FlextCliCmd)
+    return instance
 
 
 @pytest.fixture
 def flext_cli_commands() -> FlextCliCommands:
     """Create FlextCliCommands instance for testing."""
-    return cast("FlextCliCommands", _create_service_instance(FlextCliCommands))
+    instance = _create_service_instance(FlextCliCommands)
+    assert isinstance(instance, FlextCliCommands)
+    return instance
 
 
 @pytest.fixture
 def flext_cli_config() -> FlextCliConfig:
     """Create FlextCliConfig instance for testing via FlextCliServiceBase."""
-    return cast("FlextCliConfig", _create_service_instance(FlextCliConfig))
+    instance = _create_service_instance(FlextCliConfig)
+    assert isinstance(instance, FlextCliConfig)
+    return instance
 
 
 @pytest.fixture
 def flext_cli_constants() -> FlextCliConstants:
     """Create FlextCliConstants instance for testing."""
-    return cast("FlextCliConstants", _create_service_instance(FlextCliConstants))
+    instance = _create_service_instance(FlextCliConstants)
+    assert isinstance(instance, FlextCliConstants)
+    return instance
 
 
 @pytest.fixture
 def flext_cli_context() -> FlextCliContext:
     """Create FlextCliContext instance for testing."""
-    return cast("FlextCliContext", _create_service_instance(FlextCliContext))
+    instance = _create_service_instance(FlextCliContext)
+    assert isinstance(instance, FlextCliContext)
+    return instance
 
 
 @pytest.fixture
 def flext_cli_core() -> FlextCliCore:
     """Create FlextCliCore instance for testing."""
-    return cast("FlextCliCore", _create_service_instance(FlextCliCore))
+    instance = _create_service_instance(FlextCliCore)
+    assert isinstance(instance, FlextCliCore)
+    return instance
 
 
 @pytest.fixture
 def flext_cli_debug() -> FlextCliDebug:
     """Create FlextCliDebug instance for testing."""
-    return cast("FlextCliDebug", _create_service_instance(FlextCliDebug))
+    instance = _create_service_instance(FlextCliDebug)
+    assert isinstance(instance, FlextCliDebug)
+    return instance
 
 
 @pytest.fixture
 def flext_cli_file_tools() -> FlextCliFileTools:
     """Create FlextCliFileTools instance for testing."""
-    return cast("FlextCliFileTools", _create_service_instance(FlextCliFileTools))
+    instance = _create_service_instance(FlextCliFileTools)
+    assert isinstance(instance, FlextCliFileTools)
+    return instance
 
 
 @pytest.fixture
 def flext_cli_mixins() -> FlextCliMixins:
     """Create FlextCliMixins instance for testing."""
-    return cast("FlextCliMixins", _create_service_instance(FlextCliMixins))
+    instance = _create_service_instance(FlextCliMixins)
+    assert isinstance(instance, FlextCliMixins)
+    return instance
 
 
 @pytest.fixture
 def flext_cli_models() -> FlextCliModels:
     """Create FlextCliModels instance for testing."""
-    return cast("FlextCliModels", _create_service_instance(FlextCliModels))
+    instance = _create_service_instance(FlextCliModels)
+    assert isinstance(instance, FlextCliModels)
+    return instance
 
 
 @pytest.fixture
 def flext_cli_output() -> FlextCliOutput:
     """Create FlextCliOutput instance for testing."""
-    return cast("FlextCliOutput", _create_service_instance(FlextCliOutput))
+    instance = _create_service_instance(FlextCliOutput)
+    assert isinstance(instance, FlextCliOutput)
+    return instance
 
 
 @pytest.fixture
 def flext_cli_prompts() -> FlextCliPrompts:
     """Create FlextCliPrompts instance for testing."""
-    return cast("FlextCliPrompts", _create_service_instance(FlextCliPrompts))
+    instance = _create_service_instance(FlextCliPrompts)
+    assert isinstance(instance, FlextCliPrompts)
+    return instance
 
 
 @pytest.fixture
 def flext_cli_protocols() -> FlextCliProtocols:
     """Create FlextCliProtocols instance for testing."""
-    return cast("FlextCliProtocols", _create_service_instance(FlextCliProtocols))
-
-
-@pytest.fixture
-def flext_cli_types() -> FlextCliTypes:
-    """Create FlextCliTypes instance for testing."""
-    return cast("FlextCliTypes", _create_service_instance(FlextCliTypes))
+    instance = _create_service_instance(FlextCliProtocols)
+    assert isinstance(instance, FlextCliProtocols)
+    return instance
 
 
 @pytest.fixture
@@ -448,7 +467,7 @@ def flext_cli_utilities() -> type[FlextUtilities]:
 
 
 @pytest.fixture
-def sample_config_data() -> FlextCliTypes.Data.CliDataDict:
+def sample_config_data() -> FlextTypes.JsonDict:
     """Provide sample configuration data for tests."""
     return {
         "debug": True,
@@ -463,7 +482,7 @@ def sample_config_data() -> FlextCliTypes.Data.CliDataDict:
 
 
 @pytest.fixture
-def sample_file_data(temp_dir: Path) -> FlextCliTypes.Data.CliDataDict:
+def sample_file_data(temp_dir: Path) -> FlextTypes.JsonDict:
     """Provide sample file data for tests."""
     return {
         "content": "This is test content for file operations",
@@ -478,7 +497,7 @@ def sample_file_data(temp_dir: Path) -> FlextCliTypes.Data.CliDataDict:
 
 
 @pytest.fixture
-def sample_command_data() -> FlextCliTypes.Data.CliDataDict:
+def sample_command_data() -> FlextTypes.JsonDict:
     """Provide sample command data for tests."""
     return {
         "command": "test_command",
@@ -510,25 +529,25 @@ def fixture_data_csv() -> Path:
 
 
 @pytest.fixture
-def load_fixture_config() -> FlextCliTypes.Data.CliDataDict:
+def load_fixture_config() -> FlextTypes.JsonDict:
     """Load configuration data from fixtures directory."""
     fixture_path = Path("tests/fixtures/configs/test_config.json")
     with fixture_path.open(encoding="utf-8") as f:
         data = json.load(f)
-    adapter: TypeAdapter[FlextCliTypes.Data.CliDataDict] = TypeAdapter(
-        FlextCliTypes.Data.CliDataDict
+    adapter: TypeAdapter[FlextTypes.JsonDict] = TypeAdapter(
+        FlextTypes.JsonDict
     )
     return adapter.validate_python(data)
 
 
 @pytest.fixture
-def load_fixture_data() -> FlextCliTypes.Data.CliDataDict:
+def load_fixture_data() -> FlextTypes.JsonDict:
     """Load test data from fixtures directory."""
     fixture_path = Path("tests/fixtures/data/test_data.json")
     with fixture_path.open(encoding="utf-8") as f:
         data = json.load(f)
-    adapter: TypeAdapter[FlextCliTypes.Data.CliDataDict] = TypeAdapter(
-        FlextCliTypes.Data.CliDataDict
+    adapter: TypeAdapter[FlextTypes.JsonDict] = TypeAdapter(
+        FlextTypes.JsonDict
     )
     return adapter.validate_python(data)
 

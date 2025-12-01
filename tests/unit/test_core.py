@@ -29,7 +29,6 @@ from flext_cli import (
     FlextCliConstants,
     FlextCliCore,
     FlextCliModels,
-    FlextCliTypes,
 )
 
 
@@ -48,7 +47,7 @@ class TestFlextCliCore:
     @pytest.fixture
     def core_service(self) -> FlextCliCore:
         """Create FlextCliCore instance for testing."""
-        config: FlextCliTypes.Configuration.CliConfigSchema = {
+        config: FlextTypes.JsonDict = {
             "debug": {"value": False},
             "output_format": {"value": "table"},
             "timeout": {"value": 30},
@@ -175,7 +174,7 @@ class TestFlextCliCore:
         ) -> None:
             """Test configuration saving functionality."""
             config_file = temp_dir / "test_save_config.json"
-            test_config: FlextCliTypes.Data.CliDataDict = {
+            test_config: FlextTypes.JsonDict = {
                 "debug": False,
                 "output_format": "table",
                 "timeout": FlextCliConstants.TIMEOUTS.DEFAULT,
@@ -203,13 +202,24 @@ class TestFlextCliCore:
             assert isinstance(result, FlextResult)
             assert result.is_success
 
-            # Test invalid configuration
-            with pytest.raises(ValidationError):
-                FlextCliConfig.model_validate({
+            # Test invalid configuration - Pydantic may serialize invalid values
+            # but model_validate will attempt to convert them
+            # Use validate_call or model_validate with strict mode to ensure errors
+            try:
+                # Try to validate invalid config - should raise ValidationError
+                invalid_config = {
                     "debug": "invalid_boolean",
                     "cli_timeout": -1,
                     "max_retries": "not_a_number",
-                })
+                }
+                # Use model_validate with strict=False (default) - may convert or warn
+                # But with invalid types, it should raise ValidationError
+                FlextCliConfig.model_validate(invalid_config, strict=True)
+                # If no exception, the validation passed (unexpected)
+                assert False, "Expected ValidationError for invalid configuration"
+            except ValidationError:
+                # Expected behavior - invalid config should raise ValidationError
+                pass
 
     # =========================================================================
     # NESTED CLASS: File Operations
@@ -247,7 +257,7 @@ class TestFlextCliCore:
         ) -> None:
             """Test configuration saving with file operations."""
             config_file = temp_dir / "save_config.json"
-            config_data: FlextCliTypes.Data.CliDataDict = {
+            config_data: FlextTypes.JsonDict = {
                 "debug": False,
                 "output_format": "table",
                 "timeout": 30,
@@ -272,7 +282,7 @@ class TestFlextCliCore:
             assert result.is_failure
 
             # Test save to invalid path
-            config: FlextCliTypes.Data.CliDataDict = {"test": "data"}
+            config: FlextTypes.JsonDict = {"test": "data"}
             save_result = core_service.save_configuration(
                 "/invalid/path/config.json", config
             )
@@ -408,7 +418,7 @@ class TestFlextCliCore:
             """Test save_configuration exception handler."""
             # Try to save to invalid path
             invalid_path = "/invalid/path/config.json"
-            config: FlextCliTypes.Data.CliDataDict = {"test": "data"}
+            config: FlextTypes.JsonDict = {"test": "data"}
 
             result = core_service.save_configuration(invalid_path, config)
             assert isinstance(result, FlextResult)

@@ -24,7 +24,6 @@ from rich.table import Table as RichTable
 from rich.tree import Tree as RichTree
 
 from flext_cli.constants import FlextCliConstants
-from flext_cli.typings import FlextCliTypes
 
 
 class FlextCliFormatters:
@@ -78,7 +77,7 @@ class FlextCliFormatters:
 
     def create_table(
         self,
-        data: FlextCliTypes.Data.CliDataDict | None = None,
+        data: FlextTypes.JsonDict | None = None,
         headers: list[str] | None = None,
         title: str | None = None,
     ) -> FlextResult[RichTable]:

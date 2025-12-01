@@ -76,9 +76,10 @@ from typing import Any, cast
 
 import click
 from click.testing import CliRunner
-from flext_core import FlextResult, FlextService, FlextTypes
+from collections.abc import Mapping
 
-from flext_cli import FlextCliConstants, FlextCliTypes
+from flext_cli import FlextCliConstants
+from flext_core import FlextResult, FlextService, FlextTypes
 
 
 class FlextCliTesting(FlextService[dict[str, object]]):
@@ -202,7 +203,7 @@ class FlextCliTesting(FlextService[dict[str, object]]):
             self,
             profile: str = "test",
             **overrides: FlextTypes.JsonValue,
-        ) -> FlextResult[FlextCliTypes.Configuration.CliConfigSchema]:
+        ) -> FlextResult[FlextTypes.JsonDict]:
             """Create mock user configuration.
 
             Args:
@@ -219,7 +220,7 @@ class FlextCliTesting(FlextService[dict[str, object]]):
             """
             try:
                 # Build base config
-                base_config: FlextCliTypes.Configuration.CliConfigSchema = {
+                base_config: FlextTypes.JsonDict = {
                     FlextCliConstants.DictKeys.PROFILE: profile,
                     FlextCliConstants.DictKeys.DEBUG: False,
                     FlextCliConstants.DictKeys.VERBOSE: False,
@@ -227,11 +228,11 @@ class FlextCliTesting(FlextService[dict[str, object]]):
                 }
                 # Update with overrides - type is compatible with CliConfigSchema
                 base_config.update(overrides)
-                return FlextResult[FlextCliTypes.Configuration.CliConfigSchema].ok(
+                return FlextResult[FlextTypes.JsonDict].ok(
                     base_config,
                 )
             except Exception as e:
-                return FlextResult[FlextCliTypes.Configuration.CliConfigSchema].fail(
+                return FlextResult[FlextTypes.JsonDict].fail(
                     str(e),
                 )
 
@@ -258,7 +259,7 @@ class FlextCliTesting(FlextService[dict[str, object]]):
             self,
             username: str = "testuser",
             password: str = "testpass_abc123",  # nosec B107 - test fixture
-        ) -> FlextResult[FlextCliTypes.Auth.CredentialsData]:
+        ) -> FlextResult[Mapping[str, str]]:
             """Create mock authentication credentials.
 
             Args:
@@ -275,13 +276,13 @@ class FlextCliTesting(FlextService[dict[str, object]]):
 
             """
             try:
-                credentials: FlextCliTypes.Auth.CredentialsData = {
+                credentials: Mapping[str, str] = {
                     FlextCliConstants.DictKeys.USERNAME: username,
                     FlextCliConstants.DictKeys.PASSWORD: password,
                 }
-                return FlextResult[FlextCliTypes.Auth.CredentialsData].ok(credentials)
+                return FlextResult[Mapping[str, str]].ok(credentials)
             except Exception as e:
-                return FlextResult[FlextCliTypes.Auth.CredentialsData].fail(str(e))
+                return FlextResult[Mapping[str, str]].fail(str(e))
 
         def create_temp_config_file(
             self,

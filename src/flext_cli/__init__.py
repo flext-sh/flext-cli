@@ -181,7 +181,6 @@ from flext_cli.services.core import FlextCliCore
 from flext_cli.services.output import FlextCliOutput
 from flext_cli.services.prompts import FlextCliPrompts
 from flext_cli.services.tables import FlextCliTables
-from flext_cli.typings import FlextCliTypes
 from flext_cli.utilities import FlextCliUtilities
 
 # Re-export for convenience

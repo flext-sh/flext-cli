@@ -21,7 +21,7 @@ from pathlib import Path
 from typing import Union, cast
 
 import pytest
-from flext_core import FlextResult
+from flext_core import FlextResult, FlextUtilities
 from flext_tests import FlextTestsMatchers, FlextTestsUtilities
 
 from flext_cli import FlextCliConstants, FlextCliUtilities
@@ -236,8 +236,8 @@ class TestFlextCliUtilities:
                     validation_result = (
                         FlextCliUtilities.CliValidation.validate_field_in_list(
                             value,
-                            allowed,
-                            field_name,
+                            valid_values=allowed,
+                            field_name=field_name,
                         )
                     )
                     # Cast to bool | str for return type compatibility
@@ -245,11 +245,16 @@ class TestFlextCliUtilities:
 
                 case ValidationType.OUTPUT_FORMAT:
                     format_type = cast("str", test_case.test_data["format"])
-                    format_result: FlextResult[str] = (
-                        FlextCliUtilities.CliValidation.validate_output_format(
-                            format_type
-                        )
+                    # Use FlextUtilities.Validation.validate_choice directly
+                    format_lower = format_type.lower()
+                    format_result: FlextResult[str] = FlextUtilities.Validation.validate_choice(
+                        format_lower,
+                        set(FlextCliConstants.OUTPUT_FORMATS_LIST),
+                        "Output format",
+                        case_sensitive=False,
                     )
+                    if format_result.is_success:
+                        format_result = FlextResult[str].ok(format_lower)
                     # For normalization tests, check the unwrapped value
                     if (
                         "expected_normalized" in test_case.test_data
@@ -551,10 +556,15 @@ class TestFlextCliUtilities:
         )
         FlextTestsMatchers.assert_success(result1)
 
-        # 2. Validate output format with normalization
-        result2 = FlextCliUtilities.CliValidation.validate_output_format(
-            TestUtilities.Validation.OutputFormats.UPPERCASE_FORMAT
+        # 2. Validate output format with normalization using FlextUtilities directly
+        format_lower = TestUtilities.Validation.OutputFormats.UPPERCASE_FORMAT.lower()
+        validation_result = FlextUtilities.Validation.validate_choice(
+            format_lower,
+            set(FlextCliConstants.OUTPUT_FORMATS_LIST),
+            "Output format",
+            case_sensitive=False,
         )
+        result2 = FlextResult[str].ok(format_lower) if validation_result.is_success else validation_result
         FlextTestsMatchers.assert_success(result2)
         assert result2.unwrap() == FlextCliConstants.OutputFormats.JSON.value
 
@@ -608,9 +618,15 @@ class TestFlextCliUtilities:
     def test_utilities_namespaces_availability(self) -> None:
         """Test that all FlextCliUtilities namespaces are available."""
         # Test CLI-specific namespaces (actual namespaces in FlextCliUtilities)
-        assert hasattr(FlextCliUtilities, "CliDataMapper")
+        # CliDataMapper was removed - use FlextUtilities.DataMapper directly
         assert hasattr(FlextCliUtilities, "CliValidation")
+        assert hasattr(FlextCliUtilities, "TypeNormalizer")
+        # Enum, Collection, Args, Model are nested classes in utilities.py
+        assert hasattr(FlextCliUtilities, "Enum")
+        assert hasattr(FlextCliUtilities, "Collection")
+        assert hasattr(FlextCliUtilities, "Args")
+        assert hasattr(FlextCliUtilities, "Model")
+        # Environment, ConfigOps, FileOps also exist
         assert hasattr(FlextCliUtilities, "Environment")
         assert hasattr(FlextCliUtilities, "ConfigOps")
         assert hasattr(FlextCliUtilities, "FileOps")
-        assert hasattr(FlextCliUtilities, "TypeNormalizer")
