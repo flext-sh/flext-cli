@@ -34,7 +34,8 @@ import pytest
 from flext_core import FlextResult
 from flext_tests import FlextTestsMatchers
 
-from flext_cli import FlextCliConstants, FlextCliTypes
+from flext_cli import FlextCliConstants
+from flext_cli.typings import FlextCliTypes
 
 from ..fixtures.constants import TestTypings
 from ..helpers import FlextCliTestHelpers
@@ -123,7 +124,7 @@ class TestFlextCliTypings:
             """Validate type class initialization."""
             try:
                 # Test that types class has required attributes
-                required_attrs = ["Data", "AnnotatedCli", "Auth", "CliCommand"]
+                required_attrs = ["Data", "Auth", "CliCommand"]
                 for attr in required_attrs:
                     if not hasattr(types_class, attr):
                         return FlextResult[bool].fail(f"Missing attribute: {attr}")
@@ -652,4 +653,4 @@ class TestFlextCliTypings:
         # Test types class integration
         assert FlextCliTypes is not None
         assert hasattr(FlextCliTypes, "Data")
-        assert hasattr(FlextCliTypes, "AnnotatedCli")
+        assert hasattr(FlextCliTypes, "Auth")

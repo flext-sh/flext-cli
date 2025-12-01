@@ -15,7 +15,7 @@ from __future__ import annotations
 
 import time
 from collections import UserList
-from typing import Never, TypeVar, cast
+from typing import Never, TypeVar
 
 import pytest
 from flext_core import FlextResult
@@ -111,63 +111,45 @@ class TestFlextCliPrompts:
         def get_confirm_cases() -> list[GenericTestCaseDict]:
             """Get parametrized test cases for confirm."""
             return [
-                cast(
-                    "GenericTestCaseDict",
-                    {
-                        "message": TestPrompts.Messages.CONFIRM,
-                        "default": TestPrompts.Defaults.CONFIRM_TRUE,
-                        "expected_value": True,
-                    },
-                ),
-                cast(
-                    "GenericTestCaseDict",
-                    {
-                        "message": TestPrompts.Messages.CONFIRM,
-                        "default": TestPrompts.Defaults.CONFIRM_FALSE,
-                        "expected_value": False,
-                    },
-                ),
-                cast(
-                    "GenericTestCaseDict",
-                    {
-                        "message": TestPrompts.Messages.EMPTY,
-                        "default": TestPrompts.Defaults.CONFIRM_TRUE,
-                        "expected_value": True,
-                    },
-                ),
+                {
+                    "message": TestPrompts.Messages.CONFIRM,
+                    "default": TestPrompts.Defaults.CONFIRM_TRUE,
+                    "expected_value": True,
+                },
+                {
+                    "message": TestPrompts.Messages.CONFIRM,
+                    "default": TestPrompts.Defaults.CONFIRM_FALSE,
+                    "expected_value": False,
+                },
+                {
+                    "message": TestPrompts.Messages.EMPTY,
+                    "default": TestPrompts.Defaults.CONFIRM_TRUE,
+                    "expected_value": True,
+                },
             ]
 
         @staticmethod
         def get_choice_cases() -> list[GenericTestCaseDict]:
             """Get parametrized test cases for prompt_choice."""
             return [
-                cast(
-                    "GenericTestCaseDict",
-                    {
-                        "message": TestPrompts.Messages.CHOOSE,
-                        "choices": TestPrompts.Options.SIMPLE,
-                        "default": TestPrompts.Defaults.CHOICE,
-                        "expected_success": True,
-                    },
-                ),
-                cast(
-                    "GenericTestCaseDict",
-                    {
-                        "message": TestPrompts.Messages.CHOOSE,
-                        "choices": TestPrompts.Options.EMPTY,
-                        "default": None,
-                        "expected_success": False,
-                    },
-                ),
-                cast(
-                    "GenericTestCaseDict",
-                    {
-                        "message": TestPrompts.Messages.CHOOSE,
-                        "choices": TestPrompts.Options.SIMPLE,
-                        "default": TestPrompts.Defaults.CHOICE_INVALID,
-                        "expected_success": False,
-                    },
-                ),
+                {
+                    "message": TestPrompts.Messages.CHOOSE,
+                    "choices": TestPrompts.Options.SIMPLE,
+                    "default": TestPrompts.Defaults.CHOICE,
+                    "expected_success": True,
+                },
+                {
+                    "message": TestPrompts.Messages.CHOOSE,
+                    "choices": TestPrompts.Options.EMPTY,
+                    "default": None,
+                    "expected_success": False,
+                },
+                {
+                    "message": TestPrompts.Messages.CHOOSE,
+                    "choices": TestPrompts.Options.SIMPLE,
+                    "default": TestPrompts.Defaults.CHOICE_INVALID,
+                    "expected_success": False,
+                },
             ]
 
         @staticmethod

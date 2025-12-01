@@ -31,9 +31,8 @@ from __future__ import annotations
 
 import json
 from pathlib import Path
-from typing import cast
 
-from flext_core import FlextResult, FlextTypes
+from flext_core import FlextResult, FlextTypes, FlextUtilities
 
 from flext_cli import FlextCli, FlextCliModels, FlextCliTables, FlextCliTypes
 
@@ -134,17 +133,14 @@ class MyAppPluginManager:
 
         try:
             result = execute_method(**kwargs)
-            # Result is dynamically typed, cast to JsonValue for type safety
+            # Result is dynamically typed, convert to JsonValue using FlextUtilities
             # Type narrowing: ensure result is JsonValue compatible
-            json_result: FlextTypes.JsonValue = (
-                cast("FlextTypes.JsonValue", result)
-                if isinstance(result, (str, int, float, bool, type(None)))
-                or (
-                    isinstance(result, dict) and all(isinstance(k, str) for k in result)
-                )
-                or isinstance(result, list)
-                else str(result)
-            )
+            if isinstance(result, (str, int, float, bool, type(None))):
+                json_result: FlextTypes.JsonValue = result
+            elif (isinstance(result, dict) and all(isinstance(k, str) for k in result)) or isinstance(result, list):
+                json_result = FlextUtilities.DataMapper.convert_to_json_value(result)
+            else:
+                json_result = str(result)
             return FlextResult[FlextTypes.JsonValue].ok(json_result)
         except Exception as e:
             return FlextResult[FlextTypes.JsonValue].fail(

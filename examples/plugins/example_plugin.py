@@ -11,8 +11,8 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 from collections.abc import Callable
-from typing import Any, cast
 
+# Removed cast and Any - use proper types
 from flext_core import FlextResult
 
 from flext_cli.typings import FlextCliTypes
@@ -79,11 +79,12 @@ class ExamplePlugin:
 
         """
         try:
-            # Cast cli_main to Any for decorator usage (runtime type is correct)
-            cli_main_typed = cast("Any", cli_main)
+            # Type narrowing: ensure cli_main has group method
+            if not hasattr(cli_main, "group"):
+                return FlextResult[bool].fail("cli_main does not have group method")
 
             # Register command group
-            @cli_main_typed.group()
+            @cli_main.group()
             def example() -> None:
                 """Example plugin commands."""
 
@@ -181,10 +182,11 @@ class DataProcessorPlugin:
 
         """
         try:
-            # Cast cli_main to Any for decorator usage (runtime type is correct)
-            cli_main_typed = cast("Any", cli_main)
+            # Type narrowing: ensure cli_main has group method
+            if not hasattr(cli_main, "group"):
+                return FlextResult[bool].fail("cli_main does not have group method")
 
-            @cli_main_typed.group()
+            @cli_main.group()
             def data() -> None:
                 """Data processing commands."""
 

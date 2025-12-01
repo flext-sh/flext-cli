@@ -3,9 +3,9 @@
 from __future__ import annotations
 
 from collections.abc import Mapping, Sequence
-from typing import Protocol, runtime_checkable
+from typing import Protocol, Self, runtime_checkable
 
-from flext_core import FlextProtocols, FlextResult
+from flext_core import FlextProtocols, FlextResult, FlextTypes
 
 
 class FlextCliProtocols(FlextProtocols):
@@ -24,6 +24,63 @@ class FlextCliProtocols(FlextProtocols):
     # LAYER 0: Domain Protocols (sem dependências internas)
     # ═══════════════════════════════════════════════════════════════════
 
+    class Display:
+        """Rich display abstraction protocols - NO IMPORTS of Rich classes."""
+
+        @runtime_checkable
+        class RichTableProtocol(Protocol):
+            """Protocol for Rich Table objects."""
+
+            def add_column(
+                self, header: str, **kwargs: FlextTypes.GeneralValueType
+            ) -> None:
+                """Add table column."""
+                ...
+
+            def add_row(
+                self, *cells: str, **kwargs: FlextTypes.GeneralValueType
+            ) -> None:
+                """Add table row."""
+                ...
+
+        @runtime_checkable
+        class RichTreeProtocol(Protocol):
+            """Protocol for Rich Tree objects."""
+
+            def add(self, label: str, **kwargs: FlextTypes.GeneralValueType) -> Self:
+                """Add tree node."""
+                ...
+
+        @runtime_checkable
+        class RichConsoleProtocol(Protocol):
+            """Protocol for Rich Console objects."""
+
+            def print(
+                self,
+                text: str,
+                style: str | None = None,
+                **kwargs: FlextTypes.GeneralValueType,
+            ) -> None:
+                """Print to console."""
+                ...
+
+    class Interactive:
+        """Interactive display abstraction protocols."""
+
+        @runtime_checkable
+        class RichProgressProtocol(Protocol):
+            """Protocol for Rich Progress objects."""
+
+            def __enter__(
+                self,
+            ) -> Self:
+                """Context manager enter."""
+                ...
+
+            def __exit__(self, *args: FlextTypes.GeneralValueType) -> None:
+                """Context manager exit."""
+                ...
+
     class Cli:
         """CLI-specific protocols."""
 
@@ -41,17 +98,82 @@ class FlextCliProtocols(FlextProtocols):
                 """Command description."""
                 ...
 
-            def execute(self, args: Sequence[str]) -> FlextResult[object]:
+            def execute(
+                self, args: Sequence[str]
+            ) -> "FlextProtocols.ResultProtocol[FlextTypes.GeneralValueType]":
                 """Execute command with arguments."""
                 ...
 
-        CliCommandFunction = CliCommandProtocol
+        @runtime_checkable
+        class CliCommandHandler(Protocol):
+            """Protocol for CLI command handler functions."""
+
+            def __call__(
+                self,
+                *args: FlextTypes.GeneralValueType,
+                **kwargs: FlextTypes.GeneralValueType,
+            ) -> FlextTypes.GeneralValueType:
+                """Call handler with arguments."""
+                ...
+
+        @runtime_checkable
+        class CliFormatter(Protocol):
+            """Protocol for CLI formatters."""
+
+            def format_data(
+                self,
+                data: FlextTypes.GeneralValueType,
+                **options: FlextTypes.GeneralValueType,
+            ) -> FlextResult[str]:
+                """Format data."""
+                ...
+
+        @runtime_checkable
+        class CliConfigProvider(Protocol):
+            """Protocol for CLI configuration providers."""
+
+            def load_config(self) -> FlextResult[FlextTypes.JsonDict]:
+                """Load configuration."""
+                ...
+
+            def save_config(self, config: FlextTypes.JsonDict) -> FlextResult[bool]:
+                """Save configuration."""
+                ...
+
+        @runtime_checkable
+        class CliAuthenticator(Protocol):
+            """Protocol for CLI authentication."""
+
+            def authenticate(self, username: str, password: str) -> FlextResult[str]:
+                """Authenticate user."""
+                ...
+
+            def validate_token(self, token: str) -> FlextResult[bool]:
+                """Validate authentication token."""
+                ...
+
+        @runtime_checkable
+        class CliDebugProvider(Protocol):
+            """Protocol for CLI debug providers."""
+
+            def get_debug_info(self) -> FlextResult[FlextTypes.JsonDict]:
+                """Get debug information."""
+                ...
+
+        # PEP 695 type aliases - direct type references
+        type CliCommandFunction = CliCommandHandler
+        # Type for registered commands (decorated functions)
+        type CliRegisteredCommand = CliCommandProtocol
 
         @runtime_checkable
         class ModelCommandHandler(Protocol):
             """Protocol for model command handlers."""
 
-            def handle(self, model: object, **kwargs: object) -> FlextResult[object]:
+            def handle(
+                self,
+                model: FlextTypes.GeneralValueType,
+                **kwargs: FlextTypes.GeneralValueType,
+            ) -> "FlextProtocols.ResultProtocol[FlextTypes.GeneralValueType]":
                 """Handle model command."""
                 ...
 
@@ -88,6 +210,23 @@ class FlextCliProtocols(FlextProtocols):
 
             def write_success(self, text: str) -> None:
                 """Write success output."""
+                ...
+
+        @runtime_checkable
+        class CliPlugin(Protocol):
+            """Protocol for CLI plugins."""
+
+            @property
+            def name(self) -> str:
+                """Plugin name."""
+                ...
+
+            def initialize(self) -> FlextResult[bool]:
+                """Initialize plugin."""
+                ...
+
+            def shutdown(self) -> FlextResult[bool]:
+                """Shutdown plugin."""
                 ...
 
     # ═══════════════════════════════════════════════════════════════════
@@ -147,11 +286,15 @@ class FlextCliProtocols(FlextProtocols):
                 """Format data as table."""
                 ...
 
-            def format_json(self, data: object) -> FlextResult[str]:
+            def format_json(
+                self, data: FlextTypes.GeneralValueType
+            ) -> FlextResult[str]:
                 """Format data as JSON."""
                 ...
 
-            def format_yaml(self, data: object) -> FlextResult[str]:
+            def format_yaml(
+                self, data: FlextTypes.GeneralValueType
+            ) -> FlextResult[str]:
                 """Format data as YAML."""
                 ...
 

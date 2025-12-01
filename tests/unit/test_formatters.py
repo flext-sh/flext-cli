@@ -14,12 +14,13 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 import pytest
+from flext_core import FlextTypes
 from rich.console import Console
 from rich.progress import Progress
 from rich.table import Table as RichTable
 from rich.tree import Tree as RichTree
 
-from flext_cli import FlextCliFormatters, FlextCliTypes
+from flext_cli import FlextCliFormatters
 
 from ..fixtures.constants import TestData
 from ..helpers import FlextCliTestHelpers
@@ -46,7 +47,7 @@ class TestFlextCliFormatters:
             return FlextCliFormatters()
 
         @staticmethod
-        def create_test_data() -> FlextCliTypes.Data.CliDataDict:
+        def create_test_data() -> FlextTypes.JsonDict:
             """Create test data dictionary."""
             return {
                 TestData.Output.SUCCESS_MESSAGE: TestData.Output.INFO_MESSAGE,
@@ -54,7 +55,7 @@ class TestFlextCliFormatters:
             }
 
         @staticmethod
-        def create_table_data() -> FlextCliTypes.Data.CliDataDict:
+        def create_table_data() -> FlextTypes.JsonDict:
             """Create table test data."""
             return {
                 "Name": "Alice",
@@ -117,7 +118,7 @@ class TestFlextCliFormatters:
     )
     def test_create_table(
         self,
-        data: FlextCliTypes.Data.CliDataDict | None,
+        data: FlextTypes.JsonDict | None,
         headers: list[str] | None,
         title: str | None,
     ) -> None:
@@ -202,7 +203,7 @@ class TestFlextCliFormatters:
         formatters = FlextCliFormatters()
 
         # Create table with data
-        data: FlextCliTypes.Data.CliDataDict = {
+        data: FlextTypes.JsonDict = {
             "Name": "Alice",
             "Age": "30",
             "City": "NYC",
@@ -320,7 +321,7 @@ class TestFlextCliFormatters:
     def test_create_table_dict_without_headers(self) -> None:
         """Test create_table() with CLI data dict but no headers (lines 133-134)."""
         formatters = FlextCliFormatters()
-        data: FlextCliTypes.Data.CliDataDict = {
+        data: FlextTypes.JsonDict = {
             "key1": "value1",
             "key2": "value2",
             "key3": "value3",

@@ -26,9 +26,8 @@ from __future__ import annotations
 
 import tempfile
 from pathlib import Path
-from typing import cast
 
-from flext_core import FlextResult
+from flext_core import FlextResult, FlextUtilities
 
 from flext_cli import FlextCli, FlextCliPrompts, FlextCliTypes
 
@@ -96,9 +95,9 @@ class DataManagerCLI:
                 "Data is not a dictionary",
             )
         self.cli.output.print_message("✅ Data loaded successfully", style="green")
-        return FlextResult[FlextCliTypes.Data.CliDataDict].ok(
-            cast("FlextCliTypes.Data.CliDataDict", data),
-        )
+        # Convert to JsonDict-compatible dict using FlextUtilities
+        converted_data: FlextCliTypes.Data.CliDataDict = FlextUtilities.DataMapper.convert_dict_to_json(data)
+        return FlextResult[FlextCliTypes.Data.CliDataDict].ok(converted_data)
 
     def display_data(self, data: FlextCliTypes.Data.CliDataDict) -> None:
         """Display data as formatted table."""
@@ -141,9 +140,9 @@ class DataManagerCLI:
         self.cli.output.print_message(
             f"✅ Created entry: {key} = {value}", style="green"
         )
-        return FlextResult[FlextCliTypes.Data.CliDataDict].ok(
-            cast("FlextCliTypes.Data.CliDataDict", entry),
-        )
+        # Convert to JsonDict-compatible dict using FlextUtilities
+        converted_entry: FlextCliTypes.Data.CliDataDict = FlextUtilities.DataMapper.convert_dict_to_json(entry)
+        return FlextResult[FlextCliTypes.Data.CliDataDict].ok(converted_entry)
 
     def run_workflow(self) -> FlextResult[bool]:
         """Complete workflow integrating all features."""
@@ -254,9 +253,9 @@ def main() -> None:
         "\n2. Railway Pattern (chained operations):", style="bold cyan"
     )
     test_data_raw = {"id": 1, "name": "test"}
-    pipeline_result = process_with_railway_pattern(
-        cast("FlextCliTypes.Data.CliDataDict", test_data_raw),
-    )
+    # Convert to JsonDict-compatible dict using FlextUtilities
+    test_data: FlextCliTypes.Data.CliDataDict = FlextUtilities.DataMapper.convert_dict_to_json(test_data_raw)
+    pipeline_result = process_with_railway_pattern(test_data)
 
     if pipeline_result.is_success:
         final_data = pipeline_result.unwrap()

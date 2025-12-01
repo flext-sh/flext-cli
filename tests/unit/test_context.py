@@ -15,14 +15,13 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 import uuid
-from typing import TypeVar, cast
+from typing import TypeVar
 
 import pytest
 from flext_core import FlextResult, FlextTypes, FlextUtilities
 from flext_tests import FlextTestsUtilities
 
 from flext_cli import FlextCliContext
-from flext_cli.typings import FlextCliTypes
 
 from .._helpers import FlextCliTestHelpers
 from ..fixtures.constants import TestContext
@@ -53,9 +52,11 @@ class TestFlextCliContext:
             working_dir: str | None = None,
         ) -> FlextResult[FlextCliContext]:
             """Create FlextCliContext instance."""
-            # Cast env_vars to JsonDict for type compatibility
+            # Convert env_vars to JsonDict for type compatibility using FlextUtilities
             json_env_vars: FlextTypes.JsonDict | None = (
-                cast("FlextTypes.JsonDict", env_vars) if env_vars is not None else None
+                FlextUtilities.DataMapper.convert_dict_to_json(env_vars)
+                if env_vars is not None
+                else None
             )
             return FlextCliTestHelpers.ContextFactory.create_context(
                 command=command,
@@ -188,16 +189,26 @@ class TestFlextCliContext:
     @pytest.mark.parametrize("test_case", TestData.get_creation_cases())
     def test_context_creation(self, test_case: dict[str, object | None]) -> None:
         """Test context creation with parametrized cases."""
-        # Cast test_case values to proper types
-        command = cast("str | None", test_case.get("command"))
-        arguments = cast("list[str] | None", test_case.get("arguments"))
-        env_vars_raw = test_case.get("env_vars")
-        env_vars = (
-            cast("dict[str, object]", env_vars_raw)
-            if env_vars_raw is not None
+        # Extract test_case values with type narrowing
+        command: str | None = (
+            test_case.get("command")
+            if isinstance(test_case.get("command"), str)
             else None
         )
-        working_dir = cast("str | None", test_case.get("working_dir"))
+        arguments: list[str] | None = (
+            test_case.get("arguments")
+            if isinstance(test_case.get("arguments"), list)
+            else None
+        )
+        env_vars_raw = test_case.get("env_vars")
+        env_vars: dict[str, object] | None = (
+            env_vars_raw if isinstance(env_vars_raw, dict) else None
+        )
+        working_dir: str | None = (
+            test_case.get("working_dir")
+            if isinstance(test_case.get("working_dir"), str)
+            else None
+        )
 
         result = self.Fixtures.create_context(
             command=command,
@@ -293,12 +304,13 @@ class TestFlextCliContext:
     def test_environment_variables_none_state(self) -> None:
         """Test fast-fail when environment_variables is None."""
         context = FlextCliContext(command="test")
-        context.environment_variables = None
+        # Use model_copy() to create a modified copy (frozen model pattern)
+        context_with_none = context.model_copy(update={"environment_variables": None})
 
-        get_result = context.get_environment_variable("VAR")
+        get_result = context_with_none.get_environment_variable("VAR")
         self.Assertions.assert_result_failure(get_result)
 
-        set_result = context.set_environment_variable("VAR", "value")
+        set_result = context_with_none.set_environment_variable("VAR", "value")
         self.Assertions.assert_result_failure(set_result)
 
     # =========================================================================
@@ -346,7 +358,8 @@ class TestFlextCliContext:
     def test_arguments_none_state(self) -> None:
         """Test fast-fail when arguments is None."""
         context = FlextCliContext(command="test")
-        context.arguments = None
+        # Use object.__setattr__ for frozen model
+        object.__setattr__(context, "arguments", None)
 
         add_result = context.add_argument("arg")
         self.Assertions.assert_result_failure(add_result)
@@ -363,8 +376,10 @@ class TestFlextCliContext:
         """Test metadata get/set operations."""
         context = FlextCliContext()
 
-        # Set metadata - cast value to FlextCliTypes.CliJsonValue for type compatibility
-        json_value = cast("FlextCliTypes.CliJsonValue", value)
+        # Set metadata - convert value to CliJsonValue for type compatibility using FlextUtilities
+        json_value: FlextTypes.GeneralValueType = (
+            FlextUtilities.DataMapper.convert_to_json_value(value)
+        )
         set_result = context.set_metadata(key, json_value)
         self.Assertions.assert_result_success(set_result)
 
@@ -434,17 +449,19 @@ class TestFlextCliContext:
     def test_to_dict_with_none_arguments(self) -> None:
         """Test to_dict fast-fail when arguments is None."""
         context = FlextCliContext(command="test")
-        context.arguments = None
+        # Use model_copy() to create a modified copy (frozen model pattern)
+        context_with_none = context.model_copy(update={"arguments": None})
 
-        result = context.to_dict()
+        result = context_with_none.to_dict()
         self.Assertions.assert_result_failure(result)
 
     def test_to_dict_with_none_env_vars(self) -> None:
         """Test to_dict fast-fail when environment_variables is None."""
         context = FlextCliContext(command="test")
-        context.environment_variables = None
+        # Use model_copy() to create a modified copy (frozen model pattern)
+        context_with_none = context.model_copy(update={"environment_variables": None})
 
-        result = context.to_dict()
+        result = context_with_none.to_dict()
         self.Assertions.assert_result_failure(result)
 
     # =========================================================================
@@ -522,9 +539,10 @@ class TestFlextCliContext:
     def test_execute_arguments_none(self) -> None:
         """Test execute when arguments is None."""
         context = FlextCliContext(command="test")
-        context.arguments = None
+        # Use model_copy() to create a modified copy (frozen model pattern)
+        context_with_none = context.model_copy(update={"arguments": None})
 
-        result = context.execute()
+        result = context_with_none.execute()
         self.Assertions.assert_result_failure(result)
 
     def test_context_state_isolation(self) -> None:

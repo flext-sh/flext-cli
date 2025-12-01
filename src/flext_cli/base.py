@@ -9,13 +9,12 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from flext_core import FlextService
+from flext_core import FlextService, FlextTypes
 
 from flext_cli.config import FlextCliConfig
-from flext_cli.typings import FlextCliTypes
 
 
-class FlextCliServiceBase(FlextService[FlextCliTypes.Data.CliDataDict]):
+class FlextCliServiceBase(FlextService[FlextTypes.JsonDict]):
     """Service base para flext-cli com acesso tipado a config.
 
     Acesso via instância:

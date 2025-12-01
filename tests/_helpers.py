@@ -15,10 +15,10 @@ import re
 import tempfile
 from collections.abc import Callable
 from pathlib import Path
-from typing import ParamSpec, TypeVar, cast
+from typing import ParamSpec, TypeVar
 
 from click import echo
-from flext_core import FlextResult, FlextService, FlextTypes
+from flext_core import FlextResult, FlextService, FlextTypes, FlextUtilities
 
 from flext_cli import (
     FlextCliAppBase,
@@ -30,7 +30,8 @@ from flext_cli import (
     FlextCliModels,
     FlextCliTables,
 )
-from flext_cli.typings import FlextCliTypes
+from collections.abc import Mapping
+from flext_core import FlextTypes
 
 from .fixtures.constants import (
     TestCli,
@@ -351,7 +352,7 @@ class FlextCliTestHelpers(FlextService[GenericFieldsDict]):
             username: str | None = None,
             password: str | None = None,
             **overrides: str,
-        ) -> FlextResult[FlextCliTypes.Auth.CredentialsData]:
+        ) -> FlextResult[Mapping[str, str]]:
             """Create test authentication credentials with validation.
 
             Args:
@@ -367,11 +368,11 @@ class FlextCliTestHelpers(FlextService[GenericFieldsDict]):
                 # Validate username if explicitly provided (not None)
                 if username is not None:
                     if len(username.strip()) == 0:
-                        return FlextResult[FlextCliTypes.Auth.CredentialsData].fail(
+                        return FlextResult[Mapping[str, str]].fail(
                             "Username cannot be empty"
                         )
                     if len(username) < 3:
-                        return FlextResult[FlextCliTypes.Auth.CredentialsData].fail(
+                        return FlextResult[Mapping[str, str]].fail(
                             "Username must be at least 3 characters"
                         )
                     final_username = username
@@ -381,11 +382,11 @@ class FlextCliTestHelpers(FlextService[GenericFieldsDict]):
                 # Validate password if explicitly provided (not None)
                 if password is not None:
                     if len(password.strip()) == 0:
-                        return FlextResult[FlextCliTypes.Auth.CredentialsData].fail(
+                        return FlextResult[Mapping[str, str]].fail(
                             "Password cannot be empty"
                         )
                     if len(password) < 8:
-                        return FlextResult[FlextCliTypes.Auth.CredentialsData].fail(
+                        return FlextResult[Mapping[str, str]].fail(
                             "Password must be at least 8 characters"
                         )
                     final_password = password
@@ -397,15 +398,15 @@ class FlextCliTestHelpers(FlextService[GenericFieldsDict]):
                     FlextCliConstants.DictKeys.PASSWORD: final_password,
                     **overrides,
                 }
-                return FlextResult[FlextCliTypes.Auth.CredentialsData].ok(creds)
+                return FlextResult[Mapping[str, str]].ok(creds)
             except Exception as e:
-                return FlextResult[FlextCliTypes.Auth.CredentialsData].fail(str(e))
+                return FlextResult[Mapping[str, str]].fail(str(e))
 
         @staticmethod
         def create_token_data(
             token: str | None = None,
             **overrides: str,
-        ) -> FlextResult[FlextCliTypes.Auth.CredentialsData]:
+        ) -> FlextResult[Mapping[str, str]]:
             """Create test token data.
 
             Args:
@@ -424,9 +425,9 @@ class FlextCliTestHelpers(FlextService[GenericFieldsDict]):
                     "token": token_value,
                     **overrides,
                 }
-                return FlextResult[FlextCliTypes.Auth.CredentialsData].ok(data)
+                return FlextResult[Mapping[str, str]].ok(data)
             except Exception as e:
-                return FlextResult[FlextCliTypes.Auth.CredentialsData].fail(str(e))
+                return FlextResult[Mapping[str, str]].fail(str(e))
 
     # =========================================================================
     # NESTED HELPER: File Operations
@@ -563,7 +564,7 @@ class FlextCliTestHelpers(FlextService[GenericFieldsDict]):
             debug: bool = TestData.Config.DEBUG_TRUE,
             output_format: str = TestData.Config.OUTPUT_FORMAT_JSON,
             **overrides: FlextTypes.JsonValue,
-        ) -> FlextResult[FlextCliTypes.Data.CliDataDict]:
+        ) -> FlextResult[FlextTypes.JsonDict]:
             """Create test configuration data.
 
             Args:
@@ -589,9 +590,9 @@ class FlextCliTestHelpers(FlextService[GenericFieldsDict]):
                     **base_config,
                     **overrides,
                 }
-                return FlextResult[FlextCliTypes.Data.CliDataDict].ok(config_data)
+                return FlextResult[FlextTypes.JsonDict].ok(config_data)
             except Exception as e:
-                return FlextResult[FlextCliTypes.Data.CliDataDict].fail(str(e))
+                return FlextResult[FlextTypes.JsonDict].fail(str(e))
 
     # =========================================================================
     # NESTED HELPER: Type Testing
@@ -610,9 +611,9 @@ class FlextCliTestHelpers(FlextService[GenericFieldsDict]):
             """
             try:
                 data = TestTypings.TestData.Processing.MIXED_DICT
-                return FlextResult[GenericFieldsDict].ok(
-                    cast("GenericFieldsDict", data)
-                )
+                # Convert to JsonDict-compatible dict using FlextUtilities
+                converted_data: GenericFieldsDict = FlextUtilities.DataMapper.convert_dict_to_json(data)
+                return FlextResult[GenericFieldsDict].ok(converted_data)
             except Exception as e:
                 return FlextResult[GenericFieldsDict].fail(str(e))
 
@@ -633,17 +634,16 @@ class FlextCliTestHelpers(FlextService[GenericFieldsDict]):
 
             """
             try:
-                data: GenericFieldsDict = cast(
-                    "GenericFieldsDict",
-                    {
-                        "status": status,
-                        "data": TestTypings.TestData.Api.SINGLE_USER
-                        if single_user
-                        else TestTypings.TestData.Api.MULTI_USERS,
-                        "message": TestTypings.TypedDicts.ApiResponse.MESSAGE,
-                        "error": TestTypings.TypedDicts.ApiResponse.ERROR,
-                    },
-                )
+                raw_data = {
+                    "status": status,
+                    "data": TestTypings.TestData.Api.SINGLE_USER
+                    if single_user
+                    else TestTypings.TestData.Api.MULTI_USERS,
+                    "message": TestTypings.TypedDicts.ApiResponse.MESSAGE,
+                    "error": TestTypings.TypedDicts.ApiResponse.ERROR,
+                }
+                # Convert to JsonDict-compatible dict using FlextUtilities
+                data: GenericFieldsDict = FlextUtilities.DataMapper.convert_dict_to_json(raw_data)
                 return FlextResult[GenericFieldsDict].ok(data)
             except Exception as e:
                 return FlextResult[GenericFieldsDict].fail(str(e))
@@ -659,12 +659,14 @@ class FlextCliTestHelpers(FlextService[GenericFieldsDict]):
 
             """
             try:
+                # Convert mixed dict to JsonDict-compatible dict using FlextUtilities
+                mixed_dict: GenericFieldsDict = FlextUtilities.DataMapper.convert_dict_to_json(
+                    TestTypings.TestData.Processing.MIXED_DICT
+                )
                 data = (
                     TestTypings.TestData.Processing.STRING_LIST,
                     TestTypings.TestData.Processing.NUMBER_LIST,
-                    cast(
-                        "GenericFieldsDict", TestTypings.TestData.Processing.MIXED_DICT
-                    ),
+                    mixed_dict,
                 )
                 return FlextResult[tuple[list[str], list[int], GenericFieldsDict]].ok(
                     data
@@ -713,12 +715,12 @@ class FlextCliTestHelpers(FlextService[GenericFieldsDict]):
 
                 class TestConfigProvider:
                     def __init__(self) -> None:
-                        self._config: GenericFieldsDict = cast("GenericFieldsDict", {})
+                        self._config: GenericFieldsDict = {}
 
                     def load_config(self) -> FlextResult[GenericFieldsDict]:
-                        return FlextResult[GenericFieldsDict].ok(
-                            cast("GenericFieldsDict", self._config.copy())
-                        )
+                        # Convert to JsonDict-compatible dict using FlextUtilities
+                        config_copy: GenericFieldsDict = FlextUtilities.DataMapper.convert_dict_to_json(self._config.copy())
+                        return FlextResult[GenericFieldsDict].ok(config_copy)
 
                     def save_config(
                         self, config: GenericFieldsDict
@@ -742,15 +744,13 @@ class FlextCliTestHelpers(FlextService[GenericFieldsDict]):
                         username = credentials.get("username")
                         password = credentials.get("password")
                         if username == "testuser" and password == "testpass":
-                            return FlextResult[GenericFieldsDict].ok(
-                                cast(
-                                    "GenericFieldsDict",
-                                    {
-                                        "token": "valid_token",
-                                        "user": username,
-                                    },
-                                )
-                            )
+                            auth_data = {
+                                "token": "valid_token",
+                                "user": username,
+                            }
+                            # Convert to JsonDict-compatible dict using FlextUtilities
+                            converted_auth: GenericFieldsDict = FlextUtilities.DataMapper.convert_dict_to_json(auth_data)
+                            return FlextResult[GenericFieldsDict].ok(converted_auth)
                         return FlextResult[GenericFieldsDict].fail(
                             "Invalid credentials"
                         )
@@ -784,7 +784,7 @@ class FlextCliTestHelpers(FlextService[GenericFieldsDict]):
                 @decorator
                 def test_func(
                     *args: object, **kwargs: object
-                ) -> FlextCliTypes.CliJsonValue:
+                ) -> FlextTypes.GeneralValueType:
                     """Test command function."""
                     echo("Test")
                     return None
@@ -808,7 +808,7 @@ class FlextCliTestHelpers(FlextService[GenericFieldsDict]):
                 @decorator
                 def test_group_func(
                     *args: object, **kwargs: object
-                ) -> FlextCliTypes.CliJsonValue:
+                ) -> FlextTypes.GeneralValueType:
                     """Group function."""
                     return None
 
@@ -834,7 +834,7 @@ class FlextCliTestHelpers(FlextService[GenericFieldsDict]):
                 @option_decorator
                 def test_command(
                     *args: object, **kwargs: object
-                ) -> FlextCliTypes.CliJsonValue:
+                ) -> FlextTypes.GeneralValueType:
                     """Test command with options."""
                     value = kwargs.get("value") if kwargs else args[0] if args else None
                     echo(f"Value: {value}")
@@ -1028,7 +1028,7 @@ class FlextCliTestHelpers(FlextService[GenericFieldsDict]):
         """Helpers for output formatting tests."""
 
         @staticmethod
-        def create_format_test_data() -> FlextCliTypes.Data.CliDataDict:
+        def create_format_test_data() -> FlextTypes.JsonDict:
             """Create standard test data for format tests.
 
             Returns:
@@ -1043,7 +1043,7 @@ class FlextCliTestHelpers(FlextService[GenericFieldsDict]):
             return data
 
         @staticmethod
-        def create_table_test_data() -> FlextCliTypes.Data.CliDataDict:
+        def create_table_test_data() -> FlextTypes.JsonDict:
             """Create test data for table formatting.
 
             Returns:
@@ -1214,7 +1214,7 @@ class FlextCliTestHelpers(FlextService[GenericFieldsDict]):
             **kwargs: Additional execution parameters
 
         Returns:
-            FlextResult[dict[str, Any]]: Service execution status
+            FlextResult[dict[str, object]]: Service execution status
 
         """
         try:
@@ -1223,7 +1223,8 @@ class FlextCliTestHelpers(FlextService[GenericFieldsDict]):
                 FlextCliConstants.DictKeys.SERVICE: "FlextCliTestHelpers",
                 FlextCliConstants.DictKeys.MESSAGE: "Test helpers ready",
             }
-            payload_data = cast("dict[str, object]", payload)
+            # Convert to JsonDict-compatible dict using FlextUtilities
+            payload_data: dict[str, object] = FlextUtilities.DataMapper.convert_dict_to_json(payload)
             return FlextResult[dict[str, object]].ok(payload_data)
         except Exception as e:
             return FlextResult[dict[str, object]].fail(str(e))

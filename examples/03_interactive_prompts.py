@@ -30,9 +30,7 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from typing import cast
-
-from flext_core import FlextResult, FlextTypes
+from flext_core import FlextResult, FlextTypes, FlextUtilities
 
 from flext_cli import FlextCli, FlextCliPrompts
 
@@ -192,9 +190,10 @@ def database_setup_wizard() -> FlextResult[dict[str, str | int | bool | float]]:
     display_config = {k: v for k, v in config.items() if k != "password"}
     display_config["password"] = "********"
 
-    # Create table from config data
+    # Create table from config data - convert using FlextUtilities
+    json_config: FlextTypes.JsonDict = FlextUtilities.DataMapper.convert_dict_to_json(display_config)
     table_result = cli.create_table(
-        data=cast("FlextTypes.JsonDict", display_config),
+        data=json_config,
         headers=["Setting", "Value"],
         title="Database Configuration",
     )
@@ -482,9 +481,10 @@ def flext_configuration_wizard() -> FlextResult[dict[str, str | int | bool | flo
     # Display configuration
     cli.print("\n📋 Configuration Summary:", style="yellow")
 
-    # Create table from config data
+    # Create table from config data - convert using FlextUtilities
+    json_config: FlextTypes.JsonDict = FlextUtilities.DataMapper.convert_dict_to_json(config)
     table_result = cli.create_table(
-        data=cast("FlextTypes.JsonDict", config),
+        data=json_config,
         headers=["Setting", "Value"],
         title="Application Configuration",
     )

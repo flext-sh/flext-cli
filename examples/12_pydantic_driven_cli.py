@@ -26,10 +26,9 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 import time
-from typing import cast
 
 from example_utils import display_config_table, display_success_summary
-from flext_core import FlextResult
+from flext_core import FlextResult, FlextUtilities
 from pydantic import BaseModel, Field, field_validator
 
 from flext_cli import FlextCli, FlextCliModels, FlextCliTypes
@@ -128,8 +127,8 @@ def execute_deploy_from_cli(cli_args: dict[str, str | int | bool]) -> None:
     cli.output.print_message("\n🚀 Deploying with CLI Arguments:", style="bold cyan")
 
     try:
-        # Cast to proper CLI data type for type safety
-        typed_args = cast("FlextCliTypes.Data.CliDataDict", cli_args)
+        # Convert to JsonDict-compatible dict using FlextUtilities
+        typed_args: FlextCliTypes.Data.CliDataDict = FlextUtilities.DataMapper.convert_dict_to_json(cli_args)
 
         # Pydantic automatically validates ALL constraints
         # DeployConfig constructor handles type conversion and validation
@@ -452,8 +451,8 @@ def main() -> None:
     }
 
     try:
-        # Cast to proper CLI data type for type safety
-        typed_invalid_args = cast("FlextCliTypes.Data.CliDataDict", invalid_args)
+        # Convert to JsonDict-compatible dict using FlextUtilities
+        typed_invalid_args: FlextCliTypes.Data.CliDataDict = FlextUtilities.DataMapper.convert_dict_to_json(invalid_args)
 
         # DeployConfig constructor handles type conversion and validation
         # Cast JsonValue types to specific types expected by DeployConfig
