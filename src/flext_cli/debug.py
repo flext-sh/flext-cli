@@ -31,6 +31,34 @@ from flext_cli.models import FlextCliModels
 class FlextCliDebug(FlextCliServiceBase):
     """Debug service extending FlextCliServiceBase.
 
+    Business Rules:
+    ───────────────
+    1. Debug operations MUST NOT expose sensitive data (passwords, tokens, keys)
+    2. System information MUST be collected safely (handle missing attributes)
+    3. Environment variables MUST be filtered to exclude sensitive values
+    4. Path information MUST validate paths exist before reporting
+    5. Health checks MUST validate all critical components
+    6. Debug output MUST be formatted for readability (JSON/YAML)
+    7. Debug operations MUST use FlextResult[T] for error handling
+    8. Trace operations MUST respect debug mode configuration
+
+    Architecture Implications:
+    ───────────────────────────
+    - Extends FlextCliServiceBase for consistent logging and container access
+    - Uses FlextModels for structured debug information
+    - Generalized helpers reduce code duplication (DRY)
+    - Safe info collection handles missing attributes gracefully
+    - Model conversion uses Pydantic model_dump for serialization
+
+    Audit Implications:
+    ───────────────────
+    - Debug operations MUST be logged with operation type and result
+    - Sensitive data MUST be masked in debug output (passwords, tokens, keys)
+    - System information collection MUST not expose security vulnerabilities
+    - Environment variable access MUST filter sensitive values
+    - Debug output MUST be sanitized before logging or display
+    - Health check failures MUST be logged for monitoring
+
     Provides essential debugging functionality using flext-core patterns.
     Follows single-responsibility principle with nested helpers.
     """
@@ -57,7 +85,7 @@ class FlextCliDebug(FlextCliServiceBase):
 
     @staticmethod
     def _convert_result_to_json_value(
-        result: FlextResult[FlextTypes.JsonDict]
+        result: FlextResult[FlextTypes.JsonDict],
     ) -> FlextTypes.GeneralValueType:
         """Convert FlextResult[JsonDict] to FlextTypes.GeneralValueType."""
         if result.is_success:
@@ -101,9 +129,9 @@ class FlextCliDebug(FlextCliServiceBase):
         """Get environment variables with sensitive data masked."""
         try:
             env_info = self._get_environment_info()
-            typed_env_info: dict[str, FlextTypes.GeneralValueType] = {}
-            for key, value in env_info.variables.items():
-                typed_env_info[key] = value
+            typed_env_info: dict[str, FlextTypes.GeneralValueType] = dict(
+                env_info.variables.items()
+            )
             return FlextResult[FlextTypes.JsonDict].ok(typed_env_info)
         except Exception as e:
             return FlextResult[FlextTypes.JsonDict].fail(
@@ -126,9 +154,8 @@ class FlextCliDebug(FlextCliServiceBase):
                 ),
             )
 
-    def test_connectivity(  # noqa: PLR6301
-        self,
-    ) -> FlextResult[dict[str, str]]:
+    @staticmethod
+    def test_connectivity() -> FlextResult[dict[str, str]]:
         """Test basic connectivity and service status."""
         try:
             connectivity_info = {
@@ -145,7 +172,8 @@ class FlextCliDebug(FlextCliServiceBase):
                 ),
             )
 
-    def execute_health_check(self) -> FlextResult[FlextTypes.JsonDict]:  # noqa: PLR6301
+    @staticmethod
+    def execute_health_check() -> FlextResult[FlextTypes.JsonDict]:
         """Execute comprehensive health check."""
         try:
             health_info: FlextTypes.JsonDict = {
@@ -163,7 +191,8 @@ class FlextCliDebug(FlextCliServiceBase):
                 ),
             )
 
-    def execute_trace(self, args: list[str]) -> FlextResult[FlextTypes.JsonDict]:  # noqa: PLR6301
+    @staticmethod
+    def execute_trace(args: list[str]) -> FlextResult[FlextTypes.JsonDict]:
         """Execute trace operation with provided arguments."""
         try:
             trace_info: FlextTypes.JsonDict = {
@@ -213,7 +242,9 @@ class FlextCliDebug(FlextCliServiceBase):
         """Get system information - public API method."""
         try:
             info_model = self._get_system_info()
-            info_dict: FlextTypes.JsonDict = FlextCliDebug._convert_model_to_dict(info_model)
+            info_dict: FlextTypes.JsonDict = FlextCliDebug._convert_model_to_dict(
+                info_model
+            )
             return FlextResult[FlextTypes.JsonDict].ok(info_dict)
         except Exception as e:
             return FlextResult[FlextTypes.JsonDict].fail(
@@ -291,7 +322,8 @@ class FlextCliDebug(FlextCliServiceBase):
     # PRIVATE HELPER METHODS - Implementation details
     # =========================================================================
 
-    def _get_system_info(self) -> FlextCliModels.SystemInfo:  # noqa: PLR6301
+    @staticmethod
+    def _get_system_info() -> FlextCliModels.SystemInfo:
         """Get basic system information as Pydantic model."""
         arch_tuple = platform.architecture()
         return FlextCliModels.SystemInfo(
@@ -302,7 +334,8 @@ class FlextCliDebug(FlextCliServiceBase):
             hostname=platform.node(),
         )
 
-    def _get_environment_info(self) -> FlextCliModels.EnvironmentInfo:  # noqa: PLR6301
+    @staticmethod
+    def _get_environment_info() -> FlextCliModels.EnvironmentInfo:
         """Get environment variables with sensitive data masked as Pydantic model."""
         env_info: dict[str, str] = {}
 
@@ -317,7 +350,8 @@ class FlextCliDebug(FlextCliServiceBase):
 
         return FlextCliModels.EnvironmentInfo(variables=env_info)
 
-    def _get_path_info(self) -> list[FlextCliModels.PathInfo]:  # noqa: PLR6301
+    @staticmethod
+    def _get_path_info() -> list[FlextCliModels.PathInfo]:
         """Get system path information as list of Pydantic models."""
         paths: list[FlextCliModels.PathInfo] = []
         for i, path in enumerate(sys.path):
@@ -334,9 +368,10 @@ class FlextCliDebug(FlextCliServiceBase):
 
         return paths
 
-    def _validate_filesystem_permissions(self) -> list[str]:  # noqa: PLR6301
+    @staticmethod
+    def _validate_filesystem_permissions() -> list[str]:
         """Validate filesystem permissions and setup."""
-        errors = []
+        errors: list[str] = []
 
         try:
             # Test temp directory access

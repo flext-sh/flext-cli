@@ -7,7 +7,7 @@ from collections.abc import Generator
 import pytest
 from flext_core import FlextConfig
 
-from flext_cli import FlextCliConfig, FlextCliServiceBase
+from flext_cli import FlextCliConfig
 
 
 @pytest.fixture(autouse=True)
@@ -17,32 +17,18 @@ def reset_config_singleton(request: pytest.FixtureRequest) -> Generator[None]:
     This ensures test isolation and prevents one test from contaminating
     the state for other tests.
     """
-    # Clean up BEFORE test
-    if hasattr(FlextCliConfig, "_instance"):
-        FlextCliConfig._instance = None  # type: ignore[attr-defined]
-    if hasattr(FlextCliConfig, "_instances"):
-        FlextCliConfig._instances.clear()  # type: ignore[attr-defined]
-    if hasattr(FlextCliServiceBase, "_config_instance"):
-        FlextCliServiceBase._config_instance = None  # type: ignore[attr-defined]
-
-    # Also reset the global instance from FlextConfig
-    if hasattr(FlextConfig, "_instance"):
-        FlextConfig._instance = None  # type: ignore[attr-defined]
-    if hasattr(FlextConfig, "_instances"):
-        FlextConfig._instances.clear()  # type: ignore[attr-defined]
+    # Clean up BEFORE test - use public reset methods
+    # Business Rule: Use public reset methods for singleton cleanup
+    # These methods are designed for test isolation and are safe to use
+    FlextCliConfig._reset_instance()
+    FlextConfig.reset_global_instance()
+    # Note: FlextCliServiceBase._config_instance is reset via FlextCliConfig reset
 
     yield
 
-    # Clean up AFTER test
-    if hasattr(FlextCliConfig, "_instance"):
-        FlextCliConfig._instance = None  # type: ignore[attr-defined]
-    if hasattr(FlextCliConfig, "_instances"):
-        FlextCliConfig._instances.clear()  # type: ignore[attr-defined]
-    if hasattr(FlextCliServiceBase, "_config_instance"):
-        FlextCliServiceBase._config_instance = None  # type: ignore[attr-defined]
-
-    # Also reset the global instance from FlextConfig
-    if hasattr(FlextConfig, "_instance"):
-        FlextConfig._instance = None  # type: ignore[attr-defined]
-    if hasattr(FlextConfig, "_instances"):
-        FlextConfig._instances.clear()  # type: ignore[attr-defined]
+    # Clean up AFTER test - use public reset methods
+    # Business Rule: Use public reset methods for singleton cleanup
+    # These methods are designed for test isolation and are safe to use
+    FlextCliConfig._reset_instance()
+    FlextConfig.reset_global_instance()
+    # Note: FlextCliServiceBase._config_instance is reset via FlextCliConfig reset

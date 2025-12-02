@@ -17,19 +17,21 @@ from __future__ import annotations
 
 import json
 import threading
-from collections.abc import Callable
+from collections.abc import Callable, Mapping
 from dataclasses import dataclass
 from enum import StrEnum
 from pathlib import Path
-from typing import Any, TypedDict
+from typing import TypedDict, cast
 
 import pytest
-from flext_core import FlextResult
+from flext_core import FlextResult, FlextTypes
 from flext_tests import FlextTestsMatchers
 
 from flext_cli import (
     FlextCli,
+    FlextCliAppBase,
     FlextCliConstants,
+    FlextCliModels,
 )
 
 from .._helpers import AuthHelpers, CommandHelpers, OutputHelpers
@@ -43,14 +45,14 @@ from ..fixtures.constants import TestData
 class FormatScenario(TypedDict, total=False):
     """Type definition for format test scenario."""
 
-    data: Any
-    validator: Callable[[str, Any], bool]
+    data: FlextTypes.GeneralValueType
+    validator: Callable[[str, FlextTypes.GeneralValueType], bool]
 
 
 class AuthScenario(TypedDict):
     """Type definition for authentication test scenario."""
 
-    factory: Callable[[], FlextResult[dict[str, Any]]]
+    factory: Callable[[], FlextResult[Mapping[str, str]]]
     expected_success: bool
 
 
@@ -121,10 +123,26 @@ class ApiTestFactory:
             ),
             "table": FormatScenario(
                 data=OutputHelpers.create_table_test_data(),
-                validator=lambda output, data: any(
-                    str(user.get("name", "")) in output
-                    for user in data.get("users", [])
-                    if isinstance(user, dict)
+                validator=lambda output, data: (
+                    any(
+                        str(
+                            cast("dict[str, FlextTypes.GeneralValueType]", user).get(
+                                "name", ""
+                            )
+                        )
+                        in output
+                        for user in cast(
+                            "list[FlextTypes.GeneralValueType]",
+                            cast("dict[str, FlextTypes.GeneralValueType]", data).get(
+                                "users", []
+                            )
+                            if isinstance(data, dict)
+                            else [],
+                        )
+                        if isinstance(user, dict)
+                    )
+                    if isinstance(data, dict)
+                    else False
                 ),
             ),
             "yaml": FormatScenario(
@@ -288,7 +306,10 @@ class TestFlextCli:
             creds_result = config["factory"]()
             if config["expected_success"]:
                 FlextTestsMatchers.assert_success(creds_result)
-                assert api_service.authenticate(creds_result.unwrap()).is_success
+                creds = creds_result.unwrap()
+                assert api_service.authenticate(
+                    cast("Mapping[str, str]", creds)
+                ).is_success
             else:
                 assert creds_result.is_failure
 
@@ -360,5 +381,453 @@ class TestFlextCli:
             t.join()
 
         assert len(results) == 5 and all(results) and len(errors) == 0
+
+    # ========================================================================
+    # AUTHENTICATION TESTS - Missing Coverage
+    # ========================================================================
+
+    def test_authenticate_with_token_success(
+        self, flext_cli_api: FlextCli, temp_dir: Path
+    ) -> None:
+        """Test authentication with valid token."""
+        token = "test_token_abc123"
+        credentials = {FlextCliConstants.DictKeys.TOKEN: token}
+        result = flext_cli_api.authenticate(credentials)
+        FlextTestsMatchers.assert_success(result)
+        assert result.unwrap() == token
+
+    def test_authenticate_with_token_invalid(
+        self, flext_cli_api: FlextCli
+    ) -> None:
+        """Test authentication with invalid token."""
+        credentials = {FlextCliConstants.DictKeys.TOKEN: ""}
+        result = flext_cli_api.authenticate(credentials)
+        assert result.is_failure
+
+    def test_authenticate_with_credentials_success(
+        self, flext_cli_api: FlextCli
+    ) -> None:
+        """Test authentication with username/password."""
+        credentials = {
+            FlextCliConstants.DictKeys.USERNAME: "testuser",
+            FlextCliConstants.DictKeys.PASSWORD: "testpass123",
+        }
+        result = flext_cli_api.authenticate(credentials)
+        FlextTestsMatchers.assert_success(result)
+        assert isinstance(result.unwrap(), str)
+
+    def test_authenticate_with_credentials_missing_fields(
+        self, flext_cli_api: FlextCli
+    ) -> None:
+        """Test authentication with missing credential fields."""
+        # Missing username or password should fail
+        credentials = {
+            FlextCliConstants.DictKeys.USERNAME: "testuser",
+            # Missing password
+        }
+        result = flext_cli_api.authenticate(credentials)
+        assert result.is_failure
+
+    def test_authenticate_invalid_credentials_format(
+        self, flext_cli_api: FlextCli
+    ) -> None:
+        """Test authentication with invalid credential format."""
+        credentials = {"invalid": "data"}
+        result = flext_cli_api.authenticate(credentials)
+        assert result.is_failure
+
+    def test_validate_credentials_success(self) -> None:
+        """Test credential validation with valid data."""
+        result = FlextCli.validate_credentials("testuser", "testpass123")
+        FlextTestsMatchers.assert_success(result)
+        assert result.unwrap() is True
+
+    def test_validate_credentials_with_valid_data(self) -> None:
+        """Test credential validation with valid data."""
+        # PasswordAuth accepts any strings including empty ones
+        result = FlextCli.validate_credentials("testuser", "testpass123")
+        FlextTestsMatchers.assert_success(result)
+        assert result.unwrap() is True
+
+    def test_save_auth_token_success(
+        self, flext_cli_api: FlextCli, temp_dir: Path
+    ) -> None:
+        """Test saving authentication token."""
+        token = "test_token_xyz789"
+        result = flext_cli_api.save_auth_token(token)
+        FlextTestsMatchers.assert_success(result)
+        assert result.unwrap() is True
+
+    def test_save_auth_token_invalid(self, flext_cli_api: FlextCli) -> None:
+        """Test saving invalid token."""
+        result = flext_cli_api.save_auth_token("")
+        assert result.is_failure
+
+    def test_get_auth_token_success(
+        self, flext_cli_api: FlextCli, temp_dir: Path
+    ) -> None:
+        """Test getting authentication token from file."""
+        token = "test_token_retrieved"
+        # Save token first
+        save_result = flext_cli_api.save_auth_token(token)
+        FlextTestsMatchers.assert_success(save_result)
+        # Get token
+        result = flext_cli_api.get_auth_token()
+        FlextTestsMatchers.assert_success(result)
+        assert result.unwrap() == token
+
+    def test_get_auth_token_not_found(
+        self, flext_cli_api: FlextCli, temp_dir: Path
+    ) -> None:
+        """Test getting token when file doesn't exist."""
+        # Ensure token file doesn't exist
+        token_file = flext_cli_api.config.token_file
+        if token_file.exists():
+            token_file.unlink()
+        result = flext_cli_api.get_auth_token()
+        assert result.is_failure
+
+    def test_get_auth_token_invalid_data(
+        self, flext_cli_api: FlextCli, temp_dir: Path
+    ) -> None:
+        """Test getting token with invalid file data."""
+        token_file = flext_cli_api.config.token_file
+        # Write invalid JSON
+        token_file.parent.mkdir(parents=True, exist_ok=True)
+        token_file.write_text("invalid json")
+        result = flext_cli_api.get_auth_token()
+        assert result.is_failure
+
+    def test_get_auth_token_empty_file(
+        self, flext_cli_api: FlextCli, temp_dir: Path
+    ) -> None:
+        """Test getting token from empty file."""
+        token_file = flext_cli_api.config.token_file
+        token_file.parent.mkdir(parents=True, exist_ok=True)
+        token_file.write_text("{}")
+        result = flext_cli_api.get_auth_token()
+        assert result.is_failure
+
+    def test_is_authenticated_true(
+        self, flext_cli_api: FlextCli, temp_dir: Path
+    ) -> None:
+        """Test is_authenticated returns True when token exists."""
+        token = "test_token_auth_check"
+        save_result = flext_cli_api.save_auth_token(token)
+        FlextTestsMatchers.assert_success(save_result)
+        assert flext_cli_api.is_authenticated() is True
+
+    def test_is_authenticated_false(self, flext_cli_api: FlextCli) -> None:
+        """Test is_authenticated returns False when no token."""
+        assert flext_cli_api.is_authenticated() is False
+
+    def test_clear_auth_tokens_success(
+        self, flext_cli_api: FlextCli, temp_dir: Path
+    ) -> None:
+        """Test clearing authentication tokens."""
+        token = "test_token_to_clear"
+        save_result = flext_cli_api.save_auth_token(token)
+        FlextTestsMatchers.assert_success(save_result)
+        clear_result = flext_cli_api.clear_auth_tokens()
+        FlextTestsMatchers.assert_success(clear_result)
+        assert clear_result.unwrap() is True
+
+    def test_clear_auth_tokens_when_no_tokens(
+        self, flext_cli_api: FlextCli
+    ) -> None:
+        """Test clearing tokens when none exist."""
+        result = flext_cli_api.clear_auth_tokens()
+        FlextTestsMatchers.assert_success(result)
+
+    # ========================================================================
+    # COMMAND REGISTRATION TESTS - Missing Coverage
+    # ========================================================================
+
+    def test_command_decorator_with_name(
+        self, flext_cli_api: FlextCli
+    ) -> None:
+        """Test command decorator with explicit name."""
+        @flext_cli_api.command(name="test_cmd")
+        def test_command() -> None:
+            """Test command."""
+            pass
+
+        assert "test_cmd" in flext_cli_api._commands
+
+    def test_command_decorator_without_name(
+        self, flext_cli_api: FlextCli
+    ) -> None:
+        """Test command decorator without explicit name."""
+        @flext_cli_api.command()
+        def test_command_auto() -> None:
+            """Test command."""
+            pass
+
+        assert "test_command_auto" in flext_cli_api._commands
+
+    def test_group_decorator_with_name(self, flext_cli_api: FlextCli) -> None:
+        """Test group decorator with explicit name."""
+        @flext_cli_api.group(name="test_group")
+        def test_group_func() -> None:
+            """Test group."""
+            pass
+
+        assert "test_group" in flext_cli_api._groups
+
+    def test_group_decorator_without_name(
+        self, flext_cli_api: FlextCli
+    ) -> None:
+        """Test group decorator without explicit name."""
+        @flext_cli_api.group()
+        def test_group_auto() -> None:
+            """Test group."""
+            pass
+
+        assert "test_group_auto" in flext_cli_api._groups
+
+    # ========================================================================
+    # EXECUTION TESTS - Missing Coverage
+    # ========================================================================
+
+    def test_execute_method(self, flext_cli_api: FlextCli) -> None:
+        """Test execute method returns service status."""
+        result = flext_cli_api.execute()
+        FlextTestsMatchers.assert_success(result)
+        data = result.unwrap()
+        assert FlextCliConstants.DictKeys.STATUS in data
+        assert FlextCliConstants.DictKeys.SERVICE in data
+        assert "version" in data
+        assert "components" in data
+
+    def test_execute_cli_static(self) -> None:
+        """Test static execute_cli method."""
+        result = FlextCli.execute_cli()
+        FlextTestsMatchers.assert_success(result)
+        assert result.unwrap() is True
+
+    # ========================================================================
+    # CONVENIENCE METHODS TESTS - Missing Coverage
+    # ========================================================================
+
+    def test_print_method(self, flext_cli_api: FlextCli) -> None:
+        """Test print convenience method."""
+        result = flext_cli_api.print("Test message", style="green")
+        FlextTestsMatchers.assert_success(result)
+
+    def test_create_table_with_dict(self, flext_cli_api: FlextCli) -> None:
+        """Test create_table with dictionary data."""
+        data = {"name": "John", "age": 30}
+        result = flext_cli_api.create_table(data, headers=["Name", "Age"])
+        FlextTestsMatchers.assert_success(result)
+        assert isinstance(result.unwrap(), str)
+
+    def test_create_table_with_list(self, flext_cli_api: FlextCli) -> None:
+        """Test create_table with list data."""
+        data = [{"name": "John", "age": 30}, {"name": "Jane", "age": 25}]
+        result = flext_cli_api.create_table(data, headers=["Name", "Age"])
+        FlextTestsMatchers.assert_success(result)
+        assert isinstance(result.unwrap(), str)
+
+    def test_create_table_with_none(self, flext_cli_api: FlextCli) -> None:
+        """Test create_table with None data."""
+        result = flext_cli_api.create_table(None)
+        assert result.is_failure
+
+    def test_create_table_with_title(self, flext_cli_api: FlextCli) -> None:
+        """Test create_table with title."""
+        data = [{"name": "John", "age": 30}]
+        result = flext_cli_api.create_table(
+            data, headers=["Name", "Age"], title="Users"
+        )
+        FlextTestsMatchers.assert_success(result)
+
+    def test_print_table_method(self, flext_cli_api: FlextCli) -> None:
+        """Test print_table convenience method."""
+        table_str = "| Name | Age |\n|------|-----|\n| John | 30  |"
+        result = flext_cli_api.print_table(table_str)
+        FlextTestsMatchers.assert_success(result)
+
+    def test_create_tree_method(self, flext_cli_api: FlextCli) -> None:
+        """Test create_tree convenience method."""
+        result = flext_cli_api.create_tree("Root")
+        FlextTestsMatchers.assert_success(result)
+        tree = result.unwrap()
+        assert hasattr(tree, "add")
+
+    def test_get_auth_token_dict_error(
+        self, flext_cli_api: FlextCli, temp_dir: Path
+    ) -> None:
+        """Test get_auth_token with dict type error."""
+        token_file = flext_cli_api.config.token_file
+        token_file.parent.mkdir(parents=True, exist_ok=True)
+        # Write data that causes dict/mapping error
+        token_file.write_text('{"token": {"nested": "invalid"}}')
+        result = flext_cli_api.get_auth_token()
+        assert result.is_failure
+
+    def test_get_auth_token_string_error(
+        self, flext_cli_api: FlextCli, temp_dir: Path
+    ) -> None:
+        """Test get_auth_token with string type error."""
+        token_file = flext_cli_api.config.token_file
+        token_file.parent.mkdir(parents=True, exist_ok=True)
+        # Write data that causes string type error
+        token_file.write_text('{"token": 123}')
+        result = flext_cli_api.get_auth_token()
+        assert result.is_failure
+
+    def test_get_auth_token_other_error(
+        self, flext_cli_api: FlextCli, temp_dir: Path
+    ) -> None:
+        """Test get_auth_token with other validation error."""
+        token_file = flext_cli_api.config.token_file
+        token_file.parent.mkdir(parents=True, exist_ok=True)
+        # Write invalid JSON structure
+        token_file.write_text('{"invalid": "structure"}')
+        result = flext_cli_api.get_auth_token()
+        assert result.is_failure
+
+    def test_clear_auth_tokens_with_delete_error(
+        self, flext_cli_api: FlextCli, temp_dir: Path, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        """Test clear_auth_tokens with file deletion error."""
+        token = "test_token_error"
+        save_result = flext_cli_api.save_auth_token(token)
+        FlextTestsMatchers.assert_success(save_result)
+
+        # Mock delete_file to return failure with non-file-not-found error
+        original_delete = flext_cli_api.file_tools.delete_file
+
+        def mock_delete(path: str) -> FlextResult[bool]:
+            if "token.json" in path:
+                return FlextResult[bool].fail("Permission denied")
+            return original_delete(path)
+
+        monkeypatch.setattr(
+            flext_cli_api.file_tools, "delete_file", mock_delete
+        )
+        result = flext_cli_api.clear_auth_tokens()
+        assert result.is_failure
+
+    def test_clear_auth_tokens_with_refresh_delete_error(
+        self, flext_cli_api: FlextCli, temp_dir: Path, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        """Test clear_auth_tokens with refresh token deletion error."""
+        token = "test_token_refresh_error"
+        save_result = flext_cli_api.save_auth_token(token)
+        FlextTestsMatchers.assert_success(save_result)
+
+        # Mock delete_file to return failure for refresh token
+        original_delete = flext_cli_api.file_tools.delete_file
+
+        def mock_delete(path: str) -> FlextResult[bool]:
+            if "refresh_token.json" in path:
+                return FlextResult[bool].fail("Permission denied")
+            return original_delete(path)
+
+        monkeypatch.setattr(
+            flext_cli_api.file_tools, "delete_file", mock_delete
+        )
+        result = flext_cli_api.clear_auth_tokens()
+        assert result.is_failure
+
+    def test_save_auth_token_write_failure(
+        self, flext_cli_api: FlextCli, temp_dir: Path, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        """Test save_auth_token with write failure."""
+        token = "test_token_write_fail"
+
+        # Mock write_json_file to return failure
+        original_write = flext_cli_api.file_tools.write_json_file
+
+        def mock_write(path: str, data: FlextTypes.JsonDict) -> FlextResult[bool]:
+            return FlextResult[bool].fail("Write failed")
+
+        monkeypatch.setattr(
+            flext_cli_api.file_tools, "write_json_file", mock_write
+        )
+        result = flext_cli_api.save_auth_token(token)
+        assert result.is_failure
+
+    def test_authenticate_with_token_save_failure(
+        self, flext_cli_api: FlextCli, temp_dir: Path, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        """Test authenticate with token when save fails."""
+        token = "test_token_save_fail"
+        credentials = {FlextCliConstants.DictKeys.TOKEN: token}
+
+        # Mock save_auth_token to return failure
+        original_save = flext_cli_api.save_auth_token
+
+        def mock_save(t: str) -> FlextResult[bool]:
+            return FlextResult[bool].fail("Save failed")
+
+        monkeypatch.setattr(flext_cli_api, "save_auth_token", mock_save)
+        result = flext_cli_api.authenticate(credentials)
+        assert result.is_failure
+
+    def test_authenticate_with_credentials_validation_error(
+        self, flext_cli_api: FlextCli, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        """Test authenticate with credentials when validation fails."""
+        credentials = {
+            FlextCliConstants.DictKeys.USERNAME: "testuser",
+            FlextCliConstants.DictKeys.PASSWORD: "testpass123",
+        }
+
+        # Mock model_validate to raise exception
+        original_validate = FlextCliModels.PasswordAuth.model_validate
+
+        def mock_validate(data: object) -> FlextCliModels.PasswordAuth:
+            raise ValueError("Validation failed")
+
+        monkeypatch.setattr(
+            FlextCliModels.PasswordAuth, "model_validate", mock_validate
+        )
+        result = flext_cli_api.authenticate(credentials)
+        assert result.is_failure
+
+    def test_validate_credentials_exception(
+        self, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        """Test validate_credentials when exception occurs."""
+        # Mock PasswordAuth to raise exception
+        original_init = FlextCliModels.PasswordAuth.__init__
+
+        def mock_init(self: object, *args: object, **kwargs: object) -> None:
+            raise ValueError("Invalid credentials")
+
+        monkeypatch.setattr(FlextCliModels.PasswordAuth, "__init__", mock_init)
+        result = FlextCli.validate_credentials("testuser", "testpass")
+        assert result.is_failure
+
+    # ========================================================================
+    # FLEXT CLI APP BASE TESTS - Missing Coverage
+    # ========================================================================
+
+    def test_flext_cli_app_base_resolve_cli_args_none(self) -> None:
+        """Test _resolve_cli_args with None args."""
+        result = FlextCliAppBase._resolve_cli_args(None)
+        # Should return empty list in pytest environment or sys.argv[1:]
+        assert isinstance(result, list)
+
+    def test_flext_cli_app_base_resolve_cli_args_provided(self) -> None:
+        """Test _resolve_cli_args with provided args."""
+        args = ["--help", "--version"]
+        result = FlextCliAppBase._resolve_cli_args(args)
+        assert result == args
+
+    def test_flext_cli_app_base_handle_pathlib_error(self) -> None:
+        """Test _handle_pathlib_annotation_error with pathlib error."""
+        error = NameError("name 'pathlib' is not defined")
+        # Should not raise, just log warning
+        FlextCliAppBase._handle_pathlib_annotation_error(error)
+
+    def test_flext_cli_app_base_handle_non_pathlib_error(self) -> None:
+        """Test _handle_pathlib_annotation_error with non-pathlib error."""
+        error = NameError("name 'other' is not defined")
+        # Should re-raise non-pathlib errors
+        with pytest.raises(NameError):
+            FlextCliAppBase._handle_pathlib_annotation_error(error)
 
     # ========================================================================

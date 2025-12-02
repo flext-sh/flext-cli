@@ -19,8 +19,7 @@ import sys
 import traceback
 from abc import ABC, abstractmethod
 from collections.abc import Callable, Mapping, Sequence
-from datetime import UTC, datetime
-from typing import ClassVar
+from typing import ClassVar, cast
 
 import typer
 from click.exceptions import UsageError as ClickUsageError
@@ -59,6 +58,35 @@ from flext_cli.utilities import FlextCliUtilities
 
 class FlextCli:
     """Coordinate CLI operations and expose domain services.
+
+    Business Rules:
+    ───────────────
+    1. Singleton pattern ensures single CLI instance per process (thread-safe)
+    2. Service instances MUST be initialized before use (lazy initialization)
+    3. Command registration MUST validate command names and handlers
+    4. Authentication MUST be performed before privileged operations
+    5. Configuration MUST be loaded from environment variables or config files
+    6. All operations MUST return FlextResult[T] for error handling
+    7. Service instances are exposed as attributes for direct access
+    8. Wrappers delegate to service instances without breaking isolation
+
+    Architecture Implications:
+    ───────────────────────────
+    - Singleton pattern with thread-safe locking prevents race conditions
+    - Service instances are created on-demand (lazy initialization)
+    - Direct service access avoids unnecessary wrapper layers
+    - Typer/Click and Rich isolation maintained through abstraction
+    - Railway-Oriented Programming via FlextResult for composable error handling
+
+    Audit Implications:
+    ───────────────────
+    - All command registrations MUST be logged with timestamp and command name
+    - Authentication attempts MUST be logged (success/failure, no credentials)
+    - Configuration changes MUST be logged with before/after values
+    - Service initialization MUST be logged for audit trail
+    - Error conditions MUST be logged with full context (no sensitive data)
+    - Remote operations MUST use encrypted connections (TLS/SSL)
+    - Session management MUST track user context for audit purposes
 
     Instancia serviços (`core`, `cmd`, `output`, `prompts`, `tables`) e
     utilidades (`formatters`, `file_tools`, `utilities`) para acesso direto,
@@ -370,23 +398,16 @@ class FlextCli:
             decorator = self._cli.create_command_decorator(name=entity_name)
             decorated_func = decorator(func)
             # Click Command/Group implements CliRegisteredCommand protocol structurally
-            # Type narrowing: Click Command implements the protocol
-            if isinstance(decorated_func, FlextCliProtocols.Cli.CliRegisteredCommand):
-                result: FlextCliProtocols.Cli.CliRegisteredCommand = decorated_func
-            else:
-                # Fallback: treat as protocol-compatible
-                result = decorated_func  # type: ignore[assignment]
+            # Note: Cannot use isinstance with Protocol types - use cast instead
+            # Click Command/Group are structurally compatible with CliRegisteredCommand
+            result = cast("FlextCliProtocols.Cli.CliRegisteredCommand", decorated_func)
             self._commands[entity_name] = result
         else:  # group
             decorator = self._cli.create_group_decorator(name=entity_name)
             decorated_func = decorator(func)
             # Click Group implements CliRegisteredCommand protocol structurally
-            # Type narrowing: Click Group implements the protocol
-            if isinstance(decorated_func, FlextCliProtocols.Cli.CliRegisteredCommand):
-                result: FlextCliProtocols.Cli.CliRegisteredCommand = decorated_func
-            else:
-                # Fallback: treat as protocol-compatible
-                result = decorated_func  # type: ignore[assignment]
+            # Note: Cannot use isinstance with Protocol types - use cast instead
+            result = cast("FlextCliProtocols.Cli.CliRegisteredCommand", decorated_func)
             self._groups[entity_name] = result
 
         return result
@@ -436,7 +457,9 @@ class FlextCli:
         """Execute CLI service with railway pattern."""
         # Build JsonDict - convert version to string, components as dict
         result_dict: FlextTypes.JsonDict = {
-            FlextCliConstants.DictKeys.STATUS: FlextCliConstants.ServiceStatus.OPERATIONAL.value,
+            FlextCliConstants.DictKeys.STATUS: (
+                FlextCliConstants.ServiceStatus.OPERATIONAL.value
+            ),
             FlextCliConstants.DictKeys.SERVICE: FlextCliConstants.FLEXT_CLI,
             "timestamp": FlextUtilities.Generators.generate_iso_timestamp(),
             "version": str(__version__),
@@ -464,8 +487,8 @@ class FlextCli:
 
     def create_table(
         self,
-        data: Sequence[dict[str, FlextTypes.GeneralValueType]]
-        | dict[str, FlextTypes.GeneralValueType]
+        data: Sequence[Mapping[str, FlextTypes.GeneralValueType]]
+        | Mapping[str, FlextTypes.GeneralValueType]
         | None = None,
         headers: list[str] | None = None,
         title: str | None = None,
@@ -510,16 +533,21 @@ class FlextCli:
             # RichTree (concrete type) implements RichTreeProtocol structurally
             # Type narrowing: unwrap returns RichTreeProtocol-compatible type
             tree_value = result.unwrap()
-            if isinstance(tree_value, FlextCliProtocols.Display.RichTreeProtocol):
-                return FlextResult[FlextCliProtocols.Display.RichTreeProtocol].ok(
-                    tree_value
-                )
-            # Fallback: return as-is (formatters already returns correct type)
+            # Use cast instead of isinstance for Protocol (structural typing)
             return FlextResult[FlextCliProtocols.Display.RichTreeProtocol].ok(
-                tree_value
-            )  # type: ignore[arg-type]
+                cast("FlextCliProtocols.Display.RichTreeProtocol", tree_value)
+            )
+            # Fallback: return as-is (formatters already returns correct type)
+            # Use cast for structural typing compatibility
+            protocol_tree: FlextCliProtocols.Display.RichTreeProtocol = cast(
+                "FlextCliProtocols.Display.RichTreeProtocol", tree_value
+            )
+            return FlextResult[FlextCliProtocols.Display.RichTreeProtocol].ok(
+                protocol_tree
+            )
         # Result is already FlextResult[RichTreeProtocol] from formatters
-        return result
+        # Use cast to satisfy type checker - Tree implements RichTreeProtocol
+        return cast("FlextResult[FlextCliProtocols.Display.RichTreeProtocol]", result)
 
 
 class FlextCliAppBase(ABC):
@@ -555,21 +583,19 @@ class FlextCliAppBase(ABC):
             app_name=self.app_name,
         )
 
-        # Convert FlextCliConfig to CliConfigSchema (JsonDict) for create_app_with_common_params
-        config_dict = FlextUtilities.DataMapper.convert_dict_to_json(
-            self._config.model_dump()
-        )
+        # create_app_with_common_params expects FlextCliConfig | None
+        # Pass config directly since it's already FlextCliConfig
         self._app = self._cli.create_app_with_common_params(
             name=self.app_name,
             help_text=self.app_help,
-            config=config_dict,
+            config=self._config,
             add_completion=True,
         )
 
         try:
             self._register_commands()
         except NameError as ne:
-            FlextCli._handle_pathlib_annotation_error(ne)
+            self._handle_pathlib_annotation_error(ne)
 
     @abstractmethod
     def _register_commands(self) -> None:
@@ -583,7 +609,9 @@ class FlextCliAppBase(ABC):
             FlextLogger.get_logger().warning(
                 "Pathlib annotation issue detected during command registration",
                 error=str(ne),
-                python_version_note="Expected in Python <3.10 due to Typer annotation issues",
+                python_version_note=(
+                    "Expected in Python <3.10 with Typer annotation issues"
+                ),
             )
         else:
             raise ne
@@ -597,201 +625,6 @@ class FlextCliAppBase(ABC):
             return sys.argv[1:] if len(sys.argv) > 1 else []
         return args
 
-    def _process_workflow_step(
-        self,
-        step_result: FlextResult[FlextCliModels.WorkflowStepResult],
-        step_name: str,
-        step_duration: float,
-        step_idx: int,
-    ) -> tuple[FlextTypes.JsonDict, bool]:
-        """Process a single workflow step result.
-
-        Returns:
-            Tuple of (step_dict, is_success)
-        """
-        if step_result.is_success:
-            step_data_raw = step_result.unwrap()
-            if isinstance(step_data_raw, dict):
-                step_data = FlextCliModels.WorkflowStepResult.model_validate(
-                    step_data_raw
-                )
-            else:
-                step_data = step_data_raw
-            step_data = step_data.model_copy(update={"duration": step_duration})
-            step_dict = FlextUtilities.DataMapper.convert_dict_to_json(
-                step_data.model_dump()
-            )
-            self.logger.info(
-                "Step completed successfully",
-                step=step_name,
-                step_index=step_idx + 1,
-                duration_seconds=f"{step_duration:.2f}s",
-            )
-            return step_dict, True
-        else:
-            failed_step = FlextCliModels.WorkflowStepResult(
-                step_name=step_name,
-                success=False,
-                message=str(step_result.error),
-                duration=step_duration,
-            )
-            step_dict = FlextUtilities.DataMapper.convert_dict_to_json(
-                failed_step.model_dump()
-            )
-            self.logger.error(
-                "Step failed",
-                step=step_name,
-                step_index=step_idx + 1,
-                error=str(step_result.error),
-                duration_seconds=f"{step_duration:.2f}s",
-            )
-            return step_dict, False
-
-    def orchestrate_workflow(
-        self,
-        steps: Sequence[Callable[[], FlextResult[FlextCliModels.WorkflowStepResult]]],
-        *,
-        step_names: Sequence[str] | None = None,
-        continue_on_failure: bool = False,
-        progress_callback: Callable[
-            [int, int, str, FlextCliModels.WorkflowProgress], None
-        ]
-        | None = None,
-    ) -> FlextResult[FlextCliModels.WorkflowResult]:
-        """Orchestrate a complex multi-step workflow with progress tracking.
-
-        Generic orchestration method that executes a sequence of workflow steps,
-        tracks progress, and aggregates results. Each step is a callable that returns
-        a FlextResult with step-specific data.
-
-        Args:
-            steps: Sequence of step functions, each returning FlextResult[WorkflowStepResult]
-            step_names: Optional names for steps (defaults to "Step 1", "Step 2", etc.)
-            continue_on_failure: If True, continue executing remaining steps on failure
-            progress_callback: Optional callback(current_step, total_steps, step_name, progress)
-
-        Returns:
-            FlextResult containing WorkflowResult with aggregated step results and statistics
-
-        Example:
-            def parse_step() -> FlextResult[FlextCliModels.WorkflowStepResult]:
-                # Parse LDIF files
-                return FlextResult.ok(FlextCliModels.WorkflowStepResult(
-                    step_name="parse",
-                    success=True,
-                    message="Parsed 100 entries"
-                ))
-
-            def migrate_step() -> FlextResult[FlextCliModels.WorkflowStepResult]:
-                # Migrate entries
-                return FlextResult.ok(FlextCliModels.WorkflowStepResult(
-                    step_name="migrate",
-                    success=True,
-                    message="Migrated 95 entries"
-                ))
-
-            result = cli.orchestrate_workflow(
-                [parse_step, migrate_step],
-                step_names=["Parse LDIF", "Migrate Entries"]
-            )
-            if result.is_success:
-                workflow = result.unwrap()
-                print(f"Workflow completed: {workflow.total_steps} steps, {workflow.successful_steps} successful")
-
-        """
-        total_steps = len(steps)
-        if total_steps == 0:
-            # Convert empty step_results to JsonDict list
-            return FlextResult[FlextCliModels.WorkflowResult].ok(
-                FlextCliModels.WorkflowResult(
-                    step_results=[],
-                    total_steps=0,
-                    successful_steps=0,
-                    failed_steps=0,
-                    overall_success=True,
-                    total_duration_seconds=0.0,
-                )
-            )
-
-        start_time = datetime.now(UTC)
-        step_results: list[FlextTypes.JsonDict] = []
-        successful_steps = 0
-        failed_steps = 0
-
-        # Generate step names if not provided
-        if step_names is None:
-            step_names = [f"Step {i + 1}" for i in range(total_steps)]
-        elif len(step_names) != total_steps:
-            return FlextResult[FlextCliModels.WorkflowResult].fail(
-                f"step_names length ({len(step_names)}) must match steps length ({total_steps})"
-            )
-
-        for step_idx, (step_func, step_name) in enumerate(
-            zip(steps, step_names, strict=False)
-        ):
-            step_start_time = datetime.now(UTC)
-
-            # Execute step
-            step_result = step_func()
-            step_duration = (datetime.now(UTC) - step_start_time).total_seconds()
-
-            # Process the step using helper method
-            step_dict, is_success = self._process_workflow_step(
-                step_result, step_name, step_duration, step_idx
-            )
-            step_results.append(step_dict)
-
-            if is_success:
-                successful_steps += 1
-            else:
-                failed_steps += 1
-                if not continue_on_failure:
-                    break
-
-            # Progress callback
-            if progress_callback:
-                # Calculate percentage
-                percentage = (
-                    ((step_idx + 1) / total_steps * 100.0) if total_steps > 0 else 0.0
-                )
-                progress = FlextCliModels.WorkflowProgress(
-                    current_step=step_idx + 1,
-                    total_steps=total_steps,
-                    current_step_name=step_name,
-                    percentage=percentage,
-                )
-                progress_callback(step_idx + 1, total_steps, step_name, progress)
-
-        total_duration = (datetime.now(UTC) - start_time).total_seconds()
-        overall_success = failed_steps == 0
-
-        workflow_result = FlextCliModels.WorkflowResult(
-            step_results=step_results,
-            total_steps=total_steps,
-            successful_steps=successful_steps,
-            failed_steps=failed_steps,
-            overall_success=overall_success,
-            total_duration_seconds=total_duration,
-        )
-
-        if overall_success:
-            self.logger.info(
-                "Workflow completed successfully",
-                total_steps=total_steps,
-                successful_steps=successful_steps,
-                total_duration_seconds=f"{total_duration:.2f}s",
-            )
-        else:
-            self.logger.warning(
-                "Workflow completed with failures",
-                total_steps=total_steps,
-                successful_steps=successful_steps,
-                failed_steps=failed_steps,
-                total_duration_seconds=f"{total_duration:.2f}s",
-            )
-
-        return FlextResult[FlextCliModels.WorkflowResult].ok(workflow_result)
-
     def execute_cli(self, args: list[str] | None = None) -> FlextResult[bool]:
         """Execute the CLI with Railway-pattern error handling."""
         try:
@@ -801,8 +634,10 @@ class FlextCliAppBase(ABC):
             if frame and "pathlib" not in frame.f_globals:
                 frame.f_globals["pathlib"] = pathlib
 
-            resolved_args = FlextCli._resolve_cli_args(args)
-            self._app(args=resolved_args, standalone_mode=False)
+            resolved_args = FlextCliAppBase._resolve_cli_args(args)
+            # Use standalone_mode=True to ensure Typer handles errors and output
+            # When standalone_mode=False, Typer doesn't print errors automatically
+            self._app(args=resolved_args, standalone_mode=True)
             return FlextResult[bool].ok(True)
         except NameError as e:
             if "pathlib" in str(e):
@@ -813,10 +648,14 @@ class FlextCliAppBase(ABC):
         except SystemExit as e:
             if e.code == 0:
                 return FlextResult[bool].ok(True)
+            # SystemExit with non-zero code means failure
+            # Typer already printed the error in standalone_mode=True
             return FlextResult[bool].fail(f"CLI execution failed with code {e.code}")
         except Exception as e:
             if isinstance(e, ClickUsageError):
-                return FlextResult[bool].fail(f"CLI execution error: {e!s}")
+                error_msg = f"CLI execution error: {e!s}"
+                self._output.print_error(error_msg)
+                return FlextResult[bool].fail(error_msg)
             if isinstance(
                 e,
                 (

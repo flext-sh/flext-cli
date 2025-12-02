@@ -31,6 +31,7 @@ from __future__ import annotations
 
 import json
 from pathlib import Path
+from typing import cast
 
 from flext_core import FlextResult, FlextTypes, FlextUtilities
 
@@ -53,8 +54,8 @@ class DataExportPlugin:
         self.name = "data-export"
         self.version = "1.0.0"
 
+    @staticmethod
     def execute(
-        self,
         data: FlextCliTypes.Data.CliDataDict,
         output_format: str = "json",
     ) -> FlextResult[str]:
@@ -75,7 +76,8 @@ class ReportGeneratorPlugin:
         self.name = "report-generator"
         self.version = "1.0.0"
 
-    def execute(self, data: list[FlextCliTypes.Data.CliDataDict]) -> FlextResult[str]:
+    @staticmethod
+    def execute(data: list[FlextCliTypes.Data.CliDataDict]) -> FlextResult[str]:
         """Generate report from data in YOUR CLI."""
         tables = FlextCliTables()
         config = FlextCliModels.TableConfig(table_format="grid")
@@ -140,7 +142,10 @@ class MyAppPluginManager:
             elif (
                 isinstance(result, dict) and all(isinstance(k, str) for k in result)
             ) or isinstance(result, list):
-                json_result = FlextUtilities.DataMapper.convert_to_json_value(result)
+                json_result = cast(
+                    "FlextTypes.JsonValue",
+                    FlextUtilities.DataMapper.convert_to_json_value(result),
+                )
             else:
                 json_result = str(result)
             return FlextResult[FlextTypes.JsonValue].ok(json_result)

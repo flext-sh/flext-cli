@@ -1356,7 +1356,9 @@ class TestFlextCliFileTools:
         unicode_content = {"message": "你好世界", "data": [1, 2, "三"]}
 
         # Write Unicode content
-        write_result = file_tools.write_json_file(str(unicode_file), unicode_content)
+        write_result = file_tools.write_json_file(
+            str(unicode_file), cast("FlextTypes.GeneralValueType", unicode_content)
+        )
         assert write_result.is_success
 
         # Read Unicode content
@@ -1384,7 +1386,9 @@ class TestFlextCliFileTools:
         large_file = temp_dir / "large_test.json"
 
         # Write large data
-        write_result = file_tools.write_json_file(str(large_file), large_data)
+        write_result = file_tools.write_json_file(
+            str(large_file), cast("FlextTypes.GeneralValueType", large_data)
+        )
         assert write_result.is_success
 
         # Verify file exists and has content
@@ -1478,7 +1482,9 @@ class TestFlextCliFileTools:
         yaml_file = temp_dir / "complex_test.yaml"
 
         # Write complex YAML
-        write_result = file_tools.write_yaml_file(str(yaml_file), complex_yaml)
+        write_result = file_tools.write_yaml_file(
+            str(yaml_file), cast("FlextTypes.GeneralValueType", complex_yaml)
+        )
         assert write_result.is_success
 
         # Read complex YAML
@@ -1505,7 +1511,9 @@ class TestFlextCliFileTools:
         test_data = {"counter": 0, "thread_data": {}}
 
         # Write initial data
-        file_tools.write_json_file(str(test_file), test_data)
+        file_tools.write_json_file(
+            str(test_file), cast("FlextTypes.GeneralValueType", test_data)
+        )
 
         results = []
         errors = []
@@ -1530,7 +1538,9 @@ class TestFlextCliFileTools:
                     thread_data[f"thread_{thread_id}"] = f"modified_by_{thread_id}"
 
                     # Write back with synchronization
-                    write_result = file_tools.write_json_file(str(test_file), data)
+                    write_result = file_tools.write_json_file(
+                        str(test_file), cast("FlextTypes.GeneralValueType", data)
+                    )
                     if write_result.is_failure:
                         errors.append(f"Thread {thread_id}: Write failed")
                         return
@@ -1619,7 +1629,9 @@ class TestFlextCliFileTools:
 
         # Test recovery by rewriting
         recovery_data = {"recovered": True, "original_error": read_result.error}
-        recovery_result = file_tools.write_json_file(str(corrupted_file), recovery_data)
+        recovery_result = file_tools.write_json_file(
+            str(corrupted_file), cast("FlextTypes.GeneralValueType", recovery_data)
+        )
         assert recovery_result.is_success
 
         # Verify recovery worked
@@ -1707,7 +1719,9 @@ class TestFlextCliFileTools:
         new_data = {"version": 2, "data": "updated"}
 
         # Write original data
-        file_tools.write_json_file(str(target_file), original_data)
+        file_tools.write_json_file(
+            str(target_file), cast("FlextTypes.GeneralValueType", original_data)
+        )
 
         # Simulate atomic update with backup
         try:
@@ -1716,7 +1730,9 @@ class TestFlextCliFileTools:
             shutil.copy2(target_file, backup_file)
 
             # Write new data
-            file_tools.write_json_file(str(target_file), new_data)
+            file_tools.write_json_file(
+                str(target_file), cast("FlextTypes.GeneralValueType", new_data)
+            )
 
             # Simulate successful completion (no exception)
 
@@ -1781,7 +1797,9 @@ class TestFlextCliFileTools:
 
         # Write uncompressed
         uncompressed_file = temp_dir / "uncompressed.json"
-        file_tools.write_json_file(str(uncompressed_file), large_data)
+        file_tools.write_json_file(
+            str(uncompressed_file), cast("FlextTypes.GeneralValueType", large_data)
+        )
 
         # Simulate compression by writing to gzip
         compressed_file = temp_dir / "compressed.json.gz"

@@ -31,10 +31,37 @@ from flext_cli.utilities import FlextCliUtilities
 class FlextCliCommonParams:
     """Common CLI parameters auto-generated from FlextConfig field metadata.
 
+    Business Rules:
+    ───────────────
+    1. Parameters MUST be auto-generated from FlextCliConfig Pydantic fields
+    2. Parameters MUST be enabled by default (cannot be disabled without error)
+    3. Parameter metadata MUST come from Field() descriptions and defaults
+    4. Parameter types MUST match FlextCliConfig field types
+    5. Short flags MUST be unique and follow CLI conventions (-v, -d, -q, etc.)
+    6. Parameter priority MUST determine order in help output
+    7. Choices MUST be validated against allowed values
+    8. Boolean parameters automatically become Typer flags (no is_flag needed)
+
+    Architecture Implications:
+    ───────────────────────────
+    - Auto-generation eliminates manual parameter definition (DRY)
+    - Registry-based metadata enables flexible parameter configuration
+    - OptionBuilder delegates to FlextCliModels for type conversion
+    - Typer OptionInfo objects created from registry metadata
+    - Parameter enforcement ensures consistency across commands
+
+    Audit Implications:
+    ───────────────────
+    - Parameter creation MUST be logged with parameter name and metadata
+    - Parameter validation failures MUST be logged
+    - Parameter usage MUST be tracked for analytics
+    - Parameter enforcement violations MUST be logged
+
     Provides standardized parameter group integrated with FlextConfig and FlextLogger.
     These parameters are enabled by default and enforced across all CLI commands.
 
-    All parameter definitions are automatically extracted from FlextCliConfig pydantic fields:
+    All parameter definitions are automatically extracted from
+    FlextCliConfig pydantic fields:
     - Descriptions from Field(description=...)
     - defaults from Field(default=...)
     - Constraints from Field(ge=..., le=...)
@@ -82,7 +109,8 @@ class FlextCliCommonParams:
             _reg.KEY_PRIORITY: _reg.PRIORITY_LOG_LEVEL,
             _reg.KEY_CHOICES: FlextCliConstants.Lists.LOG_LEVELS_LIST,
             _reg.KEY_CASE_SENSITIVE: _reg.CASE_INSENSITIVE,
-            _reg.KEY_FIELD_NAME_OVERRIDE: "log_level",  # CLI param name is --log-level, maps to cli_log_level field
+            # CLI param name is --log-level, maps to cli_log_level field
+            _reg.KEY_FIELD_NAME_OVERRIDE: "log_level",
         },
         "log_verbosity": {
             _reg.KEY_PRIORITY: _reg.PRIORITY_LOG_FORMAT,
@@ -171,8 +199,9 @@ class FlextCliCommonParams:
     def get_all_common_params(cls) -> dict[str, OptionInfo]:
         """Get all common CLI parameters as typer.Option objects.
 
-        Returns dict[str, OptionInfo] mapping parameter names to typer.Option objects auto-generated
-        from FlextCliConfig field metadata. Sorted by priority from CLI_PARAM_REGISTRY.
+        Returns dict[str, OptionInfo] mapping parameter names to
+        typer.Option objects auto-generated from FlextCliConfig field
+        metadata. Sorted by priority from CLI_PARAM_REGISTRY.
 
         Returns:
             Dict of parameter name -> typer.Option(...)
@@ -194,50 +223,64 @@ class FlextCliCommonParams:
         }
 
     @classmethod
-    def apply_to_config(  # noqa: PLR0913
+    def apply_to_config(
         cls,
         config: FlextCliConfig,
         params: FlextCliModels.CliParamsConfig | None = None,
-        *,
-        verbose: bool | None = None,
-        quiet: bool | None = None,
-        debug: bool | None = None,
-        trace: bool | None = None,
-        log_level: str | None = None,
-        log_format: str | None = None,
-        output_format: str | None = None,
-        no_color: bool | None = None,
+        **kwargs: bool | str | None,
     ) -> FlextResult[FlextCliConfig]:
         """Apply CLI parameter values to FlextConfig using Pydantic validation.
+
+        Business Rule:
+        ──────────────
+        Applies CLI parameter values to FlextConfig using Pydantic validation.
+        All parameters are optional to allow partial updates. Trace mode requires
+        debug mode to be enabled (enforced by Pydantic validators).
+
+        Audit Implication:
+        ───────────────────
+        All configuration changes are validated and logged. Invalid configurations
+        are rejected before being applied, preventing runtime errors.
 
         Args:
             config: FlextCliConfig instance to update
             params: CliParamsConfig model (preferred) or None to use keyword args
-            verbose: Verbose flag (deprecated - use params)
-            quiet: Quiet flag (deprecated - use params)
-            debug: Debug flag (deprecated - use params)
-            trace: Trace flag (deprecated - use params)
-            log_level: Log level (deprecated - use params)
-            log_format: Log format (deprecated - use params)
-            output_format: Output format (deprecated - use params)
-            no_color: No color flag (deprecated - use params)
+            **kwargs: Optional keyword args: verbose (bool), quiet (bool),
+                debug (bool), trace (bool), log_level (str), log_format (str),
+                output_format (str), no_color (bool)
 
         Returns:
             FlextResult[FlextCliConfig]: Updated config or error
 
         """
         try:
-            # Build params model from kwargs if not provided (Pydantic validates automatically)
+            # Build params model from explicit parameters if not provided
+            # (Pydantic validates automatically)
             if params is None:
+                # Extract bool | None values with proper typing
+                verbose_val = kwargs.get("verbose")
+                quiet_val = kwargs.get("quiet")
+                debug_val = kwargs.get("debug")
+                trace_val = kwargs.get("trace")
+                no_color_val = kwargs.get("no_color")
+                log_level_val = kwargs.get("log_level")
+                log_format_val = kwargs.get("log_format")
+                output_format_val = kwargs.get("output_format")
                 params = FlextCliModels.CliParamsConfig(
-                    verbose=verbose,
-                    quiet=quiet,
-                    debug=debug,
-                    trace=trace,
-                    log_level=log_level,
-                    log_format=log_format,
-                    output_format=output_format,
-                    no_color=no_color,
+                    verbose=bool(verbose_val) if verbose_val is not None else None,
+                    quiet=bool(quiet_val) if quiet_val is not None else None,
+                    debug=bool(debug_val) if debug_val is not None else None,
+                    trace=bool(trace_val) if trace_val is not None else None,
+                    log_level=str(log_level_val) if log_level_val is not None else None,
+                    log_format=(
+                        str(log_format_val) if log_format_val is not None else None
+                    ),
+                    output_format=(
+                        str(output_format_val)
+                        if output_format_val is not None
+                        else None
+                    ),
+                    no_color=bool(no_color_val) if no_color_val is not None else None,
                 )
 
             # Apply all parameters - extracted helpers to reduce complexity
@@ -275,7 +318,7 @@ class FlextCliCommonParams:
         than intermediate states during individual field assignments.
 
         Returns:
-            FlextResult[bool]: True if successful, error if trace=True without debug=True
+            FlextResult[bool]: True if successful, error if trace=True without debug
 
         """
         # VALIDATION: trace mode requires debug mode (from FlextConfig)
@@ -289,8 +332,9 @@ class FlextCliCommonParams:
                     "Trace mode requires debug mode to be enabled",
                 )
 
-        # Update all attributes at once using model_copy to avoid triggering
-        # validate_assignment for each individual field (which would see intermediate states)
+        # Update all attributes at once using model_copy to avoid
+        # triggering validate_assignment for each individual field
+        # (which would see intermediate states)
         # Then update the original config object's attributes
         # Use mutable dict for building updates
         update_data: dict[str, FlextTypes.GeneralValueType] = {}
@@ -332,7 +376,10 @@ class FlextCliCommonParams:
         except ValueError:
             valid = FlextCliConstants.LOG_LEVELS_LIST
             return FlextResult[FlextCliConfig].fail(
-                f"invalid log level: {params.log_level}. valid options: {', '.join(valid)}",
+                (
+                    f"invalid log level: {params.log_level}. "
+                    f"valid options: {', '.join(valid)}"
+                ),
             )
 
     @classmethod
@@ -349,8 +396,9 @@ class FlextCliCommonParams:
                 not in FlextCliConstants.CliParamsDefaults.VALID_LOG_FORMATS
             ):
                 valid = FlextCliConstants.CliParamsDefaults.VALID_LOG_FORMATS
+                valid_str = ", ".join(valid)
                 return FlextResult[FlextCliConfig].fail(
-                    f"invalid log format: {params.log_format}. valid options: {', '.join(valid)}",
+                    f"invalid log format: {params.log_format}. valid: {valid_str}",
                 )
             config.log_verbosity = params.log_format
 
@@ -361,8 +409,9 @@ class FlextCliCommonParams:
             )
             if validated_result.is_failure:
                 valid = FlextCliConstants.CliParamsDefaults.VALID_OUTPUT_FORMATS
+                valid_str = ", ".join(valid)
                 return FlextResult[FlextCliConfig].fail(
-                    f"invalid output format: {params.output_format}. valid options: {', '.join(valid)}",
+                    f"invalid output format: {params.output_format}. valid: {valid_str}",
                 )
             # Update config using model_copy to handle Literal type correctly
             validated_format = validated_result.unwrap()

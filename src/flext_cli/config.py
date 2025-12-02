@@ -51,6 +51,37 @@ logger = FlextLogger(__name__)
 class FlextCliConfig(FlextConfig):
     """Single flat Pydantic 2 BaseModel class for flext-cli using AutoConfig pattern.
 
+    Business Rules:
+    ───────────────
+    1. Configuration MUST use singleton pattern (thread-safe access)
+    2. Configuration MUST support environment variable overrides (FLEXT_CLI_*)
+    3. Configuration MUST validate all values using Pydantic 2 validators
+    4. Sensitive data (passwords, tokens, keys) MUST use SecretStr
+    5. Configuration MUST use FlextCliConstants for all defaults
+    6. Configuration MUST support .env file loading (optional)
+    7. Configuration changes MUST be validated before application
+    8. Trace mode REQUIRES debug mode to be enabled (enforced by validator)
+
+    Architecture Implications:
+    ───────────────────────────
+    - Auto-registration enables namespace access via FlextConfig.get_global_instance().cli
+    - Singleton pattern ensures consistent configuration across application
+    - Pydantic 2 SettingsConfigDict enables environment variable integration
+    - Field validators enforce business rules (trace requires debug)
+    - SecretStr prevents accidental logging of sensitive data
+    - Flat structure simplifies access and reduces nesting complexity
+
+    Audit Implications:
+    ───────────────────
+    - Configuration changes MUST be logged with timestamp and user context
+    - Sensitive fields (SecretStr) MUST NOT be logged or serialized
+    - Environment variable overrides MUST be validated before use
+    - Configuration validation failures MUST prevent application startup
+    - Default values MUST be secure (no hardcoded credentials or weak settings)
+    - Configuration file paths MUST be validated for security (path traversal prevention)
+    - Remote configuration loading MUST use encrypted connections (TLS/SSL)
+    - Configuration backups MUST exclude sensitive data (SecretStr fields)
+
     **ARCHITECTURAL PATTERN**: Zero-Boilerplate Auto-Registration
 
     This class uses FlextConfig.AutoConfig for automatic:

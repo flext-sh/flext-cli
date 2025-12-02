@@ -11,13 +11,30 @@ from flext_core import FlextProtocols, FlextResult, FlextTypes
 class FlextCliProtocols(FlextProtocols):
     """FlextCli protocol definitions composing with FlextProtocols.
 
-    REGRAS:
-    ───────
-    1. NUNCA importar Models, Config, ou classes concretas
-    2. Apenas importar outros Protocols
-    3. @runtime_checkable para isinstance() checks
-    4. Self para métodos que retornam a própria instância
-    5. Composição com FlextProtocols
+    Business Rules:
+    ───────────────
+    1. Protocols define structural typing contracts - NO concrete implementations
+    2. Protocols can ONLY import other Protocols (from flext projects)
+    3. Protocols CANNOT import Models, Config, or concrete classes
+    4. Use @runtime_checkable for isinstance() checks at runtime
+    5. Use Self for methods returning the same instance (Python 3.11+)
+    6. Compose with FlextProtocols for consistency across flext ecosystem
+    7. Protocols enable dependency inversion - depend on abstractions, not concretions
+
+    Architecture Implications:
+    ───────────────────────────
+    - Protocols enforce interface contracts without coupling to implementations
+    - Structural typing allows multiple implementations of same protocol
+    - Runtime checks via @runtime_checkable enable isinstance() validation
+    - Composition with FlextProtocols ensures ecosystem-wide consistency
+
+    Audit Implications:
+    ───────────────────
+    - Protocol violations detected at runtime via isinstance() checks
+    - Missing protocol methods cause AttributeError at call site
+    - Protocol compliance ensures type safety and interface contracts
+    - Changes to protocols require updates to all implementations
+    - Protocol methods must match signatures exactly (structural typing)
     """
 
     # ═══════════════════════════════════════════════════════════════════
@@ -142,14 +159,81 @@ class FlextCliProtocols(FlextProtocols):
 
         @runtime_checkable
         class CliAuthenticator(Protocol):
-            """Protocol for CLI authentication."""
+            """Protocol for CLI authentication.
+
+            Business Rules:
+            ───────────────
+            1. Authentication MUST return FlextResult[str] with token on success
+            2. Authentication MUST return FlextResult[str] with error message on failure
+            3. Token validation MUST return FlextResult[bool] (True=valid, False=invalid)
+            4. Credentials MUST NOT be logged or stored in plain text
+            5. Tokens MUST be validated before use in subsequent operations
+
+            Architecture Implications:
+            ───────────────────────────
+            - Uses Railway-Oriented Programming (FlextResult) for error handling
+            - Enables multiple authentication backends (LDAP, OAuth, API keys, etc.)
+            - Token-based authentication for stateless CLI operations
+            - Protocol allows swapping implementations without code changes
+
+            Audit Implications:
+            ───────────────────
+            - All authentication attempts MUST be logged (success/failure)
+            - Failed authentication attempts MUST NOT expose user existence
+            - Token validation MUST check expiration and revocation status
+            - Authentication failures MUST return generic error messages
+            - Token storage MUST use secure mechanisms (environment variables, keyring)
+            - Remote authentication MUST use encrypted connections (TLS/SSL)
+            """
 
             def authenticate(self, username: str, password: str) -> FlextResult[str]:
-                """Authenticate user."""
+                """Authenticate user with username and password.
+
+                Business Rule:
+                ──────────────
+                Validates user credentials and returns authentication token.
+                Returns FlextResult[str] with token string on success, error on failure.
+
+                Args:
+                    username: User identifier for authentication
+                    password: User password for authentication
+
+                Returns:
+                    FlextResult[str]: Token string on success, error message on failure
+
+                Audit Implications:
+                ───────────────────
+                - Authentication attempts MUST be logged with timestamp and result
+                - Failed attempts MUST NOT reveal whether username exists
+                - Passwords MUST NOT be logged or stored
+                - Rate limiting SHOULD be enforced to prevent brute force attacks
+                - Remote authentication MUST use encrypted channels (TLS/SSL)
+
+                """
                 ...
 
             def validate_token(self, token: str) -> FlextResult[bool]:
-                """Validate authentication token."""
+                """Validate authentication token.
+
+                Business Rule:
+                ──────────────
+                Validates token authenticity, expiration, and revocation status.
+                Returns FlextResult[bool] with True if valid, False if invalid.
+
+                Args:
+                    token: Authentication token string to validate
+
+                Returns:
+                    FlextResult[bool]: True if token is valid, False if invalid
+
+                Audit Implications:
+                ───────────────────
+                - Token validation MUST check expiration time
+                - Token validation MUST check revocation status (if applicable)
+                - Invalid token attempts MUST be logged for security monitoring
+                - Token validation MUST be performed before any privileged operation
+
+                """
                 ...
 
         @runtime_checkable
@@ -232,9 +316,10 @@ class FlextCliProtocols(FlextProtocols):
     # ═══════════════════════════════════════════════════════════════════
     # LAYER 1: Service Protocols (pode usar Layer 0)
     # ═══════════════════════════════════════════════════════════════════
+    # Note: Renamed to CliService to avoid conflict with FlextProtocols.Service
 
-    class Service:
-        """Service-related protocols."""
+    class CliService:
+        """CLI service-related protocols."""
 
         @runtime_checkable
         class CliServiceProtocol(Protocol):
@@ -301,9 +386,10 @@ class FlextCliProtocols(FlextProtocols):
     # ═══════════════════════════════════════════════════════════════════
     # LAYER 2: Handler Protocols (pode usar Layer 0 e 1)
     # ═══════════════════════════════════════════════════════════════════
+    # Note: Renamed to CliHandler to avoid conflict with FlextProtocols.Handler
 
-    class Handler:
-        """Handler-related protocols."""
+    class CliHandler:
+        """CLI handler-related protocols."""
 
         @runtime_checkable
         class CliHandlerProtocol(Protocol):

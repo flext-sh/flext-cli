@@ -1,6 +1,7 @@
 """Advanced File Formats - CSV, Binary, Auto-Detection.
 
-Shows file operations beyond JSON/YAML: CSV with headers, binary files, format auto-detection.
+Shows file operations beyond JSON/YAML: CSV with headers, binary files,
+format auto-detection.
 
 WHEN TO USE:
 - Need CSV import/export with headers
@@ -29,9 +30,11 @@ from __future__ import annotations
 import hashlib
 import shutil
 import tempfile
+from collections.abc import Iterable
 from pathlib import Path
+from typing import cast
 
-from flext_core import FlextUtilities
+from flext_core import FlextTypes, FlextUtilities
 
 from flext_cli import FlextCli, FlextCliModels, FlextCliTables, FlextCliTypes
 
@@ -102,13 +105,18 @@ def import_from_csv(input_file: Path) -> list[FlextCliTypes.Data.CliDataDict] | 
         # Convert to JsonDict-compatible format using FlextUtilities
         sample_rows_raw = rows[:5]
         sample_rows: list[FlextCliTypes.Data.CliDataDict] = [
-            FlextUtilities.DataMapper.convert_dict_to_json(row)
+            FlextUtilities.DataMapper.convert_dict_to_json(
+                cast("dict[str, FlextTypes.GeneralValueType]", row)
+            )
             for row in sample_rows_raw
         ]
-        # Cast to expected type for table creation
+        # Cast to expected type for table creation - TableData accepts Iterable[dict[str, GeneralValueType]]
         config = FlextCliModels.TableConfig(table_format="grid")
         table_result = tables.create_table(
-            sample_rows,
+            cast(
+                "Iterable[dict[str, FlextTypes.GeneralValueType]]",
+                sample_rows,
+            ),
             config=config,
         )
         if table_result.is_success:
@@ -116,7 +124,10 @@ def import_from_csv(input_file: Path) -> list[FlextCliTypes.Data.CliDataDict] | 
 
     # Convert to JsonDict-compatible format using FlextUtilities
     converted_rows: list[FlextCliTypes.Data.CliDataDict] = [
-        FlextUtilities.DataMapper.convert_dict_to_json(row) for row in rows
+        FlextUtilities.DataMapper.convert_dict_to_json(
+            cast("dict[str, FlextTypes.GeneralValueType]", row)
+        )
+        for row in rows
     ]
     return converted_rows
 
@@ -207,7 +218,10 @@ def load_any_format_file(file_path: Path) -> FlextCliTypes.Data.CliDataDict | No
     # Type narrowing: ensure we have a dict
     if not isinstance(data, dict):
         cli.output.print_message(
-            f"⚠️  Loaded data is not a dict[str, FlextTypes.JsonValue] (type: {type(data).__name__})",
+            (
+                f"⚠️  Loaded data is not a dict[str, FlextTypes.JsonValue] "
+                f"(type: {type(data).__name__})"
+            ),
             style="yellow",
         )
         return None
@@ -215,10 +229,13 @@ def load_any_format_file(file_path: Path) -> FlextCliTypes.Data.CliDataDict | No
     # Display loaded data
     # Convert to JsonDict-compatible dict using FlextUtilities
     display_data: FlextCliTypes.Data.CliDataDict = (
-        FlextUtilities.DataMapper.convert_dict_to_json(data)
+        FlextUtilities.DataMapper.convert_dict_to_json(
+            cast("dict[str, FlextTypes.GeneralValueType]", data)
+        )
     )
+    # Cast to dict[str, GeneralValueType] for create_table
     table_result = cli.create_table(
-        data=display_data,
+        data=cast("dict[str, FlextTypes.GeneralValueType]", display_data),
         headers=["Key", "Value"],
         title=f"Loaded from {detected_format.upper()}",
     )
@@ -379,7 +396,7 @@ def copy_file_with_verification(source: Path, destination: Path) -> bool:
 # ============================================================================
 
 
-def main() -> None:
+def main() -> None:  # noqa: PLR0915
     """Examples of advanced file format operations in YOUR code."""
     cli.output.print_message("=" * 70, style="bold blue")
     cli.output.print_message(
@@ -404,7 +421,10 @@ def main() -> None:
     csv_file = temp_dir / "employees.csv"
     # Convert to JsonDict-compatible format using FlextUtilities
     typed_sample_data: list[FlextCliTypes.Data.CliDataDict] = [
-        FlextUtilities.DataMapper.convert_dict_to_json(row) for row in sample_data
+        FlextUtilities.DataMapper.convert_dict_to_json(
+            cast("dict[str, FlextTypes.GeneralValueType]", row)
+        )
+        for row in sample_data
     ]
     export_to_csv(typed_sample_data, csv_file)
     import_from_csv(csv_file)

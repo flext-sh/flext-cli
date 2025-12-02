@@ -305,7 +305,7 @@ def main() -> None:
 
     # Example 3: ASCII tables
     cli.print("\n3. ASCII Tables (for logs/reports):", style="bold cyan")
-    ascii_result = export_report(sample_data, "grid")
+    ascii_result = export_report(sample_data, "table")
     if ascii_result.is_success:
         pass  # This is plain text - can save to file (ascii_result.unwrap())
 

@@ -21,6 +21,35 @@ from flext_cli.models import FlextCliModels
 class FlextCliPrompts(FlextCliServiceBase):
     """CLI prompts and interactive input service using domain-specific types.
 
+    Business Rules:
+    ───────────────
+    1. Interactive prompts MUST respect quiet mode (no prompts in quiet mode)
+    2. Password prompts MUST hide input (use getpass for security)
+    3. Confirmation prompts MUST require explicit yes/no answers
+    4. Timeout MUST be enforced for all prompt operations
+    5. Default values MUST be validated before use
+    6. Input validation MUST use Pydantic validators when applicable
+    7. Prompt history MUST be tracked for audit purposes
+    8. Sensitive input (passwords, tokens) MUST NOT be logged
+
+    Architecture Implications:
+    ───────────────────────────
+    - Uses getpass for secure password input (no echo)
+    - Supports timeout for non-interactive environments
+    - Tracks prompt history for debugging and audit
+    - Quiet mode disables all interactive features
+    - Type-safe prompts using FlextCliTypes for validation
+    - Extends FlextCliServiceBase for logging and configuration access
+
+    Audit Implications:
+    ───────────────────
+    - Password prompts MUST NOT log input values
+    - Prompt operations MUST be logged with prompt type and result (no sensitive data)
+    - Timeout events MUST be logged for monitoring
+    - Invalid input attempts MUST be logged (no input values)
+    - Prompt history MUST be cleared after sensitive operations
+    - Remote prompts MUST use encrypted channels (TLS/SSL)
+
     Provides comprehensive prompt functionality for CLI applications with enhanced
     type safety using FlextCliTypes instead of generic FlextTypes types.
     Extends FlextCliServiceBase with CLI config access.
@@ -290,6 +319,17 @@ class FlextCliPrompts(FlextCliServiceBase):
     ) -> FlextResult[str]:
         """Prompt user to select from multiple choices.
 
+        Business Rule:
+        ──────────────
+        Validates choices list, handles non-interactive mode gracefully,
+        and records prompt history for audit trail.
+
+        Audit Implications:
+        ───────────────────
+        - Empty choices list fails immediately with clear error
+        - Non-interactive mode returns default or fails if none valid
+        - Invalid default choice logged and fails with context
+
         Args:
             message: Choice prompt message to display
             choices: List of available choices
@@ -310,6 +350,9 @@ class FlextCliPrompts(FlextCliServiceBase):
             source="flext-cli/src/flext_cli/prompts.py",
         )
 
+        # Initialize result
+        result: FlextResult[str]
+
         if not choices:
             self.logger.warning(
                 "No choices provided for prompt",
@@ -318,11 +361,10 @@ class FlextCliPrompts(FlextCliServiceBase):
                 consequence="Prompt will fail",
                 source="flext-cli/src/flext_cli/prompts.py",
             )
-            return FlextResult[str].fail(
+            result = FlextResult[str].fail(
                 FlextCliConstants.ErrorMessages.NO_CHOICES_PROVIDED,
             )
-
-        if not self.interactive_mode:
+        elif not self.interactive_mode:
             if default and default in choices:
                 self.logger.debug(
                     "Returning default choice in non-interactive mode",
@@ -331,96 +373,99 @@ class FlextCliPrompts(FlextCliServiceBase):
                     default=default,
                     source="flext-cli/src/flext_cli/prompts.py",
                 )
-                return FlextResult[str].ok(default)
-
-            self.logger.warning(
-                "Interactive mode disabled and no valid default provided",
-                operation="prompt_choice",
-                prompt_message=message,
-                default=default,
-                choices=choices,
-                consequence="Prompt will fail",
-                source="flext-cli/src/flext_cli/prompts.py",
-            )
-            return FlextResult[str].fail(
-                FlextCliConstants.ErrorMessages.INTERACTIVE_MODE_DISABLED_CHOICE,
-            )
-
-        try:
-            # Record prompt for history
-            choice_list = ", ".join(
-                FlextCliConstants.PromptsDefaults.CHOICE_LIST_FORMAT.format(
-                    index=i + 1,
-                    choice=choice,
+                result = FlextResult[str].ok(default)
+            else:
+                self.logger.warning(
+                    "Interactive mode disabled and no valid default provided",
+                    operation="prompt_choice",
+                    prompt_message=message,
+                    default=default,
+                    choices=choices,
+                    consequence="Prompt will fail",
+                    source="flext-cli/src/flext_cli/prompts.py",
                 )
-                for i, choice in enumerate(choices)
-            )
-            self._prompt_history.append(
-                FlextCliConstants.PromptsDefaults.CHOICE_HISTORY_FORMAT.format(
-                    message=message,
-                    separator=FlextCliConstants.PromptsDefaults.CHOICE_PROMPT_SEPARATOR,
-                    options=choice_list,
-                ),
-            )
+                result = FlextResult[str].fail(
+                    FlextCliConstants.ErrorMessages.INTERACTIVE_MODE_DISABLED_CHOICE,
+                )
+        else:
+            try:
+                # Record prompt for history
+                choice_list = ", ".join(
+                    FlextCliConstants.PromptsDefaults.CHOICE_LIST_FORMAT.format(
+                        index=i + 1,
+                        choice=choice,
+                    )
+                    for i, choice in enumerate(choices)
+                )
+                self._prompt_history.append(
+                    FlextCliConstants.PromptsDefaults.CHOICE_HISTORY_FORMAT.format(
+                        message=message,
+                        separator=FlextCliConstants.PromptsDefaults.CHOICE_PROMPT_SEPARATOR,
+                        options=choice_list,
+                    ),
+                )
 
-            # Get real user selection - no fallback to fake data
-            if default:
-                if default not in choices:
+                # Get real user selection - no fallback to fake data
+                if default:
+                    if default not in choices:
+                        self.logger.warning(
+                            "Default choice is not in available choices",
+                            operation="prompt_choice",
+                            prompt_message=message,
+                            default=default,
+                            available_choices=choices,
+                            consequence="Prompt will fail",
+                            source="flext-cli/src/flext_cli/prompts.py",
+                        )
+                        result = FlextResult[str].fail(
+                            FlextCliConstants.ErrorMessages.INVALID_CHOICE.format(
+                                selected=default,
+                            ),
+                        )
+                    else:
+                        selected = default
+                        self.logger.debug(
+                            "Choice prompt completed successfully",
+                            operation="prompt_choice",
+                            prompt_message=message,
+                            selected=selected,
+                            source="flext-cli/src/flext_cli/prompts.py",
+                        )
+                        result = FlextResult[str].ok(selected)
+                else:
+                    # No default provided - require explicit choice
                     self.logger.warning(
-                        "Default choice is not in available choices",
+                        "No default choice provided and interactive mode requires explicit choice",
                         operation="prompt_choice",
                         prompt_message=message,
-                        default=default,
                         available_choices=choices,
                         consequence="Prompt will fail",
                         source="flext-cli/src/flext_cli/prompts.py",
                     )
-                    return FlextResult[str].fail(
-                        FlextCliConstants.ErrorMessages.INVALID_CHOICE.format(
-                            selected=default,
+                    result = FlextResult[str].fail(
+                        FlextCliConstants.PromptsErrorMessages.CHOICE_REQUIRED.format(
+                            choices=", ".join(choices),
                         ),
                     )
-                selected = default
-            else:
-                # No default provided - require explicit choice
-                self.logger.warning(
-                    "No default choice provided and interactive mode requires explicit choice",
+
+            except Exception as e:
+                self.logger.exception(
+                    "FATAL ERROR during choice prompt - prompt aborted",
                     operation="prompt_choice",
                     prompt_message=message,
-                    available_choices=choices,
-                    consequence="Prompt will fail",
+                    error=str(e),
+                    error_type=type(e).__name__,
+                    consequence="Choice prompt failed completely",
+                    severity="critical",
                     source="flext-cli/src/flext_cli/prompts.py",
                 )
-                return FlextResult[str].fail(
-                    FlextCliConstants.PromptsErrorMessages.CHOICE_REQUIRED.format(
-                        choices=", ".join(choices),
+                result = FlextResult[str].fail(
+                    FlextCliConstants.ErrorMessages.CHOICE_PROMPT_FAILED.format(
+                        error=e
                     ),
                 )
 
-            self.logger.debug(
-                "Choice prompt completed successfully",
-                operation="prompt_choice",
-                prompt_message=message,
-                selected=selected,
-                source="flext-cli/src/flext_cli/prompts.py",
-            )
-
-            return FlextResult[str].ok(selected)
-
-        except Exception as e:
-            self.logger.exception(
-                "FATAL ERROR during choice prompt - prompt aborted",
-                operation="prompt_choice",
-                prompt_message=message,
-                error=str(e),
-                error_type=type(e).__name__,
-                consequence="Choice prompt failed completely",
-                severity="critical",
-                source="flext-cli/src/flext_cli/prompts.py",
-            )
-            return FlextResult[str].fail(
-                FlextCliConstants.ErrorMessages.CHOICE_PROMPT_FAILED.format(error=e),
-            )
+        return result
 
     def prompt_password(
         self,
@@ -777,8 +822,80 @@ class FlextCliPrompts(FlextCliServiceBase):
                 FlextCliConstants.PromptsErrorMessages.PROMPT_FAILED.format(error=e),
             )
 
+    def _read_confirmation_input(
+        self, message: str, prompt_text: str, *, default: bool
+    ) -> FlextResult[bool]:
+        """Read and validate user confirmation input.
+
+        Business Rule:
+        ──────────────
+        Loops until valid input received (y/yes/n/no or empty for default).
+
+        Args:
+            message: Original confirmation message for logging
+            prompt_text: Formatted prompt text to display
+            default: Default value for empty input
+
+        Returns:
+            FlextResult[bool]: True for yes, False for no
+
+        """
+        while True:
+            user_input = input(prompt_text).strip().lower()
+
+            if not user_input:  # Empty input uses default
+                self.logger.debug(
+                    "Empty input received, using default",
+                    operation="confirm",
+                    prompt_message=message,
+                    default=default,
+                    source="flext-cli/src/flext_cli/prompts.py",
+                )
+                return FlextResult[bool].ok(default)
+
+            if user_input in {"y", "yes"}:
+                self.logger.debug(
+                    "User confirmed",
+                    operation="confirm",
+                    prompt_message=message,
+                    result=True,
+                    source="flext-cli/src/flext_cli/prompts.py",
+                )
+                return FlextResult[bool].ok(True)
+
+            if user_input in {"n", "no"}:
+                self.logger.debug(
+                    "User declined",
+                    operation="confirm",
+                    prompt_message=message,
+                    result=False,
+                    source="flext-cli/src/flext_cli/prompts.py",
+                )
+                return FlextResult[bool].ok(False)
+
+            self.logger.warning(
+                "Invalid confirmation input - please enter yes or no",
+                operation="confirm",
+                prompt_message=message,
+                user_input=user_input,
+                consequence="Prompting again",
+                source="flext-cli/src/flext_cli/prompts.py",
+            )
+
     def confirm(self, message: str, *, default: bool = False) -> FlextResult[bool]:
         """Prompt user for yes/no confirmation.
+
+        Business Rule:
+        ──────────────
+        Handles quiet mode and non-interactive mode by returning default.
+        Interactive mode loops until valid input (y/yes/n/no or empty for default).
+
+        Audit Implications:
+        ───────────────────
+        - Quiet mode returns default silently (no user interaction)
+        - Non-interactive mode returns default with logging
+        - KeyboardInterrupt and EOFError handled gracefully
+        - Invalid input prompts user again with guidance
 
         Args:
             message: Confirmation message
@@ -798,6 +915,9 @@ class FlextCliPrompts(FlextCliServiceBase):
             source="flext-cli/src/flext_cli/prompts.py",
         )
 
+        # Initialize result
+        result: FlextResult[bool]
+
         try:
             # Handle quiet mode - return default
             if self.quiet:
@@ -808,10 +928,9 @@ class FlextCliPrompts(FlextCliServiceBase):
                     default=default,
                     source="flext-cli/src/flext_cli/prompts.py",
                 )
-                return FlextResult[bool].ok(default)
-
-            # Handle non-interactive mode - return default
-            if not self.interactive_mode:
+                result = FlextResult[bool].ok(default)
+            elif not self.interactive_mode:
+                # Handle non-interactive mode - return default
                 self.logger.debug(
                     "Returning default in non-interactive mode",
                     operation="confirm",
@@ -819,63 +938,27 @@ class FlextCliPrompts(FlextCliServiceBase):
                     default=default,
                     source="flext-cli/src/flext_cli/prompts.py",
                 )
-                return FlextResult[bool].ok(default)
+                result = FlextResult[bool].ok(default)
+            else:
+                # Interactive mode - get user input
+                prompt_text = (
+                    f"{message}{FlextCliConstants.PromptsDefaults.CONFIRMATION_YES_PROMPT}"
+                    if default
+                    else f"{message}{FlextCliConstants.PromptsDefaults.CONFIRMATION_NO_PROMPT}"
+                )
 
-            # Prepare the confirmation prompt
-            prompt_text = (
-                f"{message}{FlextCliConstants.PromptsDefaults.CONFIRMATION_YES_PROMPT}"
-                if default
-                else f"{message}{FlextCliConstants.PromptsDefaults.CONFIRMATION_NO_PROMPT}"
-            )
-
-            self.logger.debug(
-                "Reading user confirmation input",
-                operation="confirm",
-                prompt_message=message,
-                prompt_text=prompt_text,
-                source="flext-cli/src/flext_cli/prompts.py",
-            )
-
-            while True:
-                user_input = input(prompt_text).strip().lower()
-
-                if not user_input:  # Empty input uses default
-                    self.logger.debug(
-                        "Empty input received, using default",
-                        operation="confirm",
-                        prompt_message=message,
-                        default=default,
-                        source="flext-cli/src/flext_cli/prompts.py",
-                    )
-                    return FlextResult[bool].ok(default)
-
-                if user_input in {"y", "yes"}:
-                    self.logger.debug(
-                        "User confirmed",
-                        operation="confirm",
-                        prompt_message=message,
-                        result=True,
-                        source="flext-cli/src/flext_cli/prompts.py",
-                    )
-                    return FlextResult[bool].ok(True)
-                if user_input in {"n", "no"}:
-                    self.logger.debug(
-                        "User declined",
-                        operation="confirm",
-                        prompt_message=message,
-                        result=False,
-                        source="flext-cli/src/flext_cli/prompts.py",
-                    )
-                    return FlextResult[bool].ok(False)
-
-                self.logger.warning(
-                    "Invalid confirmation input - please enter yes or no",
+                self.logger.debug(
+                    "Reading user confirmation input",
                     operation="confirm",
                     prompt_message=message,
-                    user_input=user_input,
-                    consequence="Prompting again",
+                    prompt_text=prompt_text,
                     source="flext-cli/src/flext_cli/prompts.py",
                 )
+
+                result = self._read_confirmation_input(
+                    message, prompt_text, default=default
+                )
+
         except KeyboardInterrupt:
             self.logger.warning(
                 "User cancelled confirmation",
@@ -884,7 +967,7 @@ class FlextCliPrompts(FlextCliServiceBase):
                 consequence="Confirmation aborted",
                 source="flext-cli/src/flext_cli/prompts.py",
             )
-            return FlextResult[bool].fail(
+            result = FlextResult[bool].fail(
                 FlextCliConstants.PromptsMessages.USER_CANCELLED_CONFIRMATION,
             )
         except EOFError:
@@ -895,7 +978,7 @@ class FlextCliPrompts(FlextCliServiceBase):
                 consequence="Confirmation aborted",
                 source="flext-cli/src/flext_cli/prompts.py",
             )
-            return FlextResult[bool].fail(
+            result = FlextResult[bool].fail(
                 FlextCliConstants.PromptsMessages.INPUT_STREAM_ENDED,
             )
         except Exception as e:
@@ -909,11 +992,13 @@ class FlextCliPrompts(FlextCliServiceBase):
                 severity="critical",
                 source="flext-cli/src/flext_cli/prompts.py",
             )
-            return FlextResult[bool].fail(
+            result = FlextResult[bool].fail(
                 FlextCliConstants.PromptsErrorMessages.CONFIRMATION_FAILED.format(
                     error=e,
                 ),
             )
+
+        return result
 
     def select_from_options(
         self,

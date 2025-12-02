@@ -21,7 +21,7 @@ from pathlib import Path
 from typing import Union, cast
 
 import pytest
-from flext_core import FlextResult, FlextUtilities
+from flext_core import FlextResult, FlextTypes, FlextUtilities
 from flext_tests import FlextTestsMatchers, FlextTestsUtilities
 
 from flext_cli import FlextCliConstants, FlextCliUtilities
@@ -612,9 +612,10 @@ class TestFlextCliUtilities:
             "validation_result": True,
             "name": "utilities_config",
         }
+        # Use cast to specify type parameter - assert_dict_contains is a generic method
         FlextTestsMatchers.assert_dict_contains(
             test_data,
-            expected_data,
+            cast("dict[str, FlextTypes.GeneralValueType]", expected_data),
         )
 
         # Test with domain helpers

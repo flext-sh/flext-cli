@@ -15,18 +15,43 @@ from __future__ import annotations
 
 import time
 from collections import UserList
-from typing import Never, TypeVar
+from typing import Never, TypedDict, TypeVar, cast
 
 import pytest
-from flext_core import FlextResult
+from flext_core import FlextResult, FlextTypes
 from flext_tests import FlextTestsUtilities
 
 from flext_cli import FlextCliPrompts
 
 from ..fixtures.constants import TestPrompts
-from ..fixtures.typing import GenericTestCaseDict
 
 T = TypeVar("T")
+
+
+class ConfirmTestCaseDict(TypedDict, total=False):
+    """Test case dictionary for confirm prompts."""
+
+    message: str
+    default: bool
+    expected_value: bool
+
+
+class ChoiceTestCaseDict(TypedDict, total=False):
+    """Test case dictionary for choice prompts."""
+
+    message: str
+    choices: list[str]
+    default: str | None
+    expected_success: bool
+
+
+class PromptTextTestCaseDict(TypedDict, total=False):
+    """Test case dictionary for text prompts."""
+
+    message: str
+    default: str | None
+    validation_pattern: str | None
+    expected_success: bool
 
 
 class TestFlextCliPrompts:
@@ -78,78 +103,78 @@ class TestFlextCliPrompts:
         """Factory for creating test data scenarios."""
 
         @staticmethod
-        def get_prompt_text_cases() -> list[dict[str, object | None]]:
+        def get_prompt_text_cases() -> list[PromptTextTestCaseDict]:
             """Get parametrized test cases for prompt_text."""
             return [
-                {
-                    "message": TestPrompts.Messages.SIMPLE,
-                    "default": TestPrompts.Defaults.TEXT,
-                    "validation_pattern": TestPrompts.Validation.NONE,
-                    "expected_success": True,
-                },
-                {
-                    "message": TestPrompts.Messages.EMPTY,
-                    "default": TestPrompts.Defaults.TEXT_EMPTY,
-                    "validation_pattern": TestPrompts.Validation.NONE,
-                    "expected_success": False,  # Empty string is falsy, fails in non-interactive mode
-                },
-                {
-                    "message": TestPrompts.Messages.WITH_DEFAULT,
-                    "default": "test@example.com",
-                    "validation_pattern": TestPrompts.Validation.EMAIL,
-                    "expected_success": True,
-                },
-                {
-                    "message": TestPrompts.Messages.WITH_DEFAULT,
-                    "default": "invalid-email",
-                    "validation_pattern": TestPrompts.Validation.EMAIL,
-                    "expected_success": False,
-                },
+                PromptTextTestCaseDict(
+                    message=TestPrompts.Messages.SIMPLE,
+                    default=TestPrompts.Defaults.TEXT,
+                    validation_pattern=TestPrompts.Validation.NONE,
+                    expected_success=True,
+                ),
+                PromptTextTestCaseDict(
+                    message=TestPrompts.Messages.EMPTY,
+                    default=TestPrompts.Defaults.TEXT_EMPTY,
+                    validation_pattern=TestPrompts.Validation.NONE,
+                    expected_success=False,  # Empty string is falsy, fails in non-interactive mode
+                ),
+                PromptTextTestCaseDict(
+                    message=TestPrompts.Messages.WITH_DEFAULT,
+                    default="test@example.com",
+                    validation_pattern=TestPrompts.Validation.EMAIL,
+                    expected_success=True,
+                ),
+                PromptTextTestCaseDict(
+                    message=TestPrompts.Messages.WITH_DEFAULT,
+                    default="invalid-email",
+                    validation_pattern=TestPrompts.Validation.EMAIL,
+                    expected_success=False,
+                ),
             ]
 
         @staticmethod
-        def get_confirm_cases() -> list[GenericTestCaseDict]:
+        def get_confirm_cases() -> list[ConfirmTestCaseDict]:
             """Get parametrized test cases for confirm."""
             return [
-                {
-                    "message": TestPrompts.Messages.CONFIRM,
-                    "default": TestPrompts.Defaults.CONFIRM_TRUE,
-                    "expected_value": True,
-                },
-                {
-                    "message": TestPrompts.Messages.CONFIRM,
-                    "default": TestPrompts.Defaults.CONFIRM_FALSE,
-                    "expected_value": False,
-                },
-                {
-                    "message": TestPrompts.Messages.EMPTY,
-                    "default": TestPrompts.Defaults.CONFIRM_TRUE,
-                    "expected_value": True,
-                },
+                ConfirmTestCaseDict(
+                    message=TestPrompts.Messages.CONFIRM,
+                    default=TestPrompts.Defaults.CONFIRM_TRUE,
+                    expected_value=True,
+                ),
+                ConfirmTestCaseDict(
+                    message=TestPrompts.Messages.CONFIRM,
+                    default=TestPrompts.Defaults.CONFIRM_FALSE,
+                    expected_value=False,
+                ),
+                ConfirmTestCaseDict(
+                    message=TestPrompts.Messages.EMPTY,
+                    default=TestPrompts.Defaults.CONFIRM_TRUE,
+                    expected_value=True,
+                ),
             ]
 
         @staticmethod
-        def get_choice_cases() -> list[GenericTestCaseDict]:
+        def get_choice_cases() -> list[ChoiceTestCaseDict]:
             """Get parametrized test cases for prompt_choice."""
             return [
-                {
-                    "message": TestPrompts.Messages.CHOOSE,
-                    "choices": TestPrompts.Options.SIMPLE,
-                    "default": TestPrompts.Defaults.CHOICE,
-                    "expected_success": True,
-                },
-                {
-                    "message": TestPrompts.Messages.CHOOSE,
-                    "choices": TestPrompts.Options.EMPTY,
-                    "default": None,
-                    "expected_success": False,
-                },
-                {
-                    "message": TestPrompts.Messages.CHOOSE,
-                    "choices": TestPrompts.Options.SIMPLE,
-                    "default": TestPrompts.Defaults.CHOICE_INVALID,
-                    "expected_success": False,
-                },
+                ChoiceTestCaseDict(
+                    message=TestPrompts.Messages.CHOOSE,
+                    choices=TestPrompts.Options.SIMPLE,
+                    default=TestPrompts.Defaults.CHOICE,
+                    expected_success=True,
+                ),
+                ChoiceTestCaseDict(
+                    message=TestPrompts.Messages.CHOOSE,
+                    choices=TestPrompts.Options.EMPTY,
+                    default=None,
+                    expected_success=False,
+                ),
+                ChoiceTestCaseDict(
+                    message=TestPrompts.Messages.CHOOSE,
+                    choices=TestPrompts.Options.SIMPLE,
+                    default=TestPrompts.Defaults.CHOICE_INVALID,
+                    expected_success=False,
+                ),
             ]
 
         @staticmethod
@@ -275,12 +300,12 @@ class TestFlextCliPrompts:
     @pytest.mark.parametrize("test_case", TestData.get_prompt_text_cases())
     def test_prompt_text_parametrized(
         self,
-        test_case: GenericTestCaseDict,
+        test_case: PromptTextTestCaseDict,
         prompts: FlextCliPrompts,
     ) -> None:
         """Test prompt_text with parametrized cases."""
-        message = str(test_case["message"])
-        default = str(test_case["default"])
+        message = str(test_case.get("message", ""))
+        default = str(test_case.get("default", ""))
         validation_pattern_raw = test_case.get("validation_pattern")
         validation_pattern: str | None = (
             str(validation_pattern_raw) if validation_pattern_raw is not None else None
@@ -323,13 +348,13 @@ class TestFlextCliPrompts:
     @pytest.mark.parametrize("test_case", TestData.get_confirm_cases())
     def test_prompt_confirmation_parametrized(
         self,
-        test_case: GenericTestCaseDict,
+        test_case: ConfirmTestCaseDict,
     ) -> None:
         """Test prompt_confirmation with parametrized cases."""
         prompts = self.Fixtures.create_quiet_prompts()
-        message = str(test_case["message"])
-        default = bool(test_case["default"])
-        expected_value = bool(test_case["expected_value"])
+        message = str(test_case.get("message", ""))
+        default = bool(test_case.get("default", False))
+        expected_value = bool(test_case.get("expected_value", False))
 
         result = prompts.prompt_confirmation(message, default=default)
         self.Assertions.assert_result_success(result)
@@ -354,12 +379,12 @@ class TestFlextCliPrompts:
     @pytest.mark.parametrize("test_case", TestData.get_choice_cases())
     def test_prompt_choice_parametrized(
         self,
-        test_case: GenericTestCaseDict,
+        test_case: ChoiceTestCaseDict,
     ) -> None:
         """Test prompt_choice with parametrized cases."""
         prompts = self.Fixtures.create_quiet_prompts()
-        message = str(test_case["message"])
-        choices_raw = test_case["choices"]
+        message = str(test_case.get("message", ""))
+        choices_raw = test_case.get("choices", [])
         choices: list[str] = list(choices_raw) if isinstance(choices_raw, list) else []
         default_raw = test_case.get("default")
         default: str | None = str(default_raw) if default_raw is not None else None
@@ -512,7 +537,7 @@ class TestFlextCliPrompts:
         prompts: FlextCliPrompts,
     ) -> None:
         """Test print_status with parametrized cases."""
-        message = str(test_case["message"])
+        message = str(test_case.get("message", ""))
         status = test_case.get("status")
 
         if status is None:
@@ -553,21 +578,27 @@ class TestFlextCliPrompts:
 
     def test_with_progress_small_dataset(self, prompts: FlextCliPrompts) -> None:
         """Test with_progress with small dataset."""
-        items: list[object] = list(range(TestPrompts.Progress.SMALL_DATASET_SIZE))
+        items: list[FlextTypes.GeneralValueType] = cast(
+            "list[FlextTypes.GeneralValueType]",
+            list(range(TestPrompts.Progress.SMALL_DATASET_SIZE)),
+        )
         result = prompts.with_progress(items, TestPrompts.Messages.SIMPLE)
         self.Assertions.assert_result_success(result)
         assert result.unwrap() == items
 
     def test_with_progress_large_dataset(self, prompts: FlextCliPrompts) -> None:
         """Test with_progress with large dataset."""
-        items: list[object] = list(range(TestPrompts.Progress.LARGE_DATASET_SIZE))
+        items: list[FlextTypes.GeneralValueType] = cast(
+            "list[FlextTypes.GeneralValueType]",
+            list(range(TestPrompts.Progress.LARGE_DATASET_SIZE)),
+        )
         result = prompts.with_progress(items, TestPrompts.Messages.SIMPLE)
         self.Assertions.assert_result_success(result)
         assert result.unwrap() == items
 
     def test_with_progress_empty(self, prompts: FlextCliPrompts) -> None:
         """Test with_progress with empty list."""
-        items: list[object] = []
+        items: list[FlextTypes.GeneralValueType] = []
         result = prompts.with_progress(items, TestPrompts.Messages.SIMPLE)
         self.Assertions.assert_result_success(result)
         assert result.unwrap() == items
@@ -614,7 +645,7 @@ class TestFlextCliPrompts:
         # BadList is structurally compatible with list[str] (has all list methods including clear)
         # This is a test-only operation to simulate exception during clear()
         # Note: setattr() won't work here as Pydantic validates types, so we use object.__setattr__
-        prompts._prompt_history = bad_list
+        object.__setattr__(prompts, "_prompt_history", cast("list[str]", bad_list))  # noqa: PLC2801
 
         result = prompts.clear_prompt_history()
         self.Assertions.assert_result_failure(result)

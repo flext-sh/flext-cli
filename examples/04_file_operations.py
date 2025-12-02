@@ -37,6 +37,7 @@ import platform
 import shutil
 import tempfile
 from pathlib import Path
+from typing import cast
 
 from flext_core import FlextResult, FlextTypes, FlextUtilities
 
@@ -99,7 +100,7 @@ def load_user_preferences(config_dir: Path) -> dict[str, object] | None:
         return None
     cli.print(f"✅ Loaded preferences from {config_file.name}", style="green")
     # Cast to expected type (runtime type is compatible)
-    return preferences
+    return cast("dict[str, object] | None", preferences)
 
 
 # ============================================================================
@@ -143,7 +144,7 @@ def load_deployment_config(config_file: Path) -> dict[str, object] | None:
         return None
     cli.print("✅ Loaded deployment config", style="green")
     # Cast to expected type (runtime type is compatible)
-    return config
+    return cast("dict[str, object] | None", config)
 
 
 # ============================================================================
@@ -483,7 +484,7 @@ def load_config_auto_detect(config_file: Path) -> dict[str, object] | None:
         if table_result.is_success:
             cli.print_table(table_result.unwrap())
         # Cast to expected type (runtime type is compatible)
-        return data
+        return cast("dict[str, object] | None", data)
 
     return None
 
@@ -500,13 +501,15 @@ def export_multi_format(
     """Export same data to multiple formats (JSON, YAML, CSV)."""
     cli.print(f"💾 Multi-format export: {base_path.stem}", style="cyan")
 
-    export_results: FlextCliTypes.Data.CliDataDict = {}
+    export_results: dict[str, str] = {}
 
     # Export to JSON
     json_path = base_path.with_suffix(".json")
     # Handle both single dict and list of dicts
     json_payload = data
-    json_result = cli.file_tools.write_json_file(json_path, json_payload, indent=2)
+    json_result = cli.file_tools.write_json_file(
+        json_path, cast("FlextTypes.GeneralValueType", json_payload), indent=2
+    )
     if json_result.is_success:
         size = json_path.stat().st_size
         export_results["JSON"] = f"{size} bytes"
@@ -517,7 +520,7 @@ def export_multi_format(
     yaml_payload = data
     yaml_result = cli.file_tools.write_yaml_file(
         yaml_path,
-        yaml_payload,
+        cast("FlextTypes.GeneralValueType", yaml_payload),
     )
     if yaml_result.is_success:
         size = yaml_path.stat().st_size
@@ -553,61 +556,71 @@ def process_file_pipeline(
     """Complete file processing pipeline using Railway Pattern.
 
     Demonstrates chaining multiple file operations with proper error handling.
+    Uses single return point pattern for reduced complexity.
     """
     cli.print(f"\n🔄 Processing file pipeline: {input_file.name}", style="cyan")
+
+    # Initialize result
+    result: FlextResult[dict[str, object]]
 
     # Railway pattern: Chain operations with automatic error propagation
 
     # Step 1: Validate input file exists and is readable
     if not input_file.exists():
-        return FlextResult[dict[str, object]].fail(f"File not found: {input_file}")
-    if not input_file.is_file():
-        return FlextResult[dict[str, object]].fail(f"Not a file: {input_file}")
+        result = FlextResult[dict[str, object]].fail(f"File not found: {input_file}")
+    elif not input_file.is_file():
+        result = FlextResult[dict[str, object]].fail(f"Not a file: {input_file}")
+    else:
+        cli.print("✅ Input validation passed", style="green")
 
-    cli.print("✅ Input validation passed", style="green")
-
-    # Step 2: Read file content
-    read_result = cli.file_tools.read_json_file(input_file)
-    if read_result.is_failure:
-        return FlextResult[dict[str, object]].fail(
-            f"File read failed: {read_result.error}"
-        )
-
-    data = read_result.unwrap()
-    cli.print("✅ File read successfully", style="green")
-
-    # Step 3: Validate and transform data
-    try:
-        if not isinstance(data, dict):
-            return FlextResult[dict[str, object]].fail(
-                "JSON file must contain a dictionary"
+        # Step 2: Read file content
+        read_result = cli.file_tools.read_json_file(input_file)
+        if read_result.is_failure:
+            result = FlextResult[dict[str, object]].fail(
+                f"File read failed: {read_result.error}"
             )
-        transformed_data = validate_and_transform_data(data)
-        cli.print("✅ Data validation/transform passed", style="green")
-    except Exception as e:
-        return FlextResult[dict[str, object]].fail(f"Data validation failed: {e}")
+        else:
+            data = read_result.unwrap()
+            cli.print("✅ File read successfully", style="green")
 
-    # Step 4: Generate multiple output formats
-    output_result = generate_output_files(transformed_data, output_dir)
-    if output_result.is_failure:
-        return FlextResult[dict[str, object]].fail(
-            output_result.error or "Unknown error"
-        )
+            # Step 3: Validate and transform data
+            try:
+                if not isinstance(data, dict):
+                    result = FlextResult[dict[str, object]].fail(
+                        "JSON file must contain a dictionary"
+                    )
+                else:
+                    transformed_data = validate_and_transform_data(
+                        cast("dict[str, object]", data)
+                    )
+                    cli.print("✅ Data validation/transform passed", style="green")
 
-    results = output_result.unwrap()
-    cli.print("✅ Output files generated", style="green")
+                    # Step 4: Generate multiple output formats
+                    output_result = generate_output_files(transformed_data, output_dir)
+                    if output_result.is_failure:
+                        result = FlextResult[dict[str, object]].fail(
+                            output_result.error or "Unknown error"
+                        )
+                    else:
+                        results = output_result.unwrap()
+                        cli.print("✅ Output files generated", style="green")
 
-    # Step 5: Create summary report
-    summary = create_processing_summary(results)
-    cli.print("✅ Processing summary created", style="green")
-
-    result = FlextResult[dict[str, object]].ok(summary)
+                        # Step 5: Create summary report
+                        summary = create_processing_summary(results)
+                        cli.print("✅ Processing summary created", style="green")
+                        cli.print(
+                            "🎉 File processing pipeline completed successfully!",
+                            style="bold green",
+                        )
+                        result = FlextResult[dict[str, object]].ok(summary)
+            except Exception as e:
+                result = FlextResult[dict[str, object]].fail(
+                    f"Data validation failed: {e}"
+                )
 
     if result.is_failure:
         cli.print(f"❌ Pipeline failed: {result.error}", style="bold red")
-        return result
 
-    cli.print("🎉 File processing pipeline completed successfully!", style="bold green")
     return result
 
 
@@ -638,7 +651,9 @@ def generate_output_files(
 
     # JSON output
     json_file = output_dir / f"{base_name}.json"
-    json_result = cli.file_tools.write_json_file(json_file, data)
+    json_result = cli.file_tools.write_json_file(
+        json_file, cast("FlextTypes.GeneralValueType", data)
+    )
     if json_result.is_failure:
         return FlextResult[dict[str, Path]].fail(
             f"JSON export failed: {json_result.error}"
@@ -647,7 +662,9 @@ def generate_output_files(
 
     # YAML output
     yaml_file = output_dir / f"{base_name}.yaml"
-    yaml_result = cli.file_tools.write_yaml_file(yaml_file, data)
+    yaml_result = cli.file_tools.write_yaml_file(
+        yaml_file, cast("FlextTypes.GeneralValueType", data)
+    )
     if yaml_result.is_failure:
         return FlextResult[dict[str, Path]].fail(
             f"YAML export failed: {yaml_result.error}"
@@ -683,7 +700,7 @@ def create_processing_summary(results: dict[str, Path]) -> dict[str, object]:
 # ============================================================================
 
 
-def main() -> None:
+def main() -> None:  # noqa: PLR0914, PLR0915
     """Examples of using file operations in YOUR code."""
     cli.print("=" * 70, style="bold blue")
     cli.print("  File Operations Library Usage", style="bold white")

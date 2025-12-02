@@ -72,7 +72,7 @@ import tempfile
 from collections.abc import Generator, Mapping
 from contextlib import contextmanager
 from pathlib import Path
-from typing import Any, cast
+from typing import cast
 
 import click
 from click.testing import CliRunner
@@ -161,14 +161,18 @@ class FlextCliTesting(FlextService[dict[str, object]]):
                     catch_exceptions=False,
                 )
 
-                return FlextResult[dict[str, Any]].ok({
+                return FlextResult[dict[str, FlextTypes.JsonValue]].ok({
                     FlextCliConstants.DictKeys.EXIT_CODE: result.exit_code,
                     FlextCliConstants.DictKeys.OUTPUT: result.output,
-                    FlextCliConstants.DictKeys.EXCEPTION: result.exception,
-                    FlextCliConstants.ContextDictKeys.EXCEPTION_INFO: result.exc_info,
+                    FlextCliConstants.DictKeys.EXCEPTION: (
+                        str(result.exception) if result.exception else None
+                    ),
+                    FlextCliConstants.ContextDictKeys.EXCEPTION_INFO: (
+                        str(result.exc_info) if result.exc_info else None
+                    ),
                 })
             except Exception as e:
-                return FlextResult[dict[str, Any]].fail(str(e))
+                return FlextResult[dict[str, FlextTypes.JsonValue]].fail(str(e))
 
         @contextmanager
         def isolated_filesystem(self) -> Generator[Path]:
@@ -225,8 +229,17 @@ class FlextCliTesting(FlextService[dict[str, object]]):
                     FlextCliConstants.DictKeys.VERBOSE: False,
                     FlextCliConstants.DictKeys.OUTPUT_FORMAT: FlextCliConstants.OutputFormats.JSON.value,
                 }
-                # Update with overrides - type is compatible with CliConfigSchema
-                base_config.update(overrides)
+                # Update with overrides - convert Mapping to dict for mutability
+                # Type narrowing: convert overrides to JsonDict-compatible dict
+                base_config_dict: dict[str, FlextTypes.GeneralValueType] = dict(
+                    base_config
+                )
+                # Type cast: overrides is JsonDict-compatible, update accepts it
+                overrides_dict: dict[str, FlextTypes.GeneralValueType] = cast(
+                    "dict[str, FlextTypes.GeneralValueType]", dict(overrides)
+                )
+                base_config_dict.update(overrides_dict)
+                base_config = base_config_dict
                 return FlextResult[FlextTypes.JsonDict].ok(
                     base_config,
                 )

@@ -11,11 +11,62 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 from collections.abc import Callable
+from typing import Protocol, cast, runtime_checkable
 
-# Removed cast and Any - use proper types
 from flext_core import FlextResult
 
 from flext_cli.typings import FlextCliTypes
+
+
+@runtime_checkable
+class CliMainWithGroups(Protocol):
+    """Protocol for CLI main object with group and command decorators.
+
+    Business Rule:
+    ──────────────
+    Typer CLI applications provide group() and command() decorators for
+    organizing commands. This protocol defines the interface needed by plugins.
+
+    Audit Implications:
+    ───────────────────
+    - Plugins must check hasattr() before calling group()/command()
+    - Runtime protocol checks ensure compatibility without direct Typer imports
+    """
+
+    def group(
+        self, *args: object, **kwargs: object
+    ) -> Callable[[Callable[..., object]], object]:
+        """Create a command group decorator."""
+        ...
+
+    def command(
+        self, *args: object, **kwargs: object
+    ) -> Callable[[Callable[..., object]], object]:
+        """Create a command decorator."""
+        ...
+
+
+@runtime_checkable
+class GroupWithCommands(Protocol):
+    """Protocol for command group objects with command decorator.
+
+    Business Rule:
+    ──────────────
+    Typer groups provide command() decorator for registering commands.
+    This protocol defines the interface needed by plugins.
+
+    Audit Implications:
+    ───────────────────
+    - Groups are created by group() decorator
+    - Commands are registered using command() decorator on groups
+    """
+
+    def command(
+        self, *args: object, **kwargs: object
+    ) -> Callable[[Callable[..., object]], object]:
+        """Create a command decorator."""
+        ...
+
 
 type DataProcessor = Callable[[str], str]
 type ProcessorRegistry = dict[str, DataProcessor]
@@ -80,11 +131,16 @@ class ExamplePlugin:
         """
         try:
             # Type narrowing: ensure cli_main has group method
-            if not hasattr(cli_main, "group"):
-                return FlextResult[bool].fail("cli_main does not have group method")
+            if not isinstance(cli_main, CliMainWithGroups):
+                return FlextResult[bool].fail(
+                    "cli_main does not implement CliMainWithGroups protocol"
+                )
+
+            # Type cast for pyright: isinstance check ensures compatibility
+            cli_with_group = cast("CliMainWithGroups", cli_main)
 
             # Register command group
-            @cli_main.group()
+            @cli_with_group.group()
             def example() -> None:
                 """Example plugin commands."""
 
@@ -110,17 +166,25 @@ class ExamplePlugin:
                 print(f"Configuration: {self._config}")
 
             # Register commands under group
-            @example.command()
+            # Type narrowing: example group has command method (from group decorator)
+            if not isinstance(example, GroupWithCommands):
+                return FlextResult[bool].fail(
+                    "example group does not implement GroupWithCommands protocol"
+                )
+
+            example_group = cast("GroupWithCommands", example)
+
+            @example_group.command()
             def hello_cmd(name: str = "World") -> None:
                 """Say hello from the plugin."""
                 hello(name)
 
-            @example.command()
+            @example_group.command()
             def info_cmd() -> None:
                 """Show plugin information."""
                 info()
 
-            @example.command()
+            @example_group.command()
             def status_cmd() -> None:
                 """Show plugin status."""
                 status()
@@ -183,10 +247,15 @@ class DataProcessorPlugin:
         """
         try:
             # Type narrowing: ensure cli_main has group method
-            if not hasattr(cli_main, "group"):
-                return FlextResult[bool].fail("cli_main does not have group method")
+            if not isinstance(cli_main, CliMainWithGroups):
+                return FlextResult[bool].fail(
+                    "cli_main does not implement CliMainWithGroups protocol"
+                )
 
-            @cli_main.group()
+            # Type cast for pyright: isinstance check ensures compatibility
+            cli_with_group = cast("CliMainWithGroups", cli_main)
+
+            @cli_with_group.group()
             def data() -> None:
                 """Data processing commands."""
 
@@ -217,13 +286,21 @@ class DataProcessorPlugin:
                 """
                 return list(self._processors.keys())
 
-            @data.command()
+            # Type narrowing: data group has command method (from group decorator)
+            if not isinstance(data, GroupWithCommands):
+                return FlextResult[bool].fail(
+                    "data group does not implement GroupWithCommands protocol"
+                )
+
+            data_group = cast("GroupWithCommands", data)
+
+            @data_group.command()
             def process_cmd(input_data: str, format_type: str = "json") -> None:
                 """Process data in specified format."""
                 result = process_data(input_data, format_type)
                 print(f"Processed: {result}")
 
-            @data.command()
+            @data_group.command()
             def formats_cmd() -> None:
                 """List available data formats."""
                 formats_list = list_formats()

@@ -28,7 +28,13 @@ from typing import (
 )
 
 from flext_core import FlextModels, FlextResult, FlextTypes, FlextUtilities
-from pydantic import BeforeValidator, ConfigDict, ValidationError, validate_call
+from pydantic import (
+    BaseModel,
+    BeforeValidator,
+    ConfigDict,
+    ValidationError,
+    validate_call,
+)
 
 from flext_cli.constants import FlextCliConstants
 
@@ -37,6 +43,32 @@ from flext_cli.constants import FlextCliConstants
 
 class FlextCliUtilities(FlextUtilities):
     """FLEXT CLI Utilities - Centralized helpers eliminating code duplication.
+
+    Business Rules:
+    ───────────────
+    1. All utility methods MUST be static (no instance state)
+    2. All operations MUST return FlextResult[T] for error handling
+    3. Field validation MUST enforce business rules (trace requires debug)
+    4. Type normalization MUST preserve type safety (no Any types)
+    5. Common patterns MUST be consolidated here (DRY principle)
+    6. CLI-specific helpers MUST extend flext-core FlextUtilities
+    7. All validators MUST use Pydantic validators when applicable
+    8. Type conversion MUST handle Python 3.13+ patterns (PEP 695, UnionType)
+
+    Architecture Implications:
+    ───────────────────────────
+    - Single source of truth eliminates code duplication across modules
+    - Static methods ensure thread safety and no side effects
+    - Railway-Oriented Programming via FlextResult for composable error handling
+    - Type normalization enables Typer compatibility without type loss
+    - Validation helpers enforce business rules consistently
+
+    Audit Implications:
+    ───────────────────
+    - Validation failures MUST be logged with field name and value (no sensitive data)
+    - Type conversion operations SHOULD be logged for debugging
+    - Business rule violations MUST return clear error messages
+    - Utility operations MUST not modify input data (immutable operations)
 
     **PURPOSE**: Single source of truth for CLI utility operations.
     Builds on FlextUtilities from flext-core and adds CLI-specific helpers.
@@ -788,9 +820,7 @@ class FlextCliUtilities(FlextUtilities):
                     return None
                 # If has None, create Optional[T], otherwise return normalized type
                 return (
-                    normalized_inner | types.NoneType
-                    if has_none
-                    else normalized_inner
+                    normalized_inner | types.NoneType if has_none else normalized_inner
                 )
 
             # Handle multiple types case
@@ -799,7 +829,11 @@ class FlextCliUtilities(FlextUtilities):
                 normalized_non_none_list = [
                     normalized
                     for arg in non_none_args
-                    if (normalized := FlextCliUtilities.TypeNormalizer.normalize_annotation(arg)) is not None
+                    if (
+                        normalized
+                        := FlextCliUtilities.TypeNormalizer.normalize_annotation(arg)
+                    )
+                    is not None
                 ]
 
                 if not normalized_non_none_list:
@@ -933,7 +967,8 @@ class FlextCliUtilities(FlextUtilities):
                     return FlextResult.ok(enum_cls(value))
                 except ValueError:
                     # Use list() to iterate over enum class members
-                    enum_members = list(enum_cls)  # type: ignore[arg-type]
+                    # Type narrowing: enum_cls is type[StrEnum], which is iterable
+                    enum_members: list[E] = list(enum_cls)
                     valid = ", ".join(m.value for m in enum_members)
                     enum_name = getattr(enum_cls, "__name__", "Enum")
                     return FlextResult.fail(
@@ -1027,7 +1062,9 @@ class FlextCliUtilities(FlextUtilities):
                         # Tenta por nome primeiro
                         members = getattr(enum_cls, "__members__", {})
                         if value in members:
-                            return enum_cls[value]  # type: ignore[index]
+                            # Type narrowing: value is in __members__, so enum_cls[value] is valid
+                            member: E = enum_cls[value]
+                            return member
                         # Depois por valor
                         try:
                             return enum_cls(value)
@@ -1047,7 +1084,8 @@ class FlextCliUtilities(FlextUtilities):
             @cache
             def values[E: StrEnum](enum_cls: type[E]) -> frozenset[str]:
                 """Retorna frozenset dos valores (cached para performance)."""
-                enum_members = list(enum_cls)  # type: ignore[arg-type]
+                # Type narrowing: enum_cls is type[StrEnum], which is iterable
+                enum_members: list[E] = list(enum_cls)
                 return frozenset(m.value for m in enum_members)
 
             @staticmethod
@@ -1061,7 +1099,8 @@ class FlextCliUtilities(FlextUtilities):
             @cache
             def members[E: StrEnum](enum_cls: type[E]) -> frozenset[E]:
                 """Retorna frozenset dos membros (cached)."""
-                enum_members = list(enum_cls)  # type: ignore[arg-type]
+                # Type narrowing: enum_cls is type[StrEnum], which is iterable
+                enum_members: list[E] = list(enum_cls)
                 return frozenset(enum_members)
 
         # ═══════════════════════════════════════════════════════════════════
@@ -1143,9 +1182,7 @@ class FlextCliUtilities(FlextUtilities):
                             try:
                                 result.append(enum_cls(item))
                             except ValueError as err:
-                                msg = (
-                                    f"Invalid {getattr(enum_cls, '__name__', 'Enum')} at [{idx}]: {item!r}"
-                                )
+                                msg = f"Invalid {getattr(enum_cls, '__name__', 'Enum')} at [{idx}]: {item!r}"
                                 raise ValueError(msg) from err
                         else:
                             msg = f"Expected str at [{idx}], got {type(item).__name__}"
@@ -1244,25 +1281,35 @@ class FlextCliUtilities(FlextUtilities):
             def validated_with_result[**P, R](
                 func: Callable[P, R],
             ) -> Callable[P, FlextResult[R]]:
-                """ValidationError → FlextResult.fail()."""
+                """ValidationError → FlextResult.fail().
+
+                Business Rule:
+                ──────────────
+                Wraps a function with Pydantic validate_call and converts
+                ValidationError to FlextResult.fail(). Preserves original
+                function signature using ParamSpec for type safety.
+
+                Audit Implications:
+                ───────────────────
+                - All validation errors are captured and returned as
+                  FlextResult failures
+                - Original function signature is preserved for type checking
+                - Runtime validation ensures data integrity before execution
+                """
+                validated_func = validate_call(
+                    config=ConfigDict(arbitrary_types_allowed=True),
+                    validate_return=False,
+                )(func)
 
                 @wraps(func)
-                def wrapper(
-                    *args: FlextTypes.GeneralValueType,
-                    **kwargs: FlextTypes.GeneralValueType,
-                ) -> FlextResult[R]:
+                def wrapper(*args: P.args, **kwargs: P.kwargs) -> FlextResult[R]:
                     try:
-                        validated_func = validate_call(
-                            config=ConfigDict(arbitrary_types_allowed=True),
-                            validate_return=False,
-                        )(func)
-                        # ParamSpec P requires proper type unpacking - cast to satisfy type checker
-                        result = validated_func(*args, **kwargs)  # type: ignore[call-overload,arg-type]
+                        result: R = validated_func(*args, **kwargs)
                         return FlextResult.ok(result)
                     except ValidationError as e:
                         return FlextResult.fail(str(e))
 
-                return wrapper  # type: ignore[return-value]
+                return wrapper
 
             @staticmethod
             def parse_kwargs[E: StrEnum](
@@ -1343,11 +1390,26 @@ class FlextCliUtilities(FlextUtilities):
                 *,
                 strict: bool = False,
             ) -> FlextResult[M]:
-                """Create model from dict with FlextResult."""
+                """Create model from dict with FlextResult.
+
+                Business Rule:
+                ──────────────
+                Converts a Mapping to a Pydantic model instance using
+                model_validate. The model_cls must be a subclass of
+                FlextModels (which extends BaseModel).
+
+                Audit Implications:
+                ───────────────────
+                - All model creation goes through Pydantic validation
+                - Invalid data returns FlextResult.fail() with error message
+                - Strict mode enforces exact type matching (no coercion)
+                """
                 try:
-                    # Type narrowing: model_cls must have model_validate method (Pydantic BaseModel)
-                    if hasattr(model_cls, "model_validate"):
-                        validated = model_cls.model_validate(data, strict=strict)  # type: ignore[attr-defined]
+                    # Type narrowing: model_cls is type[M] where M extends FlextModels
+                    # FlextModels extends BaseModel, which has model_validate
+                    if issubclass(model_cls, BaseModel):
+                        # BaseModel.model_validate is a classmethod
+                        validated: M = model_cls.model_validate(data, strict=strict)
                         return FlextResult.ok(validated)
                     return FlextResult.fail(
                         f"{model_cls.__name__} is not a Pydantic model"
@@ -1385,10 +1447,14 @@ class FlextCliUtilities(FlextUtilities):
                     merged_data[k] = FlextUtilities.DataMapper.convert_to_json_value(
                         converted_v
                     )
-                # Convert dict to Mapping[str, GeneralValueType] for from_dict
-                # from_dict expects Mapping[str, GeneralValueType] compatible type
-                # merged_data is already dict[str, GeneralValueType], which is compatible
-                return FlextCliUtilities.Model.from_dict(model_cls, merged_data)  # type: ignore[arg-type,type-var]
+                # Convert dict to Mapping for from_dict
+                # from_dict expects Mapping[str, FlexibleValue] which is compatible
+                # with dict[str, GeneralValueType] after conversion
+                # Use direct model_validate instead of from_dict to avoid type variable issues
+                if issubclass(model_cls, BaseModel):
+                    validated: M = model_cls.model_validate(merged_data, strict=False)
+                    return FlextResult.ok(validated)
+                return FlextResult.fail(f"{model_cls.__name__} is not a Pydantic model")
 
             @staticmethod
             def update[M](
@@ -1400,7 +1466,16 @@ class FlextCliUtilities(FlextUtilities):
                     if hasattr(instance, "model_dump") and hasattr(
                         type(instance), "model_validate"
                     ):
-                        current_dict = instance.model_dump()  # type: ignore[attr-defined]
+                        # Type narrowing: instance has model_dump method (Pydantic BaseModel)
+                        # Type cast: getattr returns object, but we know it's callable
+                        dump_method = getattr(instance, "model_dump", None)
+                        if dump_method is not None and callable(dump_method):
+                            # Type cast: model_dump() returns dict[str, Any] compatible with JsonDict
+                            current_dict = cast("FlextTypes.JsonDict", dump_method())
+                        else:
+                            return FlextResult.fail(
+                                f"{type(instance).__name__} model_dump is not callable"
+                            )
                         # Convert to mutable dict for updates using FlextTypes.JsonDict
                         # Mapping doesn't have update, so convert to dict first
                         current_dict_mutable: dict[str, FlextTypes.GeneralValueType] = (
@@ -1418,8 +1493,15 @@ class FlextCliUtilities(FlextUtilities):
                                 current_dict_mutable[k] = str(v)
                         current: FlextTypes.JsonDict = current_dict_mutable
                         instance_cls = type(instance)
-                        validated = instance_cls.model_validate(current)  # type: ignore[attr-defined]
-                        return FlextResult.ok(validated)
+                        # Type narrowing: instance_cls is type[M] where M extends FlextModels
+                        # FlextModels extends BaseModel, which has model_validate
+                        if issubclass(instance_cls, BaseModel):
+                            # BaseModel.model_validate is a classmethod
+                            validated: M = instance_cls.model_validate(current)
+                            return FlextResult.ok(validated)
+                        return FlextResult.fail(
+                            f"{instance_cls.__name__} is not a Pydantic model"
+                        )
                     return FlextResult.fail(
                         f"{type(instance).__name__} is not a Pydantic model"
                     )

@@ -27,8 +27,36 @@ from flext_core import FlextResult, FlextRuntime, FlextTypes
 from flext_cli.constants import FlextCliConstants
 
 
-class FlextCliFileTools:
+class FlextCliFileTools:  # noqa: PLR0904
     """Unified file operations utility following FLEXT namespace pattern.
+
+    Business Rules:
+    ───────────────
+    1. All file operations MUST use FlextResult[T] for error handling
+    2. File paths MUST be validated to prevent path traversal attacks
+    3. File encoding MUST default to UTF-8 (configurable)
+    4. File operations MUST handle missing files gracefully (no crashes)
+    5. Archive operations MUST validate archive integrity before extraction
+    6. File format detection MUST use extension and content analysis
+    7. Temporary files MUST be cleaned up after operations
+    8. File permissions MUST be preserved when copying/moving files
+
+    Architecture Implications:
+    ───────────────────────────
+    - Single class consolidates all file operations (SRP)
+    - Static methods ensure thread safety and no side effects
+    - Generalized helpers reduce code duplication (DRY)
+    - Path normalization ensures consistent path handling
+    - Format detection enables automatic format handling
+
+    Audit Implications:
+    ───────────────────
+    - File operations MUST be logged with file paths (no sensitive content)
+    - Path validation MUST prevent directory traversal attacks
+    - File deletions MUST be logged for audit trail
+    - Archive operations MUST validate file integrity
+    - Temporary file creation MUST track files for cleanup
+    - File access MUST respect file permissions
 
     Single class containing all stateless file operations with generalized helpers.
     """
@@ -324,17 +352,30 @@ class FlextCliFileTools:
 
     @staticmethod
     def read_csv_file(file_path: str | Path) -> FlextResult[list[list[str]]]:
-        """Read CSV file content."""
+        """Read CSV file content.
+
+        Business Rule:
+        ──────────────
+        CSV files are read with UTF-8 encoding and empty newline for proper line handling.
+        The file handle is properly closed using context manager to prevent ResourceWarning.
+
+        Audit Implications:
+        ───────────────────
+        - File is read completely before returning
+        - File handle is always closed even on exceptions
+        - Returns list of rows, each row is list of cell values
+        """
         path = FlextCliFileTools._normalize_path(file_path)
+
+        def _read_csv() -> list[list[str]]:
+            with path.open(
+                encoding=FlextCliConstants.Encoding.UTF8,
+                newline="",
+            ) as f:
+                return list(csv.reader(f))
+
         return FlextCliFileTools._execute_file_operation(
-            lambda: list(
-                csv.reader(
-                    path.open(
-                        encoding=FlextCliConstants.Encoding.UTF8,
-                        newline="",
-                    )
-                )
-            ),
+            _read_csv,
             FlextCliConstants.FileErrorMessages.CSV_READ_FAILED,
         )
 
@@ -362,17 +403,30 @@ class FlextCliFileTools:
     def read_csv_file_with_headers(
         file_path: str | Path,
     ) -> FlextResult[list[dict[str, str]]]:
-        """Read CSV file with headers."""
+        """Read CSV file with headers as dictionaries.
+
+        Business Rule:
+        ──────────────
+        CSV files with headers are read using DictReader which maps each row to a dict.
+        First row is treated as header names. File handle is properly closed.
+
+        Audit Implications:
+        ───────────────────
+        - Header row determines dict keys for all data rows
+        - File handle is always closed using context manager
+        - Returns list of dicts, each dict represents a row with header keys
+        """
         path = FlextCliFileTools._normalize_path(file_path)
+
+        def _read_csv_dict() -> list[dict[str, str]]:
+            with path.open(
+                encoding=FlextCliConstants.Encoding.UTF8,
+                newline="",
+            ) as f:
+                return list(csv.DictReader(f))
+
         return FlextCliFileTools._execute_file_operation(
-            lambda: list(
-                csv.DictReader(
-                    path.open(
-                        encoding=FlextCliConstants.Encoding.UTF8,
-                        newline="",
-                    )
-                )
-            ),
+            _read_csv_dict,
             FlextCliConstants.FileErrorMessages.CSV_READ_FAILED,
         )
 

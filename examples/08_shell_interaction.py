@@ -32,8 +32,9 @@ from __future__ import annotations
 
 import os
 import time
+from typing import cast
 
-from flext_core import FlextResult, FlextUtilities
+from flext_core import FlextResult, FlextTypes, FlextUtilities
 
 from flext_cli import FlextCli, FlextCliTypes
 
@@ -59,7 +60,9 @@ def handle_status_command() -> FlextResult[FlextCliTypes.Data.CliDataDict]:
 
     # Convert to JsonDict-compatible dict using FlextUtilities
     typed_status: FlextCliTypes.Data.CliDataDict = (
-        FlextUtilities.DataMapper.convert_dict_to_json(status)
+        FlextUtilities.DataMapper.convert_dict_to_json(
+            cast("dict[str, FlextTypes.GeneralValueType]", status)
+        )
     )
     return FlextResult[FlextCliTypes.Data.CliDataDict].ok(typed_status)
 
@@ -150,6 +153,9 @@ class InteractiveShell:
                 result = handler(*args) if args else handler()
                 # Type narrowing: ensure FlextResult
                 if isinstance(result, FlextResult):
+                    # Type narrowing: result is FlextResult[T] for some T
+                    # FlextResult is covariant, so FlextResult[T] is compatible with FlextResult[object]
+                    # Return directly - covariant types are compatible
                     return result
                 # Wrap non-FlextResult in FlextResult
                 return FlextResult[object].ok(result)

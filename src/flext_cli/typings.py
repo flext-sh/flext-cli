@@ -156,6 +156,11 @@ class FlextCliTypes(FlextTypes):
         # Execution types
         type ExecutionKwargs = FlextTypes.JsonDict
 
+        # Table data types - for compatibility with examples
+        type TableRows = Sequence[FlextTypes.JsonDict]
+        type TabularData = Sequence[FlextTypes.JsonDict] | FlextTypes.JsonDict
+        type CliConfigMapping = Mapping[str, FlextTypes.GeneralValueType]
+
     class Configuration:
         """Configuration schema type aliases - using FlextTypes.JsonDict."""
 

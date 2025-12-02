@@ -15,7 +15,7 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 import uuid
-from typing import TypeVar
+from typing import TypeVar, cast
 
 import pytest
 from flext_core import FlextResult, FlextTypes, FlextUtilities
@@ -54,7 +54,9 @@ class TestFlextCliContext:
             """Create FlextCliContext instance."""
             # Convert env_vars to JsonDict for type compatibility using FlextUtilities
             json_env_vars: FlextTypes.JsonDict | None = (
-                FlextUtilities.DataMapper.convert_dict_to_json(env_vars)
+                FlextUtilities.DataMapper.convert_dict_to_json(
+                    cast("dict[str, FlextTypes.GeneralValueType]", env_vars)
+                )
                 if env_vars is not None
                 else None
             )
@@ -190,24 +192,23 @@ class TestFlextCliContext:
     def test_context_creation(self, test_case: dict[str, object | None]) -> None:
         """Test context creation with parametrized cases."""
         # Extract test_case values with type narrowing
+        command_raw = test_case.get("command")
         command: str | None = (
-            test_case.get("command")
-            if isinstance(test_case.get("command"), str)
-            else None
+            cast("str", command_raw) if isinstance(command_raw, str) else None
         )
+        arguments_raw = test_case.get("arguments")
         arguments: list[str] | None = (
-            test_case.get("arguments")
-            if isinstance(test_case.get("arguments"), list)
+            cast("list[str]", arguments_raw)
+            if isinstance(arguments_raw, list)
             else None
         )
         env_vars_raw = test_case.get("env_vars")
         env_vars: dict[str, object] | None = (
             env_vars_raw if isinstance(env_vars_raw, dict) else None
         )
+        working_dir_raw = test_case.get("working_dir")
         working_dir: str | None = (
-            test_case.get("working_dir")
-            if isinstance(test_case.get("working_dir"), str)
-            else None
+            cast("str", working_dir_raw) if isinstance(working_dir_raw, str) else None
         )
 
         result = self.Fixtures.create_context(
@@ -358,8 +359,8 @@ class TestFlextCliContext:
     def test_arguments_none_state(self) -> None:
         """Test fast-fail when arguments is None."""
         context = FlextCliContext(command="test")
-        # Use object.__setattr__ for frozen model
-        object.__setattr__(context, "arguments", None)
+        # Use object.__setattr__ to bypass frozen model validation
+        object.__setattr__(context, "arguments", None)  # noqa: PLC2801
 
         add_result = context.add_argument("arg")
         self.Assertions.assert_result_failure(add_result)
@@ -378,7 +379,9 @@ class TestFlextCliContext:
 
         # Set metadata - convert value to CliJsonValue for type compatibility using FlextUtilities
         json_value: FlextTypes.GeneralValueType = (
-            FlextUtilities.DataMapper.convert_to_json_value(value)
+            FlextUtilities.DataMapper.convert_to_json_value(
+                cast("FlextTypes.GeneralValueType", value)
+            )
         )
         set_result = context.set_metadata(key, json_value)
         self.Assertions.assert_result_success(set_result)

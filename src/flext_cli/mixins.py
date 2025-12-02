@@ -24,6 +24,33 @@ from flext_cli.utilities import FlextCliUtilities
 class FlextCliMixins(FlextMixins):
     """Single unified CLI mixins class following FLEXT standards.
 
+    Business Rules:
+    ───────────────
+    1. BusinessRulesMixin delegates to FlextCliUtilities.CliValidation (SRP)
+    2. CliCommandMixin composes flext-core decorators for command execution
+    3. Command execution MUST use railway pattern for error handling
+    4. Context management MUST include correlation ID and operation logging
+    5. Performance tracking MUST be enabled for all command executions
+    6. Double-wrapped FlextResult MUST be unwrapped correctly
+    7. Non-FlextResult returns MUST be wrapped in FlextResult
+    8. All mixin methods MUST be static (no instance state)
+
+    Architecture Implications:
+    ───────────────────────────
+    - BusinessRulesMixin is a delegating facade (backward compatibility)
+    - CliCommandMixin composes decorators in correct order
+    - Railway decorator ensures FlextResult return type
+    - Performance tracking via track_performance decorator
+    - Operation logging via log_operation decorator
+    - Extends FlextMixins for base mixin functionality
+
+    Audit Implications:
+    ───────────────────
+    - Command executions MUST be logged with operation name and correlation ID
+    - Performance metrics MUST be logged for monitoring
+    - Business rule violations MUST be logged with context
+    - Decorator composition MUST preserve error handling chain
+
     Contains all mixin subclasses for CLI domain operations.
     Follows FLEXT pattern: one class per module with nested subclasses.
     """

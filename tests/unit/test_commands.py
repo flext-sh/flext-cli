@@ -14,10 +14,11 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 import time
+from typing import cast
 
 from flext_core import FlextResult
 
-from flext_cli import FlextCliCommands, FlextCliConstants
+from flext_cli import FlextCliCommands, FlextCliConstants, FlextCliProtocols
 
 from ..fixtures.constants import TestCommands
 from ..helpers import CommandsFactory
@@ -394,7 +395,10 @@ class TestFlextCliCommands:
             description=TestCommands.TestData.Groups.GROUP_DESCRIPTION,
             commands={
                 TestCommands.CommandNames.CMD1: {
-                    "handler": lambda: TestCommands.TestData.RESULT1
+                    "handler": cast(
+                        "FlextCliProtocols.Cli.CliCommandHandler",
+                        lambda: TestCommands.TestData.RESULT1,
+                    )
                 }
             },
         )

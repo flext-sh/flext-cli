@@ -27,8 +27,33 @@ from flext_core import FlextConstants
 class FlextCliConstants(FlextConstants):
     """CLI constants extending flext-core standardization for CLI domain.
 
-    Centralizes all CLI-specific constants, enums, literals, and defaults
-    without duplication or wrappers, using direct access patterns.
+    Business Rules:
+    ───────────────
+    1. All CLI constants MUST be centralized here (no scattered constants)
+    2. Use StrEnum for runtime validation with string interoperability
+    3. Use Literal types for type hints (compile-time validation)
+    4. Use collections.abc.Mapping for immutable configuration data
+    5. Use frozenset for O(1) membership testing in validation
+    6. NO duplication between domains - reuse from flext-core when available
+    7. NO simple aliases - use complex types with proper validation
+    8. Constants MUST be immutable (Final, ClassVar, frozenset, Mapping)
+
+    Architecture Implications:
+    ───────────────────────────
+    - Centralization ensures single source of truth for all CLI constants
+    - StrEnum provides runtime validation and IDE autocomplete
+    - Literal types enable type narrowing and exhaustiveness checking
+    - Immutable constants prevent accidental modification
+    - Composition with FlextConstants ensures ecosystem consistency
+
+    Audit Implications:
+    ───────────────────
+    - Constant values MUST NOT contain sensitive data (passwords, tokens, keys)
+    - Default values MUST be safe and secure (no hardcoded credentials)
+    - Configuration constants MUST be validated before use
+    - Enum values MUST be documented for audit trail
+    - Constant changes MUST be reviewed for security implications
+    - Default timeouts and retries MUST prevent resource exhaustion
     """
 
     # =====================================================================
@@ -2419,16 +2444,16 @@ class FlextCliConstants(FlextConstants):
         # Basic defaults
         DEFAULT_PROFILE: Final[str] = "default"
         DEFAULT_APP_NAME: Final[str] = "flext-cli"
-        
+
         # Verbosity defaults
         DEFAULT_VERBOSITY: Final[str] = "verbose"
         QUIET_VERBOSITY: Final[str] = "quiet"
         NORMAL_VERBOSITY: Final[str] = "normal"
-        
+
         # Service defaults
         DEFAULT_VERSION_STRING: Final[str] = "2.0.0"
         DEFAULT_SERVICE_NAME: Final[str] = "flext-cli-config"
-        
+
         # Auto-refresh
         AUTO_REFRESH: Final[bool] = True
         DEFAULT_APP_DESCRIPTION_SUFFIX: Final[str] = " - FLEXT CLI Framework"

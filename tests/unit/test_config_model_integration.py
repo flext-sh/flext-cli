@@ -16,9 +16,10 @@ from __future__ import annotations
 
 import os
 from pathlib import Path
-from typing import Any, cast
+from typing import cast
 
 import pytest
+from flext_core import FlextTypes
 from pydantic import BaseModel, Field, ValidationError
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
@@ -206,7 +207,7 @@ class TestConfigModelIntegration:
         self,
         config_class: type[BaseSettings],
         expected_fields: list[str],
-        expected_values: dict[str, Any],
+        expected_values: FlextTypes.JsonDict,
     ) -> None:
         """Test config initialization with various field types."""
         config = config_class()
@@ -258,8 +259,8 @@ class TestConfigModelIntegration:
     )
     def test_params_validation(
         self,
-        input_data: dict[str, Any],
-        expected_data: dict[str, Any],
+        input_data: FlextTypes.JsonDict,
+        expected_data: FlextTypes.JsonDict,
     ) -> None:
         """Test parameter model validation with aliases."""
         params = self.AliasedParams.model_validate(input_data)

@@ -10,7 +10,7 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from collections.abc import Iterable, Sequence
+from collections.abc import Iterable, Mapping, Sequence
 
 from flext_core import FlextResult, FlextRuntime, FlextTypes, FlextUtilities
 from tabulate import tabulate
@@ -21,12 +21,38 @@ from flext_cli.models import FlextCliModels
 
 # Type alias for table data to avoid long lines
 type TableData = Iterable[
-    Sequence[FlextTypes.GeneralValueType] | dict[str, FlextTypes.GeneralValueType]
+    Sequence[FlextTypes.GeneralValueType] | Mapping[str, FlextTypes.GeneralValueType]
 ]
 
 
 class FlextCliTables(FlextCliServiceBase):
     """Tabulate integration for lightweight ASCII tables.
+
+    Business Rules:
+    ───────────────
+    1. Table format MUST be validated against supported formats
+    2. Table data MUST be validated (non-empty, iterable)
+    3. Headers MUST match data structure (keys or explicit headers)
+    4. Table formatting MUST handle empty data gracefully
+    5. Format discovery MUST return all available tabulate formats
+    6. All operations MUST use FlextResult[T] for error handling
+    7. Table creation MUST respect TableConfig settings
+    8. Performance MUST be optimized for large datasets
+
+    Architecture Implications:
+    ───────────────────────────
+    - Uses tabulate library directly (no wrappers)
+    - TableConfig model provides type-safe configuration
+    - Format discovery uses tabulate's internal format list
+    - Extends FlextCliServiceBase for consistent logging
+    - Railway-Oriented Programming via FlextResult for error handling
+
+    Audit Implications:
+    ───────────────────
+    - Table creation MUST be logged with format type and data size
+    - Format validation failures MUST be logged
+    - Empty data handling MUST be logged for monitoring
+    - Performance metrics SHOULD be logged for large datasets
 
     Provides simple, fast table formatting without ANSI codes.
     Perfect for:
@@ -194,10 +220,22 @@ class FlextCliTables(FlextCliServiceBase):
     ) -> FlextResult[str | Sequence[str]]:
         """Prepare headers based on data type."""
         # For list of dicts with sequence headers, use "keys"
+        # Type narrowing: data is Iterable, convert to list for is_list_like check
+        data_as_general: FlextTypes.GeneralValueType = (
+            list(data)
+            if isinstance(data, Iterable) and not isinstance(data, str)
+            else data
+        )
+        # Convert to list for indexing - TableData is Iterable, need list for [0]
+        data_list = (
+            list(data)
+            if isinstance(data, Iterable) and not isinstance(data, str)
+            else []
+        )
         if (
-            FlextRuntime.is_list_like(data)
-            and data
-            and FlextRuntime.is_dict_like(data[0])
+            FlextRuntime.is_list_like(data_as_general)
+            and data_list
+            and FlextRuntime.is_dict_like(data_list[0])
             and isinstance(
                 headers,
                 (list, tuple),

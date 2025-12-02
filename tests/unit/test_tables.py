@@ -14,12 +14,13 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 import operator
+from collections.abc import Mapping, Sequence
 from dataclasses import dataclass
 from enum import StrEnum
-from typing import Any
+from typing import cast
 
 import pytest
-from flext_core import FlextResult
+from flext_core import FlextResult, FlextTypes
 from flext_tests import FlextTestsMatchers
 
 from flext_cli import FlextCliModels, FlextCliTables
@@ -47,7 +48,7 @@ class TableTestCase:
 
     test_type: TableTestType
     description: str
-    config: dict[str, Any]
+    config: FlextTypes.JsonDict
     data_key: str
     expected_result: bool = True
     content_assertions: list[str] | None = None
@@ -230,7 +231,7 @@ class TestFlextCliTables:
             ]
 
         @staticmethod
-        def create_edge_case_data() -> dict[str, Any]:
+        def create_edge_case_data() -> FlextTypes.JsonDict:
             """Create edge case test data."""
             return {
                 "people_dict": TestTables.Data.Sample.PEOPLE_DICT,
@@ -278,24 +279,29 @@ class TestFlextCliTables:
             table_str: str,
             format_type: str,
         ) -> FlextResult[bool]:
-            """Validate table format characteristics."""
+            """Validate table format characteristics.
+
+            Uses single return point pattern for reduced complexity.
+            """
+            result: FlextResult[bool]
             try:
+                error_msg: str | None = None
                 match format_type:
                     case TestTables.Formats.GRID:
                         if TestTables.Assertions.Borders.PLUS not in table_str:
-                            return FlextResult.fail("Grid format missing + borders")
+                            error_msg = "Grid format missing + borders"
                     case TestTables.Formats.FANCY_GRID:
                         if not any(
                             char in table_str
                             for char in ["│", TestTables.Assertions.Borders.PIPE]
                         ):
-                            return FlextResult.fail("Fancy grid format missing borders")
+                            error_msg = "Fancy grid format missing borders"
                     case "pipe":
                         if TestTables.Assertions.Borders.PIPE not in table_str:
-                            return FlextResult.fail("Pipe format missing | separators")
+                            error_msg = "Pipe format missing | separators"
                     case "html":
                         if TestTables.Assertions.Content.ALICE not in table_str:
-                            return FlextResult.fail("HTML format missing content")
+                            error_msg = "HTML format missing content"
                     case "rst":
                         if not any(
                             char in table_str
@@ -304,11 +310,15 @@ class TestFlextCliTables:
                                 TestTables.Assertions.Borders.DASH,
                             ]
                         ):
-                            return FlextResult.fail("RST format missing separators")
+                            error_msg = "RST format missing separators"
 
-                return FlextResult.ok(True)
+                result = (
+                    FlextResult.fail(error_msg) if error_msg else FlextResult.ok(True)
+                )
             except Exception as e:
-                return FlextResult.fail(str(e))
+                result = FlextResult.fail(str(e))
+
+            return result
 
     # =========================================================================
     # FIXTURES
@@ -320,7 +330,7 @@ class TestFlextCliTables:
         return FlextCliTables()
 
     @pytest.fixture
-    def test_data(self) -> dict[str, Any]:
+    def test_data(self) -> FlextTypes.JsonDict:
         """Create comprehensive test data."""
         return TestFlextCliTables.TableTestFactory.create_edge_case_data()
 
@@ -336,7 +346,7 @@ class TestFlextCliTables:
     def test_table_comprehensive_functionality(
         self,
         tables: FlextCliTables,
-        test_data: dict[str, Any],
+        test_data: FlextTypes.JsonDict,
         test_case: TableTestCase,
     ) -> None:
         """Test comprehensive table functionality using parametrized cases."""
@@ -356,8 +366,16 @@ class TestFlextCliTables:
 
             case TableTestType.CREATE_TABLE_BASIC | TableTestType.CREATE_TABLE_ADVANCED:
                 data = test_data[test_case.data_key]
-                config = FlextCliModels.TableConfig(**test_case.config)
-                result = tables.create_table(data=data, config=config)
+                # Type narrowing: test_case.config is JsonDict
+                # Use model_validate for proper type conversion (Pydantic handles validation)
+                # Business Rule: Pydantic model_validate accepts dict[str, object] and validates types
+                config = FlextCliModels.TableConfig.model_validate(test_case.config)
+                # Convert data to TableData - ensure it's Iterable[Sequence | Mapping]
+                table_data = cast(
+                    "Sequence[Sequence[FlextTypes.GeneralValueType]] | Sequence[Mapping[str, FlextTypes.GeneralValueType]]",
+                    data,
+                )
+                result = tables.create_table(data=table_data, config=config)
 
                 if test_case.expected_result:
                     assert result.is_success
@@ -372,8 +390,16 @@ class TestFlextCliTables:
 
             case TableTestType.ERROR_HANDLING:
                 data = test_data[test_case.data_key]
-                config = FlextCliModels.TableConfig(**test_case.config)
-                result = tables.create_table(data=data, config=config)
+                # Type narrowing: test_case.config is JsonDict
+                # Use model_validate for proper type conversion (Pydantic handles validation)
+                # Business Rule: Pydantic model_validate accepts dict[str, object] and validates types
+                config = FlextCliModels.TableConfig.model_validate(test_case.config)
+                # Convert data to TableData - ensure it's Iterable[Sequence | Mapping]
+                table_data = cast(
+                    "Sequence[Sequence[FlextTypes.GeneralValueType]] | Sequence[Mapping[str, FlextTypes.GeneralValueType]]",
+                    data,
+                )
+                result = tables.create_table(data=table_data, config=config)
 
                 assert result.is_failure
                 if test_case.error_contains:
@@ -411,7 +437,7 @@ class TestFlextCliTables:
     def test_specialized_table_formats(
         self,
         tables: FlextCliTables,
-        test_data: dict[str, Any],
+        test_data: FlextTypes.JsonDict,
         method_name: str,
         format_name: str,
         expected_content: list[str],
@@ -420,19 +446,24 @@ class TestFlextCliTables:
         data = test_data["people_dict"]
 
         # Call the appropriate method
+        # Convert data to TableData - ensure it's Iterable[Sequence | Mapping]
+        table_data = cast(
+            "Sequence[Sequence[FlextTypes.GeneralValueType]] | Sequence[Mapping[str, FlextTypes.GeneralValueType]]",
+            data,
+        )
         match method_name:
             case "simple":
-                result = tables.create_simple_table(data)
+                result = tables.create_simple_table(table_data)
             case "grid":
-                result = tables.create_grid_table(data)
+                result = tables.create_grid_table(table_data)
             case "markdown":
-                result = tables.create_markdown_table(data)
+                result = tables.create_markdown_table(table_data)
             case "html":
-                result = tables.create_html_table(data)
+                result = tables.create_html_table(table_data)
             case "latex":
-                result = tables.create_latex_table(data)
+                result = tables.create_latex_table(table_data)
             case "rst":
-                result = tables.create_rst_table(data)
+                result = tables.create_rst_table(table_data)
             case _:
                 pytest.fail(f"Unknown method: {method_name}")
 
@@ -453,20 +484,28 @@ class TestFlextCliTables:
     def test_edge_cases_and_special_scenarios(
         self,
         tables: FlextCliTables,
-        test_data: dict[str, Any],
+        test_data: FlextTypes.JsonDict,
     ) -> None:
         """Test edge cases and special scenarios."""
         # Single row table
         single_row = test_data["single_row"]
         config = FlextCliModels.TableConfig(table_format=TestTables.Formats.SIMPLE)
-        result = tables.create_table(data=single_row, config=config)
+        table_data = cast(
+            "Sequence[Sequence[FlextTypes.GeneralValueType]] | Sequence[Mapping[str, FlextTypes.GeneralValueType]]",
+            single_row,
+        )
+        result = tables.create_table(data=table_data, config=config)
         assert result.is_success
         assert TestTables.Assertions.Content.ALICE in result.unwrap()
 
         # Table with None values
         with_none = test_data["with_none"]
         config = FlextCliModels.TableConfig(table_format=TestTables.Formats.SIMPLE)
-        result = tables.create_table(data=with_none, config=config)
+        table_data = cast(
+            "Sequence[Sequence[FlextTypes.GeneralValueType]] | Sequence[Mapping[str, FlextTypes.GeneralValueType]]",
+            with_none,
+        )
+        result = tables.create_table(data=table_data, config=config)
         assert result.is_success
         table_str = result.unwrap()
         assert TestTables.Assertions.Content.ALICE in table_str
@@ -478,28 +517,39 @@ class TestFlextCliTables:
             headers=custom_headers,
             table_format=TestTables.Formats.SIMPLE,
         )
-        result = tables.create_table(data=test_data["people_dict"], config=config)
+        table_data = cast(
+            "Sequence[Sequence[FlextTypes.GeneralValueType]] | Sequence[Mapping[str, FlextTypes.GeneralValueType]]",
+            test_data["people_dict"],
+        )
+        result = tables.create_table(data=table_data, config=config)
         assert result.is_success
         assert TestTables.Assertions.Content.ALICE in result.unwrap()
 
     def test_latex_table_options(
-        self, tables: FlextCliTables, test_data: dict[str, Any]
+        self, tables: FlextCliTables, test_data: FlextTypes.JsonDict
     ) -> None:
         """Test LaTeX table with various options."""
         data = test_data["people_dict"]
 
+        # Convert data to TableData
+        table_data = cast(
+            "Sequence[Sequence[FlextTypes.GeneralValueType]] | Sequence[Mapping[str, FlextTypes.GeneralValueType]]",
+            data,
+        )
         # Test longtable=True
-        result = tables.create_latex_table(data=data, longtable=True)
+        result = tables.create_latex_table(data=table_data, longtable=True)
         assert result.is_success
         assert TestTables.Assertions.Content.ALICE in result.unwrap()
 
         # Test longtable=False
-        result = tables.create_latex_table(data=data, longtable=False)
+        result = tables.create_latex_table(data=table_data, longtable=False)
         assert result.is_success
         assert TestTables.Assertions.Content.ALICE in result.unwrap()
 
         # Test booktabs=True
-        result = tables.create_latex_table(data=data, booktabs=True, longtable=False)
+        result = tables.create_latex_table(
+            data=table_data, booktabs=True, longtable=False
+        )
         assert result.is_success
         assert TestTables.Assertions.Content.ALICE in result.unwrap()
 
@@ -513,7 +563,7 @@ class TestFlextCliTables:
     def test_integration_workflow_complete(
         self,
         tables: FlextCliTables,
-        test_data: dict[str, Any],
+        test_data: FlextTypes.JsonDict,
     ) -> None:
         """Test complete integration workflow."""
         data = test_data["people_dict"]
@@ -530,7 +580,11 @@ class TestFlextCliTables:
 
         # Step 3: Create table with that format
         config = FlextCliModels.TableConfig(table_format=first_format)
-        table_result = tables.create_table(data=data, config=config)
+        table_data = cast(
+            "Sequence[Sequence[FlextTypes.GeneralValueType]] | Sequence[Mapping[str, FlextTypes.GeneralValueType]]",
+            data,
+        )
+        table_result = tables.create_table(data=table_data, config=config)
         assert table_result.is_success
         assert TestTables.Assertions.Content.ALICE in table_result.unwrap()
 
@@ -540,7 +594,7 @@ class TestFlextCliTables:
         ]  # Test first 3 formats
         for fmt in test_formats:
             config = FlextCliModels.TableConfig(table_format=fmt)
-            result = tables.create_table(data=data, config=config)
+            result = tables.create_table(data=table_data, config=config)
             assert result.is_success, f"Format {fmt} failed"
             assert TestTables.Assertions.Content.ALICE in result.unwrap()
 
@@ -551,12 +605,16 @@ class TestFlextCliTables:
     def test_table_creation_with_flext_test_validation(
         self,
         tables: FlextCliTables,
-        test_data: dict[str, Any],
+        test_data: FlextTypes.JsonDict,
     ) -> None:
         """Test table creation using flext_tests validation helpers."""
         data = test_data["people_dict"]
         config = FlextCliModels.TableConfig(table_format=TestTables.Formats.SIMPLE)
-        result = tables.create_table(data=data, config=config)
+        table_data = cast(
+            "Sequence[Sequence[FlextTypes.GeneralValueType]] | Sequence[Mapping[str, FlextTypes.GeneralValueType]]",
+            data,
+        )
+        result = tables.create_table(data=table_data, config=config)
 
         # Use flext_tests matchers for validation
         FlextTestsMatchers.assert_success(result)
@@ -568,12 +626,16 @@ class TestFlextCliTables:
     def test_table_error_handling_with_flext_test_validation(
         self,
         tables: FlextCliTables,
-        test_data: dict[str, Any],
+        test_data: FlextTypes.JsonDict,
     ) -> None:
         """Test table error handling using flext_tests validation helpers."""
         # Test with empty data
         config = FlextCliModels.TableConfig(table_format=TestTables.Formats.SIMPLE)
-        result = tables.create_table(data=test_data["empty"], config=config)
+        table_data = cast(
+            "Sequence[Sequence[FlextTypes.GeneralValueType]] | Sequence[Mapping[str, FlextTypes.GeneralValueType]]",
+            test_data["empty"],
+        )
+        result = tables.create_table(data=table_data, config=config)
 
         # This should fail for empty data
         assert isinstance(result, FlextResult)
@@ -581,7 +643,11 @@ class TestFlextCliTables:
 
         # Test with invalid format
         config = FlextCliModels.TableConfig(table_format=TestTables.Formats.INVALID)
-        result = tables.create_table(data=test_data["people_dict"], config=config)
+        table_data = cast(
+            "Sequence[Sequence[FlextTypes.GeneralValueType]] | Sequence[Mapping[str, FlextTypes.GeneralValueType]]",
+            test_data["people_dict"],
+        )
+        result = tables.create_table(data=table_data, config=config)
 
         # This should fail
         assert isinstance(result, FlextResult)
@@ -589,14 +655,18 @@ class TestFlextCliTables:
     def test_table_format_validation_with_custom_assertions(
         self,
         tables: FlextCliTables,
-        test_data: dict[str, Any],
+        test_data: FlextTypes.JsonDict,
     ) -> None:
         """Test table format validation with custom assertion helpers."""
         data = test_data["people_dict"]
 
         # Test grid format
         config = FlextCliModels.TableConfig(table_format=TestTables.Formats.GRID)
-        result = tables.create_table(data=data, config=config)
+        table_data = cast(
+            "Sequence[Sequence[FlextTypes.GeneralValueType]] | Sequence[Mapping[str, FlextTypes.GeneralValueType]]",
+            data,
+        )
+        result = tables.create_table(data=table_data, config=config)
 
         assert result.is_success
         table_str = result.unwrap()

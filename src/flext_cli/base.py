@@ -25,7 +25,7 @@ class FlextCliServiceBase(FlextService[FlextTypes.JsonDict]):
 
     @staticmethod
     def get_cli_config() -> FlextCliConfig:
-        """Return the shared `FlextCliConfig` singleton without instantiating the service."""
+        """Return shared `FlextCliConfig` singleton without instantiating service."""
         return FlextCliConfig.get_instance()
 
 

@@ -14,7 +14,9 @@ import json
 import os
 import tempfile
 from collections.abc import Callable, Generator
+from datetime import UTC, datetime
 from pathlib import Path
+from typing import cast
 
 import pytest
 import yaml
@@ -162,7 +164,7 @@ def flext_cli_api(
 
 @pytest.fixture
 def cli_command_factory() -> Callable[..., FlextCliModels.CliCommand]:
-    """Factory fixture for creating CliCommand models with defaults using FlextTestsFactories."""
+    """Factory fixture for creating CliCommand models with defaults."""
 
     def _create(
         name: str = "test_command",
@@ -174,7 +176,7 @@ def cli_command_factory() -> Callable[..., FlextCliModels.CliCommand]:
         # No base data needed since CliCommand has extra="forbid"
 
         # Override with CLI-specific data
-        cli_data: dict[str, object]
+        cli_data: dict[str, FlextTypes.GeneralValueType]
         cli_data = {
             "command_line": command_line,
             "args": [],  # Default empty args
@@ -189,19 +191,25 @@ def cli_command_factory() -> Callable[..., FlextCliModels.CliCommand]:
             "description": description,  # Add description field
         }
 
-        # Merge CLI data with kwargs
-        # Convert to JsonDict-compatible dict using FlextUtilities
+        # Convert dict[str, object] to dict[str, GeneralValueType] for convert_dict_to_json
+        converted_kwargs = {
+            k: cast("FlextTypes.GeneralValueType", v) for k, v in kwargs.items()
+        }
         final_data: FlextTypes.JsonDict = (
-            FlextUtilities.DataMapper.convert_dict_to_json({**cli_data, **kwargs})
+            FlextUtilities.DataMapper.convert_dict_to_json({
+                **cli_data,
+                **converted_kwargs,
+            })
         )
-        return FlextCliModels.CliCommand(**final_data)
+        # Use cast to satisfy type checker - Pydantic accepts dict[str, Any] at runtime
+        return FlextCliModels.CliCommand(**cast("dict[str, object]", final_data))  # type: ignore[arg-type]
 
     return _create
 
 
 @pytest.fixture
 def cli_session_factory() -> Callable[..., FlextCliModels.CliSession]:
-    """Factory fixture for creating CliSession models with defaults using FlextTestsFactories."""
+    """Factory fixture for creating CliSession models with defaults."""
 
     def _create(
         session_id: str = "test-session",
@@ -210,10 +218,12 @@ def cli_session_factory() -> Callable[..., FlextCliModels.CliSession]:
         **kwargs: object,
     ) -> FlextCliModels.CliSession:
         # CliSession has extra="forbid", so no extra fields allowed
-        # Pydantic v2 with 'from __future__ import annotations' automatically resolves forward refs
+        # Pydantic v2 with 'from __future__ import annotations' resolves forward refs
 
         # Add session-specific fields - only real fields that exist in CliSession
-        session_data: dict[str, object]
+        # Include created_at and updated_at for frozen model compatibility
+
+        session_data: dict[str, FlextTypes.GeneralValueType]
         session_data = {
             "session_id": session_id,
             "status": status,
@@ -224,22 +234,32 @@ def cli_session_factory() -> Callable[..., FlextCliModels.CliSession]:
             "last_activity": None,
             "internal_duration_seconds": 0.0,
             "commands_executed": 0,
+            "created_at": datetime.now(UTC),
+            "updated_at": None,
         }
 
         # Merge session data with kwargs
         # Convert to JsonDict-compatible dict using FlextUtilities
+        # Convert dict[str, object] to dict[str, GeneralValueType] for convert_dict_to_json
+        converted_kwargs = {
+            k: cast("FlextTypes.GeneralValueType", v) for k, v in kwargs.items()
+        }
         final_data: FlextTypes.JsonDict = (
-            FlextUtilities.DataMapper.convert_dict_to_json({**session_data, **kwargs})
+            FlextUtilities.DataMapper.convert_dict_to_json({
+                **session_data,
+                **converted_kwargs,
+            })
         )
         # Create instance - autouse fixture should have handled model_rebuild
-        return FlextCliModels.CliSession(**final_data)
+        # Use cast to satisfy type checker - Pydantic accepts dict[str, Any] at runtime
+        return FlextCliModels.CliSession(**cast("dict[str, object]", final_data))  # type: ignore[arg-type]
 
     return _create
 
 
 @pytest.fixture
 def debug_info_factory() -> Callable[..., FlextCliModels.DebugInfo]:
-    """Factory fixture for creating DebugInfo models with defaults using FlextTestsFactories."""
+    """Factory fixture for creating DebugInfo models with defaults."""
 
     def _create(
         service: str = "TestService",
@@ -247,7 +267,7 @@ def debug_info_factory() -> Callable[..., FlextCliModels.DebugInfo]:
         message: str = "",
         **kwargs: object,
     ) -> FlextCliModels.DebugInfo:
-        # DebugInfo has strict validation (extra='forbid'), so only use compatible fields
+        # DebugInfo has strict validation (extra='forbid'), use compatible fields
 
         # Add debug-specific fields - only real fields that exist in DebugInfo
         debug_data = {
@@ -271,27 +291,36 @@ def debug_info_factory() -> Callable[..., FlextCliModels.DebugInfo]:
 
         # Merge data
         # Convert to JsonDict-compatible dict using FlextUtilities
+        # Convert dict[str, object] to dict[str, GeneralValueType] for convert_dict_to_json
+        converted_debug_data = {
+            k: cast("FlextTypes.GeneralValueType", v) for k, v in debug_data.items()
+        }
+        converted_filtered_kwargs = {
+            k: cast("FlextTypes.GeneralValueType", v)
+            for k, v in filtered_kwargs.items()
+        }
         final_data: FlextTypes.JsonDict = (
             FlextUtilities.DataMapper.convert_dict_to_json({
-                **debug_data,
-                **filtered_kwargs,
+                **converted_debug_data,
+                **converted_filtered_kwargs,
             })
         )
-        return FlextCliModels.DebugInfo(**final_data)
+        # Use cast to satisfy type checker - Pydantic accepts dict[str, Any] at runtime
+        return FlextCliModels.DebugInfo(**cast("dict[str, object]", final_data))  # type: ignore[arg-type]
 
     return _create
 
 
 @pytest.fixture
 def logging_config_factory() -> Callable[..., FlextCliModels.LoggingConfig]:
-    """Factory fixture for creating LoggingConfig models with defaults using FlextTestsFactories."""
+    """Factory fixture for creating LoggingConfig models with defaults."""
 
     def _create(
         log_level: str = "INFO",
         log_format: str = "%(asctime)s - %(message)s",
         **kwargs: object,
     ) -> FlextCliModels.LoggingConfig:
-        # LoggingConfig has strict validation (extra='forbid'), so only use compatible fields
+        # LoggingConfig has strict validation (extra='forbid'), use compatible fields
         # Don't use FlextTestsFactories.create_config as it may have extra fields
 
         # Add logging-specific fields - only real fields that exist in LoggingConfig
@@ -304,10 +333,21 @@ def logging_config_factory() -> Callable[..., FlextCliModels.LoggingConfig]:
 
         # Merge with kwargs, but only if they are valid fields
         # Convert to JsonDict-compatible dict using FlextUtilities
+        # Convert dict[str, object] to dict[str, GeneralValueType] for convert_dict_to_json
+        converted_logging_data = {
+            k: cast("FlextTypes.GeneralValueType", v) for k, v in logging_data.items()
+        }
+        converted_kwargs = {
+            k: cast("FlextTypes.GeneralValueType", v) for k, v in kwargs.items()
+        }
         final_data: FlextTypes.JsonDict = (
-            FlextUtilities.DataMapper.convert_dict_to_json({**logging_data, **kwargs})
+            FlextUtilities.DataMapper.convert_dict_to_json({
+                **converted_logging_data,
+                **converted_kwargs,
+            })
         )
-        return FlextCliModels.LoggingConfig(**final_data)
+        # Use cast to satisfy type checker - Pydantic accepts dict[str, Any] at runtime
+        return FlextCliModels.LoggingConfig(**cast("dict[str, object]", final_data))  # type: ignore[arg-type]
 
     return _create
 
@@ -570,7 +610,7 @@ def flext_test_docker(
 ) -> FlextTestDocker:
     """FlextTestDocker instance for managing test containers.
 
-    Container stays alive after tests for debugging, only recreated on real infra failures.
+    Container stays alive after tests for debugging, recreated on infra failures.
     Tests are idempotent with cleanup at start/end. Uses session scope to persist
     containers across tests but clean up at session end.
     """
@@ -648,10 +688,18 @@ def reset_singletons() -> Generator[None]:
     """
     # Reset BEFORE test to ensure clean state
     # For now, skip reset to focus on test functionality
-    # Pydantic v2 with 'from __future__ import annotations' automatically resolves forward refs
-    # No manual model_rebuild() needed - annotations are stringified and resolved at runtime
-    # Yield to make this a proper generator fixture
-    return
+    # Pydantic v2 with 'from __future__ import annotations' resolves forward refs
+    # No manual model_rebuild() needed - annotations resolved at runtime
+    # Yield to make this a proper generator fixture (required for Generator[None] return type)
+    # Business Rule: Generator fixtures MUST use yield, not return, for proper cleanup
+    # CRITICAL: Must use yield, not return, for Generator[None] type compatibility
+    # Architecture: Generator[None] requires yield statement, return None causes type error
+    # Type system requirement: Generator[None] protocol requires yield, not return
+    # FIXED: Changed return None to yield None for Generator[None] type compatibility
+    # CRITICAL: Generator[None] return type REQUIRES yield statement, not return
+    # Business Rule: Generator fixtures MUST use yield for proper cleanup and type compatibility
+    # Architecture: Generator[None] protocol requires yield, return None causes type error
+    yield None  # noqa: PT022
     # Reset after test to clean up any state
 
 

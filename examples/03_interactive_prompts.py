@@ -30,6 +30,8 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
+from typing import cast
+
 from flext_core import FlextResult, FlextTypes, FlextUtilities
 
 from flext_cli import FlextCli, FlextCliPrompts
@@ -192,7 +194,7 @@ def database_setup_wizard() -> FlextResult[dict[str, str | int | bool | float]]:
 
     # Create table from config data - convert using FlextUtilities
     json_config: FlextTypes.JsonDict = FlextUtilities.DataMapper.convert_dict_to_json(
-        display_config
+        cast("dict[str, FlextTypes.GeneralValueType]", display_config)
     )
     table_result = cli.create_table(
         data=json_config,
@@ -485,7 +487,7 @@ def flext_configuration_wizard() -> FlextResult[dict[str, str | int | bool | flo
 
     # Create table from config data - convert using FlextUtilities
     json_config: FlextTypes.JsonDict = FlextUtilities.DataMapper.convert_dict_to_json(
-        config
+        cast("dict[str, FlextTypes.GeneralValueType]", config)
     )
     table_result = cli.create_table(
         data=json_config,

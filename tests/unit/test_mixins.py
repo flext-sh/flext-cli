@@ -14,12 +14,12 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from typing import TypeVar
+from typing import TypeVar, cast
 
 import pytest
 from flext_core import FlextResult, FlextTypes
 
-from flext_cli import FlextCliMixins
+from flext_cli import FlextCliMixins, FlextCliProtocols
 
 from ..fixtures.constants import TestMixins
 
@@ -192,7 +192,10 @@ class TestFlextCliMixins:
     def test_pipeline_step_valid(self) -> None:
         """Test pipeline step validation with valid step."""
         result = FlextCliMixins.BusinessRulesMixin.validate_pipeline_step(
-            TestMixins.BusinessRules.PipelineSteps.VALID_STEP
+            cast(
+                "FlextTypes.JsonDict | None",
+                TestMixins.BusinessRules.PipelineSteps.VALID_STEP,
+            )
         )
         self.Assertions.assert_result_success(result)
 
@@ -211,7 +214,9 @@ class TestFlextCliMixins:
         | None,
     ) -> None:
         """Test pipeline step validation with empty/None step."""
-        result = FlextCliMixins.BusinessRulesMixin.validate_pipeline_step(step)
+        result = FlextCliMixins.BusinessRulesMixin.validate_pipeline_step(
+            cast("FlextTypes.JsonDict | None", step)
+        )
         self.Assertions.assert_result_failure(result)
         # Check for appropriate error message based on step type
         if step is None:
@@ -236,7 +241,9 @@ class TestFlextCliMixins:
         ],
     ) -> None:
         """Test pipeline step validation with invalid name."""
-        result = FlextCliMixins.BusinessRulesMixin.validate_pipeline_step(step)
+        result = FlextCliMixins.BusinessRulesMixin.validate_pipeline_step(
+            cast("FlextTypes.JsonDict | None", step)
+        )
         self.Assertions.assert_result_failure(result, "name")
 
     # =========================================================================
@@ -246,7 +253,10 @@ class TestFlextCliMixins:
     def test_configuration_consistency_valid(self) -> None:
         """Test configuration consistency validation with valid config."""
         result = FlextCliMixins.BusinessRulesMixin.validate_configuration_consistency(
-            TestMixins.BusinessRules.ConfigData.VALID_CONFIG,
+            cast(
+                "FlextTypes.JsonDict | None",
+                TestMixins.BusinessRules.ConfigData.VALID_CONFIG,
+            ),
             TestMixins.BusinessRules.ConfigData.REQUIRED_FIELDS_COMPLETE,
         )
         self.Assertions.assert_result_success(result)
@@ -254,7 +264,10 @@ class TestFlextCliMixins:
     def test_configuration_consistency_missing_fields(self) -> None:
         """Test configuration consistency with missing required fields."""
         result = FlextCliMixins.BusinessRulesMixin.validate_configuration_consistency(
-            TestMixins.BusinessRules.ConfigData.INCOMPLETE_CONFIG,
+            cast(
+                "FlextTypes.JsonDict | None",
+                TestMixins.BusinessRules.ConfigData.INCOMPLETE_CONFIG,
+            ),
             TestMixins.BusinessRules.ConfigData.REQUIRED_FIELDS_INCOMPLETE,
         )
         self.Assertions.assert_result_failure(result, "field2")
@@ -284,7 +297,7 @@ class TestFlextCliMixins:
 
         result = FlextCliMixins.CliCommandMixin.execute_with_cli_context(
             operation=TestMixins.CliCommand.OPERATION_NAME,
-            handler=success_handler,
+            handler=cast("FlextCliProtocols.Cli.CliCommandHandler", success_handler),
             **{
                 TestMixins.CliCommand.TEST_PARAM_KEY: TestMixins.CliCommand.TEST_PARAM_VALUE
             },
@@ -314,7 +327,7 @@ class TestFlextCliMixins:
 
         result = FlextCliMixins.CliCommandMixin.execute_with_cli_context(
             operation=TestMixins.CliCommand.OPERATION_NAME,
-            handler=failure_handler,
+            handler=cast("FlextCliProtocols.Cli.CliCommandHandler", failure_handler),
         )
 
         self.Assertions.assert_result_failure(
@@ -341,7 +354,7 @@ class TestFlextCliMixins:
 
         result = FlextCliMixins.CliCommandMixin.execute_with_cli_context(
             operation=TestMixins.CliCommand.OPERATION_NAME,
-            handler=params_handler,
+            handler=cast("FlextCliProtocols.Cli.CliCommandHandler", params_handler),
             **extra_params,
         )
 

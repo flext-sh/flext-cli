@@ -18,11 +18,12 @@ import operator
 import re
 import threading
 import time
-from collections.abc import Callable
-from typing import TypeVar
+from collections.abc import Callable, Mapping, Sequence
+from datetime import datetime
+from typing import TypedDict, TypeVar, cast
 
 import pytest
-from flext_core import FlextResult
+from flext_core import FlextResult, FlextTypes
 from flext_tests import FlextTestsUtilities
 from pydantic import BaseModel, Field, ValidationError
 from pydantic.fields import FieldInfo as PydanticFieldInfo
@@ -31,8 +32,21 @@ from flext_cli import FlextCliConstants, FlextCliModels
 
 from ..fixtures.typing import GenericFieldsDict
 
+
+class FieldDataDict(TypedDict, total=False):
+    """Field data dictionary for validation tests."""
+
+    python_type: type | str
+    click_type: str | int
+    is_required: bool
+    description: str
+    validators: list[object]
+    metadata: dict[str, object]
+
+
 # FieldTypesDict is a type statement and cannot be imported directly
 # Use dict[str, type | str] directly in tests if needed
+
 
 T = TypeVar("T")
 
@@ -1283,9 +1297,11 @@ class TestFlextCliModels:
                 msg = "Model instantiation error"
                 raise RuntimeError(msg)
 
+        # Use cast to bypass type variable constraint - InvalidModel is a BaseModel subclass
+        # but mypy can't verify this for locally defined classes, so we cast
         result = FlextCliModels.CliModelConverter.cli_args_to_model(
-            InvalidModel,
-            {"test": "data"},
+            cast("type[BaseModel]", InvalidModel),  # type: ignore[type-var]
+            cast("Mapping[str, FlextTypes.GeneralValueType]", {"test": "data"}),
         )
 
         assert result.is_failure
@@ -1614,18 +1630,21 @@ class TestFlextCliModels:
     def test_validate_field_data_invalid_python_type(self) -> None:
         """Test _validate_field_data with invalid python_type - covers line 462."""
         # Create invalid data with non-type python_type
-        invalid_data: GenericFieldsDict = {
-            "python_type": "not_a_type",  # Should be a type, not a string
-            "click_type": "STRING",
-            "is_required": True,
-            "description": "Test field",
-            "validators": [],
-            "metadata": {},
-        }
+        invalid_data: FieldDataDict = FieldDataDict(
+            python_type="not_a_type",  # Should be a type, not a string
+            click_type="STRING",
+            is_required=True,
+            description="Test field",
+            validators=[],
+            metadata={},
+        )
 
         result = FlextCliModels.CliModelConverter._validate_field_data(
             "test_field",
-            invalid_data,  # Type narrowing: GenericFieldsDict is compatible with FieldMetadataDict
+            cast(
+                "PydanticFieldInfo | str | int | float | bool | datetime | Sequence[FlextTypes.GeneralValueType] | Mapping[str, FlextTypes.GeneralValueType] | dict[str, object] | dict[str, type | str | bool | list[object] | dict[str, object]] | None",
+                invalid_data,
+            ),
         )
         assert result.is_failure
         assert "Invalid python_type" in str(result.error)
@@ -1633,18 +1652,21 @@ class TestFlextCliModels:
     def test_validate_field_data_invalid_click_type(self) -> None:
         """Test _validate_field_data with invalid click_type - covers line 469."""
         # Create invalid data with non-string click_type
-        invalid_data: GenericFieldsDict = {
-            "python_type": str,
-            "click_type": 123,  # Should be a string, not an int
-            "is_required": True,
-            "description": "Test field",
-            "validators": [],
-            "metadata": {},
-        }
+        invalid_data: FieldDataDict = FieldDataDict(
+            python_type=str,
+            click_type=123,  # Should be a string, not an int
+            is_required=True,
+            description="Test field",
+            validators=[],
+            metadata={},
+        )
 
         result = FlextCliModels.CliModelConverter._validate_field_data(
             "test_field",
-            invalid_data,  # Type narrowing: GenericFieldsDict is compatible with FieldMetadataDict
+            cast(
+                "PydanticFieldInfo | str | int | float | bool | datetime | Sequence[FlextTypes.GeneralValueType] | Mapping[str, FlextTypes.GeneralValueType] | dict[str, object] | dict[str, type | str | bool | list[object] | dict[str, object]] | None",
+                invalid_data,
+            ),
         )
         assert result.is_failure
         assert "Invalid click_type" in str(result.error)
@@ -1652,7 +1674,8 @@ class TestFlextCliModels:
     def test_validate_field_data_invalid_is_required(self) -> None:
         """Test _validate_field_data with invalid is_required - covers line 476."""
         # Create invalid data with non-bool is_required
-        invalid_data: GenericFieldsDict = {
+        # Use dict literal and cast to allow invalid types for testing
+        invalid_data: dict[str, object] = {
             "python_type": str,
             "click_type": "STRING",
             "is_required": "yes",  # Should be a bool, not a string
@@ -1663,7 +1686,10 @@ class TestFlextCliModels:
 
         result = FlextCliModels.CliModelConverter._validate_field_data(
             "test_field",
-            invalid_data,  # Type narrowing: GenericFieldsDict is compatible with FieldMetadataDict
+            cast(
+                "PydanticFieldInfo | str | int | float | bool | datetime | Sequence[FlextTypes.GeneralValueType] | Mapping[str, FlextTypes.GeneralValueType] | dict[str, object] | dict[str, type | str | bool | list[object] | dict[str, object]] | None",
+                invalid_data,
+            ),
         )
         assert result.is_failure
         assert "Invalid is_required" in str(result.error)
@@ -1671,7 +1697,8 @@ class TestFlextCliModels:
     def test_validate_field_data_invalid_description(self) -> None:
         """Test _validate_field_data with invalid description - covers line 483."""
         # Create invalid data with non-string description
-        invalid_data: GenericFieldsDict = {
+        # Use dict literal and cast to allow invalid types for testing
+        invalid_data: dict[str, object] = {
             "python_type": str,
             "click_type": "STRING",
             "is_required": True,
@@ -1682,7 +1709,10 @@ class TestFlextCliModels:
 
         result = FlextCliModels.CliModelConverter._validate_field_data(
             "test_field",
-            invalid_data,  # Type narrowing: GenericFieldsDict is compatible with FieldMetadataDict
+            cast(
+                "PydanticFieldInfo | str | int | float | bool | datetime | Sequence[FlextTypes.GeneralValueType] | Mapping[str, FlextTypes.GeneralValueType] | dict[str, object] | dict[str, type | str | bool | list[object] | dict[str, object]] | None",
+                invalid_data,
+            ),
         )
         assert result.is_failure
         assert "Invalid description" in str(result.error)
@@ -1690,7 +1720,8 @@ class TestFlextCliModels:
     def test_validate_field_data_invalid_validators(self) -> None:
         """Test _validate_field_data with invalid validators - covers line 490."""
         # Create invalid data with non-list validators
-        invalid_data: GenericFieldsDict = {
+        # Use dict literal and cast to allow invalid types for testing
+        invalid_data: dict[str, object] = {
             "python_type": str,
             "click_type": "STRING",
             "is_required": True,
@@ -1701,7 +1732,10 @@ class TestFlextCliModels:
 
         result = FlextCliModels.CliModelConverter._validate_field_data(
             "test_field",
-            invalid_data,  # Type narrowing: GenericFieldsDict is compatible with FieldMetadataDict
+            cast(
+                "PydanticFieldInfo | str | int | float | bool | datetime | Sequence[FlextTypes.GeneralValueType] | Mapping[str, FlextTypes.GeneralValueType] | dict[str, object] | dict[str, type | str | bool | list[object] | dict[str, object]] | None",
+                invalid_data,
+            ),
         )
         assert result.is_failure
         assert "Invalid validators" in str(result.error)
@@ -1709,7 +1743,8 @@ class TestFlextCliModels:
     def test_validate_field_data_invalid_metadata(self) -> None:
         """Test _validate_field_data with invalid metadata - covers line 497."""
         # Create invalid data with non-dict metadata
-        invalid_data: GenericFieldsDict = {
+        # Use dict literal and cast to allow invalid types for testing
+        invalid_data: dict[str, object] = {
             "python_type": str,
             "click_type": "STRING",
             "is_required": True,
@@ -1720,7 +1755,10 @@ class TestFlextCliModels:
 
         result = FlextCliModels.CliModelConverter._validate_field_data(
             "test_field",
-            invalid_data,  # Type narrowing: GenericFieldsDict is compatible with FieldMetadataDict
+            cast(
+                "PydanticFieldInfo | str | int | float | bool | datetime | Sequence[FlextTypes.GeneralValueType] | Mapping[str, FlextTypes.GeneralValueType] | dict[str, object] | dict[str, type | str | bool | list[object] | dict[str, object]] | None",
+                invalid_data,
+            ),
         )
         assert result.is_failure
         assert "Invalid metadata" in str(result.error)
@@ -1910,8 +1948,8 @@ class TestFlextCliModels:
             str, str | int | float | bool | dict[str, object] | list[object] | None
         ] = {"name": "test", "age": "invalid_int"}
         result = FlextCliModels.CliModelConverter.cli_args_to_model(
-            TestModel,
-            cli_args,
+            cast("type[BaseModel]", TestModel),  # type: ignore[type-var]
+            cast("Mapping[str, FlextTypes.GeneralValueType]", cli_args),
         )
         # Should fail validation for invalid age type
         assert result.is_failure
@@ -1952,9 +1990,16 @@ class TestFlextCliModels:
         assert isinstance(click_options, list)
         assert len(click_options) == 2  # name and age
         # Verify option names have prefix
-        for option in click_options:
-            assert option.option_name.startswith("--")
-            assert option.param_decls == [option.option_name]
+        for option_raw in click_options:
+            # Type narrowing: option is a click.Option which has option_name attribute
+            if hasattr(option_raw, "option_name") and hasattr(
+                option_raw, "param_decls"
+            ):
+                option = cast("object", option_raw)
+                assert getattr(option, "option_name", "").startswith("--")
+                assert getattr(option, "param_decls", []) == [
+                    getattr(option, "option_name", "")
+                ]
 
     def test_cli_args_to_model_success_path_real(self) -> None:
         """Test cli_args_to_model success path (line 741) - real test.
@@ -1970,8 +2015,8 @@ class TestFlextCliModels:
             str, str | int | float | bool | dict[str, object] | list[object] | None
         ] = {"name": "test", "age": 25}
         result = FlextCliModels.CliModelConverter.cli_args_to_model(
-            TestModel,
-            cli_args,
+            cast("type[BaseModel]", TestModel),  # type: ignore[type-var]
+            cast("Mapping[str, FlextTypes.GeneralValueType]", cli_args),
         )
         assert result.is_success
         model_instance = result.unwrap()
@@ -1990,10 +2035,13 @@ class TestFlextCliModels:
                 self.value = value
 
         # Create a field with metadata that has __dict__
-        field_info: PydanticFieldInfo = Field(
-            default="test",
-            description="Test field with metadata",
-            json_schema_extra={"test_key": "test_value"},
+        field_info: PydanticFieldInfo = cast(
+            "PydanticFieldInfo",
+            Field(
+                default="test",
+                description="Test field with metadata",
+                json_schema_extra={"test_key": "test_value"},
+            ),
         )
         # Add metadata to field_info
         field_info.metadata = [TestMetadata("custom_key", "custom_value")]
@@ -2038,9 +2086,12 @@ class TestFlextCliModels:
             return value
 
         # Create field with proper type annotation (Pydantic v2 style)
-        field_info: PydanticFieldInfo = Field(
-            default="test",
-            description="Test field with validators",
+        field_info: PydanticFieldInfo = cast(
+            "PydanticFieldInfo",
+            Field(
+                default="test",
+                description="Test field with validators",
+            ),
         )
         # Manually set annotation since Field() alone doesn't provide it
         field_info.annotation = str  # Set the type annotation

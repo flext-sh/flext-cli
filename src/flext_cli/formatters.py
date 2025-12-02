@@ -29,6 +29,32 @@ from flext_cli.constants import FlextCliConstants
 class FlextCliFormatters:
     """Thin Rich formatters facade - delegates to Rich library directly.
 
+    Business Rules:
+    ───────────────
+    1. This is ONE OF TWO files allowed to import Rich directly
+    2. All formatting operations MUST delegate to Rich library (no reimplementation)
+    3. Console output MUST respect no_color configuration flag
+    4. Table creation MUST handle empty data gracefully
+    5. All operations MUST return FlextResult[T] for error handling
+    6. Rich Console MUST be initialized once per instance (singleton pattern)
+    7. Formatting operations MUST not modify input data (immutable)
+    8. Error handling MUST catch Rich exceptions and return FlextResult failures
+
+    Architecture Implications:
+    ───────────────────────────
+    - Minimal wrapper over Rich library (zero-tolerance for reimplementation)
+    - Direct Rich imports (one of two files allowed)
+    - Console instance shared across operations
+    - Railway-Oriented Programming via FlextResult for error handling
+    - Static methods for table creation (no instance state needed)
+
+    Audit Implications:
+    ───────────────────
+    - Formatting operations SHOULD be logged with format type and data size
+    - Console output MUST respect no_color flag for log compatibility
+    - Rich exceptions MUST be logged with full context (no sensitive data)
+    - Table creation MUST validate data structure before formatting
+
     ZERO TOLERANCE: Use Rich directly, minimal wrapper only for CLI abstraction.
     Removed 24 unused methods - keep ONLY what output.py actually uses.
     """
@@ -131,13 +157,25 @@ class FlextCliFormatters:
 
     def render_table_to_string(
         self,
-        table: RichTable,
+        table: RichTable | object,
         width: int | None = None,
     ) -> FlextResult[str]:
         """Render Rich table to string.
 
+        Business Rule:
+        ──────────────
+        Accepts both RichTable concrete type and protocol implementations.
+        Internal cast handles protocol-to-concrete conversion safely since
+        protocols are structurally typed to match RichTable interface.
+
+        Audit Implications:
+        ───────────────────
+        - Callers may pass RichTableProtocol (output.py) or RichTable (formatters.py)
+        - Cast is safe because protocol defines same structural interface
+        - Width defaults to console width if not specified
+
         Args:
-            table: Rich Table instance
+            table: Rich Table instance or protocol-conforming object
             width: Optional console width
 
         Returns:

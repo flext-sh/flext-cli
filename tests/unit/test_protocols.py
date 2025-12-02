@@ -187,9 +187,11 @@ class TestFlextCliProtocols:
             # Type narrowing using protocol check
             if isinstance(authenticator, FlextCliProtocols.Cli.CliAuthenticator):
                 creds_raw = TestProtocols.TestData.Authentication.VALID_CREDS
-                # Cast to AuthConfigData for authenticate method
+                # Extract username and password from credentials dict
                 creds = cast("FlextTypes.JsonDict", creds_raw)
-                auth_response = authenticator.authenticate(creds)
+                username = cast("str", creds.get("username", "test_user"))
+                password = cast("str", creds.get("password", "test_pass"))
+                auth_response = authenticator.authenticate(username, password)
                 FlextTestsMatchers.assert_success(auth_response)
 
     def test_authenticator_validate_token_method(self) -> None:
@@ -311,38 +313,40 @@ class TestFlextCliProtocols:
     def _execute_protocol_test(self, test_type: str) -> FlextResult[bool]:
         """Execute specific protocol test by type."""
         try:
+            success = False
             match test_type:
                 case TestProtocols.TestTypes.INITIALIZATION:
                     self.test_protocol_class_has_required_attributes()
-                    return FlextResult[bool].ok(True)
+                    success = True
                 case TestProtocols.TestTypes.STRUCTURAL_TYPING:
                     self.test_structural_typing_enabled()
-                    return FlextResult[bool].ok(True)
+                    success = True
                 case TestProtocols.TestTypes.CLI_FORMATTER:
                     self.test_cli_formatter_implementation()
-                    return FlextResult[bool].ok(True)
+                    success = True
                 case TestProtocols.TestTypes.CLI_CONFIG_PROVIDER:
                     self.test_cli_config_provider_implementation()
-                    return FlextResult[bool].ok(True)
+                    success = True
                 case TestProtocols.TestTypes.CLI_AUTHENTICATOR:
                     self.test_cli_authenticator_implementation()
-                    return FlextResult[bool].ok(True)
+                    success = True
                 case TestProtocols.TestTypes.CLI_DEBUG_PROVIDER:
                     self.test_cli_debug_provider_exists()
-                    return FlextResult[bool].ok(True)
+                    success = True
                 case TestProtocols.TestTypes.CLI_PLUGIN:
                     self.test_cli_plugin_exists()
-                    return FlextResult[bool].ok(True)
+                    success = True
                 case TestProtocols.TestTypes.CLI_COMMAND_HANDLER:
                     self.test_cli_command_handler_exists()
-                    return FlextResult[bool].ok(True)
+                    success = True
                 case TestProtocols.TestTypes.PROTOCOL_INHERITANCE:
                     self.test_protocol_inheritance_structure()
-                    return FlextResult[bool].ok(True)
+                    success = True
                 case TestProtocols.TestTypes.RUNTIME_CHECKING:
                     self.test_duck_typing_with_formatter()
-                    return FlextResult[bool].ok(True)
+                    success = True
                 case _:
                     return FlextResult[bool].fail(f"Unknown test type: {test_type}")
+            return FlextResult[bool].ok(success)
         except Exception as e:
             return FlextResult[bool].fail(str(e))

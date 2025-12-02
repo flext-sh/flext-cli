@@ -26,8 +26,9 @@ from __future__ import annotations
 
 import tempfile
 from pathlib import Path
+from typing import cast
 
-from flext_core import FlextResult, FlextUtilities
+from flext_core import FlextResult, FlextTypes, FlextUtilities
 
 from flext_cli import FlextCli, FlextCliPrompts, FlextCliTypes
 
@@ -105,7 +106,9 @@ def test_file_operations() -> None:
     config_data = {"test": True, "value": 123}
     # Convert to JsonDict-compatible dict using FlextUtilities
     config: FlextCliTypes.Data.CliDataDict = (
-        FlextUtilities.DataMapper.convert_dict_to_json(config_data)
+        FlextUtilities.DataMapper.convert_dict_to_json(
+            cast("dict[str, FlextTypes.GeneralValueType]", config_data)
+        )
     )
     result = save_config_command(config)
 

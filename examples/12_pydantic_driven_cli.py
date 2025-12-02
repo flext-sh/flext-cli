@@ -1,6 +1,7 @@
 """Pydantic-Driven CLI - Auto-Generate CLI from Models.
 
-Shows how to build type-safe CLIs using Pydantic 2 models with ZERO manual parameter definition.
+Shows how to build type-safe CLIs using Pydantic 2 models with ZERO manual
+parameter definition.
 
 WHEN TO USE:
 - Building type-safe CLIs with built-in validation
@@ -26,9 +27,10 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 import time
+from typing import cast
 
 from example_utils import display_config_table, display_success_summary
-from flext_core import FlextResult, FlextUtilities
+from flext_core import FlextResult, FlextTypes, FlextUtilities
 from pydantic import BaseModel, Field, field_validator
 
 from flext_cli import FlextCli, FlextCliModels, FlextCliTypes
@@ -105,7 +107,10 @@ def demonstrate_auto_cli_generation() -> None:
 
         for param in params:
             cli.output.print_message(
-                f"   --{param.name:<20} {param.help:<50} (type: {param.click_type}, default: {param.default})",
+                (
+                    f"   --{param.name:<20} {param.help:<50} "
+                    f"(type: {param.click_type}, default: {param.default})"
+                ),
                 style="cyan",
             )
 
@@ -129,7 +134,9 @@ def execute_deploy_from_cli(cli_args: dict[str, str | int | bool]) -> None:
     try:
         # Convert to JsonDict-compatible dict using FlextUtilities
         typed_args: FlextCliTypes.Data.CliDataDict = (
-            FlextUtilities.DataMapper.convert_dict_to_json(cli_args)
+            FlextUtilities.DataMapper.convert_dict_to_json(
+                cast("dict[str, FlextTypes.GeneralValueType]", cli_args)
+            )
         )
 
         # Pydantic automatically validates ALL constraints
@@ -346,7 +353,8 @@ def convert_and_validate_with_pydantic(
     """Convert raw data to validated Pydantic model."""
     try:
         # Convert dict[str, object] to proper types for Pydantic
-        # Pydantic will handle type conversion, but we need to ensure types are compatible
+        # Pydantic will handle type conversion, but we need to ensure
+        # types are compatible
         port_value = data.get("port", 5432)
         port_int = int(port_value) if isinstance(port_value, (int, str)) else 5432
 
@@ -356,7 +364,8 @@ def convert_and_validate_with_pydantic(
         pool_value = data.get("connection_pool", 10)
         pool_int = int(pool_value) if isinstance(pool_value, (int, str)) else 10
 
-        converted_data: dict[str, object] = {
+        # Build config dict with proper types - Pydantic will validate
+        converted_data = {
             "host": str(data.get("host", "localhost")),
             "port": port_int,
             "name": str(data.get("name", "")),
@@ -366,7 +375,8 @@ def convert_and_validate_with_pydantic(
             "connection_pool": pool_int,
         }
         # Pydantic handles type conversion and validation automatically
-        config = AdvancedDatabaseConfig(**converted_data)
+        # Use cast to satisfy type checker - Pydantic accepts dict[str, Any] at runtime
+        config = AdvancedDatabaseConfig(**cast("dict[str, object]", converted_data))  # type: ignore[arg-type]
         return FlextResult[AdvancedDatabaseConfig].ok(config)
     except Exception as e:
         return FlextResult[AdvancedDatabaseConfig].fail(
@@ -442,7 +452,8 @@ def main() -> None:
         "\n❌ Validation Demo - Invalid Environment:", style="bold cyan"
     )
 
-    # Intentional invalid args to demonstrate validation - use object for flexible testing
+    # Intentional invalid args to demonstrate validation -
+    # use object for flexible testing
 
     # Use proper types for the invalid args to demonstrate validation
     invalid_args: dict[str, str | int | bool] = {
@@ -455,7 +466,9 @@ def main() -> None:
     try:
         # Convert to JsonDict-compatible dict using FlextUtilities
         typed_invalid_args: FlextCliTypes.Data.CliDataDict = (
-            FlextUtilities.DataMapper.convert_dict_to_json(invalid_args)
+            FlextUtilities.DataMapper.convert_dict_to_json(
+                cast("dict[str, FlextTypes.GeneralValueType]", invalid_args)
+            )
         )
 
         # DeployConfig constructor handles type conversion and validation

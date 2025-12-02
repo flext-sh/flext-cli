@@ -20,7 +20,7 @@ from click.testing import CliRunner
 from flext_core import FlextResult
 from flext_tests import FlextTestsMatchers
 
-from flext_cli import FlextCliCli
+from flext_cli import FlextCliCli, FlextCliModels
 
 from ..fixtures.constants import TestCli
 from ..helpers import FlextCliTestHelpers
@@ -90,7 +90,10 @@ class TestFlextCliCli:
     def test_option_decorator(self) -> None:
         """Test option decorator creation."""
         cli_cli = FlextCliCli()
-        option_decorator = cli_cli.create_option_decorator("--count", "-c", default=1)
+        option_config = FlextCliModels.OptionConfig(default=1)
+        option_decorator = cli_cli.create_option_decorator(
+            "--count", "-c", config=option_config
+        )
         assert callable(option_decorator)
 
     def test_argument_decorator(self) -> None:
@@ -204,44 +207,46 @@ class TestFlextCliCli:
     def _execute_cli_test(self, test_type: str) -> FlextResult[bool]:
         """Execute specific CLI test by type."""
         try:
+            success = False
             match test_type:
                 case TestCli.TestTypes.INITIALIZATION:
                     self.test_cli_initialization()
-                    return FlextResult[bool].ok(True)
+                    success = True
                 case TestCli.TestTypes.COMMAND_DECORATORS:
                     self.test_command_decorator_creation()
-                    return FlextResult[bool].ok(True)
+                    success = True
                 case TestCli.TestTypes.GROUP_DECORATORS:
                     self.test_group_decorator_creation()
-                    return FlextResult[bool].ok(True)
+                    success = True
                 case TestCli.TestTypes.OPTION_ARGUMENT_DECORATORS:
                     self.test_option_decorator()
                     self.test_argument_decorator()
-                    return FlextResult[bool].ok(True)
+                    success = True
                 case TestCli.TestTypes.PARAMETER_TYPES:
                     self.test_datetime_type()
-                    return FlextResult[bool].ok(True)
+                    success = True
                 case TestCli.TestTypes.CONTEXT_MANAGEMENT:
                     cli_cli = FlextCliCli()
                     assert isinstance(cli_cli, FlextCliCli)
-                    return FlextResult[bool].ok(True)
+                    success = True
                 case TestCli.TestTypes.CLI_RUNNER:
                     self.test_cli_runner_invocation()
-                    return FlextResult[bool].ok(True)
+                    success = True
                 case TestCli.TestTypes.UTILITY_METHODS:
                     cli_cli = FlextCliCli()
                     assert hasattr(cli_cli, "logger")
-                    return FlextResult[bool].ok(True)
+                    success = True
                 case TestCli.TestTypes.MODEL_COMMANDS:
                     cli_cli = FlextCliCli()
                     assert isinstance(cli_cli, FlextCliCli)
-                    return FlextResult[bool].ok(True)
+                    success = True
                 case TestCli.TestTypes.INTEGRATION_WORKFLOWS:
                     cli_cli = FlextCliCli()
                     result = cli_cli.execute()
                     assert result.is_success
-                    return FlextResult[bool].ok(True)
+                    success = True
                 case _:
                     return FlextResult[bool].fail(f"Unknown test type: {test_type}")
+            return FlextResult[bool].ok(success)
         except Exception as e:
             return FlextResult[bool].fail(str(e))

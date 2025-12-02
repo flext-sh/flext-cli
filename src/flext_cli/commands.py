@@ -11,7 +11,7 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 from collections.abc import Mapping
-from typing import TypeVar, override
+from typing import TypeVar, cast, override
 
 from flext_core import FlextResult, FlextRuntime, FlextTypes
 from pydantic import PrivateAttr
@@ -25,6 +25,33 @@ T = TypeVar("T")
 
 class FlextCliCommands(FlextCliServiceBase):
     """Single unified CLI commands class following FLEXT standards.
+
+    Business Rules:
+    ───────────────
+    1. Command names MUST be unique within a CLI group
+    2. Command handlers MUST be callable and return FlextResult[T]
+    3. Command registration MUST validate handler protocol compliance
+    4. Commands MUST be registered before execution
+    5. Command execution MUST handle exceptions gracefully
+    6. Command metadata (name, description) MUST be immutable after registration
+    7. CLI groups MUST support nested command organization
+    8. All operations MUST use FlextResult[T] for error handling
+
+    Architecture Implications:
+    ───────────────────────────
+    - Extends FlextCliServiceBase for consistent logging and container access
+    - Uses PrivateAttr for mutable command registry (frozen model compatibility)
+    - Command handlers stored as Protocol-compatible callables
+    - CLI groups enable hierarchical command organization
+    - Railway-Oriented Programming via FlextResult for composable error handling
+
+    Audit Implications:
+    ───────────────────
+    - Command registrations MUST be logged with command name and handler info
+    - Command executions MUST be logged with arguments (no sensitive data)
+    - Command failures MUST be logged with full context (no sensitive data)
+    - Command metadata changes MUST be logged for audit trail
+    - Handler protocol violations MUST be logged for debugging
 
     Provides CLI command registration and management using flext-core patterns.
     Follows FLEXT pattern: one class per module with nested helpers.
@@ -602,8 +629,13 @@ class FlextCliCommands(FlextCliServiceBase):
                 source="flext-cli/src/flext_cli/commands.py",
             )
 
+            # Type narrowing: command_info is dict, convert to GeneralValueType for is_dict_like
+            # Use cast to satisfy type checker - command_info is dict[str, GeneralValueType | CliCommandHandler]
+            command_info_as_general: FlextTypes.GeneralValueType = cast(
+                "FlextTypes.GeneralValueType", command_info
+            )
             if not (
-                FlextRuntime.is_dict_like(command_info)
+                FlextRuntime.is_dict_like(command_info_as_general)
                 and FlextCliConstants.CommandsDictKeys.HANDLER in command_info
             ):
                 self.logger.error(
@@ -611,7 +643,7 @@ class FlextCliCommands(FlextCliServiceBase):
                     operation="execute_command",
                     command_name=command_name,
                     command_info_keys=list(command_info.keys())
-                    if FlextRuntime.is_dict_like(command_info)
+                    if isinstance(command_info, dict)
                     else None,
                     consequence="Command execution aborted",
                     source="flext-cli/src/flext_cli/commands.py",

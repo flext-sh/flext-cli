@@ -80,7 +80,9 @@ class TestCompleteWorkflowIntegration:
     @pytest.fixture
     def config(self) -> FlextCliConfig:
         """Create FlextCliConfig with test settings."""
-        return FlextCliConfig(debug=True, environment="test")
+        return FlextCliConfig(
+            debug=True, environment=FlextCliConstants.Environment.TESTING
+        )
 
     @pytest.fixture
     def file_tools(self) -> FlextCliFileTools:
@@ -143,7 +145,9 @@ class TestCompleteWorkflowIntegration:
         }
 
         # Pre-create input file
-        file_tools.write_json_file(str(input_file), cast("dict[str, object]", raw_data))
+        file_tools.write_json_file(
+            str(input_file), cast("FlextTypes.GeneralValueType", raw_data)
+        )
 
         # Execute complete pipeline using Railway Pattern
         pipeline_result = cast(
@@ -191,7 +195,9 @@ class TestCompleteWorkflowIntegration:
                 )
                 # Step 5: Save transformed data
                 .flat_map(
-                    lambda data: file_tools.write_json_file(str(output_file), data).map(
+                    lambda data: file_tools.write_json_file(
+                        str(output_file), cast("FlextTypes.GeneralValueType", data)
+                    ).map(
                         lambda _: (
                             cli.output.print_message("✅ Processed data saved"),
                             data,
@@ -202,7 +208,7 @@ class TestCompleteWorkflowIntegration:
                 .map(self._create_pipeline_report)
                 .flat_map(
                     lambda report: file_tools.write_json_file(
-                        str(report_file), report
+                        str(report_file), cast("FlextTypes.GeneralValueType", report)
                     ).map(
                         lambda _: (
                             cli.output.print_message("✅ Pipeline report saved"),
@@ -242,31 +248,46 @@ class TestCompleteWorkflowIntegration:
         )
 
     def _validate_pipeline_data(self, data: object) -> FlextResult[object]:
-        """Validate pipeline input data structure."""
+        """Validate pipeline input data structure.
+
+        Uses single return point pattern for reduced complexity.
+        """
+        result: FlextResult[object]
+
         if not isinstance(data, dict):
-            return FlextResult.fail("Data must be a dictionary")
+            result = FlextResult.fail("Data must be a dictionary")
+        elif "users" not in data:
+            result = FlextResult.fail("Missing 'users' field")
+        else:
+            users = data.get("users")
+            if not isinstance(users, list):
+                result = FlextResult.fail("'users' must be a list")
+            elif len(users) == 0:
+                result = FlextResult.fail("Users list cannot be empty")
+            else:
+                # Validate each user
+                validation_error: str | None = None
+                for i, user in enumerate(users):
+                    if not isinstance(user, dict):
+                        validation_error = f"User {i} must be a dictionary"
+                        break
+                    required_fields = ["id", "name", "email", "active"]
+                    for field in required_fields:
+                        if field not in user:
+                            validation_error = (
+                                f"User {i} missing required field: {field}"
+                            )
+                            break
+                    if validation_error:
+                        break
 
-        if "users" not in data:
-            return FlextResult.fail("Missing 'users' field")
+                result = (
+                    FlextResult.fail(validation_error)
+                    if validation_error
+                    else cast("FlextResult[object]", FlextResult.ok(data))
+                )
 
-        users = data.get("users")
-        if not isinstance(users, list):
-            return FlextResult.fail("'users' must be a list")
-
-        if len(users) == 0:
-            return FlextResult.fail("Users list cannot be empty")
-
-        # Validate each user
-        for i, user in enumerate(users):
-            if not isinstance(user, dict):
-                return FlextResult.fail(f"User {i} must be a dictionary")
-
-            required_fields = ["id", "name", "email", "active"]
-            for field in required_fields:
-                if field not in user:
-                    return FlextResult.fail(f"User {i} missing required field: {field}")
-
-        return cast("FlextResult[object]", FlextResult.ok(data))
+        return result
 
     def _transform_pipeline_data(self, data: object) -> object:
         """Transform pipeline data: filter active users and enrich."""
@@ -315,14 +336,19 @@ class TestCompleteWorkflowIntegration:
     def _create_pipeline_report(self, data: object) -> object:
         """Create comprehensive pipeline report."""
         data_dict = cast("dict[str, object]", data)
+        active_users = cast("list[object]", data_dict["active_users"])
+        processed_records = len(active_users)
+        # Success rate is 1.0 if all active users were processed successfully
+        # (all active users processed = 100% success rate for active users)
+        success_rate = 1.0 if processed_records > 0 else 0.0
         return {
             "pipeline_status": FlextCliConstants.CommandStatus.COMPLETED.value,
             "timestamp": cast("str", data_dict["processed_at"]),
             "pipeline_version": cast("str", data_dict["pipeline_version"]),
             "input_records": cast("int", data_dict["total_users"]),
-            "processed_records": len(cast("list[object]", data_dict["active_users"])),
+            "processed_records": processed_records,
             "filtered_records": cast("int", data_dict["inactive_count"]),
-            "success_rate": cast("float", data_dict["processing_efficiency"]),
+            "success_rate": success_rate,
             "processing_metrics": {
                 "average_name_length": round(
                     cast("float", data_dict["average_name_length"]), 2
@@ -385,7 +411,7 @@ class TestCompleteWorkflowIntegration:
 
         # Create input data
         file_tools.write_json_file(
-            str(data_file), cast("dict[str, object]", sales_data)
+            str(data_file), cast("FlextTypes.GeneralValueType", sales_data)
         )
 
         # Execute report generation pipeline
@@ -415,7 +441,7 @@ class TestCompleteWorkflowIntegration:
                 # Step 4: Create report summary
                 .map(
                     lambda reports: self._create_report_summary(
-                        cast("list[dict[str, object]]", reports), config
+                        cast("list[dict[str, object]]", reports), config, report_dir
                     )
                 )
             ),
@@ -501,7 +527,7 @@ class TestCompleteWorkflowIntegration:
 
         json_result = FlextCliFileTools().write_json_file(
             str(report_dir / "sales_report.json"),
-            json_report,
+            cast("FlextTypes.GeneralValueType", json_report),
         )
         if json_result.is_failure:
             return FlextResult.fail(f"JSON report failed: {json_result.error}")
@@ -554,11 +580,14 @@ class TestCompleteWorkflowIntegration:
         return FlextResult.ok(cast("list[dict[str, object]]", reports))
 
     def _create_report_summary(
-        self, reports: list[dict[str, object]], config: FlextCliConfig
+        self,
+        reports: list[dict[str, object]],
+        config: FlextCliConfig,
+        report_dir: Path,
     ) -> dict[str, object]:
         """Create comprehensive report summary."""
         # Load JSON report to get aggregates
-        json_file = Path(tempfile.gettempdir()) / "reports" / "sales_report.json"
+        json_file = report_dir / "sales_report.json"
         if json_file.exists():
             json_data = json.loads(json_file.read_text())
             aggregates = json_data.get("summary", {})
@@ -601,7 +630,7 @@ class TestCompleteWorkflowIntegration:
         # Create backup data (valid)
         backup_data = {"users": [{"id": 1, "name": "Backup User", "active": True}]}
         file_tools.write_json_file(
-            str(backup_data_file), cast("dict[str, object]", backup_data)
+            str(backup_data_file), cast("FlextTypes.GeneralValueType", backup_data)
         )
 
         # Execute workflow with fallback mechanisms
@@ -780,7 +809,9 @@ class TestCompleteWorkflowIntegration:
 
         while attempts < max_retries:
             attempts += 1
-            result = FlextCliFileTools().write_json_file(str(output_file), data)
+            result = FlextCliFileTools().write_json_file(
+                str(output_file), cast("FlextTypes.GeneralValueType", data)
+            )
 
             if result.is_success:
                 return FlextResult.ok({**data, "save_attempts": attempts})

@@ -33,6 +33,7 @@ from flext_cli import (
     FlextCliConfig,
     FlextCliConstants,
     FlextCliModels,
+    FlextCliProtocols,
     FlextCliServiceBase,
 )
 
@@ -191,8 +192,11 @@ def _create_decorated_command(
     """Create a decorated test command."""
 
     @app.command(name=command_name)
-    @FlextCliCommonParams.create_decorator()  # type: ignore[arg-type]
-    def decorated_test_command(  # noqa: PLR0913, PLR0917
+    @cast(  # type: ignore[arg-type]
+        "Callable[[FlextCliProtocols.Cli.CliCommandHandler], FlextCliProtocols.Cli.CliCommandHandler]",
+        FlextCliCommonParams.create_decorator(),
+    )
+    def decorated_test_command(
         name: str = command_name,
         verbose: bool = DEFAULT_VERBOSE,
         quiet: bool = DEFAULT_QUIET,
@@ -227,7 +231,7 @@ def _create_decorated_command(
 # ============================================================================
 
 
-class TestFlextCliCommonParams:  # noqa: PLR0904
+class TestFlextCliCommonParams:
     """Comprehensive tests for FlextCliCommonParams functionality.
 
     Single class with nested test groups organized by functionality.
@@ -541,7 +545,10 @@ class TestFlextCliCommonParams:  # noqa: PLR0904
         app = typer.Typer()
 
         @app.command(name="test")
-        @FlextCliCommonParams.create_decorator()  # type: ignore[arg-type]
+        @cast(  # type: ignore[arg-type]
+            "Callable[[FlextCliProtocols.Cli.CliCommandHandler], FlextCliProtocols.Cli.CliCommandHandler]",
+            FlextCliCommonParams.create_decorator(),
+        )
         def decorated_test_command(
             name: str = "test",
             verbose: bool = DEFAULT_VERBOSE,
@@ -602,16 +609,16 @@ class TestFlextCliCommonParams:  # noqa: PLR0904
             _reset_config_instance()
             if hasattr(FlextCliConfig, "_instance"):
                 FlextCliConfig._instance = None
-            
+
             # Clear environment variables first to ensure clean state
             os.environ.pop("FLEXT_CLI_DEBUG", None)
             os.environ.pop("FLEXT_CLI_VERBOSE", None)
-            
+
             # Reset again after clearing env vars
             _reset_config_instance()
             if hasattr(FlextCliConfig, "_instance"):
                 FlextCliConfig._instance = None
-            
+
             # Set environment variables to explicit False values
             # Use "0" string which Pydantic Settings converts to False boolean
             # Pydantic Settings treats "0", "false", "no", "" as False
@@ -667,7 +674,7 @@ class TestFlextCliCommonParams:  # noqa: PLR0904
             original_dir = Path.cwd()
             try:
                 os.chdir(tmp_path)
-                
+
                 # Reset config to ensure fresh load from environment
                 _reset_config_instance()
                 if hasattr(FlextCliConfig, "_instance"):

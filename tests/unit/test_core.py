@@ -16,9 +16,11 @@ from __future__ import annotations
 import json
 import tempfile
 import threading
+import warnings
 from collections import UserDict
 from collections.abc import Generator
 from pathlib import Path
+from typing import cast
 
 import pytest
 from flext_core import FlextResult, FlextTypes
@@ -29,6 +31,7 @@ from flext_cli import (
     FlextCliConstants,
     FlextCliCore,
     FlextCliModels,
+    FlextCliProtocols,
 )
 
 
@@ -190,7 +193,19 @@ class TestFlextCliCore:
             assert saved_data == test_config
 
         def test_validate_configuration(self, core_service: FlextCliCore) -> None:
-            """Test configuration validation functionality."""
+            """Test configuration validation functionality.
+
+            Business Rule:
+            ──────────────
+            Configuration validation ensures all settings are within expected bounds.
+            Valid configurations are accepted, invalid ones trigger ValidationError.
+
+            Audit Implications:
+            ───────────────────
+            - Valid configs: debug=bool, timeout>0, max_retries>=0
+            - Invalid configs: Pydantic 2 may emit serialization warnings
+            - ValidationError is expected behavior for invalid input types
+            """
             valid_config = FlextCliConfig.model_validate({
                 "debug": True,
                 "output_format": "json",
@@ -212,14 +227,21 @@ class TestFlextCliCore:
             # Pydantic may convert values or emit warnings instead of raising
             # Test that validate_configuration handles the config gracefully
             # Note: Pydantic 2 with strict=False (default) may convert invalid values
-            try:
-                config_instance = FlextCliConfig.model_validate(invalid_config)
-                result = core_service.validate_configuration(config_instance)
-                # Validation should return a result (may succeed if Pydantic converted)
-                assert isinstance(result, FlextResult)
-            except ValidationError:
-                # If ValidationError is raised, that's also valid behavior
-                pass
+            # Suppress expected Pydantic serialization warnings for invalid test data
+            with warnings.catch_warnings():
+                warnings.filterwarnings(
+                    "ignore",
+                    message="Pydantic serializer warnings",
+                    category=UserWarning,
+                )
+                try:
+                    config_instance = FlextCliConfig.model_validate(invalid_config)
+                    result = core_service.validate_configuration(config_instance)
+                    # Validation should return a result (may succeed if Pydantic converted)
+                    assert isinstance(result, FlextResult)
+                except ValidationError:
+                    # If ValidationError is raised, that's also valid behavior
+                    pass
 
     # =========================================================================
     # NESTED CLASS: File Operations
@@ -380,7 +402,7 @@ class TestFlextCliCore:
 
             # Assign ErrorDict directly - the exception will be raised when register_command tries to set the command
             error_dict = ErrorDict()
-            core_service._commands = error_dict
+            core_service._commands = cast("dict[str, FlextTypes.JsonDict]", error_dict)
 
             result = core_service.register_command(cmd)
             assert result.is_failure
@@ -459,7 +481,9 @@ class TestFlextCliCore:
                 # Mock plugin data
                 plugin_data = {"name": "test_plugin", "version": "1.0.0"}
 
-                result = core_service.register_plugin(plugin_data)
+                result = core_service.register_plugin(
+                    cast("FlextCliProtocols.Cli.CliPlugin", plugin_data)
+                )
                 assert isinstance(result, FlextResult)
 
     # =========================================================================
@@ -551,7 +575,7 @@ class TestFlextCliCore:
 
             # Save configuration
             save_result = core_service.save_configuration(
-                str(config_file), original_config
+                str(config_file), cast("FlextTypes.JsonDict", original_config)
             )
             assert save_result.is_success
 

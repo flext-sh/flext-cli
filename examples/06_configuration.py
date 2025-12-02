@@ -27,9 +27,10 @@ from __future__ import annotations
 import os
 import time
 from pathlib import Path
+from typing import cast
 
 from example_utils import display_config_table
-from flext_core import FlextResult, FlextUtilities
+from flext_core import FlextResult, FlextTypes, FlextUtilities
 
 from flext_cli import FlextCli, FlextCliConfig, FlextCliTypes
 
@@ -93,7 +94,9 @@ def load_environment_config() -> dict[str, str | int]:
     }
 
     # Display config - convert to CliDataDict using FlextUtilities directly
-    settings_data = FlextUtilities.DataMapper.convert_dict_to_json(settings)
+    settings_data = FlextUtilities.DataMapper.convert_dict_to_json(
+        cast("dict[str, FlextTypes.GeneralValueType]", settings)
+    )
     display_config_table(
         cli=cli,
         config_data=settings_data,
@@ -180,7 +183,9 @@ def show_config_locations() -> dict[str, str]:
     }
 
     # Display as table - convert to CliDataDict using FlextUtilities directly
-    locations_data = FlextUtilities.DataMapper.convert_dict_to_json(locations)
+    locations_data = FlextUtilities.DataMapper.convert_dict_to_json(
+        cast("dict[str, FlextTypes.GeneralValueType]", locations)
+    )
     table_result = cli.create_table(
         data=locations_data,
         headers=["Location", "Path"],
@@ -503,7 +508,9 @@ def main() -> None:
     if config_result.is_success:
         final_config = config_result.unwrap()
         # Display final config - convert to CliDataDict
-        final_config_data = FlextUtilities.DataMapper.convert_dict_to_json(final_config)
+        final_config_data = FlextUtilities.DataMapper.convert_dict_to_json(
+            cast("dict[str, FlextTypes.GeneralValueType]", final_config)
+        )
         display_config_table(
             cli=cli,
             config_data=final_config_data,

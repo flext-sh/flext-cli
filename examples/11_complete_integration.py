@@ -25,9 +25,11 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 import tempfile
+from collections.abc import Mapping
 from pathlib import Path
+from typing import cast
 
-from flext_core import FlextResult, FlextUtilities
+from flext_core import FlextResult, FlextTypes, FlextUtilities
 
 from flext_cli import FlextCli, FlextCliPrompts, FlextCliTypes
 
@@ -101,7 +103,7 @@ class DataManagerCLI:
         )
         return FlextResult[FlextCliTypes.Data.CliDataDict].ok(converted_data)
 
-    def display_data(self, data: FlextCliTypes.Data.CliDataDict) -> None:
+    def display_data(self, data: Mapping[str, FlextTypes.GeneralValueType]) -> None:
         """Display data as formatted table."""
         if not data:
             self.cli.output.print_message("⚠️  No data to display", style="yellow")
@@ -144,7 +146,9 @@ class DataManagerCLI:
         )
         # Convert to JsonDict-compatible dict using FlextUtilities
         converted_entry: FlextCliTypes.Data.CliDataDict = (
-            FlextUtilities.DataMapper.convert_dict_to_json(entry)
+            FlextUtilities.DataMapper.convert_dict_to_json(
+                cast("dict[str, FlextTypes.GeneralValueType]", entry)
+            )
         )
         return FlextResult[FlextCliTypes.Data.CliDataDict].ok(converted_entry)
 
@@ -156,11 +160,13 @@ class DataManagerCLI:
         # Step 2: Load existing data (or create new)
         self.cli.output.print_message("\n📂 Loading existing data...", style="cyan")
         load_result = self.load_data()
-        current_data: FlextCliTypes.Data.CliDataDict = {}
+        current_data: dict[str, FlextTypes.GeneralValueType] = {}
 
         if load_result.is_success:
             # Load existing data for update operations
-            current_data = load_result.unwrap()
+            # Convert Mapping to dict for mutability
+            loaded_data = load_result.unwrap()
+            current_data = dict(loaded_data)
         else:
             self.cli.output.print_message("   Creating new dataset", style="yellow")
 
@@ -176,7 +182,8 @@ class DataManagerCLI:
             return FlextResult[bool].fail(f"Add entry failed: {entry_result.error}")
 
         new_entry = entry_result.unwrap()
-        current_data.update(new_entry)
+        # Convert Mapping to dict for update
+        current_data.update(dict(new_entry))
 
         # Step 5: Save updated data
         self.cli.output.print_message("\n💾 Saving Data:", style="bold cyan")
@@ -211,7 +218,10 @@ def process_with_railway_pattern(
     # Step 2: Transform
     step2_data: FlextCliTypes.Data.CliDataDict = {**step1_data, "processed": True}
     # Step 3: Enrich
-    final_data: FlextCliTypes.Data.CliDataDict = {**step2_data, "enriched": True}
+    final_data: FlextCliTypes.Data.CliDataDict = cast(
+        "FlextCliTypes.Data.CliDataDict",
+        {**step2_data, "enriched": True},
+    )
 
     result: FlextResult[FlextCliTypes.Data.CliDataDict] = FlextResult[
         FlextCliTypes.Data.CliDataDict
@@ -256,7 +266,7 @@ def main() -> None:
     cli.output.print_message(
         "\n2. Railway Pattern (chained operations):", style="bold cyan"
     )
-    test_data_raw = {"id": 1, "name": "test"}
+    test_data_raw: dict[str, FlextTypes.GeneralValueType] = {"id": 1, "name": "test"}
     # Convert to JsonDict-compatible dict using FlextUtilities
     test_data: FlextCliTypes.Data.CliDataDict = (
         FlextUtilities.DataMapper.convert_dict_to_json(test_data_raw)

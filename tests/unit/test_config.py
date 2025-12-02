@@ -22,7 +22,7 @@ import typing
 from dataclasses import dataclass
 from enum import StrEnum
 from pathlib import Path
-from typing import Any, Final, Literal
+from typing import Final, Literal
 
 import pytest
 import yaml
@@ -57,7 +57,7 @@ class ConfigTestScenario:
 
     name: str
     test_type: ConfigTestType
-    data: dict[str, Any] | None = None
+    data: FlextTypes.JsonDict | None = None
     should_pass: bool = True
 
 
@@ -87,14 +87,14 @@ class ConfigTestFactory:
     ]
 
     # Test data
-    JSON_CONFIG_DATA: Final[dict[str, Any]] = {
+    JSON_CONFIG_DATA: Final[FlextTypes.JsonDict] = {
         "debug": True,
         "verbose": False,
         "profile": "test",
         "output_format": "json",
     }
 
-    YAML_CONFIG_DATA: Final[dict[str, Any]] = {
+    YAML_CONFIG_DATA: Final[FlextTypes.JsonDict] = {
         "debug": False,
         "verbose": True,
         "profile": "yaml_test",
@@ -200,19 +200,22 @@ class TestLoggingConfig:
             pytest.skip(f"Invalid log level: {level}")
         # Type narrowing: level is now known to be one of the valid levels
         # Create config with validated level
-        log_level: Literal["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"]
-        if level == "DEBUG":
-            log_level = "DEBUG"
-        elif level == "INFO":
-            log_level = "INFO"
-        elif level == "WARNING":
-            log_level = "WARNING"
-        elif level == "ERROR":
-            log_level = "ERROR"
-        elif level == "CRITICAL":
-            log_level = "CRITICAL"
-        else:
-            pytest.fail(f"Unexpected log level: {level}")
+        match level:
+            case "DEBUG":
+                log_level: Literal["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"] = (
+                    "DEBUG"
+                )
+            case "INFO":
+                log_level = "INFO"
+            case "WARNING":
+                log_level = "WARNING"
+            case "ERROR":
+                log_level = "ERROR"
+            case "CRITICAL":
+                log_level = "CRITICAL"
+            case _:
+                pytest.fail(f"Unexpected log level: {level}")
+                log_level = "DEBUG"  # Fallback for type checker (unreachable)
         config = FlextCliModels.LoggingConfig(
             log_level=log_level,
             log_format="json",

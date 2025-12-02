@@ -35,8 +35,39 @@ from flext_cli.models import FlextCliModels
 from flext_cli.protocols import FlextCliProtocols
 
 
-class FlextCliCore(FlextCliServiceBase):
+class FlextCliCore(FlextCliServiceBase):  # noqa: PLR0904
     """Track command registry, configuration profiles and CLI sessions.
+
+    Business Rules:
+    ───────────────
+    1. Command registry MUST validate command names (unique, non-empty)
+    2. Command handlers MUST be callable and return FlextResult[T]
+    3. Configuration validation MUST enforce business rules (trace requires debug)
+    4. Session management MUST track command execution history
+    5. Plugin system MUST validate plugin protocol compliance
+    6. Cache operations MUST have TTL to prevent stale data
+    7. All operations MUST use Railway-Oriented Programming (FlextResult)
+    8. Configuration changes MUST be validated before application
+
+    Architecture Implications:
+    ───────────────────────────
+    - Command registry uses dict[str, JsonDict] for O(1) lookup
+    - Session tracking enables audit trail and state management
+    - Plugin system uses pluggy for extensibility
+    - Cache (LRUCache, TTLCache) improves performance for repeated operations
+    - Configuration validation uses Pydantic validators for type safety
+    - Service extends FlextCliServiceBase for consistent logging and context
+
+    Audit Implications:
+    ───────────────────
+    - Command registrations MUST be logged with command name and handler info
+    - Command executions MUST be logged with arguments (no sensitive data)
+    - Configuration changes MUST be logged with before/after values
+    - Session creation/termination MUST be logged with session ID and duration
+    - Plugin loading MUST be logged with plugin name and version
+    - Cache operations SHOULD be logged for performance monitoring
+    - Error conditions MUST be logged with full stack trace (no sensitive data)
+    - Remote plugin loading MUST use encrypted connections (TLS/SSL)
 
     Registra e recupera comandos via `FlextCliModels`, lida com configuração
     validada (`FlextCliConfig`), gerencia sessões e plugins e expõe
@@ -435,11 +466,17 @@ class FlextCliCore(FlextCliServiceBase):
     # PRIVATE HELPERS - Direct logger usage (no fallbacks)
     # ==========================================================================
 
+    @staticmethod
     def _build_context_from_list(
-        self,
         args: list[FlextTypes.GeneralValueType],
     ) -> FlextTypes.JsonDict:
-        """Build command context from list of arguments."""
+        """Build command context from list of arguments.
+
+        Business Rule:
+        ──────────────
+        Static method - converts argument list to JSON-compatible dict.
+        No instance state needed.
+        """
         # All values in args are already CliJsonValue compatible - direct assignment
         return {FlextCliConstants.DictKeys.ARGS: args}
 
@@ -941,12 +978,12 @@ class FlextCliCore(FlextCliServiceBase):
         """
         try:
             # Create Pydantic model with type-safe fields
+            # Note: Currently assumes all registered commands are successful
+            # Failure tracking requires execution result storage (future enhancement)
             stats_model = FlextCliModels.CommandStatistics(
                 total_commands=len(self._commands),
-                successful_commands=len(
-                    self._commands
-                ),  # TODO: Track success/failure separately
-                failed_commands=0,  # TODO: Track failures separately
+                successful_commands=len(self._commands),
+                failed_commands=0,
             )
             # model_dump() already returns dict with JSON-compatible values
             # Direct assignment if model fields are already CliJsonValue compatible
@@ -1050,9 +1087,10 @@ class FlextCliCore(FlextCliServiceBase):
             # Additional metadata can be added to context if needed
 
             # Create Pydantic model with type-safe fields
+            # Note: Error tracking requires execution result storage (future enhancement)
             stats_model = FlextCliModels.SessionStatistics(
                 commands_executed=len(self._commands),
-                errors_count=0,  # TODO: Track errors separately
+                errors_count=0,
                 session_duration_seconds=session_duration,
             )
 
@@ -1315,12 +1353,17 @@ class FlextCliCore(FlextCliServiceBase):
                 FlextCliConstants.ErrorMessages.CONFIG_RETRIEVAL_FAILED.format(error=e),
             )
 
+    @staticmethod
     def _get_dict_keys(
-        self,
         data_dict: Mapping[str, FlextTypes.GeneralValueType] | None,
         error_message: str,
     ) -> FlextResult[list[str]]:
         """Generic method to safely get keys from a dictionary.
+
+        Business Rule:
+        ──────────────
+        Static method - extracts keys from dict safely with None handling.
+        No instance state needed.
 
         Args:
             data_dict: Dictionary to extract keys from (None-safe)
@@ -1393,16 +1436,16 @@ class FlextCliCore(FlextCliServiceBase):
     def get_commands(self) -> FlextResult[list[str]]:
         """Get list of registered commands.
 
+        Delegates to list_commands() for consistency.
+
         Returns:
             FlextResult[list[str]]: List of command names
 
         """
-        return self._get_dict_keys(
-            self._commands,
-            FlextCliConstants.ErrorMessages.COMMAND_LISTING_FAILED,
-        )
+        return self.list_commands()
 
-    def get_formatters(self) -> FlextResult[list[str]]:
+    @staticmethod
+    def get_formatters() -> FlextResult[list[str]]:
         """Get list of available formatters from constants.
 
         Returns:
@@ -1411,7 +1454,8 @@ class FlextCliCore(FlextCliServiceBase):
         """
         return FlextResult[list[str]].ok(FlextCliConstants.OUTPUT_FORMATS_LIST)
 
-    def _validate_config_path(self, config_path: str) -> FlextResult[Path]:
+    @staticmethod
+    def _validate_config_path(config_path: str) -> FlextResult[Path]:
         """Validate config path and return Path object if valid."""
         if not config_path:
             return FlextResult[Path].fail(
@@ -1486,8 +1530,8 @@ class FlextCliCore(FlextCliServiceBase):
                 FlextCliConstants.ErrorMessages.LOAD_FAILED.format(error=e),
             )
 
+    @staticmethod
     def save_configuration(
-        self,
         config_path: str,
         config_data: FlextTypes.Json.JsonDict,
     ) -> FlextResult[bool]:
@@ -1520,7 +1564,8 @@ class FlextCliCore(FlextCliServiceBase):
                 FlextCliConstants.ErrorMessages.SAVE_FAILED.format(error=e),
             )
 
-    def validate_configuration(self, _config: FlextCliConfig) -> FlextResult[bool]:
+    @staticmethod
+    def validate_configuration(_config: FlextCliConfig) -> FlextResult[bool]:
         """Validate configuration using FlextCliConfig Pydantic model.
 
         Args:
@@ -1667,8 +1712,8 @@ class FlextCliCore(FlextCliServiceBase):
     # EXECUTOR SUPPORT - Thread pool execution for blocking operations
     # ==========================================================================
 
+    @staticmethod
     def run_in_executor[**P](
-        self,
         func: Callable[P, FlextTypes.GeneralValueType],
         *args: P.args,
         **kwargs: P.kwargs,
