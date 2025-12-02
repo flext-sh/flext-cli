@@ -191,7 +191,9 @@ def cli_command_factory() -> Callable[..., FlextCliModels.CliCommand]:
 
         # Merge CLI data with kwargs
         # Convert to JsonDict-compatible dict using FlextUtilities
-        final_data: FlextTypes.JsonDict = FlextUtilities.DataMapper.convert_dict_to_json({**cli_data, **kwargs})
+        final_data: FlextTypes.JsonDict = (
+            FlextUtilities.DataMapper.convert_dict_to_json({**cli_data, **kwargs})
+        )
         return FlextCliModels.CliCommand(**final_data)
 
     return _create
@@ -226,7 +228,9 @@ def cli_session_factory() -> Callable[..., FlextCliModels.CliSession]:
 
         # Merge session data with kwargs
         # Convert to JsonDict-compatible dict using FlextUtilities
-        final_data: FlextTypes.JsonDict = FlextUtilities.DataMapper.convert_dict_to_json({**session_data, **kwargs})
+        final_data: FlextTypes.JsonDict = (
+            FlextUtilities.DataMapper.convert_dict_to_json({**session_data, **kwargs})
+        )
         # Create instance - autouse fixture should have handled model_rebuild
         return FlextCliModels.CliSession(**final_data)
 
@@ -267,7 +271,12 @@ def debug_info_factory() -> Callable[..., FlextCliModels.DebugInfo]:
 
         # Merge data
         # Convert to JsonDict-compatible dict using FlextUtilities
-        final_data: FlextTypes.JsonDict = FlextUtilities.DataMapper.convert_dict_to_json({**debug_data, **filtered_kwargs})
+        final_data: FlextTypes.JsonDict = (
+            FlextUtilities.DataMapper.convert_dict_to_json({
+                **debug_data,
+                **filtered_kwargs,
+            })
+        )
         return FlextCliModels.DebugInfo(**final_data)
 
     return _create
@@ -295,7 +304,9 @@ def logging_config_factory() -> Callable[..., FlextCliModels.LoggingConfig]:
 
         # Merge with kwargs, but only if they are valid fields
         # Convert to JsonDict-compatible dict using FlextUtilities
-        final_data: FlextTypes.JsonDict = FlextUtilities.DataMapper.convert_dict_to_json({**logging_data, **kwargs})
+        final_data: FlextTypes.JsonDict = (
+            FlextUtilities.DataMapper.convert_dict_to_json({**logging_data, **kwargs})
+        )
         return FlextCliModels.LoggingConfig(**final_data)
 
     return _create
@@ -534,9 +545,7 @@ def load_fixture_config() -> FlextTypes.JsonDict:
     fixture_path = Path("tests/fixtures/configs/test_config.json")
     with fixture_path.open(encoding="utf-8") as f:
         data = json.load(f)
-    adapter: TypeAdapter[FlextTypes.JsonDict] = TypeAdapter(
-        FlextTypes.JsonDict
-    )
+    adapter: TypeAdapter[FlextTypes.JsonDict] = TypeAdapter(FlextTypes.JsonDict)
     return adapter.validate_python(data)
 
 
@@ -546,9 +555,7 @@ def load_fixture_data() -> FlextTypes.JsonDict:
     fixture_path = Path("tests/fixtures/data/test_data.json")
     with fixture_path.open(encoding="utf-8") as f:
         data = json.load(f)
-    adapter: TypeAdapter[FlextTypes.JsonDict] = TypeAdapter(
-        FlextTypes.JsonDict
-    )
+    adapter: TypeAdapter[FlextTypes.JsonDict] = TypeAdapter(FlextTypes.JsonDict)
     return adapter.validate_python(data)
 
 

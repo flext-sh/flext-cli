@@ -46,7 +46,7 @@ class FlextCliTypes(FlextTypes):
     type CliJsonDict = FlextTypes.JsonDict
     type CliJsonList = Sequence[FlextTypes.GeneralValueType]
 
-    class Json:
+    class CliJson:
         """CLI JSON types - direct composition with FlextTypes.Json (no duplication)."""
 
         # Direct aliases to FlextTypes.Json for consistency
@@ -58,7 +58,10 @@ class FlextCliTypes(FlextTypes):
         type Handler[T] = Callable[[FlextTypes.JsonValue], FlextResult[T]]
         type Transformer = Callable[[FlextTypes.JsonValue], FlextTypes.JsonValue]
         type Filter = Callable[[FlextTypes.JsonValue], bool]
-        type Processor = Callable[[Sequence[FlextTypes.JsonValue]], FlextResult[Sequence[FlextTypes.JsonValue]]]
+        type Processor = Callable[
+            [Sequence[FlextTypes.JsonValue]],
+            FlextResult[Sequence[FlextTypes.JsonValue]],
+        ]
 
     class Command:
         """Command-related type aliases."""
@@ -70,16 +73,20 @@ class FlextCliTypes(FlextTypes):
         type Collection = Sequence[FlextTypes.GeneralValueType]
         type BatchProcessor = Callable[[Collection], FlextResult[int]]
 
-    class Config:
+    class CliConfig:
         """Configuration-related type aliases - using FlextTypes directly."""
 
         type Validator = Callable[[FlextTypes.GeneralValueType], FlextResult[bool]]
-        type Builder = Callable[[FlextTypes.JsonDict], FlextResult[FlextTypes.GeneralValueType]]
+        type Builder = Callable[
+            [FlextTypes.JsonDict], FlextResult[FlextTypes.GeneralValueType]
+        ]
 
         # Tipos de valores de configuração - reuse FlextTypes
         type ScalarValue = FlextTypes.ScalarValue
         type ListValue = Sequence[FlextTypes.ScalarValue]
-        type DictValue = Mapping[str, FlextTypes.ScalarValue | Sequence[FlextTypes.ScalarValue]]
+        type DictValue = Mapping[
+            str, FlextTypes.ScalarValue | Sequence[FlextTypes.ScalarValue]
+        ]
         type ConfigValue = FlextTypes.GeneralValueType
 
         # Settings tipados
@@ -97,8 +104,13 @@ class FlextCliTypes(FlextTypes):
         """Result-related type aliases."""
 
         # Use GeneralValueType instead of object for better type safety
-        type Processor = Callable[[FlextTypes.GeneralValueType], FlextResult[FlextTypes.GeneralValueType]]
-        type Aggregator = Callable[[Sequence[FlextTypes.GeneralValueType]], FlextResult[FlextTypes.GeneralValueType]]
+        type Processor = Callable[
+            [FlextTypes.GeneralValueType], FlextResult[FlextTypes.GeneralValueType]
+        ]
+        type Aggregator = Callable[
+            [Sequence[FlextTypes.GeneralValueType]],
+            FlextResult[FlextTypes.GeneralValueType],
+        ]
 
     class Session:
         """Session-related type aliases."""
@@ -111,7 +123,9 @@ class FlextCliTypes(FlextTypes):
         """Context-related type aliases."""
 
         # Use JsonDict instead of dict[str, object] and GeneralValueType instead of object
-        type Builder = Callable[[FlextTypes.JsonDict], FlextResult[FlextTypes.GeneralValueType]]
+        type Builder = Callable[
+            [FlextTypes.JsonDict], FlextResult[FlextTypes.GeneralValueType]
+        ]
         type Provider = Callable[[], FlextTypes.GeneralValueType]
 
     class Plugin:

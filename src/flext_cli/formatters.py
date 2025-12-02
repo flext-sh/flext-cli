@@ -38,7 +38,7 @@ class FlextCliFormatters:
         # Use Rich directly (formatters.py is ONE OF TWO files that may import Rich)
         self.console = Console()
 
-    def execute(self) -> FlextResult[FlextTypes.JsonDict]:
+    def execute(self) -> FlextResult[FlextTypes.JsonDict]:  # noqa: PLR6301
         """Execute service - required by FlextService."""
         return FlextResult[FlextTypes.JsonDict].ok({
             FlextCliConstants.DictKeys.STATUS: FlextCliConstants.ServiceStatus.OPERATIONAL.value,
@@ -75,8 +75,8 @@ class FlextCliFormatters:
                 FlextCliConstants.FormattersErrorMessages.PRINT_FAILED.format(error=e),
             )
 
+    @staticmethod
     def create_table(
-        self,
         data: FlextTypes.JsonDict | None = None,
         headers: list[str] | None = None,
         title: str | None = None,
@@ -165,15 +165,16 @@ class FlextCliFormatters:
                 ),
             )
 
-    def create_progress(self) -> FlextResult[Progress]:
+    @staticmethod
+    def create_progress() -> FlextResult[Progress]:
         """Create Rich progress bar with default settings.
 
         Returns:
             FlextResult[Progress]: Rich Progress instance or error
 
         Note:
-            For custom progress bars (columns, styles), access self.console
-            directly and create Progress objects.
+            For custom progress bars (columns, styles), create Progress objects
+            directly using Rich.
 
         """
         try:
@@ -186,7 +187,8 @@ class FlextCliFormatters:
                 ),
             )
 
-    def create_tree(self, label: str) -> FlextResult[RichTree]:
+    @staticmethod
+    def create_tree(label: str) -> FlextResult[RichTree]:
         """Create Rich tree with default settings.
 
         Args:
@@ -196,7 +198,7 @@ class FlextCliFormatters:
             FlextResult[RichTree]: Rich Tree instance or error
 
         Note:
-            For custom tree styling, access self.console directly and create Tree objects.
+            For custom tree styling, create Tree objects directly using Rich.
 
         """
         try:
@@ -318,15 +320,16 @@ class FlextCliFormatters:
                 ),
             )
 
-    def create_layout(self) -> FlextResult[RichLayout]:
+    @staticmethod
+    def create_layout() -> FlextResult[RichLayout]:
         """Create Rich layout with default settings.
 
         Returns:
             FlextResult[RichLayout]: Rich Layout instance or error
 
         Note:
-            For custom layouts (named regions, sizes), access self.console
-            directly and create Layout objects.
+            For custom layouts (named regions, sizes), create Layout objects
+            directly using Rich.
 
         """
         try:
@@ -339,8 +342,8 @@ class FlextCliFormatters:
                 ),
             )
 
+    @staticmethod
     def create_panel(
-        self,
         content: str,
         title: str | None = None,
         border_style: str | None = None,
@@ -356,8 +359,8 @@ class FlextCliFormatters:
             FlextResult[RichPanel]: Rich Panel instance or error
 
         Note:
-            For panels with complex content (Rich renderables), access self.console
-            directly and create Panel objects.
+            For panels with complex content (Rich renderables), create Panel objects
+            directly using Rich.
 
         """
         try:

@@ -34,6 +34,7 @@ from pydantic import (
     SecretStr,
     StringConstraints,
     computed_field,
+    field_validator,
     model_validator,
 )
 from pydantic_settings import SettingsConfigDict
@@ -83,7 +84,7 @@ class FlextCliConfig(FlextConfig):
         env_prefix="FLEXT_CLI_",
         env_file=".env",
         env_file_encoding="utf-8",
-        extra="forbid",
+        extra="ignore",
         use_enum_values=True,
         json_schema_extra={
             "title": "FLEXT CLI Configuration",
@@ -103,7 +104,7 @@ class FlextCliConfig(FlextConfig):
     # Python 3.13+ best practice: Use Enum value for default consistency
     # Pydantic 2 accepts Enum values in Literal-typed fields
     output_format: FlextCliConstants.OutputFormatLiteral = Field(
-        default=FlextCliConstants.OutputFormats.TABLE.value,
+        default="table",  # Use literal string value for Literal type
         description="Default output format for CLI commands",
     )
 
@@ -223,7 +224,7 @@ class FlextCliConfig(FlextConfig):
     )
 
     cli_log_verbosity: FlextCliConstants.LogVerbosityLiteral = Field(
-        default=FlextCliConstants.LogVerbosity.DETAILED.value,  # Python 3.13+ best practice: Use Enum value
+        default="detailed",  # Use literal string value for Literal type
         description="CLI-specific logging verbosity",
     )
 
@@ -256,7 +257,9 @@ class FlextCliConfig(FlextConfig):
             context_cls = getattr(flext_core_module, "FlextContext", FlextContext)
             context = context_cls() if context_cls else FlextContext()
             # Convert config object to GeneralValueType-compatible dict for context
-            config_dict = FlextUtilities.DataMapper.convert_dict_to_json(self.model_dump())
+            config_dict = FlextUtilities.DataMapper.convert_dict_to_json(
+                self.model_dump()
+            )
             _ = context.set("cli_config", config_dict)
             # Computed fields return values directly - convert to GeneralValueType
             _ = context.set("cli_auto_output_format", str(self.auto_output_format))
@@ -265,7 +268,9 @@ class FlextCliConfig(FlextConfig):
             _ = context.set("cli_optimal_table_format", str(self.optimal_table_format))
             return FlextResult[bool].ok(True)
         except Exception as e:
-            logger.debug("Context not available during config initialization", error=str(e))
+            logger.debug(
+                "Context not available during config initialization", error=str(e)
+            )
             return FlextResult[bool].ok(True)
 
     def _register_in_container(self) -> FlextResult[bool]:
@@ -276,8 +281,23 @@ class FlextCliConfig(FlextConfig):
                 _ = container.with_service("flext_cli_config", self)
             return FlextResult[bool].ok(True)
         except Exception as e:
-            logger.debug("Container not available during config initialization", error=str(e))
+            logger.debug(
+                "Container not available during config initialization", error=str(e)
+            )
             return FlextResult[bool].ok(True)
+
+    # Pydantic 2 field validators for boolean environment variables
+    @field_validator(
+        "debug", "verbose", "quiet", "interactive", "console_enabled", mode="before"
+    )
+    @classmethod
+    def parse_bool_env_vars(cls, v: FlextTypes.GeneralValueType) -> bool:
+        """Parse boolean environment variables correctly from strings."""
+        if isinstance(v, bool):
+            return v
+        if isinstance(v, str):
+            return v.lower() in {"true", "1", "yes", "on"}
+        return bool(v)
 
     # Pydantic 2.11 model validator (runs after all field validators)
     @model_validator(mode="after")
@@ -388,9 +408,9 @@ class FlextCliConfig(FlextConfig):
 
     @computed_field
     def auto_verbosity(self) -> str:
-        """Auto-set verbosity using functional pattern matching and railway approach.
+        """Auto-detect verbosity using functional pattern matching and railway approach.
 
-        Determines verbosity level based on configuration flags with clear priority:
+        Determines verbosity level based on flags with clear priority:
         - Explicit verbose flag takes precedence
         - Quiet flag overrides normal
         - Falls back to normal verbosity
@@ -405,11 +425,11 @@ class FlextCliConfig(FlextConfig):
             """Determine verbosity level based on configuration."""
             match (self.verbose, self.quiet):
                 case (True, _):  # Verbose takes precedence
-                    return FlextCliConstants.ConfigDefaults.DEFAULT_VERBOSITY
+                    return FlextCliConstants.CliGlobalDefaults.DEFAULT_VERBOSITY
                 case (_, True):  # Quiet overrides normal
-                    return FlextCliConstants.ConfigDefaults.QUIET_VERBOSITY
+                    return FlextCliConstants.CliGlobalDefaults.QUIET_VERBOSITY
                 case _:  # Default case
-                    return FlextCliConstants.ConfigDefaults.NORMAL_VERBOSITY
+                    return FlextCliConstants.CliGlobalDefaults.NORMAL_VERBOSITY
 
         # Railway pattern: validate and determine verbosity
         def map_to_verbosity(_: tuple[bool, bool]) -> str:
@@ -423,10 +443,10 @@ class FlextCliConfig(FlextConfig):
             if isinstance(verbosity_result, str):
                 return verbosity_result
         # Fast-fail: return normal verbosity on failure
-        return FlextCliConstants.ConfigDefaults.NORMAL_VERBOSITY
+        return FlextCliConstants.CliGlobalDefaults.NORMAL_VERBOSITY
 
     @computed_field
-    def optimal_table_format(self) -> str:
+    def optimal_table_format(self) -> str:  # noqa: PLR6301
         """Determine optimal table format using functional composition and railway pattern.
 
         Analyzes terminal width using functional pipeline to select the best
@@ -466,7 +486,8 @@ class FlextCliConfig(FlextConfig):
 
     # CLI-specific methods
 
-    def validate_output_format_result(self, value: str) -> FlextResult[str]:
+    @staticmethod
+    def validate_output_format_result(value: str) -> FlextResult[str]:
         """Validate output format using functional composition and railway pattern.
 
         Performs format validation using functional pipeline with clear error
@@ -554,7 +575,7 @@ class FlextCliConfig(FlextConfig):
                 ),
             )
 
-    def execute_as_service(self) -> FlextResult[FlextTypes.JsonDict]:
+    def execute_service(self) -> FlextResult[FlextTypes.JsonDict]:
         """Execute config as service operation.
 
         Pydantic 2 Modernization:
@@ -572,9 +593,9 @@ class FlextCliConfig(FlextConfig):
         )
         result_dict: FlextTypes.JsonDict = {
             "status": FlextCliConstants.ServiceStatus.OPERATIONAL.value,
-            "service": FlextCliConstants.ConfigDefaults.DEFAULT_SERVICE_NAME,
+            "service": FlextCliConstants.CliGlobalDefaults.DEFAULT_SERVICE_NAME,
             "timestamp": FlextUtilities.Generators.generate_iso_timestamp(),
-            "version": FlextCliConstants.ConfigDefaults.DEFAULT_VERSION_STRING,
+            "version": FlextCliConstants.CliGlobalDefaults.DEFAULT_VERSION_STRING,
             "config": config_as_json_value,
         }
         return FlextResult[FlextTypes.JsonDict].ok(result_dict)
@@ -605,7 +626,14 @@ class FlextCliConfig(FlextConfig):
         try:
             # Filter only valid configuration fields that are not computed fields
             # Computed fields (like auto_output_format) cannot be set directly
-            computed_fields = {"auto_output_format", "auto_table_format", "auto_color_support", "auto_verbosity", "effective_log_level", "optimal_table_format"}
+            computed_fields = {
+                "auto_output_format",
+                "auto_table_format",
+                "auto_color_support",
+                "auto_verbosity",
+                "effective_log_level",
+                "optimal_table_format",
+            }
             # Get model fields (not computed fields) from Pydantic model_fields (class attribute)
             model_fields = set(type(self).model_fields.keys())
             valid_updates: FlextTypes.JsonDict = {
@@ -718,7 +746,9 @@ class FlextCliConfig(FlextConfig):
             # FlextUtilities.DataMapper handles all type conversions automatically
             config_dict_raw = self.model_dump()
             # Use FlextUtilities.DataMapper directly (no wrapper needed)
-            config_data = FlextUtilities.DataMapper.convert_dict_to_json(config_dict_raw)
+            config_data = FlextUtilities.DataMapper.convert_dict_to_json(
+                config_dict_raw
+            )
             return FlextResult[FlextTypes.JsonDict].ok(config_data)
         except Exception as e:
             return FlextResult[FlextTypes.JsonDict].fail(

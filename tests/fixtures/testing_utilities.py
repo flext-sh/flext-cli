@@ -69,17 +69,16 @@ from __future__ import annotations
 
 import json
 import tempfile
-from collections.abc import Generator
+from collections.abc import Generator, Mapping
 from contextlib import contextmanager
 from pathlib import Path
 from typing import Any, cast
 
 import click
 from click.testing import CliRunner
-from collections.abc import Mapping
+from flext_core import FlextResult, FlextService, FlextTypes
 
 from flext_cli import FlextCliConstants
-from flext_core import FlextResult, FlextService, FlextTypes
 
 
 class FlextCliTesting(FlextService[dict[str, object]]):

@@ -503,9 +503,7 @@ def main() -> None:
     if config_result.is_success:
         final_config = config_result.unwrap()
         # Display final config - convert to CliDataDict
-        final_config_data = FlextUtilities.DataMapper.convert_dict_to_json(
-            final_config
-        )
+        final_config_data = FlextUtilities.DataMapper.convert_dict_to_json(final_config)
         display_config_table(
             cli=cli,
             config_data=final_config_data,

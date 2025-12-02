@@ -104,7 +104,9 @@ def test_file_operations() -> None:
     # Test save
     config_data = {"test": True, "value": 123}
     # Convert to JsonDict-compatible dict using FlextUtilities
-    config: FlextCliTypes.Data.CliDataDict = FlextUtilities.DataMapper.convert_dict_to_json(config_data)
+    config: FlextCliTypes.Data.CliDataDict = (
+        FlextUtilities.DataMapper.convert_dict_to_json(config_data)
+    )
     result = save_config_command(config)
 
     if not result.is_success:
@@ -269,7 +271,9 @@ def full_workflow_command() -> FlextResult[FlextCliTypes.Data.CliDataDict]:
     temp_file.unlink(missing_ok=True)
 
     # Convert to JsonDict-compatible dict using FlextUtilities
-    typed_data: FlextCliTypes.Data.CliDataDict = FlextUtilities.DataMapper.convert_dict_to_json(loaded)
+    typed_data: FlextCliTypes.Data.CliDataDict = (
+        FlextUtilities.DataMapper.convert_dict_to_json(loaded)
+    )
     return FlextResult[FlextCliTypes.Data.CliDataDict].ok(typed_data)
 
 

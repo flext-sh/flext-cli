@@ -22,7 +22,7 @@ from pathlib import Path
 from typing import TypedDict, cast
 
 import pytest
-from flext_core import FlextResult
+from flext_core import FlextResult, FlextTypes
 
 from flext_cli import (
     FlextCli,
@@ -32,10 +32,8 @@ from flext_cli import (
     FlextCliOutput,
     FlextCliTables,
 )
-
-
 from flext_cli.typings import FlextCliTypes
-from flext_core import FlextTypes
+
 
 class FlextCliIntegrationTestTypes(FlextCliTypes):
     """Integration test specific types following FLEXT standards.
@@ -541,9 +539,7 @@ class TestCompleteWorkflowIntegration:
         })
 
         # Table Report (ASCII)
-        table_result = tables.create_table(
-            cast("FlextTypes.JsonDict", sales_list)
-        )
+        table_result = tables.create_table(cast("FlextTypes.JsonDict", sales_list))
         if table_result.is_success:
             table_content = table_result.unwrap()
             (report_dir / "sales_report.txt").write_text(table_content)

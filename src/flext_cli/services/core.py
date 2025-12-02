@@ -693,9 +693,7 @@ class FlextCliCore(FlextCliServiceBase):
                     validated_config[key] = json_list
                 else:
                     validated_config[key] = str(value)
-        return FlextResult[FlextTypes.JsonDict].ok(
-            validated_config
-        )
+        return FlextResult[FlextTypes.JsonDict].ok(validated_config)
 
     def _validate_existing_config(
         self,
@@ -703,9 +701,7 @@ class FlextCliCore(FlextCliServiceBase):
         """Validate existing configuration state."""
         # self._cli_config is dict[str, GeneralValueType] - return as JsonDict
         if self._cli_config:
-            return FlextResult[FlextTypes.JsonDict].ok(
-                self._cli_config
-            )
+            return FlextResult[FlextTypes.JsonDict].ok(self._cli_config)
         return FlextResult.fail(FlextCliConstants.ErrorMessages.CONFIG_NOT_INITIALIZED)
 
     def _merge_configurations(
@@ -739,7 +735,9 @@ class FlextCliCore(FlextCliServiceBase):
             existing_config_raw = existing_config_result.unwrap()
             # Convert to mutable dict for merging
             existing_config: dict[str, FlextTypes.GeneralValueType] = (
-                dict(existing_config_raw) if isinstance(existing_config_raw, dict) else {}
+                dict(existing_config_raw)
+                if isinstance(existing_config_raw, dict)
+                else {}
             )
             # Merge valid_config into existing_config - both are already CliConfigSchema (CliJsonDict)
             # Type narrowing: ensure all values are CliJsonValue compatible
@@ -748,15 +746,11 @@ class FlextCliCore(FlextCliServiceBase):
                     existing_config[key] = value
                 elif isinstance(value, dict):
                     # Use type-safe conversion helper
-                    json_dict = FlextUtilities.DataMapper.convert_dict_to_json(
-                        value
-                    )
+                    json_dict = FlextUtilities.DataMapper.convert_dict_to_json(value)
                     existing_config[key] = json_dict
                 elif isinstance(value, list):
                     # Use type-safe conversion helper
-                    json_list = FlextUtilities.DataMapper.convert_list_to_json(
-                        value
-                    )
+                    json_list = FlextUtilities.DataMapper.convert_list_to_json(value)
                     existing_config[key] = json_list
                 else:
                     existing_config[key] = str(value)
@@ -833,9 +827,7 @@ class FlextCliCore(FlextCliServiceBase):
         # Railway pattern: validate input then merge configurations
         # Type narrowing: ensure config is compatible with _validate_config_input
         # Convert config to CliConfigSchema-compatible dict
-        validated_config_input: (
-            FlextTypes.JsonDict
-        )
+        validated_config_input: FlextTypes.JsonDict
         if isinstance(config, dict):
             # Type narrowing: ensure all values are CliJsonValue compatible
             validated_dict: dict[str, FlextTypes.GeneralValueType] = {}
@@ -844,15 +836,11 @@ class FlextCliCore(FlextCliServiceBase):
                     validated_dict[key] = value
                 elif isinstance(value, dict):
                     # Use type-safe conversion helper
-                    json_dict = FlextUtilities.DataMapper.convert_dict_to_json(
-                        value
-                    )
+                    json_dict = FlextUtilities.DataMapper.convert_dict_to_json(value)
                     validated_dict[key] = json_dict
                 elif isinstance(value, list):
                     # Use type-safe conversion helper
-                    json_list = FlextUtilities.DataMapper.convert_list_to_json(
-                        value
-                    )
+                    json_list = FlextUtilities.DataMapper.convert_list_to_json(value)
                     validated_dict[key] = json_list
                 else:
                     validated_dict[key] = str(value)
@@ -989,7 +977,9 @@ class FlextCliCore(FlextCliServiceBase):
             if FlextRuntime.is_dict_like(profiles_section_raw):
                 # Convert to mutable dict for assignment
                 profiles_section: dict[str, FlextTypes.GeneralValueType] = (
-                    dict(profiles_section_raw) if isinstance(profiles_section_raw, dict) else {}
+                    dict(profiles_section_raw)
+                    if isinstance(profiles_section_raw, dict)
+                    else {}
                 )
                 profiles_section[name] = profile_config
                 # Update config with modified profiles section
@@ -1155,7 +1145,9 @@ class FlextCliCore(FlextCliServiceBase):
             # Create Pydantic model with type-safe fields
             stats_model = FlextCliModels.CommandStatistics(
                 total_commands=len(self._commands),
-                successful_commands=len(self._commands),  # TODO: Track success/failure separately
+                successful_commands=len(
+                    self._commands
+                ),  # TODO: Track success/failure separately
                 failed_commands=0,  # TODO: Track failures separately
             )
             # model_dump() already returns dict with JSON-compatible values
@@ -1591,10 +1583,8 @@ class FlextCliCore(FlextCliServiceBase):
         if isinstance(self._sessions, dict):
             # Convert dict values to CliJsonValue compatible types
             # Use type-safe conversion helper
-            converted_sessions = (
-                FlextUtilities.DataMapper.convert_dict_to_json(
-                    self._sessions
-                )
+            converted_sessions = FlextUtilities.DataMapper.convert_dict_to_json(
+                self._sessions
             )
             sessions_dict = converted_sessions
         return self._get_dict_keys(

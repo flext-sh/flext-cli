@@ -128,7 +128,9 @@ def execute_deploy_from_cli(cli_args: dict[str, str | int | bool]) -> None:
 
     try:
         # Convert to JsonDict-compatible dict using FlextUtilities
-        typed_args: FlextCliTypes.Data.CliDataDict = FlextUtilities.DataMapper.convert_dict_to_json(cli_args)
+        typed_args: FlextCliTypes.Data.CliDataDict = (
+            FlextUtilities.DataMapper.convert_dict_to_json(cli_args)
+        )
 
         # Pydantic automatically validates ALL constraints
         # DeployConfig constructor handles type conversion and validation
@@ -452,7 +454,9 @@ def main() -> None:
 
     try:
         # Convert to JsonDict-compatible dict using FlextUtilities
-        typed_invalid_args: FlextCliTypes.Data.CliDataDict = FlextUtilities.DataMapper.convert_dict_to_json(invalid_args)
+        typed_invalid_args: FlextCliTypes.Data.CliDataDict = (
+            FlextUtilities.DataMapper.convert_dict_to_json(invalid_args)
+        )
 
         # DeployConfig constructor handles type conversion and validation
         # Cast JsonValue types to specific types expected by DeployConfig

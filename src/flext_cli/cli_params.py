@@ -156,7 +156,8 @@ class FlextCliCommonParams:
 
         """
         if field_name not in cls.CLI_PARAM_REGISTRY:
-            raise ValueError(f"Field '{field_name}' not found in CLI parameter registry")
+            msg = f"Field '{field_name}' not found in CLI parameter registry"
+            raise ValueError(msg)
 
         builder = FlextCliModels.OptionBuilder(field_name, cls.CLI_PARAM_REGISTRY)
         built_option = builder.build()
@@ -193,7 +194,7 @@ class FlextCliCommonParams:
         }
 
     @classmethod
-    def apply_to_config(
+    def apply_to_config(  # noqa: PLR0913
         cls,
         config: FlextCliConfig,
         params: FlextCliModels.CliParamsConfig | None = None,
@@ -409,7 +410,10 @@ class FlextCliCommonParams:
     @classmethod
     def create_decorator(
         cls,
-    ) -> Callable[[FlextCliProtocols.Cli.CliCommandFunction], FlextCliProtocols.Cli.CliCommandFunction]:
+    ) -> Callable[
+        [FlextCliProtocols.Cli.CliCommandFunction],
+        FlextCliProtocols.Cli.CliCommandFunction,
+    ]:
         """Create decorator to validate common CLI parameters are used.
 
         By default, ALL parameters are included and this is MANDATORY.
@@ -452,7 +456,9 @@ class FlextCliCommonParams:
 
         """
 
-        def decorator(func: FlextCliProtocols.Cli.CliCommandFunction) -> FlextCliProtocols.Cli.CliCommandFunction:
+        def decorator(
+            func: FlextCliProtocols.Cli.CliCommandFunction,
+        ) -> FlextCliProtocols.Cli.CliCommandFunction:
             # Validate enforcement
             validation = cls.validate_enabled()
             if validation.is_failure and cls._enforcement_mode:

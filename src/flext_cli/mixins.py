@@ -13,14 +13,12 @@ from __future__ import annotations
 from flext_core import (
     FlextMixins,
     FlextResult,
-    FlextRuntime,
     FlextTypes,
-    FlextUtilities,
 )
 from flext_core.decorators import FlextDecorators
 
-from flext_cli.constants import FlextCliConstants
 from flext_cli.protocols import FlextCliProtocols
+from flext_cli.utilities import FlextCliUtilities
 
 
 class FlextCliMixins(FlextMixins):
@@ -53,8 +51,6 @@ class FlextCliMixins(FlextMixins):
             operation: str,
         ) -> FlextResult[bool]:
             """Validate command execution state for operations (delegates to utilities)."""
-            from flext_cli.utilities import FlextCliUtilities
-
             return FlextCliUtilities.CliValidation.validate_command_execution_state(
                 current_status=current_status,
                 required_status=required_status,
@@ -67,8 +63,6 @@ class FlextCliMixins(FlextMixins):
             valid_states: list[str],
         ) -> FlextResult[bool]:
             """Validate session state (delegates to utilities)."""
-            from flext_cli.utilities import FlextCliUtilities
-
             return FlextCliUtilities.CliValidation.validate_session_state(
                 current_status=current_status,
                 valid_states=valid_states,
@@ -79,8 +73,6 @@ class FlextCliMixins(FlextMixins):
             step: FlextTypes.JsonDict | None,
         ) -> FlextResult[bool]:
             """Validate pipeline step configuration (delegates to utilities)."""
-            from flext_cli.utilities import FlextCliUtilities
-
             return FlextCliUtilities.CliValidation.validate_pipeline_step(step=step)
 
         @staticmethod
@@ -89,8 +81,6 @@ class FlextCliMixins(FlextMixins):
             required_fields: list[str],
         ) -> FlextResult[bool]:
             """Validate configuration consistency (delegates to utilities)."""
-            from flext_cli.utilities import FlextCliUtilities
-
             return FlextCliUtilities.CliValidation.validate_configuration_consistency(
                 config_data=config_data,
                 required_fields=required_fields,
@@ -159,7 +149,9 @@ class FlextCliMixins(FlextMixins):
                     # Single-wrapped with value: extract value and wrap in new FlextResult
                     # inner_value is object from unwrap - convert to GeneralValueType
                     converted_value: FlextTypes.GeneralValueType
-                    if isinstance(inner_value, (str, int, float, bool, type(None), dict, list)):
+                    if isinstance(
+                        inner_value, (str, int, float, bool, type(None), dict, list)
+                    ):
                         converted_value = inner_value
                     else:
                         converted_value = str(inner_value)
@@ -168,18 +160,9 @@ class FlextCliMixins(FlextMixins):
                 error_msg = handler_result.error or "Unknown error"
                 return FlextResult[FlextTypes.GeneralValueType].fail(error_msg)
 
-            # Railway decorator should always return FlextResult, so this branch is defensive only
-            # This should never happen, but handle gracefully for type safety
-            # Note: This code is unreachable in practice as railway decorator guarantees FlextResult,
-            # but kept for defensive programming and type narrowing
-            converted_result: FlextTypes.GeneralValueType  # type: ignore[unreachable]
-            if isinstance(handler_result, (str, int, float, bool, type(None))):  # type: ignore[unreachable]
-                converted_result = handler_result  # type: ignore[unreachable]
-            elif FlextRuntime.is_dict_like(handler_result) or FlextRuntime.is_list_like(handler_result):  # type: ignore[unreachable]
-                converted_result = handler_result  # type: ignore[assignment,unreachable]
-            else:  # type: ignore[unreachable]
-                converted_result = str(handler_result)  # type: ignore[unreachable]
-            return FlextResult[FlextTypes.GeneralValueType].ok(converted_result)  # type: ignore[unreachable]
+            # Fallback: wrap non-FlextResult returns
+            # Railway decorator should always return FlextResult, but handle gracefully
+            return FlextResult[FlextTypes.GeneralValueType].ok(handler_result)
 
 
 __all__ = ["FlextCliMixins"]

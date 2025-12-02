@@ -17,7 +17,15 @@ from collections.abc import Callable, Iterable, Mapping
 from enum import StrEnum
 from functools import cache, wraps
 from pathlib import Path
-from typing import Annotated, TypeIs, Union, get_args, get_origin, get_type_hints
+from typing import (
+    Annotated,
+    TypeGuard,
+    Union,
+    cast,
+    get_args,
+    get_origin,
+    get_type_hints,
+)
 
 from flext_core import FlextModels, FlextResult, FlextTypes, FlextUtilities
 from pydantic import BeforeValidator, ConfigDict, ValidationError, validate_call
@@ -770,34 +778,29 @@ class FlextCliUtilities(FlextUtilities):
             has_none = types.NoneType in args
             non_none_args = tuple(arg for arg in args if arg is not types.NoneType)
 
-            # If only one non-None type with None, use Union[T, None]
-            if has_none and len(non_none_args) == 1:
+            # Handle single non-None type cases
+            if len(non_none_args) == 1:
                 inner_type = non_none_args[0]
-                # Recursively normalize the inner type
                 normalized_inner = (
                     FlextCliUtilities.TypeNormalizer.normalize_annotation(inner_type)
                 )
                 if normalized_inner is None:
                     return None
-                # Create Optional[T] using pipe operator (Python 3.10+)
-                return normalized_inner | types.NoneType
-
-            # If only one non-None type without None, use that type directly
-            if not has_none and len(non_none_args) == 1:
-                return FlextCliUtilities.TypeNormalizer.normalize_annotation(
-                    non_none_args[0],
+                # If has None, create Optional[T], otherwise return normalized type
+                return (
+                    normalized_inner | types.NoneType
+                    if has_none
+                    else normalized_inner
                 )
 
-            # If multiple types, recursively normalize and combine
+            # Handle multiple types case
             if len(non_none_args) > 1:
                 # Recursively normalize all inner types
-                normalized_non_none_list = []
-                for arg in non_none_args:
-                    normalized = FlextCliUtilities.TypeNormalizer.normalize_annotation(
-                        arg,
-                    )
-                    if normalized is not None:
-                        normalized_non_none_list.append(normalized)
+                normalized_non_none_list = [
+                    normalized
+                    for arg in non_none_args
+                    if (normalized := FlextCliUtilities.TypeNormalizer.normalize_annotation(arg)) is not None
+                ]
 
                 if not normalized_non_none_list:
                     return None
@@ -858,19 +861,19 @@ class FlextCliUtilities(FlextUtilities):
             # ─────────────────────────────────────────────────────────────
 
             @staticmethod
-            def is_member[E: StrEnum](enum_cls: type[E], value: FlextTypes.GeneralValueType) -> TypeIs[E]:
-                """TypeIs genérico para qualquer StrEnum.
+            def is_member[E: StrEnum](
+                enum_cls: type[E], value: FlextTypes.GeneralValueType
+            ) -> TypeGuard[E]:
+                """TypeGuard genérico para qualquer StrEnum.
 
-                VANTAGEM sobre TypeGuard:
-                - Narrowing funciona em AMBAS branches (if/else)
-                - Type checker entende que no 'else' NÃO é E
+                Verifica se value é um membro válido do enum_cls.
 
                 Exemplo:
                     if FlextCliUtilities.Enum.is_member(Status, value):
                         # value: Status
                         process_status(value)
                     else:
-                        # value: str (narrowed corretamente!)
+                        # value: GeneralValueType (narrowed corretamente!)
                         handle_invalid(value)
                 """
                 if isinstance(value, enum_cls):
@@ -879,7 +882,7 @@ class FlextCliUtilities(FlextUtilities):
                 if isinstance(value, str):
                     # Type narrowing: StrEnum has _value2member_map_ attribute
                     if hasattr(enum_cls, "_value2member_map_"):
-                        value_map = enum_cls._value2member_map_
+                        value_map = getattr(enum_cls, "_value2member_map_", {})
                         return value in value_map
                     return False
                 return False
@@ -889,10 +892,10 @@ class FlextCliUtilities(FlextUtilities):
                 enum_cls: type[E],
                 valid_members: frozenset[E],
                 value: FlextTypes.GeneralValueType,
-            ) -> TypeIs[E]:
-                # TypeIs with TypeVar requires explicit type narrowing
-                # The isinstance check narrows value to E when True
-                """TypeIs para subset de um StrEnum.
+            ) -> TypeGuard[E]:
+                """TypeGuard para subset de um StrEnum.
+
+                Verifica se value é um membro válido do enum_cls e está no subset valid_members.
 
                 Exemplo:
                     ACTIVE_STATES = frozenset({Status.ACTIVE, Status.PENDING})
@@ -929,9 +932,12 @@ class FlextCliUtilities(FlextUtilities):
                 try:
                     return FlextResult.ok(enum_cls(value))
                 except ValueError:
-                    valid = ", ".join(m.value for m in enum_cls)
+                    # Use list() to iterate over enum class members
+                    enum_members = list(enum_cls)  # type: ignore[arg-type]
+                    valid = ", ".join(m.value for m in enum_members)
+                    enum_name = getattr(enum_cls, "__name__", "Enum")
                     return FlextResult.fail(
-                        f"Invalid {enum_cls.__name__}: '{value}'. Valid: {valid}"
+                        f"Invalid {enum_name}: '{value}'. Valid: {valid}"
                     )
 
             @staticmethod
@@ -990,7 +996,8 @@ class FlextCliUtilities(FlextUtilities):
                             return enum_cls(value)
                         except ValueError:
                             pass
-                    msg = f"Invalid {enum_cls.__name__}: {value!r}"
+                    enum_name = getattr(enum_cls, "__name__", "Enum")
+                    msg = f"Invalid {enum_name}: {value!r}"
                     raise ValueError(msg)
 
                 return _coerce
@@ -1018,14 +1025,16 @@ class FlextCliUtilities(FlextUtilities):
                         return value
                     if isinstance(value, str):
                         # Tenta por nome primeiro
-                        if value in enum_cls.__members__:
-                            return enum_cls[value]
+                        members = getattr(enum_cls, "__members__", {})
+                        if value in members:
+                            return enum_cls[value]  # type: ignore[index]
                         # Depois por valor
                         try:
                             return enum_cls(value)
                         except ValueError:
                             pass
-                    msg = f"Invalid {enum_cls.__name__}: {value!r}"
+                    enum_name = getattr(enum_cls, "__name__", "Enum")
+                    msg = f"Invalid {enum_name}: {value!r}"
                     raise ValueError(msg)
 
                 return _coerce
@@ -1038,19 +1047,22 @@ class FlextCliUtilities(FlextUtilities):
             @cache
             def values[E: StrEnum](enum_cls: type[E]) -> frozenset[str]:
                 """Retorna frozenset dos valores (cached para performance)."""
-                return frozenset(m.value for m in enum_cls)
+                enum_members = list(enum_cls)  # type: ignore[arg-type]
+                return frozenset(m.value for m in enum_members)
 
             @staticmethod
             @cache
             def names[E: StrEnum](enum_cls: type[E]) -> frozenset[str]:
                 """Retorna frozenset dos nomes dos membros (cached)."""
-                return frozenset(enum_cls.__members__.keys())
+                members = getattr(enum_cls, "__members__", {})
+                return frozenset(members.keys())
 
             @staticmethod
             @cache
             def members[E: StrEnum](enum_cls: type[E]) -> frozenset[E]:
                 """Retorna frozenset dos membros (cached)."""
-                return frozenset(enum_cls)
+                enum_members = list(enum_cls)  # type: ignore[arg-type]
+                return frozenset(enum_members)
 
         # ═══════════════════════════════════════════════════════════════════
         # NESTED CLASS: Collection Utilities
@@ -1098,7 +1110,7 @@ class FlextCliUtilities(FlextUtilities):
 
                 if errors:
                     return FlextResult.fail(
-                        f"Invalid {enum_cls.__name__} values: {', '.join(errors)}"
+                        f"Invalid {getattr(enum_cls, '__name__', 'Enum')} values: {', '.join(errors)}"
                     )
                 return FlextResult.ok(tuple(parsed))
 
@@ -1132,7 +1144,7 @@ class FlextCliUtilities(FlextUtilities):
                                 result.append(enum_cls(item))
                             except ValueError as err:
                                 msg = (
-                                    f"Invalid {enum_cls.__name__} at [{idx}]: {item!r}"
+                                    f"Invalid {getattr(enum_cls, '__name__', 'Enum')} at [{idx}]: {item!r}"
                                 )
                                 raise ValueError(msg) from err
                         else:
@@ -1172,7 +1184,7 @@ class FlextCliUtilities(FlextUtilities):
 
                 if errors:
                     return FlextResult.fail(
-                        f"Invalid {enum_cls.__name__} values: {', '.join(errors)}"
+                        f"Invalid {getattr(enum_cls, '__name__', 'Enum')} values: {', '.join(errors)}"
                     )
                 return FlextResult.ok(parsed)
 
@@ -1202,7 +1214,7 @@ class FlextCliUtilities(FlextUtilities):
                             try:
                                 result[key] = enum_cls(val)
                             except ValueError as err:
-                                msg = f"Invalid {enum_cls.__name__} at '{key}': {val!r}"
+                                msg = f"Invalid {getattr(enum_cls, '__name__', 'Enum')} at '{key}': {val!r}"
                                 raise ValueError(msg) from err
                         else:
                             msg = f"Expected str at '{key}', got {type(val).__name__}"
@@ -1229,18 +1241,23 @@ class FlextCliUtilities(FlextUtilities):
                 )(func)
 
             @staticmethod
-            def validated_with_result[**P, R](func: Callable[P, R]) -> Callable[P, FlextResult[R]]:
+            def validated_with_result[**P, R](
+                func: Callable[P, R],
+            ) -> Callable[P, FlextResult[R]]:
                 """ValidationError → FlextResult.fail()."""
 
                 @wraps(func)
-                def wrapper(*args: FlextTypes.GeneralValueType, **kwargs: FlextTypes.GeneralValueType) -> FlextResult[R]:
+                def wrapper(
+                    *args: FlextTypes.GeneralValueType,
+                    **kwargs: FlextTypes.GeneralValueType,
+                ) -> FlextResult[R]:
                     try:
                         validated_func = validate_call(
                             config=ConfigDict(arbitrary_types_allowed=True),
                             validate_return=False,
                         )(func)
                         # ParamSpec P requires proper type unpacking - cast to satisfy type checker
-                        result = validated_func(*args, **kwargs)  # type: ignore[call-overload]
+                        result = validated_func(*args, **kwargs)  # type: ignore[call-overload,arg-type]
                         return FlextResult.ok(result)
                     except ValidationError as e:
                         return FlextResult.fail(str(e))
@@ -1249,10 +1266,11 @@ class FlextCliUtilities(FlextUtilities):
 
             @staticmethod
             def parse_kwargs[E: StrEnum](
-                kwargs: Mapping[str, FlextTypes.GeneralValueType], enum_fields: Mapping[str, type[E]]
+                kwargs: Mapping[str, FlextTypes.GeneralValueType],
+                enum_fields: Mapping[str, type[E]],
             ) -> FlextResult[FlextTypes.JsonDict]:
                 """Parse kwargs converting string enum values to enum instances.
-                
+
                 Returns JsonDict since parsed values are JSON-compatible (str, enum values, etc.).
                 """
                 parsed: dict[str, FlextTypes.GeneralValueType] = {}
@@ -1264,7 +1282,9 @@ class FlextCliUtilities(FlextUtilities):
                         parsed[key] = value
                     elif isinstance(value, (dict, list)):
                         # Convert nested structures using DataMapper
-                        parsed[key] = FlextUtilities.DataMapper.convert_to_json_value(value)
+                        parsed[key] = FlextUtilities.DataMapper.convert_to_json_value(
+                            value
+                        )
                     else:
                         # Convert other types to string
                         parsed[key] = str(value)
@@ -1278,7 +1298,11 @@ class FlextCliUtilities(FlextUtilities):
                             field_value_str: str = str(parsed[field])
                             enum_value = enum_cls(field_value_str)
                             # StrEnum values are strings, which are GeneralValueType
-                            parsed[field] = enum_value.value if hasattr(enum_value, "value") else str(enum_value)
+                            parsed[field] = (
+                                enum_value.value
+                                if hasattr(enum_value, "value")
+                                else str(enum_value)
+                            )
                         except ValueError:
                             errors.append(f"{field}: '{parsed[field]}'")
 
@@ -1289,7 +1313,9 @@ class FlextCliUtilities(FlextUtilities):
                 )
 
             @staticmethod
-            def get_enum_params(func: Callable[..., FlextTypes.GeneralValueType]) -> dict[str, type[StrEnum]]:
+            def get_enum_params(
+                func: Callable[..., FlextTypes.GeneralValueType],
+            ) -> dict[str, type[StrEnum]]:
                 """Extrai parâmetros StrEnum da signature."""
                 try:
                     hints = get_type_hints(func)
@@ -1312,7 +1338,10 @@ class FlextCliUtilities(FlextUtilities):
 
             @staticmethod
             def from_dict[M: type[FlextModels]](
-                model_cls: type[M], data: Mapping[str, FlextTypes.GeneralValueType], *, strict: bool = False
+                model_cls: type[M],
+                data: Mapping[str, FlextTypes.GeneralValueType],
+                *,
+                strict: bool = False,
             ) -> FlextResult[M]:
                 """Create model from dict with FlextResult."""
                 try:
@@ -1320,7 +1349,9 @@ class FlextCliUtilities(FlextUtilities):
                     if hasattr(model_cls, "model_validate"):
                         validated = model_cls.model_validate(data, strict=strict)  # type: ignore[attr-defined]
                         return FlextResult.ok(validated)
-                    return FlextResult.fail(f"{model_cls.__name__} is not a Pydantic model")
+                    return FlextResult.fail(
+                        f"{model_cls.__name__} is not a Pydantic model"
+                    )
                 except Exception as e:
                     return FlextResult.fail(f"Validation failed: {e}")
 
@@ -1341,7 +1372,9 @@ class FlextCliUtilities(FlextUtilities):
                         converted_v: FlextTypes.GeneralValueType = v
                     else:
                         converted_v = str(v)
-                    merged_data[k] = FlextUtilities.DataMapper.convert_to_json_value(converted_v)
+                    merged_data[k] = FlextUtilities.DataMapper.convert_to_json_value(
+                        converted_v
+                    )
                 # Convert overrides (will override defaults)
                 for k, v in overrides.items():
                     # Same conversion as above
@@ -1349,25 +1382,37 @@ class FlextCliUtilities(FlextUtilities):
                         converted_v = v
                     else:
                         converted_v = str(v)
-                    merged_data[k] = FlextUtilities.DataMapper.convert_to_json_value(converted_v)
+                    merged_data[k] = FlextUtilities.DataMapper.convert_to_json_value(
+                        converted_v
+                    )
                 # Convert dict to Mapping[str, GeneralValueType] for from_dict
                 # from_dict expects Mapping[str, GeneralValueType] compatible type
                 # merged_data is already dict[str, GeneralValueType], which is compatible
-                return FlextCliUtilities.Model.from_dict(model_cls, merged_data)  # type: ignore[arg-type]
+                return FlextCliUtilities.Model.from_dict(model_cls, merged_data)  # type: ignore[arg-type,type-var]
 
             @staticmethod
-            def update[M](instance: M, **updates: FlextTypes.GeneralValueType) -> FlextResult[M]:
+            def update[M](
+                instance: M, **updates: FlextTypes.GeneralValueType
+            ) -> FlextResult[M]:
                 """Update model with new values."""
                 try:
                     # Type narrowing: instance must have model_dump and model_validate (Pydantic BaseModel)
-                    if hasattr(instance, "model_dump") and hasattr(type(instance), "model_validate"):
+                    if hasattr(instance, "model_dump") and hasattr(
+                        type(instance), "model_validate"
+                    ):
                         current_dict = instance.model_dump()  # type: ignore[attr-defined]
                         # Convert to mutable dict for updates using FlextTypes.JsonDict
                         # Mapping doesn't have update, so convert to dict first
-                        current_dict_mutable: dict[str, FlextTypes.GeneralValueType] = dict(current_dict) if isinstance(current_dict, Mapping) else {}
+                        current_dict_mutable: dict[str, FlextTypes.GeneralValueType] = (
+                            dict(current_dict)
+                            if isinstance(current_dict, Mapping)
+                            else {}
+                        )
                         # Convert updates to GeneralValueType compatible values and update dict
                         for k, v in updates.items():
-                            if isinstance(v, (str, int, float, bool, type(None), dict, list)):
+                            if isinstance(
+                                v, (str, int, float, bool, type(None), dict, list)
+                            ):
                                 current_dict_mutable[k] = v
                             else:
                                 current_dict_mutable[k] = str(v)
@@ -1375,7 +1420,9 @@ class FlextCliUtilities(FlextUtilities):
                         instance_cls = type(instance)
                         validated = instance_cls.model_validate(current)  # type: ignore[attr-defined]
                         return FlextResult.ok(validated)
-                    return FlextResult.fail(f"{type(instance).__name__} is not a Pydantic model")
+                    return FlextResult.fail(
+                        f"{type(instance).__name__} is not a Pydantic model"
+                    )
                 except Exception as e:
                     return FlextResult.fail(f"Update failed: {e}")
 
@@ -1387,13 +1434,18 @@ class FlextCliUtilities(FlextUtilities):
             """Fábricas de Annotated types."""
 
             @staticmethod
-            def coerced_enum[E: StrEnum](enum_cls: type[E]) -> type[Annotated[E, BeforeValidator[Callable[[FlextTypes.GeneralValueType], E]]]]:
+            def coerced_enum[E: StrEnum](
+                enum_cls: type[E],
+            ) -> type[Annotated[E, BeforeValidator]]:
                 """Retorna tipo Annotated para StrEnum com coerção."""
                 validator = FlextCliUtilities.Enum.coerce_validator(enum_cls)
-                # TypeVar E in return type annotation is correct - creates annotated type
-                # enum_cls is type[E], Annotated[enum_cls, ...] creates annotated type
-                annotated_type: type[Annotated[E, BeforeValidator[Callable[[FlextTypes.GeneralValueType], E]]]] = Annotated[enum_cls, BeforeValidator(validator)]
-                return annotated_type
+                # Annotated creates a special typing form, not a regular type
+                # Use cast to satisfy type checker for Annotated type assignment
+                # BeforeValidator doesn't accept type arguments in runtime
+                return cast(
+                    "type[Annotated[E, BeforeValidator]]",
+                    Annotated[enum_cls, BeforeValidator(validator)],
+                )
 
 
 # Note: Aliases moved to avoid circular imports

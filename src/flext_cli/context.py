@@ -162,7 +162,9 @@ class FlextCliContext(FlextCliServiceBase):
             if operation == "set" and value is not None:
                 dict_obj[key] = value
                 return FlextResult[FlextTypes.GeneralValueType | bool].ok(True)
-            return FlextResult[FlextTypes.GeneralValueType | bool].fail(errors["failed"])
+            return FlextResult[FlextTypes.GeneralValueType | bool].fail(
+                errors["failed"]
+            )
         except Exception as e:
             return FlextResult[FlextTypes.GeneralValueType | bool].fail(
                 errors.get("exception", str(e)) or errors["failed"]
@@ -426,9 +428,7 @@ class FlextCliContext(FlextCliServiceBase):
             FlextCliConstants.ContextErrorMessages.ARGUMENTS_NOT_INITIALIZED,
         )
         if init_check.is_failure:
-            return FlextResult[FlextTypes.JsonDict].fail(
-                init_check.error or ""
-            )
+            return FlextResult[FlextTypes.JsonDict].fail(init_check.error or "")
 
         # Type narrowing: self.arguments is not None after _ensure_initialized check
         if self.arguments is None:
@@ -464,9 +464,7 @@ class FlextCliContext(FlextCliServiceBase):
 
         for check in init_checks:
             if check.is_failure:
-                return FlextResult[FlextTypes.JsonDict].fail(
-                    check.error or ""
-                )
+                return FlextResult[FlextTypes.JsonDict].fail(check.error or "")
 
         # Convert all values to CliJsonValue for type safety
         result: dict[str, FlextTypes.GeneralValueType] = {

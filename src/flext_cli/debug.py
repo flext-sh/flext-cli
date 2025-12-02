@@ -44,8 +44,8 @@ class FlextCliDebug(FlextCliServiceBase):
     # PRIVATE HELPERS - Generalize common patterns
     # =========================================================================
 
+    @staticmethod
     def _convert_model_to_dict(
-        self,
         model: FlextCliModels.SystemInfo
         | FlextCliModels.EnvironmentInfo
         | FlextCliModels.PathInfo,
@@ -55,14 +55,14 @@ class FlextCliDebug(FlextCliServiceBase):
         raw_dict = model.model_dump()
         return FlextUtilities.DataMapper.convert_dict_to_json(raw_dict)
 
+    @staticmethod
     def _convert_result_to_json_value(
-        self, result: FlextResult[FlextTypes.JsonDict]
+        result: FlextResult[FlextTypes.JsonDict]
     ) -> FlextTypes.GeneralValueType:
         """Convert FlextResult[JsonDict] to FlextTypes.GeneralValueType."""
         if result.is_success:
             # JsonDict is dict[str, GeneralValueType] - return directly
-            cli_data = result.unwrap()
-            return cli_data
+            return result.unwrap()
         # Return error as string
         return result.error or "Unknown error"
 
@@ -70,14 +70,14 @@ class FlextCliDebug(FlextCliServiceBase):
         self,
         method_name: str,
         error_key: str,
-        info_dict: FlextTypes.JsonDict,
+        info_dict: dict[str, FlextTypes.GeneralValueType],
     ) -> None:
         """Generalized info collection helper with error handling."""
         method = getattr(self, method_name)
         result = method()
         if result.is_success:
             info_dict[error_key.replace("_ERROR", "")] = (
-                self._convert_result_to_json_value(result)
+                FlextCliDebug._convert_result_to_json_value(result)
             )
         else:
             info_dict[error_key] = result.error or "Unknown error"
@@ -86,7 +86,7 @@ class FlextCliDebug(FlextCliServiceBase):
     # PUBLIC API METHODS
     # =========================================================================
 
-    def execute(
+    def execute(  # noqa: PLR6301
         self, **_kwargs: FlextTypes.JsonDict
     ) -> FlextResult[FlextTypes.JsonDict]:
         """Execute debug service - required by FlextService."""
@@ -101,7 +101,7 @@ class FlextCliDebug(FlextCliServiceBase):
         """Get environment variables with sensitive data masked."""
         try:
             env_info = self._get_environment_info()
-            typed_env_info: FlextTypes.JsonDict = {}
+            typed_env_info: dict[str, FlextTypes.GeneralValueType] = {}
             for key, value in env_info.variables.items():
                 typed_env_info[key] = value
             return FlextResult[FlextTypes.JsonDict].ok(typed_env_info)
@@ -126,7 +126,7 @@ class FlextCliDebug(FlextCliServiceBase):
                 ),
             )
 
-    def test_connectivity(
+    def test_connectivity(  # noqa: PLR6301
         self,
     ) -> FlextResult[dict[str, str]]:
         """Test basic connectivity and service status."""
@@ -145,7 +145,7 @@ class FlextCliDebug(FlextCliServiceBase):
                 ),
             )
 
-    def execute_health_check(self) -> FlextResult[FlextTypes.JsonDict]:
+    def execute_health_check(self) -> FlextResult[FlextTypes.JsonDict]:  # noqa: PLR6301
         """Execute comprehensive health check."""
         try:
             health_info: FlextTypes.JsonDict = {
@@ -163,7 +163,7 @@ class FlextCliDebug(FlextCliServiceBase):
                 ),
             )
 
-    def execute_trace(self, args: list[str]) -> FlextResult[FlextTypes.JsonDict]:
+    def execute_trace(self, args: list[str]) -> FlextResult[FlextTypes.JsonDict]:  # noqa: PLR6301
         """Execute trace operation with provided arguments."""
         try:
             trace_info: FlextTypes.JsonDict = {
@@ -185,7 +185,7 @@ class FlextCliDebug(FlextCliServiceBase):
         """Get comprehensive debug information."""
         try:
             system_info_model = self._get_system_info()
-            system_info_dict = self._convert_model_to_dict(system_info_model)
+            system_info_dict = FlextCliDebug._convert_model_to_dict(system_info_model)
             # Convert system_info_dict to CliJsonValue - already CliDataDict
             system_info_json: dict[str, FlextTypes.GeneralValueType] = {
                 key: val
@@ -213,7 +213,7 @@ class FlextCliDebug(FlextCliServiceBase):
         """Get system information - public API method."""
         try:
             info_model = self._get_system_info()
-            info_dict: FlextTypes.JsonDict = self._convert_model_to_dict(info_model)
+            info_dict: FlextTypes.JsonDict = FlextCliDebug._convert_model_to_dict(info_model)
             return FlextResult[FlextTypes.JsonDict].ok(info_dict)
         except Exception as e:
             return FlextResult[FlextTypes.JsonDict].fail(
@@ -229,7 +229,7 @@ class FlextCliDebug(FlextCliServiceBase):
             # Convert each PathInfo model to dict
             serialized_paths: list[FlextTypes.GeneralValueType] = []
             for path_info in paths_data:
-                path_dict = self._convert_model_to_dict(path_info)
+                path_dict = FlextCliDebug._convert_model_to_dict(path_info)
                 # path_dict is already CliDataDict (dict[str, CliJsonValue])
                 # dict is part of CliJsonValue union, so it's compatible
                 path_json_dict: dict[str, FlextTypes.GeneralValueType] = {
@@ -255,7 +255,7 @@ class FlextCliDebug(FlextCliServiceBase):
     ) -> FlextResult[FlextTypes.JsonDict]:
         """Get comprehensive debug information combining all debug methods."""
         try:
-            comprehensive_info: FlextTypes.JsonDict = {}
+            comprehensive_info: dict[str, FlextTypes.GeneralValueType] = {}
 
             # Collect all info using generalized helper
             self._collect_info_safely(
@@ -291,7 +291,7 @@ class FlextCliDebug(FlextCliServiceBase):
     # PRIVATE HELPER METHODS - Implementation details
     # =========================================================================
 
-    def _get_system_info(self) -> FlextCliModels.SystemInfo:
+    def _get_system_info(self) -> FlextCliModels.SystemInfo:  # noqa: PLR6301
         """Get basic system information as Pydantic model."""
         arch_tuple = platform.architecture()
         return FlextCliModels.SystemInfo(
@@ -302,7 +302,7 @@ class FlextCliDebug(FlextCliServiceBase):
             hostname=platform.node(),
         )
 
-    def _get_environment_info(self) -> FlextCliModels.EnvironmentInfo:
+    def _get_environment_info(self) -> FlextCliModels.EnvironmentInfo:  # noqa: PLR6301
         """Get environment variables with sensitive data masked as Pydantic model."""
         env_info: dict[str, str] = {}
 
@@ -317,7 +317,7 @@ class FlextCliDebug(FlextCliServiceBase):
 
         return FlextCliModels.EnvironmentInfo(variables=env_info)
 
-    def _get_path_info(self) -> list[FlextCliModels.PathInfo]:
+    def _get_path_info(self) -> list[FlextCliModels.PathInfo]:  # noqa: PLR6301
         """Get system path information as list of Pydantic models."""
         paths: list[FlextCliModels.PathInfo] = []
         for i, path in enumerate(sys.path):
@@ -334,7 +334,7 @@ class FlextCliDebug(FlextCliServiceBase):
 
         return paths
 
-    def _validate_filesystem_permissions(self) -> list[str]:
+    def _validate_filesystem_permissions(self) -> list[str]:  # noqa: PLR6301
         """Validate filesystem permissions and setup."""
         errors = []
 

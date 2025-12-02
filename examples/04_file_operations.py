@@ -272,7 +272,9 @@ def validate_and_import_data(input_file: Path) -> FlextCliTypes.Data.CliDataDict
         return None
 
     # Convert to JsonDict-compatible dict using FlextUtilities
-    json_data: FlextTypes.JsonDict = FlextUtilities.DataMapper.convert_dict_to_json(data)
+    json_data: FlextTypes.JsonDict = FlextUtilities.DataMapper.convert_dict_to_json(
+        data
+    )
     validated = validate_structure(json_data)
 
     if validated.is_failure:
@@ -384,7 +386,9 @@ def import_from_csv(input_file: Path) -> list[dict[str, str]] | None:
         # Create table config for grid format
         config = FlextCliModels.TableConfig(table_format="grid")
         # Convert to JsonDict-compatible format using FlextUtilities
-        tabular_data: FlextCliTypes.Data.TabularData = FlextUtilities.DataMapper.convert_list_to_json(sample_rows)
+        tabular_data: FlextCliTypes.Data.TabularData = (
+            FlextUtilities.DataMapper.convert_list_to_json(sample_rows)
+        )
         table_result = tables.create_table(tabular_data, config=config)
         if table_result.is_success:
             cli.print("\n📋 Sample Data:", style="yellow")
@@ -468,7 +472,9 @@ def load_config_auto_detect(config_file: Path) -> dict[str, object] | None:
     # Display loaded data
     if isinstance(data, dict):
         # Convert to JsonDict-compatible dict using FlextUtilities
-        display_data: FlextCliTypes.Data.CliDataDict = FlextUtilities.DataMapper.convert_dict_to_json(data)
+        display_data: FlextCliTypes.Data.CliDataDict = (
+            FlextUtilities.DataMapper.convert_dict_to_json(data)
+        )
         table_result = cli.create_table(
             data=display_data,
             headers=["Key", "Value"],

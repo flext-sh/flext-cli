@@ -540,7 +540,11 @@ class FlextCliFileTools:
             if isinstance(value, Mapping):
                 # Convert Mapping values: tuple[str, ...] -> list[str], str -> [str]
                 formats_dict[key] = {
-                    k: list(v) if isinstance(v, tuple) else [v] if isinstance(v, str) else []
+                    k: list(v)
+                    if isinstance(v, tuple)
+                    else [v]
+                    if isinstance(v, str)
+                    else []
                     for k, v in value.items()
                 }
             # Note: else branch is unreachable as FILE_FORMATS is always Mapping,

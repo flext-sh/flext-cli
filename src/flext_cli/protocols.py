@@ -77,7 +77,7 @@ class FlextCliProtocols(FlextProtocols):
                 """Context manager enter."""
                 ...
 
-            def __exit__(self, *args: FlextTypes.GeneralValueType) -> None:
+            def __exit__(self, *args: object) -> None:
                 """Context manager exit."""
                 ...
 
@@ -100,7 +100,7 @@ class FlextCliProtocols(FlextProtocols):
 
             def execute(
                 self, args: Sequence[str]
-            ) -> "FlextProtocols.ResultProtocol[FlextTypes.GeneralValueType]":
+            ) -> FlextProtocols.ResultProtocol[FlextTypes.GeneralValueType]:
                 """Execute command with arguments."""
                 ...
 
@@ -173,7 +173,7 @@ class FlextCliProtocols(FlextProtocols):
                 self,
                 model: FlextTypes.GeneralValueType,
                 **kwargs: FlextTypes.GeneralValueType,
-            ) -> "FlextProtocols.ResultProtocol[FlextTypes.GeneralValueType]":
+            ) -> FlextProtocols.ResultProtocol[FlextTypes.GeneralValueType]:
                 """Handle model command."""
                 ...
 

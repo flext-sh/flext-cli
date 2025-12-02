@@ -102,7 +102,8 @@ def import_from_csv(input_file: Path) -> list[FlextCliTypes.Data.CliDataDict] | 
         # Convert to JsonDict-compatible format using FlextUtilities
         sample_rows_raw = rows[:5]
         sample_rows: list[FlextCliTypes.Data.CliDataDict] = [
-            FlextUtilities.DataMapper.convert_dict_to_json(row) for row in sample_rows_raw
+            FlextUtilities.DataMapper.convert_dict_to_json(row)
+            for row in sample_rows_raw
         ]
         # Cast to expected type for table creation
         config = FlextCliModels.TableConfig(table_format="grid")
@@ -213,7 +214,9 @@ def load_any_format_file(file_path: Path) -> FlextCliTypes.Data.CliDataDict | No
 
     # Display loaded data
     # Convert to JsonDict-compatible dict using FlextUtilities
-    display_data: FlextCliTypes.Data.CliDataDict = FlextUtilities.DataMapper.convert_dict_to_json(data)
+    display_data: FlextCliTypes.Data.CliDataDict = (
+        FlextUtilities.DataMapper.convert_dict_to_json(data)
+    )
     table_result = cli.create_table(
         data=display_data,
         headers=["Key", "Value"],

@@ -58,7 +58,9 @@ def handle_status_command() -> FlextResult[FlextCliTypes.Data.CliDataDict]:
     cli.formatters.print(f"   Time: {status['timestamp']}", style="cyan")
 
     # Convert to JsonDict-compatible dict using FlextUtilities
-    typed_status: FlextCliTypes.Data.CliDataDict = FlextUtilities.DataMapper.convert_dict_to_json(status)
+    typed_status: FlextCliTypes.Data.CliDataDict = (
+        FlextUtilities.DataMapper.convert_dict_to_json(status)
+    )
     return FlextResult[FlextCliTypes.Data.CliDataDict].ok(typed_status)
 
 

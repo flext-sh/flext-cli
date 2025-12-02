@@ -77,7 +77,7 @@ class FlextCliTables(FlextCliServiceBase):
         """Initialize Tabulate tables layer with Phase 1 context enrichment."""
         super().__init__()
 
-    def execute(
+    def execute(  # noqa: PLR6301
         self, **_kwargs: FlextTypes.JsonDict
     ) -> FlextResult[FlextTypes.JsonDict]:
         """Execute the main domain service operation - required by FlextService.
@@ -161,8 +161,8 @@ class FlextCliTables(FlextCliServiceBase):
         headers = headers_result.unwrap()
         return self._create_table_string(data, cfg, headers)
 
+    @staticmethod
     def _validate_table_data(
-        self,
         data: TableData,
         table_format: str,
     ) -> FlextResult[bool]:
@@ -187,8 +187,8 @@ class FlextCliTables(FlextCliServiceBase):
 
         return FlextResult[bool].ok(True)
 
+    @staticmethod
     def _prepare_headers(
-        self,
         data: TableData,
         headers: str | Sequence[str],
     ) -> FlextResult[str | Sequence[str]]:
@@ -472,7 +472,8 @@ class FlextCliTables(FlextCliServiceBase):
     # UTILITY METHODS
     # =========================================================================
 
-    def list_formats(self) -> list[str]:
+    @staticmethod
+    def list_formats() -> list[str]:
         """List all available table formats.
 
         Returns:
@@ -481,7 +482,8 @@ class FlextCliTables(FlextCliServiceBase):
         """
         return list(FlextCliConstants.TABLE_FORMATS.keys())
 
-    def get_format_description(self, format_name: str) -> FlextResult[str]:
+    @staticmethod
+    def get_format_description(format_name: str) -> FlextResult[str]:
         """Get description of a table format.
 
         Args:

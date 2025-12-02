@@ -462,7 +462,7 @@ class TestFlextCliCmd:
         ("scenario", "expected_error_keyword"),
         [
             (ConfigErrorScenario.FILE_NOT_FOUND, "not found"),
-            (ConfigErrorScenario.INVALID_JSON, "invalid"),
+            (ConfigErrorScenario.INVALID_JSON, "expecting value"),
             (ConfigErrorScenario.NOT_DICT, "not a valid dictionary"),
             (ConfigErrorScenario.MISSING_KEY, "not found"),
         ],

@@ -158,7 +158,8 @@ class FlextCli:
     # PRIVATE HELPERS - Generalize common patterns
     # =========================================================================
 
-    def _validate_token_string(self, token: str) -> FlextResult[bool]:
+    @staticmethod
+    def _validate_token_string(token: str) -> FlextResult[bool]:
         """Generalized token validation helper."""
         if not isinstance(token, str) or not token.strip():
             return FlextResult[bool].fail(
@@ -192,7 +193,7 @@ class FlextCli:
     ) -> FlextResult[str]:
         """Authenticate using token."""
         token = str(credentials[FlextCliConstants.DictKeys.TOKEN])
-        validation = self._validate_token_string(token)
+        validation = FlextCli._validate_token_string(token)
         if validation.is_failure:
             return FlextResult[str].fail(validation.error or "")
 
@@ -221,7 +222,8 @@ class FlextCli:
         self._valid_tokens.add(token)
         return FlextResult[str].ok(token)
 
-    def validate_credentials(self, username: str, password: str) -> FlextResult[bool]:
+    @staticmethod
+    def validate_credentials(username: str, password: str) -> FlextResult[bool]:
         """Validate credentials using Pydantic 2."""
         try:
             FlextCliModels.PasswordAuth(username=username, password=password)
@@ -231,7 +233,7 @@ class FlextCli:
 
     def save_auth_token(self, token: str) -> FlextResult[bool]:
         """Save authentication token using file tools domain library."""
-        validation = self._validate_token_string(token)
+        validation = FlextCli._validate_token_string(token)
         if validation.is_failure:
             return validation
 
@@ -263,17 +265,14 @@ class FlextCli:
         if result.is_failure:
             error_str = str(result.error)
             error_lower = error_str.lower()
-            if (
-                FlextCliConstants.APIDefaults.FILE_ERROR_INDICATOR in error_lower
-                or any(
-                    pattern in error_lower
-                    for pattern in [
-                        "not found",
-                        "no such file",
-                        "does not exist",
-                        "errno 2",
-                    ]
-                )
+            if FlextCliConstants.APIDefaults.FILE_ERROR_INDICATOR in error_lower or any(
+                pattern in error_lower
+                for pattern in [
+                    "not found",
+                    "no such file",
+                    "does not exist",
+                    "errno 2",
+                ]
             ):
                 return FlextResult[str].fail(
                     FlextCliConstants.ErrorMessages.TOKEN_FILE_NOT_FOUND,
@@ -295,17 +294,14 @@ class FlextCli:
             return FlextResult[str].ok(token_data.token)
         except Exception as e:
             error_str = str(e).lower()
+            # Determine error type based on error message content
             if "dict" in error_str or "mapping" in error_str or "object" in error_str:
-                return FlextResult[str].fail(
-                    FlextCliConstants.APIDefaults.TOKEN_DATA_TYPE_ERROR,
-                )
-            if "string" in error_str or "str" in error_str:
-                return FlextResult[str].fail(
-                    FlextCliConstants.APIDefaults.TOKEN_VALUE_TYPE_ERROR,
-                )
-            return FlextResult[str].fail(
-                FlextCliConstants.ErrorMessages.TOKEN_FILE_EMPTY,
-            )
+                error_msg = FlextCliConstants.APIDefaults.TOKEN_DATA_TYPE_ERROR
+            elif "string" in error_str or "str" in error_str:
+                error_msg = FlextCliConstants.APIDefaults.TOKEN_VALUE_TYPE_ERROR
+            else:
+                error_msg = FlextCliConstants.ErrorMessages.TOKEN_FILE_EMPTY
+            return FlextResult[str].fail(error_msg)
 
     def is_authenticated(self) -> bool:
         """Check if user is authenticated."""
@@ -321,17 +317,14 @@ class FlextCli:
 
         # Check if either deletion failed (but don't fail if file doesn't exist)
         error_str_token = str(delete_token_result.error).lower()
-        if (
-            delete_token_result.is_failure
-            and not any(
-                pattern in error_str_token
-                for pattern in [
-                    "not found",
-                    "no such file",
-                    "does not exist",
-                    "errno 2",
-                ]
-            )
+        if delete_token_result.is_failure and not any(
+            pattern in error_str_token
+            for pattern in [
+                "not found",
+                "no such file",
+                "does not exist",
+                "errno 2",
+            ]
         ):
             return FlextResult[bool].fail(
                 FlextCliConstants.ErrorMessages.FAILED_CLEAR_CREDENTIALS.format(
@@ -340,17 +333,14 @@ class FlextCli:
             )
 
         error_str_refresh = str(delete_refresh_result.error).lower()
-        if (
-            delete_refresh_result.is_failure
-            and not any(
-                pattern in error_str_refresh
-                for pattern in [
-                    "not found",
-                    "no such file",
-                    "does not exist",
-                    "errno 2",
-                ]
-            )
+        if delete_refresh_result.is_failure and not any(
+            pattern in error_str_refresh
+            for pattern in [
+                "not found",
+                "no such file",
+                "does not exist",
+                "errno 2",
+            ]
         ):
             return FlextResult[bool].fail(
                 FlextCliConstants.ErrorMessages.FAILED_CLEAR_CREDENTIALS.format(
@@ -403,10 +393,15 @@ class FlextCli:
     def command(
         self,
         name: str | None = None,
-    ) -> Callable[[FlextCliProtocols.Cli.CliCommandFunction], FlextCliProtocols.Cli.CliRegisteredCommand]:
+    ) -> Callable[
+        [FlextCliProtocols.Cli.CliCommandFunction],
+        FlextCliProtocols.Cli.CliRegisteredCommand,
+    ]:
         """Register a command using CLI framework abstraction."""
 
-        def decorator(func: FlextCliProtocols.Cli.CliCommandFunction) -> FlextCliProtocols.Cli.CliRegisteredCommand:
+        def decorator(
+            func: FlextCliProtocols.Cli.CliCommandFunction,
+        ) -> FlextCliProtocols.Cli.CliRegisteredCommand:
             return self._register_cli_entity("command", name, func)
 
         return decorator
@@ -414,15 +409,21 @@ class FlextCli:
     def group(
         self,
         name: str | None = None,
-    ) -> Callable[[FlextCliProtocols.Cli.CliCommandFunction], FlextCliProtocols.Cli.CliRegisteredCommand]:
+    ) -> Callable[
+        [FlextCliProtocols.Cli.CliCommandFunction],
+        FlextCliProtocols.Cli.CliRegisteredCommand,
+    ]:
         """Register a command group using CLI framework abstraction."""
 
-        def decorator(func: FlextCliProtocols.Cli.CliCommandFunction) -> FlextCliProtocols.Cli.CliRegisteredCommand:
+        def decorator(
+            func: FlextCliProtocols.Cli.CliCommandFunction,
+        ) -> FlextCliProtocols.Cli.CliRegisteredCommand:
             return self._register_cli_entity("group", name, func)
 
         return decorator
 
-    def execute_cli(self) -> FlextResult[bool]:
+    @staticmethod
+    def execute_cli() -> FlextResult[bool]:
         """Execute the CLI application using framework abstraction."""
         return FlextResult[bool].ok(True)
 
@@ -430,7 +431,7 @@ class FlextCli:
     # EXECUTION
     # =========================================================================
 
-    def execute(self) -> FlextResult[FlextTypes.JsonDict]:
+    def execute(self) -> FlextResult[FlextTypes.JsonDict]:  # noqa: PLR6301
         """Execute CLI service with railway pattern."""
         # Build JsonDict - convert version to string, components as dict
         result_dict: FlextTypes.JsonDict = {
@@ -480,9 +481,7 @@ class FlextCli:
             table_data = FlextUtilities.DataMapper.convert_dict_to_json(data)
         else:
             # Handle all Sequence types (list, tuple, or other sequences)
-            converted_list = FlextUtilities.DataMapper.convert_list_to_json(
-                list(data)
-            )
+            converted_list = FlextUtilities.DataMapper.convert_list_to_json(list(data))
             table_data = converted_list
 
         return self.output.format_data(
@@ -511,9 +510,13 @@ class FlextCli:
             # Type narrowing: unwrap returns RichTreeProtocol-compatible type
             tree_value = result.unwrap()
             if isinstance(tree_value, FlextCliProtocols.Display.RichTreeProtocol):
-                return FlextResult[FlextCliProtocols.Display.RichTreeProtocol].ok(tree_value)
+                return FlextResult[FlextCliProtocols.Display.RichTreeProtocol].ok(
+                    tree_value
+                )
             # Fallback: return as-is (formatters already returns correct type)
-            return FlextResult[FlextCliProtocols.Display.RichTreeProtocol].ok(tree_value)  # type: ignore[arg-type]
+            return FlextResult[FlextCliProtocols.Display.RichTreeProtocol].ok(
+                tree_value
+            )  # type: ignore[arg-type]
         # Result is already FlextResult[RichTreeProtocol] from formatters
         return result
 
@@ -552,7 +555,9 @@ class FlextCliAppBase(ABC):
         )
 
         # Convert FlextCliConfig to CliConfigSchema (JsonDict) for create_app_with_common_params
-        config_dict = FlextUtilities.DataMapper.convert_dict_to_json(self._config.model_dump())
+        config_dict = FlextUtilities.DataMapper.convert_dict_to_json(
+            self._config.model_dump()
+        )
         self._app = self._cli.create_app_with_common_params(
             name=self.app_name,
             help_text=self.app_help,
@@ -563,14 +568,15 @@ class FlextCliAppBase(ABC):
         try:
             self._register_commands()
         except NameError as ne:
-            self._handle_pathlib_annotation_error(ne)
+            FlextCli._handle_pathlib_annotation_error(ne)
 
     @abstractmethod
     def _register_commands(self) -> None:
         """Register CLI commands - implement in subclass."""
         ...
 
-    def _handle_pathlib_annotation_error(self, ne: NameError) -> None:
+    @staticmethod
+    def _handle_pathlib_annotation_error(ne: NameError) -> None:
         """Handle Typer annotation issues with pathlib.Path in Python <3.10."""
         if "pathlib" in str(ne):
             FlextLogger.get_logger().warning(
@@ -581,7 +587,8 @@ class FlextCliAppBase(ABC):
         else:
             raise ne
 
-    def _resolve_cli_args(self, args: list[str] | None) -> list[str]:
+    @staticmethod
+    def _resolve_cli_args(args: list[str] | None) -> list[str]:
         """Resolve CLI arguments based on environment."""
         if args is None:
             if os.getenv("PYTEST_CURRENT_TEST"):
@@ -589,11 +596,59 @@ class FlextCliAppBase(ABC):
             return sys.argv[1:] if len(sys.argv) > 1 else []
         return args
 
+    def _process_workflow_step(
+        self,
+        step_result: FlextResult[FlextCliModels.WorkflowStepResult],
+        step_name: str,
+        step_duration: float,
+        step_idx: int,
+    ) -> tuple[FlextTypes.JsonDict, bool]:
+        """Process a single workflow step result.
+
+        Returns:
+            Tuple of (step_dict, is_success)
+        """
+        if step_result.is_success:
+            step_data_raw = step_result.unwrap()
+            if isinstance(step_data_raw, dict):
+                step_data = FlextCliModels.WorkflowStepResult.model_validate(
+                    step_data_raw
+                )
+            else:
+                step_data = step_data_raw
+            step_data = step_data.model_copy(update={"duration": step_duration})
+            step_dict = FlextUtilities.DataMapper.convert_dict_to_json(
+                step_data.model_dump()
+            )
+            self.logger.info(
+                "Step completed successfully",
+                step=step_name,
+                step_index=step_idx + 1,
+                duration_seconds=f"{step_duration:.2f}s",
+            )
+            return step_dict, True
+        else:
+            failed_step = FlextCliModels.WorkflowStepResult(
+                step_name=step_name,
+                success=False,
+                message=str(step_result.error),
+                duration=step_duration,
+            )
+            step_dict = FlextUtilities.DataMapper.convert_dict_to_json(
+                failed_step.model_dump()
+            )
+            self.logger.error(
+                "Step failed",
+                step=step_name,
+                step_index=step_idx + 1,
+                error=str(step_result.error),
+                duration_seconds=f"{step_duration:.2f}s",
+            )
+            return step_dict, False
+
     def orchestrate_workflow(
         self,
-        steps: Sequence[
-            Callable[[], FlextResult[FlextCliModels.WorkflowStepResult]]
-        ],
+        steps: Sequence[Callable[[], FlextResult[FlextCliModels.WorkflowStepResult]]],
         *,
         step_names: Sequence[str] | None = None,
         continue_on_failure: bool = False,
@@ -679,53 +734,25 @@ class FlextCliAppBase(ABC):
             step_result = step_func()
             step_duration = (datetime.now(UTC) - step_start_time).total_seconds()
 
-            if step_result.is_success:
+            # Process the step using helper method
+            step_dict, is_success = self._process_workflow_step(
+                step_result, step_name, step_duration, step_idx
+            )
+            step_results.append(step_dict)
+
+            if is_success:
                 successful_steps += 1
-                step_data_raw = step_result.unwrap()
-                # step_result.unwrap() returns WorkflowStepResult (Pydantic model)
-                # Convert to WorkflowStepResult model if it's a dict, otherwise use as-is
-                if isinstance(step_data_raw, dict):
-                    step_data = FlextCliModels.WorkflowStepResult.model_validate(step_data_raw)
-                else:
-                    step_data = step_data_raw
-                # WorkflowStepResult uses 'duration' not 'duration_seconds'
-                step_data = step_data.model_copy(update={"duration": step_duration})
-                # Convert WorkflowStepResult to JsonDict for WorkflowResult.step_results
-                step_dict = FlextUtilities.DataMapper.convert_dict_to_json(step_data.model_dump())
-                step_results.append(step_dict)
-                self.logger.info(
-                    "Step completed successfully",
-                    step=step_name,
-                    step_index=step_idx + 1,
-                    duration_seconds=f"{step_duration:.2f}s",
-                )
             else:
                 failed_steps += 1
-                # Create failed step result
-                failed_step = FlextCliModels.WorkflowStepResult(
-                    step_name=step_name,
-                    success=False,
-                    message=str(step_result.error),
-                    duration=step_duration,
-                )
-                # Convert WorkflowStepResult to JsonDict for WorkflowResult.step_results
-                failed_step_dict = FlextUtilities.DataMapper.convert_dict_to_json(failed_step.model_dump())
-                step_results.append(failed_step_dict)
-                self.logger.error(
-                    "Step failed",
-                    step=step_name,
-                    step_index=step_idx + 1,
-                    error=str(step_result.error),
-                    duration_seconds=f"{step_duration:.2f}s",
-                )
-
                 if not continue_on_failure:
                     break
 
             # Progress callback
             if progress_callback:
                 # Calculate percentage
-                percentage = ((step_idx + 1) / total_steps * 100.0) if total_steps > 0 else 0.0
+                percentage = (
+                    ((step_idx + 1) / total_steps * 100.0) if total_steps > 0 else 0.0
+                )
                 progress = FlextCliModels.WorkflowProgress(
                     current_step=step_idx + 1,
                     total_steps=total_steps,
@@ -773,7 +800,7 @@ class FlextCliAppBase(ABC):
             if frame and "pathlib" not in frame.f_globals:
                 frame.f_globals["pathlib"] = pathlib
 
-            resolved_args = self._resolve_cli_args(args)
+            resolved_args = FlextCli._resolve_cli_args(args)
             self._app(args=resolved_args, standalone_mode=False)
             return FlextResult[bool].ok(True)
         except NameError as e:

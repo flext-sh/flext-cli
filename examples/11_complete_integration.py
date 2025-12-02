@@ -96,7 +96,9 @@ class DataManagerCLI:
             )
         self.cli.output.print_message("✅ Data loaded successfully", style="green")
         # Convert to JsonDict-compatible dict using FlextUtilities
-        converted_data: FlextCliTypes.Data.CliDataDict = FlextUtilities.DataMapper.convert_dict_to_json(data)
+        converted_data: FlextCliTypes.Data.CliDataDict = (
+            FlextUtilities.DataMapper.convert_dict_to_json(data)
+        )
         return FlextResult[FlextCliTypes.Data.CliDataDict].ok(converted_data)
 
     def display_data(self, data: FlextCliTypes.Data.CliDataDict) -> None:
@@ -141,7 +143,9 @@ class DataManagerCLI:
             f"✅ Created entry: {key} = {value}", style="green"
         )
         # Convert to JsonDict-compatible dict using FlextUtilities
-        converted_entry: FlextCliTypes.Data.CliDataDict = FlextUtilities.DataMapper.convert_dict_to_json(entry)
+        converted_entry: FlextCliTypes.Data.CliDataDict = (
+            FlextUtilities.DataMapper.convert_dict_to_json(entry)
+        )
         return FlextResult[FlextCliTypes.Data.CliDataDict].ok(converted_entry)
 
     def run_workflow(self) -> FlextResult[bool]:
@@ -254,7 +258,9 @@ def main() -> None:
     )
     test_data_raw = {"id": 1, "name": "test"}
     # Convert to JsonDict-compatible dict using FlextUtilities
-    test_data: FlextCliTypes.Data.CliDataDict = FlextUtilities.DataMapper.convert_dict_to_json(test_data_raw)
+    test_data: FlextCliTypes.Data.CliDataDict = (
+        FlextUtilities.DataMapper.convert_dict_to_json(test_data_raw)
+    )
     pipeline_result = process_with_railway_pattern(test_data)
 
     if pipeline_result.is_success:

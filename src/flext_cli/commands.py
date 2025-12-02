@@ -39,7 +39,14 @@ class FlextCliCommands(FlextCliServiceBase):
             self,
             name: str,
             description: str,
-            commands: dict[str, dict[str, FlextTypes.GeneralValueType | FlextCliProtocols.Cli.CliCommandHandler]],
+            commands: dict[
+                str,
+                dict[
+                    str,
+                    FlextTypes.GeneralValueType
+                    | FlextCliProtocols.Cli.CliCommandHandler,
+                ],
+            ],
         ) -> None:
             """Initialize CLI group."""
             self.name = name
@@ -49,7 +56,12 @@ class FlextCliCommands(FlextCliServiceBase):
     # Private attributes for frozen model - use PrivateAttr for mutability
     _name: str = PrivateAttr()
     _description: str = PrivateAttr()
-    _commands: dict[str, dict[str, FlextTypes.GeneralValueType | FlextCliProtocols.Cli.CliCommandHandler]] = PrivateAttr(default_factory=dict)
+    _commands: dict[
+        str,
+        dict[
+            str, FlextTypes.GeneralValueType | FlextCliProtocols.Cli.CliCommandHandler
+        ],
+    ] = PrivateAttr(default_factory=dict)
     _cli_group: _CliGroup = PrivateAttr()
 
     @override
@@ -67,7 +79,13 @@ class FlextCliCommands(FlextCliServiceBase):
         object.__setattr__(self, "_description", description)
         # Commands store handler callables - use dict[str, dict] for mutability
         # Handler is CliCommandHandler Protocol, but name/description are GeneralValueType (str)
-        empty_commands: dict[str, dict[str, FlextTypes.GeneralValueType | FlextCliProtocols.Cli.CliCommandHandler]] = {}
+        empty_commands: dict[
+            str,
+            dict[
+                str,
+                FlextTypes.GeneralValueType | FlextCliProtocols.Cli.CliCommandHandler,
+            ],
+        ] = {}
         object.__setattr__(
             self,
             "_cli_group",
@@ -155,14 +173,24 @@ class FlextCliCommands(FlextCliServiceBase):
         try:
             # Store command metadata - handler is CliCommandFunction Protocol
             # Use type ignore for Protocol in dict (structural typing allows this)
-            command_metadata: dict[str, FlextTypes.GeneralValueType | FlextCliProtocols.Cli.CliCommandHandler] = {
+            command_metadata: dict[
+                str,
+                FlextTypes.GeneralValueType | FlextCliProtocols.Cli.CliCommandHandler,
+            ] = {
                 FlextCliConstants.CommandsDictKeys.NAME: name,
                 FlextCliConstants.CommandsDictKeys.HANDLER: handler,
                 FlextCliConstants.CommandsDictKeys.DESCRIPTION: description,
             }
             self._commands[name] = command_metadata
             # Update CLI group commands - copy dict for type compatibility
-            updated_commands: dict[str, dict[str, FlextTypes.GeneralValueType | FlextCliProtocols.Cli.CliCommandHandler]] = dict(self._commands)
+            updated_commands: dict[
+                str,
+                dict[
+                    str,
+                    FlextTypes.GeneralValueType
+                    | FlextCliProtocols.Cli.CliCommandHandler,
+                ],
+            ] = dict(self._commands)
             self._cli_group.commands = updated_commands
 
             self.logger.debug(
@@ -255,7 +283,14 @@ class FlextCliCommands(FlextCliServiceBase):
         self,
         name: str,
         description: str = "",
-        commands: dict[str, dict[str, FlextTypes.GeneralValueType | FlextCliProtocols.Cli.CliCommandHandler]] | None = None,
+        commands: dict[
+            str,
+            dict[
+                str,
+                FlextTypes.GeneralValueType | FlextCliProtocols.Cli.CliCommandHandler,
+            ],
+        ]
+        | None = None,
     ) -> FlextResult[FlextCliCommands._CliGroup]:
         """Create a command group.
 
@@ -291,7 +326,14 @@ class FlextCliCommands(FlextCliServiceBase):
                 return FlextResult[FlextCliCommands._CliGroup].fail(
                     FlextCliConstants.ErrorMessages.COMMANDS_REQUIRED,
                 )
-            validated_commands: dict[str, dict[str, FlextTypes.GeneralValueType | FlextCliProtocols.Cli.CliCommandHandler]] = commands
+            validated_commands: dict[
+                str,
+                dict[
+                    str,
+                    FlextTypes.GeneralValueType
+                    | FlextCliProtocols.Cli.CliCommandHandler,
+                ],
+            ] = commands
             group = self._CliGroup(
                 name=name,
                 description=description,
@@ -584,7 +626,9 @@ class FlextCliCommands(FlextCliServiceBase):
             # Structural typing: handler conforms to CliCommandHandler Protocol
             # Type narrowing: handler_value is GeneralValueType | CliCommandHandler
             # Runtime check ensures it's callable (CliCommandHandler)
-            handler_value: FlextTypes.GeneralValueType | FlextCliProtocols.Cli.CliCommandHandler = command_info[FlextCliConstants.CommandsDictKeys.HANDLER]
+            handler_value: (
+                FlextTypes.GeneralValueType | FlextCliProtocols.Cli.CliCommandHandler
+            ) = command_info[FlextCliConstants.CommandsDictKeys.HANDLER]
             # Runtime check: ensure handler is callable (CliCommandHandler Protocol)
             if not isinstance(handler_value, FlextCliProtocols.Cli.CliCommandHandler):
                 # This should never happen if register_command was used correctly
@@ -643,7 +687,14 @@ class FlextCliCommands(FlextCliServiceBase):
                 ),
             )
 
-    def get_commands(self) -> dict[str, Mapping[str, FlextTypes.GeneralValueType | FlextCliProtocols.Cli.CliCommandHandler]]:
+    def get_commands(
+        self,
+    ) -> dict[
+        str,
+        Mapping[
+            str, FlextTypes.GeneralValueType | FlextCliProtocols.Cli.CliCommandHandler
+        ],
+    ]:
         """Get all registered commands.
 
         Returns:

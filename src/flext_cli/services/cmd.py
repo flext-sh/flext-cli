@@ -44,7 +44,7 @@ class FlextCliCmd(FlextCliServiceBase):
         # Logger is automatically provided by FlextMixins mixin
         self._file_tools = FlextCliFileTools()
 
-    def execute(
+    def execute(  # noqa: PLR6301
         self, **_kwargs: FlextTypes.JsonDict
     ) -> FlextResult[FlextTypes.JsonDict]:
         """Execute command service - required by FlextService.
@@ -58,7 +58,8 @@ class FlextCliCmd(FlextCliServiceBase):
             FlextCliConstants.DictKeys.SERVICE: FlextCliConstants.CmdDefaults.SERVICE_NAME,
         })
 
-    def show_config_paths(self) -> FlextResult[list[str]]:
+    @staticmethod
+    def show_config_paths() -> FlextResult[list[str]]:
         """Show configuration paths using FlextCliUtilities directly."""
         try:
             paths = FlextCliUtilities.ConfigOps.get_config_paths()
@@ -91,7 +92,8 @@ class FlextCliCmd(FlextCliServiceBase):
                 ),
             )
 
-    def get_config_info(self) -> FlextResult[FlextTypes.JsonDict]:
+    @staticmethod
+    def get_config_info() -> FlextResult[FlextTypes.JsonDict]:
         """Get configuration information using FlextCliUtilities directly."""
         try:
             info = FlextCliUtilities.ConfigOps.get_config_info()
@@ -214,7 +216,7 @@ class FlextCliCmd(FlextCliServiceBase):
             path = Path(str(config_path))
 
             if not path.exists():
-                default_config_model = FlextCliModels.CmdConfig()
+                default_config_model = FlextCliModels.CmdConfig(name="default")
                 save_result = self._file_tools.write_json_file(
                     file_path=str(path),
                     data=default_config_model.model_dump(),
@@ -244,15 +246,15 @@ class FlextCliCmd(FlextCliServiceBase):
                 )
 
             config_data = config_model.model_dump()
-            config_info = {
+            config_info_str = str({
                 FlextCliConstants.DictKeys.CONFIG_FILE: str(path),
                 FlextCliConstants.DictKeys.CONFIG_DATA: config_data,
                 FlextCliConstants.DictKeys.MESSAGE: FlextCliConstants.ServiceMessages.CONFIG_LOADED_SUCCESSFULLY,
-            }
+            })
 
             self.logger.info(
                 FlextCliConstants.CmdMessages.CONFIG_EDIT_COMPLETED_LOG,
-                config=config_info,
+                config=config_info_str,
             )
 
             return FlextResult[str].ok(

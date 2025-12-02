@@ -13,9 +13,9 @@ from __future__ import annotations
 import json
 import re
 import tempfile
-from collections.abc import Callable
+from collections.abc import Callable, Mapping, Sequence
 from pathlib import Path
-from typing import ParamSpec, TypeVar
+from typing import ParamSpec, TypeVar, cast
 
 from click import echo
 from flext_core import FlextResult, FlextService, FlextTypes, FlextUtilities
@@ -28,10 +28,9 @@ from flext_cli import (
     FlextCliConstants,
     FlextCliContext,
     FlextCliModels,
+    FlextCliProtocols,
     FlextCliTables,
 )
-from collections.abc import Mapping
-from flext_core import FlextTypes
 
 from .fixtures.constants import (
     TestCli,
@@ -64,7 +63,10 @@ class CommandsFactory:
     ) -> FlextResult[bool]:
         """Register a simple command that returns a constant value."""
         try:
-            commands.register_command(name, lambda: result)
+            handler: FlextCliProtocols.Cli.CliCommandHandler = cast(
+                "FlextCliProtocols.Cli.CliCommandHandler", lambda: result
+            )
+            commands.register_command(name, handler)
             return FlextResult[bool].ok(True)
         except Exception as e:
             return FlextResult[bool].fail(str(e))
@@ -76,10 +78,16 @@ class CommandsFactory:
         """Register a command that accepts and processes args."""
         try:
 
-            def cmd_with_args(args: list[str]) -> str:
-                return f"args: {len(args)}"
+            def cmd_with_args(*args: FlextTypes.GeneralValueType, **kwargs: FlextTypes.GeneralValueType) -> FlextTypes.GeneralValueType:
+                if args and isinstance(args[0], list):
+                    arg_list = args[0]
+                    return f"args: {len(arg_list)}"
+                return "args: 0"
 
-            commands.register_command(name, cmd_with_args)
+            handler: FlextCliProtocols.Cli.CliCommandHandler = cast(
+                "FlextCliProtocols.Cli.CliCommandHandler", cmd_with_args
+            )
+            commands.register_command(name, handler)
             return FlextResult[bool].ok(True)
         except Exception as e:
             return FlextResult[bool].fail(str(e))
@@ -91,11 +99,14 @@ class CommandsFactory:
         """Register a command that raises an exception."""
         try:
 
-            def failing_handler() -> None:
+            def failing_handler(*args: FlextTypes.GeneralValueType, **kwargs: FlextTypes.GeneralValueType) -> FlextTypes.GeneralValueType:
                 msg = "Handler execution error"
                 raise RuntimeError(msg)
 
-            commands.register_command(name, failing_handler)
+            handler: FlextCliProtocols.Cli.CliCommandHandler = cast(
+                "FlextCliProtocols.Cli.CliCommandHandler", failing_handler
+            )
+            commands.register_command(name, handler)
             return FlextResult[bool].ok(True)
         except Exception as e:
             return FlextResult[bool].fail(str(e))
@@ -286,11 +297,14 @@ class FlextCliTestHelpers(FlextService[GenericFieldsDict]):
             try:
                 final_config_class = config_class or FlextCliConfig
 
+                app_name_value = app_name
+                app_help_value = app_help
+
                 class TestCliAppBase(FlextCliAppBase):
                     """Test CLI application base class."""
 
-                    app_name = app_name
-                    app_help = app_help
+                    app_name = app_name_value
+                    app_help = app_help_value
                     config_class = final_config_class
 
                     def _register_commands(self) -> None:
@@ -329,10 +343,15 @@ class FlextCliTestHelpers(FlextService[GenericFieldsDict]):
 
             """
             try:
+                env_vars: dict[str, FlextTypes.GeneralValueType] | None = (
+                    cast("dict[str, FlextTypes.GeneralValueType]", environment_variables)
+                    if environment_variables is not None
+                    else None
+                )
                 context = FlextCliContext(
                     command=command,
                     arguments=arguments,
-                    environment_variables=environment_variables,
+                    environment_variables=env_vars,
                     working_directory=working_directory,
                     **kwargs,
                 )
@@ -398,7 +417,8 @@ class FlextCliTestHelpers(FlextService[GenericFieldsDict]):
                     FlextCliConstants.DictKeys.PASSWORD: final_password,
                     **overrides,
                 }
-                return FlextResult[Mapping[str, str]].ok(creds)
+                creds_str: Mapping[str, str] = cast("Mapping[str, str]", creds)
+                return FlextResult[Mapping[str, str]].ok(creds_str)
             except Exception as e:
                 return FlextResult[Mapping[str, str]].fail(str(e))
 
@@ -425,7 +445,8 @@ class FlextCliTestHelpers(FlextService[GenericFieldsDict]):
                     "token": token_value,
                     **overrides,
                 }
-                return FlextResult[Mapping[str, str]].ok(data)
+                data_str: Mapping[str, str] = cast("Mapping[str, str]", data)
+                return FlextResult[Mapping[str, str]].ok(data_str)
             except Exception as e:
                 return FlextResult[Mapping[str, str]].fail(str(e))
 
@@ -612,7 +633,11 @@ class FlextCliTestHelpers(FlextService[GenericFieldsDict]):
             try:
                 data = TestTypings.TestData.Processing.MIXED_DICT
                 # Convert to JsonDict-compatible dict using FlextUtilities
-                converted_data: GenericFieldsDict = FlextUtilities.DataMapper.convert_dict_to_json(data)
+                data_converted: dict[str, FlextTypes.GeneralValueType] = cast(
+                    "dict[str, FlextTypes.GeneralValueType]", data
+                )
+                converted_data_raw = FlextUtilities.DataMapper.convert_dict_to_json(data_converted)
+                converted_data: GenericFieldsDict = cast("GenericFieldsDict", converted_data_raw)
                 return FlextResult[GenericFieldsDict].ok(converted_data)
             except Exception as e:
                 return FlextResult[GenericFieldsDict].fail(str(e))
@@ -643,7 +668,11 @@ class FlextCliTestHelpers(FlextService[GenericFieldsDict]):
                     "error": TestTypings.TypedDicts.ApiResponse.ERROR,
                 }
                 # Convert to JsonDict-compatible dict using FlextUtilities
-                data: GenericFieldsDict = FlextUtilities.DataMapper.convert_dict_to_json(raw_data)
+                raw_data_converted: dict[str, FlextTypes.GeneralValueType] = cast(
+                    "dict[str, FlextTypes.GeneralValueType]", raw_data
+                )
+                data_raw = FlextUtilities.DataMapper.convert_dict_to_json(raw_data_converted)
+                data: GenericFieldsDict = cast("GenericFieldsDict", data_raw)
                 return FlextResult[GenericFieldsDict].ok(data)
             except Exception as e:
                 return FlextResult[GenericFieldsDict].fail(str(e))
@@ -660,9 +689,12 @@ class FlextCliTestHelpers(FlextService[GenericFieldsDict]):
             """
             try:
                 # Convert mixed dict to JsonDict-compatible dict using FlextUtilities
-                mixed_dict: GenericFieldsDict = FlextUtilities.DataMapper.convert_dict_to_json(
-                    TestTypings.TestData.Processing.MIXED_DICT
+                mixed_dict_input: dict[str, FlextTypes.GeneralValueType] = cast(
+                    "dict[str, FlextTypes.GeneralValueType]",
+                    TestTypings.TestData.Processing.MIXED_DICT,
                 )
+                mixed_dict_raw = FlextUtilities.DataMapper.convert_dict_to_json(mixed_dict_input)
+                mixed_dict: GenericFieldsDict = cast("GenericFieldsDict", mixed_dict_raw)
                 data = (
                     TestTypings.TestData.Processing.STRING_LIST,
                     TestTypings.TestData.Processing.NUMBER_LIST,
@@ -719,7 +751,14 @@ class FlextCliTestHelpers(FlextService[GenericFieldsDict]):
 
                     def load_config(self) -> FlextResult[GenericFieldsDict]:
                         # Convert to JsonDict-compatible dict using FlextUtilities
-                        config_copy: GenericFieldsDict = FlextUtilities.DataMapper.convert_dict_to_json(self._config.copy())
+                        config_copy_raw = self._config.copy()
+                        config_copy_converted: dict[str, FlextTypes.GeneralValueType] = cast(
+                            "dict[str, FlextTypes.GeneralValueType]", config_copy_raw
+                        )
+                        config_copy: GenericFieldsDict = cast(
+                            "GenericFieldsDict",
+                            FlextUtilities.DataMapper.convert_dict_to_json(config_copy_converted),
+                        )
                         return FlextResult[GenericFieldsDict].ok(config_copy)
 
                     def save_config(
@@ -749,7 +788,13 @@ class FlextCliTestHelpers(FlextService[GenericFieldsDict]):
                                 "user": username,
                             }
                             # Convert to JsonDict-compatible dict using FlextUtilities
-                            converted_auth: GenericFieldsDict = FlextUtilities.DataMapper.convert_dict_to_json(auth_data)
+                            auth_data_converted: dict[str, FlextTypes.GeneralValueType] = cast(
+                                "dict[str, FlextTypes.GeneralValueType]", auth_data
+                            )
+                            converted_auth: GenericFieldsDict = cast(
+                                "GenericFieldsDict",
+                                FlextUtilities.DataMapper.convert_dict_to_json(auth_data_converted),
+                            )
                             return FlextResult[GenericFieldsDict].ok(converted_auth)
                         return FlextResult[GenericFieldsDict].fail(
                             "Invalid credentials"
@@ -826,8 +871,13 @@ class FlextCliTestHelpers(FlextService[GenericFieldsDict]):
             """Create a command with options."""
             try:
                 command_decorator = cli_cli.create_command_decorator(name=command_name)
+                option_default_converted: FlextTypes.GeneralValueType | None = (
+                    cast("FlextTypes.GeneralValueType", option_default)
+                    if option_default is not None
+                    else None
+                )
                 option_decorator = cli_cli.create_option_decorator(
-                    option_name, default=option_default
+                    option_name, default=option_default_converted
                 )
 
                 @command_decorator
@@ -1038,7 +1088,7 @@ class FlextCliTestHelpers(FlextService[GenericFieldsDict]):
             data: dict[str, FlextTypes.JsonValue] = {
                 "key": "value",
                 "number": 42,
-                "list": [1, 2, 3],
+                "list": cast("FlextTypes.JsonValue", [1, 2, 3]),
             }
             return data
 
@@ -1051,10 +1101,13 @@ class FlextCliTestHelpers(FlextService[GenericFieldsDict]):
 
             """
             # Convert table data to JsonValue-compatible format
-            users_list: list[object] = [
+            users_list_raw: list[object] = [
                 dict(row.items()) for row in TestData.Tables.SIMPLE_DATA
             ]
-            data: dict[str, FlextTypes.JsonValue] = {"users": users_list}
+            users_list: Sequence[FlextTypes.GeneralValueType] = cast(
+                "Sequence[FlextTypes.GeneralValueType]", users_list_raw
+            )
+            data: dict[str, FlextTypes.JsonValue] = {"users": cast("FlextTypes.JsonValue", users_list)}
             return data
 
     class ConstantsFactory:
@@ -1207,14 +1260,11 @@ class FlextCliTestHelpers(FlextService[GenericFieldsDict]):
     # FlextService Protocol Implementation
     # =========================================================================
 
-    def execute(self, **_kwargs: object) -> FlextResult[dict[str, object]]:
+    def execute(self) -> FlextResult[GenericFieldsDict]:
         """Execute testing service.
 
-        Args:
-            **kwargs: Additional execution parameters
-
         Returns:
-            FlextResult[dict[str, object]]: Service execution status
+            FlextResult[GenericFieldsDict]: Service execution status
 
         """
         try:
@@ -1224,10 +1274,14 @@ class FlextCliTestHelpers(FlextService[GenericFieldsDict]):
                 FlextCliConstants.DictKeys.MESSAGE: "Test helpers ready",
             }
             # Convert to JsonDict-compatible dict using FlextUtilities
-            payload_data: dict[str, object] = FlextUtilities.DataMapper.convert_dict_to_json(payload)
-            return FlextResult[dict[str, object]].ok(payload_data)
+            payload_converted: dict[str, FlextTypes.GeneralValueType] = cast(
+                "dict[str, FlextTypes.GeneralValueType]", payload
+            )
+            payload_data_raw = FlextUtilities.DataMapper.convert_dict_to_json(payload_converted)
+            payload_data: GenericFieldsDict = cast("GenericFieldsDict", payload_data_raw)
+            return FlextResult[GenericFieldsDict].ok(payload_data)
         except Exception as e:
-            return FlextResult[dict[str, object]].fail(str(e))
+            return FlextResult[GenericFieldsDict].fail(str(e))
 
     # =========================================================================
     # NESTED HELPER: Tables Testing

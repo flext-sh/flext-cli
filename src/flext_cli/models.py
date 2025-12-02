@@ -12,12 +12,12 @@ from flext_core._models.entity import FlextModelsEntity
 from pydantic import BaseModel, ConfigDict, Field, field_validator
 from pydantic.fields import FieldInfo
 
-# Type alias for Pydantic v2 include/exclude parameters (IncEx was removed in v2)
-IncEx = set[str] | dict[str, int | str | set[str]] | None
-
 from flext_cli.config import FlextCliConfig
 from flext_cli.constants import FlextCliConstants
 from flext_cli.utilities import FlextCliUtilities
+
+# Type alias for Pydantic v2 include/exclude parameters (IncEx was removed in v2)
+IncEx = set[str] | dict[str, int | str | set[str]] | None
 
 
 class FlextCliModels(FlextModels):
@@ -32,7 +32,8 @@ class FlextCliModels(FlextModels):
     5. Self para métodos de transformação
     """
 
-    def execute(self) -> FlextResult[FlextTypes.JsonDict]:
+    @staticmethod
+    def execute() -> FlextResult[FlextTypes.JsonDict]:
         """Execute models operation - returns empty dict for compatibility."""
         return FlextResult[FlextTypes.JsonDict].ok({})
 
@@ -76,9 +77,23 @@ class FlextCliModels(FlextModels):
         )
 
         description: str = Field(
-            ...,
-            min_length=1,
+            default="",
             description="Command description",
+        )
+
+        usage: str = Field(
+            default="",
+            description="Command usage information",
+        )
+
+        entry_point: str = Field(
+            default="",
+            description="Command entry point",
+        )
+
+        plugin_version: str = Field(
+            default="default",
+            description="Plugin version",
         )
 
         args: Sequence[str] = Field(
@@ -198,7 +213,7 @@ class FlextCliModels(FlextModels):
             """Validate session status."""
             if not isinstance(value, str):
                 msg = f"Status must be a string, got {type(value)}"
-                raise ValueError(msg)
+                raise TypeError(msg)
             # Check if status is valid (basic validation)
             valid_statuses = [
                 FlextCliConstants.SessionStatus.ACTIVE.value,
@@ -667,10 +682,10 @@ class FlextCliModels(FlextModels):
                 message=self.message,
             )
 
-        def model_dump(
+        def model_dump(  # noqa: PLR0913
             self,
             *,
-            mode: Literal["json", "python"] | str = "python",
+            mode: str = "python",
             include: IncEx | None = None,
             exclude: IncEx | None = None,
             context: FlextTypes.GeneralValueType | None = None,
@@ -829,6 +844,15 @@ class FlextCliModels(FlextModels):
         prompts_cancelled: int = Field(
             default=0, description="Prompts that were cancelled"
         )
+        interactive_mode: bool = Field(
+            default=False, description="Interactive mode flag"
+        )
+        default_timeout: int = Field(
+            default=30, description="Default timeout in seconds"
+        )
+        timestamp: str = Field(
+            default="", description="Timestamp of statistics collection"
+        )
 
     class CommandStatistics(FlextModelsEntity.Value):
         """Command statistics."""
@@ -894,7 +918,7 @@ class FlextCliModels(FlextModels):
             self.handler = handler
             self.config = config
 
-        def build(self) -> Callable[..., FlextTypes.GeneralValueType]:
+        def build(self) -> Callable[..., FlextTypes.GeneralValueType]:  # noqa: C901, PLR0912, PLR0914
             """Build Typer command from Pydantic model.
 
             Returns:
@@ -1042,14 +1066,14 @@ class FlextCliModels(FlextModels):
             param_type: type,
             click_type: str,
             default: FlextTypes.GeneralValueType | None = None,
-            help: str = "",
+            help_text: str = "",
         ) -> None:
             """Initialize CLI parameter spec."""
             self.field_name = field_name
             self.param_type = param_type
             self.click_type = click_type
             self.default = default
-            self.help = help
+            self.help = help_text
 
         @property
         def name(self) -> str:
@@ -1110,7 +1134,7 @@ class FlextCliModels(FlextModels):
                             param_type=field_type,
                             click_type=click_type_str,
                             default=default,
-                            help=help_text,
+                            help_text=help_text,
                         )
                     )
                 return FlextResult[list["FlextCliModels.CliParameterSpec"]].ok(params)
@@ -1198,7 +1222,7 @@ class FlextCliModels(FlextModels):
                         param_type=field_type,
                         click_type=click_type_str,
                         default=default,
-                        help=help_text,
+                        help_text=help_text,
                     )
                 )
             except Exception as e:
@@ -1221,21 +1245,21 @@ class FlextCliModels(FlextModels):
             origin = get_origin(pydantic_type)
             if origin is not None:
                 # For generic types like list[str], dict[str, str], return the origin (list, dict)
-                if origin in (list, dict):
+                if origin in {list, dict}:
                     return origin
                 args = get_args(pydantic_type)
                 non_none_types = [arg for arg in args if arg is not type(None)]
                 if non_none_types:
                     return non_none_types[0]
             # Check if it's a known simple type
-            if isinstance(pydantic_type, type) and pydantic_type in (
+            if isinstance(pydantic_type, type) and pydantic_type in {
                 str,
                 int,
                 float,
                 bool,
                 list,
                 dict,
-            ):
+            }:
                 return pydantic_type
             # Default to str for complex types
             return str
@@ -1255,13 +1279,13 @@ class FlextCliModels(FlextModels):
             return click_type_map.get(type_name, "STRING")
 
         @staticmethod
-        def extract_field_properties(
+        def extract_field_properties(  # noqa: C901, PLR0912
             field_name: str,
             field_info: FieldInfo | FlextTypes.GeneralValueType,
             types: Mapping[str, type | str] | None = None,
         ) -> FlextResult[dict[str, FlextTypes.GeneralValueType]]:
             """Extract properties from Pydantic field info."""
-            try:
+            try:  # noqa: PLR1702
                 annotation = getattr(field_info, "annotation", None)
                 props: dict[str, FlextTypes.GeneralValueType] = {
                     "field_name": field_name,
@@ -1281,9 +1305,7 @@ class FlextCliModels(FlextModels):
                     elif hasattr(field_info, "__dict__"):
                         metadata_dict_from_attr = getattr(field_info, "__dict__", {})
                         if isinstance(metadata_dict_from_attr, dict):
-                            props.update({
-                                k: v for k, v in metadata_dict_from_attr.items()
-                            })
+                            props.update(dict(metadata_dict_from_attr.items()))
                     # Check for metadata attribute
                     if hasattr(field_info, "metadata"):
                         metadata_attr = getattr(field_info, "metadata", None)
@@ -1322,7 +1344,7 @@ class FlextCliModels(FlextModels):
                 )
 
         @staticmethod
-        def _validate_field_data(
+        def _validate_field_data(  # noqa: C901, PLR0911, PLR0912
             field_name: str,
             field_info: FieldInfo
             | FlextTypes.GeneralValueType
@@ -1445,7 +1467,7 @@ class FlextCliModels(FlextModels):
                 ],
             ) -> Callable[..., FlextTypes.GeneralValueType]:
                 def wrapper(
-                    *args: FlextTypes.GeneralValueType,
+                    *_args: FlextTypes.GeneralValueType,
                     **kwargs: FlextTypes.GeneralValueType,
                 ) -> FlextTypes.GeneralValueType:
                     try:
@@ -1474,7 +1496,7 @@ class FlextCliModels(FlextModels):
                 func: Callable[..., FlextTypes.GeneralValueType],
             ) -> Callable[..., FlextTypes.GeneralValueType]:
                 def wrapper(
-                    *args: FlextTypes.GeneralValueType,
+                    *_args: FlextTypes.GeneralValueType,
                     **kwargs: FlextTypes.GeneralValueType,
                 ) -> FlextTypes.GeneralValueType:
                     try:

@@ -32,7 +32,6 @@ from flext_core import (
     FlextTypes,
     FlextUtilities,
 )
-from pydantic import BaseModel
 from typer.testing import CliRunner
 
 from flext_cli.cli_params import FlextCliCommonParams
@@ -120,8 +119,7 @@ class FlextCliCli:
 
         self.logger.debug(log_msg, extra={extra_key: name, "help": help_text})
         # Click decorators return types that implement CliCommandFunction protocol structurally
-        # Type checker needs help with structural typing - this is correct usage
-        return decorator  # type: ignore[return-value]
+        return decorator
 
     def create_command_decorator(
         self,
@@ -157,7 +155,7 @@ class FlextCliCli:
         self,
         name: str,
         help_text: str,
-        config: FlextTypes.JsonDict | None = None,
+        config: FlextCliConfig | None = None,
         *,
         add_completion: bool = True,
     ) -> typer.Typer:
@@ -257,11 +255,8 @@ class FlextCliCli:
 
             # ✅ FILTER: Only apply params that exist in config
             # Config may not have all common params (e.g., quiet)
-            # Type narrowing: check if config is FlextCliConfig (which extends BaseModel)
-            if not isinstance(config, FlextCliConfig):
-                return
-
-            # Type narrowed: config is FlextCliConfig (which is BaseModel)
+            # Type narrowed: config is FlextCliConfig (parameter type)
+            # FlextCliConfig extends BaseModel, so it has model_fields
             config_fields: set[str] = set(type(config).model_fields.keys())
             filtered_params = {
                 k: v for k, v in active_params.items() if k in config_fields
@@ -347,8 +342,7 @@ class FlextCliCli:
 
         """
         # Click group decorator returns compatible type with CliCommandFunction protocol
-        decorator = self._create_cli_decorator("group", name, help_text)
-        return decorator  # type: ignore[return-value]
+        return self._create_cli_decorator("group", name, help_text)
 
     # =========================================================================
     # PARAMETER DECORATORS (OPTION, ARGUMENT)
@@ -415,7 +409,7 @@ class FlextCliCli:
             extra={"param_decls": param_decls, "required": required},
         )
         # Click option decorator wraps function but preserves CliCommandFunction protocol
-        return decorator  # type: ignore[return-value]
+        return decorator
 
     def create_argument_decorator(
         self,
@@ -461,7 +455,7 @@ class FlextCliCli:
             extra={"param_decls": param_decls, "required": required},
         )
         # Click argument decorator wraps function but preserves CliCommandFunction protocol
-        return decorator  # type: ignore[return-value]
+        return decorator
 
     # =========================================================================
     # PARAMETER TYPES
@@ -604,8 +598,8 @@ class FlextCliCli:
 
     @staticmethod
     def create_pass_context_decorator() -> Callable[
-        [Callable[..., FlextTypes.GeneralValueType]],
-        Callable[..., FlextTypes.GeneralValueType],
+        [Callable[[click.Context], FlextTypes.GeneralValueType]],
+        Callable[[click.Context], FlextTypes.GeneralValueType],
     ]:
         """Create pass_context decorator.
 
@@ -621,7 +615,8 @@ class FlextCliCli:
             ...     print(f"Command: {ctx.command.name}")
 
         """
-        return click.pass_context
+        # click.pass_context returns a decorator that satisfies CliCommandFunction protocol
+        return click.pass_context  # type: ignore[return-value]
 
     # =========================================================================
     # COMMAND EXECUTION
@@ -853,8 +848,8 @@ class FlextCliCli:
 
     @staticmethod
     def model_command(
-        model_class: type[BaseModel],
-        handler: Callable[..., None],
+        model_class: type[FlextModels],
+        handler: Callable[[FlextModels], None],
         config: FlextCliConfig | None = None,
     ) -> FlextCliProtocols.Cli.CliCommandFunction:
         """Create Typer command from Pydantic model with automatic config integration.
@@ -949,7 +944,7 @@ class FlextCliCli:
 
         builder = FlextCliModels.ModelCommandBuilder(model_class, handler, config)
         # ModelCommandBuilder.build() returns a function implementing CliCommandFunction protocol
-        return builder.build()  # type: ignore[return-value]
+        return builder.build()
 
     @staticmethod
     def execute() -> FlextResult[FlextTypes.JsonDict]:

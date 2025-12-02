@@ -187,7 +187,6 @@ class FlextCliConstants(FlextConstants):
             "cancelled",
         })
 
-
     @classmethod
     def get_valid_output_formats(cls) -> Sequence[str]:
         """Get sequence of all valid output format strings.
@@ -1353,15 +1352,7 @@ class FlextCliConstants(FlextConstants):
         CAPABILITIES_TUPLE_MIN_LENGTH: Final[int] = 2
         DEFAULT_TERMINAL_WIDTH: Final[int] = 80
 
-    class ConfigDefaults:
-        """Additional configuration defaults."""
-
-        AUTO_REFRESH: Final[bool] = True
-        DEFAULT_VERBOSITY: Final[str] = "verbose"
-        QUIET_VERBOSITY: Final[str] = "quiet"
-        NORMAL_VERBOSITY: Final[str] = "normal"
-        DEFAULT_VERSION_STRING: Final[str] = "2.0.0"
-        DEFAULT_SERVICE_NAME: Final[str] = "flext-cli-config"
+    # CliGlobalDefaults moved to line 2424 to consolidate all defaults
 
     class ClickTypes:
         """Click type specification constants."""
@@ -2422,12 +2413,24 @@ class FlextCliConstants(FlextConstants):
             "~/.flext/cli.log",
         ]
 
-    class Defaults:
+    class CliGlobalDefaults:
         """Default values for CLI operations."""
 
         # Basic defaults
         DEFAULT_PROFILE: Final[str] = "default"
         DEFAULT_APP_NAME: Final[str] = "flext-cli"
+        
+        # Verbosity defaults
+        DEFAULT_VERBOSITY: Final[str] = "verbose"
+        QUIET_VERBOSITY: Final[str] = "quiet"
+        NORMAL_VERBOSITY: Final[str] = "normal"
+        
+        # Service defaults
+        DEFAULT_VERSION_STRING: Final[str] = "2.0.0"
+        DEFAULT_SERVICE_NAME: Final[str] = "flext-cli-config"
+        
+        # Auto-refresh
+        AUTO_REFRESH: Final[bool] = True
         DEFAULT_APP_DESCRIPTION_SUFFIX: Final[str] = " - FLEXT CLI Framework"
         DEFAULT_TIMEOUT: Final[int] = 30
         DEFAULT_LOG_LEVEL: Final[str] = "INFO"

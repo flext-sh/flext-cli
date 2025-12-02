@@ -173,9 +173,9 @@ class TestFlextCliConfigService:
         assert new_config is not None
 
     def test_execute_as_service(self) -> None:
-        """Test execute_as_service returns FlextResult."""
+        """Test execute_service returns FlextResult."""
         config = FlextCliConfig()
-        result = config.execute_as_service()
+        result = config.execute_service()
         assert result.is_success
         assert isinstance(result.unwrap(), dict)
 
@@ -329,11 +329,15 @@ class TestConfigIntegration:
             # If it's still 'default', the singleton may be caching - check if env var is set
             if config.profile != "env_profile":
                 # Force check environment variable is actually set
-                assert os.environ.get("FLEXT_CLI_PROFILE") == "env_profile", "Environment variable not set"
+                assert os.environ.get("FLEXT_CLI_PROFILE") == "env_profile", (
+                    "Environment variable not set"
+                )
                 # Try creating instance with explicit model_validate
                 config_data = {"profile": os.environ["FLEXT_CLI_PROFILE"]}
                 config = FlextCliConfig.model_validate(config_data)
-            assert config.profile == "env_profile", f"Expected 'env_profile', got '{config.profile}'"
+            assert config.profile == "env_profile", (
+                f"Expected 'env_profile', got '{config.profile}'"
+            )
         finally:
             # Clean up - fixture will handle this, but be explicit
             os.environ.pop("FLEXT_CLI_PROFILE", None)
@@ -491,13 +495,13 @@ class TestConfigMemory:
         # Create base instance
         config1 = FlextCliConfig()
         original_debug = config1.debug
-        
+
         # Create modified instance using model_copy with update
         # Note: Due to singleton pattern, instances may share state
         # but model_copy with update should create modified instances
         config_modified = config1.model_copy(update={"debug": not original_debug})
         assert config_modified.debug is not original_debug
-        
+
         # Verify we can create modified instances with different values
         config_modified2 = config1.model_copy(update={"environment": "test"})
         assert config_modified2.environment == "test"

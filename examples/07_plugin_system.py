@@ -137,7 +137,9 @@ class MyAppPluginManager:
             # Type narrowing: ensure result is JsonValue compatible
             if isinstance(result, (str, int, float, bool, type(None))):
                 json_result: FlextTypes.JsonValue = result
-            elif (isinstance(result, dict) and all(isinstance(k, str) for k in result)) or isinstance(result, list):
+            elif (
+                isinstance(result, dict) and all(isinstance(k, str) for k in result)
+            ) or isinstance(result, list):
                 json_result = FlextUtilities.DataMapper.convert_to_json_value(result)
             else:
                 json_result = str(result)

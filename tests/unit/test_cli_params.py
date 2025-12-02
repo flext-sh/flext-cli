@@ -17,10 +17,10 @@ from __future__ import annotations
 
 import os
 import sys
-from collections.abc import Callable
+from collections.abc import Callable, Generator
 from enum import StrEnum
 from pathlib import Path
-from typing import Never
+from typing import Never, cast
 
 import pytest
 import typer
@@ -191,8 +191,8 @@ def _create_decorated_command(
     """Create a decorated test command."""
 
     @app.command(name=command_name)
-    @FlextCliCommonParams.create_decorator()
-    def decorated_test_command(
+    @FlextCliCommonParams.create_decorator()  # type: ignore[arg-type]
+    def decorated_test_command(  # noqa: PLR0913, PLR0917
         name: str = command_name,
         verbose: bool = DEFAULT_VERBOSE,
         quiet: bool = DEFAULT_QUIET,
@@ -218,8 +218,8 @@ def _create_decorated_command(
 
     # Return decorated function - it satisfies CliCommandFunction protocol structurally
     # The protocol accepts any callable with (*args, **kwargs) -> FlextTypes.GeneralValueType signature
-    # Mypy strict mode may not recognize structural compatibility, but runtime works
-    return decorated_test_command
+    # Type checker requires cast for structural compatibility
+    return cast("Callable[..., FlextTypes.GeneralValueType]", decorated_test_command)
 
 
 # ============================================================================
@@ -227,12 +227,30 @@ def _create_decorated_command(
 # ============================================================================
 
 
-class TestFlextCliCommonParams:
+class TestFlextCliCommonParams:  # noqa: PLR0904
     """Comprehensive tests for FlextCliCommonParams functionality.
 
     Single class with nested test groups organized by functionality.
     Uses factories, enums, mapping, and dynamic tests for maximum code reuse.
     """
+
+    @pytest.fixture(autouse=True)
+    def _reset_config_before_test(self) -> Generator[None]:
+        """Reset config instance before each test to ensure isolation."""
+        # Clean up environment variables that might affect config
+        os.environ.pop("FLEXT_CLI_DEBUG", None)
+        os.environ.pop("FLEXT_CLI_VERBOSE", None)
+        os.environ.pop("FLEXT_CLI_TRACE", None)
+        os.environ.pop("FLEXT_CLI_QUIET", None)
+        # Reset config instance - must be done before and after
+        _reset_config_instance()
+        if hasattr(FlextCliConfig, "_instance"):
+            FlextCliConfig._instance = None
+        yield
+        # Clean up after test as well
+        _reset_config_instance()
+        if hasattr(FlextCliConfig, "_instance"):
+            FlextCliConfig._instance = None
 
     # ========================================================================
     # INITIALIZATION AND BASIC FUNCTIONALITY
@@ -359,8 +377,9 @@ class TestFlextCliCommonParams:
         """Test that trace requires debug to be enabled."""
         _reset_config_instance()
         config = FlextCliServiceBase.get_cli_config()
-        config.debug = False
-        result = FlextCliCommonParams.apply_to_config(config, trace=True)
+        # Create a modified config with debug=False using model_copy
+        config_without_debug = config.model_copy(update={"debug": False})
+        result = FlextCliCommonParams.apply_to_config(config_without_debug, trace=True)
 
         FlextCliTestHelpers.AssertHelpers.assert_result_failure(result)
         error_msg = str(result.error).lower() if result.error else ""
@@ -370,8 +389,9 @@ class TestFlextCliCommonParams:
         """Test applying trace with debug enabled."""
         _reset_config_instance()
         config = FlextCliServiceBase.get_cli_config()
-        config.debug = True
-        result = FlextCliCommonParams.apply_to_config(config, trace=True)
+        # Create a modified config with debug=True using model_copy
+        config_with_debug = config.model_copy(update={"debug": True})
+        result = FlextCliCommonParams.apply_to_config(config_with_debug, trace=True)
 
         FlextCliTestHelpers.AssertHelpers.assert_result_success(result)
         updated_config = result.unwrap()
@@ -404,10 +424,10 @@ class TestFlextCliCommonParams:
         """Test that None values don't override existing config."""
         _reset_config_instance()
         config = FlextCliServiceBase.get_cli_config()
-        config.verbose = True
-        config.debug = False
+        # Create a modified config using model_copy instead of direct assignment
+        config_modified = config.model_copy(update={"verbose": True, "debug": False})
         result = FlextCliCommonParams.apply_to_config(
-            config,
+            config_modified,
             verbose=None,
             debug=None,
         )
@@ -521,7 +541,7 @@ class TestFlextCliCommonParams:
         app = typer.Typer()
 
         @app.command(name="test")
-        @FlextCliCommonParams.create_decorator()
+        @FlextCliCommonParams.create_decorator()  # type: ignore[arg-type]
         def decorated_test_command(
             name: str = "test",
             verbose: bool = DEFAULT_VERBOSE,
@@ -578,14 +598,39 @@ class TestFlextCliCommonParams:
         original_verbose = os.environ.get("FLEXT_CLI_VERBOSE")
 
         try:
+            # Force cleanup of any previous state - do this BEFORE setting env vars
+            _reset_config_instance()
+            if hasattr(FlextCliConfig, "_instance"):
+                FlextCliConfig._instance = None
+            
+            # Clear environment variables first to ensure clean state
+            os.environ.pop("FLEXT_CLI_DEBUG", None)
+            os.environ.pop("FLEXT_CLI_VERBOSE", None)
+            
+            # Reset again after clearing env vars
+            _reset_config_instance()
+            if hasattr(FlextCliConfig, "_instance"):
+                FlextCliConfig._instance = None
+            
+            # Set environment variables to explicit False values
+            # Use "0" string which Pydantic Settings converts to False boolean
+            # Pydantic Settings treats "0", "false", "no", "" as False
             os.environ["FLEXT_CLI_DEBUG"] = "0"
             os.environ["FLEXT_CLI_VERBOSE"] = "0"
 
+            # Reset config instance after setting env vars to ensure fresh load
             _reset_config_instance()
+            if hasattr(FlextCliConfig, "_instance"):
+                FlextCliConfig._instance = None
 
-            config = FlextCliServiceBase.get_cli_config()
-            assert config.debug is False
-            assert config.verbose is False
+            # Get fresh config instance that will load from environment
+            # Use FlextCliConfig() directly to ensure we get a fresh instance
+            # after resetting the singleton
+            config = FlextCliConfig()
+            assert config.debug is False, f"Expected debug=False, got {config.debug}"
+            assert config.verbose is False, (
+                f"Expected verbose=False, got {config.verbose}"
+            )
 
             result = FlextCliCommonParams.apply_to_config(
                 config, debug=True, verbose=True
@@ -596,28 +641,37 @@ class TestFlextCliCommonParams:
             assert updated_config.debug is True
             assert updated_config.verbose is True
         finally:
-            if original_debug is None:
-                os.environ.pop("FLEXT_CLI_DEBUG", None)
-            else:
+            # Clean up environment variables
+            os.environ.pop("FLEXT_CLI_DEBUG", None)
+            os.environ.pop("FLEXT_CLI_VERBOSE", None)
+            if original_debug is not None:
                 os.environ["FLEXT_CLI_DEBUG"] = original_debug
-            if original_verbose is None:
-                os.environ.pop("FLEXT_CLI_VERBOSE", None)
-            else:
+            if original_verbose is not None:
                 os.environ["FLEXT_CLI_VERBOSE"] = original_verbose
+            # Reset config instance after test
+            _reset_config_instance()
+            if hasattr(FlextCliConfig, "_instance"):
+                FlextCliConfig._instance = None
 
     def test_precedence_order_cli_over_all(self, tmp_path: Path) -> None:
         """Test complete precedence: CLI > ENV > .env > defaults."""
         env_file = tmp_path / ".env"
-        env_file.write_text("FLEXT_LOG_LEVEL=WARNING\n")
+        # Use FLEXT_CLI_LOG_LEVEL instead of FLEXT_LOG_LEVEL (env_prefix is FLEXT_CLI_)
+        env_file.write_text("FLEXT_CLI_LOG_LEVEL=WARNING\n")
 
-        original_log_level = os.environ.get("FLEXT_LOG_LEVEL")
+        original_log_level = os.environ.get("FLEXT_CLI_LOG_LEVEL")
 
         try:
-            os.environ["FLEXT_LOG_LEVEL"] = "ERROR"
+            os.environ["FLEXT_CLI_LOG_LEVEL"] = "ERROR"
 
             original_dir = Path.cwd()
             try:
                 os.chdir(tmp_path)
+                
+                # Reset config to ensure fresh load from environment
+                _reset_config_instance()
+                if hasattr(FlextCliConfig, "_instance"):
+                    FlextCliConfig._instance = None
 
                 config = FlextCliServiceBase.get_cli_config()
                 result = FlextCliCommonParams.apply_to_config(config, log_level="DEBUG")
@@ -630,9 +684,13 @@ class TestFlextCliCommonParams:
                 os.chdir(original_dir)
         finally:
             if original_log_level is None:
-                os.environ.pop("FLEXT_LOG_LEVEL", None)
+                os.environ.pop("FLEXT_CLI_LOG_LEVEL", None)
             else:
-                os.environ["FLEXT_LOG_LEVEL"] = original_log_level
+                os.environ["FLEXT_CLI_LOG_LEVEL"] = original_log_level
+            # Reset config after test
+            _reset_config_instance()
+            if hasattr(FlextCliConfig, "_instance"):
+                FlextCliConfig._instance = None
 
     # ========================================================================
     # LOGGER INTEGRATION

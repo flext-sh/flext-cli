@@ -247,11 +247,13 @@ class TestFlextCliUtilities:
                     format_type = cast("str", test_case.test_data["format"])
                     # Use FlextUtilities.Validation.validate_choice directly
                     format_lower = format_type.lower()
-                    format_result: FlextResult[str] = FlextUtilities.Validation.validate_choice(
-                        format_lower,
-                        set(FlextCliConstants.OUTPUT_FORMATS_LIST),
-                        "Output format",
-                        case_sensitive=False,
+                    format_result: FlextResult[str] = (
+                        FlextUtilities.Validation.validate_choice(
+                            format_lower,
+                            set(FlextCliConstants.OUTPUT_FORMATS_LIST),
+                            "Output format",
+                            case_sensitive=False,
+                        )
                     )
                     if format_result.is_success:
                         format_result = FlextResult[str].ok(format_lower)
@@ -564,7 +566,11 @@ class TestFlextCliUtilities:
             "Output format",
             case_sensitive=False,
         )
-        result2 = FlextResult[str].ok(format_lower) if validation_result.is_success else validation_result
+        result2 = (
+            FlextResult[str].ok(format_lower)
+            if validation_result.is_success
+            else validation_result
+        )
         FlextTestsMatchers.assert_success(result2)
         assert result2.unwrap() == FlextCliConstants.OutputFormats.JSON.value
 

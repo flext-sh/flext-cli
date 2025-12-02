@@ -494,7 +494,9 @@ class FlextCliOutput(FlextCliServiceBase):
                 f"Object {type(result).__name__} has no __dict__ attribute"
             )
         # Type narrowing: result has __dict__ attribute
-        raw_dict: dict[str, FlextTypes.GeneralValueType] = getattr(result, "__dict__", {})
+        raw_dict: dict[str, FlextTypes.GeneralValueType] = getattr(
+            result, "__dict__", {}
+        )
         # Convert dict to JSON-compatible dict
         json_dict: dict[str, FlextTypes.GeneralValueType] = {}
         for key, value in raw_dict.items():
@@ -691,7 +693,11 @@ class FlextCliOutput(FlextCliServiceBase):
             validated_align = FlextCliConstants.TablesDefaults.DEFAULT_STR_ALIGN
         elif isinstance(align, Sequence):
             # If sequence, use first element or default
-            validated_align = str(align[0]) if len(align) > 0 else FlextCliConstants.TablesDefaults.DEFAULT_STR_ALIGN
+            validated_align = (
+                str(align[0])
+                if len(align) > 0
+                else FlextCliConstants.TablesDefaults.DEFAULT_STR_ALIGN
+            )
         else:
             validated_align = str(align)
         config = FlextCliModels.TableConfig(

@@ -191,7 +191,9 @@ def database_setup_wizard() -> FlextResult[dict[str, str | int | bool | float]]:
     display_config["password"] = "********"
 
     # Create table from config data - convert using FlextUtilities
-    json_config: FlextTypes.JsonDict = FlextUtilities.DataMapper.convert_dict_to_json(display_config)
+    json_config: FlextTypes.JsonDict = FlextUtilities.DataMapper.convert_dict_to_json(
+        display_config
+    )
     table_result = cli.create_table(
         data=json_config,
         headers=["Setting", "Value"],
@@ -482,7 +484,9 @@ def flext_configuration_wizard() -> FlextResult[dict[str, str | int | bool | flo
     cli.print("\n📋 Configuration Summary:", style="yellow")
 
     # Create table from config data - convert using FlextUtilities
-    json_config: FlextTypes.JsonDict = FlextUtilities.DataMapper.convert_dict_to_json(config)
+    json_config: FlextTypes.JsonDict = FlextUtilities.DataMapper.convert_dict_to_json(
+        config
+    )
     table_result = cli.create_table(
         data=json_config,
         headers=["Setting", "Value"],

@@ -1599,7 +1599,10 @@ class TestFlextCliModels:
         command_line = data.get("command_line", "")
 
         # Command line should be preserved as-is (no automatic masking)
-        assert command_line == "flext deploy --env prod --secret-key abc123 --password secret --token xyz789"
+        assert (
+            command_line
+            == "flext deploy --env prod --secret-key abc123 --password secret --token xyz789"
+        )
         assert isinstance(command_line, str)
 
     def test_models_execute_method(self, flext_cli_models: FlextCliModels) -> None:
