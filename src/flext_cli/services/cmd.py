@@ -1,7 +1,7 @@
-"""FLEXT CLI CMD Module - Unified class following FLEXT architecture patterns.
+"""Command execution and configuration bridge for flext-cli.
 
-Single FlextCliCmd class providing CLI command functionality.
-Follows FLEXT unified class pattern - one class per module extending flext-core.
+Encapsula a ponte entre comandos registrados, utilidades de arquivo e helpers de
+configuração usando `FlextResult` para sucesso/falha previsível.
 
 Copyright (c) 2025 FLEXT Team. All rights reserved.
 SPDX-License-Identifier: MIT
@@ -27,11 +27,7 @@ from flext_cli.utilities import FlextCliUtilities
 
 
 class FlextCliCmd(FlextCliServiceBase):
-    """CMD service extending FlextCliServiceBase.
-
-    Provides essential command functionality using flext-core patterns.
-    Follows single-responsibility principle with nested helpers.
-    """
+    """Execute registered CLI commands and expose execution metadata."""
 
     # Attributes initialized in __init__ (inherit types from FlextService)
     # Logger is provided by FlextMixins mixin
@@ -39,7 +35,7 @@ class FlextCliCmd(FlextCliServiceBase):
 
     @override
     def __init__(self) -> None:
-        """Initialize command service with flext-core integration and Phase 1 context enrichment."""
+        """Initialize the command service and supporting file helpers."""
         super().__init__()
         # Logger is automatically provided by FlextMixins mixin
         self._file_tools = FlextCliFileTools()
@@ -47,12 +43,7 @@ class FlextCliCmd(FlextCliServiceBase):
     def execute(  # noqa: PLR6301
         self, **_kwargs: FlextTypes.JsonDict
     ) -> FlextResult[FlextTypes.JsonDict]:
-        """Execute command service - required by FlextService.
-
-        Args:
-            **_kwargs: Additional execution parameters (unused, for FlextService compatibility)
-
-        """
+        """Report operational status required by `FlextService`."""
         return FlextResult[FlextTypes.JsonDict].ok({
             FlextCliConstants.DictKeys.STATUS: FlextCliConstants.ServiceStatus.OPERATIONAL.value,
             FlextCliConstants.DictKeys.SERVICE: FlextCliConstants.CmdDefaults.SERVICE_NAME,

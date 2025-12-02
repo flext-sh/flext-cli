@@ -1,12 +1,12 @@
-"""FLEXT CLI API - Consolidated single-class implementation.
+"""Public API facade for flext-cli.
 
-**MODULE**: FlextCli - Single primary class for CLI operations
-**SCOPE**: Authentication, command registration, execution coordination,
-    convenience methods
+Centraliza autenticação, registro/execução de comandos e acesso às utilidades
+expostas como atributos do `FlextCli`, mantendo wrappers de conveniência que
+delegam para os serviços internos sem quebrar o isolamento de Typer/Click e
+Rich.
 
 Copyright (c) 2025 FLEXT Team. All rights reserved.
 SPDX-License-Identifier: MIT
-
 """
 
 from __future__ import annotations
@@ -58,10 +58,11 @@ from flext_cli.utilities import FlextCliUtilities
 
 
 class FlextCli:
-    """Coordinator for CLI operations with direct domain library access.
+    """Coordinate CLI operations and expose domain services.
 
-    Consolidates ALL CLI functionality through direct access to domain libraries.
-    Uses FlextResult railway pattern with zero async operations.
+    Instancia serviços (`core`, `cmd`, `output`, `prompts`, `tables`) e
+    utilidades (`formatters`, `file_tools`, `utilities`) para acesso direto,
+    mantendo os wrappers legados como delegação explícita para essas instâncias.
     """
 
     # Nested classes - FLEXT pattern
@@ -522,11 +523,11 @@ class FlextCli:
 
 
 class FlextCliAppBase(ABC):
-    """Base class for CLI applications using FLEXT pattern.
+    """Base class for CLI applications using the FLEXT pattern.
 
-    Provides standard initialization, execution, and error handling
-    for CLI applications. Subclasses define app_name, app_help, and
-    config_class, then implement _register_commands().
+    Fornece inicialização, execução e tratamento de erros consistentes para CLIs
+    Typer. Subclasses definem `app_name`, `app_help` e `config_class` e
+    implementam `_register_commands()`.
     """
 
     # ClassVars to override in subclass
