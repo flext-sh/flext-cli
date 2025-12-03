@@ -60,7 +60,7 @@ class FlextCliTables(FlextCliServiceBase):
     3. Headers MUST match data structure (keys or explicit headers)
     4. Table formatting MUST handle empty data gracefully
     5. Format discovery MUST return all available tabulate formats
-    6. All operations MUST use FlextResult[T] for error handling
+    6. All operations MUST use r[T] for error handling
     7. Table creation MUST respect TableConfig settings
     8. Performance MUST be optimized for large datasets
 
@@ -130,17 +130,17 @@ class FlextCliTables(FlextCliServiceBase):
 
     def execute(  # noqa: PLR6301
         self, **_kwargs: t.JsonDict
-    ) -> FlextResult[t.JsonDict]:
+    ) -> r[t.JsonDict]:
         """Execute the main domain service operation - required by FlextService.
 
         Args:
             **_kwargs: Additional execution parameters (unused, for FlextService compatibility)
 
         Returns:
-            FlextResult[t.JsonDict]: Service execution result
+            r[t.JsonDict]: Service execution result
 
         """
-        return FlextResult[t.JsonDict].ok({})
+        return r[t.JsonDict].ok({})
 
     # =========================================================================
     # TABLE CREATION
@@ -151,7 +151,7 @@ class FlextCliTables(FlextCliServiceBase):
         data: TableData,
         config: FlextCliModels.TableConfig | None = None,
         **config_kwargs: t.GeneralValueType,
-    ) -> FlextResult[str]:
+    ) -> r[str]:
         """Create formatted ASCII table using tabulate with Pydantic config.
 
         Uses build_options_from_kwargs pattern for automatic kwargs to Model conversion.
@@ -187,23 +187,23 @@ class FlextCliTables(FlextCliServiceBase):
             **config_kwargs,
         )
         if config_result.is_failure:
-            return FlextResult[str].fail(
-                f"Invalid table configuration: {config_result.error}",
+            return r[str].fail(
+                u.err(config_result, default="Invalid table configuration"),
             )
-        cfg = config_result.unwrap()
+        cfg = u.val(config_result, default=FlextCliModels.TableConfig())
 
         # Railway pattern: validate → prepare headers → create table
         validation_result = self._validate_table_data(data, cfg.table_format)
         if validation_result.is_failure:
-            return FlextResult[str].fail(
-                validation_result.error or "Table data validation failed",
+            return r[str].fail(
+                u.err(validation_result, default="Table data validation failed"),
                 error_code=validation_result.error_code,
                 error_data=validation_result.error_data,
             )
 
         headers_result = self._prepare_headers(data, cfg.headers)
         if headers_result.is_failure:
-            return FlextResult[str].fail(
+            return r[str].fail(
                 headers_result.error or "Headers preparation failed",
                 error_code=headers_result.error_code,
                 error_data=headers_result.error_data,
@@ -216,33 +216,35 @@ class FlextCliTables(FlextCliServiceBase):
     def _validate_table_data(
         data: TableData,
         table_format: str,
-    ) -> FlextResult[bool]:
+    ) -> r[bool]:
         """Validate table data and format.
 
         Returns:
-            FlextResult[bool]: True if validation passed, failure on error
+            r[bool]: True if validation passed, failure on error
 
         """
         if not data:
-            return FlextResult[bool].fail(
+            return r[bool].fail(
                 FlextCliConstants.TablesErrorMessages.TABLE_DATA_EMPTY,
             )
 
         if table_format not in FlextCliConstants.TABLE_FORMATS:
-            return FlextResult[bool].fail(
+            return r[bool].fail(
                 FlextCliConstants.TablesErrorMessages.INVALID_TABLE_FORMAT.format(
                     table_format=table_format,
-                    available_formats=", ".join(FlextCliConstants.TABLE_FORMATS.keys()),
+                    available_formats=u.join(
+                        u.keys(FlextCliConstants.TABLE_FORMATS), sep=", "
+                    ),
                 ),
             )
 
-        return FlextResult[bool].ok(True)
+        return r[bool].ok(True)
 
     @staticmethod
     def _prepare_headers(
         data: TableData,
         headers: str | Sequence[str],
-    ) -> FlextResult[str | Sequence[str]]:
+    ) -> r[str | Sequence[str]]:
         """Prepare headers based on data type."""
         # For list of dicts with sequence headers, use "keys"
         # Type narrowing: data is Iterable, convert to list for is_list_like check
@@ -266,18 +268,18 @@ class FlextCliTables(FlextCliServiceBase):
                 (list, tuple),
             )  # tuple check is specific, not dict/list
         ):
-            return FlextResult[str | Sequence[str]].ok(
+            return r[str | Sequence[str]].ok(
                 FlextCliConstants.TableFormats.KEYS,
             )
 
-        return FlextResult[str | Sequence[str]].ok(headers)
+        return r[str | Sequence[str]].ok(headers)
 
     def _create_table_string(
         self,
         data: TableData,
         cfg: FlextCliModels.TableConfig,
         headers: str | Sequence[str],
-    ) -> FlextResult[str]:
+    ) -> r[str]:
         """Create table string using tabulate with exception handling."""
         try:
             table_str = tabulate(
@@ -305,7 +307,7 @@ class FlextCliTables(FlextCliServiceBase):
                 },
             )
 
-            return FlextResult[str].ok(table_str)
+            return r[str].ok(table_str)
 
         except Exception as e:
             error_msg = (
@@ -314,14 +316,14 @@ class FlextCliTables(FlextCliServiceBase):
                 )
             )
             self.logger.exception(error_msg)
-            return FlextResult[str].fail(error_msg)
+            return r[str].fail(error_msg)
 
     def _create_formatted_table(
         self,
         data: TableData,
         table_format: str,
         headers: Sequence[str] | None = None,
-    ) -> FlextResult[str]:
+    ) -> r[str]:
         """Generic method to create table with specific format.
 
         Eliminates code duplication across convenience methods.
@@ -336,8 +338,10 @@ class FlextCliTables(FlextCliServiceBase):
 
         """
         # Use build_options_from_kwargs pattern - pass kwargs directly
-        validated_headers = (
-            headers if headers is not None else FlextCliConstants.TableFormats.KEYS
+        validated_headers = u.when(
+            condition=headers is not None,
+            then_value=headers,
+            else_value=FlextCliConstants.TableFormats.KEYS,
         )
         return self.create_table(
             data,
@@ -350,7 +354,7 @@ class FlextCliTables(FlextCliServiceBase):
         self,
         data: TableData,
         headers: Sequence[str] | None = None,
-    ) -> FlextResult[str]:
+    ) -> r[str]:
         """Create simple ASCII table with minimal formatting.
 
         Convenience method for quick table creation.
@@ -380,7 +384,7 @@ class FlextCliTables(FlextCliServiceBase):
         headers: Sequence[str] | None = None,
         *,
         fancy: bool = False,
-    ) -> FlextResult[str]:
+    ) -> r[str]:
         """Create grid-style ASCII table.
 
         Args:
@@ -408,7 +412,7 @@ class FlextCliTables(FlextCliServiceBase):
         self,
         data: TableData,
         headers: Sequence[str] | None = None,
-    ) -> FlextResult[str]:
+    ) -> r[str]:
         """Create Markdown pipe table.
 
         Perfect for generating Markdown documentation.
@@ -445,7 +449,7 @@ class FlextCliTables(FlextCliServiceBase):
         headers: Sequence[str] | None = None,
         *,
         escape: bool = True,
-    ) -> FlextResult[str]:
+    ) -> r[str]:
         """Create HTML table.
 
         Args:
@@ -476,7 +480,7 @@ class FlextCliTables(FlextCliServiceBase):
         *,
         booktabs: bool = False,
         longtable: bool = False,
-    ) -> FlextResult[str]:
+    ) -> r[str]:
         """Create LaTeX table.
 
         Args:
@@ -507,7 +511,7 @@ class FlextCliTables(FlextCliServiceBase):
         self,
         data: TableData,
         headers: Sequence[str] | None = None,
-    ) -> FlextResult[str]:
+    ) -> r[str]:
         """Create reStructuredText grid table.
 
         Perfect for Sphinx documentation.
@@ -546,7 +550,7 @@ class FlextCliTables(FlextCliServiceBase):
         return list(FlextCliConstants.TABLE_FORMATS.keys())
 
     @staticmethod
-    def get_format_description(format_name: str) -> FlextResult[str]:
+    def get_format_description(format_name: str) -> r[str]:
         """Get description of a table format.
 
         Args:
@@ -557,19 +561,19 @@ class FlextCliTables(FlextCliServiceBase):
 
         """
         if format_name not in FlextCliConstants.TABLE_FORMATS:
-            return FlextResult[str].fail(
+            return r[str].fail(
                 FlextCliConstants.TablesErrorMessages.UNKNOWN_FORMAT.format(
                     format_name=format_name,
                 ),
             )
 
-        return FlextResult[str].ok(FlextCliConstants.TABLE_FORMATS[format_name])
+        return r[str].ok(FlextCliConstants.TABLE_FORMATS[format_name])
 
-    def print_available_formats(self) -> FlextResult[bool]:
+    def print_available_formats(self) -> r[bool]:
         """Print all available table formats with descriptions.
 
         Returns:
-            FlextResult[bool]: True if formats printed successfully, failure on error
+            r[bool]: True if formats printed successfully, failure on error
 
         """
         try:
@@ -598,7 +602,7 @@ class FlextCliTables(FlextCliServiceBase):
             # Output through logger instead of print (linting requirement)
             self.logger.info(table_str)
 
-            return FlextResult[bool].ok(True)
+            return r[bool].ok(True)
 
         except Exception as e:
             error_msg = (
@@ -607,7 +611,7 @@ class FlextCliTables(FlextCliServiceBase):
                 )
             )
             self.logger.exception(error_msg)
-            return FlextResult[bool].fail(error_msg)
+            return r[bool].fail(error_msg)
 
 
 __all__ = [

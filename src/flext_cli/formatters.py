@@ -71,7 +71,7 @@ class FlextCliFormatters:
     2. All formatting operations MUST delegate to Rich library (no reimplementation)
     3. Console output MUST respect no_color configuration flag
     4. Table creation MUST handle empty data gracefully
-    5. All operations MUST return FlextResult[T] for error handling
+    5. All operations MUST return r[T] for error handling
     6. Rich Console MUST be initialized once per instance (singleton pattern)
     7. Formatting operations MUST not modify input data (immutable)
     8. Error handling MUST catch Rich exceptions and return FlextResult failures
@@ -100,9 +100,9 @@ class FlextCliFormatters:
         # Use Rich directly (formatters.py is ONE OF TWO files that may import Rich)
         self.console = Console()
 
-    def execute(self) -> FlextResult[t.JsonDict]:  # noqa: PLR6301
+    def execute(self) -> r[t.JsonDict]:  # noqa: PLR6301
         """Execute service - required by FlextService."""
-        return FlextResult[t.JsonDict].ok({
+        return r[t.JsonDict].ok({
             FlextCliConstants.DictKeys.STATUS: FlextCliConstants.ServiceStatus.OPERATIONAL.value,
             FlextCliConstants.DictKeys.SERVICE: FlextCliConstants.Services.FORMATTERS,
         })
@@ -115,7 +115,7 @@ class FlextCliFormatters:
         self,
         message: str,
         style: str | None = None,
-    ) -> FlextResult[bool]:
+    ) -> r[bool]:
         """Print formatted message using Rich.
 
         Args:
@@ -123,7 +123,7 @@ class FlextCliFormatters:
             style: Rich style string (e.g., "bold red")
 
         Returns:
-            FlextResult[bool]: True on success, False on failure
+            r[bool]: True on success, False on failure
 
         Note:
             For advanced Rich features, access self.console directly.
@@ -131,9 +131,9 @@ class FlextCliFormatters:
         """
         try:
             self.console.print(message, style=style)
-            return FlextResult[bool].ok(True)
+            return r[bool].ok(True)
         except Exception as e:  # pragma: no cover - Defensive: Catches unexpected errors during console print operation
-            return FlextResult[bool].fail(
+            return r[bool].fail(
                 FlextCliConstants.FormattersErrorMessages.PRINT_FAILED.format(error=e),
             )
 
@@ -142,7 +142,7 @@ class FlextCliFormatters:
         data: t.JsonDict | None = None,
         headers: list[str] | None = None,
         title: str | None = None,
-    ) -> FlextResult[RichTable]:
+    ) -> r[RichTable]:
         """Create Rich table with basic formatting.
 
         Args:
@@ -151,7 +151,7 @@ class FlextCliFormatters:
             title: Optional table title
 
         Returns:
-            FlextResult[RichTable]: Rich Table instance or error
+            r[RichTable]: Rich Table instance or error
 
         Note:
             For advanced Rich table features (box styles, padding, etc),
@@ -185,10 +185,10 @@ class FlextCliFormatters:
 
                 u.process(data, processor=add_row, on_error="skip")
 
-            return FlextResult[RichTable].ok(table)
+            return r[RichTable].ok(table)
 
         except Exception as e:  # pragma: no cover - Defensive: Catches unexpected errors during table creation
-            return FlextResult[RichTable].fail(
+            return r[RichTable].fail(
                 FlextCliConstants.FormattersErrorMessages.TABLE_CREATION_FAILED.format(
                     error=e,
                 ),
@@ -198,7 +198,7 @@ class FlextCliFormatters:
         self,
         table: RichTable | object,
         width: int | None = None,
-    ) -> FlextResult[str]:
+    ) -> r[str]:
         """Render Rich table to string.
 
         Business Rule:
@@ -218,7 +218,7 @@ class FlextCliFormatters:
             width: Optional console width
 
         Returns:
-            FlextResult[str]: Rendered table string or error
+            r[str]: Rendered table string or error
 
         """
         try:
@@ -233,21 +233,21 @@ class FlextCliFormatters:
             temp_console.print(table)
             output = buffer.getvalue()
 
-            return FlextResult[str].ok(output)
+            return r[str].ok(output)
 
         except Exception as e:
-            return FlextResult[str].fail(
+            return r[str].fail(
                 FlextCliConstants.FormattersErrorMessages.TABLE_RENDERING_FAILED.format(
                     error=e,
                 ),
             )
 
     @staticmethod
-    def create_progress() -> FlextResult[Progress]:
+    def create_progress() -> r[Progress]:
         """Create Rich progress bar with default settings.
 
         Returns:
-            FlextResult[Progress]: Rich Progress instance or error
+            r[Progress]: Rich Progress instance or error
 
         Note:
             For custom progress bars (columns, styles), create Progress objects
@@ -256,23 +256,23 @@ class FlextCliFormatters:
         """
         try:
             progress = Progress()
-            return FlextResult[Progress].ok(progress)
+            return r[Progress].ok(progress)
         except Exception as e:
-            return FlextResult[Progress].fail(
+            return r[Progress].fail(
                 FlextCliConstants.FormattersErrorMessages.PROGRESS_CREATION_FAILED.format(
                     error=e,
                 ),
             )
 
     @staticmethod
-    def create_tree(label: str) -> FlextResult[RichTree]:
+    def create_tree(label: str) -> r[RichTree]:
         """Create Rich tree with default settings.
 
         Args:
             label: Tree root label
 
         Returns:
-            FlextResult[RichTree]: Rich Tree instance or error
+            r[RichTree]: Rich Tree instance or error
 
         Note:
             For custom tree styling, create Tree objects directly using Rich.
@@ -280,9 +280,9 @@ class FlextCliFormatters:
         """
         try:
             tree = RichTree(label)
-            return FlextResult[RichTree].ok(tree)
+            return r[RichTree].ok(tree)
         except Exception as e:
-            return FlextResult[RichTree].fail(
+            return r[RichTree].fail(
                 FlextCliConstants.FormattersErrorMessages.TREE_CREATION_FAILED.format(
                     error=e,
                 ),
@@ -292,7 +292,7 @@ class FlextCliFormatters:
         self,
         tree: RichTree,
         width: int | None = None,
-    ) -> FlextResult[str]:
+    ) -> r[str]:
         """Render Rich tree to string.
 
         Args:
@@ -300,7 +300,7 @@ class FlextCliFormatters:
             width: Optional console width
 
         Returns:
-            FlextResult[str]: Rendered tree string or error
+            r[str]: Rendered tree string or error
 
         """
         try:
@@ -311,10 +311,10 @@ class FlextCliFormatters:
             temp_console.print(tree)
             output = buffer.getvalue()
 
-            return FlextResult[str].ok(output)
+            return r[str].ok(output)
 
         except Exception as e:
-            return FlextResult[str].fail(
+            return r[str].fail(
                 FlextCliConstants.FormattersErrorMessages.TREE_RENDERING_FAILED.format(
                     error=e,
                 ),
@@ -328,7 +328,7 @@ class FlextCliFormatters:
         self,
         message: str,
         spinner: str | None = None,
-    ) -> FlextResult[RichStatus]:
+    ) -> r[RichStatus]:
         """Create Rich status spinner.
 
         Args:
@@ -336,7 +336,7 @@ class FlextCliFormatters:
             spinner: Spinner style (e.g., "dots", "line", "arrow")
 
         Returns:
-            FlextResult[RichStatus]: Rich Status instance or error
+            r[RichStatus]: Rich Status instance or error
 
         Note:
             For custom spinners, access self.console directly and create Status objects.
@@ -354,9 +354,9 @@ class FlextCliFormatters:
                 spinner=validated_spinner,
                 console=self.console,
             )
-            return FlextResult[RichStatus].ok(status)
+            return r[RichStatus].ok(status)
         except Exception as e:
-            return FlextResult[RichStatus].fail(
+            return r[RichStatus].fail(
                 FlextCliConstants.FormattersErrorMessages.STATUS_CREATION_FAILED.format(
                     error=e,
                 ),
@@ -365,14 +365,14 @@ class FlextCliFormatters:
     def create_live(
         self,
         refresh_per_second: float | None = None,
-    ) -> FlextResult[RichLive]:
+    ) -> r[RichLive]:
         """Create Rich live display.
 
         Args:
             refresh_per_second: Refresh rate for live updates
 
         Returns:
-            FlextResult[RichLive]: Rich Live instance or error
+            r[RichLive]: Rich Live instance or error
 
         Note:
             For custom live displays, access self.console directly and create Live objects.
@@ -389,20 +389,20 @@ class FlextCliFormatters:
                 refresh_per_second=validated_refresh_rate,
                 console=self.console,
             )
-            return FlextResult[RichLive].ok(live)
+            return r[RichLive].ok(live)
         except Exception as e:
-            return FlextResult[RichLive].fail(
+            return r[RichLive].fail(
                 FlextCliConstants.FormattersErrorMessages.LIVE_CREATION_FAILED.format(
                     error=e,
                 ),
             )
 
     @staticmethod
-    def create_layout() -> FlextResult[RichLayout]:
+    def create_layout() -> r[RichLayout]:
         """Create Rich layout with default settings.
 
         Returns:
-            FlextResult[RichLayout]: Rich Layout instance or error
+            r[RichLayout]: Rich Layout instance or error
 
         Note:
             For custom layouts (named regions, sizes), create Layout objects
@@ -411,9 +411,9 @@ class FlextCliFormatters:
         """
         try:
             layout = RichLayout()
-            return FlextResult[RichLayout].ok(layout)
+            return r[RichLayout].ok(layout)
         except Exception as e:
-            return FlextResult[RichLayout].fail(
+            return r[RichLayout].fail(
                 FlextCliConstants.FormattersErrorMessages.LAYOUT_CREATION_FAILED.format(
                     error=e,
                 ),
@@ -424,7 +424,7 @@ class FlextCliFormatters:
         content: str,
         title: str | None = None,
         border_style: str | None = None,
-    ) -> FlextResult[RichPanel]:
+    ) -> r[RichPanel]:
         """Create Rich panel with text content.
 
         Args:
@@ -433,7 +433,7 @@ class FlextCliFormatters:
             border_style: Border style (e.g., "blue", "green", "red")
 
         Returns:
-            FlextResult[RichPanel]: Rich Panel instance or error
+            r[RichPanel]: Rich Panel instance or error
 
         Note:
             For panels with complex content (Rich renderables), create Panel objects
@@ -452,9 +452,9 @@ class FlextCliFormatters:
                 title=title,
                 border_style=validated_border_style,
             )
-            return FlextResult[RichPanel].ok(panel)
+            return r[RichPanel].ok(panel)
         except Exception as e:
-            return FlextResult[RichPanel].fail(
+            return r[RichPanel].fail(
                 FlextCliConstants.FormattersErrorMessages.PANEL_CREATION_FAILED.format(
                     error=e,
                 ),

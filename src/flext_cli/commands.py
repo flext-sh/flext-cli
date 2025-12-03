@@ -66,13 +66,13 @@ class FlextCliCommands(FlextCliServiceBase):
     Business Rules:
     ───────────────
     1. Command names MUST be unique within a CLI group
-    2. Command handlers MUST be callable and return FlextResult[T]
+    2. Command handlers MUST be callable and return r[T]
     3. Command registration MUST validate handler protocol compliance
     4. Commands MUST be registered before execution
     5. Command execution MUST handle exceptions gracefully
     6. Command metadata (name, description) MUST be immutable after registration
     7. CLI groups MUST support nested command organization
-    8. All operations MUST use FlextResult[T] for error handling
+    8. All operations MUST use r[T] for error handling
 
     Architecture Implications:
     ───────────────────────────
@@ -166,7 +166,7 @@ class FlextCliCommands(FlextCliServiceBase):
             source="flext-cli/src/flext_cli/commands.py",
         )
 
-    def execute(self, **_kwargs: t.JsonDict) -> FlextResult[t.JsonDict]:
+    def execute(self, **_kwargs: t.JsonDict) -> r[t.JsonDict]:
         """Execute the main domain service operation - required by FlextService.
 
         Args:
@@ -188,7 +188,7 @@ class FlextCliCommands(FlextCliServiceBase):
             source="flext-cli/src/flext_cli/commands.py",
         )
 
-        result = FlextResult[t.JsonDict].ok({
+        result = r[t.JsonDict].ok({
             FlextCliConstants.CommandsDictKeys.STATUS: FlextCliConstants.ServiceStatus.OPERATIONAL.value,
             FlextCliConstants.CommandsDictKeys.SERVICE: FlextCliConstants.FLEXT_CLI,
             FlextCliConstants.CommandsDictKeys.COMMANDS: list(self._commands.keys()),
@@ -208,7 +208,7 @@ class FlextCliCommands(FlextCliServiceBase):
         name: str,
         handler: FlextCliProtocols.Cli.CliCommandHandler,
         description: str = FlextCliConstants.CommandsDefaults.DEFAULT_DESCRIPTION,
-    ) -> FlextResult[bool]:
+    ) -> r[bool]:
         """Register a command.
 
         Args:
@@ -217,7 +217,7 @@ class FlextCliCommands(FlextCliServiceBase):
             description: Command description
 
         Returns:
-            FlextResult[bool]: True if registered successfully, or error
+            r[bool]: True if registered successfully, or error
 
         """
         self.logger.debug(
@@ -259,7 +259,7 @@ class FlextCliCommands(FlextCliServiceBase):
                 source="flext-cli/src/flext_cli/commands.py",
             )
 
-            return FlextResult[bool].ok(True)
+            return r[bool].ok(True)
         except Exception as e:  # pragma: no cover
             self.logger.exception(  # pragma: no cover
                 "FAILED to register command - registration aborted",  # pragma: no cover
@@ -270,20 +270,20 @@ class FlextCliCommands(FlextCliServiceBase):
                 consequence="Command will not be available for execution",  # pragma: no cover
                 source="flext-cli/src/flext_cli/commands.py",  # pragma: no cover
             )  # pragma: no cover
-            return FlextResult[bool].fail(  # pragma: no cover
+            return r[bool].fail(  # pragma: no cover
                 FlextCliConstants.ErrorMessages.COMMAND_REGISTRATION_FAILED.format(
                     error=e,
                 ),
             )
 
-    def unregister_command(self, name: str) -> FlextResult[bool]:
+    def unregister_command(self, name: str) -> r[bool]:
         """Unregister a command.
 
         Args:
             name: Command name
 
         Returns:
-            FlextResult[bool]: True if unregistered successfully, False if not found, or error
+            r[bool]: True if unregistered successfully, False if not found, or error
 
         """
         self.logger.debug(
@@ -308,7 +308,7 @@ class FlextCliCommands(FlextCliServiceBase):
                     source="flext-cli/src/flext_cli/commands.py",
                 )
 
-                return FlextResult[bool].ok(True)
+                return r[bool].ok(True)
 
             self.logger.warning(
                 "Command not found for unregistration",
@@ -318,7 +318,7 @@ class FlextCliCommands(FlextCliServiceBase):
                 source="flext-cli/src/flext_cli/commands.py",
             )
 
-            return FlextResult[bool].fail(
+            return r[bool].fail(
                 FlextCliConstants.ErrorMessages.COMMAND_NOT_FOUND.format(name=name),
             )
         except Exception as e:  # pragma: no cover
@@ -331,7 +331,7 @@ class FlextCliCommands(FlextCliServiceBase):
                 consequence="Command may still be registered",  # pragma: no cover
                 source="flext-cli/src/flext_cli/commands.py",  # pragma: no cover
             )  # pragma: no cover
-            return FlextResult[bool].fail(  # pragma: no cover
+            return r[bool].fail(  # pragma: no cover
                 FlextCliConstants.ErrorMessages.COMMAND_UNREGISTRATION_FAILED.format(
                     error=e,
                 ),
@@ -349,7 +349,7 @@ class FlextCliCommands(FlextCliServiceBase):
             ],
         ]
         | None = None,
-    ) -> FlextResult[FlextCliCommands._CliGroup]:
+    ) -> r[FlextCliCommands._CliGroup]:
         """Create a command group.
 
         Args:
@@ -358,7 +358,7 @@ class FlextCliCommands(FlextCliServiceBase):
             commands: Dictionary of command names and handler objects in group
 
         Returns:
-            FlextResult[_CliGroup]: Group object or error
+            r[_CliGroup]: Group object or error
 
         """
         self.logger.debug(
@@ -381,7 +381,7 @@ class FlextCliCommands(FlextCliServiceBase):
                     consequence="Group creation aborted",
                     source="flext-cli/src/flext_cli/commands.py",
                 )
-                return FlextResult[FlextCliCommands._CliGroup].fail(
+                return r[FlextCliCommands._CliGroup].fail(
                     FlextCliConstants.ErrorMessages.COMMANDS_REQUIRED,
                 )
             validated_commands: dict[
@@ -405,7 +405,7 @@ class FlextCliCommands(FlextCliServiceBase):
                 source="flext-cli/src/flext_cli/commands.py",
             )
 
-            return FlextResult[FlextCliCommands._CliGroup].ok(group)
+            return r[FlextCliCommands._CliGroup].ok(group)
         except Exception as e:  # pragma: no cover
             self.logger.exception(  # pragma: no cover
                 "FAILED to create command group - group creation aborted",  # pragma: no cover
@@ -416,39 +416,39 @@ class FlextCliCommands(FlextCliServiceBase):
                 consequence="Group will not be available",  # pragma: no cover
                 source="flext-cli/src/flext_cli/commands.py",  # pragma: no cover
             )  # pragma: no cover
-            return FlextResult[FlextCliCommands._CliGroup].fail(  # pragma: no cover
+            return r[FlextCliCommands._CliGroup].fail(  # pragma: no cover
                 FlextCliConstants.ErrorMessages.GROUP_CREATION_FAILED.format(error=e),
             )
 
-    def _validate_cli_args(self, args: list[str] | None) -> FlextResult[bool]:
+    def _validate_cli_args(self, args: list[str] | None) -> r[bool]:
         """Validate CLI arguments.
 
         Args:
             args: Command line arguments to validate
 
         Returns:
-            FlextResult[bool]: True if all args are valid, or error
+            r[bool]: True if all args are valid, or error
 
         """
         if not args:
-            return FlextResult[bool].ok(True)
+            return r[bool].ok(True)
 
         for arg in args:
             if arg.startswith(FlextCliConstants.CommandsDefaults.OPTION_PREFIX):
                 continue  # Skip options
             if arg not in self._commands:
-                return FlextResult[bool].fail(
+                return r[bool].fail(
                     FlextCliConstants.ErrorMessages.COMMAND_NOT_FOUND.format(name=arg),
                 )
 
-        return FlextResult[bool].ok(True)
+        return r[bool].ok(True)
 
     def run_cli(
         self,
         args: list[str] | None = None,
         *,
         standalone_mode: bool = True,
-    ) -> FlextResult[bool]:
+    ) -> r[bool]:
         """Run the CLI interface.
 
         Args:
@@ -456,7 +456,7 @@ class FlextCliCommands(FlextCliServiceBase):
             standalone_mode: Whether to run in standalone mode
 
         Returns:
-            FlextResult[bool]: True if executed successfully, or error
+            r[bool]: True if executed successfully, or error
 
         """
         self.logger.info(
@@ -507,7 +507,7 @@ class FlextCliCommands(FlextCliServiceBase):
                     standalone_mode=standalone_mode,
                     source="flext-cli/src/flext_cli/commands.py",
                 )
-                return FlextResult[bool].ok(True)
+                return r[bool].ok(True)
 
             # Fast-fail: error is always present in failure case
             self.logger.error(  # pragma: no cover
@@ -517,7 +517,7 @@ class FlextCliCommands(FlextCliServiceBase):
                 consequence="CLI execution aborted",  # pragma: no cover
                 source="flext-cli/src/flext_cli/commands.py",  # pragma: no cover
             )  # pragma: no cover
-            return FlextResult[bool].fail(
+            return r[bool].fail(
                 result.error or "Unknown error"
             )  # pragma: no cover
         except Exception as e:  # pragma: no cover
@@ -530,7 +530,7 @@ class FlextCliCommands(FlextCliServiceBase):
                 severity="critical",  # pragma: no cover
                 source="flext-cli/src/flext_cli/commands.py",  # pragma: no cover
             )  # pragma: no cover
-            return FlextResult[bool].fail(  # pragma: no cover
+            return r[bool].fail(  # pragma: no cover
                 FlextCliConstants.ErrorMessages.CLI_EXECUTION_ERROR.format(error=e),
             )
 
@@ -603,7 +603,7 @@ class FlextCliCommands(FlextCliServiceBase):
         command_name: str,
         args: list[str] | None = None,
         timeout: int = FlextCliConstants.TIMEOUTS.DEFAULT,
-    ) -> FlextResult[t.GeneralValueType]:
+    ) -> r[t.GeneralValueType]:
         """Execute a specific command.
 
         Args:
@@ -612,7 +612,7 @@ class FlextCliCommands(FlextCliServiceBase):
             timeout: Command timeout in seconds
 
         Returns:
-            FlextResult[t.GeneralValueType]: Command result
+            r[t.GeneralValueType]: Command result
 
         """
         self.logger.info(
@@ -644,7 +644,7 @@ class FlextCliCommands(FlextCliServiceBase):
                     consequence="Command execution aborted",
                     source="flext-cli/src/flext_cli/commands.py",
                 )
-                return FlextResult[t.GeneralValueType].fail(
+                return r[t.GeneralValueType].fail(
                     FlextCliConstants.CommandsErrorMessages.COMMAND_NOT_FOUND_DETAIL.format(
                         command_name=command_name,
                     ),
@@ -678,7 +678,7 @@ class FlextCliCommands(FlextCliServiceBase):
                     consequence="Command execution aborted",
                     source="flext-cli/src/flext_cli/commands.py",
                 )
-                return FlextResult[t.GeneralValueType].fail(
+                return r[t.GeneralValueType].fail(
                     FlextCliConstants.CommandsErrorMessages.INVALID_COMMAND_STRUCTURE.format(
                         command_name=command_name,
                     ),
@@ -703,7 +703,7 @@ class FlextCliCommands(FlextCliServiceBase):
                     consequence="Command execution aborted",
                     source="flext-cli/src/flext_cli/commands.py",
                 )
-                return FlextResult[t.GeneralValueType].fail(
+                return r[t.GeneralValueType].fail(
                     FlextCliConstants.CommandsErrorMessages.HANDLER_NOT_CALLABLE.format(
                         command_name=command_name,
                     ),
@@ -731,7 +731,7 @@ class FlextCliCommands(FlextCliServiceBase):
                 source="flext-cli/src/flext_cli/commands.py",
             )
 
-            return FlextResult[t.GeneralValueType].ok(result)
+            return r[t.GeneralValueType].ok(result)
         except Exception as e:
             self.logger.exception(
                 "FATAL ERROR during command execution - execution aborted",
@@ -743,7 +743,7 @@ class FlextCliCommands(FlextCliServiceBase):
                 severity="critical",
                 source="flext-cli/src/flext_cli/commands.py",
             )
-            return FlextResult[t.GeneralValueType].fail(
+            return r[t.GeneralValueType].fail(
                 FlextCliConstants.ErrorMessages.COMMAND_EXECUTION_FAILED.format(
                     error=e,
                 ),
@@ -778,11 +778,11 @@ class FlextCliCommands(FlextCliServiceBase):
             else {}
         )
 
-    def clear_commands(self) -> FlextResult[int]:
+    def clear_commands(self) -> r[int]:
         """Clear all registered commands.
 
         Returns:
-            FlextResult[int]: Number of commands cleared
+            r[int]: Number of commands cleared
 
         """
         self.logger.debug(
@@ -805,7 +805,7 @@ class FlextCliCommands(FlextCliServiceBase):
                 source="flext-cli/src/flext_cli/commands.py",
             )
 
-            return FlextResult[int].ok(count)
+            return r[int].ok(count)
         except Exception as e:  # pragma: no cover
             self.logger.exception(  # pragma: no cover
                 "FAILED to clear commands - operation aborted",  # pragma: no cover
@@ -815,17 +815,17 @@ class FlextCliCommands(FlextCliServiceBase):
                 consequence="Commands may still be registered",  # pragma: no cover
                 source="flext-cli/src/flext_cli/commands.py",  # pragma: no cover
             )  # pragma: no cover
-            return FlextResult[int].fail(  # pragma: no cover
+            return r[int].fail(  # pragma: no cover
                 FlextCliConstants.ErrorMessages.COMMAND_EXECUTION_FAILED.format(
                     error=e,
                 ),
             )
 
-    def list_commands(self) -> FlextResult[list[str]]:
+    def list_commands(self) -> r[list[str]]:
         """List all registered commands.
 
         Returns:
-            FlextResult[list[str]]: List of command names
+            r[list[str]]: List of command names
 
         """
         self.logger.debug(
@@ -846,7 +846,7 @@ class FlextCliCommands(FlextCliServiceBase):
                 source="flext-cli/src/flext_cli/commands.py",
             )
 
-            return FlextResult[list[str]].ok(command_names)
+            return r[list[str]].ok(command_names)
         except Exception as e:  # pragma: no cover
             self.logger.exception(  # pragma: no cover
                 "FAILED to list commands - operation aborted",  # pragma: no cover
@@ -856,7 +856,7 @@ class FlextCliCommands(FlextCliServiceBase):
                 consequence="Command list unavailable",  # pragma: no cover
                 source="flext-cli/src/flext_cli/commands.py",  # pragma: no cover
             )  # pragma: no cover
-            return FlextResult[list[str]].fail(  # pragma: no cover
+            return r[list[str]].fail(  # pragma: no cover
                 FlextCliConstants.CommandsErrorMessages.FAILED_LIST_COMMANDS.format(
                     error=e,
                 ),

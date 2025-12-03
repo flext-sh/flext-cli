@@ -140,7 +140,7 @@ class FlextCliProtocols(p):
                 self,
                 data: t.GeneralValueType,
                 **options: t.GeneralValueType,
-            ) -> FlextResult[str]:
+            ) -> r[str]:
                 """Format data."""
                 ...
 
@@ -148,11 +148,11 @@ class FlextCliProtocols(p):
         class CliConfigProvider(Protocol):
             """Protocol for CLI configuration providers."""
 
-            def load_config(self) -> FlextResult[t.JsonDict]:
+            def load_config(self) -> r[t.JsonDict]:
                 """Load configuration."""
                 ...
 
-            def save_config(self, config: t.JsonDict) -> FlextResult[bool]:
+            def save_config(self, config: t.JsonDict) -> r[bool]:
                 """Save configuration."""
                 ...
 
@@ -162,9 +162,9 @@ class FlextCliProtocols(p):
 
             Business Rules:
             ───────────────
-            1. Authentication MUST return FlextResult[str] with token on success
-            2. Authentication MUST return FlextResult[str] with error message on failure
-            3. Token validation MUST return FlextResult[bool] (True=valid, False=invalid)
+            1. Authentication MUST return r[str] with token on success
+            2. Authentication MUST return r[str] with error message on failure
+            3. Token validation MUST return r[bool] (True=valid, False=invalid)
             4. Credentials MUST NOT be logged or stored in plain text
             5. Tokens MUST be validated before use in subsequent operations
 
@@ -185,20 +185,20 @@ class FlextCliProtocols(p):
             - Remote authentication MUST use encrypted connections (TLS/SSL)
             """
 
-            def authenticate(self, username: str, password: str) -> FlextResult[str]:
+            def authenticate(self, username: str, password: str) -> r[str]:
                 """Authenticate user with username and password.
 
                 Business Rule:
                 ──────────────
                 Validates user credentials and returns authentication token.
-                Returns FlextResult[str] with token string on success, error on failure.
+                Returns r[str] with token string on success, error on failure.
 
                 Args:
                     username: User identifier for authentication
                     password: User password for authentication
 
                 Returns:
-                    FlextResult[str]: Token string on success, error message on failure
+                    r[str]: Token string on success, error message on failure
 
                 Audit Implications:
                 ───────────────────
@@ -211,19 +211,19 @@ class FlextCliProtocols(p):
                 """
                 ...
 
-            def validate_token(self, token: str) -> FlextResult[bool]:
+            def validate_token(self, token: str) -> r[bool]:
                 """Validate authentication token.
 
                 Business Rule:
                 ──────────────
                 Validates token authenticity, expiration, and revocation status.
-                Returns FlextResult[bool] with True if valid, False if invalid.
+                Returns r[bool] with True if valid, False if invalid.
 
                 Args:
                     token: Authentication token string to validate
 
                 Returns:
-                    FlextResult[bool]: True if token is valid, False if invalid
+                    r[bool]: True if token is valid, False if invalid
 
                 Audit Implications:
                 ───────────────────
@@ -239,7 +239,7 @@ class FlextCliProtocols(p):
         class CliDebugProvider(Protocol):
             """Protocol for CLI debug providers."""
 
-            def get_debug_info(self) -> FlextResult[t.JsonDict]:
+            def get_debug_info(self) -> r[t.JsonDict]:
                 """Get debug information."""
                 ...
 
@@ -304,11 +304,11 @@ class FlextCliProtocols(p):
                 """Plugin name."""
                 ...
 
-            def initialize(self) -> FlextResult[bool]:
+            def initialize(self) -> r[bool]:
                 """Initialize plugin."""
                 ...
 
-            def shutdown(self) -> FlextResult[bool]:
+            def shutdown(self) -> r[bool]:
                 """Shutdown plugin."""
                 ...
 
@@ -326,11 +326,11 @@ class FlextCliProtocols(p):
 
             def initialize(
                 self, context: FlextCliProtocols.Cli.CliContextProtocol
-            ) -> FlextResult[bool]:
+            ) -> r[bool]:
                 """Initialize service with context."""
                 ...
 
-            def shutdown(self) -> FlextResult[bool]:
+            def shutdown(self) -> r[bool]:
                 """Shutdown service."""
                 ...
 
@@ -344,19 +344,19 @@ class FlextCliProtocols(p):
 
             def register_command(
                 self, command: FlextCliProtocols.Cli.CliCommandProtocol
-            ) -> FlextResult[bool]:
+            ) -> r[bool]:
                 """Register a command."""
                 ...
 
             def get_command(
                 self, name: str
-            ) -> FlextResult[FlextCliProtocols.Cli.CliCommandProtocol]:
+            ) -> r[FlextCliProtocols.Cli.CliCommandProtocol]:
                 """Get command by name."""
                 ...
 
             def list_commands(
                 self,
-            ) -> FlextResult[Sequence[FlextCliProtocols.Cli.CliCommandProtocol]]:
+            ) -> r[Sequence[FlextCliProtocols.Cli.CliCommandProtocol]]:
                 """List all registered commands."""
                 ...
 
@@ -366,15 +366,15 @@ class FlextCliProtocols(p):
 
             def format_table(
                 self, headers: Sequence[str], rows: Sequence[Sequence[str]]
-            ) -> FlextResult[str]:
+            ) -> r[str]:
                 """Format data as table."""
                 ...
 
-            def format_json(self, data: t.GeneralValueType) -> FlextResult[str]:
+            def format_json(self, data: t.GeneralValueType) -> r[str]:
                 """Format data as JSON."""
                 ...
 
-            def format_yaml(self, data: t.GeneralValueType) -> FlextResult[str]:
+            def format_yaml(self, data: t.GeneralValueType) -> r[str]:
                 """Format data as YAML."""
                 ...
 
@@ -399,7 +399,7 @@ class FlextCliProtocols(p):
                 args: Sequence[str],
                 context: FlextCliProtocols.Cli.CliContextProtocol,
                 output: FlextCliProtocols.Cli.CliOutputProtocol,
-            ) -> FlextResult[int]:
+            ) -> r[int]:
                 """Handle CLI request."""
                 ...
 
@@ -407,7 +407,7 @@ class FlextCliProtocols(p):
         class ErrorHandlerProtocol(Protocol):
             """Protocol for error handling."""
 
-            def handle_error(self, error: Exception) -> FlextResult[str]:
+            def handle_error(self, error: Exception) -> r[str]:
                 """Handle and format error."""
                 ...
 

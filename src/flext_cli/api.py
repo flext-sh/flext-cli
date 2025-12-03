@@ -98,7 +98,7 @@ class FlextCli:
     3. Command registration MUST validate command names and handlers
     4. Authentication MUST be performed before privileged operations
     5. Configuration MUST be loaded from environment variables or config files
-    6. All operations MUST return FlextResult[T] for error handling
+    6. All operations MUST return r[T] for error handling
     7. Service instances are exposed as attributes for direct access
     8. Wrappers delegate to service instances without breaking isolation
 
@@ -614,7 +614,7 @@ class FlextCli:
                 "FlextCliProtocols.Display.RichTreeProtocol", tree_value
             )
             return r[FlextCliProtocols.Display.RichTreeProtocol].ok(protocol_tree)
-        # Result is already FlextResult[RichTreeProtocol] from formatters
+        # Result is already r[RichTreeProtocol] from formatters
         # Use cast to satisfy type checker - Tree implements RichTreeProtocol
         return cast("r[FlextCliProtocols.Display.RichTreeProtocol]", result)
 
@@ -734,7 +734,7 @@ class FlextCliAppBase(ABC):
                     TypeError,
                     OSError,
                     RuntimeError,
-                    FlextExceptions.BaseError,
+                    e.BaseError,
                 ),
             ):
                 tb = traceback.format_exc()

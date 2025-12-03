@@ -55,12 +55,12 @@ class FlextCliTypes(t):
         type List = t.Json.JsonList
 
         # Tipos genéricos usando t.JsonValue
-        type Handler[T] = Callable[[t.JsonValue], FlextResult[T]]
+        type Handler[T] = Callable[[t.JsonValue], r[T]]
         type Transformer = Callable[[t.JsonValue], t.JsonValue]
         type Filter = Callable[[t.JsonValue], bool]
         type Processor = Callable[
             [Sequence[t.JsonValue]],
-            FlextResult[Sequence[t.JsonValue]],
+            r[Sequence[t.JsonValue]],
         ]
 
     class Command:
@@ -68,16 +68,16 @@ class FlextCliTypes(t):
 
         # Tipos concretos ao invés de TypeVars
         # Use GeneralValueType instead of object for better type safety
-        type Handler[T] = Callable[[t.GeneralValueType], FlextResult[T]]
-        type Processor = Callable[[t.GeneralValueType], FlextResult[bool]]
+        type Handler[T] = Callable[[t.GeneralValueType], r[T]]
+        type Processor = Callable[[t.GeneralValueType], r[bool]]
         type Collection = Sequence[t.GeneralValueType]
-        type BatchProcessor = Callable[[Collection], FlextResult[int]]
+        type BatchProcessor = Callable[[Collection], r[int]]
 
     class CliConfig:
         """Configuration-related type aliases - using t directly."""
 
-        type Validator = Callable[[t.GeneralValueType], FlextResult[bool]]
-        type Builder = Callable[[t.JsonDict], FlextResult[t.GeneralValueType]]
+        type Validator = Callable[[t.GeneralValueType], r[bool]]
+        type Builder = Callable[[t.JsonDict], r[t.GeneralValueType]]
 
         # Tipos de valores de configuração - reuse t
         type ScalarValue = t.ScalarValue
@@ -93,45 +93,45 @@ class FlextCliTypes(t):
 
         # Use GeneralValueType instead of object for better type safety
         type Formatter = Callable[[t.GeneralValueType], str]
-        type Renderer[T] = Callable[[T], FlextResult[str]]
+        type Renderer[T] = Callable[[T], r[str]]
         type StreamWriter = Callable[[str], None]
 
     class Result:
         """Result-related type aliases."""
 
         # Use GeneralValueType instead of object for better type safety
-        type Processor = Callable[[t.GeneralValueType], FlextResult[t.GeneralValueType]]
+        type Processor = Callable[[t.GeneralValueType], r[t.GeneralValueType]]
         type Aggregator = Callable[
             [Sequence[t.GeneralValueType]],
-            FlextResult[t.GeneralValueType],
+            r[t.GeneralValueType],
         ]
 
     class Session:
         """Session-related type aliases."""
 
         # Use GeneralValueType instead of object for better type safety
-        type Manager = Callable[[], FlextResult[t.GeneralValueType]]
+        type Manager = Callable[[], r[t.GeneralValueType]]
         type Validator = Callable[[t.GeneralValueType], bool]
 
     class Context:
         """Context-related type aliases."""
 
         # Use JsonDict instead of dict[str, object] and GeneralValueType instead of object
-        type Builder = Callable[[t.JsonDict], FlextResult[t.GeneralValueType]]
+        type Builder = Callable[[t.JsonDict], r[t.GeneralValueType]]
         type Provider = Callable[[], t.GeneralValueType]
 
     class Plugin:
         """Plugin-related type aliases."""
 
         # Use GeneralValueType instead of object for better type safety
-        type Loader = Callable[[str], FlextResult[t.GeneralValueType]]
+        type Loader = Callable[[str], r[t.GeneralValueType]]
         type Registry = Mapping[str, t.GeneralValueType]
 
     class Formatting:
         """Formatting-related type aliases."""
 
         # Use GeneralValueType instead of object for better type safety
-        type Factory = Callable[[str], FlextResult[t.GeneralValueType]]
+        type Factory = Callable[[str], r[t.GeneralValueType]]
         type Chain = Sequence[t.GeneralValueType]
 
     class Data:
@@ -185,14 +185,14 @@ class FlextCliTypes(t):
             | list[t.JsonValue]
             | tuple[t.JsonValue, ...]
             | t.JsonValue
-            | FlextResult[t.GeneralValueType]
+            | r[t.GeneralValueType]
         )
 
         # ResultFormatter: Function that takes a formattable result and format string
         type ResultFormatter = Callable[[FormatableResult, str], None]
 
         # HandlerFunction: Generic handler with FlextResult return type
-        type HandlerFunction = Callable[..., FlextResult[t.GeneralValueType]]
+        type HandlerFunction = Callable[..., r[t.GeneralValueType]]
 
     class Auth:
         """Authentication type aliases."""

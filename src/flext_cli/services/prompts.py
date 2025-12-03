@@ -142,7 +142,7 @@ class FlextCliPrompts(FlextCliServiceBase):
         message: str,
         default: str = "",
         validation_pattern: str | None = None,
-    ) -> FlextResult[str]:
+    ) -> r[str]:
         """Prompt user for text input with enhanced validation.
 
         Args:
@@ -151,7 +151,7 @@ class FlextCliPrompts(FlextCliServiceBase):
             validation_pattern: Optional regex pattern for input validation
 
         Returns:
-            FlextResult[str]: User input or error
+            r[str]: User input or error
 
         """
         self.logger.debug(
@@ -177,7 +177,7 @@ class FlextCliPrompts(FlextCliServiceBase):
                         consequence="Prompt will fail",
                         source="flext-cli/src/flext_cli/prompts.py",
                     )
-                    return FlextResult[str].fail(
+                    return r[str].fail(
                         FlextCliConstants.ErrorMessages.DEFAULT_PATTERN_MISMATCH.format(
                             pattern=validation_pattern,
                         ),
@@ -190,7 +190,7 @@ class FlextCliPrompts(FlextCliServiceBase):
                     default=default,
                     source="flext-cli/src/flext_cli/prompts.py",
                 )
-                return FlextResult[str].ok(default)
+                return r[str].ok(default)
 
             self.logger.warning(
                 "Interactive mode disabled and no default provided",
@@ -199,7 +199,7 @@ class FlextCliPrompts(FlextCliServiceBase):
                 consequence="Prompt will fail",
                 source="flext-cli/src/flext_cli/prompts.py",
             )
-            return FlextResult[str].fail(
+            return r[str].fail(
                 FlextCliConstants.ErrorMessages.INTERACTIVE_MODE_DISABLED,
             )
 
@@ -225,7 +225,7 @@ class FlextCliPrompts(FlextCliServiceBase):
                     consequence="Prompt will fail",
                     source="flext-cli/src/flext_cli/prompts.py",
                 )
-                return FlextResult[str].fail(
+                return r[str].fail(
                     FlextCliConstants.ErrorMessages.INPUT_PATTERN_MISMATCH.format(
                         pattern=validation_pattern,
                     ),
@@ -239,7 +239,7 @@ class FlextCliPrompts(FlextCliServiceBase):
                 source="flext-cli/src/flext_cli/prompts.py",
             )
 
-            return FlextResult[str].ok(user_input)
+            return r[str].ok(user_input)
 
         except Exception as e:  # pragma: no cover
             self.logger.exception(  # pragma: no cover
@@ -252,7 +252,7 @@ class FlextCliPrompts(FlextCliServiceBase):
                 severity="critical",
                 source="flext-cli/src/flext_cli/prompts.py",
             )
-            return FlextResult[str].fail(  # pragma: no cover
+            return r[str].fail(  # pragma: no cover
                 FlextCliConstants.ErrorMessages.TEXT_PROMPT_FAILED.format(error=e),
             )
 
@@ -261,7 +261,7 @@ class FlextCliPrompts(FlextCliServiceBase):
         message: str,
         *,
         default: bool = False,
-    ) -> FlextResult[bool]:
+    ) -> r[bool]:
         """Prompt user for yes/no confirmation.
 
         Args:
@@ -269,7 +269,7 @@ class FlextCliPrompts(FlextCliServiceBase):
             default: Default value if no input provided
 
         Returns:
-            FlextResult[bool]: User confirmation or error
+            r[bool]: User confirmation or error
 
         """
         self.logger.debug(
@@ -289,7 +289,7 @@ class FlextCliPrompts(FlextCliServiceBase):
                 default=default,
                 source="flext-cli/src/flext_cli/prompts.py",
             )
-            return FlextResult[bool].ok(default)
+            return r[bool].ok(default)
 
         try:
             # Record prompt for history
@@ -300,7 +300,7 @@ class FlextCliPrompts(FlextCliServiceBase):
             # Use input with timeout if available
 
             # Simulate user input (in real implementation, would use proper input handling)
-            response = "y" if default else "n"
+            response = u.when(condition=default, then_value="y", else_value="n")
 
             result = response.lower() in FlextCliConstants.YesNo.YES_VALUES
 
@@ -312,7 +312,7 @@ class FlextCliPrompts(FlextCliServiceBase):
                 source="flext-cli/src/flext_cli/prompts.py",
             )
 
-            return FlextResult[bool].ok(result)
+            return r[bool].ok(result)
 
         except Exception as e:
             self.logger.exception(
@@ -325,7 +325,7 @@ class FlextCliPrompts(FlextCliServiceBase):
                 severity="critical",
                 source="flext-cli/src/flext_cli/prompts.py",
             )
-            return FlextResult[bool].fail(
+            return r[bool].fail(
                 FlextCliConstants.ErrorMessages.CONFIRMATION_PROMPT_FAILED.format(
                     error=e,
                 ),
@@ -336,7 +336,7 @@ class FlextCliPrompts(FlextCliServiceBase):
         message: str,
         choices: list[str],
         default: str | None = None,
-    ) -> FlextResult[str]:
+    ) -> r[str]:
         """Prompt user to select from multiple choices.
 
         Business Rule:
@@ -356,7 +356,7 @@ class FlextCliPrompts(FlextCliServiceBase):
             default: Default choice if no input provided
 
         Returns:
-            FlextResult[str]: Selected choice or error
+            r[str]: Selected choice or error
 
         """
         self.logger.debug(
@@ -371,7 +371,7 @@ class FlextCliPrompts(FlextCliServiceBase):
         )
 
         # Initialize result
-        result: FlextResult[str]
+        result: r[str]
 
         if not choices:
             self.logger.warning(
@@ -381,7 +381,7 @@ class FlextCliPrompts(FlextCliServiceBase):
                 consequence="Prompt will fail",
                 source="flext-cli/src/flext_cli/prompts.py",
             )
-            result = FlextResult[str].fail(
+            result = r[str].fail(
                 FlextCliConstants.ErrorMessages.NO_CHOICES_PROVIDED,
             )
         elif not self.interactive_mode:
@@ -393,7 +393,7 @@ class FlextCliPrompts(FlextCliServiceBase):
                     default=default,
                     source="flext-cli/src/flext_cli/prompts.py",
                 )
-                result = FlextResult[str].ok(default)
+                result = r[str].ok(default)
             else:
                 self.logger.warning(
                     "Interactive mode disabled and no valid default provided",
@@ -404,7 +404,7 @@ class FlextCliPrompts(FlextCliServiceBase):
                     consequence="Prompt will fail",
                     source="flext-cli/src/flext_cli/prompts.py",
                 )
-                result = FlextResult[str].fail(
+                result = r[str].fail(
                     FlextCliConstants.ErrorMessages.INTERACTIVE_MODE_DISABLED_CHOICE,
                 )
         else:
@@ -417,10 +417,10 @@ class FlextCliPrompts(FlextCliServiceBase):
                         choice=item[1],
                     ),
                 )
-                choice_list = (
-                    ", ".join(choice_list_items)
-                    if isinstance(choice_list_items, list)
-                    else ""
+                choice_list = u.when(
+                    condition=isinstance(choice_list_items, list),
+                    then_value=u.join(choice_list_items, sep=", "),
+                    else_value="",
                 )
                 self._prompt_history.append(
                     FlextCliConstants.PromptsDefaults.CHOICE_HISTORY_FORMAT.format(
@@ -442,7 +442,7 @@ class FlextCliPrompts(FlextCliServiceBase):
                             consequence="Prompt will fail",
                             source="flext-cli/src/flext_cli/prompts.py",
                         )
-                        result = FlextResult[str].fail(
+                        result = r[str].fail(
                             FlextCliConstants.ErrorMessages.INVALID_CHOICE.format(
                                 selected=default,
                             ),
@@ -456,7 +456,7 @@ class FlextCliPrompts(FlextCliServiceBase):
                             selected=selected,
                             source="flext-cli/src/flext_cli/prompts.py",
                         )
-                        result = FlextResult[str].ok(selected)
+                        result = r[str].ok(selected)
                 else:
                     # No default provided - require explicit choice
                     self.logger.warning(
@@ -467,9 +467,9 @@ class FlextCliPrompts(FlextCliServiceBase):
                         consequence="Prompt will fail",
                         source="flext-cli/src/flext_cli/prompts.py",
                     )
-                    result = FlextResult[str].fail(
+                    result = r[str].fail(
                         FlextCliConstants.PromptsErrorMessages.CHOICE_REQUIRED.format(
-                            choices=", ".join(choices),
+                            choices=u.join(choices, sep=", "),
                         ),
                     )
 
@@ -484,7 +484,7 @@ class FlextCliPrompts(FlextCliServiceBase):
                     severity="critical",
                     source="flext-cli/src/flext_cli/prompts.py",
                 )
-                result = FlextResult[str].fail(
+                result = r[str].fail(
                     FlextCliConstants.ErrorMessages.CHOICE_PROMPT_FAILED.format(
                         error=e
                     ),
@@ -496,7 +496,7 @@ class FlextCliPrompts(FlextCliServiceBase):
         self,
         message: str = "Password:",
         min_length: int = FlextCliConstants.FormattingDefaults.MIN_FIELD_LENGTH,
-    ) -> FlextResult[str]:
+    ) -> r[str]:
         """Prompt user for password input with hidden text.
 
         Args:
@@ -504,7 +504,7 @@ class FlextCliPrompts(FlextCliServiceBase):
             min_length: Minimum password length
 
         Returns:
-            FlextResult[str]: Password input or error
+            r[str]: Password input or error
 
         """
         self.logger.debug(
@@ -524,7 +524,7 @@ class FlextCliPrompts(FlextCliServiceBase):
                 consequence="Password prompt will fail",
                 source="flext-cli/src/flext_cli/prompts.py",
             )
-            return FlextResult[str].fail(
+            return r[str].fail(
                 FlextCliConstants.ErrorMessages.INTERACTIVE_MODE_DISABLED_PASSWORD,
             )
 
@@ -547,7 +547,7 @@ class FlextCliPrompts(FlextCliServiceBase):
                     consequence="Password prompt will fail",
                     source="flext-cli/src/flext_cli/prompts.py",
                 )
-                return FlextResult[str].fail(
+                return r[str].fail(
                     FlextCliConstants.ErrorMessages.PASSWORD_TOO_SHORT_MIN.format(
                         min_length=min_length,
                     ),
@@ -562,7 +562,7 @@ class FlextCliPrompts(FlextCliServiceBase):
                 source="flext-cli/src/flext_cli/prompts.py",
             )
 
-            return FlextResult[str].ok(password)  # pragma: no cover
+            return r[str].ok(password)  # pragma: no cover
 
         except Exception as e:
             self.logger.exception(
@@ -575,15 +575,15 @@ class FlextCliPrompts(FlextCliServiceBase):
                 severity="critical",
                 source="flext-cli/src/flext_cli/prompts.py",
             )
-            return FlextResult[str].fail(
+            return r[str].fail(
                 FlextCliConstants.ErrorMessages.PASSWORD_PROMPT_FAILED.format(error=e),
             )
 
-    def clear_prompt_history(self) -> FlextResult[bool]:
+    def clear_prompt_history(self) -> r[bool]:
         """Clear prompt history.
 
         Returns:
-            FlextResult[bool]: True if history cleared successfully, failure on error
+            r[bool]: True if history cleared successfully, failure on error
 
         """
         self.logger.debug(
@@ -602,7 +602,7 @@ class FlextCliPrompts(FlextCliServiceBase):
                 source="flext-cli/src/flext_cli/prompts.py",
             )
 
-            return FlextResult[bool].ok(True)
+            return r[bool].ok(True)
         except Exception as e:
             self.logger.exception(
                 "FAILED to clear prompt history - operation aborted",
@@ -612,15 +612,15 @@ class FlextCliPrompts(FlextCliServiceBase):
                 consequence="History may still contain entries",
                 source="flext-cli/src/flext_cli/prompts.py",
             )
-            return FlextResult[bool].fail(
+            return r[bool].fail(
                 FlextCliConstants.ErrorMessages.HISTORY_CLEAR_FAILED.format(error=e),
             )
 
-    def get_prompt_statistics(self) -> FlextResult[t.JsonDict]:
+    def get_prompt_statistics(self) -> r[t.JsonDict]:
         """Get prompt usage statistics.
 
         Returns:
-            FlextResult[t.JsonDict]: Statistics data
+            r[t.JsonDict]: Statistics data
 
         Pydantic 2 Modernization:
             - Uses PromptStatistics model internally
@@ -669,7 +669,7 @@ class FlextCliPrompts(FlextCliServiceBase):
                 source="flext-cli/src/flext_cli/prompts.py",
             )
 
-            return FlextResult[t.JsonDict].ok(stats_dict)
+            return r[t.JsonDict].ok(stats_dict)
 
         except Exception as e:  # pragma: no cover
             self.logger.exception(  # pragma: no cover
@@ -680,20 +680,20 @@ class FlextCliPrompts(FlextCliServiceBase):
                 consequence="Statistics unavailable",
                 source="flext-cli/src/flext_cli/prompts.py",
             )
-            return FlextResult[t.JsonDict].fail(  # pragma: no cover
+            return r[t.JsonDict].fail(  # pragma: no cover
                 FlextCliConstants.PromptsErrorMessages.STATISTICS_COLLECTION_FAILED.format(
                     error=e,
                 ),
             )
 
-    def execute(self, **_kwargs: t.JsonDict) -> FlextResult[t.JsonDict]:
+    def execute(self, **_kwargs: t.JsonDict) -> r[t.JsonDict]:
         """Execute prompt service operation.
 
         Args:
             **_kwargs: Additional execution parameters (unused, for FlextService compatibility)
 
         Returns:
-            FlextResult[t.JsonDict]: Service execution result
+            r[t.JsonDict]: Service execution result
 
         """
         self.logger.info(
@@ -712,7 +712,7 @@ class FlextCliPrompts(FlextCliServiceBase):
                 operation="execute",
                 source="flext-cli/src/flext_cli/prompts.py",
             )
-            return FlextResult[t.JsonDict].ok({})
+            return r[t.JsonDict].ok({})
 
         except Exception as e:
             self.logger.exception(
@@ -724,13 +724,13 @@ class FlextCliPrompts(FlextCliServiceBase):
                 severity="critical",
                 source="flext-cli/src/flext_cli/prompts.py",
             )
-            return FlextResult[t.JsonDict].fail(
+            return r[t.JsonDict].fail(
                 FlextCliConstants.PromptsErrorMessages.PROMPT_SERVICE_EXECUTION_FAILED.format(
                     error=e,
                 ),
             )
 
-    def prompt(self, message: str, default: str = "") -> FlextResult[str]:
+    def prompt(self, message: str, default: str = "") -> r[str]:
         """Prompt user for text input.
 
         Args:
@@ -738,7 +738,7 @@ class FlextCliPrompts(FlextCliServiceBase):
             default: Default value (can be empty string)
 
         Returns:
-            FlextResult[str]: User input or error
+            r[str]: User input or error
 
         """
         self.logger.debug(
@@ -764,7 +764,7 @@ class FlextCliPrompts(FlextCliServiceBase):
                     default=default,
                     source="flext-cli/src/flext_cli/prompts.py",
                 )
-                return FlextResult[str].ok(default)
+                return r[str].ok(default)
 
             # Handle non-interactive mode - return default (even if empty)
             if not self.interactive_mode:
@@ -775,7 +775,7 @@ class FlextCliPrompts(FlextCliServiceBase):
                     default=default,
                     source="flext-cli/src/flext_cli/prompts.py",
                 )
-                return FlextResult[str].ok(default)
+                return r[str].ok(default)
 
             # Get actual user input
             display_message = (
@@ -832,7 +832,7 @@ class FlextCliPrompts(FlextCliServiceBase):
                 source="flext-cli/src/flext_cli/prompts.py",
             )
 
-            return FlextResult[str].ok(user_input)
+            return r[str].ok(user_input)
         except Exception as e:  # pragma: no cover
             self.logger.exception(  # pragma: no cover
                 "FATAL ERROR during prompt - prompt aborted",
@@ -844,13 +844,13 @@ class FlextCliPrompts(FlextCliServiceBase):
                 severity="critical",
                 source="flext-cli/src/flext_cli/prompts.py",
             )
-            return FlextResult[str].fail(  # pragma: no cover
+            return r[str].fail(  # pragma: no cover
                 FlextCliConstants.PromptsErrorMessages.PROMPT_FAILED.format(error=e),
             )
 
     def _read_confirmation_input(
         self, message: str, prompt_text: str, *, default: bool
-    ) -> FlextResult[bool]:
+    ) -> r[bool]:
         """Read and validate user confirmation input.
 
         Business Rule:
@@ -863,7 +863,7 @@ class FlextCliPrompts(FlextCliServiceBase):
             default: Default value for empty input
 
         Returns:
-            FlextResult[bool]: True for yes, False for no
+            r[bool]: True for yes, False for no
 
         """
         while True:
@@ -877,7 +877,7 @@ class FlextCliPrompts(FlextCliServiceBase):
                     default=default,
                     source="flext-cli/src/flext_cli/prompts.py",
                 )
-                return FlextResult[bool].ok(default)
+                return r[bool].ok(default)
 
             if user_input in {"y", "yes"}:
                 self.logger.debug(
@@ -887,7 +887,7 @@ class FlextCliPrompts(FlextCliServiceBase):
                     result=True,
                     source="flext-cli/src/flext_cli/prompts.py",
                 )
-                return FlextResult[bool].ok(True)
+                return r[bool].ok(True)
 
             if user_input in {"n", "no"}:
                 self.logger.debug(
@@ -897,7 +897,7 @@ class FlextCliPrompts(FlextCliServiceBase):
                     result=False,
                     source="flext-cli/src/flext_cli/prompts.py",
                 )
-                return FlextResult[bool].ok(False)
+                return r[bool].ok(False)
 
             self.logger.warning(
                 "Invalid confirmation input - please enter yes or no",
@@ -908,7 +908,7 @@ class FlextCliPrompts(FlextCliServiceBase):
                 source="flext-cli/src/flext_cli/prompts.py",
             )
 
-    def confirm(self, message: str, *, default: bool = False) -> FlextResult[bool]:
+    def confirm(self, message: str, *, default: bool = False) -> r[bool]:
         """Prompt user for yes/no confirmation.
 
         Business Rule:
@@ -928,7 +928,7 @@ class FlextCliPrompts(FlextCliServiceBase):
             default: Default value
 
         Returns:
-            FlextResult[bool]: User choice or error
+            r[bool]: User choice or error
 
         """
         self.logger.debug(
@@ -942,7 +942,7 @@ class FlextCliPrompts(FlextCliServiceBase):
         )
 
         # Initialize result
-        result: FlextResult[bool]
+        result: r[bool]
 
         try:
             # Handle quiet mode - return default
@@ -954,7 +954,7 @@ class FlextCliPrompts(FlextCliServiceBase):
                     default=default,
                     source="flext-cli/src/flext_cli/prompts.py",
                 )
-                result = FlextResult[bool].ok(default)
+                result = r[bool].ok(default)
             elif not self.interactive_mode:
                 # Handle non-interactive mode - return default
                 self.logger.debug(
@@ -964,7 +964,7 @@ class FlextCliPrompts(FlextCliServiceBase):
                     default=default,
                     source="flext-cli/src/flext_cli/prompts.py",
                 )
-                result = FlextResult[bool].ok(default)
+                result = r[bool].ok(default)
             else:
                 # Interactive mode - get user input
                 prompt_text = (
@@ -993,7 +993,7 @@ class FlextCliPrompts(FlextCliServiceBase):
                 consequence="Confirmation aborted",
                 source="flext-cli/src/flext_cli/prompts.py",
             )
-            result = FlextResult[bool].fail(
+            result = r[bool].fail(
                 FlextCliConstants.PromptsMessages.USER_CANCELLED_CONFIRMATION,
             )
         except EOFError:
@@ -1004,7 +1004,7 @@ class FlextCliPrompts(FlextCliServiceBase):
                 consequence="Confirmation aborted",
                 source="flext-cli/src/flext_cli/prompts.py",
             )
-            result = FlextResult[bool].fail(
+            result = r[bool].fail(
                 FlextCliConstants.PromptsMessages.INPUT_STREAM_ENDED,
             )
         except Exception as e:
@@ -1018,7 +1018,7 @@ class FlextCliPrompts(FlextCliServiceBase):
                 severity="critical",
                 source="flext-cli/src/flext_cli/prompts.py",
             )
-            result = FlextResult[bool].fail(
+            result = r[bool].fail(
                 FlextCliConstants.PromptsErrorMessages.CONFIRMATION_FAILED.format(
                     error=e,
                 ),
@@ -1030,7 +1030,7 @@ class FlextCliPrompts(FlextCliServiceBase):
         self,
         options: list[str],
         message: str = FlextCliConstants.PromptsDefaults.DEFAULT_CHOICE_MESSAGE,
-    ) -> FlextResult[str]:
+    ) -> r[str]:
         """Prompt user to select from multiple options.
 
         Args:
@@ -1038,7 +1038,7 @@ class FlextCliPrompts(FlextCliServiceBase):
             message: Selection message
 
         Returns:
-            FlextResult[str]: Selected option or error
+            r[str]: Selected option or error
 
         """
         self.logger.debug(
@@ -1069,7 +1069,7 @@ class FlextCliPrompts(FlextCliServiceBase):
                     consequence="Selection will fail",
                     source="flext-cli/src/flext_cli/prompts.py",
                 )
-                return FlextResult[str].fail(
+                return r[str].fail(
                     FlextCliConstants.PromptsMessages.NO_OPTIONS_PROVIDED,
                 )
 
@@ -1173,10 +1173,10 @@ class FlextCliPrompts(FlextCliServiceBase):
                         source="flext-cli/src/flext_cli/prompts.py",
                     )
                     if isinstance(e, KeyboardInterrupt):
-                        return FlextResult[str].fail(
+                        return r[str].fail(
                             FlextCliConstants.PromptsMessages.USER_CANCELLED_SELECTION,
                         )
-                    return FlextResult[str].fail(
+                    return r[str].fail(
                         FlextCliConstants.PromptsMessages.INPUT_STREAM_ENDED,
                     )
 
@@ -1194,7 +1194,7 @@ class FlextCliPrompts(FlextCliServiceBase):
                     choice=selected_option,
                 ),
             )
-            return FlextResult[str].ok(selected_option)
+            return r[str].ok(selected_option)
         except Exception as e:
             self.logger.exception(
                 "FATAL ERROR during selection - selection aborted",
@@ -1206,7 +1206,7 @@ class FlextCliPrompts(FlextCliServiceBase):
                 severity="critical",
                 source="flext-cli/src/flext_cli/prompts.py",
             )
-            return FlextResult[str].fail(
+            return r[str].fail(
                 FlextCliConstants.PromptsErrorMessages.SELECTION_FAILED.format(error=e),
             )
 
@@ -1214,7 +1214,7 @@ class FlextCliPrompts(FlextCliServiceBase):
         self,
         message: str,
         status: str = FlextCliConstants.MessageTypes.INFO.value,
-    ) -> FlextResult[bool]:
+    ) -> r[bool]:
         """Print status message.
 
         Args:
@@ -1222,7 +1222,7 @@ class FlextCliPrompts(FlextCliServiceBase):
             status: Status type (from FlextCliConstants.MessageTypes)
 
         Returns:
-            FlextResult[bool]: True if message printed successfully, failure on error
+            r[bool]: True if message printed successfully, failure on error
 
         """
         self.logger.debug(
@@ -1250,7 +1250,7 @@ class FlextCliPrompts(FlextCliServiceBase):
             )
 
             self.logger.info(formatted_message)
-            return FlextResult[bool].ok(True)
+            return r[bool].ok(True)
         except Exception as e:
             self.logger.exception(
                 "FAILED to print status message - operation aborted",
@@ -1262,7 +1262,7 @@ class FlextCliPrompts(FlextCliServiceBase):
                 consequence="Status message not displayed",
                 source="flext-cli/src/flext_cli/prompts.py",
             )
-            return FlextResult[bool].fail(
+            return r[bool].fail(
                 FlextCliConstants.PromptsErrorMessages.PRINT_STATUS_FAILED.format(
                     error=e,
                 ),
@@ -1274,7 +1274,7 @@ class FlextCliPrompts(FlextCliServiceBase):
         log_level: str,
         message_format: str,
         error_message_template: str,
-    ) -> FlextResult[bool]:
+    ) -> r[bool]:
         """Generic message printing method - eliminates code duplication.
 
         Args:
@@ -1284,7 +1284,7 @@ class FlextCliPrompts(FlextCliServiceBase):
             error_message_template: Error message template if printing fails
 
         Returns:
-            FlextResult[bool]: True if message printed successfully, failure on error
+            r[bool]: True if message printed successfully, failure on error
 
         """
         self.logger.debug(
@@ -1316,7 +1316,7 @@ class FlextCliPrompts(FlextCliServiceBase):
                 source="flext-cli/src/flext_cli/prompts.py",
             )
 
-            return FlextResult[bool].ok(True)
+            return r[bool].ok(True)
         except Exception as e:
             self.logger.exception(
                 "FAILED to print message - operation aborted",
@@ -1328,16 +1328,16 @@ class FlextCliPrompts(FlextCliServiceBase):
                 consequence="Message not displayed",
                 source="flext-cli/src/flext_cli/prompts.py",
             )
-            return FlextResult[bool].fail(error_message_template.format(error=e))
+            return r[bool].fail(error_message_template.format(error=e))
 
-    def print_success(self, message: str) -> FlextResult[bool]:
+    def print_success(self, message: str) -> r[bool]:
         """Print success message.
 
         Args:
             message: Success message
 
         Returns:
-            FlextResult[bool]: True if message printed successfully, failure on error
+            r[bool]: True if message printed successfully, failure on error
 
         """
         return self._print_message(
@@ -1347,14 +1347,14 @@ class FlextCliPrompts(FlextCliServiceBase):
             FlextCliConstants.PromptsErrorMessages.PRINT_SUCCESS_FAILED,
         )
 
-    def print_error(self, message: str) -> FlextResult[bool]:
+    def print_error(self, message: str) -> r[bool]:
         """Print error message.
 
         Args:
             message: Error message
 
         Returns:
-            FlextResult[bool]: True if message printed successfully, failure on error
+            r[bool]: True if message printed successfully, failure on error
 
         """
         return self._print_message(
@@ -1364,14 +1364,14 @@ class FlextCliPrompts(FlextCliServiceBase):
             FlextCliConstants.PromptsErrorMessages.PRINT_ERROR_FAILED,
         )
 
-    def print_warning(self, message: str) -> FlextResult[bool]:
+    def print_warning(self, message: str) -> r[bool]:
         """Print warning message.
 
         Args:
             message: Warning message
 
         Returns:
-            FlextResult[bool]: True if message printed successfully, failure on error
+            r[bool]: True if message printed successfully, failure on error
 
         """
         return self._print_message(
@@ -1381,14 +1381,14 @@ class FlextCliPrompts(FlextCliServiceBase):
             FlextCliConstants.PromptsErrorMessages.PRINT_WARNING_FAILED,
         )
 
-    def print_info(self, message: str) -> FlextResult[bool]:
+    def print_info(self, message: str) -> r[bool]:
         """Print info message.
 
         Args:
             message: Info message
 
         Returns:
-            FlextResult[bool]: True if message printed successfully, failure on error
+            r[bool]: True if message printed successfully, failure on error
 
         """
         return self._print_message(
@@ -1401,14 +1401,14 @@ class FlextCliPrompts(FlextCliServiceBase):
     def create_progress(
         self,
         description: str = FlextCliConstants.PromptsDefaults.DEFAULT_PROCESSING_DESCRIPTION,
-    ) -> FlextResult[str]:
+    ) -> r[str]:
         """Create progress indicator.
 
         Args:
             description: Progress description
 
         Returns:
-            FlextResult[str]: Progress indicator description or error
+            r[str]: Progress indicator description or error
 
         """
         self.logger.debug(
@@ -1450,7 +1450,7 @@ class FlextCliPrompts(FlextCliServiceBase):
             )
 
             # Return the original description as expected by tests
-            return FlextResult[str].ok(description)
+            return r[str].ok(description)
         except Exception as e:
             self.logger.exception(
                 "FAILED to create progress indicator - operation aborted",
@@ -1461,7 +1461,7 @@ class FlextCliPrompts(FlextCliServiceBase):
                 consequence="Progress indicator not created",
                 source="flext-cli/src/flext_cli/prompts.py",
             )
-            return FlextResult[str].fail(
+            return r[str].fail(
                 FlextCliConstants.PromptsErrorMessages.PROGRESS_CREATION_FAILED.format(
                     error=e,
                 ),
@@ -1471,7 +1471,7 @@ class FlextCliPrompts(FlextCliServiceBase):
         self,
         items: list[t.GeneralValueType],
         description: str = FlextCliConstants.PromptsDefaults.DEFAULT_PROCESSING_DESCRIPTION,
-    ) -> FlextResult[list[t.GeneralValueType]]:
+    ) -> r[list[t.GeneralValueType]]:
         """Execute with progress indicator.
 
         Args:
@@ -1479,7 +1479,7 @@ class FlextCliPrompts(FlextCliServiceBase):
             description: Progress description
 
         Returns:
-            FlextResult[list[CliJsonValue]]: Result with original items or error
+            r[list[CliJsonValue]]: Result with original items or error
 
         """
         try:
@@ -1529,9 +1529,13 @@ class FlextCliPrompts(FlextCliServiceBase):
                 source="flext-cli/src/flext_cli/prompts.py",
             )
 
-            for _ in range(len(items)):
-                # Process the item
+            # Use u.process() for unified item processing (DSL pattern)
+            def process_item(_item: object) -> None:
+                """Process single item."""
+                nonlocal processed_count
                 processed_count += 1
+
+            u.process(items, processor=process_item, on_error="skip")
 
                 # Show progress for large item sets
                 if (
@@ -1581,7 +1585,7 @@ class FlextCliPrompts(FlextCliServiceBase):
             )
 
             # Return the original items as expected by tests
-            return FlextResult[list[t.GeneralValueType]].ok(items)
+            return r[list[t.GeneralValueType]].ok(items)
         except Exception as e:
             self.logger.exception(
                 "FATAL ERROR during progress operation - operation aborted",
@@ -1594,7 +1598,7 @@ class FlextCliPrompts(FlextCliServiceBase):
                 severity="critical",
                 source="flext-cli/src/flext_cli/prompts.py",
             )
-            return FlextResult[list[t.GeneralValueType]].fail(
+            return r[list[t.GeneralValueType]].fail(
                 FlextCliConstants.PromptsErrorMessages.PROGRESS_PROCESSING_FAILED.format(
                     error=e,
                 ),

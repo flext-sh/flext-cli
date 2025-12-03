@@ -76,7 +76,7 @@ class FlextCliMixins(x):
             current_status: str,
             required_status: str,
             operation: str,
-        ) -> FlextResult[bool]:
+        ) -> r[bool]:
             """Validate command execution state for operations (delegates to utilities)."""
             return FlextCliUtilities.CliValidation.validate_command_execution_state(
                 current_status=current_status,
@@ -88,7 +88,7 @@ class FlextCliMixins(x):
         def validate_session_state(
             current_status: str,
             valid_states: list[str],
-        ) -> FlextResult[bool]:
+        ) -> r[bool]:
             """Validate session state (delegates to utilities)."""
             return FlextCliUtilities.CliValidation.validate_session_state(
                 current_status=current_status,
@@ -98,7 +98,7 @@ class FlextCliMixins(x):
         @staticmethod
         def validate_pipeline_step(
             step: t.JsonDict | None,
-        ) -> FlextResult[bool]:
+        ) -> r[bool]:
             """Validate pipeline step configuration (delegates to utilities)."""
             return FlextCliUtilities.CliValidation.validate_pipeline_step(step=step)
 
@@ -106,7 +106,7 @@ class FlextCliMixins(x):
         def validate_configuration_consistency(
             config_data: t.JsonDict | None,
             required_fields: list[str],
-        ) -> FlextResult[bool]:
+        ) -> r[bool]:
             """Validate configuration consistency (delegates to utilities)."""
             return FlextCliUtilities.CliValidation.validate_configuration_consistency(
                 config_data=config_data,
@@ -128,7 +128,7 @@ class FlextCliMixins(x):
             operation: str,
             handler: FlextCliProtocols.Cli.CliCommandHandler,
             **context_data: t.GeneralValueType,
-        ) -> FlextResult[t.GeneralValueType]:
+        ) -> r[t.GeneralValueType]:
             """Execute handler with automatic CLI context management.
 
             Composes flext-core decorators to provide complete context setup:
@@ -160,18 +160,18 @@ class FlextCliMixins(x):
             )
 
             # Execute with composed decorators
-            # Railway decorator ensures handler_result is always FlextResult[GeneralValueType]
+            # Railway decorator ensures handler_result is always r[GeneralValueType]
             handler_result = wrapped_handler(**context_data)
 
             # Type narrowing: railway decorator ensures FlextResult return
             # Handle both single and double-wrapped FlextResult cases
             if isinstance(handler_result, FlextResult):
-                # Check if it's a double-wrapped FlextResult[FlextResult[...]]
+                # Check if it's a double-wrapped r[r[...]]
                 if handler_result.is_success:
                     inner_value = handler_result.unwrap()
                     if isinstance(inner_value, FlextResult):
                         # Double-wrapped: unwrap inner FlextResult
-                        # Type narrowing: inner_value is FlextResult[t.GeneralValueType]
+                        # Type narrowing: inner_value is r[t.GeneralValueType]
                         return inner_value
                     # Single-wrapped with value: extract value and wrap in new FlextResult
                     # inner_value is object from unwrap - convert to GeneralValueType
@@ -182,14 +182,14 @@ class FlextCliMixins(x):
                         converted_value = inner_value
                     else:
                         converted_value = str(inner_value)
-                    return FlextResult[t.GeneralValueType].ok(converted_value)
+                    return r[t.GeneralValueType].ok(converted_value)
                 # Failure case: unwrap and re-wrap to ensure correct type
                 error_msg = handler_result.error or "Unknown error"
-                return FlextResult[t.GeneralValueType].fail(error_msg)
+                return r[t.GeneralValueType].fail(error_msg)
 
             # Fallback: wrap non-FlextResult returns
             # Railway decorator should always return FlextResult, but handle gracefully
-            return FlextResult[t.GeneralValueType].ok(handler_result)
+            return r[t.GeneralValueType].ok(handler_result)
 
 
 __all__ = ["FlextCliMixins"]
