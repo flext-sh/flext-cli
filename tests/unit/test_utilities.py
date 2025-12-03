@@ -30,9 +30,6 @@ from flext_cli import FlextCliConstants, FlextCliUtilities
 from .._helpers import FlextCliTestHelpers
 from ..fixtures.constants import TestUtilities
 
-# Alias for static method calls - use u.* for uds
-u = u
-
 
 class ValidationType(StrEnum):
     """Validation types for comprehensive testing."""

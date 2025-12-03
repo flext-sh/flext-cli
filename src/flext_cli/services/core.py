@@ -40,6 +40,7 @@ from flext_cli.config import FlextCliConfig
 from flext_cli.constants import FlextCliConstants
 from flext_cli.models import FlextCliModels
 from flext_cli.protocols import FlextCliProtocols
+from flext_cli.services.output import cast_if, norm_json, to_dict_json, to_json
 
 # Aliases for static method calls and type references
 # Use u.* for FlextUtilities static methods
@@ -400,8 +401,6 @@ class FlextCliCore(FlextCliServiceBase):  # noqa: PLR0904
         if FlextRuntime.is_list_like(context):
             # Use build() DSL: process → normalize → ensure JSON-compatible
             # Reuse helpers from output module to avoid duplication
-            from flext_cli.services.output import norm_json
-
             process_result = u.process(
                 list(context),
                 processor=lambda _k, item: norm_json(item),
@@ -563,8 +562,6 @@ class FlextCliCore(FlextCliServiceBase):  # noqa: PLR0904
         if not FlextRuntime.is_dict_like(config):
             return r[t.JsonDict].fail(FlextCliConstants.ErrorMessages.CONFIG_NOT_DICT)
         # Reuse to_dict_json helper from output module
-        from flext_cli.services.output import to_dict_json, cast_if
-
         json_config = to_dict_json(config)
         return r[t.JsonDict].ok(cast_if(json_config, dict, config))
 
@@ -616,8 +613,6 @@ class FlextCliCore(FlextCliServiceBase):  # noqa: PLR0904
             )
             # Use build() DSL: ensure dict → transform to JSON
             # Reuse to_dict_json helper from output module
-            from flext_cli.services.output import to_dict_json
-
             transformed_config = to_dict_json(valid_config)
             # Use u.merge for intelligent deep merge
             merge_result = u.merge(
@@ -704,8 +699,6 @@ class FlextCliCore(FlextCliServiceBase):  # noqa: PLR0904
         if not FlextRuntime.is_dict_like(config):
             return r[bool].fail(FlextCliConstants.ErrorMessages.CONFIG_NOT_DICT)
         # Reuse to_dict_json helper from output module
-        from flext_cli.services.output import to_dict_json
-
         validated_config_input = cast("t.JsonDict", to_dict_json(config))
         config_result = self._validate_config_input(validated_config_input)
         if config_result.is_failure:
@@ -1470,8 +1463,6 @@ class FlextCliCore(FlextCliServiceBase):  # noqa: PLR0904
         sessions_dict: Mapping[str, t.GeneralValueType] | None = None
         # Use build() DSL for JSON conversion
         # Reuse to_dict_json helper from output module
-        from flext_cli.services.output import to_dict_json
-
         if FlextRuntime.is_dict_like(self._sessions):
             sessions_dict = to_dict_json(dict(self._sessions)) or None
         return self._get_dict_keys(
@@ -1542,8 +1533,6 @@ class FlextCliCore(FlextCliServiceBase):  # noqa: PLR0904
                 )
             # Use build() DSL for JSON conversion
             # Reuse to_dict_json helper from output module
-            from flext_cli.services.output import to_dict_json, cast_if
-
             json_dict = cast(
                 "t.Json.JsonDict", cast_if(to_dict_json(config_data), dict, config_data)
             )
@@ -1761,8 +1750,11 @@ class FlextCliCore(FlextCliServiceBase):  # noqa: PLR0904
         has been removed in v0.10.0 to maintain synchronous-only codebase.
         The API is maintained for backward compatibility but behavior changed.
         """
-        # Use r.create_from_callable() for unified error handling (DSL pattern)
-        return r.create_from_callable(lambda: func(*args, **kwargs))
+        try:
+            result = func(*args, **kwargs)
+            return r[object].ok(result)
+        except Exception as e:
+            return r[object].fail(str(e))
 
     # ==========================================================================
     # PLUGIN SYSTEM - Integrated into core service
@@ -1883,8 +1875,6 @@ class FlextCliCore(FlextCliServiceBase):  # noqa: PLR0904
 
             # Use build() DSL: map → ensure dict → transform to JSON
             # Reuse to_json helper from output module
-            from flext_cli.services.output import to_json
-
             results_list = cast(
                 "list[t.GeneralValueType]",
                 u.map(list(results), mapper=to_json),

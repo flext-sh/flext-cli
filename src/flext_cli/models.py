@@ -40,6 +40,7 @@ from pydantic.fields import FieldInfo
 
 from flext_cli.config import FlextCliConfig
 from flext_cli.constants import FlextCliConstants
+from flext_cli.utilities import FlextCliUtilities
 
 # Aliases for static method calls and type references
 # Use u.* for FlextUtilities static methods
@@ -250,16 +251,18 @@ class FlextCliModels(FlextModels):
             try:
                 if data is None:
                     return r.fail("Input must be a dictionary")
-                if not isinstance(data, (dict, cls)):
-                    return r.fail("Input must be a dictionary")
-                # Use FlextRuntime.is_dict_like for type checking
-                if FlextRuntime.is_dict_like(data):
-                    # Type checker cannot verify ** unpacking compatibility, but runtime is safe
-                    command = cls(**data)  # type: ignore[arg-type]
-                    return r.ok(command)
+                # Check instance first to avoid unreachable code
                 if isinstance(data, cls):
                     return r.ok(data)
-                return r.fail(f"Invalid input type: {type(data)}")
+                # Type narrowing: data is not cls, check if dict
+                if not isinstance(data, dict):
+                    return r.fail("Input must be a dictionary")
+                # Use FlextRuntime.is_dict_like for type checking
+                # Type narrowing: data is dict, use model_validate for type-safe creation
+                data_dict: dict[str, object] = cast("dict[str, object]", data)
+                # Use model_validate for type-safe model creation from dict
+                command = cls.model_validate(data_dict)
+                return r.ok(command)
             except Exception as e:
                 return r.fail(f"Validation failed: {e}")
 
@@ -283,21 +286,18 @@ class FlextCliModels(FlextModels):
         @field_validator("status")
         @classmethod
         def validate_status(cls, value: t.GeneralValueType) -> str:
-            """Validate session status."""
+            """Validate session status using utilities."""
             if not isinstance(value, str):
                 msg = f"Status must be a string, got {type(value)}"
                 raise TypeError(msg)
-            # Check if status is valid (basic validation)
-            valid_statuses = [
-                FlextCliConstants.SessionStatus.ACTIVE.value,
-                FlextCliConstants.SessionStatus.COMPLETED.value,
-                FlextCliConstants.SessionStatus.TERMINATED.value,
-            ]
-            if value not in valid_statuses:
-                msg = (
-                    f"Invalid session status: {value}. Must be one of {valid_statuses}"
-                )
-                raise ValueError(msg)
+            # Use v_in for validation
+            v_result = FlextCliUtilities.CliValidation.v_in(
+                value,
+                valid=FlextCliConstants.SESSION_STATUSES_LIST,
+                name="session_status",
+            )
+            if v_result.is_failure:
+                raise ValueError(v_result.error or "Invalid session status")
             return value
 
         # Forward reference for CliCommand
@@ -879,10 +879,15 @@ class FlextCliModels(FlextModels):
             # Business Rule: Our IncEx type is structurally compatible with Pydantic's IncEx
             # Audit Implication: Type compatibility ensures proper serialization behavior
             model_dump_method = super().model_dump
+            # Type cast: IncEx is structurally compatible with Pydantic's IncEx at runtime
+            # Use cast to satisfy mypy while maintaining runtime compatibility
+            # Note: TYPE_CHECKING import is allowed per project standards (exception for IncEx)
+            include_typed: object = cast("object", include)
+            exclude_typed: object = cast("object", exclude)
             data = model_dump_method(
                 mode=mode,
-                include=include,  # Structurally compatible with Pydantic's IncEx
-                exclude=exclude,  # Structurally compatible with Pydantic's IncEx
+                include=include_typed,  # Structurally compatible with Pydantic's IncEx
+                exclude=exclude_typed,  # Structurally compatible with Pydantic's IncEx
                 context=context,
                 by_alias=by_alias,
                 exclude_unset=exclude_unset,
@@ -1165,14 +1170,14 @@ class FlextCliModels(FlextModels):
 
             # Check if type has __value__ (type alias characteristic)
             type_value = u.get(field_type, "__value__", default=None)
-            if type_value is None:
-                return field_type, None
-
-            # Check if __value__ is a Literal type
-            value_origin = get_origin(type_value)
-            if value_origin is Literal:
-                # Type alias to Literal - convert to str for Typer
-                return str, Literal
+            if type_value is not None:
+                # Check if __value__ is a Literal type
+                value_origin = get_origin(type_value)
+                if value_origin is Literal:
+                    # Type alias to Literal - convert to str for Typer
+                    return str, Literal
+                # Not Literal, continue to return field_type with origin
+            # Return field_type with its origin (None if not a generic)
             return field_type, get_origin(field_type)
 
         @staticmethod
@@ -1232,10 +1237,12 @@ class FlextCliModels(FlextModels):
         ) -> tuple[str, type]:
             """Handle Optional[T] pattern (Union with None)."""
             # u.filter for list accepts predicate(item) -> bool
-            non_none_types_list = u.filter(
-                list(args),
-                predicate=lambda arg: arg is not type(None),  # type: ignore[arg-type]
-            )
+            def is_not_none_type(arg: object) -> bool:
+                """Check if arg is not type(None)."""
+                return arg is not type(None)
+
+            args_list: list[object] = list(args)
+            non_none_types_list = u.filter(args_list, predicate=is_not_none_type)
             non_none_types = cast("list[type]", non_none_types_list)
             inner_type = non_none_types[0] if non_none_types else str
 
@@ -1254,10 +1261,12 @@ class FlextCliModels(FlextModels):
         ) -> tuple[str, type]:
             """Handle Union without None."""
             # u.filter for list accepts predicate(item) -> bool
-            non_none_types_list = u.filter(
-                list(args),
-                predicate=lambda arg: arg is not type(None),  # type: ignore[arg-type]
-            )
+            def is_not_none_type(arg: object) -> bool:
+                """Check if arg is not type(None)."""
+                return arg is not type(None)
+
+            args_list: list[object] = list(args)
+            non_none_types_list = u.filter(args_list, predicate=is_not_none_type)
             non_none_types = cast("list[type]", non_none_types_list)
             if not non_none_types:
                 return "str", str
@@ -1311,11 +1320,14 @@ class FlextCliModels(FlextModels):
             default_value = u.get(field_info, "default", default=None)
             default_factory = u.get(field_info, "default_factory", default=None)
             has_factory = default_factory is not None
-            is_required = (
-                field_info.is_required()  # type: ignore[union-attr]
-                if hasattr(field_info, "is_required")
-                else True
-            )
+            # Type narrowing: field_info has is_required method
+            is_required = True
+            if field_info is not None and hasattr(field_info, "is_required"):
+                # Type narrowing: field_info has is_required attribute
+                is_required_attr = field_info.is_required
+                if callable(is_required_attr):
+                    is_required_method = cast("Callable[[], bool]", is_required_attr)
+                    is_required = is_required_method()
 
             # Get config default if available
             if self.config is not None and u.has(self.config, field_name):
@@ -1324,19 +1336,30 @@ class FlextCliModels(FlextModels):
                     default_value = config_value
 
             # Get and resolve field type
-            field_type = u.get(field_info, "annotation", default=None)
-            if field_type is None or field_type is object:
+            field_type_raw = u.get(field_info, "annotation", default=None)
+            if field_type_raw is None:
+                # No annotation - infer from default value or use str
+                field_type = u.when(
+                    condition=default_value is not None,
+                    then_value=type(default_value),
+                    else_value=str,
+                )
+            elif field_type_raw is object:
+                # object type - infer from default value or use str
                 field_type = u.when(
                     condition=default_value is not None,
                     then_value=type(default_value),
                     else_value=str,
                 )
             else:
-                field_type, origin = self._resolve_type_alias(field_type)
+                # Has annotation - resolve type alias
+                field_type, origin = self._resolve_type_alias(field_type_raw)
                 if origin is not None and field_type is not str:
                     field_type, _ = self._extract_optional_inner_type(field_type)
 
-            return field_type, default_value, is_required, has_factory
+            # Type narrowing: ensure field_type is a type
+            field_type_typed: type = cast("type", field_type) if isinstance(field_type, type) else str
+            return field_type_typed, default_value, is_required, has_factory
 
         @staticmethod
         def _format_bool_param(
@@ -1526,14 +1549,19 @@ class FlextCliModels(FlextModels):
             get_bool_flag = operator.itemgetter(1)
             signatures_values = list(signatures_dict.values())
             # u.filter for list accepts predicate(item) -> bool
-            params_no_default_list = u.filter(
-                signatures_values,
-                predicate=lambda item: bool(get_bool_flag(item)),  # type: ignore[arg-type]  # is_no_default is True
-            )
-            params_with_default_list = u.filter(
-                signatures_values,
-                predicate=lambda item: not bool(get_bool_flag(item)),  # type: ignore[arg-type]  # is_no_default is False
-            )
+            # Type narrowing: signatures_values is list[tuple[str, bool]]
+            signatures_values_typed: list[tuple[str, bool]] = signatures_values
+
+            def has_no_default(item: tuple[str, bool]) -> bool:
+                """Check if item has no default (is_no_default is True)."""
+                return bool(get_bool_flag(item))
+
+            def has_default(item: tuple[str, bool]) -> bool:
+                """Check if item has default (is_no_default is False)."""
+                return not bool(get_bool_flag(item))
+
+            params_no_default_list = u.filter(signatures_values_typed, predicate=has_no_default)
+            params_with_default_list = u.filter(signatures_values_typed, predicate=has_default)
             params_no_default = (
                 list(params_no_default_list)
                 if isinstance(params_no_default_list, list)
@@ -1687,28 +1715,18 @@ class FlextCliModels(FlextModels):
             try:
                 # Use direct model_validate instead of from_dict to avoid type variable issues
                 # cli_args is already GeneralValueType compatible
-                if issubclass(model_cls, BaseModel):
-                    # Convert Mapping to dict for model_validate
-                    cli_args_dict: dict[str, t.GeneralValueType] = dict(cli_args)
-                    # Type narrowing: model_cls is BaseModel subclass, model_validate exists
-                    # Type cast: BaseModel.model_validate exists, but pyrefly needs type narrowing
-                    # We know model_cls is BaseModel subclass from issubclass check above
-                    # Use getattr to access model_validate to satisfy type checker
-                    model_validate_method = u.get(model_cls, "model_validate", default=None)
-                    if model_validate_method:
-                        validated: M = model_validate_method(
-                            cli_args_dict, strict=False
-                        )
-                    else:
-                        # Fallback: should not reach here due to issubclass check above
-                        class_name = getattr(model_cls, "__name__", str(model_cls))
-                        return r[M].fail(f"{class_name} is not a Pydantic model")
-                    return r.ok(validated)
-                # Type narrowing: get class name safely for error message
-                class_name = getattr(model_cls, "__name__", str(model_cls))
-                return r[M].fail(f"{class_name} is not a Pydantic model")
+                # Type narrowing: model_cls is BaseModel subclass (checked by caller)
+                # Convert Mapping to dict for model_validate
+                cli_args_dict: dict[str, t.GeneralValueType] = dict(cli_args)
+                # Type narrowing: model_cls is BaseModel subclass, model_validate exists
+                # Type cast: BaseModel.model_validate exists, but pyrefly needs type narrowing
+                # We know model_cls is BaseModel subclass from issubclass check above
+                # Use getattr to access model_validate to satisfy type checker
+                model_validate_method = model_cls.model_validate
+                model_instance = model_validate_method(cli_args_dict)
+                return r.ok(cast("M", model_instance))
             except Exception as e:
-                return r[M].fail(f"Model creation failed: {e}")
+                return r.fail(f"Failed to create model instance: {e}")
 
         @staticmethod
         def model_to_cli_params(
@@ -1795,7 +1813,9 @@ class FlextCliModels(FlextModels):
             # Use simple object with attributes for compatibility with tests
             # Type cast: dynamically created objects are compatible with GeneralValueType
             options: list[t.GeneralValueType] = []
-            for param in params:
+            # Ensure params is a list (u.val should return list, but type checker needs help)
+            params_list = params if isinstance(params, list) else []
+            for param in params_list:
                 # Create a simple object with option_name and param_decls attributes
                 option_name = f"--{param.field_name.replace('_', '-')}"
                 # Type cast: param_decls list is compatible with GeneralValueType (list is included)
@@ -1909,8 +1929,10 @@ class FlextCliModels(FlextModels):
                 )
                 if non_none_types:
                     first_type = non_none_types[0]
+                    # Type narrowing: first_type is from filtered list, should be type
                     if isinstance(first_type, type):
                         return first_type
+                    # Fallback cast if isinstance check fails (shouldn't happen)
                     return cast("type", first_type)
             # Check if it's a known simple type
             if isinstance(pydantic_type, type) and pydantic_type in {
@@ -2111,14 +2133,8 @@ class FlextCliModels(FlextModels):
         def convert_field_value(
             field_value: object,
         ) -> r[t.GeneralValueType]:
-            """Convert field value to GeneralValueType."""
-            if field_value is None:
-                return r[t.GeneralValueType].ok(None)
-            # Use isinstance for type checking (guard is for validation, not type narrowing)
-            if isinstance(field_value, (str, int, float, bool, dict, list)):
-                return r[t.GeneralValueType].ok(field_value)
-            # Fallback: convert to string
-            return r[t.GeneralValueType].ok(str(field_value))
+            """Convert field value (delegates to utilities)."""
+            return FlextCliUtilities.CliValidation.v_conv(field_value)
 
         @staticmethod
         def validate_dict_field_data(

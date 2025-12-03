@@ -34,12 +34,13 @@ from collections.abc import Iterable
 from pathlib import Path
 from typing import cast
 
-from flext_core import FlextUtilities
+from flext_core import FlextTypes, FlextUtilities
 
 from flext_cli import FlextCli, FlextCliModels, FlextCliTables, FlextCliTypes
 
 # Alias for static method calls - use u.* for uds
 u = FlextUtilities
+t = FlextTypes
 
 cli = FlextCli()
 tables = FlextCliTables()

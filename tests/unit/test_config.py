@@ -470,10 +470,10 @@ class TestConfigConcurrency:
                 errors.append((worker_id, str(e)))
 
         threads = [threading.Thread(target=worker, args=(i,)) for i in range(5)]
-        for t in threads:
-            t.start()
-        for t in threads:
-            t.join()
+        for thread in threads:
+            thread.start()
+        for thread in threads:
+            thread.join()
 
         assert len(results) == 5
         assert len(errors) == 0

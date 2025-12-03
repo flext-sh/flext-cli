@@ -15,7 +15,7 @@ import pathlib
 import platform
 import sys
 import tempfile
-from typing import override
+from typing import cast, override
 
 from flext_core import (
     FlextConstants,
@@ -30,6 +30,7 @@ from flext_core import (
 from flext_cli.base import FlextCliServiceBase
 from flext_cli.constants import FlextCliConstants
 from flext_cli.models import FlextCliModels
+from flext_cli.services.output import cast_if, to_dict_json
 
 # Aliases for static method calls and type references
 # Use u.* for FlextUtilities static methods
@@ -100,11 +101,7 @@ class FlextCliDebug(FlextCliServiceBase):
     ) -> t.JsonDict:
         """Generalized model to dict conversion helper."""
         # Use build() DSL for JSON conversion
-        # Reuse to_dict_json helper from output module
-        from typing import cast
-
-        from flext_cli.services.output import cast_if, to_dict_json
-
+        # Reuse to_dict_json helper from output module (imported at top)
         raw_dict = model.model_dump()
         json_dict = to_dict_json(raw_dict)
         return cast("t.JsonDict", cast_if(json_dict, dict, raw_dict))

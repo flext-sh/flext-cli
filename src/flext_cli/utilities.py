@@ -15,10 +15,11 @@ import sys
 import types
 from collections.abc import Callable, Iterable, Mapping
 from enum import StrEnum
-from functools import cache, wraps
+from functools import wraps
 from pathlib import Path
 from typing import (
     Annotated,
+    Self,
     TypeGuard,
     Union,
     cast,
@@ -150,46 +151,198 @@ class FlextCliUtilities(FlextUtilities):
         Eliminates code duplication in models.py validate_business_rules methods.
         All validators return r[bool] for railway pattern composition.
 
+        Advanced builder/DSL patterns for parametrized validation:
+        - v() - Generic validator with builder pattern (combines multiple rules)
+        - v_in() - Validate value in collection (mnemonic: "validate in")
+        - v_eq() - Validate equality (mnemonic: "validate equals")
+        - v_req() - Validate required fields in dict (mnemonic: "validate required")
+        - v_type() - Validate type (mnemonic: "validate type")
+        - v_conv() - Convert and validate (mnemonic: "validate convert")
+        - v_choice() - Generic choice validator (replaces specialized validators)
+
         """
 
-        @staticmethod
-        def validate_field_not_empty(
-            field_value: t.GeneralValueType | None,
-            field_display_name: str,
-        ) -> r[bool]:
-            """Validate that a field is not empty.
+        class VBuilder:
+            """Fluent builder for CLI validation (mnemonic: 'V' = Validate).
 
-            Uses u.validate() with u.V.string.non_empty validator.
-
-            Args:
-                field_value: Value to validate
-                field_display_name: Display name for error messages
-
-            Returns:
-                r[bool]: True if not empty, failure with error message otherwise
+            Advanced DSL pattern for composable validation rules.
+            Enables fluent chaining: v(val).name("x").non_empty().in_([...]).build()
 
             Example:
-                >>> result = FlextCliUtilities.CliValidation.validate_field_not_empty(
-                ...     command_line, "Command line"
-                ... )
-                >>> if result.is_failure:
-                ...     print(result.error)
+                >>> result = CliValidation.VBuilder(val).name("status").non_empty().in_(["a", "b"]).build()
+                >>> if result.is_success:
+                ...     print("Valid!")
 
             """
-            # Use u.validate with V.string.non_empty
-            validation_result = u.validate(
-                field_value,
-                u.V.string.non_empty,
-                field_name=field_display_name,
-            )
-            if validation_result.is_failure:
-                return r[bool].fail(
-                    validation_result.error
-                    or FlextCliConstants.MixinsValidationMessages.FIELD_CANNOT_BE_EMPTY.format(
-                        field_name=field_display_name,
-                    ),
+
+            def __init__(self, val: t.GeneralValueType | None) -> None:
+                """Initialize builder with value to validate."""
+                self._val = val
+                self._name = "field"
+                self._empty = True
+                self._in_list: list[str] | None = None
+                self._eq: str | None = None
+                self._msg = ""
+
+            def name(self, name: str) -> Self:
+                """Set field name for error messages."""
+                self._name = name
+                return self
+
+            def non_empty(self) -> Self:
+                """Require non-empty value."""
+                self._empty = False
+                return self
+
+            def in_(self, choices: list[str]) -> Self:
+                """Validate value is in choices list."""
+                self._in_list = choices
+                return self
+
+            def eq(self, expected: str) -> Self:
+                """Validate value equals expected."""
+                self._eq = expected
+                return self
+
+            def msg(self, message: str) -> Self:
+                """Set custom error message."""
+                self._msg = message
+                return self
+
+            def build(self) -> r[bool]:
+                """Execute validation and return result."""
+                return FlextCliUtilities.CliValidation.v(
+                    self._val,
+                    name=self._name,
+                    empty=self._empty,
+                    in_list=self._in_list,
+                    eq=self._eq,
+                    msg=self._msg,
                 )
+
+        @staticmethod
+        def v(  # noqa: PLR0913
+            val: t.GeneralValueType | None,
+            *,
+            name: str = "field",
+            empty: bool = True,
+            in_list: list[str] | None = None,
+            eq: str | None = None,
+            msg: str = "",
+        ) -> r[bool]:
+            """Generic validator with builder pattern (mnemonic: 'v' = validate).
+
+            Parametrized validation reducing code duplication.
+            Combines multiple validation rules in single call.
+
+            Args:
+                val: Value to validate
+                name: Field name for error messages
+                empty: If False, allow empty values
+                in_list: If provided, validate value is in this list
+                eq: If provided, validate value equals this
+                msg: Custom error message (optional)
+
+            Returns:
+                r[bool]: True if valid, failure otherwise
+
+            Example:
+                >>> # Validate not empty
+                >>> CliValidation.v(value, name="status", empty=False)
+                >>> # Validate in list
+                >>> CliValidation.v(value, name="status", in_list=["a", "b"])
+                >>> # Validate equals
+                >>> CliValidation.v(value, name="status", eq="active")
+
+            """
+            # Empty check
+            if not empty:
+                v_result = u.validate(val, u.V.string.non_empty, field_name=name)
+                if v_result.is_failure:
+                    return r[bool].fail(
+                        msg
+                        or v_result.error
+                        or FlextCliConstants.MixinsValidationMessages.FIELD_CANNOT_BE_EMPTY.format(
+                            field_name=name,
+                        ),
+                    )
+            # In-list check
+            if in_list is not None:
+                val_str = u.convert(val, str, "")
+                if val_str not in set(in_list):
+                    return r[bool].fail(
+                        msg
+                        or FlextCliConstants.MixinsValidationMessages.INVALID_ENUM_VALUE.format(
+                            field_name=name,
+                            valid_values=in_list,
+                        ),
+                    )
+            # Equality check
+            if eq is not None:
+                val_str = u.convert(val, str, "")
+                if val_str != eq:
+                    return r[bool].fail(
+                        msg
+                        or FlextCliConstants.MixinsValidationMessages.COMMAND_STATE_INVALID.format(
+                            operation=name,
+                            current_status=val_str,
+                            required_status=eq,
+                        ),
+                    )
             return r[bool].ok(True)
+
+        @staticmethod
+        def v_in(
+            val: str | float | None,
+            *,
+            valid: list[str],
+            name: str = "field",
+        ) -> r[bool]:
+            """Validate value in collection (mnemonic: 'v_in' = validate in).
+
+            Shortcut for v(..., in_list=...).
+
+            """
+            return FlextCliUtilities.CliValidation.v(
+                val,
+                name=name,
+                empty=False,
+                in_list=valid,
+            )
+
+        @staticmethod
+        def v_eq(
+            val: str,
+            *,
+            eq: str,
+            name: str = "field",
+        ) -> r[bool]:
+            """Validate equality (mnemonic: 'v_eq' = validate equals).
+
+            Shortcut for v(..., eq=...).
+
+            """
+            return FlextCliUtilities.CliValidation.v(val, name=name, eq=eq)
+
+        @staticmethod
+        def v_empty(
+            val: t.GeneralValueType | None,
+            *,
+            name: str = "field",
+        ) -> r[bool]:
+            """Validate field not empty (mnemonic: 'v_empty' = validate empty).
+
+            Shortcut: v(val).name(name).non_empty().build()
+
+            Args:
+                val: Value to validate
+                name: Field name for errors
+
+            Returns:
+                r[bool]: True if not empty, failure otherwise
+
+            """
+            return FlextCliUtilities.CliValidation.VBuilder(val).name(name).non_empty().build()
 
         @staticmethod
         def validate_field_in_list(
@@ -200,7 +353,7 @@ class FlextCliUtilities(FlextUtilities):
         ) -> r[bool]:
             """Validate that a field value is in a list of valid values.
 
-            Uses u.convert() and direct validation for choice checking.
+            Delegates to v_in() for consistency.
 
             Args:
                 field_value: Value to validate
@@ -224,87 +377,58 @@ class FlextCliUtilities(FlextUtilities):
                 ...     print(result.error)
 
             """
-            # Convert to string and validate choice
-            field_value_str = u.convert(field_value, str, "")
-            if not field_value_str:
-                return r[bool].fail(
-                    FlextCliConstants.MixinsValidationMessages.INVALID_ENUM_VALUE.format(
-                        field_name=field_name,
-                        valid_values=valid_values,
-                    ),
-                )
-            # Check if value is in valid set
-            valid_set = set(valid_values)
-            if field_value_str not in valid_set:
-                return r[bool].fail(
-                    FlextCliConstants.MixinsValidationMessages.INVALID_ENUM_VALUE.format(
-                        field_name=field_name,
-                        valid_values=valid_values,
-                    ),
-                )
-            return r[bool].ok(True)
+            return FlextCliUtilities.CliValidation.v_in(
+                field_value,
+                valid=valid_values,
+                name=field_name,
+            )
 
         @staticmethod
-        def validate_command_status(status: str) -> r[bool]:
-            """Validate command status against known valid statuses.
+        def v_status(status: str) -> r[bool]:
+            """Validate command status (mnemonic: 'v_status').
 
-            Args:
-                status: Command status to validate
-
-            Returns:
-                r[bool]: True if valid, failure otherwise
+            Shortcut: v_choice(status, choices=COMMAND_STATUSES_LIST, name="status")
 
             """
-            return FlextCliUtilities.CliValidation.validate_field_in_list(
+            return FlextCliUtilities.CliValidation.v_choice(
                 status,
-                valid_values=FlextCliConstants.COMMAND_STATUSES_LIST,
-                field_name="status",
+                choices=FlextCliConstants.COMMAND_STATUSES_LIST,
+                name="status",
             )
 
         @staticmethod
-        def validate_debug_level(level: str) -> r[bool]:
-            """Validate debug level against known valid levels.
+        def v_level(level: str) -> r[bool]:
+            """Validate debug level (mnemonic: 'v_level').
 
-            Args:
-                level: Debug level to validate
-
-            Returns:
-                r[bool]: True if valid, failure otherwise
+            Shortcut: v_choice(level, choices=DEBUG_LEVELS_LIST, name="level")
 
             """
-            return FlextCliUtilities.CliValidation.validate_field_in_list(
+            return FlextCliUtilities.CliValidation.v_choice(
                 level,
-                valid_values=FlextCliConstants.DEBUG_LEVELS_LIST,
-                field_name="level",
+                choices=FlextCliConstants.DEBUG_LEVELS_LIST,
+                name="level",
             )
 
         @staticmethod
-        def validate_output_format(format_type: str) -> r[str]:
-            """Validate and normalize output format type.
+        def v_format(format_type: str) -> r[str]:
+            """Validate output format (mnemonic: 'v_format').
 
-            Validates format against list of supported output formats and
-            returns normalized lowercase format string.
-
-            Uses ulidate_choice() internally.
+            Validates and normalizes format string.
 
             Args:
-                format_type: Output format to validate (json, yaml, table, csv, plain)
+                format_type: Format to validate
 
             Returns:
-                r[str]: Normalized lowercase format if valid, error otherwise
-
-            Example:
-                >>> result = FlextCliUtilities.CliValidation.validate_output_format(
-                ...     "JSON"
-                ... )
-                >>> if result.is_success:
-                ...     format = result.unwrap()  # "json"
+                r[str]: Normalized lowercase format if valid
 
             """
-            # Convert to string and validate choice
             format_str = u.convert(format_type, str, "").lower()
-            valid_formats = set(FlextCliConstants.OUTPUT_FORMATS_LIST)
-            if format_str not in valid_formats:
+            result = FlextCliUtilities.CliValidation.v_choice(
+                format_str,
+                choices=FlextCliConstants.OUTPUT_FORMATS_LIST,
+                name="format",
+            )
+            if result.is_failure:
                 return r[str].fail(
                     FlextCliConstants.ErrorMessages.INVALID_OUTPUT_FORMAT.format(
                         format=format_type,
@@ -313,122 +437,76 @@ class FlextCliUtilities(FlextUtilities):
             return r[str].ok(format_str)
 
         @staticmethod
-        def validate_string_not_empty(
-            value: str | None,
-            error_message: str,
+        def v_choice(
+            val: str,
+            *,
+            choices: list[str],
+            name: str = "field",
         ) -> r[bool]:
-            """Validate that a value is a non-empty string.
+            """Generic choice validator (mnemonic: 'v_choice' = validate choice).
 
-            Uses u.validate() with u.V.string.non_empty validator.
+            Replaces specialized validators: validate_command_status, validate_debug_level,
+            validate_session_state, validate_output_format.
 
             Args:
-                value: Value to validate
-                error_message: Error message to return on failure (used if value is not a string)
+                val: Value to validate
+                choices: Valid choices list
+                name: Field name for errors
 
             Returns:
-                r[bool]: True if non-empty string, failure otherwise
+                r[bool]: True if in choices, failure otherwise
 
             Example:
-                >>> result = FlextCliUtilities.CliValidation.validate_string_not_empty(
-                ...     name, "Name must be a string"
-                ... )
-                >>> if result.is_failure:
-                ...     return result
+                >>> result = CliValidation.v_choice("active", choices=["active", "pending"], name="status")
+                >>> # Replaces: validate_command_status("active")
 
             """
-            # Use u.validate with V.string.non_empty
-            validation_result = u.validate(
-                value,
-                u.V.string.non_empty,
-                field_name="Value",
-            )
-            if validation_result.is_failure:
-                return r[bool].fail(error_message)
-            return r[bool].ok(True)
+            return FlextCliUtilities.CliValidation.v_in(val, valid=choices, name=name)
 
         @staticmethod
-        def validate_str_enum_value(
-            enum_class: type[StrEnum],
-            value: str,
-        ) -> StrEnum | None:
-            """Validate string value against StrEnum class.
+        def v_state(
+            current: str,
+            *,
+            required: str | None = None,
+            valid: list[str] | None = None,
+            name: str = "state",
+        ) -> r[bool]:
+            """Validate state (mnemonic: 'v_state').
 
-            Advanced validation using discriminated union pattern.
-            Uses enum._missing_ method for case-insensitive lookup.
-            Python 3.13+ best practice for enum validation.
-
-            CLI-specific helper that extends FlextConstants.validate_enum_value
-            with StrEnum-specific validation.
+            Generic state validator - validates equality OR membership.
 
             Args:
-                enum_class: StrEnum class to validate against
-                value: String value to validate
+                current: Current state value
+                required: Required state (equality check)
+                valid: Valid states list (membership check)
+                name: Field name for errors
 
             Returns:
-                Enum member if valid, None if invalid
+                r[bool]: True if valid, failure otherwise
 
             """
-            try:
-                return enum_class(value)
-            except ValueError:
-                return None
+            if required is not None:
+                return FlextCliUtilities.CliValidation.v_eq(current, eq=required, name=name)
+            if valid is not None:
+                return FlextCliUtilities.CliValidation.v_in(current, valid=valid, name=name)
+            return r[bool].fail(f"{name}: no validation criteria provided")
 
         @staticmethod
-        def validate_command_execution_state(
-            current_status: str,
-            required_status: str,
-            operation: str,
+        def v_session(
+            current: str,
+            *,
+            valid: list[str],
         ) -> r[bool]:
-            """Validate command execution state for operations.
+            """Validate session state (mnemonic: 'v_session').
 
-            Args:
-                current_status: Current command status
-                required_status: Required status for operation
-                operation: Operation name for error message
-
-            Returns:
-                r[bool]: True if status matches, failure otherwise
+            Shortcut: v_state(current, valid=valid, name="session_status")
 
             """
-            if current_status != required_status:
-                return r[bool].fail(
-                    FlextCliConstants.MixinsValidationMessages.COMMAND_STATE_INVALID.format(
-                        operation=operation,
-                        current_status=current_status,
-                        required_status=required_status,
-                    ),
-                )
-            return r[bool].ok(True)
+            return FlextCliUtilities.CliValidation.v_state(current, valid=valid, name="session_status")
 
         @staticmethod
-        def validate_session_state(
-            current_status: str,
-            valid_states: list[str],
-        ) -> r[bool]:
-            """Validate session state.
-
-            Args:
-                current_status: Current session status
-                valid_states: List of valid states
-
-            Returns:
-                r[bool]: True if status in valid list, failure otherwise
-
-            """
-            if current_status not in valid_states:
-                return r[bool].fail(
-                    FlextCliConstants.MixinsValidationMessages.SESSION_STATUS_INVALID.format(
-                        current_status=current_status,
-                        valid_states=valid_states,
-                    ),
-                )
-            return r[bool].ok(True)
-
-        @staticmethod
-        def validate_pipeline_step(
-            step: t.JsonDict | None,
-        ) -> r[bool]:
-            """Validate pipeline step configuration.
+        def v_step(step: t.JsonDict | None) -> r[bool]:
+            """Validate pipeline step (mnemonic: 'v_step').
 
             Args:
                 step: Pipeline step dict to validate
@@ -442,62 +520,189 @@ class FlextCliUtilities(FlextUtilities):
                     FlextCliConstants.MixinsValidationMessages.PIPELINE_STEP_EMPTY,
                 )
 
-            if FlextCliConstants.MixinsFieldNames.PIPELINE_STEP_NAME not in step:
+            field_name = FlextCliConstants.MixinsFieldNames.PIPELINE_STEP_NAME
+            if field_name not in step:
                 return r[bool].fail(
                     FlextCliConstants.MixinsValidationMessages.PIPELINE_STEP_NO_NAME,
                 )
 
-            step_name = step[FlextCliConstants.MixinsFieldNames.PIPELINE_STEP_NAME]
-            if not step_name:
-                return r[bool].fail(
-                    FlextCliConstants.MixinsValidationMessages.PIPELINE_STEP_NAME_EMPTY,
-                )
+            step_name = step[field_name]
+            return FlextCliUtilities.CliValidation.VBuilder(step_name).name(
+                "Pipeline step name"
+            ).non_empty().msg(
+                FlextCliConstants.MixinsValidationMessages.PIPELINE_STEP_NAME_EMPTY
+            ).build()
 
-            step_name_str = str(step_name)
-            # Use u.validate with V.string.non_empty
-            validation_result = u.validate(
-                step_name_str,
-                u.V.string.non_empty,
-                field_name="Pipeline step name",
-            )
-            if validation_result.is_failure:
-                return r[bool].fail(
-                    FlextCliConstants.MixinsValidationMessages.PIPELINE_STEP_NAME_EMPTY,
-                )
+        @staticmethod
+        def v_req(
+            data: t.JsonDict | None,
+            *,
+            fields: list[str],
+        ) -> r[bool]:
+            """Validate required fields (mnemonic: 'v_req' = validate required).
 
+            Generic validator for required fields in dict.
+
+            Args:
+                data: Dict to validate
+                fields: Required field names
+
+            Returns:
+                r[bool]: True if all fields present, failure otherwise
+
+            """
+            if data is None:
+                return r[bool].fail(
+                    FlextCliConstants.MixinsValidationMessages.CONFIG_MISSING_FIELDS.format(
+                        missing_fields=fields,
+                    ),
+                )
+            missing = u.filter(fields, lambda f: f not in data)
+            if missing:
+                return r[bool].fail(
+                    FlextCliConstants.MixinsValidationMessages.CONFIG_MISSING_FIELDS.format(
+                        missing_fields=missing,
+                    ),
+                )
             return r[bool].ok(True)
+
+        @staticmethod
+        def v_type(
+            val: t.GeneralValueType | None,
+            *,
+            types: tuple[type, ...],
+            name: str = "field",
+        ) -> r[bool]:
+            """Validate type (mnemonic: 'v_type').
+
+            Args:
+                val: Value to validate
+                types: Allowed types
+                name: Field name for errors
+
+            Returns:
+                r[bool]: True if type matches, failure otherwise
+
+            """
+            if val is None:
+                return r[bool].fail(f"{name} cannot be None")
+            if isinstance(val, types):
+                return r[bool].ok(True)
+            type_names = ", ".join(t.__name__ for t in types)
+            return r[bool].fail(f"{name} must be {type_names}, got {type(val).__name__}")
+
+        @staticmethod
+        def v_conv(
+            val: object,
+        ) -> r[t.GeneralValueType]:
+            """Convert and validate (mnemonic: 'v_conv').
+
+            Converts value to GeneralValueType.
+
+            Args:
+                val: Value to convert
+
+            Returns:
+                r[GeneralValueType]: Converted value
+
+            """
+            if val is None:
+                return r[t.GeneralValueType].ok(None)
+            if isinstance(val, (str, int, float, bool, dict, list)):
+                return r[t.GeneralValueType].ok(val)
+            return r[t.GeneralValueType].ok(str(val))
+
+        @staticmethod
+        def v_config(
+            config: t.JsonDict | None,
+            *,
+            fields: list[str],
+        ) -> r[bool]:
+            """Validate configuration (mnemonic: 'v_config').
+
+            Shortcut: v_req(config, fields=fields)
+
+            """
+            return FlextCliUtilities.CliValidation.v_req(config, fields=fields)
+
+        # ═══════════════════════════════════════════════════════════════════
+        # COMPATIBILITY ALIASES - Maintain backward compatibility
+        # ═══════════════════════════════════════════════════════════════════
+
+        @staticmethod
+        def validate_field_not_empty(
+            field_value: t.GeneralValueType | None,
+            field_display_name: str,
+        ) -> r[bool]:
+            """Compatibility alias for v_empty()."""
+            return FlextCliUtilities.CliValidation.v_empty(field_value, name=field_display_name)
+
+        @staticmethod
+        def validate_command_status(status: str) -> r[bool]:
+            """Compatibility alias for v_status()."""
+            return FlextCliUtilities.CliValidation.v_status(status)
+
+        @staticmethod
+        def validate_debug_level(level: str) -> r[bool]:
+            """Compatibility alias for v_level()."""
+            return FlextCliUtilities.CliValidation.v_level(level)
+
+        @staticmethod
+        def validate_output_format(format_type: str) -> r[str]:
+            """Compatibility alias for v_format()."""
+            return FlextCliUtilities.CliValidation.v_format(format_type)
+
+        @staticmethod
+        def validate_string_not_empty(
+            value: str | None,
+            error_message: str,
+        ) -> r[bool]:
+            """Compatibility alias for v_empty()."""
+            result = FlextCliUtilities.CliValidation.v_empty(value, name="Value")
+            if result.is_failure:
+                return r[bool].fail(error_message)
+            return result
+
+        @staticmethod
+        def validate_str_enum_value(
+            enum_class: type[StrEnum],
+            value: str,
+        ) -> StrEnum | None:
+            """Compatibility alias - delegates to u.Enum.try_parse()."""
+            result = u.Enum.parse(enum_class, value)
+            return result.value if result.is_success else None
+
+        @staticmethod
+        def validate_command_execution_state(
+            current_status: str,
+            required_status: str,
+            operation: str,
+        ) -> r[bool]:
+            """Compatibility alias for v_state()."""
+            return FlextCliUtilities.CliValidation.v_state(
+                current_status, required=required_status, name=operation
+            )
+
+        @staticmethod
+        def validate_session_state(
+            current_status: str,
+            valid_states: list[str],
+        ) -> r[bool]:
+            """Compatibility alias for v_session()."""
+            return FlextCliUtilities.CliValidation.v_session(current_status, valid=valid_states)
+
+        @staticmethod
+        def validate_pipeline_step(step: t.JsonDict | None) -> r[bool]:
+            """Compatibility alias for v_step()."""
+            return FlextCliUtilities.CliValidation.v_step(step)
 
         @staticmethod
         def validate_configuration_consistency(
             config_data: t.JsonDict | None,
             required_fields: list[str],
         ) -> r[bool]:
-            """Validate configuration consistency.
-
-            Args:
-                config_data: Configuration dict to validate
-                required_fields: List of required field names
-
-            Returns:
-                r[bool]: True if all required fields present, failure otherwise
-
-            """
-            if config_data is None:
-                return r[bool].fail(
-                    FlextCliConstants.MixinsValidationMessages.CONFIG_MISSING_FIELDS.format(
-                        missing_fields=required_fields,
-                    ),
-                )
-            # Use u.filter to find missing fields
-            missing_fields = u.filter(required_fields, lambda f: f not in config_data)
-            if missing_fields:
-                return r[bool].fail(
-                    FlextCliConstants.MixinsValidationMessages.CONFIG_MISSING_FIELDS.format(
-                        missing_fields=missing_fields,
-                    ),
-                )
-
-            return r[bool].ok(True)
+            """Compatibility alias for v_config()."""
+            return FlextCliUtilities.CliValidation.v_config(config_data, fields=required_fields)
 
     # =========================================================================
     # ENVIRONMENT - Environment detection and checks
@@ -557,7 +762,31 @@ class FlextCliUtilities(FlextUtilities):
         Provides utilities for configuration directory management,
         validation, and information retrieval.
 
+        Advanced builder patterns:
+        - paths() - Generic path builder (mnemonic: "paths")
+        - check() - Generic path checker (mnemonic: "check")
+        - info() - Generic info builder (mnemonic: "info")
+
         """
+
+        @staticmethod
+        def paths(
+            base: Path,
+            *subdirs: str,
+        ) -> list[str]:
+            """Generic path builder (mnemonic: 'paths').
+
+            Builds list of paths from base + subdirs.
+
+            Args:
+                base: Base path
+                subdirs: Subdirectory names
+
+            Returns:
+                list[str]: List of path strings
+
+            """
+            return [str(base)] + [str(base / subdir) for subdir in subdirs]
 
         @staticmethod
         def get_config_paths() -> list[str]:
@@ -581,22 +810,71 @@ class FlextCliUtilities(FlextUtilities):
             """
             home = Path.home()
             flext_dir = home / FlextCliConstants.FLEXT_DIR_NAME
+            return FlextCliUtilities.ConfigOps.paths(
+                flext_dir,
+                FlextCliConstants.DictKeys.CONFIG,
+                FlextCliConstants.Subdirectories.CACHE,
+                FlextCliConstants.Subdirectories.LOGS,
+                FlextCliConstants.DictKeys.TOKEN,
+                FlextCliConstants.Subdirectories.REFRESH_TOKEN,
+            )
 
-            return [
-                str(flext_dir),
-                str(flext_dir / FlextCliConstants.DictKeys.CONFIG),
-                str(flext_dir / FlextCliConstants.Subdirectories.CACHE),
-                str(flext_dir / FlextCliConstants.Subdirectories.LOGS),
-                str(flext_dir / FlextCliConstants.DictKeys.TOKEN),
-                str(flext_dir / FlextCliConstants.Subdirectories.REFRESH_TOKEN),
-            ]
+        @staticmethod
+        def check(
+            base: Path,
+            *,
+            name: str = "config",
+            subdirs: list[str] | None = None,
+        ) -> list[str]:
+            """Generic path checker (mnemonic: 'check').
+
+            Checks existence of base path and subdirs, returns formatted results.
+
+            Args:
+                base: Base path to check
+                name: Name for messages
+                subdirs: Optional subdirectories to check
+
+            Returns:
+                list[str]: Validation results with marks
+
+            """
+            results: list[str] = []
+            ok = FlextCliConstants.Symbols.SUCCESS_MARK
+            fail = FlextCliConstants.Symbols.FAILURE_MARK
+
+            # Check base
+            if base.exists():
+                results.append(ok + f" {name} directory exists")
+            else:
+                results.append(fail + f" {name} directory missing")
+
+            # Check subdirs
+            if subdirs:
+                for subdir in subdirs:
+                    path = base / subdir
+                    if path.exists():
+                        results.append(
+                            FlextCliConstants.CmdMessages.SUBDIR_EXISTS.format(
+                                symbol=ok,
+                                subdir=subdir,
+                            ),
+                        )
+                    else:
+                        results.append(
+                            FlextCliConstants.CmdMessages.SUBDIR_MISSING.format(
+                                symbol=fail,
+                                subdir=subdir,
+                            ),
+                        )
+
+            return results
 
         @staticmethod
         def validate_config_structure() -> list[str]:
             """Validate FLEXT CLI configuration directory structure.
 
-            Checks existence of main config directory and all standard subdirectories.
-            Returns human-readable validation results with success/failure marks.
+            Delegates to check() for consistency.
 
             Returns:
                 list[str]: Validation results with ✓/✗ marks for each check
@@ -610,51 +888,52 @@ class FlextCliUtilities(FlextUtilities):
                 ...
 
             """
-            results: list[str] = []
             home = Path.home()
             flext_dir = home / FlextCliConstants.FLEXT_DIR_NAME
+            return FlextCliUtilities.ConfigOps.check(
+                flext_dir,
+                name="Configuration",
+                subdirs=FlextCliConstants.Subdirectories.STANDARD_SUBDIRS,
+            )
 
-            # Check main config directory
-            if flext_dir.exists():
-                results.append(
-                    FlextCliConstants.Symbols.SUCCESS_MARK
-                    + FlextCliConstants.CmdMessages.CONFIG_DIR_EXISTS,
-                )
-            else:
-                results.append(
-                    FlextCliConstants.Symbols.FAILURE_MARK
-                    + FlextCliConstants.CmdMessages.CONFIG_DIR_MISSING,
-                )
+        @staticmethod
+        def info(
+            path: Path,
+            *,
+            dir_key: str = FlextCliConstants.DictKeys.CONFIG_DIR,
+            exists_key: str = FlextCliConstants.DictKeys.CONFIG_EXISTS,
+            readable_key: str = FlextCliConstants.DictKeys.CONFIG_READABLE,
+            writable_key: str = FlextCliConstants.DictKeys.CONFIG_WRITABLE,
+        ) -> t.JsonDict:
+            """Generic info builder (mnemonic: 'info').
 
-            # Check subdirectories using constants
-            for subdir in FlextCliConstants.Subdirectories.STANDARD_SUBDIRS:
-                path = flext_dir / subdir
-                if path.exists():
-                    results.append(
-                        FlextCliConstants.CmdMessages.SUBDIR_EXISTS.format(
-                            symbol=FlextCliConstants.Symbols.SUCCESS_MARK,
-                            subdir=subdir,
-                        ),
-                    )
-                else:
-                    results.append(
-                        FlextCliConstants.CmdMessages.SUBDIR_MISSING.format(
-                            symbol=FlextCliConstants.Symbols.FAILURE_MARK,
-                            subdir=subdir,
-                        ),
-                    )
+            Builds dict with path info (exists, readable, writable, timestamp).
 
-            return results
+            Args:
+                path: Path to get info for
+                dir_key: Key for directory path
+                exists_key: Key for existence status
+                readable_key: Key for readable status
+                writable_key: Key for writable status
+
+            Returns:
+                t.JsonDict: Info dictionary
+
+            """
+            exists = path.exists()
+            return {
+                dir_key: str(path),
+                exists_key: exists,
+                readable_key: exists and os.access(path, os.R_OK),
+                writable_key: exists and os.access(path, os.W_OK),
+                FlextCliConstants.DictKeys.TIMESTAMP: u.generate("timestamp"),
+            }
 
         @staticmethod
         def get_config_info() -> t.JsonDict:
             """Get FLEXT CLI configuration information.
 
-            Returns comprehensive configuration information including:
-            - Configuration directory path
-            - Existence status
-            - Read/write permissions
-            - Current timestamp
+            Delegates to info() for consistency.
 
             Returns:
                 t.JsonDict: Configuration information dictionary
@@ -667,16 +946,7 @@ class FlextCliUtilities(FlextUtilities):
             """
             home = Path.home()
             flext_dir = home / FlextCliConstants.FLEXT_DIR_NAME
-
-            return {
-                FlextCliConstants.DictKeys.CONFIG_DIR: str(flext_dir),
-                FlextCliConstants.DictKeys.CONFIG_EXISTS: flext_dir.exists(),
-                FlextCliConstants.DictKeys.CONFIG_READABLE: flext_dir.exists()
-                and os.access(flext_dir, os.R_OK),
-                FlextCliConstants.DictKeys.CONFIG_WRITABLE: flext_dir.exists()
-                and os.access(flext_dir, os.W_OK),
-                FlextCliConstants.DictKeys.TIMESTAMP: u.generate("timestamp"),
-            }
+            return FlextCliUtilities.ConfigOps.info(flext_dir)
 
     # =========================================================================
     # FILE OPS - File operation helpers
@@ -687,6 +957,10 @@ class FlextCliUtilities(FlextUtilities):
 
         Provides utilities for file-related operations including error detection
         and pattern matching. All methods are static for stateless operation.
+
+        Advanced patterns:
+        - matches() - Generic pattern matcher (mnemonic: "matches")
+        - is_file_not_found_error() - File not found detector
 
         """
 
@@ -699,10 +973,29 @@ class FlextCliUtilities(FlextUtilities):
         )
 
         @staticmethod
+        def matches(
+            msg: str,
+            *patterns: str,
+        ) -> bool:
+            """Generic pattern matcher (mnemonic: 'matches').
+
+            Checks if message matches any pattern (case-insensitive).
+
+            Args:
+                msg: Message to check
+                patterns: Patterns to match against
+
+            Returns:
+                bool: True if any pattern matches
+
+            """
+            return any(u.normalize(msg, p) for p in patterns)
+
+        @staticmethod
         def is_file_not_found_error(error_msg: str) -> bool:
             """Check if an error message indicates a file-not-found error.
 
-            Uses u.normalize() for case-insensitive pattern matching.
+            Delegates to matches() for consistency.
 
             Args:
                 error_msg: Error message string to check
@@ -711,10 +1004,9 @@ class FlextCliUtilities(FlextUtilities):
                 bool: True if error message indicates file not found, False otherwise
 
             """
-            # Use u.normalize for case-insensitive contains check
-            return any(
-                u.normalize(error_msg, pattern)
-                for pattern in FlextCliUtilities.FileOps.FILE_NOT_FOUND_PATTERNS
+            return FlextCliUtilities.FileOps.matches(
+                error_msg,
+                *FlextCliUtilities.FileOps.FILE_NOT_FOUND_PATTERNS,
             )
 
     # =========================================================================
@@ -916,26 +1208,19 @@ class FlextCliUtilities(FlextUtilities):
             ) -> TypeGuard[E]:
                 """TypeGuard genérico para qualquer StrEnum.
 
+                Delegates to u.Enum.is_member() for consistency.
+
                 Verifica se value é um membro válido do enum_cls.
 
                 Exemplo:
-                    if FlextCliUtilities.Enum.is_member(Status, value):
+                    if FlextCliUtilities.TypeNormalizer.Enum.is_member(Status, value):
                         # value: Status
                         process_status(value)
                     else:
                         # value: GeneralValueType (narrowed corretamente!)
                         handle_invalid(value)
                 """
-                if isinstance(value, enum_cls):
-                    # Type narrowing: value is E when isinstance check passes
-                    return True
-                if isinstance(value, str):
-                    # Type narrowing: StrEnum has _value2member_map_ attribute
-                    if hasattr(enum_cls, "_value2member_map_"):
-                        value_map = getattr(enum_cls, "_value2member_map_", {})
-                        return value in value_map
-                    return False
-                return False
+                return u.Enum.is_member(enum_cls, value)
 
             @staticmethod
             def is_subset[E: StrEnum](
@@ -945,49 +1230,51 @@ class FlextCliUtilities(FlextUtilities):
             ) -> TypeGuard[E]:
                 """TypeGuard para subset de um StrEnum.
 
+                Delegates to u.Enum.is_subset() for consistency.
+
                 Verifica se value é um membro válido do enum_cls e está no subset valid_members.
 
                 Exemplo:
                     ACTIVE_STATES = frozenset({Status.ACTIVE, Status.PENDING})
 
-                    if FlextCliUtilities.Enum.is_subset(Status, ACTIVE_STATES, value):
+                    if FlextCliUtilities.TypeNormalizer.Enum.is_subset(Status, ACTIVE_STATES, value):
                         # value: Status (e sabemos que é ACTIVE ou PENDING)
                         process_active(value)
                 """
-                if isinstance(value, enum_cls) and value in valid_members:
-                    return True
-                if isinstance(value, str):
-                    try:
-                        member = enum_cls(value)
-                        return member in valid_members
-                    except ValueError:
-                        return False
-                return False
+                return u.Enum.is_subset(enum_cls, valid_members, value)
 
             # ─────────────────────────────────────────────────────────────
             # CONVERSÃO: String → StrEnum (type-safe)
             # ─────────────────────────────────────────────────────────────
 
             @staticmethod
+            def try_parse[E: StrEnum](
+                enum_cls: type[E],
+                value: str | E,
+            ) -> E | None:
+                """Try parse enum value (mnemonic: 'try_parse').
+
+                Delegates to u.Enum.parse() and extracts value if successful.
+
+                Returns enum member or None if invalid.
+
+                """
+                result = u.Enum.parse(enum_cls, value)
+                return result.value if result.is_success else None
+
+            @staticmethod
             def parse[E: StrEnum](enum_cls: type[E], value: str | E) -> r[E]:
-                """Converte string para StrEnum com r.
+                """Parse string to StrEnum with r (mnemonic: 'parse').
+
+                Delegates to u.Enum.parse() for consistency.
 
                 Exemplo:
-                    result = FlextCliUtilities.Enum.parse(Status, "active")
+                    result = FlextCliUtilities.TypeNormalizer.Enum.parse(Status, "active")
                     if result.is_success:
                         status: Status = result.value
+
                 """
-                if isinstance(value, enum_cls):
-                    return r[E].ok(value)
-                try:
-                    return r[E].ok(enum_cls(value))
-                except ValueError:
-                    # Use u.map() for unified mapping
-                    enum_members_list = list(enum_cls)
-                    enum_members: list[E] = cast("list[E]", enum_members_list)
-                    valid = u.join(u.map(enum_members, lambda m: m.value), sep=", ")
-                    enum_name = u.get(enum_cls, "__name__", default="Enum")
-                    return r[E].fail(f"Invalid {enum_name}: '{value}'. Valid: {valid}")
+                return u.Enum.parse(enum_cls, value)
 
             @staticmethod
             def parse_or_default[E: StrEnum](
@@ -995,128 +1282,124 @@ class FlextCliUtilities(FlextUtilities):
                 value: str | E | None,
                 default: E,
             ) -> E:
-                """Converte com fallback para default (nunca falha).
+                """Parse with default fallback (mnemonic: 'parse_or_default').
+
+                Delegates to u.Enum.parse_or_default() for consistency.
+
+                Never fails - returns default if parsing fails.
 
                 Exemplo:
-                    status = FlextCliUtilities.Enum.parse_or_default(
+                    status = FlextCliUtilities.TypeNormalizer.Enum.parse_or_default(
                         Status, user_input, Status.PENDING
                     )
+
                 """
-                if value is None:
-                    return default
-                if isinstance(value, enum_cls):
-                    return value
-                try:
-                    return enum_cls(value)
-                except ValueError:
-                    return default
+                return u.Enum.parse_or_default(enum_cls, value, default)
 
             # ─────────────────────────────────────────────────────────────
             # PYDANTIC VALIDATORS: BeforeValidator factories
             # ─────────────────────────────────────────────────────────────
 
             @staticmethod
+            def coerce_impl[E: StrEnum](
+                enum_cls: type[E],
+                value: t.GeneralValueType,
+                *,
+                by_name: bool = False,
+            ) -> E:
+                """Coerce implementation (mnemonic: 'coerce_impl').
+
+                CLI-specific helper that extends u.Enum with by_name support.
+                Uses u.Enum.coerce_validator() or u.Enum.coerce_by_name_validator() internally.
+
+                Args:
+                    enum_cls: Enum class
+                    value: Value to coerce
+                    by_name: If True, try by name first
+
+                Returns:
+                    Enum member
+
+                Raises:
+                    ValueError: If coercion fails
+
+                """
+                if isinstance(value, enum_cls):
+                    return value
+                if isinstance(value, str):
+                    if by_name:
+                        # Use coerce_by_name_validator for name-first matching
+                        validator = u.Enum.coerce_by_name_validator(enum_cls)
+                        return validator(value)
+                    # Use standard coerce_validator
+                    validator = u.Enum.coerce_validator(enum_cls)
+                    return validator(value)
+                enum_name = getattr(enum_cls, "__name__", "Enum")
+                msg = f"Invalid {enum_name}: {value!r}"
+                raise ValueError(msg)
+
+            @staticmethod
             def coerce_validator[E: StrEnum](
                 enum_cls: type[E],
             ) -> Callable[[t.GeneralValueType], E]:
-                """Cria BeforeValidator para coerção automática no Pydantic.
+                """Create BeforeValidator for Pydantic coercion (mnemonic: 'coerce_validator').
 
                 PADRÃO RECOMENDADO para campos Pydantic:
 
                 Exemplo:
-                    from pydantic import BaseModel
-                    from typing import Annotated
-
-                    # Cria o tipo anotado uma vez
                     CoercedStatus = Annotated[
                         Status,
-                        BeforeValidator(FlextCliUtilities.Enum.coerce_validator(Status))
+                        BeforeValidator(FlextCliUtilities.TypeNormalizer.Enum.coerce_validator(Status))
                     ]
 
-                    class MyModel(BaseModel):
-                        status: CoercedStatus  # Aceita "active" ou Status.ACTIVE
                 """
-
-                def _coerce(value: t.GeneralValueType) -> E:
-                    if isinstance(value, enum_cls):
-                        return value
-                    if isinstance(value, str):
-                        try:
-                            return enum_cls(value)
-                        except ValueError:
-                            pass
-                    enum_name = getattr(enum_cls, "__name__", "Enum")
-                    msg = f"Invalid {enum_name}: {value!r}"
-                    raise ValueError(msg)
-
-                return _coerce
+                return lambda v: FlextCliUtilities.TypeNormalizer.Enum.coerce_impl(
+                    enum_cls, v, by_name=False
+                )
 
             @staticmethod
             def coerce_by_name_validator[E: StrEnum](
                 enum_cls: type[E],
             ) -> Callable[[t.GeneralValueType], E]:
-                """BeforeValidator que aceita nome OU valor do enum.
+                """BeforeValidator accepting name OR value (mnemonic: 'coerce_by_name_validator').
 
-                Aceita:
-                    - "ACTIVE" (nome do membro)
-                    - "active" (valor do membro)
-                    - Status.ACTIVE (membro direto)
+                Aceita: "ACTIVE" (nome), "active" (valor), Status.ACTIVE (membro).
 
-                Exemplo:
-                    StatusByName = Annotated[
-                        Status,
-                        BeforeValidator(FlextCliUtilities.Enum.coerce_by_name_validator(Status))
-                    ]
                 """
-
-                def _coerce(value: t.GeneralValueType) -> E:
-                    if isinstance(value, enum_cls):
-                        return value
-                    if isinstance(value, str):
-                        # Tenta por nome primeiro
-                        members = getattr(enum_cls, "__members__", {})
-                        if value in members:
-                            # Type narrowing: value is in __members__, so enum_cls[value] is valid
-                            member_value = enum_cls[value]
-                            member: E = cast("E", member_value)
-                            return member
-                        # Depois por valor
-                        try:
-                            return enum_cls(value)
-                        except ValueError:
-                            pass
-                    enum_name = getattr(enum_cls, "__name__", "Enum")
-                    msg = f"Invalid {enum_name}: {value!r}"
-                    raise ValueError(msg)
-
-                return _coerce
+                return lambda v: FlextCliUtilities.TypeNormalizer.Enum.coerce_impl(
+                    enum_cls, v, by_name=True
+                )
 
             # ─────────────────────────────────────────────────────────────
             # METADATA: Informações sobre StrEnums
             # ─────────────────────────────────────────────────────────────
 
             @staticmethod
-            @cache
             def values[E: StrEnum](enum_cls: type[E]) -> frozenset[str]:
-                """Retorna frozenset dos valores (cached para performance)."""
-                # Type narrowing: enum_cls is type[StrEnum], which is iterable
-                enum_members: list[E] = list(enum_cls)
-                return frozenset(m.value for m in enum_members)
+                """Retorna frozenset dos valores (cached para performance).
+
+                Delegates to u.Enum.values() for consistency.
+
+                """
+                return u.Enum.values(enum_cls)
 
             @staticmethod
-            @cache
             def names[E: StrEnum](enum_cls: type[E]) -> frozenset[str]:
-                """Retorna frozenset dos nomes dos membros (cached)."""
-                members = getattr(enum_cls, "__members__", {})
-                return frozenset(members.keys())
+                """Retorna frozenset dos nomes dos membros (cached).
+
+                Delegates to u.Enum.names() for consistency.
+
+                """
+                return u.Enum.names(enum_cls)
 
             @staticmethod
-            @cache
             def members[E: StrEnum](enum_cls: type[E]) -> frozenset[E]:
-                """Retorna frozenset dos membros (cached)."""
-                # Type narrowing: enum_cls is type[StrEnum], which is iterable
-                enum_members: list[E] = list(enum_cls)
-                return frozenset(enum_members)
+                """Retorna frozenset dos membros (cached).
+
+                Delegates to u.Enum.members() for consistency.
+
+                """
+                return u.Enum.members(enum_cls)
 
         # ═══════════════════════════════════════════════════════════════════
         # NESTED CLASS: Collection Utilities
@@ -1141,7 +1424,9 @@ class FlextCliUtilities(FlextUtilities):
                 enum_cls: type[E],
                 values: Iterable[str | E],
             ) -> r[tuple[E, ...]]:
-                """Converte sequência de strings para tuple de StrEnum.
+                """Parse sequence to tuple of StrEnum (mnemonic: 'parse_sequence').
+
+                Delegates to u.Collection.parse_sequence() for consistency.
 
                 Exemplo:
                     result = FlextCliUtilities.Collection.parse_sequence(
@@ -1149,36 +1434,15 @@ class FlextCliUtilities(FlextUtilities):
                     )
                     if result.is_success:
                         statuses: tuple[Status, ...] = result.value
+
                 """
-
-                # Use u.process to parse enum values with error collection
-                def parse_enum_value(val: str | E) -> E:
-                    """Parse single enum value."""
-                    if isinstance(val, enum_cls):
-                        return val
-                    return enum_cls(val)
-
-                process_result: r[list[E] | dict[str, E]] = u.process(
-                    list(values),
-                    processor=parse_enum_value,
-                    on_error="collect",
-                )
-                if process_result.is_failure:
-                    return r[tuple[E, ...]].fail(
-                        u.err(process_result, default="parsing failed")
-                    )
-                parsed_list = u.val(process_result, default=[])
-                return (
-                    r[tuple[E, ...]].ok(tuple(parsed_list))
-                    if isinstance(parsed_list, list)
-                    else r[tuple[E, ...]].fail("Process returned unexpected type")
-                )
+                return u.Collection.parse_sequence(enum_cls, values)
 
             @staticmethod
             def coerce_list_validator[E: StrEnum](
                 enum_cls: type[E],
             ) -> Callable[[t.GeneralValueType], list[E]]:
-                """BeforeValidator para lista de StrEnums.
+                """BeforeValidator for list of StrEnums (mnemonic: 'coerce_list_validator').
 
                 Exemplo:
                     StatusList = Annotated[
@@ -1186,38 +1450,29 @@ class FlextCliUtilities(FlextUtilities):
                         BeforeValidator(FlextCliUtilities.Collection.coerce_list_validator(Status))
                     ]
 
-                    class MyModel(BaseModel):
-                        statuses: StatusList  # Aceita ["active", "pending"]
                 """
-
                 def _coerce(value: t.GeneralValueType) -> list[E]:
                     if not isinstance(value, (list, tuple, set, frozenset)):
                         msg = f"Expected sequence, got {type(value).__name__}"
                         raise TypeError(msg)
 
-                    # Use u.process to convert enum values
-                    def convert_item(item: t.GeneralValueType) -> E:
-                        """Convert item to enum."""
+                    result: list[E] = []
+                    for item in value:
+                        # Type narrowing: item must be str | E for enum parsing
                         if isinstance(item, enum_cls):
-                            return item
-                        if isinstance(item, str):
-                            return enum_cls(item)
-                        msg = f"Expected str or {enum_cls.__name__}, got {type(item).__name__}"
-                        raise TypeError(msg)
-
-                    process_result = u.process(
-                        value,
-                        processor=convert_item,
-                        on_error="fail",
-                    )
-                    if process_result.is_failure:
-                        enum_name = getattr(enum_cls, "__name__", "Enum")
-                        error_msg = f"Invalid {enum_name}: {u.err(process_result, default='parsing failed')}"
-                        raise ValueError(error_msg)
-                    result_list = u.val(process_result, default=[])
-                    if isinstance(result_list, list):
-                        return result_list
-                    return []
+                            result.append(item)
+                        elif isinstance(item, str):
+                            parsed_result = u.Enum.parse(enum_cls, item)
+                            if parsed_result.is_failure:
+                                enum_name = getattr(enum_cls, "__name__", "Enum")
+                                msg = f"Invalid {enum_name}: {item!r}"
+                                raise ValueError(msg)
+                            result.append(parsed_result.value)
+                        else:
+                            enum_name = getattr(enum_cls, "__name__", "Enum")
+                            msg = f"Invalid {enum_name}: expected str or {enum_name}, got {type(item).__name__}"
+                            raise TypeError(msg)
+                    return result
 
                 return _coerce
 
@@ -1230,78 +1485,53 @@ class FlextCliUtilities(FlextUtilities):
                 enum_cls: type[E],
                 mapping: Mapping[str, str | E],
             ) -> r[dict[str, E]]:
-                """Converte Mapping com valores string para dict com StrEnum.
+                """Parse mapping to dict with StrEnum values (mnemonic: 'parse_mapping').
+
+                Delegates to u.Collection.parse_mapping() for consistency.
 
                 Exemplo:
                     result = FlextCliUtilities.Collection.parse_mapping(
                         Status, {"user1": "active", "user2": "pending"}
                     )
+
                 """
-
-                # Use u.process to parse enum mapping with error collection
-                def parse_enum_value(_k: str, v: str | E) -> E:
-                    """Parse single enum value from mapping."""
-                    if isinstance(v, enum_cls):
-                        return v
-                    return enum_cls(v)
-
-                process_result = u.process(
-                    mapping,
-                    processor=parse_enum_value,
-                    on_error="collect",
-                )
-                if process_result.is_failure:
-                    return r[dict[str, E]].fail(
-                        u.err(process_result, default="parsing failed")
-                    )
-                parsed_dict = u.val(process_result, default={})
-                return (
-                    r[dict[str, E]].ok(parsed_dict)
-                    if isinstance(parsed_dict, dict)
-                    else r[dict[str, E]].fail("Process returned unexpected type")
-                )
+                return u.Collection.parse_mapping(enum_cls, mapping)
 
             @staticmethod
             def coerce_dict_validator[E: StrEnum](
                 enum_cls: type[E],
             ) -> Callable[[t.GeneralValueType], dict[str, E]]:
-                """BeforeValidator para dict com valores StrEnum.
+                """BeforeValidator for dict with StrEnum values (mnemonic: 'coerce_dict_validator').
 
                 Exemplo:
                     StatusDict = Annotated[
                         dict[str, Status],
                         BeforeValidator(FlextCliUtilities.Collection.coerce_dict_validator(Status))
                     ]
-                """
 
+                """
                 def _coerce(value: t.GeneralValueType) -> dict[str, E]:
                     if not isinstance(value, dict):
                         msg = f"Expected dict, got {type(value).__name__}"
                         raise TypeError(msg)
 
-                    # Use u.process to convert enum values
-                    def convert_value(k: str, v: t.GeneralValueType) -> E:
-                        """Convert value to enum."""
+                    result: dict[str, E] = {}
+                    for k, v in value.items():
+                        # Type narrowing: v must be str | E for enum parsing
                         if isinstance(v, enum_cls):
-                            return v
-                        if isinstance(v, str):
-                            return enum_cls(v)
-                        msg = f"Expected str or {enum_cls.__name__} at '{k}', got {type(v).__name__}"
-                        raise TypeError(msg)
-
-                    process_result = u.process(
-                        value,
-                        processor=convert_value,
-                        on_error="fail",
-                    )
-                    if process_result.is_failure:
-                        enum_name = getattr(enum_cls, "__name__", "Enum")
-                        error_msg = f"Invalid {enum_name}: {u.err(process_result, default='parsing failed')}"
-                        raise ValueError(error_msg)
-                    result_dict = u.val(process_result, default={})
-                    if isinstance(result_dict, dict):
-                        return result_dict
-                    return {}
+                            result[k] = v
+                        elif isinstance(v, str):
+                            parsed_result = u.Enum.parse(enum_cls, v)
+                            if parsed_result.is_failure:
+                                enum_name = getattr(enum_cls, "__name__", "Enum")
+                                msg = f"Invalid {enum_name} at '{k}': {v!r}"
+                                raise ValueError(msg)
+                            result[k] = parsed_result.value
+                        else:
+                            enum_name = getattr(enum_cls, "__name__", "Enum")
+                            msg = f"Invalid {enum_name} at '{k}': expected str or {enum_name}, got {type(v).__name__}"
+                            raise TypeError(msg)
+                    return result
 
                 return _coerce
 
@@ -1361,61 +1591,35 @@ class FlextCliUtilities(FlextUtilities):
                 kwargs: Mapping[str, t.GeneralValueType],
                 enum_fields: Mapping[str, type[E]],
             ) -> r[t.JsonDict]:
-                """Parse kwargs converting string enum values to enum instances.
+                """Parse kwargs converting string enum values (mnemonic: 'parse_kwargs').
 
-                Returns JsonDict since parsed values are JSON-compatible (str, enum values, etc.).
+                Returns JsonDict since parsed values are JSON-compatible.
+
                 """
-
-                # Convert kwargs to JsonDict-compatible dict using u.process
-                def convert_value(_k: str, v: t.GeneralValueType) -> t.GeneralValueType:
-                    """Convert value to JSON-compatible type."""
-                    if isinstance(v, (str, int, float, bool, type(None))):
-                        return v
+                # Convert to dict and normalize values
+                parsed: dict[str, t.GeneralValueType] = dict(kwargs)
+                for k, v in parsed.items():
                     if isinstance(v, dict):
-                        transform_result = u.transform(v, to_json=True)
-                        return (
-                            transform_result.unwrap()
-                            if transform_result.is_success
-                            else v
-                        )
-                    if isinstance(v, list):
-                        return v
-                    return str(v)
+                        t_result = u.transform(v, to_json=True)
+                        if t_result.is_success:
+                            parsed[k] = t_result.unwrap()
 
-                process_result = u.process(
-                    kwargs, processor=convert_value, on_error="collect"
-                )
-                if process_result.is_failure:
-                    error_msg = f"Conversion failed: {process_result.error}"
-                    return r.fail(error_msg)
-                parsed = process_result.unwrap()
-                if not isinstance(parsed, dict):
-                    return r.fail("Process returned unexpected type")
-
-                # Convert enum fields using u.filter to find fields that need conversion
+                # Convert enum fields using try_parse
                 errors: list[str] = []
-                enum_keys_list = list(
-                    u.filter(
-                        list(enum_fields.keys()),
-                        lambda k: k in parsed and isinstance(parsed[k], str),
-                    )
-                )
-                for k in enum_keys_list:
-                    enum_cls = enum_fields[k]
-                    try:
-                        field_value_str: str = str(parsed[k])
-                        enum_value = enum_cls(field_value_str)
-                        parsed[k] = (
-                            enum_value.value
-                            if hasattr(enum_value, "value")
-                            else str(enum_value)
-                        )
-                    except ValueError:
-                        errors.append(f"{k}: '{parsed[k]}'")
+                for k, enum_cls in enum_fields.items():
+                    if k in parsed:
+                        parsed_val = parsed[k]
+                        # Only parse if it's a string
+                        if isinstance(parsed_val, str):
+                            enum_result = u.Enum.parse(enum_cls, parsed_val)
+                            enum_val = enum_result.value if enum_result.is_success else None
+                            if enum_val is not None:
+                                parsed[k] = enum_val.value if hasattr(enum_val, "value") else str(enum_val)
+                            else:
+                                errors.append(f"{k}: '{parsed_val}'")
 
                 if errors:
-                    error_msg = f"Invalid: {errors}"
-                    return r.fail(error_msg)
+                    return r.fail(f"Invalid: {errors}")
                 return r.ok(parsed)
 
             @staticmethod
@@ -1451,6 +1655,9 @@ class FlextCliUtilities(FlextUtilities):
             ) -> r[M]:
                 """Create model from dict with r.
 
+                Delegates to u.Model.from_dict() for consistency.
+                Converts GeneralValueType to FlexibleValue for compatibility.
+
                 Business Rule:
                 ──────────────
                 Converts a Mapping to a Pydantic model instance using
@@ -1463,16 +1670,15 @@ class FlextCliUtilities(FlextUtilities):
                 - Invalid data returns r.fail() with error message
                 - Strict mode enforces exact type matching (no coercion)
                 """
-                try:
-                    # Type narrowing: model_cls is type[M] where M extends FlextModels
-                    # FlextModels extends BaseModel, which has model_validate
-                    if issubclass(model_cls, BaseModel):
-                        # BaseModel.model_validate is a classmethod
-                        validated: M = model_cls.model_validate(data, strict=strict)
-                        return r.ok(validated)
-                    return r.fail(f"{model_cls.__name__} is not a Pydantic model")
-                except Exception as e:
-                    return r.fail(f"Validation failed: {e}")
+                # Convert GeneralValueType to FlexibleValue for u.Model compatibility
+                flexible_data: dict[str, t.FlexibleValue] = {}
+                for k, v in data.items():
+                    # GeneralValueType is compatible with FlexibleValue
+                    flexible_data[k] = cast("t.FlexibleValue", v)
+                # Cast model_cls to BaseModel type for u.Model compatibility
+                base_model_cls = cast("type[BaseModel]", model_cls)
+                result = u.Model.from_dict(base_model_cls, flexible_data, strict=strict)
+                return cast("r[M]", result)
 
             @staticmethod
             def merge_defaults[M: type[FlextModels]](
@@ -1480,114 +1686,40 @@ class FlextCliUtilities(FlextUtilities):
                 defaults: Mapping[str, t.GeneralValueType],
                 overrides: Mapping[str, t.GeneralValueType],
             ) -> r[M]:
-                """Merge defaults with overrides and create model."""
+                """Merge defaults with overrides and create model (mnemonic: 'merge_defaults').
 
-                # Convert mappings to dict for merging using u.process
-                def convert_value(_k: str, v: t.GeneralValueType) -> t.GeneralValueType:
-                    """Convert value to GeneralValueType compatible."""
-                    if isinstance(v, (str, int, float, bool, type(None), dict, list)):
-                        converted_v: t.GeneralValueType = v
-                    else:
-                        converted_v = str(v)
-                    # Use u.transform for JSON conversion if dict
-                    if isinstance(converted_v, dict):
-                        transform_result = u.transform(converted_v, to_json=True)
-                        return (
-                            transform_result.unwrap()
-                            if transform_result.is_success
-                            else converted_v
-                        )
-                    return converted_v
+                Delegates to u.Model.merge_defaults() for consistency.
+                Converts GeneralValueType to FlexibleValue for compatibility.
 
-                # Process defaults
-                defaults_result = u.process(
-                    defaults, processor=convert_value, on_error="collect"
-                )
-                if defaults_result.is_failure:
-                    return r[M].fail(
-                        u.err(defaults_result, default="Defaults conversion failed")
-                    )
-                merged_data = u.val(defaults_result, default={})
-                if not isinstance(merged_data, dict):
-                    return r[M].fail("Defaults processing returned unexpected type")
-
-                # Process overrides (will override defaults)
-                overrides_result = u.process(
-                    overrides, processor=convert_value, on_error="collect"
-                )
-                if overrides_result.is_failure:
-                    return r[M].fail(
-                        u.err(overrides_result, default="Overrides conversion failed")
-                    )
-                overrides_dict = overrides_result.unwrap()
-                if isinstance(overrides_dict, dict):
-                    merged_data.update(overrides_dict)
-                # Convert dict to Mapping for from_dict
-                # from_dict expects Mapping[str, FlexibleValue] which is compatible
-                # with dict[str, GeneralValueType] after conversion
-                # Use direct model_validate instead of from_dict to avoid type variable issues
-                if issubclass(model_cls, BaseModel):
-                    validated: M = model_cls.model_validate(merged_data, strict=False)
-                    return r.ok(validated)
-                return r.fail(f"{model_cls.__name__} is not a Pydantic model")
+                """
+                # Convert GeneralValueType to FlexibleValue for u.Model compatibility
+                flexible_defaults: dict[str, t.FlexibleValue] = {
+                    k: cast("t.FlexibleValue", v) for k, v in defaults.items()
+                }
+                flexible_overrides: dict[str, t.FlexibleValue] = {
+                    k: cast("t.FlexibleValue", v) for k, v in overrides.items()
+                }
+                # Cast model_cls to BaseModel type for u.Model compatibility
+                base_model_cls = cast("type[BaseModel]", model_cls)
+                result = u.Model.merge_defaults(base_model_cls, flexible_defaults, flexible_overrides)
+                return cast("r[M]", result)
 
             @staticmethod
             def update[M](instance: M, **updates: t.GeneralValueType) -> r[M]:
-                """Update model with new values."""
-                try:
-                    # Validate instance is Pydantic model
-                    instance_cls = type(instance)
-                    if not (
-                        hasattr(instance, "model_dump")
-                        and hasattr(instance_cls, "model_validate")
-                        and issubclass(instance_cls, BaseModel)
-                    ):
-                        error_msg = f"{instance_cls.__name__} is not a Pydantic model"
-                        return r.fail(error_msg)
+                """Update model with new values (mnemonic: 'update').
 
-                    # Get current dict
-                    dump_method = getattr(instance, "model_dump", None)
-                    if not callable(dump_method):
-                        error_msg = (
-                            f"{instance_cls.__name__} model_dump is not callable"
-                        )
-                        return r.fail(error_msg)
+                Delegates to u.Model.update() for consistency.
+                Converts GeneralValueType to FlexibleValue for compatibility.
 
-                    current_dict = cast("t.JsonDict", dump_method())
-
-                    # Convert updates using u.process
-                    def convert_update(
-                        _k: str, v: t.GeneralValueType
-                    ) -> t.GeneralValueType:
-                        """Convert update value."""
-                        return (
-                            v
-                            if isinstance(
-                                v, (str, int, float, bool, type(None), dict, list)
-                            )
-                            else str(v)
-                        )
-
-                    updates_result = u.process(
-                        dict(updates), processor=convert_update, on_error="collect"
-                    )
-                    if updates_result.is_failure:
-                        return r[M].fail(
-                            u.err(updates_result, default="Updates conversion failed")
-                        )
-                    updates_dict = u.val(updates_result, default={})
-                    if not isinstance(updates_dict, dict):
-                        return r[M].fail("Updates processing returned unexpected type")
-
-                    # Merge updates and validate
-                    current_dict_mutable: dict[str, t.GeneralValueType] = (
-                        dict(current_dict) if isinstance(current_dict, Mapping) else {}
-                    )
-                    current_dict_mutable.update(updates_dict)
-                    validated: M = instance_cls.model_validate(current_dict_mutable)
-                    return r[M].ok(validated)
-                except Exception as e:
-                    return r[M].fail(f"Update failed: {e}")
+                """
+                # Convert GeneralValueType to FlexibleValue for u.Model compatibility
+                flexible_updates: dict[str, t.FlexibleValue] = {
+                    k: cast("t.FlexibleValue", v) for k, v in updates.items()
+                }
+                # Cast instance to BaseModel for u.Model compatibility
+                base_instance = cast("BaseModel", instance)
+                result = u.Model.update(base_instance, **flexible_updates)
+                return cast("r[M]", result)
 
         # ═══════════════════════════════════════════════════════════════════
         # NESTED CLASS: Pydantic Type Factories
@@ -1600,15 +1732,9 @@ class FlextCliUtilities(FlextUtilities):
             def coerced_enum[E: StrEnum](
                 enum_cls: type[E],
             ) -> type[Annotated[E, BeforeValidator]]:
-                """Retorna tipo Annotated para StrEnum com coerção."""
-                validator = FlextCliUtilities.Enum.coerce_validator(enum_cls)
-                # Annotated creates a special typing form, not a regular type
-                # Use cast to satisfy type checker for Annotated type assignment
-                # BeforeValidator doesn't accept type arguments in runtime
-                return cast(
-                    "type[Annotated[E, BeforeValidator]]",
-                    Annotated[enum_cls, BeforeValidator(validator)],
-                )
+                """Create Annotated type for StrEnum coercion (mnemonic: 'coerced_enum')."""
+                validator = FlextCliUtilities.TypeNormalizer.Enum.coerce_validator(enum_cls)
+                return Annotated[enum_cls, BeforeValidator(validator)]
 
 
 # Note: Aliases moved to avoid circular imports

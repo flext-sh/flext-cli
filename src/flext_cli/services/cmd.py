@@ -11,7 +11,7 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 from pathlib import Path
-from typing import override
+from typing import cast, override
 
 from flext_core import (
     FlextConstants,
@@ -31,6 +31,7 @@ from flext_cli.base import FlextCliServiceBase
 from flext_cli.constants import FlextCliConstants
 from flext_cli.file_tools import FlextCliFileTools
 from flext_cli.models import FlextCliModels
+from flext_cli.services.output import cast_if, to_dict_json
 from flext_cli.utilities import FlextCliUtilities
 
 # Aliases for static method calls and type references
@@ -228,10 +229,9 @@ class FlextCliCmd(FlextCliServiceBase):
             }
             # Use build() DSL for JSON conversion
             # Reuse to_dict_json helper from output module
-            from flext_cli.services.output import to_dict_json, cast_if
-
             result_data = cast(
-                "t.JsonDict", cast_if(to_dict_json(raw_data), dict, raw_data)
+                "t.JsonDict",
+                cast_if(to_dict_json(raw_data), dict, raw_data),
             )
             return r[t.JsonDict].ok(result_data)
         except Exception as e:

@@ -16,7 +16,7 @@ import sys
 from collections.abc import Callable
 from typing import ClassVar
 
-from flext_core import FlextConstants, FlextResult, t
+from flext_core import FlextConstants, r, t
 from typer.models import OptionInfo
 
 from flext_cli.config import FlextCliConfig

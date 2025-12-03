@@ -1553,12 +1553,12 @@ class TestFlextCliFileTools:
         # Run concurrent operations
         threads = []
         for i in range(20):
-            t = threading.Thread(target=worker, args=(i,))
-            threads.append(t)
-            t.start()
+            thread = threading.Thread(target=worker, args=(i,))
+            threads.append(thread)
+            thread.start()
 
-        for t in threads:
-            t.join()
+        for thread in threads:
+            thread.join()
 
         # At least some operations should succeed
         assert len(results) > 0

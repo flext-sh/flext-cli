@@ -34,12 +34,13 @@ import os
 import time
 from typing import cast
 
-from flext_core import FlextUtilities
+from flext_core import FlextTypes, FlextUtilities
 
 from flext_cli import FlextCli, FlextCliTypes
 
 # Alias for static method calls - use u.* for u static methods
 u = FlextUtilities
+t = FlextTypes
 
 cli = FlextCli()
 

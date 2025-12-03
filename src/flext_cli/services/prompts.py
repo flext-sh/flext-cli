@@ -1537,30 +1537,29 @@ class FlextCliPrompts(FlextCliServiceBase):
 
             u.process(items, processor=process_item, on_error="skip")
 
-                # Show progress for large item sets
-                if (
-                    total_items > progress_report_threshold
-                    and processed_count
-                    % max(1, total_items // progress_report_threshold)
-                    == 0
-                ):
-                    progress = (processed_count / total_items) * 100
-                    self.logger.debug(
-                        "Progress update",
-                        operation="with_progress",
-                        description=description,
-                        progress_percent=progress,
-                        processed=processed_count,
+            # Show progress for large item sets
+            if (
+                total_items > progress_report_threshold
+                and processed_count % max(1, total_items // progress_report_threshold)
+                == 0
+            ):
+                progress = (processed_count / total_items) * 100
+                self.logger.debug(
+                    "Progress update",
+                    operation="with_progress",
+                    description=description,
+                    progress_percent=progress,
+                    processed=processed_count,
+                    total=total_items,
+                    source="flext-cli/src/flext_cli/prompts.py",
+                )
+                self.logger.info(
+                    FlextCliConstants.PromptsDefaults.PROGRESS_FORMAT.format(
+                        progress=progress,
+                        current=processed_count,
                         total=total_items,
-                        source="flext-cli/src/flext_cli/prompts.py",
-                    )
-                    self.logger.info(
-                        FlextCliConstants.PromptsDefaults.PROGRESS_FORMAT.format(
-                            progress=progress,
-                            current=processed_count,
-                            total=total_items,
-                        ),
-                    )
+                    ),
+                )
 
             self.logger.info(
                 "Progress operation completed",

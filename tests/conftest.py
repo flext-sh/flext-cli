@@ -34,7 +34,6 @@ from flext_core import (
     FlextService,
     t,
     u,
-    x,
 )
 from flext_tests.docker import FlextTestDocker
 from pydantic import TypeAdapter
@@ -67,10 +66,7 @@ from flext_cli import (
 # Use e.* for FlextExceptions
 # Use d.* for FlextDecorators decorators
 # Use s.* for FlextService service base
-# Use x.* for x mixins
 # Use h.* for FlextHandlers handlers
-u = u
-t = t
 c = FlextConstants
 m = FlextModels
 p = FlextProtocols
@@ -78,7 +74,6 @@ r = FlextResult
 e = FlextExceptions
 d = FlextDecorators
 s = FlextService
-x = x
 h = FlextHandlers
 
 

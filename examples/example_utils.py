@@ -10,7 +10,11 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
+from flext_core import FlextResult, FlextTypes
+
 from flext_cli import FlextCli, FlextCliTypes
+
+t = FlextTypes
 
 
 def print_demo_completion(

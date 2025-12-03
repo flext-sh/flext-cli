@@ -26,9 +26,6 @@ from flext_cli import FlextCliContext
 from .._helpers import FlextCliTestHelpers
 from ..fixtures.constants import TestContext
 
-# Alias for static method calls - use u.* for uds
-u = u
-
 T = TypeVar("T")
 
 

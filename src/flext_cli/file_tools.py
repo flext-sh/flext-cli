@@ -885,9 +885,7 @@ class FlextCliFileTools:  # noqa: PLR0904
     @staticmethod
     def get_supported_formats() -> r[list[str]]:
         """Get list of supported file formats."""
-        return r[list[str]].ok(
-            FlextCliConstants.FileSupportedFormats.SUPPORTED_FORMATS
-        )
+        return r[list[str]].ok(FlextCliConstants.FileSupportedFormats.SUPPORTED_FORMATS)
 
 
 __all__ = ["FlextCliFileTools"]

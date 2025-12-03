@@ -5,7 +5,7 @@ from __future__ import annotations
 from collections.abc import Callable, Mapping, Sequence
 from typing import TypeVar
 
-from flext_core import FlextResult, t
+from flext_core import r, t
 
 from flext_cli.protocols import FlextCliProtocols
 

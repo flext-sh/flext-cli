@@ -12,7 +12,7 @@ from __future__ import annotations
 
 from flext_core import (
     FlextConfig,
-    FlextResult,
+    r,
     t,
     u,
 )
@@ -124,9 +124,7 @@ class FlextCliContext(FlextCliServiceBase):
     # ==========================================================================
 
     @staticmethod
-    def _validate_string(
-        value: str, field_name: str, error_template: str
-    ) -> r[bool]:
+    def _validate_string(value: str, field_name: str, error_template: str) -> r[bool]:
         """Generalized string validation helper.
 
         Business Rule:
@@ -214,17 +212,13 @@ class FlextCliContext(FlextCliServiceBase):
                     result = (
                         r[t.GeneralValueType | bool].ok(dict_obj[key])
                         if key in dict_obj
-                        else r[t.GeneralValueType | bool].fail(
-                            errors["not_found"]
-                        )
+                        else r[t.GeneralValueType | bool].fail(errors["not_found"])
                     )
                 elif operation == "set" and value is not None:
                     dict_obj[key] = value
                     result = r[t.GeneralValueType | bool].ok(True)
                 else:
-                    result = r[t.GeneralValueType | bool].fail(
-                        errors["failed"]
-                    )
+                    result = r[t.GeneralValueType | bool].fail(errors["failed"])
             except Exception as e:
                 result = r[t.GeneralValueType | bool].fail(
                     errors.get("exception", str(e)) or errors["failed"]
@@ -271,9 +265,7 @@ class FlextCliContext(FlextCliServiceBase):
             list_obj, errors["not_initialized"]
         )
         if init_check.is_failure or list_obj is None:
-            result = r[bool].fail(
-                init_check.error or errors["not_initialized"]
-            )
+            result = r[bool].fail(init_check.error or errors["not_initialized"])
         else:
             try:
                 if operation == "add":

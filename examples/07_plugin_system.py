@@ -41,6 +41,7 @@ from flext_core import (
     FlextMixins,
     FlextModels,
     FlextProtocols,
+    FlextResult,
     FlextService,
     FlextTypes,
     FlextUtilities,
@@ -93,13 +94,13 @@ class DataExportPlugin:
     def execute(
         data: FlextCliTypes.Data.CliDataDict,
         output_format: str = "json",
-    ) -> FlextResult[str]:
+    ) -> r[str]:
         """Execute plugin logic in YOUR application."""
         if output_format == "json":
             output = json.dumps(data, indent=2)
             cli.print(f"✅ Exported data as JSON ({len(output)} chars)", style="green")
-            return FlextResult[str].ok(output)
-        return FlextResult[str].fail(f"Unsupported format: {format}")
+            return r[str].ok(output)
+        return r[str].fail(f"Unsupported format: {output_format}")
 
 
 class ReportGeneratorPlugin:
@@ -112,20 +113,20 @@ class ReportGeneratorPlugin:
         self.version = "1.0.0"
 
     @staticmethod
-    def execute(data: list[FlextCliTypes.Data.CliDataDict]) -> FlextResult[str]:
+    def execute(data: list[FlextCliTypes.Data.CliDataDict]) -> r[str]:
         """Generate report from data in YOUR CLI."""
         tables = FlextCliTables()
         config = FlextCliModels.TableConfig(table_format="grid")
         table_result = tables.create_table(data, config=config)
 
         if table_result.is_failure:
-            return FlextResult[str].fail(
+            return r[str].fail(
                 f"Report generation failed: {table_result.error}",
             )
 
         report = table_result.unwrap()
         cli.print(f"✅ Generated report ({len(report)} chars)", style="green")
-        return FlextResult[str].ok(report)
+        return r[str].ok(report)
 
 
 # ============================================================================
@@ -151,10 +152,10 @@ class MyAppPluginManager:
         self,
         plugin_name: str,
         **kwargs: object,
-    ) -> FlextResult[t.JsonValue]:
+    ) -> r[t.JsonValue]:
         """Execute plugin by name in YOUR CLI."""
         if plugin_name not in self.plugins:
-            return FlextResult[t.JsonValue].fail(
+            return r[t.JsonValue].fail(
                 f"Plugin not found: {plugin_name}",
             )
 
@@ -162,7 +163,7 @@ class MyAppPluginManager:
 
         execute_attr = getattr(plugin, "execute", None)
         if not callable(execute_attr):
-            return FlextResult[t.JsonValue].fail(
+            return r[t.JsonValue].fail(
                 f"Plugin {plugin_name} does not have execute method",
             )
 
@@ -188,9 +189,9 @@ class MyAppPluginManager:
                 )
             else:
                 json_result = str(result)
-            return FlextResult[t.JsonValue].ok(json_result)
+            return r[t.JsonValue].ok(json_result)
         except Exception as e:
-            return FlextResult[t.JsonValue].fail(
+            return r[t.JsonValue].fail(
                 f"Plugin execution failed: {e}",
             )
 
@@ -268,7 +269,7 @@ class ConfigurablePlugin:
         self.name = "configurable-plugin"
         self.config: FlextCliTypes.Data.CliDataDict = config
 
-    def execute(self) -> FlextResult[FlextCliTypes.Data.CliDataDict]:
+    def execute(self) -> r[FlextCliTypes.Data.CliDataDict]:
         """Execute with configuration in YOUR CLI."""
         cli.print(f"🔧 Plugin config: {self.config}", style="cyan")
 
@@ -280,7 +281,7 @@ class ConfigurablePlugin:
         }
 
         # Cast to expected type (runtime type is compatible)
-        return FlextResult[FlextCliTypes.Data.CliDataDict].ok(result_data)
+        return r[FlextCliTypes.Data.CliDataDict].ok(result_data)
 
 
 # ============================================================================
@@ -297,28 +298,28 @@ class LifecyclePlugin:
         self.name = "lifecycle-plugin"
         self.initialized = False
 
-    def initialize(self) -> FlextResult[bool]:
+    def initialize(self) -> r[bool]:
         """Initialize plugin resources."""
         cli.print(f"🚀 Initializing {self.name}...", style="cyan")
         # Your initialization logic
         self.initialized = True
-        return FlextResult[bool].ok(True)
+        return r[bool].ok(True)
 
-    def execute(self, data: str) -> FlextResult[str]:
+    def execute(self, data: str) -> r[str]:
         """Execute plugin logic."""
         if not self.initialized:
-            return FlextResult[str].fail("Plugin not initialized")
+            return r[str].fail("Plugin not initialized")
 
         processed = data.upper()  # Your processing logic
         cli.print(f"✅ Processed: {processed}", style="green")
-        return FlextResult[str].ok(processed)
+        return r[str].ok(processed)
 
-    def cleanup(self) -> FlextResult[bool]:
+    def cleanup(self) -> r[bool]:
         """Cleanup plugin resources."""
         cli.print(f"🧹 Cleaning up {self.name}...", style="cyan")
         # Your cleanup logic
         self.initialized = False
-        return FlextResult[bool].ok(True)
+        return r[bool].ok(True)
 
 
 # ============================================================================

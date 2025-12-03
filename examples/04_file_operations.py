@@ -39,7 +39,7 @@ import tempfile
 from pathlib import Path
 from typing import cast
 
-from flext_core import FlextUtilities
+from flext_core import FlextResult, FlextTypes, FlextUtilities
 
 from flext_cli import (
     FlextCli,
@@ -50,6 +50,8 @@ from flext_cli import (
 
 # Alias for static method calls - use u.* for uds
 u = FlextUtilities
+r = FlextResult
+t = FlextTypes
 
 cli = FlextCli()
 tables = FlextCliTables()

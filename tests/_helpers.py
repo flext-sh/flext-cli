@@ -42,9 +42,6 @@ from .fixtures.constants import (
 )
 from .fixtures.typing import GenericFieldsDict
 
-# Alias for static method calls - use u.* for uds
-u = u
-
 T = TypeVar("T")
 P = ParamSpec("P")
 
@@ -1319,7 +1316,7 @@ class FlextCliTestHelpers(FlextService[GenericFieldsDict]):
 
     def execute(self) -> FlextResult[GenericFieldsDict]:
         """Execute testing service.
-        u
+
         Returns:
             FlextResult[GenericFieldsDict]: Service execution status.
 

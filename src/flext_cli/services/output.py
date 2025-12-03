@@ -130,7 +130,7 @@ def ensure_dict(
     )
 
 
-def ensure_bool(v: t.GeneralValueType | None, default: bool = False) -> bool:
+def ensure_bool(v: t.GeneralValueType | None, *, default: bool = False) -> bool:
     """Ensure value is bool with default using build DSL."""
     return cast(
         "bool",
@@ -159,11 +159,9 @@ def unwrap_or[T](result: r[T], default: T) -> T:
 
 def cast_if[T](v: object, t_type: type[T], default: T) -> T:
     """Cast value if isinstance else return default."""
-    return u.when(
-        condition=isinstance(v, t_type),
-        then_value=cast(f"{t_type.__name__}", v),
-        else_value=default,
-    )
+    if isinstance(v, t_type):
+        return cast("T", v)
+    return default
 
 
 def to_dict_json(v: t.GeneralValueType) -> dict[str, t.GeneralValueType]:

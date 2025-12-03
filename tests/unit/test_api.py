@@ -370,9 +370,9 @@ class TestFlextCli:
             except Exception as e:
                 errors.append(str(e))
 
-        for t in [threading.Thread(target=worker) for _ in range(5)]:
-            t.start()
-            t.join()
+        for thread in [threading.Thread(target=worker) for _ in range(5)]:
+            thread.start()
+            thread.join()
 
         assert len(results) == 5 and all(results) and len(errors) == 0
 

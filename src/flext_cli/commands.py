@@ -517,9 +517,7 @@ class FlextCliCommands(FlextCliServiceBase):
                 consequence="CLI execution aborted",  # pragma: no cover
                 source="flext-cli/src/flext_cli/commands.py",  # pragma: no cover
             )  # pragma: no cover
-            return r[bool].fail(
-                result.error or "Unknown error"
-            )  # pragma: no cover
+            return r[bool].fail(result.error or "Unknown error")  # pragma: no cover
         except Exception as e:  # pragma: no cover
             self.logger.exception(  # pragma: no cover
                 "FATAL ERROR during CLI execution - execution aborted",  # pragma: no cover

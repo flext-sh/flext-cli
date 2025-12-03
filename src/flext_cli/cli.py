@@ -43,6 +43,7 @@ from flext_cli.config import FlextCliConfig
 from flext_cli.constants import FlextCliConstants
 from flext_cli.models import FlextCliModels
 from flext_cli.protocols import FlextCliProtocols
+from flext_cli.services.output import to_json
 
 # Aliases for static method calls and type references
 # Use u.* for FlextUtilities static methods
@@ -866,7 +867,7 @@ class FlextCliCli:  # noqa: PLR0904
         # Use build() DSL for config building with generalized helpers
         if config is None:
 
-            def get_bool_val(k: str, default: bool = False) -> bool:
+            def get_bool_val(k: str, *, default: bool = False) -> bool:
                 """Get bool value with default."""
                 return cast(
                     "bool",
@@ -889,13 +890,13 @@ class FlextCliCli:  # noqa: PLR0904
                 )
 
             config = FlextCliModels.ConfirmConfig(
-                default=get_bool_val("default"),
-                abort=get_bool_val("abort"),
+                default=get_bool_val("default", default=False),
+                abort=get_bool_val("abort", default=False),
                 prompt_suffix=get_str_val(
-                    "prompt_suffix", FlextCliConstants.UIDefaults.DEFAULT_PROMPT_SUFFIX
+                    "prompt_suffix", default=FlextCliConstants.UIDefaults.DEFAULT_PROMPT_SUFFIX
                 ),
-                show_default=get_bool_val("show_default", True),
-                err=get_bool_val("err"),
+                show_default=get_bool_val("show_default", default=True),
+                err=get_bool_val("err", default=False),
             )
 
         try:
@@ -951,7 +952,7 @@ class FlextCliCli:  # noqa: PLR0904
         # Use build() DSL for config building with generalized helpers
         if config is None:
 
-            def get_bool_val(k: str, default: bool = False) -> bool:
+            def get_bool_val(k: str, *, default: bool = False) -> bool:
                 """Get bool value with default."""
                 return cast(
                     "bool",
@@ -981,11 +982,11 @@ class FlextCliCli:  # noqa: PLR0904
                 prompt_suffix=get_str_val(
                     "prompt_suffix", FlextCliConstants.UIDefaults.DEFAULT_PROMPT_SUFFIX
                 ),
-                hide_input=get_bool_val("hide_input"),
-                confirmation_prompt=get_bool_val("confirmation_prompt"),
-                show_default=get_bool_val("show_default", True),
-                err=get_bool_val("err"),
-                show_choices=get_bool_val("show_choices", True),
+                hide_input=get_bool_val("hide_input", default=False),
+                confirmation_prompt=get_bool_val("confirmation_prompt", default=False),
+                show_default=get_bool_val("show_default", default=True),
+                err=get_bool_val("err", default=False),
+                show_choices=get_bool_val("show_choices", default=True),
             )
 
         try:
@@ -1004,9 +1005,7 @@ class FlextCliCli:  # noqa: PLR0904
             # Convert result to CliJsonValue - typer.prompt returns various types
             # CliJsonValue is alias of GeneralValueType, so no cast needed
             # Use build() DSL for JSON conversion
-            # Reuse to_json helper from output module
-            from flext_cli.services.output import to_json
-
+            # Reuse to_json helper from output module (imported at top)
             json_value = to_json(result) if isinstance(result, dict) else result
             return r[t.GeneralValueType].ok(json_value)
         except typer.Abort as e:

@@ -32,13 +32,14 @@ from __future__ import annotations
 
 from typing import cast
 
-from flext_core import FlextResult, FlextUtilities
+from flext_core import FlextResult, FlextTypes, FlextUtilities
 
 from flext_cli import FlextCli, FlextCliPrompts
 
 # Alias for static method calls - use u.* for FlextUtilities static methods
 u = FlextUtilities
 r = FlextResult
+t = FlextTypes
 
 cli = FlextCli()
 prompts = FlextCliPrompts()

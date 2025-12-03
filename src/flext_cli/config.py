@@ -42,6 +42,7 @@ from pydantic import (
 from pydantic_settings import SettingsConfigDict
 
 from flext_cli.constants import FlextCliConstants
+from flext_cli.utilities import FlextCliUtilities
 
 # Alias LogLevel from FlextConstants (moved from flext_core direct export)
 LogLevel = FlextConstants.Settings.LogLevel
@@ -291,20 +292,22 @@ class FlextCliConfig(FlextConfig):
         """Ensure config directory exists with proper error handling."""
         try:
             self.config_dir.mkdir(parents=True, exist_ok=True)
-            return FlextResult.ok(self.config_dir)
+            return r.ok(self.config_dir)
         except (PermissionError, OSError) as e:
             error_msg = FlextCliConstants.ErrorMessages.CANNOT_ACCESS_CONFIG_DIR.format(
                 config_dir=self.config_dir,
                 error=e,
             )
-            return FlextResult.fail(error_msg)
+            return r.fail(error_msg)
 
     def _propagate_to_context(self) -> r[bool]:
         """Propagate configuration to FlextContext with error recovery."""
         try:
             flext_core_module = importlib.import_module("flext_core")
-            context_cls = getattr(flext_core_module, "FlextContext", FlextContext)
-            context = context_cls() if context_cls else FlextContext()
+            context_cls = getattr(flext_core_module, "FlextContext", None)
+            context = context_cls() if context_cls is not None else None
+            if context is None:
+                return r.fail("FlextContext not available")
             # Convert config object to GeneralValueType-compatible dict for context
             # Use u.transform for JSON conversion
             transform_result = u.transform(self.model_dump(), to_json=True)
@@ -386,13 +389,13 @@ class FlextCliConfig(FlextConfig):
         def detect_interactive_mode() -> r[bool]:
             """Detect if output is interactive (not piped)."""
             is_interactive = os.isatty(FlextCliConstants.ConfigValidation.STDOUT_FD)
-            return FlextResult.ok(is_interactive)
+            return r.ok(is_interactive)
 
         def get_terminal_width() -> r[int]:
             """Get terminal width - fast-fail on error."""
             try:
                 terminal_size = shutil.get_terminal_size()
-                return FlextResult.ok(terminal_size.columns)
+                return r.ok(terminal_size.columns)
             except Exception as e:
                 return r[int].fail(f"Failed to get terminal width: {e}")
 
@@ -489,7 +492,7 @@ class FlextCliConfig(FlextConfig):
             """Map tuple to verbosity level."""
             return determine_verbosity()
 
-        result = FlextResult.ok((self.verbose, self.quiet)).map(map_to_verbosity)
+        result = r.ok((self.verbose, self.quiet)).map(map_to_verbosity)
         if result.is_success:
             verbosity_result = result.unwrap()
             # Type narrowing: map_to_verbosity returns str
@@ -515,7 +518,7 @@ class FlextCliConfig(FlextConfig):
             """Get terminal width - fast-fail on error."""
             try:
                 terminal_size = shutil.get_terminal_size()
-                return FlextResult.ok(terminal_size.columns)
+                return r.ok(terminal_size.columns)
             except Exception as e:
                 return r[int].fail(f"Failed to get terminal width: {e}")
 
@@ -541,10 +544,7 @@ class FlextCliConfig(FlextConfig):
 
     @staticmethod
     def validate_output_format_result(value: str) -> r[str]:
-        """Validate output format using functional composition and railway pattern.
-
-        Performs format validation using functional pipeline with clear error
-        messages and type-safe result handling.
+        """Validate output format (delegates to utilities).
 
         Args:
             value: Output format to validate
@@ -553,34 +553,7 @@ class FlextCliConfig(FlextConfig):
             r[str]: Validated format or error with details
 
         """
-
-        # Functional validation using railway pattern
-        def check_format_exists(fmt: str) -> r[str]:
-            """Check if format exists in allowed list."""
-            if fmt in FlextCliConstants.OUTPUT_FORMATS_LIST:
-                return FlextResult.ok(fmt)
-            return FlextResult.fail(
-                FlextCliConstants.ErrorMessages.INVALID_OUTPUT_FORMAT.format(
-                    format=fmt,
-                ),
-            )
-
-        # Railway pattern: validate input then check format
-        # Create wrapper to ensure type compatibility with flat_map
-        def check_format_wrapper(fmt: str) -> r[str]:
-            """Wrapper to convert r[str] to r[str]."""
-            result = check_format_exists(fmt)
-            if result.is_success:
-                return r[str].ok(result.unwrap())
-            return r[str].fail(result.error or "Format validation failed")
-
-        format_result = FlextResult.ok(value).flat_map(check_format_wrapper)
-        # Convert back to r[str]
-        if format_result.is_success:
-            format_value = format_result.unwrap()
-            if isinstance(format_value, str):
-                return r[str].ok(format_value)
-        return r[str].fail(format_result.error or "Format validation failed")
+        return FlextCliUtilities.CliValidation.validate_output_format(value)
 
     @classmethod
     def load_from_config_file(cls, config_file: Path) -> r[FlextCliConfig]:

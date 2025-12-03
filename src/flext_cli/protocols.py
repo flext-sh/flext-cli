@@ -5,10 +5,9 @@ from __future__ import annotations
 from collections.abc import Mapping, Sequence
 from typing import Protocol, Self, runtime_checkable
 
-from flext_core import FlextProtocols, FlextResult
+from flext_core import FlextProtocols, r, t
 
 p = FlextProtocols
-# t is already imported from flext_core
 
 
 class FlextCliProtocols(p):

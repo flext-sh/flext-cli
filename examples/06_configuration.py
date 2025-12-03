@@ -30,11 +30,13 @@ from pathlib import Path
 from typing import cast
 
 from example_utils import display_config_table
-from flext_core import (
-    r,
-)
+from flext_core import FlextResult, FlextTypes, FlextUtilities
 
 from flext_cli import FlextCli, FlextCliConfig, FlextCliTypes
+
+r = FlextResult
+t = FlextTypes
+u = FlextUtilities
 
 cli = FlextCli()
 

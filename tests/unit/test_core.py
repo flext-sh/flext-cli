@@ -1211,13 +1211,13 @@ class TestFlextCliCore:
             # Create multiple threads
             threads = []
             for i in range(5):
-                t = threading.Thread(target=worker, args=(i,))
-                threads.append(t)
-                t.start()
+                thread = threading.Thread(target=worker, args=(i,))
+                threads.append(thread)
+                thread.start()
 
             # Wait for all threads
-            for t in threads:
-                t.join()
+            for thread in threads:
+                thread.join()
 
             # Verify results
             assert len(results) == 5
@@ -1225,8 +1225,8 @@ class TestFlextCliCore:
             assert all(success for _, success in results)
 
             # Wait for all threads
-            for t in threads:
-                t.join()
+            for thread in threads:
+                thread.join()
 
             # Verify results
             assert len(results) == 5

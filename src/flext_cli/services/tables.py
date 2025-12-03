@@ -179,8 +179,8 @@ class FlextCliTables(FlextCliServiceBase):
             >>> result = tables.create_table(data)
 
         """
-        # Use build_options_from_kwargs pattern for automatic conversion
-        config_result = un.build_options_from_kwargs(
+        # Use Configuration.build_options_from_kwargs pattern for automatic conversion
+        config_result = u.Configuration.build_options_from_kwargs(
             model_class=FlextCliModels.TableConfig,
             explicit_options=config,
             default_factory=FlextCliModels.TableConfig,

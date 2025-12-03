@@ -11,7 +11,7 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 from flext_core import (
-    FlextResult,
+    r,
     t,
     x,
 )
@@ -163,13 +163,13 @@ class FlextCliMixins(x):
             # Railway decorator ensures handler_result is always r[GeneralValueType]
             handler_result = wrapped_handler(**context_data)
 
-            # Type narrowing: railway decorator ensures FlextResult return
-            # Handle both single and double-wrapped FlextResult cases
-            if isinstance(handler_result, FlextResult):
+            # Type narrowing: railway decorator ensures r return
+            # Handle both single and double-wrapped r cases
+            if isinstance(handler_result, r):
                 # Check if it's a double-wrapped r[r[...]]
                 if handler_result.is_success:
                     inner_value = handler_result.unwrap()
-                    if isinstance(inner_value, FlextResult):
+                    if isinstance(inner_value, r):
                         # Double-wrapped: unwrap inner FlextResult
                         # Type narrowing: inner_value is r[t.GeneralValueType]
                         return inner_value
