@@ -57,7 +57,7 @@ from flext_cli.constants import FlextCliConstants
 # Use c.* for FlextConstants constants
 # Use m.* for FlextModels model references
 # Use p.* for FlextProtocols protocol references
-# Use r.* for FlextResult methods
+# Use r.* for r methods
 # Use e.* for FlextExceptions
 # Use d.* for FlextDecorators decorators
 # Use s.* for FlextService service base
@@ -95,7 +95,7 @@ class FlextCliUtilities(FlextUtilities):
     ───────────────────────────
     - Single source of truth eliminates code duplication across modules
     - Static methods ensure thread safety and no side effects
-    - Railway-Oriented Programming via FlextResult for composable error handling
+    - Railway-Oriented Programming via r for composable error handling
     - Type normalization enables Typer compatibility without type loss
     - Validation helpers enforce business rules consistently
 
@@ -1449,7 +1449,7 @@ class FlextCliUtilities(FlextUtilities):
                 *,
                 strict: bool = False,
             ) -> r[M]:
-                """Create model from dict with FlextResult.
+                """Create model from dict with r.
 
                 Business Rule:
                 ──────────────
