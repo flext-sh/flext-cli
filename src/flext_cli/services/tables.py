@@ -12,16 +12,41 @@ from __future__ import annotations
 
 from collections.abc import Iterable, Mapping, Sequence
 
-from flext_core import FlextResult, FlextRuntime, FlextTypes, FlextUtilities
+from flext_core import (
+    FlextConstants,
+    FlextExceptions,
+    FlextModels,
+    FlextProtocols,
+    FlextResult,
+    FlextRuntime,
+    t,
+    u,
+)
 from tabulate import tabulate
 
 from flext_cli.base import FlextCliServiceBase
 from flext_cli.constants import FlextCliConstants
 from flext_cli.models import FlextCliModels
 
+# Aliases for static method calls and type references
+# Use u.* for FlextUtilities static methods
+# Use t.* for FlextTypes type references
+# Use c.* for FlextConstants constants
+# Use m.* for FlextModels model references
+# Use p.* for FlextProtocols protocol references
+# Use r.* for FlextResult methods
+# Use e.* for FlextExceptions
+# u is already imported from flext_core
+# t is already imported from flext_core
+c = FlextConstants
+m = FlextModels
+p = FlextProtocols
+r = FlextResult
+e = FlextExceptions
+
 # Type alias for table data to avoid long lines
 type TableData = Iterable[
-    Sequence[FlextTypes.GeneralValueType] | Mapping[str, FlextTypes.GeneralValueType]
+    Sequence[t.GeneralValueType] | Mapping[str, t.GeneralValueType]
 ]
 
 
@@ -104,18 +129,18 @@ class FlextCliTables(FlextCliServiceBase):
         super().__init__()
 
     def execute(  # noqa: PLR6301
-        self, **_kwargs: FlextTypes.JsonDict
-    ) -> FlextResult[FlextTypes.JsonDict]:
+        self, **_kwargs: t.JsonDict
+    ) -> FlextResult[t.JsonDict]:
         """Execute the main domain service operation - required by FlextService.
 
         Args:
             **_kwargs: Additional execution parameters (unused, for FlextService compatibility)
 
         Returns:
-            FlextResult[FlextTypes.JsonDict]: Service execution result
+            FlextResult[t.JsonDict]: Service execution result
 
         """
-        return FlextResult[FlextTypes.JsonDict].ok({})
+        return FlextResult[t.JsonDict].ok({})
 
     # =========================================================================
     # TABLE CREATION
@@ -125,7 +150,7 @@ class FlextCliTables(FlextCliServiceBase):
         self,
         data: TableData,
         config: FlextCliModels.TableConfig | None = None,
-        **config_kwargs: FlextTypes.GeneralValueType,
+        **config_kwargs: t.GeneralValueType,
     ) -> FlextResult[str]:
         """Create formatted ASCII table using tabulate with Pydantic config.
 
@@ -155,7 +180,7 @@ class FlextCliTables(FlextCliServiceBase):
 
         """
         # Use build_options_from_kwargs pattern for automatic conversion
-        config_result = FlextUtilities.Configuration.build_options_from_kwargs(
+        config_result = un.build_options_from_kwargs(
             model_class=FlextCliModels.TableConfig,
             explicit_options=config,
             default_factory=FlextCliModels.TableConfig,
@@ -221,7 +246,7 @@ class FlextCliTables(FlextCliServiceBase):
         """Prepare headers based on data type."""
         # For list of dicts with sequence headers, use "keys"
         # Type narrowing: data is Iterable, convert to list for is_list_like check
-        data_as_general: FlextTypes.GeneralValueType = (
+        data_as_general: t.GeneralValueType = (
             list(data)
             if isinstance(data, Iterable) and not isinstance(data, str)
             else data
@@ -548,10 +573,21 @@ class FlextCliTables(FlextCliServiceBase):
 
         """
         try:
-            formats_data = [
-                {"format": name, "description": desc}
-                for name, desc in FlextCliConstants.TABLE_FORMATS.items()
-            ]
+            # Use u.process to convert TABLE_FORMATS to list
+            def convert_format(name: str, desc: str) -> dict[str, str]:
+                """Convert format to dict."""
+                return {"format": name, "description": desc}
+
+            process_result = u.process(
+                dict(FlextCliConstants.TABLE_FORMATS),
+                processor=convert_format,
+                on_error="skip",
+            )
+            formats_data: list[dict[str, str]] = (
+                list(process_result.value.values())
+                if process_result.is_success and isinstance(process_result.value, dict)
+                else []
+            )
 
             # Use tabulate directly to create the formats table
             table_str = tabulate(

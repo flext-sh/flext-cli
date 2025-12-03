@@ -22,7 +22,7 @@ from pathlib import Path
 from typing import TypedDict, cast
 
 import pytest
-from flext_core import FlextResult, FlextTypes
+from flext_core import FlextResult, t
 
 from flext_cli import (
     FlextCli,
@@ -146,7 +146,7 @@ class TestCompleteWorkflowIntegration:
 
         # Pre-create input file
         file_tools.write_json_file(
-            str(input_file), cast("FlextTypes.GeneralValueType", raw_data)
+            str(input_file), cast("t.GeneralValueType", raw_data)
         )
 
         # Execute complete pipeline using Railway Pattern
@@ -196,7 +196,7 @@ class TestCompleteWorkflowIntegration:
                 # Step 5: Save transformed data
                 .flat_map(
                     lambda data: file_tools.write_json_file(
-                        str(output_file), cast("FlextTypes.GeneralValueType", data)
+                        str(output_file), cast("t.GeneralValueType", data)
                     ).map(
                         lambda _: (
                             cli.output.print_message("✅ Processed data saved"),
@@ -208,7 +208,7 @@ class TestCompleteWorkflowIntegration:
                 .map(self._create_pipeline_report)
                 .flat_map(
                     lambda report: file_tools.write_json_file(
-                        str(report_file), cast("FlextTypes.GeneralValueType", report)
+                        str(report_file), cast("t.GeneralValueType", report)
                     ).map(
                         lambda _: (
                             cli.output.print_message("✅ Pipeline report saved"),
@@ -411,7 +411,7 @@ class TestCompleteWorkflowIntegration:
 
         # Create input data
         file_tools.write_json_file(
-            str(data_file), cast("FlextTypes.GeneralValueType", sales_data)
+            str(data_file), cast("t.GeneralValueType", sales_data)
         )
 
         # Execute report generation pipeline
@@ -527,7 +527,7 @@ class TestCompleteWorkflowIntegration:
 
         json_result = FlextCliFileTools().write_json_file(
             str(report_dir / "sales_report.json"),
-            cast("FlextTypes.GeneralValueType", json_report),
+            cast("t.GeneralValueType", json_report),
         )
         if json_result.is_failure:
             return FlextResult.fail(f"JSON report failed: {json_result.error}")
@@ -565,7 +565,7 @@ class TestCompleteWorkflowIntegration:
         })
 
         # Table Report (ASCII)
-        table_result = tables.create_table(cast("FlextTypes.JsonDict", sales_list))
+        table_result = tables.create_table(cast("t.JsonDict", sales_list))
         if table_result.is_success:
             table_content = table_result.unwrap()
             (report_dir / "sales_report.txt").write_text(table_content)
@@ -630,7 +630,7 @@ class TestCompleteWorkflowIntegration:
         # Create backup data (valid)
         backup_data = {"users": [{"id": 1, "name": "Backup User", "active": True}]}
         file_tools.write_json_file(
-            str(backup_data_file), cast("FlextTypes.GeneralValueType", backup_data)
+            str(backup_data_file), cast("t.GeneralValueType", backup_data)
         )
 
         # Execute workflow with fallback mechanisms
@@ -810,7 +810,7 @@ class TestCompleteWorkflowIntegration:
         while attempts < max_retries:
             attempts += 1
             result = FlextCliFileTools().write_json_file(
-                str(output_file), cast("FlextTypes.GeneralValueType", data)
+                str(output_file), cast("t.GeneralValueType", data)
             )
 
             if result.is_success:

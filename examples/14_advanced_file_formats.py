@@ -34,9 +34,12 @@ from collections.abc import Iterable
 from pathlib import Path
 from typing import cast
 
-from flext_core import FlextTypes, FlextUtilities
+from flext_core import FlextUtilities
 
 from flext_cli import FlextCli, FlextCliModels, FlextCliTables, FlextCliTypes
+
+# Alias for static method calls - use u.* for uds
+u = FlextUtilities
 
 cli = FlextCli()
 tables = FlextCliTables()
@@ -102,19 +105,31 @@ def import_from_csv(input_file: Path) -> list[FlextCliTypes.Data.CliDataDict] | 
     # Display sample rows
     if rows:
         cli.output.print_message("\n📋 Sample Data:", style="yellow")
-        # Convert to JsonDict-compatible format using FlextUtilities
+        # Convert to JsonDict-compatible format using u
         sample_rows_raw = rows[:5]
-        sample_rows: list[FlextCliTypes.Data.CliDataDict] = [
-            FlextUtilities.DataMapper.convert_dict_to_json(
-                cast("dict[str, FlextTypes.GeneralValueType]", row)
+        # Use u.map to convert list items to JSON
+        sample_rows: list[FlextCliTypes.Data.CliDataDict] = list(
+            u.map(
+                sample_rows_raw,
+                mapper=lambda row: (
+                    u.transform(
+                        cast("dict[str, t.GeneralValueType]", row),
+                        to_json=True,
+                    ).unwrap()
+                    if isinstance(row, dict)
+                    and u.transform(
+                        cast("dict[str, t.GeneralValueType]", row),
+                        to_json=True,
+                    ).is_success
+                    else cast("FlextCliTypes.Data.CliDataDict", row)
+                ),
             )
-            for row in sample_rows_raw
-        ]
+        )
         # Cast to expected type for table creation - TableData accepts Iterable[dict[str, GeneralValueType]]
         config = FlextCliModels.TableConfig(table_format="grid")
         table_result = tables.create_table(
             cast(
-                "Iterable[dict[str, FlextTypes.GeneralValueType]]",
+                "Iterable[dict[str, t.GeneralValueType]]",
                 sample_rows,
             ),
             config=config,
@@ -122,13 +137,23 @@ def import_from_csv(input_file: Path) -> list[FlextCliTypes.Data.CliDataDict] | 
         if table_result.is_success:
             pass
 
-    # Convert to JsonDict-compatible format using FlextUtilities
-    converted_rows: list[FlextCliTypes.Data.CliDataDict] = [
-        FlextUtilities.DataMapper.convert_dict_to_json(
-            cast("dict[str, FlextTypes.GeneralValueType]", row)
+    # Convert to JsonDict-compatible format using u
+    # Use u.map to convert list items to JSON
+    converted_rows: list[FlextCliTypes.Data.CliDataDict] = list(
+        u.map(
+            rows,
+            mapper=lambda row: (
+                u.transform(
+                    cast("dict[str, t.GeneralValueType]", row), to_json=True
+                ).unwrap()
+                if isinstance(row, dict)
+                and u.transform(
+                    cast("dict[str, t.GeneralValueType]", row), to_json=True
+                ).is_success
+                else cast("FlextCliTypes.Data.CliDataDict", row)
+            ),
         )
-        for row in rows
-    ]
+    )
     return converted_rows
 
 
@@ -219,7 +244,7 @@ def load_any_format_file(file_path: Path) -> FlextCliTypes.Data.CliDataDict | No
     if not isinstance(data, dict):
         cli.output.print_message(
             (
-                f"⚠️  Loaded data is not a dict[str, FlextTypes.JsonValue] "
+                f"⚠️  Loaded data is not a dict[str, t.JsonValue] "
                 f"(type: {type(data).__name__})"
             ),
             style="yellow",
@@ -227,23 +252,32 @@ def load_any_format_file(file_path: Path) -> FlextCliTypes.Data.CliDataDict | No
         return None
 
     # Display loaded data
-    # Convert to JsonDict-compatible dict using FlextUtilities
+    # Use u.transform for JSON conversion
+    transform_result = u.transform(
+        cast("dict[str, t.GeneralValueType]", data), to_json=True
+    )
     display_data: FlextCliTypes.Data.CliDataDict = (
-        FlextUtilities.DataMapper.convert_dict_to_json(
-            cast("dict[str, FlextTypes.GeneralValueType]", data)
-        )
+        transform_result.unwrap()
+        if transform_result.is_success
+        else cast("FlextCliTypes.Data.CliDataDict", data)
     )
     # Cast to dict[str, GeneralValueType] for create_table
     table_result = cli.create_table(
-        data=cast("dict[str, FlextTypes.GeneralValueType]", display_data),
+        data=cast("dict[str, t.GeneralValueType]", display_data),
         headers=["Key", "Value"],
         title=f"Loaded from {detected_format.upper()}",
     )
     if table_result.is_success:
         cli.print_table(table_result.unwrap())
 
-    # Convert to JsonDict-compatible dict using FlextUtilities
-    return FlextUtilities.DataMapper.convert_dict_to_json(data)
+    # Convert to JsonDict-compatible dict using u
+    # Use u.transform for JSON conversion
+    transform_result = u.transform(data, to_json=True)
+    return (
+        transform_result.unwrap()
+        if transform_result.is_success
+        else cast("FlextCliTypes.Data.CliDataDict", data)
+    )
 
 
 # ============================================================================
@@ -419,13 +453,23 @@ def main() -> None:  # noqa: PLR0915
     ]
 
     csv_file = temp_dir / "employees.csv"
-    # Convert to JsonDict-compatible format using FlextUtilities
-    typed_sample_data: list[FlextCliTypes.Data.CliDataDict] = [
-        FlextUtilities.DataMapper.convert_dict_to_json(
-            cast("dict[str, FlextTypes.GeneralValueType]", row)
+    # Convert to JsonDict-compatible format using u
+    # Use u.map to convert list items to JSON
+    typed_sample_data: list[FlextCliTypes.Data.CliDataDict] = list(
+        u.map(
+            sample_data,
+            mapper=lambda row: (
+                u.transform(
+                    cast("dict[str, t.GeneralValueType]", row), to_json=True
+                ).unwrap()
+                if isinstance(row, dict)
+                and u.transform(
+                    cast("dict[str, t.GeneralValueType]", row), to_json=True
+                ).is_success
+                else cast("FlextCliTypes.Data.CliDataDict", row)
+            ),
         )
-        for row in sample_data
-    ]
+    )
     export_to_csv(typed_sample_data, csv_file)
     import_from_csv(csv_file)
 

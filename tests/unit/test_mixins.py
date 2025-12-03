@@ -17,7 +17,7 @@ from __future__ import annotations
 from typing import TypeVar, cast
 
 import pytest
-from flext_core import FlextResult, FlextTypes
+from flext_core import FlextResult, t
 
 from flext_cli import FlextCliMixins, FlextCliProtocols
 
@@ -193,7 +193,7 @@ class TestFlextCliMixins:
         """Test pipeline step validation with valid step."""
         result = FlextCliMixins.BusinessRulesMixin.validate_pipeline_step(
             cast(
-                "FlextTypes.JsonDict | None",
+                "t.JsonDict | None",
                 TestMixins.BusinessRules.PipelineSteps.VALID_STEP,
             )
         )
@@ -215,7 +215,7 @@ class TestFlextCliMixins:
     ) -> None:
         """Test pipeline step validation with empty/None step."""
         result = FlextCliMixins.BusinessRulesMixin.validate_pipeline_step(
-            cast("FlextTypes.JsonDict | None", step)
+            cast("t.JsonDict | None", step)
         )
         self.Assertions.assert_result_failure(result)
         # Check for appropriate error message based on step type
@@ -242,7 +242,7 @@ class TestFlextCliMixins:
     ) -> None:
         """Test pipeline step validation with invalid name."""
         result = FlextCliMixins.BusinessRulesMixin.validate_pipeline_step(
-            cast("FlextTypes.JsonDict | None", step)
+            cast("t.JsonDict | None", step)
         )
         self.Assertions.assert_result_failure(result, "name")
 
@@ -254,7 +254,7 @@ class TestFlextCliMixins:
         """Test configuration consistency validation with valid config."""
         result = FlextCliMixins.BusinessRulesMixin.validate_configuration_consistency(
             cast(
-                "FlextTypes.JsonDict | None",
+                "t.JsonDict | None",
                 TestMixins.BusinessRules.ConfigData.VALID_CONFIG,
             ),
             TestMixins.BusinessRules.ConfigData.REQUIRED_FIELDS_COMPLETE,
@@ -265,7 +265,7 @@ class TestFlextCliMixins:
         """Test configuration consistency with missing required fields."""
         result = FlextCliMixins.BusinessRulesMixin.validate_configuration_consistency(
             cast(
-                "FlextTypes.JsonDict | None",
+                "t.JsonDict | None",
                 TestMixins.BusinessRules.ConfigData.INCOMPLETE_CONFIG,
             ),
             TestMixins.BusinessRules.ConfigData.REQUIRED_FIELDS_INCOMPLETE,
@@ -288,9 +288,9 @@ class TestFlextCliMixins:
         """Test CLI context execution with successful handler."""
 
         def success_handler(
-            **kwargs: FlextTypes.JsonValue,
-        ) -> FlextResult[FlextTypes.JsonValue]:
-            return FlextResult[FlextTypes.JsonValue].ok({
+            **kwargs: t.JsonValue,
+        ) -> FlextResult[t.JsonValue]:
+            return FlextResult[t.JsonValue].ok({
                 TestMixins.CliCommand.SUCCESS_RESULT_KEY: TestMixins.CliCommand.SUCCESS_RESULT_VALUE,
                 **kwargs,
             })
@@ -319,11 +319,9 @@ class TestFlextCliMixins:
         """Test CLI context execution with failing handler."""
 
         def failure_handler(
-            **kwargs: FlextTypes.JsonValue,
-        ) -> FlextResult[FlextTypes.JsonValue]:
-            return FlextResult[FlextTypes.JsonValue].fail(
-                TestMixins.CliCommand.TEST_ERROR_MSG
-            )
+            **kwargs: t.JsonValue,
+        ) -> FlextResult[t.JsonValue]:
+            return FlextResult[t.JsonValue].fail(TestMixins.CliCommand.TEST_ERROR_MSG)
 
         result = FlextCliMixins.CliCommandMixin.execute_with_cli_context(
             operation=TestMixins.CliCommand.OPERATION_NAME,
@@ -348,9 +346,9 @@ class TestFlextCliMixins:
         """Test CLI context execution with various parameter combinations."""
 
         def params_handler(
-            **kwargs: FlextTypes.JsonValue,
-        ) -> FlextResult[FlextTypes.JsonValue]:
-            return FlextResult[FlextTypes.JsonValue].ok(dict(kwargs))
+            **kwargs: t.JsonValue,
+        ) -> FlextResult[t.JsonValue]:
+            return FlextResult[t.JsonValue].ok(dict(kwargs))
 
         result = FlextCliMixins.CliCommandMixin.execute_with_cli_context(
             operation=TestMixins.CliCommand.OPERATION_NAME,

@@ -21,13 +21,17 @@ from pathlib import Path
 from typing import Union, cast
 
 import pytest
-from flext_core import FlextResult, FlextTypes, FlextUtilities
+from flext_core import FlextResult, t, u
 from flext_tests import FlextTestsMatchers, FlextTestsUtilities
+from pydantic import BaseModel
 
 from flext_cli import FlextCliConstants, FlextCliUtilities
 
+from .._helpers import FlextCliTestHelpers
 from ..fixtures.constants import TestUtilities
-from ..helpers import FlextCliTestHelpers
+
+# Alias for static method calls - use u.* for uds
+u = u
 
 
 class ValidationType(StrEnum):
@@ -91,7 +95,7 @@ class TestFlextCliUtilities:
                         "field_name": "Test Field",
                     },
                     expected_result=False,
-                    error_contains="cannot be empty",
+                    error_contains="string.non_empty",
                 ),
                 ValidationTestCase(
                     ValidationType.FIELD_NOT_EMPTY,
@@ -245,16 +249,15 @@ class TestFlextCliUtilities:
 
                 case ValidationType.OUTPUT_FORMAT:
                     format_type = cast("str", test_case.test_data["format"])
-                    # Use FlextUtilities.Validation.validate_choice directly
-                    format_lower = format_type.lower()
-                    format_result: FlextResult[str] = (
-                        FlextUtilities.Validation.validate_choice(
-                            format_lower,
-                            set(FlextCliConstants.OUTPUT_FORMATS_LIST),
-                            "Output format",
-                            case_sensitive=False,
+                    # Use u.convert and validate choice
+                    format_lower = u.convert(format_type, str, "").lower()
+                    valid_formats = set(FlextCliConstants.OUTPUT_FORMATS_LIST)
+                    if format_lower not in valid_formats:
+                        format_result: FlextResult[str] = FlextResult[str].fail(
+                            f"Invalid output format: {format_type}"
                         )
-                    )
+                    else:
+                        format_result = FlextResult[str].ok(format_lower)
                     if format_result.is_success:
                         format_result = FlextResult[str].ok(format_lower)
                     # For normalization tests, check the unwrapped value
@@ -558,14 +561,22 @@ class TestFlextCliUtilities:
         )
         FlextTestsMatchers.assert_success(result1)
 
-        # 2. Validate output format with normalization using FlextUtilities directly
-        format_lower = TestUtilities.Validation.OutputFormats.UPPERCASE_FORMAT.lower()
-        validation_result = FlextUtilities.Validation.validate_choice(
-            format_lower,
-            set(FlextCliConstants.OUTPUT_FORMATS_LIST),
-            "Output format",
-            case_sensitive=False,
-        )
+        # 2. Validate output format with normalization using u.convert
+        format_lower = u.convert(
+            TestUtilities.Validation.OutputFormats.UPPERCASE_FORMAT, str, ""
+        ).lower()
+        valid_formats = set(FlextCliConstants.OUTPUT_FORMATS_LIST)
+        if format_lower not in valid_formats:
+            validation_result: FlextResult[str] = FlextResult[str].fail(
+                f"Invalid output format: {TestUtilities.Validation.OutputFormats.UPPERCASE_FORMAT}"
+            )
+        else:
+            validation_result = FlextResult[str].ok(format_lower)
+        # Old validation code (kept for reference):
+        # validation_result = u.Validation.validate_choice(
+        #     format_lower,
+        #     valid_formats,
+        # )
         result2 = (
             FlextResult[str].ok(format_lower)
             if validation_result.is_success
@@ -615,7 +626,7 @@ class TestFlextCliUtilities:
         # Use cast to specify type parameter - assert_dict_contains is a generic method
         FlextTestsMatchers.assert_dict_contains(
             test_data,
-            cast("dict[str, FlextTypes.GeneralValueType]", expected_data),
+            cast("dict[str, t.GeneralValueType]", expected_data),
         )
 
         # Test with domain helpers
@@ -625,7 +636,7 @@ class TestFlextCliUtilities:
     def test_utilities_namespaces_availability(self) -> None:
         """Test that all FlextCliUtilities namespaces are available."""
         # Test CLI-specific namespaces (actual namespaces in FlextCliUtilities)
-        # CliDataMapper was removed - use FlextUtilities.DataMapper directly
+        # CliDataMapper was removed - use uirectly
         assert hasattr(FlextCliUtilities, "CliValidation")
         assert hasattr(FlextCliUtilities, "TypeNormalizer")
         # Enum, Collection, Args, Model are nested classes in utilities.py
@@ -637,3 +648,354 @@ class TestFlextCliUtilities:
         assert hasattr(FlextCliUtilities, "Environment")
         assert hasattr(FlextCliUtilities, "ConfigOps")
         assert hasattr(FlextCliUtilities, "FileOps")
+
+    # =========================================================================
+    # ADDITIONAL EDGE CASES AND MISSING COVERAGE
+    # =========================================================================
+
+    def test_validate_field_not_empty_with_non_string(
+        self,
+    ) -> None:
+        """Test validate_field_not_empty with non-string value."""
+        result = FlextCliUtilities.CliValidation.validate_field_not_empty(
+            42, "Test Field"
+        )
+        assert result.is_failure
+
+    def test_validate_field_not_empty_with_value_error(
+        self,
+    ) -> None:
+        """Test validate_field_not_empty with ValueError from validation."""
+        # Empty string should trigger ValueError
+        result = FlextCliUtilities.CliValidation.validate_field_not_empty(
+            "", "Test Field"
+        )
+        assert result.is_failure
+
+    def test_validate_field_in_list_with_non_string(
+        self,
+    ) -> None:
+        """Test validate_field_in_list with non-string value."""
+        result = FlextCliUtilities.CliValidation.validate_field_in_list(
+            42, valid_values=["a", "b"], field_name="test"
+        )
+        assert result.is_failure
+
+    def test_validate_field_in_list_with_invalid_choice(
+        self,
+    ) -> None:
+        """Test validate_field_in_list with invalid choice."""
+        result = FlextCliUtilities.CliValidation.validate_field_in_list(
+            "invalid", valid_values=["a", "b"], field_name="test"
+        )
+        assert result.is_failure
+
+    def test_validate_output_format(self) -> None:
+        """Test validate_output_format method."""
+        result = FlextCliUtilities.CliValidation.validate_output_format("json")
+        assert result.is_success
+
+    def test_validate_output_format_invalid(self) -> None:
+        """Test validate_output_format with invalid format."""
+        result = FlextCliUtilities.CliValidation.validate_output_format("invalid")
+        assert result.is_failure
+
+    def test_validate_string_not_empty_success(self) -> None:
+        """Test validate_string_not_empty with valid string."""
+        result = FlextCliUtilities.CliValidation.validate_string_not_empty(
+            "test", "field"
+        )
+        assert result.is_success
+
+    def test_validate_string_not_empty_failure(self) -> None:
+        """Test validate_string_not_empty with empty string."""
+        result = FlextCliUtilities.CliValidation.validate_string_not_empty("", "field")
+        assert result.is_failure
+
+    def test_validate_command_execution_state_success(self) -> None:
+        """Test validate_command_execution_state with matching status."""
+        result = FlextCliUtilities.CliValidation.validate_command_execution_state(
+            "pending", "pending", "test_operation"
+        )
+        assert result.is_success
+
+    def test_validate_command_execution_state_failure(self) -> None:
+        """Test validate_command_execution_state with mismatched status."""
+        result = FlextCliUtilities.CliValidation.validate_command_execution_state(
+            "pending", "running", "test_operation"
+        )
+        assert result.is_failure
+
+    def test_validate_session_state_success(self) -> None:
+        """Test validate_session_state with valid state."""
+        result = FlextCliUtilities.CliValidation.validate_session_state(
+            "active", ["active", "inactive"]
+        )
+        assert result.is_success
+
+    def test_validate_session_state_failure(self) -> None:
+        """Test validate_session_state with invalid state."""
+        result = FlextCliUtilities.CliValidation.validate_session_state(
+            "invalid", ["active", "inactive"]
+        )
+        assert result.is_failure
+
+    def test_validate_pipeline_step_none(self) -> None:
+        """Test validate_pipeline_step with None."""
+        result = FlextCliUtilities.CliValidation.validate_pipeline_step(None)
+        assert result.is_failure
+
+    def test_validate_pipeline_step_no_name(self) -> None:
+        """Test validate_pipeline_step without name field."""
+        result = FlextCliUtilities.CliValidation.validate_pipeline_step({})
+        assert result.is_failure
+
+    def test_validate_pipeline_step_empty_name(self) -> None:
+        """Test validate_pipeline_step with empty name."""
+        result = FlextCliUtilities.CliValidation.validate_pipeline_step({
+            FlextCliConstants.MixinsFieldNames.PIPELINE_STEP_NAME: ""
+        })
+        assert result.is_failure
+
+    def test_validate_pipeline_step_success(self) -> None:
+        """Test validate_pipeline_step with valid step."""
+        result = FlextCliUtilities.CliValidation.validate_pipeline_step({
+            FlextCliConstants.MixinsFieldNames.PIPELINE_STEP_NAME: "test_step"
+        })
+        assert result.is_success
+
+    def test_enum_parse_success(self) -> None:
+        """Test Enum.parse with valid string."""
+
+        class TestEnum(StrEnum):
+            VALUE1 = "value1"
+            VALUE2 = "value2"
+
+        result = FlextCliUtilities.Enum.parse(TestEnum, "value1")
+        assert result.is_success
+        assert result.unwrap() == TestEnum.VALUE1
+
+    def test_enum_parse_invalid(self) -> None:
+        """Test Enum.parse with invalid string."""
+
+        class TestEnum(StrEnum):
+            VALUE1 = "value1"
+
+        result = FlextCliUtilities.Enum.parse(TestEnum, "invalid")
+        assert result.is_failure
+
+    def test_enum_parse_or_default_success(self) -> None:
+        """Test Enum.parse_or_default with valid string."""
+
+        class TestEnum(StrEnum):
+            VALUE1 = "value1"
+
+        result = FlextCliUtilities.Enum.parse_or_default(
+            TestEnum, "value1", TestEnum.VALUE1
+        )
+        assert result == TestEnum.VALUE1
+
+    def test_enum_parse_or_default_invalid(self) -> None:
+        """Test Enum.parse_or_default with invalid string."""
+
+        class TestEnum(StrEnum):
+            VALUE1 = "value1"
+            DEFAULT = "default"
+
+        result = FlextCliUtilities.Enum.parse_or_default(
+            TestEnum, "invalid", TestEnum.DEFAULT
+        )
+        assert result == TestEnum.DEFAULT
+
+    def test_enum_parse_or_default_none(self) -> None:
+        """Test Enum.parse_or_default with None."""
+
+        class TestEnum(StrEnum):
+            DEFAULT = "default"
+
+        result = FlextCliUtilities.Enum.parse_or_default(
+            TestEnum, None, TestEnum.DEFAULT
+        )
+        assert result == TestEnum.DEFAULT
+
+    def test_collection_parse_mapping_success(self) -> None:
+        """Test Collection.parse_mapping with valid mapping."""
+
+        class TestEnum(StrEnum):
+            VALUE1 = "value1"
+            VALUE2 = "value2"
+
+        result = FlextCliUtilities.Collection.parse_mapping(
+            TestEnum, {"key1": "value1", "key2": "value2"}
+        )
+        assert result.is_success
+        parsed = result.unwrap()
+        assert parsed["key1"] == TestEnum.VALUE1
+        assert parsed["key2"] == TestEnum.VALUE2
+
+    def test_collection_parse_mapping_invalid(self) -> None:
+        """Test Collection.parse_mapping with invalid values."""
+
+        class TestEnum(StrEnum):
+            VALUE1 = "value1"
+
+        result = FlextCliUtilities.Collection.parse_mapping(
+            TestEnum, {"key1": "invalid"}
+        )
+        assert result.is_failure
+
+    def test_collection_coerce_dict_validator_success(self) -> None:
+        """Test Collection.coerce_dict_validator with valid dict."""
+
+        class TestEnum(StrEnum):
+            VALUE1 = "value1"
+
+        validator = FlextCliUtilities.Collection.coerce_dict_validator(TestEnum)
+        result = validator({"key": "value1"})
+        assert result == {"key": TestEnum.VALUE1}
+
+    def test_collection_coerce_dict_validator_invalid_type(
+        self,
+    ) -> None:
+        """Test Collection.coerce_dict_validator with non-dict."""
+
+        class TestEnum(StrEnum):
+            VALUE1 = "value1"
+
+        validator = FlextCliUtilities.Collection.coerce_dict_validator(TestEnum)
+        with pytest.raises(TypeError):
+            validator("not a dict")
+
+    def test_collection_coerce_dict_validator_invalid_value(
+        self,
+    ) -> None:
+        """Test Collection.coerce_dict_validator with invalid enum value."""
+
+        class TestEnum(StrEnum):
+            VALUE1 = "value1"
+
+        validator = FlextCliUtilities.Collection.coerce_dict_validator(TestEnum)
+        with pytest.raises(ValueError):
+            validator({"key": "invalid"})
+
+    def test_model_from_dict_success(self) -> None:
+        """Test Model.from_dict with valid data."""
+
+        class TestModel(BaseModel):
+            name: str = "test"
+
+        data = {"name": "test_value"}
+        result = FlextCliUtilities.TypeNormalizer.Model.from_dict(TestModel, data)
+        assert result.is_success
+        assert result.unwrap().name == "test_value"
+
+    def test_model_from_dict_invalid(self) -> None:
+        """Test Model.from_dict with invalid data."""
+
+        class TestModel(BaseModel):
+            name: str
+
+        data = {}  # Missing required field
+        result = FlextCliUtilities.TypeNormalizer.Model.from_dict(TestModel, data)
+        assert result.is_failure
+
+    def test_model_from_dict_non_pydantic(self) -> None:
+        """Test Model.from_dict with non-Pydantic class."""
+
+        class NotPydantic:
+            pass
+
+        result = FlextCliUtilities.TypeNormalizer.Model.from_dict(NotPydantic, {})
+        assert result.is_failure
+
+    def test_model_merge_defaults_success(self) -> None:
+        """Test Model.merge_defaults with valid data."""
+
+        class TestModel(BaseModel):
+            name: str = "default"
+            value: int = 0
+
+        defaults = {"name": "default", "value": 0}
+        overrides = {"name": "override"}
+        result = FlextCliUtilities.TypeNormalizer.Model.merge_defaults(
+            TestModel, defaults, overrides
+        )
+        assert result.is_success
+        model = result.unwrap()
+        assert model.name == "override"
+        assert model.value == 0
+
+    def test_model_update_success(self) -> None:
+        """Test Model.update with valid updates."""
+
+        class TestModel(BaseModel):
+            name: str = "original"
+            value: int = 0
+
+        instance = TestModel()
+        result = FlextCliUtilities.TypeNormalizer.Model.update(instance, name="updated")
+        assert result.is_success
+        assert result.unwrap().name == "updated"
+
+    def test_model_update_non_pydantic(self) -> None:
+        """Test Model.update with non-Pydantic instance."""
+
+        class NotPydantic:
+            pass
+
+        result = FlextCliUtilities.Model.update(NotPydantic(), name="test")
+        assert result.is_failure
+
+    def test_args_validated_with_result_success(self) -> None:
+        """Test Args.validated_with_result with valid input."""
+
+        @FlextCliUtilities.TypeNormalizer.Args.validated_with_result
+        def test_func(value: int) -> int:
+            return value * 2
+
+        result = test_func(value=5)
+        assert result.is_success
+        assert result.unwrap() == 10
+
+    def test_args_validated_with_result_validation_error(self) -> None:
+        """Test Args.validated_with_result with validation error."""
+
+        @FlextCliUtilities.TypeNormalizer.Args.validated_with_result
+        def test_func(value: int) -> int:
+            return value * 2
+
+        result = test_func(value="not an int")
+        assert result.is_failure
+
+    def test_args_parse_kwargs_success(self) -> None:
+        """Test Args.parse_kwargs with valid kwargs."""
+
+        class TestEnum(StrEnum):
+            VALUE1 = "value1"
+
+        kwargs = {"key": "value", "enum_field": "value1"}
+        enum_fields = {"enum_field": TestEnum}
+        result = FlextCliUtilities.TypeNormalizer.Args.parse_kwargs(kwargs, enum_fields)
+        assert result.is_success
+        parsed = result.unwrap()
+        assert parsed["enum_field"] == "value1"
+
+    def test_args_parse_kwargs_invalid_enum(self) -> None:
+        """Test Args.parse_kwargs with invalid enum value."""
+
+        class TestEnum(StrEnum):
+            VALUE1 = "value1"
+
+        kwargs = {"enum_field": "invalid"}
+        enum_fields = {"enum_field": TestEnum}
+        result = FlextCliUtilities.TypeNormalizer.Args.parse_kwargs(kwargs, enum_fields)
+        assert result.is_failure
+
+    def test_pydantic_coerced_enum(self) -> None:
+        """Test Pydantic.coerced_enum creates Annotated type."""
+
+        class TestEnum(StrEnum):
+            VALUE1 = "value1"
+
+        coerced_type = FlextCliUtilities.TypeNormalizer.Pydantic.coerced_enum(TestEnum)
+        assert coerced_type is not None

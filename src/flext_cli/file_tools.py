@@ -20,11 +20,37 @@ import tempfile
 import zipfile
 from collections.abc import Callable, Mapping
 from pathlib import Path
+from typing import cast
 
 import yaml
-from flext_core import FlextResult, FlextRuntime, FlextTypes
+from flext_core import (
+    FlextConstants,
+    FlextExceptions,
+    FlextModels,
+    FlextProtocols,
+    FlextResult,
+    FlextRuntime,
+    t,
+    u,
+)
 
 from flext_cli.constants import FlextCliConstants
+
+# Aliases for static method calls and type references
+# Use u.* for FlextUtilities static methods
+# Use t.* for FlextTypes type references
+# Use c.* for FlextConstants constants
+# Use m.* for FlextModels model references
+# Use p.* for FlextProtocols protocol references
+# Use r.* for FlextResult methods
+# Use e.* for FlextExceptions
+# u is already imported from flext_core
+# t is already imported from flext_core
+c = FlextConstants
+m = FlextModels
+p = FlextProtocols
+r = FlextResult
+e = FlextExceptions
 
 
 class FlextCliFileTools:  # noqa: PLR0904
@@ -116,10 +142,15 @@ class FlextCliFileTools:  # noqa: PLR0904
     def _get_file_stat_attr(file_path: Path, attr: str) -> int | float:
         """Generalized file stat attribute getter."""
         value = getattr(file_path.stat(), attr)
+        # Use u.parse for conversion
         if isinstance(value, (int, float)):
             return value
-        # Fallback for type safety
-        return int(value) if isinstance(value, (bool, str)) else 0
+        # Try parsing as int first, then float
+        int_result = u.parse(value, int, default=None)
+        if int_result.is_success:
+            return int_result.unwrap()
+        float_result = u.parse(value, float, default=0.0)
+        return float_result.unwrap()
 
     @staticmethod
     def _detect_format_from_extension(
@@ -151,40 +182,46 @@ class FlextCliFileTools:  # noqa: PLR0904
         )
 
     @staticmethod
-    def _load_json_file(file_path: str) -> FlextTypes.GeneralValueType:
+    def _load_json_file(file_path: str) -> t.GeneralValueType:
         """Load JSON file content."""
         path = Path(file_path)
         with path.open(encoding=FlextCliConstants.Encoding.UTF8) as f:
-            data: FlextTypes.GeneralValueType = json.load(f)
-            # Type narrowing: json.load returns object, narrow to FlextTypes.GeneralValueType
-            if (
-                isinstance(data, (str, int, float, bool, type(None)))
-                or (isinstance(data, dict) and all(isinstance(k, str) for k in data))
-                or isinstance(data, list)
-            ):
-                return data
-            # Fallback: convert to compatible type
-            return str(data) if data is not None else None
+            raw_data: object = json.load(f)
+            # Use ur JSON conversion
+            if isinstance(raw_data, dict):
+                transform_result = u.transform(
+                    cast("dict[str, t.GeneralValueType]", raw_data),
+                    to_json=True,
+                )
+                return (
+                    transform_result.unwrap()
+                    if transform_result.is_success
+                    else cast("t.GeneralValueType", raw_data)
+                )
+            return cast("t.GeneralValueType", raw_data)
 
     @staticmethod
-    def _load_yaml_file(file_path: str) -> FlextTypes.GeneralValueType:
+    def _load_yaml_file(file_path: str) -> t.GeneralValueType:
         """Load YAML file content."""
         path = Path(file_path)
         with path.open(encoding=FlextCliConstants.Encoding.UTF8) as f:
-            data: FlextTypes.GeneralValueType = yaml.safe_load(f)
-            # Type narrowing: yaml.safe_load returns object, narrow to FlextTypes.GeneralValueType
-            if (
-                isinstance(data, (str, int, float, bool, type(None)))
-                or (isinstance(data, dict) and all(isinstance(k, str) for k in data))
-                or isinstance(data, list)
-            ):
-                return data
-            # Fallback: convert to compatible type
-            return str(data) if data is not None else None
+            raw_data: object = yaml.safe_load(f)
+            # Use ur JSON conversion
+            if isinstance(raw_data, dict):
+                transform_result = u.transform(
+                    cast("dict[str, t.GeneralValueType]", raw_data),
+                    to_json=True,
+                )
+                return (
+                    transform_result.unwrap()
+                    if transform_result.is_success
+                    else cast("t.GeneralValueType", raw_data)
+                )
+            return cast("t.GeneralValueType", raw_data)
 
     @staticmethod
     def _save_file_by_extension(
-        file_path: str | Path, data: FlextTypes.GeneralValueType
+        file_path: str | Path, data: t.GeneralValueType
     ) -> FlextResult[bool]:
         """Save data to file based on extension."""
         path = Path(file_path)
@@ -269,7 +306,7 @@ class FlextCliFileTools:  # noqa: PLR0904
     @staticmethod
     def read_json_file(
         file_path: str | Path,
-    ) -> FlextResult[FlextTypes.GeneralValueType]:
+    ) -> FlextResult[t.GeneralValueType]:
         """Read JSON file."""
         return FlextCliFileTools._execute_file_operation(
             lambda: FlextCliFileTools._load_json_file(str(file_path)),
@@ -279,7 +316,7 @@ class FlextCliFileTools:  # noqa: PLR0904
     @staticmethod
     def write_json_file(
         file_path: str | Path,
-        data: FlextTypes.GeneralValueType,
+        data: t.GeneralValueType,
         indent: int = 2,
         *,
         sort_keys: bool = False,
@@ -311,7 +348,7 @@ class FlextCliFileTools:  # noqa: PLR0904
     @staticmethod
     def read_yaml_file(
         file_path: str | Path,
-    ) -> FlextResult[FlextTypes.GeneralValueType]:
+    ) -> FlextResult[t.GeneralValueType]:
         """Read YAML file."""
         return FlextCliFileTools._execute_file_operation(
             lambda: FlextCliFileTools._load_yaml_file(str(file_path)),
@@ -321,7 +358,7 @@ class FlextCliFileTools:  # noqa: PLR0904
     @staticmethod
     def write_yaml_file(
         file_path: str | Path,
-        data: FlextTypes.GeneralValueType,
+        data: t.GeneralValueType,
         *,
         default_flow_style: bool | None = None,
         sort_keys: bool = False,
@@ -586,23 +623,45 @@ class FlextCliFileTools:  # noqa: PLR0904
     @staticmethod
     def detect_file_format(file_path: str | Path) -> FlextResult[str]:
         """Detect file format from extension."""
+
         # Convert Mapping to dict for _detect_format_from_extension compatibility
         # FILE_FORMATS is Mapping[str, Mapping[str, str | tuple[str, ...]]]
-        formats_dict: dict[str, dict[str, list[str]]] = {}
-        for key, value in FlextCliConstants.FILE_FORMATS.items():
-            # FILE_FORMATS is always Mapping, but isinstance check for type narrowing
-            if isinstance(value, Mapping):
+        # Use u.process to convert FILE_FORMATS
+        def convert_format_value(
+            _k: str, v: t.GeneralValueType
+        ) -> dict[str, list[str]]:
+            """Convert single format value."""
+            if isinstance(v, Mapping):
                 # Convert Mapping values: tuple[str, ...] -> list[str], str -> [str]
-                formats_dict[key] = {
-                    k: list(v)
-                    if isinstance(v, tuple)
-                    else [v]
-                    if isinstance(v, str)
-                    else []
-                    for k, v in value.items()
-                }
-            # Note: else branch is unreachable as FILE_FORMATS is always Mapping,
-            # but kept for defensive programming and type narrowing
+                def convert_extension(_ek: str, ev: t.GeneralValueType) -> list[str]:
+                    """Convert single extension value."""
+                    if isinstance(ev, tuple):
+                        # Type narrowing: tuple[str, ...] -> list[str]
+                        return cast("list[str]", list(ev))
+                    if isinstance(ev, str):
+                        return [ev]
+                    return []
+
+                ext_result = u.process(v, processor=convert_extension, on_error="skip")
+                if ext_result.is_success and isinstance(ext_result.value, dict):
+                    # Type narrowing: convert dict values to list[str]
+                    converted_dict: dict[str, list[str]] = cast(
+                        "dict[str, list[str]]",
+                        ext_result.value,
+                    )
+                    return converted_dict
+            return {}
+
+        process_result = u.process(
+            dict(FlextCliConstants.FILE_FORMATS),
+            processor=convert_format_value,
+            on_error="skip",
+        )
+        formats_dict: dict[str, dict[str, list[str]]] = (
+            dict(process_result.value)
+            if process_result.is_success and isinstance(process_result.value, dict)
+            else {}
+        )
         return FlextCliFileTools._detect_format_from_extension(
             file_path,
             formats_dict,
@@ -611,19 +670,17 @@ class FlextCliFileTools:  # noqa: PLR0904
     @staticmethod
     def load_file_auto_detect(
         file_path: str | Path,
-    ) -> FlextResult[FlextTypes.GeneralValueType]:
+    ) -> FlextResult[t.GeneralValueType]:
         """Load file with automatic format detection."""
         format_result = FlextCliFileTools.detect_file_format(file_path)
         if format_result.is_failure:
-            return FlextResult[FlextTypes.GeneralValueType].fail(
+            return FlextResult[t.GeneralValueType].fail(
                 format_result.error
                 or FlextCliConstants.ErrorMessages.FORMAT_DETECTION_FAILED
             )
 
         file_format = format_result.unwrap()
-        format_loaders: dict[
-            str, Callable[[], FlextResult[FlextTypes.GeneralValueType]]
-        ] = {
+        format_loaders: dict[str, Callable[[], FlextResult[t.GeneralValueType]]] = {
             FlextCliConstants.FileSupportedFormats.JSON: lambda: FlextCliFileTools.read_json_file(
                 file_path
             ),
@@ -636,7 +693,7 @@ class FlextCliFileTools:  # noqa: PLR0904
         if loader:
             return loader()
 
-        return FlextResult[FlextTypes.GeneralValueType].fail(
+        return FlextResult[t.GeneralValueType].fail(
             FlextCliConstants.ErrorMessages.UNSUPPORTED_FORMAT.format(
                 format=file_format
             )
@@ -645,7 +702,7 @@ class FlextCliFileTools:  # noqa: PLR0904
     @staticmethod
     def save_file(
         file_path: str | Path,
-        data: FlextTypes.GeneralValueType,
+        data: t.GeneralValueType,
     ) -> FlextResult[bool]:
         """Save data to file with automatic format detection."""
         return FlextCliFileTools._save_file_by_extension(file_path, data)

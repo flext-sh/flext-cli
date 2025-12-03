@@ -32,9 +32,12 @@ from __future__ import annotations
 
 from typing import cast
 
-from flext_core import FlextResult, FlextTypes, FlextUtilities
+from flext_core import FlextUtilities
 
 from flext_cli import FlextCli, FlextCliPrompts
+
+# Alias for static method calls - use u.* for FlextUtilities static methods
+u = FlextUtilities
 
 cli = FlextCli()
 prompts = FlextCliPrompts()
@@ -192,9 +195,15 @@ def database_setup_wizard() -> FlextResult[dict[str, str | int | bool | float]]:
     display_config = {k: v for k, v in config.items() if k != "password"}
     display_config["password"] = "********"
 
-    # Create table from config data - convert using FlextUtilities
-    json_config: FlextTypes.JsonDict = FlextUtilities.DataMapper.convert_dict_to_json(
-        cast("dict[str, FlextTypes.GeneralValueType]", display_config)
+    # Create table from config data - convert using u
+    # Use u.transform for JSON conversion
+    transform_result = u.transform(
+        cast("dict[str, t.GeneralValueType]", display_config), to_json=True
+    )
+    json_config: t.JsonDict = (
+        transform_result.unwrap()
+        if transform_result.is_success
+        else cast("t.JsonDict", display_config)
     )
     table_result = cli.create_table(
         data=json_config,
@@ -485,9 +494,15 @@ def flext_configuration_wizard() -> FlextResult[dict[str, str | int | bool | flo
     # Display configuration
     cli.print("\n📋 Configuration Summary:", style="yellow")
 
-    # Create table from config data - convert using FlextUtilities
-    json_config: FlextTypes.JsonDict = FlextUtilities.DataMapper.convert_dict_to_json(
-        cast("dict[str, FlextTypes.GeneralValueType]", config)
+    # Create table from config data - convert using u
+    # Use u.transform for JSON conversion
+    transform_result = u.transform(
+        cast("dict[str, t.GeneralValueType]", config), to_json=True
+    )
+    json_config: t.JsonDict = (
+        transform_result.unwrap()
+        if transform_result.is_success
+        else cast("t.JsonDict", config)
     )
     table_result = cli.create_table(
         data=json_config,

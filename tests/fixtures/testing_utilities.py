@@ -76,7 +76,7 @@ from typing import cast
 
 import click
 from click.testing import CliRunner
-from flext_core import FlextResult, FlextService, FlextTypes
+from flext_core import FlextResult, FlextService, t
 
 from flext_cli import FlextCliConstants
 
@@ -130,7 +130,7 @@ class FlextCliTesting(FlextService[dict[str, object]]):
             args: list[str] | None = None,
             input_text: str | None = None,
             env: dict[str, str] | None = None,
-        ) -> FlextResult[dict[str, FlextTypes.JsonValue]]:
+        ) -> FlextResult[dict[str, t.JsonValue]]:
             """Invoke a CLI command in isolated environment.
 
             Args:
@@ -161,7 +161,7 @@ class FlextCliTesting(FlextService[dict[str, object]]):
                     catch_exceptions=False,
                 )
 
-                return FlextResult[dict[str, FlextTypes.JsonValue]].ok({
+                return FlextResult[dict[str, t.JsonValue]].ok({
                     FlextCliConstants.DictKeys.EXIT_CODE: result.exit_code,
                     FlextCliConstants.DictKeys.OUTPUT: result.output,
                     FlextCliConstants.DictKeys.EXCEPTION: (
@@ -172,7 +172,7 @@ class FlextCliTesting(FlextService[dict[str, object]]):
                     ),
                 })
             except Exception as e:
-                return FlextResult[dict[str, FlextTypes.JsonValue]].fail(str(e))
+                return FlextResult[dict[str, t.JsonValue]].fail(str(e))
 
         @contextmanager
         def isolated_filesystem(self) -> Generator[Path]:
@@ -205,8 +205,8 @@ class FlextCliTesting(FlextService[dict[str, object]]):
         def mock_user_config(
             self,
             profile: str = "test",
-            **overrides: FlextTypes.JsonValue,
-        ) -> FlextResult[FlextTypes.JsonDict]:
+            **overrides: t.JsonValue,
+        ) -> FlextResult[t.JsonDict]:
             """Create mock user configuration.
 
             Args:
@@ -223,7 +223,7 @@ class FlextCliTesting(FlextService[dict[str, object]]):
             """
             try:
                 # Build base config
-                base_config: FlextTypes.JsonDict = {
+                base_config: t.JsonDict = {
                     FlextCliConstants.DictKeys.PROFILE: profile,
                     FlextCliConstants.DictKeys.DEBUG: False,
                     FlextCliConstants.DictKeys.VERBOSE: False,
@@ -231,20 +231,18 @@ class FlextCliTesting(FlextService[dict[str, object]]):
                 }
                 # Update with overrides - convert Mapping to dict for mutability
                 # Type narrowing: convert overrides to JsonDict-compatible dict
-                base_config_dict: dict[str, FlextTypes.GeneralValueType] = dict(
-                    base_config
-                )
+                base_config_dict: dict[str, t.GeneralValueType] = dict(base_config)
                 # Type cast: overrides is JsonDict-compatible, update accepts it
-                overrides_dict: dict[str, FlextTypes.GeneralValueType] = cast(
-                    "dict[str, FlextTypes.GeneralValueType]", dict(overrides)
+                overrides_dict: dict[str, t.GeneralValueType] = cast(
+                    "dict[str, t.GeneralValueType]", dict(overrides)
                 )
                 base_config_dict.update(overrides_dict)
                 base_config = base_config_dict
-                return FlextResult[FlextTypes.JsonDict].ok(
+                return FlextResult[t.JsonDict].ok(
                     base_config,
                 )
             except Exception as e:
-                return FlextResult[FlextTypes.JsonDict].fail(
+                return FlextResult[t.JsonDict].fail(
                     str(e),
                 )
 
@@ -298,7 +296,7 @@ class FlextCliTesting(FlextService[dict[str, object]]):
 
         def create_temp_config_file(
             self,
-            config_data: dict[str, FlextTypes.JsonValue],
+            config_data: dict[str, t.JsonValue],
         ) -> FlextResult[Path]:
             """Create temporary configuration file for testing.
 
@@ -360,7 +358,7 @@ class FlextCliTesting(FlextService[dict[str, object]]):
 
         """
         try:
-            payload: FlextTypes.JsonDict = {
+            payload: t.JsonDict = {
                 FlextCliConstants.DictKeys.STATUS: FlextCliConstants.ServiceStatus.OPERATIONAL.value,
                 FlextCliConstants.DictKeys.SERVICE: "FlextCliTesting",
                 FlextCliConstants.DictKeys.MESSAGE: "Testing utilities ready",

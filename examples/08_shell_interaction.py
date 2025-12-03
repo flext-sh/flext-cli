@@ -34,9 +34,12 @@ import os
 import time
 from typing import cast
 
-from flext_core import FlextResult, FlextTypes, FlextUtilities
+from flext_core import FlextUtilities
 
 from flext_cli import FlextCli, FlextCliTypes
+
+# Alias for static method calls - use u.* for u static methods
+u = FlextUtilities
 
 cli = FlextCli()
 
@@ -58,11 +61,14 @@ def handle_status_command() -> FlextResult[FlextCliTypes.Data.CliDataDict]:
     cli.formatters.print(f"   User: {status['user']}", style="cyan")
     cli.formatters.print(f"   Time: {status['timestamp']}", style="cyan")
 
-    # Convert to JsonDict-compatible dict using FlextUtilities
+    # Use u.transform for JSON conversion
+    transform_result = u.transform(
+        cast("dict[str, t.GeneralValueType]", status), to_json=True
+    )
     typed_status: FlextCliTypes.Data.CliDataDict = (
-        FlextUtilities.DataMapper.convert_dict_to_json(
-            cast("dict[str, FlextTypes.GeneralValueType]", status)
-        )
+        transform_result.unwrap()
+        if transform_result.is_success
+        else cast("FlextCliTypes.Data.CliDataDict", status)
     )
     return FlextResult[FlextCliTypes.Data.CliDataDict].ok(typed_status)
 

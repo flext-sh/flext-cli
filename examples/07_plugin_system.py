@@ -33,9 +33,44 @@ import json
 from pathlib import Path
 from typing import cast
 
-from flext_core import FlextResult, FlextTypes, FlextUtilities
+from flext_core import (
+    FlextConstants,
+    FlextDecorators,
+    FlextExceptions,
+    FlextHandlers,
+    FlextMixins,
+    FlextModels,
+    FlextProtocols,
+    FlextService,
+    FlextTypes,
+    FlextUtilities,
+)
 
 from flext_cli import FlextCli, FlextCliModels, FlextCliTables, FlextCliTypes
+
+# Aliases for static method calls and type references
+# Use u.* for FlextUtilities static methods
+# Use t.* for FlextTypes type references
+# Use c.* for FlextConstants constants
+# Use m.* for FlextModels model references
+# Use p.* for FlextProtocols protocol references
+# Use r.* for FlextResult methods
+# Use e.* for FlextExceptions
+# Use d.* for FlextDecorators decorators
+# Use s.* for FlextService service base
+# Use x.* for FlextMixins mixins
+# Use h.* for FlextHandlers handlers
+u = FlextUtilities
+t = FlextTypes
+c = FlextConstants
+m = FlextModels
+p = FlextProtocols
+r = FlextResult
+e = FlextExceptions
+d = FlextDecorators
+s = FlextService
+x = FlextMixins
+h = FlextHandlers
 
 cli = FlextCli()
 
@@ -116,10 +151,10 @@ class MyAppPluginManager:
         self,
         plugin_name: str,
         **kwargs: object,
-    ) -> FlextResult[FlextTypes.JsonValue]:
+    ) -> FlextResult[t.JsonValue]:
         """Execute plugin by name in YOUR CLI."""
         if plugin_name not in self.plugins:
-            return FlextResult[FlextTypes.JsonValue].fail(
+            return FlextResult[t.JsonValue].fail(
                 f"Plugin not found: {plugin_name}",
             )
 
@@ -127,7 +162,7 @@ class MyAppPluginManager:
 
         execute_attr = getattr(plugin, "execute", None)
         if not callable(execute_attr):
-            return FlextResult[FlextTypes.JsonValue].fail(
+            return FlextResult[t.JsonValue].fail(
                 f"Plugin {plugin_name} does not have execute method",
             )
 
@@ -135,22 +170,27 @@ class MyAppPluginManager:
 
         try:
             result = execute_method(**kwargs)
-            # Result is dynamically typed, convert to JsonValue using FlextUtilities
+            # Result is dynamically typed, convert to JsonValue using u
             # Type narrowing: ensure result is JsonValue compatible
             if isinstance(result, (str, int, float, bool, type(None))):
-                json_result: FlextTypes.JsonValue = result
+                json_result: t.JsonValue = result
             elif (
                 isinstance(result, dict) and all(isinstance(k, str) for k in result)
             ) or isinstance(result, list):
                 json_result = cast(
-                    "FlextTypes.JsonValue",
-                    FlextUtilities.DataMapper.convert_to_json_value(result),
+                    "t.JsonValue",
+                    (
+                        u.transform(result, to_json=True).unwrap()
+                        if isinstance(result, dict)
+                        and u.transform(result, to_json=True).is_success
+                        else result
+                    ),
                 )
             else:
                 json_result = str(result)
-            return FlextResult[FlextTypes.JsonValue].ok(json_result)
+            return FlextResult[t.JsonValue].ok(json_result)
         except Exception as e:
-            return FlextResult[FlextTypes.JsonValue].fail(
+            return FlextResult[t.JsonValue].fail(
                 f"Plugin execution failed: {e}",
             )
 
@@ -160,10 +200,19 @@ class MyAppPluginManager:
             cli.print("⚠️  No plugins registered", style="yellow")
             return
 
-        plugin_data: FlextCliTypes.Data.CliDataDict = {
-            name: getattr(plugin, "version", "1.0.0")
-            for name, plugin in self.plugins.items()
-        }
+        # Use u.process to create plugin data dict
+        def get_plugin_version(_name: str, plugin: object) -> str:
+            """Get plugin version."""
+            return getattr(plugin, "version", "1.0.0")
+
+        process_result = u.process(
+            self.plugins, processor=get_plugin_version, on_error="skip"
+        )
+        plugin_data: FlextCliTypes.Data.CliDataDict = (
+            dict(process_result.value)
+            if process_result.is_success and isinstance(process_result.value, dict)
+            else {}
+        )
 
         # Cast to expected type for table creation
         table_result = cli.create_table(

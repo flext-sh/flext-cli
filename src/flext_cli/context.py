@@ -13,8 +13,8 @@ from __future__ import annotations
 from flext_core import (
     FlextConfig,
     FlextResult,
-    FlextTypes,
-    FlextUtilities,
+    t,
+    u,
 )
 from pydantic import Field
 
@@ -42,7 +42,7 @@ class FlextCliContext(FlextCliServiceBase):
     - Extends FlextCliServiceBase for consistent logging and container access
     - Uses FlextModelsEntity.Core for timestamp tracking
     - Frozen model ensures immutability after creation
-    - Type-safe operations using FlextTypes for domain-specific types
+    - Type-safe operations using t for domain-specific types
     - Railway-Oriented Programming via FlextResult for error handling
 
     Audit Implications:
@@ -62,13 +62,11 @@ class FlextCliContext(FlextCliServiceBase):
     id: str = ""
     command: str | None = None
     arguments: list[str] | None = Field(default_factory=list)
-    environment_variables: dict[str, FlextTypes.GeneralValueType] | None = Field(
+    environment_variables: dict[str, t.GeneralValueType] | None = Field(
         default_factory=dict
     )
     working_directory: str | None = None
-    context_metadata: dict[str, FlextTypes.GeneralValueType] = Field(
-        default_factory=dict
-    )
+    context_metadata: dict[str, t.GeneralValueType] = Field(default_factory=dict)
 
     # Context state
     is_active: bool = False
@@ -79,9 +77,9 @@ class FlextCliContext(FlextCliServiceBase):
         self,
         command: str | None = None,
         arguments: list[str] | None = None,
-        environment_variables: dict[str, FlextTypes.GeneralValueType] | None = None,
+        environment_variables: dict[str, t.GeneralValueType] | None = None,
         working_directory: str | None = None,
-        **data: FlextTypes.GeneralValueType,
+        **data: t.GeneralValueType,
     ) -> None:
         """Initialize CLI context with enhanced type safety.
 
@@ -95,7 +93,7 @@ class FlextCliContext(FlextCliServiceBase):
         """
         # Generate id if not provided or empty
         if not data.get("id"):
-            data["id"] = FlextUtilities.Generators.generate_id()
+            data["id"] = u.generate("uuid")
 
         # Set all fields in data BEFORE calling super().__init__()
         # This avoids frozen model violations
@@ -110,7 +108,7 @@ class FlextCliContext(FlextCliServiceBase):
 
         # Set default values for optional fields
         if "created_at" not in data:
-            data["created_at"] = FlextUtilities.Generators.generate_iso_timestamp()
+            data["created_at"] = u.generate("timestamp")
         if "is_active" not in data:
             data["is_active"] = False
 
@@ -133,18 +131,27 @@ class FlextCliContext(FlextCliServiceBase):
 
         Business Rule:
         ──────────────
-        Validates that a string is non-empty using FlextUtilities.
+        Validates that a string is non-empty using u
         Static method - no instance state needed.
         """
         try:
-            FlextUtilities.Validation.validate_required_string(value, field_name)
+            # Use u.validate with V.string.non_empty validator
+            validation_result = u.validate(
+                value,
+                u.V.string.non_empty,
+                field_name=field_name,
+            )
+            if validation_result.is_failure:
+                raise ValueError(
+                    validation_result.error or f"{field_name} cannot be empty"
+                )
             return FlextResult[bool].ok(True)
         except ValueError as e:
             return FlextResult[bool].fail(str(e) or error_template)
 
     @staticmethod
     def _ensure_initialized(
-        value: FlextTypes.GeneralValueType | None,
+        value: t.GeneralValueType | None,
         error_message: str,
     ) -> FlextResult[bool]:
         """Generalized initialization check helper.
@@ -161,11 +168,11 @@ class FlextCliContext(FlextCliServiceBase):
     @staticmethod
     def _safe_dict_operation(
         operation: str,
-        dict_obj: dict[str, FlextTypes.GeneralValueType] | None,
+        dict_obj: dict[str, t.GeneralValueType] | None,
         key: str,
-        value: FlextTypes.GeneralValueType | None = None,
+        value: t.GeneralValueType | None = None,
         error_messages: dict[str, str] | None = None,
-    ) -> FlextResult[FlextTypes.GeneralValueType | bool]:
+    ) -> FlextResult[t.GeneralValueType | bool]:
         """Generalized dict operation helper (get/set/check).
 
         Business Rule:
@@ -191,37 +198,35 @@ class FlextCliContext(FlextCliServiceBase):
         errors = {**default_errors, **(error_messages or {})}
 
         # Initialize result - will be overwritten by operation
-        result: FlextResult[FlextTypes.GeneralValueType | bool]
+        result: FlextResult[t.GeneralValueType | bool]
 
         # Check initialization
         init_check = FlextCliContext._ensure_initialized(
             dict_obj, errors["not_initialized"]
         )
         if init_check.is_failure or dict_obj is None:
-            result = FlextResult[FlextTypes.GeneralValueType | bool].fail(
+            result = FlextResult[t.GeneralValueType | bool].fail(
                 init_check.error or errors["not_initialized"]
             )
         else:
             try:
                 if operation == "get":
                     result = (
-                        FlextResult[FlextTypes.GeneralValueType | bool].ok(
-                            dict_obj[key]
-                        )
+                        FlextResult[t.GeneralValueType | bool].ok(dict_obj[key])
                         if key in dict_obj
-                        else FlextResult[FlextTypes.GeneralValueType | bool].fail(
+                        else FlextResult[t.GeneralValueType | bool].fail(
                             errors["not_found"]
                         )
                     )
                 elif operation == "set" and value is not None:
                     dict_obj[key] = value
-                    result = FlextResult[FlextTypes.GeneralValueType | bool].ok(True)
+                    result = FlextResult[t.GeneralValueType | bool].ok(True)
                 else:
-                    result = FlextResult[FlextTypes.GeneralValueType | bool].fail(
+                    result = FlextResult[t.GeneralValueType | bool].fail(
                         errors["failed"]
                     )
             except Exception as e:
-                result = FlextResult[FlextTypes.GeneralValueType | bool].fail(
+                result = FlextResult[t.GeneralValueType | bool].fail(
                     errors.get("exception", str(e)) or errors["failed"]
                 )
 
@@ -424,9 +429,7 @@ class FlextCliContext(FlextCliServiceBase):
     # METADATA MANAGEMENT
     # ==========================================================================
 
-    def set_metadata(
-        self, key: str, value: FlextTypes.GeneralValueType
-    ) -> FlextResult[bool]:
+    def set_metadata(self, key: str, value: t.GeneralValueType) -> FlextResult[bool]:
         """Set context metadata using CLI-specific data types."""
         validation = FlextCliContext._validate_string(
             key, "Metadata key", "Validation failed"
@@ -444,19 +447,17 @@ class FlextCliContext(FlextCliServiceBase):
                 )
             )
 
-    def get_metadata(self, key: str) -> FlextResult[FlextTypes.GeneralValueType]:
+    def get_metadata(self, key: str) -> FlextResult[t.GeneralValueType]:
         """Get context metadata value."""
         validation = FlextCliContext._validate_string(
             key, "Metadata key", "Metadata validation failed"
         )
         if validation.is_failure:
-            return FlextResult[FlextTypes.GeneralValueType].fail(validation.error or "")
+            return FlextResult[t.GeneralValueType].fail(validation.error or "")
 
         if key in self.context_metadata:
-            return FlextResult[FlextTypes.GeneralValueType].ok(
-                self.context_metadata[key]
-            )
-        return FlextResult[FlextTypes.GeneralValueType].fail(
+            return FlextResult[t.GeneralValueType].ok(self.context_metadata[key])
+        return FlextResult[t.GeneralValueType].fail(
             FlextCliConstants.ContextErrorMessages.METADATA_KEY_NOT_FOUND.format(
                 key=key
             )
@@ -468,14 +469,14 @@ class FlextCliContext(FlextCliServiceBase):
 
     def get_context_summary(
         self,
-    ) -> FlextResult[dict[str, FlextTypes.JsonValue]]:
+    ) -> FlextResult[dict[str, t.JsonValue]]:
         """Get comprehensive context summary."""
         arguments_list = self.arguments if self.arguments is not None else []
         env_vars_dict = (
             self.environment_variables if self.environment_variables is not None else {}
         )
 
-        summary: dict[str, FlextTypes.JsonValue] = {
+        summary: dict[str, t.JsonValue] = {
             FlextCliConstants.ContextDictKeys.CONTEXT_ID: self.id,
             FlextCliConstants.ContextDictKeys.COMMAND: self.command,
             FlextCliConstants.ContextDictKeys.ARGUMENTS_COUNT: len(arguments_list),
@@ -494,11 +495,9 @@ class FlextCliContext(FlextCliServiceBase):
             ),
         }
 
-        return FlextResult[dict[str, FlextTypes.JsonValue]].ok(summary)
+        return FlextResult[dict[str, t.JsonValue]].ok(summary)
 
-    def execute(
-        self, **_kwargs: FlextTypes.JsonDict
-    ) -> FlextResult[FlextTypes.JsonDict]:
+    def execute(self, **_kwargs: t.JsonDict) -> FlextResult[t.JsonDict]:
         """Execute the CLI context.
 
         Returns:
@@ -510,11 +509,11 @@ class FlextCliContext(FlextCliServiceBase):
             FlextCliConstants.ContextErrorMessages.ARGUMENTS_NOT_INITIALIZED,
         )
         if init_check.is_failure:
-            return FlextResult[FlextTypes.JsonDict].fail(init_check.error or "")
+            return FlextResult[t.JsonDict].fail(init_check.error or "")
 
         # Type narrowing: self.arguments is not None after _ensure_initialized check
         if self.arguments is None:
-            return FlextResult[FlextTypes.JsonDict].fail(
+            return FlextResult[t.JsonDict].fail(
                 FlextCliConstants.ContextErrorMessages.ARGUMENTS_NOT_INITIALIZED
             )
 
@@ -522,16 +521,19 @@ class FlextCliContext(FlextCliServiceBase):
             context_executed=True,
             command=self.command or "",
             arguments_count=len(self.arguments) if self.arguments is not None else 0,
-            timestamp=FlextUtilities.Generators.generate_iso_timestamp(),
+            timestamp=u.generate("timestamp"),
         )
 
-        # Convert to CliDataDict using DataMapper
-        result_dict = FlextUtilities.DataMapper.convert_dict_to_json(
-            result_model.model_dump()
+        # Use u.transform for JSON conversion
+        transform_result = u.transform(result_model.model_dump(), to_json=True)
+        result_dict = (
+            transform_result.unwrap()
+            if transform_result.is_success
+            else result_model.model_dump()
         )
-        return FlextResult[FlextTypes.JsonDict].ok(result_dict)
+        return FlextResult[t.JsonDict].ok(result_dict)
 
-    def to_dict(self) -> FlextResult[FlextTypes.JsonDict]:
+    def to_dict(self) -> FlextResult[t.JsonDict]:
         """Convert context to dictionary."""
         init_checks = [
             FlextCliContext._ensure_initialized(
@@ -546,10 +548,10 @@ class FlextCliContext(FlextCliServiceBase):
 
         for check in init_checks:
             if check.is_failure:
-                return FlextResult[FlextTypes.JsonDict].fail(check.error or "")
+                return FlextResult[t.JsonDict].fail(check.error or "")
 
         # Convert all values to CliJsonValue for type safety
-        result: dict[str, FlextTypes.GeneralValueType] = {
+        result: dict[str, t.GeneralValueType] = {
             FlextCliConstants.ContextDictKeys.ID: self.id,
             FlextCliConstants.ContextDictKeys.COMMAND: self.command,
             FlextCliConstants.ContextDictKeys.ARGUMENTS: list(self.arguments)
@@ -565,7 +567,7 @@ class FlextCliContext(FlextCliServiceBase):
             FlextCliConstants.ContextDictKeys.TIMEOUT_SECONDS: self.timeout_seconds,
         }
 
-        return FlextResult[FlextTypes.JsonDict].ok(result)
+        return FlextResult[t.JsonDict].ok(result)
 
 
 __all__ = ["FlextCliContext"]

@@ -39,7 +39,7 @@ import tempfile
 from pathlib import Path
 from typing import cast
 
-from flext_core import FlextResult, FlextTypes, FlextUtilities
+from flext_core import FlextUtilities
 
 from flext_cli import (
     FlextCli,
@@ -47,6 +47,9 @@ from flext_cli import (
     FlextCliTables,
     FlextCliTypes,
 )
+
+# Alias for static method calls - use u.* for uds
+u = FlextUtilities
 
 cli = FlextCli()
 tables = FlextCliTables()
@@ -272,9 +275,13 @@ def validate_and_import_data(input_file: Path) -> FlextCliTypes.Data.CliDataDict
         cli.print("❌ Data is not a dictionary", style="bold red")
         return None
 
-    # Convert to JsonDict-compatible dict using FlextUtilities
-    json_data: FlextTypes.JsonDict = FlextUtilities.DataMapper.convert_dict_to_json(
-        data
+    # Convert to JsonDict-compatible dict using u
+    # Use u.transform for JSON conversion
+    transform_result = u.transform(data, to_json=True)
+    json_data: t.JsonDict = (
+        transform_result.unwrap()
+        if transform_result.is_success
+        else cast("t.JsonDict", data)
     )
     validated = validate_structure(json_data)
 
@@ -386,9 +393,20 @@ def import_from_csv(input_file: Path) -> list[dict[str, str]] | None:
         sample_rows: list[dict[str, str]] = rows[:5]
         # Create table config for grid format
         config = FlextCliModels.TableConfig(table_format="grid")
-        # Convert to JsonDict-compatible format using FlextUtilities
+        # Convert to JsonDict-compatible format using u
         tabular_data: FlextCliTypes.Data.TabularData = (
-            FlextUtilities.DataMapper.convert_list_to_json(sample_rows)
+            # Use u.map to convert list items to JSON
+            list(
+                u.map(
+                    sample_rows,
+                    mapper=lambda row: (
+                        u.transform(row, to_json=True).unwrap()
+                        if isinstance(row, dict)
+                        and u.transform(row, to_json=True).is_success
+                        else row
+                    ),
+                )
+            )
         )
         table_result = tables.create_table(tabular_data, config=config)
         if table_result.is_success:
@@ -472,10 +490,16 @@ def load_config_auto_detect(config_file: Path) -> dict[str, object] | None:
 
     # Display loaded data
     if isinstance(data, dict):
-        # Convert to JsonDict-compatible dict using FlextUtilities
-        display_data: FlextCliTypes.Data.CliDataDict = (
-            FlextUtilities.DataMapper.convert_dict_to_json(data)
-        )
+        # Use u.transform for JSON conversion
+        if isinstance(data, dict):
+            transform_result = u.transform(data, to_json=True)
+            display_data: FlextCliTypes.Data.CliDataDict = (
+                transform_result.unwrap()
+                if transform_result.is_success
+                else cast("FlextCliTypes.Data.CliDataDict", data)
+            )
+        else:
+            display_data = cast("FlextCliTypes.Data.CliDataDict", data)
         table_result = cli.create_table(
             data=display_data,
             headers=["Key", "Value"],
@@ -508,7 +532,7 @@ def export_multi_format(
     # Handle both single dict and list of dicts
     json_payload = data
     json_result = cli.file_tools.write_json_file(
-        json_path, cast("FlextTypes.GeneralValueType", json_payload), indent=2
+        json_path, cast("t.GeneralValueType", json_payload), indent=2
     )
     if json_result.is_success:
         size = json_path.stat().st_size
@@ -520,7 +544,7 @@ def export_multi_format(
     yaml_payload = data
     yaml_result = cli.file_tools.write_yaml_file(
         yaml_path,
-        cast("FlextTypes.GeneralValueType", yaml_payload),
+        cast("t.GeneralValueType", yaml_payload),
     )
     if yaml_result.is_success:
         size = yaml_path.stat().st_size
@@ -652,7 +676,7 @@ def generate_output_files(
     # JSON output
     json_file = output_dir / f"{base_name}.json"
     json_result = cli.file_tools.write_json_file(
-        json_file, cast("FlextTypes.GeneralValueType", data)
+        json_file, cast("t.GeneralValueType", data)
     )
     if json_result.is_failure:
         return FlextResult[dict[str, Path]].fail(
@@ -663,7 +687,7 @@ def generate_output_files(
     # YAML output
     yaml_file = output_dir / f"{base_name}.yaml"
     yaml_result = cli.file_tools.write_yaml_file(
-        yaml_file, cast("FlextTypes.GeneralValueType", data)
+        yaml_file, cast("t.GeneralValueType", data)
     )
     if yaml_result.is_failure:
         return FlextResult[dict[str, Path]].fail(

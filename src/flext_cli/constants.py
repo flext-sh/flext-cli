@@ -860,7 +860,7 @@ class FlextCliConstants(FlextConstants):
         # Validation errors
         NO_DATA_PROVIDED: Final[str] = "No data provided for table"
         TABLE_FORMAT_REQUIRED_DICT: Final[str] = (
-            "Table format requires FlextTypes.JsonDict or list of dicts"
+            "Table format requires t.JsonDict or list of dicts"
         )
         TABLE_HEADERS_MUST_BE_LIST: Final[str] = (
             "Table headers must be a list for list of dicts data"
@@ -2082,7 +2082,7 @@ class FlextCliConstants(FlextConstants):
 
         NO_DATA_PROVIDED: Final[str] = "No data provided for table"
         TABLE_FORMAT_REQUIRED_DICT: Final[str] = (
-            "Table format requires FlextTypes.JsonDict or list of dicts"
+            "Table format requires t.JsonDict or list of dicts"
         )
         TABLE_HEADERS_MUST_BE_LIST: Final[str] = (
             "Table headers must be a list for list of dicts data"

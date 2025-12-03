@@ -28,9 +28,12 @@ import tempfile
 from pathlib import Path
 from typing import cast
 
-from flext_core import FlextResult, FlextTypes, FlextUtilities
+from flext_core import FlextUtilities
 
 from flext_cli import FlextCli, FlextCliPrompts, FlextCliTypes
+
+# Alias for static method calls - use u.* for u static methods
+u = FlextUtilities
 
 cli = FlextCli()
 
@@ -104,11 +107,15 @@ def test_file_operations() -> None:
 
     # Test save
     config_data = {"test": True, "value": 123}
-    # Convert to JsonDict-compatible dict using FlextUtilities
+    # Convert to JsonDict-compatible dict using u
+    # Use u.transform for JSON conversion
+    transform_result = u.transform(
+        cast("dict[str, t.GeneralValueType]", config_data), to_json=True
+    )
     config: FlextCliTypes.Data.CliDataDict = (
-        FlextUtilities.DataMapper.convert_dict_to_json(
-            cast("dict[str, FlextTypes.GeneralValueType]", config_data)
-        )
+        transform_result.unwrap()
+        if transform_result.is_success
+        else cast("FlextCliTypes.Data.CliDataDict", config_data)
     )
     result = save_config_command(config)
 
@@ -273,10 +280,17 @@ def full_workflow_command() -> FlextResult[FlextCliTypes.Data.CliDataDict]:
     # Cleanup
     temp_file.unlink(missing_ok=True)
 
-    # Convert to JsonDict-compatible dict using FlextUtilities
-    typed_data: FlextCliTypes.Data.CliDataDict = (
-        FlextUtilities.DataMapper.convert_dict_to_json(loaded)
-    )
+    # Convert to JsonDict-compatible dict using u
+    # Use u.transform for JSON conversion
+    if isinstance(loaded, dict):
+        transform_result = u.transform(loaded, to_json=True)
+        typed_data: FlextCliTypes.Data.CliDataDict = (
+            transform_result.unwrap()
+            if transform_result.is_success
+            else cast("FlextCliTypes.Data.CliDataDict", loaded)
+        )
+    else:
+        typed_data = cast("FlextCliTypes.Data.CliDataDict", loaded)
     return FlextResult[FlextCliTypes.Data.CliDataDict].ok(typed_data)
 
 

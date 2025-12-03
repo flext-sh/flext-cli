@@ -30,10 +30,13 @@ import time
 from typing import cast
 
 from example_utils import display_config_table, display_success_summary
-from flext_core import FlextResult, FlextTypes, FlextUtilities
+from flext_core import FlextUtilities
 from pydantic import BaseModel, Field, field_validator
 
 from flext_cli import FlextCli, FlextCliModels, FlextCliTypes
+
+# Alias for static method calls - use u.* for u static methods
+u = FlextUtilities
 
 cli = FlextCli()
 
@@ -132,11 +135,15 @@ def execute_deploy_from_cli(cli_args: dict[str, str | int | bool]) -> None:
     cli.output.print_message("\n🚀 Deploying with CLI Arguments:", style="bold cyan")
 
     try:
-        # Convert to JsonDict-compatible dict using FlextUtilities
+        # Convert to JsonDict-compatible dict using u
+        # Use u.transform for JSON conversion
+        transform_result = u.transform(
+            cast("dict[str, t.GeneralValueType]", cli_args), to_json=True
+        )
         typed_args: FlextCliTypes.Data.CliDataDict = (
-            FlextUtilities.DataMapper.convert_dict_to_json(
-                cast("dict[str, FlextTypes.GeneralValueType]", cli_args)
-            )
+            transform_result.unwrap()
+            if transform_result.is_success
+            else cast("FlextCliTypes.Data.CliDataDict", cli_args)
         )
 
         # Pydantic automatically validates ALL constraints
@@ -464,11 +471,15 @@ def main() -> None:
     }
 
     try:
-        # Convert to JsonDict-compatible dict using FlextUtilities
+        # Convert to JsonDict-compatible dict using u
+        # Use u.transform for JSON conversion
+        transform_result = u.transform(
+            cast("dict[str, t.GeneralValueType]", invalid_args), to_json=True
+        )
         typed_invalid_args: FlextCliTypes.Data.CliDataDict = (
-            FlextUtilities.DataMapper.convert_dict_to_json(
-                cast("dict[str, FlextTypes.GeneralValueType]", invalid_args)
-            )
+            transform_result.unwrap()
+            if transform_result.is_success
+            else cast("FlextCliTypes.Data.CliDataDict", invalid_args)
         )
 
         # DeployConfig constructor handles type conversion and validation

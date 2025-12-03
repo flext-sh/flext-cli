@@ -15,10 +15,14 @@ from typing import cast, override
 
 import yaml
 from flext_core import (
+    FlextConstants,
+    FlextExceptions,
+    FlextModels,
+    FlextProtocols,
     FlextResult,
     FlextRuntime,
-    FlextTypes,
-    FlextUtilities,
+    t,
+    u,
 )
 from pydantic import BaseModel
 
@@ -28,6 +32,22 @@ from flext_cli.formatters import FlextCliFormatters
 from flext_cli.models import FlextCliModels
 from flext_cli.protocols import FlextCliProtocols
 from flext_cli.services.tables import FlextCliTables
+
+# Aliases for static method calls and type references
+# Use u.* for FlextUtilities static methods
+# Use t.* for FlextTypes type references
+# Use c.* for FlextConstants constants
+# Use m.* for FlextModels model references
+# Use p.* for FlextProtocols protocol references
+# Use r.* for FlextResult methods
+# Use e.* for FlextExceptions
+# u is already imported from flext_core
+# t is already imported from flext_core
+c = FlextConstants
+m = FlextModels
+p = FlextProtocols
+r = FlextResult
+e = FlextExceptions
 
 
 class FlextCliOutput(FlextCliServiceBase):  # noqa: PLR0904
@@ -117,8 +137,7 @@ class FlextCliOutput(FlextCliServiceBase):  # noqa: PLR0904
             type,
             Callable[
                 [
-                    FlextTypes.GeneralValueType
-                    | FlextResult[FlextTypes.GeneralValueType],
+                    t.GeneralValueType | FlextResult[t.GeneralValueType],
                     str,
                 ],
                 None,
@@ -126,9 +145,7 @@ class FlextCliOutput(FlextCliServiceBase):  # noqa: PLR0904
         ] = {}
 
     @override
-    def execute(
-        self, **_kwargs: FlextTypes.JsonDict
-    ) -> FlextResult[FlextTypes.JsonDict]:
+    def execute(self, **_kwargs: t.JsonDict) -> FlextResult[t.JsonDict]:
         """Execute the main domain service operation - required by FlextService.
 
         Args:
@@ -136,7 +153,7 @@ class FlextCliOutput(FlextCliServiceBase):  # noqa: PLR0904
                 (unused, for FlextService compatibility)
 
         """
-        return FlextResult[FlextTypes.JsonDict].ok({
+        return FlextResult[t.JsonDict].ok({
             FlextCliConstants.DictKeys.STATUS: (
                 FlextCliConstants.ServiceStatus.OPERATIONAL.value
             ),
@@ -149,7 +166,7 @@ class FlextCliOutput(FlextCliServiceBase):  # noqa: PLR0904
 
     def format_data(
         self,
-        data: FlextTypes.GeneralValueType,
+        data: t.GeneralValueType,
         format_type: str = FlextCliConstants.OutputFormats.TABLE.value,
         title: str | None = None,
         headers: list[str] | None = None,
@@ -174,30 +191,30 @@ class FlextCliOutput(FlextCliServiceBase):  # noqa: PLR0904
 
         """
         # Railway pattern: validate format → dispatch to handler
-        # Use FlextUtilities.Validation.validate_choice directly
-        format_lower = format_type.lower()
-        validation_result = FlextUtilities.Validation.validate_choice(
-            format_lower,
-            set(FlextCliConstants.OUTPUT_FORMATS_LIST),
-            "Output format",
-            case_sensitive=False,
+        # Convert to string and validate choice
+        parse_result = u.parse(format_type, str, default="")
+        format_str = (
+            parse_result.unwrap().lower()
+            if parse_result.is_success
+            else str(format_type).lower()
         )
-        if validation_result.is_failure:
+        valid_formats = set(FlextCliConstants.OUTPUT_FORMATS_LIST)
+        if format_str not in valid_formats:
             return FlextResult[str].fail(
                 FlextCliConstants.ErrorMessages.INVALID_OUTPUT_FORMAT.format(
                     format=format_type,
                 ),
             )
 
-        fmt = format_lower
+        fmt = format_str
         return self._dispatch_formatter(fmt, data, title, headers)
 
-    # Format validation now uses FlextUtilities.Validation.validate_choice directly
+    # Format validation uses u.convert() and direct validation
 
     def _dispatch_formatter(
         self,
         format_type: str,
-        data: FlextTypes.GeneralValueType,
+        data: t.GeneralValueType,
         title: str | None,
         headers: list[str] | None,
     ) -> FlextResult[str]:
@@ -229,7 +246,7 @@ class FlextCliOutput(FlextCliServiceBase):  # noqa: PLR0904
 
     def _format_table_data(
         self,
-        data: FlextTypes.GeneralValueType,
+        data: t.GeneralValueType,
         title: str | None,
         headers: list[str] | None,
     ) -> FlextResult[str]:
@@ -238,8 +255,12 @@ class FlextCliOutput(FlextCliServiceBase):  # noqa: PLR0904
             # Type narrowing: CliJsonValue dict -> dict representation
             # dict(data) creates a proper dict that can be used directly
             data_dict = dict(data)
+            transform_result = u.transform(data_dict, to_json=True)
+            transformed_data = (
+                transform_result.unwrap() if transform_result.is_success else data_dict
+            )
             return self.format_table(
-                FlextUtilities.DataMapper.convert_dict_to_json(data_dict),
+                transformed_data,
                 title=title,
                 headers=headers,
             )
@@ -256,8 +277,24 @@ class FlextCliOutput(FlextCliServiceBase):  # noqa: PLR0904
             # Type narrowing: CliJsonValue list -> list representation
             # list(data) creates a proper list that can be used directly
             data_list = list(data)
+            # Use u.transform to convert list items to JSON
+            converted_list: list[dict[str, t.GeneralValueType]] = []
+            for item in data_list:
+                if isinstance(item, dict):
+                    transform_result = u.transform(item, to_json=True)
+                    converted_item = (
+                        transform_result.unwrap()
+                        if transform_result.is_success
+                        else item
+                    )
+                    if isinstance(converted_item, dict):
+                        converted_list.append(
+                            cast("dict[str, t.GeneralValueType]", converted_item)
+                        )
+                elif isinstance(item, dict):
+                    converted_list.append(cast("dict[str, t.GeneralValueType]", item))
             return self.format_table(
-                FlextUtilities.DataMapper.convert_list_to_json(data_list),
+                converted_list,
                 title=title,
                 headers=headers,
             )
@@ -269,7 +306,7 @@ class FlextCliOutput(FlextCliServiceBase):  # noqa: PLR0904
     def create_formatter(self, format_type: str) -> FlextResult[FlextCliOutput]:
         """Create a formatter instance for the specified format type.
 
-        Uses FlextUtilities.Validation.validate_choice() for validation.
+        Uses u.convert() and direct validation for format checking.
 
         Args:
             format_type: Format type to create formatter for
@@ -279,15 +316,15 @@ class FlextCliOutput(FlextCliServiceBase):  # noqa: PLR0904
 
         """
         try:
-            # Validate format using FlextUtilities.Validation.validate_choice directly
-            format_lower = format_type.lower()
-            validation_result = FlextUtilities.Validation.validate_choice(
-                format_lower,
-                set(FlextCliConstants.OUTPUT_FORMATS_LIST),
-                "Output format",
-                case_sensitive=False,
+            # Convert to string and validate choice
+            parse_result = u.parse(format_type, str, default="")
+            format_str = (
+                parse_result.unwrap().lower()
+                if parse_result.is_success
+                else str(format_type).lower()
             )
-            if validation_result.is_failure:
+            valid_formats = set(FlextCliConstants.OUTPUT_FORMATS_LIST)
+            if format_str not in valid_formats:
                 return FlextResult[FlextCliOutput].fail(
                     FlextCliConstants.ErrorMessages.INVALID_OUTPUT_FORMAT.format(
                         format=format_type,
@@ -306,9 +343,7 @@ class FlextCliOutput(FlextCliServiceBase):  # noqa: PLR0904
     def register_result_formatter(
         self,
         result_type: type,
-        formatter: Callable[
-            [FlextTypes.GeneralValueType | FlextResult[object], str], None
-        ],
+        formatter: Callable[[t.GeneralValueType | FlextResult[object], str], None],
     ) -> FlextResult[bool]:
         r"""Register custom formatter for domain-specific result types.
 
@@ -321,7 +356,7 @@ class FlextCliOutput(FlextCliServiceBase):  # noqa: PLR0904
         Args:
             result_type: Type of result to format (e.g., OperationResult)
             formatter: Callable that formats and displays the result
-                Signature: (result: FlextTypes.GeneralValueType | FlextResult[object], output_format: str) -> None
+                Signature: (result: t.GeneralValueType | FlextResult[object], output_format: str) -> None
 
         Returns:
             FlextResult[bool]: True on success, False on failure
@@ -373,7 +408,7 @@ class FlextCliOutput(FlextCliServiceBase):  # noqa: PLR0904
         try:
             # Use cast to satisfy type checker - formatter is compatible but types differ slightly
             self._result_formatters[result_type] = cast(
-                "Callable[[FlextTypes.GeneralValueType | FlextResult[FlextTypes.GeneralValueType], str], None]",
+                "Callable[[t.GeneralValueType | FlextResult[t.GeneralValueType], str], None]",
                 formatter,
             )
             self.logger.debug(
@@ -389,7 +424,7 @@ class FlextCliOutput(FlextCliServiceBase):  # noqa: PLR0904
 
     def format_and_display_result(
         self,
-        result: BaseModel | FlextTypes.GeneralValueType | FlextResult[object],
+        result: BaseModel | t.GeneralValueType | FlextResult[object],
         output_format: str = FlextCliConstants.OutputFormats.TABLE.value,
     ) -> FlextResult[bool]:
         """Auto-detect result type and apply registered formatter with extracted helpers.
@@ -430,7 +465,7 @@ class FlextCliOutput(FlextCliServiceBase):  # noqa: PLR0904
 
     def _try_registered_formatter(
         self,
-        result: BaseModel | FlextTypes.GeneralValueType | FlextResult[object],
+        result: BaseModel | t.GeneralValueType | FlextResult[object],
         output_format: str,
     ) -> FlextResult[bool]:
         """Try to use registered formatter for result type.
@@ -448,7 +483,7 @@ class FlextCliOutput(FlextCliServiceBase):  # noqa: PLR0904
             # BaseModel is not directly compatible, but we can pass it as GeneralValueType
             if isinstance(result, BaseModel):
                 # Convert BaseModel to dict for formatter
-                formattable_result: FlextTypes.GeneralValueType = result.model_dump()
+                formattable_result: t.GeneralValueType = result.model_dump()
                 formatter(formattable_result, output_format)
             # result is already GeneralValueType | FlextResult[GeneralValueType]
             # Type narrowing: formatter accepts GeneralValueType
@@ -468,7 +503,7 @@ class FlextCliOutput(FlextCliServiceBase):  # noqa: PLR0904
                             list,
                         ),
                     ):
-                        converted: FlextTypes.GeneralValueType = unwrapped
+                        converted: t.GeneralValueType = unwrapped
                         formatter(converted, output_format)
                     else:
                         # Convert other types to string
@@ -487,7 +522,7 @@ class FlextCliOutput(FlextCliServiceBase):  # noqa: PLR0904
 
     def _convert_result_to_formattable(
         self,
-        result: BaseModel | FlextTypes.GeneralValueType | FlextResult[object],
+        result: BaseModel | t.GeneralValueType | FlextResult[object],
         output_format: str,
     ) -> FlextResult[str]:
         """Convert result object to formattable string.
@@ -514,11 +549,10 @@ class FlextCliOutput(FlextCliServiceBase):  # noqa: PLR0904
         if isinstance(result, dict):
             return self.format_data(result, output_format)
         if hasattr(result, "__dict__"):
-            # Convert object with __dict__ to dict for formatting
-            result_dict: dict[str, FlextTypes.GeneralValueType] = {
-                k: v
-                for k, v in result.__dict__.items()
-                if isinstance(
+            # Convert object with __dict__ to dict for formatting using u.filter
+            result_dict_raw = u.filter(
+                result.__dict__,
+                predicate=lambda _k, v: isinstance(
                     v,
                     (
                         str,
@@ -529,8 +563,11 @@ class FlextCliOutput(FlextCliServiceBase):  # noqa: PLR0904
                         dict,
                         list,
                     ),
-                )
-            }
+                ),
+            )
+            result_dict: dict[str, t.GeneralValueType] = (
+                dict(result_dict_raw) if isinstance(result_dict_raw, dict) else {}
+            )
             return self.format_data(result_dict, output_format)
 
         # Use string representation (not a fallback - valid conversion)
@@ -542,13 +579,13 @@ class FlextCliOutput(FlextCliServiceBase):  # noqa: PLR0904
         output_format: str,
     ) -> FlextResult[str]:
         """Format Pydantic model to string."""
-        # Use model_dump() directly - dict is compatible with FlextTypes.GeneralValueType
+        # Use model_dump() directly - dict is compatible with t.GeneralValueType
         result_dict = result.model_dump()
         return self.format_data(result_dict, output_format)
 
     def _format_dict_object(
         self,
-        result: FlextTypes.GeneralValueType | FlextResult[FlextTypes.GeneralValueType],
+        result: t.GeneralValueType | FlextResult[t.GeneralValueType],
         output_format: str,
     ) -> FlextResult[str]:
         """Format object with __dict__ to string."""
@@ -570,24 +607,36 @@ class FlextCliOutput(FlextCliServiceBase):  # noqa: PLR0904
                 f"Object {type(result).__name__} has no __dict__ attribute"
             )
         # Type narrowing: result has __dict__ attribute
-        raw_dict: dict[str, FlextTypes.GeneralValueType] = getattr(
-            result, "__dict__", {}
+        raw_dict: dict[str, t.GeneralValueType] = getattr(result, "__dict__", {})
+        # Convert dict to JSON-compatible dict using u.process
+        json_dict_result = u.process(
+            raw_dict,
+            processor=lambda _k, v: (
+                u.transform(
+                    cast("dict[str, t.GeneralValueType]", v), to_json=True
+                ).unwrap()
+                if isinstance(v, dict)
+                else v
+            )
+            if isinstance(v, dict)
+            else v,
+            on_error="skip",
         )
-        # Convert dict to JSON-compatible dict
-        json_dict: dict[str, FlextTypes.GeneralValueType] = {}
-        for key, value in raw_dict.items():
-            json_value = FlextUtilities.DataMapper.convert_to_json_value(value)
-            # Type narrowing: json_value is GeneralValueType
-            json_dict[key] = json_value
-        # Convert to CliJsonDict (dict[str, FlextTypes.GeneralValueType])
-        cli_json_dict: dict[str, FlextTypes.GeneralValueType] = {}
-        for key, value in json_dict.items():
-            # value is GeneralValueType, check if it's JSON-compatible
-            if isinstance(value, (str, int, float, bool, dict, list, type(None))):
-                cli_json_dict[key] = value
-            else:
-                # Convert non-JSON types to string
-                cli_json_dict[key] = str(value)
+        json_dict = json_dict_result.unwrap() if json_dict_result.is_success else {}
+        # Convert to CliJsonDict (dict[str, t.GeneralValueType])
+        cli_json_dict_result = u.process(
+            json_dict,
+            processor=lambda _k, v: v
+            if isinstance(v, (str, int, float, bool, dict, list, type(None)))
+            else None,
+            predicate=lambda _k, v: isinstance(
+                v, (str, int, float, bool, dict, list, type(None))
+            ),
+            on_error="skip",
+        )
+        cli_json_dict = (
+            cli_json_dict_result.value if cli_json_dict_result.is_success else {}
+        )
         return self.format_data(cli_json_dict, output_format)
 
     def _display_formatted_result(self, formatted: str) -> FlextResult[bool]:
@@ -602,7 +651,7 @@ class FlextCliOutput(FlextCliServiceBase):  # noqa: PLR0904
 
     def create_rich_table(
         self,
-        data: list[dict[str, FlextTypes.GeneralValueType]],
+        data: list[dict[str, t.GeneralValueType]],
         title: str | None = None,
         headers: list[str] | None = None,
     ) -> FlextResult[FlextCliProtocols.Display.RichTableProtocol]:
@@ -711,7 +760,7 @@ class FlextCliOutput(FlextCliServiceBase):  # noqa: PLR0904
 
     def create_ascii_table(
         self,
-        data: list[dict[str, FlextTypes.GeneralValueType]],
+        data: list[dict[str, t.GeneralValueType]],
         headers: list[str] | None = None,
         table_format: str = FlextCliConstants.TableFormats.SIMPLE,
         *,
@@ -977,7 +1026,7 @@ class FlextCliOutput(FlextCliServiceBase):  # noqa: PLR0904
 
     def display_data(
         self,
-        data: FlextTypes.GeneralValueType,
+        data: t.GeneralValueType,
         format_type: str | None = None,
         *,
         title: str | None = None,
@@ -1029,7 +1078,7 @@ class FlextCliOutput(FlextCliServiceBase):  # noqa: PLR0904
     # DATA FORMAT METHODS (Built-in)
     # =========================================================================
 
-    def format_json(self, data: FlextTypes.GeneralValueType) -> FlextResult[str]:
+    def format_json(self, data: t.GeneralValueType) -> FlextResult[str]:
         """Format data as JSON.
 
         Args:
@@ -1058,7 +1107,7 @@ class FlextCliOutput(FlextCliServiceBase):  # noqa: PLR0904
             self.logger.exception(error_msg)
             return FlextResult[str].fail(error_msg)
 
-    def format_yaml(self, data: FlextTypes.GeneralValueType) -> FlextResult[str]:
+    def format_yaml(self, data: t.GeneralValueType) -> FlextResult[str]:
         """Format data as YAML.
 
         Args:
@@ -1086,7 +1135,7 @@ class FlextCliOutput(FlextCliServiceBase):  # noqa: PLR0904
             self.logger.exception(error_msg)
             return FlextResult[str].fail(error_msg)
 
-    def format_csv(self, data: FlextTypes.GeneralValueType) -> FlextResult[str]:
+    def format_csv(self, data: t.GeneralValueType) -> FlextResult[str]:
         """Format data as CSV.
 
         Args:
@@ -1111,12 +1160,30 @@ class FlextCliOutput(FlextCliServiceBase):  # noqa: PLR0904
                 writer = csv.DictWriter(output_buffer, fieldnames=fieldnames)
                 writer.writeheader()
 
-                # Prepare CSV rows with None values replaced by empty strings
-                csv_rows = [
-                    {k: v if v is not None else "" for k, v in row.items()}
-                    for row in data
-                    if FlextRuntime.is_dict_like(row)
-                ]
+                # Use u.filter to get dict-like rows, then u.process to replace None values
+                dict_rows = list(
+                    u.filter(
+                        data,
+                        predicate=FlextRuntime.is_dict_like,
+                    )
+                )
+                csv_rows_result = u.process(
+                    dict_rows,
+                    processor=lambda row: cast(
+                        "dict[str, str | int | float | bool]",
+                        u.map(
+                            cast("dict[str, object]", row),
+                            mapper=lambda _k, v: "" if v is None else v,
+                        ),
+                    ),
+                    on_error="skip",
+                )
+                csv_rows: list[dict[str, str | int | float | bool]] = (
+                    list(csv_rows_result.value)
+                    if csv_rows_result.is_success
+                    and isinstance(csv_rows_result.value, list)
+                    else []
+                )
                 writer.writerows(csv_rows)
                 return FlextResult[str].ok(output_buffer.getvalue())
             if FlextRuntime.is_dict_like(data):
@@ -1142,9 +1209,7 @@ class FlextCliOutput(FlextCliServiceBase):  # noqa: PLR0904
 
     def format_table(
         self,
-        data: dict[str, FlextTypes.GeneralValueType]
-        | list[dict[str, FlextTypes.GeneralValueType]]
-        | str,
+        data: dict[str, t.GeneralValueType] | list[dict[str, t.GeneralValueType]] | str,
         title: str | None = None,
         headers: list[str] | None = None,
     ) -> FlextResult[str]:
@@ -1184,13 +1249,9 @@ class FlextCliOutput(FlextCliServiceBase):  # noqa: PLR0904
 
     def _prepare_table_data_safe(
         self,
-        data: dict[str, FlextTypes.GeneralValueType]
-        | list[dict[str, FlextTypes.GeneralValueType]]
-        | str,
+        data: dict[str, t.GeneralValueType] | list[dict[str, t.GeneralValueType]] | str,
         headers: list[str] | None,
-    ) -> FlextResult[
-        tuple[list[dict[str, FlextTypes.GeneralValueType]], str | list[str]]
-    ]:
+    ) -> FlextResult[tuple[list[dict[str, t.GeneralValueType]], str | list[str]]]:
         """Safely prepare table data with exception handling."""
         try:
             return self._prepare_table_data(data, headers)
@@ -1200,61 +1261,87 @@ class FlextCliOutput(FlextCliServiceBase):  # noqa: PLR0904
             )
             self.logger.exception(error_msg)
             return FlextResult[
-                tuple[list[dict[str, FlextTypes.GeneralValueType]], str | list[str]]
+                tuple[list[dict[str, t.GeneralValueType]], str | list[str]]
             ].fail(error_msg)
 
     def _prepare_table_data(
         self,
-        data: dict[str, FlextTypes.GeneralValueType]
-        | list[dict[str, FlextTypes.GeneralValueType]]
-        | str,
+        data: dict[str, t.GeneralValueType] | list[dict[str, t.GeneralValueType]] | str,
         headers: list[str] | None,
-    ) -> FlextResult[
-        tuple[list[dict[str, FlextTypes.GeneralValueType]], str | list[str]]
-    ]:
+    ) -> FlextResult[tuple[list[t.GeneralValueType], str | list[str]]]:
         """Prepare and validate table data and headers."""
         if FlextRuntime.is_dict_like(data):
             return self._prepare_dict_data(
-                FlextUtilities.DataMapper.convert_dict_to_json(dict(data)),
+                (
+                    u.transform(dict(data), to_json=True).unwrap()
+                    if u.transform(dict(data), to_json=True).is_success
+                    else dict(data)
+                ),
                 headers,
             )
         if FlextRuntime.is_list_like(data):
+            # Use u.map to convert list items to JSON
+            converted_list: list[dict[str, t.GeneralValueType]] = []
+            for item in list(data):
+                if isinstance(item, dict):
+                    transform_result = u.transform(item, to_json=True)
+                    converted_item = (
+                        transform_result.unwrap()
+                        if transform_result.is_success
+                        else item
+                    )
+                    if isinstance(converted_item, dict):
+                        converted_list.append(
+                            cast("dict[str, t.GeneralValueType]", converted_item)
+                        )
+                elif isinstance(item, dict):
+                    converted_list.append(cast("dict[str, t.GeneralValueType]", item))
             return self._prepare_list_data(
-                FlextUtilities.DataMapper.convert_list_to_json(list(data)),
+                converted_list,
                 headers,
             )
         return FlextResult[
-            tuple[list[dict[str, FlextTypes.GeneralValueType]], str | list[str]]
+            tuple[list[dict[str, t.GeneralValueType]], str | list[str]]
         ].fail(FlextCliConstants.ErrorMessages.TABLE_FORMAT_REQUIRED_DICT)
 
     @staticmethod
     def _prepare_dict_data(
-        data: dict[str, FlextTypes.GeneralValueType],
+        data: dict[str, t.GeneralValueType],
         headers: list[str] | None,
-    ) -> FlextResult[
-        tuple[list[dict[str, FlextTypes.GeneralValueType]], str | list[str]]
-    ]:
+    ) -> FlextResult[tuple[list[dict[str, t.GeneralValueType]], str | list[str]]]:
         """Prepare dict data for table display."""
-        # Reject test invalid key
+        # Reject test invu
         if FlextCliConstants.OutputDefaults.TEST_INVALID_KEY in data and len(data) == 1:
             return FlextResult[
-                tuple[list[dict[str, FlextTypes.GeneralValueType]], str | list[str]]
+                tuple[list[dict[str, t.GeneralValueType]], str | list[str]]
             ].fail(FlextCliConstants.ErrorMessages.TABLE_FORMAT_REQUIRED_DICT)
 
-        table_data: list[dict[str, FlextTypes.GeneralValueType]] = [
-            {
+        # Use u.process to convert dict to list of key-value pairs
+        # process() returns dict[str, R] for dict input, so we need to convert to list
+        process_result = u.process(
+            data,
+            processor=lambda k, v: {
                 FlextCliConstants.OutputFieldNames.KEY: k,
                 FlextCliConstants.OutputFieldNames.VALUE: str(v),
-            }
-            for k, v in data.items()
-        ]
+            },
+            on_error="skip",
+        )
+        # process() returns dict[str, dict] for dict input, convert to list
+        if process_result.is_success and isinstance(process_result.value, dict):
+            table_data_raw = list(process_result.value.values())
+            table_data: list[dict[str, t.GeneralValueType]] = cast(
+                "list[dict[str, t.GeneralValueType]]",
+                table_data_raw,
+            )
+        else:
+            table_data = []
         # Validate headers explicitly - no fallback
         validated_headers: str | list[str] = (
             headers if headers is not None else FlextCliConstants.TableFormats.KEYS
         )
         table_headers: str | list[str] = validated_headers
         return FlextResult[
-            tuple[list[dict[str, FlextTypes.GeneralValueType]], str | list[str]]
+            tuple[list[dict[str, t.GeneralValueType]], str | list[str]]
         ].ok((
             table_data,
             table_headers,
@@ -1262,21 +1349,19 @@ class FlextCliOutput(FlextCliServiceBase):  # noqa: PLR0904
 
     @staticmethod
     def _prepare_list_data(
-        data: list[dict[str, FlextTypes.GeneralValueType]],
+        data: list[dict[str, t.GeneralValueType]],
         headers: list[str] | None,
-    ) -> FlextResult[
-        tuple[list[dict[str, FlextTypes.GeneralValueType]], str | list[str]]
-    ]:
+    ) -> FlextResult[tuple[list[dict[str, t.GeneralValueType]], str | list[str]]]:
         """Prepare list data for table display."""
         if not data:
             return FlextResult[
-                tuple[list[dict[str, FlextTypes.GeneralValueType]], str | list[str]]
+                tuple[list[dict[str, t.GeneralValueType]], str | list[str]]
             ].fail(FlextCliConstants.ErrorMessages.NO_DATA_PROVIDED)
 
         # Validate headers type
         if headers is not None and not FlextRuntime.is_list_like(headers):
             return FlextResult[
-                tuple[list[dict[str, FlextTypes.GeneralValueType]], str | list[str]]
+                tuple[list[dict[str, t.GeneralValueType]], str | list[str]]
             ].fail(FlextCliConstants.ErrorMessages.TABLE_HEADERS_MUST_BE_LIST)
 
         # Validate headers explicitly - no fallback
@@ -1290,7 +1375,7 @@ class FlextCliOutput(FlextCliServiceBase):  # noqa: PLR0904
         else:
             table_headers = [FlextCliConstants.TableFormats.KEYS]
         return FlextResult[
-            tuple[list[dict[str, FlextTypes.GeneralValueType]], str | list[str]]
+            tuple[list[dict[str, t.GeneralValueType]], str | list[str]]
         ].ok((
             data,
             table_headers,
@@ -1298,7 +1383,7 @@ class FlextCliOutput(FlextCliServiceBase):  # noqa: PLR0904
 
     def _create_table_string(
         self,
-        table_data: list[dict[str, FlextTypes.GeneralValueType]],
+        table_data: list[dict[str, t.GeneralValueType]],
         table_headers: str | list[str],
     ) -> FlextResult[str]:
         """Create table string using FlextCliTables."""
@@ -1331,7 +1416,7 @@ class FlextCliOutput(FlextCliServiceBase):  # noqa: PLR0904
 
     def format_as_tree(
         self,
-        data: FlextTypes.GeneralValueType,
+        data: t.GeneralValueType,
         title: str | None = None,
     ) -> FlextResult[str]:
         """Format hierarchical data as tree view using FlextCliFormatters.
@@ -1366,7 +1451,7 @@ class FlextCliOutput(FlextCliServiceBase):  # noqa: PLR0904
 
         tree = tree_result.unwrap()
 
-        # Build tree structure - data is already FlextTypes.GeneralValueType
+        # Build tree structure - data is already t.GeneralValueType
         # _build_tree now accepts CliJsonValue directly, no conversion needed
         # tree is rich.Tree, but conforms to RichTreeProtocol structurally
         # Use cast for structural typing compatibility
@@ -1385,7 +1470,7 @@ class FlextCliOutput(FlextCliServiceBase):  # noqa: PLR0904
     def _build_tree(
         self,
         tree: FlextCliProtocols.Display.RichTreeProtocol,
-        data: FlextTypes.GeneralValueType,
+        data: t.GeneralValueType,
     ) -> None:
         """Build tree recursively (helper for format_as_tree).
 
@@ -1396,22 +1481,26 @@ class FlextCliOutput(FlextCliServiceBase):  # noqa: PLR0904
         """
         if isinstance(data, dict):
             # Type narrowing: data is dict -> process as dict[str, CliJsonValue]
-            for key, value in data.items():
-                if isinstance(value, dict):
-                    branch = tree.add(str(key))
-                    self._build_tree(branch, value)
-                elif isinstance(value, list):
+            # Use u.process to handle dict items
+            def process_tree_item(k: str, v: t.GeneralValueType) -> None:
+                """Process single tree item."""
+                if isinstance(v, dict):
+                    branch = tree.add(str(k))
+                    self._build_tree(branch, v)
+                elif isinstance(v, list):
                     branch = tree.add(
-                        f"{key}{FlextCliConstants.OutputDefaults.TREE_BRANCH_LIST_SUFFIX}",
+                        f"{k}{FlextCliConstants.OutputDefaults.TREE_BRANCH_LIST_SUFFIX}",
                     )
-                    for item in value:
+                    for item in v:
                         # item is already CliJsonValue from dict
                         self._build_tree(branch, item)
                 else:
                     # value is primitive (str, int, float, bool, None)
                     tree.add(
-                        f"{key}{FlextCliConstants.OutputDefaults.TREE_VALUE_SEPARATOR}{value}",
+                        f"{k}{FlextCliConstants.OutputDefaults.TREE_VALUE_SEPARATOR}{v}",
                     )
+
+            u.process(data, processor=process_tree_item, on_error="skip")
         elif isinstance(data, list):
             # Type narrowing: data is list -> process each item
             for item in data:

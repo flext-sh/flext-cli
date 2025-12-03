@@ -24,12 +24,20 @@ from typing import ClassVar, cast
 import typer
 from click.exceptions import UsageError as ClickUsageError
 from flext_core import (
+    FlextConstants,
     FlextContainer,
+    FlextDecorators,
     FlextExceptions,
+    FlextHandlers,
     FlextLogger,
+    FlextMixins,
+    FlextModels,
+    FlextProtocols,
     FlextResult,
-    FlextTypes,
-    FlextUtilities,
+    FlextRuntime,
+    FlextService,
+    t,
+    u,
 )
 
 from flext_cli import __version__
@@ -52,6 +60,30 @@ from flext_cli.services.output import FlextCliOutput
 from flext_cli.services.prompts import FlextCliPrompts
 from flext_cli.services.tables import FlextCliTables
 from flext_cli.utilities import FlextCliUtilities
+
+# Aliases for static method calls and type references
+# Use u.* for FlextUtilities static methods
+# Use t.* for FlextTypes type references
+# Use c.* for FlextConstants constants
+# Use m.* for FlextModels model references
+# Use p.* for FlextProtocols protocol references
+# Use r.* for FlextResult methods
+# Use e.* for FlextExceptions
+# Use d.* for FlextDecorators decorators
+# Use s.* for FlextService service base
+# Use x.* for FlextMixins mixins
+# Use h.* for FlextHandlers handlers
+# u is already imported from flext_core
+# t is already imported from flext_core
+c = FlextConstants
+m = FlextModels
+p = FlextProtocols
+r = FlextResult
+e = FlextExceptions
+d = FlextDecorators
+s = FlextService
+x = FlextMixins
+h = FlextHandlers
 
 # Direct type references - use FlextCliProtocols.Cli.CliCommandFunction directly
 
@@ -171,7 +203,7 @@ class FlextCli:
         self._valid_tokens: set[str] = set()
         self._valid_sessions: set[str] = set()
         self._session_permissions: dict[str, set[str]] = {}
-        self._users: dict[str, FlextTypes.JsonDict] = {}
+        self._users: dict[str, t.Json.JsonDict] = {}
         self._deleted_users: set[str] = set()
 
     @classmethod
@@ -188,13 +220,19 @@ class FlextCli:
     # =========================================================================
 
     @staticmethod
-    def _validate_token_string(token: str) -> FlextResult[bool]:
+    def _validate_token_string(token: str) -> r[bool]:
         """Generalized token validation helper."""
-        if not isinstance(token, str) or not token.strip():
-            return FlextResult[bool].fail(
-                FlextCliConstants.ErrorMessages.TOKEN_EMPTY,
+        # Use u.validate with V.string.non_empty validator
+        validation_result = u.validate(
+            token,
+            u.V.string.non_empty,
+            field_name="Token",
+        )
+        if validation_result.is_failure:
+            return r[bool].fail(
+                validation_result.error or FlextCliConstants.ErrorMessages.TOKEN_EMPTY,
             )
-        return FlextResult[bool].ok(True)
+        return r[bool].ok(True)
 
     # =========================================================================
     # AUTHENTICATION
@@ -203,7 +241,7 @@ class FlextCli:
     def authenticate(
         self,
         credentials: Mapping[str, str],
-    ) -> FlextResult[str]:
+    ) -> r[str]:
         """Authenticate user with provided credentials."""
         if FlextCliConstants.DictKeys.TOKEN in credentials:
             return self._authenticate_with_token(credentials)
@@ -212,55 +250,55 @@ class FlextCli:
             and FlextCliConstants.DictKeys.PASSWORD in credentials
         ):
             return self._authenticate_with_credentials(credentials)
-        return FlextResult[str].fail(
+        return r[str].fail(
             FlextCliConstants.ErrorMessages.INVALID_CREDENTIALS,
         )
 
     def _authenticate_with_token(
         self,
         credentials: Mapping[str, str],
-    ) -> FlextResult[str]:
+    ) -> r[str]:
         """Authenticate using token."""
         token = str(credentials[FlextCliConstants.DictKeys.TOKEN])
         validation = FlextCli._validate_token_string(token)
         if validation.is_failure:
-            return FlextResult[str].fail(validation.error or "")
+            return r[str].fail(validation.error or "")
 
         save_result = self.save_auth_token(token)
         if save_result.is_failure:
-            return FlextResult[str].fail(
+            return r[str].fail(
                 FlextCliConstants.ErrorMessages.TOKEN_SAVE_FAILED.format(
                     error=save_result.error,
                 ),
             )
-        return FlextResult[str].ok(token)
+        return r[str].ok(token)
 
     def _authenticate_with_credentials(
         self,
         credentials: Mapping[str, str],
-    ) -> FlextResult[str]:
+    ) -> r[str]:
         """Authenticate using Pydantic 2 validation."""
         try:
             FlextCliModels.PasswordAuth.model_validate(credentials)
         except Exception as e:
-            return FlextResult[str].fail(str(e))
+            return r[str].fail(str(e))
 
         token = secrets.token_urlsafe(
             FlextCliConstants.APIDefaults.TOKEN_GENERATION_BYTES,
         )
         self._valid_tokens.add(token)
-        return FlextResult[str].ok(token)
+        return r[str].ok(token)
 
     @staticmethod
-    def validate_credentials(username: str, password: str) -> FlextResult[bool]:
+    def validate_credentials(username: str, password: str) -> r[bool]:
         """Validate credentials using Pydantic 2."""
         try:
             FlextCliModels.PasswordAuth(username=username, password=password)
-            return FlextResult[bool].ok(True)
+            return r[bool].ok(True)
         except Exception as e:
-            return FlextResult[bool].fail(str(e))
+            return r[bool].fail(str(e))
 
-    def save_auth_token(self, token: str) -> FlextResult[bool]:
+    def save_auth_token(self, token: str) -> r[bool]:
         """Save authentication token using file tools domain library."""
         validation = FlextCli._validate_token_string(token)
         if validation.is_failure:
@@ -268,75 +306,95 @@ class FlextCli:
 
         token_path = self.config.token_file
         # Create dict with GeneralValueType for DataMapper compatibility
-        token_data: dict[str, FlextTypes.GeneralValueType] = {
+        token_data: dict[str, t.GeneralValueType] = {
             # str is subtype of GeneralValueType
             FlextCliConstants.DictKeys.TOKEN: token,
         }
 
-        # Use DataMapper for type-safe conversion
-        json_data = FlextUtilities.DataMapper.convert_dict_to_json(token_data)
+        # Use u.transform for type-safe JSON conversion
+        transform_result = u.transform(token_data, to_json=True)
+        json_data = (
+            transform_result.unwrap() if transform_result.is_success else token_data
+        )
         write_result = self.file_tools.write_json_file(str(token_path), json_data)
         if write_result.is_failure:
-            return FlextResult[bool].fail(
+            return r[bool].fail(
                 FlextCliConstants.ErrorMessages.TOKEN_SAVE_FAILED.format(
                     error=write_result.error,
                 ),
             )
 
         self._valid_tokens.add(token)
-        return FlextResult[bool].ok(True)
+        return r[bool].ok(True)
 
-    def get_auth_token(self) -> FlextResult[str]:
+    def get_auth_token(self) -> r[str]:
         """Get authentication token using Pydantic 2 validation."""
         token_path = self.config.token_file
 
-        result = self.file_tools.read_json_file(str(token_path))
-        if result.is_failure:
-            error_str = str(result.error)
-            error_lower = error_str.lower()
-            if FlextCliConstants.APIDefaults.FILE_ERROR_INDICATOR in error_lower or any(
-                pattern in error_lower
-                for pattern in [
-                    "not found",
-                    "no such file",
-                    "does not exist",
-                    "errno 2",
-                ]
-            ):
-                return FlextResult[str].fail(
+        # Helper to handle file read errors
+        def handle_file_error(error_str: str) -> r[str]:
+            """Handle file read error."""
+            if FlextCliUtilities.FileOps.is_file_not_found_error(error_str):
+                return r[str].fail(
                     FlextCliConstants.ErrorMessages.TOKEN_FILE_NOT_FOUND,
                 )
-            return FlextResult[str].fail(
+            return r[str].fail(
                 FlextCliConstants.ErrorMessages.TOKEN_LOAD_FAILED.format(
                     error=error_str,
                 ),
             )
 
+        # Helper to determine error message from exception
+        def get_error_message(error_str: str) -> str:
+            """Get error message based on exception content."""
+            error_keywords = {
+                "dict": FlextCliConstants.APIDefaults.TOKEN_DATA_TYPE_ERROR,
+                "mapping": FlextCliConstants.APIDefaults.TOKEN_DATA_TYPE_ERROR,
+                "object": FlextCliConstants.APIDefaults.TOKEN_DATA_TYPE_ERROR,
+                "string": FlextCliConstants.APIDefaults.TOKEN_VALUE_TYPE_ERROR,
+                "str": FlextCliConstants.APIDefaults.TOKEN_VALUE_TYPE_ERROR,
+            }
+            found_keyword = u.find(
+                list(error_keywords.keys()),
+                predicate=lambda kw: kw in error_str,
+            )
+            if found_keyword is not None and isinstance(found_keyword, str):
+                return error_keywords[found_keyword]
+            return FlextCliConstants.ErrorMessages.TOKEN_FILE_EMPTY
+
+        result = self.file_tools.read_json_file(str(token_path))
+        if result.is_failure:
+            return handle_file_error(str(result.error))
+
         data = result.unwrap()
-        if not data or (isinstance(data, dict) and not data):
-            return FlextResult[str].fail(
+        if not data or (FlextRuntime.is_dict_like(data) and not data):
+            return r[str].fail(
                 FlextCliConstants.ErrorMessages.TOKEN_FILE_EMPTY,
             )
 
+        # Use u.extract to safely extract token from data
+        token_result = u.extract(
+            data,
+            FlextCliConstants.DictKeys.TOKEN,
+            required=True,
+        )
+        if token_result.is_success:
+            token_value = token_result.unwrap()
+            if isinstance(token_value, str) and token_value:
+                return r[str].ok(token_value)
+
+        # If extract failed, try model validation as fallback
         try:
             token_data = FlextCliModels.TokenData.model_validate(data)
-            return FlextResult[str].ok(token_data.token)
+            return r[str].ok(token_data.token)
         except Exception as e:
-            error_str = str(e).lower()
-            # Determine error type based on error message content
-            if "dict" in error_str or "mapping" in error_str or "object" in error_str:
-                error_msg = FlextCliConstants.APIDefaults.TOKEN_DATA_TYPE_ERROR
-            elif "string" in error_str or "str" in error_str:
-                error_msg = FlextCliConstants.APIDefaults.TOKEN_VALUE_TYPE_ERROR
-            else:
-                error_msg = FlextCliConstants.ErrorMessages.TOKEN_FILE_EMPTY
-            return FlextResult[str].fail(error_msg)
+            return r[str].fail(get_error_message(str(e).lower()))
 
     def is_authenticated(self) -> bool:
         """Check if user is authenticated."""
         return self.get_auth_token().is_success
 
-    def clear_auth_tokens(self) -> FlextResult[bool]:
+    def clear_auth_tokens(self) -> r[bool]:
         """Clear authentication tokens using file tools domain library."""
         token_path = self.config.token_file
         refresh_token_path = self.config.refresh_token_file
@@ -355,7 +413,7 @@ class FlextCli:
                 "errno 2",
             ]
         ):
-            return FlextResult[bool].fail(
+            return r[bool].fail(
                 FlextCliConstants.ErrorMessages.FAILED_CLEAR_CREDENTIALS.format(
                     error=delete_token_result.error,
                 ),
@@ -371,14 +429,14 @@ class FlextCli:
                 "errno 2",
             ]
         ):
-            return FlextResult[bool].fail(
+            return r[bool].fail(
                 FlextCliConstants.ErrorMessages.FAILED_CLEAR_CREDENTIALS.format(
                     error=delete_refresh_result.error,
                 ),
             )
 
         self._valid_tokens.clear()
-        return FlextResult[bool].ok(True)
+        return r[bool].ok(True)
 
     # =========================================================================
     # COMMAND REGISTRATION
@@ -445,23 +503,23 @@ class FlextCli:
         return decorator
 
     @staticmethod
-    def execute_cli() -> FlextResult[bool]:
+    def execute_cli() -> r[bool]:
         """Execute the CLI application using framework abstraction."""
-        return FlextResult[bool].ok(True)
+        return r[bool].ok(True)
 
     # =========================================================================
     # EXECUTION
     # =========================================================================
 
-    def execute(self) -> FlextResult[FlextTypes.JsonDict]:  # noqa: PLR6301
+    def execute(self) -> r[t.Json.JsonDict]:  # noqa: PLR6301
         """Execute CLI service with railway pattern."""
         # Build JsonDict - convert version to string, components as dict
-        result_dict: FlextTypes.JsonDict = {
+        result_dict: t.Json.JsonDict = {
             FlextCliConstants.DictKeys.STATUS: (
                 FlextCliConstants.ServiceStatus.OPERATIONAL.value
             ),
             FlextCliConstants.DictKeys.SERVICE: FlextCliConstants.FLEXT_CLI,
-            "timestamp": FlextUtilities.Generators.generate_iso_timestamp(),
+            "timestamp": u.generate("timestamp"),
             "version": str(__version__),
             "components": {
                 "config": "available",
@@ -471,7 +529,7 @@ class FlextCli:
             },
         }
 
-        return FlextResult[FlextTypes.JsonDict].ok(result_dict)
+        return r[t.Json.JsonDict].ok(result_dict)
 
     # =========================================================================
     # CONVENIENCE METHODS - Delegate to service instances
@@ -481,31 +539,44 @@ class FlextCli:
         self,
         message: str,
         style: str | None = None,
-    ) -> FlextResult[bool]:
+    ) -> r[bool]:
         """Print formatted message (convenience method for formatters.print)."""
         return self.formatters.print(message, style)
 
     def create_table(
         self,
-        data: Sequence[Mapping[str, FlextTypes.GeneralValueType]]
-        | Mapping[str, FlextTypes.GeneralValueType]
+        data: Sequence[Mapping[str, t.GeneralValueType]]
+        | Mapping[str, t.GeneralValueType]
         | None = None,
         headers: list[str] | None = None,
         title: str | None = None,
-    ) -> FlextResult[str]:
+    ) -> r[str]:
         """Create table from data (convenience method)."""
         if data is None:
-            return FlextResult[str].fail(
+            return r[str].fail(
                 FlextCliConstants.ErrorMessages.NO_DATA_PROVIDED,
             )
 
         # Convert data using DataMapper for type-safe conversion
-        table_data: FlextTypes.GeneralValueType
+        table_data: t.GeneralValueType
         if isinstance(data, dict):
-            table_data = FlextUtilities.DataMapper.convert_dict_to_json(data)
+            # Use u.transform for JSON conversion
+            transform_result = u.transform(data, to_json=True)
+            table_data = (
+                transform_result.unwrap() if transform_result.is_success else data
+            )
         else:
-            # Handle all Sequence types (list, tuple, or other sequences)
-            converted_list = FlextUtilities.DataMapper.convert_list_to_json(list(data))
+            # Handle all Sequence types - use u.map to convert items
+            converted_list = list(
+                u.map(
+                    list(data),
+                    mapper=lambda item: (
+                        u.transform({"_": item}, to_json=True).unwrap().get("_", item)
+                        if isinstance(item, dict)
+                        else item
+                    ),
+                )
+            )
             table_data = converted_list
 
         return self.output.format_data(
@@ -518,14 +589,14 @@ class FlextCli:
     def print_table(
         self,
         table: str,
-    ) -> FlextResult[bool]:
+    ) -> r[bool]:
         """Print table string (convenience method)."""
         return self.formatters.print(table)
 
     def create_tree(
         self,
         label: str,
-    ) -> FlextResult[FlextCliProtocols.Display.RichTreeProtocol]:
+    ) -> r[FlextCliProtocols.Display.RichTreeProtocol]:
         """Create tree visualization (convenience method for formatters.create_tree)."""
         # formatters.create_tree returns RichTree which implements RichTreeProtocol
         result = self.formatters.create_tree(label)
@@ -534,7 +605,7 @@ class FlextCli:
             # Type narrowing: unwrap returns RichTreeProtocol-compatible type
             tree_value = result.unwrap()
             # Use cast instead of isinstance for Protocol (structural typing)
-            return FlextResult[FlextCliProtocols.Display.RichTreeProtocol].ok(
+            return r[FlextCliProtocols.Display.RichTreeProtocol].ok(
                 cast("FlextCliProtocols.Display.RichTreeProtocol", tree_value)
             )
             # Fallback: return as-is (formatters already returns correct type)
@@ -542,12 +613,10 @@ class FlextCli:
             protocol_tree: FlextCliProtocols.Display.RichTreeProtocol = cast(
                 "FlextCliProtocols.Display.RichTreeProtocol", tree_value
             )
-            return FlextResult[FlextCliProtocols.Display.RichTreeProtocol].ok(
-                protocol_tree
-            )
+            return r[FlextCliProtocols.Display.RichTreeProtocol].ok(protocol_tree)
         # Result is already FlextResult[RichTreeProtocol] from formatters
         # Use cast to satisfy type checker - Tree implements RichTreeProtocol
-        return cast("FlextResult[FlextCliProtocols.Display.RichTreeProtocol]", result)
+        return cast("r[FlextCliProtocols.Display.RichTreeProtocol]", result)
 
 
 class FlextCliAppBase(ABC):
@@ -625,7 +694,7 @@ class FlextCliAppBase(ABC):
             return sys.argv[1:] if len(sys.argv) > 1 else []
         return args
 
-    def execute_cli(self, args: list[str] | None = None) -> FlextResult[bool]:
+    def execute_cli(self, args: list[str] | None = None) -> r[bool]:
         """Execute the CLI with Railway-pattern error handling."""
         try:
             # Ensure pathlib is available for Typer's annotation evaluation
@@ -638,24 +707,24 @@ class FlextCliAppBase(ABC):
             # Use standalone_mode=True to ensure Typer handles errors and output
             # When standalone_mode=False, Typer doesn't print errors automatically
             self._app(args=resolved_args, standalone_mode=True)
-            return FlextResult[bool].ok(True)
+            return r[bool].ok(True)
         except NameError as e:
             if "pathlib" in str(e):
                 error_msg = f"CLI annotation evaluation error: {e!s}"
                 self._output.print_error(error_msg)
-                return FlextResult[bool].fail(error_msg)
+                return r[bool].fail(error_msg)
             raise
         except SystemExit as e:
             if e.code == 0:
-                return FlextResult[bool].ok(True)
+                return r[bool].ok(True)
             # SystemExit with non-zero code means failure
             # Typer already printed the error in standalone_mode=True
-            return FlextResult[bool].fail(f"CLI execution failed with code {e.code}")
+            return r[bool].fail(f"CLI execution failed with code {e.code}")
         except Exception as e:
             if isinstance(e, ClickUsageError):
                 error_msg = f"CLI execution error: {e!s}"
                 self._output.print_error(error_msg)
-                return FlextResult[bool].fail(error_msg)
+                return r[bool].fail(error_msg)
             if isinstance(
                 e,
                 (
@@ -671,7 +740,7 @@ class FlextCliAppBase(ABC):
                 tb = traceback.format_exc()
                 error_msg = f"CLI execution error: {e!s}\nTraceback:\n{tb}"
                 self._output.print_error(error_msg)
-                return FlextResult[bool].fail(f"CLI execution error: {e!s}")
+                return r[bool].fail(f"CLI execution error: {e!s}")
             raise
 
 

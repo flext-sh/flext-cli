@@ -14,7 +14,7 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 import pytest
-from flext_core import FlextTypes
+from flext_core import t
 from rich.console import Console
 from rich.progress import Progress
 from rich.table import Table as RichTable
@@ -47,7 +47,7 @@ class TestFlextCliFormatters:
             return FlextCliFormatters()
 
         @staticmethod
-        def create_test_data() -> FlextTypes.JsonDict:
+        def create_test_data() -> t.JsonDict:
             """Create test data dictionary."""
             return {
                 TestData.Output.SUCCESS_MESSAGE: TestData.Output.INFO_MESSAGE,
@@ -55,7 +55,7 @@ class TestFlextCliFormatters:
             }
 
         @staticmethod
-        def create_table_data() -> FlextTypes.JsonDict:
+        def create_table_data() -> t.JsonDict:
             """Create table test data."""
             return {
                 "Name": "Alice",
@@ -118,7 +118,7 @@ class TestFlextCliFormatters:
     )
     def test_create_table(
         self,
-        data: FlextTypes.JsonDict | None,
+        data: t.JsonDict | None,
         headers: list[str] | None,
         title: str | None,
     ) -> None:
@@ -203,7 +203,7 @@ class TestFlextCliFormatters:
         formatters = FlextCliFormatters()
 
         # Create table with data
-        data: FlextTypes.JsonDict = {
+        data: t.JsonDict = {
             "Name": "Alice",
             "Age": "30",
             "City": "NYC",
@@ -321,7 +321,7 @@ class TestFlextCliFormatters:
     def test_create_table_dict_without_headers(self) -> None:
         """Test create_table() with CLI data dict but no headers (lines 133-134)."""
         formatters = FlextCliFormatters()
-        data: FlextTypes.JsonDict = {
+        data: t.JsonDict = {
             "key1": "value1",
             "key2": "value2",
             "key3": "value3",

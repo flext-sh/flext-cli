@@ -18,13 +18,16 @@ import uuid
 from typing import TypeVar, cast
 
 import pytest
-from flext_core import FlextResult, FlextTypes, FlextUtilities
+from flext_core import FlextResult, t, u
 from flext_tests import FlextTestsUtilities
 
 from flext_cli import FlextCliContext
 
 from .._helpers import FlextCliTestHelpers
 from ..fixtures.constants import TestContext
+
+# Alias for static method calls - use u.* for uds
+u = u
 
 T = TypeVar("T")
 
@@ -52,14 +55,19 @@ class TestFlextCliContext:
             working_dir: str | None = None,
         ) -> FlextResult[FlextCliContext]:
             """Create FlextCliContext instance."""
-            # Convert env_vars to JsonDict for type compatibility using FlextUtilities
-            json_env_vars: FlextTypes.JsonDict | None = (
-                FlextUtilities.DataMapper.convert_dict_to_json(
-                    cast("dict[str, FlextTypes.GeneralValueType]", env_vars)
+            # Use u.transform for JSON conversion
+            if env_vars:
+                transform_result = u.transform(
+                    cast("dict[str, t.GeneralValueType]", env_vars),
+                    to_json=True,
                 )
-                if env_vars is not None
-                else None
-            )
+                json_env_vars: t.JsonDict | None = (
+                    transform_result.unwrap()
+                    if transform_result.is_success
+                    else cast("t.JsonDict", env_vars)
+                )
+            else:
+                json_env_vars = None
             return FlextCliTestHelpers.ContextFactory.create_context(
                 command=command,
                 arguments=arguments,
@@ -377,12 +385,16 @@ class TestFlextCliContext:
         """Test metadata get/set operations."""
         context = FlextCliContext()
 
-        # Set metadata - convert value to CliJsonValue for type compatibility using FlextUtilities
-        json_value: FlextTypes.GeneralValueType = (
-            FlextUtilities.DataMapper.convert_to_json_value(
-                cast("FlextTypes.GeneralValueType", value)
+        # Use u.transform for JSON conversion
+        if isinstance(value, dict):
+            transform_result = u.transform(value, to_json=True)
+            json_value: t.GeneralValueType = (
+                transform_result.unwrap()
+                if transform_result.is_success
+                else cast("t.GeneralValueType", value)
             )
-        )
+        else:
+            json_value = cast("t.GeneralValueType", value)
         set_result = context.set_metadata(key, json_value)
         self.Assertions.assert_result_success(set_result)
 
@@ -525,9 +537,7 @@ class TestFlextCliContext:
         context.add_argument("--verify")
 
         # Set metadata
-        context.set_metadata(
-            "started_at", FlextUtilities.Generators.generate_iso_timestamp()
-        )
+        context.set_metadata("started_at", u.generate("timestamp"))
         context.set_metadata("deployment_id", "dep_12345")
 
         # Activate context

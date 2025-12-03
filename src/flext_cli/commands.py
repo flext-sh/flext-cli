@@ -13,12 +13,49 @@ from __future__ import annotations
 from collections.abc import Mapping
 from typing import TypeVar, cast, override
 
-from flext_core import FlextResult, FlextRuntime, FlextTypes
+from flext_core import (
+    FlextConstants,
+    FlextDecorators,
+    FlextExceptions,
+    FlextHandlers,
+    FlextMixins,
+    FlextModels,
+    FlextProtocols,
+    FlextResult,
+    FlextRuntime,
+    FlextService,
+    t,
+    u,
+)
 from pydantic import PrivateAttr
 
 from flext_cli.base import FlextCliServiceBase
 from flext_cli.constants import FlextCliConstants
 from flext_cli.protocols import FlextCliProtocols
+
+# Aliases for static method calls and type references
+# Use u.* for FlextUtilities static methods
+# Use t.* for FlextTypes type references
+# Use c.* for FlextConstants constants
+# Use m.* for FlextModels model references
+# Use p.* for FlextProtocols protocol references
+# Use r.* for FlextResult methods
+# Use e.* for FlextExceptions
+# Use d.* for FlextDecorators decorators
+# Use s.* for FlextService service base
+# Use x.* for FlextMixins mixins
+# Use h.* for FlextHandlers handlers
+# u is already imported from flext_core
+# t is already imported from flext_core
+c = FlextConstants
+m = FlextModels
+p = FlextProtocols
+r = FlextResult
+e = FlextExceptions
+d = FlextDecorators
+s = FlextService
+x = FlextMixins
+h = FlextHandlers
 
 T = TypeVar("T")
 
@@ -70,8 +107,7 @@ class FlextCliCommands(FlextCliServiceBase):
                 str,
                 dict[
                     str,
-                    FlextTypes.GeneralValueType
-                    | FlextCliProtocols.Cli.CliCommandHandler,
+                    t.GeneralValueType | FlextCliProtocols.Cli.CliCommandHandler,
                 ],
             ],
         ) -> None:
@@ -85,9 +121,7 @@ class FlextCliCommands(FlextCliServiceBase):
     _description: str = PrivateAttr()
     _commands: dict[
         str,
-        dict[
-            str, FlextTypes.GeneralValueType | FlextCliProtocols.Cli.CliCommandHandler
-        ],
+        dict[str, t.GeneralValueType | FlextCliProtocols.Cli.CliCommandHandler],
     ] = PrivateAttr(default_factory=dict)
     _cli_group: _CliGroup = PrivateAttr()
 
@@ -96,7 +130,7 @@ class FlextCliCommands(FlextCliServiceBase):
         self,
         name: str = FlextCliConstants.CommandsDefaults.DEFAULT_CLI_NAME,
         description: str = FlextCliConstants.CommandsDefaults.DEFAULT_DESCRIPTION,
-        **data: FlextTypes.GeneralValueType,
+        **data: t.GeneralValueType,
     ) -> None:
         """Initialize CLI commands manager with Phase 1 context enrichment."""
         super().__init__(**data)
@@ -110,7 +144,7 @@ class FlextCliCommands(FlextCliServiceBase):
             str,
             dict[
                 str,
-                FlextTypes.GeneralValueType | FlextCliProtocols.Cli.CliCommandHandler,
+                t.GeneralValueType | FlextCliProtocols.Cli.CliCommandHandler,
             ],
         ] = {}
         object.__setattr__(
@@ -132,9 +166,7 @@ class FlextCliCommands(FlextCliServiceBase):
             source="flext-cli/src/flext_cli/commands.py",
         )
 
-    def execute(
-        self, **_kwargs: FlextTypes.JsonDict
-    ) -> FlextResult[FlextTypes.JsonDict]:
+    def execute(self, **_kwargs: t.JsonDict) -> FlextResult[t.JsonDict]:
         """Execute the main domain service operation - required by FlextService.
 
         Args:
@@ -156,7 +188,7 @@ class FlextCliCommands(FlextCliServiceBase):
             source="flext-cli/src/flext_cli/commands.py",
         )
 
-        result = FlextResult[FlextTypes.JsonDict].ok({
+        result = FlextResult[t.JsonDict].ok({
             FlextCliConstants.CommandsDictKeys.STATUS: FlextCliConstants.ServiceStatus.OPERATIONAL.value,
             FlextCliConstants.CommandsDictKeys.SERVICE: FlextCliConstants.FLEXT_CLI,
             FlextCliConstants.CommandsDictKeys.COMMANDS: list(self._commands.keys()),
@@ -202,7 +234,7 @@ class FlextCliCommands(FlextCliServiceBase):
             # Use type ignore for Protocol in dict (structural typing allows this)
             command_metadata: dict[
                 str,
-                FlextTypes.GeneralValueType | FlextCliProtocols.Cli.CliCommandHandler,
+                t.GeneralValueType | FlextCliProtocols.Cli.CliCommandHandler,
             ] = {
                 FlextCliConstants.CommandsDictKeys.NAME: name,
                 FlextCliConstants.CommandsDictKeys.HANDLER: handler,
@@ -214,8 +246,7 @@ class FlextCliCommands(FlextCliServiceBase):
                 str,
                 dict[
                     str,
-                    FlextTypes.GeneralValueType
-                    | FlextCliProtocols.Cli.CliCommandHandler,
+                    t.GeneralValueType | FlextCliProtocols.Cli.CliCommandHandler,
                 ],
             ] = dict(self._commands)
             self._cli_group.commands = updated_commands
@@ -314,7 +345,7 @@ class FlextCliCommands(FlextCliServiceBase):
             str,
             dict[
                 str,
-                FlextTypes.GeneralValueType | FlextCliProtocols.Cli.CliCommandHandler,
+                t.GeneralValueType | FlextCliProtocols.Cli.CliCommandHandler,
             ],
         ]
         | None = None,
@@ -357,8 +388,7 @@ class FlextCliCommands(FlextCliServiceBase):
                 str,
                 dict[
                     str,
-                    FlextTypes.GeneralValueType
-                    | FlextCliProtocols.Cli.CliCommandHandler,
+                    t.GeneralValueType | FlextCliProtocols.Cli.CliCommandHandler,
                 ],
             ] = commands
             group = self._CliGroup(
@@ -517,7 +547,7 @@ class FlextCliCommands(FlextCliServiceBase):
     def _execute_handler(
         handler: FlextCliProtocols.Cli.CliCommandHandler,
         args: list[str] | None,
-    ) -> FlextTypes.GeneralValueType:
+    ) -> t.GeneralValueType:
         """Execute command handler with appropriate arguments.
 
         Args:
@@ -573,7 +603,7 @@ class FlextCliCommands(FlextCliServiceBase):
         command_name: str,
         args: list[str] | None = None,
         timeout: int = FlextCliConstants.TIMEOUTS.DEFAULT,
-    ) -> FlextResult[FlextTypes.GeneralValueType]:
+    ) -> FlextResult[t.GeneralValueType]:
         """Execute a specific command.
 
         Args:
@@ -582,7 +612,7 @@ class FlextCliCommands(FlextCliServiceBase):
             timeout: Command timeout in seconds
 
         Returns:
-            FlextResult[FlextTypes.GeneralValueType]: Command result
+            FlextResult[t.GeneralValueType]: Command result
 
         """
         self.logger.info(
@@ -614,7 +644,7 @@ class FlextCliCommands(FlextCliServiceBase):
                     consequence="Command execution aborted",
                     source="flext-cli/src/flext_cli/commands.py",
                 )
-                return FlextResult[FlextTypes.GeneralValueType].fail(
+                return FlextResult[t.GeneralValueType].fail(
                     FlextCliConstants.CommandsErrorMessages.COMMAND_NOT_FOUND_DETAIL.format(
                         command_name=command_name,
                     ),
@@ -631,8 +661,8 @@ class FlextCliCommands(FlextCliServiceBase):
 
             # Type narrowing: command_info is dict, convert to GeneralValueType for is_dict_like
             # Use cast to satisfy type checker - command_info is dict[str, GeneralValueType | CliCommandHandler]
-            command_info_as_general: FlextTypes.GeneralValueType = cast(
-                "FlextTypes.GeneralValueType", command_info
+            command_info_as_general: t.GeneralValueType = cast(
+                "t.GeneralValueType", command_info
             )
             if not (
                 FlextRuntime.is_dict_like(command_info_as_general)
@@ -648,7 +678,7 @@ class FlextCliCommands(FlextCliServiceBase):
                     consequence="Command execution aborted",
                     source="flext-cli/src/flext_cli/commands.py",
                 )
-                return FlextResult[FlextTypes.GeneralValueType].fail(
+                return FlextResult[t.GeneralValueType].fail(
                     FlextCliConstants.CommandsErrorMessages.INVALID_COMMAND_STRUCTURE.format(
                         command_name=command_name,
                     ),
@@ -659,7 +689,7 @@ class FlextCliCommands(FlextCliServiceBase):
             # Type narrowing: handler_value is GeneralValueType | CliCommandHandler
             # Runtime check ensures it's callable (CliCommandHandler)
             handler_value: (
-                FlextTypes.GeneralValueType | FlextCliProtocols.Cli.CliCommandHandler
+                t.GeneralValueType | FlextCliProtocols.Cli.CliCommandHandler
             ) = command_info[FlextCliConstants.CommandsDictKeys.HANDLER]
             # Runtime check: ensure handler is callable (CliCommandHandler Protocol)
             if not isinstance(handler_value, FlextCliProtocols.Cli.CliCommandHandler):
@@ -673,7 +703,7 @@ class FlextCliCommands(FlextCliServiceBase):
                     consequence="Command execution aborted",
                     source="flext-cli/src/flext_cli/commands.py",
                 )
-                return FlextResult[FlextTypes.GeneralValueType].fail(
+                return FlextResult[t.GeneralValueType].fail(
                     FlextCliConstants.CommandsErrorMessages.HANDLER_NOT_CALLABLE.format(
                         command_name=command_name,
                     ),
@@ -701,7 +731,7 @@ class FlextCliCommands(FlextCliServiceBase):
                 source="flext-cli/src/flext_cli/commands.py",
             )
 
-            return FlextResult[FlextTypes.GeneralValueType].ok(result)
+            return FlextResult[t.GeneralValueType].ok(result)
         except Exception as e:
             self.logger.exception(
                 "FATAL ERROR during command execution - execution aborted",
@@ -713,7 +743,7 @@ class FlextCliCommands(FlextCliServiceBase):
                 severity="critical",
                 source="flext-cli/src/flext_cli/commands.py",
             )
-            return FlextResult[FlextTypes.GeneralValueType].fail(
+            return FlextResult[t.GeneralValueType].fail(
                 FlextCliConstants.ErrorMessages.COMMAND_EXECUTION_FAILED.format(
                     error=e,
                 ),
@@ -723,9 +753,7 @@ class FlextCliCommands(FlextCliServiceBase):
         self,
     ) -> dict[
         str,
-        Mapping[
-            str, FlextTypes.GeneralValueType | FlextCliProtocols.Cli.CliCommandHandler
-        ],
+        Mapping[str, t.GeneralValueType | FlextCliProtocols.Cli.CliCommandHandler],
     ]:
         """Get all registered commands.
 
@@ -733,9 +761,22 @@ class FlextCliCommands(FlextCliServiceBase):
             dict[str, CliCommandMetadata]: Dictionary of registered commands
 
         """
+
         # Return copy of commands dict - convert dict to Mapping for return type
         # _commands is typed as dict[str, dict[...]], so v is guaranteed to be dict
-        return {k: dict(v) for k, v in self._commands.items()}
+        # Use u.process to create copy
+        def copy_command(_k: str, v: dict) -> dict:
+            """Copy single command dict."""
+            return dict(v)
+
+        process_result = u.process(
+            self._commands, processor=copy_command, on_error="skip"
+        )
+        return (
+            dict(process_result.value)
+            if process_result.is_success and isinstance(process_result.value, dict)
+            else {}
+        )
 
     def clear_commands(self) -> FlextResult[int]:
         """Clear all registered commands.

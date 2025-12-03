@@ -23,7 +23,7 @@ from datetime import datetime
 from typing import TypedDict, TypeVar, cast
 
 import pytest
-from flext_core import FlextResult, FlextTypes
+from flext_core import FlextResult, t
 from flext_tests import FlextTestsUtilities
 from pydantic import BaseModel, Field, ValidationError
 from pydantic.fields import FieldInfo as PydanticFieldInfo
@@ -1301,7 +1301,7 @@ class TestFlextCliModels:
         # but mypy can't verify this for locally defined classes, so we cast
         result = FlextCliModels.CliModelConverter.cli_args_to_model(
             cast("type[BaseModel]", InvalidModel),  # type: ignore[type-var]
-            cast("Mapping[str, FlextTypes.GeneralValueType]", {"test": "data"}),
+            cast("Mapping[str, t.GeneralValueType]", {"test": "data"}),
         )
 
         assert result.is_failure
@@ -1642,7 +1642,7 @@ class TestFlextCliModels:
         result = FlextCliModels.CliModelConverter._validate_field_data(
             "test_field",
             cast(
-                "PydanticFieldInfo | str | int | float | bool | datetime | Sequence[FlextTypes.GeneralValueType] | Mapping[str, FlextTypes.GeneralValueType] | dict[str, object] | dict[str, type | str | bool | list[object] | dict[str, object]] | None",
+                "PydanticFieldInfo | str | int | float | bool | datetime | Sequence[t.GeneralValueType] | Mapping[str, t.GeneralValueType] | dict[str, object] | dict[str, type | str | bool | list[object] | dict[str, object]] | None",
                 invalid_data,
             ),
         )
@@ -1664,7 +1664,7 @@ class TestFlextCliModels:
         result = FlextCliModels.CliModelConverter._validate_field_data(
             "test_field",
             cast(
-                "PydanticFieldInfo | str | int | float | bool | datetime | Sequence[FlextTypes.GeneralValueType] | Mapping[str, FlextTypes.GeneralValueType] | dict[str, object] | dict[str, type | str | bool | list[object] | dict[str, object]] | None",
+                "PydanticFieldInfo | str | int | float | bool | datetime | Sequence[t.GeneralValueType] | Mapping[str, t.GeneralValueType] | dict[str, object] | dict[str, type | str | bool | list[object] | dict[str, object]] | None",
                 invalid_data,
             ),
         )
@@ -1687,7 +1687,7 @@ class TestFlextCliModels:
         result = FlextCliModels.CliModelConverter._validate_field_data(
             "test_field",
             cast(
-                "PydanticFieldInfo | str | int | float | bool | datetime | Sequence[FlextTypes.GeneralValueType] | Mapping[str, FlextTypes.GeneralValueType] | dict[str, object] | dict[str, type | str | bool | list[object] | dict[str, object]] | None",
+                "PydanticFieldInfo | str | int | float | bool | datetime | Sequence[t.GeneralValueType] | Mapping[str, t.GeneralValueType] | dict[str, object] | dict[str, type | str | bool | list[object] | dict[str, object]] | None",
                 invalid_data,
             ),
         )
@@ -1710,7 +1710,7 @@ class TestFlextCliModels:
         result = FlextCliModels.CliModelConverter._validate_field_data(
             "test_field",
             cast(
-                "PydanticFieldInfo | str | int | float | bool | datetime | Sequence[FlextTypes.GeneralValueType] | Mapping[str, FlextTypes.GeneralValueType] | dict[str, object] | dict[str, type | str | bool | list[object] | dict[str, object]] | None",
+                "PydanticFieldInfo | str | int | float | bool | datetime | Sequence[t.GeneralValueType] | Mapping[str, t.GeneralValueType] | dict[str, object] | dict[str, type | str | bool | list[object] | dict[str, object]] | None",
                 invalid_data,
             ),
         )
@@ -1733,7 +1733,7 @@ class TestFlextCliModels:
         result = FlextCliModels.CliModelConverter._validate_field_data(
             "test_field",
             cast(
-                "PydanticFieldInfo | str | int | float | bool | datetime | Sequence[FlextTypes.GeneralValueType] | Mapping[str, FlextTypes.GeneralValueType] | dict[str, object] | dict[str, type | str | bool | list[object] | dict[str, object]] | None",
+                "PydanticFieldInfo | str | int | float | bool | datetime | Sequence[t.GeneralValueType] | Mapping[str, t.GeneralValueType] | dict[str, object] | dict[str, type | str | bool | list[object] | dict[str, object]] | None",
                 invalid_data,
             ),
         )
@@ -1756,7 +1756,7 @@ class TestFlextCliModels:
         result = FlextCliModels.CliModelConverter._validate_field_data(
             "test_field",
             cast(
-                "PydanticFieldInfo | str | int | float | bool | datetime | Sequence[FlextTypes.GeneralValueType] | Mapping[str, FlextTypes.GeneralValueType] | dict[str, object] | dict[str, type | str | bool | list[object] | dict[str, object]] | None",
+                "PydanticFieldInfo | str | int | float | bool | datetime | Sequence[t.GeneralValueType] | Mapping[str, t.GeneralValueType] | dict[str, object] | dict[str, type | str | bool | list[object] | dict[str, object]] | None",
                 invalid_data,
             ),
         )
@@ -1949,7 +1949,7 @@ class TestFlextCliModels:
         ] = {"name": "test", "age": "invalid_int"}
         result = FlextCliModels.CliModelConverter.cli_args_to_model(
             cast("type[BaseModel]", TestModel),  # type: ignore[type-var]
-            cast("Mapping[str, FlextTypes.GeneralValueType]", cli_args),
+            cast("Mapping[str, t.GeneralValueType]", cli_args),
         )
         # Should fail validation for invalid age type
         assert result.is_failure
@@ -2016,7 +2016,7 @@ class TestFlextCliModels:
         ] = {"name": "test", "age": 25}
         result = FlextCliModels.CliModelConverter.cli_args_to_model(
             cast("type[BaseModel]", TestModel),  # type: ignore[type-var]
-            cast("Mapping[str, FlextTypes.GeneralValueType]", cli_args),
+            cast("Mapping[str, t.GeneralValueType]", cli_args),
         )
         assert result.is_success
         model_instance = result.unwrap()

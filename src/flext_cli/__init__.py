@@ -9,6 +9,16 @@ Copyright (c) 2025 FLEXT Team. All rights reserved.
 SPDX-License-Identifier: MIT
 """
 
+# Import core aliases for convenience
+from flext_core import (
+    FlextDecorators,
+    FlextExceptions,
+    FlextHandlers,
+    FlextMixins,
+    FlextResult,
+    FlextService,
+)
+
 from flext_cli.__version__ import __version__, __version_info__
 from flext_cli.api import FlextCli, FlextCliAppBase
 from flext_cli.base import FlextCliServiceBase
@@ -31,6 +41,21 @@ from flext_cli.services.prompts import FlextCliPrompts
 from flext_cli.services.tables import FlextCliTables
 from flext_cli.typings import FlextCliTypes
 from flext_cli.utilities import FlextCliUtilities
+
+# Short aliases exported in root namespace - use domain-specific aliases
+# u extends FlextUtilities from flext-core via FlextCliUtilities
+# t extends FlextTypes from flext-core via FlextCliTypes
+u = FlextCliUtilities  # Override with domain-specific utilities
+t = FlextCliTypes  # Override with domain-specific types
+c = FlextCliConstants  # Domain-specific constants
+m = FlextCliModels  # Domain-specific models
+p = FlextCliProtocols  # Domain-specific protocols
+r = FlextResult  # Shared from flext-core
+e = FlextExceptions  # Shared from flext-core
+d = FlextDecorators  # Shared from flext-core
+s = FlextService  # Shared from flext-core
+x = FlextMixins  # Shared from flext-core
+h = FlextHandlers  # Shared from flext-core
 
 # Re-export for convenience
 ServiceExecutionResult = FlextCliModels.ServiceExecutionResult
@@ -59,7 +84,17 @@ __all__ = [
     "FlextCliTypes",
     "FlextCliUtilities",
     "ServiceExecutionResult",
-    # Core API (alphabetically sorted per FLEXT standards)
     "__version__",
     "__version_info__",
+    "c",
+    "d",
+    "e",
+    "h",
+    "m",
+    "p",
+    "r",
+    "s",
+    "t",
+    "u",
+    "x",
 ]

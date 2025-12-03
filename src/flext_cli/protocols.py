@@ -5,11 +5,14 @@ from __future__ import annotations
 from collections.abc import Mapping, Sequence
 from typing import Protocol, Self, runtime_checkable
 
-from flext_core import FlextProtocols, FlextResult, FlextTypes
+from flext_core import FlextProtocols, FlextResult
+
+p = FlextProtocols
+# t is already imported from flext_core
 
 
-class FlextCliProtocols(FlextProtocols):
-    """FlextCli protocol definitions composing with FlextProtocols.
+class FlextCliProtocols(p):
+    """FlextCli protocol definitions composing with p.
 
     Business Rules:
     ───────────────
@@ -18,7 +21,7 @@ class FlextCliProtocols(FlextProtocols):
     3. Protocols CANNOT import Models, Config, or concrete classes
     4. Use @runtime_checkable for isinstance() checks at runtime
     5. Use Self for methods returning the same instance (Python 3.11+)
-    6. Compose with FlextProtocols for consistency across flext ecosystem
+    6. Compose with p for consistency across flext ecosystem
     7. Protocols enable dependency inversion - depend on abstractions, not concretions
 
     Architecture Implications:
@@ -26,7 +29,7 @@ class FlextCliProtocols(FlextProtocols):
     - Protocols enforce interface contracts without coupling to implementations
     - Structural typing allows multiple implementations of same protocol
     - Runtime checks via @runtime_checkable enable isinstance() validation
-    - Composition with FlextProtocols ensures ecosystem-wide consistency
+    - Composition with p ensures ecosystem-wide consistency
 
     Audit Implications:
     ───────────────────
@@ -48,15 +51,11 @@ class FlextCliProtocols(FlextProtocols):
         class RichTableProtocol(Protocol):
             """Protocol for Rich Table objects."""
 
-            def add_column(
-                self, header: str, **kwargs: FlextTypes.GeneralValueType
-            ) -> None:
+            def add_column(self, header: str, **kwargs: t.GeneralValueType) -> None:
                 """Add table column."""
                 ...
 
-            def add_row(
-                self, *cells: str, **kwargs: FlextTypes.GeneralValueType
-            ) -> None:
+            def add_row(self, *cells: str, **kwargs: t.GeneralValueType) -> None:
                 """Add table row."""
                 ...
 
@@ -64,7 +63,7 @@ class FlextCliProtocols(FlextProtocols):
         class RichTreeProtocol(Protocol):
             """Protocol for Rich Tree objects."""
 
-            def add(self, label: str, **kwargs: FlextTypes.GeneralValueType) -> Self:
+            def add(self, label: str, **kwargs: t.GeneralValueType) -> Self:
                 """Add tree node."""
                 ...
 
@@ -76,7 +75,7 @@ class FlextCliProtocols(FlextProtocols):
                 self,
                 text: str,
                 style: str | None = None,
-                **kwargs: FlextTypes.GeneralValueType,
+                **kwargs: t.GeneralValueType,
             ) -> None:
                 """Print to console."""
                 ...
@@ -117,7 +116,7 @@ class FlextCliProtocols(FlextProtocols):
 
             def execute(
                 self, args: Sequence[str]
-            ) -> FlextProtocols.ResultProtocol[FlextTypes.GeneralValueType]:
+            ) -> p.ResultProtocol[t.GeneralValueType]:
                 """Execute command with arguments."""
                 ...
 
@@ -127,9 +126,9 @@ class FlextCliProtocols(FlextProtocols):
 
             def __call__(
                 self,
-                *args: FlextTypes.GeneralValueType,
-                **kwargs: FlextTypes.GeneralValueType,
-            ) -> FlextTypes.GeneralValueType:
+                *args: t.GeneralValueType,
+                **kwargs: t.GeneralValueType,
+            ) -> t.GeneralValueType:
                 """Call handler with arguments."""
                 ...
 
@@ -139,8 +138,8 @@ class FlextCliProtocols(FlextProtocols):
 
             def format_data(
                 self,
-                data: FlextTypes.GeneralValueType,
-                **options: FlextTypes.GeneralValueType,
+                data: t.GeneralValueType,
+                **options: t.GeneralValueType,
             ) -> FlextResult[str]:
                 """Format data."""
                 ...
@@ -149,11 +148,11 @@ class FlextCliProtocols(FlextProtocols):
         class CliConfigProvider(Protocol):
             """Protocol for CLI configuration providers."""
 
-            def load_config(self) -> FlextResult[FlextTypes.JsonDict]:
+            def load_config(self) -> FlextResult[t.JsonDict]:
                 """Load configuration."""
                 ...
 
-            def save_config(self, config: FlextTypes.JsonDict) -> FlextResult[bool]:
+            def save_config(self, config: t.JsonDict) -> FlextResult[bool]:
                 """Save configuration."""
                 ...
 
@@ -240,7 +239,7 @@ class FlextCliProtocols(FlextProtocols):
         class CliDebugProvider(Protocol):
             """Protocol for CLI debug providers."""
 
-            def get_debug_info(self) -> FlextResult[FlextTypes.JsonDict]:
+            def get_debug_info(self) -> FlextResult[t.JsonDict]:
                 """Get debug information."""
                 ...
 
@@ -255,9 +254,9 @@ class FlextCliProtocols(FlextProtocols):
 
             def handle(
                 self,
-                model: FlextTypes.GeneralValueType,
-                **kwargs: FlextTypes.GeneralValueType,
-            ) -> FlextProtocols.ResultProtocol[FlextTypes.GeneralValueType]:
+                model: t.GeneralValueType,
+                **kwargs: t.GeneralValueType,
+            ) -> p.ResultProtocol[t.GeneralValueType]:
                 """Handle model command."""
                 ...
 
@@ -316,7 +315,7 @@ class FlextCliProtocols(FlextProtocols):
     # ═══════════════════════════════════════════════════════════════════
     # LAYER 1: Service Protocols (pode usar Layer 0)
     # ═══════════════════════════════════════════════════════════════════
-    # Note: Renamed to CliService to avoid conflict with FlextProtocols.Service
+    # Note: Renamed to CliService to avoid conflict with p.Service
 
     class CliService:
         """CLI service-related protocols."""
@@ -371,22 +370,18 @@ class FlextCliProtocols(FlextProtocols):
                 """Format data as table."""
                 ...
 
-            def format_json(
-                self, data: FlextTypes.GeneralValueType
-            ) -> FlextResult[str]:
+            def format_json(self, data: t.GeneralValueType) -> FlextResult[str]:
                 """Format data as JSON."""
                 ...
 
-            def format_yaml(
-                self, data: FlextTypes.GeneralValueType
-            ) -> FlextResult[str]:
+            def format_yaml(self, data: t.GeneralValueType) -> FlextResult[str]:
                 """Format data as YAML."""
                 ...
 
     # ═══════════════════════════════════════════════════════════════════
     # LAYER 2: Handler Protocols (pode usar Layer 0 e 1)
     # ═══════════════════════════════════════════════════════════════════
-    # Note: Renamed to CliHandler to avoid conflict with FlextProtocols.Handler
+    # Note: Renamed to CliHandler to avoid conflict with p.Handler
 
     class CliHandler:
         """CLI handler-related protocols."""

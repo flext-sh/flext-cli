@@ -16,7 +16,7 @@ import sys
 from collections.abc import Callable
 from typing import ClassVar
 
-from flext_core import FlextConstants, FlextResult, FlextTypes
+from flext_core import FlextConstants, FlextResult, t
 from typer.models import OptionInfo
 
 from flext_cli.config import FlextCliConfig
@@ -337,7 +337,7 @@ class FlextCliCommonParams:
         # (which would see intermediate states)
         # Then update the original config object's attributes
         # Use mutable dict for building updates
-        update_data: dict[str, FlextTypes.GeneralValueType] = {}
+        update_data: dict[str, t.GeneralValueType] = {}
         if params.verbose is not None:
             update_data["verbose"] = params.verbose
         if params.quiet is not None:

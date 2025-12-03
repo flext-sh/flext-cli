@@ -17,7 +17,7 @@ from __future__ import annotations
 from typing import cast
 
 import pytest
-from flext_core import FlextResult, FlextTypes
+from flext_core import FlextResult, t
 from flext_tests import FlextTestsMatchers
 
 from flext_cli import FlextCliProtocols
@@ -119,7 +119,7 @@ class TestFlextCliProtocols:
             if isinstance(formatter, FlextCliProtocols.Cli.CliFormatter):
                 test_data_raw = TestProtocols.TestData.Formatting.SIMPLE_DATA
                 # Cast to CliFormatData (which is CliJsonDict)
-                test_data = cast("FlextTypes.JsonDict", test_data_raw)
+                test_data = cast("t.JsonDict", test_data_raw)
                 format_result = formatter.format_data(test_data)
                 FlextTestsMatchers.assert_success(format_result)
 
@@ -152,7 +152,7 @@ class TestFlextCliProtocols:
             if isinstance(provider, FlextCliProtocols.Cli.CliConfigProvider):
                 test_config_raw = TestProtocols.TestData.Configuration.BASIC_CONFIG
                 # Cast to CliConfigData
-                test_config = cast("FlextTypes.JsonDict", test_config_raw)
+                test_config = cast("t.JsonDict", test_config_raw)
                 save_result = provider.save_config(test_config)
                 FlextTestsMatchers.assert_success(save_result)
 
@@ -185,14 +185,29 @@ class TestFlextCliProtocols:
         if auth_result.is_success and auth_result.value:
             authenticator = auth_result.value
             # Type narrowing using protocol check
+            # Business Rule: Protocol validation MUST use isinstance() for runtime type checking
+            # Architecture: @runtime_checkable enables isinstance() checks for structural typing
+            # Audit Implication: Protocol compliance verified at runtime before method calls
             if isinstance(authenticator, FlextCliProtocols.Cli.CliAuthenticator):
                 creds_raw = TestProtocols.TestData.Authentication.VALID_CREDS
                 # Extract username and password from credentials dict
-                creds = cast("FlextTypes.JsonDict", creds_raw)
+                creds = cast("t.JsonDict", creds_raw)
                 username = cast("str", creds.get("username", "test_user"))
                 password = cast("str", creds.get("password", "test_pass"))
-                auth_response = authenticator.authenticate(username, password)
-                FlextTestsMatchers.assert_success(auth_response)
+                # Business Rule: authenticate() MUST be called as instance method (self bound)
+                # Architecture: Bound methods automatically receive self parameter
+                # Audit Implication: Method calls must match protocol signature exactly
+                # Ensure method is bound by accessing it directly from instance
+                # Business Rule: Method access MUST verify callability before invocation
+                # Architecture: getattr() retrieves bound method, callable() verifies it's callable
+                # Audit Implication: Runtime method validation prevents AttributeError at call site
+                auth_method = getattr(authenticator, "authenticate", None)
+                if auth_method and callable(auth_method):
+                    # Type narrowing: auth_method is callable and returns FlextResult[str]
+                    auth_response: FlextResult[str] = auth_method(username, password)
+                    FlextTestsMatchers.assert_success(auth_response)
+                else:
+                    pytest.fail("authenticate method not found or not callable")
 
     def test_authenticator_validate_token_method(self) -> None:
         """Test authenticator's validate_token method."""
@@ -250,7 +265,7 @@ class TestFlextCliProtocols:
     # ========================================================================
 
     def test_protocol_inheritance_structure(self) -> None:
-        """Test protocol inheritance from FlextProtocols."""
+        """Test protocol inheritance from p."""
         assert issubclass(FlextCliProtocols, FlextCliProtocols)
 
     def test_cli_namespace_nested_properly(self) -> None:

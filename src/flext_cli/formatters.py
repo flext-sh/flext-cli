@@ -12,7 +12,19 @@ from __future__ import annotations
 
 from io import StringIO
 
-from flext_core import FlextResult, FlextTypes
+from flext_core import (
+    FlextConstants,
+    FlextDecorators,
+    FlextExceptions,
+    FlextHandlers,
+    FlextMixins,
+    FlextModels,
+    FlextProtocols,
+    FlextResult,
+    FlextService,
+    t,
+    u,
+)
 from flext_core.runtime import FlextRuntime
 from rich.console import Console
 from rich.layout import Layout as RichLayout
@@ -24,6 +36,30 @@ from rich.table import Table as RichTable
 from rich.tree import Tree as RichTree
 
 from flext_cli.constants import FlextCliConstants
+
+# Aliases for static method calls and type references
+# Use u.* for FlextUtilities static methods
+# Use t.* for FlextTypes type references
+# Use c.* for FlextConstants constants
+# Use m.* for FlextModels model references
+# Use p.* for FlextProtocols protocol references
+# Use r.* for FlextResult methods
+# Use e.* for FlextExceptions
+# Use d.* for FlextDecorators decorators
+# Use s.* for FlextService service base
+# Use x.* for FlextMixins mixins
+# Use h.* for FlextHandlers handlers
+# u is already imported from flext_core
+# t is already imported from flext_core
+c = FlextConstants
+m = FlextModels
+p = FlextProtocols
+r = FlextResult
+e = FlextExceptions
+d = FlextDecorators
+s = FlextService
+x = FlextMixins
+h = FlextHandlers
 
 
 class FlextCliFormatters:
@@ -64,9 +100,9 @@ class FlextCliFormatters:
         # Use Rich directly (formatters.py is ONE OF TWO files that may import Rich)
         self.console = Console()
 
-    def execute(self) -> FlextResult[FlextTypes.JsonDict]:  # noqa: PLR6301
+    def execute(self) -> FlextResult[t.JsonDict]:  # noqa: PLR6301
         """Execute service - required by FlextService."""
-        return FlextResult[FlextTypes.JsonDict].ok({
+        return FlextResult[t.JsonDict].ok({
             FlextCliConstants.DictKeys.STATUS: FlextCliConstants.ServiceStatus.OPERATIONAL.value,
             FlextCliConstants.DictKeys.SERVICE: FlextCliConstants.Services.FORMATTERS,
         })
@@ -103,7 +139,7 @@ class FlextCliFormatters:
 
     @staticmethod
     def create_table(
-        data: FlextTypes.JsonDict | None = None,
+        data: t.JsonDict | None = None,
         headers: list[str] | None = None,
         title: str | None = None,
     ) -> FlextResult[RichTable]:
@@ -132,19 +168,22 @@ class FlextCliFormatters:
 
             # Add rows if data provided
             if data and FlextRuntime.is_dict_like(data):
-                # Simple FlextTypes.JsonDict to table conversion - key-value pairs for 2-column tables
-                if (
-                    headers
-                    and len(headers)
-                    == FlextCliConstants.FormattersDefaults.TABLE_KEY_VALUE_COLUMNS
-                ):
-                    # Key-value pairs
-                    for key, value in data.items():
-                        table.add_row(str(key), str(value))
-                else:
-                    # Single column with values
-                    for key, value in data.items():
-                        table.add_row(str(key), str(value))
+                # Simple t.JsonDict to table conversion - key-value pairs for 2-column tables
+                # Use u.process to add rows
+                def add_row(k: str, v: t.GeneralValueType) -> None:
+                    """Add single row to table."""
+                    if (
+                        headers
+                        and len(headers)
+                        == FlextCliConstants.FormattersDefaults.TABLE_KEY_VALUE_COLUMNS
+                    ):
+                        # Key-value pairs
+                        table.add_row(str(k), str(v))
+                    else:
+                        # Single column with values
+                        table.add_row(str(k), str(v))
+
+                u.process(data, processor=add_row, on_error="skip")
 
             return FlextResult[RichTable].ok(table)
 

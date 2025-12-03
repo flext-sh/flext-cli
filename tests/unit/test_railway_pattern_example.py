@@ -18,7 +18,7 @@ from collections.abc import Generator
 from pathlib import Path
 
 import pytest
-from flext_core import FlextTypes
+from flext_core import t
 
 from flext_cli import FlextCliFileTools
 
@@ -72,7 +72,7 @@ class TestRailwayPatternExample:
         self,
         file_tools: FlextCliFileTools,
         temp_dir: Path,
-        test_data: FlextTypes.JsonDict,
+        test_data: t.JsonDict,
         filename: str,
         verify_keys: list[str],
     ) -> None:
@@ -124,7 +124,7 @@ class TestRailwayPatternExample:
         self,
         file_tools: FlextCliFileTools,
         invalid_path: str,
-        test_data: FlextTypes.JsonDict,
+        test_data: t.JsonDict,
         scenario: str,
     ) -> None:
         """Test Railway Pattern error handling and propagation.

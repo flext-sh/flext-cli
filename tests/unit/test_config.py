@@ -26,7 +26,7 @@ from typing import Final, Literal
 
 import pytest
 import yaml
-from flext_core import FlextTypes
+from flext_core import t
 from pydantic_settings import BaseSettings
 
 from flext_cli import (
@@ -57,7 +57,7 @@ class ConfigTestScenario:
 
     name: str
     test_type: ConfigTestType
-    data: FlextTypes.JsonDict | None = None
+    data: t.JsonDict | None = None
     should_pass: bool = True
 
 
@@ -87,14 +87,14 @@ class ConfigTestFactory:
     ]
 
     # Test data
-    JSON_CONFIG_DATA: Final[FlextTypes.JsonDict] = {
+    JSON_CONFIG_DATA: Final[t.JsonDict] = {
         "debug": True,
         "verbose": False,
         "profile": "test",
         "output_format": "json",
     }
 
-    YAML_CONFIG_DATA: Final[FlextTypes.JsonDict] = {
+    YAML_CONFIG_DATA: Final[t.JsonDict] = {
         "debug": False,
         "verbose": True,
         "profile": "yaml_test",
@@ -534,6 +534,6 @@ class TestConfigEdgeCases:
     def test_save_config(self) -> None:
         """Test save_config method."""
         config = FlextCliConfig()
-        new_config: FlextTypes.JsonDict = {"debug": True}
+        new_config: t.JsonDict = {"debug": True}
         result = config.save_config(new_config)
         assert result.is_success or result.is_failure

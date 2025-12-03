@@ -24,7 +24,7 @@ from typing import Never, cast
 
 import pytest
 import typer
-from flext_core import FlextConstants, FlextLogger, FlextTypes
+from flext_core import FlextConstants, FlextLogger, t
 from typer.models import OptionInfo
 from typer.testing import CliRunner
 
@@ -188,7 +188,7 @@ def _create_decorated_command(
     app: typer.Typer,
     command_name: str = "test",
     echo_message: str | None = None,
-) -> Callable[..., FlextTypes.GeneralValueType]:
+) -> Callable[..., t.GeneralValueType]:
     """Create a decorated test command."""
 
     @app.command(name=command_name)
@@ -207,7 +207,7 @@ def _create_decorated_command(
         output_format: str = DEFAULT_OUTPUT_FORMAT,
         no_color: bool = DEFAULT_NO_COLOR,
         config_file: Path | None = DEFAULT_CONFIG_FILE,
-    ) -> FlextTypes.GeneralValueType:
+    ) -> t.GeneralValueType:
         """Test command with all common parameters."""
         if echo_message:
             typer.echo(echo_message)
@@ -221,9 +221,9 @@ def _create_decorated_command(
         return None
 
     # Return decorated function - it satisfies CliCommandFunction protocol structurally
-    # The protocol accepts any callable with (*args, **kwargs) -> FlextTypes.GeneralValueType signature
+    # The protocol accepts any callable with (*args, **kwargs) -> t.GeneralValueType signature
     # Type checker requires cast for structural compatibility
-    return cast("Callable[..., FlextTypes.GeneralValueType]", decorated_test_command)
+    return cast("Callable[..., t.GeneralValueType]", decorated_test_command)
 
 
 # ============================================================================
@@ -555,7 +555,7 @@ class TestFlextCliCommonParams:
             debug: bool = DEFAULT_DEBUG,
             log_level: str = DEFAULT_LOG_LEVEL,
             output_format: str = DEFAULT_OUTPUT_FORMAT,
-        ) -> FlextTypes.GeneralValueType:
+        ) -> t.GeneralValueType:
             """Test command with config integration."""
             config = FlextCliServiceBase.get_cli_config()
             result = FlextCliCommonParams.apply_to_config(
@@ -937,7 +937,7 @@ class TestFlextCliCommonParams:
                 @decorator
                 def decorated_test_function(
                     *args: object, **kwargs: object
-                ) -> FlextTypes.GeneralValueType:
+                ) -> t.GeneralValueType:
                     """Test function."""
                     return None
 

@@ -24,14 +24,17 @@ from typing import IO, Annotated, TypeVar, cast
 import click
 import typer
 from flext_core import (
+    FlextConstants,
     FlextContainer,
+    FlextExceptions,
     FlextLogger,
+    FlextModels,
+    FlextProtocols,
     FlextResult,
     FlextRuntime,
-    FlextTypes,
-    FlextUtilities,
+    t,
+    u,
 )
-from flext_core.models import FlextModels
 from pydantic import BaseModel
 from typer.testing import CliRunner
 
@@ -40,6 +43,22 @@ from flext_cli.config import FlextCliConfig
 from flext_cli.constants import FlextCliConstants
 from flext_cli.models import FlextCliModels
 from flext_cli.protocols import FlextCliProtocols
+
+# Aliases for static method calls and type references
+# Use u.* for FlextUtilities static methods
+# Use t.* for FlextTypes type references
+# Use c.* for FlextConstants constants
+# Use m.* for FlextModels model references
+# Use p.* for FlextProtocols protocol references
+# Use r.* for FlextResult methods
+# Use e.* for FlextExceptions
+# u is already imported from flext_core
+# t is already imported from flext_core
+c = FlextConstants
+m = FlextModels
+p = FlextProtocols
+r = FlextResult
+e = FlextExceptions
 
 # TypeVar for model command generic typing
 TModel = TypeVar("TModel", bound=BaseModel)
@@ -277,24 +296,32 @@ class FlextCliCli:  # noqa: PLR0904
                 "log_level": log_level,
             }
 
-            # Filter out None values and False booleans
-            active_params = {
-                k: v
-                for k, v in common_params.items()
-                if v is not None and v is not False
-            }
+            # Filter out None values and False booleans using u.filter
+            active_params_raw = u.filter(
+                common_params,
+                predicate=lambda _k, v: v is not None and v is not False,
+            )
+            active_params: dict[str, t.GeneralValueType] = (
+                dict(active_params_raw) if isinstance(active_params_raw, dict) else {}
+            )
 
             if not active_params or not config:
                 return
 
-            # ✅ FILTER: Only apply params that exist in config
+            # ✅ FILTER: Only apply params that exist in config using u.filter
             # Config may not have all common params (e.g., quiet)
             # Type narrowed: config is FlextCliConfig (parameter type)
             # FlextCliConfig extends BaseModel, so it has model_fields
             config_fields: set[str] = set(type(config).model_fields.keys())
-            filtered_params = {
-                k: v for k, v in active_params.items() if k in config_fields
-            }
+            filtered_params_raw = u.filter(
+                active_params,
+                predicate=lambda k, _v: k in config_fields,
+            )
+            filtered_params: dict[str, t.GeneralValueType] = (
+                dict(filtered_params_raw)
+                if isinstance(filtered_params_raw, dict)
+                else {}
+            )
 
             if not filtered_params:
                 return
@@ -403,7 +430,7 @@ class FlextCliCli:  # noqa: PLR0904
         self,
         *param_decls: str,
         config: FlextCliModels.OptionConfig | None = None,
-        **kwargs: FlextTypes.GeneralValueType,
+        **kwargs: t.GeneralValueType,
     ) -> Callable[
         [FlextCliProtocols.Cli.CliCommandFunction],
         FlextCliProtocols.Cli.CliCommandFunction,
@@ -444,12 +471,12 @@ class FlextCliCli:  # noqa: PLR0904
         # Business Rule: OptionConfig.type_hint accepts GeneralValueType
         # Click ParamType and Python types are compatible with GeneralValueType at runtime
         # We use cast to satisfy type checker while maintaining runtime compatibility
-        type_hint_value: FlextTypes.GeneralValueType | None = None
+        type_hint_value: t.GeneralValueType | None = None
         type_hint = kwargs.get("type_hint")
         if type_hint is not None:
             # Click ParamType and Python types are compatible with GeneralValueType
             # Cast is safe because GeneralValueType includes type objects
-            type_hint_value = cast("FlextTypes.GeneralValueType", type_hint)
+            type_hint_value = cast("t.GeneralValueType", type_hint)
         if config is None:
             help_text_val = kwargs.get("help_text")
             config = FlextCliModels.OptionConfig(
@@ -575,7 +602,7 @@ class FlextCliCli:  # noqa: PLR0904
 
     @staticmethod
     def get_tuple_type(
-        types: Sequence[type[FlextTypes.GeneralValueType] | click.ParamType],
+        types: Sequence[type[t.GeneralValueType] | click.ParamType],
     ) -> click.Tuple:
         """Get Click Tuple parameter type.
 
@@ -674,8 +701,8 @@ class FlextCliCli:  # noqa: PLR0904
 
     @staticmethod
     def create_pass_context_decorator() -> Callable[
-        [Callable[[click.Context], FlextTypes.GeneralValueType]],
-        Callable[[click.Context], FlextTypes.GeneralValueType],
+        [Callable[[click.Context], t.GeneralValueType]],
+        Callable[[click.Context], t.GeneralValueType],
     ]:
         """Create pass_context decorator.
 
@@ -696,7 +723,7 @@ class FlextCliCli:  # noqa: PLR0904
         # Use cast for structural typing compatibility
         # The return type is complex, so we use cast to satisfy type checker
         return cast(
-            "Callable[[Callable[[click.Context], FlextTypes.GeneralValueType]], Callable[[click.Context], FlextTypes.GeneralValueType]]",
+            "Callable[[Callable[[click.Context], t.GeneralValueType]], Callable[[click.Context], t.GeneralValueType]]",
             click.pass_context,
         )
 
@@ -797,8 +824,8 @@ class FlextCliCli:  # noqa: PLR0904
     def prompt(
         text: str,
         config: FlextCliModels.PromptConfig | None = None,
-        **kwargs: FlextTypes.GeneralValueType,
-    ) -> FlextResult[FlextTypes.GeneralValueType]:
+        **kwargs: t.GeneralValueType,
+    ) -> FlextResult[t.GeneralValueType]:
         """Prompt for input using Typer backend.
 
         Business Rule:
@@ -861,10 +888,17 @@ class FlextCliCli:  # noqa: PLR0904
             )
             # Convert result to CliJsonValue - typer.prompt returns various types
             # CliJsonValue is alias of GeneralValueType, so no cast needed
-            json_value = FlextUtilities.DataMapper.convert_to_json_value(result)
-            return FlextResult[FlextTypes.GeneralValueType].ok(json_value)
+            # Use u.transform for JSON conversion
+            if isinstance(result, dict):
+                transform_result = u.transform(result, to_json=True)
+                json_value = (
+                    transform_result.unwrap() if transform_result.is_success else result
+                )
+            else:
+                json_value = result
+            return FlextResult[t.GeneralValueType].ok(json_value)
         except typer.Abort as e:
-            return FlextResult[FlextTypes.GeneralValueType].fail(
+            return FlextResult[t.GeneralValueType].fail(
                 FlextCliConstants.ErrorMessages.USER_ABORTED_PROMPT.format(error=e),
             )
 
@@ -969,7 +1003,10 @@ class FlextCliCli:  # noqa: PLR0904
     @staticmethod
     def model_command(
         model_class: type[TModel],
-        handler: Callable[[TModel], FlextTypes.GeneralValueType | FlextResult[FlextTypes.GeneralValueType]],
+        handler: Callable[
+            [TModel],
+            t.GeneralValueType | FlextResult[t.GeneralValueType],
+        ],
         config: FlextCliConfig | None = None,
     ) -> FlextCliProtocols.Cli.CliCommandFunction:
         """Create Typer command from Pydantic model with automatic config integration.
@@ -1078,7 +1115,7 @@ class FlextCliCli:  # noqa: PLR0904
         # ModelCommandBuilder accepts GeneralValueType, so we cast handler
         builder = FlextCliModels.ModelCommandBuilder(
             cast("type[FlextModels]", model_class),
-            cast("Callable[[FlextModels], FlextTypes.GeneralValueType]", handler),
+            cast("Callable[[FlextModels], t.GeneralValueType]", handler),
             config,
         )
         # ModelCommandBuilder.build() returns a function implementing
@@ -1086,15 +1123,15 @@ class FlextCliCli:  # noqa: PLR0904
         return builder.build()
 
     @staticmethod
-    def execute() -> FlextResult[FlextTypes.JsonDict]:
+    def execute() -> FlextResult[t.JsonDict]:
         """Execute Click abstraction layer operations.
 
         Returns:
-            FlextResult[FlextTypes.JsonDict]: Success with CLI status or
+            FlextResult[t.JsonDict]: Success with CLI status or
             failure with error
 
         """
-        return FlextResult[FlextTypes.JsonDict].ok({
+        return FlextResult[t.JsonDict].ok({
             FlextCliConstants.DictKeys.SERVICE: FlextCliConstants.FLEXT_CLI,
             FlextCliConstants.DictKeys.STATUS: (
                 FlextCliConstants.ServiceStatus.OPERATIONAL.value

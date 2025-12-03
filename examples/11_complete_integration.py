@@ -29,9 +29,12 @@ from collections.abc import Mapping
 from pathlib import Path
 from typing import cast
 
-from flext_core import FlextResult, FlextTypes, FlextUtilities
+from flext_core import FlextUtilities
 
 from flext_cli import FlextCli, FlextCliPrompts, FlextCliTypes
+
+# Alias for static method calls - use u.* for u static methods
+u = FlextUtilities
 
 cli = FlextCli()
 
@@ -97,13 +100,15 @@ class DataManagerCLI:
                 "Data is not a dictionary",
             )
         self.cli.output.print_message("✅ Data loaded successfully", style="green")
-        # Convert to JsonDict-compatible dict using FlextUtilities
+        # Convert to JsonDict-compatible dict using u
         converted_data: FlextCliTypes.Data.CliDataDict = (
-            FlextUtilities.DataMapper.convert_dict_to_json(data)
+            u.transform(data, to_json=True).unwrap()
+            if isinstance(data, dict) and u.transform(data, to_json=True).is_success
+            else data
         )
         return FlextResult[FlextCliTypes.Data.CliDataDict].ok(converted_data)
 
-    def display_data(self, data: Mapping[str, FlextTypes.GeneralValueType]) -> None:
+    def display_data(self, data: Mapping[str, t.GeneralValueType]) -> None:
         """Display data as formatted table."""
         if not data:
             self.cli.output.print_message("⚠️  No data to display", style="yellow")
@@ -144,11 +149,15 @@ class DataManagerCLI:
         self.cli.output.print_message(
             f"✅ Created entry: {key} = {value}", style="green"
         )
-        # Convert to JsonDict-compatible dict using FlextUtilities
+        # Convert to JsonDict-compatible dict using u
         converted_entry: FlextCliTypes.Data.CliDataDict = (
-            FlextUtilities.DataMapper.convert_dict_to_json(
-                cast("dict[str, FlextTypes.GeneralValueType]", entry)
-            )
+            u.transform(
+                cast("dict[str, t.GeneralValueType]", entry), to_json=True
+            ).unwrap()
+            if u.transform(
+                cast("dict[str, t.GeneralValueType]", entry), to_json=True
+            ).is_success
+            else cast("dict[str, t.GeneralValueType]", entry)
         )
         return FlextResult[FlextCliTypes.Data.CliDataDict].ok(converted_entry)
 
@@ -160,7 +169,7 @@ class DataManagerCLI:
         # Step 2: Load existing data (or create new)
         self.cli.output.print_message("\n📂 Loading existing data...", style="cyan")
         load_result = self.load_data()
-        current_data: dict[str, FlextTypes.GeneralValueType] = {}
+        current_data: dict[str, t.GeneralValueType] = {}
 
         if load_result.is_success:
             # Load existing data for update operations
@@ -266,10 +275,13 @@ def main() -> None:
     cli.output.print_message(
         "\n2. Railway Pattern (chained operations):", style="bold cyan"
     )
-    test_data_raw: dict[str, FlextTypes.GeneralValueType] = {"id": 1, "name": "test"}
-    # Convert to JsonDict-compatible dict using FlextUtilities
+    test_data_raw: dict[str, t.GeneralValueType] = {"id": 1, "name": "test"}
+    # Convert to JsonDict-compatible dict using u
     test_data: FlextCliTypes.Data.CliDataDict = (
-        FlextUtilities.DataMapper.convert_dict_to_json(test_data_raw)
+        u.transform(test_data_raw, to_json=True).unwrap()
+        if isinstance(test_data_raw, dict)
+        and u.transform(test_data_raw, to_json=True).is_success
+        else test_data_raw
     )
     pipeline_result = process_with_railway_pattern(test_data)
 

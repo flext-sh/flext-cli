@@ -20,7 +20,7 @@ from enum import StrEnum
 from typing import cast
 
 import pytest
-from flext_core import FlextResult, FlextTypes
+from flext_core import FlextResult, t
 from flext_tests import FlextTestsMatchers
 
 from flext_cli import FlextCliModels, FlextCliTables
@@ -48,7 +48,7 @@ class TableTestCase:
 
     test_type: TableTestType
     description: str
-    config: FlextTypes.JsonDict
+    config: t.JsonDict
     data_key: str
     expected_result: bool = True
     content_assertions: list[str] | None = None
@@ -231,7 +231,7 @@ class TestFlextCliTables:
             ]
 
         @staticmethod
-        def create_edge_case_data() -> FlextTypes.JsonDict:
+        def create_edge_case_data() -> t.JsonDict:
             """Create edge case test data."""
             return {
                 "people_dict": TestTables.Data.Sample.PEOPLE_DICT,
@@ -330,7 +330,7 @@ class TestFlextCliTables:
         return FlextCliTables()
 
     @pytest.fixture
-    def test_data(self) -> FlextTypes.JsonDict:
+    def test_data(self) -> t.JsonDict:
         """Create comprehensive test data."""
         return TestFlextCliTables.TableTestFactory.create_edge_case_data()
 
@@ -346,7 +346,7 @@ class TestFlextCliTables:
     def test_table_comprehensive_functionality(
         self,
         tables: FlextCliTables,
-        test_data: FlextTypes.JsonDict,
+        test_data: t.JsonDict,
         test_case: TableTestCase,
     ) -> None:
         """Test comprehensive table functionality using parametrized cases."""
@@ -372,7 +372,7 @@ class TestFlextCliTables:
                 config = FlextCliModels.TableConfig.model_validate(test_case.config)
                 # Convert data to TableData - ensure it's Iterable[Sequence | Mapping]
                 table_data = cast(
-                    "Sequence[Sequence[FlextTypes.GeneralValueType]] | Sequence[Mapping[str, FlextTypes.GeneralValueType]]",
+                    "Sequence[Sequence[t.GeneralValueType]] | Sequence[Mapping[str, t.GeneralValueType]]",
                     data,
                 )
                 result = tables.create_table(data=table_data, config=config)
@@ -396,7 +396,7 @@ class TestFlextCliTables:
                 config = FlextCliModels.TableConfig.model_validate(test_case.config)
                 # Convert data to TableData - ensure it's Iterable[Sequence | Mapping]
                 table_data = cast(
-                    "Sequence[Sequence[FlextTypes.GeneralValueType]] | Sequence[Mapping[str, FlextTypes.GeneralValueType]]",
+                    "Sequence[Sequence[t.GeneralValueType]] | Sequence[Mapping[str, t.GeneralValueType]]",
                     data,
                 )
                 result = tables.create_table(data=table_data, config=config)
@@ -437,7 +437,7 @@ class TestFlextCliTables:
     def test_specialized_table_formats(
         self,
         tables: FlextCliTables,
-        test_data: FlextTypes.JsonDict,
+        test_data: t.JsonDict,
         method_name: str,
         format_name: str,
         expected_content: list[str],
@@ -448,7 +448,7 @@ class TestFlextCliTables:
         # Call the appropriate method
         # Convert data to TableData - ensure it's Iterable[Sequence | Mapping]
         table_data = cast(
-            "Sequence[Sequence[FlextTypes.GeneralValueType]] | Sequence[Mapping[str, FlextTypes.GeneralValueType]]",
+            "Sequence[Sequence[t.GeneralValueType]] | Sequence[Mapping[str, t.GeneralValueType]]",
             data,
         )
         match method_name:
@@ -484,14 +484,14 @@ class TestFlextCliTables:
     def test_edge_cases_and_special_scenarios(
         self,
         tables: FlextCliTables,
-        test_data: FlextTypes.JsonDict,
+        test_data: t.JsonDict,
     ) -> None:
         """Test edge cases and special scenarios."""
         # Single row table
         single_row = test_data["single_row"]
         config = FlextCliModels.TableConfig(table_format=TestTables.Formats.SIMPLE)
         table_data = cast(
-            "Sequence[Sequence[FlextTypes.GeneralValueType]] | Sequence[Mapping[str, FlextTypes.GeneralValueType]]",
+            "Sequence[Sequence[t.GeneralValueType]] | Sequence[Mapping[str, t.GeneralValueType]]",
             single_row,
         )
         result = tables.create_table(data=table_data, config=config)
@@ -502,7 +502,7 @@ class TestFlextCliTables:
         with_none = test_data["with_none"]
         config = FlextCliModels.TableConfig(table_format=TestTables.Formats.SIMPLE)
         table_data = cast(
-            "Sequence[Sequence[FlextTypes.GeneralValueType]] | Sequence[Mapping[str, FlextTypes.GeneralValueType]]",
+            "Sequence[Sequence[t.GeneralValueType]] | Sequence[Mapping[str, t.GeneralValueType]]",
             with_none,
         )
         result = tables.create_table(data=table_data, config=config)
@@ -518,7 +518,7 @@ class TestFlextCliTables:
             table_format=TestTables.Formats.SIMPLE,
         )
         table_data = cast(
-            "Sequence[Sequence[FlextTypes.GeneralValueType]] | Sequence[Mapping[str, FlextTypes.GeneralValueType]]",
+            "Sequence[Sequence[t.GeneralValueType]] | Sequence[Mapping[str, t.GeneralValueType]]",
             test_data["people_dict"],
         )
         result = tables.create_table(data=table_data, config=config)
@@ -526,14 +526,14 @@ class TestFlextCliTables:
         assert TestTables.Assertions.Content.ALICE in result.unwrap()
 
     def test_latex_table_options(
-        self, tables: FlextCliTables, test_data: FlextTypes.JsonDict
+        self, tables: FlextCliTables, test_data: t.JsonDict
     ) -> None:
         """Test LaTeX table with various options."""
         data = test_data["people_dict"]
 
         # Convert data to TableData
         table_data = cast(
-            "Sequence[Sequence[FlextTypes.GeneralValueType]] | Sequence[Mapping[str, FlextTypes.GeneralValueType]]",
+            "Sequence[Sequence[t.GeneralValueType]] | Sequence[Mapping[str, t.GeneralValueType]]",
             data,
         )
         # Test longtable=True
@@ -563,7 +563,7 @@ class TestFlextCliTables:
     def test_integration_workflow_complete(
         self,
         tables: FlextCliTables,
-        test_data: FlextTypes.JsonDict,
+        test_data: t.JsonDict,
     ) -> None:
         """Test complete integration workflow."""
         data = test_data["people_dict"]
@@ -581,7 +581,7 @@ class TestFlextCliTables:
         # Step 3: Create table with that format
         config = FlextCliModels.TableConfig(table_format=first_format)
         table_data = cast(
-            "Sequence[Sequence[FlextTypes.GeneralValueType]] | Sequence[Mapping[str, FlextTypes.GeneralValueType]]",
+            "Sequence[Sequence[t.GeneralValueType]] | Sequence[Mapping[str, t.GeneralValueType]]",
             data,
         )
         table_result = tables.create_table(data=table_data, config=config)
@@ -605,13 +605,13 @@ class TestFlextCliTables:
     def test_table_creation_with_flext_test_validation(
         self,
         tables: FlextCliTables,
-        test_data: FlextTypes.JsonDict,
+        test_data: t.JsonDict,
     ) -> None:
         """Test table creation using flext_tests validation helpers."""
         data = test_data["people_dict"]
         config = FlextCliModels.TableConfig(table_format=TestTables.Formats.SIMPLE)
         table_data = cast(
-            "Sequence[Sequence[FlextTypes.GeneralValueType]] | Sequence[Mapping[str, FlextTypes.GeneralValueType]]",
+            "Sequence[Sequence[t.GeneralValueType]] | Sequence[Mapping[str, t.GeneralValueType]]",
             data,
         )
         result = tables.create_table(data=table_data, config=config)
@@ -626,13 +626,13 @@ class TestFlextCliTables:
     def test_table_error_handling_with_flext_test_validation(
         self,
         tables: FlextCliTables,
-        test_data: FlextTypes.JsonDict,
+        test_data: t.JsonDict,
     ) -> None:
         """Test table error handling using flext_tests validation helpers."""
         # Test with empty data
         config = FlextCliModels.TableConfig(table_format=TestTables.Formats.SIMPLE)
         table_data = cast(
-            "Sequence[Sequence[FlextTypes.GeneralValueType]] | Sequence[Mapping[str, FlextTypes.GeneralValueType]]",
+            "Sequence[Sequence[t.GeneralValueType]] | Sequence[Mapping[str, t.GeneralValueType]]",
             test_data["empty"],
         )
         result = tables.create_table(data=table_data, config=config)
@@ -644,7 +644,7 @@ class TestFlextCliTables:
         # Test with invalid format
         config = FlextCliModels.TableConfig(table_format=TestTables.Formats.INVALID)
         table_data = cast(
-            "Sequence[Sequence[FlextTypes.GeneralValueType]] | Sequence[Mapping[str, FlextTypes.GeneralValueType]]",
+            "Sequence[Sequence[t.GeneralValueType]] | Sequence[Mapping[str, t.GeneralValueType]]",
             test_data["people_dict"],
         )
         result = tables.create_table(data=table_data, config=config)
@@ -655,7 +655,7 @@ class TestFlextCliTables:
     def test_table_format_validation_with_custom_assertions(
         self,
         tables: FlextCliTables,
-        test_data: FlextTypes.JsonDict,
+        test_data: t.JsonDict,
     ) -> None:
         """Test table format validation with custom assertion helpers."""
         data = test_data["people_dict"]
@@ -663,7 +663,7 @@ class TestFlextCliTables:
         # Test grid format
         config = FlextCliModels.TableConfig(table_format=TestTables.Formats.GRID)
         table_data = cast(
-            "Sequence[Sequence[FlextTypes.GeneralValueType]] | Sequence[Mapping[str, FlextTypes.GeneralValueType]]",
+            "Sequence[Sequence[t.GeneralValueType]] | Sequence[Mapping[str, t.GeneralValueType]]",
             data,
         )
         result = tables.create_table(data=table_data, config=config)

@@ -7,15 +7,35 @@ import os
 import re
 
 from flext_core import (
+    FlextConstants,
+    FlextExceptions,
+    FlextModels,
+    FlextProtocols,
     FlextResult,
-    FlextTypes,
-    FlextUtilities,
+    t,
+    u,
 )
 from pydantic import Field, PrivateAttr
 
 from flext_cli.base import FlextCliServiceBase
 from flext_cli.constants import FlextCliConstants
 from flext_cli.models import FlextCliModels
+
+# Aliases for static method calls and type references
+# Use u.* for FlextUtilities static methods
+# Use t.* for FlextTypes type references
+# Use c.* for FlextConstants constants
+# Use m.* for FlextModels model references
+# Use p.* for FlextProtocols protocol references
+# Use r.* for FlextResult methods
+# Use e.* for FlextExceptions
+# u is already imported from flext_core
+# t is already imported from flext_core
+c = FlextConstants
+m = FlextModels
+p = FlextProtocols
+r = FlextResult
+e = FlextExceptions
 
 
 class FlextCliPrompts(FlextCliServiceBase):
@@ -51,7 +71,7 @@ class FlextCliPrompts(FlextCliServiceBase):
     - Remote prompts MUST use encrypted channels (TLS/SSL)
 
     Provides comprehensive prompt functionality for CLI applications with enhanced
-    type safety using FlextCliTypes instead of generic FlextTypes types.
+    type safety using FlextCliTypes instead of generic t types.
     Extends FlextCliServiceBase with CLI config access.
     """
 
@@ -77,7 +97,7 @@ class FlextCliPrompts(FlextCliServiceBase):
         *,
         interactive_mode: bool = True,
         quiet: bool = False,
-        **data: FlextTypes.GeneralValueType,
+        **data: t.GeneralValueType,
     ) -> None:
         """Initialize CLI prompts service.
 
@@ -389,13 +409,18 @@ class FlextCliPrompts(FlextCliServiceBase):
                 )
         else:
             try:
-                # Record prompt for history
-                choice_list = ", ".join(
-                    FlextCliConstants.PromptsDefaults.CHOICE_LIST_FORMAT.format(
-                        index=i + 1,
-                        choice=choice,
-                    )
-                    for i, choice in enumerate(choices)
+                # Record prompt for history using u.map
+                choice_list_items = u.map(
+                    list(enumerate(choices)),
+                    mapper=lambda item: FlextCliConstants.PromptsDefaults.CHOICE_LIST_FORMAT.format(
+                        index=item[0] + 1,
+                        choice=item[1],
+                    ),
+                )
+                choice_list = (
+                    ", ".join(choice_list_items)
+                    if isinstance(choice_list_items, list)
+                    else ""
                 )
                 self._prompt_history.append(
                     FlextCliConstants.PromptsDefaults.CHOICE_HISTORY_FORMAT.format(
@@ -591,11 +616,11 @@ class FlextCliPrompts(FlextCliServiceBase):
                 FlextCliConstants.ErrorMessages.HISTORY_CLEAR_FAILED.format(error=e),
             )
 
-    def get_prompt_statistics(self) -> FlextResult[FlextTypes.JsonDict]:
+    def get_prompt_statistics(self) -> FlextResult[t.JsonDict]:
         """Get prompt usage statistics.
 
         Returns:
-            FlextResult[FlextTypes.JsonDict]: Statistics data
+            FlextResult[t.JsonDict]: Statistics data
 
         Pydantic 2 Modernization:
             - Uses PromptStatistics model internally
@@ -618,12 +643,15 @@ class FlextCliPrompts(FlextCliServiceBase):
                 interactive_mode=self.interactive_mode,
                 default_timeout=self.default_timeout,
                 history_size=len(self._prompt_history),
-                timestamp=FlextUtilities.Generators.generate_iso_timestamp(),
+                timestamp=u.generate("timestamp"),
             )
 
-            # Serialize to dict using Pydantic model_dump - no cast needed
-            stats_dict = FlextUtilities.DataMapper.convert_dict_to_json(
-                stats_model.model_dump()
+            # Use u.transform for JSON conversion
+            transform_result = u.transform(stats_model.model_dump(), to_json=True)
+            stats_dict = (
+                transform_result.unwrap()
+                if transform_result.is_success
+                else stats_model.model_dump()
             )
 
             self.logger.debug(
@@ -641,7 +669,7 @@ class FlextCliPrompts(FlextCliServiceBase):
                 source="flext-cli/src/flext_cli/prompts.py",
             )
 
-            return FlextResult[FlextTypes.JsonDict].ok(stats_dict)
+            return FlextResult[t.JsonDict].ok(stats_dict)
 
         except Exception as e:  # pragma: no cover
             self.logger.exception(  # pragma: no cover
@@ -652,22 +680,20 @@ class FlextCliPrompts(FlextCliServiceBase):
                 consequence="Statistics unavailable",
                 source="flext-cli/src/flext_cli/prompts.py",
             )
-            return FlextResult[FlextTypes.JsonDict].fail(  # pragma: no cover
+            return FlextResult[t.JsonDict].fail(  # pragma: no cover
                 FlextCliConstants.PromptsErrorMessages.STATISTICS_COLLECTION_FAILED.format(
                     error=e,
                 ),
             )
 
-    def execute(
-        self, **_kwargs: FlextTypes.JsonDict
-    ) -> FlextResult[FlextTypes.JsonDict]:
+    def execute(self, **_kwargs: t.JsonDict) -> FlextResult[t.JsonDict]:
         """Execute prompt service operation.
 
         Args:
             **_kwargs: Additional execution parameters (unused, for FlextService compatibility)
 
         Returns:
-            FlextResult[FlextTypes.JsonDict]: Service execution result
+            FlextResult[t.JsonDict]: Service execution result
 
         """
         self.logger.info(
@@ -680,13 +706,13 @@ class FlextCliPrompts(FlextCliServiceBase):
         )
 
         try:
-            # Simple execution that returns empty FlextTypes.JsonDict as expected by tests
+            # Simple execution that returns empty t.JsonDict as expected by tests
             self.logger.debug(
                 "Prompt service execution completed",
                 operation="execute",
                 source="flext-cli/src/flext_cli/prompts.py",
             )
-            return FlextResult[FlextTypes.JsonDict].ok({})
+            return FlextResult[t.JsonDict].ok({})
 
         except Exception as e:
             self.logger.exception(
@@ -698,7 +724,7 @@ class FlextCliPrompts(FlextCliServiceBase):
                 severity="critical",
                 source="flext-cli/src/flext_cli/prompts.py",
             )
-            return FlextResult[FlextTypes.JsonDict].fail(
+            return FlextResult[t.JsonDict].fail(
                 FlextCliConstants.PromptsErrorMessages.PROMPT_SERVICE_EXECUTION_FAILED.format(
                     error=e,
                 ),
@@ -1060,13 +1086,20 @@ class FlextCliPrompts(FlextCliServiceBase):
                     message=message,
                 ),
             )
-            for i, option in enumerate(options, 1):
+            # Use u.process to log options
+
+            def log_option(index_and_option: tuple[int, str]) -> None:
+                """Log single option."""
+                i, option = index_and_option
                 self.logger.info(
                     FlextCliConstants.PromptsDefaults.CHOICE_DISPLAY_FORMAT.format(
                         num=i,
                         option=option,
                     ),
                 )
+
+            options_with_index = list(enumerate(options, 1))
+            u.process(options_with_index, processor=log_option, on_error="skip")
 
             # Get user selection
             self.logger.debug(
@@ -1436,9 +1469,9 @@ class FlextCliPrompts(FlextCliServiceBase):
 
     def with_progress(
         self,
-        items: list[FlextTypes.GeneralValueType],
+        items: list[t.GeneralValueType],
         description: str = FlextCliConstants.PromptsDefaults.DEFAULT_PROCESSING_DESCRIPTION,
-    ) -> FlextResult[list[FlextTypes.GeneralValueType]]:
+    ) -> FlextResult[list[t.GeneralValueType]]:
         """Execute with progress indicator.
 
         Args:
@@ -1548,7 +1581,7 @@ class FlextCliPrompts(FlextCliServiceBase):
             )
 
             # Return the original items as expected by tests
-            return FlextResult[list[FlextTypes.GeneralValueType]].ok(items)
+            return FlextResult[list[t.GeneralValueType]].ok(items)
         except Exception as e:
             self.logger.exception(
                 "FATAL ERROR during progress operation - operation aborted",
@@ -1561,7 +1594,7 @@ class FlextCliPrompts(FlextCliServiceBase):
                 severity="critical",
                 source="flext-cli/src/flext_cli/prompts.py",
             )
-            return FlextResult[list[FlextTypes.GeneralValueType]].fail(
+            return FlextResult[list[t.GeneralValueType]].fail(
                 FlextCliConstants.PromptsErrorMessages.PROGRESS_PROCESSING_FAILED.format(
                     error=e,
                 ),

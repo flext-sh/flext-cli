@@ -11,9 +11,9 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 from flext_core import (
-    FlextMixins,
     FlextResult,
-    FlextTypes,
+    t,
+    x,
 )
 from flext_core.decorators import FlextDecorators
 
@@ -21,7 +21,7 @@ from flext_cli.protocols import FlextCliProtocols
 from flext_cli.utilities import FlextCliUtilities
 
 
-class FlextCliMixins(FlextMixins):
+class FlextCliMixins(x):
     """Single unified CLI mixins class following FLEXT standards.
 
     Business Rules:
@@ -42,7 +42,7 @@ class FlextCliMixins(FlextMixins):
     - Railway decorator ensures FlextResult return type
     - Performance tracking via track_performance decorator
     - Operation logging via log_operation decorator
-    - Extends FlextMixins for base mixin functionality
+    - Extends x for base mixin functionality
 
     Audit Implications:
     ───────────────────
@@ -97,14 +97,14 @@ class FlextCliMixins(FlextMixins):
 
         @staticmethod
         def validate_pipeline_step(
-            step: FlextTypes.JsonDict | None,
+            step: t.JsonDict | None,
         ) -> FlextResult[bool]:
             """Validate pipeline step configuration (delegates to utilities)."""
             return FlextCliUtilities.CliValidation.validate_pipeline_step(step=step)
 
         @staticmethod
         def validate_configuration_consistency(
-            config_data: FlextTypes.JsonDict | None,
+            config_data: t.JsonDict | None,
             required_fields: list[str],
         ) -> FlextResult[bool]:
             """Validate configuration consistency (delegates to utilities)."""
@@ -127,8 +127,8 @@ class FlextCliMixins(FlextMixins):
         def execute_with_cli_context(
             operation: str,
             handler: FlextCliProtocols.Cli.CliCommandHandler,
-            **context_data: FlextTypes.GeneralValueType,
-        ) -> FlextResult[FlextTypes.GeneralValueType]:
+            **context_data: t.GeneralValueType,
+        ) -> FlextResult[t.GeneralValueType]:
             """Execute handler with automatic CLI context management.
 
             Composes flext-core decorators to provide complete context setup:
@@ -171,25 +171,25 @@ class FlextCliMixins(FlextMixins):
                     inner_value = handler_result.unwrap()
                     if isinstance(inner_value, FlextResult):
                         # Double-wrapped: unwrap inner FlextResult
-                        # Type narrowing: inner_value is FlextResult[FlextTypes.GeneralValueType]
+                        # Type narrowing: inner_value is FlextResult[t.GeneralValueType]
                         return inner_value
                     # Single-wrapped with value: extract value and wrap in new FlextResult
                     # inner_value is object from unwrap - convert to GeneralValueType
-                    converted_value: FlextTypes.GeneralValueType
+                    converted_value: t.GeneralValueType
                     if isinstance(
                         inner_value, (str, int, float, bool, type(None), dict, list)
                     ):
                         converted_value = inner_value
                     else:
                         converted_value = str(inner_value)
-                    return FlextResult[FlextTypes.GeneralValueType].ok(converted_value)
+                    return FlextResult[t.GeneralValueType].ok(converted_value)
                 # Failure case: unwrap and re-wrap to ensure correct type
                 error_msg = handler_result.error or "Unknown error"
-                return FlextResult[FlextTypes.GeneralValueType].fail(error_msg)
+                return FlextResult[t.GeneralValueType].fail(error_msg)
 
             # Fallback: wrap non-FlextResult returns
             # Railway decorator should always return FlextResult, but handle gracefully
-            return FlextResult[FlextTypes.GeneralValueType].ok(handler_result)
+            return FlextResult[t.GeneralValueType].ok(handler_result)
 
 
 __all__ = ["FlextCliMixins"]

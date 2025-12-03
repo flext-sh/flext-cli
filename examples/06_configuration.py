@@ -11,7 +11,7 @@ FLEXT-CLI PROVIDES:
 - FlextCliConfig - Configuration management class
 - cli.config - Access to current config settings
 - Environment variable loading (FLEXT_*)
-- Built-in validation with FlextResult
+- Built-in validation with r
 - Profile-based configuration
 
 HOW TO USE IN YOUR CLI:
@@ -30,7 +30,9 @@ from pathlib import Path
 from typing import cast
 
 from example_utils import display_config_table
-from flext_core import FlextResult, FlextTypes, FlextUtilities
+from flext_core import (
+    r,
+)
 
 from flext_cli import FlextCli, FlextCliConfig, FlextCliTypes
 
@@ -93,9 +95,15 @@ def load_environment_config() -> dict[str, str | int]:
         "Environment": environment,
     }
 
-    # Display config - convert to CliDataDict using FlextUtilities directly
-    settings_data = FlextUtilities.DataMapper.convert_dict_to_json(
-        cast("dict[str, FlextTypes.GeneralValueType]", settings)
+    # Display config - convert to CliDataDict using u directly
+    # Use u.transform for JSON conversion
+    transform_result = u.transform(
+        cast("dict[str, t.GeneralValueType]", settings), to_json=True
+    )
+    settings_data = (
+        transform_result.unwrap()
+        if transform_result.is_success
+        else cast("dict[str, t.GeneralValueType]", settings)
     )
     display_config_table(
         cli=cli,
@@ -182,9 +190,15 @@ def show_config_locations() -> dict[str, str]:
         "Token Exists": "Yes" if token_file.exists() else "No",
     }
 
-    # Display as table - convert to CliDataDict using FlextUtilities directly
-    locations_data = FlextUtilities.DataMapper.convert_dict_to_json(
-        cast("dict[str, FlextTypes.GeneralValueType]", locations)
+    # Display as table - convert to CliDataDict using u directly
+    # Use u.transform for JSON conversion
+    transform_result = u.transform(
+        cast("dict[str, t.GeneralValueType]", locations), to_json=True
+    )
+    locations_data = (
+        transform_result.unwrap()
+        if transform_result.is_success
+        else cast("dict[str, t.GeneralValueType]", locations)
     )
     table_result = cli.create_table(
         data=locations_data,
@@ -263,10 +277,14 @@ def show_environment_variables() -> None:
         "FLEXT_OUTPUT_FORMAT": os.getenv("FLEXT_OUTPUT_FORMAT", "table"),
     }
 
-    # Display current values
+    # Display current values using u.process
     cli.print("\n📊 Current Environment Variables:", style="yellow")
-    for key, value in env_vars.items():
-        cli.print(f"   {key}={value}", style="cyan")
+
+    def print_env(k: str, v: str) -> None:
+        """Print single environment variable."""
+        cli.print(f"   {k}={v}", style="cyan")
+
+    u.process(env_vars, processor=print_env, on_error="skip")
 
     # Show how to set them
     cli.print("\n💡 How to set environment variables:", style="bold cyan")
@@ -338,7 +356,7 @@ class AppConfig:
             os.getenv("TEMP_DIR", str(Path.home() / ".cache" / "myapp"))
         )
 
-    def validate(self) -> FlextResult[dict[str, object]]:
+    def validate(self) -> r[dict[str, object]]:
         """Validate configuration with comprehensive checks."""
         errors = []
 
@@ -373,10 +391,10 @@ class AppConfig:
             errors.append("TEMP_DIR must be a directory")
 
         if errors:
-            return FlextResult[dict[str, object]].fail("; ".join(errors))
+            return r[dict[str, object]].fail("; ".join(errors))
 
         # Return validated config as dict
-        return FlextResult[dict[str, object]].ok({
+        return r[dict[str, object]].ok({
             "database_url": self.database_url,
             "redis_url": self.redis_url,
             "api_key": "***" if self.api_key else "",
@@ -387,7 +405,7 @@ class AppConfig:
         })
 
 
-def load_application_config() -> FlextResult[dict[str, object]]:
+def load_application_config() -> r[dict[str, object]]:
     """Load and validate application configuration from environment."""
     cli.print("\n⚙️  Loading Application Configuration:", style="bold cyan")
 
@@ -411,9 +429,7 @@ def load_application_config() -> FlextResult[dict[str, object]]:
     final_data = initialize_services(overridden_data)
     cli.print("✅ Services initialized", style="green")
 
-    result: FlextResult[dict[str, object]] = FlextResult[dict[str, object]].ok(
-        final_data
-    )
+    result: r[dict[str, object]] = r[dict[str, object]].ok(final_data)
 
     if result.is_failure:
         cli.print(f"❌ Configuration failed: {result.error}", style="bold red")
@@ -508,8 +524,14 @@ def main() -> None:
     if config_result.is_success:
         final_config = config_result.unwrap()
         # Display final config - convert to CliDataDict
-        final_config_data = FlextUtilities.DataMapper.convert_dict_to_json(
-            cast("dict[str, FlextTypes.GeneralValueType]", final_config)
+        # Use u.transform for JSON conversion
+        transform_result = u.transform(
+            cast("dict[str, t.GeneralValueType]", final_config), to_json=True
+        )
+        final_config_data = (
+            transform_result.unwrap()
+            if transform_result.is_success
+            else cast("dict[str, t.GeneralValueType]", final_config)
         )
         display_config_table(
             cli=cli,

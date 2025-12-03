@@ -19,7 +19,7 @@ from pathlib import Path
 from typing import cast
 
 import pytest
-from flext_core import FlextTypes
+from flext_core import t
 from pydantic import BaseModel, Field, ValidationError
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
@@ -37,8 +37,8 @@ class TestConfigModelIntegration:
         """Config with required fields."""
 
         model_config = SettingsConfigDict(env_prefix="TEST_APP_")
-        input_dir: str = Field(default="data/input")
-        output_dir: str = Field(default="data/output")
+        input_dir: str = Field(default="/tmp/test/input")
+        output_dir: str = Field(default="/tmp/test/output")
 
     class OptionalFieldsConfig(BaseSettings):
         """Config with optional fields."""
@@ -112,8 +112,8 @@ class TestConfigModelIntegration:
         """String field config."""
 
         model_config = SettingsConfigDict(env_prefix="TEST_")
-        input_path: str = Field(default="/data/input")
-        output_path: str = Field(default="/data/output")
+        input_path: str = Field(default="/tmp/test/input")
+        output_path: str = Field(default="/tmp/test/output")
 
     class IntConfig(BaseSettings):
         """Integer field config."""
@@ -188,7 +188,7 @@ class TestConfigModelIntegration:
             (
                 RequiredFieldsConfig,
                 ["input_dir", "output_dir"],
-                {"input_dir": "data/input", "output_dir": "data/output"},
+                {"input_dir": "/tmp/test/input", "output_dir": "/tmp/test/output"},
             ),
             (
                 OptionalFieldsConfig,
@@ -207,7 +207,7 @@ class TestConfigModelIntegration:
         self,
         config_class: type[BaseSettings],
         expected_fields: list[str],
-        expected_values: FlextTypes.JsonDict,
+        expected_values: t.JsonDict,
     ) -> None:
         """Test config initialization with various field types."""
         config = config_class()
@@ -259,8 +259,8 @@ class TestConfigModelIntegration:
     )
     def test_params_validation(
         self,
-        input_data: FlextTypes.JsonDict,
-        expected_data: FlextTypes.JsonDict,
+        input_data: t.JsonDict,
+        expected_data: t.JsonDict,
     ) -> None:
         """Test parameter model validation with aliases."""
         params = self.AliasedParams.model_validate(input_data)
@@ -321,7 +321,7 @@ class TestConfigModelIntegration:
     @pytest.mark.parametrize(
         ("config_class", "field_name", "expected_type", "expected_value"),
         [
-            (RequiredFieldsConfig, "input_dir", str, "data/input"),
+            (RequiredFieldsConfig, "input_dir", str, "/tmp/test/input"),
             (TypedFieldsConfig, "timeout", int, 30),
             (TypedFieldsConfig, "debug", bool, False),
             (TypedFieldsConfig, "optional_path", type(None), None),
@@ -346,9 +346,9 @@ class TestConfigModelIntegration:
         """Test accessing config fields directly."""
         config = self.StringConfig()
 
-        # Direct access
-        assert config.input_path == "/data/input"
-        assert config.output_path == "/data/output"
+        # Direct access (defaults from StringConfig model)
+        assert config.input_path == "/tmp/test/input"
+        assert config.output_path == "/tmp/test/output"
 
         # hasattr check
         assert hasattr(config, "input_path")
@@ -413,8 +413,8 @@ class TestConfigModelIntegration:
         os.environ.pop("MISSING_VAR", None)
 
         config = self.RequiredFieldsConfig()
-        # Should use default when env var missing
-        assert config.input_dir == "data/input"
+        # Should use default when env var missing (default is "/tmp/test/input" from Field)
+        assert config.input_dir == "/tmp/test/input"
 
     def test_params_validation_with_none_values(self) -> None:
         """Test parameter validation with None values."""

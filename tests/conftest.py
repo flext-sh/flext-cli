@@ -21,7 +21,21 @@ from typing import cast
 import pytest
 import yaml
 from click.testing import CliRunner
-from flext_core import FlextConfig, FlextContainer, FlextTypes, FlextUtilities
+from flext_core import (
+    FlextConfig,
+    FlextConstants,
+    FlextContainer,
+    FlextDecorators,
+    FlextExceptions,
+    FlextHandlers,
+    FlextModels,
+    FlextProtocols,
+    FlextResult,
+    FlextService,
+    t,
+    u,
+    x,
+)
 from flext_tests.docker import FlextTestDocker
 from pydantic import TypeAdapter
 
@@ -42,6 +56,30 @@ from flext_cli import (
     FlextCliProtocols,
     FlextCliServiceBase,
 )
+
+# Aliases for static method calls and type references
+# Use u.* for uds
+# Use t.* for t type references
+# Use c.* for FlextConstants constants
+# Use m.* for FlextModels model references
+# Use p.* for FlextProtocols protocol references
+# Use r.* for FlextResult methods
+# Use e.* for FlextExceptions
+# Use d.* for FlextDecorators decorators
+# Use s.* for FlextService service base
+# Use x.* for x mixins
+# Use h.* for FlextHandlers handlers
+u = u
+t = t
+c = FlextConstants
+m = FlextModels
+p = FlextProtocols
+r = FlextResult
+e = FlextExceptions
+d = FlextDecorators
+s = FlextService
+x = x
+h = FlextHandlers
 
 
 @pytest.fixture
@@ -176,7 +214,7 @@ def cli_command_factory() -> Callable[..., FlextCliModels.CliCommand]:
         # No base data needed since CliCommand has extra="forbid"
 
         # Override with CLI-specific data
-        cli_data: dict[str, FlextTypes.GeneralValueType]
+        cli_data: dict[str, t.GeneralValueType]
         cli_data = {
             "command_line": command_line,
             "args": [],  # Default empty args
@@ -192,14 +230,14 @@ def cli_command_factory() -> Callable[..., FlextCliModels.CliCommand]:
         }
 
         # Convert dict[str, object] to dict[str, GeneralValueType] for convert_dict_to_json
-        converted_kwargs = {
-            k: cast("FlextTypes.GeneralValueType", v) for k, v in kwargs.items()
-        }
-        final_data: FlextTypes.JsonDict = (
-            FlextUtilities.DataMapper.convert_dict_to_json({
-                **cli_data,
-                **converted_kwargs,
-            })
+        converted_kwargs = {k: cast("t.GeneralValueType", v) for k, v in kwargs.items()}
+        # Use u.transform for JSON conversion
+        raw_data = {**cli_data, **converted_kwargs}
+        transform_result = u.transform(raw_data, to_json=True)
+        final_data: t.JsonDict = (
+            transform_result.unwrap()
+            if transform_result.is_success
+            else cast("t.JsonDict", raw_data)
         )
         # Use cast to satisfy type checker - Pydantic accepts dict[str, Any] at runtime
         return FlextCliModels.CliCommand(**cast("dict[str, object]", final_data))  # type: ignore[arg-type]
@@ -223,7 +261,7 @@ def cli_session_factory() -> Callable[..., FlextCliModels.CliSession]:
         # Add session-specific fields - only real fields that exist in CliSession
         # Include created_at and updated_at for frozen model compatibility
 
-        session_data: dict[str, FlextTypes.GeneralValueType]
+        session_data: dict[str, t.GeneralValueType]
         session_data = {
             "session_id": session_id,
             "status": status,
@@ -239,16 +277,16 @@ def cli_session_factory() -> Callable[..., FlextCliModels.CliSession]:
         }
 
         # Merge session data with kwargs
-        # Convert to JsonDict-compatible dict using FlextUtilities
+        # Convert to JsonDict-compatible dict using u
         # Convert dict[str, object] to dict[str, GeneralValueType] for convert_dict_to_json
-        converted_kwargs = {
-            k: cast("FlextTypes.GeneralValueType", v) for k, v in kwargs.items()
-        }
-        final_data: FlextTypes.JsonDict = (
-            FlextUtilities.DataMapper.convert_dict_to_json({
-                **session_data,
-                **converted_kwargs,
-            })
+        converted_kwargs = {k: cast("t.GeneralValueType", v) for k, v in kwargs.items()}
+        # Use u.transform for JSON conversion
+        raw_data = {**session_data, **converted_kwargs}
+        transform_result = u.transform(raw_data, to_json=True)
+        final_data: t.JsonDict = (
+            transform_result.unwrap()
+            if transform_result.is_success
+            else cast("t.JsonDict", raw_data)
         )
         # Create instance - autouse fixture should have handled model_rebuild
         # Use cast to satisfy type checker - Pydantic accepts dict[str, Any] at runtime
@@ -290,20 +328,21 @@ def debug_info_factory() -> Callable[..., FlextCliModels.DebugInfo]:
         filtered_kwargs = {k: v for k, v in kwargs.items() if k in valid_fields}
 
         # Merge data
-        # Convert to JsonDict-compatible dict using FlextUtilities
+        # Convert to JsonDict-compatible dict using u
         # Convert dict[str, object] to dict[str, GeneralValueType] for convert_dict_to_json
         converted_debug_data = {
-            k: cast("FlextTypes.GeneralValueType", v) for k, v in debug_data.items()
+            k: cast("t.GeneralValueType", v) for k, v in debug_data.items()
         }
         converted_filtered_kwargs = {
-            k: cast("FlextTypes.GeneralValueType", v)
-            for k, v in filtered_kwargs.items()
+            k: cast("t.GeneralValueType", v) for k, v in filtered_kwargs.items()
         }
-        final_data: FlextTypes.JsonDict = (
-            FlextUtilities.DataMapper.convert_dict_to_json({
-                **converted_debug_data,
-                **converted_filtered_kwargs,
-            })
+        # Use u.transform for JSON conversion
+        raw_data = {**converted_debug_data, **converted_filtered_kwargs}
+        transform_result = u.transform(raw_data, to_json=True)
+        final_data: t.JsonDict = (
+            transform_result.unwrap()
+            if transform_result.is_success
+            else cast("t.JsonDict", raw_data)
         )
         # Use cast to satisfy type checker - Pydantic accepts dict[str, Any] at runtime
         return FlextCliModels.DebugInfo(**cast("dict[str, object]", final_data))  # type: ignore[arg-type]
@@ -332,19 +371,19 @@ def logging_config_factory() -> Callable[..., FlextCliModels.LoggingConfig]:
         }
 
         # Merge with kwargs, but only if they are valid fields
-        # Convert to JsonDict-compatible dict using FlextUtilities
+        # Convert to JsonDict-compatible dict using u
         # Convert dict[str, object] to dict[str, GeneralValueType] for convert_dict_to_json
         converted_logging_data = {
-            k: cast("FlextTypes.GeneralValueType", v) for k, v in logging_data.items()
+            k: cast("t.GeneralValueType", v) for k, v in logging_data.items()
         }
-        converted_kwargs = {
-            k: cast("FlextTypes.GeneralValueType", v) for k, v in kwargs.items()
-        }
-        final_data: FlextTypes.JsonDict = (
-            FlextUtilities.DataMapper.convert_dict_to_json({
-                **converted_logging_data,
-                **converted_kwargs,
-            })
+        converted_kwargs = {k: cast("t.GeneralValueType", v) for k, v in kwargs.items()}
+        # Use u.transform for JSON conversion
+        raw_data = {**converted_logging_data, **converted_kwargs}
+        transform_result = u.transform(raw_data, to_json=True)
+        final_data: t.JsonDict = (
+            transform_result.unwrap()
+            if transform_result.is_success
+            else cast("t.JsonDict", raw_data)
         )
         # Use cast to satisfy type checker - Pydantic accepts dict[str, Any] at runtime
         return FlextCliModels.LoggingConfig(**cast("dict[str, object]", final_data))  # type: ignore[arg-type]
@@ -499,9 +538,9 @@ def flext_cli_protocols() -> FlextCliProtocols:
 
 
 @pytest.fixture
-def flext_cli_utilities() -> type[FlextUtilities]:
+def flext_cli_utilities() -> type[u]:
     """Provide FlextUtilities class from flext-core for testing."""
-    return FlextUtilities
+    return u
 
 
 # ============================================================================
@@ -518,7 +557,7 @@ def flext_cli_utilities() -> type[FlextUtilities]:
 
 
 @pytest.fixture
-def sample_config_data() -> FlextTypes.JsonDict:
+def sample_config_data() -> t.JsonDict:
     """Provide sample configuration data for tests."""
     return {
         "debug": True,
@@ -533,7 +572,7 @@ def sample_config_data() -> FlextTypes.JsonDict:
 
 
 @pytest.fixture
-def sample_file_data(temp_dir: Path) -> FlextTypes.JsonDict:
+def sample_file_data(temp_dir: Path) -> t.JsonDict:
     """Provide sample file data for tests."""
     return {
         "content": "This is test content for file operations",
@@ -548,7 +587,7 @@ def sample_file_data(temp_dir: Path) -> FlextTypes.JsonDict:
 
 
 @pytest.fixture
-def sample_command_data() -> FlextTypes.JsonDict:
+def sample_command_data() -> t.JsonDict:
     """Provide sample command data for tests."""
     return {
         "command": "test_command",
@@ -580,22 +619,22 @@ def fixture_data_csv() -> Path:
 
 
 @pytest.fixture
-def load_fixture_config() -> FlextTypes.JsonDict:
+def load_fixture_config() -> t.JsonDict:
     """Load configuration data from fixtures directory."""
     fixture_path = Path("tests/fixtures/configs/test_config.json")
     with fixture_path.open(encoding="utf-8") as f:
         data = json.load(f)
-    adapter: TypeAdapter[FlextTypes.JsonDict] = TypeAdapter(FlextTypes.JsonDict)
+    adapter: TypeAdapter[t.JsonDict] = TypeAdapter(t.JsonDict)
     return adapter.validate_python(data)
 
 
 @pytest.fixture
-def load_fixture_data() -> FlextTypes.JsonDict:
+def load_fixture_data() -> t.JsonDict:
     """Load test data from fixtures directory."""
     fixture_path = Path("tests/fixtures/data/test_data.json")
     with fixture_path.open(encoding="utf-8") as f:
         data = json.load(f)
-    adapter: TypeAdapter[FlextTypes.JsonDict] = TypeAdapter(FlextTypes.JsonDict)
+    adapter: TypeAdapter[t.JsonDict] = TypeAdapter(t.JsonDict)
     return adapter.validate_python(data)
 
 
@@ -661,22 +700,29 @@ FLEXT_CLI_RETRIES=3
         "FLEXT_CLI_RETRIES": "3",
     }
 
-    for key, value in env_vars.items():
+    # Use u.process to set environment variables
+    def set_env_var(k: str, v: str) -> None:
+        """Set single environment variable."""
         # Only store if the variable was already set
-        if key in os.environ:
-            original_env[key] = os.environ[key]
-        os.environ[key] = value
+        if k in os.environ:
+            original_env[k] = os.environ[k]
+        os.environ[k] = v
+
+    u.process(env_vars, processor=set_env_var, on_error="skip")
 
     yield env_vars
 
-    # Restore original environment
-    for key in env_vars:
-        if key in original_env:
+    # Restore original environment using u.process
+    def restore_env_var(k: str, _v: str) -> None:
+        """Restore single environment variable."""
+        if k in original_env:
             # Restore the original value
-            os.environ[key] = original_env[key]
+            os.environ[k] = original_env[k]
         else:
             # Variable was not set before, remove it
-            os.environ.pop(key, None)
+            os.environ.pop(k, None)
+
+    u.process(env_vars, processor=restore_env_var, on_error="skip")
 
 
 @pytest.fixture(autouse=True)

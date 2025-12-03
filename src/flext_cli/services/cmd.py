@@ -14,9 +14,17 @@ from pathlib import Path
 from typing import override
 
 from flext_core import (
+    FlextConstants,
+    FlextDecorators,
+    FlextExceptions,
+    FlextHandlers,
+    FlextMixins,
+    FlextModels,
+    FlextProtocols,
     FlextResult,
-    FlextTypes,
-    FlextUtilities,
+    FlextService,
+    t,
+    u,
 )
 
 from flext_cli.base import FlextCliServiceBase
@@ -24,6 +32,30 @@ from flext_cli.constants import FlextCliConstants
 from flext_cli.file_tools import FlextCliFileTools
 from flext_cli.models import FlextCliModels
 from flext_cli.utilities import FlextCliUtilities
+
+# Aliases for static method calls and type references
+# Use u.* for FlextUtilities static methods
+# Use t.* for FlextTypes type references
+# Use c.* for FlextConstants constants
+# Use m.* for FlextModels model references
+# Use p.* for FlextProtocols protocol references
+# Use r.* for FlextResult methods
+# Use e.* for FlextExceptions
+# Use d.* for FlextDecorators decorators
+# Use s.* for FlextService service base
+# Use x.* for FlextMixins mixins
+# Use h.* for FlextHandlers handlers
+# u is already imported from flext_core
+# t is already imported from flext_core
+c = FlextConstants
+m = FlextModels
+p = FlextProtocols
+r = FlextResult
+e = FlextExceptions
+d = FlextDecorators
+s = FlextService
+x = FlextMixins
+h = FlextHandlers
 
 
 class FlextCliCmd(FlextCliServiceBase):
@@ -69,10 +101,10 @@ class FlextCliCmd(FlextCliServiceBase):
         self._file_tools = FlextCliFileTools()
 
     def execute(  # noqa: PLR6301
-        self, **_kwargs: FlextTypes.JsonDict
-    ) -> FlextResult[FlextTypes.JsonDict]:
+        self, **_kwargs: t.JsonDict
+    ) -> FlextResult[t.JsonDict]:
         """Report operational status required by `FlextService`."""
-        return FlextResult[FlextTypes.JsonDict].ok({
+        return FlextResult[t.JsonDict].ok({
             FlextCliConstants.DictKeys.STATUS: FlextCliConstants.ServiceStatus.OPERATIONAL.value,
             FlextCliConstants.DictKeys.SERVICE: FlextCliConstants.CmdDefaults.SERVICE_NAME,
         })
@@ -112,13 +144,13 @@ class FlextCliCmd(FlextCliServiceBase):
             )
 
     @staticmethod
-    def get_config_info() -> FlextResult[FlextTypes.JsonDict]:
+    def get_config_info() -> FlextResult[t.JsonDict]:
         """Get configuration information using FlextCliUtilities directly."""
         try:
             info = FlextCliUtilities.ConfigOps.get_config_info()
-            return FlextResult[FlextTypes.JsonDict].ok(info)
+            return FlextResult[t.JsonDict].ok(info)
         except Exception as e:
-            return FlextResult[FlextTypes.JsonDict].fail(
+            return FlextResult[t.JsonDict].fail(
                 FlextCliConstants.ErrorMessages.CONFIG_INFO_FAILED.format(error=e),
             )
 
@@ -129,7 +161,7 @@ class FlextCliCmd(FlextCliServiceBase):
                 FlextCliServiceBase.get_cli_config().config_dir
                 / FlextCliConstants.ConfigFiles.CLI_CONFIG_JSON
             )
-            config_data: FlextTypes.GeneralValueType = {key: value}
+            config_data: t.GeneralValueType = {key: value}
             save_result = self._file_tools.write_json_file(
                 file_path=str(config_path),
                 data=config_data,
@@ -151,7 +183,7 @@ class FlextCliCmd(FlextCliServiceBase):
                 FlextCliConstants.ErrorMessages.SET_CONFIG_FAILED.format(error=e),
             )
 
-    def get_config_value(self, key: str) -> FlextResult[FlextTypes.JsonDict]:
+    def get_config_value(self, key: str) -> FlextResult[t.JsonDict]:
         """Get configuration value with real persistence using flext-core."""
         try:
             config_path = (
@@ -160,7 +192,7 @@ class FlextCliCmd(FlextCliServiceBase):
             )
 
             if not config_path.exists():
-                return FlextResult[FlextTypes.JsonDict].fail(
+                return FlextResult[t.JsonDict].fail(
                     FlextCliConstants.CmdErrorMessages.CONFIG_FILE_NOT_FOUND.format(
                         path=config_path,
                     ),
@@ -168,7 +200,7 @@ class FlextCliCmd(FlextCliServiceBase):
 
             load_result = self._file_tools.read_json_file(str(config_path))
             if load_result.is_failure:
-                return FlextResult[FlextTypes.JsonDict].fail(
+                return FlextResult[t.JsonDict].fail(
                     FlextCliConstants.CmdErrorMessages.CONFIG_LOAD_FAILED.format(
                         error=load_result.error,
                     ),
@@ -176,26 +208,31 @@ class FlextCliCmd(FlextCliServiceBase):
 
             config_data = load_result.value
             if not isinstance(config_data, dict):
-                return FlextResult[FlextTypes.JsonDict].fail(
+                return FlextResult[t.JsonDict].fail(
                     FlextCliConstants.CmdErrorMessages.CONFIG_NOT_DICT,
                 )
 
             if key not in config_data:
-                return FlextResult[FlextTypes.JsonDict].fail(
+                return FlextResult[t.JsonDict].fail(
                     FlextCliConstants.CmdErrorMessages.CONFIG_KEY_NOT_FOUND.format(
                         key=key,
                     ),
                 )
 
             value = config_data[key]
-            result_data = FlextUtilities.DataMapper.convert_dict_to_json({
+            # Use u.transform for JSON conversion
+            raw_data = {
                 FlextCliConstants.DictKeys.KEY: key,
                 FlextCliConstants.DictKeys.VALUE: value,
-                FlextCliConstants.DictKeys.TIMESTAMP: FlextUtilities.Generators.generate_iso_timestamp(),
-            })
-            return FlextResult[FlextTypes.JsonDict].ok(result_data)
+                FlextCliConstants.DictKeys.TIMESTAMP: u.generate("timestamp"),
+            }
+            transform_result = u.transform(raw_data, to_json=True)
+            result_data = (
+                transform_result.unwrap() if transform_result.is_success else raw_data
+            )
+            return FlextResult[t.JsonDict].ok(result_data)
         except Exception as e:
-            return FlextResult[FlextTypes.JsonDict].fail(
+            return FlextResult[t.JsonDict].fail(
                 FlextCliConstants.CmdErrorMessages.GET_CONFIG_FAILED.format(error=e),
             )
 
