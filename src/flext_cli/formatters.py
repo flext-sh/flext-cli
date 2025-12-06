@@ -13,19 +13,9 @@ from __future__ import annotations
 from io import StringIO
 
 from flext_core import (
-    FlextConstants,
-    FlextDecorators,
-    FlextExceptions,
-    FlextHandlers,
-    FlextMixins,
-    FlextModels,
-    FlextProtocols,
-    FlextResult,
-    FlextService,
-    t,
-    u,
+    FlextRuntime,
+    r,
 )
-from flext_core.runtime import FlextRuntime
 from rich.console import Console
 from rich.layout import Layout as RichLayout
 from rich.live import Live as RichLive
@@ -35,31 +25,9 @@ from rich.status import Status as RichStatus
 from rich.table import Table as RichTable
 from rich.tree import Tree as RichTree
 
-from flext_cli.constants import FlextCliConstants
-
-# Aliases for static method calls and type references
-# Use u.* for FlextUtilities static methods
-# Use t.* for FlextTypes type references
-# Use c.* for FlextConstants constants
-# Use m.* for FlextModels model references
-# Use p.* for FlextProtocols protocol references
-# Use r.* for FlextResult methods
-# Use e.* for FlextExceptions
-# Use d.* for FlextDecorators decorators
-# Use s.* for FlextService service base
-# Use x.* for FlextMixins mixins
-# Use h.* for FlextHandlers handlers
-# u is already imported from flext_core
-# t is already imported from flext_core
-c = FlextConstants
-m = FlextModels
-p = FlextProtocols
-r = FlextResult
-e = FlextExceptions
-d = FlextDecorators
-s = FlextService
-x = FlextMixins
-h = FlextHandlers
+from flext_cli.constants import c
+from flext_cli.typings import t
+from flext_cli.utilities import u
 
 
 class FlextCliFormatters:
@@ -100,11 +68,11 @@ class FlextCliFormatters:
         # Use Rich directly (formatters.py is ONE OF TWO files that may import Rich)
         self.console = Console()
 
-    def execute(self) -> r[t.JsonDict]:  # noqa: PLR6301
+    def execute(self) -> r[t.Json.JsonDict]:
         """Execute service - required by FlextService."""
-        return r[t.JsonDict].ok({
-            FlextCliConstants.DictKeys.STATUS: FlextCliConstants.ServiceStatus.OPERATIONAL.value,
-            FlextCliConstants.DictKeys.SERVICE: FlextCliConstants.Services.FORMATTERS,
+        return r[t.Json.JsonDict].ok({
+            c.DictKeys.STATUS: c.ServiceStatus.OPERATIONAL.value,
+            c.DictKeys.SERVICE: c.Services.FORMATTERS,
         })
 
     # =========================================================================
@@ -134,12 +102,12 @@ class FlextCliFormatters:
             return r[bool].ok(True)
         except Exception as e:  # pragma: no cover - Defensive: Catches unexpected errors during console print operation
             return r[bool].fail(
-                FlextCliConstants.FormattersErrorMessages.PRINT_FAILED.format(error=e),
+                c.FormattersErrorMessages.PRINT_FAILED.format(error=e),
             )
 
     @staticmethod
     def create_table(
-        data: t.JsonDict | None = None,
+        data: t.Json.JsonDict | None = None,
         headers: list[str] | None = None,
         title: str | None = None,
     ) -> r[RichTable]:
@@ -168,14 +136,13 @@ class FlextCliFormatters:
 
             # Add rows if data provided
             if data and FlextRuntime.is_dict_like(data):
-                # Simple t.JsonDict to table conversion - key-value pairs for 2-column tables
+                # Simple t.Json.JsonDict to table conversion - key-value pairs for 2-column tables
                 # Use u.process to add rows
                 def add_row(k: str, v: t.GeneralValueType) -> None:
                     """Add single row to table."""
                     if (
                         headers
-                        and len(headers)
-                        == FlextCliConstants.FormattersDefaults.TABLE_KEY_VALUE_COLUMNS
+                        and len(headers) == c.FormattersDefaults.TABLE_KEY_VALUE_COLUMNS
                     ):
                         # Key-value pairs
                         table.add_row(str(k), str(v))
@@ -189,7 +156,7 @@ class FlextCliFormatters:
 
         except Exception as e:  # pragma: no cover - Defensive: Catches unexpected errors during table creation
             return r[RichTable].fail(
-                FlextCliConstants.FormattersErrorMessages.TABLE_CREATION_FAILED.format(
+                c.FormattersErrorMessages.TABLE_CREATION_FAILED.format(
                     error=e,
                 ),
             )
@@ -237,7 +204,7 @@ class FlextCliFormatters:
 
         except Exception as e:
             return r[str].fail(
-                FlextCliConstants.FormattersErrorMessages.TABLE_RENDERING_FAILED.format(
+                c.FormattersErrorMessages.TABLE_RENDERING_FAILED.format(
                     error=e,
                 ),
             )
@@ -259,7 +226,7 @@ class FlextCliFormatters:
             return r[Progress].ok(progress)
         except Exception as e:
             return r[Progress].fail(
-                FlextCliConstants.FormattersErrorMessages.PROGRESS_CREATION_FAILED.format(
+                c.FormattersErrorMessages.PROGRESS_CREATION_FAILED.format(
                     error=e,
                 ),
             )
@@ -283,7 +250,7 @@ class FlextCliFormatters:
             return r[RichTree].ok(tree)
         except Exception as e:
             return r[RichTree].fail(
-                FlextCliConstants.FormattersErrorMessages.TREE_CREATION_FAILED.format(
+                c.FormattersErrorMessages.TREE_CREATION_FAILED.format(
                     error=e,
                 ),
             )
@@ -315,7 +282,7 @@ class FlextCliFormatters:
 
         except Exception as e:
             return r[str].fail(
-                FlextCliConstants.FormattersErrorMessages.TREE_RENDERING_FAILED.format(
+                c.FormattersErrorMessages.TREE_RENDERING_FAILED.format(
                     error=e,
                 ),
             )
@@ -345,9 +312,7 @@ class FlextCliFormatters:
         try:
             # Validate spinner explicitly - no fallback
             validated_spinner = (
-                spinner
-                if spinner is not None
-                else FlextCliConstants.FormattersDefaults.DEFAULT_SPINNER
+                spinner if spinner is not None else c.FormattersDefaults.DEFAULT_SPINNER
             )
             status = RichStatus(
                 message,
@@ -357,7 +322,7 @@ class FlextCliFormatters:
             return r[RichStatus].ok(status)
         except Exception as e:
             return r[RichStatus].fail(
-                FlextCliConstants.FormattersErrorMessages.STATUS_CREATION_FAILED.format(
+                c.FormattersErrorMessages.STATUS_CREATION_FAILED.format(
                     error=e,
                 ),
             )
@@ -383,7 +348,7 @@ class FlextCliFormatters:
             validated_refresh_rate = (
                 refresh_per_second
                 if refresh_per_second is not None
-                else FlextCliConstants.FormattersDefaults.DEFAULT_REFRESH_RATE
+                else c.FormattersDefaults.DEFAULT_REFRESH_RATE
             )
             live = RichLive(
                 refresh_per_second=validated_refresh_rate,
@@ -392,7 +357,7 @@ class FlextCliFormatters:
             return r[RichLive].ok(live)
         except Exception as e:
             return r[RichLive].fail(
-                FlextCliConstants.FormattersErrorMessages.LIVE_CREATION_FAILED.format(
+                c.FormattersErrorMessages.LIVE_CREATION_FAILED.format(
                     error=e,
                 ),
             )
@@ -414,7 +379,7 @@ class FlextCliFormatters:
             return r[RichLayout].ok(layout)
         except Exception as e:
             return r[RichLayout].fail(
-                FlextCliConstants.FormattersErrorMessages.LAYOUT_CREATION_FAILED.format(
+                c.FormattersErrorMessages.LAYOUT_CREATION_FAILED.format(
                     error=e,
                 ),
             )
@@ -445,7 +410,7 @@ class FlextCliFormatters:
             validated_border_style = (
                 border_style
                 if border_style is not None
-                else FlextCliConstants.FormattersDefaults.DEFAULT_BORDER_STYLE
+                else c.FormattersDefaults.DEFAULT_BORDER_STYLE
             )
             panel = RichPanel(
                 content,
@@ -455,7 +420,7 @@ class FlextCliFormatters:
             return r[RichPanel].ok(panel)
         except Exception as e:
             return r[RichPanel].fail(
-                FlextCliConstants.FormattersErrorMessages.PANEL_CREATION_FAILED.format(
+                c.FormattersErrorMessages.PANEL_CREATION_FAILED.format(
                     error=e,
                 ),
             )

@@ -10,32 +10,28 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
+# ============================================================================
+# TEST CONSTANTS - Available in all tests via TestsCliConstants (c)
+# ============================================================================
+# All constants are in tests/constants.py (TestsCliConstants)
+# Test files import directly from conftest or use c.ClassName.CONSTANT pattern
+import builtins
 import json
 import os
 import tempfile
-from collections.abc import Callable, Generator
+from collections.abc import Generator
 from datetime import UTC, datetime
 from pathlib import Path
-from typing import cast
+from typing import Protocol, cast
 
 import pytest
 import yaml
 from click.testing import CliRunner
 from flext_core import (
     FlextConfig,
-    FlextConstants,
     FlextContainer,
-    FlextDecorators,
-    FlextExceptions,
-    FlextHandlers,
-    FlextModels,
-    FlextProtocols,
-    FlextResult,
-    FlextService,
-    t,
-    u,
 )
-from flext_tests.docker import FlextTestDocker
+from flext_tests.docker import FlextTestsDocker
 from pydantic import TypeAdapter
 
 from flext_cli import (
@@ -56,25 +52,76 @@ from flext_cli import (
     FlextCliServiceBase,
 )
 
-# Aliases for static method calls and type references
-# Use u.* for uds
-# Use t.* for t type references
-# Use c.* for FlextConstants constants
-# Use m.* for FlextModels model references
-# Use p.* for FlextProtocols protocol references
-# Use r.* for FlextResult methods
-# Use e.* for FlextExceptions
-# Use d.* for FlextDecorators decorators
-# Use s.* for FlextService service base
-# Use h.* for FlextHandlers handlers
-c = FlextConstants
-m = FlextModels
-p = FlextProtocols
-r = FlextResult
-e = FlextExceptions
-d = FlextDecorators
-s = FlextService
-h = FlextHandlers
+# Import from correct locations - use TestsCli structure
+from flext_cli.typings import t
+from tests import (  # TestsCliConstants, TestsCliModels, TestsCliTypes, TestsCliUtilities
+    c,
+    u,
+)
+from tests.utilities import TestsCliUtilities
+
+
+def pytest_configure(config: pytest.Config) -> None:
+    """Register test constants as pytest globals and configure markers.
+
+    Makes constants available via:
+    1. pytest namespace (pytest.ALICE, etc.)
+    2. Built-in namespace for direct access in test files
+    """
+    # Test data constants - access via TestsCliConstants instance
+    # c is type[TestsCliConstants], so we need to access class attributes directly
+    test_data = c.TestData
+    builtins.ALICE = test_data.ALICE
+    builtins.VALID_FIELD_NAME = test_data.VALID_FIELD_NAME
+    builtins.FIELD_NAME = test_data.FIELD_NAME
+    builtins.WHITESPACE_FIELD_NAME = test_data.WHITESPACE_FIELD_NAME
+    builtins.VALID_STRING = test_data.VALID_STRING
+    builtins.STRING = test_data.STRING
+    builtins.WHITESPACE_STRING = test_data.WHITESPACE_STRING
+    builtins.NONE_VALUE = test_data.NONE_VALUE
+    builtins.CUSTOM = test_data.CUSTOM
+    builtins.TWO = test_data.TWO
+    builtins.PASSWORD = test_data.PASSWORD
+    builtins.LONG = test_data.LONG
+    builtins.SPECIAL = test_data.SPECIAL
+    builtins.UNICODE = test_data.UNICODE
+    builtins.PERFORMANCE_THRESHOLD = test_data.PERFORMANCE_THRESHOLD
+    # Status constants
+    builtins.INFO = c.Status.INFO
+    builtins.WARNING = c.Status.WARNING
+    builtins.ALL = c.Status.ALL
+    # Format constants
+    builtins.NAME_HEADER = c.Format.NAME_HEADER
+    builtins.GRID = c.Format.GRID
+    builtins.FANCY_GRID = c.Format.FANCY_GRID
+    builtins.INVALID = c.Format.INVALID
+    builtins.ExpectedALL = c.Format.EXPECTED_ALL
+    # Environment constants
+    builtins.PYTEST_CURRENT_TEST = c.Environment.PYTEST_CURRENT_TEST
+    builtins.PYTEST_BINARY = c.Environment.PYTEST_BINARY
+    builtins.CI_VALUE = c.Environment.CI_VALUE
+    # Table constants
+    builtins.SpecializedCASES = c.Table.SPECIALIZED_CASES
+    builtins.Borders = c.Table.Borders
+    builtins.Data = c.Table.Data
+    # Config constants
+    builtins.Config = c.Config
+    # Other constants
+    builtins.OutputFormats = c.OutputFormats
+    builtins.Statuses = c.Statuses
+    builtins.FileOps = c.FileOps
+    builtins.Password = c.Password
+    builtins.Progress = c.Progress
+
+    # Configure pytest markers
+    config.addinivalue_line("markers", "integration: marks tests as integration tests")
+    config.addinivalue_line("markers", "unit: marks tests as unit tests")
+    config.addinivalue_line("markers", "slow: marks tests as slow running")
+    config.addinivalue_line("markers", "docker: marks tests that require Docker")
+    config.addinivalue_line(
+        "markers",
+        "real_functionality: marks tests that test real functionality",
+    )
 
 
 @pytest.fixture
@@ -154,7 +201,9 @@ def temp_csv_file(temp_dir: Path) -> Path:
 
 @pytest.fixture
 def flext_cli_api(
-    tmp_path: Path, request: pytest.FixtureRequest, monkeypatch: pytest.MonkeyPatch
+    tmp_path: Path,
+    request: pytest.FixtureRequest,
+    monkeypatch: pytest.MonkeyPatch,
 ) -> FlextCli:
     """Create isolated FlextCli instance with test-specific config.
 
@@ -176,7 +225,8 @@ def flext_cli_api(
     monkeypatch.setenv("FLEXT_CLI_CONFIG_DIR", str(test_dir))
     monkeypatch.setenv("FLEXT_CLI_TOKEN_FILE", str(test_dir / "token.json"))
     monkeypatch.setenv(
-        "FLEXT_CLI_REFRESH_TOKEN_FILE", str(test_dir / "refresh_token.json")
+        "FLEXT_CLI_REFRESH_TOKEN_FILE",
+        str(test_dir / "refresh_token.json"),
     )
     monkeypatch.setenv("FLEXT_CLI_PROFILE", "test")
     monkeypatch.setenv("FLEXT_CLI_OUTPUT_FORMAT", "json")
@@ -195,8 +245,64 @@ def flext_cli_api(
 # Tests receive these as parameters - no imports needed, follows pytest patterns
 
 
+class CliCommandFactory(Protocol):
+    """Protocol for CliCommand factory function."""
+
+    def __call__(
+        self,
+        name: str = ...,
+        command_line: str = ...,
+        description: str = ...,
+        status: str = ...,
+        **kwargs: object,
+    ) -> FlextCliModels.CliCommand:
+        """Create CliCommand instance."""
+        ...
+
+
+class CliSessionFactory(Protocol):
+    """Protocol for CliSession factory function."""
+
+    def __call__(
+        self,
+        session_id: str = ...,
+        user_id: str = ...,
+        status: str = ...,
+        **kwargs: object,
+    ) -> FlextCliModels.CliSession:
+        """Create CliSession instance."""
+        ...
+
+
+class DebugInfoFactory(Protocol):
+    """Protocol for DebugInfo factory function."""
+
+    def __call__(
+        self,
+        service: str = ...,
+        level: str = ...,
+        message: str = ...,
+        **kwargs: object,
+    ) -> FlextCliModels.DebugInfo:
+        """Create DebugInfo instance."""
+        ...
+
+
+class LoggingConfigFactory(Protocol):
+    """Protocol for LoggingConfig factory function."""
+
+    def __call__(
+        self,
+        log_level: str = ...,
+        log_format: str = ...,
+        **kwargs: object,
+    ) -> FlextCliModels.LoggingConfig:
+        """Create LoggingConfig instance."""
+        ...
+
+
 @pytest.fixture
-def cli_command_factory() -> Callable[..., FlextCliModels.CliCommand]:
+def cli_command_factory() -> CliCommandFactory:
     """Factory fixture for creating CliCommand models with defaults."""
 
     def _create(
@@ -209,7 +315,8 @@ def cli_command_factory() -> Callable[..., FlextCliModels.CliCommand]:
         # No base data needed since CliCommand has extra="forbid"
 
         # Override with CLI-specific data
-        cli_data: dict[str, t.GeneralValueType]
+        # Use object for kwargs since GeneralValueType may not be accessible via t
+        cli_data: dict[str, object]
         cli_data = {
             "command_line": command_line,
             "args": [],  # Default empty args
@@ -224,24 +331,26 @@ def cli_command_factory() -> Callable[..., FlextCliModels.CliCommand]:
             "description": description,  # Add description field
         }
 
-        # Convert dict[str, object] to dict[str, GeneralValueType] for convert_dict_to_json
-        converted_kwargs = {k: cast("t.GeneralValueType", v) for k, v in kwargs.items()}
-        # Use u.transform for JSON conversion
-        raw_data = {**cli_data, **converted_kwargs}
-        transform_result = u.transform(raw_data, to_json=True)
-        final_data: t.JsonDict = (
-            transform_result.unwrap()
-            if transform_result.is_success
-            else cast("t.JsonDict", raw_data)
+        # Merge kwargs
+        raw_data = {**cli_data, **kwargs}
+        # Use u.transform for JSON conversion (from flext-core)
+        # Cast to ConfigurationDict for type compatibility
+        transform_result = u.transform(
+            cast("t.Types.ConfigurationDict", raw_data),
+            to_json=True,
         )
-        # Use cast to satisfy type checker - Pydantic accepts dict[str, Any] at runtime
-        return FlextCliModels.CliCommand(**cast("dict[str, object]", final_data))  # type: ignore[arg-type]
+        if transform_result.is_success:
+            final_data = cast("dict[str, object]", transform_result.unwrap())
+        else:
+            final_data = raw_data
+        # Use model_validate which accepts dict[str, Any] and validates at runtime
+        return FlextCliModels.CliCommand.model_validate(final_data)
 
     return _create
 
 
 @pytest.fixture
-def cli_session_factory() -> Callable[..., FlextCliModels.CliSession]:
+def cli_session_factory() -> CliSessionFactory:
     """Factory fixture for creating CliSession models with defaults."""
 
     def _create(
@@ -256,8 +365,7 @@ def cli_session_factory() -> Callable[..., FlextCliModels.CliSession]:
         # Add session-specific fields - only real fields that exist in CliSession
         # Include created_at and updated_at for frozen model compatibility
 
-        session_data: dict[str, t.GeneralValueType]
-        session_data = {
+        session_data: dict[str, object] = {
             "session_id": session_id,
             "status": status,
             "user_id": user_id,
@@ -272,26 +380,26 @@ def cli_session_factory() -> Callable[..., FlextCliModels.CliSession]:
         }
 
         # Merge session data with kwargs
-        # Convert to JsonDict-compatible dict using u
-        # Convert dict[str, object] to dict[str, GeneralValueType] for convert_dict_to_json
-        converted_kwargs = {k: cast("t.GeneralValueType", v) for k, v in kwargs.items()}
+        raw_data = {**session_data, **kwargs}
         # Use u.transform for JSON conversion
-        raw_data = {**session_data, **converted_kwargs}
-        transform_result = u.transform(raw_data, to_json=True)
-        final_data: t.JsonDict = (
-            transform_result.unwrap()
-            if transform_result.is_success
-            else cast("t.JsonDict", raw_data)
+        # Cast to ConfigurationDict for type compatibility
+        transform_result = u.transform(
+            cast("t.Types.ConfigurationDict", raw_data),
+            to_json=True,
         )
+        if transform_result.is_success:
+            final_data = cast("dict[str, object]", transform_result.unwrap())
+        else:
+            final_data = raw_data
         # Create instance - autouse fixture should have handled model_rebuild
-        # Use cast to satisfy type checker - Pydantic accepts dict[str, Any] at runtime
-        return FlextCliModels.CliSession(**cast("dict[str, object]", final_data))  # type: ignore[arg-type]
+        # Use model_validate which accepts dict[str, Any] and validates at runtime
+        return FlextCliModels.CliSession.model_validate(final_data)
 
     return _create
 
 
 @pytest.fixture
-def debug_info_factory() -> Callable[..., FlextCliModels.DebugInfo]:
+def debug_info_factory() -> DebugInfoFactory:
     """Factory fixture for creating DebugInfo models with defaults."""
 
     def _create(
@@ -303,7 +411,7 @@ def debug_info_factory() -> Callable[..., FlextCliModels.DebugInfo]:
         # DebugInfo has strict validation (extra='forbid'), use compatible fields
 
         # Add debug-specific fields - only real fields that exist in DebugInfo
-        debug_data = {
+        debug_data: dict[str, object] = {
             "service": service,
             "level": level,
             "message": message or "",
@@ -323,30 +431,25 @@ def debug_info_factory() -> Callable[..., FlextCliModels.DebugInfo]:
         filtered_kwargs = {k: v for k, v in kwargs.items() if k in valid_fields}
 
         # Merge data
-        # Convert to JsonDict-compatible dict using u
-        # Convert dict[str, object] to dict[str, GeneralValueType] for convert_dict_to_json
-        converted_debug_data = {
-            k: cast("t.GeneralValueType", v) for k, v in debug_data.items()
-        }
-        converted_filtered_kwargs = {
-            k: cast("t.GeneralValueType", v) for k, v in filtered_kwargs.items()
-        }
+        raw_data = {**debug_data, **filtered_kwargs}
         # Use u.transform for JSON conversion
-        raw_data = {**converted_debug_data, **converted_filtered_kwargs}
-        transform_result = u.transform(raw_data, to_json=True)
-        final_data: t.JsonDict = (
-            transform_result.unwrap()
-            if transform_result.is_success
-            else cast("t.JsonDict", raw_data)
+        # Cast to ConfigurationDict for type compatibility
+        transform_result = u.transform(
+            cast("t.Types.ConfigurationDict", raw_data),
+            to_json=True,
         )
-        # Use cast to satisfy type checker - Pydantic accepts dict[str, Any] at runtime
-        return FlextCliModels.DebugInfo(**cast("dict[str, object]", final_data))  # type: ignore[arg-type]
+        if transform_result.is_success:
+            final_data = cast("dict[str, object]", transform_result.unwrap())
+        else:
+            final_data = raw_data
+        # Use model_validate which accepts dict[str, Any] and validates at runtime
+        return FlextCliModels.DebugInfo.model_validate(final_data)
 
     return _create
 
 
 @pytest.fixture
-def logging_config_factory() -> Callable[..., FlextCliModels.LoggingConfig]:
+def logging_config_factory() -> LoggingConfigFactory:
     """Factory fixture for creating LoggingConfig models with defaults."""
 
     def _create(
@@ -358,30 +461,27 @@ def logging_config_factory() -> Callable[..., FlextCliModels.LoggingConfig]:
         # Don't use FlextTestsFactories.create_config as it may have extra fields
 
         # Add logging-specific fields - only real fields that exist in LoggingConfig
-        logging_data = {
+        logging_data: dict[str, object] = {
             "log_level": log_level,
             "log_format": log_format,
             "console_output": True,
             "log_file": "",
         }
 
-        # Merge with kwargs, but only if they are valid fields
-        # Convert to JsonDict-compatible dict using u
-        # Convert dict[str, object] to dict[str, GeneralValueType] for convert_dict_to_json
-        converted_logging_data = {
-            k: cast("t.GeneralValueType", v) for k, v in logging_data.items()
-        }
-        converted_kwargs = {k: cast("t.GeneralValueType", v) for k, v in kwargs.items()}
+        # Merge with kwargs
+        raw_data = {**logging_data, **kwargs}
         # Use u.transform for JSON conversion
-        raw_data = {**converted_logging_data, **converted_kwargs}
-        transform_result = u.transform(raw_data, to_json=True)
-        final_data: t.JsonDict = (
-            transform_result.unwrap()
-            if transform_result.is_success
-            else cast("t.JsonDict", raw_data)
+        # Cast to ConfigurationDict for type compatibility
+        transform_result = u.transform(
+            cast("t.Types.ConfigurationDict", raw_data),
+            to_json=True,
         )
-        # Use cast to satisfy type checker - Pydantic accepts dict[str, Any] at runtime
-        return FlextCliModels.LoggingConfig(**cast("dict[str, object]", final_data))  # type: ignore[arg-type]
+        if transform_result.is_success:
+            final_data = cast("dict[str, object]", transform_result.unwrap())
+        else:
+            final_data = raw_data
+        # Use model_validate which accepts dict[str, Any] and validates at runtime
+        return FlextCliModels.LoggingConfig.model_validate(final_data)
 
     return _create
 
@@ -533,9 +633,9 @@ def flext_cli_protocols() -> FlextCliProtocols:
 
 
 @pytest.fixture
-def flext_cli_utilities() -> type[u]:
-    """Provide FlextUtilities class from flext-core for testing."""
-    return u
+def flext_cli_utilities() -> type[TestsCliUtilities]:
+    """Provide TestsCliUtilities class for testing."""
+    return TestsCliUtilities
 
 
 # ============================================================================
@@ -552,22 +652,22 @@ def flext_cli_utilities() -> type[u]:
 
 
 @pytest.fixture
-def sample_config_data() -> t.JsonDict:
+def sample_config_data() -> dict[str, object]:
     """Provide sample configuration data for tests."""
     return {
         "debug": True,
         "output_format": "table",
         "no_color": False,
         "profile": "test",
-        "timeout": FlextCliConstants.TIMEOUTS.DEFAULT,
-        "retries": FlextCliConstants.HTTP.MAX_RETRIES,
+        "timeout": c.TIMEOUTS.DEFAULT,
+        "retries": c.HTTP.MAX_RETRIES,
         "api_endpoint": "https://api.example.com",
         "auth_token": "test_token_123",
     }
 
 
 @pytest.fixture
-def sample_file_data(temp_dir: Path) -> t.JsonDict:
+def sample_file_data(temp_dir: Path) -> dict[str, object]:
     """Provide sample file data for tests."""
     return {
         "content": "This is test content for file operations",
@@ -582,14 +682,14 @@ def sample_file_data(temp_dir: Path) -> t.JsonDict:
 
 
 @pytest.fixture
-def sample_command_data() -> t.JsonDict:
+def sample_command_data() -> dict[str, object]:
     """Provide sample command data for tests."""
     return {
         "command": "test_command",
         "args": ["--verbose", "--output", "json"],
         "kwargs": {
-            "timeout": FlextCliConstants.TIMEOUTS.DEFAULT,
-            "retries": FlextCliConstants.HTTP.MAX_RETRIES,
+            "timeout": c.TIMEOUTS.DEFAULT,
+            "retries": c.HTTP.MAX_RETRIES,
         },
         "expected_result": {"status": "success", "data": "test_output"},
     }
@@ -614,22 +714,22 @@ def fixture_data_csv() -> Path:
 
 
 @pytest.fixture
-def load_fixture_config() -> t.JsonDict:
+def load_fixture_config() -> dict[str, object]:
     """Load configuration data from fixtures directory."""
     fixture_path = Path("tests/fixtures/configs/test_config.json")
     with fixture_path.open(encoding="utf-8") as f:
         data = json.load(f)
-    adapter: TypeAdapter[t.JsonDict] = TypeAdapter(t.JsonDict)
+    adapter: TypeAdapter[dict[str, object]] = TypeAdapter(dict[str, object])
     return adapter.validate_python(data)
 
 
 @pytest.fixture
-def load_fixture_data() -> t.JsonDict:
+def load_fixture_data() -> dict[str, object]:
     """Load test data from fixtures directory."""
     fixture_path = Path("tests/fixtures/data/test_data.json")
     with fixture_path.open(encoding="utf-8") as f:
         data = json.load(f)
-    adapter: TypeAdapter[t.JsonDict] = TypeAdapter(t.JsonDict)
+    adapter: TypeAdapter[dict[str, object]] = TypeAdapter(dict[str, object])
     return adapter.validate_python(data)
 
 
@@ -641,8 +741,8 @@ def load_fixture_data() -> t.JsonDict:
 @pytest.fixture(scope="session")
 def flext_test_docker(
     tmp_path_factory: pytest.TempPathFactory,
-) -> FlextTestDocker:
-    """FlextTestDocker instance for managing test containers.
+) -> FlextTestsDocker:
+    """FlextTestsDocker instance for managing test containers.
 
     Container stays alive after tests for debugging, recreated on infra failures.
     Tests are idempotent with cleanup at start/end. Uses session scope to persist
@@ -650,7 +750,7 @@ def flext_test_docker(
     """
     # Use the flext-cli directory as workspace root
     workspace_root = Path(__file__).parent.parent
-    docker_manager = FlextTestDocker(workspace_root=workspace_root)
+    docker_manager = FlextTestsDocker(workspace_root=workspace_root)
 
     # Clean up any existing test containers at start
     try:
@@ -721,7 +821,7 @@ FLEXT_CLI_RETRIES=3
 
 
 @pytest.fixture(autouse=True)
-def reset_singletons() -> Generator[None]:
+def reset_singletons() -> None:
     """Reset all FlextConfig singletons between tests for isolation.
 
     CRITICAL: This fixture runs automatically before EACH test to ensure
@@ -731,17 +831,8 @@ def reset_singletons() -> Generator[None]:
     # For now, skip reset to focus on test functionality
     # Pydantic v2 with 'from __future__ import annotations' resolves forward refs
     # No manual model_rebuild() needed - annotations resolved at runtime
-    # Yield to make this a proper generator fixture (required for Generator[None] return type)
-    # Business Rule: Generator fixtures MUST use yield, not return, for proper cleanup
-    # CRITICAL: Must use yield, not return, for Generator[None] type compatibility
-    # Architecture: Generator[None] requires yield statement, return None causes type error
-    # Type system requirement: Generator[None] protocol requires yield, not return
-    # FIXED: Changed return None to yield None for Generator[None] type compatibility
-    # CRITICAL: Generator[None] return type REQUIRES yield statement, not return
-    # Business Rule: Generator fixtures MUST use yield for proper cleanup and type compatibility
-    # Architecture: Generator[None] protocol requires yield, return None causes type error
-    yield None  # noqa: PT022
     # Reset after test to clean up any state
+    return
 
 
 @pytest.fixture
@@ -763,20 +854,32 @@ def clean_flext_container() -> Generator[None]:
 
 
 # ============================================================================
-# TEST MARKERS AND CONFIGURATION
+# VERSION TEST FIXTURES AND CONSTANTS
 # ============================================================================
 
 
-def pytest_configure(config: pytest.Config) -> None:
-    """Configure pytest with custom markers."""
-    config.addinivalue_line("markers", "integration: marks tests as integration tests")
-    config.addinivalue_line("markers", "unit: marks tests as unit tests")
-    config.addinivalue_line("markers", "slow: marks tests as slow running")
-    config.addinivalue_line("markers", "docker: marks tests that require Docker")
-    config.addinivalue_line(
-        "markers",
-        "real_functionality: marks tests that test real functionality",
-    )
+class Examples:
+    """Version string examples for parametrized tests."""
+
+    VALID_SEMVER: str = "1.2.3"
+    VALID_SEMVER_COMPLEX: str = "1.2.3-alpha.1+build.123"
+    INVALID_NO_DOTS: str = "version"
+    INVALID_NON_NUMERIC: str = "a.b.c"
+
+
+class InfoTuples:
+    """Version info tuple examples for parametrized tests."""
+
+    VALID_TUPLE: tuple[int, int, int] = (1, 2, 3)
+    VALID_COMPLEX_TUPLE: tuple[int | str, ...] = (1, 2, 3, "alpha", 1)
+    SHORT_TUPLE: tuple[int, int] = (1, 2)
+    EMPTY_TUPLE: tuple[()] = ()
+
+
+# ============================================================================
+# TEST MARKERS AND CONFIGURATION
+# ============================================================================
+# pytest_configure is already defined above with constants and markers
 
 
 def pytest_collection_modifyitems(

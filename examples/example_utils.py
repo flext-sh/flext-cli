@@ -10,11 +10,7 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from flext_core import FlextResult, FlextTypes
-
-from flext_cli import FlextCli, FlextCliTypes
-
-t = FlextTypes
+from flext_cli import FlextCli, r, t
 
 
 def print_demo_completion(
@@ -46,7 +42,7 @@ def print_demo_completion(
 
 def handle_command_result(
     cli: FlextCli,
-    result: FlextResult[t.JsonDict],
+    result: r[t.JsonDict],
     action: str,
     success_fields: list[str] | None = None,
 ) -> None:
@@ -91,7 +87,8 @@ def print_demo_error(
     """
     cli.output.print_message(f"❌ {demo_name} failed: {error}", style=f"bold {style}")
     cli.output.print_message(
-        "This failure demonstrates FlextResult error handling!", style="yellow"
+        "This failure demonstrates FlextResult error handling!",
+        style="yellow",
     )
     cli.output.print_message(
         "The error was caught and wrapped in a FlextResult for clean handling.",
@@ -101,7 +98,7 @@ def print_demo_error(
 
 def display_config_table(
     cli: FlextCli,
-    config_data: FlextCliTypes.Data.CliDataDict,
+    config_data: t.Data.CliDataDict,
     title: str = "Configuration",
     headers: list[str] | None = None,
 ) -> None:
@@ -142,7 +139,8 @@ def display_success_summary(
 
     """
     cli.output.print_message(
-        f"✅ {operation} completed successfully!", style="bold green"
+        f"✅ {operation} completed successfully!",
+        style="bold green",
     )
 
     if details:
@@ -164,7 +162,8 @@ def display_validation_errors(
 
     """
     cli.output.print_message(
-        f"❌ {context.title()} failed with {len(errors)} error(s):", style="bold red"
+        f"❌ {context.title()} failed with {len(errors)} error(s):",
+        style="bold red",
     )
 
     for i, error in enumerate(errors, 1):

@@ -22,10 +22,10 @@ from flext_core import t
 
 from flext_cli import FlextCliFileTools
 
-from ..fixtures.constants import RailwayPatternExample as Railway
+# from ..fixtures.constants import RailwayPatternExample as Railway  # Fixtures removed - use conftest.py and flext_tests
 
 
-class TestRailwayPatternExample:
+class TestsCliRailwayPatternExample:
     """Railway Pattern testing with FlextResult paradigm.
 
     Demonstrates proper usage of FlextResult for success/failure chains,
@@ -54,15 +54,15 @@ class TestRailwayPatternExample:
     @pytest.mark.parametrize(
         ("test_data", "filename", "verify_keys"),
         [
-            (Railway.TestData.SIMPLE, Railway.FilePaths.TEST_FILE, ["name", "value"]),
+            ("simple", "test_file.txt", ["name", "value"]),
             (
-                Railway.TestData.KEY_VALUE,
-                Railway.FilePaths.VALIDATED_FILE,
+                "key_value",
+                "validated_file.txt",
                 ["key", "number"],
             ),
             (
-                Railway.TestData.CONFIG,
-                Railway.FilePaths.CONFIG_FILE,
+                "config",
+                "config_file.json",
                 ["debug", "timeout"],
             ),
         ],
@@ -72,7 +72,7 @@ class TestRailwayPatternExample:
         self,
         file_tools: FlextCliFileTools,
         temp_dir: Path,
-        test_data: t.JsonDict,
+        test_data: dict[str, t.GeneralValueType],
         filename: str,
         verify_keys: list[str],
     ) -> None:
@@ -108,13 +108,13 @@ class TestRailwayPatternExample:
         ("invalid_path", "test_data", "scenario"),
         [
             (
-                Railway.FilePaths.INVALID_PATH,
-                Railway.TestData.SIMPLE,
+                "/invalid/path",
+                "simple",
                 "nonexistent_dir",
             ),
             (
                 "/dev/null/nested/deep/path.json",
-                Railway.TestData.CONFIG,
+                "config",
                 "nested_invalid",
             ),
         ],
@@ -124,7 +124,7 @@ class TestRailwayPatternExample:
         self,
         file_tools: FlextCliFileTools,
         invalid_path: str,
-        test_data: t.JsonDict,
+        test_data: dict[str, t.GeneralValueType],
         scenario: str,
     ) -> None:
         """Test Railway Pattern error handling and propagation.
@@ -157,19 +157,19 @@ class TestRailwayPatternExample:
         - Alternative execution strategies
         - Proper fallback handling
         """
-        fallback_file = temp_dir / Railway.FilePaths.FALLBACK_FILE
+        fallback_file = temp_dir / "fallback_file.txt"
 
         # Try primary (fails due to invalid path)
         primary_result = file_tools.write_json_file(
-            Railway.FilePaths.INVALID_PATH,
-            Railway.TestData.STRATEGY,
+            "/invalid/path",
+            "strategy",
         )
         assert primary_result.is_failure
 
         # Use fallback
         fallback_result = file_tools.write_json_file(
             str(fallback_file),
-            Railway.TestData.STRATEGY,
+            "strategy",
         )
         assert fallback_result.is_success
         assert fallback_file.exists()
@@ -191,21 +191,21 @@ class TestRailwayPatternExample:
         - File operation chaining
         - Result unwrapping and data composition
         """
-        config_file = temp_dir / Railway.FilePaths.CONFIG_FILE
-        data_file = temp_dir / Railway.FilePaths.DATA_FILE
-        output_file = temp_dir / Railway.FilePaths.OUTPUT_FILE
+        config_file = temp_dir / "config_file.json"
+        data_file = temp_dir / "data_file.json"
+        output_file = temp_dir / "output_file.json"
 
         # Step 1: Write config
         config_result = file_tools.write_json_file(
             str(config_file),
-            Railway.TestData.CONFIG,
+            "config",
         )
         assert config_result.is_success
 
         # Step 2: Write input data
         data_result = file_tools.write_json_file(
             str(data_file),
-            Railway.TestData.ITEMS,
+            "items",
         )
         assert data_result.is_success
 

@@ -21,13 +21,14 @@ from pathlib import Path
 
 import pytest
 
-from flext_cli import FlextCliConstants
+from flext_cli import FlextCliConstants, c
 
 from .._helpers import FlextCliTestHelpers
-from ..fixtures.constants import TestConstants
+
+# from ..fixtures.constants import TestConstants  # Fixtures removed - use conftest.py and flext_tests
 
 
-class TestFlextCliConstants:
+class TestsCliConstants:
     """Comprehensive test suite for FlextCliConstants functionality.
 
     Single class with nested helper classes and methods organized by functionality.
@@ -58,14 +59,14 @@ class TestFlextCliConstants:
         def get_constant_value_cases() -> list[tuple[str, str]]:
             """Get parametrized test cases for constant values."""
             return [
-                ("PROJECT_NAME", TestConstants.ExpectedValues.PROJECT_NAME),
-                ("FLEXT_DIR_NAME", TestConstants.ExpectedValues.FLEXT_DIR_NAME),
-                ("TOKEN_FILE_NAME", TestConstants.ExpectedValues.TOKEN_FILE_NAME),
+                ("PROJECT_NAME", "flext-cli"),
+                ("FLEXT_DIR_NAME", ".flext"),
+                ("TOKEN_FILE_NAME", "token.json"),
                 (
                     "REFRESH_TOKEN_FILE_NAME",
-                    TestConstants.ExpectedValues.REFRESH_TOKEN_FILE_NAME,
+                    "refresh_token.json",
                 ),
-                ("AUTH_DIR_NAME", TestConstants.ExpectedValues.AUTH_DIR_NAME),
+                ("AUTH_DIR_NAME", ".auth"),
             ]
 
         @staticmethod
@@ -125,9 +126,7 @@ class TestFlextCliConstants:
         ) -> None:
             """Assert file name constant follows format."""
             value = getattr(constants, constant_name)
-            assert value.endswith(
-                TestConstants.FormatValidation.FILE_NAME_MUST_END_WITH
-            )
+            assert value.endswith(".json")
             assert not value.startswith(".")
             assert "/" not in value
             assert "\\" not in value
@@ -150,7 +149,13 @@ class TestFlextCliConstants:
 
     @pytest.mark.parametrize(
         ("constant_name", "expected_value"),
-        TestData.get_constant_value_cases(),
+        [
+            ("PROJECT_NAME", "flext-cli"),
+            ("FLEXT_DIR_NAME", ".flext"),
+            ("TOKEN_FILE_NAME", "token.json"),
+            ("REFRESH_TOKEN_FILE_NAME", "refresh_token.json"),
+            ("AUTH_DIR_NAME", ".auth"),
+        ],
     )
     def test_constants_values(
         self,
@@ -165,7 +170,15 @@ class TestFlextCliConstants:
     # CONSTANT VALIDATION TESTS (Parametrized)
     # =========================================================================
 
-    @pytest.mark.parametrize("constant_name", TestData.get_constant_names())
+    @pytest.mark.parametrize(
+        "constant_name",
+        [
+            "PROJECT_NAME",
+            "FLEXT_DIR_NAME",
+            "TOKEN_FILE_NAME",
+            "REFRESH_TOKEN_FILE_NAME",
+        ],
+    )
     def test_constants_are_immutable(self, constant_name: str) -> None:
         """Test that constants are properly defined and immutable."""
         constants = self.Fixtures.get_constants()
@@ -174,7 +187,15 @@ class TestFlextCliConstants:
         assert isinstance(constant_value, str)
         assert len(constant_value.strip()) > 0
 
-    @pytest.mark.parametrize("constant_name", TestData.get_constant_names())
+    @pytest.mark.parametrize(
+        "constant_name",
+        [
+            "PROJECT_NAME",
+            "FLEXT_DIR_NAME",
+            "TOKEN_FILE_NAME",
+            "REFRESH_TOKEN_FILE_NAME",
+        ],
+    )
     def test_constants_not_none_or_empty(self, constant_name: str) -> None:
         """Test that constants are not None or empty strings."""
         constants = self.Fixtures.get_constants()
@@ -184,7 +205,15 @@ class TestFlextCliConstants:
         assert constant_value
         assert constant_value.strip()
 
-    @pytest.mark.parametrize("constant_name", TestData.get_constant_names())
+    @pytest.mark.parametrize(
+        "constant_name",
+        [
+            "PROJECT_NAME",
+            "FLEXT_DIR_NAME",
+            "TOKEN_FILE_NAME",
+            "REFRESH_TOKEN_FILE_NAME",
+        ],
+    )
     def test_constants_type_safety(self, constant_name: str) -> None:
         """Test constants type safety."""
         constants = self.Fixtures.get_constants()
@@ -204,20 +233,32 @@ class TestFlextCliConstants:
         constants = self.Fixtures.get_constants()
 
         assert constants.FLEXT_DIR_NAME.startswith(
-            TestConstants.FormatValidation.DIR_NAME_MUST_START_WITH,
+            ".",
         )
         assert len(constants.FLEXT_DIR_NAME) > 1
 
-    @pytest.mark.parametrize("constant_name", TestData.get_file_name_constants())
+    @pytest.mark.parametrize(
+        "constant_name",
+        [
+            "TOKEN_FILE_NAME",
+            "REFRESH_TOKEN_FILE_NAME",
+        ],
+    )
     def test_file_name_format_validation(self, constant_name: str) -> None:
         """Test that file names follow expected format."""
         constants = self.Fixtures.get_constants()
         self.Assertions.assert_file_name_format(constants, constant_name)
 
-    @pytest.mark.parametrize("constant_name", TestData.get_file_name_constants())
+    @pytest.mark.parametrize(
+        "constant_name",
+        [
+            "TOKEN_FILE_NAME",
+            "REFRESH_TOKEN_FILE_NAME",
+        ],
+    )
     @pytest.mark.parametrize(
         "invalid_char",
-        TestConstants.InvalidChars.COMMON_INVALID,
+        ["/", "\\", ":", "*", "?", '"', "<", ">", "|"],
     )
     def test_file_names_no_invalid_characters(
         self,
@@ -275,13 +316,10 @@ class TestFlextCliConstants:
             "refresh_token_file": constants.REFRESH_TOKEN_FILE_NAME,
         }
 
-        assert config["project_name"] == TestConstants.ExpectedValues.PROJECT_NAME
-        assert config["data_directory"] == TestConstants.ExpectedValues.FLEXT_DIR_NAME
-        assert config["token_file"] == TestConstants.ExpectedValues.TOKEN_FILE_NAME
-        assert (
-            config["refresh_token_file"]
-            == TestConstants.ExpectedValues.REFRESH_TOKEN_FILE_NAME
-        )
+        assert config["project_name"] == "flext-cli"
+        assert config["data_directory"] == ".flext"
+        assert config["token_file"] == "token.json"
+        assert config["refresh_token_file"] == "refresh_token.json"
 
     def test_constants_in_logging(self) -> None:
         """Test constants usage in logging scenarios."""
@@ -314,9 +352,9 @@ class TestFlextCliConstants:
         current_platform = platform.system().lower()
 
         invalid_chars = (
-            TestConstants.InvalidChars.WINDOWS_INVALID
+            ["/", "\\", ":", "*", "?", '"', "<", ">", "|"]
             if current_platform == "windows"
-            else TestConstants.InvalidChars.UNIX_INVALID
+            else ["/"]
         )
 
         for char in invalid_chars:
@@ -385,11 +423,11 @@ class TestFlextCliConstants:
         # Validate token files contain expected keywords
         assert any(
             kw in constants.TOKEN_FILE_NAME.lower()
-            for kw in TestConstants.FormatValidation.TOKEN_KEYWORDS
+            for kw in ["token", "access", "bearer"]
         )
         assert any(
             kw in constants.REFRESH_TOKEN_FILE_NAME.lower()
-            for kw in TestConstants.FormatValidation.REFRESH_KEYWORDS
+            for kw in ["refresh", "token"]
         )
 
     def test_validate_constant_consistency(self) -> None:
@@ -436,21 +474,10 @@ class TestFlextCliConstants:
 
     def test_constants_class_level_access(self) -> None:
         """Test accessing constants at class level."""
-        assert (
-            FlextCliConstants.PROJECT_NAME == TestConstants.ExpectedValues.PROJECT_NAME
-        )
-        assert (
-            FlextCliConstants.FLEXT_DIR_NAME
-            == TestConstants.ExpectedValues.FLEXT_DIR_NAME
-        )
-        assert (
-            FlextCliConstants.TOKEN_FILE_NAME
-            == TestConstants.ExpectedValues.TOKEN_FILE_NAME
-        )
-        assert (
-            FlextCliConstants.REFRESH_TOKEN_FILE_NAME
-            == TestConstants.ExpectedValues.REFRESH_TOKEN_FILE_NAME
-        )
+        assert c.PROJECT_NAME == "flext-cli"
+        assert c.FLEXT_DIR_NAME == ".flext"
+        assert c.TOKEN_FILE_NAME == "token.json"
+        assert c.REFRESH_TOKEN_FILE_NAME == "refresh_token.json"
 
     # =========================================================================
     # CONSTANT INTEGRATION TESTS
@@ -468,9 +495,12 @@ class TestFlextCliConstants:
             token_file = app_dir / constants.TOKEN_FILE_NAME
             refresh_token_file = app_dir / constants.REFRESH_TOKEN_FILE_NAME
 
-            token_file.write_text(TestConstants.TestValues.TEST_TOKEN_JSON)
+            token_file.write_text({
+                "access_token": "test_token",
+                "token_type": "Bearer",
+            })
             refresh_token_file.write_text(
-                TestConstants.TestValues.TEST_REFRESH_TOKEN_JSON,
+                {"refresh_token": "test_refresh_token"},
             )
 
             assert token_file.exists()
@@ -512,7 +542,7 @@ class TestFlextCliConstants:
         constants = self.Fixtures.get_constants()
 
         start_time = time.time()
-        for _ in range(TestConstants.TestValues.ITERATION_COUNT):
+        for _ in range(1000):
             _ = constants.PROJECT_NAME
             _ = constants.FLEXT_DIR_NAME
             _ = constants.TOKEN_FILE_NAME
@@ -520,9 +550,7 @@ class TestFlextCliConstants:
         end_time = time.time()
 
         access_time = end_time - start_time
-        assert access_time < TestConstants.TestValues.PERFORMANCE_THRESHOLD_SECONDS, (
-            f"Constants access too slow: {access_time:.4f}s"
-        )
+        assert access_time < 0.1, f"Constants access too slow: {access_time:.4f}s"
 
     # =========================================================================
     # EDGE CASES TESTS
@@ -535,3 +563,98 @@ class TestFlextCliConstants:
         combined = constants.PROJECT_NAME + " " + constants.FLEXT_DIR_NAME
         assert isinstance(combined, str)
         assert len(combined) > 0
+
+    # =========================================================================
+    # VALIDATION METHODS TESTS
+    # =========================================================================
+
+    def test_get_valid_output_formats(self) -> None:
+        """Test get_valid_output_formats returns sorted tuple."""
+        formats = c.get_valid_output_formats()
+        assert isinstance(formats, tuple)
+        assert len(formats) > 0
+        assert all(isinstance(fmt, str) for fmt in formats)
+        # Verify sorted
+        assert formats == tuple(sorted(formats))
+
+    def test_get_valid_command_statuses(self) -> None:
+        """Test get_valid_command_statuses returns sorted tuple."""
+        statuses = c.get_valid_command_statuses()
+        assert isinstance(statuses, tuple)
+        assert len(statuses) > 0
+        assert all(isinstance(status, str) for status in statuses)
+        # Verify sorted
+        assert statuses == tuple(sorted(statuses))
+
+    def test_get_enum_values(self) -> None:
+        """Test get_enum_values extracts values from StrEnum."""
+        # Test with CommandStatus enum
+        values = c.get_enum_values(c.CommandStatus)
+        assert isinstance(values, tuple)
+        assert len(values) > 0
+        assert all(isinstance(v, str) for v in values)
+        assert "pending" in values
+        assert "running" in values
+
+        # Test with OutputFormats enum
+        output_values = c.get_enum_values(c.OutputFormats)
+        assert isinstance(output_values, tuple)
+        assert "json" in output_values
+        assert "yaml" in output_values
+
+    def test_create_cli_discriminated_union(self) -> None:
+        """Test create_cli_discriminated_union creates union mapping."""
+        union_map = c.create_cli_discriminated_union(
+            "status",
+            c.CommandStatus,
+            c.SessionStatus,
+        )
+        assert isinstance(union_map, dict)
+        assert len(union_map) > 0
+        # Verify all values map to enum classes
+        assert union_map["pending"] == c.CommandStatus
+        assert union_map["active"] == c.SessionStatus
+
+    def test_get_file_extensions(self) -> None:
+        """Test get_file_extensions returns extensions for format."""
+        # Test existing format
+        extensions = c.get_file_extensions("json")
+        assert isinstance(extensions, tuple)
+        assert "json" in extensions
+
+        # Test format with multiple extensions
+        yaml_extensions = c.get_file_extensions("yaml")
+        assert isinstance(yaml_extensions, tuple)
+        assert "yaml" in yaml_extensions
+        assert "yml" in yaml_extensions
+
+        # Test non-existent format
+        none_extensions = c.get_file_extensions("nonexistent")
+        assert none_extensions is None
+
+    def test_get_mime_type(self) -> None:
+        """Test get_mime_type returns MIME type for format."""
+        # Test existing format
+        mime = c.get_mime_type("json")
+        assert isinstance(mime, str)
+        assert mime == "application/json"
+
+        # Test another format
+        yaml_mime = c.get_mime_type("yaml")
+        assert isinstance(yaml_mime, str)
+        assert yaml_mime == "application/x-yaml"
+
+        # Test non-existent format
+        none_mime = c.get_mime_type("nonexistent")
+        assert none_mime is None
+
+    def test_validate_file_format(self) -> None:
+        """Test validate_file_format checks format support."""
+        # Test supported formats
+        assert c.validate_file_format("json") is True
+        assert c.validate_file_format("yaml") is True
+        assert c.validate_file_format("csv") is True
+
+        # Test unsupported format
+        assert c.validate_file_format("nonexistent") is False
+        assert c.validate_file_format("invalid") is False

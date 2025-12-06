@@ -30,17 +30,10 @@ from __future__ import annotations
 import hashlib
 import shutil
 import tempfile
-from collections.abc import Iterable
 from pathlib import Path
 from typing import cast
 
-from flext_core import FlextTypes, FlextUtilities
-
-from flext_cli import FlextCli, FlextCliModels, FlextCliTables, FlextCliTypes
-
-# Alias for static method calls - use u.* for uds
-u = FlextUtilities
-t = FlextTypes
+from flext_cli import FlextCli, FlextCliTables, m, t, u
 
 cli = FlextCli()
 tables = FlextCliTables()
@@ -52,7 +45,7 @@ tables = FlextCliTables()
 
 
 def export_to_csv(
-    data: list[FlextCliTypes.Data.CliDataDict],
+    data: list[t.Data.CliDataDict],
     output_file: Path,
 ) -> None:
     """Export data to CSV with proper headers."""
@@ -61,7 +54,8 @@ def export_to_csv(
         return
 
     cli.output.print_message(
-        f"\n📊 Exporting to CSV: {output_file.name}", style="bold cyan"
+        f"\n📊 Exporting to CSV: {output_file.name}",
+        style="bold cyan",
     )
 
     # Extract headers from first row
@@ -77,18 +71,21 @@ def export_to_csv(
     if write_result.is_success:
         size = output_file.stat().st_size
         cli.output.print_message(
-            f"✅ Exported {len(data)} rows to CSV ({size} bytes)", style="green"
+            f"✅ Exported {len(data)} rows to CSV ({size} bytes)",
+            style="green",
         )
     else:
         cli.output.print_message(
-            f"❌ Export failed: {write_result.error}", style="bold red"
+            f"❌ Export failed: {write_result.error}",
+            style="bold red",
         )
 
 
-def import_from_csv(input_file: Path) -> list[FlextCliTypes.Data.CliDataDict] | None:
+def import_from_csv(input_file: Path) -> list[t.Data.CliDataDict] | None:
     """Import data from CSV with headers."""
     cli.output.print_message(
-        f"\n📥 Importing from CSV: {input_file.name}", style="bold cyan"
+        f"\n📥 Importing from CSV: {input_file.name}",
+        style="bold cyan",
     )
 
     # Read CSV with headers
@@ -96,7 +93,8 @@ def import_from_csv(input_file: Path) -> list[FlextCliTypes.Data.CliDataDict] | 
 
     if read_result.is_failure:
         cli.output.print_message(
-            f"❌ Import failed: {read_result.error}", style="bold red"
+            f"❌ Import failed: {read_result.error}",
+            style="bold red",
         )
         return []
 
@@ -109,7 +107,7 @@ def import_from_csv(input_file: Path) -> list[FlextCliTypes.Data.CliDataDict] | 
         # Convert to JsonDict-compatible format using u
         sample_rows_raw = rows[:5]
         # Use u.map to convert list items to JSON
-        sample_rows: list[FlextCliTypes.Data.CliDataDict] = list(
+        sample_rows: list[t.Data.CliDataDict] = list(
             u.map(
                 sample_rows_raw,
                 mapper=lambda row: (
@@ -122,17 +120,16 @@ def import_from_csv(input_file: Path) -> list[FlextCliTypes.Data.CliDataDict] | 
                         cast("dict[str, t.GeneralValueType]", row),
                         to_json=True,
                     ).is_success
-                    else cast("FlextCliTypes.Data.CliDataDict", row)
+                    else cast("t.Data.CliDataDict", row)
                 ),
-            )
-        )
-        # Cast to expected type for table creation - TableData accepts Iterable[dict[str, GeneralValueType]]
-        config = FlextCliModels.TableConfig(table_format="grid")
-        table_result = tables.create_table(
-            cast(
-                "Iterable[dict[str, t.GeneralValueType]]",
-                sample_rows,
             ),
+        )
+        # Cast to expected type for table creation - TableData is Sequence[JsonDict] | JsonDict | Sequence[Sequence[GeneralValueType]]
+        config = m.TableConfig(table_format="grid")
+        # sample_rows is already Sequence[dict[str, GeneralValueType]] which is compatible with TableData
+        # TableData accepts Sequence[JsonDict] which is compatible with Sequence[dict[str, GeneralValueType]]
+        table_result = tables.create_table(
+            cast("t.Tables.TableData", sample_rows),
             config=config,
         )
         if table_result.is_success:
@@ -140,20 +137,22 @@ def import_from_csv(input_file: Path) -> list[FlextCliTypes.Data.CliDataDict] | 
 
     # Convert to JsonDict-compatible format using u
     # Use u.map to convert list items to JSON
-    converted_rows: list[FlextCliTypes.Data.CliDataDict] = list(
+    converted_rows: list[t.Data.CliDataDict] = list(
         u.map(
             rows,
             mapper=lambda row: (
                 u.transform(
-                    cast("dict[str, t.GeneralValueType]", row), to_json=True
+                    cast("dict[str, t.GeneralValueType]", row),
+                    to_json=True,
                 ).unwrap()
                 if isinstance(row, dict)
                 and u.transform(
-                    cast("dict[str, t.GeneralValueType]", row), to_json=True
+                    cast("dict[str, t.GeneralValueType]", row),
+                    to_json=True,
                 ).is_success
-                else cast("FlextCliTypes.Data.CliDataDict", row)
+                else cast("t.Data.CliDataDict", row)
             ),
-        )
+        ),
     )
     return converted_rows
 
@@ -166,7 +165,8 @@ def import_from_csv(input_file: Path) -> list[FlextCliTypes.Data.CliDataDict] | 
 def process_binary_file(input_file: Path, output_file: Path) -> None:
     """Read, process, and write binary files."""
     cli.output.print_message(
-        f"\n🔧 Processing Binary File: {input_file.name}", style="bold cyan"
+        f"\n🔧 Processing Binary File: {input_file.name}",
+        style="bold cyan",
     )
 
     # Read binary file
@@ -174,7 +174,8 @@ def process_binary_file(input_file: Path, output_file: Path) -> None:
 
     if read_result.is_failure:
         cli.output.print_message(
-            f"❌ Read failed: {read_result.error}", style="bold red"
+            f"❌ Read failed: {read_result.error}",
+            style="bold red",
         )
         return
 
@@ -199,7 +200,8 @@ def process_binary_file(input_file: Path, output_file: Path) -> None:
         )
     else:
         cli.output.print_message(
-            f"❌ Write failed: {write_result.error}", style="bold red"
+            f"❌ Write failed: {write_result.error}",
+            style="bold red",
         )
 
 
@@ -208,10 +210,11 @@ def process_binary_file(input_file: Path, output_file: Path) -> None:
 # ============================================================================
 
 
-def load_any_format_file(file_path: Path) -> FlextCliTypes.Data.CliDataDict | None:
+def load_any_format_file(file_path: Path) -> t.Data.CliDataDict | None:
     """Load config from ANY format - automatically detected."""
     cli.output.print_message(
-        f"\n🔍 Auto-Detecting Format: {file_path.name}", style="bold cyan"
+        f"\n🔍 Auto-Detecting Format: {file_path.name}",
+        style="bold cyan",
     )
 
     # Detect format from extension
@@ -226,7 +229,8 @@ def load_any_format_file(file_path: Path) -> FlextCliTypes.Data.CliDataDict | No
 
     detected_format = format_result.unwrap()
     cli.output.print_message(
-        f"✅ Detected format: {detected_format.upper()}", style="green"
+        f"✅ Detected format: {detected_format.upper()}",
+        style="green",
     )
 
     # Load with auto-detection
@@ -234,7 +238,8 @@ def load_any_format_file(file_path: Path) -> FlextCliTypes.Data.CliDataDict | No
 
     if load_result.is_failure:
         cli.output.print_message(
-            f"❌ Load failed: {load_result.error}", style="bold red"
+            f"❌ Load failed: {load_result.error}",
+            style="bold red",
         )
         return None
 
@@ -255,12 +260,13 @@ def load_any_format_file(file_path: Path) -> FlextCliTypes.Data.CliDataDict | No
     # Display loaded data
     # Use u.transform for JSON conversion
     transform_result = u.transform(
-        cast("dict[str, t.GeneralValueType]", data), to_json=True
+        cast("dict[str, t.GeneralValueType]", data),
+        to_json=True,
     )
-    display_data: FlextCliTypes.Data.CliDataDict = (
+    display_data: t.Data.CliDataDict = (
         transform_result.unwrap()
         if transform_result.is_success
-        else cast("FlextCliTypes.Data.CliDataDict", data)
+        else cast("t.Data.CliDataDict", data)
     )
     # Cast to dict[str, GeneralValueType] for create_table
     table_result = cli.create_table(
@@ -277,7 +283,7 @@ def load_any_format_file(file_path: Path) -> FlextCliTypes.Data.CliDataDict | No
     return (
         transform_result.unwrap()
         if transform_result.is_success
-        else cast("FlextCliTypes.Data.CliDataDict", data)
+        else cast("t.Data.CliDataDict", data)
     )
 
 
@@ -287,12 +293,13 @@ def load_any_format_file(file_path: Path) -> FlextCliTypes.Data.CliDataDict | No
 
 
 def export_data_multi_format(
-    data: FlextCliTypes.Data.CliDataDict | list[FlextCliTypes.Data.CliDataDict],
+    data: t.Data.CliDataDict | list[t.Data.CliDataDict],
     base_path: Path,
 ) -> dict[str, str]:
     """Export same data to multiple formats (JSON, YAML, CSV)."""
     cli.output.print_message(
-        f"\n💾 Multi-Format Export: {base_path.stem}", style="bold cyan"
+        f"\n💾 Multi-Format Export: {base_path.stem}",
+        style="bold cyan",
     )
 
     export_results = {}
@@ -306,7 +313,8 @@ def export_data_multi_format(
         size = json_path.stat().st_size
         export_results["JSON"] = f"{size} bytes"
         cli.output.print_message(
-            f"✅ JSON: {json_path.name} ({size} bytes)", style="green"
+            f"✅ JSON: {json_path.name} ({size} bytes)",
+            style="green",
         )
 
     # Export to YAML
@@ -318,7 +326,8 @@ def export_data_multi_format(
         size = yaml_path.stat().st_size
         export_results["YAML"] = f"{size} bytes"
         cli.output.print_message(
-            f"✅ YAML: {yaml_path.name} ({size} bytes)", style="green"
+            f"✅ YAML: {yaml_path.name} ({size} bytes)",
+            style="green",
         )
 
     # Export to CSV (if data is list of dicts)
@@ -334,12 +343,14 @@ def export_data_multi_format(
             size = csv_path.stat().st_size
             export_results["CSV"] = f"{size} bytes"
             cli.output.print_message(
-                f"✅ CSV: {csv_path.name} ({size} bytes)", style="green"
+                f"✅ CSV: {csv_path.name} ({size} bytes)",
+                style="green",
             )
 
     # Summary
     cli.output.print_message(
-        f"\n📊 Exported to {len(export_results)} formats", style="bold green"
+        f"\n📊 Exported to {len(export_results)} formats",
+        style="bold green",
     )
     return export_results
 
@@ -352,7 +363,8 @@ def export_data_multi_format(
 def process_text_file(input_file: Path, output_file: Path) -> None:
     """Read and write text files with proper encoding."""
     cli.output.print_message(
-        f"\n📝 Processing Text File: {input_file.name}", style="bold cyan"
+        f"\n📝 Processing Text File: {input_file.name}",
+        style="bold cyan",
     )
 
     # Read text file
@@ -360,7 +372,8 @@ def process_text_file(input_file: Path, output_file: Path) -> None:
 
     if read_result.is_failure:
         cli.output.print_message(
-            f"❌ Read failed: {read_result.error}", style="bold red"
+            f"❌ Read failed: {read_result.error}",
+            style="bold red",
         )
         return
 
@@ -404,7 +417,8 @@ def copy_file_with_verification(source: Path, destination: Path) -> bool:
 
     if copy_result.is_failure:
         cli.output.print_message(
-            f"❌ Copy failed: {copy_result.error}", style="bold red"
+            f"❌ Copy failed: {copy_result.error}",
+            style="bold red",
         )
         return False
 
@@ -417,11 +431,13 @@ def copy_file_with_verification(source: Path, destination: Path) -> bool:
 
     if source_hash == dest_hash:
         cli.output.print_message(
-            "✅ Integrity verified - checksums match!", style="bold green"
+            "✅ Integrity verified - checksums match!",
+            style="bold green",
         )
         return True
     cli.output.print_message(
-        "❌ Integrity check failed - checksums differ!", style="bold red"
+        "❌ Integrity check failed - checksums differ!",
+        style="bold red",
     )
     return False
 
@@ -431,11 +447,12 @@ def copy_file_with_verification(source: Path, destination: Path) -> bool:
 # ============================================================================
 
 
-def main() -> None:  # noqa: PLR0915
+def main() -> None:
     """Examples of advanced file format operations in YOUR code."""
     cli.output.print_message("=" * 70, style="bold blue")
     cli.output.print_message(
-        "  Advanced File Formats Library Usage", style="bold white"
+        "  Advanced File Formats Library Usage",
+        style="bold white",
     )
     cli.output.print_message("=" * 70, style="bold blue")
 
@@ -456,20 +473,22 @@ def main() -> None:  # noqa: PLR0915
     csv_file = temp_dir / "employees.csv"
     # Convert to JsonDict-compatible format using u
     # Use u.map to convert list items to JSON
-    typed_sample_data: list[FlextCliTypes.Data.CliDataDict] = list(
+    typed_sample_data: list[t.Data.CliDataDict] = list(
         u.map(
             sample_data,
             mapper=lambda row: (
                 u.transform(
-                    cast("dict[str, t.GeneralValueType]", row), to_json=True
+                    cast("dict[str, t.GeneralValueType]", row),
+                    to_json=True,
                 ).unwrap()
                 if isinstance(row, dict)
                 and u.transform(
-                    cast("dict[str, t.GeneralValueType]", row), to_json=True
+                    cast("dict[str, t.GeneralValueType]", row),
+                    to_json=True,
                 ).is_success
-                else cast("FlextCliTypes.Data.CliDataDict", row)
+                else cast("t.Data.CliDataDict", row)
             ),
-        )
+        ),
     )
     export_to_csv(typed_sample_data, csv_file)
     import_from_csv(csv_file)
@@ -490,7 +509,7 @@ def main() -> None:  # noqa: PLR0915
     cli.output.print_message("3. Auto-Format Detection:", style="bold cyan")
 
     # Create test files in different formats
-    test_config: FlextCliTypes.Data.CliDataDict = {
+    test_config: t.Data.CliDataDict = {
         "app": "test",
         "version": "1.0",
         "debug": True,
@@ -509,7 +528,7 @@ def main() -> None:  # noqa: PLR0915
     cli.output.print_message("\n" + "=" * 70, style="bold blue")
     cli.output.print_message("4. Multi-Format Export:", style="bold cyan")
 
-    multi_data: list[FlextCliTypes.Data.CliDataDict] = [
+    multi_data: list[t.Data.CliDataDict] = [
         {"metric": "CPU", "value": "75%", "status": "OK"},
         {"metric": "Memory", "value": "82%", "status": "Warning"},
         {"metric": "Disk", "value": "45%", "status": "OK"},
@@ -533,7 +552,7 @@ def main() -> None:  # noqa: PLR0915
     cli.output.print_message("6. File Copy with Verification:", style="bold cyan")
 
     # Recreate json_file for copy verification demo
-    demo_config: FlextCliTypes.Data.CliDataDict = {
+    demo_config: t.Data.CliDataDict = {
         "app": "demo",
         "version": "2.0",
         "enabled": True,
@@ -549,7 +568,8 @@ def main() -> None:  # noqa: PLR0915
 
     cli.output.print_message("\n" + "=" * 70, style="bold blue")
     cli.output.print_message(
-        "  ✅ Advanced File Format Examples Complete", style="bold green"
+        "  ✅ Advanced File Format Examples Complete",
+        style="bold green",
     )
     cli.output.print_message("=" * 70, style="bold blue")
 
@@ -564,7 +584,8 @@ def main() -> None:  # noqa: PLR0915
         style="white",
     )
     cli.output.print_message(
-        "  • Auto-detect: Use load_file_auto() for flexible input", style="white"
+        "  • Auto-detect: Use load_file_auto() for flexible input",
+        style="white",
     )
     cli.output.print_message(
         "  • Multi-format: Export to JSON, YAML, CSV simultaneously",

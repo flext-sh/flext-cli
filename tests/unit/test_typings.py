@@ -31,13 +31,12 @@ from typing import (
 )
 
 import pytest
-from flext_core import FlextResult
-from flext_tests import FlextTestsMatchers
+from flext_tests import tm
 
-from flext_cli import FlextCliConstants
-from flext_cli.typings import FlextCliTypes
+from flext_cli import r
+from tests.helpers import c, t
 
-from ..fixtures.constants import TestTypings
+# from ..fixtures.constants import TestTypings  # Fixtures removed - use conftest.py and flext_tests
 from ..helpers import FlextCliTestHelpers
 
 
@@ -64,7 +63,7 @@ class TypingTestCase:
     expected_success: bool = True
 
 
-class TestFlextCliTypings:
+class TestsCliTypings:
     """Comprehensive tests for flext_cli.typings.FlextCliTypes module.
 
     Uses factory patterns, dynamic testing, and advanced Python 3.13 features
@@ -80,7 +79,8 @@ class TestFlextCliTypings:
             return [
                 TypingTestCase(TypingTestType.INITIALIZATION, "Types initialization"),
                 TypingTestCase(
-                    TypingTestType.BASIC_FUNCTIONALITY, "Basic type functionality"
+                    TypingTestType.BASIC_FUNCTIONALITY,
+                    "Basic type functionality",
                 ),
                 TypingTestCase(TypingTestType.TYPE_DEFINITIONS, "Type definitions"),
                 TypingTestCase(TypingTestType.TYPE_VALIDATION, "Type validation"),
@@ -96,21 +96,21 @@ class TestFlextCliTypings:
             """Create test data for type operations."""
             return {
                 "config_data": {
-                    "output_format": FlextCliConstants.OutputFormats.JSON.value,
+                    "output_format": c.OutputFormats.JSON.value,
                     "debug": True,
                     "timeout": 30,
                 },
                 "format_data": {"data": [1, 2, 3], "headers": ["col1", "col2"]},
-                "user_data": TestTypings.TestData.Api.SINGLE_USER,
+                "user_data": {"id": 1, "name": "test_user"},
                 "api_response": {
-                    "status": TestTypings.TypedDicts.ApiResponse.STATUS,
-                    "data": TestTypings.TestData.Api.SINGLE_USER,
-                    "message": TestTypings.TypedDicts.ApiResponse.MESSAGE,
+                    "status": "success",
+                    "data": {"id": 1, "name": "test_user"},
+                    "message": "ok",
                 },
                 "processing_data": (
-                    TestTypings.TestData.Processing.STRING_LIST,
-                    TestTypings.TestData.Processing.NUMBER_LIST,
-                    TestTypings.TestData.Processing.MIXED_DICT,
+                    ["str1", "str2"],
+                    [1, 2, 3],
+                    {"key": "value", "number": 42},
                 ),
             }
 
@@ -119,47 +119,44 @@ class TestFlextCliTypings:
 
         @staticmethod
         def validate_type_initialization(
-            types_class: type[FlextCliTypes],
-        ) -> FlextResult[bool]:
+            types_class: object,  # Accept any type class
+        ) -> r[bool]:
             """Validate type class initialization."""
             try:
                 # Test that types class has required attributes
                 required_attrs = ["Data", "Auth", "CliCommand"]
                 for attr in required_attrs:
                     if not hasattr(types_class, attr):
-                        return FlextResult[bool].fail(f"Missing attribute: {attr}")
+                        return r[bool].fail(f"Missing attribute: {attr}")
 
                 # Test nested Data attributes
                 data_attrs = ["CliDataDict", "CliFormatData", "CliConfigData"]
+                data_class = getattr(types_class, "Data", None)
+                if data_class is None:
+                    return r[bool].fail("Missing Data attribute")
                 for attr in data_attrs:
-                    if not hasattr(types_class.Data, attr):
-                        return FlextResult[bool].fail(f"Missing Data attribute: {attr}")
+                    if not hasattr(data_class, attr):
+                        return r[bool].fail(f"Missing Data attribute: {attr}")
 
-                return FlextResult[bool].ok(True)
+                return r[bool].ok(True)
             except Exception as e:
-                return FlextResult[bool].fail(str(e))
+                return r[bool].fail(str(e))
 
         @staticmethod
-        def validate_type_usage(
-            data: dict[str, object], type_hint: str
-        ) -> FlextResult[bool]:
+        def validate_type_usage(data: dict[str, object], type_hint: str) -> r[bool]:
             """Validate type usage with actual data."""
             try:
                 match type_hint:
                     case "CliDataDict":
-                        return FlextResult[bool].ok(isinstance(data, dict))
+                        return r[bool].ok(isinstance(data, dict))
                     case "CliFormatData":
-                        return FlextResult[bool].ok(
-                            isinstance(data, dict) and "data" in data
-                        )
+                        return r[bool].ok(isinstance(data, dict) and "data" in data)
                     case "CliConfigData":
-                        return FlextResult[bool].ok(
-                            isinstance(data, dict) and "debug" in data
-                        )
+                        return r[bool].ok(isinstance(data, dict) and "debug" in data)
                     case _:
-                        return FlextResult[bool].fail(f"Unknown type hint: {type_hint}")
+                        return r[bool].fail(f"Unknown type hint: {type_hint}")
             except Exception as e:
-                return FlextResult[bool].fail(str(e))
+                return r[bool].fail(str(e))
 
     # ========================================================================
     # DYNAMIC TEST EXECUTION
@@ -202,13 +199,12 @@ class TestFlextCliTypings:
     def _execute_initialization_tests(self) -> None:
         """Execute initialization-related tests."""
         # Test types class structure
-        validation_result = self.TypingValidators.validate_type_initialization(
-            FlextCliTypes
-        )
-        FlextTestsMatchers.assert_success(validation_result)
+        validation_result = self.TypingValidators.validate_type_initialization(t)
+        tm.ok(validation_result)
 
         # Test type aliases accessibility
-        test_data: FlextCliTypes.Data.CliDataDict = {"key": "value"}
+        # CliDataDict is an alias for JsonDict, use dict[str, object] for mypy compatibility
+        test_data: dict[str, object] = {"key": "value"}
         assert isinstance(test_data, dict)
 
     def _execute_basic_functionality_tests(self) -> None:
@@ -222,9 +218,10 @@ class TestFlextCliTypings:
             raise TypeError(error_msg)
         config_dict: dict[str, object] = config_data_obj
         config_result = self.TypingValidators.validate_type_usage(
-            config_dict, "CliConfigData"
+            config_dict,
+            "CliConfigData",
         )
-        FlextTestsMatchers.assert_success(config_result)
+        tm.ok(config_result)
 
         format_data_obj = test_data["format_data"]
         if not isinstance(format_data_obj, dict):
@@ -232,14 +229,13 @@ class TestFlextCliTypings:
             raise TypeError(error_msg)
         format_dict: dict[str, object] = format_data_obj
         format_result = self.TypingValidators.validate_type_usage(
-            format_dict, "CliFormatData"
+            format_dict,
+            "CliFormatData",
         )
-        FlextTestsMatchers.assert_success(format_result)
+        tm.ok(format_result)
 
         # Test real data operations (type narrowing for test validation)
-        assert (
-            config_dict["output_format"] == FlextCliConstants.OutputFormats.JSON.value
-        )
+        assert config_dict["output_format"] == c.OutputFormats.JSON.value
         assert config_dict["debug"] is True
 
     def _execute_type_definition_tests(self) -> None:
@@ -262,7 +258,7 @@ class TestFlextCliTypings:
         assert TestProtocol is not None
 
         # Test type aliases from constants
-        user_data: dict[str, object] = TestTypings.TestData.Processing.MIXED_DICT
+        user_data: dict[str, object] = {"key": "value", "number": 42}
         user_list: list[dict[str, object]] = [user_data]
 
         assert isinstance(user_data, dict)
@@ -413,7 +409,7 @@ class TestFlextCliTypings:
 
         # Test type creation and usage
         instance = TypedClass("test", 42)
-        result = instance.process(TestTypings.TestData.Processing.STRING_LIST)
+        result = instance.process(["str1", "str2"])
         assert result["hello"] == 5
         assert result["world"] == 5
 
@@ -451,7 +447,7 @@ class TestFlextCliTypings:
             }
 
         # Test functionality using helper data
-        user_dict = TestTypings.TestData.Api.SINGLE_USER
+        user_dict = {"id": 1, "name": "test_user"}
         # Type narrowing: extract and validate fields for UserData
         user_id = user_dict.get("id")
         user_name = user_dict.get("name")
@@ -494,7 +490,7 @@ class TestFlextCliTypings:
         processing_result = (
             FlextCliTestHelpers.TypingHelpers.create_processing_test_data()
         )
-        FlextTestsMatchers.assert_success(processing_result)
+        tm.ok(processing_result)
 
         if processing_result.is_success and processing_result.value:
             string_list, number_list, mixed_dict = processing_result.value
@@ -513,8 +509,8 @@ class TestFlextCliTypings:
             return {key: str(value) for key, value in data.items()}
 
         # Test performance
-        test_list = TestTypings.TestData.Processing.STRING_LIST
-        test_dict = TestTypings.TestData.Processing.MIXED_DICT
+        test_list = ["str1", "str2"]
+        test_dict = {"key": "value", "number": 42}
 
         # Initialize variables
         result_list: list[str] = []
@@ -566,7 +562,7 @@ class TestFlextCliTypings:
             processed = [item.upper() for item in data]
             results.extend(processed)
 
-        test_data = TestTypings.TestData.Processing.STRING_LIST
+        test_data = ["str1", "str2"]
         results: list[str] = []
 
         threads = []
@@ -593,10 +589,10 @@ class TestFlextCliTypings:
         """Test complete type workflow integration."""
         # Test helper integration
         typed_data_result = FlextCliTestHelpers.TypingHelpers.create_typed_dict_data()
-        FlextTestsMatchers.assert_success(typed_data_result)
+        tm.ok(typed_data_result)
 
         api_data_result = FlextCliTestHelpers.TypingHelpers.create_api_response_data()
-        FlextTestsMatchers.assert_success(api_data_result)
+        tm.ok(api_data_result)
 
         # Test type inspection
         complex_type = list[dict[str, str | int]]
@@ -643,7 +639,7 @@ class TestFlextCliTypings:
         assert isinstance(impl, TestProtocol)
 
         # Use helper data
-        test_data = TestTypings.TestData.Processing.STRING_LIST
+        test_data = ["str1", "str2"]
         result = impl.operation(test_data)
 
         assert result["processed"] == ["HELLO", "WORLD", "TEST"]
@@ -651,6 +647,6 @@ class TestFlextCliTypings:
         assert "timestamp" in result
 
         # Test types class integration
-        assert FlextCliTypes is not None
-        assert hasattr(FlextCliTypes, "Data")
-        assert hasattr(FlextCliTypes, "Auth")
+        assert t is not None
+        assert hasattr(t, "Data")
+        assert hasattr(t, "Auth")

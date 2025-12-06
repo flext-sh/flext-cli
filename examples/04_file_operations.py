@@ -39,19 +39,14 @@ import tempfile
 from pathlib import Path
 from typing import cast
 
-from flext_core import FlextResult, FlextTypes, FlextUtilities
-
 from flext_cli import (
     FlextCli,
-    FlextCliModels,
     FlextCliTables,
-    FlextCliTypes,
+    m,
+    r,
+    t,
+    u,
 )
-
-# Alias for static method calls - use u.* for uds
-u = FlextUtilities
-r = FlextResult
-t = FlextTypes
 
 cli = FlextCli()
 tables = FlextCliTables()
@@ -63,7 +58,7 @@ tables = FlextCliTables()
 
 
 def save_user_preferences(
-    preferences: FlextCliTypes.Data.CliDataDict,
+    preferences: t.Data.CliDataDict,
     config_dir: Path,
 ) -> bool:
     """Save user preferences to JSON in YOUR app."""
@@ -114,7 +109,7 @@ def load_user_preferences(config_dir: Path) -> dict[str, object] | None:
 
 
 def save_deployment_config(
-    config: FlextCliTypes.Data.CliDataDict,
+    config: t.Data.CliDataDict,
     config_file: Path,
 ) -> bool:
     """Save deployment config to YAML in YOUR tool."""
@@ -158,14 +153,14 @@ def load_deployment_config(config_file: Path) -> dict[str, object] | None:
 
 
 def export_database_report(
-    records: list[FlextCliTypes.Data.CliDataDict],
+    records: list[t.Data.CliDataDict],
     output_file: Path,
     format_type: str = "grid",
 ) -> bool | None:
     """Export database query results in YOUR reporting tool."""
     # Create ASCII table (for logs, emails, markdown docs)
     # Create table config with specified format
-    config = FlextCliModels.TableConfig(table_format=format_type)
+    config = m.TableConfig(table_format=format_type)
     table_result = tables.create_table(records, config=config)
 
     if table_result.is_failure:
@@ -195,7 +190,7 @@ def list_project_files(project_dir: Path) -> None:
         return
 
     # Collect file metadata
-    files_data: list[FlextCliTypes.Data.CliDataDict] = [
+    files_data: list[t.Data.CliDataDict] = [
         {
             "Name": item.name[:40],
             "Type": "📂 dir" if item.is_dir() else "📄 file",
@@ -207,9 +202,9 @@ def list_project_files(project_dir: Path) -> None:
     # Display as table
     if files_data:
         # files_data is already properly typed
-        sample_data: list[FlextCliTypes.Data.CliDataDict] = files_data[:20]
+        sample_data: list[t.Data.CliDataDict] = files_data[:20]
         # Create table config for grid format
-        config = FlextCliModels.TableConfig(table_format="grid")
+        config = m.TableConfig(table_format="grid")
         table_result = tables.create_table(sample_data, config=config)
         if table_result.is_success:
             cli.print(f"\n📁 Directory: {project_dir.name}", style="bold cyan")
@@ -248,7 +243,7 @@ def show_directory_tree(root_path: Path, max_items: int = 15) -> None:
 # ============================================================================
 
 
-def validate_and_import_data(input_file: Path) -> FlextCliTypes.Data.CliDataDict | None:
+def validate_and_import_data(input_file: Path) -> t.Data.CliDataDict | None:
     """Validate and import data in YOUR ETL pipeline."""
     # Step 1: Read file
     read_result = cli.file_tools.read_json_file(input_file)
@@ -261,16 +256,16 @@ def validate_and_import_data(input_file: Path) -> FlextCliTypes.Data.CliDataDict
 
     # Step 2: Validate structure
     def validate_structure(
-        data: FlextCliTypes.Data.CliDataDict,
-    ) -> FlextResult[FlextCliTypes.Data.CliDataDict]:
+        data: t.Data.CliDataDict,
+    ) -> r[t.Data.CliDataDict]:
         """Your validation logic."""
         required_fields = ["id", "name", "value"]
         for field in required_fields:
             if field not in data:
-                return FlextResult[FlextCliTypes.Data.CliDataDict].fail(
+                return r[t.Data.CliDataDict].fail(
                     f"Missing required field: {field}",
                 )
-        return FlextResult[FlextCliTypes.Data.CliDataDict].ok(data)
+        return r[t.Data.CliDataDict].ok(data)
 
     # Chain validation using FlextResult - type narrowing needed
     if not isinstance(data, dict):
@@ -347,7 +342,7 @@ def backup_config_files(source_dir: Path, backup_dir: Path) -> list[str]:
 
 
 def export_to_csv(
-    data: list[FlextCliTypes.Data.CliDataDict],
+    data: list[t.Data.CliDataDict],
     output_file: Path,
 ) -> bool:
     """Export data to CSV with proper headers in YOUR reporting tool."""
@@ -394,9 +389,9 @@ def import_from_csv(input_file: Path) -> list[dict[str, str]] | None:
     if rows:
         sample_rows: list[dict[str, str]] = rows[:5]
         # Create table config for grid format
-        config = FlextCliModels.TableConfig(table_format="grid")
+        config = m.TableConfig(table_format="grid")
         # Convert to JsonDict-compatible format using u
-        tabular_data: FlextCliTypes.Data.TabularData = (
+        tabular_data: t.Data.TabularData = (
             # Use u.map to convert list items to JSON
             list(
                 u.map(
@@ -407,7 +402,7 @@ def import_from_csv(input_file: Path) -> list[dict[str, str]] | None:
                         and u.transform(row, to_json=True).is_success
                         else row
                     ),
-                )
+                ),
             )
         )
         table_result = tables.create_table(tabular_data, config=config)
@@ -495,13 +490,13 @@ def load_config_auto_detect(config_file: Path) -> dict[str, object] | None:
         # Use u.transform for JSON conversion
         if isinstance(data, dict):
             transform_result = u.transform(data, to_json=True)
-            display_data: FlextCliTypes.Data.CliDataDict = (
+            display_data: t.Data.CliDataDict = (
                 transform_result.unwrap()
                 if transform_result.is_success
-                else cast("FlextCliTypes.Data.CliDataDict", data)
+                else cast("t.Data.CliDataDict", data)
             )
         else:
-            display_data = cast("FlextCliTypes.Data.CliDataDict", data)
+            display_data = cast("t.Data.CliDataDict", data)
         table_result = cli.create_table(
             data=display_data,
             headers=["Key", "Value"],
@@ -521,9 +516,9 @@ def load_config_auto_detect(config_file: Path) -> dict[str, object] | None:
 
 
 def export_multi_format(
-    data: FlextCliTypes.Data.CliDataDict | list[FlextCliTypes.Data.CliDataDict],
+    data: t.Data.CliDataDict | list[t.Data.CliDataDict],
     base_path: Path,
-) -> FlextCliTypes.Data.CliDataDict:
+) -> t.Data.CliDataDict:
     """Export same data to multiple formats (JSON, YAML, CSV)."""
     cli.print(f"💾 Multi-format export: {base_path.stem}", style="cyan")
 
@@ -534,7 +529,9 @@ def export_multi_format(
     # Handle both single dict and list of dicts
     json_payload = data
     json_result = cli.file_tools.write_json_file(
-        json_path, cast("t.GeneralValueType", json_payload), indent=2
+        json_path,
+        cast("t.GeneralValueType", json_payload),
+        indent=2,
     )
     if json_result.is_success:
         size = json_path.stat().st_size
@@ -576,9 +573,7 @@ def export_multi_format(
 # ============================================================================
 
 
-def process_file_pipeline(
-    input_file: Path, output_dir: Path
-) -> FlextResult[dict[str, object]]:
+def process_file_pipeline(input_file: Path, output_dir: Path) -> r[dict[str, object]]:
     """Complete file processing pipeline using Railway Pattern.
 
     Demonstrates chaining multiple file operations with proper error handling.
@@ -587,24 +582,22 @@ def process_file_pipeline(
     cli.print(f"\n🔄 Processing file pipeline: {input_file.name}", style="cyan")
 
     # Initialize result
-    result: FlextResult[dict[str, object]]
+    result: r[dict[str, object]]
 
     # Railway pattern: Chain operations with automatic error propagation
 
     # Step 1: Validate input file exists and is readable
     if not input_file.exists():
-        result = FlextResult[dict[str, object]].fail(f"File not found: {input_file}")
+        result = r[dict[str, object]].fail(f"File not found: {input_file}")
     elif not input_file.is_file():
-        result = FlextResult[dict[str, object]].fail(f"Not a file: {input_file}")
+        result = r[dict[str, object]].fail(f"Not a file: {input_file}")
     else:
         cli.print("✅ Input validation passed", style="green")
 
         # Step 2: Read file content
         read_result = cli.file_tools.read_json_file(input_file)
         if read_result.is_failure:
-            result = FlextResult[dict[str, object]].fail(
-                f"File read failed: {read_result.error}"
-            )
+            result = r[dict[str, object]].fail(f"File read failed: {read_result.error}")
         else:
             data = read_result.unwrap()
             cli.print("✅ File read successfully", style="green")
@@ -612,20 +605,20 @@ def process_file_pipeline(
             # Step 3: Validate and transform data
             try:
                 if not isinstance(data, dict):
-                    result = FlextResult[dict[str, object]].fail(
-                        "JSON file must contain a dictionary"
+                    result = r[dict[str, object]].fail(
+                        "JSON file must contain a dictionary",
                     )
                 else:
                     transformed_data = validate_and_transform_data(
-                        cast("dict[str, object]", data)
+                        cast("dict[str, object]", data),
                     )
                     cli.print("✅ Data validation/transform passed", style="green")
 
                     # Step 4: Generate multiple output formats
                     output_result = generate_output_files(transformed_data, output_dir)
                     if output_result.is_failure:
-                        result = FlextResult[dict[str, object]].fail(
-                            output_result.error or "Unknown error"
+                        result = r[dict[str, object]].fail(
+                            output_result.error or "Unknown error",
                         )
                     else:
                         results = output_result.unwrap()
@@ -638,11 +631,9 @@ def process_file_pipeline(
                             "🎉 File processing pipeline completed successfully!",
                             style="bold green",
                         )
-                        result = FlextResult[dict[str, object]].ok(summary)
+                        result = r[dict[str, object]].ok(summary)
             except Exception as e:
-                result = FlextResult[dict[str, object]].fail(
-                    f"Data validation failed: {e}"
-                )
+                result = r[dict[str, object]].fail(f"Data validation failed: {e}")
 
     if result.is_failure:
         cli.print(f"❌ Pipeline failed: {result.error}", style="bold red")
@@ -667,8 +658,9 @@ def validate_and_transform_data(data: dict[str, object]) -> dict[str, object]:
 
 
 def generate_output_files(
-    data: dict[str, object], output_dir: Path
-) -> FlextResult[dict[str, Path]]:
+    data: dict[str, object],
+    output_dir: Path,
+) -> r[dict[str, Path]]:
     """Generate multiple output file formats."""
     output_dir.mkdir(exist_ok=True)
     base_name = "processed_data"
@@ -678,23 +670,21 @@ def generate_output_files(
     # JSON output
     json_file = output_dir / f"{base_name}.json"
     json_result = cli.file_tools.write_json_file(
-        json_file, cast("t.GeneralValueType", data)
+        json_file,
+        cast("t.GeneralValueType", data),
     )
     if json_result.is_failure:
-        return FlextResult[dict[str, Path]].fail(
-            f"JSON export failed: {json_result.error}"
-        )
+        return r[dict[str, Path]].fail(f"JSON export failed: {json_result.error}")
     results["json"] = json_file
 
     # YAML output
     yaml_file = output_dir / f"{base_name}.yaml"
     yaml_result = cli.file_tools.write_yaml_file(
-        yaml_file, cast("t.GeneralValueType", data)
+        yaml_file,
+        cast("t.GeneralValueType", data),
     )
     if yaml_result.is_failure:
-        return FlextResult[dict[str, Path]].fail(
-            f"YAML export failed: {yaml_result.error}"
-        )
+        return r[dict[str, Path]].fail(f"YAML export failed: {yaml_result.error}")
     results["yaml"] = yaml_file
 
     # CSV output (if data contains list)
@@ -702,12 +692,10 @@ def generate_output_files(
         csv_file = output_dir / f"{base_name}.csv"
         csv_result = cli.file_tools.write_csv_file(csv_file, data["items"])
         if csv_result.is_failure:
-            return FlextResult[dict[str, Path]].fail(
-                f"CSV export failed: {csv_result.error}"
-            )
+            return r[dict[str, Path]].fail(f"CSV export failed: {csv_result.error}")
         results["csv"] = csv_file
 
-    return FlextResult[dict[str, Path]].ok(results)
+    return r[dict[str, Path]].ok(results)
 
 
 def create_processing_summary(results: dict[str, Path]) -> dict[str, object]:
@@ -726,7 +714,7 @@ def create_processing_summary(results: dict[str, Path]) -> dict[str, object]:
 # ============================================================================
 
 
-def main() -> None:  # noqa: PLR0914, PLR0915
+def main() -> None:
     """Examples of using file operations in YOUR code."""
     cli.print("=" * 70, style="bold blue")
     cli.print("  File Operations Library Usage", style="bold white")
@@ -738,7 +726,7 @@ def main() -> None:  # noqa: PLR0914, PLR0915
 
     # Example 1: JSON preferences
     cli.print("\n1. JSON Config Files (user preferences):", style="bold cyan")
-    prefs: FlextCliTypes.Data.CliDataDict = {
+    prefs: t.Data.CliDataDict = {
         "theme": "dark",
         "font_size": 14,
         "auto_save": True,
@@ -748,7 +736,7 @@ def main() -> None:  # noqa: PLR0914, PLR0915
 
     # Example 2: YAML deployment config
     cli.print("\n2. YAML Configuration (deployment):", style="bold cyan")
-    deploy_config: FlextCliTypes.Data.CliDataDict = {
+    deploy_config: t.Data.CliDataDict = {
         "environment": "staging",
         "host": "staging.example.com",
         "platform": platform.system(),
@@ -759,7 +747,7 @@ def main() -> None:  # noqa: PLR0914, PLR0915
 
     # Example 3: Table export
     cli.print("\n3. Data Export (table format):", style="bold cyan")
-    sample_data: list[FlextCliTypes.Data.CliDataDict] = [
+    sample_data: list[t.Data.CliDataDict] = [
         {"id": 1, "name": "Alice", "status": "active"},
         {"id": 2, "name": "Bob", "status": "inactive"},
     ]
@@ -776,14 +764,14 @@ def main() -> None:  # noqa: PLR0914, PLR0915
 
     # Example 6: Data validation
     cli.print("\n6. Data Validation (ETL pipeline):", style="bold cyan")
-    test_data: FlextCliTypes.Data.CliDataDict = {"id": 1, "name": "test", "value": 100}
+    test_data: t.Data.CliDataDict = {"id": 1, "name": "test", "value": 100}
     test_file = temp_dir / "test_data.json"
     cli.file_tools.write_json_file(test_file, test_data)
     validate_and_import_data(test_file)
 
     # Example 7: CSV export/import
     cli.print("\n7. CSV Export/Import (with headers):", style="bold cyan")
-    csv_data: list[FlextCliTypes.Data.CliDataDict] = [
+    csv_data: list[t.Data.CliDataDict] = [
         {"employee_id": 101, "name": "Alice Smith", "department": "Engineering"},
         {"employee_id": 102, "name": "Bob Jones", "department": "Sales"},
         {"employee_id": 103, "name": "Carol White", "department": "Marketing"},
@@ -801,7 +789,7 @@ def main() -> None:  # noqa: PLR0914, PLR0915
 
     # Example 9: Auto-format detection
     cli.print("\n9. Auto-Format Detection:", style="bold cyan")
-    auto_config: FlextCliTypes.Data.CliDataDict = {
+    auto_config: t.Data.CliDataDict = {
         "app": "demo",
         "version": "1.0",
         "enabled": True,
@@ -815,7 +803,7 @@ def main() -> None:  # noqa: PLR0914, PLR0915
 
     # Example 10: Multi-format export
     cli.print("\n10. Multi-Format Export:", style="bold cyan")
-    multi_data: list[FlextCliTypes.Data.CliDataDict] = [
+    multi_data: list[t.Data.CliDataDict] = [
         {"metric": "CPU", "value": "75%", "status": "OK"},
         {"metric": "Memory", "value": "82%", "status": "Warning"},
     ]
@@ -823,7 +811,7 @@ def main() -> None:  # noqa: PLR0914, PLR0915
 
     # Example 11: Railway Pattern Pipeline
     cli.print("\n11. Railway Pattern Pipeline (complete workflow):", style="bold cyan")
-    pipeline_input: FlextCliTypes.Data.CliDataDict = {
+    pipeline_input: t.Data.CliDataDict = {
         "name": "pipeline_demo",
         "version": "1.0",
         "items": [

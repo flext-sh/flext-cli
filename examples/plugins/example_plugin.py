@@ -13,9 +13,7 @@ from __future__ import annotations
 from collections.abc import Callable
 from typing import Protocol, cast, runtime_checkable
 
-from flext_core import FlextResult
-
-from flext_cli.typings import FlextCliTypes
+from flext_cli import r, t
 
 
 @runtime_checkable
@@ -34,13 +32,17 @@ class CliMainWithGroups(Protocol):
     """
 
     def group(
-        self, *args: object, **kwargs: object
+        self,
+        *args: object,
+        **kwargs: object,
     ) -> Callable[[Callable[..., object]], object]:
         """Create a command group decorator."""
         ...
 
     def command(
-        self, *args: object, **kwargs: object
+        self,
+        *args: object,
+        **kwargs: object,
     ) -> Callable[[Callable[..., object]], object]:
         """Create a command decorator."""
         ...
@@ -62,7 +64,9 @@ class GroupWithCommands(Protocol):
     """
 
     def command(
-        self, *args: object, **kwargs: object
+        self,
+        *args: object,
+        **kwargs: object,
     ) -> Callable[[Callable[..., object]], object]:
         """Create a command decorator."""
         ...
@@ -92,16 +96,16 @@ class ExamplePlugin:
         """Initialize plugin."""
         super().__init__()
         self._initialized = False
-        self._config: FlextCliTypes.Data.CliDataDict = {}
+        self._config: t.Data.CliDataDict = {}
 
-    def initialize(self, _cli_main: object) -> FlextResult[bool]:
+    def initialize(self, _cli_main: object) -> r[bool]:
         """Initialize the plugin.
 
         Args:
             _cli_main: FlextCliMain instance
 
         Returns:
-            FlextResult[bool] indicating success (True) or failure
+            r[bool] indicating success (True) or failure
 
         """
         try:
@@ -114,26 +118,26 @@ class ExamplePlugin:
 
             self._initialized = True
 
-            return FlextResult[bool].ok(True)
+            return r[bool].ok(True)
 
         except Exception as e:
-            return FlextResult[bool].fail(f"Plugin initialization failed: {e}")
+            return r[bool].fail(f"Plugin initialization failed: {e}")
 
-    def register_commands(self, cli_main: object) -> FlextResult[bool]:
+    def register_commands(self, cli_main: object) -> r[bool]:
         """Register plugin commands.
 
         Args:
             cli_main: FlextCliMain instance for command registration
 
         Returns:
-            FlextResult[bool] indicating success (True) or failure
+            r[bool] indicating success (True) or failure
 
         """
         try:
             # Type narrowing: ensure cli_main has group method
             if not isinstance(cli_main, CliMainWithGroups):
-                return FlextResult[bool].fail(
-                    "cli_main does not implement CliMainWithGroups protocol"
+                return r[bool].fail(
+                    "cli_main does not implement CliMainWithGroups protocol",
                 )
 
             # Type cast for pyright: isinstance check ensures compatibility
@@ -168,8 +172,8 @@ class ExamplePlugin:
             # Register commands under group
             # Type narrowing: example group has command method (from group decorator)
             if not isinstance(example, GroupWithCommands):
-                return FlextResult[bool].fail(
-                    "example group does not implement GroupWithCommands protocol"
+                return r[bool].fail(
+                    "example group does not implement GroupWithCommands protocol",
                 )
 
             example_group = cast("GroupWithCommands", example)
@@ -189,10 +193,10 @@ class ExamplePlugin:
                 """Show plugin status."""
                 status()
 
-            return FlextResult[bool].ok(True)
+            return r[bool].ok(True)
 
         except Exception as e:
-            return FlextResult[bool].fail(f"Command registration failed: {e}")
+            return r[bool].fail(f"Command registration failed: {e}")
 
 
 # Another example plugin - data processing
@@ -212,14 +216,14 @@ class DataProcessorPlugin:
         super().__init__()
         self._processors: ProcessorRegistry = {}
 
-    def initialize(self, _cli_main: object) -> FlextResult[bool]:
+    def initialize(self, _cli_main: object) -> r[bool]:
         """Initialize the plugin.
 
         Args:
             _cli_main: FlextCliMain instance
 
         Returns:
-            FlextResult[bool] indicating success (True) or failure
+            r[bool] indicating success (True) or failure
 
         """
         try:
@@ -230,26 +234,26 @@ class DataProcessorPlugin:
                 "xml": lambda data: f"XML: {data}",
             }
 
-            return FlextResult[bool].ok(True)
+            return r[bool].ok(True)
 
         except Exception as e:
-            return FlextResult[bool].fail(f"Initialization failed: {e}")
+            return r[bool].fail(f"Initialization failed: {e}")
 
-    def register_commands(self, cli_main: object) -> FlextResult[bool]:
+    def register_commands(self, cli_main: object) -> r[bool]:
         """Register data processing commands.
 
         Args:
             cli_main: FlextCliMain instance
 
         Returns:
-            FlextResult[bool] indicating success (True) or failure
+            r[bool] indicating success (True) or failure
 
         """
         try:
             # Type narrowing: ensure cli_main has group method
             if not isinstance(cli_main, CliMainWithGroups):
-                return FlextResult[bool].fail(
-                    "cli_main does not implement CliMainWithGroups protocol"
+                return r[bool].fail(
+                    "cli_main does not implement CliMainWithGroups protocol",
                 )
 
             # Type cast for pyright: isinstance check ensures compatibility
@@ -288,8 +292,8 @@ class DataProcessorPlugin:
 
             # Type narrowing: data group has command method (from group decorator)
             if not isinstance(data, GroupWithCommands):
-                return FlextResult[bool].fail(
-                    "data group does not implement GroupWithCommands protocol"
+                return r[bool].fail(
+                    "data group does not implement GroupWithCommands protocol",
                 )
 
             data_group = cast("GroupWithCommands", data)
@@ -306,10 +310,10 @@ class DataProcessorPlugin:
                 formats_list = list_formats()
                 print(f"Available formats: {', '.join(formats_list)}")
 
-            return FlextResult[bool].ok(True)
+            return r[bool].ok(True)
 
         except Exception as e:
-            return FlextResult[bool].fail(f"Command registration failed: {e}")
+            return r[bool].fail(f"Command registration failed: {e}")
 
 
 # ============================================================================

@@ -16,15 +16,13 @@ from __future__ import annotations
 import time
 from typing import cast
 
-from flext_core import FlextResult
+from flext_cli import FlextCliCommands, c, p, r
 
-from flext_cli import FlextCliCommands, FlextCliConstants, FlextCliProtocols
-
-from ..fixtures.constants import TestCommands
+# from ..fixtures.constants import TestCommands  # Fixtures removed - use conftest.py and flext_tests
 from ..helpers import CommandsFactory
 
 
-class TestFlextCliCommands:
+class TestsCliCommands:
     """Comprehensive tests for FlextCliCommands class."""
 
     # ========================================================================
@@ -44,8 +42,8 @@ class TestFlextCliCommands:
 
         assert result.is_success
         assert result.value is not None
-        assert result.value["status"] == FlextCliConstants.OPERATIONAL
-        assert result.value["service"] == FlextCliConstants.FLEXT_CLI
+        assert result.value["status"] == c.ServiceStatus.OPERATIONAL.value
+        assert result.value["service"] == c.FLEXT_CLI
         assert "commands" in result.value
 
     def test_commands_execute(self) -> None:
@@ -55,8 +53,8 @@ class TestFlextCliCommands:
 
         assert result.is_success
         assert result.value is not None
-        assert result.value["status"] == FlextCliConstants.OPERATIONAL
-        assert result.value["service"] == FlextCliConstants.FLEXT_CLI
+        assert result.value["status"] == c.ServiceStatus.OPERATIONAL.value
+        assert result.value["service"] == c.FLEXT_CLI
         assert "commands" in result.value
 
     # ========================================================================
@@ -76,9 +74,7 @@ class TestFlextCliCommands:
     def test_commands_registration(self) -> None:
         """Test command registration functionality."""
         commands = CommandsFactory.create_commands()
-        reg_result = CommandsFactory.register_simple_command(
-            commands, TestCommands.CommandNames.TEST_COMMAND
-        )
+        reg_result = CommandsFactory.register_simple_command(commands, "test_command")
         assert reg_result.is_success
 
         exec_result = commands.execute()
@@ -96,28 +92,26 @@ class TestFlextCliCommands:
 
         CommandsFactory.register_simple_command(
             commands,
-            TestCommands.CommandNames.TEST_EXECUTION,
-            TestCommands.TestData.EXECUTED,
+            "test_execution",
+            "executed",
         )
 
-        result = commands.execute_command(TestCommands.CommandNames.TEST_EXECUTION)
+        result = commands.execute_command("test_execution")
         assert result.is_success
-        assert result.value == TestCommands.TestData.EXECUTED
+        assert result.value == "executed"
 
     def test_execute_command_with_args(self) -> None:
         """Test execute_command with args parameter."""
         commands = CommandsFactory.create_commands()
 
-        CommandsFactory.register_command_with_args(
-            commands, TestCommands.CommandNames.WITH_ARGS
-        )
+        CommandsFactory.register_command_with_args(commands, ["arg1", "arg2"])
 
         result = commands.execute_command(
-            TestCommands.CommandNames.WITH_ARGS,
-            args=TestCommands.TestData.Args.ARGS_LIST,
+            ["arg1", "arg2"],
+            args=["arg1", "arg2"],
         )
         assert result.is_success
-        assert TestCommands.TestData.Args.ARGS_EXPECTED in str(result.unwrap())
+        assert ["arg1", "arg2"] in str(result.unwrap())
 
     def test_execute_command_handler_without_args(self) -> None:
         """Test execute_command with handler that doesn't accept args."""
@@ -125,15 +119,13 @@ class TestFlextCliCommands:
 
         CommandsFactory.register_simple_command(
             commands,
-            TestCommands.CommandNames.NO_ARGS,
-            TestCommands.TestData.NO_ARGS_RESULT,
+            [],
+            "no_args_result",
         )
 
-        result = commands.execute_command(
-            TestCommands.CommandNames.NO_ARGS, args=TestCommands.TestData.Args.ARGS_LIST
-        )
+        result = commands.execute_command([], args=["arg1", "arg2"])
         assert result.is_success
-        assert result.unwrap() == TestCommands.TestData.NO_ARGS_RESULT
+        assert result.unwrap() == "no_args_result"
 
     def test_execute_command_with_timeout(self) -> None:
         """Test execute_command with timeout parameter."""
@@ -141,16 +133,16 @@ class TestFlextCliCommands:
 
         CommandsFactory.register_simple_command(
             commands,
-            TestCommands.CommandNames.TIMED,
-            TestCommands.TestData.TIMED_RESULT,
+            "timed",
+            "timed_result",
         )
 
         result = commands.execute_command(
-            TestCommands.CommandNames.TIMED,
-            timeout=TestCommands.TestData.Timeouts.CUSTOM_TIMEOUT,
+            "timed",
+            timeout=10,
         )
         assert result.is_success
-        assert result.unwrap() == TestCommands.TestData.TIMED_RESULT
+        assert result.unwrap() == "timed_result"
 
     # ========================================================================
     # ERROR HANDLING
@@ -160,7 +152,7 @@ class TestFlextCliCommands:
         """Test commands error handling capabilities."""
         commands = CommandsFactory.create_commands()
 
-        result = commands.execute_command(TestCommands.CommandNames.NON_EXISTENT)
+        result = commands.execute_command("non_existent")
         assert result.is_failure
         assert result.error is not None
         assert "not found" in result.error.lower() or "unknown" in result.error.lower()
@@ -169,11 +161,9 @@ class TestFlextCliCommands:
         """Test execute_command with non-callable handler."""
         commands = CommandsFactory.create_commands()
 
-        commands._commands[TestCommands.CommandNames.BAD_CMD] = {
-            "handler": "not_callable"
-        }
+        commands._commands["bad_cmd"] = {"handler": "not_callable"}
 
-        result = commands.execute_command(TestCommands.CommandNames.BAD_CMD)
+        result = commands.execute_command("bad_cmd")
 
         assert result.is_failure
         assert "not callable" in str(result.error).lower()
@@ -182,11 +172,9 @@ class TestFlextCliCommands:
         """Test execute_command when handler raises exception."""
         commands = CommandsFactory.create_commands()
 
-        CommandsFactory.register_failing_command(
-            commands, TestCommands.CommandNames.FAILING
-        )
+        CommandsFactory.register_failing_command(commands, "failing")
 
-        result = commands.execute_command(TestCommands.CommandNames.FAILING)
+        result = commands.execute_command("failing")
 
         assert result.is_failure
         assert result.error is not None
@@ -195,9 +183,9 @@ class TestFlextCliCommands:
         """Test execute_command with invalid command structure."""
         commands = CommandsFactory.create_commands()
 
-        commands._commands[TestCommands.CommandNames.BAD_CMD] = {"invalid": "structure"}
+        commands._commands["bad_cmd"] = {"invalid": "structure"}
 
-        result = commands.execute_command(TestCommands.CommandNames.BAD_CMD)
+        result = commands.execute_command("bad_cmd")
         assert result.is_failure
         assert "Invalid command structure" in str(result.error) or (
             "not callable" in str(result.error)
@@ -216,7 +204,7 @@ class TestFlextCliCommands:
         execution_time = time.time() - start_time
 
         assert result.is_success
-        assert execution_time < TestCommands.TestData.Timeouts.EXECUTION_TIME_LIMIT
+        assert execution_time < 5.0
 
     def test_commands_memory_usage(self) -> None:
         """Test commands memory usage characteristics."""
@@ -239,15 +227,13 @@ class TestFlextCliCommands:
 
         CommandsFactory.register_simple_command(
             commands,
-            TestCommands.CommandNames.INTEGRATION_TEST,
-            TestCommands.TestData.INTEGRATION_OK,
+            "integration_test",
+            "integration_ok",
         )
 
-        exec_result = commands.execute_command(
-            TestCommands.CommandNames.INTEGRATION_TEST
-        )
+        exec_result = commands.execute_command("integration_test")
         assert exec_result.is_success
-        assert exec_result.value == TestCommands.TestData.INTEGRATION_OK
+        assert exec_result.value == "integration_ok"
 
     def test_commands_service_properties(self) -> None:
         """Test commands service properties."""
@@ -266,40 +252,34 @@ class TestFlextCliCommands:
         assert result.value is not None
 
     # ========================================================================
-    # CONCURRENT EXECUTION AND VALIDATION
+    # CONCURRENT EXECUTION AND "valid"ATION
     # ========================================================================
 
     def test_commands_concurrent_execution(self) -> None:
         """Test commands concurrent execution."""
         commands = CommandsFactory.create_commands()
 
-        CommandsFactory.register_simple_command(
-            commands, TestCommands.CommandNames.CMD1, TestCommands.TestData.RESULT1
-        )
-        CommandsFactory.register_simple_command(
-            commands, TestCommands.CommandNames.CMD2, TestCommands.TestData.RESULT2
-        )
+        CommandsFactory.register_simple_command(commands, "cmd1", "result1")
+        CommandsFactory.register_simple_command(commands, "cmd2", "result2")
 
-        result1 = commands.execute_command(TestCommands.CommandNames.CMD1)
-        result2 = commands.execute_command(TestCommands.CommandNames.CMD2)
+        result1 = commands.execute_command("cmd1")
+        result2 = commands.execute_command("cmd2")
 
         assert result1.is_success
         assert result2.is_success
-        assert result1.value == TestCommands.TestData.RESULT1
-        assert result2.value == TestCommands.TestData.RESULT2
+        assert result1.value == "result1"
+        assert result2.value == "result2"
 
     def test_commands_command_validation(self) -> None:
         """Test command validation functionality."""
         commands = CommandsFactory.create_commands()
 
-        CommandsFactory.register_simple_command(
-            commands, TestCommands.CommandNames.VALID, TestCommands.TestData.TEST_RESULT
-        )
+        CommandsFactory.register_simple_command(commands, "valid", "test_result")
 
-        result = commands.execute_command(TestCommands.CommandNames.VALID)
+        result = commands.execute_command("valid")
         assert result.is_success
 
-        invalid_result = commands.execute_command(TestCommands.CommandNames.INVALID_CMD)
+        invalid_result = commands.execute_command("invalid_cmd")
         assert invalid_result.is_failure
 
     # ========================================================================
@@ -310,7 +290,7 @@ class TestFlextCliCommands:
         """Test unregister_command when command doesn't exist."""
         commands = CommandsFactory.create_commands()
 
-        result = commands.unregister_command(TestCommands.CommandNames.NON_EXISTENT)
+        result = commands.unregister_command("non_existent")
         assert result.is_failure
         assert result.error is not None
         assert "not found" in result.error.lower()
@@ -319,42 +299,32 @@ class TestFlextCliCommands:
         """Test successful command unregistration."""
         commands = CommandsFactory.create_commands()
 
-        CommandsFactory.register_simple_command(
-            commands, TestCommands.CommandNames.TEMP_CMD
-        )
-        result = commands.unregister_command(TestCommands.CommandNames.TEMP_CMD)
+        CommandsFactory.register_simple_command(commands, "temp_cmd")
+        result = commands.unregister_command("temp_cmd")
         assert result.is_success
 
-        exec_result = commands.execute_command(TestCommands.CommandNames.TEMP_CMD)
+        exec_result = commands.execute_command("temp_cmd")
         assert exec_result.is_failure
 
     def test_get_commands(self) -> None:
         """Test get_commands method."""
         commands = CommandsFactory.create_commands()
 
-        CommandsFactory.register_simple_command(
-            commands, TestCommands.CommandNames.CMD1
-        )
-        CommandsFactory.register_simple_command(
-            commands, TestCommands.CommandNames.CMD2
-        )
+        CommandsFactory.register_simple_command(commands, "cmd1")
+        CommandsFactory.register_simple_command(commands, "cmd2")
 
         cmds = commands.get_commands()
         assert isinstance(cmds, dict)
         assert len(cmds) == 2
-        assert TestCommands.CommandNames.CMD1 in cmds
-        assert TestCommands.CommandNames.CMD2 in cmds
+        assert "cmd1" in cmds
+        assert "cmd2" in cmds
 
     def test_clear_commands(self) -> None:
         """Test clear_commands method."""
         commands = CommandsFactory.create_commands()
 
-        CommandsFactory.register_simple_command(
-            commands, TestCommands.CommandNames.CMD1
-        )
-        CommandsFactory.register_simple_command(
-            commands, TestCommands.CommandNames.CMD2
-        )
+        CommandsFactory.register_simple_command(commands, "cmd1")
+        CommandsFactory.register_simple_command(commands, "cmd2")
 
         result = commands.clear_commands()
         assert result.is_success
@@ -367,20 +337,16 @@ class TestFlextCliCommands:
         """Test list_commands method."""
         commands = CommandsFactory.create_commands()
 
-        CommandsFactory.register_simple_command(
-            commands, TestCommands.CommandNames.ALPHA
-        )
-        CommandsFactory.register_simple_command(
-            commands, TestCommands.CommandNames.BETA
-        )
+        CommandsFactory.register_simple_command(commands, "alpha")
+        CommandsFactory.register_simple_command(commands, "beta")
 
         result = commands.list_commands()
         assert result.is_success
         cmd_list = result.unwrap()
         assert isinstance(cmd_list, list)
         assert len(cmd_list) == 2
-        assert TestCommands.CommandNames.ALPHA in cmd_list
-        assert TestCommands.CommandNames.BETA in cmd_list
+        assert "alpha" in cmd_list
+        assert "beta" in cmd_list
 
     # ========================================================================
     # COMMAND GROUPS AND CLI
@@ -391,21 +357,21 @@ class TestFlextCliCommands:
         commands = CommandsFactory.create_commands()
 
         result = commands.create_command_group(
-            TestCommands.TestData.Groups.GROUP_NAME,
-            description=TestCommands.TestData.Groups.GROUP_DESCRIPTION,
+            "test_group",
+            description="Test group description",
             commands={
-                TestCommands.CommandNames.CMD1: {
+                "cmd1": {
                     "handler": cast(
-                        "FlextCliProtocols.Cli.CliCommandHandler",
-                        lambda: TestCommands.TestData.RESULT1,
-                    )
-                }
+                        "p.Cli.CliCommandHandler",
+                        lambda: "result1",
+                    ),
+                },
             },
         )
         assert result.is_success
         group = result.unwrap()
         assert hasattr(group, "name")
-        assert group.name == TestCommands.TestData.Groups.GROUP_NAME
+        assert group.name == "test_group"
 
     def test_get_click_group(self) -> None:
         """Test get_click_group method."""
@@ -420,11 +386,9 @@ class TestFlextCliCommands:
         """Test run_cli successful execution."""
         commands = CommandsFactory.create_commands()
 
-        CommandsFactory.register_simple_command(
-            commands, TestCommands.CommandNames.TEST_COMMAND
-        )
+        CommandsFactory.register_simple_command(commands, "test_command")
 
-        result = commands.run_cli([TestCommands.CommandNames.TEST_COMMAND])
+        result = commands.run_cli(["test_command"])
         assert result.is_success
 
     def test_run_cli_with_options(self) -> None:
@@ -438,11 +402,9 @@ class TestFlextCliCommands:
         """Test run_cli with invalid command in args."""
         commands = CommandsFactory.create_commands()
 
-        CommandsFactory.register_simple_command(
-            commands, TestCommands.CommandNames.VALID
-        )
+        CommandsFactory.register_simple_command(commands, "valid")
 
-        result = commands.run_cli([TestCommands.CommandNames.INVALID_CMD])
+        result = commands.run_cli(["invalid_cmd"])
         assert result.is_failure
         assert result.error is not None
         assert "not found" in result.error.lower()
@@ -465,8 +427,8 @@ class TestFlextCliCommands:
         commands = CommandsFactory.create_commands()
 
         result = commands.create_command_group(
-            TestCommands.TestData.Groups.GROUP_NAME,
-            TestCommands.TestData.Groups.GROUP_DESCRIPTION,
+            "test_group",
+            "Test group description",
             None,
         )
         assert result.is_failure
@@ -477,33 +439,27 @@ class TestFlextCliCommands:
         commands = CommandsFactory.create_commands()
 
         result = commands.create_command_group(
-            TestCommands.TestData.Groups.GROUP_NAME,
-            TestCommands.TestData.Groups.GROUP_DESCRIPTION,
+            "test_group",
+            "Test group description",
             {},
         )
-        assert isinstance(result, FlextResult)
+        assert isinstance(result, r)
 
     def test_run_cli_success_with_empty_args(self) -> None:
         """Test run_cli with successful execution and empty args."""
         commands = CommandsFactory.create_commands()
 
-        CommandsFactory.register_simple_command(
-            commands, TestCommands.CommandNames.TEST_COMMAND
-        )
+        CommandsFactory.register_simple_command(commands, "test_command")
 
         result = commands.run_cli()
-        assert isinstance(result, FlextResult)
+        assert isinstance(result, r)
 
     def test_clear_commands_success_with_multiple(self) -> None:
         """Test clear_commands with real commands."""
         commands = CommandsFactory.create_commands()
 
-        CommandsFactory.register_simple_command(
-            commands, TestCommands.CommandNames.CMD1
-        )
-        CommandsFactory.register_simple_command(
-            commands, TestCommands.CommandNames.CMD2
-        )
+        CommandsFactory.register_simple_command(commands, "cmd1")
+        CommandsFactory.register_simple_command(commands, "cmd2")
 
         result = commands.clear_commands()
         assert result.is_success
@@ -516,12 +472,8 @@ class TestFlextCliCommands:
         """Test list_commands with real registered commands."""
         commands = CommandsFactory.create_commands()
 
-        CommandsFactory.register_simple_command(
-            commands, TestCommands.CommandNames.CMD1
-        )
-        CommandsFactory.register_simple_command(
-            commands, TestCommands.CommandNames.CMD2
-        )
+        CommandsFactory.register_simple_command(commands, "cmd1")
+        CommandsFactory.register_simple_command(commands, "cmd2")
 
         result = commands.list_commands()
         assert result.is_success

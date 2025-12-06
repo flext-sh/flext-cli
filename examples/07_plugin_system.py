@@ -33,45 +33,14 @@ import json
 from pathlib import Path
 from typing import cast
 
-from flext_core import (
-    FlextConstants,
-    FlextDecorators,
-    FlextExceptions,
-    FlextHandlers,
-    FlextMixins,
-    FlextModels,
-    FlextProtocols,
-    FlextResult,
-    FlextService,
-    FlextTypes,
-    FlextUtilities,
+from flext_cli import (
+    FlextCli,
+    FlextCliTables,
+    m,
+    r,
+    t,
+    u,
 )
-
-from flext_cli import FlextCli, FlextCliModels, FlextCliTables, FlextCliTypes
-
-# Aliases for static method calls and type references
-# Use u.* for FlextUtilities static methods
-# Use t.* for FlextTypes type references
-# Use c.* for FlextConstants constants
-# Use m.* for FlextModels model references
-# Use p.* for FlextProtocols protocol references
-# Use r.* for FlextResult methods
-# Use e.* for FlextExceptions
-# Use d.* for FlextDecorators decorators
-# Use s.* for FlextService service base
-# Use x.* for FlextMixins mixins
-# Use h.* for FlextHandlers handlers
-u = FlextUtilities
-t = FlextTypes
-c = FlextConstants
-m = FlextModels
-p = FlextProtocols
-r = FlextResult
-e = FlextExceptions
-d = FlextDecorators
-s = FlextService
-x = FlextMixins
-h = FlextHandlers
 
 cli = FlextCli()
 
@@ -92,7 +61,7 @@ class DataExportPlugin:
 
     @staticmethod
     def execute(
-        data: FlextCliTypes.Data.CliDataDict,
+        data: t.Data.CliDataDict,
         output_format: str = "json",
     ) -> r[str]:
         """Execute plugin logic in YOUR application."""
@@ -113,10 +82,10 @@ class ReportGeneratorPlugin:
         self.version = "1.0.0"
 
     @staticmethod
-    def execute(data: list[FlextCliTypes.Data.CliDataDict]) -> r[str]:
+    def execute(data: list[t.Data.CliDataDict]) -> r[str]:
         """Generate report from data in YOUR CLI."""
         tables = FlextCliTables()
-        config = FlextCliModels.TableConfig(table_format="grid")
+        config = m.TableConfig(table_format="grid")
         table_result = tables.create_table(data, config=config)
 
         if table_result.is_failure:
@@ -207,9 +176,11 @@ class MyAppPluginManager:
             return getattr(plugin, "version", "1.0.0")
 
         process_result = u.process(
-            self.plugins, processor=get_plugin_version, on_error="skip"
+            self.plugins,
+            processor=get_plugin_version,
+            on_error="skip",
         )
-        plugin_data: FlextCliTypes.Data.CliDataDict = (
+        plugin_data: t.Data.CliDataDict = (
             dict(process_result.value)
             if process_result.is_success and isinstance(process_result.value, dict)
             else {}
@@ -263,25 +234,25 @@ def load_plugins_from_directory(plugin_dir: Path) -> MyAppPluginManager:
 class ConfigurablePlugin:
     """Example of configurable plugin for YOUR CLI."""
 
-    def __init__(self, config: FlextCliTypes.Data.CliDataDict) -> None:
+    def __init__(self, config: t.Data.CliDataDict) -> None:
         """Initialize configurable plugin with configuration dictionary."""
         super().__init__()
         self.name = "configurable-plugin"
-        self.config: FlextCliTypes.Data.CliDataDict = config
+        self.config: t.Data.CliDataDict = config
 
-    def execute(self) -> r[FlextCliTypes.Data.CliDataDict]:
+    def execute(self) -> r[t.Data.CliDataDict]:
         """Execute with configuration in YOUR CLI."""
         cli.print(f"🔧 Plugin config: {self.config}", style="cyan")
 
         # Your plugin logic using config
-        result_data: FlextCliTypes.Data.CliDataDict = {
+        result_data: t.Data.CliDataDict = {
             "plugin": self.name,
             "config_applied": True,
             **self.config,  # Unpack config dict instead of using update()
         }
 
         # Cast to expected type (runtime type is compatible)
-        return r[FlextCliTypes.Data.CliDataDict].ok(result_data)
+        return r[t.Data.CliDataDict].ok(result_data)
 
 
 # ============================================================================
@@ -345,7 +316,7 @@ def main() -> None:
 
     # Example 3: Execute plugin
     cli.print("\n3. Execute Plugin (data export):", style="bold cyan")
-    test_data: FlextCliTypes.Data.CliDataDict = {
+    test_data: t.Data.CliDataDict = {
         "id": 1,
         "name": "Test",
         "status": "active",
@@ -358,7 +329,7 @@ def main() -> None:
 
     # Example 4: Report plugin
     cli.print("\n4. Report Plugin (table generation):", style="bold cyan")
-    report_data: list[FlextCliTypes.Data.CliDataDict] = [
+    report_data: list[t.Data.CliDataDict] = [
         {"metric": "Users", "value": "1,234"},
         {"metric": "Orders", "value": "567"},
     ]
@@ -366,7 +337,7 @@ def main() -> None:
 
     # Example 5: Plugin with config
     cli.print("\n5. Configurable Plugin:", style="bold cyan")
-    config: FlextCliTypes.Data.CliDataDict = {"theme": "dark", "verbose": True}
+    config: t.Data.CliDataDict = {"theme": "dark", "verbose": True}
     config_plugin = ConfigurablePlugin(config)
     config_result = config_plugin.execute()
     if config_result.is_success:

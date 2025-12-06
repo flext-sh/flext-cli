@@ -19,53 +19,31 @@ import logging
 import shutil
 from collections.abc import Callable, Sequence
 from pathlib import Path
-from typing import IO, Annotated, TypeVar, cast
+from typing import IO, Annotated, cast
 
 import click
 import typer
+from click.exceptions import UsageError
 from flext_core import (
-    FlextConstants,
     FlextContainer,
-    FlextExceptions,
     FlextLogger,
     FlextModels,
-    FlextProtocols,
-    FlextResult,
     FlextRuntime,
-    t,
-    u,
+    r,
 )
-from pydantic import BaseModel
 from typer.testing import CliRunner
 
 from flext_cli.cli_params import FlextCliCommonParams
 from flext_cli.config import FlextCliConfig
-from flext_cli.constants import FlextCliConstants
-from flext_cli.models import FlextCliModels
-from flext_cli.protocols import FlextCliProtocols
-from flext_cli.services.output import to_json
-
-# Aliases for static method calls and type references
-# Use u.* for FlextUtilities static methods
-# Use t.* for FlextTypes type references
-# Use c.* for FlextConstants constants
-# Use m.* for FlextModels model references
-# Use p.* for FlextProtocols protocol references
-# Use r.* for FlextResult methods
-# Use e.* for FlextExceptions
-# u is already imported from flext_core
-# t is already imported from flext_core
-c = FlextConstants
-m = FlextModels
-p = FlextProtocols
-r = FlextResult
-e = FlextExceptions
-
-# TypeVar for model command generic typing
-TModel = TypeVar("TModel", bound=BaseModel)
+from flext_cli.constants import c
+from flext_cli.models import m
+from flext_cli.protocols import p
+from flext_cli.services.output import FlextCliOutput
+from flext_cli.typings import TModel, t
+from flext_cli.utilities import u
 
 
-class FlextCliCli:  # noqa: PLR0904
+class FlextCliCli:
     """Complete CLI framework abstraction layer.
 
     Business Rules:
@@ -142,12 +120,10 @@ class FlextCliCli:  # noqa: PLR0904
 
     def _create_cli_decorator(
         self,
-        entity_type: FlextCliConstants.EntityTypeLiteral,
+        entity_type: c.EntityTypeLiteral,
         name: str | None,
         help_text: str | None,
-    ) -> Callable[
-        [FlextCliProtocols.Cli.CliCommandFunction], click.Command | click.Group
-    ]:
+    ) -> Callable[[p.Cli.CliCommandFunction], click.Command | click.Group]:
         """Create Click decorator (command or group) - DRY helper.
 
         Args:
@@ -178,7 +154,7 @@ class FlextCliCli:  # noqa: PLR0904
         self,
         name: str | None = None,
         help_text: str | None = None,
-    ) -> Callable[[FlextCliProtocols.Cli.CliCommandFunction], click.Command]:
+    ) -> Callable[[p.Cli.CliCommandFunction], click.Command]:
         """Create Click command decorator.
 
         Args:
@@ -297,59 +273,44 @@ class FlextCliCli:  # noqa: PLR0904
                 "log_level": log_level,
             }
 
-            # Filter out None values and False booleans using u.filter
-            # Use build() DSL for filtering active params
-            active_params_raw = u.filter(
-                common_params, predicate=lambda _k, v: v is not None and v is not False
-            )
-            active_params = (
-                cast(
-                    "dict[str, t.GeneralValueType]",
-                    u.build(active_params_raw, ops={"ensure": "dict"}, on_error="skip"),
-                )
-                if isinstance(active_params_raw, dict)
-                else {}
-            )
+            # Filter out None values and False booleans using dict comprehension
+            # Direct dict filtering - more efficient than wrapper
+            active_params: dict[str, t.GeneralValueType] = {
+                k: v
+                for k, v in common_params.items()
+                if v is not None and v is not False
+            }
 
             if not active_params or not config:
                 return
 
-            # ✅ FILTER: Only apply params that exist in config using u.filter
+            # ✅ FILTER: Only apply params that exist in config using dict comprehension
             # Config may not have all common params (e.g., quiet)
             # Type narrowed: config is FlextCliConfig (parameter type)
             # FlextCliConfig extends BaseModel, so it has model_fields
             config_fields: set[str] = set(type(config).model_fields.keys())
-            # Use build() DSL for filtering params by config fields
-            filtered_params_raw = u.filter(
-                active_params, predicate=lambda k, _v: k in config_fields
-            )
-            filtered_params = (
-                cast(
-                    "dict[str, t.GeneralValueType]",
-                    u.build(
-                        filtered_params_raw, ops={"ensure": "dict"}, on_error="skip"
-                    ),
-                )
-                if isinstance(filtered_params_raw, dict)
-                else {}
-            )
+            # Direct dict filtering - more efficient than wrapper
+            filtered_params: dict[str, t.GeneralValueType] = {
+                k: v for k, v in active_params.items() if k in config_fields
+            }
 
             if not filtered_params:
                 return
 
             # Use build() DSL for type-safe value extraction with generalized helper
             def get_val(
-                k: str, type_name: str, default: t.GeneralValueType | None = None
+                k: str,
+                type_name: str,
+                default: t.GeneralValueType | None = None,
             ) -> t.GeneralValueType | None:
                 """Extract typed value using build DSL."""
                 val = filtered_params.get(k)
                 if val is None:
                     return default
-                return (
-                    cast(
-                        "t.GeneralValueType | None",
-                        u.build(val, ops={"ensure": type_name}, on_error="skip"),
-                    )
+                built_val = u.build(val, ops={"ensure": type_name}, on_error="skip")
+                # Type narrowing: ensure return type is GeneralValueType | None
+                result = (
+                    built_val
                     if isinstance(
                         val,
                         (
@@ -362,14 +323,17 @@ class FlextCliCli:  # noqa: PLR0904
                     )
                     else default
                 )
+                return cast("t.GeneralValueType | None", result)
 
             def get_bool(k: str) -> bool | None:
                 """Extract bool value using build DSL."""
-                return cast("bool | None", get_val(k, "bool"))
+                result = get_val(k, "bool")
+                return result if isinstance(result, (bool, type(None))) else None
 
             def get_str(k: str) -> str | None:
                 """Extract str value using build DSL."""
-                return cast("str | None", get_val(k, "str"))
+                result = get_val(k, "str")
+                return result if isinstance(result, (str, type(None))) else None
 
             result = FlextCliCommonParams.apply_to_config(
                 config,
@@ -394,7 +358,9 @@ class FlextCliCli:  # noqa: PLR0904
             else:
                 # Use build() DSL for log level extraction with fallback
                 log_level_attr = getattr(config, "cli_log_level", None) or getattr(
-                    config, "log_level", None
+                    config,
+                    "log_level",
+                    None,
                 )
                 log_level_name = cast(
                     "str",
@@ -432,7 +398,7 @@ class FlextCliCli:  # noqa: PLR0904
         self,
         name: str | None = None,
         help_text: str | None = None,
-    ) -> Callable[[FlextCliProtocols.Cli.CliCommandFunction], click.Group]:
+    ) -> Callable[[p.Cli.CliCommandFunction], click.Group]:
         """Create Click group decorator for command groups.
 
         Args:
@@ -460,7 +426,7 @@ class FlextCliCli:  # noqa: PLR0904
         # but we know it's Group when entity_type is "group"
         decorator = self._create_cli_decorator("group", name, help_text)
         return cast(
-            "Callable[[FlextCliProtocols.Cli.CliCommandHandler], click.Group]",
+            "Callable[[p.Cli.CliCommandHandler], click.Group]",
             decorator,
         )
 
@@ -471,11 +437,11 @@ class FlextCliCli:  # noqa: PLR0904
     def create_option_decorator(
         self,
         *param_decls: str,
-        config: FlextCliModels.OptionConfig | None = None,
+        config: p.Cli.OptionConfigProtocol | None = None,
         **kwargs: t.GeneralValueType,
     ) -> Callable[
-        [FlextCliProtocols.Cli.CliCommandFunction],
-        FlextCliProtocols.Cli.CliCommandFunction,
+        [p.Cli.CliCommandFunction],
+        p.Cli.CliCommandFunction,
     ]:
         """Create Click option decorator with explicit parameters.
 
@@ -516,29 +482,35 @@ class FlextCliCli:  # noqa: PLR0904
         # Use build() DSL for config building with generalized helpers
         if config is None:
 
-            def get_bool_val(k: str) -> bool:
-                """Get bool value with default False."""
+            def get_bool_val(k: str, *, default: bool = False) -> bool:
+                """Get bool value with default."""
+                val = kwargs.get(k)
+                if val is None:
+                    return default
                 return cast(
                     "bool",
                     u.build(
-                        kwargs.get(k),
-                        ops={"ensure": "bool", "ensure_default": False},
+                        val,
+                        ops={"ensure": "bool", "ensure_default": default},
                         on_error="skip",
                     ),
                 )
 
-            def get_str_val(k: str, default: str | None = None) -> str | None:
+            def get_str_val(k: str, default: str = "") -> str:
                 """Get str value with default."""
+                val = kwargs.get(k)
+                if val is None:
+                    return default
                 return cast(
-                    "str | None",
+                    "str",
                     u.build(
-                        kwargs.get(k),
+                        val,
                         ops={"ensure": "str", "ensure_default": default},
                         on_error="skip",
                     ),
                 )
 
-            config = FlextCliModels.OptionConfig(
+            config_instance = m.OptionConfig(
                 default=kwargs.get("default"),
                 type_hint=cast(
                     "t.GeneralValueType | None",
@@ -554,6 +526,13 @@ class FlextCliCli:  # noqa: PLR0904
                 count=get_bool_val("count"),
                 show_default=get_bool_val("show_default"),
             )
+            config = cast("p.Cli.OptionConfigProtocol", config_instance)
+
+        # Type narrowing: config is not None after assignment
+        # Runtime safety check (mypy considers unreachable but needed for defensive programming)
+        if config is None:
+            msg = "config cannot be None"
+            raise ValueError(msg)
 
         # Use Click directly (cli.py is ONLY file that may import Click)
         # Business Rule: Typer auto-detects boolean flags from type hints and defaults
@@ -585,8 +564,8 @@ class FlextCliCli:  # noqa: PLR0904
         required: bool = True,
         nargs: int = 1,
     ) -> Callable[
-        [FlextCliProtocols.Cli.CliCommandFunction],
-        FlextCliProtocols.Cli.CliCommandFunction,
+        [p.Cli.CliCommandFunction],
+        p.Cli.CliCommandFunction,
     ]:
         """Create Click argument decorator with explicit parameters.
 
@@ -654,7 +633,7 @@ class FlextCliCli:  # noqa: PLR0904
                 formats,
                 ops={
                     "ensure": "list",
-                    "ensure_default": FlextCliConstants.FileDefaults.DEFAULT_DATETIME_FORMATS,
+                    "ensure_default": c.FileDefaults.DEFAULT_DATETIME_FORMATS,
                 },
                 on_error="skip",
             ),
@@ -835,7 +814,7 @@ class FlextCliCli:  # noqa: PLR0904
     @staticmethod
     def confirm(
         text: str,
-        config: FlextCliModels.ConfirmConfig | None = None,
+        config: p.Cli.ConfirmConfigProtocol | None = None,
         **kwargs: bool | str,
     ) -> r[bool]:
         """Prompt for confirmation using Typer backend.
@@ -869,10 +848,13 @@ class FlextCliCli:  # noqa: PLR0904
 
             def get_bool_val(k: str, *, default: bool = False) -> bool:
                 """Get bool value with default."""
+                val = kwargs.get(k)
+                if val is None:
+                    return default
                 return cast(
                     "bool",
                     u.build(
-                        kwargs.get(k),
+                        val,
                         ops={"ensure": "bool", "ensure_default": default},
                         on_error="skip",
                     ),
@@ -880,24 +862,35 @@ class FlextCliCli:  # noqa: PLR0904
 
             def get_str_val(k: str, default: str = "") -> str:
                 """Get str value with default."""
+                val = kwargs.get(k)
+                if val is None:
+                    return default
                 return cast(
                     "str",
                     u.build(
-                        kwargs.get(k),
+                        val,
                         ops={"ensure": "str", "ensure_default": default},
                         on_error="skip",
                     ),
                 )
 
-            config = FlextCliModels.ConfirmConfig(
+            config_instance = m.ConfirmConfig(
                 default=get_bool_val("default", default=False),
                 abort=get_bool_val("abort", default=False),
                 prompt_suffix=get_str_val(
-                    "prompt_suffix", default=FlextCliConstants.UIDefaults.DEFAULT_PROMPT_SUFFIX
+                    "prompt_suffix",
+                    default=c.UIDefaults.DEFAULT_PROMPT_SUFFIX,
                 ),
                 show_default=get_bool_val("show_default", default=True),
                 err=get_bool_val("err", default=False),
             )
+            config = cast("p.Cli.ConfirmConfigProtocol", config_instance)
+
+        # Type narrowing: config is not None after assignment
+        # Runtime safety check (mypy considers unreachable but needed for defensive programming)
+        if config is None:
+            msg = "config cannot be None"
+            raise ValueError(msg)
 
         try:
             result = typer.confirm(
@@ -911,7 +904,7 @@ class FlextCliCli:  # noqa: PLR0904
             return r[bool].ok(result)
         except typer.Abort as e:
             return r[bool].fail(
-                FlextCliConstants.ErrorMessages.USER_ABORTED_CONFIRMATION.format(
+                c.ErrorMessages.USER_ABORTED_CONFIRMATION.format(
                     error=e,
                 ),
             )
@@ -919,7 +912,7 @@ class FlextCliCli:  # noqa: PLR0904
     @staticmethod
     def prompt(
         text: str,
-        config: FlextCliModels.PromptConfig | None = None,
+        config: p.Cli.PromptConfigProtocol | None = None,
         **kwargs: t.GeneralValueType,
     ) -> r[t.GeneralValueType]:
         """Prompt for input using Typer backend.
@@ -954,10 +947,13 @@ class FlextCliCli:  # noqa: PLR0904
 
             def get_bool_val(k: str, *, default: bool = False) -> bool:
                 """Get bool value with default."""
+                val = kwargs.get(k)
+                if val is None:
+                    return default
                 return cast(
                     "bool",
                     u.build(
-                        kwargs.get(k),
+                        val,
                         ops={"ensure": "bool", "ensure_default": default},
                         on_error="skip",
                     ),
@@ -965,22 +961,26 @@ class FlextCliCli:  # noqa: PLR0904
 
             def get_str_val(k: str, default: str = "") -> str:
                 """Get str value with default."""
+                val = kwargs.get(k)
+                if val is None:
+                    return default
                 return cast(
                     "str",
                     u.build(
-                        kwargs.get(k),
+                        val,
                         ops={"ensure": "str", "ensure_default": default},
                         on_error="skip",
                     ),
                 )
 
             value_proc_val = kwargs.get("value_proc")
-            config = FlextCliModels.PromptConfig(
+            config_instance = m.PromptConfig(
                 default=kwargs.get("default"),
                 type_hint=kwargs.get("type_hint"),
                 value_proc=value_proc_val if callable(value_proc_val) else None,
                 prompt_suffix=get_str_val(
-                    "prompt_suffix", FlextCliConstants.UIDefaults.DEFAULT_PROMPT_SUFFIX
+                    "prompt_suffix",
+                    c.UIDefaults.DEFAULT_PROMPT_SUFFIX,
                 ),
                 hide_input=get_bool_val("hide_input", default=False),
                 confirmation_prompt=get_bool_val("confirmation_prompt", default=False),
@@ -988,6 +988,13 @@ class FlextCliCli:  # noqa: PLR0904
                 err=get_bool_val("err", default=False),
                 show_choices=get_bool_val("show_choices", default=True),
             )
+            config = cast("p.Cli.PromptConfigProtocol", config_instance)
+
+        # Type narrowing: config is not None after assignment
+        # Runtime safety check (mypy considers unreachable but needed for defensive programming)
+        if config is None:
+            msg = "config cannot be None"
+            raise ValueError(msg)
 
         try:
             result = typer.prompt(
@@ -1006,11 +1013,13 @@ class FlextCliCli:  # noqa: PLR0904
             # CliJsonValue is alias of GeneralValueType, so no cast needed
             # Use build() DSL for JSON conversion
             # Reuse to_json helper from output module (imported at top)
-            json_value = to_json(result) if isinstance(result, dict) else result
+            json_value = (
+                FlextCliOutput.to_json(result) if isinstance(result, dict) else result
+            )
             return r[t.GeneralValueType].ok(json_value)
         except typer.Abort as e:
             return r[t.GeneralValueType].fail(
-                FlextCliConstants.ErrorMessages.USER_ABORTED_PROMPT.format(error=e),
+                c.ErrorMessages.USER_ABORTED_PROMPT.format(error=e),
             )
 
     # =========================================================================
@@ -1019,7 +1028,7 @@ class FlextCliCli:  # noqa: PLR0904
 
     def create_cli_runner(
         self,
-        charset: str = FlextCliConstants.Encoding.UTF8,
+        charset: str = c.Encoding.UTF8,
         env: dict[str, str] | None = None,
         *,
         echo_stdin: bool = False,
@@ -1097,7 +1106,7 @@ class FlextCliCli:  # noqa: PLR0904
 
     @staticmethod
     def pause(
-        info: str = FlextCliConstants.UIDefaults.DEFAULT_PAUSE_MESSAGE,
+        info: str = c.UIDefaults.DEFAULT_PAUSE_MESSAGE,
     ) -> r[bool]:
         """Pause execution until key press.
 
@@ -1119,7 +1128,7 @@ class FlextCliCli:  # noqa: PLR0904
             t.GeneralValueType | r[t.GeneralValueType],
         ],
         config: FlextCliConfig | None = None,
-    ) -> FlextCliProtocols.Cli.CliCommandFunction:
+    ) -> p.Cli.CliCommandFunction:
         """Create Typer command from Pydantic model with automatic config integration.
 
         Generic model-driven CLI automation using Field metadata introspection.
@@ -1210,21 +1219,18 @@ class FlextCliCli:  # noqa: PLR0904
             ```
 
         """
-        # Delegate to FlextCliModels.ModelCommandBuilder for reduced
+        # Delegate to ModelCommandBuilder for reduced
         # complexity (SOLID/SRP)
         if not hasattr(model_class, "model_fields"):
             # Type narrowing: get class name safely for error message
             class_name = getattr(model_class, "__name__", str(model_class))
-            msg = (
-                f"{class_name} must be a Pydantic model "
-                f"(BaseModel or FlextModels subclass)"
-            )
+            msg = f"{class_name} must be a Pydantic model (BaseModel or m subclass)"
             raise TypeError(msg)
 
         # Use cast to satisfy type checker - TModel extends FlextModels
         # Handler can return GeneralValueType or r[GeneralValueType]
-        # ModelCommandBuilder accepts GeneralValueType, so we cast handler
-        builder = FlextCliModels.ModelCommandBuilder(
+        # ModelCommandBuilder accepts FlextModels, so we cast model_class and handler
+        builder = m.ModelCommandBuilder(
             cast("type[FlextModels]", model_class),
             cast("Callable[[FlextModels], t.GeneralValueType]", handler),
             config,
@@ -1234,22 +1240,25 @@ class FlextCliCli:  # noqa: PLR0904
         return builder.build()
 
     @staticmethod
-    def execute() -> r[t.JsonDict]:
+    def execute() -> r[t.Json.JsonDict]:
         """Execute Click abstraction layer operations.
 
         Returns:
-            r[t.JsonDict]: Success with CLI status or
+            r[t.Json.JsonDict]: Success with CLI status or
             failure with error
 
         """
-        return r[t.JsonDict].ok({
-            FlextCliConstants.DictKeys.SERVICE: FlextCliConstants.FLEXT_CLI,
-            FlextCliConstants.DictKeys.STATUS: (
-                FlextCliConstants.ServiceStatus.OPERATIONAL.value
-            ),
+        return r[t.Json.JsonDict].ok({
+            c.DictKeys.SERVICE: c.FLEXT_CLI,
+            c.DictKeys.STATUS: (c.ServiceStatus.OPERATIONAL.value),
         })
 
 
 __all__ = [
     "FlextCliCli",
+    "Typer",
+    "UsageError",
 ]
+
+# Re-export Typer for API compatibility
+Typer = typer.Typer

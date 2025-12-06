@@ -26,7 +26,7 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 from flext_cli import FlextCliCli, FlextCliConfig
 
 
-class TestConfigModelIntegration:
+class TestsCliConfigModelIntegration:
     """Config/model integration tests with pragmatic patterns."""
 
     # =========================================================================
@@ -207,7 +207,7 @@ class TestConfigModelIntegration:
         self,
         config_class: type[BaseSettings],
         expected_fields: list[str],
-        expected_values: t.JsonDict,
+        expected_values: dict[str, t.GeneralValueType],
     ) -> None:
         """Test config initialization with various field types."""
         config = config_class()
@@ -259,8 +259,8 @@ class TestConfigModelIntegration:
     )
     def test_params_validation(
         self,
-        input_data: t.JsonDict,
-        expected_data: t.JsonDict,
+        input_data: dict[str, t.GeneralValueType],
+        expected_data: dict[str, t.GeneralValueType],
     ) -> None:
         """Test parameter model validation with aliases."""
         params = self.AliasedParams.model_validate(input_data)

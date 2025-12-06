@@ -30,13 +30,10 @@ import time
 from typing import cast
 
 from example_utils import display_config_table, display_success_summary
-from flext_core import FlextUtilities
+from flext_core import FlextResult
 from pydantic import BaseModel, Field, field_validator
 
-from flext_cli import FlextCli, FlextCliModels, FlextCliTypes
-
-# Alias for static method calls - use u.* for u static methods
-u = FlextUtilities
+from flext_cli import FlextCli, m, r, t, u
 
 cli = FlextCli()
 
@@ -98,7 +95,7 @@ def demonstrate_auto_cli_generation() -> None:
     cli.output.print_message("\n🔧 Auto-Generated CLI Parameters:", style="bold cyan")
 
     # Extract CLI parameters from Pydantic model
-    params_result = FlextCliModels.CliModelConverter.model_to_cli_params(DeployConfig)
+    params_result = m.CliModelConverter.model_to_cli_params(DeployConfig)
 
     if params_result.is_success:
         params = params_result.unwrap()
@@ -137,13 +134,17 @@ def execute_deploy_from_cli(cli_args: dict[str, str | int | bool]) -> None:
     try:
         # Convert to JsonDict-compatible dict using u
         # Use u.transform for JSON conversion
+        # Business Rule: Type conversion MUST use proper type annotations
+        # Architecture: Use FlextTypes.GeneralValueType for type-safe conversions
+        # Audit Implication: Type conversion ensures data integrity
         transform_result = u.transform(
-            cast("dict[str, t.GeneralValueType]", cli_args), to_json=True
+            cast("dict[str, t.GeneralValueType]", cli_args),
+            to_json=True,
         )
-        typed_args: FlextCliTypes.Data.CliDataDict = (
+        typed_args: t.Data.CliDataDict = (
             transform_result.unwrap()
             if transform_result.is_success
-            else cast("FlextCliTypes.Data.CliDataDict", cli_args)
+            else cast("t.Data.CliDataDict", cli_args)
         )
 
         # Pydantic automatically validates ALL constraints
@@ -183,10 +184,10 @@ def execute_deploy_from_cli(cli_args: dict[str, str | int | bool]) -> None:
         cli.output.print_message(f"❌ Validation failed: {e}", style="bold red")
 
 
-def deploy_application(config: DeployConfig) -> FlextResult[str]:
+def deploy_application(config: DeployConfig) -> r[str]:
     """Deploy application with validated config."""
     # Your deployment logic here - config is already validated!
-    return FlextResult[str].ok(f"Deployed to {config.environment}")
+    return r[str].ok(f"Deployed to {config.environment}")
 
 
 # ============================================================================
@@ -197,7 +198,8 @@ def deploy_application(config: DeployConfig) -> FlextResult[str]:
 def show_common_cli_params() -> None:
     """Show auto-generated common CLI parameters."""
     cli.output.print_message(
-        "\n⚙️  Auto-Generated Common CLI Parameters:", style="bold cyan"
+        "\n⚙️  Auto-Generated Common CLI Parameters:",
+        style="bold cyan",
     )
     cli.output.print_message(
         "These are AUTOMATICALLY available in ALL flext-cli commands:\n",
@@ -205,7 +207,7 @@ def show_common_cli_params() -> None:
     )
 
     # These come from FlextCliConfig Pydantic fields
-    common_params: FlextCliTypes.Data.CliDataDict = {
+    common_params: t.Data.CliDataDict = {
         "verbose": "Enable verbose output (-v)",
         "quiet": "Suppress non-error output (-q)",
         "debug": "Enable debug mode (-d)",
@@ -219,7 +221,8 @@ def show_common_cli_params() -> None:
 
     for param, description in common_params.items():
         cli.output.print_message(
-            f"   --{param.replace('_', '-'):<20} {description}", style="cyan"
+            f"   --{param.replace('_', '-'):<20} {description}",
+            style="cyan",
         )
 
 
@@ -250,7 +253,7 @@ def demonstrate_nested_models() -> None:
     cli.output.print_message("\n🏗️  Nested Model CLI Generation:", style="bold cyan")
 
     # Extract parameters from nested model
-    db_params_result = FlextCliModels.CliModelConverter.model_to_cli_params(
+    db_params_result = m.CliModelConverter.model_to_cli_params(
         DatabaseConfig,
     )
 
@@ -260,12 +263,14 @@ def demonstrate_nested_models() -> None:
         cli.output.print_message("Database config parameters:", style="green")
         for param in db_params:
             cli.output.print_message(
-                f"   --db-{param.name}: {param.help}", style="cyan"
+                f"   --db-{param.name}: {param.help}",
+                style="cyan",
             )
 
     # In real usage, you'd flatten nested models or use prefixes
     cli.output.print_message(
-        "\n💡 Tip: Use prefixes for nested models:", style="yellow"
+        "\n💡 Tip: Use prefixes for nested models:",
+        style="yellow",
     )
     cli.output.print_message("   --database-host localhost", style="white")
     cli.output.print_message("   --database-port 5432", style="white")
@@ -287,7 +292,10 @@ class AdvancedDatabaseConfig(BaseModel):
     password: str = Field(description="Database password", min_length=8)
     ssl_enabled: bool = Field(description="Enable SSL", default=True)
     connection_pool: int = Field(
-        description="Connection pool size", ge=1, le=100, default=10
+        description="Connection pool size",
+        ge=1,
+        le=100,
+        default=10,
     )
 
     @field_validator("host")
@@ -301,10 +309,11 @@ class AdvancedDatabaseConfig(BaseModel):
         return v
 
 
-def create_database_config_from_cli() -> FlextResult[AdvancedDatabaseConfig]:
+def create_database_config_from_cli() -> r[AdvancedDatabaseConfig]:
     """Create validated DatabaseConfig using Railway Pattern with Pydantic."""
     cli.output.print_message(
-        "\n🗄️  Database Configuration with Railway Pattern:", style="bold cyan"
+        "\n🗄️  Database Configuration with Railway Pattern:",
+        style="bold cyan",
     )
 
     # Simulate CLI argument collection (normally from Click decorators)
@@ -339,7 +348,7 @@ def create_database_config_from_cli() -> FlextResult[AdvancedDatabaseConfig]:
     cli.output.print_message("✅ Connection test passed", style="green")
 
     display_success_summary(cli, "Database configuration")
-    return FlextResult[AdvancedDatabaseConfig].ok(tested_config)
+    return r[AdvancedDatabaseConfig].ok(tested_config)
 
 
 def validate_required_fields(data: dict[str, object]) -> dict[str, object]:
@@ -372,7 +381,10 @@ def convert_and_validate_with_pydantic(
         pool_int = int(pool_value) if isinstance(pool_value, (int, str)) else 10
 
         # Build config dict with proper types - Pydantic will validate
-        converted_data = {
+        # Business Rule: Type conversion MUST use proper type annotations
+        # Architecture: Pydantic accepts dict[str, object] at runtime, but we ensure proper types
+        # Audit Implication: Type conversion is validated by Pydantic before model creation
+        converted_data: dict[str, str | int | bool] = {
             "host": str(data.get("host", "localhost")),
             "port": port_int,
             "name": str(data.get("name", "")),
@@ -382,13 +394,14 @@ def convert_and_validate_with_pydantic(
             "connection_pool": pool_int,
         }
         # Pydantic handles type conversion and validation automatically
-        # Use cast to satisfy type checker - Pydantic accepts dict[str, Any] at runtime
-        config = AdvancedDatabaseConfig(**cast("dict[str, object]", converted_data))  # type: ignore[arg-type]
-        return FlextResult[AdvancedDatabaseConfig].ok(config)
+        # Business Rule: Model creation MUST use properly typed dict
+        # Architecture: Pydantic validates types at runtime, type checker validates at compile time
+        # Audit Implication: Type safety ensures data integrity
+        # Use model_validate for type-safe model creation from dict
+        config = AdvancedDatabaseConfig.model_validate(converted_data)
+        return r[AdvancedDatabaseConfig].ok(config)
     except Exception as e:
-        return FlextResult[AdvancedDatabaseConfig].fail(
-            f"Pydantic validation failed: {e}"
-        )
+        return r[AdvancedDatabaseConfig].fail(f"Pydantic validation failed: {e}")
 
 
 def validate_business_rules(config: AdvancedDatabaseConfig) -> AdvancedDatabaseConfig:
@@ -456,7 +469,8 @@ def main() -> None:
     # Example 5: Validation demonstration
     cli.output.print_message("\n" + "=" * 70, style="bold blue")
     cli.output.print_message(
-        "\n❌ Validation Demo - Invalid Environment:", style="bold cyan"
+        "\n❌ Validation Demo - Invalid Environment:",
+        style="bold cyan",
     )
 
     # Intentional invalid args to demonstrate validation -
@@ -474,12 +488,13 @@ def main() -> None:
         # Convert to JsonDict-compatible dict using u
         # Use u.transform for JSON conversion
         transform_result = u.transform(
-            cast("dict[str, t.GeneralValueType]", invalid_args), to_json=True
+            cast("dict[str, t.GeneralValueType]", invalid_args),
+            to_json=True,
         )
-        typed_invalid_args: FlextCliTypes.Data.CliDataDict = (
+        typed_invalid_args: t.Data.CliDataDict = (
             transform_result.unwrap()
             if transform_result.is_success
-            else cast("FlextCliTypes.Data.CliDataDict", invalid_args)
+            else cast("t.Data.CliDataDict", invalid_args)
         )
 
         # DeployConfig constructor handles type conversion and validation
@@ -495,7 +510,8 @@ def main() -> None:
 
     # Example 6: Railway Pattern with Pydantic
     cli.output.print_message(
-        "\n6. Railway Pattern with Pydantic (complete workflow):", style="bold cyan"
+        "\n6. Railway Pattern with Pydantic (complete workflow):",
+        style="bold cyan",
     )
     db_config_result = create_database_config_from_cli()
 
@@ -516,14 +532,16 @@ def main() -> None:
     # Integration guide
     cli.output.print_message("\n💡 Integration Tips:", style="bold cyan")
     cli.output.print_message(
-        "  • Define Pydantic models with Field() descriptions", style="white"
+        "  • Define Pydantic models with Field() descriptions",
+        style="white",
     )
     cli.output.print_message(
         "  • Use CliModelConverter.model_to_cli_params() to extract params",
         style="white",
     )
     cli.output.print_message(
-        "  • Add field_validator() for custom validation", style="white"
+        "  • Add field_validator() for custom validation",
+        style="white",
     )
     cli.output.print_message(
         "  • Constraints (ge, le) become CLI validation automatically",

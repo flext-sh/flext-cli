@@ -14,13 +14,12 @@ from flext_core import (
     FlextDecorators,
     FlextExceptions,
     FlextHandlers,
-    FlextMixins,
     FlextResult,
-    FlextService,
 )
 
 from flext_cli.__version__ import __version__, __version_info__
-from flext_cli.api import FlextCli, FlextCliAppBase
+from flext_cli.api import FlextCli
+from flext_cli.app_base import FlextCliAppBase
 from flext_cli.base import FlextCliServiceBase
 from flext_cli.cli import FlextCliCli
 from flext_cli.cli_params import FlextCliCommonParams
@@ -45,20 +44,18 @@ from flext_cli.utilities import FlextCliUtilities
 # Short aliases exported in root namespace - use domain-specific aliases
 # u extends FlextUtilities from flext-core via FlextCliUtilities
 # t extends FlextTypes from flext-core via FlextCliTypes
-u = FlextCliUtilities  # Override with domain-specific utilities
-t = FlextCliTypes  # Override with domain-specific types
-c = FlextCliConstants  # Domain-specific constants
-m = FlextCliModels  # Domain-specific models
-p = FlextCliProtocols  # Domain-specific protocols
+u = FlextCliUtilities  # Domain-specific utilities extending FlextUtilities
+t = FlextCliTypes  # Domain-specific types extending FlextTypes
+c = FlextCliConstants  # Domain-specific constants extending FlextConstants
+m = FlextCliModels  # Domain-specific models extending FlextModels
+p = FlextCliProtocols  # Domain-specific protocols extending FlextProtocols
+s = FlextCliServiceBase  # Domain-specific service base extending FlextService
 r = FlextResult  # Shared from flext-core
 e = FlextExceptions  # Shared from flext-core
 d = FlextDecorators  # Shared from flext-core
-s = FlextService  # Shared from flext-core
-x = FlextMixins  # Shared from flext-core
+x = FlextCliMixins  # Domain-specific mixins extending FlextMixins
 h = FlextHandlers  # Shared from flext-core
 
-# Re-export for convenience
-ServiceExecutionResult = FlextCliModels.ServiceExecutionResult
 
 __all__ = [
     "FlextCli",
@@ -83,7 +80,6 @@ __all__ = [
     "FlextCliTables",
     "FlextCliTypes",
     "FlextCliUtilities",
-    "ServiceExecutionResult",
     "__version__",
     "__version_info__",
     "c",

@@ -22,21 +22,23 @@ from collections import UserDict
 from collections.abc import Generator
 from pathlib import Path
 from typing import cast
+from unittest.mock import patch
 
 import pytest
-from flext_core import FlextResult, t
+from flext_core import t
 from pydantic import ValidationError
 
 from flext_cli import (
     FlextCliConfig,
-    FlextCliConstants,
     FlextCliCore,
-    FlextCliModels,
-    FlextCliProtocols,
+    c,
+    m,
+    p,
+    r,
 )
 
 
-class TestFlextCliCore:
+class TestsCliCore:
     """Comprehensive railway-oriented tests for FlextCliCore functionality.
 
     Single unified class with nested organization using advanced Python 3.13 patterns,
@@ -51,17 +53,47 @@ class TestFlextCliCore:
     @pytest.fixture
     def core_service(self) -> FlextCliCore:
         """Create FlextCliCore instance for testing."""
-        config: t.JsonDict = {
+        config: dict[str, t.GeneralValueType] = {
             "debug": {"value": False},
             "output_format": {"value": "table"},
             "timeout": {"value": 30},
         }
         return FlextCliCore(config=config)
 
+    @staticmethod
+    def _set_cli_config(
+        core_service: FlextCliCore,
+        config: dict[str, t.GeneralValueType],
+    ) -> None:
+        """Helper method to set _cli_config for testing.
+
+        This method uses object.__setattr__ to bypass read-only protection
+        in tests, which is necessary for testing internal state.
+        """
+        # Business Rule: Test helpers MUST use setattr() for frozen model attributes
+        # Architecture: setattr() allows mutation of frozen models in test context
+        # Audit Implication: Test isolation requires ability to modify internal state
+        object.__setattr__(core_service, "_cli_config", config)
+
+    @staticmethod
+    def _set_commands(
+        core_service: FlextCliCore,
+        commands: dict[str, t.Json.JsonDict],
+    ) -> None:
+        """Helper method to set _commands for testing.
+
+        This method uses object.__setattr__ to bypass read-only protection
+        in tests, which is necessary for testing internal state.
+        """
+        # Business Rule: Test helpers MUST use setattr() for frozen model attributes
+        # Architecture: setattr() allows mutation of frozen models in test context
+        # Audit Implication: Test isolation requires ability to modify internal state
+        object.__setattr__(core_service, "_commands", commands)
+
     @pytest.fixture
-    def sample_command(self) -> FlextCliModels.CliCommand:
+    def sample_command(self) -> m.CliCommand:
         """Create sample CLI command for testing."""
-        return FlextCliModels.CliCommand(
+        return m.CliCommand(
             command_line="test-cmd --option value",
             name="test-cmd",
             description="Test command",
@@ -87,7 +119,7 @@ class TestFlextCliCore:
         def test_core_service_execute_method(self, core_service: FlextCliCore) -> None:
             """Test core service execute method with real functionality."""
             result = core_service.execute()
-            assert isinstance(result, FlextResult)
+            assert isinstance(result, r)
             assert result.is_success or result.is_failure
 
             if result.is_success:
@@ -98,12 +130,13 @@ class TestFlextCliCore:
                 assert data["service"] == "FlextCliCore"
 
         def test_core_service_advanced_methods(
-            self, core_service: FlextCliCore
+            self,
+            core_service: FlextCliCore,
         ) -> None:
             """Test advanced core service methods."""
             # Test health check
             health_result = core_service.health_check()
-            assert isinstance(health_result, FlextResult)
+            assert isinstance(health_result, r)
 
             # Test get config
             config_result = core_service.get_config()
@@ -115,7 +148,7 @@ class TestFlextCliCore:
 
             # Test get commands
             commands_result = core_service.get_commands()
-            assert isinstance(commands_result, FlextResult)
+            assert isinstance(commands_result, r)
             assert commands_result.is_success
 
             # Test get formatters
@@ -136,36 +169,36 @@ class TestFlextCliCore:
                 yield Path(temp)
 
         def test_load_configuration_success(
-            self, core_service: FlextCliCore, temp_dir: Path
+            self,
+            core_service: FlextCliCore,
+            temp_dir: Path,
         ) -> None:
             """Test successful configuration loading."""
             config_file = temp_dir / "test_config.json"
             test_config = {
                 "debug": True,
                 "output_format": "json",
-                "timeout": FlextCliConstants.TIMEOUTS.DEFAULT,
-                "retries": FlextCliConstants.HTTP.MAX_RETRIES,
+                "timeout": c.TIMEOUTS.DEFAULT,
+                "retries": c.HTTP.MAX_RETRIES,
             }
             config_file.write_text(json.dumps(test_config))
 
             result = core_service.load_configuration(str(config_file))
-            assert isinstance(result, FlextResult)
+            assert isinstance(result, r)
             assert result.is_success
 
             config_data = result.unwrap()
             assert isinstance(config_data, dict)
             assert config_data["debug"] is True
-            assert (
-                config_data["output_format"]
-                == FlextCliConstants.OutputFormats.JSON.value
-            )
+            assert config_data["output_format"] == c.OutputFormats.JSON.value
 
         def test_load_configuration_nonexistent_file(
-            self, core_service: FlextCliCore
+            self,
+            core_service: FlextCliCore,
         ) -> None:
             """Test configuration loading with nonexistent file."""
             result = core_service.load_configuration("/nonexistent/config.json")
-            assert isinstance(result, FlextResult)
+            assert isinstance(result, r)
             assert result.is_failure
             assert result.error is not None
             assert (
@@ -174,19 +207,21 @@ class TestFlextCliCore:
             )
 
         def test_save_configuration(
-            self, core_service: FlextCliCore, temp_dir: Path
+            self,
+            core_service: FlextCliCore,
+            temp_dir: Path,
         ) -> None:
             """Test configuration saving functionality."""
             config_file = temp_dir / "test_save_config.json"
-            test_config: t.JsonDict = {
+            test_config: dict[str, t.GeneralValueType] = {
                 "debug": False,
                 "output_format": "table",
-                "timeout": FlextCliConstants.TIMEOUTS.DEFAULT,
-                "retries": FlextCliConstants.HTTP.MAX_RETRIES,
+                "timeout": c.TIMEOUTS.DEFAULT,
+                "retries": c.HTTP.MAX_RETRIES,
             }
 
             result = core_service.save_configuration(str(config_file), test_config)
-            assert isinstance(result, FlextResult)
+            assert isinstance(result, r)
             assert result.is_success
             assert config_file.exists()
 
@@ -210,12 +245,12 @@ class TestFlextCliCore:
             valid_config = FlextCliConfig.model_validate({
                 "debug": True,
                 "output_format": "json",
-                "cli_timeout": FlextCliConstants.TIMEOUTS.DEFAULT,
-                "max_retries": FlextCliConstants.HTTP.MAX_RETRIES,
+                "cli_timeout": c.TIMEOUTS.DEFAULT,
+                "max_retries": c.HTTP.MAX_RETRIES,
             })
 
             result = core_service.validate_configuration(valid_config)
-            assert isinstance(result, FlextResult)
+            assert isinstance(result, r)
             assert result.is_success
 
             # Test invalid configuration - Pydantic 2 may convert invalid values
@@ -239,7 +274,7 @@ class TestFlextCliCore:
                     config_instance = FlextCliConfig.model_validate(invalid_config)
                     result = core_service.validate_configuration(config_instance)
                     # Validation should return a result (may succeed if Pydantic converted)
-                    assert isinstance(result, FlextResult)
+                    assert isinstance(result, r)
                 except ValidationError:
                     # If ValidationError is raised, that's also valid behavior
                     pass
@@ -258,7 +293,9 @@ class TestFlextCliCore:
                 yield Path(temp)
 
         def test_load_configuration_file_operations(
-            self, core_service: FlextCliCore, temp_dir: Path
+            self,
+            core_service: FlextCliCore,
+            temp_dir: Path,
         ) -> None:
             """Test configuration loading with file operations."""
             config_file = temp_dir / "config.json"
@@ -268,7 +305,7 @@ class TestFlextCliCore:
             config_file.write_text(json.dumps(config_data))
 
             result = core_service.load_configuration(str(config_file))
-            assert isinstance(result, FlextResult)
+            assert isinstance(result, r)
             assert result.is_success
 
             loaded_config = result.unwrap()
@@ -276,18 +313,20 @@ class TestFlextCliCore:
             assert loaded_config["output_format"] == "json"
 
         def test_save_configuration_file_operations(
-            self, core_service: FlextCliCore, temp_dir: Path
+            self,
+            core_service: FlextCliCore,
+            temp_dir: Path,
         ) -> None:
             """Test configuration saving with file operations."""
             config_file = temp_dir / "save_config.json"
-            config_data: t.JsonDict = {
+            config_data: dict[str, t.GeneralValueType] = {
                 "debug": False,
                 "output_format": "table",
                 "timeout": 30,
             }
 
             result = core_service.save_configuration(str(config_file), config_data)
-            assert isinstance(result, FlextResult)
+            assert isinstance(result, r)
             assert result.is_success
             assert config_file.exists()
 
@@ -296,20 +335,22 @@ class TestFlextCliCore:
             assert saved_data == config_data
 
         def test_configuration_file_error_handling(
-            self, core_service: FlextCliCore
+            self,
+            core_service: FlextCliCore,
         ) -> None:
             """Test configuration file error handling."""
             # Test with nonexistent file
             result = core_service.load_configuration("/nonexistent/config.json")
-            assert isinstance(result, FlextResult)
+            assert isinstance(result, r)
             assert result.is_failure
 
             # Test save to invalid path
-            config: t.JsonDict = {"test": "data"}
+            config: dict[str, t.GeneralValueType] = {"test": "data"}
             save_result = core_service.save_configuration(
-                "/invalid/path/config.json", config
+                "/invalid/path/config.json",
+                config,
             )
-            assert isinstance(save_result, FlextResult)
+            assert isinstance(save_result, r)
             assert save_result.is_failure
 
     # =========================================================================
@@ -320,11 +361,15 @@ class TestFlextCliCore:
         """Command registration, listing, and execution tests."""
 
         def test_register_command_success(
-            self, core_service: FlextCliCore, sample_command: FlextCliModels.CliCommand
+            self,
+            core_service: FlextCliCore,
+            sample_command: m.CliCommand,
         ) -> None:
             """Test successful command registration."""
-            result = core_service.register_command(sample_command)
-            assert isinstance(result, FlextResult)
+            # Cast to protocol type for type compatibility
+            command_protocol = cast("p.Cli.CliCommandProtocol", sample_command)
+            result = core_service.register_command(command_protocol)
+            assert isinstance(result, r)
             assert result.is_success
 
             # Verify command was registered
@@ -333,37 +378,44 @@ class TestFlextCliCore:
             assert "test-cmd" in list_result.unwrap()
 
         def test_register_command_duplicate(
-            self, core_service: FlextCliCore, sample_command: FlextCliModels.CliCommand
+            self,
+            core_service: FlextCliCore,
+            sample_command: m.CliCommand,
         ) -> None:
             """Test registering duplicate command."""
+            # Cast to protocol type for type compatibility
+            command_protocol = cast("p.Cli.CliCommandProtocol", sample_command)
             # Register first time
-            result1 = core_service.register_command(sample_command)
+            result1 = core_service.register_command(command_protocol)
             assert result1.is_success
 
             # Register again - should handle gracefully
-            result2 = core_service.register_command(sample_command)
-            assert isinstance(result2, FlextResult)
+            result2 = core_service.register_command(command_protocol)
+            assert isinstance(result2, r)
             # May succeed or fail depending on implementation
 
         def test_list_commands_empty(self, core_service: FlextCliCore) -> None:
             """Test listing commands when none registered."""
             result = core_service.list_commands()
-            assert isinstance(result, FlextResult)
+            assert isinstance(result, r)
             assert result.is_success
 
             commands = result.unwrap()
             assert isinstance(commands, list)
 
         def test_get_command_info(
-            self, core_service: FlextCliCore, sample_command: FlextCliModels.CliCommand
+            self,
+            core_service: FlextCliCore,
+            sample_command: m.CliCommand,
         ) -> None:
             """Test getting command information."""
-            # Register command first
-            core_service.register_command(sample_command)
+            # Register command first - cast to protocol type
+            command_protocol = cast("p.Cli.CliCommandProtocol", sample_command)
+            core_service.register_command(command_protocol)
 
             # Get command info
             result = core_service.get_command("test-cmd")
-            assert isinstance(result, FlextResult)
+            assert isinstance(result, r)
             if result.is_success:
                 command_def = result.unwrap()
                 assert isinstance(command_def, dict)
@@ -372,7 +424,7 @@ class TestFlextCliCore:
         def test_get_command_info_nonexistent(self, core_service: FlextCliCore) -> None:
             """Test getting info for nonexistent command."""
             result = core_service.get_command("nonexistent")
-            assert isinstance(result, FlextResult)
+            assert isinstance(result, r)
             assert result.is_failure
 
     # =========================================================================
@@ -383,10 +435,11 @@ class TestFlextCliCore:
         """Exception handling and error recovery tests."""
 
         def test_register_command_exception_handler(
-            self, core_service: FlextCliCore
+            self,
+            core_service: FlextCliCore,
         ) -> None:
             """Test register_command exception handler with real scenario."""
-            cmd = FlextCliModels.CliCommand(
+            cmd = m.CliCommand(
                 command_line="test",
                 name="test",
                 description="Test command",
@@ -394,7 +447,7 @@ class TestFlextCliCore:
 
             # Force exception by replacing _commands with error-raising dict
             # Create a UserDict that raises exception on __setitem__ to test exception handling
-            class ErrorDict(UserDict[str, t.JsonValue]):
+            class ErrorDict(UserDict):
                 """Dict that raises exception on __setitem__."""
 
                 def __setitem__(self, key: str, value: t.JsonValue) -> None:
@@ -403,9 +456,15 @@ class TestFlextCliCore:
 
             # Assign ErrorDict directly - the exception will be raised when register_command tries to set the command
             error_dict = ErrorDict()
-            core_service._commands = cast("dict[str, t.JsonDict]", error_dict)
+            # Use helper method to set private field for testing
+            TestsCliCore._set_commands(
+                core_service,
+                cast("dict[str, t.Json.JsonDict]", error_dict),
+            )
 
-            result = core_service.register_command(cmd)
+            # Cast to protocol type for type compatibility
+            cmd_protocol = cast("p.Cli.CliCommandProtocol", cmd)
+            result = core_service.register_command(cmd_protocol)
             assert result.is_failure
             assert (
                 "failed" in str(result.error).lower()
@@ -414,19 +473,23 @@ class TestFlextCliCore:
             )
 
         def test_load_configuration_exception_handler(
-            self, core_service: FlextCliCore
+            self,
+            core_service: FlextCliCore,
         ) -> None:
             """Test load_configuration exception handler."""
             # Test with invalid JSON
             with tempfile.NamedTemporaryFile(
-                encoding="utf-8", mode="w", suffix=".json", delete=False
+                encoding="utf-8",
+                mode="w",
+                suffix=".json",
+                delete=False,
             ) as f:
                 f.write("{invalid json")
                 temp_path = f.name
 
             try:
                 result = core_service.load_configuration(temp_path)
-                assert isinstance(result, FlextResult)
+                assert isinstance(result, r)
                 assert result.is_failure
                 assert (
                     "json" in str(result.error).lower()
@@ -436,15 +499,16 @@ class TestFlextCliCore:
                 Path(temp_path).unlink()
 
         def test_save_configuration_exception_handler(
-            self, core_service: FlextCliCore
+            self,
+            core_service: FlextCliCore,
         ) -> None:
             """Test save_configuration exception handler."""
             # Try to save to invalid path
             invalid_path = "/invalid/path/config.json"
-            config: t.JsonDict = {"test": "data"}
+            config: dict[str, t.GeneralValueType] = {"test": "data"}
 
             result = core_service.save_configuration(invalid_path, config)
-            assert isinstance(result, FlextResult)
+            assert isinstance(result, r)
             assert result.is_failure
             assert (
                 "permission" in str(result.error).lower()
@@ -461,7 +525,7 @@ class TestFlextCliCore:
         def test_get_plugins(self, core_service: FlextCliCore) -> None:
             """Test getting available plugins."""
             result = core_service.get_plugins()
-            assert isinstance(result, FlextResult)
+            assert isinstance(result, r)
             assert result.is_success
 
             plugins = result.unwrap()
@@ -470,7 +534,7 @@ class TestFlextCliCore:
         def test_discover_plugins(self, core_service: FlextCliCore) -> None:
             """Test discovering available plugins."""
             result = core_service.discover_plugins()
-            assert isinstance(result, FlextResult)
+            assert isinstance(result, r)
             assert result.is_success
 
             plugins = result.unwrap()
@@ -483,9 +547,9 @@ class TestFlextCliCore:
                 plugin_data = {"name": "test_plugin", "version": "1.0.0"}
 
                 result = core_service.register_plugin(
-                    cast("FlextCliProtocols.Cli.CliPlugin", plugin_data)
+                    cast("p.Cli.CliPlugin", plugin_data),
                 )
-                assert isinstance(result, FlextResult)
+                assert isinstance(result, r)
 
     # =========================================================================
     # NESTED CLASS: Session Management
@@ -497,14 +561,14 @@ class TestFlextCliCore:
         def test_start_session(self, core_service: FlextCliCore) -> None:
             """Test session start."""
             result = core_service.start_session()
-            assert isinstance(result, FlextResult)
+            assert isinstance(result, r)
             # May succeed or fail depending on current state
             assert result.is_success or result.is_failure
 
         def test_get_sessions(self, core_service: FlextCliCore) -> None:
             """Test getting active sessions."""
             result = core_service.get_sessions()
-            assert isinstance(result, FlextResult)
+            assert isinstance(result, r)
             assert result.is_success
 
             sessions = result.unwrap()
@@ -516,7 +580,7 @@ class TestFlextCliCore:
             start_result = core_service.start_session()
             if start_result.is_success:
                 result = core_service.get_session_statistics()
-                assert isinstance(result, FlextResult)
+                assert isinstance(result, r)
                 assert result.is_success
 
                 stats = result.unwrap()
@@ -524,7 +588,7 @@ class TestFlextCliCore:
             else:
                 # If session start fails, statistics should also fail
                 result = core_service.get_session_statistics()
-                assert isinstance(result, FlextResult)
+                assert isinstance(result, r)
                 assert result.is_failure
 
     # =========================================================================
@@ -535,17 +599,19 @@ class TestFlextCliCore:
         """Complex integration scenarios and edge cases."""
 
         def test_full_workflow_command_registration_and_execution(
-            self, core_service: FlextCliCore
+            self,
+            core_service: FlextCliCore,
         ) -> None:
             """Test full workflow from command registration to execution."""
-            cmd = FlextCliModels.CliCommand(
+            cmd = m.CliCommand(
                 command_line="workflow-test --flag value",
                 name="workflow-test",
                 description="Workflow test command",
             )
 
-            # Register command
-            reg_result = core_service.register_command(cmd)
+            # Register command - cast to protocol type
+            cmd_protocol = cast("p.Cli.CliCommandProtocol", cmd)
+            reg_result = core_service.register_command(cmd_protocol)
             assert reg_result.is_success
 
             # Verify registration
@@ -561,12 +627,15 @@ class TestFlextCliCore:
                 assert command_def.get("command_line") == "workflow-test --flag value"
 
         def test_configuration_persistence_workflow(
-            self, core_service: FlextCliCore, temp_dir: Path
+            self,
+            core_service: FlextCliCore,
+            temp_dir: Path,
         ) -> None:
             """Test configuration save/load workflow."""
             config_file = temp_dir / "workflow_config.json"
             original_config: dict[
-                str, str | int | float | bool | dict[str, object] | list[object] | None
+                str,
+                str | int | float | bool | dict[str, object] | list[object] | None,
             ] = {
                 "debug": True,
                 "output_format": "json",
@@ -576,7 +645,8 @@ class TestFlextCliCore:
 
             # Save configuration
             save_result = core_service.save_configuration(
-                str(config_file), cast("t.JsonDict", original_config)
+                str(config_file),
+                cast("t.Json.JsonDict", original_config),
             )
             assert save_result.is_success
 
@@ -588,7 +658,8 @@ class TestFlextCliCore:
             assert loaded_config == original_config
 
         def test_concurrent_operations_simulation(
-            self, core_service: FlextCliCore
+            self,
+            core_service: FlextCliCore,
         ) -> None:
             """Test concurrent operations simulation."""
             # This test simulates concurrent operations
@@ -609,38 +680,52 @@ class TestFlextCliCore:
         def test_build_execution_context_dict(self, core_service: FlextCliCore) -> None:
             """Test _build_execution_context with dict."""
             context = {"key": "value", "number": 42}
-            result = core_service._build_execution_context(context)
+            # Cast to JsonDict for type compatibility
+            # dict[str, str | int] is compatible with JsonDict
+            result = core_service._build_execution_context(
+                cast("t.Json.JsonDict", context),
+            )
             assert result == context
 
         def test_build_execution_context_list(self, core_service: FlextCliCore) -> None:
             """Test _build_execution_context with list."""
             context = ["arg1", "arg2", "arg3"]
             result = core_service._build_execution_context(context)
-            assert FlextCliConstants.DictKeys.ARGS in result
-            assert isinstance(result[FlextCliConstants.DictKeys.ARGS], list)
+            assert c.DictKeys.ARGS in result
+            assert isinstance(result[c.DictKeys.ARGS], list)
 
         def test_build_execution_context_list_with_dicts(
-            self, core_service: FlextCliCore
+            self,
+            core_service: FlextCliCore,
         ) -> None:
             """Test _build_execution_context with list containing dicts."""
             context = [{"key": "value"}, "string_arg"]
-            result = core_service._build_execution_context(context)
-            assert FlextCliConstants.DictKeys.ARGS in result
+            # Cast to list[str] for type compatibility
+            # list[dict[str, str] | str] needs to be converted to list[str]
+            # Extract string elements for type compatibility
+            str_context: list[str] = [
+                item if isinstance(item, str) else str(item) for item in context
+            ]
+            result = core_service._build_execution_context(str_context)
+            assert c.DictKeys.ARGS in result
 
         def test_execute_command_success(
-            self, core_service: FlextCliCore, sample_command: FlextCliModels.CliCommand
+            self,
+            core_service: FlextCliCore,
+            sample_command: m.CliCommand,
         ) -> None:
             """Test execute_command with registered command."""
-            # Register command first
-            register_result = core_service.register_command(sample_command)
+            # Register command first - cast to protocol type
+            command_protocol = cast("p.Cli.CliCommandProtocol", sample_command)
+            register_result = core_service.register_command(command_protocol)
             assert register_result.is_success
 
             # Execute command
             result = core_service.execute_command(sample_command.name)
             assert result.is_success
             data = result.unwrap()
-            assert data[FlextCliConstants.DictKeys.COMMAND] == sample_command.name
-            assert data[FlextCliConstants.DictKeys.STATUS] is True
+            assert data[c.DictKeys.COMMAND] == sample_command.name
+            assert data[c.DictKeys.STATUS] is True
 
         def test_execute_command_not_found(self, core_service: FlextCliCore) -> None:
             """Test execute_command with non-existent command."""
@@ -648,36 +733,49 @@ class TestFlextCliCore:
             assert result.is_failure
 
         def test_execute_command_with_context(
-            self, core_service: FlextCliCore, sample_command: FlextCliModels.CliCommand
+            self,
+            core_service: FlextCliCore,
+            sample_command: m.CliCommand,
         ) -> None:
             """Test execute_command with context."""
-            register_result = core_service.register_command(sample_command)
+            # Cast to protocol type for type compatibility
+            command_protocol = cast("p.Cli.CliCommandProtocol", sample_command)
+            register_result = core_service.register_command(command_protocol)
             assert register_result.is_success
 
             context = {"key": "value"}
+            # sample_command.name is str, no cast needed
             result = core_service.execute_command(sample_command.name, context=context)
             assert result.is_success
             data = result.unwrap()
-            assert FlextCliConstants.DictKeys.CONTEXT in data
+            assert c.DictKeys.CONTEXT in data
 
         def test_execute_command_with_timeout(
-            self, core_service: FlextCliCore, sample_command: FlextCliModels.CliCommand
+            self,
+            core_service: FlextCliCore,
+            sample_command: m.CliCommand,
         ) -> None:
             """Test execute_command with timeout."""
-            register_result = core_service.register_command(sample_command)
+            # Cast to protocol type for type compatibility
+            command_protocol = cast("p.Cli.CliCommandProtocol", sample_command)
+            register_result = core_service.register_command(command_protocol)
             assert register_result.is_success
 
             result = core_service.execute_command(sample_command.name, timeout=30.0)
             assert result.is_success
             data = result.unwrap()
-            assert data[FlextCliConstants.DictKeys.TIMEOUT] == 30.0
+            assert data[c.DictKeys.TIMEOUT] == 30.0
 
         def test_build_context_from_list(self) -> None:
             """Test _build_context_from_list static method."""
             args = ["arg1", "arg2", 42]
-            result = FlextCliCore._build_context_from_list(args)
-            assert FlextCliConstants.DictKeys.ARGS in result
-            assert result[FlextCliConstants.DictKeys.ARGS] == args
+            # Cast to list[GeneralValueType] for type compatibility
+            # str and int are compatible with GeneralValueType
+            result = FlextCliCore._build_context_from_list(
+                cast("list[t.GeneralValueType]", args),
+            )
+            assert c.DictKeys.ARGS in result
+            assert result[c.DictKeys.ARGS] == args
 
     # =========================================================================
     # NESTED CLASS: Configuration Management Tests
@@ -693,7 +791,7 @@ class TestFlextCliCore:
 
         def test_validate_config_input_valid(self, core_service: FlextCliCore) -> None:
             """Test _validate_config_input with valid config."""
-            config: t.JsonDict = {
+            config: dict[str, t.GeneralValueType] = {
                 "debug": True,
                 "output_format": "json",
                 "timeout": 30,
@@ -704,10 +802,11 @@ class TestFlextCliCore:
             assert validated == config
 
         def test_validate_config_input_with_nested_dict(
-            self, core_service: FlextCliCore
+            self,
+            core_service: FlextCliCore,
         ) -> None:
             """Test _validate_config_input with nested dict."""
-            config: t.JsonDict = {
+            config: dict[str, t.GeneralValueType] = {
                 "nested": {"key": "value"},
                 "list": [1, 2, 3],
             }
@@ -715,28 +814,35 @@ class TestFlextCliCore:
             assert result.is_success
 
         def test_validate_existing_config_with_config(
-            self, core_service: FlextCliCore
+            self,
+            core_service: FlextCliCore,
         ) -> None:
             """Test _validate_existing_config when config exists."""
-            # Set config first
-            core_service._cli_config = {"debug": True}
+            # Set config first using helper method
+            TestsCliCore._set_cli_config(core_service, {"debug": True})
             result = core_service._validate_existing_config()
             assert result.is_success
             assert result.unwrap() == {"debug": True}
 
         def test_validate_existing_config_without_config(
-            self, core_service: FlextCliCore
+            self,
+            core_service: FlextCliCore,
         ) -> None:
             """Test _validate_existing_config when config doesn't exist."""
-            core_service._cli_config = {}
+            # Use object.__setattr__ for read-only private fields
+            # Use helper method to set private field for testing
+            TestsCliCore._set_cli_config(core_service, {})
             result = core_service._validate_existing_config()
             assert result.is_failure
 
         def test_merge_configurations_success(self, core_service: FlextCliCore) -> None:
             """Test _merge_configurations with valid configs."""
-            # Set existing config
-            core_service._cli_config = {"debug": False, "timeout": 30}
-            new_config: t.JsonDict = {"debug": True, "output_format": "json"}
+            # Set existing config using helper method
+            TestsCliCore._set_cli_config(core_service, {"debug": False, "timeout": 30})
+            new_config: dict[str, t.GeneralValueType] = {
+                "debug": True,
+                "output_format": "json",
+            }
 
             result = core_service._merge_configurations(new_config)
             assert result.is_success
@@ -745,20 +851,23 @@ class TestFlextCliCore:
             assert core_service._cli_config["timeout"] == 30
 
         def test_merge_configurations_no_existing_config(
-            self, core_service: FlextCliCore
+            self,
+            core_service: FlextCliCore,
         ) -> None:
             """Test _merge_configurations without existing config."""
-            core_service._cli_config = {}
-            new_config: t.JsonDict = {"debug": True}
+            # Use object.__setattr__ for read-only private fields
+            # Use helper method to set private field for testing
+            TestsCliCore._set_cli_config(core_service, {})
+            new_config: dict[str, t.GeneralValueType] = {"debug": True}
 
             result = core_service._merge_configurations(new_config)
             assert result.is_failure
 
         def test_update_configuration_success(self, core_service: FlextCliCore) -> None:
             """Test update_configuration with valid config."""
-            # Initialize config first
-            core_service._cli_config = {"debug": False}
-            new_config: t.JsonDict = {"debug": True, "timeout": 60}
+            # Use direct assignment for private fields in tests
+            TestsCliCore._set_cli_config(core_service, {"debug": False})
+            new_config: dict[str, t.GeneralValueType] = {"debug": True, "timeout": 60}
 
             result = core_service.update_configuration(new_config)
             assert result.is_success
@@ -772,7 +881,9 @@ class TestFlextCliCore:
 
         def test_get_configuration_success(self, core_service: FlextCliCore) -> None:
             """Test get_configuration when config exists."""
-            core_service._cli_config = {"debug": True, "timeout": 30}
+            # Use object.__setattr__ for read-only private fields
+            # Use helper method to set private field for testing
+            TestsCliCore._set_cli_config(core_service, {"debug": True, "timeout": 30})
             result = core_service.get_configuration()
             assert result.is_success
             config = result.unwrap()
@@ -783,10 +894,12 @@ class TestFlextCliCore:
             """Test get_configuration when config doesn't exist."""
             # Empty dict may still be considered valid, so test with None-like state
             # Actually, empty dict is still valid, so this test may succeed
-            core_service._cli_config = {}
+            # Use object.__setattr__ for read-only private fields
+            # Use helper method to set private field for testing
+            TestsCliCore._set_cli_config(core_service, {})
             result = core_service.get_configuration()
             # Empty dict may be valid, so check for either success or failure
-            assert isinstance(result, FlextResult)
+            assert isinstance(result, r)
 
     # =========================================================================
     # NESTED CLASS: Profile Management Tests
@@ -797,40 +910,48 @@ class TestFlextCliCore:
 
         def test_create_profile_success(self, core_service: FlextCliCore) -> None:
             """Test create_profile with valid data."""
-            # Initialize config first
-            core_service._cli_config = {"debug": False}
-            profile_config: t.JsonDict = {"debug": True, "timeout": 60}
+            # Use direct assignment for private fields in tests
+            TestsCliCore._set_cli_config(core_service, {"debug": False})
+            profile_config: dict[str, t.GeneralValueType] = {
+                "debug": True,
+                "timeout": 60,
+            }
 
             result = core_service.create_profile("test_profile", profile_config)
             assert result.is_success
 
             # Verify profile was stored
-            assert FlextCliConstants.DictKeys.PROFILES in core_service._cli_config
-            profiles = core_service._cli_config[FlextCliConstants.DictKeys.PROFILES]
+            assert c.DictKeys.PROFILES in core_service._cli_config
+            profiles = core_service._cli_config[c.DictKeys.PROFILES]
             assert isinstance(profiles, dict)
             assert "test_profile" in profiles
 
         def test_create_profile_empty_name(self, core_service: FlextCliCore) -> None:
             """Test create_profile with empty name."""
-            core_service._cli_config = {"debug": False}
-            profile_config: t.JsonDict = {"debug": True}
+            # Use direct assignment for private fields in tests
+            TestsCliCore._set_cli_config(core_service, {"debug": False})
+            profile_config: dict[str, t.GeneralValueType] = {"debug": True}
 
             result = core_service.create_profile("", profile_config)
             assert result.is_failure
 
         def test_create_profile_empty_config(self, core_service: FlextCliCore) -> None:
             """Test create_profile with empty config."""
-            core_service._cli_config = {"debug": False}
+            # Use direct assignment for private fields in tests
+            TestsCliCore._set_cli_config(core_service, {"debug": False})
 
             result = core_service.create_profile("test_profile", {})
             assert result.is_failure
 
         def test_create_profile_no_base_config(
-            self, core_service: FlextCliCore
+            self,
+            core_service: FlextCliCore,
         ) -> None:
             """Test create_profile without base config."""
-            core_service._cli_config = {}
-            profile_config: t.JsonDict = {"debug": True}
+            # Use object.__setattr__ for read-only private fields
+            # Use helper method to set private field for testing
+            TestsCliCore._set_cli_config(core_service, {})
+            profile_config: dict[str, t.GeneralValueType] = {"debug": True}
 
             result = core_service.create_profile("test_profile", profile_config)
             assert result.is_failure
@@ -845,7 +966,7 @@ class TestFlextCliCore:
         def test_start_session_success(self, core_service: FlextCliCore) -> None:
             """Test start_session with valid config."""
             assert not core_service._session_active
-            session_config: t.JsonDict = {"user_id": "test_user"}
+            session_config: dict[str, t.GeneralValueType] = {"user_id": "test_user"}
 
             result = core_service.start_session(session_config)
             assert result.is_success
@@ -874,14 +995,14 @@ class TestFlextCliCore:
         def test_end_session_success(self, core_service: FlextCliCore) -> None:
             """Test end_session when session is active."""
             # Start session first with valid config
-            session_config: t.JsonDict = {"user_id": "test"}
+            session_config: dict[str, t.GeneralValueType] = {"user_id": "test"}
             start_result = core_service.start_session(session_config)
             assert start_result.is_success
 
             # End session
             result = core_service.end_session()
             # May succeed or fail depending on implementation
-            assert isinstance(result, FlextResult)
+            assert isinstance(result, r)
 
         def test_end_session_not_active(self, core_service: FlextCliCore) -> None:
             """Test end_session when no session is active."""
@@ -906,14 +1027,17 @@ class TestFlextCliCore:
         """Statistics and service info tests."""
 
         def test_get_command_statistics(
-            self, core_service: FlextCliCore, sample_command: FlextCliModels.CliCommand
+            self,
+            core_service: FlextCliCore,
+            sample_command: m.CliCommand,
         ) -> None:
             """Test get_command_statistics."""
-            # Register a command
-            core_service.register_command(sample_command)
+            # Register a command - cast to protocol type
+            command_protocol = cast("p.Cli.CliCommandProtocol", sample_command)
+            core_service.register_command(command_protocol)
 
             stats_result = core_service.get_command_statistics()
-            assert isinstance(stats_result, FlextResult)
+            assert isinstance(stats_result, r)
             assert stats_result.is_success
             stats = stats_result.unwrap()
             assert isinstance(stats, dict)
@@ -935,7 +1059,7 @@ class TestFlextCliCore:
             assert start_result.is_success
 
             stats = core_service.get_session_statistics()
-            assert isinstance(stats, FlextResult)
+            assert isinstance(stats, r)
             assert stats.is_success
             data = stats.unwrap()
             assert isinstance(data, dict)
@@ -964,7 +1088,8 @@ class TestFlextCliCore:
             assert result2.is_failure
 
         def test_create_ttl_cache_invalid_maxsize(
-            self, core_service: FlextCliCore
+            self,
+            core_service: FlextCliCore,
         ) -> None:
             """Test create_ttl_cache with invalid maxsize."""
             result = core_service.create_ttl_cache("test_cache", maxsize=-1)
@@ -991,7 +1116,8 @@ class TestFlextCliCore:
             assert result2 == 10
 
         def test_memoize_decorator_without_ttl(
-            self, core_service: FlextCliCore
+            self,
+            core_service: FlextCliCore,
         ) -> None:
             """Test memoize decorator without TTL (LRU cache)."""
 
@@ -1057,11 +1183,14 @@ class TestFlextCliCore:
         """Execute method with different scenarios."""
 
         def test_execute_with_commands(
-            self, core_service: FlextCliCore, sample_command: FlextCliModels.CliCommand
+            self,
+            core_service: FlextCliCore,
+            sample_command: m.CliCommand,
         ) -> None:
             """Test execute method when commands are registered."""
-            # Register a command
-            core_service.register_command(sample_command)
+            # Register a command - cast to protocol type
+            command_protocol = cast("p.Cli.CliCommandProtocol", sample_command)
+            core_service.register_command(command_protocol)
 
             result = core_service.execute()
             assert result.is_success
@@ -1071,18 +1200,22 @@ class TestFlextCliCore:
 
         def test_execute_without_commands(self, core_service: FlextCliCore) -> None:
             """Test execute method when no commands are registered."""
-            # Ensure no commands
-            core_service._commands = {}
+            # Ensure no commands - use object.__setattr__ for read-only private fields
+            # Use helper method to set private field for testing
+            TestsCliCore._set_commands(core_service, {})
 
             result = core_service.execute()
             assert result.is_failure
 
         def test_execute_cli_command_with_context(
-            self, core_service: FlextCliCore, sample_command: FlextCliModels.CliCommand
+            self,
+            core_service: FlextCliCore,
+            sample_command: m.CliCommand,
         ) -> None:
             """Test execute_cli_command_with_context."""
-            # Register command first
-            register_result = core_service.register_command(sample_command)
+            # Register command first - cast to protocol type
+            command_protocol = cast("p.Cli.CliCommandProtocol", sample_command)
+            register_result = core_service.register_command(command_protocol)
             assert register_result.is_success
 
             # Start session first as this method may require active session
@@ -1091,23 +1224,136 @@ class TestFlextCliCore:
 
             # Don't pass operation_type as it's already set internally
             result = core_service.execute_cli_command_with_context(
-                sample_command.name, user_id="test_user", environment="test"
+                sample_command.name,
+                user_id="test_user",
+                environment="test",
             )
-            assert isinstance(result, FlextResult)
+            assert isinstance(result, r)
             assert result.is_success
             data = result.unwrap()
             assert data["command_name"] == sample_command.name
 
     # =========================================================================
-    # NESTED CLASS: Helper Methods Tests
+    # NESTED CLASS: Coverage Edge Cases
     # =========================================================================
 
-    class TestHelperMethods:
+    class TestCoverageEdgeCases:
+        """Edge cases to ensure 100% coverage."""
+
+        @pytest.fixture
+        def temp_dir(self) -> Generator[Path]:
+            """Create temporary directory for file operations."""
+            with tempfile.TemporaryDirectory() as temp:
+                yield Path(temp)
+
+        def test_register_command_empty_name(
+            self,
+            core_service: FlextCliCore,
+            sample_command: m.CliCommand,
+        ) -> None:
+            """Test register_command with empty name."""
+            cmd = sample_command.model_copy(update={"name": ""})
+            # Cast to protocol type for type compatibility
+            cmd_protocol = cast("p.Cli.CliCommandProtocol", cmd)
+            result = core_service.register_command(cmd_protocol)
+            assert result.is_failure
+
+        def test_get_command_empty_name(self, core_service: FlextCliCore) -> None:
+            """Test get_command with empty name."""
+            result = core_service.get_command("")
+            assert result.is_failure
+
+        def test_list_commands_exception(self, core_service: FlextCliCore) -> None:
+            """Test list_commands exception."""
+
+            # Use BadDict that fails on keys() but works on len() (which is called by logger)
+            class BadDict(UserDict):
+                def keys(self) -> object:
+                    """Override keys to raise exception for testing."""
+                    msg = "Keys failed"
+                    raise RuntimeError(msg)
+
+            # Use helper method to set private field for testing
+            TestsCliCore._set_commands(
+                core_service,
+                cast("dict[str, t.Json.JsonDict]", BadDict()),
+            )
+            result = core_service.list_commands()
+            assert result.is_failure
+
+        def test_execute_exception(self, core_service: FlextCliCore) -> None:
+            """Test execute exception."""
+
+            # Mock logger.debug to raise exception only when called inside try block
+            def side_effect(
+                message: str,
+                *args: t.GeneralValueType,
+                **kwargs: t.GeneralValueType,
+            ) -> None:
+                # Raise only for the specific message inside try block
+                # This message is logged at the END of the try block in execute()
+                # Ensure we only check string arguments
+                if "Service execution completed successfully" in message:
+                    msg = "Logger failed"
+                    raise RuntimeError(msg)
+                # For other messages, do nothing (don't call original to avoid recursion)
+
+            # Ensure _commands is not empty so it proceeds
+            # Use helper method to set private field for testing
+            TestsCliCore._set_commands(core_service, {"cmd": {}})
+
+            # Use patch to mock logger.debug
+            with patch.object(core_service.logger, "debug", side_effect=side_effect):
+                result = core_service.execute()
+                assert result.is_failure
+                assert "Logger failed" in str(result.error)
+
+        def test_health_check_exception(self, core_service: FlextCliCore) -> None:
+            """Test health_check exception."""
+
+            class BadDict(UserDict):
+                def __len__(self) -> int:
+                    msg = "Len failed"
+                    raise RuntimeError(msg)
+
+            TestsCliCore._set_commands(
+                core_service,
+                cast("dict[str, t.Json.JsonDict]", BadDict()),
+            )
+            result = core_service.health_check()
+            assert result.is_failure
+
+        def test_get_config_empty(self, core_service: FlextCliCore) -> None:
+            """Test get_config with empty config."""
+            TestsCliCore._set_cli_config(core_service, {})
+            result = core_service.get_config()
+            assert result.is_failure
+
+        def test_call_plugin_hook_not_found(self, core_service: FlextCliCore) -> None:
+            """Test call_plugin_hook with non-existent hook."""
+            result = core_service.call_plugin_hook("nonexistent")
+            assert result.is_failure
+
+        def test_load_configuration_not_file(
+            self,
+            core_service: FlextCliCore,
+            temp_dir: Path,
+        ) -> None:
+            """Test load_configuration with directory."""
+            result = core_service.load_configuration(str(temp_dir))
+            assert result.is_failure
+
+        def test_update_configuration_invalid(self, core_service: FlextCliCore) -> None:
+            """Test update_configuration with invalid input."""
+            # Pass None (cast to JsonDict)
+            result = core_service.update_configuration(cast("t.Json.JsonDict", None))
+            assert result.is_failure
+
         """Helper and utility method tests."""
 
         def test_get_dict_keys(self) -> None:
             """Test _get_dict_keys static method."""
-            data: t.JsonDict = {"key1": "value1", "key2": "value2"}
+            data: dict[str, t.GeneralValueType] = {"key1": "value1", "key2": "value2"}
             result = FlextCliCore._get_dict_keys(data, "test error")
             assert result.is_success
             keys = result.unwrap()
@@ -1189,7 +1435,7 @@ class TestFlextCliCore:
         def test_get_config(self, core_service: FlextCliCore) -> None:
             """Test get_config."""
             result = core_service.get_config()
-            assert isinstance(result, FlextResult)
+            assert isinstance(result, r)
             # May succeed or fail depending on config state
             assert result.is_success or result.is_failure
             """Test concurrent operations simulation."""

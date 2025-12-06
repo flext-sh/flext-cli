@@ -41,11 +41,11 @@ from flext_core import FlextResult
 
 from flext_cli import (
     FlextCli,
-    FlextCliModels,
     FlextCliTables,
-    FlextCliTypes,
+    c,
+    m,
+    t,
 )
-from flext_cli.constants import FlextCliConstants
 
 cli = FlextCli()
 tables = FlextCliTables()
@@ -76,7 +76,7 @@ def your_cli_function() -> None:
 # ============================================================================
 
 
-def display_database_results(records: list[FlextCliTypes.Data.CliDataDict]) -> None:
+def display_database_results(records: list[t.Data.CliDataDict]) -> None:
     """Display database query results as a table."""
     if not records:
         cli.print("No results found", style="yellow")
@@ -85,11 +85,11 @@ def display_database_results(records: list[FlextCliTypes.Data.CliDataDict]) -> N
     # Convert your data to table
     # Example: records from SQLAlchemy, MongoDB, etc.
     # first_record is already properly typed
-    first_record: FlextCliTypes.Data.CliDataDict = records[0]
+    first_record: t.Data.CliDataDict = records[0]
     list(first_record.keys())
 
     # For dict[str, object] data, convert to table format
-    table_data: FlextCliTypes.Data.CliDataDict = {
+    table_data: t.Data.CliDataDict = {
         f"Row {i}": " | ".join(str(v) for v in record.values())
         for i, record in enumerate(records[:10], 1)
     }
@@ -111,13 +111,13 @@ def display_database_results(records: list[FlextCliTypes.Data.CliDataDict]) -> N
 
 
 def export_report(
-    data: FlextCliTypes.Data.TableRows,
-    format_type: FlextCliConstants.OutputFormatLiteral = "table",
+    data: t.Data.TableRows,
+    format_type: c.OutputFormatLiteral = "table",
 ) -> FlextResult[str]:
     """Create ASCII tables for logs/reports in your app."""
     # Good for: log files, email reports, markdown docs
     # Create table config with specified format
-    config = FlextCliModels.TableConfig(table_format=format_type)
+    config = m.TableConfig(table_format=format_type)
     result = tables.create_table(list(data), config=config)
 
     # Return FlextResult to avoid None types (railway pattern)
@@ -216,7 +216,7 @@ def monitor_live_metrics() -> None:
         requests = 150 + (i * 10)
 
         # Create metrics data as ASCII table using FlextCliTables
-        metrics_data: list[FlextCliTypes.Data.CliDataDict] = [
+        metrics_data: list[t.Data.CliDataDict] = [
             {
                 "Metric": "CPU Usage",
                 "Value": f"{cpu}%",
@@ -232,7 +232,7 @@ def monitor_live_metrics() -> None:
 
         # Display using ASCII table (FlextCliTables handles list[dict])
         # Create table config for grid format
-        config = FlextCliModels.TableConfig(table_format="grid")
+        config = m.TableConfig(table_format="grid")
         table_result = tables.create_table(list(metrics_data), config=config)
 
         if table_result.is_success:
@@ -250,7 +250,7 @@ def monitor_live_metrics() -> None:
 # ============================================================================
 
 
-def display_with_panels(data: FlextCliTypes.Data.CliDataDict) -> None:
+def display_with_panels(data: t.Data.CliDataDict) -> None:
     """Display content in organized sections."""
     cli.print("\n📦 Organized Content Display:", style="cyan")
 
@@ -262,7 +262,7 @@ def display_with_panels(data: FlextCliTypes.Data.CliDataDict) -> None:
     cli.print(f"  Pending: {data.get('pending', 0)}", style="yellow")
 
     # Section 2: Details table
-    details_data: list[FlextCliTypes.Data.CliDataDict] = []
+    details_data: list[t.Data.CliDataDict] = []
     for key, value in data.items():
         if key not in {"total", "successful", "failed", "pending"}:
             details_data.append({"Property": key, "Value": str(value)})
@@ -296,7 +296,7 @@ def main() -> None:
 
     # Example 2: Rich tables
     cli.print("\n2. Rich Tables (display data):", style="bold cyan")
-    sample_data: list[FlextCliTypes.Data.CliDataDict] = [
+    sample_data: list[t.Data.CliDataDict] = [
         {"id": 1, "name": "Alice", "status": "active"},
         {"id": 2, "name": "Bob", "status": "inactive"},
     ]
@@ -328,7 +328,7 @@ def main() -> None:
 
     # Example 8: Panels for organization
     cli.print("\n8. Panels (organized content):", style="bold cyan")
-    panel_data: FlextCliTypes.Data.CliDataDict = {
+    panel_data: t.Data.CliDataDict = {
         "total": 1250,
         "successful": 1100,
         "failed": 50,
@@ -384,20 +384,20 @@ def advanced_output_example() -> None:
     cli.print("\n=== Advanced Output Formatting ===", style="bold blue")
 
     # Using StrEnum for runtime validation
-    output_format = FlextCliConstants.OutputFormats.TABLE
+    output_format = c.OutputFormats.TABLE
     cli.print(f"Using format: {output_format.value}", style="cyan")
 
     # Using collections.abc.Mapping for immutable configuration
 
     # Using advanced table data types
-    sample_data: FlextCliTypes.Data.TableRows = (
+    sample_data: t.Data.TableRows = (
         {"name": "Alice", "age": 30, "role": "developer"},
         {"name": "Bob", "age": 25, "role": "designer"},
         {"name": "Charlie", "age": 35, "role": "manager"},
     )
 
     # Demonstrate discriminated union validation
-    valid_formats = FlextCliConstants.get_valid_output_formats()
+    valid_formats = c.get_valid_output_formats()
     cli.print(f"Supported formats: {', '.join(valid_formats)}", style="green")
 
     # Create table using advanced types

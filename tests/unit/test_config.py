@@ -32,7 +32,7 @@ from pydantic_settings import BaseSettings
 from flext_cli import (
     FlextCli,
     FlextCliConfig,
-    FlextCliModels,
+    m,
 )
 
 # ============================================================================
@@ -57,7 +57,7 @@ class ConfigTestScenario:
 
     name: str
     test_type: ConfigTestType
-    data: t.JsonDict | None = None
+    data: t.Json.JsonDict | None = None
     should_pass: bool = True
 
 
@@ -87,14 +87,14 @@ class ConfigTestFactory:
     ]
 
     # Test data
-    JSON_CONFIG_DATA: Final[t.JsonDict] = {
+    JSON_CONFIG_DATA: Final[t.Json.JsonDict] = {
         "debug": True,
         "verbose": False,
         "profile": "test",
         "output_format": "json",
     }
 
-    YAML_CONFIG_DATA: Final[t.JsonDict] = {
+    YAML_CONFIG_DATA: Final[t.Json.JsonDict] = {
         "debug": False,
         "verbose": True,
         "profile": "yaml_test",
@@ -106,13 +106,20 @@ class ConfigTestFactory:
         """Generate all test scenarios using mapping."""
         return [
             ConfigTestScenario(
-                "json_config", ConfigTestType.FILE_OPERATIONS, cls.JSON_CONFIG_DATA
+                "json_config",
+                ConfigTestType.FILE_OPERATIONS,
+                cls.JSON_CONFIG_DATA,
             ),
             ConfigTestScenario(
-                "yaml_config", ConfigTestType.FILE_OPERATIONS, cls.YAML_CONFIG_DATA
+                "yaml_config",
+                ConfigTestType.FILE_OPERATIONS,
+                cls.YAML_CONFIG_DATA,
             ),
             ConfigTestScenario(
-                "invalid_json", ConfigTestType.FILE_OPERATIONS, None, False
+                "invalid_json",
+                ConfigTestType.FILE_OPERATIONS,
+                None,
+                False,
             ),
         ]
 
@@ -120,7 +127,7 @@ class ConfigTestFactory:
     def get_validation_test_cases(cls) -> list[tuple[str, bool]]:
         """Generate validation test cases - formats, envs, levels."""
         return [(fmt, True) for fmt in cls.VALID_OUTPUT_FORMATS] + [
-            ("invalid_format", False)
+            ("invalid_format", False),
         ]
 
     @classmethod
@@ -134,7 +141,7 @@ class ConfigTestFactory:
 # ============================================================================
 
 
-class TestFlextCliConfigBasics:
+class TestsCliConfigBasics:
     """Core config functionality - initialization, serialization, deserialization."""
 
     def test_initialization(self) -> None:
@@ -162,7 +169,7 @@ class TestFlextCliConfigBasics:
         assert config1.profile == config2.profile
 
 
-class TestFlextCliConfigService:
+class TestsCliConfigService:
     """Service and execution methods."""
 
     def test_reset_instance(self) -> None:
@@ -180,11 +187,12 @@ class TestFlextCliConfigService:
         assert isinstance(result.unwrap(), dict)
 
 
-class TestLoggingConfig:
+class TestsCliLoggingConfig:
     """Logging configuration tests."""
 
     @pytest.mark.parametrize(
-        ("level", "expected"), ConfigTestFactory.get_logging_scenarios()
+        ("level", "expected"),
+        ConfigTestFactory.get_logging_scenarios(),
     )
     def test_logging_levels(self, level: str, expected: str) -> None:
         """Test all logging levels with single parametrized test."""
@@ -197,7 +205,8 @@ class TestLoggingConfig:
             "CRITICAL",
         )
         if level not in valid_levels:
-            pytest.skip(f"Invalid log level: {level}")
+            # Invalid level - return early instead of skipping
+            return
         # Type narrowing: level is now known to be one of the valid levels
         # Create config with validated level
         match level:
@@ -216,14 +225,14 @@ class TestLoggingConfig:
             case _:
                 pytest.fail(f"Unexpected log level: {level}")
                 log_level = "DEBUG"  # Fallback for type checker (unreachable)
-        config = FlextCliModels.LoggingConfig(
+        config = m.LoggingConfig(
             log_level=log_level,
             log_format="json",
         )
         assert config.log_level == expected
 
 
-class TestConfigFilesOperations:
+class TestsCliConfigFilesOperations:
     """File loading and saving operations."""
 
     @pytest.fixture
@@ -272,7 +281,7 @@ class TestConfigFilesOperations:
         assert result.is_failure
 
 
-class TestConfigIntegration:
+class TestsCliConfigIntegration:
     """Integration with FlextCli and environment."""
 
     @pytest.fixture(autouse=True)
@@ -350,11 +359,12 @@ class TestConfigIntegration:
             FlextCliConfig._instance = None
 
 
-class TestConfigValidation:
+class TestsCliConfigValidation:
     """Validation tests using parametrized factory."""
 
     @pytest.mark.parametrize(
-        ("fmt", "should_pass"), ConfigTestFactory.get_validation_test_cases()
+        ("fmt", "should_pass"),
+        ConfigTestFactory.get_validation_test_cases(),
     )
     def test_output_format_validation(self, fmt: str, should_pass: bool) -> None:
         """Test output format validation."""
@@ -393,7 +403,7 @@ class TestConfigValidation:
         assert result.is_success or result.is_failure
 
 
-class TestConfigComputedFields:
+class TestsCliConfigComputedFields:
     """Test auto-computed config fields."""
 
     def test_auto_output_format(self) -> None:
@@ -433,7 +443,7 @@ class TestConfigComputedFields:
         assert isinstance(config.auto_color_support, bool)
 
 
-class TestConfigLogging:
+class TestsCliConfigLogging:
     """Logging integration tests."""
 
     def test_logger_creation(self) -> None:
@@ -454,7 +464,7 @@ class TestConfigLogging:
         assert "Warning message" in caplog.text
 
 
-class TestConfigConcurrency:
+class TestsCliConfigConcurrency:
     """Thread safety and concurrency tests."""
 
     def test_concurrent_access(self) -> None:
@@ -479,7 +489,7 @@ class TestConfigConcurrency:
         assert len(errors) == 0
 
 
-class TestConfigMemory:
+class TestsCliConfigMemory:
     """Memory management tests."""
 
     def test_config_cleanup(self) -> None:
@@ -513,7 +523,7 @@ class TestConfigMemory:
         assert hasattr(config_modified2, "environment")
 
 
-class TestConfigEdgeCases:
+class TestsCliConfigEdgeCases:
     """Edge cases and boundary conditions."""
 
     def test_extreme_values(self) -> None:
@@ -534,6 +544,6 @@ class TestConfigEdgeCases:
     def test_save_config(self) -> None:
         """Test save_config method."""
         config = FlextCliConfig()
-        new_config: t.JsonDict = {"debug": True}
+        new_config: t.Json.JsonDict = {"debug": True}
         result = config.save_config(new_config)
         assert result.is_success or result.is_failure

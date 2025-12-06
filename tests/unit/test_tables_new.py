@@ -15,25 +15,25 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 import operator
-from collections.abc import Iterable, Mapping, Sequence
 from typing import cast
 
 import pytest
-from flext_core import FlextResult, t
-from flext_tests import FlextTestsMatchers
+from flext_core import t
+from flext_tests import tm
 
-from flext_cli import FlextCliModels, FlextCliTables
+from flext_cli import FlextCliTables, m, r
+from flext_cli.typings import t as flext_cli_t
 
 from .._helpers import FlextCliTestHelpers
-from ..fixtures.constants import TestTables
+from ..conftest import c
+
+# from ..fixtures.constants import TestTables  # Fixtures removed - use conftest.py and flext_tests
 
 # Alias for nested class
 TablesFactory = FlextCliTestHelpers.TablesFactory
 
-# Type alias matching the one in flext_cli.services.tables
-type TableData = Iterable[
-    Sequence[t.GeneralValueType] | Mapping[str, t.GeneralValueType]
-]
+# Use TableData from typings - matches src definition
+TableData = flext_cli_t.Tables.TableData
 
 
 @pytest.fixture
@@ -48,7 +48,7 @@ def test_data() -> dict[str, t.GeneralValueType]:
     return cast("dict[str, t.GeneralValueType]", TablesFactory.get_test_data())
 
 
-class TestFlextCliTables:
+class TestsCliTables:
     """Comprehensive tests for flext_cli.tables module."""
 
     # ========================================================================
@@ -67,17 +67,17 @@ class TestFlextCliTables:
         formats = tables.list_formats()
         assert isinstance(formats, list)
         assert len(formats) > 0
-        for fmt in TestTables.Formats.ExpectedFormats.ALL:
+        for fmt in c.Format.EXPECTED_ALL:
             assert fmt in formats
 
     def test_get_format_description_success(self, tables: FlextCliTables) -> None:
         """Test get_format_description with valid format."""
-        result = tables.get_format_description(TestTables.Formats.GRID)
+        result = tables.get_format_description(c.Format.GRID)
         assert result.is_success
 
     def test_get_format_description_failure(self, tables: FlextCliTables) -> None:
         """Test get_format_description with invalid format."""
-        result = tables.get_format_description(TestTables.Formats.INVALID)
+        result = tables.get_format_description(c.Format.INVALID)
         assert result.is_failure
 
     def test_print_available_formats(self, tables: FlextCliTables) -> None:
@@ -94,22 +94,22 @@ class TestFlextCliTables:
         ("format_name", "assertions"),
         [
             (
-                TestTables.Formats.SIMPLE,
+                "simple",
                 [
-                    TestTables.Assertions.Content.ALICE,
-                    TestTables.Assertions.Content.NAME_HEADER,
+                    c.TestData.ALICE,
+                    c.Format.NAME_HEADER,
                 ],
             ),
             (
-                TestTables.Formats.GRID,
+                c.Format.GRID,
                 [
-                    TestTables.Assertions.Content.ALICE,
-                    TestTables.Assertions.Borders.PLUS,
+                    c.TestData.ALICE,
+                    c.Table.Borders.PLUS,
                 ],
             ),
             (
-                TestTables.Formats.FANCY_GRID,
-                [TestTables.Assertions.Content.ALICE],
+                c.Format.FANCY_GRID,
+                [c.TestData.ALICE],
             ),
         ],
     )
@@ -121,9 +121,10 @@ class TestFlextCliTables:
         assertions: list[str],
     ) -> None:
         """Test basic table creation with various formats."""
-        config = FlextCliModels.TableConfig(table_format=format_name)
+        config = m.TableConfig(table_format=format_name)
         result = tables.create_table(
-            data=cast("TableData", test_data["people_dict"]), config=config
+            data=cast("TableData", test_data["people_dict"]),
+            config=config,
         )
 
         assert result.is_success
@@ -141,16 +142,17 @@ class TestFlextCliTables:
         test_data: dict[str, t.GeneralValueType],
     ) -> None:
         """Test table creation with custom headers."""
-        config = FlextCliModels.TableConfig(
-            headers=TestTables.Data.Headers.CUSTOM,
-            table_format=TestTables.Formats.SIMPLE,
+        config = m.TableConfig(
+            headers=c.Table.Data.Headers.CUSTOM,
+            table_format="simple",
         )
         result = tables.create_table(
-            data=cast("TableData", test_data["people_list"]), config=config
+            data=cast("TableData", test_data["people_list"]),
+            config=config,
         )
 
         assert result.is_success
-        assert TestTables.Assertions.Content.ALICE in result.unwrap()
+        assert c.TestData.ALICE in result.unwrap()
 
     def test_create_table_with_alignment(
         self,
@@ -158,12 +160,13 @@ class TestFlextCliTables:
         test_data: dict[str, t.GeneralValueType],
     ) -> None:
         """Test table creation with alignment option."""
-        config = FlextCliModels.TableConfig(
-            table_format=TestTables.Formats.SIMPLE,
-            align=TestTables.Config.Alignment.CENTER,
+        config = m.TableConfig(
+            table_format="simple",
+            align=c.Config.Alignment.CENTER,
         )
         result = tables.create_table(
-            data=cast("TableData", test_data["people_dict"]), config=config
+            data=cast("TableData", test_data["people_dict"]),
+            config=config,
         )
 
         assert result.is_success
@@ -174,12 +177,13 @@ class TestFlextCliTables:
         test_data: dict[str, t.GeneralValueType],
     ) -> None:
         """Test table creation with float formatting."""
-        config = FlextCliModels.TableConfig(
-            table_format=TestTables.Formats.SIMPLE,
-            floatfmt=TestTables.Config.FloatFormat.TWO_DECIMAL,
+        config = m.TableConfig(
+            table_format="simple",
+            floatfmt=c.Config.FloatFormat.TWO_DECIMAL,
         )
         result = tables.create_table(
-            data=cast("TableData", test_data["people_dict"]), config=config
+            data=cast("TableData", test_data["people_dict"]),
+            config=config,
         )
 
         assert result.is_success
@@ -190,12 +194,13 @@ class TestFlextCliTables:
         test_data: dict[str, t.GeneralValueType],
     ) -> None:
         """Test table creation with show index option."""
-        config = FlextCliModels.TableConfig(
-            table_format=TestTables.Formats.SIMPLE,
-            showindex=TestTables.Config.Options.SHOW_INDEX_TRUE,
+        config = m.TableConfig(
+            table_format="simple",
+            showindex=c.Config.SHOW_INDEX_TRUE,
         )
         result = tables.create_table(
-            data=cast("TableData", test_data["people_dict"]), config=config
+            data=cast("TableData", test_data["people_dict"]),
+            config=config,
         )
 
         assert result.is_success
@@ -206,12 +211,13 @@ class TestFlextCliTables:
         test_data: dict[str, t.GeneralValueType],
     ) -> None:
         """Test table creation with column alignment."""
-        config = FlextCliModels.TableConfig(
-            table_format=TestTables.Formats.SIMPLE,
-            colalign=TestTables.Config.Alignment.LIST,
+        config = m.TableConfig(
+            table_format="simple",
+            colalign=c.Config.Alignment.LIST,
         )
         result = tables.create_table(
-            data=cast("TableData", test_data["people_dict"]), config=config
+            data=cast("TableData", test_data["people_dict"]),
+            config=config,
         )
 
         assert result.is_success
@@ -222,7 +228,7 @@ class TestFlextCliTables:
 
     @pytest.mark.parametrize(
         ("method_name", "format_name", "expected_content"),
-        TestTables.SpecializedFormats.CASES,
+        c.Table.SPECIALIZED_CASES,
         ids=operator.itemgetter(0),
     )
     def test_specialized_table_formats(
@@ -292,9 +298,10 @@ class TestFlextCliTables:
         test_data: dict[str, t.GeneralValueType],
     ) -> None:
         """Test table creation with single row."""
-        config = FlextCliModels.TableConfig(table_format=TestTables.Formats.SIMPLE)
+        config = m.TableConfig(table_format="simple")
         result = tables.create_table(
-            data=cast("TableData", test_data["single_row"]), config=config
+            data=cast("TableData", test_data["single_row"]),
+            config=config,
         )
 
         assert result.is_success
@@ -305,13 +312,14 @@ class TestFlextCliTables:
         test_data: dict[str, t.GeneralValueType],
     ) -> None:
         """Test table creation with None values."""
-        config = FlextCliModels.TableConfig(table_format=TestTables.Formats.SIMPLE)
+        config = m.TableConfig(table_format="simple")
         result = tables.create_table(
-            data=cast("TableData", test_data["with_none"]), config=config
+            data=cast("TableData", test_data["with_none"]),
+            config=config,
         )
 
         assert result.is_success
-        assert TestTables.Assertions.Content.ALICE in result.unwrap()
+        assert c.TestData.ALICE in result.unwrap()
 
     def test_list_of_dicts_with_custom_headers(
         self,
@@ -319,12 +327,13 @@ class TestFlextCliTables:
         test_data: dict[str, t.GeneralValueType],
     ) -> None:
         """Test list of dicts with custom headers."""
-        config = FlextCliModels.TableConfig(
-            headers=TestTables.Data.Headers.CUSTOM,
-            table_format=TestTables.Formats.SIMPLE,
+        config = m.TableConfig(
+            headers=c.Table.Data.Headers.CUSTOM,
+            table_format="simple",
         )
         result = tables.create_table(
-            data=cast("TableData", test_data["people_dict"]), config=config
+            data=cast("TableData", test_data["people_dict"]),
+            config=config,
         )
 
         assert result.is_success
@@ -339,12 +348,13 @@ class TestFlextCliTables:
         test_data: dict[str, t.GeneralValueType],
     ) -> None:
         """Test handling of empty data."""
-        config = FlextCliModels.TableConfig(table_format=TestTables.Formats.SIMPLE)
+        config = m.TableConfig(table_format="simple")
         result = tables.create_table(
-            data=cast("TableData", test_data["empty"]), config=config
+            data=cast("TableData", test_data["empty"]),
+            config=config,
         )
 
-        assert isinstance(result, FlextResult)
+        assert isinstance(result, r)
 
     def test_invalid_format_handling(
         self,
@@ -352,12 +362,13 @@ class TestFlextCliTables:
         test_data: dict[str, t.GeneralValueType],
     ) -> None:
         """Test handling of invalid format."""
-        config = FlextCliModels.TableConfig(table_format=TestTables.Formats.INVALID)
+        config = m.TableConfig(table_format=c.Format.INVALID)
         result = tables.create_table(
-            data=cast("TableData", test_data["people_dict"]), config=config
+            data=cast("TableData", test_data["people_dict"]),
+            config=config,
         )
 
-        assert isinstance(result, FlextResult)
+        assert isinstance(result, r)
 
     # ========================================================================
     # INTEGRATION AND SERVICE PATTERN
@@ -369,7 +380,7 @@ class TestFlextCliTables:
     ) -> None:
         """Test execute method following FlextService pattern."""
         result = tables.execute()
-        assert isinstance(result, FlextResult)
+        assert isinstance(result, r)
         assert result.is_success
 
     def test_integration_workflow_complete(
@@ -385,7 +396,7 @@ class TestFlextCliTables:
         assert len(formats) > 0
 
         first_format = formats[0]
-        config = FlextCliModels.TableConfig(table_format=first_format)
+        config = m.TableConfig(table_format=first_format)
         table_result = tables.create_table(data=data, config=config)
         assert table_result.is_success
 
@@ -399,12 +410,13 @@ class TestFlextCliTables:
         test_data: dict[str, t.GeneralValueType],
     ) -> None:
         """Test table creation using validation helpers."""
-        config = FlextCliModels.TableConfig(table_format=TestTables.Formats.SIMPLE)
+        config = m.TableConfig(table_format="simple")
         result = tables.create_table(
-            data=cast("TableData", test_data["people_dict"]), config=config
+            data=cast("TableData", test_data["people_dict"]),
+            config=config,
         )
 
-        FlextTestsMatchers.assert_success(result)
+        tm.ok(result)
 
     def test_table_error_handling_with_validation(
         self,
@@ -412,12 +424,13 @@ class TestFlextCliTables:
         test_data: dict[str, t.GeneralValueType],
     ) -> None:
         """Test table error handling with validation helpers."""
-        config = FlextCliModels.TableConfig(table_format=TestTables.Formats.SIMPLE)
+        config = m.TableConfig(table_format="simple")
         result = tables.create_table(
-            data=cast("TableData", test_data["empty"]), config=config
+            data=cast("TableData", test_data["empty"]),
+            config=config,
         )
 
-        assert isinstance(result, FlextResult)
+        assert isinstance(result, r)
 
     def test_table_format_validation(
         self,
@@ -425,9 +438,10 @@ class TestFlextCliTables:
         test_data: dict[str, t.GeneralValueType],
     ) -> None:
         """Test table format validation."""
-        config = FlextCliModels.TableConfig(table_format=TestTables.Formats.GRID)
+        config = m.TableConfig(table_format=c.Format.GRID)
         result = tables.create_table(
-            data=cast("TableData", test_data["people_dict"]), config=config
+            data=cast("TableData", test_data["people_dict"]),
+            config=config,
         )
 
         assert result.is_success

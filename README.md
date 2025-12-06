@@ -424,12 +424,32 @@ examples/
 
 ### **Test Structure**
 
+**CRITICAL**: All test modules follow strict FLEXT standards with ONE class per module:
+
 ```bash
 tests/
-├── unit/              # 21 unit test files
-├── integration/       # Integration tests
-└── conftest.py        # Test fixtures and utilities
+├── typings.py         # TestsCliTypes - extends FlextTestsTypes and FlextCliTypes (alias: t)
+├── constants.py       # TestsCliConstants - extends FlextTestsConstants and FlextCliConstants (alias: c)
+├── protocols.py       # TestsCliProtocols - extends FlextTestsProtocols and FlextCliProtocols (alias: p)
+├── models.py          # TestsCliModels - extends FlextTestsModels and FlextCliModels (alias: m)
+├── utilities.py       # TestsCliUtilities - extends FlextTestsUtilities and FlextCliUtilities (alias: u)
+├── base.py            # TestsCliServiceBase - extends FlextTestsServiceBase and FlextCliServiceBase (alias: s)
+├── __init__.py        # Exports all TestsCli classes and short aliases
+├── conftest.py        # Centralized pytest configuration (ONLY config, no helpers)
+├── helpers/           # Domain-specific helpers ONLY (uses conftest, flext_tests, base classes)
+├── fixtures/          # Data fixtures ONLY (NO Python modules, only JSON/YAML/CSV files)
+├── unit/              # Unit tests - one TestsCli* class per module
+└── integration/       # Integration tests
 ```
+
+**TestsCli Pattern**: 
+- All test support classes extend both `FlextTests*` and `FlextCli*` classes
+- Short aliases (`t`, `c`, `m`, `p`, `u`, `s`) for support (NOT for test declarations)
+- Direct access to `flext-core` components (`r`, `e`, `d`, `x`) from `flext_core`
+- ONE class per test module, prefixed with `TestsCli*`
+- NO Python modules in `fixtures/` - use data files only
+- NO skipped tests - all tests must run and pass
+- 100% coverage with real functionality tests (no mocks)
 
 ### **Testing Commands**
 

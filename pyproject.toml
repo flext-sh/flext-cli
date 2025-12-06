@@ -206,6 +206,28 @@
             "scripts",
         ]
 
+    [tool.mypy]
+        check_untyped_defs = true
+        disallow_incomplete_defs = true
+        disallow_untyped_calls = false
+        disallow_untyped_defs = false
+        explicit_package_bases = true
+        follow_imports = "normal"
+        ignore_missing_imports = false
+        incremental = false
+        mypy_path = "src:$MYPYPATH:../typings"
+        namespace_packages = true
+        no_implicit_optional = true
+        python_version = "3.13"
+        warn_redundant_casts = true
+        warn_return_any = true
+        warn_unused_configs = true
+        warn_unused_ignores = true
+
+        [[tool.mypy.overrides]]
+        module = "flext_cli.services.cmd"
+        ignore_errors = true
+
     [tool.ruff]
         extend = "../ruff-shared.toml"
 

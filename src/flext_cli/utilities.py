@@ -14,34 +14,24 @@ import os
 import sys
 import types
 from collections.abc import Callable, Iterable, Mapping
+from datetime import UTC, datetime
 from enum import StrEnum
 from functools import wraps
 from pathlib import Path
 from typing import (
     Annotated,
     Self,
-    TypeGuard,
     Union,
     cast,
     get_args,
     get_origin,
     get_type_hints,
+    overload,
+    override,
 )
 
-from flext_core import (
-    FlextConstants,
-    FlextDecorators,
-    FlextExceptions,
-    FlextHandlers,
-    FlextMixins,
-    FlextModels,
-    FlextProtocols,
-    FlextService,
-    r,
-    t,
-    u,
-)
-from flext_core.utilities import FlextUtilities
+from flext_core import FlextUtilities, r, t
+from flext_core._utilities.validators import ValidatorSpec
 from pydantic import (
     BaseModel,
     BeforeValidator,
@@ -50,39 +40,14 @@ from pydantic import (
     validate_call,
 )
 
-from flext_cli.constants import FlextCliConstants
-
-# Aliases for static method calls and type references
-# Use u.* for FlextUtilities static methods
-# Use t.* for FlextTypes type references
-# Use c.* for FlextConstants constants
-# Use m.* for FlextModels model references
-# Use p.* for FlextProtocols protocol references
-# Use r.* for r methods
-# Use e.* for FlextExceptions
-# Use d.* for FlextDecorators decorators
-# Use s.* for FlextService service base
-# Use x.* for FlextMixins mixins
-# Use h.* for FlextHandlers handlers
-# u is already imported from flext_core
-# t is already imported from flext_core
-c = FlextConstants
-m = FlextModels
-p = FlextProtocols
-e = FlextExceptions
-d = FlextDecorators
-s = FlextService
-x = FlextMixins
-h = FlextHandlers
-
-# Removed unused type alias - use Callable directly
+from flext_cli.constants import c
 
 
 class FlextCliUtilities(FlextUtilities):
     """FLEXT CLI Utilities - Centralized helpers eliminating code duplication.
 
     Business Rules:
-    ───────────────
+    ---------------
     1. All utility methods MUST be static (no instance state)
     2. All operations MUST return r[T] for error handling
     3. Field validation MUST enforce business rules (trace requires debug)
@@ -93,7 +58,7 @@ class FlextCliUtilities(FlextUtilities):
     8. Type conversion MUST handle Python 3.13+ patterns (PEP 695, UnionType)
 
     Architecture Implications:
-    ───────────────────────────
+    ---------------------------
     - Single source of truth eliminates code duplication across modules
     - Static methods ensure thread safety and no side effects
     - Railway-Oriented Programming via r for composable error handling
@@ -101,7 +66,7 @@ class FlextCliUtilities(FlextUtilities):
     - Validation helpers enforce business rules consistently
 
     Audit Implications:
-    ───────────────────
+    -------------------
     - Validation failures MUST be logged with field name and value (no sensitive data)
     - Type conversion operations SHOULD be logged for debugging
     - Business rule violations MUST return clear error messages
@@ -137,30 +102,276 @@ class FlextCliUtilities(FlextUtilities):
     # BASE UTILITIES - Use u wrappers needed
     # =========================================================================
     # All data mapping operations use uirectly
-    # Use t.GeneralValueType and t.JsonDict directly
-    # No wrappers - direct API usage from flext-core
+    # Use t.GeneralValueType and t.Json.JsonDict directly
+    # Wrappers for validate/convert to maintain compatibility
     # =========================================================================
+
+    @staticmethod
+    def validate[T](
+        value: T,
+        *validators: ValidatorSpec,  # ValidatorSpec from flext-core
+        mode: str = "all",
+        fail_fast: bool = True,
+        collect_errors: bool = False,
+        field_name: str | None = None,
+    ) -> r[T]:
+        """Validate value using flext-core Validation.validate.
+
+        Wrapper for FlextUtilities.Validation.validate() to maintain compatibility.
+        """
+        return FlextUtilities.Validation.validate(
+            value,
+            *validators,
+            mode=mode,
+            fail_fast=fail_fast,
+            collect_errors=collect_errors,
+            field_name=field_name,
+        )
+
+    @staticmethod
+    def convert[T](value: t.GeneralValueType, target_type: type[T], default: T) -> T:
+        """Convert value using flext-core Parser.convert.
+
+        Wrapper for FlextUtilities.Parser.convert() to maintain compatibility.
+        """
+        return FlextUtilities.Parser.convert(value, target_type, default)
+
+    @staticmethod
+    def filter[T](
+        items: list[T] | tuple[T, ...],
+        predicate: Callable[[T], bool],
+    ) -> list[T]:
+        """Filter items using flext-core Collection.filter.
+
+        Wrapper for FlextUtilities.Collection.filter() to maintain compatibility.
+        Simplified to list/tuple only for type safety.
+        """
+        # Type narrowing: predicate needs Callable[..., bool] for flext-core
+        predicate_any = cast("Callable[[object], bool]", predicate)
+        return FlextUtilities.Collection.filter(items, predicate_any)
+
+    @staticmethod
+    def process[T, R](
+        items: T | list[T] | tuple[T, ...] | dict[str, T] | Mapping[str, T],
+        processor: Callable[[T], R] | Callable[[str, T], R],
+        *,
+        on_error: str = "skip",
+    ) -> r[list[R] | dict[str, R]]:
+        """Process items using flext-core Collection.process.
+
+        Wrapper for FlextUtilities.Collection.process() to maintain compatibility.
+        Returns r[list[R] | dict[str, R]] as per flext-core signature.
+        """
+        return FlextUtilities.Collection.process(items, processor, on_error=on_error)
+
+    @overload
+    @staticmethod
+    def get(
+        data: Mapping[str, object] | object,
+        key: str,
+        *,
+        default: str = ...,
+    ) -> str: ...
+
+    @overload
+    @staticmethod
+    def get[T](data: object, key: str, *, default: list[T]) -> list[T]: ...
+
+    @overload
+    @staticmethod
+    def get[T](data: object, key: str, *, default: T | None = ...) -> T | None: ...
+
+    @staticmethod
+    def get[T](
+        data: Mapping[str, object] | object,
+        key: str,
+        *,
+        default: T | None = None,
+    ) -> T | None:
+        """Get value from mapping using flext-core Mapper.get.
+
+        Wrapper for FlextUtilities.Mapper.get() to maintain compatibility.
+        """
+        return FlextUtilities.Mapper.get(data, key, default=default)
+
+    @staticmethod
+    def extract[T](
+        data: object,
+        path: str,
+        *,
+        default: T | None = None,
+        required: bool = False,
+        separator: str = ".",
+    ) -> r[T | None]:
+        """Extract value from mapping using flext-core Mapper.extract.
+
+        Wrapper for FlextUtilities.Mapper.extract() to maintain compatibility.
+        """
+        return FlextUtilities.Mapper.extract(
+            data,
+            path,
+            default=default,
+            required=required,
+            separator=separator,
+        )
+
+    @staticmethod
+    def find[T](
+        items: list[T] | tuple[T, ...],
+        predicate: Callable[[T], bool],
+    ) -> T | None:
+        """Find first item matching predicate using flext-core Collection.find.
+
+        Wrapper for FlextUtilities.Collection.find() to maintain compatibility.
+        """
+        predicate_any = cast("Callable[[object], bool]", predicate)
+        return FlextUtilities.Collection.find(items, predicate_any)
+
+    @staticmethod
+    def validate_required_string(
+        value: str,
+        *,
+        context: str = "Value",
+    ) -> None:
+        """Validate that string is non-empty, raising ValueError if invalid.
+
+        Business Rule:
+        --------------
+        Validates that a string is non-empty using u.validate.
+        Raises ValueError for compatibility with existing code.
+        """
+        # Use CliValidation.v_empty which wraps Validation.validate
+        result = u.CliValidation.v_empty(value, name=context)
+        if result.is_failure:
+            raise ValueError(result.error or f"{context} cannot be empty")
+
+    @overload
+    @staticmethod
+    def map[T, R](
+        items: r[T],
+        mapper: Callable[[T], R],
+        *,
+        default_error: str = "Operation failed",
+    ) -> r[R]: ...
+
+    @overload
+    @staticmethod
+    def map[T, R](
+        items: list[T] | tuple[T, ...],
+        mapper: Callable[[T], R],
+    ) -> list[R]: ...
+
+    @overload
+    @staticmethod
+    def map[T, R](
+        items: set[T] | frozenset[T],
+        mapper: Callable[[T], R],
+    ) -> set[R] | frozenset[R]: ...
+
+    @overload
+    @staticmethod
+    def map[T, R](
+        items: dict[str, T] | Mapping[str, T],
+        mapper: Callable[[str, T], R],
+    ) -> dict[str, R]: ...
+
+    @staticmethod
+    def map[T, R](
+        items: T
+        | list[T]
+        | tuple[T, ...]
+        | set[T]
+        | frozenset[T]
+        | dict[str, T]
+        | Mapping[str, T]
+        | r[T],
+        mapper: Callable[[T], R] | Callable[[str, T], R],
+        *,
+        default_error: str = "Operation failed",
+    ) -> list[R] | set[R] | frozenset[R] | dict[str, R] | r[R]:
+        """Map items using flext-core Collection.map.
+
+        Wrapper for FlextUtilities.Collection.map() to maintain compatibility.
+        """
+        # Type narrowing: mapper needs proper type for flext-core overloads
+        if isinstance(items, r):
+            mapper_r = cast("Callable[[T], R]", mapper)
+            return FlextUtilities.Collection.map(
+                items,
+                mapper_r,
+                default_error=default_error,
+            )
+        if isinstance(items, (dict, Mapping)):
+            mapper_dict = cast("Callable[[str, T], R]", mapper)
+            return FlextUtilities.Collection.map(items, mapper_dict)
+        # For list, tuple, set, frozenset - no default_error parameter
+        mapper_seq = cast("Callable[[T], R]", mapper)
+        if isinstance(items, (list, tuple)):
+            return FlextUtilities.Collection.map(items, mapper_seq)
+        if isinstance(items, (set, frozenset)):
+            return FlextUtilities.Collection.map(items, mapper_seq)
+        # Single value case - wrap in list
+        return FlextUtilities.Collection.map([items], mapper_seq)
+
+    @staticmethod
+    def build(
+        value: t.GeneralValueType,
+        *,
+        ops: t.Types.ConfigurationDict | None = None,
+        on_error: str = "fail",
+    ) -> object:
+        """Build value using flext-core Mapper.build.
+
+        Wrapper for FlextUtilities.Mapper.build() to maintain compatibility.
+        Returns T | object as per flext-core signature.
+        """
+        return FlextUtilities.Mapper.build(value, ops=ops, on_error=on_error)
+
+    @staticmethod
+    def parse[T](
+        value: object,
+        target: type[T],
+        default: T | None = None,
+        *,
+        strict: bool = False,
+        coerce: bool = True,
+        case_insensitive: bool = False,
+        default_factory: Callable[[], T] | None = None,
+        field_name: str | None = None,
+    ) -> r[T]:
+        """Parse value using flext-core Parser.parse.
+
+        Wrapper for FlextUtilities.Parser.parse() to maintain compatibility.
+        Accepts default as positional argument for backward compatibility.
+        """
+        return FlextUtilities.Parser.parse(
+            value,
+            target,
+            strict=strict,
+            coerce=coerce,
+            case_insensitive=case_insensitive,
+            default=default,
+            default_factory=default_factory,
+            field_name=field_name,
+        )
 
     # =========================================================================
     # CLI VALIDATION - CLI-specific validation helpers
     # =========================================================================
 
-    class CliValidation:
-        """CLI-specific validation operations.
+    class CliValidation(FlextUtilities.Validation):
+        """CLI-specific validation operations extending FlextUtilities.Validation via inheritance.
 
         Eliminates code duplication in models.py validate_business_rules methods.
         All validators return r[bool] for railway pattern composition.
+        Exposes all flext-core Validation methods through inheritance hierarchy.
 
-        Advanced builder/DSL patterns for parametrized validation:
-        - v() - Generic validator with builder pattern (combines multiple rules)
-        - v_in() - Validate value in collection (mnemonic: "validate in")
-        - v_eq() - Validate equality (mnemonic: "validate equals")
-        - v_req() - Validate required fields in dict (mnemonic: "validate required")
-        - v_type() - Validate type (mnemonic: "validate type")
-        - v_conv() - Convert and validate (mnemonic: "validate convert")
-        - v_choice() - Generic choice validator (replaces specialized validators)
-
+        Provides V class inheriting from Validation.String for compatibility.
         """
+
+        # Inherit from Validation.String for compatibility with u.V.string.non_empty pattern
+        class V(FlextUtilities.Validation.String):
+            """String validation utilities - inherits from FlextUtilities.Validation.String."""
 
         class VBuilder:
             """Fluent builder for CLI validation (mnemonic: 'V' = Validate).
@@ -169,7 +380,13 @@ class FlextCliUtilities(FlextUtilities):
             Enables fluent chaining: v(val).name("x").non_empty().in_([...]).build()
 
             Example:
-                >>> result = CliValidation.VBuilder(val).name("status").non_empty().in_(["a", "b"]).build()
+                >>> result = (
+                ...     CliValidation.VBuilder(val)
+                ...     .name("status")
+                ...     .non_empty()
+                ...     .in_(["a", "b"])
+                ...     .build()
+                ... )
                 >>> if result.is_success:
                 ...     print("Valid!")
 
@@ -211,7 +428,7 @@ class FlextCliUtilities(FlextUtilities):
 
             def build(self) -> r[bool]:
                 """Execute validation and return result."""
-                return FlextCliUtilities.CliValidation.v(
+                return u.CliValidation.v(
                     self._val,
                     name=self._name,
                     empty=self._empty,
@@ -221,7 +438,7 @@ class FlextCliUtilities(FlextUtilities):
                 )
 
         @staticmethod
-        def v(  # noqa: PLR0913
+        def v(
             val: t.GeneralValueType | None,
             *,
             name: str = "field",
@@ -256,34 +473,43 @@ class FlextCliUtilities(FlextUtilities):
 
             """
             # Empty check
-            if not empty:
-                v_result = u.validate(val, u.V.string.non_empty, field_name=name)
-                if v_result.is_failure:
-                    return r[bool].fail(
-                        msg
-                        or v_result.error
-                        or FlextCliConstants.MixinsValidationMessages.FIELD_CANNOT_BE_EMPTY.format(
-                            field_name=name,
-                        ),
-                    )
+            if not empty and (
+                val is None or (isinstance(val, str) and not val.strip())
+            ):
+                return r[bool].fail(
+                    msg
+                    or c.MixinsValidationMessages.FIELD_CANNOT_BE_EMPTY.format(
+                        field_name=name,
+                    ),
+                )
             # In-list check
             if in_list is not None:
                 val_str = u.convert(val, str, "")
                 if val_str not in set(in_list):
-                    return r[bool].fail(
-                        msg
-                        or FlextCliConstants.MixinsValidationMessages.INVALID_ENUM_VALUE.format(
-                            field_name=name,
-                            valid_values=in_list,
-                        ),
-                    )
+                    # Use SESSION_STATUS_INVALID for session_status,
+                    # INVALID_ENUM_VALUE for others
+                    if name == "session_status":
+                        error_msg = (
+                            c.MixinsValidationMessages.SESSION_STATUS_INVALID.format(
+                                current_status=val_str,
+                                valid_states=in_list,
+                            )
+                        )
+                    else:
+                        error_msg = (
+                            c.MixinsValidationMessages.INVALID_ENUM_VALUE.format(
+                                field_name=name,
+                                valid_values=in_list,
+                            )
+                        )
+                    return r[bool].fail(msg or error_msg)
             # Equality check
             if eq is not None:
                 val_str = u.convert(val, str, "")
                 if val_str != eq:
                     return r[bool].fail(
                         msg
-                        or FlextCliConstants.MixinsValidationMessages.COMMAND_STATE_INVALID.format(
+                        or c.MixinsValidationMessages.COMMAND_STATE_INVALID.format(
                             operation=name,
                             current_status=val_str,
                             required_status=eq,
@@ -303,7 +529,7 @@ class FlextCliUtilities(FlextUtilities):
             Shortcut for v(..., in_list=...).
 
             """
-            return FlextCliUtilities.CliValidation.v(
+            return u.CliValidation.v(
                 val,
                 name=name,
                 empty=False,
@@ -322,7 +548,7 @@ class FlextCliUtilities(FlextUtilities):
             Shortcut for v(..., eq=...).
 
             """
-            return FlextCliUtilities.CliValidation.v(val, name=name, eq=eq)
+            return u.CliValidation.v(val, name=name, eq=eq)
 
         @staticmethod
         def v_empty(
@@ -332,7 +558,8 @@ class FlextCliUtilities(FlextUtilities):
         ) -> r[bool]:
             """Validate field not empty (mnemonic: 'v_empty' = validate empty).
 
-            Shortcut: v(val).name(name).non_empty().build()
+            Direct validation without recursion - handles None, empty strings, and non-string types.
+            Non-string values are considered non-empty (valid).
 
             Args:
                 val: Value to validate
@@ -342,7 +569,21 @@ class FlextCliUtilities(FlextUtilities):
                 r[bool]: True if not empty, failure otherwise
 
             """
-            return FlextCliUtilities.CliValidation.VBuilder(val).name(name).non_empty().build()
+            # Direct validation: check if value is empty (avoid recursion)
+            if val is None:
+                return r[bool].fail(
+                    c.MixinsValidationMessages.FIELD_CANNOT_BE_EMPTY.format(
+                        field_name=name,
+                    ),
+                )
+            if isinstance(val, str) and not val.strip():
+                return r[bool].fail(
+                    c.MixinsValidationMessages.FIELD_CANNOT_BE_EMPTY.format(
+                        field_name=name,
+                    ),
+                )
+            # Non-string values are considered non-empty (valid)
+            return r[bool].ok(True)
 
         @staticmethod
         def validate_field_in_list(
@@ -364,12 +605,12 @@ class FlextCliUtilities(FlextUtilities):
                 r[bool]: True if in list, failure with error message otherwise
 
             Example:
-                >>> result = FlextCliUtilities.CliValidation.validate_field_in_list(
+                >>> result = u.CliValidation.validate_field_in_list(
                 ...     status,
                 ...     [
-                ...         FlextCliConstants.CommandStatus.PENDING.value,
-                ...         FlextCliConstants.CommandStatus.RUNNING.value,
-                ...         FlextCliConstants.CommandStatus.COMPLETED.value,
+                ...         c.CommandStatus.PENDING.value,
+                ...         c.CommandStatus.RUNNING.value,
+                ...         c.CommandStatus.COMPLETED.value,
                 ...     ],
                 ...     "status",
                 ... )
@@ -377,7 +618,7 @@ class FlextCliUtilities(FlextUtilities):
                 ...     print(result.error)
 
             """
-            return FlextCliUtilities.CliValidation.v_in(
+            return u.CliValidation.v_in(
                 field_value,
                 valid=valid_values,
                 name=field_name,
@@ -390,9 +631,9 @@ class FlextCliUtilities(FlextUtilities):
             Shortcut: v_choice(status, choices=COMMAND_STATUSES_LIST, name="status")
 
             """
-            return FlextCliUtilities.CliValidation.v_choice(
+            return u.CliValidation.v_choice(
                 status,
-                choices=FlextCliConstants.COMMAND_STATUSES_LIST,
+                choices=c.COMMAND_STATUSES_LIST,
                 name="status",
             )
 
@@ -403,9 +644,9 @@ class FlextCliUtilities(FlextUtilities):
             Shortcut: v_choice(level, choices=DEBUG_LEVELS_LIST, name="level")
 
             """
-            return FlextCliUtilities.CliValidation.v_choice(
+            return u.CliValidation.v_choice(
                 level,
-                choices=FlextCliConstants.DEBUG_LEVELS_LIST,
+                choices=c.DEBUG_LEVELS_LIST,
                 name="level",
             )
 
@@ -423,14 +664,14 @@ class FlextCliUtilities(FlextUtilities):
 
             """
             format_str = u.convert(format_type, str, "").lower()
-            result = FlextCliUtilities.CliValidation.v_choice(
+            result = u.CliValidation.v_choice(
                 format_str,
-                choices=FlextCliConstants.OUTPUT_FORMATS_LIST,
+                choices=c.OUTPUT_FORMATS_LIST,
                 name="format",
             )
             if result.is_failure:
                 return r[str].fail(
-                    FlextCliConstants.ErrorMessages.INVALID_OUTPUT_FORMAT.format(
+                    c.ErrorMessages.INVALID_OUTPUT_FORMAT.format(
                         format=format_type,
                     ),
                 )
@@ -457,11 +698,13 @@ class FlextCliUtilities(FlextUtilities):
                 r[bool]: True if in choices, failure otherwise
 
             Example:
-                >>> result = CliValidation.v_choice("active", choices=["active", "pending"], name="status")
+                >>> result = CliValidation.v_choice(
+                ...     "active", choices=["active", "pending"], name="status"
+                ... )
                 >>> # Replaces: validate_command_status("active")
 
             """
-            return FlextCliUtilities.CliValidation.v_in(val, valid=choices, name=name)
+            return u.CliValidation.v_in(val, valid=choices, name=name)
 
         @staticmethod
         def v_state(
@@ -486,9 +729,17 @@ class FlextCliUtilities(FlextUtilities):
 
             """
             if required is not None:
-                return FlextCliUtilities.CliValidation.v_eq(current, eq=required, name=name)
+                return u.CliValidation.v_eq(
+                    current,
+                    eq=required,
+                    name=name,
+                )
             if valid is not None:
-                return FlextCliUtilities.CliValidation.v_in(current, valid=valid, name=name)
+                return u.CliValidation.v_in(
+                    current,
+                    valid=valid,
+                    name=name,
+                )
             return r[bool].fail(f"{name}: no validation criteria provided")
 
         @staticmethod
@@ -502,10 +753,14 @@ class FlextCliUtilities(FlextUtilities):
             Shortcut: v_state(current, valid=valid, name="session_status")
 
             """
-            return FlextCliUtilities.CliValidation.v_state(current, valid=valid, name="session_status")
+            return u.CliValidation.v_state(
+                current,
+                valid=valid,
+                name="session_status",
+            )
 
         @staticmethod
-        def v_step(step: t.JsonDict | None) -> r[bool]:
+        def v_step(step: t.Json.JsonDict | None) -> r[bool]:
             """Validate pipeline step (mnemonic: 'v_step').
 
             Args:
@@ -517,25 +772,27 @@ class FlextCliUtilities(FlextUtilities):
             """
             if step is None:
                 return r[bool].fail(
-                    FlextCliConstants.MixinsValidationMessages.PIPELINE_STEP_EMPTY,
+                    c.MixinsValidationMessages.PIPELINE_STEP_EMPTY,
                 )
 
-            field_name = FlextCliConstants.MixinsFieldNames.PIPELINE_STEP_NAME
+            field_name = c.MixinsFieldNames.PIPELINE_STEP_NAME
             if field_name not in step:
                 return r[bool].fail(
-                    FlextCliConstants.MixinsValidationMessages.PIPELINE_STEP_NO_NAME,
+                    c.MixinsValidationMessages.PIPELINE_STEP_NO_NAME,
                 )
 
             step_name = step[field_name]
-            return FlextCliUtilities.CliValidation.VBuilder(step_name).name(
-                "Pipeline step name"
-            ).non_empty().msg(
-                FlextCliConstants.MixinsValidationMessages.PIPELINE_STEP_NAME_EMPTY
-            ).build()
+            return (
+                u.CliValidation.VBuilder(step_name)
+                .name("Pipeline step name")
+                .non_empty()
+                .msg(c.MixinsValidationMessages.PIPELINE_STEP_NAME_EMPTY)
+                .build()
+            )
 
         @staticmethod
         def v_req(
-            data: t.JsonDict | None,
+            data: t.Json.JsonDict | None,
             *,
             fields: list[str],
         ) -> r[bool]:
@@ -553,14 +810,14 @@ class FlextCliUtilities(FlextUtilities):
             """
             if data is None:
                 return r[bool].fail(
-                    FlextCliConstants.MixinsValidationMessages.CONFIG_MISSING_FIELDS.format(
+                    c.MixinsValidationMessages.CONFIG_MISSING_FIELDS.format(
                         missing_fields=fields,
                     ),
                 )
             missing = u.filter(fields, lambda f: f not in data)
             if missing:
                 return r[bool].fail(
-                    FlextCliConstants.MixinsValidationMessages.CONFIG_MISSING_FIELDS.format(
+                    c.MixinsValidationMessages.CONFIG_MISSING_FIELDS.format(
                         missing_fields=missing,
                     ),
                 )
@@ -589,7 +846,9 @@ class FlextCliUtilities(FlextUtilities):
             if isinstance(val, types):
                 return r[bool].ok(True)
             type_names = ", ".join(t.__name__ for t in types)
-            return r[bool].fail(f"{name} must be {type_names}, got {type(val).__name__}")
+            return r[bool].fail(
+                f"{name} must be {type_names}, got {type(val).__name__}",
+            )
 
         @staticmethod
         def v_conv(
@@ -614,7 +873,7 @@ class FlextCliUtilities(FlextUtilities):
 
         @staticmethod
         def v_config(
-            config: t.JsonDict | None,
+            config: t.Json.JsonDict | None,
             *,
             fields: list[str],
         ) -> r[bool]:
@@ -623,86 +882,7 @@ class FlextCliUtilities(FlextUtilities):
             Shortcut: v_req(config, fields=fields)
 
             """
-            return FlextCliUtilities.CliValidation.v_req(config, fields=fields)
-
-        # ═══════════════════════════════════════════════════════════════════
-        # COMPATIBILITY ALIASES - Maintain backward compatibility
-        # ═══════════════════════════════════════════════════════════════════
-
-        @staticmethod
-        def validate_field_not_empty(
-            field_value: t.GeneralValueType | None,
-            field_display_name: str,
-        ) -> r[bool]:
-            """Compatibility alias for v_empty()."""
-            return FlextCliUtilities.CliValidation.v_empty(field_value, name=field_display_name)
-
-        @staticmethod
-        def validate_command_status(status: str) -> r[bool]:
-            """Compatibility alias for v_status()."""
-            return FlextCliUtilities.CliValidation.v_status(status)
-
-        @staticmethod
-        def validate_debug_level(level: str) -> r[bool]:
-            """Compatibility alias for v_level()."""
-            return FlextCliUtilities.CliValidation.v_level(level)
-
-        @staticmethod
-        def validate_output_format(format_type: str) -> r[str]:
-            """Compatibility alias for v_format()."""
-            return FlextCliUtilities.CliValidation.v_format(format_type)
-
-        @staticmethod
-        def validate_string_not_empty(
-            value: str | None,
-            error_message: str,
-        ) -> r[bool]:
-            """Compatibility alias for v_empty()."""
-            result = FlextCliUtilities.CliValidation.v_empty(value, name="Value")
-            if result.is_failure:
-                return r[bool].fail(error_message)
-            return result
-
-        @staticmethod
-        def validate_str_enum_value(
-            enum_class: type[StrEnum],
-            value: str,
-        ) -> StrEnum | None:
-            """Compatibility alias - delegates to u.Enum.try_parse()."""
-            result = u.Enum.parse(enum_class, value)
-            return result.value if result.is_success else None
-
-        @staticmethod
-        def validate_command_execution_state(
-            current_status: str,
-            required_status: str,
-            operation: str,
-        ) -> r[bool]:
-            """Compatibility alias for v_state()."""
-            return FlextCliUtilities.CliValidation.v_state(
-                current_status, required=required_status, name=operation
-            )
-
-        @staticmethod
-        def validate_session_state(
-            current_status: str,
-            valid_states: list[str],
-        ) -> r[bool]:
-            """Compatibility alias for v_session()."""
-            return FlextCliUtilities.CliValidation.v_session(current_status, valid=valid_states)
-
-        @staticmethod
-        def validate_pipeline_step(step: t.JsonDict | None) -> r[bool]:
-            """Compatibility alias for v_step()."""
-            return FlextCliUtilities.CliValidation.v_step(step)
-
-        @staticmethod
-        def validate_configuration_consistency(
-            config_data: t.JsonDict | None,
-            required_fields: list[str],
-        ) -> r[bool]:
-            """Compatibility alias for v_config()."""
-            return FlextCliUtilities.CliValidation.v_config(config_data, fields=required_fields)
+            return u.CliValidation.v_req(config, fields=fields)
 
     # =========================================================================
     # ENVIRONMENT - Environment detection and checks
@@ -729,27 +909,24 @@ class FlextCliUtilities(FlextUtilities):
                 bool: True if in test environment, False otherwise
 
             Example:
-                >>> if FlextCliUtilities.Environment.is_test_environment():
+                >>> if u.Environment.is_test_environment():
                 ...     # Skip interactive prompts in tests
                 ...     pass
 
             """
             # Validate environment variables explicitly - no fallback
             pytest_test = os.environ.get(
-                FlextCliConstants.EnvironmentConstants.PYTEST_CURRENT_TEST,
+                c.EnvironmentConstants.PYTEST_CURRENT_TEST,
             )
             underscore_value = os.environ.get(
-                FlextCliConstants.EnvironmentConstants.UNDERSCORE,
+                c.EnvironmentConstants.UNDERSCORE,
                 "",
             )
-            ci_value = os.environ.get(FlextCliConstants.EnvironmentConstants.CI)
+            ci_value = os.environ.get(c.EnvironmentConstants.CI)
             return (
                 pytest_test is not None
-                or (
-                    FlextCliConstants.EnvironmentConstants.PYTEST
-                    in underscore_value.lower()
-                )
-                or ci_value == FlextCliConstants.EnvironmentConstants.CI_TRUE_VALUE
+                or (c.EnvironmentConstants.PYTEST in underscore_value.lower())
+                or ci_value == c.EnvironmentConstants.CI_TRUE_VALUE
             )
 
     # =========================================================================
@@ -803,20 +980,20 @@ class FlextCliUtilities(FlextUtilities):
                 list[str]: List of configuration path strings
 
             Example:
-                >>> paths = FlextCliUtilities.ConfigOps.get_config_paths()
+                >>> paths = u.ConfigOps.get_config_paths()
                 >>> for path in paths:
                 ...     print(path)
 
             """
             home = Path.home()
-            flext_dir = home / FlextCliConstants.FLEXT_DIR_NAME
-            return FlextCliUtilities.ConfigOps.paths(
+            flext_dir = home / c.FLEXT_DIR_NAME
+            return u.ConfigOps.paths(
                 flext_dir,
-                FlextCliConstants.DictKeys.CONFIG,
-                FlextCliConstants.Subdirectories.CACHE,
-                FlextCliConstants.Subdirectories.LOGS,
-                FlextCliConstants.DictKeys.TOKEN,
-                FlextCliConstants.Subdirectories.REFRESH_TOKEN,
+                c.DictKeys.CONFIG,
+                c.Subdirectories.CACHE,
+                c.Subdirectories.LOGS,
+                c.DictKeys.TOKEN,
+                c.Subdirectories.REFRESH_TOKEN,
             )
 
         @staticmethod
@@ -840,8 +1017,8 @@ class FlextCliUtilities(FlextUtilities):
 
             """
             results: list[str] = []
-            ok = FlextCliConstants.Symbols.SUCCESS_MARK
-            fail = FlextCliConstants.Symbols.FAILURE_MARK
+            ok = c.Symbols.SUCCESS_MARK
+            fail = c.Symbols.FAILURE_MARK
 
             # Check base
             if base.exists():
@@ -855,14 +1032,14 @@ class FlextCliUtilities(FlextUtilities):
                     path = base / subdir
                     if path.exists():
                         results.append(
-                            FlextCliConstants.CmdMessages.SUBDIR_EXISTS.format(
+                            c.CmdMessages.SUBDIR_EXISTS.format(
                                 symbol=ok,
                                 subdir=subdir,
                             ),
                         )
                     else:
                         results.append(
-                            FlextCliConstants.CmdMessages.SUBDIR_MISSING.format(
+                            c.CmdMessages.SUBDIR_MISSING.format(
                                 symbol=fail,
                                 subdir=subdir,
                             ),
@@ -877,34 +1054,34 @@ class FlextCliUtilities(FlextUtilities):
             Delegates to check() for consistency.
 
             Returns:
-                list[str]: Validation results with ✓/✗ marks for each check
+                list[str]: Validation results with check marks for each check
 
             Example:
-                >>> results = FlextCliUtilities.ConfigOps.validate_config_structure()
+                >>> results = u.ConfigOps.validate_config_structure()
                 >>> for result in results:
                 ...     print(result)
-                ✓ Configuration directory exists
-                ✓ config/ subdirectory exists
+                [OK] Configuration directory exists
+                [OK] config/ subdirectory exists
                 ...
 
             """
             home = Path.home()
-            flext_dir = home / FlextCliConstants.FLEXT_DIR_NAME
-            return FlextCliUtilities.ConfigOps.check(
+            flext_dir = home / c.FLEXT_DIR_NAME
+            return u.ConfigOps.check(
                 flext_dir,
                 name="Configuration",
-                subdirs=FlextCliConstants.Subdirectories.STANDARD_SUBDIRS,
+                subdirs=c.Subdirectories.STANDARD_SUBDIRS,
             )
 
         @staticmethod
         def info(
             path: Path,
             *,
-            dir_key: str = FlextCliConstants.DictKeys.CONFIG_DIR,
-            exists_key: str = FlextCliConstants.DictKeys.CONFIG_EXISTS,
-            readable_key: str = FlextCliConstants.DictKeys.CONFIG_READABLE,
-            writable_key: str = FlextCliConstants.DictKeys.CONFIG_WRITABLE,
-        ) -> t.JsonDict:
+            dir_key: str = c.DictKeys.CONFIG_DIR,
+            exists_key: str = c.DictKeys.CONFIG_EXISTS,
+            readable_key: str = c.DictKeys.CONFIG_READABLE,
+            writable_key: str = c.DictKeys.CONFIG_WRITABLE,
+        ) -> t.Json.JsonDict:
             """Generic info builder (mnemonic: 'info').
 
             Builds dict with path info (exists, readable, writable, timestamp).
@@ -917,7 +1094,7 @@ class FlextCliUtilities(FlextUtilities):
                 writable_key: Key for writable status
 
             Returns:
-                t.JsonDict: Info dictionary
+                t.Json.JsonDict: Info dictionary
 
             """
             exists = path.exists()
@@ -926,27 +1103,27 @@ class FlextCliUtilities(FlextUtilities):
                 exists_key: exists,
                 readable_key: exists and os.access(path, os.R_OK),
                 writable_key: exists and os.access(path, os.W_OK),
-                FlextCliConstants.DictKeys.TIMESTAMP: u.generate("timestamp"),
+                c.DictKeys.TIMESTAMP: datetime.now(UTC).isoformat(),
             }
 
         @staticmethod
-        def get_config_info() -> t.JsonDict:
+        def get_config_info() -> t.Json.JsonDict:
             """Get FLEXT CLI configuration information.
 
             Delegates to info() for consistency.
 
             Returns:
-                t.JsonDict: Configuration information dictionary
+                t.Json.JsonDict: Configuration information dictionary
 
             Example:
-                >>> info = FlextCliUtilities.ConfigOps.get_config_info()
+                >>> info = u.ConfigOps.get_config_info()
                 >>> print(f"Config dir: {info['config_dir']}")
                 >>> print(f"Exists: {info['exists']}")
 
             """
             home = Path.home()
-            flext_dir = home / FlextCliConstants.FLEXT_DIR_NAME
-            return FlextCliUtilities.ConfigOps.info(flext_dir)
+            flext_dir = home / c.FLEXT_DIR_NAME
+            return u.ConfigOps.info(flext_dir)
 
     # =========================================================================
     # FILE OPS - File operation helpers
@@ -955,6 +1132,7 @@ class FlextCliUtilities(FlextUtilities):
     class FileOps:
         """File operation helpers for error detection and common patterns.
 
+        CLI-specific file operations (FileOps does not exist in flext-core).
         Provides utilities for file-related operations including error detection
         and pattern matching. All methods are static for stateless operation.
 
@@ -970,6 +1148,7 @@ class FlextCliUtilities(FlextUtilities):
             "no such file",
             "does not exist",
             "errno 2",
+            "cannot open",
         )
 
         @staticmethod
@@ -979,17 +1158,18 @@ class FlextCliUtilities(FlextUtilities):
         ) -> bool:
             """Generic pattern matcher (mnemonic: 'matches').
 
-            Checks if message matches any pattern (case-insensitive).
+            Checks if message matches any pattern (case-insensitive substring match).
 
             Args:
                 msg: Message to check
                 patterns: Patterns to match against
 
             Returns:
-                bool: True if any pattern matches
+                bool: True if any pattern matches (case-insensitive substring)
 
             """
-            return any(u.normalize(msg, p) for p in patterns)
+            msg_lower = msg.lower()
+            return any(pattern.lower() in msg_lower for pattern in patterns)
 
         @staticmethod
         def is_file_not_found_error(error_msg: str) -> bool:
@@ -1004,9 +1184,9 @@ class FlextCliUtilities(FlextUtilities):
                 bool: True if error message indicates file not found, False otherwise
 
             """
-            return FlextCliUtilities.FileOps.matches(
+            return u.FileOps.matches(
                 error_msg,
-                *FlextCliUtilities.FileOps.FILE_NOT_FOUND_PATTERNS,
+                *u.FileOps.FILE_NOT_FOUND_PATTERNS,
             )
 
     # =========================================================================
@@ -1016,11 +1196,15 @@ class FlextCliUtilities(FlextUtilities):
     class TypeNormalizer:
         """Type annotation normalization for Typer compatibility.
 
+        CLI-specific type normalization extending flext-core patterns.
         Converts modern Python 3.10+ union syntax to Typer-compatible forms.
         Eliminates all code from type_u.py by consolidating here.
 
         **PURPOSE**: Typer does not support modern union syntax (Path | None).
         This normalizes annotations to Union/Optional forms transparently.
+
+        Note: TypeNormalizer is CLI-specific and does not exist in flext-core.
+        Nested classes (Enum, Collection) inherit from FlextUtilities directly.
 
         """
 
@@ -1034,11 +1218,11 @@ class FlextCliUtilities(FlextUtilities):
             forms (Optional[Path] or Union[...]) that Typer can process.
 
             Handles:
-            - Modern union syntax: Path | None → Optional[Path]
-            - Complex unions: str | int | None → Union[str, int, None]
-            - Nested generics: list[str] | None → Optional[list[str]]
-            - Already-normalized types: Optional[Path] → unchanged
-            - Non-union types: str → unchanged
+            - Modern union syntax: Path | None -> Optional[Path]
+            - Complex unions: str | int | None -> Union[str, int, None]
+            - Nested generics: list[str] | None -> Optional[list[str]]
+            - Already-normalized types: Optional[Path] -> unchanged
+            - Non-union types: str -> unchanged
 
             Args:
                 annotation: Type annotation to normalize
@@ -1048,9 +1232,7 @@ class FlextCliUtilities(FlextUtilities):
 
             Example:
                 >>> from pathlib import Path
-                >>> normalized = FlextCliUtilities.TypeNormalizer.normalize_annotation(
-                ...     Path | None
-                ... )
+                >>> normalized = u.TypeNormalizer.normalize_annotation(Path | None)
                 >>> # Result: Optional[Path] (Typer-compatible)
 
             """
@@ -1062,19 +1244,18 @@ class FlextCliUtilities(FlextUtilities):
 
             # Python 3.10+ union type using | operator
             if sys.version_info >= (3, 10) and origin is types.UnionType:
-                return FlextCliUtilities.TypeNormalizer.normalize_union_type(annotation)
+                return u.TypeNormalizer.normalize_union_type(annotation)
 
             # typing.Union type (traditional typing.Union[X, Y])
             if origin is Union:
-                return FlextCliUtilities.TypeNormalizer.normalize_union_type(annotation)
+                return u.TypeNormalizer.normalize_union_type(annotation)
 
             # For generic types, recursively normalize inner types
             if origin is not None and hasattr(annotation, "__args__"):
                 args = get_args(annotation)
                 if args:
                     normalized_args = tuple(
-                        FlextCliUtilities.TypeNormalizer.normalize_annotation(arg)
-                        for arg in args
+                        u.TypeNormalizer.normalize_annotation(arg) for arg in args
                     )
                     # Reconstruct the generic type with normalized args
                     # Skip ParamSpec and other special forms that don't support indexing
@@ -1121,9 +1302,7 @@ class FlextCliUtilities(FlextUtilities):
             # Handle single non-None type cases
             if len(non_none_args) == 1:
                 inner_type = non_none_args[0]
-                normalized_inner = (
-                    FlextCliUtilities.TypeNormalizer.normalize_annotation(inner_type)
-                )
+                normalized_inner = u.TypeNormalizer.normalize_annotation(inner_type)
                 if normalized_inner is None:
                     return None
                 # If has None, create Optional[T], otherwise return normalized type
@@ -1137,10 +1316,7 @@ class FlextCliUtilities(FlextUtilities):
                 normalized_non_none_list = [
                     normalized
                     for arg in non_none_args
-                    if (
-                        normalized
-                        := FlextCliUtilities.TypeNormalizer.normalize_annotation(arg)
-                    )
+                    if (normalized := u.TypeNormalizer.normalize_annotation(arg))
                     is not None
                 ]
 
@@ -1148,7 +1324,7 @@ class FlextCliUtilities(FlextUtilities):
                     return None
 
                 # Combine using helper function
-                return FlextCliUtilities.TypeNormalizer.combine_types_with_union(
+                return u.TypeNormalizer.combine_types_with_union(
                     normalized_non_none_list,
                     include_none=has_none,
                 )
@@ -1187,65 +1363,29 @@ class FlextCliUtilities(FlextUtilities):
         # NESTED CLASS: Enum Utilities
         # ═══════════════════════════════════════════════════════════════════
 
-        class Enum:
-            """Utilities para trabalhar com StrEnum de forma type-safe.
+        class Enum(FlextUtilities.Enum):
+            """Enum utilities extending FlextUtilities.Enum via inheritance.
+
+            Exposes all flext-core Enum methods through inheritance hierarchy.
+            Adds CLI-specific enum operations with GeneralValueType compatibility.
 
             FILOSOFIA:
-            ──────────
+            ----------
             - TypeIs para narrowing que funciona em if/else
             - Métodos genéricos que aceitam QUALQUER StrEnum
             - Caching para performance em validações frequentes
             - Integração direta com Pydantic BeforeValidator
             """
 
-            # ─────────────────────────────────────────────────────────────
+            # -------------------------------------------------------------
             # TYPEIS FACTORIES: Gera funções TypeIs para qualquer StrEnum
-            # ─────────────────────────────────────────────────────────────
+            # -------------------------------------------------------------
+            # is_member and is_subset are inherited from FlextUtilities.Enum
+            # No need to redefine - inheritance exposes them correctly
 
-            @staticmethod
-            def is_member[E: StrEnum](
-                enum_cls: type[E], value: t.GeneralValueType
-            ) -> TypeGuard[E]:
-                """TypeGuard genérico para qualquer StrEnum.
-
-                Delegates to u.Enum.is_member() for consistency.
-
-                Verifica se value é um membro válido do enum_cls.
-
-                Exemplo:
-                    if FlextCliUtilities.TypeNormalizer.Enum.is_member(Status, value):
-                        # value: Status
-                        process_status(value)
-                    else:
-                        # value: GeneralValueType (narrowed corretamente!)
-                        handle_invalid(value)
-                """
-                return u.Enum.is_member(enum_cls, value)
-
-            @staticmethod
-            def is_subset[E: StrEnum](
-                enum_cls: type[E],
-                valid_members: frozenset[E],
-                value: t.GeneralValueType,
-            ) -> TypeGuard[E]:
-                """TypeGuard para subset de um StrEnum.
-
-                Delegates to u.Enum.is_subset() for consistency.
-
-                Verifica se value é um membro válido do enum_cls e está no subset valid_members.
-
-                Exemplo:
-                    ACTIVE_STATES = frozenset({Status.ACTIVE, Status.PENDING})
-
-                    if FlextCliUtilities.TypeNormalizer.Enum.is_subset(Status, ACTIVE_STATES, value):
-                        # value: Status (e sabemos que é ACTIVE ou PENDING)
-                        process_active(value)
-                """
-                return u.Enum.is_subset(enum_cls, valid_members, value)
-
-            # ─────────────────────────────────────────────────────────────
-            # CONVERSÃO: String → StrEnum (type-safe)
-            # ─────────────────────────────────────────────────────────────
+            # -------------------------------------------------------------
+            # CONVERSÃO: String -> StrEnum (type-safe)
+            # -------------------------------------------------------------
 
             @staticmethod
             def try_parse[E: StrEnum](
@@ -1269,7 +1409,7 @@ class FlextCliUtilities(FlextUtilities):
                 Delegates to u.Enum.parse() for consistency.
 
                 Exemplo:
-                    result = FlextCliUtilities.TypeNormalizer.Enum.parse(Status, "active")
+                    result = u.TypeNormalizer.Enum.parse(Status, "active")
                     if result.is_success:
                         status: Status = result.value
 
@@ -1289,16 +1429,16 @@ class FlextCliUtilities(FlextUtilities):
                 Never fails - returns default if parsing fails.
 
                 Exemplo:
-                    status = FlextCliUtilities.TypeNormalizer.Enum.parse_or_default(
+                    status = u.TypeNormalizer.Enum.parse_or_default(
                         Status, user_input, Status.PENDING
                     )
 
                 """
                 return u.Enum.parse_or_default(enum_cls, value, default)
 
-            # ─────────────────────────────────────────────────────────────
+            # -------------------------------------------------------------
             # PYDANTIC VALIDATORS: BeforeValidator factories
-            # ─────────────────────────────────────────────────────────────
+            # -------------------------------------------------------------
 
             @staticmethod
             def coerce_impl[E: StrEnum](
@@ -1349,12 +1489,14 @@ class FlextCliUtilities(FlextUtilities):
                 Exemplo:
                     CoercedStatus = Annotated[
                         Status,
-                        BeforeValidator(FlextCliUtilities.TypeNormalizer.Enum.coerce_validator(Status))
+                        BeforeValidator(u.TypeNormalizer.Enum.coerce_validator(Status))
                     ]
 
                 """
-                return lambda v: FlextCliUtilities.TypeNormalizer.Enum.coerce_impl(
-                    enum_cls, v, by_name=False
+                return lambda v: u.TypeNormalizer.Enum.coerce_impl(
+                    enum_cls,
+                    v,
+                    by_name=False,
                 )
 
             @staticmethod
@@ -1366,13 +1508,15 @@ class FlextCliUtilities(FlextUtilities):
                 Aceita: "ACTIVE" (nome), "active" (valor), Status.ACTIVE (membro).
 
                 """
-                return lambda v: FlextCliUtilities.TypeNormalizer.Enum.coerce_impl(
-                    enum_cls, v, by_name=True
+                return lambda v: u.TypeNormalizer.Enum.coerce_impl(
+                    enum_cls,
+                    v,
+                    by_name=True,
                 )
 
-            # ─────────────────────────────────────────────────────────────
+            # -------------------------------------------------------------
             # METADATA: Informações sobre StrEnums
-            # ─────────────────────────────────────────────────────────────
+            # -------------------------------------------------------------
 
             @staticmethod
             def values[E: StrEnum](enum_cls: type[E]) -> frozenset[str]:
@@ -1405,19 +1549,22 @@ class FlextCliUtilities(FlextUtilities):
         # NESTED CLASS: Collection Utilities
         # ═══════════════════════════════════════════════════════════════════
 
-        class Collection:
-            """Utilities para conversão de coleções com StrEnums.
+        class Collection(FlextUtilities.Collection):
+            """Collection utilities extending FlextUtilities.Collection via inheritance.
+
+            Exposes all flext-core Collection methods through inheritance hierarchy.
+            Adds CLI-specific collection operations with GeneralValueType compatibility.
 
             PADRÕES collections.abc:
-            ────────────────────────
+            ------------------------
             - Sequence[E] para listas imutáveis
             - Mapping[str, E] para dicts imutáveis
             - Iterable[E] para qualquer iterável
             """
 
-            # ─────────────────────────────────────────────────────────────
+            # -------------------------------------------------------------
             # LIST CONVERSIONS
-            # ─────────────────────────────────────────────────────────────
+            # -------------------------------------------------------------
 
             @staticmethod
             def parse_sequence[E: StrEnum](
@@ -1429,7 +1576,7 @@ class FlextCliUtilities(FlextUtilities):
                 Delegates to u.Collection.parse_sequence() for consistency.
 
                 Exemplo:
-                    result = FlextCliUtilities.Collection.parse_sequence(
+                    result = u.Collection.parse_sequence(
                         Status, ["active", "pending"]
                     )
                     if result.is_success:
@@ -1447,10 +1594,11 @@ class FlextCliUtilities(FlextUtilities):
                 Exemplo:
                     StatusList = Annotated[
                         list[Status],
-                        BeforeValidator(FlextCliUtilities.Collection.coerce_list_validator(Status))
+                        BeforeValidator(u.Collection.coerce_list_validator(Status))
                     ]
 
                 """
+
                 def _coerce(value: t.GeneralValueType) -> list[E]:
                     if not isinstance(value, (list, tuple, set, frozenset)):
                         msg = f"Expected sequence, got {type(value).__name__}"
@@ -1476,9 +1624,9 @@ class FlextCliUtilities(FlextUtilities):
 
                 return _coerce
 
-            # ─────────────────────────────────────────────────────────────
+            # -------------------------------------------------------------
             # DICT CONVERSIONS
-            # ─────────────────────────────────────────────────────────────
+            # -------------------------------------------------------------
 
             @staticmethod
             def parse_mapping[E: StrEnum](
@@ -1490,7 +1638,7 @@ class FlextCliUtilities(FlextUtilities):
                 Delegates to u.Collection.parse_mapping() for consistency.
 
                 Exemplo:
-                    result = FlextCliUtilities.Collection.parse_mapping(
+                    result = u.Collection.parse_mapping(
                         Status, {"user1": "active", "user2": "pending"}
                     )
 
@@ -1506,10 +1654,11 @@ class FlextCliUtilities(FlextUtilities):
                 Exemplo:
                     StatusDict = Annotated[
                         dict[str, Status],
-                        BeforeValidator(FlextCliUtilities.Collection.coerce_dict_validator(Status))
+                        BeforeValidator(u.Collection.coerce_dict_validator(Status))
                     ]
 
                 """
+
                 def _coerce(value: t.GeneralValueType) -> dict[str, E]:
                     if not isinstance(value, dict):
                         msg = f"Expected dict, got {type(value).__name__}"
@@ -1539,37 +1688,32 @@ class FlextCliUtilities(FlextUtilities):
         # NESTED CLASS: Args Utilities
         # ═══════════════════════════════════════════════════════════════════
 
-        class Args:
-            """@validated, parse_kwargs - ZERO boilerplate de validação."""
+        class Args(FlextUtilities.Args):
+            """Args utilities extending FlextUtilities.Args via inheritance.
+
+            Exposes all flext-core Args methods through inheritance hierarchy.
+            Adds CLI-specific args operations with GeneralValueType compatibility.
+            """
 
             @staticmethod
             def validated[**P, R](func: Callable[P, R]) -> Callable[P, R]:
                 """Decorator com validate_call - aceita str OU enum, converte auto."""
                 return validate_call(
                     config=ConfigDict(
-                        arbitrary_types_allowed=True, use_enum_values=False
+                        arbitrary_types_allowed=True,
+                        use_enum_values=False,
                     ),
                     validate_return=False,
                 )(func)
 
             @staticmethod
+            @override
             def validated_with_result[**P, R](
-                func: Callable[P, R],
+                func: Callable[P, r[R]],
             ) -> Callable[P, r[R]]:
-                """ValidationError → r.fail().
+                """ValidationError -> r.fail().
 
-                Business Rule:
-                ──────────────
-                Wraps a function with Pydantic validate_call and converts
-                ValidationError to r.fail(). Preserves original
-                function signature using ParamSpec for type safety.
-
-                Audit Implications:
-                ───────────────────
-                - All validation errors are captured and returned as
-                  r failures
-                - Original function signature is preserved for type checking
-                - Runtime validation ensures data integrity before execution
+                Overrides FlextUtilities.Args.validated_with_result with exact signature match.
                 """
                 validated_func = validate_call(
                     config=ConfigDict(arbitrary_types_allowed=True),
@@ -1579,30 +1723,90 @@ class FlextCliUtilities(FlextUtilities):
                 @wraps(func)
                 def wrapper(*args: P.args, **kwargs: P.kwargs) -> r[R]:
                     try:
-                        result: R = validated_func(*args, **kwargs)
-                        return r.ok(result)
+                        return validated_func(*args, **kwargs)
                     except ValidationError as e:
                         return r.fail(str(e))
 
                 return wrapper
 
             @staticmethod
+            def validated_with_auto_result[**P, R](
+                func: Callable[P, R | r[R]],
+            ) -> Callable[P, r[R]]:
+                """ValidationError -> r.fail() with auto-wrap.
+
+                Extended version that accepts functions returning R or r[R]
+                and always returns r[R] for railway pattern compatibility.
+
+                Business Rule:
+                --------------
+                Wraps a function with Pydantic validate_call and converts
+                ValidationError to r.fail(). Accepts functions returning R
+                or r[R] and always returns r[R] for railway pattern compatibility.
+
+                This is a NEW method (not override) to avoid bad-override issues
+                while providing extended functionality beyond parent class.
+
+                Audit Implications:
+                --------------------
+                - All validation errors are captured and returned as
+                  r failures
+                - Original function signature is preserved for type checking
+                - Runtime validation ensures data integrity before execution
+                - Result is wrapped in r[R] if function returns R, otherwise
+                  returns r[R] directly
+                """
+                validated_func = validate_call(
+                    config=ConfigDict(arbitrary_types_allowed=True),
+                    validate_return=False,
+                )(func)
+
+                @wraps(func)
+                def wrapper(*args: P.args, **kwargs: P.kwargs) -> r[R]:
+                    try:
+                        validated_result = validated_func(*args, **kwargs)
+                        # Type narrowing: validated_func returns r[R] per signature
+                        # But runtime may return R if func was R | r[R], so we handle both
+                        if isinstance(validated_result, r):
+                            return validated_result
+                        # Runtime type narrowing: if not r[R], it's R, wrap it
+                        # validated_result is R at this point (after isinstance check)
+                        return r.ok(validated_result)
+                    except ValidationError as e:
+                        return r.fail(str(e))
+
+                return wrapper
+
+            @staticmethod
+            @override
             def parse_kwargs[E: StrEnum](
-                kwargs: Mapping[str, t.GeneralValueType],
+                kwargs: Mapping[str, t.FlexibleValue],
                 enum_fields: Mapping[str, type[E]],
-            ) -> r[t.JsonDict]:
+            ) -> r[dict[str, t.FlexibleValue]]:
                 """Parse kwargs converting string enum values (mnemonic: 'parse_kwargs').
 
                 Returns JsonDict since parsed values are JSON-compatible.
 
                 """
                 # Convert to dict and normalize values
-                parsed: dict[str, t.GeneralValueType] = dict(kwargs)
+                parsed: dict[str, t.FlexibleValue] = dict(kwargs)
                 for k, v in parsed.items():
                     if isinstance(v, dict):
-                        t_result = u.transform(v, to_json=True)
+                        # Type cast: dict[str, FlexibleValue] is compatible with dict[str, GeneralValueType]
+                        # FlexibleValue is a subset of GeneralValueType
+                        v_dict: dict[str, t.GeneralValueType] = cast(
+                            "dict[str, t.GeneralValueType]",
+                            v,
+                        )
+                        t_result = u.transform(v_dict, to_json=True)
                         if t_result.is_success:
-                            parsed[k] = t_result.unwrap()
+                            unwrapped = t_result.unwrap()
+                            # Type cast: unwrapped is ConfigurationDict (dict[str, GeneralValueType])
+                            # transform returns ConfigurationDict, but FlexibleValue needs Mapping[str, ScalarValue]
+                            # ConfigurationDict is dict[str, GeneralValueType] which includes dict[str, JsonValue]
+                            # JsonValue is ScalarValue, so this is compatible at runtime
+                            # Use cast to satisfy type checker since FlexibleValue is more restrictive
+                            parsed[k] = cast("t.FlexibleValue", unwrapped)
 
                 # Convert enum fields using try_parse
                 errors: list[str] = []
@@ -1612,9 +1816,15 @@ class FlextCliUtilities(FlextUtilities):
                         # Only parse if it's a string
                         if isinstance(parsed_val, str):
                             enum_result = u.Enum.parse(enum_cls, parsed_val)
-                            enum_val = enum_result.value if enum_result.is_success else None
+                            enum_val = (
+                                enum_result.value if enum_result.is_success else None
+                            )
                             if enum_val is not None:
-                                parsed[k] = enum_val.value if hasattr(enum_val, "value") else str(enum_val)
+                                parsed[k] = (
+                                    enum_val.value
+                                    if hasattr(enum_val, "value")
+                                    else str(enum_val)
+                                )
                             else:
                                 errors.append(f"{k}: '{parsed_val}'")
 
@@ -1623,8 +1833,9 @@ class FlextCliUtilities(FlextUtilities):
                 return r.ok(parsed)
 
             @staticmethod
+            @override
             def get_enum_params(
-                func: Callable[..., t.GeneralValueType],
+                func: FlextUtilities.Args._CallableWithHints,
             ) -> dict[str, type[StrEnum]]:
                 """Extrai parâmetros StrEnum da signature."""
                 try:
@@ -1643,104 +1854,102 @@ class FlextCliUtilities(FlextUtilities):
         # NESTED CLASS: Model Utilities
         # ═══════════════════════════════════════════════════════════════════
 
-        class Model:
-            """from_dict, merge_defaults, update - ZERO try/except."""
+        class Model(FlextUtilities.Model):
+            """Model utilities extending FlextUtilities.Model via inheritance.
+
+            Exposes all flext-core Model methods through inheritance hierarchy.
+            Adds CLI-specific model operations with GeneralValueType compatibility.
+            """
 
             @staticmethod
-            def from_dict[M: type[FlextModels]](
+            @override
+            def from_dict[M: BaseModel](
                 model_cls: type[M],
-                data: Mapping[str, t.GeneralValueType],
+                data: Mapping[str, t.FlexibleValue],
                 *,
                 strict: bool = False,
             ) -> r[M]:
                 """Create model from dict with r.
 
-                Delegates to u.Model.from_dict() for consistency.
-                Converts GeneralValueType to FlexibleValue for compatibility.
+                Overrides FlextUtilities.Model.from_dict() with FlexibleValue compatibility.
+                Delegates to parent method for consistency.
 
                 Business Rule:
-                ──────────────
+                --------------
                 Converts a Mapping to a Pydantic model instance using
                 model_validate. The model_cls must be a subclass of
                 FlextModels (which extends BaseModel).
 
                 Audit Implications:
-                ───────────────────
+                --------------------
                 - All model creation goes through Pydantic validation
                 - Invalid data returns r.fail() with error message
                 - Strict mode enforces exact type matching (no coercion)
                 """
-                # Convert GeneralValueType to FlexibleValue for u.Model compatibility
-                flexible_data: dict[str, t.FlexibleValue] = {}
-                for k, v in data.items():
-                    # GeneralValueType is compatible with FlexibleValue
-                    flexible_data[k] = cast("t.FlexibleValue", v)
-                # Cast model_cls to BaseModel type for u.Model compatibility
-                base_model_cls = cast("type[BaseModel]", model_cls)
-                result = u.Model.from_dict(base_model_cls, flexible_data, strict=strict)
-                return cast("r[M]", result)
+                return FlextUtilities.Model.from_dict(model_cls, data, strict=strict)
 
             @staticmethod
-            def merge_defaults[M: type[FlextModels]](
+            @override
+            def merge_defaults[M: BaseModel](
                 model_cls: type[M],
-                defaults: Mapping[str, t.GeneralValueType],
-                overrides: Mapping[str, t.GeneralValueType],
+                defaults: Mapping[str, t.FlexibleValue],
+                overrides: Mapping[str, t.FlexibleValue],
             ) -> r[M]:
                 """Merge defaults with overrides and create model (mnemonic: 'merge_defaults').
 
-                Delegates to u.Model.merge_defaults() for consistency.
-                Converts GeneralValueType to FlexibleValue for compatibility.
+                Overrides FlextUtilities.Model.merge_defaults() with FlexibleValue compatibility.
+                Delegates to parent method for consistency.
 
                 """
-                # Convert GeneralValueType to FlexibleValue for u.Model compatibility
-                flexible_defaults: dict[str, t.FlexibleValue] = {
-                    k: cast("t.FlexibleValue", v) for k, v in defaults.items()
-                }
-                flexible_overrides: dict[str, t.FlexibleValue] = {
-                    k: cast("t.FlexibleValue", v) for k, v in overrides.items()
-                }
-                # Cast model_cls to BaseModel type for u.Model compatibility
-                base_model_cls = cast("type[BaseModel]", model_cls)
-                result = u.Model.merge_defaults(base_model_cls, flexible_defaults, flexible_overrides)
-                return cast("r[M]", result)
+                return FlextUtilities.Model.merge_defaults(
+                    model_cls,
+                    defaults,
+                    overrides,
+                )
 
             @staticmethod
-            def update[M](instance: M, **updates: t.GeneralValueType) -> r[M]:
+            @override
+            def update[M: BaseModel](
+                instance: M,
+                **updates: t.FlexibleValue,
+            ) -> r[M]:
                 """Update model with new values (mnemonic: 'update').
 
-                Delegates to u.Model.update() for consistency.
-                Converts GeneralValueType to FlexibleValue for compatibility.
+                Overrides FlextUtilities.Model.update() with FlexibleValue compatibility.
+                Delegates to parent method for consistency.
 
                 """
-                # Convert GeneralValueType to FlexibleValue for u.Model compatibility
-                flexible_updates: dict[str, t.FlexibleValue] = {
-                    k: cast("t.FlexibleValue", v) for k, v in updates.items()
-                }
-                # Cast instance to BaseModel for u.Model compatibility
-                base_instance = cast("BaseModel", instance)
-                result = u.Model.update(base_instance, **flexible_updates)
-                return cast("r[M]", result)
+                return FlextUtilities.Model.update(instance, **updates)
 
         # ═══════════════════════════════════════════════════════════════════
         # NESTED CLASS: Pydantic Type Factories
         # ═══════════════════════════════════════════════════════════════════
 
         class Pydantic:
-            """Fábricas de Annotated types."""
+            """Fábricas de Annotated types.
+
+            Provides factory methods for creating Annotated types with validators.
+            """
 
             @staticmethod
             def coerced_enum[E: StrEnum](
                 enum_cls: type[E],
-            ) -> type[Annotated[E, BeforeValidator]]:
-                """Create Annotated type for StrEnum coercion (mnemonic: 'coerced_enum')."""
-                validator = FlextCliUtilities.TypeNormalizer.Enum.coerce_validator(enum_cls)
-                return Annotated[enum_cls, BeforeValidator(validator)]
+            ) -> type[E]:
+                """Create Annotated type for StrEnum coercion (mnemonic: 'coerced_enum').
+
+                Returns Annotated[E, BeforeValidator] wrapped type, but type checker
+                sees it as type[E] for compatibility.
+                """
+                validator = u.TypeNormalizer.Enum.coerce_validator(enum_cls)
+                # Type narrowing: return Annotated type but cast to type[E] for type checker
+                # Annotated is a special form, not a type, so we cast the result
+                annotated_type: object = Annotated[enum_cls, BeforeValidator(validator)]
+                return cast("type[E]", annotated_type)
 
 
-# Note: Aliases moved to avoid circular imports
-# Use FlextCliModels.CliModelConverter and FlextCliModels.CliModelDecorators directly
-
+u = FlextCliUtilities
 
 __all__ = [
     "FlextCliUtilities",
+    "u",
 ]

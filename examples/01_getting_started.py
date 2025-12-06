@@ -15,8 +15,7 @@ from __future__ import annotations
 import tempfile
 from pathlib import Path
 
-from flext_cli import FlextCli, FlextCliTypes
-from flext_cli.constants import FlextCliConstants
+from flext_cli import FlextCli, c, t
 
 
 class FlextCliGettingStarted:
@@ -53,7 +52,7 @@ class FlextCliGettingStarted:
     # PATTERN 2: Display data as tables
     # ============================================================================
 
-    def display_user_data(self, user: FlextCliTypes.Data.CliDataDict) -> None:
+    def display_user_data(self, user: t.Data.CliDataDict) -> None:
         """Show how to display YOUR data as a table."""
         # Your data (from database, API, etc.)
         # Create table from user data
@@ -70,9 +69,7 @@ class FlextCliGettingStarted:
     # PATTERN 3: File I/O with error handling
     # ============================================================================
 
-    def save_config(
-        self, config: FlextCliTypes.Data.CliDataDict, filepath: str
-    ) -> bool:
+    def save_config(self, config: t.Data.CliDataDict, filepath: str) -> bool:
         """Save YOUR config to JSON with proper error handling."""
         write_result = self.cli.file_tools.write_json_file(
             filepath,
@@ -86,7 +83,7 @@ class FlextCliGettingStarted:
         self.cli.output.print_message(f"✅ Saved to {filepath}")
         return True
 
-    def load_config(self, filepath: str) -> FlextCliTypes.CliJsonDict | None:
+    def load_config(self, filepath: str) -> t.CliJsonDict | None:
         """Load YOUR config from JSON with error handling."""
         read_result = self.cli.file_tools.read_json_file(filepath)
 
@@ -133,18 +130,18 @@ class FlextCliGettingStarted:
         - Advanced Literal unions
         """
         # Using StrEnum from constants for runtime validation
-        output_format = FlextCliConstants.OutputFormats.JSON
+        output_format = c.OutputFormats.JSON
         self.cli.print(f"Selected format: {output_format.value}", style="blue")
 
         # Using collections.abc.Mapping for immutable configuration
 
         # Demonstrate discriminated union validation
-        valid_formats = FlextCliConstants.get_valid_output_formats()
+        valid_formats = c.get_valid_output_formats()
         self.cli.print(f"Available formats: {', '.join(valid_formats)}")
 
         # Using advanced type aliases from typings
-        sample_data: FlextCliTypes.CliJsonDict = {
-            "status": FlextCliConstants.CommandStatus.COMPLETED.value,
+        sample_data: t.CliJsonDict = {
+            "status": c.CommandStatus.COMPLETED.value,
             "data": [1, 2, 3],
             "metadata": {"version": "1.0"},
         }

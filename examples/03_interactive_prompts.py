@@ -32,14 +32,7 @@ from __future__ import annotations
 
 from typing import cast
 
-from flext_core import FlextResult, FlextTypes, FlextUtilities
-
-from flext_cli import FlextCli, FlextCliPrompts
-
-# Alias for static method calls - use u.* for FlextUtilities static methods
-u = FlextUtilities
-r = FlextResult
-t = FlextTypes
+from flext_cli import FlextCli, FlextCliPrompts, r, t, u
 
 cli = FlextCli()
 prompts = FlextCliPrompts()
@@ -132,9 +125,7 @@ def select_environment() -> r[str]:
 
     if choice_result.is_failure:
         cli.print(f"Error: {choice_result.error}", style="bold red")
-        return r[str].fail(
-            choice_result.error or "Failed to select environment"
-        )
+        return r[str].fail(choice_result.error or "Failed to select environment")
 
     selected = choice_result.unwrap()
     cli.print(f"🚀 Deploying to: {selected}", style="green")
@@ -164,7 +155,7 @@ def database_setup_wizard() -> r[dict[str, str | int | bool | float]]:
     host_result = prompts.prompt("Database host:", default="localhost")
     if host_result.is_failure:
         return r[dict[str, str | int | bool | float]].fail(
-            host_result.error or "Failed to get host"
+            host_result.error or "Failed to get host",
         )
     config["host"] = host_result.unwrap()
 
@@ -172,7 +163,7 @@ def database_setup_wizard() -> r[dict[str, str | int | bool | float]]:
     port_result = prompts.prompt("Port:", default="5432")
     if port_result.is_failure:
         return r[dict[str, str | int | bool | float]].fail(
-            port_result.error or "Failed to get port"
+            port_result.error or "Failed to get port",
         )
     config["port"] = int(port_result.unwrap())
 
@@ -180,7 +171,7 @@ def database_setup_wizard() -> r[dict[str, str | int | bool | float]]:
     db_result = prompts.prompt("Database name:")
     if db_result.is_failure:
         return r[dict[str, str | int | bool | float]].fail(
-            db_result.error or "Failed to get database name"
+            db_result.error or "Failed to get database name",
         )
     config["database"] = db_result.unwrap()
 
@@ -188,7 +179,7 @@ def database_setup_wizard() -> r[dict[str, str | int | bool | float]]:
     pwd_result = prompts.prompt_password("Database password:")
     if pwd_result.is_failure:
         return r[dict[str, str | int | bool | float]].fail(
-            pwd_result.error or "Failed to get password"
+            pwd_result.error or "Failed to get password",
         )
     config["password"] = pwd_result.unwrap()
 
@@ -200,7 +191,8 @@ def database_setup_wizard() -> r[dict[str, str | int | bool | float]]:
     # Create table from config data - convert using u
     # Use u.transform for JSON conversion
     transform_result = u.transform(
-        cast("dict[str, t.GeneralValueType]", display_config), to_json=True
+        cast("dict[str, t.GeneralValueType]", display_config),
+        to_json=True,
     )
     json_config: t.JsonDict = (
         transform_result.unwrap()
@@ -221,9 +213,7 @@ def database_setup_wizard() -> r[dict[str, str | int | bool | float]]:
         return r[dict[str, str | int | bool | float]].ok(config)
 
     cli.print("❌ Setup cancelled", style="yellow")
-    return r[dict[str, str | int | bool | float]].fail(
-        "Setup cancelled by user"
-    )
+    return r[dict[str, str | int | bool | float]].fail("Setup cancelled by user")
 
 
 # ============================================================================
@@ -443,7 +433,7 @@ def flext_configuration_wizard() -> r[dict[str, str | int | bool | float]]:
     name_result = prompts.prompt("Application name", default="my-app")
     if name_result.is_failure:
         return r[dict[str, str | int | bool | float]].fail(
-            name_result.error or "Failed to get application name"
+            name_result.error or "Failed to get application name",
         )
     config["app_name"] = name_result.unwrap()
 
@@ -455,7 +445,7 @@ def flext_configuration_wizard() -> r[dict[str, str | int | bool | float]]:
     )
     if env_result.is_failure:
         return r[dict[str, str | int | bool | float]].fail(
-            env_result.error or "Failed to select environment"
+            env_result.error or "Failed to select environment",
         )
     config["environment"] = env_result.unwrap()
 
@@ -499,7 +489,8 @@ def flext_configuration_wizard() -> r[dict[str, str | int | bool | float]]:
     # Create table from config data - convert using u
     # Use u.transform for JSON conversion
     transform_result = u.transform(
-        cast("dict[str, t.GeneralValueType]", config), to_json=True
+        cast("dict[str, t.GeneralValueType]", config),
+        to_json=True,
     )
     json_config: t.JsonDict = (
         transform_result.unwrap()
@@ -524,7 +515,7 @@ def flext_configuration_wizard() -> r[dict[str, str | int | bool | float]]:
 
     cli.print("❌ Configuration discarded", style="yellow")
     return r[dict[str, str | int | bool | float]].fail(
-        "Configuration discarded by user"
+        "Configuration discarded by user",
     )
 
 

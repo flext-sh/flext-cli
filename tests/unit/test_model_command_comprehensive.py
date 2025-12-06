@@ -25,11 +25,10 @@ from typing import Literal
 import pytest
 from pydantic import BaseModel, Field, ValidationError, field_validator
 
-from flext_cli import FlextCliCli
-from flext_cli.models import FlextCliModels
+from flext_cli import FlextCliCli, m
 
 
-class TestModelCommandComprehensive:
+class TestsCliModelCommandComprehensive:
     """Comprehensive tests for model_command with real-world models."""
 
     # =========================================================================
@@ -272,7 +271,7 @@ class TestModelCommandComprehensive:
 
     def test_literal_types_converted_to_str(self) -> None:
         """Test that Literal types are converted to str for Typer."""
-        params_result = FlextCliModels.CliModelConverter.model_to_cli_params(
+        params_result = m.CliModelConverter.model_to_cli_params(
             self.EnvironmentConfig,
         )
 
@@ -287,7 +286,7 @@ class TestModelCommandComprehensive:
 
     def test_optional_literal_types_handled(self) -> None:
         """Test that Optional[Literal[...]] types are handled."""
-        params_result = FlextCliModels.CliModelConverter.model_to_cli_params(
+        params_result = m.CliModelConverter.model_to_cli_params(
             self.OptionalLiteralConfig,
         )
 
@@ -306,7 +305,7 @@ class TestModelCommandComprehensive:
 
     def test_boolean_flags_default_true(self) -> None:
         """Test boolean flags with default=True."""
-        params_result = FlextCliModels.CliModelConverter.model_to_cli_params(
+        params_result = m.CliModelConverter.model_to_cli_params(
             self.BooleanFlagsConfig,
         )
 
@@ -321,7 +320,7 @@ class TestModelCommandComprehensive:
 
     def test_boolean_flags_default_false(self) -> None:
         """Test boolean flags with default=False."""
-        params_result = FlextCliModels.CliModelConverter.model_to_cli_params(
+        params_result = m.CliModelConverter.model_to_cli_params(
             self.BooleanFlagsConfig,
         )
 
@@ -336,7 +335,7 @@ class TestModelCommandComprehensive:
 
     def test_optional_boolean_flags(self) -> None:
         """Test optional boolean flags."""
-        params_result = FlextCliModels.CliModelConverter.model_to_cli_params(
+        params_result = m.CliModelConverter.model_to_cli_params(
             self.BooleanFlagsConfig,
         )
 
@@ -355,7 +354,7 @@ class TestModelCommandComprehensive:
 
     def test_field_aliases_preserved(self) -> None:
         """Test that field aliases are preserved."""
-        params_result = FlextCliModels.CliModelConverter.model_to_cli_params(
+        params_result = m.CliModelConverter.model_to_cli_params(
             self.AliasedConfig,
         )
 

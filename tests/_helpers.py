@@ -12,13 +12,11 @@ from __future__ import annotations
 
 import json
 import re
-import tempfile
-from collections.abc import Callable, Mapping, Sequence
-from pathlib import Path
+from collections.abc import Mapping, Sequence
 from typing import ParamSpec, TypeVar, cast
 
 from click import echo
-from flext_core import FlextResult, FlextService, t, u
+from flext_core import FlextService
 
 from flext_cli import (
     FlextCliAppBase,
@@ -27,26 +25,26 @@ from flext_cli import (
     FlextCliConfig,
     FlextCliConstants,
     FlextCliContext,
-    FlextCliModels,
-    FlextCliProtocols,
     FlextCliTables,
+    c,
+    m,
+    p,
+    r,
+    u,
 )
+from flext_cli.typings import t
 
-from .fixtures.constants import (
-    TestCli,
-    TestConstants,
-    TestData,
-    TestTables,
-    TestTypings,
-    TestVersions,
-)
-from .fixtures.typing import GenericFieldsDict
+# Fixtures modules removed - use conftest.py and flext_tests instead
+# from .fixtures.constants import ...
+# from .fixtures.typing import GenericFieldsDict
 
 T = TypeVar("T")
 P = ParamSpec("P")
 
 # Type alias for CLI option defaults
-DefaultType = str | int | float | bool | GenericFieldsDict | list[object] | None
+type DefaultType = (
+    str | int | float | bool | dict[str, t.GeneralValueType] | list[object] | None
+)
 
 
 class CommandsFactory:
@@ -59,22 +57,23 @@ class CommandsFactory:
 
     @staticmethod
     def register_simple_command(
-        commands: FlextCliCommands, name: str, result: str = "test"
-    ) -> FlextResult[bool]:
+        commands: FlextCliCommands,
+        name: str,
+        result: str = "test",
+    ) -> r[bool]:
         """Register a simple command that returns a constant value."""
         try:
-            handler: FlextCliProtocols.Cli.CliCommandHandler = cast(
-                "FlextCliProtocols.Cli.CliCommandHandler", lambda: result
+            handler: p.Cli.CliCommandHandler = cast(
+                "p.Cli.CliCommandHandler",
+                lambda: result,
             )
             commands.register_command(name, handler)
-            return FlextResult[bool].ok(True)
+            return r[bool].ok(True)
         except Exception as e:
-            return FlextResult[bool].fail(str(e))
+            return r[bool].fail(str(e))
 
     @staticmethod
-    def register_command_with_args(
-        commands: FlextCliCommands, name: str
-    ) -> FlextResult[bool]:
+    def register_command_with_args(commands: FlextCliCommands, name: str) -> r[bool]:
         """Register a command that accepts and processes args."""
         try:
 
@@ -88,14 +87,12 @@ class CommandsFactory:
                 return "args: 0"
 
             commands.register_command(name, cmd_with_args)
-            return FlextResult[bool].ok(True)
+            return r[bool].ok(True)
         except Exception as e:
-            return FlextResult[bool].fail(str(e))
+            return r[bool].fail(str(e))
 
     @staticmethod
-    def register_failing_command(
-        commands: FlextCliCommands, name: str
-    ) -> FlextResult[bool]:
+    def register_failing_command(commands: FlextCliCommands, name: str) -> r[bool]:
         """Register a command that raises an exception."""
         try:
 
@@ -107,172 +104,34 @@ class CommandsFactory:
                 raise RuntimeError(msg)
 
             commands.register_command(name, failing_handler)
-            return FlextResult[bool].ok(True)
+            return r[bool].ok(True)
         except Exception as e:
-            return FlextResult[bool].fail(str(e))
+            return r[bool].fail(str(e))
 
 
-class FlextCliTestHelpers(FlextService[GenericFieldsDict]):
+class FlextCliTestHelpers(FlextService[dict[str, t.GeneralValueType]]):
     """Generic and specialized test helpers for flext-cli following FLEXT patterns.
 
     Highly reusable helpers that reduce test code by >5 lines per test.
     Single class with nested helper classes organized by functionality.
-    All methods return FlextResult[T] for railway-oriented testing.
+    All methods return r[T] for railway-oriented testing.
     """
 
     # =========================================================================
     # GENERIC HELPERS - Reduce >5 lines per test across multiple test files
     # =========================================================================
 
-    class GenericHelpers:
-        """Generic helpers usable across all test types."""
+    # GenericHelpers removed - use FlextTestsUtilities.GenericHelpers directly
 
-        @staticmethod
-        def bulk_validate_results(
-            results: list[FlextResult[object]],
-            *,
-            expected_success: bool = True,
-        ) -> FlextResult[list[object]]:
-            """Validate multiple results at once - saves 3-5 lines per test.
+    # JsonHelpers removed - use FlextTestsUtilities.GenericHelpers directly
+    # - to_json_dict -> FlextTestsUtilities.GenericHelpers.to_json_dict
+    # - to_json_value -> FlextTestsUtilities.GenericHelpers.to_json_value
 
-            Args:
-                results: List of FlextResult instances
-                expected_success: Whether all should be successful
-
-            Returns:
-                FlextResult with extracted data or first error
-
-            """
-            try:
-                extracted_data = []
-                for i, result in enumerate(results):
-                    if expected_success and result.is_failure:
-                        return FlextResult.fail(f"Result {i} failed: {result.error}")
-                    if not expected_success and result.is_success:
-                        return FlextResult.fail(f"Result {i} unexpectedly succeeded")
-                    if result.is_success:
-                        extracted_data.append(result.unwrap())
-                return FlextResult.ok(extracted_data)
-            except Exception as e:
-                return FlextResult.fail(str(e))
-
-        @staticmethod
-        def create_parametrized_test_cases(
-            base_config: GenericFieldsDict,
-            variations: list[GenericFieldsDict],
-        ) -> list[GenericFieldsDict]:
-            """Generate parametrized test cases from base config - reduces boilerplate.
-
-            Args:
-                base_config: Base configuration for all cases
-                variations: List of variations to apply
-
-            Returns:
-                List of complete test case configurations
-
-            """
-            test_cases = []
-            for variation in variations:
-                case = base_config.copy()
-                case.update(variation)
-                test_cases.append(case)
-            return test_cases
-
-        @staticmethod
-        def validate_object_attributes(
-            obj: object,
-            required_attrs: dict[str, type],
-            optional_attrs: dict[str, type] | None = None,
-        ) -> FlextResult[bool]:
-            """Validate object has required attributes with correct types - saves validation code.
-
-            Args:
-                obj: Object to validate
-                required_attrs: Required attributes and their expected types
-                optional_attrs: Optional attributes and their expected types
-
-            Returns:
-                FlextResult indicating validation success
-
-            """
-            try:
-                # Check required attributes
-                for attr_name, expected_type in required_attrs.items():
-                    if not hasattr(obj, attr_name):
-                        return FlextResult.fail(
-                            f"Missing required attribute: {attr_name}"
-                        )
-
-                    attr_value = getattr(obj, attr_name)
-                    if not isinstance(attr_value, expected_type):
-                        return FlextResult.fail(
-                            f"Attribute {attr_name} has wrong type: {type(attr_value)} != {expected_type}"
-                        )
-
-                # Check optional attributes
-                if optional_attrs:
-                    for attr_name, expected_type in optional_attrs.items():
-                        if hasattr(obj, attr_name):
-                            attr_value = getattr(obj, attr_name)
-                            if not isinstance(attr_value, expected_type):
-                                return FlextResult.fail(
-                                    f"Optional attribute {attr_name} has wrong type: {type(attr_value)} != {expected_type}"
-                                )
-
-                return FlextResult.ok(True)
-            except Exception as e:
-                return FlextResult.fail(str(e))
-
-        @staticmethod
-        def create_test_context_manager(
-            setup_func: Callable[[], object] | None = None,
-            teardown_func: Callable[[], object] | None = None,
-        ) -> Callable[[Callable[P, T]], Callable[P, T]]:
-            """Create a test context manager decorator - reduces context management code.
-
-            Args:
-                setup_func: Function to call before test execution
-                teardown_func: Function to call after test execution
-
-            Returns:
-                Decorator function
-
-            """
-
-            def decorator(test_func: Callable[P, T]) -> Callable[P, T]:
-                def wrapper(*args: P.args, **kwargs: P.kwargs) -> T:
-                    try:
-                        if setup_func:
-                            setup_func()
-                        return test_func(*args, **kwargs)
-                    finally:
-                        if teardown_func:
-                            teardown_func()
-
-                return wrapper
-
-            return decorator
-
-        @staticmethod
-        def assert_multiple_conditions(
-            conditions: list[tuple[Callable[[], bool], str]],
-        ) -> FlextResult[bool]:
-            """Assert multiple conditions at once - reduces assertion boilerplate.
-
-            Args:
-                conditions: List of (condition_func, error_message) tuples
-
-            Returns:
-                FlextResult indicating all conditions passed
-
-            """
-            try:
-                for condition_func, error_msg in conditions:
-                    if not condition_func():
-                        return FlextResult.fail(error_msg)
-                return FlextResult.ok(True)
-            except Exception as e:
-                return FlextResult.fail(str(e))
+    # TestAutomationHelpers removed - use FlextTestsUtilities.GenericHelpers directly
+    # - validate_object_properties -> FlextTestsUtilities.GenericHelpers.validate_object_properties
+    # - batch_test_operations -> FlextTestsUtilities.GenericHelpers.batch_test_operations
+    # - test_with_mock_exception -> FlextTestsUtilities.GenericHelpers.test_with_mock_exception
+    # - assert_result_with_message -> use tm.ok()/tm.fail() directly
 
     class AppFactory:
         """Factory for creating FlextCliAppBase instances."""
@@ -282,7 +141,7 @@ class FlextCliTestHelpers(FlextService[GenericFieldsDict]):
             app_name: str = "test-cli",
             app_help: str = "Test CLI application",
             config_class: type[FlextCliConfig] | None = None,
-        ) -> FlextResult[FlextCliAppBase]:
+        ) -> r[FlextCliAppBase]:
             """Create a FlextCliAppBase instance.
 
             Args:
@@ -291,7 +150,7 @@ class FlextCliTestHelpers(FlextService[GenericFieldsDict]):
                 config_class: Configuration class for the application
 
             Returns:
-                FlextResult[FlextCliAppBase]: App instance
+                r[FlextCliAppBase]: App instance
 
             """
             try:
@@ -310,9 +169,9 @@ class FlextCliTestHelpers(FlextService[GenericFieldsDict]):
                     def _register_commands(self) -> None:
                         """Register test commands - empty for test purposes."""
 
-                return FlextResult[FlextCliAppBase].ok(TestCliAppBase())
+                return r[FlextCliAppBase].ok(TestCliAppBase())
             except Exception as e:
-                return FlextResult[FlextCliAppBase].fail(str(e))
+                return r[FlextCliAppBase].fail(str(e))
 
     # =========================================================================
     # NESTED HELPER: Context Creation
@@ -325,10 +184,10 @@ class FlextCliTestHelpers(FlextService[GenericFieldsDict]):
         def create_context(
             command: str | None = None,
             arguments: list[str] | None = None,
-            environment_variables: t.JsonDict | None = None,
+            environment_variables: dict[str, t.GeneralValueType] | None = None,
             working_directory: str | None = None,
             **kwargs: t.JsonValue,
-        ) -> FlextResult[FlextCliContext]:
+        ) -> r[FlextCliContext]:
             """Create a FlextCliContext instance.
 
             Args:
@@ -339,12 +198,15 @@ class FlextCliTestHelpers(FlextService[GenericFieldsDict]):
                 **kwargs: Additional context data
 
             Returns:
-                FlextResult[FlextCliContext]: Context instance
+                r[FlextCliContext]: Context instance
 
             """
             try:
                 env_vars: dict[str, t.GeneralValueType] | None = (
-                    cast("dict[str, t.GeneralValueType]", environment_variables)
+                    cast(
+                        "dict[str, t.GeneralValueType] | None",
+                        environment_variables,
+                    )
                     if environment_variables is not None
                     else None
                 )
@@ -355,9 +217,9 @@ class FlextCliTestHelpers(FlextService[GenericFieldsDict]):
                     working_directory=working_directory,
                     **kwargs,
                 )
-                return FlextResult[FlextCliContext].ok(context)
+                return r[FlextCliContext].ok(context)
             except Exception as e:
-                return FlextResult[FlextCliContext].fail(str(e))
+                return r[FlextCliContext].fail(str(e))
 
     # =========================================================================
     # NESTED HELPER: Authentication
@@ -371,7 +233,7 @@ class FlextCliTestHelpers(FlextService[GenericFieldsDict]):
             username: str | None = None,
             password: str | None = None,
             **overrides: str,
-        ) -> FlextResult[Mapping[str, str]]:
+        ) -> r[Mapping[str, str]]:
             """Create test authentication credentials with validation.
 
             Args:
@@ -380,53 +242,49 @@ class FlextCliTestHelpers(FlextService[GenericFieldsDict]):
                 **overrides: Additional credential fields
 
             Returns:
-                FlextResult[CredentialsData]: Test credentials or validation error
+                r[CredentialsData]: Test credentials or validation error
 
             """
             try:
                 # Validate username if explicitly provided (not None)
                 if username is not None:
                     if len(username.strip()) == 0:
-                        return FlextResult[Mapping[str, str]].fail(
-                            "Username cannot be empty"
-                        )
+                        return r[Mapping[str, str]].fail("Username cannot be empty")
                     if len(username) < 3:
-                        return FlextResult[Mapping[str, str]].fail(
-                            "Username must be at least 3 characters"
+                        return r[Mapping[str, str]].fail(
+                            "Username must be at least 3 characters",
                         )
                     final_username = username
                 else:
-                    final_username = TestData.Users.VALID_USERNAME
+                    final_username = "testuser"
 
                 # Validate password if explicitly provided (not None)
                 if password is not None:
                     if len(password.strip()) == 0:
-                        return FlextResult[Mapping[str, str]].fail(
-                            "Password cannot be empty"
-                        )
+                        return r[Mapping[str, str]].fail("Password cannot be empty")
                     if len(password) < 8:
-                        return FlextResult[Mapping[str, str]].fail(
-                            "Password must be at least 8 characters"
+                        return r[Mapping[str, str]].fail(
+                            "Password must be at least 8 characters",
                         )
                     final_password = password
                 else:
-                    final_password = TestData.Users.VALID_PASSWORD
+                    final_password = "testpass123"
 
                 creds: dict[str, t.JsonValue] = {
-                    FlextCliConstants.DictKeys.USERNAME: final_username,
-                    FlextCliConstants.DictKeys.PASSWORD: final_password,
+                    c.DictKeys.USERNAME: final_username,
+                    c.DictKeys.PASSWORD: final_password,
                     **overrides,
                 }
                 creds_str: Mapping[str, str] = cast("Mapping[str, str]", creds)
-                return FlextResult[Mapping[str, str]].ok(creds_str)
+                return r[Mapping[str, str]].ok(creds_str)
             except Exception as e:
-                return FlextResult[Mapping[str, str]].fail(str(e))
+                return r[Mapping[str, str]].fail(str(e))
 
         @staticmethod
         def create_token_data(
             token: str | None = None,
             **overrides: str,
-        ) -> FlextResult[Mapping[str, str]]:
+        ) -> r[Mapping[str, str]]:
             """Create test token data.
 
             Args:
@@ -434,91 +292,25 @@ class FlextCliTestHelpers(FlextService[GenericFieldsDict]):
                 **overrides: Additional token fields
 
             Returns:
-                FlextResult[CredentialsData]: Token data
+                r[CredentialsData]: Token data
 
             """
             try:
-                token_value = (
-                    token if token is not None else TestData.Tokens.VALID_TOKEN
-                )
+                token_value = token if token is not None else "test_token_abc123"
                 data: dict[str, t.JsonValue] = {
                     "token": token_value,
                     **overrides,
                 }
                 data_str: Mapping[str, str] = cast("Mapping[str, str]", data)
-                return FlextResult[Mapping[str, str]].ok(data_str)
+                return r[Mapping[str, str]].ok(data_str)
             except Exception as e:
-                return FlextResult[Mapping[str, str]].fail(str(e))
+                return r[Mapping[str, str]].fail(str(e))
 
     # =========================================================================
     # NESTED HELPER: File Operations
     # =========================================================================
 
-    class FileHelpers:
-        """Helpers for file operation testing."""
-
-        @staticmethod
-        def create_temp_file(
-            content: str = TestData.Files.TEST_CONTENT,
-            suffix: str = ".txt",
-        ) -> FlextResult[Path]:
-            """Create a temporary file with content.
-
-            Args:
-                content: File content
-                suffix: File extension
-
-            Returns:
-                FlextResult[Path]: Path to temporary file
-
-            """
-            try:
-                with tempfile.NamedTemporaryFile(
-                    mode="w",
-                    suffix=suffix,
-                    delete=False,
-                    encoding="utf-8",
-                ) as f:
-                    f.write(content)
-                    return FlextResult[Path].ok(Path(f.name))
-            except Exception as e:
-                return FlextResult[Path].fail(str(e))
-
-        @staticmethod
-        def create_temp_json_file(
-            data: GenericFieldsDict | None = None,
-        ) -> FlextResult[Path]:
-            """Create a temporary JSON file.
-
-            Args:
-                data: JSON data (default: test data)
-
-            Returns:
-                FlextResult[Path]: Path to temporary JSON file
-
-            """
-            try:
-                content = json.dumps(data or {"test": "data", "number": 42})
-                return FlextCliTestHelpers.FileHelpers.create_temp_file(
-                    content=content,
-                    suffix=".json",
-                )
-            except Exception as e:
-                return FlextResult[Path].fail(str(e))
-
-        @staticmethod
-        def create_temp_dir() -> FlextResult[Path]:
-            """Create a temporary directory.
-
-            Returns:
-                FlextResult[Path]: Path to temporary directory
-
-            """
-            try:
-                temp_dir = Path(tempfile.mkdtemp())
-                return FlextResult[Path].ok(temp_dir)
-            except Exception as e:
-                return FlextResult[Path].fail(str(e))
+    # FileHelpers removed - use FlextTestsFileManager directly
 
     # =========================================================================
     # NESTED HELPER: Command Testing
@@ -529,11 +321,11 @@ class FlextCliTestHelpers(FlextService[GenericFieldsDict]):
 
         @staticmethod
         def create_command_model(
-            name: str = TestData.Commands.TEST_COMMAND,
+            name: str = "test_command",
             command_line: str = "test",
-            status: FlextCliConstants.CommandStatusLiteral = "pending",
+            status: c.CommandStatusLiteral = c.CommandStatus.PENDING.value,
             **overrides: object,
-        ) -> FlextResult[FlextCliModels.CliCommand]:
+        ) -> r[m.CliCommand]:
             """Create a CliCommand model instance.
 
             Args:
@@ -543,7 +335,7 @@ class FlextCliTestHelpers(FlextService[GenericFieldsDict]):
                 **overrides: Additional fields
 
             Returns:
-                FlextResult[CliCommand]: Command model
+                r[CliCommand]: Command model
 
             """
             try:
@@ -553,7 +345,7 @@ class FlextCliTestHelpers(FlextService[GenericFieldsDict]):
                 entry_point: str = str(overrides.get("entry_point", ""))
                 plugin_version: str = str(overrides.get("plugin_version", "default"))
 
-                command = FlextCliModels.CliCommand(
+                command = m.CliCommand(
                     command_line=command_line,
                     args=[],
                     status=status,
@@ -569,9 +361,9 @@ class FlextCliTestHelpers(FlextService[GenericFieldsDict]):
                     entry_point=entry_point,
                     plugin_version=plugin_version,
                 )
-                return FlextResult[FlextCliModels.CliCommand].ok(command)
+                return r[m.CliCommand].ok(command)
             except Exception as e:
-                return FlextResult[FlextCliModels.CliCommand].fail(str(e))
+                return r[m.CliCommand].fail(str(e))
 
     # =========================================================================
     # NESTED HELPER: Configuration
@@ -582,19 +374,20 @@ class FlextCliTestHelpers(FlextService[GenericFieldsDict]):
 
         @staticmethod
         def create_config_data(
-            debug: bool = TestData.Config.DEBUG_TRUE,
-            output_format: str = TestData.Config.OUTPUT_FORMAT_JSON,
+            *,
+            debug: bool = True,
+            output_format: str = c.OutputFormats.JSON.value,
             **overrides: t.JsonValue,
-        ) -> FlextResult[t.JsonDict]:
-            """Create test configuration data.
+        ) -> r[dict[str, t.GeneralValueType]]:
+            """Create test configuration data - uses c.
 
             Args:
                 debug: Debug flag
-                output_format: Output format
+                output_format: Output format (default: JSON from FlextCliConstants)
                 **overrides: Additional config fields
 
             Returns:
-                FlextResult[CliDataDict]: Config data
+                r[CliDataDict]: Config data
 
             """
             try:
@@ -602,18 +395,20 @@ class FlextCliTestHelpers(FlextService[GenericFieldsDict]):
                     "debug": debug,
                     "output_format": output_format,
                     "no_color": False,
-                    "profile": TestData.Config.PROFILE_TEST,
-                    "timeout": TestData.Config.TIMEOUT_DEFAULT,
-                    "retries": TestData.Config.RETRIES_DEFAULT,
-                    "api_endpoint": TestData.Config.ENDPOINT_DEFAULT,
+                    "profile": "test",
+                    "timeout": c.NetworkDefaults.DEFAULT_TIMEOUT,
+                    "retries": c.NetworkDefaults.DEFAULT_MAX_RETRIES,
+                    "api_endpoint": "https://api.example.com",
                 }
                 config_data: dict[str, t.JsonValue] = {
                     **base_config,
                     **overrides,
                 }
-                return FlextResult[t.JsonDict].ok(config_data)
+                return r[dict[str, t.GeneralValueType]].ok(
+                    cast("dict[str, t.GeneralValueType]", config_data),
+                )
             except Exception as e:
-                return FlextResult[t.JsonDict].fail(str(e))
+                return r[dict[str, t.GeneralValueType]].fail(str(e))
 
     # =========================================================================
     # NESTED HELPER: Type Testing
@@ -623,39 +418,43 @@ class FlextCliTestHelpers(FlextService[GenericFieldsDict]):
         """Helpers for type testing scenarios."""
 
         @staticmethod
-        def create_typed_dict_data() -> FlextResult[GenericFieldsDict]:
+        def create_typed_dict_data() -> r[dict[str, t.GeneralValueType]]:
             """Create TypedDict-compatible test data.
 
             Returns:
-                FlextResult[GenericFieldsDict]: TypedDict test data
+                r[dict[str, t.GeneralValueType]]: TypedDict test data
 
             """
             try:
-                data = TestTypings.TestData.Processing.MIXED_DICT
-                # Convert to JsonDict-compatible dict using u
-                data_converted: dict[str, t.GeneralValueType] = cast(
-                    "dict[str, t.GeneralValueType]", data
-                )
+                data: dict[str, t.GeneralValueType] = {
+                    "key1": 123,
+                    "key2": "value",
+                    "key3": True,
+                    "key4": [1, 2, 3],
+                }
+                # Convert to JsonDict-compatible dict using helper
+                # data is already dict[str, object], convert to GeneralValueType
+                data_converted: dict[str, t.GeneralValueType] = data
                 # Use u.transform for JSON conversion
-                transform_result = u.transform(data_converted, to_json=True)
-                converted_data_raw = (
+                transform_result = u.transform(
+                    data_converted,
+                    to_json=True,
+                )
+                converted_data = (
                     transform_result.unwrap()
                     if transform_result.is_success
-                    else cast("dict[str, t.GeneralValueType]", data_converted)
+                    else data_converted
                 )
-                converted_data: GenericFieldsDict = cast(
-                    "GenericFieldsDict", converted_data_raw
-                )
-                return FlextResult[GenericFieldsDict].ok(converted_data)
+                return r[dict[str, t.GeneralValueType]].ok(converted_data)
             except Exception as e:
-                return FlextResult[GenericFieldsDict].fail(str(e))
+                return r[dict[str, t.GeneralValueType]].fail(str(e))
 
         @staticmethod
         def create_api_response_data(
-            status: str = TestTypings.TypedDicts.ApiResponse.STATUS,
+            status: str = "success",
             *,
             single_user: bool = True,
-        ) -> FlextResult[GenericFieldsDict]:
+        ) -> r[dict[str, t.GeneralValueType]]:
             """Create API response test data.
 
             Args:
@@ -663,72 +462,92 @@ class FlextCliTestHelpers(FlextService[GenericFieldsDict]):
                 single_user: Whether to return single user or list
 
             Returns:
-                FlextResult[GenericFieldsDict]: API response data
+                r[dict[str, t.GeneralValueType]]: API response data
 
             """
             try:
                 raw_data = {
                     "status": status,
-                    "data": TestTypings.TestData.Api.SINGLE_USER
+                    "data": {
+                        "id": 1,
+                        "name": "Alice",
+                        "email": "alice@example.com",
+                        "active": True,
+                    }
                     if single_user
-                    else TestTypings.TestData.Api.MULTI_USERS,
-                    "message": TestTypings.TypedDicts.ApiResponse.MESSAGE,
-                    "error": TestTypings.TypedDicts.ApiResponse.ERROR,
+                    else [
+                        {
+                            "id": 1,
+                            "name": "Alice",
+                            "email": "alice@example.com",
+                            "active": True,
+                        },
+                        {
+                            "id": 2,
+                            "name": "Bob",
+                            "email": "bob@example.com",
+                            "active": False,
+                        },
+                    ],
+                    "message": "Operation successful",
+                    "error": None,
                 }
-                # Convert to JsonDict-compatible dict using u
+                # Convert to JsonDict-compatible dict using helper
                 raw_data_converted: dict[str, t.GeneralValueType] = cast(
-                    "dict[str, t.GeneralValueType]", raw_data
+                    "dict[str, t.GeneralValueType]",
+                    raw_data,
                 )
                 # Use u.transform for JSON conversion
                 transform_result = u.transform(raw_data_converted, to_json=True)
-                data_raw = (
+                data = (
                     transform_result.unwrap()
                     if transform_result.is_success
-                    else cast("dict[str, t.GeneralValueType]", raw_data_converted)
+                    else raw_data_converted
                 )
-                data: GenericFieldsDict = cast("GenericFieldsDict", data_raw)
-                return FlextResult[GenericFieldsDict].ok(data)
+                return r[dict[str, t.GeneralValueType]].ok(data)
             except Exception as e:
-                return FlextResult[GenericFieldsDict].fail(str(e))
+                return r[dict[str, t.GeneralValueType]].fail(str(e))
 
         @staticmethod
-        def create_processing_test_data() -> FlextResult[
-            tuple[list[str], list[int], GenericFieldsDict]
+        def create_processing_test_data() -> r[
+            tuple[list[str], list[int], dict[str, t.GeneralValueType]]
         ]:
             """Create processing test data tuple.
 
             Returns:
-                FlextResult[tuple]: String list, number list, mixed dict
+                r[tuple]: String list, number list, mixed dict
 
             """
             try:
-                # Convert mixed dict to JsonDict-compatible dict using u
+                # Convert mixed dict to JsonDict-compatible dict using helper
                 mixed_dict_input: dict[str, t.GeneralValueType] = cast(
                     "dict[str, t.GeneralValueType]",
-                    TestTypings.TestData.Processing.MIXED_DICT,
+                    {
+                        "key1": 123,
+                        "key2": "value",
+                        "key3": True,
+                        "key4": [1, 2, 3],
+                    },
                 )
                 # Use u.transform for JSON conversion
                 transform_result = u.transform(mixed_dict_input, to_json=True)
-                mixed_dict_raw = (
+                mixed_dict = (
                     transform_result.unwrap()
                     if transform_result.is_success
-                    else cast("dict[str, t.GeneralValueType]", mixed_dict_input)
-                )
-                mixed_dict: GenericFieldsDict = cast(
-                    "GenericFieldsDict", mixed_dict_raw
+                    else mixed_dict_input
                 )
                 data = (
-                    TestTypings.TestData.Processing.STRING_LIST,
-                    TestTypings.TestData.Processing.NUMBER_LIST,
+                    ["hello", "world", "test"],
+                    [1, 2, 3, 4, 5],
                     mixed_dict,
                 )
-                return FlextResult[tuple[list[str], list[int], GenericFieldsDict]].ok(
-                    data
+                return r[tuple[list[str], list[int], dict[str, t.GeneralValueType]]].ok(
+                    data,
                 )
             except Exception as e:
-                return FlextResult[tuple[list[str], list[int], GenericFieldsDict]].fail(
-                    str(e)
-                )
+                return r[
+                    tuple[list[str], list[int], dict[str, t.GeneralValueType]]
+                ].fail(str(e))
 
     # =========================================================================
     # NESTED HELPER: Protocol Testing
@@ -738,14 +557,16 @@ class FlextCliTestHelpers(FlextService[GenericFieldsDict]):
         """Helpers for protocol testing scenarios."""
 
         @staticmethod
-        def create_formatter_implementation() -> FlextResult[object]:
+        def create_formatter_implementation() -> r[object]:
             """Create a CliFormatter protocol implementation."""
             try:
 
                 class TestFormatter:
                     def format_data(
-                        self, data: GenericFieldsDict, **options: GenericFieldsDict
-                    ) -> FlextResult[str]:
+                        self,
+                        data: dict[str, t.GeneralValueType],
+                        **options: dict[str, t.GeneralValueType],
+                    ) -> r[str]:
                         try:
                             indent_value: int | None = None
                             if "indent" in options:
@@ -754,67 +575,64 @@ class FlextCliTestHelpers(FlextService[GenericFieldsDict]):
                                     int(val) if isinstance(val, (int, str)) else 2
                                 )
                             formatted = json.dumps(data, indent=indent_value or 2)
-                            return FlextResult[str].ok(formatted)
+                            return r[str].ok(formatted)
                         except Exception as e:
-                            return FlextResult[str].fail(str(e))
+                            return r[str].fail(str(e))
 
-                return FlextResult[object].ok(TestFormatter())
+                return r[object].ok(TestFormatter())
             except Exception as e:
-                return FlextResult[object].fail(str(e))
+                return r[object].fail(str(e))
 
         @staticmethod
-        def create_config_provider_implementation() -> FlextResult[object]:
+        def create_config_provider_implementation() -> r[object]:
             """Create a CliConfigProvider protocol implementation."""
             try:
 
                 class TestConfigProvider:
                     def __init__(self) -> None:
-                        self._config: GenericFieldsDict = {}
+                        self._config: dict[str, t.GeneralValueType] = {}
 
-                    def load_config(self) -> FlextResult[GenericFieldsDict]:
-                        # Convert to JsonDict-compatible dict using u
+                    def load_config(self) -> r[dict[str, object]]:
+                        # Convert to JsonDict-compatible dict using helper
                         config_copy_raw = self._config.copy()
-                        config_copy_converted: dict[str, t.GeneralValueType] = cast(
-                            "dict[str, t.GeneralValueType]", config_copy_raw
+                        config_copy_converted: dict[
+                            str,
+                            t.GeneralValueType,
+                        ] = config_copy_raw
+                        # Use u.transform for JSON conversion
+                        transform_result = u.transform(
+                            config_copy_converted,
+                            to_json=True,
                         )
-                        config_copy: GenericFieldsDict = cast(
-                            "GenericFieldsDict",
-                            (
-                                u.transform(
-                                    config_copy_converted, to_json=True
-                                ).unwrap()
-                                if u.transform(
-                                    config_copy_converted, to_json=True
-                                ).is_success
-                                else cast(
-                                    "dict[str, t.GeneralValueType]",
-                                    config_copy_converted,
-                                )
-                            ),
+                        config_copy = (
+                            transform_result.unwrap()
+                            if transform_result.is_success
+                            else config_copy_converted
                         )
-                        return FlextResult[GenericFieldsDict].ok(config_copy)
+                        return r[dict[str, object]].ok(config_copy)
 
                     def save_config(
-                        self, config: GenericFieldsDict
-                    ) -> FlextResult[bool]:
+                        self,
+                        config: dict[str, t.GeneralValueType],
+                    ) -> r[bool]:
                         self._config.update(config)
-                        return FlextResult[bool].ok(True)
+                        return r[bool].ok(True)
 
-                return FlextResult[object].ok(TestConfigProvider())
+                return r[object].ok(TestConfigProvider())
             except Exception as e:
-                return FlextResult[object].fail(str(e))
+                return r[object].fail(str(e))
 
         @staticmethod
-        def create_authenticator_implementation() -> FlextResult[object]:
+        def create_authenticator_implementation() -> r[object]:
             """Create a CliAuthenticator protocol implementation.
 
             Business Rule:
             ──────────────
-            The CliAuthenticator protocol requires authenticate(username, password) -> FlextResult[str].
+            The CliAuthenticator protocol requires authenticate(username, password) -> r[str].
             This implementation validates credentials and returns a token string on success.
-            The authenticate method signature MUST match FlextCliProtocols.Cli.CliAuthenticator:
+            The authenticate method signature MUST match p.Cli.CliAuthenticator:
             - Parameters: username: str, password: str
-            - Returns: FlextResult[str] (token on success)
+            - Returns: r[str] (token on success)
 
             Audit Implications:
             ───────────────────
@@ -827,9 +645,7 @@ class FlextCliTestHelpers(FlextService[GenericFieldsDict]):
                 class TestAuthenticator:
                     """Test authenticator matching CliAuthenticator protocol."""
 
-                    def authenticate(
-                        self, username: str, password: str
-                    ) -> FlextResult[str]:
+                    def authenticate(self, username: str, password: str) -> r[str]:
                         """Authenticate user with username and password.
 
                         Args:
@@ -837,28 +653,28 @@ class FlextCliTestHelpers(FlextService[GenericFieldsDict]):
                             password: User password for authentication
 
                         Returns:
-                            FlextResult[str]: Token string on success, error on failure
+                            r[str]: Token string on success, error on failure
 
                         """
                         if username == "testuser" and password == "testpass":
-                            return FlextResult[str].ok("valid_token")
-                        return FlextResult[str].fail("Invalid credentials")
+                            return r[str].ok("valid_token")
+                        return r[str].fail("Invalid credentials")
 
-                    def validate_token(self, token: str) -> FlextResult[bool]:
+                    def validate_token(self, token: str) -> r[bool]:
                         """Validate authentication token.
 
                         Args:
                             token: Token string to validate
 
                         Returns:
-                            FlextResult[bool]: True if token is valid
+                            r[bool]: True if token is valid
 
                         """
-                        return FlextResult[bool].ok(token.startswith("valid_"))
+                        return r[bool].ok(token.startswith("valid_"))
 
-                return FlextResult[object].ok(TestAuthenticator())
+                return r[object].ok(TestAuthenticator())
             except Exception as e:
-                return FlextResult[object].fail(str(e))
+                return r[object].fail(str(e))
 
     # =========================================================================
     # NESTED HELPER: CLI Testing
@@ -872,11 +688,12 @@ class FlextCliTestHelpers(FlextService[GenericFieldsDict]):
             cli_cli: FlextCliCli,
             name: str,
             help_text: str = "Test command",
-        ) -> FlextResult[object]:
+        ) -> r[object]:
             """Create a test command using CLI decorator."""
             try:
                 decorator = cli_cli.create_command_decorator(
-                    name=name, help_text=help_text
+                    name=name,
+                    help_text=help_text,
                 )
 
                 @decorator
@@ -885,32 +702,34 @@ class FlextCliTestHelpers(FlextService[GenericFieldsDict]):
                     echo("Test")
                     return None
 
-                return FlextResult[object].ok(test_func)
+                return r[object].ok(test_func)
             except Exception as e:
-                return FlextResult[object].fail(str(e))
+                return r[object].fail(str(e))
 
         @staticmethod
         def create_test_group(
             cli_cli: FlextCliCli,
             name: str,
             help_text: str = "Test group",
-        ) -> FlextResult[object]:
+        ) -> r[object]:
             """Create a test group using CLI decorator."""
             try:
                 decorator = cli_cli.create_group_decorator(
-                    name=name, help_text=help_text
+                    name=name,
+                    help_text=help_text,
                 )
 
                 @decorator
                 def test_group_func(
-                    *args: object, **kwargs: object
+                    *args: object,
+                    **kwargs: object,
                 ) -> t.GeneralValueType:
                     """Group function."""
                     return None
 
-                return FlextResult[object].ok(test_group_func)
+                return r[object].ok(test_group_func)
             except Exception as e:
-                return FlextResult[object].fail(str(e))
+                return r[object].fail(str(e))
 
         @staticmethod
         def create_command_with_options(
@@ -918,7 +737,7 @@ class FlextCliTestHelpers(FlextService[GenericFieldsDict]):
             command_name: str,
             option_name: str,
             option_default: DefaultType = None,
-        ) -> FlextResult[object]:
+        ) -> r[object]:
             """Create a command with options."""
             try:
                 command_decorator = cli_cli.create_command_decorator(name=command_name)
@@ -927,13 +746,19 @@ class FlextCliTestHelpers(FlextService[GenericFieldsDict]):
                     if option_default is not None
                     else None
                 )
-                option_config = (
-                    FlextCliModels.OptionConfig(default=option_default_converted)
+                option_config_instance = (
+                    m.OptionConfig(default=option_default_converted)
                     if option_default_converted is not None
                     else None
                 )
+                option_config = (
+                    cast("p.Cli.OptionConfigProtocol", option_config_instance)
+                    if option_config_instance is not None
+                    else None
+                )
                 option_decorator = cli_cli.create_option_decorator(
-                    option_name, config=option_config
+                    option_name,
+                    config=option_config,
                 )
 
                 @command_decorator
@@ -944,185 +769,43 @@ class FlextCliTestHelpers(FlextService[GenericFieldsDict]):
                     echo(f"Value: {value}")
                     return None
 
-                return FlextResult[object].ok(test_command)
+                return r[object].ok(test_command)
             except Exception as e:
-                return FlextResult[object].fail(str(e))
+                return r[object].fail(str(e))
 
         @staticmethod
-        def create_model_command_test_data() -> FlextResult[dict[str, object]]:
+        def create_model_command_test_data() -> r[dict[str, object]]:
             """Create test data for model command testing."""
             try:
                 data: dict[str, object] = {
-                    "params_with_aliases": TestCli.TestData.Models.PARAMS_WITH_ALIASES,
-                    "standard_params": TestCli.TestData.Models.STANDARD_PARAMS,
-                    "bool_params": TestCli.TestData.Models.BOOL_PARAMS,
-                    "mixed_params": TestCli.TestData.Models.MIXED_PARAMS,
+                    "params_with_aliases": {
+                        "input_dir": "/input",
+                        "output_dir": "/output",
+                        "max_count": 10,
+                    },
+                    "standard_params": {
+                        "input_path": "/input/file.txt",
+                        "count": 5,
+                    },
+                    "bool_params": {
+                        "enable_sync": True,
+                        "verbose_mode": False,
+                    },
+                    "mixed_params": {
+                        "required_field": "required",
+                        "optional_field": "default_value",
+                        "optional_int": 42,
+                    },
                 }
-                return FlextResult[dict[str, object]].ok(data)
+                return r[dict[str, object]].ok(data)
             except Exception as e:
-                return FlextResult[dict[str, object]].fail(str(e))
+                return r[dict[str, object]].fail(str(e))
 
     # =========================================================================
     # NESTED HELPER: Test Assertions
     # =========================================================================
 
-    class AssertHelpers:
-        """Enhanced assertion helpers for test validation - reduces 3-5 lines per test."""
-
-        @staticmethod
-        def assert_result_success(result: FlextResult[object]) -> None:
-            """Assert FlextResult is successful.
-
-            Args:
-                result: Result to validate
-
-            Raises:
-                AssertionError: If result is not successful
-
-            """
-            assert result.is_success, f"Expected success, got: {result.error}"
-
-        @staticmethod
-        def assert_result_failure(
-            result: FlextResult[object], error_contains: str | None = None
-        ) -> None:
-            """Assert FlextResult is failure.
-
-            Args:
-                result: Result to validate
-                error_contains: Optional substring that error must contain
-
-            Raises:
-                AssertionError: If result is not failure
-
-            """
-            assert result.is_failure, f"Expected failure, got: {result}"
-            if error_contains:
-                error_msg = str(result.error).lower() if result.error else ""
-                assert error_contains.lower() in error_msg, (
-                    f"Error should contain '{error_contains}', got: {error_msg}"
-                )
-
-        @staticmethod
-        def assert_file_operations(
-            result: FlextResult[object],
-            expected_path: Path | None = None,
-            expected_content: str | None = None,
-        ) -> None:
-            """Assert file operation result and verify file state.
-
-            Args:
-                result: File operation result
-                expected_path: Path to verify exists
-                expected_content: Expected file content
-
-            """
-            FlextCliTestHelpers.AssertHelpers.assert_result_success(result)
-            if expected_path:
-                assert expected_path.exists(), f"File should exist: {expected_path}"
-                if expected_content:
-                    assert expected_path.read_text() == expected_content
-
-        @staticmethod
-        def assert_component_state(
-            obj: object,
-            component_name: str,
-            *,
-            expected_exists: bool = True,
-            expected_type: type | None = None,
-        ) -> None:
-            """Assert component state on an object - saves 3-4 lines per component check.
-
-            Args:
-                obj: Object to check
-                component_name: Name of the component attribute
-                expected_exists: Whether component should exist
-                expected_type: Expected type of the component
-
-            Raises:
-                AssertionError: If component state doesn't match expectations
-
-            """
-            if expected_exists:
-                assert hasattr(obj, component_name), (
-                    f"Component {component_name} should exist"
-                )
-                component = getattr(obj, component_name)
-                assert component is not None, (
-                    f"Component {component_name} should not be None"
-                )
-                if expected_type:
-                    assert isinstance(component, expected_type), (
-                        f"Component {component_name} should be {expected_type}, got {type(component)}"
-                    )
-            elif hasattr(obj, component_name):
-                component = getattr(obj, component_name)
-                assert component is None, f"Component {component_name} should be None"
-
-        @staticmethod
-        def assert_method_callable(
-            obj: object,
-            method_name: str,
-            *,
-            expected_callable: bool = True,
-        ) -> None:
-            """Assert method exists and is callable - saves 2-3 lines per method check.
-
-            Args:
-                obj: Object to check
-                method_name: Name of the method
-                expected_callable: Whether method should be callable
-
-            Raises:
-                AssertionError: If method state doesn't match expectations
-
-            """
-            assert hasattr(obj, method_name), f"Method {method_name} should exist"
-            method = getattr(obj, method_name)
-            if expected_callable:
-                assert callable(method), f"Method {method_name} should be callable"
-            else:
-                assert not callable(method), (
-                    f"Method {method_name} should not be callable"
-                )
-
-        @staticmethod
-        def assert_dict_structure(
-            data: dict[str, object],
-            required_keys: list[str],
-            optional_keys: list[str] | None = None,
-            key_types: dict[str, type] | None = None,
-        ) -> None:
-            """Assert dictionary has expected structure - saves 5-10 lines per structure check.
-
-            Args:
-                data: Dictionary to validate
-                required_keys: Keys that must be present
-                optional_keys: Keys that may be present
-                key_types: Expected types for specific keys
-
-            Raises:
-                AssertionError: If structure doesn't match expectations
-
-            """
-            # Check required keys
-            for key in required_keys:
-                assert key in data, f"Required key '{key}' missing from dict"
-
-            # Check key types
-            if key_types:
-                for key, expected_type in key_types.items():
-                    if key in data:
-                        assert isinstance(data[key], expected_type), (
-                            f"Key '{key}' should be {expected_type}, got {type(data[key])}"
-                        )
-
-            # Check no unexpected keys (if optional_keys specified)
-            if optional_keys is not None:
-                all_allowed_keys = set(required_keys + optional_keys)
-                actual_keys = set(data.keys())
-                unexpected_keys = actual_keys - all_allowed_keys
-                assert not unexpected_keys, f"Unexpected keys found: {unexpected_keys}"
+    # AssertHelpers removed - use FlextTestsMatchers directly
 
     # =========================================================================
     # NESTED HELPER: Output Formatting
@@ -1132,22 +815,22 @@ class FlextCliTestHelpers(FlextService[GenericFieldsDict]):
         """Helpers for output formatting tests."""
 
         @staticmethod
-        def create_format_test_data() -> t.JsonDict:
+        def create_format_test_data() -> dict[str, t.GeneralValueType]:
             """Create standard test data for format tests.
 
             Returns:
                 Test data dictionary
 
             """
-            data: dict[str, t.JsonValue] = {
+            data: dict[str, t.GeneralValueType] = {
                 "key": "value",
                 "number": 42,
-                "list": cast("t.JsonValue", [1, 2, 3]),
+                "list": [1, 2, 3],
             }
             return data
 
         @staticmethod
-        def create_table_test_data() -> t.JsonDict:
+        def create_table_test_data() -> dict[str, t.GeneralValueType]:
             """Create test data for table formatting.
 
             Returns:
@@ -1156,12 +839,14 @@ class FlextCliTestHelpers(FlextService[GenericFieldsDict]):
             """
             # Convert table data to JsonValue-compatible format
             users_list_raw: list[object] = [
-                dict(row.items()) for row in TestData.Tables.SIMPLE_DATA
+                {"name": "John", "age": 30},
+                {"name": "Jane", "age": 25},
             ]
             users_list: Sequence[t.GeneralValueType] = cast(
-                "Sequence[t.GeneralValueType]", users_list_raw
+                "Sequence[t.GeneralValueType]",
+                users_list_raw,
             )
-            data: dict[str, t.JsonValue] = {"users": cast("t.JsonValue", users_list)}
+            data: dict[str, t.GeneralValueType] = {"users": users_list}
             return data
 
     class ConstantsFactory:
@@ -1176,11 +861,11 @@ class FlextCliTestHelpers(FlextService[GenericFieldsDict]):
         def validate_constant_value(
             constant_value: str,
             expected_value: str,
-        ) -> FlextResult[bool]:
+        ) -> r[bool]:
             """Validate that constant matches expected value."""
             if constant_value == expected_value:
-                return FlextResult[bool].ok(True)
-            return FlextResult[bool].fail(
+                return r[bool].ok(True)
+            return r[bool].fail(
                 f"Constant value '{constant_value}' does not match expected '{expected_value}'",
             )
 
@@ -1190,31 +875,31 @@ class FlextCliTestHelpers(FlextService[GenericFieldsDict]):
             must_start_with: str | None = None,
             must_end_with: str | None = None,
             must_not_contain: list[str] | None = None,
-        ) -> FlextResult[bool]:
+        ) -> r[bool]:
             """Validate constant format according to rules."""
             if must_start_with and not constant_value.startswith(must_start_with):
-                return FlextResult[bool].fail(
+                return r[bool].fail(
                     f"Constant must start with '{must_start_with}', got '{constant_value}'",
                 )
 
             if must_end_with and not constant_value.endswith(must_end_with):
-                return FlextResult[bool].fail(
+                return r[bool].fail(
                     f"Constant must end with '{must_end_with}', got '{constant_value}'",
                 )
 
             if must_not_contain:
                 for char in must_not_contain:
                     if char in constant_value:
-                        return FlextResult[bool].fail(
+                        return r[bool].fail(
                             f"Constant must not contain '{char}', got '{constant_value}'",
                         )
 
-            return FlextResult[bool].ok(True)
+            return r[bool].ok(True)
 
         @staticmethod
         def validate_all_constants(
             constants: FlextCliConstants,
-        ) -> FlextResult[dict[str, bool]]:
+        ) -> r[dict[str, bool]]:
             """Validate all constants against expected format and values."""
             validations: dict[str, bool] = {}
 
@@ -1222,39 +907,45 @@ class FlextCliTestHelpers(FlextService[GenericFieldsDict]):
             project_name_valid = (
                 FlextCliTestHelpers.ConstantsFactory.validate_constant_value(
                     constants.PROJECT_NAME,
-                    TestConstants.ExpectedValues.PROJECT_NAME,
+                    "flext-cli",
                 ).is_success
             )
             validations["PROJECT_NAME"] = project_name_valid
 
             # Validate FLEXT_DIR_NAME
-            dir_name_valid = FlextCliTestHelpers.ConstantsFactory.validate_constant_format(
-                constants.FLEXT_DIR_NAME,
-                must_start_with=TestConstants.FormatValidation.DIR_NAME_MUST_START_WITH,
-            ).is_success
+            dir_name_valid = (
+                FlextCliTestHelpers.ConstantsFactory.validate_constant_format(
+                    constants.FLEXT_DIR_NAME,
+                    must_start_with=".",
+                ).is_success
+            )
             validations["FLEXT_DIR_NAME"] = dir_name_valid
 
             # Validate TOKEN_FILE_NAME
-            token_file_valid = FlextCliTestHelpers.ConstantsFactory.validate_constant_format(
-                constants.TOKEN_FILE_NAME,
-                must_end_with=TestConstants.FormatValidation.FILE_NAME_MUST_END_WITH,
-                must_not_contain=TestConstants.InvalidChars.COMMON_INVALID,
-            ).is_success
+            token_file_valid = (
+                FlextCliTestHelpers.ConstantsFactory.validate_constant_format(
+                    constants.TOKEN_FILE_NAME,
+                    must_end_with=".json",
+                    must_not_contain=["/", "\\", ":", "*", "?", '"', "<", ">", "|"],
+                ).is_success
+            )
             validations["TOKEN_FILE_NAME"] = token_file_valid
 
             # Validate REFRESH_TOKEN_FILE_NAME
-            refresh_token_file_valid = FlextCliTestHelpers.ConstantsFactory.validate_constant_format(
-                constants.REFRESH_TOKEN_FILE_NAME,
-                must_end_with=TestConstants.FormatValidation.FILE_NAME_MUST_END_WITH,
-                must_not_contain=TestConstants.InvalidChars.COMMON_INVALID,
-            ).is_success
+            refresh_token_file_valid = (
+                FlextCliTestHelpers.ConstantsFactory.validate_constant_format(
+                    constants.REFRESH_TOKEN_FILE_NAME,
+                    must_end_with=".json",
+                    must_not_contain=["/", "\\", ":", "*", "?", '"', "<", ">", "|"],
+                ).is_success
+            )
             validations["REFRESH_TOKEN_FILE_NAME"] = refresh_token_file_valid
 
             if all(validations.values()):
-                return FlextResult[dict[str, bool]].ok(validations)
+                return r[dict[str, bool]].ok(validations)
 
             failed = [key for key, valid in validations.items() if not valid]
-            return FlextResult[dict[str, bool]].fail(
+            return r[dict[str, bool]].fail(
                 f"Constants validation failed for: {', '.join(failed)}",
             )
 
@@ -1262,41 +953,42 @@ class FlextCliTestHelpers(FlextService[GenericFieldsDict]):
         """Factory for version validation testing."""
 
         @staticmethod
-        def validate_version_string(version: str) -> FlextResult[bool]:
+        def validate_version_string(version: str) -> r[bool]:
             """Validate version string format and constraints."""
             # version is already typed as str, so isinstance check is for runtime safety only
 
-            if len(version) < TestVersions.Formats.MIN_VERSION_LENGTH:
-                return FlextResult[bool].fail("Version too short")
+            if len(version) < 5:
+                return r[bool].fail("Version too short")
 
-            if len(version) > TestVersions.Formats.MAX_VERSION_LENGTH:
-                return FlextResult[bool].fail("Version too long")
+            if len(version) > 50:
+                return r[bool].fail("Version too long")
 
-            if not re.match(TestVersions.Formats.SEMVER_PATTERN, version):
-                return FlextResult[bool].fail("Invalid semver format")
+            semver_pattern = r"^\d+\.\d+\.\d+(?:-[\w\.]+)?(?:\+[\w\.]+)?$"
+            if not re.match(semver_pattern, version):
+                return r[bool].fail("Invalid semver format")
 
-            return FlextResult[bool].ok(True)
+            return r[bool].ok(True)
 
         @staticmethod
-        def validate_version_info(info: tuple[int | str, ...]) -> FlextResult[bool]:
+        def validate_version_info(info: tuple[int | str, ...]) -> r[bool]:
             """Validate version info tuple."""
             # info is already typed as tuple, so isinstance check is for runtime safety only
 
-            if len(info) < TestVersions.Formats.MAJOR_MINOR_PATCH:
-                return FlextResult[bool].fail("Version info too short")
+            if len(info) < 3:
+                return r[bool].fail("Version info too short")
 
             # First three parts should be int or str
-            for i in range(min(TestVersions.Formats.MAJOR_MINOR_PATCH, len(info))):
+            for i in range(min(3, len(info))):
                 if not isinstance(info[i], (int, str)):
-                    return FlextResult[bool].fail(f"Part {i} has invalid type")
+                    return r[bool].fail(f"Part {i} has invalid type")
 
-            return FlextResult[bool].ok(True)
+            return r[bool].ok(True)
 
         @staticmethod
         def validate_consistency(
             version: str,
             info: tuple[int | str, ...],
-        ) -> FlextResult[bool]:
+        ) -> r[bool]:
             """Validate consistency between version string and info tuple."""
             # Simulate real __version_info__ creation logic
             expected_info = tuple(
@@ -1304,46 +996,44 @@ class FlextCliTestHelpers(FlextService[GenericFieldsDict]):
             )
 
             if expected_info != info:
-                return FlextResult[bool].fail(
+                return r[bool].fail(
                     f"Version info mismatch: expected {expected_info}, got {info}",
                 )
 
-            return FlextResult[bool].ok(True)
+            return r[bool].ok(True)
 
     # =========================================================================
     # FlextService Protocol Implementation
     # =========================================================================
 
-    def execute(self) -> FlextResult[GenericFieldsDict]:
+    def execute(self) -> r[dict[str, t.GeneralValueType]]:
         """Execute testing service.
 
         Returns:
-            FlextResult[GenericFieldsDict]: Service execution status.
+            r[dict[str, t.GeneralValueType]]: Service execution status.
 
         """
         try:
             payload = {
-                FlextCliConstants.DictKeys.STATUS: FlextCliConstants.ServiceStatus.OPERATIONAL.value,
-                FlextCliConstants.DictKeys.SERVICE: "FlextCliTestHelpers",
-                FlextCliConstants.DictKeys.MESSAGE: "Test helpers ready",
+                c.DictKeys.STATUS: c.ServiceStatus.OPERATIONAL.value,
+                c.DictKeys.SERVICE: "FlextCliTestHelpers",
+                c.DictKeys.MESSAGE: "Test helpers ready",
             }
-            # Convert to JsonDict-compatible dict using u
+            # Convert to JsonDict-compatible dict using helper
             payload_converted: dict[str, t.GeneralValueType] = cast(
-                "dict[str, t.GeneralValueType]", payload
+                "dict[str, t.GeneralValueType]",
+                payload,
             )
             # Use u.transform for JSON conversion
             transform_result = u.transform(payload_converted, to_json=True)
-            payload_data_raw = (
+            payload_data = (
                 transform_result.unwrap()
                 if transform_result.is_success
-                else cast("dict[str, t.GeneralValueType]", payload_converted)
+                else payload_converted
             )
-            payload_data: GenericFieldsDict = cast(
-                "GenericFieldsDict", payload_data_raw
-            )
-            return FlextResult[GenericFieldsDict].ok(payload_data)
+            return r[dict[str, t.GeneralValueType]].ok(payload_data)
         except Exception as e:
-            return FlextResult[GenericFieldsDict].fail(str(e))
+            return r[dict[str, t.GeneralValueType]].fail(str(e))
 
     # =========================================================================
     # NESTED HELPER: Tables Testing
@@ -1361,11 +1051,27 @@ class FlextCliTestHelpers(FlextService[GenericFieldsDict]):
         def get_test_data() -> dict[str, object]:
             """Get comprehensive table test data."""
             return {
-                "people_dict": TestTables.Data.Sample.PEOPLE_DICT,
-                "people_list": TestTables.Data.Sample.PEOPLE_LIST,
-                "single_row": TestTables.Data.Sample.SINGLE_ROW,
-                "with_none": TestTables.Data.Sample.WITH_NONE,
-                "empty": TestTables.Data.Sample.EMPTY,
+                "people_dict": [
+                    {
+                        "name": "Alice",
+                        "age": 30,
+                        "city": "New York",
+                        "salary": 75000.50,
+                    },
+                    {"name": "Bob", "age": 25, "city": "London", "salary": 65000.75},
+                    {"name": "Charlie", "age": 35, "city": "Paris", "salary": 85000.25},
+                ],
+                "people_list": [
+                    ["Alice", 30, "New York", 75000.50],
+                    ["Bob", 25, "London", 65000.75],
+                    ["Charlie", 35, "Paris", 85000.25],
+                ],
+                "single_row": [{"name": "Alice", "age": 30}],
+                "with_none": [
+                    {"name": "Alice", "age": 30, "city": None},
+                    {"name": "Bob", "age": None, "city": "London"},
+                ],
+                "empty": [],
                 "none": None,
             }
 
@@ -1376,7 +1082,8 @@ class FlextCliTestHelpers(FlextService[GenericFieldsDict]):
 
 create_flext_cli_app_base = FlextCliTestHelpers.AppFactory.create_app
 
-# Expose nested classes as module-level for import convenience
+# Expose nested classes as module-level for import convenience (domain-specific only)
 OutputHelpers = FlextCliTestHelpers.OutputHelpers
 AuthHelpers = FlextCliTestHelpers.AuthHelpers
 CommandHelpers = FlextCliTestHelpers.CommandHelpers
+# GenericHelpers, AssertHelpers, FileHelpers removed - use flext_tests directly

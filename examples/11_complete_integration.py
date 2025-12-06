@@ -11,7 +11,7 @@ FLEXT-CLI PROVIDES:
 - Complete CLI foundation library
 - All features work seamlessly together
 - Singleton pattern for consistency
-- FlextResult railway pattern throughout
+- r railway pattern throughout
 - Professional CLI development toolkit
 
 HOW TO USE IN YOUR CLI:
@@ -29,12 +29,7 @@ from collections.abc import Mapping
 from pathlib import Path
 from typing import cast
 
-from flext_core import FlextUtilities
-
-from flext_cli import FlextCli, FlextCliPrompts, FlextCliTypes
-
-# Alias for static method calls - use u.* for u static methods
-u = FlextUtilities
+from flext_cli import FlextCli, FlextCliPrompts, r, t, u
 
 cli = FlextCli()
 
@@ -57,30 +52,33 @@ class DataManagerCLI:
         """Show welcome message with styled output."""
         self.cli.output.print_message("=" * 70, style="bold blue")
         self.cli.output.print_message(
-            "  📊 Data Manager CLI", style="bold white on blue"
+            "  📊 Data Manager CLI",
+            style="bold white on blue",
         )
         self.cli.output.print_message("=" * 70, style="bold blue")
 
-    def save_data(self, data: FlextCliTypes.Data.CliDataDict) -> FlextResult[bool]:
+    def save_data(self, data: t.Data.CliDataDict) -> r[bool]:
         """Save data with proper error handling."""
         write_result = self.cli.file_tools.write_json_file(self.data_file, data)
 
         if write_result.is_failure:
             error_msg = write_result.error or "Unknown error"
             self.cli.output.print_message(
-                f"❌ Save failed: {error_msg}", style="bold red"
+                f"❌ Save failed: {error_msg}",
+                style="bold red",
             )
-            return FlextResult[bool].fail(error_msg)
+            return r[bool].fail(error_msg)
 
         self.cli.output.print_message(
-            f"✅ Data saved to {self.data_file.name}", style="green"
+            f"✅ Data saved to {self.data_file.name}",
+            style="green",
         )
-        return FlextResult[bool].ok(True)
+        return r[bool].ok(True)
 
-    def load_data(self) -> FlextResult[FlextCliTypes.Data.CliDataDict]:
+    def load_data(self) -> r[t.Data.CliDataDict]:
         """Load data with error handling."""
         if not self.data_file.exists():
-            return FlextResult[FlextCliTypes.Data.CliDataDict].fail(
+            return r[t.Data.CliDataDict].fail(
                 "No data file found",
             )
 
@@ -89,24 +87,25 @@ class DataManagerCLI:
         if read_result.is_failure:
             error_msg = read_result.error or "Unknown error"
             self.cli.output.print_message(
-                f"❌ Load failed: {error_msg}", style="bold red"
+                f"❌ Load failed: {error_msg}",
+                style="bold red",
             )
-            return FlextResult[FlextCliTypes.Data.CliDataDict].fail(error_msg)
+            return r[t.Data.CliDataDict].fail(error_msg)
 
         # Type narrowing: ensure we return a dict
         data = read_result.unwrap()
         if not isinstance(data, dict):
-            return FlextResult[FlextCliTypes.Data.CliDataDict].fail(
+            return r[t.Data.CliDataDict].fail(
                 "Data is not a dictionary",
             )
         self.cli.output.print_message("✅ Data loaded successfully", style="green")
         # Convert to JsonDict-compatible dict using u
-        converted_data: FlextCliTypes.Data.CliDataDict = (
+        converted_data: t.Data.CliDataDict = (
             u.transform(data, to_json=True).unwrap()
             if isinstance(data, dict) and u.transform(data, to_json=True).is_success
             else data
         )
-        return FlextResult[FlextCliTypes.Data.CliDataDict].ok(converted_data)
+        return r[t.Data.CliDataDict].ok(converted_data)
 
     def display_data(self, data: Mapping[str, t.GeneralValueType]) -> None:
         """Display data as formatted table."""
@@ -123,14 +122,14 @@ class DataManagerCLI:
         if table_result.is_success:
             self.cli.print_table(table_result.unwrap())
 
-    def add_entry(self) -> FlextResult[FlextCliTypes.Data.CliDataDict]:
+    def add_entry(self) -> r[t.Data.CliDataDict]:
         """Add new entry with user prompts."""
         prompts = FlextCliPrompts(interactive_mode=False)
 
         # Get key
         key_result = prompts.prompt("Enter key:", default="sample_key")
         if key_result.is_failure:
-            return FlextResult[FlextCliTypes.Data.CliDataDict].fail(
+            return r[t.Data.CliDataDict].fail(
                 f"Prompt failed: {key_result.error}",
             )
 
@@ -139,7 +138,7 @@ class DataManagerCLI:
         # Get value
         value_result = prompts.prompt("Enter value:", default="sample_value")
         if value_result.is_failure:
-            return FlextResult[FlextCliTypes.Data.CliDataDict].fail(
+            return r[t.Data.CliDataDict].fail(
                 f"Prompt failed: {value_result.error}",
             )
 
@@ -147,21 +146,24 @@ class DataManagerCLI:
 
         entry = {key: value}
         self.cli.output.print_message(
-            f"✅ Created entry: {key} = {value}", style="green"
+            f"✅ Created entry: {key} = {value}",
+            style="green",
         )
         # Convert to JsonDict-compatible dict using u
-        converted_entry: FlextCliTypes.Data.CliDataDict = (
+        converted_entry: t.Data.CliDataDict = (
             u.transform(
-                cast("dict[str, t.GeneralValueType]", entry), to_json=True
+                cast("dict[str, t.GeneralValueType]", entry),
+                to_json=True,
             ).unwrap()
             if u.transform(
-                cast("dict[str, t.GeneralValueType]", entry), to_json=True
+                cast("dict[str, t.GeneralValueType]", entry),
+                to_json=True,
             ).is_success
             else cast("dict[str, t.GeneralValueType]", entry)
         )
-        return FlextResult[FlextCliTypes.Data.CliDataDict].ok(converted_entry)
+        return r[t.Data.CliDataDict].ok(converted_entry)
 
-    def run_workflow(self) -> FlextResult[bool]:
+    def run_workflow(self) -> r[bool]:
         """Complete workflow integrating all features."""
         # Step 1: Welcome
         self.display_welcome()
@@ -188,7 +190,7 @@ class DataManagerCLI:
         entry_result = self.add_entry()
 
         if entry_result.is_failure:
-            return FlextResult[bool].fail(f"Add entry failed: {entry_result.error}")
+            return r[bool].fail(f"Add entry failed: {entry_result.error}")
 
         new_entry = entry_result.unwrap()
         # Convert Mapping to dict for update
@@ -200,14 +202,14 @@ class DataManagerCLI:
         save_result = self.save_data(current_data)
 
         if save_result.is_failure:
-            return FlextResult[bool].fail(f"Save failed: {save_result.error}")
+            return r[bool].fail(f"Save failed: {save_result.error}")
 
         # Step 6: Display final result
         self.cli.output.print_message("\n✨ Final Result:", style="bold cyan")
         # Cast to expected type for display function
         self.display_data(current_data)
 
-        return FlextResult[bool].ok(True)
+        return r[bool].ok(True)
 
 
 # ============================================================================
@@ -216,29 +218,28 @@ class DataManagerCLI:
 
 
 def process_with_railway_pattern(
-    input_data: FlextCliTypes.Data.CliDataDict,
-) -> FlextResult[FlextCliTypes.Data.CliDataDict]:
+    input_data: t.Data.CliDataDict,
+) -> r[t.Data.CliDataDict]:
     """Show railway pattern chaining operations."""
     # Removed unused temp_file variable
 
-    # Chain operations using FlextResult
+    # Chain operations using r
     # Step 1: Validate
-    step1_data: FlextCliTypes.Data.CliDataDict = {**input_data, "validated": True}
+    step1_data: t.Data.CliDataDict = {**input_data, "validated": True}
     # Step 2: Transform
-    step2_data: FlextCliTypes.Data.CliDataDict = {**step1_data, "processed": True}
+    step2_data: t.Data.CliDataDict = {**step1_data, "processed": True}
     # Step 3: Enrich
-    final_data: FlextCliTypes.Data.CliDataDict = cast(
-        "FlextCliTypes.Data.CliDataDict",
+    final_data: t.Data.CliDataDict = cast(
+        "t.Data.CliDataDict",
         {**step2_data, "enriched": True},
     )
 
-    result: FlextResult[FlextCliTypes.Data.CliDataDict] = FlextResult[
-        FlextCliTypes.Data.CliDataDict
-    ].ok(final_data)
+    result: r[t.Data.CliDataDict] = r[t.Data.CliDataDict].ok(final_data)
 
     if result.is_failure:
         cli.output.print_message(
-            f"❌ Pipeline failed: {result.error}", style="bold red"
+            f"❌ Pipeline failed: {result.error}",
+            style="bold red",
         )
         return result
 
@@ -264,20 +265,23 @@ def main() -> None:
 
     if workflow_result.is_failure:
         cli.output.print_message(
-            f"   ❌ Workflow failed: {workflow_result.error}", style="bold red"
+            f"   ❌ Workflow failed: {workflow_result.error}",
+            style="bold red",
         )
     else:
         cli.output.print_message(
-            "   ✅ Workflow completed successfully!", style="bold green"
+            "   ✅ Workflow completed successfully!",
+            style="bold green",
         )
 
     # Example 2: Railway pattern
     cli.output.print_message(
-        "\n2. Railway Pattern (chained operations):", style="bold cyan"
+        "\n2. Railway Pattern (chained operations):",
+        style="bold cyan",
     )
     test_data_raw: dict[str, t.GeneralValueType] = {"id": 1, "name": "test"}
     # Convert to JsonDict-compatible dict using u
-    test_data: FlextCliTypes.Data.CliDataDict = (
+    test_data: t.Data.CliDataDict = (
         u.transform(test_data_raw, to_json=True).unwrap()
         if isinstance(test_data_raw, dict)
         and u.transform(test_data_raw, to_json=True).is_success
@@ -292,23 +296,25 @@ def main() -> None:
     # Example 3: Error handling showcase
     cli.output.print_message("\n3. Error Handling Showcase:", style="bold cyan")
 
-    def safe_operation(value: int) -> FlextResult[int]:
+    def safe_operation(value: int) -> r[int]:
         if value < 0:
-            return FlextResult[int].fail("Negative values not allowed")
-        return FlextResult[int].ok(value * 2)
+            return r[int].fail("Negative values not allowed")
+        return r[int].ok(value * 2)
 
     # Success case
     result = safe_operation(10)
     if result.is_success:
         cli.output.print_message(
-            f"   ✅ Operation succeeded: {result.unwrap()}", style="green"
+            f"   ✅ Operation succeeded: {result.unwrap()}",
+            style="green",
         )
 
     # Failure case
     result = safe_operation(-5)
     if result.is_failure:
         cli.output.print_message(
-            f"   ℹ️  Operation failed gracefully: {result.error}", style="cyan"
+            f"   ℹ️  Operation failed gracefully: {result.error}",
+            style="cyan",
         )
 
     # Cleanup
@@ -316,23 +322,25 @@ def main() -> None:
 
     cli.output.print_message("\n" + "=" * 70, style="bold blue")
     cli.output.print_message(
-        "  ✅ Complete Integration Examples Done!", style="bold green"
+        "  ✅ Complete Integration Examples Done!",
+        style="bold green",
     )
     cli.output.print_message("=" * 70, style="bold blue")
 
     # Summary guide
     cli.output.print_message("\n💡 Integration Summary:", style="bold cyan")
     cli.output.print_message(
-        "  • Use FlextCli() constructor for singleton access", style="white"
+        "  • Use FlextCli() constructor for singleton access",
+        style="white",
+    )
+    cli.output.print_message("  • Chain operations with r.map()", style="white")
+    cli.output.print_message(
+        "  • Handle errors gracefully with is_success/is_failure",
+        style="white",
     )
     cli.output.print_message(
-        "  • Chain operations with FlextResult.map()", style="white"
-    )
-    cli.output.print_message(
-        "  • Handle errors gracefully with is_success/is_failure", style="white"
-    )
-    cli.output.print_message(
-        "  • Combine all features for complete CLI apps", style="white"
+        "  • Combine all features for complete CLI apps",
+        style="white",
     )
 
     # Architecture overview
@@ -343,7 +351,7 @@ def main() -> None:
         "User Input": "FlextCliPrompts",
         "Config": "cli.config",
         "Auth": "cli.save/get_auth_token()",
-        "Error Handling": "FlextResult pattern",
+        "Error Handling": "r pattern",
     }
 
     for component, usage in architecture.items():

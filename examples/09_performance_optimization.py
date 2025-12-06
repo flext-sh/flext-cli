@@ -35,7 +35,7 @@ import tempfile
 import time
 from functools import lru_cache
 
-from flext_cli import FlextCliModels, FlextCliOutput, FlextCliTables, FlextCliTypes
+from flext_cli import FlextCliOutput, FlextCliTables, m, t
 
 output = FlextCliOutput()
 
@@ -140,7 +140,7 @@ def demonstrate_lazy_loading() -> None:
 
 
 def efficient_table_display(
-    large_dataset: list[FlextCliTypes.Data.CliDataDict],
+    large_dataset: list[t.Data.CliDataDict],
 ) -> None:
     """Display large tables efficiently in YOUR CLI."""
     # ✅ Show only necessary rows
@@ -156,7 +156,7 @@ def efficient_table_display(
     preview_data = large_dataset[:preview_size]
 
     tables = FlextCliTables()
-    config = FlextCliModels.TableConfig(table_format="simple")
+    config = m.TableConfig(table_format="simple")
     table_result = tables.create_table(preview_data, config=config)
 
     if table_result.is_success:
@@ -246,7 +246,7 @@ def main() -> None:
 
     # Example 4: Efficient tables
     output.print_message("\n4. Efficient Table Display:", style="bold cyan")
-    large_data: list[FlextCliTypes.Data.CliDataDict] = [
+    large_data: list[t.Data.CliDataDict] = [
         {"id": i, "name": f"Item {i}"} for i in range(1000)
     ]
     efficient_table_display(large_data)

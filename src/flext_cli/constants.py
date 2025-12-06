@@ -284,10 +284,6 @@ class FlextCliConstants(FlextConstants):
         HEALTHY = "healthy"
         CONNECTED = "connected"
 
-    # Service status constants for direct access
-    HEALTHY: Final[str] = ServiceStatus.HEALTHY.value
-    OPERATIONAL: Final[str] = ServiceStatus.OPERATIONAL.value
-
     class OutputFormats(StrEnum):
         """CLI output format enum - extends Flext standard formats.
 
@@ -302,10 +298,8 @@ class FlextCliConstants(FlextConstants):
         TABLE = "table"  # Standard format
         PLAIN = "plain"  # CLI-specific format
 
-    # Environment enum - reuse from flext-core (no duplication)
-    # Use FlextConstants.Settings.Environment directly instead of duplicating
-    # Note: flext-core uses "testing", not "test" - update references if needed
-    Environment = FlextConstants.Settings.Environment
+    # Environment enum - already available via inheritance from FlextConstants.Settings.Environment
+    # No need to redeclare - use c.Settings.Environment directly
 
     class LogVerbosity(StrEnum):
         """Log verbosity level enum.
@@ -404,9 +398,7 @@ class FlextCliConstants(FlextConstants):
             FlextConstants.Settings.Environment.DEVELOPMENT.value
         )
 
-        # Log level defaults - reuse from flext-core
-        DEFAULT_LOG_LEVEL: Final[str] = FlextConstants.Settings.LogLevel.INFO.value
-        DEFAULT_CLI_LOG_LEVEL: Final[str] = FlextConstants.Settings.LogLevel.INFO.value
+        # Log level defaults - reuse from flext-core directly
 
         # Verbosity defaults
         DEFAULT_LOG_VERBOSITY: Final[str] = "detailed"
@@ -424,7 +416,6 @@ class FlextCliConstants(FlextConstants):
         """Network-related defaults for CLI operations."""
 
         # Network defaults - reuse from flext-core Platform constants (no duplication)
-        DEFAULT_HOST: Final[str] = FlextConstants.Platform.DEFAULT_HOST
         DEFAULT_PORT: Final[int] = (
             8080  # CLI-specific port (different from FLEXT_API_PORT)
         )
@@ -690,10 +681,6 @@ class FlextCliConstants(FlextConstants):
 
     # Default values
     DEFAULT: Final[str] = "default"
-    # Matches OutputFormats.TABLE.value
-    # Using direct reference since OutputFormats is already defined above
-    TABLE: Final[str] = OutputFormats.TABLE.value
-
     # Directory labels
     HOME: Final[str] = "Home"
     CONFIG: Final[str] = "Config"
@@ -860,7 +847,7 @@ class FlextCliConstants(FlextConstants):
         # Validation errors
         NO_DATA_PROVIDED: Final[str] = "No data provided for table"
         TABLE_FORMAT_REQUIRED_DICT: Final[str] = (
-            "Table format requires t.JsonDict or list of dicts"
+            "Table format requires t.Json.JsonDict or list of dicts"
         )
         TABLE_HEADERS_MUST_BE_LIST: Final[str] = (
             "Table headers must be a list for list of dicts data"
@@ -1221,9 +1208,10 @@ class FlextCliConstants(FlextConstants):
         NO_VALUES: Final[list[str]] = ["n", "no", "false", "0"]
 
     class Encoding:
-        """Encoding constants."""
+        """Encoding constants - reuse from flext-core (no duplication)."""
 
-        UTF8: Final[str] = "utf-8"
+        # Reuse DEFAULT_ENCODING from flext-core (no duplication)
+        UTF8: Final[str] = FlextConstants.Utilities.DEFAULT_ENCODING
         ASCII: Final[str] = "ascii"
 
     class JsonOptions:
@@ -1367,10 +1355,11 @@ class FlextCliConstants(FlextConstants):
 
         LOG_VERBOSITY_VALUES: Final[set[str]] = {"compact", "detailed", "full"}
         # Environment values - reuse from flext-core (no duplication)
-        # Use FlextConstants.get_valid_environments() method instead
-        ENVIRONMENT_VALUES: Final[set[str]] = set(
-            FlextConstants.get_valid_environments(),
-        )
+        # Use FlextConstants.Settings.Environment enum values
+        ENVIRONMENT_VALUES: Final[set[str]] = {
+            member.value
+            for member in FlextConstants.Settings.Environment.__members__.values()
+        }
         URL_PROTOCOLS: Final[tuple[str, ...]] = ("http://", "https://")
         YAML_EXTENSIONS: Final[set[str]] = {".yml", ".yaml"}
         STDOUT_FD: Final[int] = 1
@@ -1410,7 +1399,7 @@ class FlextCliConstants(FlextConstants):
         ZIP_READ_MODE: Final = "r"
         JSON_INDENT: Final[int] = 2
         JSON_ENSURE_ASCII: Final[bool] = False
-        ENCODING_DEFAULT: Final[str] = "utf-8"
+        # Reuse DEFAULT_ENCODING from flext-core directly (no duplication)
         GLOB_PATTERN_ALL: Final[str] = "*"
         FORMAT_EXTENSIONS_KEY: Final[str] = "extensions"
 
@@ -1683,6 +1672,7 @@ class FlextCliConstants(FlextConstants):
         TRACE_ID: Final[str] = "trace_id"
         DEBUG_ID: Final[str] = "debug_id"
         SYSTEM_INFO: Final[str] = "system_info"
+        ENVIRONMENT_INFO: Final[str] = "environment_info"
         ENVIRONMENT_STATUS: Final[str] = "environment_status"
         CONNECTIVITY_STATUS: Final[str] = "connectivity_status"
 
@@ -2082,7 +2072,7 @@ class FlextCliConstants(FlextConstants):
 
         NO_DATA_PROVIDED: Final[str] = "No data provided for table"
         TABLE_FORMAT_REQUIRED_DICT: Final[str] = (
-            "Table format requires t.JsonDict or list of dicts"
+            "Table format requires t.Json.JsonDict or list of dicts"
         )
         TABLE_HEADERS_MUST_BE_LIST: Final[str] = (
             "Table headers must be a list for list of dicts data"
@@ -2457,7 +2447,8 @@ class FlextCliConstants(FlextConstants):
         # Auto-refresh
         AUTO_REFRESH: Final[bool] = True
         DEFAULT_APP_DESCRIPTION_SUFFIX: Final[str] = " - FLEXT CLI Framework"
-        DEFAULT_TIMEOUT: Final[int] = 30
+        # Reuse DEFAULT_TIMEOUT from flext-core (no duplication)
+        DEFAULT_TIMEOUT: Final[int] = FlextConstants.Network.DEFAULT_TIMEOUT
         DEFAULT_LOG_LEVEL: Final[str] = "INFO"
         DEFAULT_VERSION: Final[str] = "2.0.0"
 
@@ -2486,6 +2477,10 @@ class FlextCliConstants(FlextConstants):
         ]
 
 
+# Convenience alias for common usage pattern
+c = FlextCliConstants
+
 __all__ = [
     "FlextCliConstants",
+    "c",
 ]

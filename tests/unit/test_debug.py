@@ -21,7 +21,7 @@ from flext_core import FlextResult
 from flext_cli import FlextCliDebug
 
 
-class TestFlextCliDebug:
+class TestsCliDebug:
     """Comprehensive tests for FlextCliDebug functionality.
 
     Single class with nested helper classes and methods organized by functionality.
@@ -33,23 +33,7 @@ class TestFlextCliDebug:
     # NESTED: Assertion Helpers
     # =========================================================================
 
-    class Assertions:
-        """Helper methods for test assertions."""
-
-        @staticmethod
-        def assert_result_success(result: FlextResult[object]) -> None:
-            """Assert result is successful."""
-            assert result.is_success, f"Expected success, got: {result.error}"
-
-        @staticmethod
-        def assert_result_failure(
-            result: FlextResult[object], error_contains: str | None = None
-        ) -> None:
-            """Assert result is failure."""
-            assert result.is_failure, f"Expected failure, got: {result}"
-            if error_contains:
-                error_msg = str(result.error).lower() if result.error else ""
-                assert error_contains.lower() in error_msg
+    # Assertions removed - use FlextTestsMatchers directly
 
     # =========================================================================
     # FIXTURES

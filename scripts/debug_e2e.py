@@ -20,10 +20,7 @@ import traceback
 from collections.abc import Callable
 from typing import cast
 
-from flext_core import FlextResult
-
-from flext_cli import FlextCli, FlextCliTypes
-from flext_cli.constants import FlextCliConstants
+from flext_cli import FlextCli, t, c, r
 
 
 class FlextCliDebugE2E:
@@ -41,11 +38,11 @@ class FlextCliDebugE2E:
         self.logger = logging.getLogger(__name__)
 
         # Define test operations using collections.abc.Mapping for O(1) lookup
-        self.operations: dict[tuple[str, str], Callable[[FlextCli], FlextResult[object]]] = {
-            ("config", "show"): lambda cli: cast("FlextResult[object]", cli.cmd.show_config_paths()),
-            ("config", "validate"): lambda cli: cast("FlextResult[object]", cli.cmd.validate_config()),
+        self.operations: dict[tuple[str, str], Callable[[FlextCli], r[object]]] = {
+            ("config", "show"): lambda cli: cast("r[object]", cli.cmd.show_config_paths()),
+            ("config", "validate"): lambda cli: cast("r[object]", cli.cmd.validate_config()),
             ("auth", "status"): self._execute_auth_status,
-            ("debug", "check"): lambda cli: cast("FlextResult[object]", cli.execute()),
+            ("debug", "check"): lambda cli: cast("r[object]", cli.execute()),
         }
 
     def run_debug_tests(self) -> None:
@@ -79,20 +76,20 @@ class FlextCliDebugE2E:
             traceback.print_exc()
             return False
 
-    def _execute_operation(self, cli: FlextCli, operation: list[str]) -> FlextResult[object]:
+    def _execute_operation(self, cli: FlextCli, operation: list[str]) -> r[object]:
         """Execute the specified operation using flext-cli API."""
         operation_key = cast("tuple[str, str]", tuple(operation))
         if operation_key in self.operations:
             return self.operations[operation_key](cli)
-        return FlextResult[object].fail(f"Unknown operation: {operation}")
+        return r[object].fail(f"Unknown operation: {operation}")
 
-    def _execute_auth_status(self, cli: FlextCli) -> FlextResult[object]:
+    def _execute_auth_status(self, cli: FlextCli) -> r[object]:
         """Execute authentication status check."""
         is_authenticated = cli.is_authenticated()
         return (
-            FlextResult[object].ok("Authenticated")
+            r[object].ok("Authenticated")
             if is_authenticated
-            else FlextResult[object].fail("Not authenticated")
+            else r[object].fail("Not authenticated")
         )
 
     def demonstrate_advanced_types(self) -> None:
@@ -106,23 +103,23 @@ class FlextCliDebugE2E:
         self.logger.info("Demonstrating advanced Python 3.13+ typing patterns")
 
         # Using StrEnum from constants for runtime validation
-        output_format = FlextCliConstants.OutputFormats.JSON
+        output_format = c.OutputFormats.JSON
         self.logger.info(f"Selected output format: {output_format.value}")
 
         # Using collections.abc.Mapping for immutable configuration
-        config: FlextCliTypes.Data.CliConfigMapping = {
+        config: t.Data.CliConfigMapping = {
             "output_format": "json",
             "timeout": 30,
             "debug": True,
         }
 
         # Demonstrate discriminated union validation
-        valid_formats = FlextCliConstants.get_valid_output_formats()
+        valid_formats = c.get_valid_output_formats()
         self.logger.info(f"Available formats: {', '.join(valid_formats)}")
 
         # Using advanced type aliases from typings
-        sample_data: FlextCliTypes.CliJsonDict = {
-            "status": FlextCliConstants.CommandStatus.COMPLETED.value,
+        sample_data: t.CliJsonDict = {
+            "status": c.CommandStatus.COMPLETED.value,
             "data": [1, 2, 3],
             "metadata": {"version": "1.0"},
         }

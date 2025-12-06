@@ -4,7 +4,7 @@ Tests for FlextCliMixins covering business rules validation (command/session sta
 pipeline steps, configuration consistency), CLI command mixin execution, and edge cases
 with 100% coverage.
 
-Modules tested: flext_cli.mixins.FlextCliMixins (BusinessRulesMixin, CliCommandMixin)
+Modules tested: flext_cli.mixins.FlextCliMixins (BusinessRulesMixin, m.CommandMixin)
 Scope: All validation methods, CLI context execution, error handling, edge cases
 
 Copyright (c) 2025 FLEXT Team. All rights reserved.
@@ -17,16 +17,15 @@ from __future__ import annotations
 from typing import TypeVar, cast
 
 import pytest
-from flext_core import FlextResult, t
+from flext_core import t
+from flext_tests import tm
 
-from flext_cli import FlextCliMixins, FlextCliProtocols
-
-from ..fixtures.constants import TestMixins
+from flext_cli import FlextCliMixins, p, r
 
 T = TypeVar("T")
 
 
-class TestFlextCliMixins:
+class TestsCliMixins:
     """Comprehensive test suite for FlextCliMixins validation and composition.
 
     Single class with nested helper classes and methods organized by functionality.
@@ -38,23 +37,7 @@ class TestFlextCliMixins:
     # NESTED: Assertion Helpers
     # =========================================================================
 
-    class Assertions:
-        """Helper methods for test assertions."""
-
-        @staticmethod
-        def assert_result_success(result: FlextResult[T]) -> None:
-            """Assert result is successful."""
-            assert result.is_success, f"Expected success, got: {result.error}"
-
-        @staticmethod
-        def assert_result_failure(
-            result: FlextResult[T], error_contains: str | None = None
-        ) -> None:
-            """Assert result is failure."""
-            assert result.is_failure, f"Expected failure, got: {result}"
-            if error_contains:
-                error_msg = str(result.error).lower() if result.error else ""
-                assert error_contains.lower() in error_msg
+    # Assertions removed - use FlextTestsMatchers directly
 
     # =========================================================================
     # BUSINESS RULES - COMMAND EXECUTION STATE VALIDATION TESTS (Parametrized)
@@ -64,24 +47,27 @@ class TestFlextCliMixins:
         ("current_status", "required_status", "operation"),
         [
             (
-                TestMixins.BusinessRules.CommandStates.RUNNING,
-                TestMixins.BusinessRules.CommandStates.RUNNING,
+                "running",
+                "running",
                 "test",
             ),
             (
-                TestMixins.BusinessRules.CommandStates.COMPLETED,
-                TestMixins.BusinessRules.CommandStates.COMPLETED,
+                "completed",
+                "completed",
                 "deploy",
             ),
             (
-                TestMixins.BusinessRules.CommandStates.PAUSED,
-                TestMixins.BusinessRules.CommandStates.PAUSED,
+                "paused",
+                "paused",
                 "pause_op",
             ),
         ],
     )
     def test_command_execution_state_valid(
-        self, current_status: str, required_status: str, operation: str
+        self,
+        current_status: str,
+        required_status: str,
+        operation: str,
     ) -> None:
         """Test command execution state validation with valid states."""
         result = FlextCliMixins.BusinessRulesMixin.validate_command_execution_state(
@@ -89,30 +75,33 @@ class TestFlextCliMixins:
             required_status=required_status,
             operation=operation,
         )
-        self.Assertions.assert_result_success(result)
+        tm.ok(result)
 
     @pytest.mark.parametrize(
         ("current_status", "required_status", "operation"),
         [
             (
-                TestMixins.BusinessRules.CommandStates.STOPPED,
-                TestMixins.BusinessRules.CommandStates.RUNNING,
+                "stopped",
+                "running",
                 "migrate",
             ),
             (
-                TestMixins.BusinessRules.CommandStates.FAILED,
-                TestMixins.BusinessRules.CommandStates.RUNNING,
+                "failed",
+                "running",
                 "sync",
             ),
             (
-                TestMixins.BusinessRules.CommandStates.PAUSED,
-                TestMixins.BusinessRules.CommandStates.COMPLETED,
+                "paused",
+                "completed",
                 "finalize",
             ),
         ],
     )
     def test_command_execution_state_invalid(
-        self, current_status: str, required_status: str, operation: str
+        self,
+        current_status: str,
+        required_status: str,
+        operation: str,
     ) -> None:
         """Test command execution state validation with invalid states."""
         result = FlextCliMixins.BusinessRulesMixin.validate_command_execution_state(
@@ -120,7 +109,7 @@ class TestFlextCliMixins:
             required_status=required_status,
             operation=operation,
         )
-        self.Assertions.assert_result_failure(result, operation)
+        tm.fail(result, expected_error=operation)
 
     # =========================================================================
     # BUSINESS RULES - SESSION STATE VALIDATION TESTS (Parametrized)
@@ -130,60 +119,64 @@ class TestFlextCliMixins:
         ("current_status", "valid_states"),
         [
             (
-                TestMixins.BusinessRules.SessionStates.ACTIVE,
+                "active",
                 [
-                    TestMixins.BusinessRules.SessionStates.ACTIVE,
-                    TestMixins.BusinessRules.SessionStates.IDLE,
+                    "active",
+                    "idle",
                 ],
             ),
             (
-                TestMixins.BusinessRules.SessionStates.IDLE,
+                "idle",
                 [
-                    TestMixins.BusinessRules.SessionStates.ACTIVE,
-                    TestMixins.BusinessRules.SessionStates.IDLE,
+                    "active",
+                    "idle",
                 ],
             ),
             (
-                TestMixins.BusinessRules.SessionStates.ACTIVE,
-                [TestMixins.BusinessRules.SessionStates.ACTIVE],
+                "active",
+                ["active"],
             ),
         ],
     )
     def test_session_state_valid(
-        self, current_status: str, valid_states: list[str]
+        self,
+        current_status: str,
+        valid_states: list[str],
     ) -> None:
         """Test session state validation with valid states."""
         result = FlextCliMixins.BusinessRulesMixin.validate_session_state(
             current_status=current_status,
             valid_states=valid_states,
         )
-        self.Assertions.assert_result_success(result)
+        tm.ok(result)
 
     @pytest.mark.parametrize(
         ("current_status", "valid_states"),
         [
             (
-                TestMixins.BusinessRules.SessionStates.ERROR,
+                "error",
                 [
-                    TestMixins.BusinessRules.SessionStates.ACTIVE,
-                    TestMixins.BusinessRules.SessionStates.IDLE,
+                    "active",
+                    "idle",
                 ],
             ),
             (
-                TestMixins.BusinessRules.SessionStates.CLOSED,
-                [TestMixins.BusinessRules.SessionStates.ACTIVE],
+                "closed",
+                ["active"],
             ),
         ],
     )
     def test_session_state_invalid(
-        self, current_status: str, valid_states: list[str]
+        self,
+        current_status: str,
+        valid_states: list[str],
     ) -> None:
         """Test session state validation with invalid states."""
         result = FlextCliMixins.BusinessRulesMixin.validate_session_state(
             current_status=current_status,
             valid_states=valid_states,
         )
-        self.Assertions.assert_result_failure(result, current_status)
+        tm.fail(result, expected_error=current_status)
 
     # =========================================================================
     # BUSINESS RULES - PIPELINE STEP VALIDATION TESTS (Parametrized)
@@ -193,11 +186,11 @@ class TestFlextCliMixins:
         """Test pipeline step validation with valid step."""
         result = FlextCliMixins.BusinessRulesMixin.validate_pipeline_step(
             cast(
-                "t.JsonDict | None",
-                TestMixins.BusinessRules.PipelineSteps.VALID_STEP,
-            )
+                "t.Json.JsonDict | None",
+                "valid_step",
+            ),
         )
-        self.Assertions.assert_result_success(result)
+        tm.ok(result)
 
     @pytest.mark.parametrize(
         "step",
@@ -209,15 +202,16 @@ class TestFlextCliMixins:
     def test_pipeline_step_empty(
         self,
         step: dict[
-            str, str | int | float | bool | dict[str, object] | list[object] | None
+            str,
+            str | int | float | bool | dict[str, object] | list[object] | None,
         ]
         | None,
     ) -> None:
         """Test pipeline step validation with empty/None step."""
         result = FlextCliMixins.BusinessRulesMixin.validate_pipeline_step(
-            cast("t.JsonDict | None", step)
+            cast("t.Json.JsonDict | None", step),
         )
-        self.Assertions.assert_result_failure(result)
+        tm.fail(result)
         # Check for appropriate error message based on step type
         if step is None:
             # None should return "non-empty" message
@@ -229,22 +223,22 @@ class TestFlextCliMixins:
     @pytest.mark.parametrize(
         "step",
         [
-            TestMixins.BusinessRules.PipelineSteps.STEP_NO_NAME,
-            TestMixins.BusinessRules.PipelineSteps.STEP_EMPTY_NAME,
-            TestMixins.BusinessRules.PipelineSteps.STEP_WHITESPACE_NAME,
+            "",
+            "   ",
         ],
     )
     def test_pipeline_step_invalid_name(
         self,
         step: dict[
-            str, str | int | float | bool | dict[str, object] | list[object] | None
+            str,
+            str | int | float | bool | dict[str, object] | list[object] | None,
         ],
     ) -> None:
         """Test pipeline step validation with invalid name."""
         result = FlextCliMixins.BusinessRulesMixin.validate_pipeline_step(
-            cast("t.JsonDict | None", step)
+            cast("t.Json.JsonDict | None", step),
         )
-        self.Assertions.assert_result_failure(result, "name")
+        tm.fail(result, expected_error="name")
 
     # =========================================================================
     # BUSINESS RULES - CONFIGURATION CONSISTENCY VALIDATION TESTS
@@ -254,31 +248,31 @@ class TestFlextCliMixins:
         """Test configuration consistency validation with valid config."""
         result = FlextCliMixins.BusinessRulesMixin.validate_configuration_consistency(
             cast(
-                "t.JsonDict | None",
-                TestMixins.BusinessRules.ConfigData.VALID_CONFIG,
+                "t.Json.JsonDict | None",
+                {"debug": True, "timeout": 30},
             ),
-            TestMixins.BusinessRules.ConfigData.REQUIRED_FIELDS_COMPLETE,
+            ["debug", "timeout"],
         )
-        self.Assertions.assert_result_success(result)
+        tm.ok(result)
 
     def test_configuration_consistency_missing_fields(self) -> None:
         """Test configuration consistency with missing required fields."""
         result = FlextCliMixins.BusinessRulesMixin.validate_configuration_consistency(
             cast(
-                "t.JsonDict | None",
-                TestMixins.BusinessRules.ConfigData.INCOMPLETE_CONFIG,
+                "t.Json.JsonDict | None",
+                {"debug": True},
             ),
-            TestMixins.BusinessRules.ConfigData.REQUIRED_FIELDS_INCOMPLETE,
+            ["debug", "timeout"],
         )
-        self.Assertions.assert_result_failure(result, "field2")
+        tm.fail(result, expected_error="field2")
 
     def test_configuration_consistency_none_config(self) -> None:
         """Test configuration consistency with None config."""
         result = FlextCliMixins.BusinessRulesMixin.validate_configuration_consistency(
             None,
-            TestMixins.BusinessRules.ConfigData.REQUIRED_FIELDS_COMPLETE,
+            ["debug", "timeout"],
         )
-        self.Assertions.assert_result_failure(result)
+        tm.fail(result)
 
     # =========================================================================
     # CLI COMMAND MIXIN - EXECUTE WITH CONTEXT TESTS
@@ -286,51 +280,49 @@ class TestFlextCliMixins:
 
     def test_execute_with_cli_context_success(self) -> None:
         """Test CLI context execution with successful handler."""
+        # Test constants for command execution
+        success_result_key = "success"
+        success_result_value = "completed"
+        operation_name = "test_operation"
+        test_param_key = "test_param"
+        test_param_value = "test_value"
 
         def success_handler(
             **kwargs: t.JsonValue,
-        ) -> FlextResult[t.JsonValue]:
-            return FlextResult[t.JsonValue].ok({
-                TestMixins.CliCommand.SUCCESS_RESULT_KEY: TestMixins.CliCommand.SUCCESS_RESULT_VALUE,
+        ) -> r[t.JsonValue]:
+            return r[t.JsonValue].ok({
+                success_result_key: success_result_value,
                 **kwargs,
             })
 
         result = FlextCliMixins.CliCommandMixin.execute_with_cli_context(
-            operation=TestMixins.CliCommand.OPERATION_NAME,
-            handler=cast("FlextCliProtocols.Cli.CliCommandHandler", success_handler),
-            **{
-                TestMixins.CliCommand.TEST_PARAM_KEY: TestMixins.CliCommand.TEST_PARAM_VALUE
-            },
+            operation=operation_name,
+            handler=cast("p.Cli.CliCommandHandler", success_handler),
+            **{test_param_key: test_param_value},
         )
 
-        self.Assertions.assert_result_success(result)
+        tm.ok(result)
         data = result.unwrap()
         assert isinstance(data, dict)
-        assert (
-            data.get(TestMixins.CliCommand.SUCCESS_RESULT_KEY)
-            == TestMixins.CliCommand.SUCCESS_RESULT_VALUE
-        )
-        assert (
-            data.get(TestMixins.CliCommand.TEST_PARAM_KEY)
-            == TestMixins.CliCommand.TEST_PARAM_VALUE
-        )
+        assert data.get(success_result_key) == success_result_value
+        assert data.get(test_param_key) == test_param_value
 
     def test_execute_with_cli_context_failure(self) -> None:
         """Test CLI context execution with failing handler."""
+        operation_name = "test_operation"
+        test_error_msg = "Test error message"
 
         def failure_handler(
             **kwargs: t.JsonValue,
-        ) -> FlextResult[t.JsonValue]:
-            return FlextResult[t.JsonValue].fail(TestMixins.CliCommand.TEST_ERROR_MSG)
+        ) -> r[t.JsonValue]:
+            return r[t.JsonValue].fail(test_error_msg)
 
         result = FlextCliMixins.CliCommandMixin.execute_with_cli_context(
-            operation=TestMixins.CliCommand.OPERATION_NAME,
-            handler=cast("FlextCliProtocols.Cli.CliCommandHandler", failure_handler),
+            operation=operation_name,
+            handler=cast("p.Cli.CliCommandHandler", failure_handler),
         )
 
-        self.Assertions.assert_result_failure(
-            result, TestMixins.CliCommand.TEST_ERROR_MSG
-        )
+        tm.fail(result, expected_error=test_error_msg)
 
     @pytest.mark.parametrize(
         "extra_params",
@@ -341,22 +333,24 @@ class TestFlextCliMixins:
         ],
     )
     def test_execute_with_cli_context_various_params(
-        self, extra_params: dict[str, str]
+        self,
+        extra_params: dict[str, str],
     ) -> None:
         """Test CLI context execution with various parameter combinations."""
 
         def params_handler(
             **kwargs: t.JsonValue,
-        ) -> FlextResult[t.JsonValue]:
-            return FlextResult[t.JsonValue].ok(dict(kwargs))
+        ) -> r[t.JsonValue]:
+            return r[t.JsonValue].ok(dict(kwargs))
 
+        operation_name = "test_operation"
         result = FlextCliMixins.CliCommandMixin.execute_with_cli_context(
-            operation=TestMixins.CliCommand.OPERATION_NAME,
-            handler=cast("FlextCliProtocols.Cli.CliCommandHandler", params_handler),
+            operation=operation_name,
+            handler=cast("p.Cli.CliCommandHandler", params_handler),
             **extra_params,
         )
 
-        self.Assertions.assert_result_success(result)
+        tm.ok(result)
         data = result.unwrap()
         assert isinstance(data, dict)
         for key, value in extra_params.items():

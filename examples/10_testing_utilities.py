@@ -28,12 +28,7 @@ import tempfile
 from pathlib import Path
 from typing import cast
 
-from flext_core import FlextUtilities
-
-from flext_cli import FlextCli, FlextCliPrompts, FlextCliTypes
-
-# Alias for static method calls - use u.* for u static methods
-u = FlextUtilities
+from flext_cli import FlextCli, FlextCliPrompts, r, t, u
 
 cli = FlextCli()
 
@@ -43,14 +38,14 @@ cli = FlextCli()
 # ============================================================================
 
 
-def my_cli_command(name: str) -> FlextResult[str]:
+def my_cli_command(name: str) -> r[str]:
     """Example CLI command to test."""
     if not name:
-        return FlextResult[str].fail("Name cannot be empty")
+        return r[str].fail("Name cannot be empty")
 
     result = f"Hello, {name}!"
     cli.output.print_message(result, style="green")
-    return FlextResult[str].ok(result)
+    return r[str].ok(result)
 
 
 def test_cli_command() -> None:
@@ -61,7 +56,8 @@ def test_cli_command() -> None:
     result = my_cli_command("World")
     if not result.is_success:
         cli.output.print_message(
-            f"   ❌ Command should succeed: {result.error}", style="red"
+            f"   ❌ Command should succeed: {result.error}",
+            style="red",
         )
         return
     if result.unwrap() != "Hello, World!":
@@ -73,7 +69,8 @@ def test_cli_command() -> None:
     result = my_cli_command("")
     if not result.is_failure:
         cli.output.print_message(
-            "   ❌ Command should fail with empty name", style="red"
+            "   ❌ Command should fail with empty name",
+            style="red",
         )
         return
     error_msg = result.error or ""
@@ -89,16 +86,16 @@ def test_cli_command() -> None:
 
 
 def save_config_command(
-    config: FlextCliTypes.Data.CliDataDict,
-) -> FlextResult[bool]:
+    config: t.Data.CliDataDict,
+) -> r[bool]:
     """CLI command that saves config."""
     temp_file = Path(tempfile.gettempdir()) / "test_config.json"
 
     write_result = cli.file_tools.write_json_file(temp_file, config)
     if write_result.is_failure:
-        return FlextResult[bool].fail(f"Save failed: {write_result.error}")
+        return r[bool].fail(f"Save failed: {write_result.error}")
 
-    return FlextResult[bool].ok(True)
+    return r[bool].ok(True)
 
 
 def test_file_operations() -> None:
@@ -110,18 +107,20 @@ def test_file_operations() -> None:
     # Convert to JsonDict-compatible dict using u
     # Use u.transform for JSON conversion
     transform_result = u.transform(
-        cast("dict[str, t.GeneralValueType]", config_data), to_json=True
+        cast("dict[str, t.GeneralValueType]", config_data),
+        to_json=True,
     )
-    config: FlextCliTypes.Data.CliDataDict = (
+    config: t.Data.CliDataDict = (
         transform_result.unwrap()
         if transform_result.is_success
-        else cast("FlextCliTypes.Data.CliDataDict", config_data)
+        else cast("t.Data.CliDataDict", config_data)
     )
     result = save_config_command(config)
 
     if not result.is_success:
         cli.output.print_message(
-            f"   ❌ Config save should succeed: {result.error}", style="red"
+            f"   ❌ Config save should succeed: {result.error}",
+            style="red",
         )
         return
     cli.output.print_message("   ✅ File save test passed", style="green")
@@ -150,7 +149,7 @@ def test_file_operations() -> None:
 # ============================================================================
 
 
-def interactive_command() -> FlextResult[str]:
+def interactive_command() -> r[str]:
     """Command with user prompts to test."""
     prompts = FlextCliPrompts(interactive_mode=False)  # Non-interactive for tests
 
@@ -158,10 +157,10 @@ def interactive_command() -> FlextResult[str]:
     name_result = prompts.prompt("Enter name:", default="TestUser")
 
     if name_result.is_failure:
-        return FlextResult[str].fail(f"Prompt failed: {name_result.error}")
+        return r[str].fail(f"Prompt failed: {name_result.error}")
 
     name = name_result.unwrap()
-    return FlextResult[str].ok(f"Hello, {name}!")
+    return r[str].ok(f"Hello, {name}!")
 
 
 def test_interactive_command() -> None:
@@ -188,15 +187,15 @@ def test_interactive_command() -> None:
 # ============================================================================
 
 
-def risky_operation(value: int) -> FlextResult[int]:
+def risky_operation(value: int) -> r[int]:
     """Operation that might fail."""
     if value < 0:
-        return FlextResult[int].fail("Value must be positive")
+        return r[int].fail("Value must be positive")
 
     if value > 100:
-        return FlextResult[int].fail("Value too large")
+        return r[int].fail("Value too large")
 
-    return FlextResult[int].ok(value * 2)
+    return r[int].ok(value * 2)
 
 
 def test_error_scenarios() -> None:
@@ -229,7 +228,8 @@ def test_error_scenarios() -> None:
     result = risky_operation(10)
     if not result.is_success:
         cli.output.print_message(
-            f"   ❌ Should succeed with valid value: {result.error}", style="red"
+            f"   ❌ Should succeed with valid value: {result.error}",
+            style="red",
         )
         return
     if result.unwrap() != 20:
@@ -243,17 +243,17 @@ def test_error_scenarios() -> None:
 # ============================================================================
 
 
-def full_workflow_command() -> FlextResult[FlextCliTypes.Data.CliDataDict]:
+def full_workflow_command() -> r[t.Data.CliDataDict]:
     """Complete workflow to test."""
     # Step 1: Create data
-    data: FlextCliTypes.Data.CliDataDict = {"status": "processing", "items": [1, 2, 3]}
+    data: t.Data.CliDataDict = {"status": "processing", "items": [1, 2, 3]}
 
     # Step 2: Save to file
     temp_file = Path(tempfile.gettempdir()) / "workflow_test.json"
     write_result = cli.file_tools.write_json_file(temp_file, data)
 
     if write_result.is_failure:
-        return FlextResult[FlextCliTypes.Data.CliDataDict].fail(
+        return r[t.Data.CliDataDict].fail(
             f"Write failed: {write_result.error}",
         )
 
@@ -262,7 +262,7 @@ def full_workflow_command() -> FlextResult[FlextCliTypes.Data.CliDataDict]:
 
     if read_result.is_failure:
         temp_file.unlink(missing_ok=True)
-        return FlextResult[FlextCliTypes.Data.CliDataDict].fail(
+        return r[t.Data.CliDataDict].fail(
             f"Read failed: {read_result.error}",
         )
 
@@ -270,7 +270,7 @@ def full_workflow_command() -> FlextResult[FlextCliTypes.Data.CliDataDict]:
     loaded = read_result.unwrap()
     if not isinstance(loaded, dict):
         temp_file.unlink(missing_ok=True)
-        return FlextResult[FlextCliTypes.Data.CliDataDict].fail(
+        return r[t.Data.CliDataDict].fail(
             "Data is not a dictionary",
         )
 
@@ -284,14 +284,14 @@ def full_workflow_command() -> FlextResult[FlextCliTypes.Data.CliDataDict]:
     # Use u.transform for JSON conversion
     if isinstance(loaded, dict):
         transform_result = u.transform(loaded, to_json=True)
-        typed_data: FlextCliTypes.Data.CliDataDict = (
+        typed_data: t.Data.CliDataDict = (
             transform_result.unwrap()
             if transform_result.is_success
-            else cast("FlextCliTypes.Data.CliDataDict", loaded)
+            else cast("t.Data.CliDataDict", loaded)
         )
     else:
-        typed_data = cast("FlextCliTypes.Data.CliDataDict", loaded)
-    return FlextResult[FlextCliTypes.Data.CliDataDict].ok(typed_data)
+        typed_data = cast("t.Data.CliDataDict", loaded)
+    return r[t.Data.CliDataDict].ok(typed_data)
 
 
 def test_integration() -> None:
@@ -302,7 +302,8 @@ def test_integration() -> None:
 
     if not result.is_success:
         cli.output.print_message(
-            f"   ❌ Workflow should succeed: {result.error}", style="red"
+            f"   ❌ Workflow should succeed: {result.error}",
+            style="red",
         )
         return
 
@@ -341,7 +342,8 @@ def main() -> None:
     # Testing guide
     cli.output.print_message("\n💡 Testing Tips:", style="bold cyan")
     cli.output.print_message(
-        "  • Use FlextResult returns for testable commands", style="white"
+        "  • Use FlextResult returns for testable commands",
+        style="white",
     )
     cli.output.print_message("  • Test both success and failure cases", style="white")
     cli.output.print_message("  • Use non-interactive prompts in tests", style="white")

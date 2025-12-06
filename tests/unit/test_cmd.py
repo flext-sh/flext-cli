@@ -4,7 +4,7 @@ Tests for FlextCliCmd covering command initialization, execution, configuration 
 (edit, show, validate, get/set values), error handling, performance, integration,
 and edge cases with 100% coverage.
 
-Modules tested: flext_cli.cmd.FlextCliCmd, FlextCliUtilities.ConfigOps, FlextCliServiceBase
+Modules tested: flext_cli.cmd.FlextCliCmd, u.ConfigOps, FlextCliServiceBase
 Scope: All command operations, configuration operations, error handling, edge cases
 
 Copyright (c) 2025 FLEXT Team. All rights reserved.
@@ -14,24 +14,22 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-import json
 import time
 from collections.abc import Mapping
 from enum import StrEnum
 from pathlib import Path
 
 import pytest
-from flext_core import FlextResult
+from flext_tests import tm
 
 from flext_cli import (
     FlextCliCmd,
-    FlextCliConstants,
+    FlextCliConfig,
     FlextCliServiceBase,
-    FlextCliUtilities,
+    c,
+    r,
+    u,
 )
-from flext_cli.config import FlextCliConfig
-
-from ..helpers import FlextCliTestHelpers
 
 # ============================================================================
 # ENUMS FOR TEST ORGANIZATION
@@ -89,7 +87,7 @@ VALID_CONFIG_DATA: dict[str, int | str] = {
 }
 
 # Config file name
-CONFIG_FILE_NAME = FlextCliConstants.ConfigFiles.CLI_CONFIG_JSON
+CONFIG_FILE_NAME = c.ConfigFiles.CLI_CONFIG_JSON
 
 # ============================================================================
 # HELPER FUNCTIONS
@@ -106,11 +104,9 @@ def _create_config_file(
     content: str | Mapping[str, object],
 ) -> Path:
     """Create config file with specified content."""
+    # Create config file directly using Path
     config_file = temp_dir / CONFIG_FILE_NAME
-    if isinstance(content, Mapping):
-        config_file.write_text(json.dumps(dict(content)), encoding="utf-8")
-    else:
-        config_file.write_text(content, encoding="utf-8")
+    config_file.write_text(content)
     return config_file
 
 
@@ -133,15 +129,14 @@ def _restore_config_dir(original_dir: Path) -> None:
 
 def _create_readonly_dir(temp_dir: Path) -> Path:
     """Create read-only directory for testing."""
-    read_only_dir = temp_dir / "readonly"
-    read_only_dir.mkdir()
-    read_only_dir.chmod(0o555)
-    return read_only_dir
+    file_manager = Path(base_dir=temp_dir)
+    return file_manager.create_readonly_directory(name="readonly", directory=temp_dir)
 
 
 def _restore_dir_permissions(directory: Path) -> None:
     """Restore directory permissions for cleanup."""
-    directory.chmod(0o755)
+    file_manager = Path()
+    file_manager.restore_directory_permissions(directory)
 
 
 # ============================================================================
@@ -149,7 +144,7 @@ def _restore_dir_permissions(directory: Path) -> None:
 # ============================================================================
 
 
-class TestFlextCliCmd:
+class TestsCliCmd:
     """Comprehensive tests for FlextCliCmd class.
 
     Single class with nested test groups organized by functionality.
@@ -189,7 +184,7 @@ class TestFlextCliCmd:
         cmd = _create_cmd_instance()
         result = cmd.execute()
 
-        FlextCliTestHelpers.AssertHelpers.assert_result_success(result)
+        tm.ok(result)
         data = result.unwrap()
         assert data["status"] == "operational"
         assert data["service"] == "FlextCliCmd"
@@ -205,7 +200,7 @@ class TestFlextCliCmd:
         cmd = _create_cmd_instance()
 
         result = cmd.execute()
-        FlextCliTestHelpers.AssertHelpers.assert_result_success(result)
+        tm.ok(result)
 
         assert cmd is not None
         assert isinstance(cmd, FlextCliCmd)
@@ -215,7 +210,7 @@ class TestFlextCliCmd:
         cmd = _create_cmd_instance()
 
         result = cmd.execute()
-        FlextCliTestHelpers.AssertHelpers.assert_result_success(result)
+        tm.ok(result)
         assert result.value is not None
 
     # ========================================================================
@@ -230,7 +225,7 @@ class TestFlextCliCmd:
         result = cmd.execute()
         execution_time = time.time() - start_time
 
-        FlextCliTestHelpers.AssertHelpers.assert_result_success(result)
+        tm.ok(result)
         assert execution_time < 1.0
 
     def test_cmd_memory_usage(self) -> None:
@@ -239,7 +234,7 @@ class TestFlextCliCmd:
 
         for _ in range(5):
             result = cmd.execute()
-            FlextCliTestHelpers.AssertHelpers.assert_result_success(result)
+            tm.ok(result)
 
     # ========================================================================
     # CONFIG OPERATION TESTS (Parametrized)
@@ -267,7 +262,7 @@ class TestFlextCliCmd:
             method = getattr(cmd, CONFIG_OPERATION_METHODS[operation])
             result = method()
 
-            assert isinstance(result, FlextResult)
+            assert isinstance(result, r)
             assert result.is_success or result.is_failure
 
     def test_cmd_show_config_paths(self) -> None:
@@ -275,7 +270,7 @@ class TestFlextCliCmd:
         cmd = _create_cmd_instance()
         result = cmd.show_config_paths()
 
-        FlextCliTestHelpers.AssertHelpers.assert_result_success(result)
+        tm.ok(result)
         assert isinstance(result.value, list)
         assert len(result.value) > 0
 
@@ -284,14 +279,14 @@ class TestFlextCliCmd:
         cmd = _create_cmd_instance()
         result = cmd.validate_config()
 
-        FlextCliTestHelpers.AssertHelpers.assert_result_success(result)
+        tm.ok(result)
 
     def test_cmd_get_config_info(self) -> None:
         """Test get_config_info method."""
         cmd = _create_cmd_instance()
         result = cmd.get_config_info()
 
-        FlextCliTestHelpers.AssertHelpers.assert_result_success(result)
+        tm.ok(result)
         assert isinstance(result.value, dict)
         assert "config_dir" in result.value
         assert "config_exists" in result.value
@@ -301,7 +296,7 @@ class TestFlextCliCmd:
         cmd = _create_cmd_instance()
         result = cmd.show_config()
 
-        FlextCliTestHelpers.AssertHelpers.assert_result_success(result)
+        tm.ok(result)
 
     # ========================================================================
     # CONFIG EDIT TESTS
@@ -315,7 +310,7 @@ class TestFlextCliCmd:
         cmd = _create_cmd_instance()
         result = cmd.edit_config()
 
-        assert isinstance(result, FlextResult)
+        assert isinstance(result, r)
         if result.is_success:
             assert isinstance(result.value, str)
 
@@ -329,7 +324,7 @@ class TestFlextCliCmd:
         cmd = _create_cmd_instance()
         result = cmd.edit_config()
 
-        assert isinstance(result, FlextResult)
+        assert isinstance(result, r)
         if result.is_success:
             assert isinstance(result.value, str)
 
@@ -344,7 +339,7 @@ class TestFlextCliCmd:
         cmd = _create_cmd_instance()
         result = cmd.edit_config()
 
-        assert isinstance(result, FlextResult)
+        assert isinstance(result, r)
         if result.is_success:
             assert isinstance(result.value, str)
 
@@ -359,7 +354,7 @@ class TestFlextCliCmd:
         cmd = _create_cmd_instance()
         result = cmd.edit_config()
 
-        assert isinstance(result, FlextResult)
+        assert isinstance(result, r)
         if result.is_success:
             assert isinstance(result.value, str)
 
@@ -374,10 +369,10 @@ class TestFlextCliCmd:
         cmd = _create_cmd_instance()
 
         result1 = cmd.edit_config()
-        assert isinstance(result1, FlextResult)
+        assert isinstance(result1, r)
 
         result2 = cmd.edit_config()
-        assert isinstance(result2, FlextResult)
+        assert isinstance(result2, r)
 
         if result1.is_success:
             assert isinstance(result1.value, str)
@@ -407,7 +402,7 @@ class TestFlextCliCmd:
 
         result = cmd.get_config_value("nonexistent_key")
 
-        FlextCliTestHelpers.AssertHelpers.assert_result_failure(result)
+        tm.fail(result)
         error_msg = str(result.error).lower() if result.error else ""
         assert "not found" in error_msg
 
@@ -437,16 +432,14 @@ class TestFlextCliCmd:
             )
 
             # Verify file exists at expected path
-            expected_config_path = (
-                temp_dir / FlextCliConstants.ConfigFiles.CLI_CONFIG_JSON
-            )
+            expected_config_path = temp_dir / c.ConfigFiles.CLI_CONFIG_JSON
             assert expected_config_path.exists(), (
                 f"Config file should exist at {expected_config_path}"
             )
 
             result = cmd.get_config_value("found_key")
 
-            FlextCliTestHelpers.AssertHelpers.assert_result_success(result)
+            tm.ok(result)
             data = result.unwrap()
             assert data["key"] == "found_key"
             assert data["value"] == "found_value"
@@ -487,7 +480,7 @@ class TestFlextCliCmd:
         try:
             result = cmd.get_config_value("test_key")
 
-            FlextCliTestHelpers.AssertHelpers.assert_result_failure(result)
+            tm.fail(result)
             error_msg = str(result.error).lower() if result.error else ""
             assert expected_error_keyword in error_msg
         finally:
@@ -498,14 +491,15 @@ class TestFlextCliCmd:
         cmd = _create_cmd_instance()
 
         _create_config_file(
-            temp_dir, ERROR_SCENARIO_DATA[ConfigErrorScenario.INVALID_JSON]["content"]
+            temp_dir,
+            ERROR_SCENARIO_DATA[ConfigErrorScenario.INVALID_JSON]["content"],
         )
 
         original_config_dir = _set_config_dir(temp_dir)
         try:
             result = cmd.get_config_value("test_key")
 
-            FlextCliTestHelpers.AssertHelpers.assert_result_failure(result)
+            tm.fail(result)
             assert result.error is not None
         finally:
             _restore_config_dir(original_config_dir)
@@ -520,7 +514,7 @@ class TestFlextCliCmd:
         try:
             result = cmd.get_config_value("test_key")
 
-            FlextCliTestHelpers.AssertHelpers.assert_result_failure(result)
+            tm.fail(result)
             assert "not a valid dictionary" in str(result.error)
         finally:
             _restore_config_dir(original_config_dir)
@@ -530,14 +524,15 @@ class TestFlextCliCmd:
         cmd = _create_cmd_instance()
 
         _create_config_file(
-            temp_dir, ERROR_SCENARIO_DATA[ConfigErrorScenario.NOT_DICT]["content"]
+            temp_dir,
+            ERROR_SCENARIO_DATA[ConfigErrorScenario.NOT_DICT]["content"],
         )
 
         original_config_dir = _set_config_dir(temp_dir)
         try:
             result = cmd.edit_config()
 
-            FlextCliTestHelpers.AssertHelpers.assert_result_failure(result)
+            tm.fail(result)
             assert "not a valid dictionary" in str(result.error)
         finally:
             _restore_config_dir(original_config_dir)
@@ -547,14 +542,15 @@ class TestFlextCliCmd:
         cmd = _create_cmd_instance()
 
         _create_config_file(
-            temp_dir, ERROR_SCENARIO_DATA[ConfigErrorScenario.INVALID_JSON]["content"]
+            temp_dir,
+            ERROR_SCENARIO_DATA[ConfigErrorScenario.INVALID_JSON]["content"],
         )
 
         original_config_dir = _set_config_dir(temp_dir)
         try:
             result = cmd.edit_config()
 
-            FlextCliTestHelpers.AssertHelpers.assert_result_failure(result)
+            tm.fail(result)
             assert isinstance(result.error, str)
             assert result.error is not None
         finally:
@@ -570,7 +566,7 @@ class TestFlextCliCmd:
         try:
             result = cmd.set_config_value("key", "value")
 
-            assert isinstance(result, FlextResult)
+            assert isinstance(result, r)
         finally:
             _restore_dir_permissions(read_only_dir)
             _restore_config_dir(original_config_dir)
@@ -585,7 +581,7 @@ class TestFlextCliCmd:
         try:
             result = cmd.edit_config()
 
-            assert isinstance(result, FlextResult)
+            assert isinstance(result, r)
         finally:
             _restore_dir_permissions(read_only_dir)
             _restore_config_dir(original_config_dir)
@@ -595,21 +591,21 @@ class TestFlextCliCmd:
     # ========================================================================
 
     def test_cmd_config_helper_get_config_paths(self) -> None:
-        """Test FlextCliUtilities.ConfigOps.get_config_paths() directly."""
-        paths = FlextCliUtilities.ConfigOps.get_config_paths()
+        """Test u.ConfigOps.get_config_paths() directly."""
+        paths = u.ConfigOps.get_config_paths()
         assert isinstance(paths, list)
         assert len(paths) > 0
         assert any(".flext" in path for path in paths)
 
     def test_cmd_config_helper_validate_config_structure(self) -> None:
-        """Test FlextCliUtilities.ConfigOps.validate_config_structure() directly."""
-        results = FlextCliUtilities.ConfigOps.validate_config_structure()
+        """Test u.ConfigOps.validate_config_structure() directly."""
+        results = u.ConfigOps.validate_config_structure()
         assert isinstance(results, list)
         assert len(results) > 0
 
     def test_cmd_config_helper_get_config_info(self) -> None:
-        """Test FlextCliUtilities.ConfigOps.get_config_info() directly."""
-        info = FlextCliUtilities.ConfigOps.get_config_info()
+        """Test u.ConfigOps.get_config_info() directly."""
+        info = u.ConfigOps.get_config_info()
         assert isinstance(info, dict)
         assert "config_dir" in info
         assert "config_exists" in info
@@ -619,7 +615,7 @@ class TestFlextCliCmd:
 
     def test_cmd_validate_config_structure_missing_dir(self) -> None:
         """Test validate_config_structure when main config directory is missing."""
-        results = FlextCliUtilities.ConfigOps.validate_config_structure()
+        results = u.ConfigOps.validate_config_structure()
         assert isinstance(results, list)
         assert all(isinstance(r, str) for r in results)
 
@@ -639,7 +635,7 @@ class TestFlextCliCmd:
         cmd = _create_cmd_instance()
         result = cmd.show_config_paths()
 
-        assert isinstance(result, FlextResult)
+        assert isinstance(result, r)
         if result.is_success:
             assert isinstance(result.value, list)
             assert all(isinstance(p, str) for p in result.value)
@@ -649,7 +645,7 @@ class TestFlextCliCmd:
         cmd = _create_cmd_instance()
         result = cmd.validate_config()
 
-        assert isinstance(result, FlextResult)
+        assert isinstance(result, r)
         assert result.is_success or result.is_failure
 
     def test_cmd_get_config_info_exception(self) -> None:
@@ -657,7 +653,7 @@ class TestFlextCliCmd:
         cmd = _create_cmd_instance()
         result = cmd.get_config_info()
 
-        assert isinstance(result, FlextResult)
+        assert isinstance(result, r)
         if result.is_success:
             info = result.unwrap()
             assert isinstance(info, dict)
@@ -667,7 +663,7 @@ class TestFlextCliCmd:
         cmd = _create_cmd_instance()
         result = cmd.set_config_value("key", "value")
 
-        assert isinstance(result, FlextResult)
+        assert isinstance(result, r)
         assert result.is_success or result.is_failure
 
     def test_cmd_get_config_value_exception(self) -> None:
@@ -675,7 +671,7 @@ class TestFlextCliCmd:
         cmd = _create_cmd_instance()
         result = cmd.get_config_value("key")
 
-        assert isinstance(result, FlextResult)
+        assert isinstance(result, r)
         if result.is_success:
             assert result.value is not None
 
@@ -684,7 +680,7 @@ class TestFlextCliCmd:
         cmd = _create_cmd_instance()
         result = cmd.show_config()
 
-        assert isinstance(result, FlextResult)
+        assert isinstance(result, r)
 
     def test_cmd_show_config_get_info_failure(self, temp_dir: Path) -> None:
         """Test show_config with invalid config."""
@@ -695,7 +691,7 @@ class TestFlextCliCmd:
         original_config_dir = _set_config_dir(temp_dir)
         try:
             result = cmd.show_config()
-            assert isinstance(result, FlextResult)
+            assert isinstance(result, r)
         finally:
             _restore_config_dir(original_config_dir)
 
@@ -704,7 +700,7 @@ class TestFlextCliCmd:
         cmd = _create_cmd_instance()
         result = cmd.edit_config()
 
-        assert isinstance(result, FlextResult)
+        assert isinstance(result, r)
         if result.is_success:
             assert isinstance(result.value, str)
 
@@ -717,7 +713,7 @@ class TestFlextCliCmd:
         cmd = _create_cmd_instance()
         result = cmd.show_config()
 
-        FlextCliTestHelpers.AssertHelpers.assert_result_success(result)
+        tm.ok(result)
 
     def test_cmd_config_modification_helper_edit_config(self) -> None:
         """Test edit_config method."""

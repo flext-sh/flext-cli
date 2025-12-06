@@ -10,23 +10,26 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
+from typing import cast
+
 from flext_core import (
+    FlextDecorators,
+    FlextMixins,
+    FlextResult,
     r,
     t,
-    x,
 )
-from flext_core.decorators import FlextDecorators
 
-from flext_cli.protocols import FlextCliProtocols
-from flext_cli.utilities import FlextCliUtilities
+from flext_cli.protocols import p
+from flext_cli.utilities import u
 
 
-class FlextCliMixins(x):
+class FlextCliMixins(FlextMixins):
     """Single unified CLI mixins class following FLEXT standards.
 
     Business Rules:
     ───────────────
-    1. BusinessRulesMixin delegates to FlextCliUtilities.CliValidation (SRP)
+    1. BusinessRulesMixin delegates to u.CliValidation (SRP)
     2. CliCommandMixin composes flext-core decorators for command execution
     3. Command execution MUST use railway pattern for error handling
     4. Context management MUST include correlation ID and operation logging
@@ -60,14 +63,14 @@ class FlextCliMixins(x):
     # =========================================================================
 
     # =========================================================================
-    # BUSINESS RULES MIXIN - Delegating facade to FlextCliUtilities.CliValidation
+    # BUSINESS RULES MIXIN - Delegating facade to u.CliValidation
     # =========================================================================
 
     class BusinessRulesMixin:
         """Mixin providing common business rule validation patterns for CLI classes.
 
         NOTE: This is a delegating facade. The actual implementation has been
-        consolidated into FlextCliUtilities.CliValidation to follow SRP principles.
+        consolidated into u.CliValidation to follow SRP principles.
         This class is maintained for backward compatibility with existing code.
         """
 
@@ -78,10 +81,10 @@ class FlextCliMixins(x):
             operation: str,
         ) -> r[bool]:
             """Validate command execution state for operations (delegates to utilities)."""
-            return FlextCliUtilities.CliValidation.validate_command_execution_state(
-                current_status=current_status,
-                required_status=required_status,
-                operation=operation,
+            return u.CliValidation.v_state(
+                current_status,
+                required=required_status,
+                name=operation,
             )
 
         @staticmethod
@@ -90,28 +93,22 @@ class FlextCliMixins(x):
             valid_states: list[str],
         ) -> r[bool]:
             """Validate session state (delegates to utilities)."""
-            return FlextCliUtilities.CliValidation.validate_session_state(
-                current_status=current_status,
-                valid_states=valid_states,
-            )
+            return u.CliValidation.v_session(current_status, valid=valid_states)
 
         @staticmethod
         def validate_pipeline_step(
-            step: t.JsonDict | None,
+            step: t.Json.JsonDict | None,
         ) -> r[bool]:
             """Validate pipeline step configuration (delegates to utilities)."""
-            return FlextCliUtilities.CliValidation.validate_pipeline_step(step=step)
+            return u.CliValidation.v_step(step)
 
         @staticmethod
         def validate_configuration_consistency(
-            config_data: t.JsonDict | None,
+            config_data: t.Json.JsonDict | None,
             required_fields: list[str],
         ) -> r[bool]:
             """Validate configuration consistency (delegates to utilities)."""
-            return FlextCliUtilities.CliValidation.validate_configuration_consistency(
-                config_data=config_data,
-                required_fields=required_fields,
-            )
+            return u.CliValidation.v_config(config_data, fields=required_fields)
 
     class CliCommandMixin:
         """Mixin providing CLI command execution patterns with flext-core decorators.
@@ -126,7 +123,7 @@ class FlextCliMixins(x):
         @staticmethod
         def execute_with_cli_context(
             operation: str,
-            handler: FlextCliProtocols.Cli.CliCommandHandler,
+            handler: p.Cli.CliCommandHandler,
             **context_data: t.GeneralValueType,
         ) -> r[t.GeneralValueType]:
             """Execute handler with automatic CLI context management.
@@ -165,19 +162,22 @@ class FlextCliMixins(x):
 
             # Type narrowing: railway decorator ensures r return
             # Handle both single and double-wrapped r cases
-            if isinstance(handler_result, r):
+            if isinstance(handler_result, FlextResult):
                 # Check if it's a double-wrapped r[r[...]]
                 if handler_result.is_success:
                     inner_value = handler_result.unwrap()
-                    if isinstance(inner_value, r):
+                    if isinstance(inner_value, FlextResult):
                         # Double-wrapped: unwrap inner FlextResult
-                        # Type narrowing: inner_value is r[t.GeneralValueType]
+                        # Type narrowing: inner_value is r[t.GeneralValueType] after isinstance check
                         return inner_value
                     # Single-wrapped with value: extract value and wrap in new FlextResult
+                    # inner_value is not FlextResult at this point (after isinstance check)
+                    # This branch is reachable at runtime even if mypy considers unreachable
                     # inner_value is object from unwrap - convert to GeneralValueType
                     converted_value: t.GeneralValueType
                     if isinstance(
-                        inner_value, (str, int, float, bool, type(None), dict, list)
+                        inner_value,
+                        (str, int, float, bool, type(None), dict, list),
                     ):
                         converted_value = inner_value
                     else:
@@ -187,9 +187,12 @@ class FlextCliMixins(x):
                 error_msg = handler_result.error or "Unknown error"
                 return r[t.GeneralValueType].fail(error_msg)
 
-            # Fallback: wrap non-FlextResult returns
-            # Railway decorator should always return FlextResult, but handle gracefully
-            return r[t.GeneralValueType].ok(handler_result)
+            # Fallback: wrap non-FlextResult returns (defensive coding)
+            # This path is unreachable if decorators work correctly but kept for runtime safety
+            # handler_result is not FlextResult at this point, convert to GeneralValueType
+            return r[t.GeneralValueType].ok(cast("t.GeneralValueType", handler_result))
 
 
-__all__ = ["FlextCliMixins"]
+x = FlextCliMixins
+
+__all__ = ["FlextCliMixins", "x"]

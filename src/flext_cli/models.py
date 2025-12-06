@@ -5,13 +5,11 @@ from __future__ import annotations
 import operator
 import types
 from collections.abc import Callable, Mapping, Sequence
-from datetime import UTC, datetime
 from typing import (
-    TYPE_CHECKING,
     ClassVar,
     Literal,
+    ParamSpec,
     Self,
-    TypeAlias,
     Union,
     cast,
     get_args,
@@ -21,70 +19,21 @@ from typing import (
 
 import typer
 from flext_core import (
-    FlextConstants,
-    FlextDecorators,
-    FlextExceptions,
-    FlextHandlers,
-    FlextMixins,
     FlextModels,
-    FlextProtocols,
     FlextRuntime,
-    FlextService,
     r,
-    t,
-    u,
 )
-from flext_core._models.entity import FlextModelsEntity
 from pydantic import BaseModel, ConfigDict, Field, field_validator
 from pydantic.fields import FieldInfo
 
 from flext_cli.config import FlextCliConfig
-from flext_cli.constants import FlextCliConstants
-from flext_cli.utilities import FlextCliUtilities
+from flext_cli.constants import c
+from flext_cli.protocols import p
+from flext_cli.typings import t
+from flext_cli.utilities import u
 
-# Aliases for static method calls and type references
-# Use u.* for FlextUtilities static methods
-# Use t.* for FlextTypes type references
-# Use c.* for FlextConstants constants
-# Use m.* for FlextModels model references
-# Use p.* for FlextProtocols protocol references
-# Use r.* for FlextResult methods
-# Use e.* for FlextExceptions
-# Use d.* for FlextDecorators decorators
-# Use s.* for FlextService service base
-# Use x.* for FlextMixins mixins
-# Use h.* for FlextHandlers handlers
-# u is already imported from flext_core
-# t is already imported from flext_core
-# r is already imported from flext_core
-c = FlextConstants
-m = FlextModels
-p = FlextProtocols
-e = FlextExceptions
-d = FlextDecorators
-s = FlextService
-x = FlextMixins
-h = FlextHandlers
-
-# Type alias for Pydantic v2 include/exclude parameters
-# Business Rule: Must match Pydantic's recursive IncEx type structure for override compatibility
-# Pydantic uses a recursive type alias internally that mypy recognizes
-# Audit Implication: Type compatibility ensures proper serialization behavior
-# Using TYPE_CHECKING is necessary here because Pydantic's IncEx is not directly importable
-# This is an exception to the "no TYPE_CHECKING" rule - required for type compatibility
-if TYPE_CHECKING:
-    from pydantic.types import IncEx
-else:
-    # Runtime fallback - simplified IncEx type alias that's structurally compatible
-    # This matches the structure Pydantic expects at runtime
-    # Note: Full recursion not needed at runtime - Pydantic accepts this structure
-    IncEx: TypeAlias = (
-        set[int]
-        | set[str]
-        | Mapping[int, int | str | set[int] | set[str] | bool]
-        | Mapping[str, int | str | set[int] | set[str] | bool]
-        | None
-    )
+# TypeVar for CLI command signatures (must be after imports)
+P_CliCommand = ParamSpec("P_CliCommand")
 
 
 class FlextCliModels(FlextModels):
@@ -100,12 +49,30 @@ class FlextCliModels(FlextModels):
     """
 
     @staticmethod
-    def execute() -> r[t.JsonDict]:
+    def execute() -> r[t.Json.JsonDict]:
         """Execute models operation - returns empty dict for compatibility."""
-        return r[t.JsonDict].ok({})
+        return r[t.Json.JsonDict].ok({})
 
-    class CliCommand(FlextModelsEntity.Core):
-        """CLI command model."""
+    # Nested classes exposing Entity and Value via inheritance from parent
+    class Entity(FlextModels.Entity):
+        """Entity model base extending FlextModels.Entity via inheritance."""
+
+    # Entry class for compatibility with flext-ldif and other projects
+    # m.Entry is a class that can be inherited by FlextLdifModels.Entry
+    # flext-cli does NOT depend on flext-ldif - this is a base class for other projects
+    class Entry(Entity):
+        """Entry model base extending Entity for compatibility with flext-ldif.
+
+        This class extends Entity and can be inherited by FlextLdifModels.Entry
+        when flext-ldif is used. flext-cli does not depend on flext-ldif.
+        All methods returning self use Self for proper type inference.
+        """
+
+    class Value(FlextModels.Value):
+        """Value model base extending FlextModels.Value via inheritance."""
+
+    class CliCommand(Entity):
+        """CLI command model extending Entity via inheritance."""
 
         model_config = ConfigDict(
             frozen=True,
@@ -117,27 +84,23 @@ class FlextCliModels(FlextModels):
             # This avoids frozen instance errors during initialization
         )
 
-        # Note: CliCommand intentionally overrides TimestampableMixin datetime fields
-        # with str fields for CLI serialization compatibility.
-        # This is a known architectural trade-off: we lose type safety but gain
-        # simpler CLI serialization. In Pydantic 2, field overrides with different
-        # types are allowed at runtime but mypy flags them as errors.
-        # Solution: Use datetime fields and serialize via field_serializer when needed.
-        created_at: datetime = Field(
-            default_factory=lambda: datetime.now(UTC),
-            description="Creation timestamp",
-        )
-        updated_at: datetime | None = Field(
-            default=None,
-            description="Last update timestamp",
-        )
-
+        # Inherit created_at and updated_at from Entity - frozen=True makes them read-only
+        # Entity provides these fields, and frozen models inherit them correctly
         def model_post_init(self, __context: object, /) -> None:
-            """Override to prevent frozen instance errors from TimestampableMixin.
+            """Post-initialization hook for frozen model compatibility.
 
             Uses standard Pydantic 2 signature for model_post_init.
+            Entity's timestamp fields are inherited and work correctly with frozen=True.
             """
-            # Do nothing - we use string timestamps instead of datetime
+            # Entity handles timestamp initialization via its own model_post_init
+
+        def _copy_with_update(self, **updates: object) -> Self:
+            """Helper method for model_copy with updates - reduces repetition.
+
+            Composition pattern: centralizes model_copy logic for reuse.
+            Uses object instead of GeneralValueType to accept Protocol types.
+            """
+            return self.model_copy(update=updates)
 
         name: str = Field(
             ...,
@@ -205,18 +168,38 @@ class FlextCliModels(FlextModels):
             description="Command result",
         )
 
-        kwargs: t.JsonDict = Field(
+        kwargs: t.Json.JsonDict = Field(
             default_factory=dict,
             description="Command keyword arguments",
         )
 
-        def with_status(self, status: FlextCliConstants.Domain.Status) -> Self:
-            """Return copy with new status."""
-            return self.model_copy(update={"status": status})
+        def execute(self, _args: Sequence[str]) -> r[t.GeneralValueType]:
+            """Execute command with arguments - required by CliCommandProtocol.
+
+            Args:
+                _args: Command arguments (unused in default implementation)
+
+            Returns:
+                r[t.GeneralValueType]: Command execution result
+
+            """
+            # Default implementation - returns empty result
+            # Real implementations should override this method
+            return r[t.GeneralValueType].ok(None)
+
+        def with_status(self, status: str | c.CommandStatus) -> Self:
+            """Return copy with new status.
+
+            Accepts both str and c.CommandStatus for protocol compatibility.
+            """
+            status_value = (
+                status.value if isinstance(status, c.CommandStatus) else status
+            )
+            return self._copy_with_update(status=status_value)
 
         def with_args(self, args: Sequence[str]) -> Self:
             """Return copy with new arguments."""
-            return self.model_copy(update={"args": list(args)})
+            return self._copy_with_update(args=list(args))
 
         @property
         def command_summary(self) -> dict[str, str]:
@@ -235,7 +218,7 @@ class FlextCliModels(FlextModels):
             """Complete command execution with exit code."""
             try:
                 updated = self.model_copy(
-                    update={"status": "completed", "exit_code": exit_code}
+                    update={"status": "completed", "exit_code": exit_code},
                 )
                 return r.ok(updated)
             except Exception as e:
@@ -246,28 +229,28 @@ class FlextCliModels(FlextModels):
             return self.model_copy(update={"status": status})
 
         @classmethod
-        def validate_command_input(cls, data: t.GeneralValueType) -> r[Self]:
+        def validate_command_input(cls, data: object) -> r[Self]:
             """Validate command input data."""
             try:
                 if data is None:
                     return r.fail("Input must be a dictionary")
-                # Check instance first to avoid unreachable code
+                # Check instance first - early return avoids unreachable code
                 if isinstance(data, cls):
                     return r.ok(data)
-                # Type narrowing: data is not cls, check if dict
+                # Type narrowing: data is not cls instance
+                # Check if dict for model_validate
                 if not isinstance(data, dict):
                     return r.fail("Input must be a dictionary")
-                # Use FlextRuntime.is_dict_like for type checking
                 # Type narrowing: data is dict, use model_validate for type-safe creation
-                data_dict: dict[str, object] = cast("dict[str, object]", data)
+                data_dict = cast("dict[str, object]", data)
                 # Use model_validate for type-safe model creation from dict
                 command = cls.model_validate(data_dict)
                 return r.ok(command)
             except Exception as e:
                 return r.fail(f"Validation failed: {e}")
 
-    class CliSession(FlextModelsEntity.Core):
-        """CLI session model for tracking command execution sessions."""
+    class CliSession(Entity):
+        """CLI session model for tracking command execution sessions extending Entity via inheritance."""
 
         model_config = ConfigDict(
             frozen=True,
@@ -291,83 +274,87 @@ class FlextCliModels(FlextModels):
                 msg = f"Status must be a string, got {type(value)}"
                 raise TypeError(msg)
             # Use v_in for validation
-            v_result = FlextCliUtilities.CliValidation.v_in(
+            v_result = u.CliValidation.v_in(
                 value,
-                valid=FlextCliConstants.SESSION_STATUSES_LIST,
+                valid=c.SESSION_STATUSES_LIST,
                 name="session_status",
             )
             if v_result.is_failure:
                 raise ValueError(v_result.error or "Invalid session status")
             return value
 
-        # Forward reference for CliCommand
-        commands: Sequence[FlextCliModels.CliCommand] = Field(
+        # Use protocol for type hint to enable structural typing
+        commands: Sequence[p.Cli.CliCommandProtocol] = Field(
             default_factory=list,
             description="Commands in session",
         )
         start_time: str | None = Field(default=None, description="Session start time")
         end_time: str | None = Field(default=None, description="Session end time")
         last_activity: str | None = Field(
-            default=None, description="Last activity timestamp"
+            default=None,
+            description="Last activity timestamp",
         )
         internal_duration_seconds: float = Field(
             default=0.0,
             description="Internal duration in seconds",
         )
         commands_executed: int = Field(
-            default=0, description="Number of commands executed"
-        )
-        # Note: CliSession uses datetime fields from TimestampableMixin.
-        # Serialization to strings happens via Pydantic's field_serializer.
-        created_at: datetime = Field(
-            default_factory=lambda: datetime.now(UTC),
-            description="Session creation timestamp",
-        )
-        updated_at: datetime | None = Field(
-            default=None,
-            description="Session last update timestamp",
+            default=0,
+            description="Number of commands executed",
         )
 
+        # Inherit created_at and updated_at from Entity - frozen=True makes them read-only
+        # Entity provides these fields, and frozen models inherit them correctly
         @override
         def model_post_init(self, __context: object, /) -> None:
-            """Override Core.model_post_init to prevent frozen instance errors.
+            """Post-initialization hook for frozen model compatibility.
 
-            Core.model_post_init tries to set updated_at, but frozen models
-            cannot be modified after creation. We skip this for CliSession.
+            Entity's timestamp fields are inherited and work correctly with frozen=True.
             """
-            # Do nothing - updated_at is set via default or explicitly
+            # Entity handles timestamp initialization via its own model_post_init
 
         @property
-        def session_summary(self) -> FlextCliModels.CliSessionData:
+        def session_summary(self) -> m.CliSessionData:
             """Return session summary as CliSessionData model."""
-            return FlextCliModels.CliSessionData(
+            # Return concrete model instance (not protocol)
+            return m.CliSessionData(
                 session_id=self.session_id,
                 status=self.status,
                 commands_count=len(self.commands),
             )
 
         @property
-        def commands_by_status(self) -> dict[str, list[FlextCliModels.CliCommand]]:
+        def commands_by_status(self) -> dict[str, list[m.CliCommand]]:
             """Group commands by status."""
-            result: dict[str, list[FlextCliModels.CliCommand]] = {}
-            for command in self.commands:
+            result: dict[str, list[m.CliCommand]] = {}
+            for command_protocol in self.commands:
+                # Cast protocol to concrete type for type safety
+                command = cast("m.CliCommand", command_protocol)
                 status = command.status or ""
                 if status not in result:
                     result[status] = []
                 result[status].append(command)
             return result
 
-        def add_command(self, command: FlextCliModels.CliCommand) -> r[Self]:
+        def add_command(self, command: p.Cli.CliCommandProtocol) -> r[Self]:
             """Add command to session."""
             try:
                 updated_commands = list(self.commands) + [command]
-                updated_session = self.model_copy(update={"commands": updated_commands})
+                updated_session = self._copy_with_update(commands=updated_commands)
                 return r.ok(updated_session)
             except Exception as e:
                 return r.fail(f"Failed to add command: {e}")
 
-    class CliSessionData(FlextModelsEntity.Value):
-        """CLI session summary data."""
+        def _copy_with_update(self, **updates: object) -> Self:
+            """Helper method for model_copy with updates - reduces repetition.
+
+            Composition pattern: centralizes model_copy logic for reuse.
+            Uses object instead of GeneralValueType to accept Protocol types.
+            """
+            return self.model_copy(update=updates)
+
+    class CliSessionData(Value):
+        """CLI session summary data extending Value via inheritance."""
 
         model_config = ConfigDict(frozen=True, extra="forbid")
 
@@ -375,8 +362,8 @@ class FlextCliModels(FlextModels):
         status: str = Field(..., description="Session status")
         commands_count: int = Field(default=0, description="Number of commands")
 
-    class CliContext(FlextModelsEntity.Value):
-        """CLI execution context model."""
+    class CliContext(Value):
+        """CLI execution context model extending Value via inheritance."""
 
         model_config = ConfigDict(
             frozen=True,
@@ -399,21 +386,21 @@ class FlextCliModels(FlextModels):
             description="Command line arguments",
         )
 
-        output_format: FlextCliConstants.OutputFormats = Field(
-            default=FlextCliConstants.OutputFormats.TABLE,
+        output_format: c.OutputFormats = Field(
+            default=c.OutputFormats.TABLE,
             description="Output format preference",
         )
 
-    class CliOutput(FlextModelsEntity.Value):
-        """CLI output configuration model."""
+    class CliOutput(Value):
+        """CLI output configuration model extending Value via inheritance."""
 
         model_config = ConfigDict(
             frozen=True,
             extra="forbid",
         )
 
-        format: FlextCliConstants.OutputFormats = Field(
-            default=FlextCliConstants.OutputFormats.TABLE,
+        format: c.OutputFormats = Field(
+            default=c.OutputFormats.TABLE,
             description="Output format",
         )
 
@@ -432,8 +419,8 @@ class FlextCliModels(FlextModels):
             description="Whether to use colors",
         )
 
-    class CommandResult(FlextModelsEntity.Value):
-        """Result of command execution."""
+    class CommandResult(Value):
+        """Result of command execution extending Value via inheritance."""
 
         model_config = ConfigDict(
             frozen=True,
@@ -477,8 +464,8 @@ class FlextCliModels(FlextModels):
             """Check if command produced output."""
             return bool(self.stdout or self.stderr)
 
-    class ServiceExecutionResult(FlextModelsEntity.Value):
-        """Result of service execution for status reporting."""
+    class ServiceExecutionResult(Value):
+        """Result of service execution for status reporting extending Value via inheritance."""
 
         model_config = ConfigDict(
             frozen=True,
@@ -511,8 +498,8 @@ class FlextCliModels(FlextModels):
             description="Whether service is ready",
         )
 
-    class CliConfig(FlextModelsEntity.Core):
-        """CLI configuration model."""
+    class CliConfig(Entity):
+        """CLI configuration model extending Entity via inheritance."""
 
         model_config = ConfigDict(
             frozen=True,
@@ -521,18 +508,18 @@ class FlextCliModels(FlextModels):
             validate_default=True,
         )
 
-        server_type: FlextCliConstants.ServerType = Field(
-            default=FlextCliConstants.ServerType.RFC,
+        server_type: c.ServerType = Field(
+            default=c.ServerType.RFC,
             description="Server type",
         )
 
-        output_format: FlextCliConstants.OutputFormats = Field(
-            default=FlextCliConstants.OutputFormats.TABLE,
+        output_format: c.OutputFormats = Field(
+            default=c.OutputFormats.TABLE,
             description="Default output format",
         )
 
-        verbosity: FlextCliConstants.LogVerbosity = Field(
-            default=FlextCliConstants.LogVerbosity.COMPACT,
+        verbosity: c.LogVerbosity = Field(
+            default=c.LogVerbosity.COMPACT,
             description="Log verbosity level",
         )
 
@@ -557,8 +544,8 @@ class FlextCliModels(FlextModels):
     # ADDITIONAL MODELS - Required by flext-cli modules
     # =========================================================================
 
-    class TableConfig(FlextModelsEntity.Value):
-        """Table display configuration for tabulate.
+    class TableConfig(Value):
+        """Table display configuration for tabulate extending Value via inheritance.
 
         Fields map directly to tabulate() parameters.
         """
@@ -572,6 +559,10 @@ class FlextCliModels(FlextModels):
                 "Table headers (string like 'keys', 'firstrow' "
                 "or sequence of header names)"
             ),
+        )
+        show_header: bool = Field(
+            default=True,
+            description="Whether to show table header",
         )
 
         # Format configuration
@@ -630,7 +621,7 @@ class FlextCliModels(FlextModels):
             """Get effective column alignment, resolving None to default."""
             return self.colalign
 
-    class WorkflowResult(FlextModelsEntity.Value):
+    class WorkflowResult(Value):
         """Workflow execution result with step-by-step tracking.
 
         Tracks overall workflow success and individual step results.
@@ -638,23 +629,26 @@ class FlextCliModels(FlextModels):
 
         model_config = ConfigDict(frozen=True, extra="forbid")
 
-        step_results: Sequence[t.JsonDict] = Field(
+        step_results: Sequence[t.Json.JsonDict] = Field(
             default_factory=list,
             description="Results for each workflow step",
         )
         total_steps: int = Field(default=0, description="Total number of steps")
         successful_steps: int = Field(
-            default=0, description="Number of successful steps"
+            default=0,
+            description="Number of successful steps",
         )
         failed_steps: int = Field(default=0, description="Number of failed steps")
         overall_success: bool = Field(
-            default=True, description="Whether workflow succeeded overall"
+            default=True,
+            description="Whether workflow succeeded overall",
         )
         total_duration_seconds: float = Field(
-            default=0.0, description="Total workflow duration"
+            default=0.0,
+            description="Total workflow duration",
         )
 
-    class CliParamsConfig(FlextModelsEntity.Value):
+    class CliParamsConfig(Value):
         """CLI parameters configuration for command-line parsing.
 
         Maps directly to CLI flags: --verbose, --quiet, --debug, --trace, etc.
@@ -665,52 +659,80 @@ class FlextCliModels(FlextModels):
 
         verbose: bool | None = Field(default=None, description="Enable verbose output")
         quiet: bool | None = Field(
-            default=None, description="Suppress non-essential output"
+            default=None,
+            description="Suppress non-essential output",
         )
         debug: bool | None = Field(default=None, description="Enable debug mode")
         trace: bool | None = Field(
-            default=None, description="Enable trace logging (requires debug)"
+            default=None,
+            description="Enable trace logging (requires debug)",
         )
         log_level: str | None = Field(
-            default=None, description="Log level (DEBUG, INFO, WARNING, ERROR)"
+            default=None,
+            description="Log level (DEBUG, INFO, WARNING, ERROR)",
         )
         log_format: str | None = Field(
-            default=None, description="Log format (compact, detailed, full)"
+            default=None,
+            description="Log format (compact, detailed, full)",
         )
         output_format: str | None = Field(
-            default=None, description="Output format (table, json, yaml, csv)"
+            default=None,
+            description="Output format (table, json, yaml, csv)",
         )
         no_color: bool | None = Field(
-            default=None, description="Disable colored output"
+            default=None,
+            description="Disable colored output",
         )
 
-    class OptionConfig(FlextModelsEntity.Value):
+        @property
+        def params(self) -> Mapping[str, t.GeneralValueType]:
+            """Parameters mapping - required by CliParamsConfigProtocol."""
+            return {
+                "verbose": self.verbose,
+                "quiet": self.quiet,
+                "debug": self.debug,
+                "trace": self.trace,
+                "log_level": self.log_level,
+                "log_format": self.log_format,
+                "output_format": self.output_format,
+                "no_color": self.no_color,
+            }
+
+    class OptionConfig(Value):
         """Configuration for CLI option decorators.
 
         Used with create_option_decorator to reduce argument count.
         """
 
-        model_config = ConfigDict(frozen=True, extra="forbid")
+        model_config = ConfigDict(
+            frozen=True,
+            extra="forbid",
+            arbitrary_types_allowed=True,
+        )
 
         default: t.GeneralValueType | None = Field(
-            default=None, description="Default value"
+            default=None,
+            description="Default value",
         )
-        type_hint: t.GeneralValueType | None = Field(
-            default=None, description="Parameter type (Click type or Python type)"
+        type_hint: object = Field(
+            default=None,
+            description="Parameter type (Click type or Python type)",
         )
         required: bool = Field(default=False, description="Whether option is required")
         help_text: str | None = Field(default=None, description="Help text for option")
         is_flag: bool = Field(
-            default=False, description="Whether this is a boolean flag"
+            default=False,
+            description="Whether this is a boolean flag",
         )
         flag_value: t.GeneralValueType | None = Field(
-            default=None, description="Value when flag is set"
+            default=None,
+            description="Value when flag is set",
         )
         multiple: bool = Field(default=False, description="Allow multiple values")
         count: bool = Field(default=False, description="Count occurrences")
         show_default: bool = Field(default=False, description="Show default in help")
 
-    class ConfirmConfig(FlextModelsEntity.Value):
+    class ConfirmConfig(Value):
         """Configuration for confirm prompts.
 
         Used with confirm() method to reduce argument count.
@@ -721,42 +743,50 @@ class FlextCliModels(FlextModels):
         default: bool = Field(default=False, description="Default value")
         abort: bool = Field(default=False, description="Abort if not confirmed")
         prompt_suffix: str = Field(
-            default=FlextCliConstants.UIDefaults.DEFAULT_PROMPT_SUFFIX,
+            default=c.UIDefaults.DEFAULT_PROMPT_SUFFIX,
             description="Suffix after prompt",
         )
         show_default: bool = Field(default=True, description="Show default in prompt")
         err: bool = Field(default=False, description="Write to stderr")
 
-    class PromptConfig(FlextModelsEntity.Value):
+    class PromptConfig(Value):
         """Configuration for input prompts.
 
         Used with prompt() method to reduce argument count.
         """
 
-        model_config = ConfigDict(frozen=True, extra="forbid")
+        model_config = ConfigDict(
+            frozen=True,
+            extra="forbid",
+            arbitrary_types_allowed=True,
+        )
 
         default: t.GeneralValueType | None = Field(
-            default=None, description="Default value"
+            default=None,
+            description="Default value",
         )
-        type_hint: t.GeneralValueType | None = Field(
-            default=None, description="Value type"
+        type_hint: object = Field(
+            default=None,
+            description="Value type",
         )
-        value_proc: Callable[[str], t.GeneralValueType] | None = Field(
-            default=None, description="Value processor function"
+        value_proc: object = Field(
+            default=None,
+            description="Value processor function",
         )
         prompt_suffix: str = Field(
-            default=FlextCliConstants.UIDefaults.DEFAULT_PROMPT_SUFFIX,
+            default=c.UIDefaults.DEFAULT_PROMPT_SUFFIX,
             description="Suffix after prompt",
         )
         hide_input: bool = Field(default=False, description="Hide user input")
         confirmation_prompt: bool = Field(
-            default=False, description="Ask for confirmation"
+            default=False,
+            description="Ask for confirmation",
         )
         show_default: bool = Field(default=True, description="Show default in prompt")
         err: bool = Field(default=False, description="Write to stderr")
         show_choices: bool = Field(default=True, description="Show available choices")
 
-    class PathInfo(FlextModelsEntity.Value):
+    class PathInfo(Value):
         """Path information for debug output."""
 
         model_config = ConfigDict(frozen=True, extra="forbid")
@@ -767,7 +797,7 @@ class FlextCliModels(FlextModels):
         is_file: bool = Field(default=False)
         is_dir: bool = Field(default=False)
 
-    class EnvironmentInfo(FlextModelsEntity.Value):
+    class EnvironmentInfo(Value):
         """Environment information for debug output."""
 
         model_config = ConfigDict(frozen=True, extra="forbid")
@@ -777,7 +807,7 @@ class FlextCliModels(FlextModels):
         os_version: str = Field(default="")
         variables: Mapping[str, str] = Field(default_factory=dict)
 
-    class SystemInfo(FlextModelsEntity.Value):
+    class SystemInfo(Value):
         """System information for debug output."""
 
         model_config = ConfigDict(frozen=True, extra="forbid")
@@ -790,22 +820,23 @@ class FlextCliModels(FlextModels):
         memory_total: int = Field(default=0)
         cpu_count: int = Field(default=0)
 
-    class ContextExecutionResult(FlextModelsEntity.Value):
+    class ContextExecutionResult(Value):
         """Context execution result."""
 
         model_config = ConfigDict(frozen=True, extra="forbid")
 
         success: bool = Field(default=True)
         context_id: str = Field(default="")
-        metadata: t.JsonDict = Field(default_factory=dict)
+        metadata: t.Json.JsonDict = Field(default_factory=dict)
         context_executed: bool = Field(
-            default=False, description="Whether context was executed"
+            default=False,
+            description="Whether context was executed",
         )
         command: str = Field(default="", description="Command executed in context")
         arguments_count: int = Field(default=0, description="Number of arguments")
         timestamp: str = Field(default="", description="Execution timestamp")
 
-    class DebugInfo(FlextModelsEntity.Value):
+    class DebugInfo(Value):
         """Debug information model with sensitive data masking."""
 
         model_config = ConfigDict(frozen=True, extra="forbid")
@@ -813,11 +844,13 @@ class FlextCliModels(FlextModels):
         service: str = Field(..., description="Service name")
         level: str = Field(..., description="Debug level")
         message: str = Field(..., description="Debug message")
-        system_info: t.JsonDict = Field(
-            default_factory=dict, description="System information"
+        system_info: t.Json.JsonDict = Field(
+            default_factory=dict,
+            description="System information",
         )
-        config_info: t.JsonDict = Field(
-            default_factory=dict, description="Configuration information"
+        config_info: t.Json.JsonDict = Field(
+            default_factory=dict,
+            description="Configuration information",
         )
 
         @field_validator("level", mode="before")
@@ -829,107 +862,62 @@ class FlextCliModels(FlextModels):
             return str(value).upper()
 
         @property
-        def debug_summary(self) -> FlextCliModels.CliDebugData:
+        def debug_summary(self) -> m.CliDebugData:
             """Return debug summary as CliDebugData model."""
-            return FlextCliModels.CliDebugData(
+            return m.CliDebugData(
                 service=self.service,
                 level=self.level,
                 message=self.message,
             )
 
-        def model_dump(  # noqa: PLR0913
-            self,
-            *,
-            mode: str = "python",
-            include: IncEx | None = None,
-            exclude: IncEx | None = None,
-            context: t.GeneralValueType | None = None,
-            by_alias: bool | None = None,
-            exclude_unset: bool = False,
-            exclude_defaults: bool = False,
-            exclude_none: bool = False,
-            exclude_computed_fields: bool = False,
-            round_trip: bool = False,
-            warnings: Literal["none", "warn", "error"] | bool = True,
-            fallback: Callable[[t.GeneralValueType], t.GeneralValueType] | None = None,
-            serialize_as_any: bool = False,
-        ) -> dict[str, t.GeneralValueType]:
+        def dump_masked(self) -> dict[str, t.GeneralValueType]:
             """Dump model with sensitive data masking.
 
             Business Rule:
             ──────────────
-            Overrides BaseModel.model_dump() to mask sensitive fields before serialization.
-            Uses Pydantic's IncEx type for include/exclude parameters (recursive type).
-            The IncEx type alias matches Pydantic's internal type structure for compatibility.
-            At runtime, our IncEx type is structurally compatible with Pydantic's IncEx.
+            Returns model_dump() with sensitive fields masked before serialization.
+            This is a separate method to avoid Pydantic method override type issues.
 
             Audit Implication:
             ───────────────────
             Sensitive data (passwords, tokens, secrets) are masked in serialized output.
             This prevents accidental exposure of credentials in logs or API responses.
+
+            Returns:
+                Dict with sensitive values masked as "***MASKED***".
+
             """
-            # Include/exclude are structurally compatible with Pydantic's IncEx at runtime
-            # Business Rule: Our IncEx type alias matches Pydantic's structure
-            # At runtime, Pydantic accepts our type structure without issues
-            # The type checker sees different types, but they're structurally compatible
-            # Solution: Call super().model_dump() directly - runtime accepts our types
-            # The type checker sees different types, but runtime behavior is correct
-            # This is a known limitation when overriding Pydantic methods with custom types
-            # We use getattr to access the method dynamically to bypass type checking
-            # Business Rule: Our IncEx type is structurally compatible with Pydantic's IncEx
-            # Audit Implication: Type compatibility ensures proper serialization behavior
-            model_dump_method = super().model_dump
-            # Type cast: IncEx is structurally compatible with Pydantic's IncEx at runtime
-            # Use cast to satisfy mypy while maintaining runtime compatibility
-            # Note: TYPE_CHECKING import is allowed per project standards (exception for IncEx)
-            include_typed: object = cast("object", include)
-            exclude_typed: object = cast("object", exclude)
-            data = model_dump_method(
-                mode=mode,
-                include=include_typed,  # Structurally compatible with Pydantic's IncEx
-                exclude=exclude_typed,  # Structurally compatible with Pydantic's IncEx
-                context=context,
-                by_alias=by_alias,
-                exclude_unset=exclude_unset,
-                exclude_defaults=exclude_defaults,
-                exclude_none=exclude_none,
-                exclude_computed_fields=exclude_computed_fields,
-                round_trip=round_trip,
-                warnings=warnings,
-                fallback=fallback,
-                serialize_as_any=serialize_as_any,
-            )
-            # Mask sensitive keys in system_info and config_info
+            data = self.model_dump()
             sensitive_keys = ["password", "token", "secret", "key", "credential"]
-            # Use u.get to safely get nested dicts
+
+            # Mask sensitive keys in system_info
             system_info = data.get("system_info")
             if system_info and FlextRuntime.is_dict_like(system_info):
-                # Use u.process to mask sensitive keys based on key name
-                process_result = u.process(
-                    dict(system_info),
-                    processor=lambda k, v: (
+                system_dict = dict(system_info)
+                masked_system_dict: dict[str, t.GeneralValueType] = {
+                    k: (
                         "***MASKED***"
                         if any(sensitive in k.lower() for sensitive in sensitive_keys)
                         else v
-                    ),
-                    on_error="collect",
-                )
-                masked_system_dict = u.val(process_result, default=dict(system_info))
+                    )
+                    for k, v in system_dict.items()
+                }
                 data["system_info"] = masked_system_dict
+
+            # Mask sensitive keys in config_info
             config_info = data.get("config_info")
             if config_info and FlextRuntime.is_dict_like(config_info):
-                # Use u.process to mask sensitive keys based on key name
-                process_result = u.process(
-                    dict(config_info),
-                    processor=lambda k, v: (
+                config_dict = dict(config_info)
+                masked_config_dict: dict[str, t.GeneralValueType] = {
+                    k: (
                         "***MASKED***"
                         if any(sensitive in k.lower() for sensitive in sensitive_keys)
                         else v
-                    ),
-                    on_error="collect",
-                )
-                masked_config_dict = u.val(process_result, default=dict(config_info))
+                    )
+                    for k, v in config_dict.items()
+                }
                 data["config_info"] = masked_config_dict
+
             return data
 
     class OptionBuilder:
@@ -942,12 +930,12 @@ class FlextCliModels(FlextModels):
         def __init__(
             self,
             field_name: str,
-            registry: Mapping[str, t.JsonDict],
+            registry: Mapping[str, t.Json.JsonDict],
         ) -> None:
             """Initialize builder with field name and registry.
 
             Args:
-                field_name: Name of field in FlextCliConfig
+                field_name: Name of field in "FlextCliConfig"
                 registry: CLI parameter registry mapping field names to option metadata
 
             """
@@ -986,8 +974,19 @@ class FlextCliModels(FlextModels):
             default_value = field_meta.get("default")
             # Note: is_flag is deprecated in Typer - boolean defaults auto-enable flag behavior
 
+            # Use field_name_override if available, otherwise use field_name
+            # Registry uses KEY_FIELD_NAME_OVERRIDE to map CLI param name to field name
+            field_name_override = field_meta.get(
+                c.CliParamsRegistry.KEY_FIELD_NAME_OVERRIDE,
+            )
+            cli_param_name: str = (
+                str(field_name_override)
+                if field_name_override is not None
+                else self.field_name
+            )
+
             # Build option arguments
-            option_args: list[str] = [f"--{self.field_name.replace('_', '-')}"]
+            option_args: list[str] = [f"--{cli_param_name.replace('_', '-')}"]
             if short_flag:
                 option_args.append(f"-{short_flag}")
 
@@ -1000,7 +999,7 @@ class FlextCliModels(FlextModels):
             )
             return option
 
-    class PasswordAuth(FlextModelsEntity.Value):
+    class PasswordAuth(Value):
         """Password authentication data."""
 
         model_config = ConfigDict(frozen=True, extra="forbid")
@@ -1009,7 +1008,7 @@ class FlextCliModels(FlextModels):
         password: str = Field(...)
         realm: str = Field(default="")
 
-    class CmdConfig(FlextModelsEntity.Value):
+    class CmdConfig(Value):
         """Command configuration."""
 
         model_config = ConfigDict(frozen=True, extra="forbid")
@@ -1019,7 +1018,7 @@ class FlextCliModels(FlextModels):
         hidden: bool = Field(default=False)
         deprecated: bool = Field(default=False)
 
-    class TokenData(FlextModelsEntity.Value):
+    class TokenData(Value):
         """Authentication token data."""
 
         model_config = ConfigDict(frozen=True, extra="forbid")
@@ -1028,20 +1027,22 @@ class FlextCliModels(FlextModels):
         expires_at: str = Field(default="")
         token_type: str = Field(default="Bearer")
 
-    class SessionStatistics(FlextModelsEntity.Value):
+    class SessionStatistics(Value):
         """Statistics for CLI session tracking."""
 
         model_config = ConfigDict(frozen=True, extra="forbid")
 
         commands_executed: int = Field(
-            default=0, description="Number of commands executed"
+            default=0,
+            description="Number of commands executed",
         )
         errors_count: int = Field(default=0, description="Number of errors encountered")
         session_duration_seconds: float = Field(
-            default=0.0, description="Session duration in seconds"
+            default=0.0,
+            description="Session duration in seconds",
         )
 
-    class PromptStatistics(FlextModelsEntity.Value):
+    class PromptStatistics(Value):
         """Statistics for prompt service usage tracking."""
 
         model_config = ConfigDict(frozen=True, extra="forbid")
@@ -1049,22 +1050,27 @@ class FlextCliModels(FlextModels):
         prompts_executed: int = Field(default=0, description="Total prompts executed")
         history_size: int = Field(default=0, description="Current history size")
         prompts_answered: int = Field(
-            default=0, description="Prompts that received answers"
+            default=0,
+            description="Prompts that received answers",
         )
         prompts_cancelled: int = Field(
-            default=0, description="Prompts that were cancelled"
+            default=0,
+            description="Prompts that were cancelled",
         )
         interactive_mode: bool = Field(
-            default=False, description="Interactive mode flag"
+            default=False,
+            description="Interactive mode flag",
         )
         default_timeout: int = Field(
-            default=30, description="Default timeout in seconds"
+            default=30,
+            description="Default timeout in seconds",
         )
         timestamp: str = Field(
-            default="", description="Timestamp of statistics collection"
+            default="",
+            description="Timestamp of statistics collection",
         )
 
-    class CommandStatistics(FlextModelsEntity.Value):
+    class CommandStatistics(Value):
         """Command statistics."""
 
         model_config = ConfigDict(frozen=True, extra="forbid")
@@ -1073,7 +1079,7 @@ class FlextCliModels(FlextModels):
         successful_commands: int = Field(default=0)
         failed_commands: int = Field(default=0)
 
-    class CommandExecutionContextResult(FlextModelsEntity.Value):
+    class CommandExecutionContextResult(Value):
         """Command execution context result."""
 
         model_config = ConfigDict(frozen=True, extra="forbid")
@@ -1081,9 +1087,9 @@ class FlextCliModels(FlextModels):
         command_name: str = Field(...)
         exit_code: int = Field(default=0)
         output: str = Field(default="")
-        context: t.JsonDict = Field(default_factory=dict)
+        context: t.Json.JsonDict = Field(default_factory=dict)
 
-    class WorkflowStepResult(FlextModelsEntity.Value):
+    class WorkflowStepResult(Value):
         """Workflow step result."""
 
         model_config = ConfigDict(frozen=True, extra="forbid")
@@ -1093,7 +1099,7 @@ class FlextCliModels(FlextModels):
         message: str = Field(default="")
         duration: float = Field(default=0.0)
 
-    class WorkflowProgress(FlextModelsEntity.Value):
+    class WorkflowProgress(Value):
         """Workflow progress information."""
 
         model_config = ConfigDict(frozen=True, extra="forbid")
@@ -1169,15 +1175,17 @@ class FlextCliModels(FlextModels):
                 return field_type, origin
 
             # Check if type has __value__ (type alias characteristic)
-            type_value = u.get(field_type, "__value__", default=None)
+            # Use getattr for type object access - field_type is a type, not a Mapping
+            type_value = getattr(field_type, "__value__", None)
             if type_value is not None:
                 # Check if __value__ is a Literal type
                 value_origin = get_origin(type_value)
                 if value_origin is Literal:
                     # Type alias to Literal - convert to str for Typer
                     return str, Literal
-                # Not Literal, continue to return field_type with origin
+                # Not Literal - continue to return field_type with origin
             # Return field_type with its origin (None if not a generic)
+            # This handles both cases: type_value is None or not Literal
             return field_type, get_origin(field_type)
 
         @staticmethod
@@ -1236,6 +1244,7 @@ class FlextCliModels(FlextModels):
             builtin_types: set[str],
         ) -> tuple[str, type]:
             """Handle Optional[T] pattern (Union with None)."""
+
             # u.filter for list accepts predicate(item) -> bool
             def is_not_none_type(arg: object) -> bool:
                 """Check if arg is not type(None)."""
@@ -1249,8 +1258,9 @@ class FlextCliModels(FlextModels):
             if get_origin(inner_type) is Literal:
                 return "Optional[str]", inner_type
 
-            inner_name = FlextCliModels.ModelCommandBuilder.get_builtin_name(
-                inner_type, builtin_types
+            inner_name = m.ModelCommandBuilder.get_builtin_name(
+                inner_type,
+                builtin_types,
             )
             return f"Optional[{inner_name}]", inner_type
 
@@ -1260,6 +1270,7 @@ class FlextCliModels(FlextModels):
             builtin_types: set[str],
         ) -> tuple[str, type]:
             """Handle Union without None."""
+
             # u.filter for list accepts predicate(item) -> bool
             def is_not_none_type(arg: object) -> bool:
                 """Check if arg is not type(None)."""
@@ -1275,8 +1286,9 @@ class FlextCliModels(FlextModels):
             if get_origin(first_type) is Literal:
                 return "str", first_type
 
-            type_name = FlextCliModels.ModelCommandBuilder.get_builtin_name(
-                first_type, builtin_types
+            type_name = m.ModelCommandBuilder.get_builtin_name(
+                first_type,
+                builtin_types,
             )
             return type_name, first_type
 
@@ -1291,7 +1303,7 @@ class FlextCliModels(FlextModels):
             Handles Literal, Union, Optional, and boolean types.
             """
             origin = get_origin(field_type)
-            builder = FlextCliModels.ModelCommandBuilder
+            builder = m.ModelCommandBuilder
 
             # Handle direct Literal type
             if origin is Literal:
@@ -1317,40 +1329,58 @@ class FlextCliModels(FlextModels):
 
             Returns (field_type, default_value, is_required, has_factory).
             """
-            default_value = u.get(field_info, "default", default=None)
-            default_factory = u.get(field_info, "default_factory", default=None)
+            # Use getattr for FieldInfo access - field_info is an object, not always a Mapping
+            default_value = (
+                getattr(field_info, "default", None) if field_info is not None else None
+            )
+            default_factory = (
+                getattr(field_info, "default_factory", None)
+                if field_info is not None
+                else None
+            )
             has_factory = default_factory is not None
-            # Type narrowing: field_info has is_required method
+            # Business Rule: Field requirement MUST be checked only for Pydantic FieldInfo objects
+            # Architecture: Use isinstance() to verify field_info is FieldInfo before accessing attributes
+            # Audit Implication: Type safety prevents AttributeError on primitive types
             is_required = True
-            if field_info is not None and hasattr(field_info, "is_required"):
-                # Type narrowing: field_info has is_required attribute
-                is_required_attr = field_info.is_required
+            # Type narrowing: Check if field_info is a Pydantic FieldInfo object
+            # Business Rule: Only FieldInfo objects have is_required attribute
+            # Architecture: isinstance() check ensures type safety before attribute access
+            # Audit Implication: Prevents AttributeError when field_info is primitive type
+            # Note: mypy incorrectly flags FieldInfo as subclass of primitives
+            # Use getattr for safe access to avoid mypy false positives
+            if field_info is not None and isinstance(field_info, FieldInfo):
+                # Type narrowing: field_info is FieldInfo, safe to access is_required
+                # Use getattr to avoid mypy unreachable false positive
+                is_required_attr = getattr(field_info, "is_required", True)
+                # is_required can be bool or callable, handle both cases
                 if callable(is_required_attr):
                     is_required_method = cast("Callable[[], bool]", is_required_attr)
                     is_required = is_required_method()
+                else:
+                    # is_required_attr is bool at this point (after callable check)
+                    is_required = bool(is_required_attr)
 
             # Get config default if available
             if self.config is not None and u.has(self.config, field_name):
-                config_value = u.get(self.config, field_name)
+                # Use getattr for config access - config is an object, not a Mapping
+                config_value = getattr(self.config, field_name, None)
                 if config_value is not None:
                     default_value = config_value
 
             # Get and resolve field type
-            field_type_raw = u.get(field_info, "annotation", default=None)
+            # Use getattr for FieldInfo access - field_info is an object, not always a Mapping
+            field_type_raw = (
+                getattr(field_info, "annotation", None)
+                if field_info is not None
+                else None
+            )
             if field_type_raw is None:
                 # No annotation - infer from default value or use str
-                field_type = u.when(
-                    condition=default_value is not None,
-                    then_value=type(default_value),
-                    else_value=str,
-                )
+                field_type = type(default_value) if default_value is not None else str
             elif field_type_raw is object:
                 # object type - infer from default value or use str
-                field_type = u.when(
-                    condition=default_value is not None,
-                    then_value=type(default_value),
-                    else_value=str,
-                )
+                field_type = type(default_value) if default_value is not None else str
             else:
                 # Has annotation - resolve type alias
                 field_type, origin = self._resolve_type_alias(field_type_raw)
@@ -1358,12 +1388,14 @@ class FlextCliModels(FlextModels):
                     field_type, _ = self._extract_optional_inner_type(field_type)
 
             # Type narrowing: ensure field_type is a type
-            field_type_typed: type = cast("type", field_type) if isinstance(field_type, type) else str
+            field_type_typed: type = field_type if isinstance(field_type, type) else str
             return field_type_typed, default_value, is_required, has_factory
 
         @staticmethod
         def _format_bool_param(
-            type_name: str, inner_type: type, default_val: t.GeneralValueType
+            type_name: str,
+            inner_type: type,
+            default_val: t.GeneralValueType,
         ) -> tuple[str, t.GeneralValueType]:
             """Format boolean parameter for Typer flag detection."""
             if hasattr(inner_type, "__name__") and inner_type.__name__ == "bool":
@@ -1386,7 +1418,9 @@ class FlextCliModels(FlextModels):
             """
             type_name, inner_type, default_val, has_factory, has_default = type_info
             type_name, default_val = self._format_bool_param(
-                type_name, inner_type, default_val
+                type_name,
+                inner_type,
+                default_val,
             )
 
             if has_factory:
@@ -1423,14 +1457,13 @@ class FlextCliModels(FlextModels):
                     return field_type
                 return field_type
 
-            process_result = u.process(
-                annotations,
-                processor=process_annotation,
-                on_error="collect",
-            )
-            result = u.val(process_result, default=annotations)
-            # process() returns dict[str, type] for dict input
-            return cast("dict[str, type]", result)
+            # Process annotations using dict comprehension for type safety
+            # u.process() works on iterables, but for dicts we need to process items
+            processed_annotations: dict[str, type] = {
+                name: process_annotation(name, field_type)
+                for name, field_type in annotations.items()
+            }
+            return processed_annotations
 
         # Typer-compatible built-in types (class constant)
         _BUILTIN_TYPES: ClassVar[set[str]] = {
@@ -1458,7 +1491,8 @@ class FlextCliModels(FlextModels):
 
             # Use u.process_dict to process all fields
             def process_field(
-                field_name: str, field_info: t.GeneralValueType
+                field_name: str,
+                field_info: t.GeneralValueType,
             ) -> tuple[type, t.GeneralValueType | None, bool]:
                 """Process single field and return (type, default, has_factory)."""
                 field_type, default_val, is_required, has_factory = (
@@ -1470,20 +1504,12 @@ class FlextCliModels(FlextModels):
                     has_factory,
                 )
 
-            process_result = u.process(
-                model_fields,
-                processor=process_field,
-                on_error="collect",
-            )
-            if process_result.is_failure:
-                return {}, {}, set()
-
-            processed_result = u.val(process_result, default={})
-            # process() returns dict[str, tuple] for dict input
-            processed_dict = cast(
-                "dict[str, tuple[type, t.GeneralValueType | None, bool]]",
-                processed_result,
-            )
+            # Process model fields using dict comprehension for type safety
+            # u.process() works on iterables, but for dicts we need to process items
+            processed_dict: dict[str, tuple[type, t.GeneralValueType | None, bool]] = {
+                field_name: process_field(field_name, field_info)
+                for field_name, field_info in model_fields.items()
+            }
             # Build annotations, defaults, and fields_with_factory from processed results
             annotations: dict[str, type] = {}
             defaults: dict[str, t.GeneralValueType] = {}
@@ -1519,7 +1545,8 @@ class FlextCliModels(FlextModels):
             # Use u.process_dict to process annotations and build signatures
             def process_signature(name: str, field_type: type) -> tuple[str, bool]:
                 type_name, inner_type = self._get_type_name_for_signature(
-                    field_type, self._BUILTIN_TYPES
+                    field_type,
+                    self._BUILTIN_TYPES,
                 )
                 type_info = (
                     type_name,
@@ -1531,19 +1558,12 @@ class FlextCliModels(FlextModels):
                 param_str, is_no_default = self._build_param_signature(name, type_info)
                 return param_str, is_no_default
 
-            process_result = u.process(
-                annotations,
-                processor=process_signature,
-                on_error="collect",
-            )
-            if process_result.is_failure:
-                return ""
-
-            signatures_result = (
-                process_result.unwrap() if process_result.is_success else {}
-            )
-            # process() returns dict[str, tuple] for dict input
-            signatures_dict = cast("dict[str, tuple[str, bool]]", signatures_result)
+            # Process annotations using dict comprehension for type safety
+            # u.process() works on iterables, but for dicts we need to process items
+            signatures_dict: dict[str, tuple[str, bool]] = {
+                name: process_signature(name, field_type)
+                for name, field_type in annotations.items()
+            }
             # Separate into two lists using u.filter
             # Use operator.itemgetter(1) to get boolean flag, then check truthiness
             get_bool_flag = operator.itemgetter(1)
@@ -1560,8 +1580,14 @@ class FlextCliModels(FlextModels):
                 """Check if item has default (is_no_default is False)."""
                 return not bool(get_bool_flag(item))
 
-            params_no_default_list = u.filter(signatures_values_typed, predicate=has_no_default)
-            params_with_default_list = u.filter(signatures_values_typed, predicate=has_default)
+            params_no_default_list = u.filter(
+                signatures_values_typed,
+                predicate=has_no_default,
+            )
+            params_with_default_list = u.filter(
+                signatures_values_typed,
+                predicate=has_default,
+            )
             params_no_default = (
                 list(params_no_default_list)
                 if isinstance(params_no_default_list, list)
@@ -1589,6 +1615,7 @@ class FlextCliModels(FlextModels):
             sig_parts: str,
             annotations: dict[str, type],
         ) -> Callable[..., t.GeneralValueType]:
+            # Callable[..., T] uses ... for variadic args (created dynamically via exec)
             """Execute dynamic function creation and return command wrapper.
 
             Args:
@@ -1620,7 +1647,7 @@ class FlextCliModels(FlextModels):
                 "__builtins__": __builtins__,
             }
             func_code = f"def command_wrapper({sig_parts}):{func_body}"
-            exec(func_code, func_globals)  # noqa: S102
+            exec(func_code, func_globals)
             command_wrapper = func_globals.get("command_wrapper")
             if command_wrapper is None:
                 msg = "Failed to create command wrapper"
@@ -1631,11 +1658,14 @@ class FlextCliModels(FlextModels):
             command_wrapper.__annotations__ = real_annotations
 
             if callable(command_wrapper):
+                # command_wrapper is created dynamically via exec, so signature is variadic
+                # Callable[..., T] is necessary for variadic callables
                 return cast("Callable[..., t.GeneralValueType]", command_wrapper)
             msg = "command_wrapper is not callable"
             raise RuntimeError(msg)
 
         def build(self) -> Callable[..., t.GeneralValueType]:
+            # Callable[..., T] uses ... for variadic args (created dynamically)
             """Build Typer command from Pydantic model.
 
             Business Rule:
@@ -1645,7 +1675,7 @@ class FlextCliModels(FlextModels):
             1. Accepts CLI arguments matching model field names and types
             2. Validates arguments using Pydantic model_validate()
             3. Calls handler with validated model instance
-            4. Returns handler result (typically FlextResult)
+            4. Returns handler result (typically r)
 
             Architecture Implications:
             ───────────────────────────
@@ -1669,10 +1699,12 @@ class FlextCliModels(FlextModels):
             """
             model_fields = getattr(self.model_class, "model_fields", {})
             annotations, defaults, fields_with_factory = self._collect_field_data(
-                model_fields
+                model_fields,
             )
             sig_parts = self._build_signature_parts(
-                annotations, defaults, fields_with_factory
+                annotations,
+                defaults,
+                fields_with_factory,
             )
             return self._execute_command_wrapper(sig_parts, annotations)
 
@@ -1703,15 +1735,20 @@ class FlextCliModels(FlextModels):
         """Converter for Pydantic models to CLI parameters.
 
         Provides methods to convert Pydantic models to CLI parameter specifications
-        and Click options, following FLEXT patterns with FlextResult railway pattern.
+        and Click options, following FLEXT patterns with r railway pattern.
         """
 
         @staticmethod
-        def cli_args_to_model[M: type[BaseModel]](
-            model_cls: type[M],
+        def cli_args_to_model(
+            model_cls: type[BaseModel],
             cli_args: Mapping[str, t.GeneralValueType],
-        ) -> r[M]:
-            """Convert CLI arguments dict to Pydantic model instance."""
+        ) -> r[BaseModel]:
+            """Convert CLI arguments dict to Pydantic model instance.
+
+            Accepts type[BaseModel] directly to work around pyright limitations
+            with PEP 695 generics and local classes in tests. All BaseModel
+            subclasses are compatible with type[BaseModel].
+            """
             try:
                 # Use direct model_validate instead of from_dict to avoid type variable issues
                 # cli_args is already GeneralValueType compatible
@@ -1719,32 +1756,35 @@ class FlextCliModels(FlextModels):
                 # Convert Mapping to dict for model_validate
                 cli_args_dict: dict[str, t.GeneralValueType] = dict(cli_args)
                 # Type narrowing: model_cls is BaseModel subclass, model_validate exists
-                # Type cast: BaseModel.model_validate exists, but pyrefly needs type narrowing
-                # We know model_cls is BaseModel subclass from issubclass check above
                 # Use getattr to access model_validate to satisfy type checker
+                # BaseModel.model_validate exists but mypy needs explicit access
+                if not hasattr(model_cls, "model_validate"):
+                    return r.fail(f"{model_cls.__name__} is not a Pydantic model")
                 model_validate_method = model_cls.model_validate
                 model_instance = model_validate_method(cli_args_dict)
-                return r.ok(cast("M", model_instance))
+                # model_instance is already BaseModel (or subclass) - no cast needed
+                return r.ok(model_instance)
             except Exception as e:
                 return r.fail(f"Failed to create model instance: {e}")
 
         @staticmethod
         def model_to_cli_params(
             model_cls: type,
-        ) -> r[list[FlextCliModels.CliParameterSpec]]:
+        ) -> r[list[p.Cli.CliParameterSpecProtocol]]:
             """Convert Pydantic model to list of CLI parameter specifications."""
             try:
                 if not hasattr(model_cls, "model_fields"):
                     # Type narrowing: get class name safely for error message
                     class_name = getattr(model_cls, "__name__", str(model_cls))
-                    return r[list[FlextCliModels.CliParameterSpec]].fail(
-                        f"{class_name} is not a Pydantic model"
+                    return r[list[p.Cli.CliParameterSpecProtocol]].fail(
+                        f"{class_name} is not a Pydantic model",
                     )
                 # Use u.process to convert all fields
 
                 def convert_field(
-                    field_name: str, field_info: t.GeneralValueType
-                ) -> FlextCliModels.CliParameterSpec:
+                    field_name: str,
+                    field_info: t.GeneralValueType,
+                ) -> p.Cli.CliParameterSpecProtocol:
                     """Convert single field to CliParameterSpec."""
                     field_type = getattr(field_info, "annotation", str)
                     # Extract non-None type from Optional/Union
@@ -1759,12 +1799,10 @@ class FlextCliModels(FlextModels):
                             field_type = non_none_types[0]
                     default = getattr(field_info, "default", None)
                     help_text = str(getattr(field_info, "description", ""))
-                    click_type_str = (
-                        FlextCliModels.CliModelConverter.python_type_to_click_type(
-                            field_type
-                        )
+                    click_type_str = m.CliModelConverter.python_type_to_click_type(
+                        field_type,
                     )
-                    return FlextCliModels.CliParameterSpec(
+                    return m.CliParameterSpec(
                         field_name=field_name,
                         param_type=field_type,
                         click_type=click_type_str,
@@ -1772,28 +1810,22 @@ class FlextCliModels(FlextModels):
                         help_text=help_text,
                     )
 
-                process_result = u.process(
-                    model_cls.model_fields,
-                    processor=convert_field,
-                    on_error="collect",
-                )
-                if process_result.is_failure:
-                    return r[list[FlextCliModels.CliParameterSpec]].fail(
-                        u.err(process_result, default="Conversion failed")
+                # Process model fields using dict comprehension for type safety
+                # u.process() works on iterables, but for dicts we need to process items
+                try:
+                    params_dict: dict[str, p.Cli.CliParameterSpecProtocol] = {
+                        field_name: convert_field(field_name, field_info)
+                        for field_name, field_info in model_cls.model_fields.items()
+                    }
+                    params_list = list(params_dict.values())
+                    return r[list[p.Cli.CliParameterSpecProtocol]].ok(params_list)
+                except Exception as e:
+                    return r[list[p.Cli.CliParameterSpecProtocol]].fail(
+                        f"Conversion failed: {e}",
                     )
-                params_result = u.val(process_result, default={})
-                # u.process returns dict[str, R] for dict input, convert to list
-                if isinstance(params_result, dict):
-                    params_list = list(params_result.values())
-                    return r[list[FlextCliModels.CliParameterSpec]].ok(params_list)
-                if isinstance(params_result, list):
-                    return r[list[FlextCliModels.CliParameterSpec]].ok(params_result)
-                return r[list[FlextCliModels.CliParameterSpec]].fail(
-                    "Process returned unexpected type"
-                )
             except Exception as e:
-                return r[list[FlextCliModels.CliParameterSpec]].fail(
-                    f"Conversion failed: {e}"
+                return r[list[p.Cli.CliParameterSpecProtocol]].fail(
+                    f"Conversion failed: {e}",
                 )
 
         @staticmethod
@@ -1801,12 +1833,12 @@ class FlextCliModels(FlextModels):
             model_cls: type,
         ) -> r[list[t.GeneralValueType]]:
             """Convert Pydantic model to list of Click options."""
-            params_result = FlextCliModels.CliModelConverter.model_to_cli_params(
-                model_cls
+            params_result = m.CliModelConverter.model_to_cli_params(
+                model_cls,
             )
             if params_result.is_failure:
                 return r[list[t.GeneralValueType]].fail(
-                    params_result.error or "Conversion failed"
+                    params_result.error or "Conversion failed",
                 )
             params = u.val(params_result, default=[])
             # Create Click option-like objects with option_name and param_decls
@@ -1820,11 +1852,13 @@ class FlextCliModels(FlextModels):
                 option_name = f"--{param.field_name.replace('_', '-')}"
                 # Type cast: param_decls list is compatible with GeneralValueType (list is included)
                 param_decls_list: t.GeneralValueType = cast(
-                    "t.GeneralValueType", [option_name]
+                    "t.GeneralValueType",
+                    [option_name],
                 )
                 # Type cast: param_type (type) needs to be cast to GeneralValueType for dict
                 param_type_value: t.GeneralValueType = cast(
-                    "t.GeneralValueType", param.param_type
+                    "t.GeneralValueType",
+                    param.param_type,
                 )
                 option_obj_dict: dict[str, t.GeneralValueType] = {
                     "option_name": option_name,
@@ -1846,7 +1880,7 @@ class FlextCliModels(FlextModels):
         def field_to_cli_param(
             field_name: str,
             field_info: FieldInfo | t.GeneralValueType,
-        ) -> r[FlextCliModels.CliParameterSpec]:
+        ) -> r[p.Cli.CliParameterSpecProtocol]:
             """Convert Pydantic field to CLI parameter specification."""
             try:
                 # Handle both FieldInfo and GeneralValueType
@@ -1858,15 +1892,15 @@ class FlextCliModels(FlextModels):
                     help_text = str(
                         field_info.description
                         if hasattr(field_info, "description")
-                        else ""
+                        else "",
                     )
                 else:
                     annotation = getattr(field_info, "annotation", None)
                     default = getattr(field_info, "default", None)
                     help_text = str(getattr(field_info, "description", ""))
                 if annotation is None:
-                    return r[FlextCliModels.CliParameterSpec].fail(
-                        f"Field {field_name} has no type annotation"
+                    return r[p.Cli.CliParameterSpecProtocol].fail(
+                        f"Field {field_name} has no type annotation",
                     )
                 field_type = annotation
                 # Extract non-None type from Optional/Union
@@ -1879,28 +1913,27 @@ class FlextCliModels(FlextModels):
                     )
                     if non_none_types:
                         field_type = non_none_types[0]
-                click_type_str = (
-                    FlextCliModels.CliModelConverter.python_type_to_click_type(
-                        field_type
-                    )
+                click_type_str = m.CliModelConverter.python_type_to_click_type(
+                    field_type,
                 )
-                return r[FlextCliModels.CliParameterSpec].ok(
-                    FlextCliModels.CliParameterSpec(
+                # Return concrete instance
+                return r[p.Cli.CliParameterSpecProtocol].ok(
+                    m.CliParameterSpec(
                         field_name=field_name,
                         param_type=field_type,
                         click_type=click_type_str,
                         default=default,
                         help_text=help_text,
-                    )
+                    ),
                 )
             except Exception as e:
-                return r[FlextCliModels.CliParameterSpec].fail(
-                    f"Field conversion failed: {e}"
+                return r[p.Cli.CliParameterSpecProtocol].fail(
+                    f"Field conversion failed: {e}",
                 )
 
         @staticmethod
-        def pydantic_type_to_python_type(  # noqa: PLR0911
-            pydantic_type: type | types.UnionType,
+        def pydantic_type_to_python_type(
+            pydantic_type: type | object,
         ) -> type:
             """Convert Pydantic type annotation to Python type."""
             # Handle Optional/Union types - Python 3.10+ union types
@@ -1933,6 +1966,7 @@ class FlextCliModels(FlextModels):
                     if isinstance(first_type, type):
                         return first_type
                     # Fallback cast if isinstance check fails (shouldn't happen)
+                    # This branch is unreachable because first_type is from filtered list of types
                     return cast("type", first_type)
             # Check if it's a known simple type
             if isinstance(pydantic_type, type) and pydantic_type in {
@@ -1982,11 +2016,10 @@ class FlextCliModels(FlextModels):
         ) -> None:
             """Merge types mapping into properties dict."""
             if isinstance(types, dict):
-                # Use u.map for type conversion
-                transformed = cast(
-                    "dict[str, t.GeneralValueType]",
-                    u.map(types, mapper=lambda _k, v: str(v)),
-                )
+                # Use dict comprehension for type conversion - direct and type-safe
+                transformed: dict[str, t.GeneralValueType] = {
+                    k: str(v) for k, v in types.items()
+                }
                 props.update(transformed)
 
         @staticmethod
@@ -1996,11 +2029,10 @@ class FlextCliModels(FlextModels):
         ) -> None:
             """Merge field_info dict attributes into props."""
             if isinstance(field_info, dict):
-                # Use u.filter to exclude "__dict__"
-                filtered = cast(
-                    "dict[str, t.GeneralValueType]",
-                    u.filter(dict(field_info), predicate=lambda k, _: k != "__dict__"),
-                )
+                # Use dict comprehension to exclude "__dict__" for type safety
+                filtered: dict[str, t.GeneralValueType] = {
+                    k: v for k, v in dict(field_info).items() if k != "__dict__"
+                }
                 props.update(filtered)
             elif hasattr(field_info, "__dict__"):
                 metadata_dict = getattr(field_info, "__dict__", {})
@@ -2034,10 +2066,8 @@ class FlextCliModels(FlextModels):
             if metadata_attr is None:
                 return
             if isinstance(metadata_attr, list):
-                props["metadata"] = (
-                    FlextCliModels.CliModelConverter.process_metadata_list(
-                        metadata_attr
-                    )
+                props["metadata"] = m.CliModelConverter.process_metadata_list(
+                    metadata_attr,
                 )
             elif isinstance(metadata_attr, dict):
                 props["metadata"] = metadata_attr
@@ -2059,14 +2089,16 @@ class FlextCliModels(FlextModels):
                 props["metadata"] = {}
             # Use FlextRuntime.is_dict_like for type checking
             if FlextRuntime.is_dict_like(metadata_raw) and FlextRuntime.is_dict_like(
-                json_schema_extra
+                json_schema_extra,
             ):
                 # Type narrowing: both are dict-like, safe to update
                 dict_metadata: dict[str, t.GeneralValueType] = cast(
-                    "dict[str, t.GeneralValueType]", metadata_raw
+                    "dict[str, t.GeneralValueType]",
+                    metadata_raw,
                 )
                 dict_schema: dict[str, t.GeneralValueType] = cast(
-                    "dict[str, t.GeneralValueType]", json_schema_extra
+                    "dict[str, t.GeneralValueType]",
+                    json_schema_extra,
                 )
                 dict_metadata.update(dict_schema)
                 props["metadata"] = dict_metadata
@@ -2079,21 +2111,26 @@ class FlextCliModels(FlextModels):
         ) -> r[dict[str, t.GeneralValueType]]:
             """Extract properties from Pydantic field info."""
             try:
-                props = FlextCliModels.CliModelConverter.extract_base_props(
-                    field_name, field_info
+                props = m.CliModelConverter.extract_base_props(
+                    field_name,
+                    field_info,
                 )
                 if types is not None:
-                    FlextCliModels.CliModelConverter.merge_types_into_props(
-                        props, types
+                    m.CliModelConverter.merge_types_into_props(
+                        props,
+                        types,
                     )
-                    FlextCliModels.CliModelConverter.merge_field_info_dict(
-                        props, field_info
+                    m.CliModelConverter.merge_field_info_dict(
+                        props,
+                        field_info,
                     )
-                    FlextCliModels.CliModelConverter.merge_metadata_attr(
-                        props, field_info
+                    m.CliModelConverter.merge_metadata_attr(
+                        props,
+                        field_info,
                     )
-                    FlextCliModels.CliModelConverter.merge_json_schema_extra(
-                        props, field_info
+                    m.CliModelConverter.merge_json_schema_extra(
+                        props,
+                        field_info,
                     )
                 return r[dict[str, t.GeneralValueType]].ok(props)
             except Exception as e:
@@ -2120,12 +2157,12 @@ class FlextCliModels(FlextModels):
                 field_key,
                 type_name,
                 check_func,
-            ) in FlextCliModels.CliModelConverter.FIELD_VALIDATION_RULES:
+            ) in m.CliModelConverter.FIELD_VALIDATION_RULES:
                 if field_key in field_data:
                     value = field_data[field_key]
                     if not check_func(value):
                         return r[bool].fail(
-                            f"Invalid {field_key}: {value} (expected {type_name})"
+                            f"Invalid {field_key}: {value} (expected {type_name})",
                         )
             return r[bool].ok(True)
 
@@ -2134,7 +2171,7 @@ class FlextCliModels(FlextModels):
             field_value: object,
         ) -> r[t.GeneralValueType]:
             """Convert field value (delegates to utilities)."""
-            return FlextCliUtilities.CliValidation.v_conv(field_value)
+            return u.CliValidation.v_conv(field_value)
 
         @staticmethod
         def validate_dict_field_data(
@@ -2142,15 +2179,15 @@ class FlextCliModels(FlextModels):
             field_data: Mapping[str, object],
         ) -> r[t.GeneralValueType]:
             """Validate field data when field_info is a dict/Mapping."""
-            schema_result = FlextCliModels.CliModelConverter.validate_field_schema(
-                field_data
+            schema_result = m.CliModelConverter.validate_field_schema(
+                field_data,
             )
             if schema_result.is_failure:
                 return r[t.GeneralValueType].fail(
-                    schema_result.error or "Schema validation failed"
+                    schema_result.error or "Schema validation failed",
                 )
             field_value = field_data.get(field_name, None)
-            return FlextCliModels.CliModelConverter.convert_field_value(field_value)
+            return m.CliModelConverter.convert_field_value(field_value)
 
         @staticmethod
         def _validate_field_data(
@@ -2165,13 +2202,14 @@ class FlextCliModels(FlextModels):
             """Validate field data against field info."""
             try:
                 if isinstance(field_info, (dict, Mapping)):
-                    return FlextCliModels.CliModelConverter.validate_dict_field_data(
-                        field_name, field_info
+                    return m.CliModelConverter.validate_dict_field_data(
+                        field_name,
+                        field_info,
                     )
                 if data is not None:
                     if field_name not in data:
                         return r[t.GeneralValueType].fail(
-                            f"Field {field_name} not found"
+                            f"Field {field_name} not found",
                         )
                     return r[t.GeneralValueType].ok(data[field_name])
                 return r[t.GeneralValueType].fail("No data provided for validation")
@@ -2212,10 +2250,11 @@ class FlextCliModels(FlextModels):
                 Callable[
                     [BaseModel],
                     r[t.GeneralValueType] | r[object] | t.GeneralValueType,
-                ]
+                ],
             ],
             Callable[..., t.GeneralValueType],
         ]:
+            # Callable[..., T] uses ... for variadic args (CLI commands accept *args, **kwargs)
             """Create decorator that converts function to CLI command from model."""
 
             def decorator(
@@ -2224,6 +2263,7 @@ class FlextCliModels(FlextModels):
                     r[t.GeneralValueType] | r[object] | t.GeneralValueType,
                 ],
             ) -> Callable[..., t.GeneralValueType]:
+                # Callable[..., T] uses ... for variadic args (CLI commands accept *args, **kwargs)
                 def wrapper(
                     *_args: t.GeneralValueType,
                     **kwargs: t.GeneralValueType,
@@ -2272,11 +2312,13 @@ class FlextCliModels(FlextModels):
             [Callable[..., t.GeneralValueType]],
             Callable[..., t.GeneralValueType],
         ]:
+            # Callable[..., T] uses ... for variadic args (CLI commands accept *args, **kwargs)
             """Create decorator for multiple models."""
 
             def decorator(
                 func: Callable[..., t.GeneralValueType],
             ) -> Callable[..., t.GeneralValueType]:
+                # Callable[..., T] uses ... for variadic args (CLI commands accept *args, **kwargs)
                 def wrapper(
                     *_args: t.GeneralValueType,
                     **kwargs: t.GeneralValueType,
@@ -2292,7 +2334,7 @@ class FlextCliModels(FlextModels):
 
             return decorator
 
-    class LoggingConfig(FlextModelsEntity.Value):
+    class LoggingConfig(Value):
         """Logging configuration model."""
 
         model_config = ConfigDict(frozen=True, extra="forbid")
@@ -2303,24 +2345,25 @@ class FlextCliModels(FlextModels):
         log_file: str = Field(default="", description="Log file path")
 
         @property
-        def logging_summary(self) -> FlextCliModels.CliLoggingData:
+        def logging_summary(self) -> m.CliLoggingData:
             """Return logging summary as CliLoggingData model."""
-            return FlextCliModels.CliLoggingData(
+            return m.CliLoggingData(
                 level=self.log_level,
                 console_enabled=self.console_output,
             )
 
-    class CliLoggingData(FlextModelsEntity.Value):
+    class CliLoggingData(Value):
         """CLI logging summary data."""
 
         model_config = ConfigDict(frozen=True, extra="forbid")
 
         level: str = Field(default="INFO", description="Log level")
         console_enabled: bool = Field(
-            default=True, description="Console output enabled"
+            default=True,
+            description="Console output enabled",
         )
 
-    class CliDebugData(FlextModelsEntity.Value):
+    class CliDebugData(Value):
         """CLI debug summary data."""
 
         model_config = ConfigDict(frozen=True, extra="forbid")
@@ -2328,3 +2371,11 @@ class FlextCliModels(FlextModels):
         service: str = Field(..., description="Service name")
         level: str = Field(..., description="Debug level")
         message: str = Field(..., description="Debug message")
+
+
+m = FlextCliModels
+
+__all__ = [
+    "FlextCliModels",
+    "m",
+]

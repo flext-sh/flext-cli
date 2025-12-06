@@ -15,7 +15,7 @@ from flext_core import FlextService, t
 from flext_cli.config import FlextCliConfig
 
 
-class FlextCliServiceBase(FlextService[t.JsonDict]):
+class FlextCliServiceBase(FlextService[t.Json.JsonDict]):
     """Base class for flext-cli services with typed configuration access."""
 
     @property
@@ -29,6 +29,9 @@ class FlextCliServiceBase(FlextService[t.JsonDict]):
         return FlextCliConfig.get_instance()
 
 
+s = FlextCliServiceBase
+
 __all__ = [
     "FlextCliServiceBase",
+    "s",
 ]

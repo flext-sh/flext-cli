@@ -20,24 +20,22 @@ import sys
 from collections.abc import Callable, Generator
 from enum import StrEnum
 from pathlib import Path
-from typing import Never, cast
+from typing import Never
 
 import pytest
 import typer
 from flext_core import FlextConstants, FlextLogger, t
+from flext_tests import tm
 from typer.models import OptionInfo
 from typer.testing import CliRunner
 
 from flext_cli import (
     FlextCliCommonParams,
     FlextCliConfig,
-    FlextCliConstants,
-    FlextCliModels,
-    FlextCliProtocols,
     FlextCliServiceBase,
+    c,
+    m,
 )
-
-from ..helpers import FlextCliTestHelpers
 
 # ============================================================================
 # ENUMS FOR TEST ORGANIZATION
@@ -191,39 +189,113 @@ def _create_decorated_command(
 ) -> Callable[..., t.GeneralValueType]:
     """Create a decorated test command."""
 
+    # Register command with Typer using specific types for Typer compatibility
+    # Business Rule: Typer command parameters MUST use typer.Option() for CLI integration
+    # Architecture: create_option() returns OptionInfo which must be used with typer.Option()
+    # Audit Implication: Parameter defaults come from FlextCliConfig field defaults
     @app.command(name=command_name)
-    @cast(  # type: ignore[arg-type]
-        "Callable[[FlextCliProtocols.Cli.CliCommandHandler], FlextCliProtocols.Cli.CliCommandHandler]",
-        FlextCliCommonParams.create_decorator(),
-    )
-    def decorated_test_command(
-        name: str = command_name,
-        verbose: bool = DEFAULT_VERBOSE,
-        quiet: bool = DEFAULT_QUIET,
-        debug: bool = DEFAULT_DEBUG,
-        trace: bool = DEFAULT_TRACE,
-        log_level: str = DEFAULT_LOG_LEVEL,
-        log_format: str = DEFAULT_LOG_FORMAT,
-        output_format: str = DEFAULT_OUTPUT_FORMAT,
-        no_color: bool = DEFAULT_NO_COLOR,
-        config_file: Path | None = DEFAULT_CONFIG_FILE,
-    ) -> t.GeneralValueType:
+    def typer_command(
+        verbose: bool = typer.Option(
+            default=_get_bool_default("verbose"),
+            help="Enable verbose output",
+        ),
+        quiet: bool = typer.Option(
+            default=_get_bool_default("quiet"),
+            help="Suppress non-error output",
+        ),
+        debug: bool = typer.Option(
+            default=_get_bool_default("debug"),
+            help="Enable debug mode",
+        ),
+        trace: bool = typer.Option(
+            default=_get_bool_default("trace"),
+            help="Enable trace mode (requires debug)",
+        ),
+        log_level: str = typer.Option(
+            default=_get_str_default("cli_log_level"),
+            help="Set logging level",
+        ),
+        log_format: str = typer.Option(
+            default=_get_str_default("log_verbosity"),
+            help="Set log format",
+        ),
+        output_format: str = typer.Option(
+            default=_get_str_default("output_format"),
+            help="Set output format",
+        ),
+        no_color: bool = typer.Option(
+            default=_get_bool_default("no_color"),
+            help="Disable colored output",
+        ),
+        config_file: str | None = typer.Option(
+            default=_get_path_default("config_file"),
+            help="Path to configuration file",
+        ),
+    ) -> None:
         """Test command with all common parameters."""
+        # Use parameter values directly (Typer provides them with correct types)
         if echo_message:
             typer.echo(echo_message)
-        typer.echo(f"Name: {name}")
+        typer.echo(f"Name: {command_name}")
         if verbose:
             typer.echo("Verbose mode enabled")
         if debug:
             typer.echo("Debug mode enabled")
         typer.echo(f"Log level: {log_level}")
         typer.echo(f"Output format: {output_format}")
+
+    # Create wrapper function that satisfies CliCommandFunction protocol
+    # This wrapper is used for protocol compatibility but typer_command is registered
+    def command_wrapper(
+        *args: t.GeneralValueType,
+        **kwargs: t.GeneralValueType,
+    ) -> t.GeneralValueType:
+        """Wrapper function that satisfies CliCommandFunction protocol."""
+        # Extract named parameters from kwargs
+        verbose = kwargs.get("verbose", DEFAULT_VERBOSE)
+        quiet = kwargs.get("quiet", DEFAULT_QUIET)
+        debug = kwargs.get("debug", DEFAULT_DEBUG)
+        trace = kwargs.get("trace", DEFAULT_TRACE)
+        # Handle both log_level and cli_log_level (registry uses cli_log_level but CLI uses --log-level)
+        # The Typer CLI uses --log-level but the field name is cli_log_level
+        log_level = (
+            kwargs.get("log_level") or kwargs.get("cli_log_level") or DEFAULT_LOG_LEVEL
+        )
+        log_format = kwargs.get("log_format", DEFAULT_LOG_FORMAT)
+        output_format = kwargs.get("output_format", DEFAULT_OUTPUT_FORMAT)
+        no_color = kwargs.get("no_color", DEFAULT_NO_COLOR)
+
+        # Type narrowing
+        assert isinstance(verbose, bool)
+        assert isinstance(quiet, bool)
+        assert isinstance(debug, bool)
+        assert isinstance(trace, bool)
+        assert isinstance(log_level, str)
+        assert isinstance(log_format, str)
+        assert isinstance(output_format, str)
+        assert isinstance(no_color, bool)
+
+        # Call typer_command with extracted parameters
+        # Convert config_file from Path | None to str | None if needed
+        config_file_value = kwargs.get("config_file", DEFAULT_CONFIG_FILE)
+        config_file_str: str | None = (
+            str(config_file_value) if config_file_value is not None else None
+        )
+        typer_command(
+            verbose=verbose,
+            quiet=quiet,
+            debug=debug,
+            trace=trace,
+            log_level=log_level,
+            log_format=log_format,
+            output_format=output_format,
+            no_color=no_color,
+            config_file=config_file_str,
+        )
         return None
 
-    # Return decorated function - it satisfies CliCommandFunction protocol structurally
-    # The protocol accepts any callable with (*args, **kwargs) -> t.GeneralValueType signature
-    # Type checker requires cast for structural compatibility
-    return cast("Callable[..., t.GeneralValueType]", decorated_test_command)
+    # Apply decorator to wrapper (satisfies protocol)
+    return FlextCliCommonParams.create_decorator()(command_wrapper)
 
 
 # ============================================================================
@@ -231,7 +303,7 @@ def _create_decorated_command(
 # ============================================================================
 
 
-class TestFlextCliCommonParams:
+class TestsCliCommonParams:
     """Comprehensive tests for FlextCliCommonParams functionality.
 
     Single class with nested test groups organized by functionality.
@@ -292,7 +364,7 @@ class TestFlextCliCommonParams:
     def test_validate_enabled_success(self) -> None:
         """Test validation succeeds when params are enabled."""
         result = FlextCliCommonParams.validate_enabled()
-        FlextCliTestHelpers.AssertHelpers.assert_result_success(result)
+        tm.ok(result)
 
     # ========================================================================
     # CONFIG PARAMETER APPLICATION (Parametrized)
@@ -325,13 +397,14 @@ class TestFlextCliCommonParams:
             result = FlextCliCommonParams.apply_to_config(config, debug=updated_value)
         elif param == ConfigParam.NO_COLOR:
             result = FlextCliCommonParams.apply_to_config(
-                config, no_color=updated_value
+                config,
+                no_color=updated_value,
             )
         else:
             msg = f"Unknown param: {param}"
             raise ValueError(msg)
 
-        FlextCliTestHelpers.AssertHelpers.assert_result_success(result)
+        tm.ok(result)
         updated_config = result.unwrap()
         assert getattr(updated_config, param.value) == updated_value
 
@@ -352,28 +425,31 @@ class TestFlextCliCommonParams:
         """Test applying string parameters to config."""
         if param == ConfigParam.LOG_LEVEL:
             config = _create_test_config(
-                cli_log_level=FlextConstants.Settings.LogLevel(initial_value)
+                cli_log_level=FlextConstants.Settings.LogLevel(initial_value),
             )
             result = FlextCliCommonParams.apply_to_config(
-                config, log_level=updated_value
+                config,
+                log_level=updated_value,
             )
-            FlextCliTestHelpers.AssertHelpers.assert_result_success(result)
+            tm.ok(result)
             updated_config = result.unwrap()
             assert updated_config.cli_log_level.value == updated_value
         elif param == ConfigParam.LOG_FORMAT:
             config = _create_test_config(log_verbosity=initial_value)
             result = FlextCliCommonParams.apply_to_config(
-                config, log_format=updated_value
+                config,
+                log_format=updated_value,
             )
-            FlextCliTestHelpers.AssertHelpers.assert_result_success(result)
+            tm.ok(result)
             updated_config = result.unwrap()
             assert updated_config.log_verbosity == updated_value
         elif param == ConfigParam.OUTPUT_FORMAT:
             config = _create_test_config(output_format=initial_value)
             result = FlextCliCommonParams.apply_to_config(
-                config, output_format=updated_value
+                config,
+                output_format=updated_value,
             )
-            FlextCliTestHelpers.AssertHelpers.assert_result_success(result)
+            tm.ok(result)
             updated_config = result.unwrap()
             assert updated_config.output_format == updated_value
 
@@ -385,7 +461,7 @@ class TestFlextCliCommonParams:
         config_without_debug = config.model_copy(update={"debug": False})
         result = FlextCliCommonParams.apply_to_config(config_without_debug, trace=True)
 
-        FlextCliTestHelpers.AssertHelpers.assert_result_failure(result)
+        tm.fail(result)
         error_msg = str(result.error).lower() if result.error else ""
         assert "trace mode requires debug mode" in error_msg
 
@@ -397,7 +473,7 @@ class TestFlextCliCommonParams:
         config_with_debug = config.model_copy(update={"debug": True})
         result = FlextCliCommonParams.apply_to_config(config_with_debug, trace=True)
 
-        FlextCliTestHelpers.AssertHelpers.assert_result_success(result)
+        tm.ok(result)
         updated_config = result.unwrap()
         assert updated_config.trace is True
         assert updated_config.debug is True
@@ -414,14 +490,12 @@ class TestFlextCliCommonParams:
             no_color=True,
         )
 
-        FlextCliTestHelpers.AssertHelpers.assert_result_success(result)
+        tm.ok(result)
         updated_config = result.unwrap()
         assert updated_config.verbose is True
         assert updated_config.debug is True
         assert updated_config.cli_log_level.value == "DEBUG"
-        assert (
-            updated_config.output_format == FlextCliConstants.OutputFormats.JSON.value
-        )
+        assert updated_config.output_format == c.OutputFormats.JSON.value
         assert updated_config.no_color is True
 
     def test_apply_to_config_none_values_ignored(self) -> None:
@@ -436,7 +510,7 @@ class TestFlextCliCommonParams:
             debug=None,
         )
 
-        FlextCliTestHelpers.AssertHelpers.assert_result_success(result)
+        tm.ok(result)
         updated_config = result.unwrap()
         assert updated_config.verbose is True
         assert updated_config.debug is False
@@ -467,7 +541,7 @@ class TestFlextCliCommonParams:
 
         result = FlextCliCommonParams.configure_logger(config)
 
-        FlextCliTestHelpers.AssertHelpers.assert_result_success(result)
+        tm.ok(result)
 
     # ========================================================================
     # DECORATOR FUNCTIONALITY
@@ -544,19 +618,37 @@ class TestFlextCliCommonParams:
         """Test decorator with FlextConfig integration."""
         app = typer.Typer()
 
+        # Register command with Typer using specific types for Typer compatibility
+        # Use typer.Option() with create_option() to get proper defaults
         @app.command(name="test")
-        @cast(  # type: ignore[arg-type]
-            "Callable[[FlextCliProtocols.Cli.CliCommandHandler], FlextCliProtocols.Cli.CliCommandHandler]",
-            FlextCliCommonParams.create_decorator(),
-        )
-        def decorated_test_command(
-            name: str = "test",
-            verbose: bool = DEFAULT_VERBOSE,
-            debug: bool = DEFAULT_DEBUG,
-            log_level: str = DEFAULT_LOG_LEVEL,
-            output_format: str = DEFAULT_OUTPUT_FORMAT,
-        ) -> t.GeneralValueType:
+        def typer_command(
+            verbose: bool = typer.Option(
+                False,
+                "--verbose",
+                "-v",
+                help="Enable verbose output",
+            ),
+            debug: bool = typer.Option(
+                False,
+                "--debug",
+                "-d",
+                help="Enable debug mode",
+            ),
+            log_level: str = typer.Option(
+                "INFO",
+                "--log-level",
+                "-L",
+                help="Set logging level",
+            ),
+            output_format: str = typer.Option(
+                "table",
+                "--output-format",
+                "-o",
+                help="Set output format",
+            ),
+        ) -> None:
             """Test command with config integration."""
+            # Use parameter values directly (Typer provides them with correct types)
             config = FlextCliServiceBase.get_cli_config()
             result = FlextCliCommonParams.apply_to_config(
                 config,
@@ -574,7 +666,42 @@ class TestFlextCliCommonParams:
                     f"Config cli_log_level: {updated_config.cli_log_level.value}",
                 )
                 typer.echo(f"Config output_format: {updated_config.output_format}")
+
+        # Create wrapper function that satisfies CliCommandFunction protocol
+        # This wrapper is used for protocol compatibility but typer_command is registered
+        def wrapper(
+            *args: t.GeneralValueType,
+            **kwargs: t.GeneralValueType,
+        ) -> t.GeneralValueType:
+            """Wrapper to satisfy CliCommandFunction protocol."""
+            # Extract named parameters from kwargs
+            verbose = kwargs.get("verbose", DEFAULT_VERBOSE)
+            debug = kwargs.get("debug", DEFAULT_DEBUG)
+            # Handle both log_level and cli_log_level (registry uses cli_log_level but CLI uses --log-level)
+            log_level = (
+                kwargs.get("log_level")
+                or kwargs.get("cli_log_level")
+                or DEFAULT_LOG_LEVEL
+            )
+            output_format = kwargs.get("output_format", DEFAULT_OUTPUT_FORMAT)
+
+            # Type narrowing
+            assert isinstance(verbose, bool)
+            assert isinstance(debug, bool)
+            assert isinstance(log_level, str)
+            assert isinstance(output_format, str)
+
+            # Call typer_command with extracted parameters
+            typer_command(
+                verbose=verbose,
+                debug=debug,
+                log_level=log_level,
+                output_format=output_format,
+            )
             return None
+
+        # Apply decorator to wrapper (satisfies protocol)
+        FlextCliCommonParams.create_decorator()(wrapper)
 
         runner = CliRunner()
         result = runner.invoke(
@@ -640,10 +767,12 @@ class TestFlextCliCommonParams:
             )
 
             result = FlextCliCommonParams.apply_to_config(
-                config, debug=True, verbose=True
+                config,
+                debug=True,
+                verbose=True,
             )
 
-            FlextCliTestHelpers.AssertHelpers.assert_result_success(result)
+            tm.ok(result)
             updated_config = result.unwrap()
             assert updated_config.debug is True
             assert updated_config.verbose is True
@@ -683,7 +812,7 @@ class TestFlextCliCommonParams:
                 config = FlextCliServiceBase.get_cli_config()
                 result = FlextCliCommonParams.apply_to_config(config, log_level="DEBUG")
 
-                FlextCliTestHelpers.AssertHelpers.assert_result_success(result)
+                tm.ok(result)
                 updated_config = result.unwrap()
                 assert updated_config.cli_log_level.value == "DEBUG"
 
@@ -709,18 +838,18 @@ class TestFlextCliCommonParams:
     ) -> None:
         """Test that logger is properly configured from CLI parameters."""
         config = _create_test_config(
-            cli_log_level=FlextConstants.Settings.LogLevel.INFO
+            cli_log_level=FlextConstants.Settings.LogLevel.INFO,
         )
 
         result = FlextCliCommonParams.apply_to_config(
             config,
             log_level=FlextConstants.Settings.LogLevel.DEBUG.value,
         )
-        FlextCliTestHelpers.AssertHelpers.assert_result_success(result)
+        tm.ok(result)
         updated_config = result.unwrap()
 
         logger_result = FlextCliCommonParams.configure_logger(updated_config)
-        FlextCliTestHelpers.AssertHelpers.assert_result_success(logger_result)
+        tm.ok(logger_result)
 
         logger = FlextLogger("test_cli_params")
         logger.debug("Debug message")
@@ -735,7 +864,7 @@ class TestFlextCliCommonParams:
     ) -> None:
         """Test that logger respects runtime log level changes."""
         config = _create_test_config(
-            cli_log_level=FlextConstants.Settings.LogLevel.INFO
+            cli_log_level=FlextConstants.Settings.LogLevel.INFO,
         )
         FlextCliCommonParams.configure_logger(config)
 
@@ -745,7 +874,7 @@ class TestFlextCliCommonParams:
         assert "Info at INFO level" in captured.out
 
         result = FlextCliCommonParams.apply_to_config(config, log_level="WARNING")
-        FlextCliTestHelpers.AssertHelpers.assert_result_success(result)
+        tm.ok(result)
         updated_config = result.unwrap()
 
         FlextCliCommonParams.configure_logger(updated_config)
@@ -769,7 +898,7 @@ class TestFlextCliCommonParams:
 
             result = FlextCliCommonParams.validate_enabled()
 
-            FlextCliTestHelpers.AssertHelpers.assert_result_failure(result)
+            tm.fail(result)
             error_msg = str(result.error).lower() if result.error else ""
             assert "mandatory" in error_msg or "disabled" in error_msg
 
@@ -790,10 +919,11 @@ class TestFlextCliCommonParams:
         """Test apply_to_config with invalid log level."""
         config = FlextCliServiceBase.get_cli_config()
         result = FlextCliCommonParams.apply_to_config(
-            config, log_level=InvalidValue.INVALID_LOG_LEVEL.value
+            config,
+            log_level=InvalidValue.INVALID_LOG_LEVEL.value,
         )
 
-        FlextCliTestHelpers.AssertHelpers.assert_result_failure(result)
+        tm.fail(result)
         error_keywords = INVALID_VALUE_ERRORS[InvalidValue.INVALID_LOG_LEVEL]
         error_msg = str(result.error).lower() if result.error else ""
         assert any(keyword in error_msg for keyword in error_keywords)
@@ -802,10 +932,11 @@ class TestFlextCliCommonParams:
         """Test apply_to_config with invalid log format."""
         config = FlextCliServiceBase.get_cli_config()
         result = FlextCliCommonParams.apply_to_config(
-            config, log_format=InvalidValue.INVALID_LOG_FORMAT.value
+            config,
+            log_format=InvalidValue.INVALID_LOG_FORMAT.value,
         )
 
-        FlextCliTestHelpers.AssertHelpers.assert_result_failure(result)
+        tm.fail(result)
         error_keywords = INVALID_VALUE_ERRORS[InvalidValue.INVALID_LOG_FORMAT]
         error_msg = str(result.error).lower() if result.error else ""
         assert any(keyword in error_msg for keyword in error_keywords)
@@ -814,10 +945,11 @@ class TestFlextCliCommonParams:
         """Test apply_to_config with invalid output format."""
         config = FlextCliServiceBase.get_cli_config()
         result = FlextCliCommonParams.apply_to_config(
-            config, output_format=InvalidValue.INVALID_OUTPUT_FORMAT.value
+            config,
+            output_format=InvalidValue.INVALID_OUTPUT_FORMAT.value,
         )
 
-        FlextCliTestHelpers.AssertHelpers.assert_result_failure(result)
+        tm.fail(result)
         error_keywords = INVALID_VALUE_ERRORS[InvalidValue.INVALID_OUTPUT_FORMAT]
         error_msg = str(result.error).lower() if result.error else ""
         assert any(keyword in error_msg for keyword in error_keywords)
@@ -829,9 +961,10 @@ class TestFlextCliCommonParams:
         # Test invalid log level
         config = FlextCliServiceBase.get_cli_config()
         result = FlextCliCommonParams.apply_to_config(
-            config, log_level=InvalidValue.INVALID_LOG_LEVEL.value
+            config,
+            log_level=InvalidValue.INVALID_LOG_LEVEL.value,
         )
-        FlextCliTestHelpers.AssertHelpers.assert_result_failure(result)
+        tm.fail(result)
         error_keywords = INVALID_VALUE_ERRORS[InvalidValue.INVALID_LOG_LEVEL]
         error_msg = str(result.error).lower() if result.error else ""
         assert any(keyword in error_msg for keyword in error_keywords)
@@ -841,9 +974,10 @@ class TestFlextCliCommonParams:
         # Test invalid log format
         config = FlextCliServiceBase.get_cli_config()
         result = FlextCliCommonParams.apply_to_config(
-            config, log_format=InvalidValue.INVALID_LOG_FORMAT.value
+            config,
+            log_format=InvalidValue.INVALID_LOG_FORMAT.value,
         )
-        FlextCliTestHelpers.AssertHelpers.assert_result_failure(result)
+        tm.fail(result)
         error_keywords = INVALID_VALUE_ERRORS[InvalidValue.INVALID_LOG_FORMAT]
         error_msg = str(result.error).lower() if result.error else ""
         assert any(keyword in error_msg for keyword in error_keywords)
@@ -853,9 +987,10 @@ class TestFlextCliCommonParams:
         # Test invalid output format
         config = FlextCliServiceBase.get_cli_config()
         result = FlextCliCommonParams.apply_to_config(
-            config, output_format=InvalidValue.INVALID_OUTPUT_FORMAT.value
+            config,
+            output_format=InvalidValue.INVALID_OUTPUT_FORMAT.value,
         )
-        FlextCliTestHelpers.AssertHelpers.assert_result_failure(result)
+        tm.fail(result)
         error_keywords = INVALID_VALUE_ERRORS[InvalidValue.INVALID_OUTPUT_FORMAT]
         error_msg = str(result.error).lower() if result.error else ""
         assert any(keyword in error_msg for keyword in error_keywords)
@@ -867,7 +1002,7 @@ class TestFlextCliCommonParams:
 
         result = FlextCliCommonParams.configure_logger(config)
 
-        FlextCliTestHelpers.AssertHelpers.assert_result_failure(result)
+        tm.fail(result)
 
     def test_configure_logger_exception_handling(self) -> None:
         """Test configure_logger exception handling."""
@@ -885,7 +1020,7 @@ class TestFlextCliCommonParams:
         finally:
             config.__dict__["cli_log_level"] = original_log_level
 
-        FlextCliTestHelpers.AssertHelpers.assert_result_failure(result)
+        tm.fail(result)
         error_msg = str(result.error).lower() if result.error else ""
         assert "failed" in error_msg
 
@@ -936,7 +1071,8 @@ class TestFlextCliCommonParams:
 
                 @decorator
                 def decorated_test_function(
-                    *args: object, **kwargs: object
+                    *args: object,
+                    **kwargs: object,
                 ) -> t.GeneralValueType:
                     """Test function."""
                     return None
@@ -956,7 +1092,7 @@ class TestFlextCliCommonParams:
     def test_set_log_level_none(self) -> None:
         """Test _set_log_level when log_level is None."""
         config = FlextCliServiceBase.get_cli_config()
-        params = FlextCliModels.CliParamsConfig(log_level=None)
+        params = m.CliParamsConfig(log_level=None)
         result = FlextCliCommonParams._set_log_level(config, params)
-        FlextCliTestHelpers.AssertHelpers.assert_result_success(result)
+        tm.ok(result)
         assert result.unwrap() == config

@@ -30,13 +30,8 @@ from pathlib import Path
 from typing import cast
 
 from example_utils import display_config_table
-from flext_core import FlextResult, FlextTypes, FlextUtilities
 
-from flext_cli import FlextCli, FlextCliConfig, FlextCliTypes
-
-r = FlextResult
-t = FlextTypes
-u = FlextUtilities
+from flext_cli import FlextCli, FlextCliConfig, r, t, u
 
 cli = FlextCli()
 
@@ -100,7 +95,8 @@ def load_environment_config() -> dict[str, str | int]:
     # Display config - convert to CliDataDict using u directly
     # Use u.transform for JSON conversion
     transform_result = u.transform(
-        cast("dict[str, t.GeneralValueType]", settings), to_json=True
+        cast("dict[str, t.GeneralValueType]", settings),
+        to_json=True,
     )
     settings_data = (
         transform_result.unwrap()
@@ -151,7 +147,7 @@ class MyAppConfig:
 
     def display(self) -> None:
         """Display YOUR app configuration."""
-        config_data: FlextCliTypes.Data.CliDataDict = {
+        config_data: t.Data.CliDataDict = {
             "App Name": self.app_name,
             "API Key": f"{self.api_key[:10]}..." if self.api_key else "Not set",
             "Max Workers": str(self.max_workers),
@@ -195,7 +191,8 @@ def show_config_locations() -> dict[str, str]:
     # Display as table - convert to CliDataDict using u directly
     # Use u.transform for JSON conversion
     transform_result = u.transform(
-        cast("dict[str, t.GeneralValueType]", locations), to_json=True
+        cast("dict[str, t.GeneralValueType]", locations),
+        to_json=True,
     )
     locations_data = (
         transform_result.unwrap()
@@ -233,7 +230,7 @@ def load_profile_config(profile_name: str = "default") -> FlextCliConfig | None:
     # Validate profile config (Pydantic validation happens automatically on init)
     # validate_configuration is a model validator, not a callable method
     validate_result = profile_config.validate_output_format_result(
-        profile_config.output_format
+        profile_config.output_format,
     )
     if validate_result.is_failure:
         cli.print(
@@ -245,7 +242,7 @@ def load_profile_config(profile_name: str = "default") -> FlextCliConfig | None:
     cli.print(f"✅ Profile '{profile_name}' loaded successfully", style="green")
 
     # Display profile settings
-    profile_data: FlextCliTypes.Data.CliDataDict = {
+    profile_data: t.Data.CliDataDict = {
         "Profile": profile_config.profile,
         "Debug": str(profile_config.debug),
         "Output": profile_config.output_format,
@@ -347,7 +344,8 @@ class AppConfig:
     def __init__(self) -> None:
         """Initialize configuration with environment variables and defaults."""
         self.database_url = os.getenv(
-            "DATABASE_URL", "postgresql://localhost:5432/myapp"
+            "DATABASE_URL",
+            "postgresql://localhost:5432/myapp",
         )
         self.redis_url = os.getenv("REDIS_URL", "redis://localhost:6379")
         self.api_key = os.getenv("API_KEY", "")
@@ -355,7 +353,7 @@ class AppConfig:
         self.enable_metrics = os.getenv("ENABLE_METRICS", "true").lower() == "true"
         self.log_level = os.getenv("LOG_LEVEL", "INFO")
         self.temp_dir = Path(
-            os.getenv("TEMP_DIR", str(Path.home() / ".cache" / "myapp"))
+            os.getenv("TEMP_DIR", str(Path.home() / ".cache" / "myapp")),
         )
 
     def validate(self) -> r[dict[str, object]]:
@@ -528,7 +526,8 @@ def main() -> None:
         # Display final config - convert to CliDataDict
         # Use u.transform for JSON conversion
         transform_result = u.transform(
-            cast("dict[str, t.GeneralValueType]", final_config), to_json=True
+            cast("dict[str, t.GeneralValueType]", final_config),
+            to_json=True,
         )
         final_config_data = (
             transform_result.unwrap()

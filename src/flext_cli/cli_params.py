@@ -14,18 +14,19 @@ from __future__ import annotations
 
 import sys
 from collections.abc import Callable
-from typing import ClassVar
+from typing import ClassVar, cast
 
-from flext_core import FlextConstants, r, t
+from flext_core import r
 from typer.models import OptionInfo
 
 from flext_cli.config import FlextCliConfig
-from flext_cli.constants import FlextCliConstants
-from flext_cli.models import FlextCliModels
-from flext_cli.protocols import FlextCliProtocols
-from flext_cli.utilities import FlextCliUtilities
+from flext_cli.constants import c
+from flext_cli.models import m
+from flext_cli.protocols import p
+from flext_cli.typings import t
+from flext_cli.utilities import u
 
-# Direct type references - use FlextCliProtocols.Cli.CliCommandFunction directly
+# Direct type references - use p.Cli.CliCommandFunction directly
 
 
 class FlextCliCommonParams:
@@ -46,7 +47,7 @@ class FlextCliCommonParams:
     ───────────────────────────
     - Auto-generation eliminates manual parameter definition (DRY)
     - Registry-based metadata enables flexible parameter configuration
-    - OptionBuilder delegates to FlextCliModels for type conversion
+    - OptionBuilder delegates to m for type conversion
     - Typer OptionInfo objects created from registry metadata
     - Parameter enforcement ensures consistency across commands
 
@@ -82,9 +83,9 @@ class FlextCliCommonParams:
     # CLI Parameter Metadata registry
     # Maps field names to CLI-specific metadata (short flags, choices, priority)
     # Type aliases to reduce line length
-    _reg = FlextCliConstants.CliParamsRegistry
-    _def = FlextCliConstants.CliParamDefaults  # Singular - for FIELD_NAME_SEPARATOR
-    _defs = FlextCliConstants.CliParamsDefaults  # Plural - for VALID_LOG_FORMATS
+    _reg = c.CliParamsRegistry
+    _def = c.CliParamDefaults  # Singular - for FIELD_NAME_SEPARATOR
+    _defs = c.CliParamsDefaults  # Plural - for VALID_LOG_FORMATS
 
     # Registry allows list[str] for choices
     CLI_PARAM_REGISTRY: ClassVar[dict[str, dict[str, str | int | bool | list[str]]]] = {
@@ -107,7 +108,7 @@ class FlextCliCommonParams:
         "cli_log_level": {
             _reg.KEY_SHORT: _reg.SHORT_FLAG_LOG_LEVEL,
             _reg.KEY_PRIORITY: _reg.PRIORITY_LOG_LEVEL,
-            _reg.KEY_CHOICES: FlextCliConstants.Lists.LOG_LEVELS_LIST,
+            _reg.KEY_CHOICES: c.Lists.LOG_LEVELS_LIST,
             _reg.KEY_CASE_SENSITIVE: _reg.CASE_INSENSITIVE,
             # CLI param name is --log-level, maps to cli_log_level field
             _reg.KEY_FIELD_NAME_OVERRIDE: "log_level",
@@ -162,7 +163,7 @@ class FlextCliCommonParams:
             r[bool]: True if enabled, failure if disabled in enforcement mode.
 
         """
-        err = FlextCliConstants.CliParamsErrorMessages
+        err = c.CliParamsErrorMessages
         if not cls._params_enabled and cls._enforcement_mode:
             return r[bool].fail(err.PARAMS_MANDATORY)
         return r[bool].ok(True)
@@ -187,12 +188,13 @@ class FlextCliCommonParams:
             msg = f"Field '{field_name}' not found in CLI parameter registry"
             raise ValueError(msg)
 
-        builder = FlextCliModels.OptionBuilder(field_name, cls.CLI_PARAM_REGISTRY)
+        builder = m.OptionBuilder(field_name, cls.CLI_PARAM_REGISTRY)
         built_option = builder.build()
         # OptionBuilder.build() returns object, cast to OptionInfo for type checker
         if isinstance(built_option, OptionInfo):
             return built_option
         # Fallback: create OptionInfo if builder returns something else
+        # This branch is unreachable if OptionBuilder.build() works correctly
         return OptionInfo(default=None)
 
     @classmethod
@@ -212,7 +214,7 @@ class FlextCliCommonParams:
 
         """
         reg = cls._reg
-        default_priority = FlextCliConstants.DEFAULT_PRIORITY
+        default_priority = c.DEFAULT_PRIORITY
         param_fields = sorted(
             cls.CLI_PARAM_REGISTRY.items(),
             key=lambda x: int(str(x[1].get(reg.KEY_PRIORITY, default_priority))),
@@ -226,7 +228,7 @@ class FlextCliCommonParams:
     def apply_to_config(
         cls,
         config: FlextCliConfig,
-        params: FlextCliModels.CliParamsConfig | None = None,
+        params: p.Cli.CliParamsConfigProtocol | None = None,
         **kwargs: bool | str | None,
     ) -> r[FlextCliConfig]:
         """Apply CLI parameter values to FlextConfig using Pydantic validation.
@@ -266,7 +268,7 @@ class FlextCliCommonParams:
                 log_level_val = kwargs.get("log_level")
                 log_format_val = kwargs.get("log_format")
                 output_format_val = kwargs.get("output_format")
-                params = FlextCliModels.CliParamsConfig(
+                params_instance = m.CliParamsConfig(
                     verbose=bool(verbose_val) if verbose_val is not None else None,
                     quiet=bool(quiet_val) if quiet_val is not None else None,
                     debug=bool(debug_val) if debug_val is not None else None,
@@ -282,19 +284,31 @@ class FlextCliCommonParams:
                     ),
                     no_color=bool(no_color_val) if no_color_val is not None else None,
                 )
+                # Type narrowing: params_instance is compatible with protocol
+                # Use params_instance directly to avoid redefinition
+                # Cast to protocol type for type compatibility
+                params_to_use = cast("p.Cli.CliParamsConfigProtocol", params_instance)
+            else:
+                # Use provided params parameter
+                # params is not None at this point (checked above), but mypy doesn't narrow
+                if params is None:
+                    return r[FlextCliConfig].fail(
+                        "params cannot be None when no kwargs provided",
+                    )
+                params_to_use = params
 
             # Apply all parameters - extracted helpers to reduce complexity
-            bool_result = cls._set_bool_params(config, params)
+            bool_result = cls._set_bool_params(config, params_to_use)
             if bool_result.is_failure:
                 return r[FlextCliConfig].fail(
                     bool_result.error or "Boolean parameter setting failed",
                 )
 
-            log_level_result = cls._set_log_level(config, params)
+            log_level_result = cls._set_log_level(config, params_to_use)
             if log_level_result.is_failure:
                 return log_level_result
 
-            format_result = cls._set_format_params(config, params)
+            format_result = cls._set_format_params(config, params_to_use)
             if format_result.is_failure:
                 return format_result
 
@@ -309,7 +323,7 @@ class FlextCliCommonParams:
     def _set_bool_params(
         cls,
         config: FlextCliConfig,
-        params: FlextCliModels.CliParamsConfig,
+        params: p.Cli.CliParamsConfigProtocol,
     ) -> r[bool]:
         """Set boolean parameters with validation.
 
@@ -363,7 +377,7 @@ class FlextCliCommonParams:
     def _set_log_level(
         cls,
         config: FlextCliConfig,
-        params: FlextCliModels.CliParamsConfig,
+        params: p.Cli.CliParamsConfigProtocol,
     ) -> r[FlextCliConfig]:
         """Set cli_log_level with enum conversion."""
         if params.log_level is None:
@@ -371,10 +385,10 @@ class FlextCliCommonParams:
 
         normalized = params.log_level.upper()
         try:
-            config.cli_log_level = FlextConstants.Settings.LogLevel(normalized)
+            config.cli_log_level = c.Settings.LogLevel(normalized)
             return r[FlextCliConfig].ok(config)
         except ValueError:
-            valid = FlextCliConstants.LOG_LEVELS_LIST
+            valid = c.LOG_LEVELS_LIST
             return r[FlextCliConfig].fail(
                 (
                     f"invalid log level: {params.log_level}. "
@@ -386,16 +400,13 @@ class FlextCliCommonParams:
     def _set_format_params(
         cls,
         config: FlextCliConfig,
-        params: FlextCliModels.CliParamsConfig,
+        params: p.Cli.CliParamsConfigProtocol,
     ) -> r[FlextCliConfig]:
         """Set log_format and output_format with validation."""
         # log_format maps to log_verbosity
         if params.log_format is not None:
-            if (
-                params.log_format
-                not in FlextCliConstants.CliParamsDefaults.VALID_LOG_FORMATS
-            ):
-                valid = FlextCliConstants.CliParamsDefaults.VALID_LOG_FORMATS
+            if params.log_format not in c.CliParamsDefaults.VALID_LOG_FORMATS:
+                valid = c.CliParamsDefaults.VALID_LOG_FORMATS
                 valid_str = ", ".join(valid)
                 return r[FlextCliConfig].fail(
                     f"invalid log format: {params.log_format}. valid: {valid_str}",
@@ -404,11 +415,9 @@ class FlextCliCommonParams:
 
         # output_format - use validator that returns proper Literal type
         if params.output_format is not None:
-            validated_result = FlextCliUtilities.CliValidation.validate_output_format(
-                params.output_format
-            )
+            validated_result = u.CliValidation.v_format(params.output_format)
             if validated_result.is_failure:
-                valid = FlextCliConstants.CliParamsDefaults.VALID_OUTPUT_FORMATS
+                valid = c.CliParamsDefaults.VALID_OUTPUT_FORMATS
                 valid_str = ", ".join(valid)
                 return r[FlextCliConfig].fail(
                     f"invalid output format: {params.output_format}. valid: {valid_str}",
@@ -437,12 +446,16 @@ class FlextCliCommonParams:
             r[bool]: True if logger configured successfully, failure on error
 
         """
-        err = FlextCliConstants.CliParamsErrorMessages
+        err = c.CliParamsErrorMessages
         try:
+            # Type narrowing: cli_log_level is LogLevel enum
+            # config.cli_log_level is validated above, but mypy doesn't narrow from validation
+            if config.cli_log_level is None:
+                return r[bool].fail("cli_log_level is not set")
             log_level_upper = config.cli_log_level.value.upper()
 
-            if log_level_upper not in FlextCliConstants.LOG_LEVELS_LIST:
-                valid = ", ".join(FlextCliConstants.LOG_LEVELS_LIST)
+            if log_level_upper not in c.LOG_LEVELS_LIST:
+                valid = ", ".join(c.LOG_LEVELS_LIST)
                 return r[bool].fail(
                     err.INVALID_LOG_LEVEL.format(
                         log_level=log_level_upper,
@@ -460,8 +473,8 @@ class FlextCliCommonParams:
     def create_decorator(
         cls,
     ) -> Callable[
-        [FlextCliProtocols.Cli.CliCommandFunction],
-        FlextCliProtocols.Cli.CliCommandFunction,
+        [p.Cli.CliCommandFunction],
+        p.Cli.CliCommandFunction,
     ]:
         """Create decorator to validate common CLI parameters are used.
 
@@ -506,13 +519,13 @@ class FlextCliCommonParams:
         """
 
         def decorator(
-            func: FlextCliProtocols.Cli.CliCommandFunction,
-        ) -> FlextCliProtocols.Cli.CliCommandFunction:
+            func: p.Cli.CliCommandFunction,
+        ) -> p.Cli.CliCommandFunction:
             # Validate enforcement
             validation = cls.validate_enabled()
             if validation.is_failure and cls._enforcement_mode:
                 # In enforcement mode, any attempt to disable params is an error
-                sys.exit(FlextCliConstants.ExitCodes.FAILURE)
+                sys.exit(c.ExitCodes.FAILURE)
 
             # For Typer, parameters are defined in function signature
             # This decorator validates enforcement only
