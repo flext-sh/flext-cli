@@ -8,12 +8,9 @@ from typing import Protocol, Self, runtime_checkable
 
 from flext_core import FlextProtocols, r, t
 
-# Note: Protocols avoid importing models to prevent circular dependencies
-# models.py → typings.py → protocols.py → models.py cycle is avoided via Protocols
-
 
 class FlextCliProtocols(FlextProtocols):
-    """FlextCli protocol definitions composing with p.
+    """FlextCli protocol definitions extending FlextProtocols.
 
     Business Rules:
     ───────────────
@@ -22,7 +19,7 @@ class FlextCliProtocols(FlextProtocols):
     3. Protocols CANNOT import Models, Config, or concrete classes
     4. Use @runtime_checkable for isinstance() checks at runtime
     5. Use Self for methods returning the same instance (Python 3.11+)
-    6. Compose with p for consistency across flext ecosystem
+    6. Extends FlextProtocols for consistency across flext ecosystem
     7. Protocols enable dependency inversion - depend on abstractions, not concretions
 
     Architecture Implications:
@@ -30,7 +27,7 @@ class FlextCliProtocols(FlextProtocols):
     - Protocols enforce interface contracts without coupling to implementations
     - Structural typing allows multiple implementations of same protocol
     - Runtime checks via @runtime_checkable enable isinstance() validation
-    - Composition with p ensures ecosystem-wide consistency
+    - Extension of FlextProtocols ensures ecosystem-wide consistency
 
     Audit Implications:
     ───────────────────
@@ -41,65 +38,69 @@ class FlextCliProtocols(FlextProtocols):
     - Protocol methods must match signatures exactly (structural typing)
     """
 
-    # ═══════════════════════════════════════════════════════════════════
-    # LAYER 0: Domain Protocols (sem dependências internas)
-    # ═══════════════════════════════════════════════════════════════════
-
-    class Display:
-        """Rich display abstraction protocols - NO IMPORTS of Rich classes."""
-
-        @runtime_checkable
-        class RichTableProtocol(Protocol):
-            """Protocol for Rich Table objects."""
-
-            def add_column(self, header: str, **kwargs: t.GeneralValueType) -> None:
-                """Add table column."""
-                ...
-
-            def add_row(self, *cells: str, **kwargs: t.GeneralValueType) -> None:
-                """Add table row."""
-                ...
-
-        @runtime_checkable
-        class RichTreeProtocol(Protocol):
-            """Protocol for Rich Tree objects."""
-
-            def add(self, label: str, **kwargs: t.GeneralValueType) -> Self:
-                """Add tree node."""
-                ...
-
-        @runtime_checkable
-        class RichConsoleProtocol(Protocol):
-            """Protocol for Rich Console objects."""
-
-            def print(
-                self,
-                text: str,
-                style: str | None = None,
-                **kwargs: t.GeneralValueType,
-            ) -> None:
-                """Print to console."""
-                ...
-
-    class Interactive:
-        """Interactive display abstraction protocols."""
-
-        @runtime_checkable
-        class RichProgressProtocol(Protocol):
-            """Protocol for Rich Progress objects."""
-
-            def __enter__(
-                self,
-            ) -> Self:
-                """Context manager enter."""
-                ...
-
-            def __exit__(self, *args: object) -> None:
-                """Context manager exit."""
-                ...
-
     class Cli:
-        """CLI-specific protocols."""
+        """CLI protocol namespace.
+
+        All CLI-specific protocols are organized within this namespace
+        for proper namespace separation and cross-project access.
+        """
+
+        # ═══════════════════════════════════════════════════════════════════
+        # LAYER 0: Domain Protocols (sem dependências internas)
+        # ═══════════════════════════════════════════════════════════════════
+
+        class Display:
+            """Rich display abstraction protocols - NO IMPORTS of Rich classes."""
+
+            @runtime_checkable
+            class RichTableProtocol(Protocol):
+                """Protocol for Rich Table objects."""
+
+                def add_column(self, header: str, **kwargs: t.GeneralValueType) -> None:
+                    """Add table column."""
+                    ...
+
+                def add_row(self, *cells: str, **kwargs: t.GeneralValueType) -> None:
+                    """Add table row."""
+                    ...
+
+            @runtime_checkable
+            class RichTreeProtocol(Protocol):
+                """Protocol for Rich Tree objects."""
+
+                def add(self, label: str, **kwargs: t.GeneralValueType) -> Self:
+                    """Add tree node."""
+                    ...
+
+            @runtime_checkable
+            class RichConsoleProtocol(Protocol):
+                """Protocol for Rich Console objects."""
+
+                def print(
+                    self,
+                    text: str,
+                    style: str | None = None,
+                    **kwargs: t.GeneralValueType,
+                ) -> None:
+                    """Print to console."""
+                    ...
+
+        class Interactive:
+            """Interactive display abstraction protocols."""
+
+            @runtime_checkable
+            class RichProgressProtocol(Protocol):
+                """Protocol for Rich Progress objects."""
+
+                def __enter__(
+                    self,
+                ) -> Self:
+                    """Context manager enter."""
+                    ...
+
+                def __exit__(self, *args: object) -> None:
+                    """Context manager exit."""
+                    ...
 
         @runtime_checkable
         class CliCommandProtocol(Protocol):
@@ -192,7 +193,7 @@ class FlextCliProtocols(FlextProtocols):
             def execute(
                 self,
                 args: Sequence[str],
-            ) -> p.Foundation.Result[t.GeneralValueType]:
+            ) -> FlextProtocols.Foundation.Result[t.GeneralValueType]:
                 """Execute command with arguments."""
                 ...
 
@@ -245,7 +246,7 @@ class FlextCliProtocols(FlextProtocols):
                 ...
 
             @property
-            def commands(self) -> Sequence[p.Cli.CliCommandProtocol]:
+            def commands(self) -> Sequence[FlextCliProtocols.Cli.CliCommandProtocol]:
                 """Commands in session."""
                 ...
 
@@ -285,16 +286,18 @@ class FlextCliProtocols(FlextProtocols):
                 ...
 
             @property
-            def session_summary(self) -> p.Cli.CliSessionDataProtocol:
+            def session_summary(self) -> FlextCliProtocols.Cli.CliSessionDataProtocol:
                 """Return session summary as CliSessionData model."""
                 ...
 
             @property
-            def commands_by_status(self) -> dict[str, list[p.Cli.CliCommandProtocol]]:
+            def commands_by_status(
+                self,
+            ) -> dict[str, list[FlextCliProtocols.Cli.CliCommandProtocol]]:
                 """Group commands by status."""
                 ...
 
-            def add_command(self, command: p.Cli.CliCommandProtocol) -> r[Self]:
+            def add_command(self, command: FlextCliProtocols.Cli.CliCommandProtocol) -> r[Self]:
                 """Add command to session."""
                 ...
 
@@ -793,7 +796,7 @@ class FlextCliProtocols(FlextProtocols):
                 self,
                 model: t.GeneralValueType,
                 **kwargs: t.GeneralValueType,
-            ) -> p.Foundation.Result[t.GeneralValueType]:
+            ) -> FlextProtocols.Foundation.Result[t.GeneralValueType]:
                 """Handle model command."""
                 ...
 
@@ -849,109 +852,108 @@ class FlextCliProtocols(FlextProtocols):
                 """Shutdown plugin."""
                 ...
 
-    # ═══════════════════════════════════════════════════════════════════
-    # LAYER 1: Service Protocols (pode usar Layer 0)
-    # ═══════════════════════════════════════════════════════════════════
-    # Note: Renamed to CliService to avoid conflict with p.Service
+        # ═══════════════════════════════════════════════════════════════════
+        # LAYER 1: Service Protocols (pode usar Layer 0)
+        # ═══════════════════════════════════════════════════════════════════
+        # Note: Renamed to CliService to avoid conflict with FlextProtocols.Service
 
-    class CliService:
-        """CLI service-related protocols."""
+        class CliService:
+            """CLI service-related protocols."""
 
-        @runtime_checkable
-        class CliServiceProtocol(Protocol):
-            """Protocol for CLI services."""
+            @runtime_checkable
+            class CliServiceProtocol(Protocol):
+                """Protocol for CLI services."""
 
-            def initialize(self, context: p.Cli.CliContextProtocol) -> r[bool]:
-                """Initialize service with context."""
-                ...
+                def initialize(self, context: FlextCliProtocols.Cli.CliContextProtocol) -> r[bool]:
+                    """Initialize service with context."""
+                    ...
 
-            def shutdown(self) -> r[bool]:
-                """Shutdown service."""
-                ...
+                def shutdown(self) -> r[bool]:
+                    """Shutdown service."""
+                    ...
 
-            def is_healthy(self) -> bool:
-                """Check service health."""
-                ...
+                def is_healthy(self) -> bool:
+                    """Check service health."""
+                    ...
 
-        @runtime_checkable
-        class CommandServiceProtocol(Protocol):
-            """Protocol for command processing services."""
+            @runtime_checkable
+            class CommandServiceProtocol(Protocol):
+                """Protocol for command processing services."""
 
-            def register_command(self, command: p.Cli.CliCommandProtocol) -> r[bool]:
-                """Register a command."""
-                ...
+                def register_command(
+                    self, command: FlextCliProtocols.Cli.CliCommandProtocol
+                ) -> r[bool]:
+                    """Register a command."""
+                    ...
 
-            def get_command(self, name: str) -> r[p.Cli.CliCommandProtocol]:
-                """Get command by name."""
-                ...
+                def get_command(self, name: str) -> r[FlextCliProtocols.Cli.CliCommandProtocol]:
+                    """Get command by name."""
+                    ...
 
-            def list_commands(
-                self,
-            ) -> r[Sequence[p.Cli.CliCommandProtocol]]:
-                """List all registered commands."""
-                ...
+                def list_commands(
+                    self,
+                ) -> r[Sequence[FlextCliProtocols.Cli.CliCommandProtocol]]:
+                    """List all registered commands."""
+                    ...
 
-        @runtime_checkable
-        class OutputServiceProtocol(Protocol):
-            """Protocol for output formatting services."""
+            @runtime_checkable
+            class OutputServiceProtocol(Protocol):
+                """Protocol for output formatting services."""
 
-            def format_table(
-                self,
-                headers: Sequence[str],
-                rows: Sequence[Sequence[str]],
-            ) -> r[str]:
-                """Format data as table."""
-                ...
+                def format_table(
+                    self,
+                    headers: Sequence[str],
+                    rows: Sequence[Sequence[str]],
+                ) -> r[str]:
+                    """Format data as table."""
+                    ...
 
-            def format_json(self, data: t.GeneralValueType) -> r[str]:
-                """Format data as JSON."""
-                ...
+                def format_json(self, data: t.GeneralValueType) -> r[str]:
+                    """Format data as JSON."""
+                    ...
 
-            def format_yaml(self, data: t.GeneralValueType) -> r[str]:
-                """Format data as YAML."""
-                ...
+                def format_yaml(self, data: t.GeneralValueType) -> r[str]:
+                    """Format data as YAML."""
+                    ...
 
-    # ═══════════════════════════════════════════════════════════════════
-    # LAYER 2: Handler Protocols (pode usar Layer 0 e 1)
-    # ═══════════════════════════════════════════════════════════════════
-    # Note: Renamed to CliHandler to avoid conflict with p.Handler
+        # ═══════════════════════════════════════════════════════════════════
+        # LAYER 2: Handler Protocols (pode usar Layer 0 e 1)
+        # ═══════════════════════════════════════════════════════════════════
+        # Note: Renamed to CliHandler to avoid conflict with p.Handler
 
-    class CliHandler:
-        """CLI handler-related protocols."""
+        class CliHandler:
+            """CLI handler-related protocols."""
 
-        @runtime_checkable
-        class CliHandlerProtocol(Protocol):
-            """Protocol for CLI request handlers."""
+            @runtime_checkable
+            class CliHandlerProtocol(Protocol):
+                """Protocol for CLI request handlers."""
 
-            def can_handle(self, args: Sequence[str]) -> bool:
-                """Check if handler can process arguments."""
-                ...
+                def can_handle(self, args: Sequence[str]) -> bool:
+                    """Check if handler can process arguments."""
+                    ...
 
-            def handle(
-                self,
-                args: Sequence[str],
-                context: p.Cli.CliContextProtocol,
-                output: p.Cli.CliOutputProtocol,
-            ) -> r[int]:
-                """Handle CLI request."""
-                ...
+                def handle(
+                    self,
+                    args: Sequence[str],
+                    context: p.Cli.CliContextProtocol,
+                    output: p.Cli.CliOutputProtocol,
+                ) -> r[int]:
+                    """Handle CLI request."""
+                    ...
 
-        @runtime_checkable
-        class ErrorHandlerProtocol(Protocol):
-            """Protocol for error handling."""
+            @runtime_checkable
+            class ErrorHandlerProtocol(Protocol):
+                """Protocol for error handling."""
 
-            def handle_error(self, error: Exception) -> r[str]:
-                """Handle and format error."""
-                ...
+                def handle_error(self, error: Exception) -> r[str]:
+                    """Handle and format error."""
+                    ...
 
-            def get_exit_code(self, error: Exception) -> int:
-                """Get appropriate exit code for error."""
-                ...
+                def get_exit_code(self, error: Exception) -> int:
+                    """Get appropriate exit code for error."""
+                    ...
 
-
-p = FlextCliProtocols
 
 __all__ = [
     "FlextCliProtocols",
-    "p",
 ]

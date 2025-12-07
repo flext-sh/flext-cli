@@ -71,8 +71,8 @@ class FlextCliFormatters:
     def execute(self) -> r[t.Json.JsonDict]:
         """Execute service - required by FlextService."""
         return r[t.Json.JsonDict].ok({
-            c.DictKeys.STATUS: c.ServiceStatus.OPERATIONAL.value,
-            c.DictKeys.SERVICE: c.Services.FORMATTERS,
+            c.Cli.DictKeys.STATUS: c.Cli.ServiceStatus.OPERATIONAL.value,
+            c.Cli.DictKeys.SERVICE: c.Cli.Services.FORMATTERS,
         })
 
     # =========================================================================

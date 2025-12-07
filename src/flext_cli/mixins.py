@@ -10,8 +10,6 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from typing import cast
-
 from flext_core import (
     FlextDecorators,
     FlextMixins,
@@ -162,35 +160,43 @@ class FlextCliMixins(FlextMixins):
 
             # Type narrowing: railway decorator ensures r return
             # Handle both single and double-wrapped r cases
-            if isinstance(handler_result, FlextResult):
-                # Check if it's a double-wrapped r[r[...]]
-                if handler_result.is_success:
-                    inner_value = handler_result.unwrap()
-                    if isinstance(inner_value, FlextResult):
-                        # Double-wrapped: unwrap inner FlextResult
-                        # Type narrowing: inner_value is r[t.GeneralValueType] after isinstance check
-                        return inner_value
-                    # Single-wrapped with value: extract value and wrap in new FlextResult
-                    # inner_value is not FlextResult at this point (after isinstance check)
-                    # This branch is reachable at runtime even if mypy considers unreachable
-                    # inner_value is object from unwrap - convert to GeneralValueType
-                    converted_value: t.GeneralValueType
-                    if isinstance(
-                        inner_value,
-                        (str, int, float, bool, type(None), dict, list),
-                    ):
-                        converted_value = inner_value
-                    else:
-                        converted_value = str(inner_value)
-                    return r[t.GeneralValueType].ok(converted_value)
-                # Failure case: unwrap and re-wrap to ensure correct type
-                error_msg = handler_result.error or "Unknown error"
-                return r[t.GeneralValueType].fail(error_msg)
+            # Check if handler_result is not FlextResult first (fallback case)
+            if not isinstance(handler_result, FlextResult):
+                # Fallback: wrap non-FlextResult returns (defensive coding)
+                # This path is unreachable if decorators work correctly but kept for runtime safety
+                # handler_result is not FlextResult at this point, convert to GeneralValueType
+                converted_handler_result: t.GeneralValueType
+                if isinstance(
+                    handler_result,
+                    (str, int, float, bool, type(None), dict, list),
+                ):
+                    converted_handler_result = handler_result
+                else:
+                    converted_handler_result = str(handler_result)
+                return r[t.GeneralValueType].ok(converted_handler_result)
 
-            # Fallback: wrap non-FlextResult returns (defensive coding)
-            # This path is unreachable if decorators work correctly but kept for runtime safety
-            # handler_result is not FlextResult at this point, convert to GeneralValueType
-            return r[t.GeneralValueType].ok(cast("t.GeneralValueType", handler_result))
+            # Check if it's a double-wrapped r[r[...]]
+            if handler_result.is_success:
+                inner_value = handler_result.unwrap()
+                if isinstance(inner_value, FlextResult):
+                    # Double-wrapped: unwrap inner FlextResult
+                    # Type narrowing: inner_value is r[t.GeneralValueType] after isinstance check
+                    return inner_value
+                # Single-wrapped with value: extract value and wrap in new FlextResult
+                # inner_value is not FlextResult at this point (after isinstance check)
+                # inner_value is object from unwrap - convert to GeneralValueType
+                converted_value: t.GeneralValueType
+                if isinstance(
+                    inner_value,
+                    (str, int, float, bool, type(None), dict, list),
+                ):
+                    converted_value = inner_value
+                else:
+                    converted_value = str(inner_value)
+                return r[t.GeneralValueType].ok(converted_value)
+            # Failure case: unwrap and re-wrap to ensure correct type
+            error_msg = handler_result.error or "Unknown error"
+            return r[t.GeneralValueType].fail(error_msg)
 
 
 x = FlextCliMixins

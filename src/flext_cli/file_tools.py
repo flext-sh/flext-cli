@@ -20,7 +20,6 @@ import tempfile
 import zipfile
 from collections.abc import Callable, Mapping
 from pathlib import Path
-from typing import cast
 
 import yaml
 from flext_core import (
@@ -91,12 +90,12 @@ class FlextCliFileTools:
     @staticmethod
     def _get_encoding(encoding: str | int | None) -> str:
         """Normalize encoding to string."""
-        return encoding if isinstance(encoding, str) else c.Encoding.UTF8
+        return encoding if isinstance(encoding, str) else c.Cli.Encoding.UTF8
 
     @staticmethod
     def _read_file_with_encoding(
         file_path: Path,
-        encoding: str = c.Encoding.UTF8,
+        encoding: str = c.Cli.Encoding.UTF8,
     ) -> str:
         """Generalized text file reader."""
         return file_path.read_text(encoding=encoding)
@@ -105,7 +104,7 @@ class FlextCliFileTools:
     def _write_file_with_encoding(
         file_path: Path,
         content: str,
-        encoding: str = c.Encoding.UTF8,
+        encoding: str = c.Cli.Encoding.UTF8,
     ) -> None:
         """Generalized text file writer."""
         file_path.write_text(content, encoding=encoding)
@@ -113,12 +112,12 @@ class FlextCliFileTools:
     @staticmethod
     def _open_file_for_reading(file_path: Path) -> io.TextIOWrapper:
         """Generalized file opener for reading."""
-        return file_path.open(encoding=c.Encoding.UTF8)
+        return file_path.open(encoding=c.Cli.Encoding.UTF8)
 
     @staticmethod
     def _open_file_for_writing(file_path: Path) -> io.TextIOWrapper:
         """Generalized file opener for writing."""
-        return file_path.open(mode="w", encoding=c.Encoding.UTF8)
+        return file_path.open(mode="w", encoding=c.Cli.Encoding.UTF8)
 
     @staticmethod
     def _get_file_stat_attr(file_path: Path, attr: str) -> int | float:
@@ -163,7 +162,7 @@ class FlextCliFileTools:
     def _load_json_file(file_path: str) -> t.GeneralValueType:
         """Load JSON file content."""
         path = Path(file_path)
-        with path.open(encoding=c.Encoding.UTF8) as f:
+        with path.open(encoding=c.Cli.Encoding.UTF8) as f:
             raw_data: object = json.load(f)
             # Use ur JSON conversion
             if isinstance(raw_data, dict):
@@ -177,14 +176,22 @@ class FlextCliFileTools:
                     else raw_data
                 )
                 # Type narrowing: ensure return type is GeneralValueType
-                return cast("t.GeneralValueType", unwrapped)
-            return cast("t.GeneralValueType", raw_data)
+                # unwrapped is object from unwrap(), convert to GeneralValueType
+                if isinstance(
+                    unwrapped, (str, int, float, bool, type(None), dict, list)
+                ):
+                    return unwrapped
+                return str(unwrapped)
+            # Type narrowing: raw_data is object, convert to GeneralValueType
+            if isinstance(raw_data, (str, int, float, bool, type(None), dict, list)):
+                return raw_data
+            return str(raw_data)
 
     @staticmethod
     def _load_yaml_file(file_path: str) -> t.GeneralValueType:
         """Load YAML file content."""
         path = Path(file_path)
-        with path.open(encoding=c.Encoding.UTF8) as f:
+        with path.open(encoding=c.Cli.Encoding.UTF8) as f:
             raw_data: object = yaml.safe_load(f)
             # Use ur JSON conversion
             if isinstance(raw_data, dict):
@@ -198,8 +205,16 @@ class FlextCliFileTools:
                     else raw_data
                 )
                 # Type narrowing: ensure return type is GeneralValueType
-                return cast("t.GeneralValueType", unwrapped)
-            return cast("t.GeneralValueType", raw_data)
+                # unwrapped is object from unwrap(), convert to GeneralValueType
+                if isinstance(
+                    unwrapped, (str, int, float, bool, type(None), dict, list)
+                ):
+                    return unwrapped
+                return str(unwrapped)
+            # Type narrowing: raw_data is object, convert to GeneralValueType
+            if isinstance(raw_data, (str, int, float, bool, type(None), dict, list)):
+                return raw_data
+            return str(raw_data)
 
     @staticmethod
     def _save_file_by_extension(
@@ -232,14 +247,14 @@ class FlextCliFileTools:
         path = FlextCliFileTools._normalize_path(file_path)
         return FlextCliFileTools._execute_file_operation(
             lambda: FlextCliFileTools._read_file_with_encoding(path),
-            c.ErrorMessages.TEXT_FILE_READ_FAILED,
+            c.Cli.ErrorMessages.TEXT_FILE_READ_FAILED,
         )
 
     @staticmethod
     def write_text_file(
         file_path: str | Path,
         content: str,
-        encoding: str | int = c.Encoding.UTF8,
+        encoding: str | int = c.Cli.Encoding.UTF8,
     ) -> r[bool]:
         """Write text content to file."""
         path = FlextCliFileTools._normalize_path(file_path)
@@ -252,7 +267,9 @@ class FlextCliFileTools:
             )
             return r[bool].ok(True)
         except Exception as e:
-            return r[bool].fail(c.ErrorMessages.TEXT_FILE_WRITE_FAILED.format(error=e))
+            return r[bool].fail(
+                c.Cli.ErrorMessages.TEXT_FILE_WRITE_FAILED.format(error=e)
+            )
 
     # ==========================================================================
     # BINARY FILE OPERATIONS
@@ -307,7 +324,7 @@ class FlextCliFileTools:
         path = FlextCliFileTools._normalize_path(file_path)
 
         def _write_json() -> bool:
-            with path.open(mode="w", encoding=c.Encoding.UTF8) as f:
+            with path.open(mode="w", encoding=c.Cli.Encoding.UTF8) as f:
                 json.dump(
                     data,
                     f,
@@ -319,7 +336,7 @@ class FlextCliFileTools:
 
         return FlextCliFileTools._execute_file_operation(
             _write_json,
-            c.ErrorMessages.JSON_WRITE_FAILED,
+            c.Cli.ErrorMessages.JSON_WRITE_FAILED,
         )
 
     # ==========================================================================
@@ -349,7 +366,7 @@ class FlextCliFileTools:
         path = FlextCliFileTools._normalize_path(file_path)
 
         def _write_yaml() -> bool:
-            with path.open(mode="w", encoding=c.Encoding.UTF8) as f:
+            with path.open(mode="w", encoding=c.Cli.Encoding.UTF8) as f:
                 yaml.safe_dump(
                     data,
                     f,
@@ -361,7 +378,7 @@ class FlextCliFileTools:
 
         return FlextCliFileTools._execute_file_operation(
             _write_yaml,
-            c.ErrorMessages.YAML_WRITE_FAILED,
+            c.Cli.ErrorMessages.YAML_WRITE_FAILED,
         )
 
     # ==========================================================================
@@ -387,7 +404,7 @@ class FlextCliFileTools:
 
         def _read_csv() -> list[list[str]]:
             with path.open(
-                encoding=c.Encoding.UTF8,
+                encoding=c.Cli.Encoding.UTF8,
                 newline="",
             ) as f:
                 return list(csv.reader(f))
@@ -407,7 +424,7 @@ class FlextCliFileTools:
         try:
             with path.open(
                 mode="w",
-                encoding=c.Encoding.UTF8,
+                encoding=c.Cli.Encoding.UTF8,
                 newline="",
             ) as f:
                 csv.writer(f).writerows(data)
@@ -436,7 +453,7 @@ class FlextCliFileTools:
 
         def _read_csv_dict() -> list[dict[str, str]]:
             with path.open(
-                encoding=c.Encoding.UTF8,
+                encoding=c.Cli.Encoding.UTF8,
                 newline="",
             ) as f:
                 return list(csv.DictReader(f))
@@ -472,7 +489,7 @@ class FlextCliFileTools:
 
         return FlextCliFileTools._execute_file_operation(
             _copy,
-            c.ErrorMessages.FILE_COPY_FAILED,
+            c.Cli.ErrorMessages.FILE_COPY_FAILED,
         )
 
     @staticmethod
@@ -621,7 +638,8 @@ class FlextCliFileTools:
                     """Convert single extension value."""
                     if isinstance(ev, tuple):
                         # Type narrowing: tuple[str, ...] -> list[str]
-                        return cast("list[str]", list(ev))
+                        # Convert tuple to list, ensuring all items are str
+                        return [str(item) for item in ev]
                     if isinstance(ev, str):
                         return [ev]
                     return []
@@ -655,7 +673,7 @@ class FlextCliFileTools:
         format_result = FlextCliFileTools.detect_file_format(file_path)
         if format_result.is_failure:
             return r[t.GeneralValueType].fail(
-                format_result.error or c.ErrorMessages.FORMAT_DETECTION_FAILED,
+                format_result.error or c.Cli.ErrorMessages.FORMAT_DETECTION_FAILED,
             )
 
         file_format = format_result.unwrap()
@@ -673,7 +691,7 @@ class FlextCliFileTools:
             return loader()
 
         return r[t.GeneralValueType].fail(
-            c.ErrorMessages.UNSUPPORTED_FORMAT.format(format=file_format),
+            c.Cli.ErrorMessages.UNSUPPORTED_FORMAT.format(format=file_format),
         )
 
     @staticmethod
@@ -832,7 +850,7 @@ class FlextCliFileTools:
             for file_path in path.rglob("*"):
                 if file_path.is_file():
                     try:
-                        text = file_path.read_text(encoding=c.Encoding.UTF8)
+                        text = file_path.read_text(encoding=c.Cli.Encoding.UTF8)
                         if content in text:
                             matches.append(str(file_path))
                     except (UnicodeDecodeError, PermissionError):

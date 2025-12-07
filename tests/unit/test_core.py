@@ -691,7 +691,7 @@ class TestsCliCore:
             """Test _build_execution_context with list."""
             context = ["arg1", "arg2", "arg3"]
             result = core_service._build_execution_context(context)
-            assert c.DictKeys.ARGS in result
+            assert c.Cli.DictKeys.ARGS in result
             assert isinstance(result[c.DictKeys.ARGS], list)
 
         def test_build_execution_context_list_with_dicts(
@@ -707,7 +707,7 @@ class TestsCliCore:
                 item if isinstance(item, str) else str(item) for item in context
             ]
             result = core_service._build_execution_context(str_context)
-            assert c.DictKeys.ARGS in result
+            assert c.Cli.DictKeys.ARGS in result
 
         def test_execute_command_success(
             self,
@@ -724,8 +724,8 @@ class TestsCliCore:
             result = core_service.execute_command(sample_command.name)
             assert result.is_success
             data = result.unwrap()
-            assert data[c.DictKeys.COMMAND] == sample_command.name
-            assert data[c.DictKeys.STATUS] is True
+            assert data[c.Cli.DictKeys.COMMAND] == sample_command.name
+            assert data[c.Cli.DictKeys.STATUS] is True
 
         def test_execute_command_not_found(self, core_service: FlextCliCore) -> None:
             """Test execute_command with non-existent command."""
@@ -748,7 +748,7 @@ class TestsCliCore:
             result = core_service.execute_command(sample_command.name, context=context)
             assert result.is_success
             data = result.unwrap()
-            assert c.DictKeys.CONTEXT in data
+            assert c.Cli.DictKeys.CONTEXT in data
 
         def test_execute_command_with_timeout(
             self,
@@ -764,7 +764,7 @@ class TestsCliCore:
             result = core_service.execute_command(sample_command.name, timeout=30.0)
             assert result.is_success
             data = result.unwrap()
-            assert data[c.DictKeys.TIMEOUT] == 30.0
+            assert data[c.Cli.DictKeys.TIMEOUT] == 30.0
 
         def test_build_context_from_list(self) -> None:
             """Test _build_context_from_list static method."""
@@ -774,8 +774,8 @@ class TestsCliCore:
             result = FlextCliCore._build_context_from_list(
                 cast("list[t.GeneralValueType]", args),
             )
-            assert c.DictKeys.ARGS in result
-            assert result[c.DictKeys.ARGS] == args
+            assert c.Cli.DictKeys.ARGS in result
+            assert result[c.Cli.DictKeys.ARGS] == args
 
     # =========================================================================
     # NESTED CLASS: Configuration Management Tests
@@ -921,8 +921,8 @@ class TestsCliCore:
             assert result.is_success
 
             # Verify profile was stored
-            assert c.DictKeys.PROFILES in core_service._cli_config
-            profiles = core_service._cli_config[c.DictKeys.PROFILES]
+            assert c.Cli.DictKeys.PROFILES in core_service._cli_config
+            profiles = core_service._cli_config[c.Cli.DictKeys.PROFILES]
             assert isinstance(profiles, dict)
             assert "test_profile" in profiles
 

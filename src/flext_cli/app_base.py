@@ -19,7 +19,8 @@ from abc import ABC, abstractmethod
 from typing import ClassVar
 
 import typer
-from flext_core import FlextExceptions, FlextLogger, r
+from flext_core import e, r
+from flext_core.loggings import FlextLogger as l_core
 
 from flext_cli.cli import FlextCliCli, UsageError as ClickUsageError
 from flext_cli.config import FlextCliConfig
@@ -40,7 +41,7 @@ class FlextCliAppBase(ABC):
     config_class: ClassVar[type[FlextCliConfig]]
 
     # Instance attributes
-    logger: FlextLogger
+    logger: l_core
     _output: FlextCliOutput
     _cli: FlextCliCli
     _app: typer.Typer
@@ -49,7 +50,7 @@ class FlextCliAppBase(ABC):
     def __init__(self) -> None:
         """Initialize CLI with FlextCli infrastructure."""
         super().__init__()
-        self.logger = FlextLogger(__name__)
+        self.logger = l_core(__name__)
         self._output = FlextCliOutput()
         self._cli = FlextCliCli()
         self._config = self.config_class.get_instance()
@@ -82,7 +83,7 @@ class FlextCliAppBase(ABC):
     def _handle_pathlib_annotation_error(ne: NameError) -> None:
         """Handle Typer annotation issues with pathlib.Path in Python <3.10."""
         if "pathlib" in str(ne):
-            FlextLogger.get_logger().warning(
+            l_core.get_logger().warning(
                 "Pathlib annotation issue detected during command registration",
                 error=str(ne),
                 python_version_note=(
@@ -115,28 +116,28 @@ class FlextCliAppBase(ABC):
             # When standalone_mode=False, Typer doesn't print errors automatically
             self._app(args=resolved_args, standalone_mode=True)
             return r[bool].ok(True)
-        except NameError as e:
-            if "pathlib" in str(e):
-                error_msg = f"CLI annotation evaluation error: {e!s}"
+        except NameError as name_err:
+            if "pathlib" in str(name_err):
+                error_msg = f"CLI annotation evaluation error: {name_err!s}"
                 self._output.print_error(error_msg)
                 return r[bool].fail(error_msg)
             raise
-        except SystemExit as e:
-            if e.code == 0:
+        except SystemExit as sys_exit:
+            if sys_exit.code == 0:
                 return r[bool].ok(True)
             # SystemExit with non-zero code means failure
             # Typer already printed the error in standalone_mode=True
-            return r[bool].fail(f"CLI execution failed with code {e.code}")
-        except Exception as e:
-            if isinstance(e, ClickUsageError):
-                error_msg = f"CLI execution error: {e!s}"
+            return r[bool].fail(f"CLI execution failed with code {sys_exit.code}")
+        except Exception as exc:
+            if isinstance(exc, ClickUsageError):
+                error_msg = f"CLI execution error: {exc!s}"
                 self._output.print_error(error_msg)
                 return r[bool].fail(error_msg)
             # Business Rule: Exception handling MUST catch all FlextExceptions.BaseError types
             # Architecture: Use FlextExceptions.BaseError for flext-specific exceptions
             # Audit Implication: Proper exception handling ensures error logging and recovery
             if isinstance(
-                e,
+                exc,
                 (
                     ValueError,
                     KeyError,
@@ -144,11 +145,11 @@ class FlextCliAppBase(ABC):
                     TypeError,
                     OSError,
                     RuntimeError,
-                    FlextExceptions.BaseError,
+                    e.BaseError,
                 ),
             ):
                 tb = traceback.format_exc()
-                error_msg = f"CLI execution error: {e!s}\nTraceback:\n{tb}"
+                error_msg = f"CLI execution error: {exc!s}\nTraceback:\n{tb}"
                 self._output.print_error(error_msg)
-                return r[bool].fail(f"CLI execution error: {e!s}")
+                return r[bool].fail(f"CLI execution error: {exc!s}")
             raise

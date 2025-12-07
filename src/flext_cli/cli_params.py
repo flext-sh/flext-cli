@@ -14,7 +14,7 @@ from __future__ import annotations
 
 import sys
 from collections.abc import Callable
-from typing import ClassVar, cast
+from typing import ClassVar
 
 from flext_core import r
 from typer.models import OptionInfo
@@ -83,9 +83,9 @@ class FlextCliCommonParams:
     # CLI Parameter Metadata registry
     # Maps field names to CLI-specific metadata (short flags, choices, priority)
     # Type aliases to reduce line length
-    _reg = c.CliParamsRegistry
-    _def = c.CliParamDefaults  # Singular - for FIELD_NAME_SEPARATOR
-    _defs = c.CliParamsDefaults  # Plural - for VALID_LOG_FORMATS
+    _reg = c.Cli.CliParamsRegistry
+    _def = c.Cli.CliParamDefaults  # Singular - for FIELD_NAME_SEPARATOR
+    _defs = c.Cli.CliParamsDefaults  # Plural - for VALID_LOG_FORMATS
 
     # Registry allows list[str] for choices
     CLI_PARAM_REGISTRY: ClassVar[dict[str, dict[str, str | int | bool | list[str]]]] = {
@@ -108,7 +108,7 @@ class FlextCliCommonParams:
         "cli_log_level": {
             _reg.KEY_SHORT: _reg.SHORT_FLAG_LOG_LEVEL,
             _reg.KEY_PRIORITY: _reg.PRIORITY_LOG_LEVEL,
-            _reg.KEY_CHOICES: c.Lists.LOG_LEVELS_LIST,
+            _reg.KEY_CHOICES: c.Cli.Lists.LOG_LEVELS_LIST,
             _reg.KEY_CASE_SENSITIVE: _reg.CASE_INSENSITIVE,
             # CLI param name is --log-level, maps to cli_log_level field
             _reg.KEY_FIELD_NAME_OVERRIDE: "log_level",
@@ -286,8 +286,8 @@ class FlextCliCommonParams:
                 )
                 # Type narrowing: params_instance is compatible with protocol
                 # Use params_instance directly to avoid redefinition
-                # Cast to protocol type for type compatibility
-                params_to_use = cast("p.Cli.CliParamsConfigProtocol", params_instance)
+                # params_instance implements CliParamsConfigProtocol structurally
+                params_to_use: p.Cli.CliParamsConfigProtocol = params_instance
             else:
                 # Use provided params parameter
                 # params is not None at this point (checked above), but mypy doesn't narrow
@@ -405,8 +405,8 @@ class FlextCliCommonParams:
         """Set log_format and output_format with validation."""
         # log_format maps to log_verbosity
         if params.log_format is not None:
-            if params.log_format not in c.CliParamsDefaults.VALID_LOG_FORMATS:
-                valid = c.CliParamsDefaults.VALID_LOG_FORMATS
+            if params.log_format not in c.Cli.CliParamsDefaults.VALID_LOG_FORMATS:
+                valid = c.Cli.CliParamsDefaults.VALID_LOG_FORMATS
                 valid_str = ", ".join(valid)
                 return r[FlextCliConfig].fail(
                     f"invalid log format: {params.log_format}. valid: {valid_str}",
@@ -417,7 +417,7 @@ class FlextCliCommonParams:
         if params.output_format is not None:
             validated_result = u.CliValidation.v_format(params.output_format)
             if validated_result.is_failure:
-                valid = c.CliParamsDefaults.VALID_OUTPUT_FORMATS
+                valid = c.Cli.CliParamsDefaults.VALID_OUTPUT_FORMATS
                 valid_str = ", ".join(valid)
                 return r[FlextCliConfig].fail(
                     f"invalid output format: {params.output_format}. valid: {valid_str}",

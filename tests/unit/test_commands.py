@@ -104,14 +104,17 @@ class TestsCliCommands:
         """Test execute_command with args parameter."""
         commands = CommandsFactory.create_commands()
 
-        CommandsFactory.register_command_with_args(commands, ["arg1", "arg2"])
+        CommandsFactory.register_command_with_args(commands, "test_with_args")
 
         result = commands.execute_command(
-            ["arg1", "arg2"],
+            "test_with_args",
             args=["arg1", "arg2"],
         )
         assert result.is_success
-        assert ["arg1", "arg2"] in str(result.unwrap())
+        # Handler returns "args: {len(args)}" format
+        result_value = str(result.unwrap())
+        assert "args:" in result_value
+        assert "2" in result_value  # Two args passed
 
     def test_execute_command_handler_without_args(self) -> None:
         """Test execute_command with handler that doesn't accept args."""
@@ -119,11 +122,11 @@ class TestsCliCommands:
 
         CommandsFactory.register_simple_command(
             commands,
-            [],
+            "test_no_args",
             "no_args_result",
         )
 
-        result = commands.execute_command([], args=["arg1", "arg2"])
+        result = commands.execute_command("test_no_args", args=["arg1", "arg2"])
         assert result.is_success
         assert result.unwrap() == "no_args_result"
 

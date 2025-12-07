@@ -162,7 +162,7 @@ class TestsCliCli:
     @pytest.mark.parametrize(
         ("primitive_type", "getter_method"),
         {
-            "str": "get_str_type",
+            "str": "get_string_type",
             "int": "get_int_type",
             "float": "get_float_type",
             "bool": "get_bool_type",

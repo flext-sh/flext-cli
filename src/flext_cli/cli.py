@@ -323,7 +323,12 @@ class FlextCliCli:
                     )
                     else default
                 )
-                return cast("t.GeneralValueType | None", result)
+                # Type narrowing: result is object from u.build, convert to GeneralValueType | None
+                if result is None:
+                    return None
+                if isinstance(result, (str, int, float, bool, dict, list)):
+                    return result
+                return str(result)
 
             def get_bool(k: str) -> bool | None:
                 """Extract bool value using build DSL."""
@@ -362,23 +367,27 @@ class FlextCliCli:
                     "log_level",
                     None,
                 )
-                log_level_name = cast(
-                    "str",
-                    u.build(
-                        log_level_attr.value if log_level_attr else None,
-                        ops={"ensure": "str", "ensure_default": "INFO"},
-                        on_error="skip",
-                    ),
+                # Type narrowing: u.build with ensure="str" returns str
+                log_level_built = u.build(
+                    log_level_attr.value if log_level_attr else None,
+                    ops={"ensure": "str", "ensure_default": "INFO"},
+                    on_error="skip",
+                )
+                log_level_name: str = (
+                    str(log_level_built) if log_level_built is not None else "INFO"
                 )
                 log_level_value = getattr(logging, log_level_name, logging.INFO)
             # Use build() DSL for console_enabled extraction
-            console_enabled = cast(
-                "bool",
-                u.build(
-                    getattr(config, "console_enabled", None),
-                    ops={"ensure": "bool", "ensure_default": True},
-                    on_error="skip",
-                ),
+            # Type narrowing: u.build with ensure="bool" returns bool
+            console_enabled_built = u.build(
+                getattr(config, "console_enabled", None),
+                ops={"ensure": "bool", "ensure_default": True},
+                on_error="skip",
+            )
+            console_enabled: bool = (
+                bool(console_enabled_built)
+                if console_enabled_built is not None
+                else True
             )
 
             # Force reconfiguration (bypasses is_configured() guards)
@@ -879,7 +888,7 @@ class FlextCliCli:
                 abort=get_bool_val("abort", default=False),
                 prompt_suffix=get_str_val(
                     "prompt_suffix",
-                    default=c.UIDefaults.DEFAULT_PROMPT_SUFFIX,
+                    default=c.Cli.UIDefaults.DEFAULT_PROMPT_SUFFIX,
                 ),
                 show_default=get_bool_val("show_default", default=True),
                 err=get_bool_val("err", default=False),
@@ -904,7 +913,7 @@ class FlextCliCli:
             return r[bool].ok(result)
         except typer.Abort as e:
             return r[bool].fail(
-                c.ErrorMessages.USER_ABORTED_CONFIRMATION.format(
+                c.Cli.ErrorMessages.USER_ABORTED_CONFIRMATION.format(
                     error=e,
                 ),
             )
@@ -980,7 +989,7 @@ class FlextCliCli:
                 value_proc=value_proc_val if callable(value_proc_val) else None,
                 prompt_suffix=get_str_val(
                     "prompt_suffix",
-                    c.UIDefaults.DEFAULT_PROMPT_SUFFIX,
+                    c.Cli.UIDefaults.DEFAULT_PROMPT_SUFFIX,
                 ),
                 hide_input=get_bool_val("hide_input", default=False),
                 confirmation_prompt=get_bool_val("confirmation_prompt", default=False),
@@ -1019,7 +1028,7 @@ class FlextCliCli:
             return r[t.GeneralValueType].ok(json_value)
         except typer.Abort as e:
             return r[t.GeneralValueType].fail(
-                c.ErrorMessages.USER_ABORTED_PROMPT.format(error=e),
+                c.Cli.ErrorMessages.USER_ABORTED_PROMPT.format(error=e),
             )
 
     # =========================================================================
@@ -1028,7 +1037,7 @@ class FlextCliCli:
 
     def create_cli_runner(
         self,
-        charset: str = c.Encoding.UTF8,
+        charset: str = c.Cli.Encoding.UTF8,
         env: dict[str, str] | None = None,
         *,
         echo_stdin: bool = False,
@@ -1106,7 +1115,7 @@ class FlextCliCli:
 
     @staticmethod
     def pause(
-        info: str = c.UIDefaults.DEFAULT_PAUSE_MESSAGE,
+        info: str = c.Cli.UIDefaults.DEFAULT_PAUSE_MESSAGE,
     ) -> r[bool]:
         """Pause execution until key press.
 
@@ -1249,8 +1258,8 @@ class FlextCliCli:
 
         """
         return r[t.Json.JsonDict].ok({
-            c.DictKeys.SERVICE: c.FLEXT_CLI,
-            c.DictKeys.STATUS: (c.ServiceStatus.OPERATIONAL.value),
+            c.Cli.DictKeys.SERVICE: c.Cli.FLEXT_CLI,
+            c.Cli.DictKeys.STATUS: (c.Cli.ServiceStatus.OPERATIONAL.value),
         })
 
 

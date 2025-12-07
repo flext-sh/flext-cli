@@ -54,14 +54,14 @@ class TestsCliRailwayPatternExample:
     @pytest.mark.parametrize(
         ("test_data", "filename", "verify_keys"),
         [
-            ("simple", "test_file.txt", ["name", "value"]),
+            ({"name": "test", "value": 123}, "test_file.txt", ["name", "value"]),
             (
-                "key_value",
+                {"key": "test_key", "number": 42},
                 "validated_file.txt",
                 ["key", "number"],
             ),
             (
-                "config",
+                {"debug": True, "timeout": 30},
                 "config_file.json",
                 ["debug", "timeout"],
             ),
@@ -109,12 +109,12 @@ class TestsCliRailwayPatternExample:
         [
             (
                 "/invalid/path",
-                "simple",
+                {"name": "test", "value": 123},
                 "nonexistent_dir",
             ),
             (
                 "/dev/null/nested/deep/path.json",
-                "config",
+                {"debug": True, "timeout": 30},
                 "nested_invalid",
             ),
         ],
@@ -162,14 +162,14 @@ class TestsCliRailwayPatternExample:
         # Try primary (fails due to invalid path)
         primary_result = file_tools.write_json_file(
             "/invalid/path",
-            "strategy",
+            {"strategy": "fallback"},
         )
         assert primary_result.is_failure
 
         # Use fallback
         fallback_result = file_tools.write_json_file(
             str(fallback_file),
-            "strategy",
+            {"strategy": "fallback"},
         )
         assert fallback_result.is_success
         assert fallback_file.exists()
@@ -198,14 +198,14 @@ class TestsCliRailwayPatternExample:
         # Step 1: Write config
         config_result = file_tools.write_json_file(
             str(config_file),
-            "config",
+            {"debug": True, "timeout": 30},
         )
         assert config_result.is_success
 
         # Step 2: Write input data
         data_result = file_tools.write_json_file(
             str(data_file),
-            "items",
+            {"items": [1, 2, 3]},
         )
         assert data_result.is_success
 

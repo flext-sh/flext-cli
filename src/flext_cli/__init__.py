@@ -10,12 +10,7 @@ SPDX-License-Identifier: MIT
 """
 
 # Import core aliases for convenience
-from flext_core import (
-    FlextDecorators,
-    FlextExceptions,
-    FlextHandlers,
-    FlextResult,
-)
+from flext_core import d, e, h, r
 
 from flext_cli.__version__ import __version__, __version_info__
 from flext_cli.api import FlextCli
@@ -44,17 +39,15 @@ from flext_cli.utilities import FlextCliUtilities
 # Short aliases exported in root namespace - use domain-specific aliases
 # u extends FlextUtilities from flext-core via FlextCliUtilities
 # t extends FlextTypes from flext-core via FlextCliTypes
+# d, e, h, r are already imported from flext_core (line 13)
 u = FlextCliUtilities  # Domain-specific utilities extending FlextUtilities
 t = FlextCliTypes  # Domain-specific types extending FlextTypes
 c = FlextCliConstants  # Domain-specific constants extending FlextConstants
 m = FlextCliModels  # Domain-specific models extending FlextModels
 p = FlextCliProtocols  # Domain-specific protocols extending FlextProtocols
 s = FlextCliServiceBase  # Domain-specific service base extending FlextService
-r = FlextResult  # Shared from flext-core
-e = FlextExceptions  # Shared from flext-core
-d = FlextDecorators  # Shared from flext-core
 x = FlextCliMixins  # Domain-specific mixins extending FlextMixins
-h = FlextHandlers  # Shared from flext-core
+# d, e, h, r are imported from flext_core above
 
 
 __all__ = [

@@ -1,8 +1,8 @@
 """Shared service foundation for flext-cli components.
 
-Centraliza o acesso ao singleton de configuração enquanto mantém a herança
-alinhada ao `FlextService` do flext-core, evitando duplicação de inicialização
-entre os serviços da biblioteca.
+Centralizes access to configuration singleton while maintaining inheritance
+aligned with `FlextService` from flext-core, avoiding duplication of initialization
+across library services.
 
 Copyright (c) 2025 FLEXT Team. All rights reserved.
 SPDX-License-Identifier: MIT
@@ -10,12 +10,12 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from flext_core import FlextService, t
+from flext_core import s as flext_service, t
 
 from flext_cli.config import FlextCliConfig
 
 
-class FlextCliServiceBase(FlextService[t.Json.JsonDict]):
+class FlextCliServiceBase(flext_service[t.Json.JsonDict]):
     """Base class for flext-cli services with typed configuration access."""
 
     @property
@@ -29,9 +29,6 @@ class FlextCliServiceBase(FlextService[t.Json.JsonDict]):
         return FlextCliConfig.get_instance()
 
 
-s = FlextCliServiceBase
-
 __all__ = [
     "FlextCliServiceBase",
-    "s",
 ]

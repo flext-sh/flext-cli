@@ -271,8 +271,8 @@ class FlextCliTestHelpers(FlextService[dict[str, t.GeneralValueType]]):
                     final_password = "testpass123"
 
                 creds: dict[str, t.JsonValue] = {
-                    c.DictKeys.USERNAME: final_username,
-                    c.DictKeys.PASSWORD: final_password,
+                    c.Cli.DictKeys.USERNAME: final_username,
+                    c.Cli.DictKeys.PASSWORD: final_password,
                     **overrides,
                 }
                 creds_str: Mapping[str, str] = cast("Mapping[str, str]", creds)
@@ -1015,9 +1015,9 @@ class FlextCliTestHelpers(FlextService[dict[str, t.GeneralValueType]]):
         """
         try:
             payload = {
-                c.DictKeys.STATUS: c.ServiceStatus.OPERATIONAL.value,
-                c.DictKeys.SERVICE: "FlextCliTestHelpers",
-                c.DictKeys.MESSAGE: "Test helpers ready",
+                c.Cli.DictKeys.STATUS: c.Cli.ServiceStatus.OPERATIONAL.value,
+                c.Cli.DictKeys.SERVICE: "FlextCliTestHelpers",
+                c.Cli.DictKeys.MESSAGE: "Test helpers ready",
             }
             # Convert to JsonDict-compatible dict using helper
             payload_converted: dict[str, t.GeneralValueType] = cast(

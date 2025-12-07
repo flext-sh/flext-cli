@@ -151,13 +151,15 @@ class TestsCliOutput:
     def test_output_initialization(self, output: FlextCliOutput) -> None:
         """Test output initialization."""
         tm.that(output, is_=FlextCliOutput)
-        tm.hasattr(output, "logger", "_formatters", "_tables")
+        tm.that(hasattr(output, "logger"), eq=True)
+        tm.that(hasattr(output, "_formatters"), eq=True)
+        tm.that(hasattr(output, "_tables"), eq=True)
 
     def test_output_execute(self, output: FlextCliOutput) -> None:
         """Test output execute method."""
         result = output.execute()
         data = tm.ok(result, is_=dict)
-        tm.dict_(data, has_key=["status", "service"])
+        tm.that(data, keys=["status", "service"])
 
     def test_output_print_message(self, output: FlextCliOutput) -> None:
         """Test print message functionality."""
@@ -2204,13 +2206,14 @@ class TestsCliOutput:
         monkeypatch: pytest.MonkeyPatch,
     ) -> None:
         """Test create_formatter with exception during validation."""
-        # Mock ensure_str to raise exception
+        # Mock u.parse to raise exception to test exception path
         validation_error_msg = "Validation error"
 
-        def mock_ensure_str(*args: object, **kwargs: object) -> str:
+        def mock_parse(*args: object, **kwargs: object) -> r[str]:
             raise RuntimeError(validation_error_msg)
 
-        monkeypatch.setattr("flext_cli.services.output.ensure_str", mock_ensure_str)
+        # Patch u.parse to raise exception
+        monkeypatch.setattr("flext_cli.utilities.u.parse", mock_parse)
         result = output.create_formatter("json")
         tm.fail(result)
 

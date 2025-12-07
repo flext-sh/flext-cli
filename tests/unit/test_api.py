@@ -391,7 +391,7 @@ class TestsCli:
     ) -> None:
         """Test authentication with valid token."""
         token = "test_token_abc123"
-        credentials = {c.DictKeys.TOKEN: token}
+        credentials = {c.Cli.DictKeys.TOKEN: token}
         result = flext_cli_api.authenticate(credentials)
         tm.ok(result)
         assert result.unwrap() == token
@@ -408,8 +408,8 @@ class TestsCli:
     ) -> None:
         """Test authentication with username/password."""
         credentials = {
-            c.DictKeys.USERNAME: "testuser",
-            c.DictKeys.PASSWORD: "testpass123",
+            c.Cli.DictKeys.USERNAME: "testuser",
+            c.Cli.DictKeys.PASSWORD: "testpass123",
         }
         result = flext_cli_api.authenticate(credentials)
         tm.ok(result)
@@ -623,8 +623,8 @@ class TestsCli:
         result = flext_cli_api.execute()
         tm.ok(result)
         data = result.unwrap()
-        assert c.DictKeys.STATUS in data
-        assert c.DictKeys.SERVICE in data
+        assert c.Cli.DictKeys.STATUS in data
+        assert c.Cli.DictKeys.SERVICE in data
         assert "version" in data
         assert "components" in data
 
@@ -807,7 +807,7 @@ class TestsCli:
     ) -> None:
         """Test authenticate with token when save fails."""
         token = "test_token_save_fail"
-        credentials = {c.DictKeys.TOKEN: token}
+        credentials = {c.Cli.DictKeys.TOKEN: token}
 
         # Mock save_auth_token to return failure
         def mock_save(t: str) -> r[bool]:
@@ -824,8 +824,8 @@ class TestsCli:
     ) -> None:
         """Test authenticate with credentials when validation fails."""
         credentials = {
-            c.DictKeys.USERNAME: "testuser",
-            c.DictKeys.PASSWORD: "testpass123",
+            c.Cli.DictKeys.USERNAME: "testuser",
+            c.Cli.DictKeys.PASSWORD: "testpass123",
         }
 
         # Mock model_validate to raise exception

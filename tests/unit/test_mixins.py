@@ -109,7 +109,7 @@ class TestsCliMixins:
             required_status=required_status,
             operation=operation,
         )
-        tm.fail(result, expected_error=operation)
+        tm.fail(result, has=operation)
 
     # =========================================================================
     # BUSINESS RULES - SESSION STATE VALIDATION TESTS (Parametrized)
@@ -176,7 +176,7 @@ class TestsCliMixins:
             current_status=current_status,
             valid_states=valid_states,
         )
-        tm.fail(result, expected_error=current_status)
+        tm.fail(result, has=current_status)
 
     # =========================================================================
     # BUSINESS RULES - PIPELINE STEP VALIDATION TESTS (Parametrized)
@@ -238,7 +238,7 @@ class TestsCliMixins:
         result = FlextCliMixins.BusinessRulesMixin.validate_pipeline_step(
             cast("t.Json.JsonDict | None", step),
         )
-        tm.fail(result, expected_error="name")
+        tm.fail(result, has="name")
 
     # =========================================================================
     # BUSINESS RULES - CONFIGURATION CONSISTENCY VALIDATION TESTS
@@ -264,7 +264,7 @@ class TestsCliMixins:
             ),
             ["debug", "timeout"],
         )
-        tm.fail(result, expected_error="field2")
+        tm.fail(result, has="field2")
 
     def test_configuration_consistency_none_config(self) -> None:
         """Test configuration consistency with None config."""
@@ -322,7 +322,7 @@ class TestsCliMixins:
             handler=cast("p.Cli.CliCommandHandler", failure_handler),
         )
 
-        tm.fail(result, expected_error=test_error_msg)
+        tm.fail(result, has=test_error_msg)
 
     @pytest.mark.parametrize(
         "extra_params",

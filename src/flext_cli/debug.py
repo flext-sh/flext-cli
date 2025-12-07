@@ -158,10 +158,10 @@ class FlextCliDebug(FlextCliServiceBase):
         """Test basic connectivity and service status."""
         try:
             connectivity_info = {
-                c.DictKeys.STATUS: c.ServiceStatus.CONNECTED.value,
-                c.DictKeys.TIMESTAMP: u.generate("timestamp"),
-                c.DictKeys.SERVICE: str(FlextCliDebug),
-                c.DebugDictKeys.CONNECTIVITY: c.ServiceStatus.OPERATIONAL.value,
+                c.Cli.DictKeys.STATUS: c.Cli.ServiceStatus.CONNECTED.value,
+                c.Cli.DictKeys.TIMESTAMP: u.generate("timestamp"),
+                c.Cli.DictKeys.SERVICE: str(FlextCliDebug),
+                c.Cli.DebugDictKeys.CONNECTIVITY: c.Cli.ServiceStatus.OPERATIONAL.value,
             }
             return r[dict[str, str]].ok(connectivity_info)
         except Exception as e:
@@ -176,9 +176,9 @@ class FlextCliDebug(FlextCliServiceBase):
         """Execute comprehensive health check."""
         try:
             health_info: t.Json.JsonDict = {
-                c.DictKeys.STATUS: c.ServiceStatus.HEALTHY.value,
-                c.DictKeys.TIMESTAMP: u.generate("timestamp"),
-                c.DictKeys.SERVICE: c.DebugDefaults.SERVICE_NAME,
+                c.Cli.DictKeys.STATUS: c.Cli.ServiceStatus.HEALTHY.value,
+                c.Cli.DictKeys.TIMESTAMP: u.generate("timestamp"),
+                c.Cli.DictKeys.SERVICE: c.DebugDefaults.SERVICE_NAME,
                 c.DebugDictKeys.CHECK_ID: u.generate("id"),
                 c.DebugDictKeys.CHECKS_PASSED: True,
             }
@@ -196,9 +196,9 @@ class FlextCliDebug(FlextCliServiceBase):
         try:
             trace_info: t.Json.JsonDict = {
                 c.DebugDictKeys.OPERATION: c.TRACE,
-                c.DictKeys.ARGS: list(args),
+                c.Cli.DictKeys.ARGS: list(args),
                 c.DebugDictKeys.ARGS_COUNT: len(args),
-                c.DictKeys.TIMESTAMP: u.generate("timestamp"),
+                c.Cli.DictKeys.TIMESTAMP: u.generate("timestamp"),
                 c.DebugDictKeys.TRACE_ID: u.generate("id"),
             }
             return r[t.Json.JsonDict].ok(trace_info)
@@ -230,8 +230,8 @@ class FlextCliDebug(FlextCliServiceBase):
             }
 
             debug_info: t.Json.JsonDict = {
-                c.DictKeys.SERVICE: c.DebugDefaults.SERVICE_NAME,
-                c.DictKeys.TIMESTAMP: u.generate("timestamp"),
+                c.Cli.DictKeys.SERVICE: c.DebugDefaults.SERVICE_NAME,
+                c.Cli.DictKeys.TIMESTAMP: u.generate("timestamp"),
                 c.DebugDictKeys.DEBUG_ID: u.generate("id"),
                 c.DebugDictKeys.SYSTEM_INFO: system_info_json,
                 c.DebugDictKeys.ENVIRONMENT_INFO: environment_info_json,
@@ -400,20 +400,20 @@ class FlextCliDebug(FlextCliServiceBase):
             try:
                 with pathlib.Path(test_file).open(
                     "w",
-                    encoding=c.Encoding.UTF8,
+                    encoding=c.Cli.Encoding.UTF8,
                 ) as f:
                     f.write("test")
                 pathlib.Path(test_file).unlink()
             except OSError as e:
                 errors.append(
-                    c.ErrorMessages.CANNOT_WRITE_CURRENT_DIR.format(
+                    c.Cli.ErrorMessages.CANNOT_WRITE_CURRENT_DIR.format(
                         error=e,
                     ),
                 )
 
         except Exception as e:
             errors.append(
-                c.ErrorMessages.FILESYSTEM_VALIDATION_FAILED.format(
+                c.Cli.ErrorMessages.FILESYSTEM_VALIDATION_FAILED.format(
                     error=e,
                 ),
             )

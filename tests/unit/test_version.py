@@ -252,9 +252,9 @@ class TestsCliVersion:
         )
 
         if scenario.should_pass:
-            tm.ok(result, message=f"{scenario.name}: ")
+            tm.ok(result)
         else:
-            tm.fail(result, message=f"{scenario.name}: ")
+            tm.fail(result)
 
     # =========================================================================
     # VERSION INFO VALIDATION TESTS (Parametrized)
@@ -276,9 +276,9 @@ class TestsCliVersion:
         )
 
         if scenario.should_pass:
-            tm.ok(result, message=f"{scenario.name}: ")
+            tm.ok(result)
         else:
-            tm.fail(result, message=f"{scenario.name}: ")
+            tm.fail(result)
 
     # =========================================================================
     # VERSION CONSISTENCY VALIDATION TESTS (Parametrized)
@@ -303,6 +303,6 @@ class TestsCliVersion:
         )
 
         if scenario.should_pass:
-            tm.ok(result, message=f"{scenario.name}: ")
+            tm.ok(result)
         else:
-            tm.fail(result, message=f"{scenario.name}: ")
+            tm.fail(result)

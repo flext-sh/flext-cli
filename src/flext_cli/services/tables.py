@@ -11,9 +11,9 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 from collections.abc import Iterable, Mapping, Sequence
-from typing import cast
 
-from flext_core import FlextRuntime, r
+from flext_core import r
+from flext_core.runtime import FlextRuntime
 from tabulate import tabulate
 
 from flext_cli.base import FlextCliServiceBase
@@ -24,7 +24,7 @@ from flext_cli.typings import t
 from flext_cli.utilities import u
 
 # Use centralized TableData from typings.py
-TableData = t.Tables.TableData
+TableData = t.Cli.Tables.TableData
 
 
 class FlextCliTables(FlextCliServiceBase):
@@ -155,9 +155,9 @@ class FlextCliTables(FlextCliServiceBase):
 
         """
         # Use Configuration.build_options_from_kwargs pattern for automatic conversion
-        # Cast protocol to concrete type for build_options_from_kwargs
+        # Type narrowing: check if config is instance of TableConfig (not just protocol)
         config_concrete: m.TableConfig | None = (
-            cast("m.TableConfig", config) if config is not None else None
+            config if isinstance(config, m.TableConfig) else None
         )
         config_result = u.Configuration.build_options_from_kwargs(
             model_class=m.TableConfig,
@@ -248,7 +248,7 @@ class FlextCliTables(FlextCliServiceBase):
             )  # tuple check is specific, not dict/list
         ):
             return r[str | Sequence[str]].ok(
-                c.TableFormats.KEYS,
+                c.Cli.TableFormats.KEYS,
             )
 
         return r[str | Sequence[str]].ok(headers)
@@ -319,7 +319,7 @@ class FlextCliTables(FlextCliServiceBase):
 
         """
         # Use build_options_from_kwargs pattern - pass kwargs directly
-        validated_headers = headers if headers is not None else c.TableFormats.KEYS
+        validated_headers = headers if headers is not None else c.Cli.TableFormats.KEYS
         return self.create_table(
             data,
             config=None,
@@ -351,7 +351,7 @@ class FlextCliTables(FlextCliServiceBase):
         """
         return self._create_formatted_table(
             data,
-            c.TableFormats.SIMPLE,
+            c.Cli.TableFormats.SIMPLE,
             headers,
         )
 
@@ -378,7 +378,9 @@ class FlextCliTables(FlextCliServiceBase):
             >>> result = tables.create_grid_table(data, fancy=True)
 
         """
-        table_format = c.TableFormats.FANCY_GRID if fancy else c.TableFormats.GRID
+        table_format = (
+            c.Cli.TableFormats.FANCY_GRID if fancy else c.Cli.TableFormats.GRID
+        )
         return self._create_formatted_table(data, table_format, headers)
 
     def create_markdown_table(
@@ -412,7 +414,7 @@ class FlextCliTables(FlextCliServiceBase):
         """
         return self._create_formatted_table(
             data,
-            c.TableFormats.PIPE,
+            c.Cli.TableFormats.PIPE,
             headers,
         )
 
@@ -439,7 +441,9 @@ class FlextCliTables(FlextCliServiceBase):
             >>> result = tables.create_html_table(data)
 
         """
-        table_format = c.TableFormats.HTML if escape else c.TableFormats.UNSAFEHTML
+        table_format = (
+            c.Cli.TableFormats.HTML if escape else c.Cli.TableFormats.UNSAFEHTML
+        )
         return self._create_formatted_table(data, table_format, headers)
 
     def create_latex_table(
@@ -468,11 +472,11 @@ class FlextCliTables(FlextCliServiceBase):
 
         """
         if longtable:
-            table_format = c.TableFormats.LATEX_LONGTABLE
+            table_format = c.Cli.TableFormats.LATEX_LONGTABLE
         elif booktabs:
-            table_format = c.TableFormats.LATEX_BOOKTABS
+            table_format = c.Cli.TableFormats.LATEX_BOOKTABS
         else:
-            table_format = c.TableFormats.LATEX
+            table_format = c.Cli.TableFormats.LATEX
 
         return self._create_formatted_table(data, table_format, headers)
 
@@ -500,7 +504,7 @@ class FlextCliTables(FlextCliServiceBase):
         """
         return self._create_formatted_table(
             data,
-            c.TableFormats.RST,
+            c.Cli.TableFormats.RST,
             headers,
         )
 
@@ -565,8 +569,8 @@ class FlextCliTables(FlextCliServiceBase):
             # Use tabulate directly to create the formats table
             table_str = tabulate(
                 formats_data,
-                headers=c.TableFormats.KEYS,
-                tablefmt=c.TableFormats.GRID,
+                headers=c.Cli.TableFormats.KEYS,
+                tablefmt=c.Cli.TableFormats.GRID,
             )
             # Output through logger instead of print (linting requirement)
             self.logger.info(table_str)

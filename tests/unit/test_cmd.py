@@ -14,6 +14,8 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
+import json
+import stat
 import time
 from collections.abc import Mapping
 from enum import StrEnum
@@ -106,7 +108,11 @@ def _create_config_file(
     """Create config file with specified content."""
     # Create config file directly using Path
     config_file = temp_dir / CONFIG_FILE_NAME
-    config_file.write_text(content)
+    if isinstance(content, str):
+        config_file.write_text(content, encoding="utf-8")
+    else:
+        # Convert dict to JSON string
+        config_file.write_text(json.dumps(content, indent=2), encoding="utf-8")
     return config_file
 
 
@@ -129,14 +135,17 @@ def _restore_config_dir(original_dir: Path) -> None:
 
 def _create_readonly_dir(temp_dir: Path) -> Path:
     """Create read-only directory for testing."""
-    file_manager = Path(base_dir=temp_dir)
-    return file_manager.create_readonly_directory(name="readonly", directory=temp_dir)
+    readonly_dir = temp_dir / "readonly"
+    readonly_dir.mkdir(parents=True, exist_ok=True)
+    # Remove write permissions
+    readonly_dir.chmod(stat.S_IRUSR | stat.S_IXUSR)
+    return readonly_dir
 
 
 def _restore_dir_permissions(directory: Path) -> None:
     """Restore directory permissions for cleanup."""
-    file_manager = Path()
-    file_manager.restore_directory_permissions(directory)
+    # Restore write permissions
+    directory.chmod(stat.S_IRUSR | stat.S_IWUSR | stat.S_IXUSR)
 
 
 # ============================================================================

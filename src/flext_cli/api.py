@@ -16,15 +16,16 @@ from collections.abc import Callable, Mapping, Sequence
 from typing import cast
 
 from flext_core import (
-    FlextContainer,
     FlextDecorators,
     FlextExceptions,
     FlextHandlers,
     FlextLogger,
     FlextMixins,
-    FlextResult,
     FlextRuntime,
+    r,
 )
+from flext_core.container import FlextContainer as container_core
+from flext_core.loggings import FlextLogger as l_core
 
 from flext_cli.__version__ import __version__
 from flext_cli.app_base import FlextCliAppBase
@@ -49,7 +50,7 @@ from flext_cli.services.tables import FlextCliTables
 from flext_cli.typings import t
 from flext_cli.utilities import FlextCliUtilities, u
 
-r = FlextResult
+# r is already imported from flext_core
 e = FlextExceptions
 d = FlextDecorators
 s = FlextCliServiceBase  # Domain-specific service base
@@ -168,12 +169,12 @@ class FlextCli:
 
     def __init__(self) -> None:
         """Initialize consolidated CLI with all functionality integrated."""
-        self._name = c.CliDefaults.DEFAULT_APP_NAME
+        self._name = c.Cli.CliDefaults.DEFAULT_APP_NAME
         self._version = c.CLI_VERSION
         self._description = f"{self._name}{c.APIDefaults.APP_DESCRIPTION_SUFFIX}"
 
-        self.logger = FlextLogger(__name__)
-        self._container = FlextContainer()
+        self.logger = l_core(__name__)
+        self._container = container_core()
         if not self._container.has_service(
             c.APIDefaults.CONTAINER_REGISTRATION_KEY,
         ):
@@ -232,7 +233,7 @@ class FlextCli:
             return r[bool].ok(True)
         except ValueError as e:
             return r[bool].fail(
-                str(e) or c.ErrorMessages.TOKEN_EMPTY,
+                str(e) or c.Cli.ErrorMessages.TOKEN_EMPTY,
             )
 
     # =========================================================================
@@ -244,12 +245,15 @@ class FlextCli:
         credentials: Mapping[str, str],
     ) -> r[str]:
         """Authenticate user with provided credentials."""
-        if c.DictKeys.TOKEN in credentials:
+        if c.Cli.DictKeys.TOKEN in credentials:
             return self._authenticate_with_token(credentials)
-        if c.DictKeys.USERNAME in credentials and c.DictKeys.PASSWORD in credentials:
+        if (
+            c.Cli.DictKeys.USERNAME in credentials
+            and c.Cli.DictKeys.PASSWORD in credentials
+        ):
             return self._authenticate_with_credentials(credentials)
         return r[str].fail(
-            c.ErrorMessages.INVALID_CREDENTIALS,
+            c.Cli.ErrorMessages.INVALID_CREDENTIALS,
         )
 
     def _authenticate_with_token(
@@ -257,7 +261,7 @@ class FlextCli:
         credentials: Mapping[str, str],
     ) -> r[str]:
         """Authenticate using token."""
-        token = str(credentials[c.DictKeys.TOKEN])
+        token = str(credentials[c.Cli.DictKeys.TOKEN])
         validation = FlextCli._validate_token_string(token)
         if validation.is_failure:
             return r[str].fail(validation.error or "")
@@ -265,7 +269,7 @@ class FlextCli:
         save_result = self.save_auth_token(token)
         if save_result.is_failure:
             return r[str].fail(
-                c.ErrorMessages.TOKEN_SAVE_FAILED.format(
+                c.Cli.ErrorMessages.TOKEN_SAVE_FAILED.format(
                     error=save_result.error,
                 ),
             )
@@ -306,7 +310,7 @@ class FlextCli:
         # Create dict with GeneralValueType for Mapper compatibility
         token_data: dict[str, t.GeneralValueType] = {
             # str is subtype of GeneralValueType
-            c.DictKeys.TOKEN: token,
+            c.Cli.DictKeys.TOKEN: token,
         }
 
         # Use u.transform for type-safe JSON conversion
@@ -317,7 +321,7 @@ class FlextCli:
         write_result = self.file_tools.write_json_file(str(token_path), json_data)
         if write_result.is_failure:
             return r[bool].fail(
-                c.ErrorMessages.TOKEN_SAVE_FAILED.format(
+                c.Cli.ErrorMessages.TOKEN_SAVE_FAILED.format(
                     error=write_result.error,
                 ),
             )
@@ -334,10 +338,10 @@ class FlextCli:
             """Handle file read error."""
             if u.FileOps.is_file_not_found_error(error_str):
                 return r[str].fail(
-                    c.ErrorMessages.TOKEN_FILE_NOT_FOUND,
+                    c.Cli.ErrorMessages.TOKEN_FILE_NOT_FOUND,
                 )
             return r[str].fail(
-                c.ErrorMessages.TOKEN_LOAD_FAILED.format(
+                c.Cli.ErrorMessages.TOKEN_LOAD_FAILED.format(
                     error=error_str,
                 ),
             )
@@ -358,7 +362,7 @@ class FlextCli:
             )
             if found_keyword is not None and isinstance(found_keyword, str):
                 return error_keywords[found_keyword]
-            return c.ErrorMessages.TOKEN_FILE_EMPTY
+            return c.Cli.ErrorMessages.TOKEN_FILE_EMPTY
 
         result = self.file_tools.read_json_file(str(token_path))
         if result.is_failure:
@@ -367,18 +371,18 @@ class FlextCli:
         data = result.unwrap()
         if not data or (FlextRuntime.is_dict_like(data) and not data):
             return r[str].fail(
-                c.ErrorMessages.TOKEN_FILE_EMPTY,
+                c.Cli.ErrorMessages.TOKEN_FILE_EMPTY,
             )
 
         # Use u.extract to safely extract token from data
         token_result = u.extract(
             data,
-            c.DictKeys.TOKEN,  # path parameter
+            c.Cli.DictKeys.TOKEN,  # path parameter
             required=True,
         )
         if token_result.is_success:
-            # Type cast to break mypy inference if it thinks it's None
-            token_value = cast("object", token_result.unwrap())
+            # Type narrowing: unwrap returns object, check if it's str
+            token_value = token_result.unwrap()
             if isinstance(token_value, str) and token_value:
                 return r[str].ok(token_value)
 
@@ -413,7 +417,7 @@ class FlextCli:
             ]
         ):
             return r[bool].fail(
-                c.ErrorMessages.FAILED_CLEAR_CREDENTIALS.format(
+                c.Cli.ErrorMessages.FAILED_CLEAR_CREDENTIALS.format(
                     error=delete_token_result.error,
                 ),
             )
@@ -429,7 +433,7 @@ class FlextCli:
             ]
         ):
             return r[bool].fail(
-                c.ErrorMessages.FAILED_CLEAR_CREDENTIALS.format(
+                c.Cli.ErrorMessages.FAILED_CLEAR_CREDENTIALS.format(
                     error=delete_refresh_result.error,
                 ),
             )
@@ -454,17 +458,15 @@ class FlextCli:
         if entity_type == "command":
             decorator = self._cli.create_command_decorator(name=entity_name)
             decorated_func = decorator(func)
-            # Click Command/Group implements CliRegisteredCommand protocol structurally
-            # Type narrowing: decorated_func is structurally compatible with protocol
-            # Cast Command to CliRegisteredCommand for type compatibility
+            # Click Command implements CliRegisteredCommand protocol structurally at runtime
+            # Type checker doesn't recognize structural compatibility, so we use cast
             result = cast("p.Cli.CliRegisteredCommand", decorated_func)
             self._commands[entity_name] = result
         else:  # group
             decorator = self._cli.create_group_decorator(name=entity_name)
             decorated_func = decorator(func)
-            # Click Group implements CliRegisteredCommand protocol structurally
-            # Type narrowing: decorated_func is structurally compatible with protocol
-            # Cast Group to CliRegisteredCommand for type compatibility
+            # Click Group implements CliRegisteredCommand protocol structurally at runtime
+            # Type checker doesn't recognize structural compatibility, so we use cast
             group_result = cast("p.Cli.CliRegisteredCommand", decorated_func)
             self._groups[entity_name] = group_result
             result = group_result
@@ -516,8 +518,8 @@ class FlextCli:
         """Execute CLI service with railway pattern."""
         # Build JsonDict - convert version to string, components as dict
         result_dict: t.Json.JsonDict = {
-            c.DictKeys.STATUS: (c.ServiceStatus.OPERATIONAL.value),
-            c.DictKeys.SERVICE: c.FLEXT_CLI,
+            c.Cli.DictKeys.STATUS: (c.Cli.ServiceStatus.OPERATIONAL.value),
+            c.Cli.DictKeys.SERVICE: c.Cli.FLEXT_CLI,
             "timestamp": u.generate("timestamp"),
             "version": str(__version__),
             "components": {
@@ -553,7 +555,7 @@ class FlextCli:
         """Create table from data (convenience method)."""
         if data is None:
             return r[str].fail(
-                c.ErrorMessages.NO_DATA_PROVIDED,
+                c.Cli.ErrorMessages.NO_DATA_PROVIDED,
             )
 
         # Convert data using Mapper for type-safe conversion
@@ -582,7 +584,7 @@ class FlextCli:
 
         return self.output.format_data(
             data=table_data,
-            format_type=c.OutputFormats.TABLE.value,
+            format_type=c.Cli.OutputFormats.TABLE.value,
             title=title,
             headers=headers,
         )
@@ -602,15 +604,13 @@ class FlextCli:
         # formatters.create_tree returns RichTree which implements RichTreeProtocol
         result = self.formatters.create_tree(label)
         if result.is_success:
-            # RichTree (concrete type) implements RichTreeProtocol structurally
-            # Type narrowing: unwrap returns RichTreeProtocol-compatible type
+            # RichTree (concrete type) implements RichTreeProtocol structurally at runtime
+            # Type checker doesn't recognize structural compatibility, so we use cast
             tree_value = result.unwrap()
-            # Type narrowing: tree_value is structurally compatible with protocol
-            # Cast Tree to RichTreeProtocol for type compatibility
             tree_protocol = cast("p.Display.RichTreeProtocol", tree_value)
             return r[p.Display.RichTreeProtocol].ok(tree_protocol)
         # Result is already r[RichTreeProtocol] from formatters
-        # Cast result to expected return type
+        # Type checker doesn't recognize that result is already the correct type
         return cast("r[p.Display.RichTreeProtocol]", result)
 
 

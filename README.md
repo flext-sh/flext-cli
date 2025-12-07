@@ -442,7 +442,8 @@ tests/
 └── integration/       # Integration tests
 ```
 
-**TestsCli Pattern**: 
+**TestsCli Pattern**:
+
 - All test support classes extend both `FlextTests*` and `FlextCli*` classes
 - Short aliases (`t`, `c`, `m`, `p`, `u`, `s`) for support (NOT for test declarations)
 - Direct access to `flext-core` components (`r`, `e`, `d`, `x`) from `flext_core`

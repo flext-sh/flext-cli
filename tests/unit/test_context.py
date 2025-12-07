@@ -359,7 +359,7 @@ class TestsCliContext:
         context.add_argument("existing_arg")
 
         result = context.remove_argument("nonexistent_arg")
-        tm.fail(result, expected_error="not found")
+        tm.fail(result, has="not found")
 
     def test_arguments_none_state(self) -> None:
         """Test fast-fail when arguments is None."""
@@ -417,7 +417,7 @@ class TestsCliContext:
         context = FlextCliContext()
 
         result = context.get_metadata("nonexistent")
-        tm.fail(result, expected_error="not found")
+        tm.fail(result, has="not found")
 
     # =========================================================================
     # CONTEXT SUMMARY AND SERIALIZATION TESTS

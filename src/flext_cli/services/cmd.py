@@ -69,8 +69,8 @@ class FlextCliCmd(FlextCliServiceBase):
     def execute(self, **_kwargs: t.Json.JsonDict) -> r[t.Json.JsonDict]:
         """Report operational status required by `FlextService`."""
         return r[t.Json.JsonDict].ok({
-            c.DictKeys.STATUS: c.ServiceStatus.OPERATIONAL.value,
-            c.DictKeys.SERVICE: c.CmdDefaults.SERVICE_NAME,
+            c.Cli.DictKeys.STATUS: c.Cli.ServiceStatus.OPERATIONAL.value,
+            c.Cli.DictKeys.SERVICE: c.Cli.CmdDefaults.SERVICE_NAME,
         })
 
     @staticmethod
@@ -81,7 +81,7 @@ class FlextCliCmd(FlextCliServiceBase):
             return r[list[str]].ok(paths)
         except Exception as e:
             return r[list[str]].fail(
-                c.ErrorMessages.CONFIG_PATHS_FAILED.format(error=e),
+                c.Cli.ErrorMessages.CONFIG_PATHS_FAILED.format(error=e),
             )
 
     def validate_config(self) -> r[bool]:
@@ -102,7 +102,7 @@ class FlextCliCmd(FlextCliServiceBase):
             return r[bool].ok(True)
         except Exception as e:
             return r[bool].fail(
-                c.ErrorMessages.CONFIG_VALIDATION_FAILED.format(
+                c.Cli.ErrorMessages.CONFIG_VALIDATION_FAILED.format(
                     error=e,
                 ),
             )
@@ -115,7 +115,7 @@ class FlextCliCmd(FlextCliServiceBase):
             return r[t.Json.JsonDict].ok(info)
         except Exception as e:
             return r[t.Json.JsonDict].fail(
-                c.ErrorMessages.CONFIG_INFO_FAILED.format(error=e),
+                c.Cli.ErrorMessages.CONFIG_INFO_FAILED.format(error=e),
             )
 
     def set_config_value(self, key: str, value: str) -> r[bool]:
@@ -144,7 +144,7 @@ class FlextCliCmd(FlextCliServiceBase):
             return r[bool].ok(True)
         except Exception as e:
             return r[bool].fail(
-                c.ErrorMessages.SET_CONFIG_FAILED.format(error=e),
+                c.Cli.ErrorMessages.SET_CONFIG_FAILED.format(error=e),
             )
 
     def get_config_value(self, key: str) -> r[t.Json.JsonDict]:
@@ -186,9 +186,9 @@ class FlextCliCmd(FlextCliServiceBase):
             value = config_data[key]
             # Use u.transform for JSON conversion
             raw_data = {
-                c.DictKeys.KEY: key,
-                c.DictKeys.VALUE: value,
-                c.DictKeys.TIMESTAMP: u.generate("timestamp"),
+                c.Cli.DictKeys.KEY: key,
+                c.Cli.DictKeys.VALUE: value,
+                c.Cli.DictKeys.TIMESTAMP: u.generate("timestamp"),
             }
             # Use build() DSL for JSON conversion
             # Reuse to_dict_json helper from output module
@@ -273,9 +273,9 @@ class FlextCliCmd(FlextCliServiceBase):
 
             config_data = config_model.model_dump()
             config_info_str = str({
-                c.DictKeys.CONFIG_FILE: str(path),
-                c.DictKeys.CONFIG_DATA: config_data,
-                c.DictKeys.MESSAGE: c.ServiceMessages.CONFIG_LOADED_SUCCESSFULLY,
+                c.Cli.DictKeys.CONFIG_FILE: str(path),
+                c.Cli.DictKeys.CONFIG_DATA: config_data,
+                c.Cli.DictKeys.MESSAGE: c.ServiceMessages.CONFIG_LOADED_SUCCESSFULLY,
             })
 
             self.logger.info(
@@ -288,7 +288,7 @@ class FlextCliCmd(FlextCliServiceBase):
             )
         except Exception as e:
             return r[str].fail(
-                c.ErrorMessages.EDIT_CONFIG_FAILED.format(error=e),
+                c.Cli.ErrorMessages.EDIT_CONFIG_FAILED.format(error=e),
             )
 
 

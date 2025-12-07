@@ -45,234 +45,274 @@ class FlextCliTypes(FlextTypes):
     5. Herança de FlextTypes, não duplicação
     """
 
-    # Top-level type aliases - direct inheritance from FlextTypes (no duplication)
-    # CliJsonValue uses GeneralValueType for compatibility with Mapper conversions
-    # (GeneralValueType includes datetime, JsonValue does not)
-    type CliJsonValue = FlextTypes.GeneralValueType
-    type CliJsonDict = FlextTypes.Json.JsonDict
-    type CliJsonList = Sequence[FlextTypes.GeneralValueType]
+    class Cli:
+        """CLI types namespace for cross-project access.
 
-    # Types namespace - extends FlextTypes.Types for full hierarchy exposure
-    class Types(FlextTypes.Types):
-        """Types namespace - extends FlextTypes.Types for full hierarchy exposure."""
+        Provides organized access to all CLI types for other FLEXT projects.
+        Usage: Other projects can reference `t.Cli.Command.*`, `t.Cli.Output.*`, etc.
+        This enables consistent namespace patterns for cross-project type access.
 
-        # JsonDict alias for namespace access
-        type JsonDict = FlextTypes.Json.JsonDict
+        Note: Namespace composition via inheritance - no aliases needed.
+        Access parent namespaces directly through inheritance.
+        """
 
-    # Json namespace - extends FlextTypes.Json for full hierarchy exposure
-    # JsonDict is inherited from FlextTypes.Json, no need to redefine
-    class Json(FlextTypes.Json):
-        """JSON types namespace - extends FlextTypes.Json for full hierarchy exposure."""
+        # Top-level type aliases - direct inheritance from FlextTypes (no duplication)
+        # CliJsonValue uses GeneralValueType for compatibility with Mapper conversions
+        # (GeneralValueType includes datetime, JsonValue does not)
+        type CliJsonValue = FlextTypes.GeneralValueType
+        type CliJsonDict = FlextTypes.Json.JsonDict
+        type CliJsonList = Sequence[FlextTypes.GeneralValueType]
 
-    class CliJson(FlextTypes.Json):
-        """CLI JSON types - extends FlextTypes.Json via inheritance for full hierarchy exposure."""
+        # Types namespace - extends FlextTypes.Types for full hierarchy exposure
+        # All parent types are available through inheritance
+        class Types(FlextTypes.Types):
+            """Types namespace - extends FlextTypes.Types for full hierarchy exposure.
 
-        # Additional CLI-specific types using FlextTypes.JsonValue
-        type Handler[T] = Callable[[FlextTypes.JsonValue], r[T]]
-        type Transformer = Callable[[FlextTypes.JsonValue], FlextTypes.JsonValue]
-        type Filter = Callable[[FlextTypes.JsonValue], bool]
-        type Processor = Callable[
-            [Sequence[FlextTypes.JsonValue]],
-            r[Sequence[FlextTypes.JsonValue]],
-        ]
+            All parent types are available through inheritance.
+            Access JsonDict via t.Json.JsonDict or t.Types.Json.JsonDict.
+            """
 
-    class Command:
-        """Command-related type aliases."""
+        # Json namespace - extends FlextTypes.Json for full hierarchy exposure
+        # JsonDict is inherited from FlextTypes.Json, no need to redefine
+        class Json(FlextTypes.Json):
+            """JSON types namespace - extends FlextTypes.Json for full hierarchy exposure."""
 
-        # Tipos concretos ao invés de TypeVars
-        # Use GeneralValueType instead of object for better type safety
-        type Handler[T] = Callable[[FlextTypes.GeneralValueType], r[T]]
-        type Processor = Callable[[FlextTypes.GeneralValueType], r[bool]]
-        type Collection = Sequence[FlextTypes.GeneralValueType]
-        type BatchProcessor = Callable[[Collection], r[int]]
+        class CliJson(FlextTypes.Json):
+            """CLI JSON types - extends FlextTypes.Json via inheritance for full hierarchy exposure."""
 
-    class CliConfig(FlextTypes.Config):
-        """Configuration-related type aliases - extends FlextTypes.Config via inheritance for full hierarchy exposure."""
+            # Additional CLI-specific types using FlextTypes.JsonValue
+            type Handler[T] = Callable[[FlextTypes.JsonValue], r[T]]
+            type Transformer = Callable[[FlextTypes.JsonValue], FlextTypes.JsonValue]
+            type Filter = Callable[[FlextTypes.JsonValue], bool]
+            type Processor = Callable[
+                [Sequence[FlextTypes.JsonValue]],
+                r[Sequence[FlextTypes.JsonValue]],
+            ]
 
-        type Validator = Callable[[FlextTypes.GeneralValueType], r[bool]]
-        type Builder = Callable[
-            [FlextTypes.Json.JsonDict],
-            r[FlextTypes.GeneralValueType],
-        ]
+        class Command:
+            """Command-related type aliases."""
 
-        # Tipos de valores de configuração - reuse FlextTypes
-        type ScalarValue = FlextTypes.ScalarValue
-        type ListValue = Sequence[FlextTypes.ScalarValue]
-        type DictValue = Mapping[
-            str,
-            FlextTypes.ScalarValue | Sequence[FlextTypes.ScalarValue],
-        ]
-        type ConfigValue = FlextTypes.GeneralValueType
+            # Tipos concretos ao invés de TypeVars
+            # Use GeneralValueType instead of object for better type safety
+            type Handler[T] = Callable[[FlextTypes.GeneralValueType], r[T]]
+            type Processor = Callable[[FlextTypes.GeneralValueType], r[bool]]
+            type Collection = Sequence[FlextTypes.GeneralValueType]
+            type BatchProcessor = Callable[[Collection], r[int]]
 
-        # Settings tipados
-        type SettingsDict = FlextTypes.Json.JsonDict
+        class CliConfig(FlextTypes.Config):
+            """Configuration-related type aliases - extends FlextTypes.Config via inheritance for full hierarchy exposure."""
 
-    # FlexibleValue type alias - inherits from FlextTypes for compatibility
-    # FlexibleValue is a subset of GeneralValueType (scalars, sequences, mappings)
-    # Note: Using FlextTypes.FlexibleValue directly to avoid override issues
+            type Validator = Callable[[FlextTypes.GeneralValueType], r[bool]]
+            type Builder = Callable[
+                [FlextTypes.Json.JsonDict],
+                r[FlextTypes.GeneralValueType],
+            ]
 
-    class Output:
-        """Output-related type aliases."""
+            # Tipos de valores de configuração - reuse FlextTypes
+            type ScalarValue = FlextTypes.ScalarValue
+            type ListValue = Sequence[FlextTypes.ScalarValue]
+            type DictValue = Mapping[
+                str,
+                FlextTypes.ScalarValue | Sequence[FlextTypes.ScalarValue],
+            ]
+            type ConfigValue = FlextTypes.GeneralValueType
 
-        # Use GeneralValueType instead of object for better type safety
-        type Formatter = Callable[[FlextTypes.GeneralValueType], str]
-        type Renderer[T] = Callable[[T], r[str]]
-        type StreamWriter = Callable[[str], None]
+            # Settings tipados
+            type SettingsDict = FlextTypes.Json.JsonDict
 
-    class Result:
-        """Result-related type aliases."""
+        # FlexibleValue type alias - inherits from FlextTypes for compatibility
+        # FlexibleValue is a subset of GeneralValueType (scalars, sequences, mappings)
+        # Note: Using FlextTypes.FlexibleValue directly to avoid override issues
 
-        # Use GeneralValueType instead of object for better type safety
-        type Processor = Callable[
-            [FlextTypes.GeneralValueType],
-            r[FlextTypes.GeneralValueType],
-        ]
-        type Aggregator = Callable[
-            [Sequence[FlextTypes.GeneralValueType]],
-            r[FlextTypes.GeneralValueType],
-        ]
+        class Output:
+            """Output-related type aliases."""
 
-    class Session:
-        """Session-related type aliases."""
+            # Use GeneralValueType instead of object for better type safety
+            type Formatter = Callable[[FlextTypes.GeneralValueType], str]
+            type Renderer[T] = Callable[[T], r[str]]
+            type StreamWriter = Callable[[str], None]
 
-        # Use GeneralValueType instead of object for better type safety
-        type Manager = Callable[[], r[FlextTypes.GeneralValueType]]
-        type Validator = Callable[[FlextTypes.GeneralValueType], bool]
+        class Result:
+            """Result-related type aliases."""
 
-    class Context:
-        """Context-related type aliases."""
+            # Use GeneralValueType instead of object for better type safety
+            type Processor = Callable[
+                [FlextTypes.GeneralValueType],
+                r[FlextTypes.GeneralValueType],
+            ]
+            type Aggregator = Callable[
+                [Sequence[FlextTypes.GeneralValueType]],
+                r[FlextTypes.GeneralValueType],
+            ]
 
-        # Use JsonDict instead of dict[str, object] and GeneralValueType instead of object
-        type Builder = Callable[
-            [FlextTypes.Json.JsonDict],
-            r[FlextTypes.GeneralValueType],
-        ]
-        type Provider = Callable[[], FlextTypes.GeneralValueType]
+        class Session:
+            """Session-related type aliases."""
 
-    class Plugin:
-        """Plugin-related type aliases."""
+            # Use GeneralValueType instead of object for better type safety
+            type Manager = Callable[[], r[FlextTypes.GeneralValueType]]
+            type Validator = Callable[[FlextTypes.GeneralValueType], bool]
 
-        # Use GeneralValueType instead of object for better type safety
-        type Loader = Callable[[str], r[FlextTypes.GeneralValueType]]
-        type Registry = Mapping[str, FlextTypes.GeneralValueType]
+        class Context:
+            """Context-related type aliases."""
 
-    class Formatting:
-        """Formatting-related type aliases."""
+            # Use JsonDict instead of dict[str, object] and GeneralValueType instead of object
+            type Builder = Callable[
+                [FlextTypes.Json.JsonDict],
+                r[FlextTypes.GeneralValueType],
+            ]
+            type Provider = Callable[[], FlextTypes.GeneralValueType]
 
-        # Use GeneralValueType instead of object for better type safety
-        type Factory = Callable[[str], r[FlextTypes.GeneralValueType]]
-        type Chain = Sequence[FlextTypes.GeneralValueType]
+        class Plugin:
+            """Plugin-related type aliases."""
 
-    class Data:
-        """Data-related type aliases - using FlextTypes.Json.JsonDict for consistency."""
+            # Use GeneralValueType instead of object for better type safety
+            type Loader = Callable[[str], r[FlextTypes.GeneralValueType]]
+            type Registry = Mapping[str, FlextTypes.GeneralValueType]
 
-        # Core data types - use FlextTypes.Json.JsonDict instead of dict[str, object]
-        type CliDataDict = FlextTypes.Json.JsonDict
-        type CliFormatData = FlextTypes.Json.JsonDict
-        type CliConfigData = FlextTypes.Json.JsonDict
-        type CliCommandResult = FlextTypes.Json.JsonDict
-        type CliCommandMetadata = FlextTypes.Json.JsonDict
-        type DebugInfoData = FlextTypes.Json.JsonDict
+        class Formatting:
+            """Formatting-related type aliases."""
 
-        # Execution types
-        type ExecutionKwargs = FlextTypes.Json.JsonDict
+            # Use GeneralValueType instead of object for better type safety
+            type Factory = Callable[[str], r[FlextTypes.GeneralValueType]]
+            type Chain = Sequence[FlextTypes.GeneralValueType]
 
-        # Table data types - for compatibility with examples
-        type TableRows = Sequence[FlextTypes.Json.JsonDict]
-        type TabularData = Sequence[FlextTypes.Json.JsonDict] | FlextTypes.Json.JsonDict
-        type CliConfigMapping = Mapping[str, FlextTypes.GeneralValueType]
+        class Data:
+            """Data-related type aliases - using FlextTypes.Json.JsonDict for consistency."""
 
-    class Pydantic:
-        """Pydantic-related type aliases."""
+            # Core data types - use FlextTypes.Json.JsonDict instead of dict[str, object]
+            type CliDataDict = FlextTypes.Json.JsonDict
+            type CliFormatData = FlextTypes.Json.JsonDict
+            type CliConfigData = FlextTypes.Json.JsonDict
+            type CliCommandResult = FlextTypes.Json.JsonDict
+            type CliCommandMetadata = FlextTypes.Json.JsonDict
+            type DebugInfoData = FlextTypes.Json.JsonDict
 
-        # IncEx type alias for Pydantic include/exclude parameters
-        # Structurally compatible with Pydantic's internal IncEx type
-        type IncEx = set[str] | dict[str, set[str]] | Mapping[str, set[str]] | None
+            # Execution types
+            type ExecutionKwargs = FlextTypes.Json.JsonDict
 
-    class Configuration:
-        """Configuration schema type aliases - using FlextTypes.Json.JsonDict."""
+            # Table data types - for compatibility with examples
+            type TableRows = Sequence[FlextTypes.Json.JsonDict]
+            type TabularData = (
+                Sequence[FlextTypes.Json.JsonDict] | FlextTypes.Json.JsonDict
+            )
+            type CliConfigMapping = Mapping[str, FlextTypes.GeneralValueType]
 
-        type CliConfigSchema = FlextTypes.Json.JsonDict
-        type SessionConfiguration = FlextTypes.Json.JsonDict
-        type ProfileConfiguration = FlextTypes.Json.JsonDict
+        class Pydantic:
+            """Pydantic-related type aliases."""
 
-    class CliCommand:
-        """Command definition type aliases - using FlextTypes.Json.JsonDict."""
+            # IncEx type alias for Pydantic include/exclude parameters
+            # Structurally compatible with Pydantic's internal IncEx type
+            type IncEx = set[str] | dict[str, set[str]] | Mapping[str, set[str]] | None
 
-        type CommandDefinition = FlextTypes.Json.JsonDict
-        type CommandResult = FlextTypes.Json.JsonDict
-        type CommandContext = FlextTypes.Json.JsonDict
+        class Configuration:
+            """Configuration schema type aliases - using FlextTypes.Json.JsonDict."""
 
-    class Display:
-        """Rich display type aliases using Protocols instead of object."""
+            type CliConfigSchema = FlextTypes.Json.JsonDict
+            type SessionConfiguration = FlextTypes.Json.JsonDict
+            type ProfileConfiguration = FlextTypes.Json.JsonDict
 
-        # Use p.Display for proper typing
-        type RichTable = p.Display.RichTableProtocol
-        type RichTree = p.Display.RichTreeProtocol
-        type Console = p.Display.RichConsoleProtocol
+        class CliCommand:
+            """Command definition type aliases - using FlextTypes.Json.JsonDict."""
 
-    class Callable:
-        """Callable type aliases - now properly typed."""
+            type CommandDefinition = FlextTypes.Json.JsonDict
+            type CommandResult = FlextTypes.Json.JsonDict
+            type CommandContext = FlextTypes.Json.JsonDict
 
-        # FormatableResult: Types that can be formatted for display
-        # Can be dict, list, tuple, str, int, float, bool, None, or FlextResult
-        type FormatableResult = (
-            dict[str, FlextTypes.JsonValue]
-            | list[FlextTypes.JsonValue]
-            | tuple[FlextTypes.JsonValue, ...]
-            | FlextTypes.JsonValue
-            | r[FlextTypes.GeneralValueType]
-        )
+        class Display:
+            """Rich display type aliases using Protocols instead of object."""
 
-        # ResultFormatter: Function that takes a formattable result and format string
-        type ResultFormatter = Callable[[FormatableResult, str], None]
+        # Use p.Cli.Display for proper typing
+        type RichTable = p.Cli.Display.RichTableProtocol
+        type RichTree = p.Cli.Display.RichTreeProtocol
+        type Console = p.Cli.Display.RichConsoleProtocol
 
-        # HandlerFunction: Generic handler with FlextResult return type
-        class HandlerFunction(Protocol):
-            """Protocol for handler functions returning FlextResult."""
+        class Callable:
+            """Callable type aliases - now properly typed."""
 
-            def __call__(
-                self,
-                *args: object,
-                **kwargs: object,
-            ) -> r[FlextTypes.GeneralValueType]:
-                """Call handler with arguments and return FlextResult."""
-                ...
+            # FormatableResult: Types that can be formatted for display
+            # Can be dict, list, tuple, str, int, float, bool, None, or FlextResult
+            type FormatableResult = (
+                dict[str, FlextTypes.JsonValue]
+                | list[FlextTypes.JsonValue]
+                | tuple[FlextTypes.JsonValue, ...]
+                | FlextTypes.JsonValue
+                | r[FlextTypes.GeneralValueType]
+            )
 
-    class Auth:
-        """Authentication type aliases."""
+            # ResultFormatter: Function that takes a formattable result and format string
+            type ResultFormatter = Callable[[FormatableResult, str], None]
 
-        type CredentialsData = Mapping[str, str]
+            # HandlerFunction: Generic handler with FlextResult return type
+            class HandlerFunction(Protocol):
+                """Protocol for handler functions returning FlextResult."""
 
-    class Workflow:
-        """Workflow type aliases - using FlextTypes.Json.JsonDict."""
+                def __call__(
+                    self,
+                    *args: object,
+                    **kwargs: object,
+                ) -> r[FlextTypes.GeneralValueType]:
+                    """Call handler with arguments and return FlextResult."""
+                    ...
 
-        type WorkflowStepResult = FlextTypes.Json.JsonDict
-        type WorkflowProgress = FlextTypes.Json.JsonDict
+        class Auth:
+            """Authentication type aliases."""
 
-    class Interactive:
-        """Interactive display type aliases using Protocols."""
+            type CredentialsData = Mapping[str, str]
 
-        # Progress uses RichProgressProtocol for typing
-        type Progress = p.Interactive.RichProgressProtocol
+        class Workflow:
+            """Workflow type aliases - using FlextTypes.Json.JsonDict."""
 
-    class Tables:
-        """Table-related type aliases."""
+            type WorkflowStepResult = FlextTypes.Json.JsonDict
+            type WorkflowProgress = FlextTypes.Json.JsonDict
 
-        # Table data types - reuse FlextTypes types for consistency
-        # Supports both sequences and mappings for table data
-        # Compatible with Iterable for tabulate integration
-        type TableData = (
-            Sequence[FlextTypes.Json.JsonDict]
-            | FlextTypes.Json.JsonDict
-            | Sequence[Sequence[FlextTypes.GeneralValueType]]
-            | Mapping[str, FlextTypes.GeneralValueType]
-        )
-        type TableRows = Sequence[FlextTypes.Json.JsonDict]
+        class Interactive:
+            """Interactive display type aliases using Protocols."""
+
+            # Progress uses RichProgressProtocol for typing
+            type Progress = p.Cli.Interactive.RichProgressProtocol
+
+        class Tables:
+            """Table-related type aliases."""
+
+            # Table data types - reuse FlextTypes types for consistency
+            # Supports both sequences and mappings for table data
+            # Compatible with Iterable for tabulate integration
+            type TableData = (
+                Sequence[FlextTypes.Json.JsonDict]
+                | FlextTypes.Json.JsonDict
+                | Sequence[Sequence[FlextTypes.GeneralValueType]]
+                | Mapping[str, FlextTypes.GeneralValueType]
+            )
+            type TableRows = Sequence[FlextTypes.Json.JsonDict]
+
+        class Cli:
+            """CLI types namespace for cross-project access.
+
+            Provides organized access to all CLI types for other FLEXT projects.
+            Usage: Other projects can reference `t.Cli.Command.*`, `t.Cli.Output.*`, etc.
+            This enables consistent namespace patterns for cross-project type access.
+
+            Examples:
+                from flext_cli.typings import t
+                handler: t.Cli.Command.Handler = ...
+                formatter: t.Cli.Output.Formatter = ...
+
+            Note: Namespace composition via inheritance - no aliases needed.
+            Access parent namespaces directly through inheritance.
+
+            """
 
 
 # Alias for simplified usage
 t = FlextCliTypes
+
+# Namespace composition via class inheritance
+# Cli namespace provides access to nested classes through inheritance
+# Access patterns:
+# - t.Cli.* for CLI-specific types
+# - t.Command.* for command types
+# - t.Output.* for output types
+# - t.Core.* for core types (inherited from parent)
 
 __all__ = [
     # Main class and alias

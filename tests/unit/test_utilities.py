@@ -22,9 +22,12 @@ from pathlib import Path
 from typing import Union, cast
 
 import pytest
+from flext_core import r
+from flext_tests import tm
 from pydantic import BaseModel
 
-from tests import c, r, t, tm, u
+from flext_cli.constants import FlextCliConstants
+from tests import c, t, u
 
 
 class ValidationType(StrEnum):
@@ -294,7 +297,7 @@ class TestsCliUtilities:
         else:
             # Cast result to object for matcher compatibility
             result_obj = cast("r[object]", result)
-            tm.fail(result_obj, test_case.error_contains)
+            tm.fail(result_obj, has=test_case.error_contains)
 
     def test_command_status_validation(self) -> None:
         """Test command status validation with real constants."""
@@ -562,7 +565,7 @@ class TestsCliUtilities:
             else validation_result
         )
         tm.ok(result2)
-        assert result2.unwrap() == c.OutputFormats.JSON.value
+        assert result2.unwrap() == FlextCliConstants.OutputFormats.JSON.value
 
         # 3. Validate string not empty
         result3 = u.CliValidation.v_empty(
@@ -600,10 +603,10 @@ class TestsCliUtilities:
             "validation_result": True,
             "name": "utilities_config",
         }
-        # Use tm.dict_() for dict assertions
-        tm.dict_(
+        # Use tm.that() for dict assertions
+        tm.that(
             test_data,
-            contains=cast("dict[str, t.GeneralValueType]", expected_data),
+            kv=cast("dict[str, t.GeneralValueType]", expected_data),
         )
 
         # Test with flext_tests directly
@@ -702,7 +705,7 @@ class TestsCliUtilities:
                 ),
                 (
                     "validate_command_execution_state_success",
-                    lambda: u.Cliv_state(
+                    lambda: u.CliValidation.v_state(
                         "pending",
                         required="pending",
                         name="test_operation",
@@ -711,7 +714,7 @@ class TestsCliUtilities:
                 ),
                 (
                     "validate_command_execution_state_failure",
-                    lambda: u.Cliv_state(
+                    lambda: u.CliValidation.v_state(
                         "pending",
                         required="running",
                         name="test_operation",
@@ -1308,7 +1311,7 @@ class TestsCliUtilities:
     ) -> None:
         """Test validated_with_result using advanced parametrization - reduces 20+ lines."""
 
-        @u.TypeNormalizer.validated_with_result
+        @u.TypeNormalizer.Args.validated_with_result
         def test_func(value: int) -> r[int]:
             return r[int].ok(value * 2)
 
@@ -1331,7 +1334,7 @@ class TestsCliUtilities:
         expected: dict[str, str] | None,
     ) -> None:
         """Test parse_kwargs using advanced parametrization - reduces 20+ lines."""
-        result = u.TypeNormalizer.parse_kwargs(kwargs, enum_fields)
+        result = u.TypeNormalizer.Args.parse_kwargs(kwargs, enum_fields)
         if should_succeed:
             tm.ok(result)
             if expected:
