@@ -89,74 +89,95 @@ class FlextCliConstants(FlextConstants):
             "cli-wrapper",
         ]
 
-        # Output format literal - matches OutputFormats StrEnum below
-        type OutputFormatLiteral = Literal["json", "yaml", "csv", "table", "plain"]
+        # Output format literal - references OutputFormats StrEnum members
+        type OutputFormatLiteral = Literal[
+            OutputFormats.JSON,
+            OutputFormats.YAML,
+            OutputFormats.CSV,
+            OutputFormats.TABLE,
+            OutputFormats.PLAIN,
+        ]
 
         # Log level literal - reuse from flext-core (no duplication)
         # PEP 695 type statement works in classes (Python 3.13+)
         type LogLevelLiteral = FlextConstants.Literals.LogLevelLiteral
 
-        # Command status literal - matches CommandStatus StrEnum below
+        # Command status literal - references CommandStatus StrEnum members
         type CommandStatusLiteral = Literal[
-            "pending",
-            "running",
-            "completed",
-            "failed",
-            "cancelled",
+            CommandStatus.PENDING,
+            CommandStatus.RUNNING,
+            CommandStatus.COMPLETED,
+            CommandStatus.FAILED,
+            CommandStatus.CANCELLED,
         ]
 
-        # Session status literal - matches SessionStatus StrEnum below
-        type SessionStatusLiteral = Literal["active", "completed", "terminated"]
+        # Session status literal - references SessionStatus StrEnum members
+        type SessionStatusLiteral = Literal[
+            SessionStatus.ACTIVE,
+            SessionStatus.COMPLETED,
+            SessionStatus.TERMINATED,
+        ]
 
-        # Service status literal - matches ServiceStatus StrEnum below
+        # Service status literal - references ServiceStatus StrEnum members
         type ServiceStatusLiteral = Literal[
-            "operational",
-            "available",
-            "degraded",
-            "error",
-            "healthy",
-            "connected",
+            ServiceStatus.OPERATIONAL,
+            ServiceStatus.AVAILABLE,
+            ServiceStatus.DEGRADED,
+            ServiceStatus.ERROR,
+            ServiceStatus.HEALTHY,
+            ServiceStatus.CONNECTED,
         ]
 
         # Environment literal - reuse from flext-core (no duplication)
         # Use flext-core EnvironmentLiteral directly - includes "testing" (standard value)
         type EnvironmentLiteral = FlextConstants.Literals.EnvironmentLiteral
 
-        # Log verbosity literal - log detail levels
-        type LogVerbosityLiteral = Literal["compact", "detailed", "full"]
+        # Log verbosity literal - references LogVerbosity StrEnum members
+        type LogVerbosityLiteral = Literal[
+            LogVerbosity.COMPACT,
+            LogVerbosity.DETAILED,
+            LogVerbosity.FULL,
+        ]
 
-        # Entity type literal - CLI entity types
-        type EntityTypeLiteral = Literal["command", "group"]
+        # Entity type literal - references EntityType StrEnum members
+        type EntityTypeLiteral = Literal[
+            EntityType.COMMAND,
+            EntityType.GROUP,
+        ]
 
-        # Range type literal - numeric range types
+        # Range type literal - numeric range types (no StrEnum - simple string union)
         type RangeTypeLiteral = Literal["int", "float"]
 
-        # Error code literal - matches ErrorCodes StrEnum below
+        # Error code literal - references ErrorCodes StrEnum members
         type ErrorCodeLiteral = Literal[
-            "CLI_ERROR",
-            "CLI_VALIDATION_ERROR",
-            "CLI_CONFIGURATION_ERROR",
-            "CLI_CONNECTION_ERROR",
-            "CLI_AUTHENTICATION_ERROR",
-            "CLI_TIMEOUT_ERROR",
-            "CLI_COMMAND_ERROR",
-            "CLI_FORMAT_ERROR",
+            ErrorCodes.CLI_ERROR,
+            ErrorCodes.CLI_VALIDATION_ERROR,
+            ErrorCodes.CLI_CONFIGURATION_ERROR,
+            ErrorCodes.CLI_CONNECTION_ERROR,
+            ErrorCodes.CLI_AUTHENTICATION_ERROR,
+            ErrorCodes.CLI_TIMEOUT_ERROR,
+            ErrorCodes.COMMAND_ERROR,
+            ErrorCodes.FORMAT_ERROR,
         ]
 
-        # HTTP method literal - matches FlextWebMethods StrEnum below
+        # HTTP method literal - references FlextWebMethods StrEnum members
         type HttpMethodLiteral = Literal[
-            "GET",
-            "POST",
-            "PUT",
-            "DELETE",
-            "PATCH",
-            "HEAD",
-            "OPTIONS",
+            FlextWebMethods.GET,
+            FlextWebMethods.POST,
+            FlextWebMethods.PUT,
+            FlextWebMethods.DELETE,
+            FlextWebMethods.PATCH,
+            FlextWebMethods.HEAD,
+            FlextWebMethods.OPTIONS,
         ]
 
-        # Message type literal - matches MessageTypes StrEnum below
+        # Message type literal - references MessageTypes StrEnum members
         type MessageTypeLiteral = Literal[
-            "info", "error", "warning", "success", "debug"
+            MessageTypes.INFO,
+            MessageTypes.ERROR,
+            MessageTypes.WARNING,
+            MessageTypes.SUCCESS,
+            MessageTypes.DEBUG,
         ]
 
         # Priority defaults - must be in first class (not nested)
@@ -262,6 +283,10 @@ class FlextCliConstants(FlextConstants):
 
             Python 3.13+ StrEnum provides string-like behavior with enum validation.
             Can be used interchangeably with CommandStatusLiteral in type hints.
+
+            DRY Pattern:
+                StrEnum is the single source of truth. Use CommandStatus.PENDING.value
+                or CommandStatus.PENDING directly - no base strings needed.
             """
 
             PENDING = "pending"
@@ -275,6 +300,10 @@ class FlextCliConstants(FlextConstants):
 
             Python 3.13+ StrEnum provides string-like behavior with enum validation.
             Can be used interchangeably with SessionStatusLiteral in type hints.
+
+            DRY Pattern:
+                StrEnum is the single source of truth. Use SessionStatus.ACTIVE.value
+                or SessionStatus.ACTIVE directly - no base strings needed.
             """
 
             ACTIVE = "active"
@@ -288,6 +317,10 @@ class FlextCliConstants(FlextConstants):
 
             Python 3.13+ StrEnum provides string-like behavior with enum validation.
             Can be used interchangeably with ServiceStatusLiteral in type hints.
+
+            DRY Pattern:
+                StrEnum is the single source of truth. Use ServiceStatus.OPERATIONAL.value
+                or ServiceStatus.OPERATIONAL directly - no base strings needed.
             """
 
             OPERATIONAL = "operational"
@@ -303,6 +336,10 @@ class FlextCliConstants(FlextConstants):
             Python 3.13+ StrEnum provides string-like behavior with enum validation.
             CLI adds "plain" format on top of standard formats.
             Can be used interchangeably with OutputFormatLiteral in type hints.
+
+            DRY Pattern:
+                StrEnum is the single source of truth. Use OutputFormats.JSON.value
+                or OutputFormats.JSON directly - no base strings needed.
             """
 
             JSON = "json"  # Standard format
@@ -319,6 +356,10 @@ class FlextCliConstants(FlextConstants):
 
             Python 3.13+ StrEnum provides string-like behavior with enum validation.
             Can be used interchangeably with LogVerbosityLiteral in type hints.
+
+            DRY Pattern:
+                StrEnum is the single source of truth. Use LogVerbosity.COMPACT.value
+                or LogVerbosity.COMPACT directly - no base strings needed.
             """
 
             COMPACT = "compact"
@@ -329,6 +370,10 @@ class FlextCliConstants(FlextConstants):
             """Server type enum.
 
             Python 3.13+ StrEnum provides string-like behavior with enum validation.
+
+            DRY Pattern:
+                StrEnum is the single source of truth. Use ServerType.OUD.value
+                or ServerType.OUD directly - no base strings needed.
             """
 
             OUD = "oud"
@@ -342,6 +387,10 @@ class FlextCliConstants(FlextConstants):
 
             Python 3.13+ StrEnum provides string-like behavior with enum validation.
             Can be used interchangeably with EntityTypeLiteral in type hints.
+
+            DRY Pattern:
+                StrEnum is the single source of truth. Use EntityType.COMMAND.value
+                or EntityType.COMMAND directly - no base strings needed.
             """
 
             COMMAND = "command"
@@ -357,6 +406,10 @@ class FlextCliConstants(FlextConstants):
 
             CLI-specific error codes with CLI_ prefix to distinguish from Flext
             Follows same categorization as FlextConstants.Errors without duplication.
+
+            DRY Pattern:
+                StrEnum is the single source of truth. Use ErrorCodes.CLI_ERROR.value
+                or ErrorCodes.CLI_ERROR directly - no base strings needed.
             """
 
             # Standard error categories with CLI prefix
@@ -583,7 +636,12 @@ class FlextCliConstants(FlextConstants):
             USER_AGENT: Final[str] = "FlextCLI/1.0"
 
         class FlextWebMethods(StrEnum):
-            """HTTP method constants."""
+            """HTTP method constants.
+
+            DRY Pattern:
+                StrEnum is the single source of truth. Use FlextWebMethods.GET.value
+                or FlextWebMethods.GET directly - no base strings needed.
+            """
 
             GET = "GET"
             POST = "POST"
@@ -604,7 +662,12 @@ class FlextCliConstants(FlextConstants):
         ]
 
         class MessageTypes(StrEnum):
-            """Message type constants for CLI output."""
+            """Message type constants for CLI output.
+
+            DRY Pattern:
+                StrEnum is the single source of truth. Use MessageTypes.INFO.value
+                or MessageTypes.INFO directly - no base strings needed.
+            """
 
             INFO = "info"
             ERROR = "error"

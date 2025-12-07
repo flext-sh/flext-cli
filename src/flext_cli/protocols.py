@@ -6,7 +6,7 @@ from collections.abc import Callable, Mapping, Sequence
 from datetime import datetime
 from typing import Protocol, Self, runtime_checkable
 
-from flext_core import FlextProtocols, r, t
+from flext_core import FlextProtocols, t
 
 
 class FlextCliProtocols(FlextProtocols):
@@ -103,7 +103,7 @@ class FlextCliProtocols(FlextProtocols):
                     ...
 
         @runtime_checkable
-        class CliCommandProtocol(Protocol):
+        class Command(Protocol):
             """Protocol for CLI commands.
 
             Complete protocol matching m.CliCommand structure.
@@ -193,7 +193,7 @@ class FlextCliProtocols(FlextProtocols):
             def execute(
                 self,
                 args: Sequence[str],
-            ) -> FlextProtocols.Foundation.Result[t.GeneralValueType]:
+            ) -> FlextProtocols.Result[t.GeneralValueType]:
                 """Execute command with arguments."""
                 ...
 
@@ -210,11 +210,11 @@ class FlextCliProtocols(FlextProtocols):
                 """Return command summary as dict."""
                 ...
 
-            def start_execution(self) -> r[Self]:
+            def start_execution(self) -> FlextProtocols.Result[Self]:
                 """Start command execution - update status to running."""
                 ...
 
-            def complete_execution(self, exit_code: int) -> r[Self]:
+            def complete_execution(self, exit_code: int) -> FlextProtocols.Result[Self]:
                 """Complete command execution with exit code."""
                 ...
 
@@ -246,7 +246,7 @@ class FlextCliProtocols(FlextProtocols):
                 ...
 
             @property
-            def commands(self) -> Sequence[FlextCliProtocols.Cli.CliCommandProtocol]:
+            def commands(self) -> Sequence[FlextCliProtocols.Cli.Command]:
                 """Commands in session."""
                 ...
 
@@ -286,23 +286,25 @@ class FlextCliProtocols(FlextProtocols):
                 ...
 
             @property
-            def session_summary(self) -> FlextCliProtocols.Cli.CliSessionDataProtocol:
+            def session_summary(self) -> FlextCliProtocols.Cli.SessionData:
                 """Return session summary as CliSessionData model."""
                 ...
 
             @property
             def commands_by_status(
                 self,
-            ) -> dict[str, list[FlextCliProtocols.Cli.CliCommandProtocol]]:
+            ) -> dict[str, list[FlextCliProtocols.Cli.Command]]:
                 """Group commands by status."""
                 ...
 
-            def add_command(self, command: FlextCliProtocols.Cli.CliCommandProtocol) -> r[Self]:
+            def add_command(
+                self, command: FlextCliProtocols.Cli.Command
+            ) -> FlextProtocols.Result[Self]:
                 """Add command to session."""
                 ...
 
         @runtime_checkable
-        class CliSessionDataProtocol(Protocol):
+        class SessionData(Protocol):
             """Protocol for CLI session summary data.
 
             Complete protocol matching m.CliSessionData structure.
@@ -324,7 +326,7 @@ class FlextCliProtocols(FlextProtocols):
                 ...
 
         @runtime_checkable
-        class CliDebugDataProtocol(Protocol):
+        class DebugData(Protocol):
             """Protocol for CLI debug summary data.
 
             Complete protocol matching m.CliDebugData structure.
@@ -680,7 +682,7 @@ class FlextCliProtocols(FlextProtocols):
                 self,
                 data: t.GeneralValueType,
                 **options: t.GeneralValueType,
-            ) -> r[str]:
+            ) -> FlextProtocols.Result[str]:
                 """Format data."""
                 ...
 
@@ -688,11 +690,13 @@ class FlextCliProtocols(FlextProtocols):
         class CliConfigProvider(Protocol):
             """Protocol for CLI configuration providers."""
 
-            def load_config(self) -> r[t.Json.JsonDict]:
+            def load_config(self) -> FlextProtocols.Result[t.Json.JsonDict]:
                 """Load configuration."""
                 ...
 
-            def save_config(self, config: t.Json.JsonDict) -> r[bool]:
+            def save_config(
+                self, config: t.Json.JsonDict
+            ) -> FlextProtocols.Result[bool]:
                 """Save configuration."""
                 ...
 
@@ -725,7 +729,9 @@ class FlextCliProtocols(FlextProtocols):
             - Remote authentication MUST use encrypted connections (TLS/SSL)
             """
 
-            def authenticate(self, username: str, password: str) -> r[str]:
+            def authenticate(
+                self, username: str, password: str
+            ) -> FlextProtocols.Result[str]:
                 """Authenticate user with username and password.
 
                 Business Rule:
@@ -751,7 +757,7 @@ class FlextCliProtocols(FlextProtocols):
                 """
                 ...
 
-            def validate_token(self, token: str) -> r[bool]:
+            def validate_token(self, token: str) -> FlextProtocols.Result[bool]:
                 """Validate authentication token.
 
                 Business Rule:
@@ -779,14 +785,14 @@ class FlextCliProtocols(FlextProtocols):
         class CliDebugProvider(Protocol):
             """Protocol for CLI debug providers."""
 
-            def get_debug_info(self) -> r[t.Json.JsonDict]:
+            def get_debug_info(self) -> FlextProtocols.Result[t.Json.JsonDict]:
                 """Get debug information."""
                 ...
 
         # PEP 695 type aliases - direct type references
         type CliCommandFunction = CliCommandHandler
         # Type for registered commands (decorated functions)
-        type CliRegisteredCommand = CliCommandProtocol
+        type CliRegisteredCommand = Command
 
         @runtime_checkable
         class ModelCommandHandler(Protocol):
@@ -796,7 +802,7 @@ class FlextCliProtocols(FlextProtocols):
                 self,
                 model: t.GeneralValueType,
                 **kwargs: t.GeneralValueType,
-            ) -> FlextProtocols.Foundation.Result[t.GeneralValueType]:
+            ) -> FlextProtocols.Result[t.GeneralValueType]:
                 """Handle model command."""
                 ...
 
@@ -844,16 +850,16 @@ class FlextCliProtocols(FlextProtocols):
                 """Plugin name."""
                 ...
 
-            def initialize(self) -> r[bool]:
+            def initialize(self) -> FlextProtocols.Result[bool]:
                 """Initialize plugin."""
                 ...
 
-            def shutdown(self) -> r[bool]:
+            def shutdown(self) -> FlextProtocols.Result[bool]:
                 """Shutdown plugin."""
                 ...
 
         # ═══════════════════════════════════════════════════════════════════
-        # LAYER 1: Service Protocols (pode usar Layer 0)
+        # LAYER 1: Service Protocols (can use Layer 0)
         # ═══════════════════════════════════════════════════════════════════
         # Note: Renamed to CliService to avoid conflict with FlextProtocols.Service
 
@@ -864,11 +870,13 @@ class FlextCliProtocols(FlextProtocols):
             class CliServiceProtocol(Protocol):
                 """Protocol for CLI services."""
 
-                def initialize(self, context: FlextCliProtocols.Cli.CliContextProtocol) -> r[bool]:
+                def initialize(
+                    self, context: FlextCliProtocols.Cli.CliContextProtocol
+                ) -> FlextProtocols.Result[bool]:
                     """Initialize service with context."""
                     ...
 
-                def shutdown(self) -> r[bool]:
+                def shutdown(self) -> FlextProtocols.Result[bool]:
                     """Shutdown service."""
                     ...
 
@@ -881,18 +889,20 @@ class FlextCliProtocols(FlextProtocols):
                 """Protocol for command processing services."""
 
                 def register_command(
-                    self, command: FlextCliProtocols.Cli.CliCommandProtocol
-                ) -> r[bool]:
+                    self, command: FlextCliProtocols.Cli.Command
+                ) -> FlextProtocols.Result[bool]:
                     """Register a command."""
                     ...
 
-                def get_command(self, name: str) -> r[FlextCliProtocols.Cli.CliCommandProtocol]:
+                def get_command(
+                    self, name: str
+                ) -> FlextProtocols.Result[FlextCliProtocols.Cli.Command]:
                     """Get command by name."""
                     ...
 
                 def list_commands(
                     self,
-                ) -> r[Sequence[FlextCliProtocols.Cli.CliCommandProtocol]]:
+                ) -> FlextProtocols.Result[Sequence[FlextCliProtocols.Cli.Command]]:
                     """List all registered commands."""
                     ...
 
@@ -904,22 +914,26 @@ class FlextCliProtocols(FlextProtocols):
                     self,
                     headers: Sequence[str],
                     rows: Sequence[Sequence[str]],
-                ) -> r[str]:
+                ) -> FlextProtocols.Result[str]:
                     """Format data as table."""
                     ...
 
-                def format_json(self, data: t.GeneralValueType) -> r[str]:
+                def format_json(
+                    self, data: t.GeneralValueType
+                ) -> FlextProtocols.Result[str]:
                     """Format data as JSON."""
                     ...
 
-                def format_yaml(self, data: t.GeneralValueType) -> r[str]:
+                def format_yaml(
+                    self, data: t.GeneralValueType
+                ) -> FlextProtocols.Result[str]:
                     """Format data as YAML."""
                     ...
 
         # ═══════════════════════════════════════════════════════════════════
-        # LAYER 2: Handler Protocols (pode usar Layer 0 e 1)
+        # LAYER 2: Handler Protocols (can use Layer 0 and 1)
         # ═══════════════════════════════════════════════════════════════════
-        # Note: Renamed to CliHandler to avoid conflict with p.Handler
+        # Note: Renamed to CliHandler to avoid conflict with FlextProtocols.Handler
 
         class CliHandler:
             """CLI handler-related protocols."""
@@ -935,9 +949,9 @@ class FlextCliProtocols(FlextProtocols):
                 def handle(
                     self,
                     args: Sequence[str],
-                    context: p.Cli.CliContextProtocol,
-                    output: p.Cli.CliOutputProtocol,
-                ) -> r[int]:
+                    context: FlextCliProtocols.Cli.CliContextProtocol,
+                    output: FlextCliProtocols.Cli.CliOutputProtocol,
+                ) -> FlextProtocols.Result[int]:
                     """Handle CLI request."""
                     ...
 
@@ -945,7 +959,7 @@ class FlextCliProtocols(FlextProtocols):
             class ErrorHandlerProtocol(Protocol):
                 """Protocol for error handling."""
 
-                def handle_error(self, error: Exception) -> r[str]:
+                def handle_error(self, error: Exception) -> FlextProtocols.Result[str]:
                     """Handle and format error."""
                     ...
 
@@ -954,6 +968,10 @@ class FlextCliProtocols(FlextProtocols):
                     ...
 
 
+# Direct access: use FlextCliProtocols directly
+p = FlextCliProtocols
+
 __all__ = [
     "FlextCliProtocols",
+    "p",
 ]

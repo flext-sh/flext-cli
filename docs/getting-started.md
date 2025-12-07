@@ -49,7 +49,7 @@ flext-cli v0.10.0 is a simplified, streamlined CLI foundation library for the FL
 
 flext-cli integrates with:
 
-- **[flext-core](../../flext-core/README.md)**: Foundation patterns (FlextResult, FlextService, FlextModels)
+- **[flext-core](https://github.com/organization/flext/tree/main/flext-core/README.md)**: Foundation patterns (FlextResult, FlextService, FlextModels)
 - **Click 8.2+**: CLI framework (abstracted)
 - **Rich 14.0+**: Terminal UI (abstracted)
 - **Pydantic 2.11+**: Data validation

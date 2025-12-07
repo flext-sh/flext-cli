@@ -367,7 +367,7 @@ class TestsCliCore:
         ) -> None:
             """Test successful command registration."""
             # Cast to protocol type for type compatibility
-            command_protocol = cast("p.Cli.CliCommandProtocol", sample_command)
+            command_protocol = cast("p.Cli.Command", sample_command)
             result = core_service.register_command(command_protocol)
             assert isinstance(result, r)
             assert result.is_success
@@ -384,7 +384,7 @@ class TestsCliCore:
         ) -> None:
             """Test registering duplicate command."""
             # Cast to protocol type for type compatibility
-            command_protocol = cast("p.Cli.CliCommandProtocol", sample_command)
+            command_protocol = cast("p.Cli.Command", sample_command)
             # Register first time
             result1 = core_service.register_command(command_protocol)
             assert result1.is_success
@@ -410,7 +410,7 @@ class TestsCliCore:
         ) -> None:
             """Test getting command information."""
             # Register command first - cast to protocol type
-            command_protocol = cast("p.Cli.CliCommandProtocol", sample_command)
+            command_protocol = cast("p.Cli.Command", sample_command)
             core_service.register_command(command_protocol)
 
             # Get command info
@@ -463,7 +463,7 @@ class TestsCliCore:
             )
 
             # Cast to protocol type for type compatibility
-            cmd_protocol = cast("p.Cli.CliCommandProtocol", cmd)
+            cmd_protocol = cast("p.Cli.Command", cmd)
             result = core_service.register_command(cmd_protocol)
             assert result.is_failure
             assert (
@@ -610,7 +610,7 @@ class TestsCliCore:
             )
 
             # Register command - cast to protocol type
-            cmd_protocol = cast("p.Cli.CliCommandProtocol", cmd)
+            cmd_protocol = cast("p.Cli.Command", cmd)
             reg_result = core_service.register_command(cmd_protocol)
             assert reg_result.is_success
 
@@ -716,7 +716,7 @@ class TestsCliCore:
         ) -> None:
             """Test execute_command with registered command."""
             # Register command first - cast to protocol type
-            command_protocol = cast("p.Cli.CliCommandProtocol", sample_command)
+            command_protocol = cast("p.Cli.Command", sample_command)
             register_result = core_service.register_command(command_protocol)
             assert register_result.is_success
 
@@ -739,7 +739,7 @@ class TestsCliCore:
         ) -> None:
             """Test execute_command with context."""
             # Cast to protocol type for type compatibility
-            command_protocol = cast("p.Cli.CliCommandProtocol", sample_command)
+            command_protocol = cast("p.Cli.Command", sample_command)
             register_result = core_service.register_command(command_protocol)
             assert register_result.is_success
 
@@ -757,7 +757,7 @@ class TestsCliCore:
         ) -> None:
             """Test execute_command with timeout."""
             # Cast to protocol type for type compatibility
-            command_protocol = cast("p.Cli.CliCommandProtocol", sample_command)
+            command_protocol = cast("p.Cli.Command", sample_command)
             register_result = core_service.register_command(command_protocol)
             assert register_result.is_success
 
@@ -1033,7 +1033,7 @@ class TestsCliCore:
         ) -> None:
             """Test get_command_statistics."""
             # Register a command - cast to protocol type
-            command_protocol = cast("p.Cli.CliCommandProtocol", sample_command)
+            command_protocol = cast("p.Cli.Command", sample_command)
             core_service.register_command(command_protocol)
 
             stats_result = core_service.get_command_statistics()
@@ -1189,7 +1189,7 @@ class TestsCliCore:
         ) -> None:
             """Test execute method when commands are registered."""
             # Register a command - cast to protocol type
-            command_protocol = cast("p.Cli.CliCommandProtocol", sample_command)
+            command_protocol = cast("p.Cli.Command", sample_command)
             core_service.register_command(command_protocol)
 
             result = core_service.execute()
@@ -1214,7 +1214,7 @@ class TestsCliCore:
         ) -> None:
             """Test execute_cli_command_with_context."""
             # Register command first - cast to protocol type
-            command_protocol = cast("p.Cli.CliCommandProtocol", sample_command)
+            command_protocol = cast("p.Cli.Command", sample_command)
             register_result = core_service.register_command(command_protocol)
             assert register_result.is_success
 
@@ -1254,7 +1254,7 @@ class TestsCliCore:
             """Test register_command with empty name."""
             cmd = sample_command.model_copy(update={"name": ""})
             # Cast to protocol type for type compatibility
-            cmd_protocol = cast("p.Cli.CliCommandProtocol", cmd)
+            cmd_protocol = cast("p.Cli.Command", cmd)
             result = core_service.register_command(cmd_protocol)
             assert result.is_failure
 

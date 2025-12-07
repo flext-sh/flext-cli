@@ -1,7 +1,7 @@
 """Command execution and configuration bridge for flext-cli.
 
-Encapsula a ponte entre comandos registrados, utilidades de arquivo e helpers de
-configuração usando `FlextResult` para sucesso/falha previsível.
+Encapsulates the bridge between registered commands, file utilities, and configuration
+helpers using `FlextResult` for predictable success/failure handling.
 
 Copyright (c) 2025 FLEXT Team. All rights reserved.
 SPDX-License-Identifier: MIT

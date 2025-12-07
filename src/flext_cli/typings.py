@@ -11,38 +11,38 @@ from pydantic import BaseModel
 from flext_cli.protocols import p
 
 # ═══════════════════════════════════════════════════════════════════════════
-# TYPEVARS: Único objeto permitido fora da classe
+# TYPEVARS: Only object allowed outside the class
 # ═══════════════════════════════════════════════════════════════════════════
-# Reutilize de FlextTypes quando existir
-# Centralize todos os TypeVars aqui para reuso massivo
+# Reuse from FlextTypes when available
+# Centralize all TypeVars here for massive reuse
 
 # CLI domain TypeVars
-TCliCommand = TypeVar("TCliCommand")
-TCliConfig = TypeVar("TCliConfig")
-TCliOutput = TypeVar("TCliOutput")
-TCliResult = TypeVar("TCliResult")
-TCliSession = TypeVar("TCliSession")
-TCliContext = TypeVar("TCliContext")
-TCliPlugin = TypeVar("TCliPlugin")
-TCliFormatter = TypeVar("TCliFormatter")
+FlextCliCommandT = TypeVar("FlextCliCommandT")
+FlextCliConfigT = TypeVar("FlextCliConfigT")
+FlextCliOutputT = TypeVar("FlextCliOutputT")
+FlextCliResultT = TypeVar("FlextCliResultT")
+FlextCliSessionT = TypeVar("FlextCliSessionT")
+FlextCliContextT = TypeVar("FlextCliContextT")
+FlextCliPluginT = TypeVar("FlextCliPluginT")
+FlextCliFormatterT = TypeVar("FlextCliFormatterT")
 
 # Model TypeVar for CLI commands
-TModel = TypeVar("TModel", bound=BaseModel)
+FlextCliModelT = TypeVar("FlextCliModelT", bound=BaseModel)
 
 
 # ═══════════════════════════════════════════════════════════════════════════
-# CLASSE ÚNICA COM NESTED CLASSES
+# SINGLE CLASS WITH NESTED CLASSES
 # ═══════════════════════════════════════════════════════════════════════════
 class FlextCliTypes(FlextTypes):
     """FlextCli type definitions extending FlextTypes via inheritance.
 
-    REGRAS:
+    RULES:
     ───────
-    1. TypeVars fora da classe (único caso permitido)
-    2. Type aliases PEP 695 dentro de nested classes
-    3. Tipos complexos compostos com Protocols
-    4. ZERO aliases simples - use tipos diretos
-    5. Herança de FlextTypes, não duplicação
+    1. TypeVars outside the class (only case allowed)
+    2. PEP 695 type aliases inside nested classes
+    3. Complex types composed with Protocols
+    4. ZERO simple aliases - use direct types
+    5. Inheritance from FlextTypes, no duplication
     """
 
     class Cli:
@@ -92,7 +92,7 @@ class FlextCliTypes(FlextTypes):
         class Command:
             """Command-related type aliases."""
 
-            # Tipos concretos ao invés de TypeVars
+            # Concrete types instead of TypeVars
             # Use GeneralValueType instead of object for better type safety
             type Handler[T] = Callable[[FlextTypes.GeneralValueType], r[T]]
             type Processor = Callable[[FlextTypes.GeneralValueType], r[bool]]
@@ -108,7 +108,7 @@ class FlextCliTypes(FlextTypes):
                 r[FlextTypes.GeneralValueType],
             ]
 
-            # Tipos de valores de configuração - reuse FlextTypes
+            # Configuration value types - reuse FlextTypes
             type ScalarValue = FlextTypes.ScalarValue
             type ListValue = Sequence[FlextTypes.ScalarValue]
             type DictValue = Mapping[
@@ -117,7 +117,7 @@ class FlextCliTypes(FlextTypes):
             ]
             type ConfigValue = FlextTypes.GeneralValueType
 
-            # Settings tipados
+            # Typed settings
             type SettingsDict = FlextTypes.Json.JsonDict
 
         # FlexibleValue type alias - inherits from FlextTypes for compatibility
@@ -285,23 +285,6 @@ class FlextCliTypes(FlextTypes):
             )
             type TableRows = Sequence[FlextTypes.Json.JsonDict]
 
-        class Cli:
-            """CLI types namespace for cross-project access.
-
-            Provides organized access to all CLI types for other FLEXT projects.
-            Usage: Other projects can reference `t.Cli.Command.*`, `t.Cli.Output.*`, etc.
-            This enables consistent namespace patterns for cross-project type access.
-
-            Examples:
-                from flext_cli.typings import t
-                handler: t.Cli.Command.Handler = ...
-                formatter: t.Cli.Output.Formatter = ...
-
-            Note: Namespace composition via inheritance - no aliases needed.
-            Access parent namespaces directly through inheritance.
-
-            """
-
 
 # Alias for simplified usage
 t = FlextCliTypes
@@ -315,17 +298,15 @@ t = FlextCliTypes
 # - t.Core.* for core types (inherited from parent)
 
 __all__ = [
-    # Main class and alias
+    "FlextCliCommandT",
+    "FlextCliConfigT",
+    "FlextCliContextT",
+    "FlextCliFormatterT",
+    "FlextCliModelT",
+    "FlextCliOutputT",
+    "FlextCliPluginT",
+    "FlextCliResultT",
+    "FlextCliSessionT",
     "FlextCliTypes",
-    # TypeVars exported for reuse
-    "TCliCommand",
-    "TCliConfig",
-    "TCliContext",
-    "TCliFormatter",
-    "TCliOutput",
-    "TCliPlugin",
-    "TCliResult",
-    "TCliSession",
-    "TModel",
     "t",
 ]

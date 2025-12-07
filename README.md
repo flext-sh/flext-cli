@@ -6,11 +6,11 @@
 [![Version](https://img.shields.io/badge/version-0.10.0-green.svg)](#whats-new-in-v0100)
 [![Status](https://img.shields.io/badge/status-production--ready-brightgreen.svg)](#production-ready)
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
-[![FLEXT Core](https://img.shields.io/badge/flext--core-v0.9.9+-blue.svg)](../flext-core/README.md)
+[![FLEXT Core](https://img.shields.io/badge/flext--core-v0.9.9+-blue.svg)](https://github.com/organization/flext/tree/main/flext-core/README.md)
 
 **Version 0.10.0** - Simplified architecture, 30-40% less code, 75% fewer services, clearer patterns.
 
-> **🚀 UPGRADE NOTICE**: v0.10.0 introduces breaking changes for a simpler, cleaner API. See [Migration Guide](docs/refactoring/MIGRATION_GUIDE_V0.9_TO_V0.10.md).
+> **🚀 UPGRADE NOTICE**: v0.10.0 introduces breaking changes for a simpler, cleaner API. See [Migration Guide](docs/refactoring/MIGRATION_GUIDE_V0.9_TO_V0.10.md) and [Getting Started](docs/getting-started.md).
 
 ---
 
@@ -31,7 +31,7 @@
 - ✅ Clearer documentation (no API duplication)
 - ✅ Simpler maintenance (fewer services, clearer patterns)
 
-**Migration**: Most changes are simple find-and-replace patterns (30-60 minutes). See [Migration Guide](docs/refactoring/MIGRATION_GUIDE_V0.9_TO_V0.10.md).
+**Migration**: Most changes are simple find-and-replace patterns (30-60 minutes). See [Migration Guide](docs/refactoring/MIGRATION_GUIDE_V0.9_TO_V0.10.md) and [Getting Started](docs/getting-started.md).
 
 ---
 
@@ -48,7 +48,7 @@ flext-cli is the **CLI foundation library** for the FLEXT ecosystem, providing:
 
 **FLEXT Ecosystem Integration**:
 
-- Uses **[flext-core](../flext-core/README.md)** patterns (FlextResult, FlextService, FlextModels)
+- Uses **[flext-core](https://github.com/organization/flext/tree/main/flext-core/README.md)** patterns (FlextResult, FlextService, FlextModels)
 - Provides CLI foundation for **32+ FLEXT projects**
 - **Zero Tolerance Framework Isolation** - No direct Click/Rich imports in ecosystem projects
 
@@ -393,17 +393,12 @@ make check                  # Lint + type-check only
 
 ### **Comprehensive Guides**
 
-- **[Quick Start](docs/QUICKSTART.md)** - Get started in minutes
+- **[Quick Start](docs/getting-started.md)** - Get started in minutes
 - **[Migration Guide](docs/refactoring/MIGRATION_GUIDE_V0.9_TO_V0.10.md)** - Migrate from v0.9.0 to v0.10.0
-- **[Best Practices](docs/BEST_PRACTICES.md)** - Patterns and guidelines
 - **[API Reference](docs/api-reference.md)** - Complete API documentation
 - **[Architecture](docs/architecture.md)** - Design and structure
 - **[Development](docs/development.md)** - Contributing guidelines
 
-### **Transformation Documentation**
-
-- **[Progress Tracking](docs/PROGRESS.md)** - Phase-by-phase progress
-- **[Transformation Complete](docs/TRANSFORMATION_COMPLETE.md)** - Implementation summary
 
 ### **Examples**
 

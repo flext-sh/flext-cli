@@ -1,7 +1,7 @@
-"""Core service responsável por comandos, sessões e configuração do flext-cli.
+"""Core service for commands, sessions, and configuration of flext-cli.
 
-Agrupa registro/execução de comandos, perfis de configuração, sessões e plugins,
-retornando `r[T]` para as operações consumidas pelo facade `FlextCli`.
+Groups command registration/execution, configuration profiles, sessions, and plugins,
+returning `r[T]` for operations consumed by the facade `FlextCli`.
 
 Copyright (c) 2025 FLEXT Team. All rights reserved.
 SPDX-License-Identifier: MIT
@@ -199,7 +199,7 @@ class FlextCliCore(FlextCliServiceBase):
 
     def register_command(
         self,
-        command: p.Cli.CliCommandProtocol,
+        command: p.Cli.Command,
     ) -> r[bool]:
         """Register CLI command using CliCommand model instance.
 

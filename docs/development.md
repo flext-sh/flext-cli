@@ -290,7 +290,6 @@ def test_context_immutability():
 
 Before implementing new features, review:
 
-**[IMPLEMENTATION_CHECKLIST.md](refactoring/IMPLEMENTATION_CHECKLIST.md)** - 40-step checklist for refactoring
 
 Key phases:
 

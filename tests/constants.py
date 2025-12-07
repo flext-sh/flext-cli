@@ -51,7 +51,7 @@ class TestsCliConstants(flext_tests_c, flext_cli_c):
 
         # Immutable test data using collections.abc.Mapping
         TEST_JSON_OUTPUT: Final[Mapping[str, str]] = {
-            "status": flext_cli_c.CommandStatus.COMPLETED.value,
+            "status": flext_cli_c.Cli.CommandStatus.COMPLETED.value,
             "data": "test",
         }
 
@@ -80,9 +80,11 @@ class TestsCliConstants(flext_tests_c, flext_cli_c):
         """
 
         # Command status constants using StrEnum values
-        TEST_COMMAND_STATUS: Final[str] = flext_cli_c.CommandStatus.COMPLETED.value
-        TEST_SESSION_STATUS: Final[str] = flext_cli_c.SessionStatus.ACTIVE.value
-        TEST_SERVICE_STATUS: Final[str] = flext_cli_c.ServiceStatus.OPERATIONAL.value
+        TEST_COMMAND_STATUS: Final[str] = flext_cli_c.Cli.CommandStatus.COMPLETED.value
+        TEST_SESSION_STATUS: Final[str] = flext_cli_c.Cli.SessionStatus.ACTIVE.value
+        TEST_SERVICE_STATUS: Final[str] = (
+            flext_cli_c.Cli.ServiceStatus.OPERATIONAL.value
+        )
 
         # Test command configurations using immutable mappings
         TEST_COMMAND_CONFIG: Final[Mapping[str, str | bool | int]] = {

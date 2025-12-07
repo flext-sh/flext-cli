@@ -39,7 +39,7 @@ from flext_cli.constants import c
 from flext_cli.models import m
 from flext_cli.protocols import p
 from flext_cli.services.output import FlextCliOutput
-from flext_cli.typings import TModel, t
+from flext_cli.typings import FlextCliModelT, t
 from flext_cli.utilities import u
 
 
@@ -1131,9 +1131,9 @@ class FlextCliCli:
 
     @staticmethod
     def model_command(
-        model_class: type[TModel],
+        model_class: type[FlextCliModelT],
         handler: Callable[
-            [TModel],
+            [FlextCliModelT],
             t.GeneralValueType | r[t.GeneralValueType],
         ],
         config: FlextCliConfig | None = None,
@@ -1236,7 +1236,7 @@ class FlextCliCli:
             msg = f"{class_name} must be a Pydantic model (BaseModel or m subclass)"
             raise TypeError(msg)
 
-        # Use cast to satisfy type checker - TModel extends FlextModels
+        # Use cast to satisfy type checker - FlextCliModelT extends FlextModels
         # Handler can return GeneralValueType or r[GeneralValueType]
         # ModelCommandBuilder accepts FlextModels, so we cast model_class and handler
         builder = m.ModelCommandBuilder(

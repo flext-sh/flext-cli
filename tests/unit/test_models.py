@@ -402,7 +402,7 @@ class TestsCliModels:
         session = cli_session_factory(session_id="test-session")
         command = cli_command_factory(name="test")
         # Cast to protocol type for type compatibility
-        command_protocol = cast("p.Cli.CliCommandProtocol", command)
+        command_protocol = cast("p.Cli.Command", command)
         result = session.add_command(command_protocol)
         assert result.is_success
         updated_session = result.unwrap()
@@ -433,8 +433,8 @@ class TestsCliModels:
             status=c.CommandStatus.COMPLETED.value,
         )
         # Cast to protocol type for type compatibility
-        command1_protocol = cast("p.Cli.CliCommandProtocol", command1)
-        command2_protocol = cast("p.Cli.CliCommandProtocol", command2)
+        command1_protocol = cast("p.Cli.Command", command1)
+        command2_protocol = cast("p.Cli.Command", command2)
         result1 = session.add_command(command1_protocol)
         assert result1.is_success
         session = result1.unwrap()
@@ -568,7 +568,7 @@ class TestsCliModels:
                 command_line=f"flext test{i}",
             )
             # Cast to protocol type for type compatibility
-            command_protocol = cast("p.Cli.CliCommandProtocol", command)
+            command_protocol = cast("p.Cli.Command", command)
             _ = session.add_command(command_protocol)
 
         # Serialize
@@ -1565,7 +1565,7 @@ class TestsCliModels:
         )
 
         # Cast to protocol type for type compatibility
-        command_protocol = cast("p.Cli.CliCommandProtocol", command)
+        command_protocol = cast("p.Cli.Command", command)
         result = session.add_command(command_protocol)
         assert result.is_success
         updated_session = result.unwrap()

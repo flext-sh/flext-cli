@@ -523,7 +523,9 @@ class FlextCliOutput(FlextCliServiceBase):
             valid_formats = set(c.OUTPUT_FORMATS_LIST)
             if format_str not in valid_formats:
                 return r[FlextCliOutput].fail(
-                    c.Cli.ErrorMessages.INVALID_OUTPUT_FORMAT.format(format=format_type),
+                    c.Cli.ErrorMessages.INVALID_OUTPUT_FORMAT.format(
+                        format=format_type
+                    ),
                 )
             return r[FlextCliOutput].ok(self)
         except Exception as e:

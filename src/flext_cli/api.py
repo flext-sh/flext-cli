@@ -1,8 +1,8 @@
 """Public API facade for flext-cli.
 
-Centraliza autenticação, registro/execução de comandos e acesso às utilidades
-expostas como atributos do `FlextCli`, mantendo wrappers de conveniência que
-delegam para os serviços internos sem quebrar o isolamento de Typer/Click e
+Centralizes authentication, command registration/execution, and access to utilities
+exposed as attributes of `FlextCli`, maintaining convenience wrappers that
+delegate to internal services without breaking the isolation of Typer/Click and
 Rich.
 
 Copyright (c) 2025 FLEXT Team. All rights reserved.
@@ -41,7 +41,7 @@ from flext_cli.file_tools import FlextCliFileTools
 from flext_cli.formatters import FlextCliFormatters
 from flext_cli.mixins import FlextCliMixins
 from flext_cli.models import FlextCliModels, m
-from flext_cli.protocols import FlextCliProtocols, p
+from flext_cli.protocols import p
 from flext_cli.services.cmd import FlextCliCmd
 from flext_cli.services.core import FlextCliCore
 from flext_cli.services.output import FlextCliOutput
@@ -90,9 +90,9 @@ class FlextCli:
     - Remote operations MUST use encrypted connections (TLS/SSL)
     - Session management MUST track user context for audit purposes
 
-    Instancia serviços (`core`, `cmd`, `output`, `prompts`, `tables`) e
-    utilidades (`formatters`, `file_tools`, `utilities`) para acesso direto,
-    mantendo os wrappers legados como delegação explícita para essas instâncias.
+    Instantiates services (`core`, `cmd`, `output`, `prompts`, `tables`) and
+    utilities (`formatters`, `file_tools`, `utilities`) for direct access,
+    maintaining legacy wrappers as explicit delegation to these instances.
     """
 
     # Nested classes - FLEXT pattern with real inheritance
@@ -138,7 +138,7 @@ class FlextCli:
     class Models(FlextCliModels):
         """CLI models extending FlextCliModels via inheritance."""
 
-    class Protocols(FlextCliProtocols):
+    class Protocols(p):
         """CLI protocols extending FlextCliProtocols via inheritance."""
 
     class Constants(FlextCliConstants):

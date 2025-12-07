@@ -14,7 +14,7 @@ from typing import Protocol, Self, runtime_checkable
 
 from flext_tests import p as flext_tests_p
 
-from flext_cli import p as flext_cli_p, r
+from flext_cli import p as flext_cli_p
 from flext_cli.typings import t as flext_cli_t
 
 
@@ -37,11 +37,11 @@ class TestsCliProtocols(flext_tests_p, flext_cli_p):
         class TestFixtureProtocol(Protocol):
             """Protocol for test fixtures."""
 
-            def setup(self) -> r[bool]:
+            def setup(self) -> flext_cli_p.Result[bool]:
                 """Setup test fixture."""
                 ...
 
-            def teardown(self) -> r[bool]:
+            def teardown(self) -> flext_cli_p.Result[bool]:
                 """Teardown test fixture."""
                 ...
 
@@ -53,14 +53,16 @@ class TestsCliProtocols(flext_tests_p, flext_cli_p):
         class TestValidatorProtocol(Protocol):
             """Protocol for test validators."""
 
-            def validate(self, data: flext_cli_t.GeneralValueType) -> r[bool]:
+            def validate(
+                self, data: flext_cli_t.GeneralValueType
+            ) -> flext_cli_p.Result[bool]:
                 """Validate test data."""
                 ...
 
             def validate_all(
                 self,
                 data: Sequence[flext_cli_t.GeneralValueType],
-            ) -> r[bool]:
+            ) -> flext_cli_p.Result[bool]:
                 """Validate all test data."""
                 ...
 
@@ -68,7 +70,9 @@ class TestsCliProtocols(flext_tests_p, flext_cli_p):
         class TestFactoryProtocol(Protocol):
             """Protocol for test factories."""
 
-            def create(self, **kwargs: flext_cli_t.GeneralValueType) -> r[object]:
+            def create(
+                self, **kwargs: flext_cli_t.GeneralValueType
+            ) -> flext_cli_p.Result[object]:
                 """Create test object."""
                 ...
 
@@ -76,7 +80,7 @@ class TestsCliProtocols(flext_tests_p, flext_cli_p):
                 self,
                 count: int,
                 **kwargs: flext_cli_t.GeneralValueType,
-            ) -> r[Sequence[object]]:
+            ) -> flext_cli_p.Result[Sequence[object]]:
                 """Create batch of test objects."""
                 ...
 
