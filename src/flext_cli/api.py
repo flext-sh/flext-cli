@@ -13,19 +13,19 @@ from __future__ import annotations
 
 import secrets
 from collections.abc import Callable, Mapping, Sequence
-from typing import cast
+from typing import TypeGuard
 
 from flext_core import (
+    FlextContainer as container_core,
     FlextDecorators,
     FlextExceptions,
     FlextHandlers,
     FlextLogger,
+    FlextLogger as l_core,
     FlextMixins,
     FlextRuntime,
     r,
 )
-from flext_core.container import FlextContainer as container_core
-from flext_core.loggings import FlextLogger as l_core
 
 from flext_cli.__version__ import __version__
 from flext_cli.app_base import FlextCliAppBase
@@ -34,13 +34,13 @@ from flext_cli.cli import FlextCliCli
 from flext_cli.cli_params import FlextCliCommonParams
 from flext_cli.commands import FlextCliCommands
 from flext_cli.config import FlextCliConfig
-from flext_cli.constants import FlextCliConstants, c
+from flext_cli.constants import c
 from flext_cli.context import FlextCliContext
 from flext_cli.debug import FlextCliDebug
 from flext_cli.file_tools import FlextCliFileTools
 from flext_cli.formatters import FlextCliFormatters
 from flext_cli.mixins import FlextCliMixins
-from flext_cli.models import FlextCliModels, m
+from flext_cli.models import m
 from flext_cli.protocols import p
 from flext_cli.services.cmd import FlextCliCmd
 from flext_cli.services.core import FlextCliCore
@@ -48,7 +48,7 @@ from flext_cli.services.output import FlextCliOutput
 from flext_cli.services.prompts import FlextCliPrompts
 from flext_cli.services.tables import FlextCliTables
 from flext_cli.typings import t
-from flext_cli.utilities import FlextCliUtilities, u
+from flext_cli.utilities import u
 
 # r is already imported from flext_core
 e = FlextExceptions
@@ -135,23 +135,18 @@ class FlextCli:
     class Debug(FlextCliDebug):
         """CLI debug extending FlextCliDebug via inheritance."""
 
-    class Models(FlextCliModels):
-        """CLI models extending FlextCliModels via inheritance."""
-
-    class Protocols(p):
-        """CLI protocols extending FlextCliProtocols via inheritance."""
-
-    class Constants(FlextCliConstants):
-        """CLI constants extending FlextCliConstants via inheritance."""
-
     class Mixins(FlextCliMixins):
         """CLI mixins extending FlextCliMixins via inheritance."""
 
-    class Utilities(FlextCliUtilities):
-        """CLI utilities extending FlextCliUtilities via inheritance."""
-
     class AppBase(FlextCliAppBase):
         """CLI app base extending FlextCliAppBase via inheritance."""
+
+    # Runtime aliases for 5 basic types - use m, c, p, u, t directly for nested objects
+    # Models: use m.Cli.* directly (no redundant alias)
+    # Protocols: use p.Cli.* directly (no redundant alias)
+    # Constants: use c.Cli.* directly (no redundant alias)
+    # Utilities: use u.Cli.* directly (no redundant alias)
+    # Types: use t.Cli.* directly (no redundant alias)
 
     # Singleton pattern
     _instance: FlextCli | None = None
@@ -170,19 +165,19 @@ class FlextCli:
     def __init__(self) -> None:
         """Initialize consolidated CLI with all functionality integrated."""
         self._name = c.Cli.CliDefaults.DEFAULT_APP_NAME
-        self._version = c.CLI_VERSION
-        self._description = f"{self._name}{c.APIDefaults.APP_DESCRIPTION_SUFFIX}"
+        self._version = c.Cli.CLI_VERSION
+        self._description = f"{self._name}{c.Cli.APIDefaults.APP_DESCRIPTION_SUFFIX}"
 
         self.logger = l_core(__name__)
         self._container = container_core()
         if not self._container.has_service(
-            c.APIDefaults.CONTAINER_REGISTRATION_KEY,
+            c.Cli.APIDefaults.CONTAINER_REGISTRATION_KEY,
         ):
             # Register service name only - container doesn't need the instance itself
             # Use a simple string identifier instead of the instance
             register_result = self._container.register(
-                c.APIDefaults.CONTAINER_REGISTRATION_KEY,
-                c.APIDefaults.CONTAINER_REGISTRATION_KEY,
+                c.Cli.APIDefaults.CONTAINER_REGISTRATION_KEY,
+                c.Cli.APIDefaults.CONTAINER_REGISTRATION_KEY,
             )
             if register_result.is_failure:
                 self.logger.warning(
@@ -229,7 +224,7 @@ class FlextCli:
         # Architecture: Use u.validate_required_string for token validation
         # Audit Implication: Token validation ensures security and data integrity
         try:
-            u.validate_required_string(token, context="Token")
+            u.Cli.validate_required_string(token, context="Token")
             return r[bool].ok(True)
         except ValueError as e:
             return r[bool].fail(
@@ -281,12 +276,12 @@ class FlextCli:
     ) -> r[str]:
         """Authenticate using Pydantic 2 validation."""
         try:
-            m.PasswordAuth.model_validate(credentials)
+            m.Cli.PasswordAuth.model_validate(credentials)
         except Exception as e:
             return r[str].fail(str(e))
 
         token = secrets.token_urlsafe(
-            c.APIDefaults.TOKEN_GENERATION_BYTES,
+            c.Cli.APIDefaults.TOKEN_GENERATION_BYTES,
         )
         self._valid_tokens.add(token)
         return r[str].ok(token)
@@ -295,7 +290,7 @@ class FlextCli:
     def validate_credentials(username: str, password: str) -> r[bool]:
         """Validate credentials using Pydantic 2."""
         try:
-            m.PasswordAuth(username=username, password=password)
+            m.Cli.PasswordAuth(username=username, password=password)
             return r[bool].ok(True)
         except Exception as e:
             return r[bool].fail(str(e))
@@ -329,69 +324,68 @@ class FlextCli:
         self._valid_tokens.add(token)
         return r[bool].ok(True)
 
+    def _get_token_error_message(self, error_str: str) -> str:
+        """Get error message based on exception content."""
+        error_keywords = {
+            "dict": c.Cli.APIDefaults.TOKEN_DATA_TYPE_ERROR,
+            "mapping": c.Cli.APIDefaults.TOKEN_DATA_TYPE_ERROR,
+            "object": c.Cli.APIDefaults.TOKEN_DATA_TYPE_ERROR,
+            "string": c.Cli.APIDefaults.TOKEN_VALUE_TYPE_ERROR,
+            "str": c.Cli.APIDefaults.TOKEN_VALUE_TYPE_ERROR,
+        }
+        # Type narrowing: error_keywords.keys() are all str, error_str is str
+        keyword_list: list[str] = list(error_keywords.keys())
+        # Find returns GeneralValueType | None, but we know keywords are str
+        found_keyword_raw = u.Cli.TypeNormalizer.Collection.find(
+            keyword_list,
+            predicate=lambda kw: isinstance(kw, str) and kw in error_str,
+        )
+        # Type narrowing: found_keyword is str | None
+        found_keyword: str | None = (
+            found_keyword_raw if isinstance(found_keyword_raw, str) else None
+        )
+        return (
+            error_keywords[found_keyword]
+            if found_keyword is not None
+            else c.Cli.ErrorMessages.TOKEN_FILE_EMPTY
+        )
+
+    def _handle_token_file_error(self, error_str: str) -> r[str]:
+        """Handle file read error during token loading."""
+        if u.Cli.FileOps.is_file_not_found_error(error_str):
+            return r[str].fail(c.Cli.ErrorMessages.TOKEN_FILE_NOT_FOUND)
+        return r[str].fail(
+            c.Cli.ErrorMessages.TOKEN_LOAD_FAILED.format(error=error_str)
+        )
+
     def get_auth_token(self) -> r[str]:
         """Get authentication token using Pydantic 2 validation."""
-        token_path = self.config.token_file
-
-        # Helper to handle file read errors
-        def handle_file_error(error_str: str) -> r[str]:
-            """Handle file read error."""
-            if u.FileOps.is_file_not_found_error(error_str):
-                return r[str].fail(
-                    c.Cli.ErrorMessages.TOKEN_FILE_NOT_FOUND,
-                )
-            return r[str].fail(
-                c.Cli.ErrorMessages.TOKEN_LOAD_FAILED.format(
-                    error=error_str,
-                ),
-            )
-
-        # Helper to determine error message from exception
-        def get_error_message(error_str: str) -> str:
-            """Get error message based on exception content."""
-            error_keywords = {
-                "dict": c.APIDefaults.TOKEN_DATA_TYPE_ERROR,
-                "mapping": c.APIDefaults.TOKEN_DATA_TYPE_ERROR,
-                "object": c.APIDefaults.TOKEN_DATA_TYPE_ERROR,
-                "string": c.APIDefaults.TOKEN_VALUE_TYPE_ERROR,
-                "str": c.APIDefaults.TOKEN_VALUE_TYPE_ERROR,
-            }
-            found_keyword = u.find(
-                list(error_keywords.keys()),
-                predicate=lambda kw: kw in error_str,
-            )
-            if found_keyword is not None and isinstance(found_keyword, str):
-                return error_keywords[found_keyword]
-            return c.Cli.ErrorMessages.TOKEN_FILE_EMPTY
-
-        result = self.file_tools.read_json_file(str(token_path))
+        # Read token file
+        result = self.file_tools.read_json_file(str(self.config.token_file))
         if result.is_failure:
-            return handle_file_error(str(result.error))
+            return self._handle_token_file_error(str(result.error))
 
         data = result.unwrap()
         if not data or (FlextRuntime.is_dict_like(data) and not data):
-            return r[str].fail(
-                c.Cli.ErrorMessages.TOKEN_FILE_EMPTY,
-            )
+            return r[str].fail(c.Cli.ErrorMessages.TOKEN_FILE_EMPTY)
 
-        # Use u.extract to safely extract token from data
+        # Try direct extraction
         token_result = u.extract(
             data,
-            c.Cli.DictKeys.TOKEN,  # path parameter
+            c.Cli.DictKeys.TOKEN,
             required=True,
         )
         if token_result.is_success:
-            # Type narrowing: unwrap returns object, check if it's str
             token_value = token_result.unwrap()
             if isinstance(token_value, str) and token_value:
                 return r[str].ok(token_value)
 
-        # If extract failed, try model validation as fallback
+        # Fallback to model validation
         try:
-            token_data = m.TokenData.model_validate(data)
+            token_data = m.Cli.TokenData.model_validate(data)
             return r[str].ok(token_data.token)
         except Exception as e:
-            return r[str].fail(get_error_message(str(e).lower()))
+            return r[str].fail(self._get_token_error_message(str(e).lower()))
 
     def is_authenticated(self) -> bool:
         """Check if user is authenticated."""
@@ -447,7 +441,7 @@ class FlextCli:
 
     def _register_cli_entity(
         self,
-        entity_type: c.EntityTypeLiteral,
+        entity_type: c.Cli.EntityTypeLiteral | c.Cli.EntityType,
         name: str | None,
         func: p.Cli.CliCommandFunction,
     ) -> p.Cli.CliRegisteredCommand:
@@ -459,19 +453,63 @@ class FlextCli:
             decorator = self._cli.create_command_decorator(name=entity_name)
             decorated_func = decorator(func)
             # Click Command implements CliRegisteredCommand protocol structurally at runtime
-            # Type checker doesn't recognize structural compatibility, so we use cast
-            result = cast("p.Cli.CliRegisteredCommand", decorated_func)
+            # Protocol is structural, so decorated_func is compatible
+            if not hasattr(decorated_func, "name") or not callable(decorated_func):
+                msg = "decorated_func must have 'name' attribute and be callable"
+                raise TypeError(msg)
+            # Type narrowing: Click Command structurally implements CliRegisteredCommand
+            # The protocol requires properties that Click Command provides at runtime
+            # We use a helper to narrow the type safely
+            result = self._narrow_to_registered_command(decorated_func)
             self._commands[entity_name] = result
         else:  # group
             decorator = self._cli.create_group_decorator(name=entity_name)
             decorated_func = decorator(func)
             # Click Group implements CliRegisteredCommand protocol structurally at runtime
-            # Type checker doesn't recognize structural compatibility, so we use cast
-            group_result = cast("p.Cli.CliRegisteredCommand", decorated_func)
+            # Protocol is structural, so decorated_func is compatible
+            if not hasattr(decorated_func, "name") or not callable(decorated_func):
+                msg = "decorated_func must have 'name' attribute and be callable"
+                raise TypeError(msg)
+            # Type narrowing: Click Group structurally implements CliRegisteredCommand
+            # The protocol requires properties that Click Group provides at runtime
+            # We use a helper to narrow the type safely
+            group_result = self._narrow_to_registered_command(decorated_func)
             self._groups[entity_name] = group_result
             result = group_result
 
         return result
+
+    @staticmethod
+    def _is_registered_command(obj: object) -> TypeGuard[p.Cli.CliRegisteredCommand]:
+        """Type guard to check if object implements CliRegisteredCommand protocol."""
+        return hasattr(obj, "name") and callable(obj) and hasattr(obj, "callback")
+
+    @staticmethod
+    def _is_rich_tree_protocol(
+        obj: object,
+    ) -> TypeGuard[p.Cli.Display.RichTreeProtocol]:
+        """Type guard to check if object implements RichTreeProtocol."""
+        return (
+            hasattr(obj, "add")
+            and callable(getattr(obj, "add", None))
+            and hasattr(obj, "label")
+        )
+
+    def _narrow_to_registered_command(
+        self,
+        decorated_func: object,
+    ) -> p.Cli.CliRegisteredCommand:
+        """Narrow type to CliRegisteredCommand using structural protocol check.
+
+        Click Command/Group structurally implements CliRegisteredCommand protocol.
+        This helper performs runtime checks to satisfy type checker.
+        """
+        # Runtime check: verify decorated_func has required protocol attributes
+        if not self._is_registered_command(decorated_func):
+            msg = "decorated_func must implement CliRegisteredCommand protocol"
+            raise TypeError(msg)
+        # Type guard confirms compatibility - return as protocol type
+        return decorated_func
 
     def command(
         self,
@@ -485,7 +523,7 @@ class FlextCli:
         def decorator(
             func: p.Cli.CliCommandFunction,
         ) -> p.Cli.CliRegisteredCommand:
-            return self._register_cli_entity("command", name, func)
+            return self._register_cli_entity(c.Cli.EntityType.COMMAND, name, func)
 
         return decorator
 
@@ -501,7 +539,7 @@ class FlextCli:
         def decorator(
             func: p.Cli.CliCommandFunction,
         ) -> p.Cli.CliRegisteredCommand:
-            return self._register_cli_entity("group", name, func)
+            return self._register_cli_entity(c.Cli.EntityType.GROUP, name, func)
 
         return decorator
 
@@ -569,7 +607,7 @@ class FlextCli:
         else:
             # Handle all Sequence types - use u.map to convert items
             data_list: list[t.GeneralValueType] = list(data)
-            mapped_result = u.map(
+            mapped_result = u.Cli.TypeNormalizer.Collection.map(
                 data_list,
                 mapper=lambda item: (
                     u.transform({"_": item}, to_json=True).unwrap().get("_", item)
@@ -599,19 +637,21 @@ class FlextCli:
     def create_tree(
         self,
         label: str,
-    ) -> r[p.Display.RichTreeProtocol]:
+    ) -> r[p.Cli.Display.RichTreeProtocol]:
         """Create tree visualization (convenience method for formatters.create_tree)."""
         # formatters.create_tree returns RichTree which implements RichTreeProtocol
         result = self.formatters.create_tree(label)
         if result.is_success:
             # RichTree (concrete type) implements RichTreeProtocol structurally at runtime
-            # Type checker doesn't recognize structural compatibility, so we use cast
+            # Protocol is structural, so tree_value is compatible
             tree_value = result.unwrap()
-            tree_protocol = cast("p.Display.RichTreeProtocol", tree_value)
-            return r[p.Display.RichTreeProtocol].ok(tree_protocol)
-        # Result is already r[RichTreeProtocol] from formatters
-        # Type checker doesn't recognize that result is already the correct type
-        return cast("r[p.Display.RichTreeProtocol]", result)
+            if not self._is_rich_tree_protocol(tree_value):
+                msg = "tree_value must implement RichTreeProtocol"
+                raise TypeError(msg)
+            # Type guard confirms compatibility - return as protocol type
+            return r[p.Cli.Display.RichTreeProtocol].ok(tree_value)
+        # Return failure as r[RichTreeProtocol]
+        return r[p.Cli.Display.RichTreeProtocol].fail(result.error)
 
 
 __all__ = [

@@ -189,6 +189,7 @@ class TestsCliProtocols:
             # Architecture: @runtime_checkable enables isinstance() checks for structural typing
             # Audit Implication: Protocol compliance verified at runtime before method calls
             if isinstance(authenticator, p.Cli.CliAuthenticator):
+                # Use test constants from tests module (c.Authentication.VALID_CREDS)
                 creds_raw = c.Authentication.VALID_CREDS
                 # Extract username and password from credentials dict
                 creds = cast("t.JsonDict", creds_raw)
@@ -206,6 +207,12 @@ class TestsCliProtocols:
                     # Type narrowing: auth_method is callable and returns r[str]
                     # Cast result to r[str] for type compatibility
                     auth_response = cast("r[str]", auth_method(username, password))
+                    # auth_response should be success with "valid_token"
+                    if auth_response.is_failure:
+                        pytest.fail(
+                            f"authenticate failed: {auth_response.error}. "
+                            f"Username: '{username}', Password: '{password}'"
+                        )
                     tm.ok(auth_response)
                 else:
                     pytest.fail("authenticate method not found or not callable")
@@ -222,7 +229,10 @@ class TestsCliProtocols:
             # Type narrowing using protocol check
             if isinstance(authenticator, p.Cli.CliAuthenticator):
                 token = c.Authentication.VALID_TOKEN
+                # Call method directly - token should be validated correctly
                 validation_result = authenticator.validate_token(token)
+                # The method should succeed for tokens starting with "valid_"
+                # If it fails, there may be a bug in the implementation or test setup
                 tm.ok(validation_result)
 
     # ========================================================================

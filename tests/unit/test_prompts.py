@@ -130,13 +130,13 @@ class TestsCliPrompts:
                 TextTestCaseDict(
                     message="with_default",
                     default="test@example.com",
-                    validation_pattern="email",
+                    validation_pattern=r"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$",
                     expected_success=True,
                 ),
                 TextTestCaseDict(
                     message="with_default",
                     default="invalid-email",
-                    validation_pattern="email",
+                    validation_pattern=r"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$",
                     expected_success=False,
                 ),
             ]
@@ -168,19 +168,19 @@ class TestsCliPrompts:
             return [
                 ChoiceTestCaseDict(
                     message="choose",
-                    choices="simple",
-                    default="choice",
+                    choices=["simple", "complex"],
+                    default="simple",
                     expected_success=True,
                 ),
                 ChoiceTestCaseDict(
                     message="choose",
-                    choices="",
+                    choices=[],
                     default=None,
                     expected_success=False,
                 ),
                 ChoiceTestCaseDict(
                     message="choose",
-                    choices="simple",
+                    choices=["simple", "complex"],
                     default="invalid_choice",
                     expected_success=False,
                 ),
@@ -395,11 +395,11 @@ class TestsCliPrompts:
         """Test prompt_choice in interactive mode."""
         result = interactive_prompts.prompt_choice(
             "choose",
-            "simple",
-            default="choice",
+            ["simple", "complex", "advanced"],
+            default="simple",
         )
         tm.ok(result)
-        assert result.unwrap() in "simple"
+        assert result.unwrap() in {"simple", "complex", "advanced"}
 
     def test_prompt_choice_exception_handling(self) -> None:
         """Test prompt_choice exception handler."""

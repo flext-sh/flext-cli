@@ -4,7 +4,7 @@ Tests for FlextCliCmd covering command initialization, execution, configuration 
 (edit, show, validate, get/set values), error handling, performance, integration,
 and edge cases with 100% coverage.
 
-Modules tested: flext_cli.cmd.FlextCliCmd, u.ConfigOps, FlextCliServiceBase
+Modules tested: flext_cli.cmd.FlextCliCmd, u.Cli.ConfigOps, FlextCliServiceBase
 Scope: All command operations, configuration operations, error handling, edge cases
 
 Copyright (c) 2025 FLEXT Team. All rights reserved.
@@ -89,7 +89,7 @@ VALID_CONFIG_DATA: dict[str, int | str] = {
 }
 
 # Config file name
-CONFIG_FILE_NAME = c.ConfigFiles.CLI_CONFIG_JSON
+CONFIG_FILE_NAME = c.Cli.ConfigFiles.CLI_CONFIG_JSON
 
 # ============================================================================
 # HELPER FUNCTIONS
@@ -441,7 +441,7 @@ class TestsCliCmd:
             )
 
             # Verify file exists at expected path
-            expected_config_path = temp_dir / c.ConfigFiles.CLI_CONFIG_JSON
+            expected_config_path = temp_dir / c.Cli.ConfigFiles.CLI_CONFIG_JSON
             assert expected_config_path.exists(), (
                 f"Config file should exist at {expected_config_path}"
             )
@@ -600,21 +600,21 @@ class TestsCliCmd:
     # ========================================================================
 
     def test_cmd_config_helper_get_config_paths(self) -> None:
-        """Test u.ConfigOps.get_config_paths() directly."""
-        paths = u.ConfigOps.get_config_paths()
+        """Test u.Cli.ConfigOps.get_config_paths() directly."""
+        paths = u.Cli.ConfigOps.get_config_paths()
         assert isinstance(paths, list)
         assert len(paths) > 0
         assert any(".flext" in path for path in paths)
 
     def test_cmd_config_helper_validate_config_structure(self) -> None:
-        """Test u.ConfigOps.validate_config_structure() directly."""
-        results = u.ConfigOps.validate_config_structure()
+        """Test u.Cli.ConfigOps.validate_config_structure() directly."""
+        results = u.Cli.ConfigOps.validate_config_structure()
         assert isinstance(results, list)
         assert len(results) > 0
 
     def test_cmd_config_helper_get_config_info(self) -> None:
-        """Test u.ConfigOps.get_config_info() directly."""
-        info = u.ConfigOps.get_config_info()
+        """Test u.Cli.ConfigOps.get_config_info() directly."""
+        info = u.Cli.ConfigOps.get_config_info()
         assert isinstance(info, dict)
         assert "config_dir" in info
         assert "config_exists" in info
@@ -624,7 +624,7 @@ class TestsCliCmd:
 
     def test_cmd_validate_config_structure_missing_dir(self) -> None:
         """Test validate_config_structure when main config directory is missing."""
-        results = u.ConfigOps.validate_config_structure()
+        results = u.Cli.ConfigOps.validate_config_structure()
         assert isinstance(results, list)
         assert all(isinstance(r, str) for r in results)
 

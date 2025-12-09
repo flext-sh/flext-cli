@@ -19,8 +19,7 @@ from abc import ABC, abstractmethod
 from typing import ClassVar
 
 import typer
-from flext_core import e, r
-from flext_core.loggings import FlextLogger as l_core
+from flext_core import FlextLogger as l_core, e, r
 
 from flext_cli.cli import FlextCliCli, UsageError as ClickUsageError
 from flext_cli.config import FlextCliConfig

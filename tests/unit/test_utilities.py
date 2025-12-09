@@ -19,10 +19,10 @@ from collections.abc import Callable, Mapping
 from dataclasses import dataclass
 from enum import StrEnum
 from pathlib import Path
-from typing import Union, cast
+from typing import Union
 
 import pytest
-from flext_core import r
+from flext_core import FlextUtilities as u_core, r
 from flext_tests import tm
 from pydantic import BaseModel
 
@@ -130,7 +130,7 @@ class TestsCliUtilities:
                     ValidationType.OUTPUT_FORMAT,
                     "Output format validation - uppercase normalization",
                     {
-                        "format": c.OutputFormats.UPPERCASE_FORMAT,
+                        "format": "JSON",  # Uppercase format for normalization test
                         "expected_normalized": "json",
                     },
                 ),
@@ -215,29 +215,54 @@ class TestsCliUtilities:
             """Execute CLI validation based on test case type."""
             match test_case.validation_type:
                 case ValidationType.FIELD_NOT_EMPTY:
-                    value = cast("str", test_case.test_data["value"])
-                    field_name = cast("str", test_case.test_data["field_name"])
-                    validation_result = u.CliValidation.v_empty(value, name=field_name)
-                    # Cast to bool | str for return type compatibility
-                    return cast("r[bool | str]", validation_result)
+                    # Type narrowing: extract str values from dict
+                    value_raw = test_case.test_data["value"]
+                    if not isinstance(value_raw, str):
+                        msg = "value must be str"
+                        raise TypeError(msg)
+                    value: str = value_raw
+                    field_name_raw = test_case.test_data["field_name"]
+                    if not isinstance(field_name_raw, str):
+                        msg = "field_name must be str"
+                        raise TypeError(msg)
+                    field_name: str = field_name_raw
+                    return u.Cli.CliValidation.v_empty(value, name=field_name)
+                    # Type narrowing: r[T] is compatible with r[bool | str] when T is bool or str
 
                 case ValidationType.FIELD_IN_LIST:
-                    value = cast("str", test_case.test_data["value"])
-                    allowed = cast("list[str]", test_case.test_data["allowed"])
-                    field_name = cast("str", test_case.test_data["field_name"])
-                    validation_result = u.CliValidation.validate_field_in_list(
+                    # Type narrowing: extract str and list[str] values from dict
+                    value_raw = test_case.test_data["value"]
+                    if not isinstance(value_raw, str):
+                        msg = "value must be str"
+                        raise TypeError(msg)
+                    value: str = value_raw
+                    allowed_raw = test_case.test_data["allowed"]
+                    if not isinstance(allowed_raw, list):
+                        msg = "allowed must be list"
+                        raise TypeError(msg)
+                    allowed: list[str] = allowed_raw
+                    field_name_raw = test_case.test_data["field_name"]
+                    if not isinstance(field_name_raw, str):
+                        msg = "field_name must be str"
+                        raise TypeError(msg)
+                    field_name: str = field_name_raw
+                    return u.Cli.CliValidation.validate_field_in_list(
                         value,
                         valid_values=allowed,
                         field_name=field_name,
                     )
-                    # Cast to bool | str for return type compatibility
-                    return cast("r[bool | str]", validation_result)
+                    # Type narrowing: r[T] is compatible with r[bool | str] when T is bool or str
 
                 case ValidationType.OUTPUT_FORMAT:
-                    format_type = cast("str", test_case.test_data["format"])
+                    # Type narrowing: extract str value from dict
+                    format_type_raw = test_case.test_data["format"]
+                    if not isinstance(format_type_raw, str):
+                        msg = "format must be str"
+                        raise TypeError(msg)
+                    format_type: str = format_type_raw
                     # Use u.convert and validate choice
-                    format_lower = u.convert(format_type, str, "").lower()
-                    valid_formats = set(c.OUTPUT_FORMATS_LIST)
+                    format_lower = u.Cli.convert(format_type, str, "").lower()
+                    valid_formats = set(c.Cli.OUTPUT_FORMATS_LIST)
                     if format_lower not in valid_formats:
                         format_result: r[str] = r[str].fail(
                             f"Invalid output format: {format_type}",
@@ -253,21 +278,32 @@ class TestsCliUtilities:
                     ):
                         actual = format_result.unwrap()
                         expected = test_case.test_data["expected_normalized"]
-                        bool_result = r[bool].ok(actual == expected)
-                        # Cast to bool | str for return type compatibility
-                        return cast("r[bool | str]", bool_result)
-                    # Cast to bool | str for return type compatibility
-                    return cast("r[bool | str]", format_result)
+                        return r[bool].ok(actual == expected)
+                        # Type narrowing: r[bool] is compatible with r[bool | str]
+                    # Type narrowing: r[str] is compatible with r[bool | str]
+                    return format_result
 
                 case ValidationType.STRING_NOT_EMPTY:
-                    value = cast("str", test_case.test_data["value"])
-                    error_msg = cast("str", test_case.test_data["error_msg"])
-                    string_result = u.CliValidation.v_empty(
+                    # Type narrowing: extract str values from dict
+                    value_raw = test_case.test_data["value"]
+                    # Handle None and non-string values - convert to string or return failure
+                    if value_raw is None:
+                        value = ""
+                    elif not isinstance(value_raw, str):
+                        # Convert non-string to string for validation
+                        value = str(value_raw)
+                    else:
+                        value = value_raw
+                    error_msg_raw = test_case.test_data["error_msg"]
+                    if not isinstance(error_msg_raw, str):
+                        msg = "error_msg must be str"
+                        raise TypeError(msg)
+                    error_msg: str = error_msg_raw
+                    return u.Cli.CliValidation.v_empty(
                         value,
                         name=error_msg,
                     )
-                    # Cast to bool | str for return type compatibility
-                    return cast("r[bool | str]", string_result)
+                    # Type narrowing: r[T] is compatible with r[bool | str] when T is bool or str
 
                 case _:
                     return r[bool | str].fail(
@@ -295,30 +331,30 @@ class TestsCliUtilities:
             ):
                 assert result.unwrap() is True  # Normalization check passed
         else:
-            # Cast result to object for matcher compatibility
-            result_obj = cast("r[object]", result)
+            # Type narrowing: r[T] is compatible with r[object] for matcher compatibility
+            result_obj: r[object] = result
             tm.fail(result_obj, has=test_case.error_contains)
 
     def test_command_status_validation(self) -> None:
         """Test command status validation with real constants."""
         # Success case
-        valid_status = c.COMMAND_STATUSES_LIST[0]
-        result = u.CliValidation.v_status(valid_status)
+        valid_status = c.Cli.COMMAND_STATUSES_LIST[0]
+        result = u.Cli.CliValidation.v_status(valid_status)
         tm.ok(result)
 
         # Failure case
-        result = u.CliValidation.v_status(c.Statuses.INVALID_STATUS)
+        result = u.Cli.CliValidation.v_status(c.Statuses.INVALID_STATUS)
         assert result.is_failure
 
     def test_debug_level_validation(self) -> None:
         """Test debug level validation with real constants."""
         # Success case
-        valid_level = c.DEBUG_LEVELS_LIST[0]
-        result = u.CliValidation.v_level(valid_level)
+        valid_level = c.Cli.DEBUG_LEVELS_LIST[0]
+        result = u.Cli.CliValidation.v_level(valid_level)
         tm.ok(result)
 
         # Failure case
-        result = u.CliValidation.v_level("invalid_level")
+        result = u.Cli.CliValidation.v_level("invalid_level")
         assert result.is_failure
 
     # =========================================================================
@@ -353,7 +389,7 @@ class TestsCliUtilities:
                 os.environ["_"] = "/bin/bash"
 
             # Test detection
-            result = u.Environment.is_test_environment()
+            result = u.Cli.Environment.is_test_environment()
             if should_detect_test:
                 assert result is True, (
                     f"Expected test environment detection for {env_name}"
@@ -379,18 +415,18 @@ class TestsCliUtilities:
     def test_config_operations_comprehensive(self) -> None:
         """Test comprehensive config operations."""
         # Test get_config_paths
-        paths = u.ConfigOps.get_config_paths()
+        paths = u.Cli.ConfigOps.get_config_paths()
         assert isinstance(paths, list)
         assert all(isinstance(p, str) for p in paths)
         assert any(c.Config.CONFIG_DIR_PATTERN in p for p in paths)
 
         # Test validate_config_structure
-        results = u.ConfigOps.validate_config_structure()
+        results = u.Cli.ConfigOps.validate_config_structure()
         assert isinstance(results, list)
         assert all(isinstance(msg, str) for msg in results)
 
         # Test get_config_info
-        info = u.ConfigOps.get_config_info()
+        info = u.Cli.ConfigOps.get_config_info()
         assert isinstance(info, dict)
         for key in c.Config.EXPECTED_KEYS:
             assert key in info
@@ -405,7 +441,7 @@ class TestsCliUtilities:
     def test_config_operations_with_temp_dir(self, tmp_path: Path) -> None:
         """Test config operations with temporary directory."""
         # This tests real file system interactions
-        results = u.ConfigOps.validate_config_structure()
+        results = u.Cli.ConfigOps.validate_config_structure()
         assert isinstance(results, list)
         assert all(isinstance(msg, str) for msg in results)
 
@@ -423,7 +459,7 @@ class TestsCliUtilities:
         should_be_file_error: bool,
     ) -> None:
         """Test file error detection patterns."""
-        result = u.FileOps.is_file_not_found_error(error_message)
+        result = u.Cli.FileOps.is_file_not_found_error(error_message)
         assert result == should_be_file_error
 
     # =========================================================================
@@ -433,70 +469,70 @@ class TestsCliUtilities:
     def test_type_normalizer_basic_cases(self) -> None:
         """Test basic type normalizer functionality."""
         # Test None annotation
-        result = u.TypeNormalizer.normalize_annotation(None)
+        result = u.Cli.TypeNormalizer.normalize_annotation(None)
         assert result is None
 
         # Test simple type
-        result = u.TypeNormalizer.normalize_annotation("simple")
+        result = u.Cli.TypeNormalizer.normalize_annotation("simple")
         assert result == "simple"
 
     def test_type_normalizer_union_cases(self) -> None:
         """Test type normalizer with union types."""
         # Test Path | None
         annotation_1 = Path | None
-        result = u.TypeNormalizer.normalize_annotation(annotation_1)
+        result = u.Cli.TypeNormalizer.normalize_annotation(annotation_1)
         assert result is not None
 
         # Test str | int | None
         annotation_2 = str | int | None
-        result = u.TypeNormalizer.normalize_annotation(annotation_2)
+        result = u.Cli.TypeNormalizer.normalize_annotation(annotation_2)
         assert result is not None
 
         # Test list[str] | None
         annotation_3 = list[str] | None
-        result = u.TypeNormalizer.normalize_annotation(annotation_3)
+        result = u.Cli.TypeNormalizer.normalize_annotation(annotation_3)
         assert result is not None
 
     def test_type_normalizer_union_type_operations(self) -> None:
         """Test union type operations."""
         # Test normalize_union_type with various unions
         annotation_1 = str | None
-        result = u.TypeNormalizer.normalize_union_type(annotation_1)
+        result = u.Cli.TypeNormalizer.normalize_union_type(annotation_1)
         assert result is not None
 
         annotation_2 = str | int | bool
-        result = u.TypeNormalizer.normalize_union_type(annotation_2)
+        result = u.Cli.TypeNormalizer.normalize_union_type(annotation_2)
         assert result is not None
 
         annotation_3 = str | int | None
-        result = u.TypeNormalizer.normalize_union_type(annotation_3)
+        result = u.Cli.TypeNormalizer.normalize_union_type(annotation_3)
         assert result is not None
 
     def test_combine_types_with_union_operations(self) -> None:
         """Test combine_types_with_union operations."""
         # Test with None included
-        result = u.TypeNormalizer.combine_types_with_union(
+        result = u.Cli.TypeNormalizer.combine_types_with_union(
             [str, int],
             include_none=True,
         )
         assert result is not None
 
         # Test without None
-        result = u.TypeNormalizer.combine_types_with_union(
+        result = u.Cli.TypeNormalizer.combine_types_with_union(
             [str, int, bool],
             include_none=False,
         )
         assert result is not None
 
         # Test single type
-        result = u.TypeNormalizer.combine_types_with_union(
+        result = u.Cli.TypeNormalizer.combine_types_with_union(
             [str],
             include_none=False,
         )
         assert result is str
 
         # Test single type with None
-        result = u.TypeNormalizer.combine_types_with_union(
+        result = u.Cli.TypeNormalizer.combine_types_with_union(
             [Path],
             include_none=True,
         )
@@ -506,29 +542,29 @@ class TestsCliUtilities:
         """Test type normalizer edge cases."""
         # Test Union[str] (edge case with empty args)
         annotation_1 = Union[str]
-        result = u.TypeNormalizer.normalize_union_type(annotation_1)
+        result = u.Cli.TypeNormalizer.normalize_union_type(annotation_1)
         assert result is not None
 
         # Test type(None) directly
         annotation_2 = type(None)
-        result = u.TypeNormalizer.normalize_union_type(annotation_2)
+        result = u.Cli.TypeNormalizer.normalize_union_type(annotation_2)
         assert result is not None
 
         # Test Union[str, None] edge case
         annotation_3 = str | None
-        result = u.TypeNormalizer.normalize_union_type(annotation_3)
+        result = u.Cli.TypeNormalizer.normalize_union_type(annotation_3)
         assert result is not None
 
     def test_type_normalizer_error_handling(self) -> None:
         """Test type normalizer error handling."""
         # Test with generic type that might cause reconstruction errors
         annotation_1 = list[str]
-        result = u.TypeNormalizer.normalize_annotation(annotation_1)
+        result = u.Cli.TypeNormalizer.normalize_annotation(annotation_1)
         assert result is not None
 
         # Test with union type
         annotation_2 = str | int
-        result = u.TypeNormalizer.normalize_annotation(annotation_2)
+        result = u.Cli.TypeNormalizer.normalize_annotation(annotation_2)
         assert result is not None
 
     # =========================================================================
@@ -539,18 +575,20 @@ class TestsCliUtilities:
         """Test integrated utilities workflow."""
         # Test complete validation workflow
         # 1. Validate field not empty
-        result1 = u.CliValidation.v_empty(
+        result1 = u.Cli.CliValidation.v_empty(
             c.TestData.VALID_FIELD_NAME,
             name="Test Field",
         )
         tm.ok(result1)
 
         # 2. Validate output format with normalization using u.convert
-        format_lower = u.convert(c.OutputFormats.UPPERCASE_FORMAT, str, "").lower()
-        valid_formats = set(c.OUTPUT_FORMATS_LIST)
+        # Use a valid uppercase format string for testing
+        format_upper = c.OutputFormats.UPPERCASE_FORMAT  # From tests/constants.py
+        format_lower = u.Cli.convert(format_upper, str, "").lower()
+        valid_formats = set(c.Cli.OUTPUT_FORMATS_LIST)
         if format_lower not in valid_formats:
             validation_result: r[str] = r[str].fail(
-                f"Invalid output format: {c.OutputFormats.UPPERCASE_FORMAT}",
+                f"Invalid output format: {format_upper}",
             )
         else:
             validation_result = r[str].ok(format_lower)
@@ -565,27 +603,27 @@ class TestsCliUtilities:
             else validation_result
         )
         tm.ok(result2)
-        assert result2.unwrap() == FlextCliConstants.OutputFormats.JSON.value
+        assert result2.unwrap() == FlextCliConstants.Cli.OutputFormats.JSON.value
 
         # 3. Validate string not empty
-        result3 = u.CliValidation.v_empty(
+        result3 = u.Cli.CliValidation.v_empty(
             c.TestData.VALID_STRING,
             name="Value",
         )
         tm.ok(result3)
 
         # 4. Test config operations
-        paths = u.ConfigOps.get_config_paths()
+        paths = u.Cli.ConfigOps.get_config_paths()
         assert len(paths) > 0
 
         # 5. Test file error detection
-        is_file_error = u.FileOps.is_file_not_found_error(
+        is_file_error = u.Cli.FileOps.is_file_not_found_error(
             c.FileOps.FILE_NOT_FOUND_PATTERNS[0],
         )
         assert is_file_error
 
         # 6. Test type normalization
-        result = u.TypeNormalizer.normalize_annotation(str)
+        result = u.Cli.TypeNormalizer.normalize_annotation(str)
         assert result is str
 
     def test_utilities_with_flext_tests_integration(self) -> None:
@@ -604,9 +642,14 @@ class TestsCliUtilities:
             "name": "utilities_config",
         }
         # Use tm.that() for dict assertions
+        # Type narrowing: dict[str, object] is compatible with dict[str, GeneralValueType]
+        if not isinstance(expected_data, dict):
+            msg = "expected_data must be dict"
+            raise TypeError(msg)
+        typed_expected: dict[str, t.GeneralValueType] = expected_data
         tm.that(
             test_data,
-            kv=cast("dict[str, t.GeneralValueType]", expected_data),
+            kv=typed_expected,
         )
 
         # Test with flext_tests directly
@@ -616,17 +659,17 @@ class TestsCliUtilities:
         """Test that all FlextCliUtilities namespaces are available."""
         # Test CLI-specific namespaces (actual namespaces in FlextCliUtilities)
         # CliDataMapper was removed - use uirectly
-        assert hasattr(u, "CliValidation")
-        assert hasattr(u, "TypeNormalizer")
+        assert hasattr(u.Cli, "CliValidation")
+        assert hasattr(u.Cli, "TypeNormalizer")
         # Enum, Collection, Args, Model are nested classes in utilities.py
         assert hasattr(u, "Enum")
         assert hasattr(u, "Collection")
-        assert hasattr(u, "Args")
-        assert hasattr(u, "Model")
+        assert hasattr(u.Cli.TypeNormalizer, "Args")
+        assert hasattr(u.Cli.TypeNormalizer, "Model")
         # Environment, ConfigOps, FileOps also exist
-        assert hasattr(u, "Environment")
-        assert hasattr(u, "ConfigOps")
-        assert hasattr(u, "FileOps")
+        assert hasattr(u.Cli, "Environment")
+        assert hasattr(u.Cli, "ConfigOps")
+        assert hasattr(u.Cli, "FileOps")
 
     # =========================================================================
     # ADDITIONAL EDGE CASES AND MISSING COVERAGE
@@ -637,7 +680,7 @@ class TestsCliUtilities:
     ) -> None:
         """Test validate_field_not_empty with non-string value."""
         # Non-string, non-None values are considered non-empty (valid)
-        result = u.CliValidation.v_empty(42, name="Test Field")
+        result = u.Cli.CliValidation.v_empty(42, name="Test Field")
         assert result.is_success
 
     def test_validate_field_not_empty_with_value_error(
@@ -645,14 +688,14 @@ class TestsCliUtilities:
     ) -> None:
         """Test validate_field_not_empty with ValueError from validation."""
         # Empty string should trigger ValueError
-        result = u.CliValidation.v_empty("", name="Test Field")
+        result = u.Cli.CliValidation.v_empty("", name="Test Field")
         assert result.is_failure
 
     def test_validate_field_in_list_with_non_string(
         self,
     ) -> None:
         """Test validate_field_in_list with non-string value."""
-        result = u.CliValidation.validate_field_in_list(
+        result = u.Cli.CliValidation.validate_field_in_list(
             42,
             valid_values=["a", "b"],
             field_name="test",
@@ -663,7 +706,7 @@ class TestsCliUtilities:
         self,
     ) -> None:
         """Test validate_field_in_list with invalid choice."""
-        result = u.CliValidation.validate_field_in_list(
+        result = u.Cli.CliValidation.validate_field_in_list(
             "invalid",
             valid_values=["a", "b"],
             field_name="test",
@@ -685,27 +728,27 @@ class TestsCliUtilities:
             return [
                 (
                     "validate_output_format_success",
-                    lambda: u.CliValidation.v_format("json"),
+                    lambda: u.Cli.CliValidation.v_format("json"),
                     True,
                 ),
                 (
                     "validate_output_format_invalid",
-                    lambda: u.CliValidation.v_format("invalid"),
+                    lambda: u.Cli.CliValidation.v_format("invalid"),
                     False,
                 ),
                 (
                     "validate_string_not_empty_success",
-                    lambda: u.CliValidation.v_empty("test", name="field"),
+                    lambda: u.Cli.CliValidation.v_empty("test", name="field"),
                     True,
                 ),
                 (
                     "validate_string_not_empty_failure",
-                    lambda: u.CliValidation.v_empty("", name="field"),
+                    lambda: u.Cli.CliValidation.v_empty("", name="field"),
                     False,
                 ),
                 (
                     "validate_command_execution_state_success",
-                    lambda: u.CliValidation.v_state(
+                    lambda: u.Cli.CliValidation.v_state(
                         "pending",
                         required="pending",
                         name="test_operation",
@@ -714,7 +757,7 @@ class TestsCliUtilities:
                 ),
                 (
                     "validate_command_execution_state_failure",
-                    lambda: u.CliValidation.v_state(
+                    lambda: u.Cli.CliValidation.v_state(
                         "pending",
                         required="running",
                         name="test_operation",
@@ -723,7 +766,7 @@ class TestsCliUtilities:
                 ),
                 (
                     "validate_session_state_success",
-                    lambda: u.CliValidation.v_session(
+                    lambda: u.Cli.CliValidation.v_session(
                         "active",
                         valid=["active", "inactive"],
                     ),
@@ -731,7 +774,7 @@ class TestsCliUtilities:
                 ),
                 (
                     "validate_session_state_failure",
-                    lambda: u.CliValidation.v_session(
+                    lambda: u.Cli.CliValidation.v_session(
                         "invalid",
                         valid=["active", "inactive"],
                     ),
@@ -751,8 +794,8 @@ class TestsCliUtilities:
     ) -> None:
         """Test validation methods using advanced parametrization - reduces 50+ lines."""
         result = method_call()
-        # Cast to object for matcher compatibility (handles both bool and str results)
-        result_obj = cast("r[object]", result)
+        # Type narrowing: r[T] is compatible with r[object] for matcher compatibility
+        result_obj: r[object] = result
         if should_succeed:
             tm.ok(result_obj)
         else:
@@ -771,12 +814,12 @@ class TestsCliUtilities:
                 ("no_name", {}, False),
                 (
                     "empty_name",
-                    {c.MixinsFieldNames.PIPELINE_STEP_NAME: ""},
+                    {c.Cli.MixinsFieldNames.PIPELINE_STEP_NAME: ""},
                     False,
                 ),
                 (
                     "success",
-                    {c.MixinsFieldNames.PIPELINE_STEP_NAME: "test_step"},
+                    {c.Cli.MixinsFieldNames.PIPELINE_STEP_NAME: "test_step"},
                     True,
                 ),
             ]
@@ -795,14 +838,18 @@ class TestsCliUtilities:
         # Convert dict[str, object] to JsonDict for type compatibility
         json_step_data: dict[str, t.GeneralValueType] | None = None
         if step_data:
-            step_data_converted = cast("dict[str, t.GeneralValueType]", step_data)
+            # Type narrowing: dict[str, object] is compatible with dict[str, GeneralValueType]
+            if not isinstance(step_data, dict):
+                msg = "step_data must be dict"
+                raise TypeError(msg)
+            step_data_converted: dict[str, t.GeneralValueType] = step_data
             transform_result = u.transform(step_data_converted, to_json=True)
             json_step_data = (
                 transform_result.unwrap()
                 if transform_result.is_success
                 else step_data_converted
             )
-        result = u.CliValidation.v_step(json_step_data)
+        result = u.Cli.CliValidation.v_step(json_step_data)
         if should_succeed:
             tm.ok(result)
         else:
@@ -901,8 +948,11 @@ class TestsCliUtilities:
         expected: object,
     ) -> None:
         """Test Enum.parse_or_default using advanced parametrization - reduces 20+ lines."""
-        # Cast default to StrEnum for type compatibility
-        default_enum = cast("StrEnum", default)
+        # Type narrowing: default should be StrEnum compatible
+        if not isinstance(default, StrEnum):
+            msg = "default must be StrEnum"
+            raise TypeError(msg)
+        default_enum: StrEnum = default
         result = u.Enum.parse_or_default(enum_class, value, default_enum)
         assert result == expected
 
@@ -1023,14 +1073,18 @@ class TestsCliUtilities:
     ) -> None:
         """Test Collection.coerce_dict_validator using advanced parametrization - reduces 30+ lines."""
         validator = u.Collection.coerce_dict_validator(enum_class)
+        # Type narrowing: input_data is GeneralValueType compatible (validator accepts it)
+        # Type checker can't verify runtime type - validator accepts GeneralValueType
+        # and will raise TypeError for non-dict at runtime
+        if not isinstance(input_data, (dict, list, str, int, float, bool, type(None))):
+            msg = "input_data must be GeneralValueType compatible"
+            raise TypeError(msg)
+        typed_input: t.GeneralValueType = input_data
         if expected_exception:
             with pytest.raises(expected_exception):
-                # Type checker can't verify runtime type - validator accepts GeneralValueType
-                # and will raise TypeError for non-dict at runtime
-                validator(cast("t.GeneralValueType", input_data))
+                validator(typed_input)
         else:
-            # Cast input_data to GeneralValueType for type compatibility (validator accepts it)
-            result = validator(cast("t.GeneralValueType", input_data))
+            result = validator(typed_input)
             assert result == expected_result
 
     class ModelTestCases:
@@ -1074,7 +1128,7 @@ class TestsCliUtilities:
                 ),
                 (
                     "from_dict_non_pydantic",
-                    cast("type[BaseModel]", NotPydantic),
+                    NotPydantic,
                     {},
                     False,
                     None,
@@ -1160,12 +1214,14 @@ class TestsCliUtilities:
         """Test Model.from_dict using advanced parametrization - reduces 50+ lines."""
         # Cast data to FlexibleValue-compatible mapping for type compatibility
         # FlexibleValue is a subset of GeneralValueType (scalars, sequences, mappings)
-        flexible_data: Mapping[str, t.FlexibleValue] = cast(
-            "Mapping[str, t.FlexibleValue]",
-            data,
-        )
+        # Type narrowing: dict[str, GeneralValueType] is compatible with Mapping[str, FlexibleValue]
+        # FlexibleValue is a subset of GeneralValueType (scalars, sequences, mappings)
+        if not isinstance(data, dict):
+            msg = "data must be dict"
+            raise TypeError(msg)
+        flexible_data: Mapping[str, t.FlexibleValue] = data
         # model_cls is already type[BaseModel], which satisfies the type variable bound
-        result = u.TypeNormalizer.Model.from_dict(model_cls, flexible_data)
+        result = u.Cli.TypeNormalizer.Model.from_dict(model_cls, flexible_data)
         if should_succeed:
             tm.ok(result)
             if expected_attrs:
@@ -1196,18 +1252,18 @@ class TestsCliUtilities:
         expected_attrs: dict[str, object] | None,
     ) -> None:
         """Test Model.merge_defaults using advanced parametrization - reduces 20+ lines."""
-        # Cast data to FlexibleValue-compatible mapping for type compatibility
+        # Type narrowing: dict[str, GeneralValueType] is compatible with Mapping[str, FlexibleValue]
         # FlexibleValue is a subset of GeneralValueType (scalars, sequences, mappings)
-        flexible_defaults: Mapping[str, t.FlexibleValue] = cast(
-            "Mapping[str, t.FlexibleValue]",
-            defaults,
-        )
-        flexible_overrides: Mapping[str, t.FlexibleValue] = cast(
-            "Mapping[str, t.FlexibleValue]",
-            overrides,
-        )
+        if not isinstance(defaults, dict):
+            msg = "defaults must be dict"
+            raise TypeError(msg)
+        flexible_defaults: Mapping[str, t.FlexibleValue] = defaults
+        if not isinstance(overrides, dict):
+            msg = "overrides must be dict"
+            raise TypeError(msg)
+        flexible_overrides: Mapping[str, t.FlexibleValue] = overrides
         # model_cls is already type[BaseModel], which satisfies the type variable bound
-        result = u.TypeNormalizer.Model.merge_defaults(
+        result = u.Cli.TypeNormalizer.Model.merge_defaults(
             model_cls,
             flexible_defaults,
             flexible_overrides,
@@ -1234,11 +1290,29 @@ class TestsCliUtilities:
         expected_attrs: dict[str, object] | None,
     ) -> None:
         """Test Model.update using advanced parametrization - reduces 20+ lines."""
-        # Cast instance to BaseModel for type compatibility
-        base_instance = cast("BaseModel", instance)
-        # Cast updates to FlexibleValue-compatible dict
-        flexible_updates = cast("dict[str, t.FlexibleValue]", updates)
-        result = u.TypeNormalizer.Model.update(base_instance, **flexible_updates)
+        # Type narrowing: instance should be BaseModel
+        # If not BaseModel, Model.update will return r.fail(), which is expected behavior
+        if not isinstance(instance, BaseModel):
+            # For non-BaseModel instances, Model.update should return failure
+            # Use u_core.Model.update directly since it handles validation
+            result = u_core.Model.update(instance, **updates)
+            # Convert RuntimeResult to FlextResult
+            if result.is_success:
+                result = r[type(instance)].ok(result.value)
+            else:
+                result = r[type(instance)].fail(result.error or "")
+            if should_succeed:
+                tm.ok(result)
+            else:
+                tm.fail(result)
+            return
+        base_instance: BaseModel = instance
+        # Type narrowing: dict[str, GeneralValueType] is compatible with dict[str, FlexibleValue]
+        if not isinstance(updates, dict):
+            msg = "updates must be dict"
+            raise TypeError(msg)
+        flexible_updates: dict[str, t.FlexibleValue] = updates
+        result = u.Cli.TypeNormalizer.Model.update(base_instance, **flexible_updates)
         if should_succeed:
             tm.ok(result)
             if expected_attrs:
@@ -1260,7 +1334,7 @@ class TestsCliUtilities:
                 ("validated_with_result_success", 5, True, 10),
                 (
                     "validated_with_result_validation_error",
-                    cast("int", "not an int"),
+                    "not an int",
                     False,
                     None,
                 ),
@@ -1311,11 +1385,13 @@ class TestsCliUtilities:
     ) -> None:
         """Test validated_with_result using advanced parametrization - reduces 20+ lines."""
 
-        @u.TypeNormalizer.Args.validated_with_result
+        @u.Cli.TypeNormalizer.Args.validated_with_result
         def test_func(value: int) -> r[int]:
             return r[int].ok(value * 2)
 
-        result: r[int] = test_func(value=cast("int", input_value))
+        # Type narrowing: input_value may not be int (testing validation)
+        # test_func expects int, but we're testing validation behavior
+        result: r[int] = test_func(value=input_value)
         if should_succeed:
             tm.ok(result, eq=expected)
         else:
@@ -1334,7 +1410,7 @@ class TestsCliUtilities:
         expected: dict[str, str] | None,
     ) -> None:
         """Test parse_kwargs using advanced parametrization - reduces 20+ lines."""
-        result = u.TypeNormalizer.Args.parse_kwargs(kwargs, enum_fields)
+        result = u.Cli.TypeNormalizer.Args.parse_kwargs(kwargs, enum_fields)
         if should_succeed:
             tm.ok(result)
             if expected:
@@ -1351,5 +1427,5 @@ class TestsCliUtilities:
         class TestEnum(StrEnum):
             VALUE1 = "value1"
 
-        coerced_type = u.TypeNormalizer.Pydantic.coerced_enum(TestEnum)
+        coerced_type = u.Cli.TypeNormalizer.Pydantic.coerced_enum(TestEnum)
         assert coerced_type is not None

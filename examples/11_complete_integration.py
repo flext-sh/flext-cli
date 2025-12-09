@@ -57,7 +57,7 @@ class DataManagerCLI:
         )
         self.cli.output.print_message("=" * 70, style="bold blue")
 
-    def save_data(self, data: t.Data.CliDataDict) -> r[bool]:
+    def save_data(self, data: t.Cli.Data.CliDataDict) -> r[bool]:
         """Save data with proper error handling."""
         write_result = self.cli.file_tools.write_json_file(self.data_file, data)
 
@@ -75,10 +75,10 @@ class DataManagerCLI:
         )
         return r[bool].ok(True)
 
-    def load_data(self) -> r[t.Data.CliDataDict]:
+    def load_data(self) -> r[t.Cli.Data.CliDataDict]:
         """Load data with error handling."""
         if not self.data_file.exists():
-            return r[t.Data.CliDataDict].fail(
+            return r[t.Cli.Data.CliDataDict].fail(
                 "No data file found",
             )
 
@@ -90,22 +90,22 @@ class DataManagerCLI:
                 f"❌ Load failed: {error_msg}",
                 style="bold red",
             )
-            return r[t.Data.CliDataDict].fail(error_msg)
+            return r[t.Cli.Data.CliDataDict].fail(error_msg)
 
         # Type narrowing: ensure we return a dict
         data = read_result.unwrap()
         if not isinstance(data, dict):
-            return r[t.Data.CliDataDict].fail(
+            return r[t.Cli.Data.CliDataDict].fail(
                 "Data is not a dictionary",
             )
         self.cli.output.print_message("✅ Data loaded successfully", style="green")
         # Convert to JsonDict-compatible dict using u
-        converted_data: t.Data.CliDataDict = (
+        converted_data: t.Cli.Data.CliDataDict = (
             u.transform(data, to_json=True).unwrap()
             if isinstance(data, dict) and u.transform(data, to_json=True).is_success
             else data
         )
-        return r[t.Data.CliDataDict].ok(converted_data)
+        return r[t.Cli.Data.CliDataDict].ok(converted_data)
 
     def display_data(self, data: Mapping[str, t.GeneralValueType]) -> None:
         """Display data as formatted table."""
@@ -122,14 +122,14 @@ class DataManagerCLI:
         if table_result.is_success:
             self.cli.print_table(table_result.unwrap())
 
-    def add_entry(self) -> r[t.Data.CliDataDict]:
+    def add_entry(self) -> r[t.Cli.Data.CliDataDict]:
         """Add new entry with user prompts."""
         prompts = FlextCliPrompts(interactive_mode=False)
 
         # Get key
         key_result = prompts.prompt("Enter key:", default="sample_key")
         if key_result.is_failure:
-            return r[t.Data.CliDataDict].fail(
+            return r[t.Cli.Data.CliDataDict].fail(
                 f"Prompt failed: {key_result.error}",
             )
 
@@ -138,7 +138,7 @@ class DataManagerCLI:
         # Get value
         value_result = prompts.prompt("Enter value:", default="sample_value")
         if value_result.is_failure:
-            return r[t.Data.CliDataDict].fail(
+            return r[t.Cli.Data.CliDataDict].fail(
                 f"Prompt failed: {value_result.error}",
             )
 
@@ -150,7 +150,7 @@ class DataManagerCLI:
             style="green",
         )
         # Convert to JsonDict-compatible dict using u
-        converted_entry: t.Data.CliDataDict = (
+        converted_entry: t.Cli.Data.CliDataDict = (
             u.transform(
                 cast("dict[str, t.GeneralValueType]", entry),
                 to_json=True,
@@ -161,7 +161,7 @@ class DataManagerCLI:
             ).is_success
             else cast("dict[str, t.GeneralValueType]", entry)
         )
-        return r[t.Data.CliDataDict].ok(converted_entry)
+        return r[t.Cli.Data.CliDataDict].ok(converted_entry)
 
     def run_workflow(self) -> r[bool]:
         """Complete workflow integrating all features."""
@@ -218,23 +218,23 @@ class DataManagerCLI:
 
 
 def process_with_railway_pattern(
-    input_data: t.Data.CliDataDict,
-) -> r[t.Data.CliDataDict]:
+    input_data: t.Cli.Data.CliDataDict,
+) -> r[t.Cli.Data.CliDataDict]:
     """Show railway pattern chaining operations."""
     # Removed unused temp_file variable
 
     # Chain operations using r
     # Step 1: Validate
-    step1_data: t.Data.CliDataDict = {**input_data, "validated": True}
+    step1_data: t.Cli.Data.CliDataDict = {**input_data, "validated": True}
     # Step 2: Transform
-    step2_data: t.Data.CliDataDict = {**step1_data, "processed": True}
+    step2_data: t.Cli.Data.CliDataDict = {**step1_data, "processed": True}
     # Step 3: Enrich
-    final_data: t.Data.CliDataDict = cast(
-        "t.Data.CliDataDict",
+    final_data: t.Cli.Data.CliDataDict = cast(
+        "t.Cli.Data.CliDataDict",
         {**step2_data, "enriched": True},
     )
 
-    result: r[t.Data.CliDataDict] = r[t.Data.CliDataDict].ok(final_data)
+    result: r[t.Cli.Data.CliDataDict] = r[t.Cli.Data.CliDataDict].ok(final_data)
 
     if result.is_failure:
         cli.output.print_message(
@@ -281,7 +281,7 @@ def main() -> None:
     )
     test_data_raw: dict[str, t.GeneralValueType] = {"id": 1, "name": "test"}
     # Convert to JsonDict-compatible dict using u
-    test_data: t.Data.CliDataDict = (
+    test_data: t.Cli.Data.CliDataDict = (
         u.transform(test_data_raw, to_json=True).unwrap()
         if isinstance(test_data_raw, dict)
         and u.transform(test_data_raw, to_json=True).is_success

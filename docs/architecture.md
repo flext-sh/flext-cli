@@ -72,3 +72,18 @@ cli.print(table, style="green")
 
 - **API**: `docs/api-reference.md`
 - **Guia de desenvolvimento**: `docs/development.md`
+
+## Related Documentation
+
+**Within Project**:
+- [Getting Started](getting-started.md) - Installation and basic usage
+- [API Reference](api-reference.md) - Complete API documentation
+- [Development Guide](development.md) - Contributing and extending
+
+**Across Projects**:
+- [flext-core Foundation](https://github.com/organization/flext/tree/main/flext-core/docs/architecture/overview.md) - Clean architecture and CQRS patterns
+- [flext-core Service Patterns](https://github.com/organization/flext/tree/main/flext-core/docs/guides/service-patterns.md) - Service patterns and dependency injection
+
+**External Resources**:
+- [PEP 257 - Docstring Conventions](https://peps.python.org/pep-0257/)
+- [Google Python Style Guide](https://google.github.io/styleguide/pyguide.html)

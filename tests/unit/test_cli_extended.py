@@ -168,7 +168,7 @@ class TestsCliCliExtended:
         cli = FlextCliCli()
 
         # Test with explicit config
-        config = m.ConfirmConfig(default=True, prompt_suffix="?")
+        config = m.Cli.ConfirmConfig(default=True, prompt_suffix="?")
 
         with patch("typer.confirm") as mock_confirm:
             mock_confirm.return_value = True

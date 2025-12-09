@@ -441,8 +441,8 @@ Use this checklist to ensure complete migration:
 
 ### Support Resources
 
-- **[Migration Guide](MIGRATION_GUIDE_V0.9_TO_V0.10.md)** - Step-by-step migration
-- **[Architecture Comparison](ARCHITECTURE_COMPARISON.md)** - Before/after comparison
+- **[Migration Guide](migration-guide-v0.9-to-v0.10.md)** - Step-by-step migration
+- **[Architecture Comparison](architecture-comparison.md)** - Before/after comparison
 - **[API Reference](../api-reference.md)** - Complete v0.10.0 API
 - **[Examples](../../examples/)** - Updated code examples
 

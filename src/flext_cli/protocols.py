@@ -6,7 +6,9 @@ from collections.abc import Callable, Mapping, Sequence
 from datetime import datetime
 from typing import Protocol, Self, runtime_checkable
 
-from flext_core import FlextProtocols, t
+from flext_core import FlextProtocols
+
+from flext_cli.typings import t
 
 
 class FlextCliProtocols(FlextProtocols):
@@ -405,7 +407,7 @@ class FlextCliProtocols(FlextProtocols):
         class OptionConfigProtocol(Protocol):
             """Protocol for CLI option configuration.
 
-            Complete protocol matching m.OptionConfig structure.
+            Complete protocol matching m.Cli.OptionConfig structure.
             """
 
             @property
@@ -457,7 +459,7 @@ class FlextCliProtocols(FlextProtocols):
         class ConfirmConfigProtocol(Protocol):
             """Protocol for CLI confirmation configuration.
 
-            Complete protocol matching m.ConfirmConfig structure.
+            Complete protocol matching m.Cli.ConfirmConfig structure.
             """
 
             @property
@@ -489,7 +491,7 @@ class FlextCliProtocols(FlextProtocols):
         class PromptConfigProtocol(Protocol):
             """Protocol for CLI prompt configuration.
 
-            Complete protocol matching m.PromptConfig structure.
+            Complete protocol matching m.Cli.PromptConfig structure.
             """
 
             @property
@@ -541,7 +543,7 @@ class FlextCliProtocols(FlextProtocols):
         class TableConfigProtocol(Protocol):
             """Protocol for CLI table configuration.
 
-            Complete protocol matching m.TableConfig structure.
+            Complete protocol matching m.Cli.TableConfig structure.
             """
 
             @property
@@ -558,7 +560,7 @@ class FlextCliProtocols(FlextProtocols):
         class CliParamsConfigProtocol(Protocol):
             """Protocol for CLI parameters configuration.
 
-            Complete protocol matching m.CliParamsConfig structure.
+            Complete protocol matching m.Cli.CliParamsConfig structure.
             """
 
             @property
@@ -824,6 +826,9 @@ class FlextCliProtocols(FlextProtocols):
             def args(self) -> Sequence[str]:
                 """Command line arguments."""
                 ...
+
+            params: Mapping[str, t.GeneralValueType]
+            """Validated command parameters."""
 
         @runtime_checkable
         class CliOutputProtocol(Protocol):

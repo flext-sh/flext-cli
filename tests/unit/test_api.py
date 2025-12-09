@@ -21,7 +21,7 @@ from collections.abc import Callable, Mapping, Sequence
 from dataclasses import dataclass
 from enum import StrEnum
 from pathlib import Path
-from typing import TypedDict, cast
+from typing import TypedDict
 
 import pytest
 from flext_core import t
@@ -127,13 +127,12 @@ class ApiTestFactory:
                 data=OutputHelpers.create_table_test_data(),
                 validator=lambda output, data: (
                     any(
-                        str(cast("dict[str, t.GeneralValueType]", user).get("name", ""))
-                        in output
-                        for user in cast(
-                            "list[t.GeneralValueType]",
-                            cast("dict[str, t.GeneralValueType]", data).get("users", [])
+                        str(user.get("name", "")) in output
+                        for user in (
+                            data.get("users", [])
                             if isinstance(data, dict)
-                            else [],
+                            and isinstance(data.get("users"), list)
+                            else []
                         )
                         if isinstance(user, dict)
                     )
@@ -350,7 +349,8 @@ class TestsCli:
         tm.ok(cmd_result)
         cmd = cmd_result.unwrap()
         assert (
-            cmd.name == "test_command" and cmd.status == c.CommandStatus.PENDING.value
+            cmd.name == "test_command"
+            and cmd.status == c.Cli.CommandStatus.PENDING.value
         )
 
     def _execute_configuration_tests(self, api_service: FlextCli) -> None:
@@ -398,7 +398,7 @@ class TestsCli:
 
     def test_authenticate_with_token_invalid(self, flext_cli_api: FlextCli) -> None:
         """Test authentication with invalid token."""
-        credentials = {c.DictKeys.TOKEN: ""}
+        credentials = {c.Cli.DictKeys.TOKEN: ""}
         result = flext_cli_api.authenticate(credentials)
         assert result.is_failure
 
@@ -422,7 +422,7 @@ class TestsCli:
         """Test authentication with missing credential fields."""
         # Missing username or password should fail
         credentials = {
-            c.DictKeys.USERNAME: "testuser",
+            c.Cli.DictKeys.USERNAME: "testuser",
             # Missing password
         }
         result = flext_cli_api.authenticate(credentials)
@@ -646,10 +646,15 @@ class TestsCli:
     def test_create_table_with_dict(self, flext_cli_api: FlextCli) -> None:
         """Test create_table with dictionary data."""
         data = {"name": "John", "age": 30}
-        # Cast to Mapping[str, GeneralValueType] for type compatibility
-        # str and int are compatible with GeneralValueType
+        # dict[str, int] is compatible with Mapping[str, GeneralValueType]
+        # Type narrowing: ensure data is dict (already checked)
+        if not isinstance(data, dict):
+            msg = "data must be dict"
+            raise TypeError(msg)
+        # dict[str, int] is structurally compatible with Mapping[str, GeneralValueType]
+        typed_data: Mapping[str, t.GeneralValueType] = data
         result = flext_cli_api.create_table(
-            cast("Mapping[str, t.GeneralValueType]", data),
+            typed_data,
             headers=["Name", "Age"],
         )
         tm.ok(result)
@@ -658,11 +663,16 @@ class TestsCli:
     def test_create_table_with_list(self, flext_cli_api: FlextCli) -> None:
         """Test create_table with list data."""
         data = [{"name": "John", "age": 30}, {"name": "Jane", "age": 25}]
-        # Cast to Sequence[Mapping[str, GeneralValueType]] for type compatibility
-        # str and int are compatible with GeneralValueType
+        # list[dict[str, int]] is compatible with Sequence[Mapping[str, GeneralValueType]]
+        # Type narrowing: ensure data is list of dicts
+        if not isinstance(data, list):
+            msg = "data must be list"
+            raise TypeError(msg)
+        # list[dict[str, int]] is structurally compatible with Sequence[Mapping[str, GeneralValueType]]
+        typed_data: Sequence[Mapping[str, t.GeneralValueType]] = data
         result = flext_cli_api.create_table(
-            cast("Sequence[Mapping[str, t.GeneralValueType]]", data),
-            headers=["Name", "Age"],
+            typed_data,
+            headers=["name", "age"],  # Use lowercase to match dict keys
         )
         tm.ok(result)
         assert isinstance(result.unwrap(), str)
@@ -675,11 +685,16 @@ class TestsCli:
     def test_create_table_with_title(self, flext_cli_api: FlextCli) -> None:
         """Test create_table with title."""
         data = [{"name": "John", "age": 30}]
-        # Cast to Sequence[Mapping[str, GeneralValueType]] for type compatibility
-        # str and int are compatible with GeneralValueType
+        # list[dict[str, int]] is compatible with Sequence[Mapping[str, GeneralValueType]]
+        # Type narrowing: ensure data is list of dicts
+        if not isinstance(data, list):
+            msg = "data must be list"
+            raise TypeError(msg)
+        # list[dict[str, int]] is structurally compatible with Sequence[Mapping[str, GeneralValueType]]
+        typed_data: Sequence[Mapping[str, t.GeneralValueType]] = data
         result = flext_cli_api.create_table(
-            cast("Sequence[Mapping[str, t.GeneralValueType]]", data),
-            headers=["Name", "Age"],
+            typed_data,
+            headers=["name", "age"],  # Use lowercase to match dict keys
             title="Users",
         )
         tm.ok(result)
@@ -831,10 +846,10 @@ class TestsCli:
         # Mock model_validate to raise exception
         validation_error_msg = "Validation failed"
 
-        def mock_validate(data: object) -> m.PasswordAuth:
+        def mock_validate(data: object) -> m.Cli.PasswordAuth:
             raise ValueError(validation_error_msg)
 
-        monkeypatch.setattr(m.PasswordAuth, "model_validate", mock_validate)
+        monkeypatch.setattr(m.Cli.PasswordAuth, "model_validate", mock_validate)
         result = flext_cli_api.authenticate(credentials)
         assert result.is_failure
 
@@ -849,7 +864,7 @@ class TestsCli:
         def mock_init(self: object, *args: object, **kwargs: object) -> None:
             raise ValueError(invalid_credentials_msg)
 
-        monkeypatch.setattr(m.PasswordAuth, "__init__", mock_init)
+        monkeypatch.setattr(m.Cli.PasswordAuth, "__init__", mock_init)
         result = FlextCli.validate_credentials("testuser", "testpass")
         assert result.is_failure
 

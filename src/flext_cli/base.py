@@ -10,13 +10,31 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from flext_core import s as flext_service, t
+from flext_core import s, t
 
 from flext_cli.config import FlextCliConfig
 
 
-class FlextCliServiceBase(flext_service[t.Json.JsonDict]):
+class FlextCliServiceBase(s[t.Json.JsonDict]):
     """Base class for flext-cli services with typed configuration access."""
+
+    @classmethod
+    def _runtime_bootstrap_options(cls) -> t.Types.RuntimeBootstrapOptions:
+        """Return runtime bootstrap options for CLI services.
+
+        Business Rule: This method provides runtime bootstrap configuration for
+        all CLI services, ensuring they use FlextCliConfig as the configuration
+        type. This enables proper DI integration and namespace access.
+
+        Implication: All services extending FlextCliServiceBase automatically
+        use FlextCliConfig for their runtime configuration, ensuring consistent
+        configuration handling across all CLI services.
+
+        Returns:
+            Runtime bootstrap options with config_type set to FlextCliConfig
+
+        """
+        return {"config_type": FlextCliConfig}
 
     @property
     def cli_config(self) -> FlextCliConfig:
@@ -31,4 +49,5 @@ class FlextCliServiceBase(flext_service[t.Json.JsonDict]):
 
 __all__ = [
     "FlextCliServiceBase",
+    "s",
 ]

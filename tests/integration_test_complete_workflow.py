@@ -33,6 +33,7 @@ from flext_cli import (
     c,
     r,
     t,
+    u,
 )
 
 
@@ -226,7 +227,7 @@ class TestCompleteWorkflowIntegration:
         final_report = pipeline_result.unwrap()
 
         # Verify report structure
-        assert final_report["pipeline_status"] == c.CommandStatus.COMPLETED.value
+        assert final_report["pipeline_status"] == c.Cli.CommandStatus.COMPLETED.value
         assert final_report["input_records"] == 3
         assert final_report["processed_records"] == 2  # Only active users
         assert final_report["success_rate"] == 1.0
@@ -261,7 +262,7 @@ class TestCompleteWorkflowIntegration:
             users = data.get("users")
             if not isinstance(users, list):
                 result = r.fail("'users' must be a list")
-            elif len(users) == 0:
+            elif not u.Guards.is_list_non_empty(users):
                 result = r.fail("Users list cannot be empty")
             else:
                 # Validate each user
@@ -341,7 +342,7 @@ class TestCompleteWorkflowIntegration:
         # (all active users processed = 100% success rate for active users)
         success_rate = 1.0 if processed_records > 0 else 0.0
         return {
-            "pipeline_status": c.CommandStatus.COMPLETED.value,
+            "pipeline_status": c.Cli.CommandStatus.COMPLETED.value,
             "timestamp": cast("str", data_dict["processed_at"]),
             "pipeline_version": cast("str", data_dict["pipeline_version"]),
             "input_records": cast("int", data_dict["total_users"]),
@@ -601,7 +602,7 @@ class TestCompleteWorkflowIntegration:
             aggregates = {}
 
         return {
-            "report_generation_status": c.CommandStatus.COMPLETED.value,
+            "report_generation_status": c.Cli.CommandStatus.COMPLETED.value,
             "total_reports": len(reports),
             "formats_generated": [r["format"] for r in reports],
             "config_used": {

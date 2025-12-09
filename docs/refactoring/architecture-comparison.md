@@ -384,7 +384,7 @@ cli.confirm(        → cli.prompts.confirm(
 
 **Estimated Migration Time**: 30-60 minutes for typical project
 
-**See**: [MIGRATION_GUIDE_V0.9_TO_V0.10.md](MIGRATION_GUIDE_V0.9_TO_V0.10.md)
+**See**: [migration-guide-v0.9-to-v0.10.md](migration-guide-v0.9-to-v0.10.md)
 
 ---
 

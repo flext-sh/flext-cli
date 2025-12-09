@@ -154,7 +154,7 @@ from flext_cli import (
 flext-cli follows the FLEXT ecosystem architecture:
 
 - **FlextCli** - Main facade providing unified access
-- **Domain Services** - Specialized modules (Output, Formatters, Tables, etc.)
+- **Services** - Specialized modules (Output, Formatters, Tables, etc.)
 - **FlextResult** - Railway-oriented error handling (from flext-core)
 - **FlextConfig** - Pydantic-based configuration
 - **Type Safety** - Complete type hints throughout

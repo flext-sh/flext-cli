@@ -42,8 +42,8 @@ class TestsCliCommands:
 
         assert result.is_success
         assert result.value is not None
-        assert result.value["status"] == c.ServiceStatus.OPERATIONAL.value
-        assert result.value["service"] == c.FLEXT_CLI
+        assert result.value["status"] == c.Cli.ServiceStatus.OPERATIONAL.value
+        assert result.value["service"] == c.Cli.FLEXT_CLI
         assert "commands" in result.value
 
     def test_commands_execute(self) -> None:
@@ -53,8 +53,8 @@ class TestsCliCommands:
 
         assert result.is_success
         assert result.value is not None
-        assert result.value["status"] == c.ServiceStatus.OPERATIONAL.value
-        assert result.value["service"] == c.FLEXT_CLI
+        assert result.value["status"] == c.Cli.ServiceStatus.OPERATIONAL.value
+        assert result.value["service"] == c.Cli.FLEXT_CLI
         assert "commands" in result.value
 
     # ========================================================================

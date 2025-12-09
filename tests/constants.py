@@ -162,6 +162,13 @@ class TestsCliConstants(flext_tests_c, flext_cli_c):
             "max_width": 100,
         }
 
+        # Basic configuration for protocol tests
+        BASIC_CONFIG: Final[Mapping[str, str | int | bool]] = {
+            "output_format": "json",
+            "timeout": 30,
+            "debug": False,
+        }
+
     class Fixtures:
         """Test fixture constants using advanced patterns.
 
@@ -310,6 +317,15 @@ class TestsCliConstants(flext_tests_c, flext_cli_c):
         """Password validation constants."""
 
         MIN_LENGTH_STRICT: Final[int] = 12
+
+    class Authentication:
+        """Authentication test constants."""
+
+        VALID_CREDS: Final[Mapping[str, str]] = {
+            "username": "test_user",
+            "password": "test_pass",
+        }
+        VALID_TOKEN: Final[str] = "valid_test_token"
 
     class Progress:
         """Progress constants."""

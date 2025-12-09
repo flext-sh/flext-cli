@@ -248,7 +248,7 @@ class FlextCliTestHelpers(FlextService[dict[str, t.GeneralValueType]]):
             try:
                 # Validate username if explicitly provided (not None)
                 if username is not None:
-                    if len(username.strip()) == 0:
+                    if not u.Guards.is_string_non_empty(username):
                         return r[Mapping[str, str]].fail("Username cannot be empty")
                     if len(username) < 3:
                         return r[Mapping[str, str]].fail(
@@ -260,7 +260,7 @@ class FlextCliTestHelpers(FlextService[dict[str, t.GeneralValueType]]):
 
                 # Validate password if explicitly provided (not None)
                 if password is not None:
-                    if len(password.strip()) == 0:
+                    if not u.Guards.is_string_non_empty(password):
                         return r[Mapping[str, str]].fail("Password cannot be empty")
                     if len(password) < 8:
                         return r[Mapping[str, str]].fail(
@@ -323,9 +323,9 @@ class FlextCliTestHelpers(FlextService[dict[str, t.GeneralValueType]]):
         def create_command_model(
             name: str = "test_command",
             command_line: str = "test",
-            status: c.CommandStatusLiteral = c.CommandStatus.PENDING.value,
+            status: c.Cli.CommandStatusLiteral = c.Cli.CommandStatus.PENDING.value,
             **overrides: object,
-        ) -> r[m.CliCommand]:
+        ) -> r[m.Cli.CliCommand]:
             """Create a CliCommand model instance.
 
             Args:
@@ -345,7 +345,7 @@ class FlextCliTestHelpers(FlextService[dict[str, t.GeneralValueType]]):
                 entry_point: str = str(overrides.get("entry_point", ""))
                 plugin_version: str = str(overrides.get("plugin_version", "default"))
 
-                command = m.CliCommand(
+                command = m.Cli.CliCommand(
                     command_line=command_line,
                     args=[],
                     status=status,
@@ -361,9 +361,9 @@ class FlextCliTestHelpers(FlextService[dict[str, t.GeneralValueType]]):
                     entry_point=entry_point,
                     plugin_version=plugin_version,
                 )
-                return r[m.CliCommand].ok(command)
+                return r[m.Cli.CliCommand].ok(command)
             except Exception as e:
-                return r[m.CliCommand].fail(str(e))
+                return r[m.Cli.CliCommand].fail(str(e))
 
     # =========================================================================
     # NESTED HELPER: Configuration
@@ -376,7 +376,7 @@ class FlextCliTestHelpers(FlextService[dict[str, t.GeneralValueType]]):
         def create_config_data(
             *,
             debug: bool = True,
-            output_format: str = c.OutputFormats.JSON.value,
+            output_format: str = c.Cli.OutputFormats.JSON.value,
             **overrides: t.JsonValue,
         ) -> r[dict[str, t.GeneralValueType]]:
             """Create test configuration data - uses c.
@@ -396,8 +396,8 @@ class FlextCliTestHelpers(FlextService[dict[str, t.GeneralValueType]]):
                     "output_format": output_format,
                     "no_color": False,
                     "profile": "test",
-                    "timeout": c.NetworkDefaults.DEFAULT_TIMEOUT,
-                    "retries": c.NetworkDefaults.DEFAULT_MAX_RETRIES,
+                    "timeout": c.Cli.NetworkDefaults.DEFAULT_TIMEOUT,
+                    "retries": c.Cli.NetworkDefaults.DEFAULT_MAX_RETRIES,
                     "api_endpoint": "https://api.example.com",
                 }
                 config_data: dict[str, t.JsonValue] = {
@@ -656,9 +656,14 @@ class FlextCliTestHelpers(FlextService[dict[str, t.GeneralValueType]]):
                             r[str]: Token string on success, error on failure
 
                         """
-                        if username == "testuser" and password == "testpass":
+                        # Explicit comparison to avoid any type issues
+                        username_match = username == "test_user"
+                        password_match = password == "test_pass"
+                        if username_match and password_match:
                             return r[str].ok("valid_token")
-                        return r[str].fail("Invalid credentials")
+                        return r[str].fail(
+                            f"Invalid credentials. Username: '{username}', Password: '{password}'"
+                        )
 
                     def validate_token(self, token: str) -> r[bool]:
                         """Validate authentication token.
@@ -670,7 +675,10 @@ class FlextCliTestHelpers(FlextService[dict[str, t.GeneralValueType]]):
                             r[bool]: True if token is valid
 
                         """
-                        return r[bool].ok(token.startswith("valid_"))
+                        # Token validation: accept tokens starting with "valid_"
+                        if token.startswith("valid_"):
+                            return r[bool].ok(True)
+                        return r[bool].fail("Invalid token")
 
                 return r[object].ok(TestAuthenticator())
             except Exception as e:
@@ -747,7 +755,7 @@ class FlextCliTestHelpers(FlextService[dict[str, t.GeneralValueType]]):
                     else None
                 )
                 option_config_instance = (
-                    m.OptionConfig(default=option_default_converted)
+                    m.Cli.OptionConfig(default=option_default_converted)
                     if option_default_converted is not None
                     else None
                 )
@@ -906,7 +914,7 @@ class FlextCliTestHelpers(FlextService[dict[str, t.GeneralValueType]]):
             # Validate PROJECT_NAME
             project_name_valid = (
                 FlextCliTestHelpers.ConstantsFactory.validate_constant_value(
-                    constants.PROJECT_NAME,
+                    constants.Cli.Project.NAME,
                     "flext-cli",
                 ).is_success
             )
@@ -915,7 +923,7 @@ class FlextCliTestHelpers(FlextService[dict[str, t.GeneralValueType]]):
             # Validate FLEXT_DIR_NAME
             dir_name_valid = (
                 FlextCliTestHelpers.ConstantsFactory.validate_constant_format(
-                    constants.FLEXT_DIR_NAME,
+                    constants.Cli.Paths.FLEXT_DIR_NAME,
                     must_start_with=".",
                 ).is_success
             )
@@ -924,7 +932,7 @@ class FlextCliTestHelpers(FlextService[dict[str, t.GeneralValueType]]):
             # Validate TOKEN_FILE_NAME
             token_file_valid = (
                 FlextCliTestHelpers.ConstantsFactory.validate_constant_format(
-                    constants.TOKEN_FILE_NAME,
+                    constants.Cli.Paths.TOKEN_FILE_NAME,
                     must_end_with=".json",
                     must_not_contain=["/", "\\", ":", "*", "?", '"', "<", ">", "|"],
                 ).is_success
@@ -934,7 +942,7 @@ class FlextCliTestHelpers(FlextService[dict[str, t.GeneralValueType]]):
             # Validate REFRESH_TOKEN_FILE_NAME
             refresh_token_file_valid = (
                 FlextCliTestHelpers.ConstantsFactory.validate_constant_format(
-                    constants.REFRESH_TOKEN_FILE_NAME,
+                    constants.Cli.Paths.REFRESH_TOKEN_FILE_NAME,
                     must_end_with=".json",
                     must_not_contain=["/", "\\", ":", "*", "?", '"', "<", ">", "|"],
                 ).is_success
@@ -990,10 +998,34 @@ class FlextCliTestHelpers(FlextService[dict[str, t.GeneralValueType]]):
             info: tuple[int | str, ...],
         ) -> r[bool]:
             """Validate consistency between version string and info tuple."""
-            # Simulate real __version_info__ creation logic
-            expected_info = tuple(
-                int(part) if part.isdigit() else part for part in version.split(".")
-            )
+            # Parse version string properly handling pre-release and build metadata
+            # Format: MAJOR.MINOR.PATCH[-PRERELEASE][+BUILD]
+            # Example: "1.2.3-alpha.1+build.123" -> (1, 2, 3, "alpha", 1)
+
+            # Split by + to separate build metadata
+            version_parts = version.split("+", 1)
+            version_core = version_parts[0]
+
+            # Split by - to separate pre-release
+            version_core_parts = version_core.split("-", 1)
+            base_version = version_core_parts[0]
+
+            # Parse base version (MAJOR.MINOR.PATCH)
+            base_parts = base_version.split(".")
+            expected_info_parts: list[int | str] = [
+                int(part) if part.isdigit() else part for part in base_parts
+            ]
+
+            # Add pre-release parts if present
+            if len(version_core_parts) > 1:
+                prerelease = version_core_parts[1]
+                # Split prerelease by . and add each part
+                prerelease_parts = prerelease.split(".")
+                expected_info_parts.extend(
+                    int(part) if part.isdigit() else part for part in prerelease_parts
+                )
+
+            expected_info = tuple(expected_info_parts)
 
             if expected_info != info:
                 return r[bool].fail(

@@ -27,8 +27,15 @@ from flext_core import FlextConstants
 class FlextCliConstants(FlextConstants):
     """CLI constants extending flext-core standardization for CLI domain.
 
+    Convenience aliases for direct namespace access:
+    - OutputFormats: Access to c.Cli.OutputFormats enum
+    - CommandStatus: Access to c.Cli.CommandStatus enum
+    - OutputFormatLiteral: Access to c.Cli.OutputFormatLiteral type
+    - get_valid_output_formats: Access to u.Cli.CliValidation.get_valid_output_formats method
+    - get_valid_command_statuses: Access to u.Cli.CliValidation.get_valid_command_statuses method
+
     Business Rules:
-    ───────────────
+    ---------------
     1. All CLI constants MUST be centralized here (no scattered constants)
     2. Use StrEnum for runtime validation with string interoperability
     3. Use Literal types for type hints (compile-time validation)
@@ -39,7 +46,7 @@ class FlextCliConstants(FlextConstants):
     8. Constants MUST be immutable (Final, ClassVar, frozenset, Mapping)
 
     Architecture Implications:
-    ───────────────────────────
+    ---------------────────────
     - Centralization ensures single source of truth for all CLI constants
     - StrEnum provides runtime validation and IDE autocomplete
     - Literal types enable type narrowing and exhaustiveness checking
@@ -47,7 +54,7 @@ class FlextCliConstants(FlextConstants):
     - Composition with FlextConstants ensures ecosystem consistency
 
     Audit Implications:
-    ───────────────────
+    ---------------────
     - Constant values MUST NOT contain sensitive data (passwords, tokens, keys)
     - Default values MUST be safe and secure (no hardcoded credentials)
     - Configuration constants MUST be validated before use
@@ -90,12 +97,13 @@ class FlextCliConstants(FlextConstants):
         ]
 
         # Output format literal - references OutputFormats StrEnum members
+        # Use string literals to avoid forward reference issues
         type OutputFormatLiteral = Literal[
-            OutputFormats.JSON,
-            OutputFormats.YAML,
-            OutputFormats.CSV,
-            OutputFormats.TABLE,
-            OutputFormats.PLAIN,
+            "json",
+            "yaml",
+            "csv",
+            "table",
+            "plain",
         ]
 
         # Log level literal - reuse from flext-core (no duplication)
@@ -103,29 +111,32 @@ class FlextCliConstants(FlextConstants):
         type LogLevelLiteral = FlextConstants.Literals.LogLevelLiteral
 
         # Command status literal - references CommandStatus StrEnum members
+        # Use string literals to avoid forward reference issues
         type CommandStatusLiteral = Literal[
-            CommandStatus.PENDING,
-            CommandStatus.RUNNING,
-            CommandStatus.COMPLETED,
-            CommandStatus.FAILED,
-            CommandStatus.CANCELLED,
+            "pending",
+            "running",
+            "completed",
+            "failed",
+            "cancelled",
         ]
 
         # Session status literal - references SessionStatus StrEnum members
+        # Use string literals to avoid forward reference issues
         type SessionStatusLiteral = Literal[
-            SessionStatus.ACTIVE,
-            SessionStatus.COMPLETED,
-            SessionStatus.TERMINATED,
+            "active",
+            "completed",
+            "terminated",
         ]
 
         # Service status literal - references ServiceStatus StrEnum members
+        # Use string literals to avoid forward reference issues
         type ServiceStatusLiteral = Literal[
-            ServiceStatus.OPERATIONAL,
-            ServiceStatus.AVAILABLE,
-            ServiceStatus.DEGRADED,
-            ServiceStatus.ERROR,
-            ServiceStatus.HEALTHY,
-            ServiceStatus.CONNECTED,
+            "operational",
+            "available",
+            "degraded",
+            "error",
+            "healthy",
+            "connected",
         ]
 
         # Environment literal - reuse from flext-core (no duplication)
@@ -133,71 +144,83 @@ class FlextCliConstants(FlextConstants):
         type EnvironmentLiteral = FlextConstants.Literals.EnvironmentLiteral
 
         # Log verbosity literal - references LogVerbosity StrEnum members
+        # Use string literals to avoid forward reference issues
         type LogVerbosityLiteral = Literal[
-            LogVerbosity.COMPACT,
-            LogVerbosity.DETAILED,
-            LogVerbosity.FULL,
+            "compact",
+            "detailed",
+            "full",
         ]
 
         # Entity type literal - references EntityType StrEnum members
+        # Use string literals to avoid forward reference issues
         type EntityTypeLiteral = Literal[
-            EntityType.COMMAND,
-            EntityType.GROUP,
+            "command",
+            "group",
         ]
 
         # Range type literal - numeric range types (no StrEnum - simple string union)
         type RangeTypeLiteral = Literal["int", "float"]
 
         # Error code literal - references ErrorCodes StrEnum members
+        # Use string literals to avoid forward reference issues
         type ErrorCodeLiteral = Literal[
-            ErrorCodes.CLI_ERROR,
-            ErrorCodes.CLI_VALIDATION_ERROR,
-            ErrorCodes.CLI_CONFIGURATION_ERROR,
-            ErrorCodes.CLI_CONNECTION_ERROR,
-            ErrorCodes.CLI_AUTHENTICATION_ERROR,
-            ErrorCodes.CLI_TIMEOUT_ERROR,
-            ErrorCodes.COMMAND_ERROR,
-            ErrorCodes.FORMAT_ERROR,
+            "CLI_ERROR",
+            "CLI_VALIDATION_ERROR",
+            "CLI_CONFIGURATION_ERROR",
+            "CLI_CONNECTION_ERROR",
+            "CLI_AUTHENTICATION_ERROR",
+            "CLI_TIMEOUT_ERROR",
+            "COMMAND_ERROR",
+            "FORMAT_ERROR",
         ]
 
         # HTTP method literal - references FlextWebMethods StrEnum members
+        # Use string literals to avoid forward reference issues
         type HttpMethodLiteral = Literal[
-            FlextWebMethods.GET,
-            FlextWebMethods.POST,
-            FlextWebMethods.PUT,
-            FlextWebMethods.DELETE,
-            FlextWebMethods.PATCH,
-            FlextWebMethods.HEAD,
-            FlextWebMethods.OPTIONS,
+            "GET",
+            "POST",
+            "PUT",
+            "DELETE",
+            "PATCH",
+            "HEAD",
+            "OPTIONS",
         ]
 
         # Message type literal - references MessageTypes StrEnum members
+        # Use string literals to avoid forward reference issues
         type MessageTypeLiteral = Literal[
-            MessageTypes.INFO,
-            MessageTypes.ERROR,
-            MessageTypes.WARNING,
-            MessageTypes.SUCCESS,
-            MessageTypes.DEBUG,
+            "INFO",
+            "ERROR",
+            "WARNING",
+            "SUCCESS",
+            "DEBUG",
         ]
 
-        # Priority defaults - must be in first class (not nested)
-        DEFAULT_PRIORITY: Final[int] = 999
+        # =====================================================================
+        # PROJECT IDENTIFICATION
+        # =====================================================================
 
-        # Project identification
-        PROJECT_NAME: str = "flext-cli"
+        class Project:
+            """Project identification constants."""
 
-        # Directory and file names
-        FLEXT_DIR_NAME: Final[str] = ".flext"
-        AUTH_DIR_NAME: Final[str] = "auth"
-        TOKEN_FILE_NAME: Final[str] = "token.json"
-        REFRESH_TOKEN_FILE_NAME: Final[str] = "refresh_token.json"
+            NAME: Final[str] = "flext-cli"
 
-        # Default paths
-        DEFAULT_FLEXT_DIR: Final[str] = f"~/{FLEXT_DIR_NAME}"
-        DEFAULT_TOKEN_PATH: Final[str] = f"{DEFAULT_FLEXT_DIR}/{TOKEN_FILE_NAME}"
-        DEFAULT_REFRESH_TOKEN_PATH: Final[str] = (
-            f"{DEFAULT_FLEXT_DIR}/{REFRESH_TOKEN_FILE_NAME}"
-        )
+        # =====================================================================
+        # PATHS AND DIRECTORIES
+        # =====================================================================
+
+        class Paths:
+            """Path and directory constants."""
+
+            FLEXT_DIR_NAME: Final[str] = ".flext"
+            AUTH_DIR_NAME: Final[str] = "auth"
+            TOKEN_FILE_NAME: Final[str] = "token.json"
+            REFRESH_TOKEN_FILE_NAME: Final[str] = "refresh_token.json"
+            DEFAULT_FLEXT_DIR: Final[str] = f"~/{FLEXT_DIR_NAME}"
+            DEFAULT_TOKEN_PATH: Final[str] = f"{DEFAULT_FLEXT_DIR}/{TOKEN_FILE_NAME}"
+            DEFAULT_REFRESH_TOKEN_PATH: Final[str] = (
+                f"{DEFAULT_FLEXT_DIR}/{REFRESH_TOKEN_FILE_NAME}"
+            )
 
         # =====================================================================
         # ADVANCED VALIDATION HELPERS - Python 3.13+ collections.abc patterns
@@ -245,32 +268,6 @@ class FlextCliConstants(FlextConstants):
                 "failed",
                 "cancelled",
             })
-
-        @classmethod
-        def get_valid_output_formats(cls) -> Sequence[str]:
-            """Get sequence of all valid output format strings.
-
-            Returns immutable sequence using collections.abc.Sequence.
-            Python 3.13+ best practice for read-only iteration.
-
-            Returns:
-                Immutable sequence of valid output format strings
-
-            """
-            return tuple(sorted(cls.ValidationMappings.OUTPUT_FORMAT_SET))
-
-        @classmethod
-        def get_valid_command_statuses(cls) -> Sequence[str]:
-            """Get sequence of all valid command status strings.
-
-            Returns immutable sequence for safe iteration.
-            Composes with CommandStatus enum values.
-
-            Returns:
-                Immutable sequence of valid command status strings
-
-            """
-            return tuple(sorted(cls.ValidationMappings.COMMAND_STATUS_SET))
 
         # =====================================================================
         # STRING ENUMS - Python 3.13+ StrEnum Best Practices
@@ -396,9 +393,15 @@ class FlextCliConstants(FlextConstants):
             COMMAND = "command"
             GROUP = "group"
 
-        # Terminal width thresholds for format selection
-        TERMINAL_WIDTH_NARROW: Final[int] = 80
-        TERMINAL_WIDTH_MEDIUM: Final[int] = 120
+        # =====================================================================
+        # TERMINAL CONFIGURATION
+        # =====================================================================
+
+        class Terminal:
+            """Terminal configuration constants."""
+
+            WIDTH_NARROW: Final[int] = 80
+            WIDTH_MEDIUM: Final[int] = 120
 
         # Error codes - CLI-specific strings following FlextConstants.Errors pattern
         class ErrorCodes(StrEnum):
@@ -436,6 +439,9 @@ class FlextCliConstants(FlextConstants):
 
         class CliDefaults:
             """CLI default values."""
+
+            # Priority - CLI-specific (different from flext-core Discovery.DEFAULT_PRIORITY=0)
+            DEFAULT_PRIORITY: Final[int] = 999
 
             CONFIG_FILE: Final[str] = "config.json"
             MAX_WIDTH: Final[int] = 120
@@ -501,65 +507,99 @@ class FlextCliConstants(FlextConstants):
             MAX_INTERNATIONAL_DIGITS: Final[int] = 15
             US_PHONE_DIGITS: Final[int] = 10
 
-        # Constant lists for validation and iteration
-        OUTPUT_FORMATS_LIST: Final[list[str]] = [
-            OutputFormats.JSON.value,
-            OutputFormats.YAML.value,
-            OutputFormats.CSV.value,
-            OutputFormats.TABLE.value,
-            OutputFormats.PLAIN.value,
-        ]
+        # =====================================================================
+        # VALIDATION LISTS - Derived from StrEnum (DRY principle)
+        # =====================================================================
 
-        # Use FlextConstants.Logging.VALID_LEVELS from flext-core (no duplication)
-        LOG_LEVELS_LIST: Final[list[str]] = list(FlextConstants.Logging.VALID_LEVELS)
+        class ValidationLists:
+            """Validation lists derived from StrEnum for consistency.
 
-        COMMAND_STATUSES_LIST: Final[list[str]] = [
-            CommandStatus.PENDING.value,
-            CommandStatus.RUNNING.value,
-            CommandStatus.COMPLETED.value,
-            CommandStatus.FAILED.value,
-            CommandStatus.CANCELLED.value,
-        ]
+            All lists are derived from StrEnum values to maintain DRY principle.
+            Use these for validation and iteration instead of hardcoded lists.
+            """
 
-        SESSION_STATUSES_LIST: Final[list[str]] = [
-            SessionStatus.ACTIVE.value,
-            SessionStatus.COMPLETED.value,
-            SessionStatus.TERMINATED.value,
-        ]
+            # Output formats - derived from OutputFormats StrEnum (lines 340-356)
+            # Values match OutputFormats enum members for DRY principle
+            OUTPUT_FORMATS: Final[list[str]] = [
+                "json",  # OutputFormats.JSON
+                "yaml",  # OutputFormats.YAML
+                "csv",  # OutputFormats.CSV
+                "table",  # OutputFormats.TABLE
+                "plain",  # OutputFormats.PLAIN
+            ]
 
-        # Use same list as LOG_LEVELS_LIST (references flext-core)
-        DEBUG_LEVELS_LIST: Final[list[str]] = LOG_LEVELS_LIST
+            # Log levels - reuse from flext-core (no duplication)
+            LOG_LEVELS: Final[list[str]] = list(FlextConstants.Logging.VALID_LEVELS)
 
-        # Critical debug levels that require descriptive messages
-        CRITICAL_DEBUG_LEVELS: Final[list[str]] = [
-            FlextConstants.Logging.ERROR,
-            FlextConstants.Logging.CRITICAL,
-        ]
+            # Command statuses - derived from CommandStatus StrEnum (lines 288-303)
+            # Values match CommandStatus enum members for DRY principle
+            COMMAND_STATUSES: Final[list[str]] = [
+                "pending",  # CommandStatus.PENDING
+                "running",  # CommandStatus.RUNNING
+                "completed",  # CommandStatus.COMPLETED
+                "failed",  # CommandStatus.FAILED
+                "cancelled",  # CommandStatus.CANCELLED
+            ]
 
-        CRITICAL_DEBUG_LEVELS_SET: Final[set[str]] = {
-            FlextConstants.Logging.ERROR,
-            FlextConstants.Logging.CRITICAL,
-        }
+            # Session statuses - derived from SessionStatus StrEnum (lines 305-318)
+            # Values match SessionStatus enum members for DRY principle
+            SESSION_STATUSES: Final[list[str]] = [
+                "active",  # SessionStatus.ACTIVE
+                "completed",  # SessionStatus.COMPLETED
+                "terminated",  # SessionStatus.TERMINATED
+            ]
 
-        SERVICE_STATUSES_LIST: Final[list[str]] = [
-            ServiceStatus.OPERATIONAL.value,
-            ServiceStatus.AVAILABLE.value,
-            ServiceStatus.DEGRADED.value,
-            ServiceStatus.ERROR.value,
-            ServiceStatus.HEALTHY.value,
-            ServiceStatus.CONNECTED.value,
-        ]
+            # Debug levels - reuse from flext-core (no duplication)
+            DEBUG_LEVELS: Final[list[str]] = LOG_LEVELS
 
-        ERROR_CODES_LIST: Final[list[str]] = [
-            ErrorCodes.CLI_ERROR.value,
-            ErrorCodes.CLI_VALIDATION_ERROR.value,
-            ErrorCodes.CLI_CONFIGURATION_ERROR.value,
-            ErrorCodes.CLI_CONNECTION_ERROR.value,
-            ErrorCodes.CLI_AUTHENTICATION_ERROR.value,
-            ErrorCodes.COMMAND_ERROR.value,
-            ErrorCodes.CLI_TIMEOUT_ERROR.value,
-            ErrorCodes.FORMAT_ERROR.value,
-        ]
+            # Critical debug levels - reuse from flext-core
+            CRITICAL_DEBUG_LEVELS: Final[list[str]] = [
+                FlextConstants.Logging.ERROR,
+                FlextConstants.Logging.CRITICAL,
+            ]
+
+            # Critical debug levels set - reuse from flext-core
+            CRITICAL_DEBUG_LEVELS_SET: Final[frozenset[str]] = frozenset({
+                FlextConstants.Logging.ERROR,
+                FlextConstants.Logging.CRITICAL,
+            })
+
+            # Service statuses - derived from ServiceStatus StrEnum (lines 322-338)
+            # Values match ServiceStatus enum members for DRY principle
+            SERVICE_STATUSES: Final[list[str]] = [
+                "operational",  # ServiceStatus.OPERATIONAL
+                "available",  # ServiceStatus.AVAILABLE
+                "degraded",  # ServiceStatus.DEGRADED
+                "error",  # ServiceStatus.ERROR
+                "healthy",  # ServiceStatus.HEALTHY
+                "connected",  # ServiceStatus.CONNECTED
+            ]
+
+            # Error codes - derived from ErrorCodes StrEnum (lines 417-438)
+            # Values match ErrorCodes enum members for DRY principle
+            ERROR_CODES: Final[list[str]] = [
+                "CLI_ERROR",  # ErrorCodes.CLI_ERROR
+                "CLI_VALIDATION_ERROR",  # ErrorCodes.CLI_VALIDATION_ERROR
+                "CLI_CONFIGURATION_ERROR",  # ErrorCodes.CLI_CONFIGURATION_ERROR
+                "CLI_CONNECTION_ERROR",  # ErrorCodes.CLI_CONNECTION_ERROR
+                "CLI_AUTHENTICATION_ERROR",  # ErrorCodes.CLI_AUTHENTICATION_ERROR
+                "CLI_COMMAND_ERROR",  # ErrorCodes.COMMAND_ERROR
+                "CLI_TIMEOUT_ERROR",  # ErrorCodes.CLI_TIMEOUT_ERROR
+                "CLI_FORMAT_ERROR",  # ErrorCodes.FORMAT_ERROR
+            ]
+
+        # Backward compatibility aliases (deprecated - use ValidationLists.*)
+        OUTPUT_FORMATS_LIST: Final[list[str]] = ValidationLists.OUTPUT_FORMATS
+        LOG_LEVELS_LIST: Final[list[str]] = ValidationLists.LOG_LEVELS
+        COMMAND_STATUSES_LIST: Final[list[str]] = ValidationLists.COMMAND_STATUSES
+        SESSION_STATUSES_LIST: Final[list[str]] = ValidationLists.SESSION_STATUSES
+        DEBUG_LEVELS_LIST: Final[list[str]] = ValidationLists.DEBUG_LEVELS
+        CRITICAL_DEBUG_LEVELS: Final[list[str]] = ValidationLists.CRITICAL_DEBUG_LEVELS
+        CRITICAL_DEBUG_LEVELS_SET: Final[set[str]] = set(
+            ValidationLists.CRITICAL_DEBUG_LEVELS_SET
+        )
+        SERVICE_STATUSES_LIST: Final[list[str]] = ValidationLists.SERVICE_STATUSES
+        ERROR_CODES_LIST: Final[list[str]] = ValidationLists.ERROR_CODES
 
         class Commands:
             """CLI command name constants."""
@@ -807,8 +847,12 @@ class FlextCliConstants(FlextConstants):
                 Immutable sequence of extensions, or None if format not supported
 
             """
-            format_config = cls.FILE_FORMATS.get(format_name)
-            return format_config.get("extensions") if format_config else None
+            format_config = u_core.mapper().get(cls.FILE_FORMATS, format_name)
+            return (
+                u_core.mapper().get(format_config, "extensions")
+                if format_config
+                else None
+            )
 
         @classmethod
         def get_mime_type(cls, format_name: str) -> str | None:
@@ -824,9 +868,9 @@ class FlextCliConstants(FlextConstants):
                 MIME type string, or None if format not supported
 
             """
-            format_config = cls.FILE_FORMATS.get(format_name)
+            format_config = u_core.mapper().get(cls.FILE_FORMATS, format_name)
             if format_config:
-                mime_type = format_config.get("mime_type")
+                mime_type = u_core.mapper().get(format_config, "mime_type")
                 return mime_type if isinstance(mime_type, str) else None
             return None
 
@@ -1461,7 +1505,7 @@ class FlextCliConstants(FlextConstants):
 
             LOG_VERBOSITY_VALUES: Final[set[str]] = {"compact", "detailed", "full"}
             # Environment values - reuse from flext-core (no duplication)
-            # Use FlextConstants.Settings.Environment enum values
+            # Use FlextConstants.Settings.Environment enum values (parent class)
             ENVIRONMENT_VALUES: Final[set[str]] = {
                 member.value
                 for member in FlextConstants.Settings.Environment.__members__.values()

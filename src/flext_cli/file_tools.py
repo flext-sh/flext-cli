@@ -90,12 +90,12 @@ class FlextCliFileTools:
     @staticmethod
     def _get_encoding(encoding: str | int | None) -> str:
         """Normalize encoding to string."""
-        return encoding if isinstance(encoding, str) else c.Cli.Encoding.UTF8
+        return encoding if isinstance(encoding, str) else c.Utilities.DEFAULT_ENCODING
 
     @staticmethod
     def _read_file_with_encoding(
         file_path: Path,
-        encoding: str = c.Cli.Encoding.UTF8,
+        encoding: str = c.Utilities.DEFAULT_ENCODING,
     ) -> str:
         """Generalized text file reader."""
         return file_path.read_text(encoding=encoding)
@@ -104,7 +104,7 @@ class FlextCliFileTools:
     def _write_file_with_encoding(
         file_path: Path,
         content: str,
-        encoding: str = c.Cli.Encoding.UTF8,
+        encoding: str = c.Utilities.DEFAULT_ENCODING,
     ) -> None:
         """Generalized text file writer."""
         file_path.write_text(content, encoding=encoding)
@@ -112,12 +112,12 @@ class FlextCliFileTools:
     @staticmethod
     def _open_file_for_reading(file_path: Path) -> io.TextIOWrapper:
         """Generalized file opener for reading."""
-        return file_path.open(encoding=c.Cli.Encoding.UTF8)
+        return file_path.open(encoding=c.Utilities.DEFAULT_ENCODING)
 
     @staticmethod
     def _open_file_for_writing(file_path: Path) -> io.TextIOWrapper:
         """Generalized file opener for writing."""
-        return file_path.open(mode="w", encoding=c.Cli.Encoding.UTF8)
+        return file_path.open(mode="w", encoding=c.Utilities.DEFAULT_ENCODING)
 
     @staticmethod
     def _get_file_stat_attr(file_path: Path, attr: str) -> int | float:
@@ -127,13 +127,13 @@ class FlextCliFileTools:
         if isinstance(value, (int, float)):
             return value
         # Try parsing as int first, then float
-        int_result = u.parse(value, int, default=0)
+        int_result = u.Cli.parse(value, int, default=0)
         if int_result.is_success:
             int_value = int_result.unwrap()
             if isinstance(int_value, int):
                 return int_value
         # Fallback to float
-        float_result = u.parse(value, float, default=0.0)
+        float_result = u.Cli.parse(value, float, default=0.0)
         return float_result.unwrap() if float_result.is_success else 0.0
 
     @staticmethod
@@ -143,26 +143,28 @@ class FlextCliFileTools:
     ) -> r[str]:
         """Detect file format from extension."""
         path = Path(file_path)
-        extension = path.suffix.lower().lstrip(c.FileToolsDefaults.EXTENSION_PREFIX)
+        extension = path.suffix.lower().lstrip(c.Cli.FileToolsDefaults.EXTENSION_PREFIX)
 
         for format_name, format_info in supported_formats.items():
             if (
                 FlextRuntime.is_dict_like(format_info)
-                and c.FileIODefaults.FORMAT_EXTENSIONS_KEY in format_info
+                and c.Cli.FileIODefaults.FORMAT_EXTENSIONS_KEY in format_info
             ):
-                extensions = format_info[c.FileIODefaults.FORMAT_EXTENSIONS_KEY]
+                extensions = format_info[c.Cli.FileIODefaults.FORMAT_EXTENSIONS_KEY]
                 if FlextRuntime.is_list_like(extensions) and extension in extensions:
                     return r[str].ok(format_name)
 
         return r[str].fail(
-            c.FileErrorMessages.UNSUPPORTED_FORMAT_GENERIC.format(extension=extension),
+            c.Cli.FileErrorMessages.UNSUPPORTED_FORMAT_GENERIC.format(
+                extension=extension
+            ),
         )
 
     @staticmethod
     def _load_json_file(file_path: str) -> t.GeneralValueType:
         """Load JSON file content."""
         path = Path(file_path)
-        with path.open(encoding=c.Cli.Encoding.UTF8) as f:
+        with path.open(encoding=c.Utilities.DEFAULT_ENCODING) as f:
             raw_data: object = json.load(f)
             # Use ur JSON conversion
             if isinstance(raw_data, dict):
@@ -191,7 +193,7 @@ class FlextCliFileTools:
     def _load_yaml_file(file_path: str) -> t.GeneralValueType:
         """Load YAML file content."""
         path = Path(file_path)
-        with path.open(encoding=c.Cli.Encoding.UTF8) as f:
+        with path.open(encoding=c.Utilities.DEFAULT_ENCODING) as f:
             raw_data: object = yaml.safe_load(f)
             # Use ur JSON conversion
             if isinstance(raw_data, dict):
@@ -225,14 +227,14 @@ class FlextCliFileTools:
         path = Path(file_path)
         extension = path.suffix.lower()
 
-        if extension == c.FileExtensions.JSON:
+        if extension == c.Cli.FileExtensions.JSON:
             return FlextCliFileTools.write_json_file(file_path, data)
 
-        if extension in c.FileSupportedFormats.YAML_EXTENSIONS_SET:
+        if extension in c.Cli.FileSupportedFormats.YAML_EXTENSIONS_SET:
             return FlextCliFileTools.write_yaml_file(file_path, data)
 
         return r[bool].fail(
-            c.FileErrorMessages.UNSUPPORTED_FORMAT_EXTENSION.format(
+            c.Cli.FileErrorMessages.UNSUPPORTED_FORMAT_EXTENSION.format(
                 extension=extension
             ),
         )
@@ -254,7 +256,7 @@ class FlextCliFileTools:
     def write_text_file(
         file_path: str | Path,
         content: str,
-        encoding: str | int = c.Cli.Encoding.UTF8,
+        encoding: str | int = c.Utilities.DEFAULT_ENCODING,
     ) -> r[bool]:
         """Write text content to file."""
         path = FlextCliFileTools._normalize_path(file_path)
@@ -281,7 +283,7 @@ class FlextCliFileTools:
         path = FlextCliFileTools._normalize_path(file_path)
         return FlextCliFileTools._execute_file_operation(
             path.read_bytes,
-            c.FileErrorMessages.BINARY_READ_FAILED,
+            c.Cli.FileErrorMessages.BINARY_READ_FAILED,
         )
 
     @staticmethod
@@ -295,7 +297,9 @@ class FlextCliFileTools:
             path.write_bytes(content)
             return r[bool].ok(True)
         except Exception as e:
-            return r[bool].fail(c.FileErrorMessages.BINARY_WRITE_FAILED.format(error=e))
+            return r[bool].fail(
+                c.Cli.FileErrorMessages.BINARY_WRITE_FAILED.format(error=e)
+            )
 
     # ==========================================================================
     # JSON FILE OPERATIONS
@@ -308,7 +312,7 @@ class FlextCliFileTools:
         """Read JSON file."""
         return FlextCliFileTools._execute_file_operation(
             lambda: FlextCliFileTools._load_json_file(str(file_path)),
-            c.FileErrorMessages.JSON_LOAD_FAILED,
+            c.Cli.FileErrorMessages.JSON_LOAD_FAILED,
         )
 
     @staticmethod
@@ -324,7 +328,7 @@ class FlextCliFileTools:
         path = FlextCliFileTools._normalize_path(file_path)
 
         def _write_json() -> bool:
-            with path.open(mode="w", encoding=c.Cli.Encoding.UTF8) as f:
+            with path.open(mode="w", encoding=c.Utilities.DEFAULT_ENCODING) as f:
                 json.dump(
                     data,
                     f,
@@ -350,7 +354,7 @@ class FlextCliFileTools:
         """Read YAML file."""
         return FlextCliFileTools._execute_file_operation(
             lambda: FlextCliFileTools._load_yaml_file(str(file_path)),
-            c.FileErrorMessages.YAML_LOAD_FAILED,
+            c.Cli.FileErrorMessages.YAML_LOAD_FAILED,
         )
 
     @staticmethod
@@ -366,7 +370,7 @@ class FlextCliFileTools:
         path = FlextCliFileTools._normalize_path(file_path)
 
         def _write_yaml() -> bool:
-            with path.open(mode="w", encoding=c.Cli.Encoding.UTF8) as f:
+            with path.open(mode="w", encoding=c.Utilities.DEFAULT_ENCODING) as f:
                 yaml.safe_dump(
                     data,
                     f,
@@ -404,14 +408,14 @@ class FlextCliFileTools:
 
         def _read_csv() -> list[list[str]]:
             with path.open(
-                encoding=c.Cli.Encoding.UTF8,
+                encoding=c.Utilities.DEFAULT_ENCODING,
                 newline="",
             ) as f:
                 return list(csv.reader(f))
 
         return FlextCliFileTools._execute_file_operation(
             _read_csv,
-            c.FileErrorMessages.CSV_READ_FAILED,
+            c.Cli.FileErrorMessages.CSV_READ_FAILED,
         )
 
     @staticmethod
@@ -424,13 +428,15 @@ class FlextCliFileTools:
         try:
             with path.open(
                 mode="w",
-                encoding=c.Cli.Encoding.UTF8,
+                encoding=c.Utilities.DEFAULT_ENCODING,
                 newline="",
             ) as f:
                 csv.writer(f).writerows(data)
             return r[bool].ok(True)
         except Exception as e:
-            return r[bool].fail(c.FileErrorMessages.CSV_WRITE_FAILED.format(error=e))
+            return r[bool].fail(
+                c.Cli.FileErrorMessages.CSV_WRITE_FAILED.format(error=e)
+            )
 
     @staticmethod
     def read_csv_file_with_headers(
@@ -453,14 +459,14 @@ class FlextCliFileTools:
 
         def _read_csv_dict() -> list[dict[str, str]]:
             with path.open(
-                encoding=c.Cli.Encoding.UTF8,
+                encoding=c.Utilities.DEFAULT_ENCODING,
                 newline="",
             ) as f:
                 return list(csv.DictReader(f))
 
         return FlextCliFileTools._execute_file_operation(
             _read_csv_dict,
-            c.FileErrorMessages.CSV_READ_FAILED,
+            c.Cli.FileErrorMessages.CSV_READ_FAILED,
         )
 
     # ==========================================================================
@@ -473,7 +479,7 @@ class FlextCliFileTools:
         path = FlextCliFileTools._normalize_path(file_path)
         return FlextCliFileTools._execute_file_operation(
             path.exists,
-            c.FileErrorMessages.FILE_EXISTENCE_CHECK_FAILED,
+            c.Cli.FileErrorMessages.FILE_EXISTENCE_CHECK_FAILED,
         )
 
     @staticmethod
@@ -503,7 +509,7 @@ class FlextCliFileTools:
 
         return FlextCliFileTools._execute_file_operation(
             _delete,
-            c.FileErrorMessages.FILE_DELETION_FAILED,
+            c.Cli.FileErrorMessages.FILE_DELETION_FAILED,
         )
 
     @staticmethod
@@ -519,7 +525,7 @@ class FlextCliFileTools:
 
         return FlextCliFileTools._execute_file_operation(
             _move,
-            c.FileErrorMessages.FILE_MOVE_FAILED,
+            c.Cli.FileErrorMessages.FILE_MOVE_FAILED,
         )
 
     @staticmethod
@@ -582,7 +588,7 @@ class FlextCliFileTools:
 
         return FlextCliFileTools._execute_file_operation(
             _mkdir,
-            c.FileErrorMessages.DIRECTORY_CREATION_FAILED,
+            c.Cli.FileErrorMessages.DIRECTORY_CREATION_FAILED,
         )
 
     @staticmethod
@@ -591,7 +597,7 @@ class FlextCliFileTools:
         path = FlextCliFileTools._normalize_path(dir_path)
         return FlextCliFileTools._execute_file_operation(
             path.is_dir,
-            c.FileErrorMessages.DIRECTORY_CHECK_FAILED,
+            c.Cli.FileErrorMessages.DIRECTORY_CHECK_FAILED,
         )
 
     @staticmethod
@@ -604,7 +610,7 @@ class FlextCliFileTools:
 
         return FlextCliFileTools._execute_file_operation(
             _rmtree,
-            c.FileErrorMessages.DIRECTORY_DELETION_FAILED,
+            c.Cli.FileErrorMessages.DIRECTORY_DELETION_FAILED,
         )
 
     @staticmethod
@@ -613,7 +619,7 @@ class FlextCliFileTools:
         path = FlextCliFileTools._normalize_path(dir_path)
         return FlextCliFileTools._execute_file_operation(
             lambda: [str(p.name) for p in path.iterdir()],
-            c.FileErrorMessages.DIRECTORY_LISTING_FAILED,
+            c.Cli.FileErrorMessages.DIRECTORY_LISTING_FAILED,
         )
 
     # ==========================================================================
@@ -644,14 +650,16 @@ class FlextCliFileTools:
                         return [ev]
                     return []
 
-                ext_result = u.process(v, processor=convert_extension, on_error="skip")
+                ext_result = u.Cli.process(
+                    v, processor=convert_extension, on_error="skip"
+                )
                 if ext_result.is_success and isinstance(ext_result.value, dict):
                     # Type narrowing: ext_result.value is dict, safe to return
                     return ext_result.value
             return {}
 
-        process_result = u.process(
-            dict(c.FILE_FORMATS),
+        process_result = u.Cli.process(
+            dict(c.Cli.FILE_FORMATS),
             processor=convert_format_value,
             on_error="skip",
         )
@@ -678,10 +686,10 @@ class FlextCliFileTools:
 
         file_format = format_result.unwrap()
         format_loaders: dict[str, Callable[[], r[t.GeneralValueType]]] = {
-            c.FileSupportedFormats.JSON: lambda: FlextCliFileTools.read_json_file(
+            c.Cli.FileSupportedFormats.JSON: lambda: FlextCliFileTools.read_json_file(
                 file_path,
             ),
-            c.FileSupportedFormats.YAML: lambda: FlextCliFileTools.read_yaml_file(
+            c.Cli.FileSupportedFormats.YAML: lambda: FlextCliFileTools.read_yaml_file(
                 file_path,
             ),
         }
@@ -717,14 +725,14 @@ class FlextCliFileTools:
             hash_obj = hashlib.new(algorithm)
             with path.open("rb") as f:
                 for chunk in iter(
-                    lambda: f.read(c.FileToolsDefaults.CHUNK_SIZE),
+                    lambda: f.read(c.Cli.FileToolsDefaults.CHUNK_SIZE),
                     b"",
                 ):
                     hash_obj.update(chunk)
             return r[str].ok(hash_obj.hexdigest())
         except Exception as e:
             return r[str].fail(
-                c.FileErrorMessages.HASH_CALCULATION_FAILED.format(error=e),
+                c.Cli.FileErrorMessages.HASH_CALCULATION_FAILED.format(error=e),
             )
 
     @staticmethod
@@ -738,7 +746,7 @@ class FlextCliFileTools:
         if hash_result.is_failure:
             return r[bool].fail(
                 hash_result.error
-                or c.FileErrorMessages.HASH_CALCULATION_FAILED_NO_ERROR,
+                or c.Cli.FileErrorMessages.HASH_CALCULATION_FAILED_NO_ERROR,
             )
 
         return r[bool].ok(hash_result.unwrap() == expected_hash)
@@ -756,7 +764,7 @@ class FlextCliFileTools:
             return r[str].ok(path)
         except Exception as e:  # pragma: no cover
             return r[str].fail(
-                c.FileErrorMessages.TEMP_FILE_CREATION_FAILED.format(error=e),
+                c.Cli.FileErrorMessages.TEMP_FILE_CREATION_FAILED.format(error=e),
             )
 
     @staticmethod
@@ -764,7 +772,7 @@ class FlextCliFileTools:
         """Create temporary directory."""
         return FlextCliFileTools._execute_file_operation(
             tempfile.mkdtemp,
-            c.FileErrorMessages.TEMP_DIR_CREATION_FAILED,
+            c.Cli.FileErrorMessages.TEMP_DIR_CREATION_FAILED,
         )
 
     # ==========================================================================
@@ -780,13 +788,15 @@ class FlextCliFileTools:
         try:
             with zipfile.ZipFile(
                 archive_path,
-                c.FileIODefaults.ZIP_WRITE_MODE,
+                c.Cli.FileIODefaults.ZIP_WRITE_MODE,
             ) as zipf:
                 for file in files:
                     zipf.write(file, Path(file).name)
             return r[bool].ok(True)
         except Exception as e:
-            return r[bool].fail(c.FileErrorMessages.ZIP_CREATION_FAILED.format(error=e))
+            return r[bool].fail(
+                c.Cli.FileErrorMessages.ZIP_CREATION_FAILED.format(error=e)
+            )
 
     @staticmethod
     def extract_zip_archive(
@@ -797,13 +807,13 @@ class FlextCliFileTools:
         try:
             with zipfile.ZipFile(
                 archive_path,
-                c.FileIODefaults.ZIP_READ_MODE,
+                c.Cli.FileIODefaults.ZIP_READ_MODE,
             ) as zipf:
                 zipf.extractall(extract_to)
             return r[bool].ok(True)
         except Exception as e:
             return r[bool].fail(
-                c.FileErrorMessages.ZIP_EXTRACTION_FAILED.format(error=e),
+                c.Cli.FileErrorMessages.ZIP_EXTRACTION_FAILED.format(error=e),
             )
 
     # ==========================================================================
@@ -819,7 +829,7 @@ class FlextCliFileTools:
         path = FlextCliFileTools._normalize_path(directory)
         return FlextCliFileTools._execute_file_operation(
             lambda: [str(p) for p in path.glob(pattern)],
-            c.FileErrorMessages.FILE_SEARCH_FAILED,
+            c.Cli.FileErrorMessages.FILE_SEARCH_FAILED,
         )
 
     @staticmethod
@@ -832,10 +842,10 @@ class FlextCliFileTools:
         return FlextCliFileTools._execute_file_operation(
             lambda: [
                 str(p)
-                for p in path.rglob(c.FileIODefaults.GLOB_PATTERN_ALL)
+                for p in path.rglob(c.Cli.FileIODefaults.GLOB_PATTERN_ALL)
                 if p.name == name
             ],
-            c.FileErrorMessages.FILE_SEARCH_FAILED,
+            c.Cli.FileErrorMessages.FILE_SEARCH_FAILED,
         )
 
     @staticmethod
@@ -850,7 +860,9 @@ class FlextCliFileTools:
             for file_path in path.rglob("*"):
                 if file_path.is_file():
                     try:
-                        text = file_path.read_text(encoding=c.Cli.Encoding.UTF8)
+                        text = file_path.read_text(
+                            encoding=c.Utilities.DEFAULT_ENCODING
+                        )
                         if content in text:
                             matches.append(str(file_path))
                     except (UnicodeDecodeError, PermissionError):
@@ -858,7 +870,7 @@ class FlextCliFileTools:
             return r[list[str]].ok(matches)
         except Exception as e:  # pragma: no cover
             return r[list[str]].fail(
-                c.FileErrorMessages.CONTENT_SEARCH_FAILED.format(error=e),
+                c.Cli.FileErrorMessages.CONTENT_SEARCH_FAILED.format(error=e),
             )
 
     # ==========================================================================
@@ -868,7 +880,7 @@ class FlextCliFileTools:
     @staticmethod
     def get_supported_formats() -> r[list[str]]:
         """Get list of supported file formats."""
-        return r[list[str]].ok(c.FileSupportedFormats.SUPPORTED_FORMATS)
+        return r[list[str]].ok(c.Cli.FileSupportedFormats.SUPPORTED_FORMATS)
 
 
 __all__ = ["FlextCliFileTools"]

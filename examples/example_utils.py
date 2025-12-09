@@ -98,7 +98,7 @@ def print_demo_error(
 
 def display_config_table(
     cli: FlextCli,
-    config_data: t.Data.CliDataDict,
+    config_data: t.Cli.Data.CliDataDict,
     title: str = "Configuration",
     headers: list[str] | None = None,
 ) -> None:

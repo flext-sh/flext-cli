@@ -11,9 +11,9 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 from collections.abc import Iterable, Mapping, Sequence
+from itertools import starmap
 
-from flext_core import r
-from flext_core.runtime import FlextRuntime
+from flext_core import FlextRuntime, r, u as u_core
 from tabulate import tabulate
 
 from flext_cli.base import FlextCliServiceBase
@@ -144,7 +144,7 @@ class FlextCliTables(FlextCliServiceBase):
             >>> tables = FlextCliTables()
             >>> data = [{"name": "Alice", "age": 30}]
             >>> # With config object
-            >>> config = m.TableConfig(table_format="grid")
+            >>> config = m.Cli.TableConfig(table_format="grid")
             >>> result = tables.create_table(data, config)
             >>> # With kwargs (automatic conversion)
             >>> result = tables.create_table(
@@ -156,27 +156,27 @@ class FlextCliTables(FlextCliServiceBase):
         """
         # Use Configuration.build_options_from_kwargs pattern for automatic conversion
         # Type narrowing: check if config is instance of TableConfig (not just protocol)
-        config_concrete: m.TableConfig | None = (
-            config if isinstance(config, m.TableConfig) else None
+        config_concrete: m.Cli.TableConfig | None = (
+            config if isinstance(config, m.Cli.TableConfig) else None
         )
         config_result = u.Configuration.build_options_from_kwargs(
-            model_class=m.TableConfig,
+            model_class=m.Cli.TableConfig,
             explicit_options=config_concrete,
-            default_factory=m.TableConfig,
+            default_factory=m.Cli.TableConfig,
             **config_kwargs,
         )
         if config_result.is_failure:
             return r[str].fail(
-                u.err(config_result, default="Invalid table configuration"),
+                u_core.err(config_result, default="Invalid table configuration"),  # type: ignore[arg-type]
             )
-        cfg_result = u.val(config_result, default=m.TableConfig())
-        cfg = m.TableConfig() if cfg_result is None else cfg_result
+        cfg_result = u_core.val(config_result, default=m.Cli.TableConfig())  # type: ignore[arg-type]
+        cfg = m.Cli.TableConfig() if cfg_result is None else cfg_result
 
         # Railway pattern: validate → prepare headers → create table
         validation_result = self._validate_table_data(data, cfg.table_format)
         if validation_result.is_failure:
             return r[str].fail(
-                u.err(validation_result, default="Table data validation failed"),
+                u_core.err(validation_result, default="Table data validation failed"),  # type: ignore[arg-type]
                 error_code=validation_result.error_code,
                 error_data=validation_result.error_data,
             )
@@ -205,13 +205,13 @@ class FlextCliTables(FlextCliServiceBase):
         """
         if not data:
             return r[bool].fail(
-                c.TablesErrorMessages.TABLE_DATA_EMPTY,
+                c.Cli.TablesErrorMessages.TABLE_DATA_EMPTY,
             )
 
-        if table_format not in c.TABLE_FORMATS:
-            available_formats_list = list(c.TABLE_FORMATS.keys())
+        if table_format not in c.Cli.TABLE_FORMATS:
+            available_formats_list = list(c.Cli.TABLE_FORMATS.keys())
             return r[bool].fail(
-                c.TablesErrorMessages.INVALID_TABLE_FORMAT.format(
+                c.Cli.TablesErrorMessages.INVALID_TABLE_FORMAT.format(
                     table_format=table_format,
                     available_formats=", ".join(available_formats_list),
                 ),
@@ -256,7 +256,7 @@ class FlextCliTables(FlextCliServiceBase):
     def _create_table_string(
         self,
         data: TableData,
-        cfg: m.TableConfig,
+        cfg: m.Cli.TableConfig,
         headers: str | Sequence[str],
     ) -> r[str]:
         """Create table string using tabulate with exception handling."""
@@ -283,17 +283,17 @@ class FlextCliTables(FlextCliServiceBase):
                 row_count = len(data)
 
             self.logger.debug(
-                c.TablesLogMessages.TABLE_CREATED,
+                c.Cli.TablesLogMessages.TABLE_CREATED,
                 extra={
-                    c.TablesLogMessages.TABLE_FORMAT_KEY: (cfg.table_format),
-                    c.TablesLogMessages.ROW_COUNT_KEY: row_count,
+                    c.Cli.TablesLogMessages.TABLE_FORMAT_KEY: (cfg.table_format),
+                    c.Cli.TablesLogMessages.ROW_COUNT_KEY: row_count,
                 },
             )
 
             return r[str].ok(table_str)
 
         except Exception as e:
-            error_msg = c.TablesErrorMessages.TABLE_CREATION_FAILED.format(
+            error_msg = c.Cli.TablesErrorMessages.TABLE_CREATION_FAILED.format(
                 error=e,
             )
             self.logger.exception(error_msg)
@@ -520,7 +520,7 @@ class FlextCliTables(FlextCliServiceBase):
             List of format names
 
         """
-        return list(c.TABLE_FORMATS.keys())
+        return list(c.Cli.TABLE_FORMATS.keys())
 
     @staticmethod
     def get_format_description(format_name: str) -> r[str]:
@@ -533,14 +533,14 @@ class FlextCliTables(FlextCliServiceBase):
             FlextResult containing format description
 
         """
-        if format_name not in c.TABLE_FORMATS:
+        if format_name not in c.Cli.TABLE_FORMATS:
             return r[str].fail(
-                c.TablesErrorMessages.UNKNOWN_FORMAT.format(
+                c.Cli.TablesErrorMessages.UNKNOWN_FORMAT.format(
                     format_name=format_name,
                 ),
             )
 
-        return r[str].ok(c.TABLE_FORMATS[format_name])
+        return r[str].ok(c.Cli.TABLE_FORMATS[format_name])
 
     def print_available_formats(self) -> r[bool]:
         """Print all available table formats with descriptions.
@@ -555,15 +555,9 @@ class FlextCliTables(FlextCliServiceBase):
                 """Convert format to dict."""
                 return {"format": name, "description": desc}
 
-            process_result = u.process(
-                dict(c.TABLE_FORMATS),
-                processor=convert_format,
-                on_error="skip",
-            )
-            formats_data: list[dict[str, str]] = (
-                list(process_result.value.values())
-                if process_result.is_success and isinstance(process_result.value, dict)
-                else []
+            # Convert TABLE_FORMATS dict to list of format dicts
+            formats_data: list[dict[str, str]] = list(
+                starmap(convert_format, c.Cli.TABLE_FORMATS.items())
             )
 
             # Use tabulate directly to create the formats table
@@ -578,7 +572,7 @@ class FlextCliTables(FlextCliServiceBase):
             return r[bool].ok(True)
 
         except Exception as e:
-            error_msg = c.TablesErrorMessages.PRINT_FORMATS_FAILED.format(
+            error_msg = c.Cli.TablesErrorMessages.PRINT_FORMATS_FAILED.format(
                 error=e,
             )
             self.logger.exception(error_msg)

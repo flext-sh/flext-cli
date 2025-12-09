@@ -102,7 +102,7 @@ class FlextCliFormatters:
             return r[bool].ok(True)
         except Exception as e:  # pragma: no cover - Defensive: Catches unexpected errors during console print operation
             return r[bool].fail(
-                c.FormattersErrorMessages.PRINT_FAILED.format(error=e),
+                c.Cli.FormattersErrorMessages.PRINT_FAILED.format(error=e),
             )
 
     @staticmethod
@@ -142,7 +142,8 @@ class FlextCliFormatters:
                     """Add single row to table."""
                     if (
                         headers
-                        and len(headers) == c.FormattersDefaults.TABLE_KEY_VALUE_COLUMNS
+                        and len(headers)
+                        == c.Cli.FormattersDefaults.TABLE_KEY_VALUE_COLUMNS
                     ):
                         # Key-value pairs
                         table.add_row(str(k), str(v))
@@ -150,13 +151,13 @@ class FlextCliFormatters:
                         # Single column with values
                         table.add_row(str(k), str(v))
 
-                u.process(data, processor=add_row, on_error="skip")
+                u.Cli.process(data, processor=add_row, on_error="skip")
 
             return r[RichTable].ok(table)
 
         except Exception as e:  # pragma: no cover - Defensive: Catches unexpected errors during table creation
             return r[RichTable].fail(
-                c.FormattersErrorMessages.TABLE_CREATION_FAILED.format(
+                c.Cli.FormattersErrorMessages.TABLE_CREATION_FAILED.format(
                     error=e,
                 ),
             )
@@ -204,7 +205,7 @@ class FlextCliFormatters:
 
         except Exception as e:
             return r[str].fail(
-                c.FormattersErrorMessages.TABLE_RENDERING_FAILED.format(
+                c.Cli.FormattersErrorMessages.TABLE_RENDERING_FAILED.format(
                     error=e,
                 ),
             )
@@ -226,7 +227,7 @@ class FlextCliFormatters:
             return r[Progress].ok(progress)
         except Exception as e:
             return r[Progress].fail(
-                c.FormattersErrorMessages.PROGRESS_CREATION_FAILED.format(
+                c.Cli.FormattersErrorMessages.PROGRESS_CREATION_FAILED.format(
                     error=e,
                 ),
             )
@@ -250,7 +251,7 @@ class FlextCliFormatters:
             return r[RichTree].ok(tree)
         except Exception as e:
             return r[RichTree].fail(
-                c.FormattersErrorMessages.TREE_CREATION_FAILED.format(
+                c.Cli.FormattersErrorMessages.TREE_CREATION_FAILED.format(
                     error=e,
                 ),
             )
@@ -282,7 +283,7 @@ class FlextCliFormatters:
 
         except Exception as e:
             return r[str].fail(
-                c.FormattersErrorMessages.TREE_RENDERING_FAILED.format(
+                c.Cli.FormattersErrorMessages.TREE_RENDERING_FAILED.format(
                     error=e,
                 ),
             )
@@ -312,7 +313,9 @@ class FlextCliFormatters:
         try:
             # Validate spinner explicitly - no fallback
             validated_spinner = (
-                spinner if spinner is not None else c.FormattersDefaults.DEFAULT_SPINNER
+                spinner
+                if spinner is not None
+                else c.Cli.FormattersDefaults.DEFAULT_SPINNER
             )
             status = RichStatus(
                 message,
@@ -322,7 +325,7 @@ class FlextCliFormatters:
             return r[RichStatus].ok(status)
         except Exception as e:
             return r[RichStatus].fail(
-                c.FormattersErrorMessages.STATUS_CREATION_FAILED.format(
+                c.Cli.FormattersErrorMessages.STATUS_CREATION_FAILED.format(
                     error=e,
                 ),
             )
@@ -348,7 +351,7 @@ class FlextCliFormatters:
             validated_refresh_rate = (
                 refresh_per_second
                 if refresh_per_second is not None
-                else c.FormattersDefaults.DEFAULT_REFRESH_RATE
+                else c.Cli.FormattersDefaults.DEFAULT_REFRESH_RATE
             )
             live = RichLive(
                 refresh_per_second=validated_refresh_rate,
@@ -357,7 +360,7 @@ class FlextCliFormatters:
             return r[RichLive].ok(live)
         except Exception as e:
             return r[RichLive].fail(
-                c.FormattersErrorMessages.LIVE_CREATION_FAILED.format(
+                c.Cli.FormattersErrorMessages.LIVE_CREATION_FAILED.format(
                     error=e,
                 ),
             )
@@ -379,7 +382,7 @@ class FlextCliFormatters:
             return r[RichLayout].ok(layout)
         except Exception as e:
             return r[RichLayout].fail(
-                c.FormattersErrorMessages.LAYOUT_CREATION_FAILED.format(
+                c.Cli.FormattersErrorMessages.LAYOUT_CREATION_FAILED.format(
                     error=e,
                 ),
             )
@@ -410,7 +413,7 @@ class FlextCliFormatters:
             validated_border_style = (
                 border_style
                 if border_style is not None
-                else c.FormattersDefaults.DEFAULT_BORDER_STYLE
+                else c.Cli.FormattersDefaults.DEFAULT_BORDER_STYLE
             )
             panel = RichPanel(
                 content,
@@ -420,7 +423,7 @@ class FlextCliFormatters:
             return r[RichPanel].ok(panel)
         except Exception as e:
             return r[RichPanel].fail(
-                c.FormattersErrorMessages.PANEL_CREATION_FAILED.format(
+                c.Cli.FormattersErrorMessages.PANEL_CREATION_FAILED.format(
                     error=e,
                 ),
             )

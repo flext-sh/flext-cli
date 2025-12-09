@@ -86,7 +86,7 @@ def test_cli_command() -> None:
 
 
 def save_config_command(
-    config: t.Data.CliDataDict,
+    config: t.Cli.Data.CliDataDict,
 ) -> r[bool]:
     """CLI command that saves config."""
     temp_file = Path(tempfile.gettempdir()) / "test_config.json"
@@ -110,10 +110,10 @@ def test_file_operations() -> None:
         cast("dict[str, t.GeneralValueType]", config_data),
         to_json=True,
     )
-    config: t.Data.CliDataDict = (
+    config: t.Cli.Data.CliDataDict = (
         transform_result.unwrap()
         if transform_result.is_success
-        else cast("t.Data.CliDataDict", config_data)
+        else cast("t.Cli.Data.CliDataDict", config_data)
     )
     result = save_config_command(config)
 
@@ -243,17 +243,17 @@ def test_error_scenarios() -> None:
 # ============================================================================
 
 
-def full_workflow_command() -> r[t.Data.CliDataDict]:
+def full_workflow_command() -> r[t.Cli.Data.CliDataDict]:
     """Complete workflow to test."""
     # Step 1: Create data
-    data: t.Data.CliDataDict = {"status": "processing", "items": [1, 2, 3]}
+    data: t.Cli.Data.CliDataDict = {"status": "processing", "items": [1, 2, 3]}
 
     # Step 2: Save to file
     temp_file = Path(tempfile.gettempdir()) / "workflow_test.json"
     write_result = cli.file_tools.write_json_file(temp_file, data)
 
     if write_result.is_failure:
-        return r[t.Data.CliDataDict].fail(
+        return r[t.Cli.Data.CliDataDict].fail(
             f"Write failed: {write_result.error}",
         )
 
@@ -262,7 +262,7 @@ def full_workflow_command() -> r[t.Data.CliDataDict]:
 
     if read_result.is_failure:
         temp_file.unlink(missing_ok=True)
-        return r[t.Data.CliDataDict].fail(
+        return r[t.Cli.Data.CliDataDict].fail(
             f"Read failed: {read_result.error}",
         )
 
@@ -270,7 +270,7 @@ def full_workflow_command() -> r[t.Data.CliDataDict]:
     loaded = read_result.unwrap()
     if not isinstance(loaded, dict):
         temp_file.unlink(missing_ok=True)
-        return r[t.Data.CliDataDict].fail(
+        return r[t.Cli.Data.CliDataDict].fail(
             "Data is not a dictionary",
         )
 
@@ -284,14 +284,14 @@ def full_workflow_command() -> r[t.Data.CliDataDict]:
     # Use u.transform for JSON conversion
     if isinstance(loaded, dict):
         transform_result = u.transform(loaded, to_json=True)
-        typed_data: t.Data.CliDataDict = (
+        typed_data: t.Cli.Data.CliDataDict = (
             transform_result.unwrap()
             if transform_result.is_success
-            else cast("t.Data.CliDataDict", loaded)
+            else cast("t.Cli.Data.CliDataDict", loaded)
         )
     else:
-        typed_data = cast("t.Data.CliDataDict", loaded)
-    return r[t.Data.CliDataDict].ok(typed_data)
+        typed_data = cast("t.Cli.Data.CliDataDict", loaded)
+    return r[t.Cli.Data.CliDataDict].ok(typed_data)
 
 
 def test_integration() -> None:

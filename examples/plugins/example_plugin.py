@@ -96,7 +96,7 @@ class ExamplePlugin:
         """Initialize plugin."""
         super().__init__()
         self._initialized = False
-        self._config: t.Data.CliDataDict = {}
+        self._config: t.Cli.Data.CliDataDict = {}
 
     def initialize(self, _cli_main: object) -> r[bool]:
         """Initialize the plugin.

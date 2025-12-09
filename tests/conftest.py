@@ -22,7 +22,7 @@ import tempfile
 from collections.abc import Generator
 from datetime import UTC, datetime
 from pathlib import Path
-from typing import Protocol, cast
+from typing import Protocol
 
 import pytest
 import yaml
@@ -107,7 +107,7 @@ def pytest_configure(config: pytest.Config) -> None:
     # Config constants
     builtins.Config = c.Config
     # Other constants
-    builtins.OutputFormats = c.OutputFormats
+    builtins.OutputFormats = c.Cli.OutputFormats
     builtins.Statuses = c.Statuses
     builtins.FileOps = c.FileOps
     builtins.Password = c.Password
@@ -255,7 +255,7 @@ class CliCommandFactory(Protocol):
         description: str = ...,
         status: str = ...,
         **kwargs: object,
-    ) -> FlextCliModels.CliCommand:
+    ) -> FlextCliModels.Cli.CliCommand:
         """Create CliCommand instance."""
         ...
 
@@ -269,7 +269,7 @@ class CliSessionFactory(Protocol):
         user_id: str = ...,
         status: str = ...,
         **kwargs: object,
-    ) -> FlextCliModels.CliSession:
+    ) -> FlextCliModels.Cli.CliSession:
         """Create CliSession instance."""
         ...
 
@@ -283,7 +283,7 @@ class DebugInfoFactory(Protocol):
         level: str = ...,
         message: str = ...,
         **kwargs: object,
-    ) -> FlextCliModels.DebugInfo:
+    ) -> FlextCliModels.Cli.DebugInfo:
         """Create DebugInfo instance."""
         ...
 
@@ -296,7 +296,7 @@ class LoggingConfigFactory(Protocol):
         log_level: str = ...,
         log_format: str = ...,
         **kwargs: object,
-    ) -> FlextCliModels.LoggingConfig:
+    ) -> FlextCliModels.Cli.LoggingConfig:
         """Create LoggingConfig instance."""
         ...
 
@@ -311,7 +311,7 @@ def cli_command_factory() -> CliCommandFactory:
         description: str = "Test command",
         status: str = "pending",
         **kwargs: object,
-    ) -> FlextCliModels.CliCommand:
+    ) -> FlextCliModels.Cli.CliCommand:
         # No base data needed since CliCommand has extra="forbid"
 
         # Override with CLI-specific data
@@ -334,17 +334,27 @@ def cli_command_factory() -> CliCommandFactory:
         # Merge kwargs
         raw_data = {**cli_data, **kwargs}
         # Use u.transform for JSON conversion (from flext-core)
-        # Cast to ConfigurationDict for type compatibility
+        # Type narrowing: raw_data is dict, compatible with ConfigurationDict
+        if not isinstance(raw_data, dict):
+            msg = "raw_data must be dict"
+            raise TypeError(msg)
+        # ConfigurationDict = Mapping[str, GeneralValueType]
+        typed_data: t.Types.ConfigurationDict = raw_data
         transform_result = u.transform(
-            cast("t.Types.ConfigurationDict", raw_data),
+            typed_data,
             to_json=True,
         )
         if transform_result.is_success:
-            final_data = cast("dict[str, object]", transform_result.unwrap())
+            # unwrap() returns GeneralValueType, narrow to dict[str, object]
+            unwrapped = transform_result.unwrap()
+            if isinstance(unwrapped, dict):
+                final_data: dict[str, object] = dict(unwrapped.items())
+            else:
+                final_data = raw_data
         else:
             final_data = raw_data
         # Use model_validate which accepts dict[str, Any] and validates at runtime
-        return FlextCliModels.CliCommand.model_validate(final_data)
+        return FlextCliModels.Cli.CliCommand.model_validate(final_data)
 
     return _create
 
@@ -382,18 +392,26 @@ def cli_session_factory() -> CliSessionFactory:
         # Merge session data with kwargs
         raw_data = {**session_data, **kwargs}
         # Use u.transform for JSON conversion
-        # Cast to ConfigurationDict for type compatibility
+        # Type narrowing: raw_data is dict, compatible with ConfigurationDict
+        if not isinstance(raw_data, dict):
+            msg = "raw_data must be dict"
+            raise TypeError(msg)
+        typed_data: t.Types.ConfigurationDict = raw_data
         transform_result = u.transform(
-            cast("t.Types.ConfigurationDict", raw_data),
+            typed_data,
             to_json=True,
         )
         if transform_result.is_success:
-            final_data = cast("dict[str, object]", transform_result.unwrap())
+            unwrapped = transform_result.unwrap()
+            if isinstance(unwrapped, dict):
+                final_data: dict[str, object] = dict(unwrapped.items())
+            else:
+                final_data = raw_data
         else:
             final_data = raw_data
         # Create instance - autouse fixture should have handled model_rebuild
         # Use model_validate which accepts dict[str, Any] and validates at runtime
-        return FlextCliModels.CliSession.model_validate(final_data)
+        return FlextCliModels.Cli.CliSession.model_validate(final_data)
 
     return _create
 
@@ -433,17 +451,25 @@ def debug_info_factory() -> DebugInfoFactory:
         # Merge data
         raw_data = {**debug_data, **filtered_kwargs}
         # Use u.transform for JSON conversion
-        # Cast to ConfigurationDict for type compatibility
+        # Type narrowing: raw_data is dict, compatible with ConfigurationDict
+        if not isinstance(raw_data, dict):
+            msg = "raw_data must be dict"
+            raise TypeError(msg)
+        typed_data: t.Types.ConfigurationDict = raw_data
         transform_result = u.transform(
-            cast("t.Types.ConfigurationDict", raw_data),
+            typed_data,
             to_json=True,
         )
         if transform_result.is_success:
-            final_data = cast("dict[str, object]", transform_result.unwrap())
+            unwrapped = transform_result.unwrap()
+            if isinstance(unwrapped, dict):
+                final_data: dict[str, object] = dict(unwrapped.items())
+            else:
+                final_data = raw_data
         else:
             final_data = raw_data
         # Use model_validate which accepts dict[str, Any] and validates at runtime
-        return FlextCliModels.DebugInfo.model_validate(final_data)
+        return FlextCliModels.Cli.DebugInfo.model_validate(final_data)
 
     return _create
 
@@ -471,17 +497,25 @@ def logging_config_factory() -> LoggingConfigFactory:
         # Merge with kwargs
         raw_data = {**logging_data, **kwargs}
         # Use u.transform for JSON conversion
-        # Cast to ConfigurationDict for type compatibility
+        # Type narrowing: raw_data is dict, compatible with ConfigurationDict
+        if not isinstance(raw_data, dict):
+            msg = "raw_data must be dict"
+            raise TypeError(msg)
+        typed_data: t.Types.ConfigurationDict = raw_data
         transform_result = u.transform(
-            cast("t.Types.ConfigurationDict", raw_data),
+            typed_data,
             to_json=True,
         )
         if transform_result.is_success:
-            final_data = cast("dict[str, object]", transform_result.unwrap())
+            unwrapped = transform_result.unwrap()
+            if isinstance(unwrapped, dict):
+                final_data: dict[str, object] = dict(unwrapped.items())
+            else:
+                final_data = raw_data
         else:
             final_data = raw_data
         # Use model_validate which accepts dict[str, Any] and validates at runtime
-        return FlextCliModels.LoggingConfig.model_validate(final_data)
+        return FlextCliModels.Cli.LoggingConfig.model_validate(final_data)
 
     return _create
 
@@ -659,8 +693,8 @@ def sample_config_data() -> dict[str, object]:
         "output_format": "table",
         "no_color": False,
         "profile": "test",
-        "timeout": c.TIMEOUTS.DEFAULT,
-        "retries": c.HTTP.MAX_RETRIES,
+        "timeout": c.Cli.TIMEOUTS.DEFAULT,
+        "retries": c.Cli.HTTP.MAX_RETRIES,
         "api_endpoint": "https://api.example.com",
         "auth_token": "test_token_123",
     }
@@ -688,8 +722,8 @@ def sample_command_data() -> dict[str, object]:
         "command": "test_command",
         "args": ["--verbose", "--output", "json"],
         "kwargs": {
-            "timeout": c.TIMEOUTS.DEFAULT,
-            "retries": c.HTTP.MAX_RETRIES,
+            "timeout": c.Cli.TIMEOUTS.DEFAULT,
+            "retries": c.Cli.HTTP.MAX_RETRIES,
         },
         "expected_result": {"status": "success", "data": "test_output"},
     }

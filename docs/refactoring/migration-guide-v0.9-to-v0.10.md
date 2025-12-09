@@ -515,10 +515,10 @@ def run_command(command: str, args: list[str]):
 
 ### Documentation
 
-- **[Refactoring Plan](REFACTORING_PLAN_V0.10.0.md)** - Technical details
+- **[Refactoring Plan](refactoring-plan-v0.10.0.md)** - Technical details
 - **[Architecture](../architecture.md)** - New architecture explained
 - **[API Reference](../api-reference.md)** - Complete API documentation
-- **[Breaking Changes](BREAKING_CHANGES.md)** - Detailed breaking change list
+- **[Breaking Changes](breaking-changes.md)** - Detailed breaking change list
 
 ### Support Channels
 

@@ -76,7 +76,7 @@ def your_cli_function() -> None:
 # ============================================================================
 
 
-def display_database_results(records: list[t.Data.CliDataDict]) -> None:
+def display_database_results(records: list[t.Cli.Data.CliDataDict]) -> None:
     """Display database query results as a table."""
     if not records:
         cli.print("No results found", style="yellow")
@@ -85,11 +85,11 @@ def display_database_results(records: list[t.Data.CliDataDict]) -> None:
     # Convert your data to table
     # Example: records from SQLAlchemy, MongoDB, etc.
     # first_record is already properly typed
-    first_record: t.Data.CliDataDict = records[0]
+    first_record: t.Cli.Data.CliDataDict = records[0]
     list(first_record.keys())
 
     # For dict[str, object] data, convert to table format
-    table_data: t.Data.CliDataDict = {
+    table_data: t.Cli.Data.CliDataDict = {
         f"Row {i}": " | ".join(str(v) for v in record.values())
         for i, record in enumerate(records[:10], 1)
     }
@@ -111,13 +111,13 @@ def display_database_results(records: list[t.Data.CliDataDict]) -> None:
 
 
 def export_report(
-    data: t.Data.TableRows,
-    format_type: c.OutputFormatLiteral = "table",
+    data: t.Cli.Data.TableRows,
+    format_type: c.Cli.OutputFormatLiteral = c.Cli.OutputFormats.TABLE,
 ) -> FlextResult[str]:
     """Create ASCII tables for logs/reports in your app."""
     # Good for: log files, email reports, markdown docs
     # Create table config with specified format
-    config = m.TableConfig(table_format=format_type)
+    config = m.Cli.TableConfig(table_format=format_type)
     result = tables.create_table(list(data), config=config)
 
     # Return FlextResult to avoid None types (railway pattern)
@@ -216,7 +216,7 @@ def monitor_live_metrics() -> None:
         requests = 150 + (i * 10)
 
         # Create metrics data as ASCII table using FlextCliTables
-        metrics_data: list[t.Data.CliDataDict] = [
+        metrics_data: list[t.Cli.Data.CliDataDict] = [
             {
                 "Metric": "CPU Usage",
                 "Value": f"{cpu}%",
@@ -232,7 +232,7 @@ def monitor_live_metrics() -> None:
 
         # Display using ASCII table (FlextCliTables handles list[dict])
         # Create table config for grid format
-        config = m.TableConfig(table_format="grid")
+        config = m.Cli.TableConfig(table_format="grid")
         table_result = tables.create_table(list(metrics_data), config=config)
 
         if table_result.is_success:
@@ -250,7 +250,7 @@ def monitor_live_metrics() -> None:
 # ============================================================================
 
 
-def display_with_panels(data: t.Data.CliDataDict) -> None:
+def display_with_panels(data: t.Cli.Data.CliDataDict) -> None:
     """Display content in organized sections."""
     cli.print("\n📦 Organized Content Display:", style="cyan")
 
@@ -262,7 +262,7 @@ def display_with_panels(data: t.Data.CliDataDict) -> None:
     cli.print(f"  Pending: {data.get('pending', 0)}", style="yellow")
 
     # Section 2: Details table
-    details_data: list[t.Data.CliDataDict] = []
+    details_data: list[t.Cli.Data.CliDataDict] = []
     for key, value in data.items():
         if key not in {"total", "successful", "failed", "pending"}:
             details_data.append({"Property": key, "Value": str(value)})
@@ -296,7 +296,7 @@ def main() -> None:
 
     # Example 2: Rich tables
     cli.print("\n2. Rich Tables (display data):", style="bold cyan")
-    sample_data: list[t.Data.CliDataDict] = [
+    sample_data: list[t.Cli.Data.CliDataDict] = [
         {"id": 1, "name": "Alice", "status": "active"},
         {"id": 2, "name": "Bob", "status": "inactive"},
     ]
@@ -305,7 +305,7 @@ def main() -> None:
 
     # Example 3: ASCII tables
     cli.print("\n3. ASCII Tables (for logs/reports):", style="bold cyan")
-    ascii_result = export_report(sample_data, "table")
+    ascii_result = export_report(sample_data, c.Cli.OutputFormats.TABLE)
     if ascii_result.is_success:
         pass  # This is plain text - can save to file (ascii_result.unwrap())
 
@@ -328,7 +328,7 @@ def main() -> None:
 
     # Example 8: Panels for organization
     cli.print("\n8. Panels (organized content):", style="bold cyan")
-    panel_data: t.Data.CliDataDict = {
+    panel_data: t.Cli.Data.CliDataDict = {
         "total": 1250,
         "successful": 1100,
         "failed": 50,
@@ -384,13 +384,13 @@ def advanced_output_example() -> None:
     cli.print("\n=== Advanced Output Formatting ===", style="bold blue")
 
     # Using StrEnum for runtime validation
-    output_format = c.OutputFormats.TABLE
+    output_format = c.Cli.OutputFormats.TABLE
     cli.print(f"Using format: {output_format.value}", style="cyan")
 
     # Using collections.abc.Mapping for immutable configuration
 
     # Using advanced table data types
-    sample_data: t.Data.TableRows = (
+    sample_data: t.Cli.Data.TableRows = (
         {"name": "Alice", "age": 30, "role": "developer"},
         {"name": "Bob", "age": 25, "role": "designer"},
         {"name": "Charlie", "age": 35, "role": "manager"},

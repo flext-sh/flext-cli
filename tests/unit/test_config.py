@@ -225,7 +225,7 @@ class TestsCliLoggingConfig:
             case _:
                 pytest.fail(f"Unexpected log level: {level}")
                 log_level = "DEBUG"  # Fallback for type checker (unreachable)
-        config = m.LoggingConfig(
+        config = m.Cli.LoggingConfig(
             log_level=log_level,
             log_format="json",
         )

@@ -495,7 +495,7 @@ class TestsCliCommonParams:
         assert updated_config.verbose is True
         assert updated_config.debug is True
         assert updated_config.cli_log_level.value == "DEBUG"
-        assert updated_config.output_format == c.OutputFormats.JSON.value
+        assert updated_config.output_format == c.Cli.OutputFormats.JSON.value
         assert updated_config.no_color is True
 
     def test_apply_to_config_none_values_ignored(self) -> None:
@@ -1092,7 +1092,7 @@ class TestsCliCommonParams:
     def test_set_log_level_none(self) -> None:
         """Test _set_log_level when log_level is None."""
         config = FlextCliServiceBase.get_cli_config()
-        params = m.CliParamsConfig(log_level=None)
+        params = m.Cli.CliParamsConfig(log_level=None)
         result = FlextCliCommonParams._set_log_level(config, params)
         tm.ok(result)
         assert result.unwrap() == config

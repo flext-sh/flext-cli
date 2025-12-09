@@ -147,7 +147,7 @@ class MyAppConfig:
 
     def display(self) -> None:
         """Display YOUR app configuration."""
-        config_data: t.Data.CliDataDict = {
+        config_data: t.Cli.Data.CliDataDict = {
             "App Name": self.app_name,
             "API Key": f"{self.api_key[:10]}..." if self.api_key else "Not set",
             "Max Workers": str(self.max_workers),
@@ -242,7 +242,7 @@ def load_profile_config(profile_name: str = "default") -> FlextCliConfig | None:
     cli.print(f"✅ Profile '{profile_name}' loaded successfully", style="green")
 
     # Display profile settings
-    profile_data: t.Data.CliDataDict = {
+    profile_data: t.Cli.Data.CliDataDict = {
         "Profile": profile_config.profile,
         "Debug": str(profile_config.debug),
         "Output": profile_config.output_format,

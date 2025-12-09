@@ -96,7 +96,7 @@ class TestsCliCli:
     def test_option_decorator(self) -> None:
         """Test option decorator creation."""
         cli_cli = FlextCliCli()
-        option_config_instance = m.OptionConfig(default=1)
+        option_config_instance = m.Cli.OptionConfig(default=1)
         option_config = cast("p.Cli.OptionConfigProtocol", option_config_instance)
         option_decorator = cli_cli.create_option_decorator(
             "--count",

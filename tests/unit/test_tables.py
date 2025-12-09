@@ -23,7 +23,7 @@ import pytest
 from flext_core import t
 from flext_tests import tm
 
-from flext_cli import FlextCliTables, m, r
+from flext_cli import FlextCliTables, m, r, u
 
 # Fixtures modules removed - use conftest.py and flext_tests instead
 # from ..fixtures.constants import TestTables
@@ -121,7 +121,7 @@ class TestsCliTables:
                     TableTestType.CREATE_TABLE_ADVANCED,
                     "Create table with custom headers",
                     {
-                        "headers": ["name", "age", "city"],
+                        "headers": ["Name", "Age", "City"],
                         "table_format": "simple",
                     },
                     "people_list",
@@ -277,7 +277,7 @@ class TestsCliTables:
                     return r.fail("Table creation failed")
 
                 table_str = result.unwrap()
-                if not table_str or len(table_str.strip()) == 0:
+                if not u.Guards.is_string_non_empty(table_str):
                     return r.fail("Empty table string")
 
                 if expected_content:
@@ -381,7 +381,7 @@ class TestsCliTables:
                     "html",
                     "latex",
                     "tsv",
-                    "csv",
+                    # Note: "csv" is an output format, not a tabulate table format
                 ]:
                     assert fmt in formats
 
@@ -390,7 +390,7 @@ class TestsCliTables:
                 # Type narrowing: test_case.config is JsonDict
                 # Use model_validate for proper type conversion (Pydantic handles validation)
                 # Business Rule: Pydantic model_validate accepts dict[str, object] and validates types
-                config = m.TableConfig.model_validate(test_case.config)
+                config = m.Cli.TableConfig.model_validate(test_case.config)
                 # Convert data to TableData - ensure it's Iterable[Sequence | Mapping]
                 table_data = cast(
                     "Sequence[Sequence[t.GeneralValueType]] | Sequence[Mapping[str, t.GeneralValueType]]",
@@ -414,7 +414,7 @@ class TestsCliTables:
                 # Type narrowing: test_case.config is JsonDict
                 # Use model_validate for proper type conversion (Pydantic handles validation)
                 # Business Rule: Pydantic model_validate accepts dict[str, object] and validates types
-                config = m.TableConfig.model_validate(test_case.config)
+                config = m.Cli.TableConfig.model_validate(test_case.config)
                 # Convert data to TableData - ensure it's Iterable[Sequence | Mapping]
                 table_data = cast(
                     "Sequence[Sequence[t.GeneralValueType]] | Sequence[Mapping[str, t.GeneralValueType]]",
@@ -511,18 +511,19 @@ class TestsCliTables:
         """Test edge cases and special scenarios."""
         # Single row table
         single_row = test_data["single_row"]
-        config = m.TableConfig(table_format="simple")
+        config = m.Cli.TableConfig(table_format="simple")
         table_data = cast(
             "Sequence[Sequence[t.GeneralValueType]] | Sequence[Mapping[str, t.GeneralValueType]]",
             single_row,
         )
         result = tables.create_table(data=table_data, config=config)
         assert result.is_success
-        assert "Alice" in result.unwrap()
+        # single_row contains {"name": "Single"}, so check for "Single"
+        assert "Single" in result.unwrap()
 
         # Table with None values
         with_none = test_data["with_none"]
-        config = m.TableConfig(table_format="simple")
+        config = m.Cli.TableConfig(table_format="simple")
         table_data = cast(
             "Sequence[Sequence[t.GeneralValueType]] | Sequence[Mapping[str, t.GeneralValueType]]",
             with_none,
@@ -535,7 +536,7 @@ class TestsCliTables:
 
         # List of dicts with sequence headers (specific code path)
         custom_headers = ["name", "age", "city"]
-        config = m.TableConfig(
+        config = m.Cli.TableConfig(
             headers=custom_headers,
             table_format="simple",
         )
@@ -604,7 +605,7 @@ class TestsCliTables:
         assert desc_result.is_success
 
         # Step 3: Create table with that format
-        config = m.TableConfig(table_format=first_format)
+        config = m.Cli.TableConfig(table_format=first_format)
         table_data = cast(
             "Sequence[Sequence[t.GeneralValueType]] | Sequence[Mapping[str, t.GeneralValueType]]",
             data,
@@ -616,7 +617,7 @@ class TestsCliTables:
         # Step 4: Test multiple formats with same data
         test_formats = ["simple", "grid", "fancy_grid"][:3]  # Test first 3 formats
         for fmt in test_formats:
-            config = m.TableConfig(table_format=fmt)
+            config = m.Cli.TableConfig(table_format=fmt)
             result = tables.create_table(data=table_data, config=config)
             tm.ok(result), f"Format {fmt} failed"
             assert "Alice" in result.unwrap()
@@ -632,7 +633,7 @@ class TestsCliTables:
     ) -> None:
         """Test table creation using flext_tests validation helpers."""
         data = test_data["people_dict"]
-        config = m.TableConfig(table_format="simple")
+        config = m.Cli.TableConfig(table_format="simple")
         table_data = cast(
             "Sequence[Sequence[t.GeneralValueType]] | Sequence[Mapping[str, t.GeneralValueType]]",
             data,
@@ -653,7 +654,7 @@ class TestsCliTables:
     ) -> None:
         """Test table error handling using flext_tests validation helpers."""
         # Test with empty data
-        config = m.TableConfig(table_format="simple")
+        config = m.Cli.TableConfig(table_format="simple")
         table_data = cast(
             "Sequence[Sequence[t.GeneralValueType]] | Sequence[Mapping[str, t.GeneralValueType]]",
             test_data["empty"],
@@ -665,7 +666,7 @@ class TestsCliTables:
         # Note: The actual behavior may succeed with empty table, so we just check it's a FlextResult
 
         # Test with invalid format
-        config = m.TableConfig(table_format="invalid_format")
+        config = m.Cli.TableConfig(table_format="invalid_format")
         table_data = cast(
             "Sequence[Sequence[t.GeneralValueType]] | Sequence[Mapping[str, t.GeneralValueType]]",
             test_data["people_dict"],
@@ -684,7 +685,7 @@ class TestsCliTables:
         data = test_data["people_dict"]
 
         # Test grid format
-        config = m.TableConfig(table_format="grid")
+        config = m.Cli.TableConfig(table_format="grid")
         table_data = cast(
             "Sequence[Sequence[t.GeneralValueType]] | Sequence[Mapping[str, t.GeneralValueType]]",
             data,

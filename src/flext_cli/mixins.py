@@ -79,7 +79,7 @@ class FlextCliMixins(FlextMixins):
             operation: str,
         ) -> r[bool]:
             """Validate command execution state for operations (delegates to utilities)."""
-            return u.CliValidation.v_state(
+            return u.Cli.CliValidation.v_state(
                 current_status,
                 required=required_status,
                 name=operation,
@@ -91,14 +91,14 @@ class FlextCliMixins(FlextMixins):
             valid_states: list[str],
         ) -> r[bool]:
             """Validate session state (delegates to utilities)."""
-            return u.CliValidation.v_session(current_status, valid=valid_states)
+            return u.Cli.CliValidation.v_session(current_status, valid=valid_states)
 
         @staticmethod
         def validate_pipeline_step(
             step: t.Json.JsonDict | None,
         ) -> r[bool]:
             """Validate pipeline step configuration (delegates to utilities)."""
-            return u.CliValidation.v_step(step)
+            return u.Cli.CliValidation.v_step(step)
 
         @staticmethod
         def validate_configuration_consistency(
@@ -106,7 +106,7 @@ class FlextCliMixins(FlextMixins):
             required_fields: list[str],
         ) -> r[bool]:
             """Validate configuration consistency (delegates to utilities)."""
-            return u.CliValidation.v_config(config_data, fields=required_fields)
+            return u.Cli.CliValidation.v_config(config_data, fields=required_fields)
 
     class CliCommandMixin:
         """Mixin providing CLI command execution patterns with flext-core decorators.

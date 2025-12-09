@@ -10,16 +10,14 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from typing import cast
-
-from flext_core import FlextConfig, r
+from flext_core import FlextConfig, r, s
 from pydantic import Field
 
 from flext_cli.base import FlextCliServiceBase
 from flext_cli.constants import c
 from flext_cli.models import m
 from flext_cli.typings import t
-from flext_cli.utilities import FlextCliUtilities, u
+from flext_cli.utilities import u
 
 
 class FlextCliContext(FlextCliServiceBase):
@@ -39,7 +37,7 @@ class FlextCliContext(FlextCliServiceBase):
     Architecture Implications:
     ───────────────────────────
     - Extends FlextCliServiceBase for consistent logging and container access
-    - Uses FlextModelsEntity.Core for timestamp tracking
+    - Uses FlextModelsEntity.Entry for timestamp tracking
     - Frozen model ensures immutability after creation
     - Type-safe operations using t for domain-specific types
     - Railway-Oriented Programming via FlextResult for error handling
@@ -116,12 +114,16 @@ class FlextCliContext(FlextCliServiceBase):
             global_config = FlextConfig.get_global_instance()
             data["timeout_seconds"] = int(global_config.timeout_seconds)
 
-        # Convert data to JsonDict for super().__init__()
-        # Type cast: data is dict[str, GeneralValueType] which is compatible with JsonDict
-        # FlextService.__init__ accepts **data: t.GeneralValueType, but FlextCliServiceBase
-        # expects JsonDict | None. Cast to JsonDict to satisfy type checker.
-        data_json: t.Json.JsonDict = cast("t.Json.JsonDict", data)
-        super().__init__(**data_json)
+        # Convert data for super().__init__()
+        # FlextService.__init__ accepts **data: t.GeneralValueType
+        # Note: mypy has generic type inference issue with FlextService[JsonDict].__init__
+        # but runtime accepts dict[str, GeneralValueType] as **kwargs: GeneralValueType
+        if not isinstance(data, dict):
+            msg = "data must be dict"
+            raise TypeError(msg)
+        # Pass data directly - FlextService base class accepts **kwargs: GeneralValueType
+        # This works at runtime even if mypy complains about generic type inference
+        s[t.Json.JsonDict].__init__(self, **data)
 
     # ==========================================================================
     # PRIVATE HELPERS - Generalize common patterns
@@ -137,10 +139,8 @@ class FlextCliContext(FlextCliServiceBase):
         Static method - no instance state needed.
         """
         try:
-            # Use FlextCliUtilities.Cli.CliValidation.v_empty for non-empty validation
-            validation_result = FlextCliUtilities.Cli.CliValidation.v_empty(
-                value, name=field_name
-            )
+            # Use runtime alias u.Cli.CliValidation.v_empty for non-empty validation
+            validation_result = u.Cli.CliValidation.v_empty(value, name=field_name)
             if validation_result.is_failure:
                 raise ValueError(
                     validation_result.error or f"{field_name} cannot be empty",

@@ -91,9 +91,9 @@ class TestsCliCore:
         object.__setattr__(core_service, "_commands", commands)
 
     @pytest.fixture
-    def sample_command(self) -> m.CliCommand:
+    def sample_command(self) -> m.Cli.CliCommand:
         """Create sample CLI command for testing."""
-        return m.CliCommand(
+        return m.Cli.CliCommand(
             command_line="test-cmd --option value",
             name="test-cmd",
             description="Test command",
@@ -178,8 +178,8 @@ class TestsCliCore:
             test_config = {
                 "debug": True,
                 "output_format": "json",
-                "timeout": c.TIMEOUTS.DEFAULT,
-                "retries": c.HTTP.MAX_RETRIES,
+                "timeout": c.Cli.TIMEOUTS.DEFAULT,
+                "retries": c.Cli.HTTP.MAX_RETRIES,
             }
             config_file.write_text(json.dumps(test_config))
 
@@ -190,7 +190,7 @@ class TestsCliCore:
             config_data = result.unwrap()
             assert isinstance(config_data, dict)
             assert config_data["debug"] is True
-            assert config_data["output_format"] == c.OutputFormats.JSON.value
+            assert config_data["output_format"] == c.Cli.OutputFormats.JSON.value
 
         def test_load_configuration_nonexistent_file(
             self,
@@ -216,8 +216,8 @@ class TestsCliCore:
             test_config: dict[str, t.GeneralValueType] = {
                 "debug": False,
                 "output_format": "table",
-                "timeout": c.TIMEOUTS.DEFAULT,
-                "retries": c.HTTP.MAX_RETRIES,
+                "timeout": c.Cli.TIMEOUTS.DEFAULT,
+                "retries": c.Cli.HTTP.MAX_RETRIES,
             }
 
             result = core_service.save_configuration(str(config_file), test_config)
@@ -245,11 +245,11 @@ class TestsCliCore:
             valid_config = FlextCliConfig.model_validate({
                 "debug": True,
                 "output_format": "json",
-                "cli_timeout": c.TIMEOUTS.DEFAULT,
-                "max_retries": c.HTTP.MAX_RETRIES,
+                "cli_timeout": c.Cli.TIMEOUTS.DEFAULT,
+                "max_retries": c.Cli.HTTP.MAX_RETRIES,
             })
 
-            result = core_service.validate_configuration(valid_config)
+            result = FlextCliCore.validate_configuration(valid_config)
             assert isinstance(result, r)
             assert result.is_success
 
@@ -272,7 +272,7 @@ class TestsCliCore:
                 )
                 try:
                     config_instance = FlextCliConfig.model_validate(invalid_config)
-                    result = core_service.validate_configuration(config_instance)
+                    result = FlextCliCore.validate_configuration(config_instance)
                     # Validation should return a result (may succeed if Pydantic converted)
                     assert isinstance(result, r)
                 except ValidationError:
@@ -363,7 +363,7 @@ class TestsCliCore:
         def test_register_command_success(
             self,
             core_service: FlextCliCore,
-            sample_command: m.CliCommand,
+            sample_command: m.Cli.CliCommand,
         ) -> None:
             """Test successful command registration."""
             # Cast to protocol type for type compatibility
@@ -380,7 +380,7 @@ class TestsCliCore:
         def test_register_command_duplicate(
             self,
             core_service: FlextCliCore,
-            sample_command: m.CliCommand,
+            sample_command: m.Cli.CliCommand,
         ) -> None:
             """Test registering duplicate command."""
             # Cast to protocol type for type compatibility
@@ -406,7 +406,7 @@ class TestsCliCore:
         def test_get_command_info(
             self,
             core_service: FlextCliCore,
-            sample_command: m.CliCommand,
+            sample_command: m.Cli.CliCommand,
         ) -> None:
             """Test getting command information."""
             # Register command first - cast to protocol type
@@ -439,7 +439,7 @@ class TestsCliCore:
             core_service: FlextCliCore,
         ) -> None:
             """Test register_command exception handler with real scenario."""
-            cmd = m.CliCommand(
+            cmd = m.Cli.CliCommand(
                 command_line="test",
                 name="test",
                 description="Test command",
@@ -603,7 +603,7 @@ class TestsCliCore:
             core_service: FlextCliCore,
         ) -> None:
             """Test full workflow from command registration to execution."""
-            cmd = m.CliCommand(
+            cmd = m.Cli.CliCommand(
                 command_line="workflow-test --flag value",
                 name="workflow-test",
                 description="Workflow test command",
@@ -692,7 +692,7 @@ class TestsCliCore:
             context = ["arg1", "arg2", "arg3"]
             result = core_service._build_execution_context(context)
             assert c.Cli.DictKeys.ARGS in result
-            assert isinstance(result[c.DictKeys.ARGS], list)
+            assert isinstance(result[c.Cli.DictKeys.ARGS], list)
 
         def test_build_execution_context_list_with_dicts(
             self,
@@ -712,7 +712,7 @@ class TestsCliCore:
         def test_execute_command_success(
             self,
             core_service: FlextCliCore,
-            sample_command: m.CliCommand,
+            sample_command: m.Cli.CliCommand,
         ) -> None:
             """Test execute_command with registered command."""
             # Register command first - cast to protocol type
@@ -735,7 +735,7 @@ class TestsCliCore:
         def test_execute_command_with_context(
             self,
             core_service: FlextCliCore,
-            sample_command: m.CliCommand,
+            sample_command: m.Cli.CliCommand,
         ) -> None:
             """Test execute_command with context."""
             # Cast to protocol type for type compatibility
@@ -753,7 +753,7 @@ class TestsCliCore:
         def test_execute_command_with_timeout(
             self,
             core_service: FlextCliCore,
-            sample_command: m.CliCommand,
+            sample_command: m.Cli.CliCommand,
         ) -> None:
             """Test execute_command with timeout."""
             # Cast to protocol type for type compatibility
@@ -1029,7 +1029,7 @@ class TestsCliCore:
         def test_get_command_statistics(
             self,
             core_service: FlextCliCore,
-            sample_command: m.CliCommand,
+            sample_command: m.Cli.CliCommand,
         ) -> None:
             """Test get_command_statistics."""
             # Register a command - cast to protocol type
@@ -1185,7 +1185,7 @@ class TestsCliCore:
         def test_execute_with_commands(
             self,
             core_service: FlextCliCore,
-            sample_command: m.CliCommand,
+            sample_command: m.Cli.CliCommand,
         ) -> None:
             """Test execute method when commands are registered."""
             # Register a command - cast to protocol type
@@ -1210,7 +1210,7 @@ class TestsCliCore:
         def test_execute_cli_command_with_context(
             self,
             core_service: FlextCliCore,
-            sample_command: m.CliCommand,
+            sample_command: m.Cli.CliCommand,
         ) -> None:
             """Test execute_cli_command_with_context."""
             # Register command first - cast to protocol type
@@ -1249,7 +1249,7 @@ class TestsCliCore:
         def test_register_command_empty_name(
             self,
             core_service: FlextCliCore,
-            sample_command: m.CliCommand,
+            sample_command: m.Cli.CliCommand,
         ) -> None:
             """Test register_command with empty name."""
             cmd = sample_command.model_copy(update={"name": ""})

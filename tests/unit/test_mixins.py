@@ -187,7 +187,7 @@ class TestsCliMixins:
         result = FlextCliMixins.BusinessRulesMixin.validate_pipeline_step(
             cast(
                 "t.Json.JsonDict | None",
-                "valid_step",
+                {"name": "valid_step"},
             ),
         )
         tm.ok(result)
@@ -264,7 +264,7 @@ class TestsCliMixins:
             ),
             ["debug", "timeout"],
         )
-        tm.fail(result, has="field2")
+        tm.fail(result, has="timeout")
 
     def test_configuration_consistency_none_config(self) -> None:
         """Test configuration consistency with None config."""

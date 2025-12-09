@@ -95,7 +95,7 @@ def demonstrate_auto_cli_generation() -> None:
     cli.output.print_message("\n🔧 Auto-Generated CLI Parameters:", style="bold cyan")
 
     # Extract CLI parameters from Pydantic model
-    params_result = m.CliModelConverter.model_to_cli_params(DeployConfig)
+    params_result = m.Cli.CliModelConverter.model_to_cli_params(DeployConfig)
 
     if params_result.is_success:
         params = params_result.unwrap()
@@ -141,10 +141,10 @@ def execute_deploy_from_cli(cli_args: dict[str, str | int | bool]) -> None:
             cast("dict[str, t.GeneralValueType]", cli_args),
             to_json=True,
         )
-        typed_args: t.Data.CliDataDict = (
+        typed_args: t.Cli.Data.CliDataDict = (
             transform_result.unwrap()
             if transform_result.is_success
-            else cast("t.Data.CliDataDict", cli_args)
+            else cast("t.Cli.Data.CliDataDict", cli_args)
         )
 
         # Pydantic automatically validates ALL constraints
@@ -207,7 +207,7 @@ def show_common_cli_params() -> None:
     )
 
     # These come from FlextCliConfig Pydantic fields
-    common_params: t.Data.CliDataDict = {
+    common_params: t.Cli.Data.CliDataDict = {
         "verbose": "Enable verbose output (-v)",
         "quiet": "Suppress non-error output (-q)",
         "debug": "Enable debug mode (-d)",
@@ -253,7 +253,7 @@ def demonstrate_nested_models() -> None:
     cli.output.print_message("\n🏗️  Nested Model CLI Generation:", style="bold cyan")
 
     # Extract parameters from nested model
-    db_params_result = m.CliModelConverter.model_to_cli_params(
+    db_params_result = m.Cli.CliModelConverter.model_to_cli_params(
         DatabaseConfig,
     )
 
@@ -491,10 +491,10 @@ def main() -> None:
             cast("dict[str, t.GeneralValueType]", invalid_args),
             to_json=True,
         )
-        typed_invalid_args: t.Data.CliDataDict = (
+        typed_invalid_args: t.Cli.Data.CliDataDict = (
             transform_result.unwrap()
             if transform_result.is_success
-            else cast("t.Data.CliDataDict", invalid_args)
+            else cast("t.Cli.Data.CliDataDict", invalid_args)
         )
 
         # DeployConfig constructor handles type conversion and validation

@@ -271,7 +271,7 @@ class TestsCliModelCommandComprehensive:
 
     def test_literal_types_converted_to_str(self) -> None:
         """Test that Literal types are converted to str for Typer."""
-        params_result = m.CliModelConverter.model_to_cli_params(
+        params_result = m.Cli.CliModelConverter.model_to_cli_params(
             self.EnvironmentConfig,
         )
 
@@ -286,7 +286,7 @@ class TestsCliModelCommandComprehensive:
 
     def test_optional_literal_types_handled(self) -> None:
         """Test that Optional[Literal[...]] types are handled."""
-        params_result = m.CliModelConverter.model_to_cli_params(
+        params_result = m.Cli.CliModelConverter.model_to_cli_params(
             self.OptionalLiteralConfig,
         )
 
@@ -305,7 +305,7 @@ class TestsCliModelCommandComprehensive:
 
     def test_boolean_flags_default_true(self) -> None:
         """Test boolean flags with default=True."""
-        params_result = m.CliModelConverter.model_to_cli_params(
+        params_result = m.Cli.CliModelConverter.model_to_cli_params(
             self.BooleanFlagsConfig,
         )
 
@@ -320,7 +320,7 @@ class TestsCliModelCommandComprehensive:
 
     def test_boolean_flags_default_false(self) -> None:
         """Test boolean flags with default=False."""
-        params_result = m.CliModelConverter.model_to_cli_params(
+        params_result = m.Cli.CliModelConverter.model_to_cli_params(
             self.BooleanFlagsConfig,
         )
 
@@ -335,7 +335,7 @@ class TestsCliModelCommandComprehensive:
 
     def test_optional_boolean_flags(self) -> None:
         """Test optional boolean flags."""
-        params_result = m.CliModelConverter.model_to_cli_params(
+        params_result = m.Cli.CliModelConverter.model_to_cli_params(
             self.BooleanFlagsConfig,
         )
 
@@ -354,7 +354,7 @@ class TestsCliModelCommandComprehensive:
 
     def test_field_aliases_preserved(self) -> None:
         """Test that field aliases are preserved."""
-        params_result = m.CliModelConverter.model_to_cli_params(
+        params_result = m.Cli.CliModelConverter.model_to_cli_params(
             self.AliasedConfig,
         )
 

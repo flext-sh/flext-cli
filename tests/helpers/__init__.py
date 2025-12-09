@@ -491,7 +491,8 @@ class FlextCliTestHelpers:
                             r[str]: Token string on success, error on failure
 
                         """
-                        if username == "testuser" and password == "testpass":
+                        # Use same credentials as c.Authentication.VALID_CREDS
+                        if username == "test_user" and password == "test_pass":
                             self.token = "valid_token"
                             return r[str].ok(self.token)
                         return r[str].fail("Invalid credentials")
@@ -506,6 +507,10 @@ class FlextCliTestHelpers:
                             r[bool]: True if token is valid
 
                         """
+                        # Accept tokens starting with "valid_" (matches _helpers.py implementation)
+                        if token.startswith("valid_"):
+                            return r[bool].ok(True)
+                        # Also accept known test tokens for backward compatibility
                         if token in {"valid_token_abc123", "valid_token", "test_token"}:
                             return r[bool].ok(True)
                         return r[bool].fail("Invalid token")

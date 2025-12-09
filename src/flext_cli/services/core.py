@@ -23,7 +23,9 @@ from cachetools import LRUCache, TTLCache
 from flext_core import (
     FlextDecorators,
     FlextRuntime,
+    FlextUtilities,
     r,
+    u as u_core,
 )
 
 from flext_cli.base import FlextCliServiceBase
@@ -180,13 +182,15 @@ class FlextCliCore(FlextCliServiceBase):
         object.__setattr__(self, "_cache_stats", self._CacheStats())
         object.__setattr__(self, "_plugin_manager", pluggy.PluginManager("flext_cli"))
 
+        # Type narrowing: is_dict_like ensures config is dict-like
+        config_dict: Mapping[str, t.GeneralValueType] | None = (
+            config if FlextRuntime.is_dict_like(config) else None
+        )
         self.logger.debug(
             "Initialized CLI core service",
             operation="__init__",
             has_config=config is not None,
-            config_keys=list(config.keys())
-            if FlextRuntime.is_dict_like(config)
-            else None,
+            config_keys=list(config_dict.keys()) if config_dict else None,
             commands_count=0,
             plugins_count=0,
             sessions_count=0,
@@ -242,7 +246,7 @@ class FlextCliCore(FlextCliServiceBase):
 
         try:
             # Type narrowing: check if command is instance of CliCommand (not just protocol)
-            if not isinstance(command, m.CliCommand):
+            if not isinstance(command, m.Cli.CliCommand):
                 self.logger.error(
                     "FAILED CLI command registration - command is not CliCommand instance",
                     command_name=command.name,
@@ -332,8 +336,8 @@ class FlextCliCore(FlextCliServiceBase):
                 c.Cli.ErrorMessages.COMMAND_NAME_EMPTY,
             )
 
-        # Use dict.get() to check command existence
-        command_check = self._commands.get(name)
+        # Use mapper().get() to check command existence
+        command_check = FlextUtilities.mapper().get(self._commands, name)
         if command_check is None:
             self.logger.warning(
                 "Command not found in registry",
@@ -414,20 +418,38 @@ class FlextCliCore(FlextCliServiceBase):
         if FlextRuntime.is_list_like(context):
             # Use build() DSL: process → normalize → ensure JSON-compatible
             # Reuse helpers from output module to avoid duplication
-            process_result = u.process(
+            process_result = u.Cli.process(
                 list(context),
                 processor=lambda _k, item: FlextCliOutput.norm_json(item),
                 on_error="skip",
             )
-            context_list_raw = u.val(process_result, default=[])
+            context_list_raw: (
+                list[t.GeneralValueType] | dict[str, t.GeneralValueType]
+            ) = u_core.val(process_result, default=[])  # type: ignore[arg-type]
             context_list: list[t.GeneralValueType] = (
                 context_list_raw if isinstance(context_list_raw, list) else []
             )
             return self._build_context_from_list(context_list)
         # Use FlextRuntime.is_dict_like for type checking
+        # Type narrowing: is_dict_like ensures context is dict-like
         if FlextRuntime.is_dict_like(context):
             # Context is already CliCommand.CommandContext compatible - direct assignment
-            return context
+            # Type assertion: is_dict_like ensures it's Mapping-like
+            if isinstance(context, Mapping):
+                return context
+            # If it's not a Mapping but is_dict_like returned True, it might be a dict-like object
+            # But if it's a list, we can't convert it to dict - return empty dict
+            if isinstance(context, list):
+                return {}
+            # Try to convert dict-like object to dict
+            if hasattr(context, "__iter__") and not isinstance(context, (str, bytes)):
+                try:
+                    # Only convert if it's actually dict-like (has items() method)
+                    if hasattr(context, "items"):
+                        return dict(context.items())
+                except (TypeError, ValueError):
+                    pass
+            return {}
         return {}
 
     def execute_command(
@@ -443,7 +465,7 @@ class FlextCliCore(FlextCliServiceBase):
         if command_result.is_failure:
             self.logger.error("FAILED - command not found", command_name=name)
             return r[t.Json.JsonDict].fail(
-                u.err(command_result, default="Command not found"),
+                u_core.err(command_result, default="Command not found"),  # type: ignore[arg-type]
             )
 
         try:
@@ -545,7 +567,7 @@ class FlextCliCore(FlextCliServiceBase):
 
     def _log_config_update(self) -> None:
         """Log configuration update - direct logger usage."""
-        self.logger.info(c.LogMessages.CLI_CONFIG_UPDATED)
+        self.logger.info(c.Cli.LogMessages.CLI_CONFIG_UPDATED)
 
     def _validate_config_input(
         self,
@@ -605,15 +627,19 @@ class FlextCliCore(FlextCliServiceBase):
                 self.logger.warning(
                     "Existing configuration validation failed",
                     operation="update_configuration",
-                    error=u.err(existing_config_result, default=""),
+                    error=u_core.err(existing_config_result, default=""),  # type: ignore[arg-type]
                     consequence="Configuration merge will fail",
                     source="flext-cli/src/flext_cli/core.py",
                 )
                 return r[bool].fail(
-                    u.err(existing_config_result, default="Config validation failed"),
+                    u_core.err(
+                        existing_config_result, default="Config validation failed"
+                    ),  # type: ignore[arg-type]
                 )
 
-            existing_config_raw = u.val(existing_config_result, default={})
+            existing_config_raw: dict[str, t.GeneralValueType] = u_core.val(
+                existing_config_result, default={}
+            )  # type: ignore[arg-type]
             # Convert to mutable dict for merging
             existing_config: dict[str, t.GeneralValueType] = (
                 dict(existing_config_raw)
@@ -631,12 +657,14 @@ class FlextCliCore(FlextCliServiceBase):
             )
             if merge_result.is_failure:
                 return r[bool].fail(
-                    u.err(merge_result, default="Failed to merge config"),
+                    u_core.err(merge_result, default="Failed to merge config"),  # type: ignore[arg-type]
                 )
             # Update internal _cli_config with merged result
             # Business Rule: Frozen model attributes MUST be set using object.__setattr__()
             # Architecture: Pydantic frozen models require object.__setattr__() for attribute mutation
-            merged_config = u.val(merge_result, default={})
+            merged_config: dict[str, t.GeneralValueType] = u_core.val(
+                merge_result, default={}
+            )  # type: ignore[arg-type]
             # merged_config is guaranteed to be not None by u.val default
             object.__setattr__(self, "_cli_config", merged_config)
 
@@ -721,10 +749,12 @@ class FlextCliCore(FlextCliServiceBase):
         config_result = self._validate_config_input(validated_config_input)
         if config_result.is_failure:
             return r[bool].fail(
-                u.err(config_result, default="Configuration validation failed"),
+                u_core.err(config_result, default="Configuration validation failed"),  # type: ignore[arg-type]
             )
 
-        merged_config_val = u.val(config_result, default={})
+        merged_config_val: dict[str, t.GeneralValueType] = u_core.val(
+            config_result, default={}
+        )  # type: ignore[arg-type]
         # merged_config_val is guaranteed to be not None by u.val default
         return self._merge_configurations(merged_config_val)
 
@@ -842,12 +872,26 @@ class FlextCliCore(FlextCliServiceBase):
             config: dict[str, t.GeneralValueType] = dict(self._cli_config)
 
             # Use u.extract to safely get profiles section with default
-            profiles_result: r[dict[str, t.GeneralValueType] | None] = u.extract(
+            # u.extract returns RuntimeResult, convert to FlextResult
+            # Type annotation: default={} makes T = dict[str, t.GeneralValueType]
+            # Call extract method - type is inferred from default parameter
+            default_dict: dict[str, t.GeneralValueType] = {}
+            profiles_result_raw = u.extract(
                 config,
                 c.Cli.DictKeys.PROFILES,  # path parameter
-                default={},
+                default=default_dict,
             )
-            profiles_section_raw = u.val(profiles_result, default={})
+            # Convert RuntimeResult to FlextResult
+            profiles_result_typed: r[dict[str, t.GeneralValueType] | None] = (
+                r[dict[str, t.GeneralValueType] | None].ok(profiles_result_raw.value)
+                if profiles_result_raw.is_success
+                else r[dict[str, t.GeneralValueType] | None].fail(
+                    profiles_result_raw.error or "Failed to extract profiles"
+                )
+            )
+            profiles_section_raw: dict[str, t.GeneralValueType] = u_core.val(
+                profiles_result_typed, default={}
+            )  # type: ignore[arg-type]
             # Use u.ensure to ensure dict type and convert to mutable
             profiles_section_raw_typed = (
                 profiles_section_raw
@@ -866,7 +910,7 @@ class FlextCliCore(FlextCliServiceBase):
             # Business Rule: Frozen model attributes MUST be set using object.__setattr__()
             object.__setattr__(self, "_cli_config", config)
             self.logger.info(
-                c.LogMessages.PROFILE_CREATED.format(name=name),
+                c.Cli.LogMessages.PROFILE_CREATED.format(name=name),
             )
             return r[bool].ok(True)
 
@@ -914,7 +958,7 @@ class FlextCliCore(FlextCliServiceBase):
             )
 
             # Log session start - direct logger usage
-            self.logger.info(c.LogMessages.SESSION_STARTED)
+            self.logger.info(c.Cli.LogMessages.SESSION_STARTED)
 
             return r[bool].ok(True)
 
@@ -958,10 +1002,10 @@ class FlextCliCore(FlextCliServiceBase):
                 )
             # Business Rule: Frozen model attributes MUST be set using object.__setattr__()
             object.__setattr__(self, "_session_active", False)
-            if hasattr(self, c.PrivateAttributes.SESSION_CONFIG):
-                delattr(self, c.PrivateAttributes.SESSION_CONFIG)
-            if hasattr(self, c.PrivateAttributes.SESSION_START_TIME):
-                delattr(self, c.PrivateAttributes.SESSION_START_TIME)
+            if hasattr(self, c.Cli.PrivateAttributes.SESSION_CONFIG):
+                delattr(self, c.Cli.PrivateAttributes.SESSION_CONFIG)
+            if hasattr(self, c.Cli.PrivateAttributes.SESSION_START_TIME):
+                delattr(self, c.Cli.PrivateAttributes.SESSION_START_TIME)
 
             self.logger.debug(
                 "Session terminated successfully",
@@ -971,7 +1015,7 @@ class FlextCliCore(FlextCliServiceBase):
             )
 
             # Log session end - direct logger usage
-            self.logger.info(c.LogMessages.SESSION_ENDED)
+            self.logger.info(c.Cli.LogMessages.SESSION_ENDED)
 
             self.logger.info(
                 "CLI session ended",
@@ -1004,7 +1048,7 @@ class FlextCliCore(FlextCliServiceBase):
         return self._session_active
 
     # ==========================================================================
-    # STATISTICS AND MONITORING - Using t.Data types
+    # STATISTICS AND MONITORING - Using t.Cli.Data types
     # ==========================================================================
 
     def get_command_statistics(
@@ -1025,7 +1069,7 @@ class FlextCliCore(FlextCliServiceBase):
             # Create Pydantic model with type-safe fields
             # Note: Currently assumes all registered commands are successful
             # Failure tracking requires execution result storage (future enhancement)
-            stats_model = m.CommandStatistics(
+            stats_model = m.Cli.CommandStatistics(
                 total_commands=len(self._commands),
                 successful_commands=len(self._commands),
                 failed_commands=0,
@@ -1062,15 +1106,15 @@ class FlextCliCore(FlextCliServiceBase):
             config_keys_list: list[str] = list(config_keys) if config_keys else []
 
             info_data: dict[str, t.FlexibleValue] = {
-                c.Cli.DictKeys.SERVICE: c.FLEXT_CLI,
-                c.CoreServiceDictKeys.COMMANDS_REGISTERED: commands_count,
-                c.CoreServiceDictKeys.CONFIGURATION_SECTIONS: config_keys_list,
+                c.Cli.DictKeys.SERVICE: c.Cli.FLEXT_CLI,
+                c.Cli.CoreServiceDictKeys.COMMANDS_REGISTERED: commands_count,
+                c.Cli.CoreServiceDictKeys.CONFIGURATION_SECTIONS: config_keys_list,
                 c.Cli.DictKeys.STATUS: (
-                    c.ServiceStatus.OPERATIONAL.value
+                    c.Cli.ServiceStatus.OPERATIONAL.value
                     if self._session_active
-                    else c.ServiceStatus.AVAILABLE.value
+                    else c.Cli.ServiceStatus.AVAILABLE.value
                 ),
-                c.CoreServiceDictKeys.SERVICE_READY: commands_count > 0,
+                c.Cli.CoreServiceDictKeys.SERVICE_READY: commands_count > 0,
                 c.Cli.DictKeys.TIMESTAMP: u.generate("timestamp"),
             }
 
@@ -1079,7 +1123,7 @@ class FlextCliCore(FlextCliServiceBase):
 
         except Exception as e:
             self.logger.exception(
-                c.CoreServiceLogMessages.SERVICE_INFO_COLLECTION_FAILED,
+                c.Cli.CoreServiceLogMessages.SERVICE_INFO_COLLECTION_FAILED,
             )
             return {c.Cli.DictKeys.MESSAGE: str(e)}
 
@@ -1119,9 +1163,9 @@ class FlextCliCore(FlextCliServiceBase):
 
         try:
             # Calculate session duration if session is active
-            session_duration = c.CoreServiceDefaults.SESSION_DURATION_INIT
+            session_duration = c.Cli.CoreServiceDefaults.SESSION_DURATION_INIT
             if (
-                hasattr(self, c.PrivateAttributes.SESSION_START_TIME)
+                hasattr(self, c.Cli.PrivateAttributes.SESSION_START_TIME)
                 and self._session_start_time
             ):
                 # Use UTC directly for current time
@@ -1144,7 +1188,7 @@ class FlextCliCore(FlextCliServiceBase):
 
             # Create Pydantic model with type-safe fields
             # Note: Error tracking requires execution result storage (future enhancement)
-            stats_model = m.SessionStatistics(
+            stats_model = m.Cli.SessionStatistics(
                 commands_executed=len(self._commands),
                 errors_count=0,
                 session_duration_seconds=session_duration,
@@ -1180,7 +1224,7 @@ class FlextCliCore(FlextCliServiceBase):
                 source="flext-cli/src/flext_cli/core.py",
             )
             return r[t.Json.JsonDict].fail(
-                c.CoreServiceLogMessages.SESSION_STATS_COLLECTION_FAILED.format(
+                c.Cli.CoreServiceLogMessages.SESSION_STATS_COLLECTION_FAILED.format(
                     error=e,
                 ),
             )
@@ -1246,7 +1290,7 @@ class FlextCliCore(FlextCliServiceBase):
                 )
 
             # Create Pydantic model with type-safe fields
-            result_model = m.ServiceExecutionResult(
+            result_model = m.Cli.ServiceExecutionResult(
                 service_executed=True,
                 commands_count=len(self._commands),
                 session_active=self._session_active,
@@ -1285,7 +1329,7 @@ class FlextCliCore(FlextCliServiceBase):
                 source="flext-cli/src/flext_cli/core.py",
             )
             return r[t.Json.JsonDict].fail(
-                c.CoreServiceLogMessages.SERVICE_EXECUTION_FAILED.format(
+                c.Cli.CoreServiceLogMessages.SERVICE_EXECUTION_FAILED.format(
                     error=e,
                 ),
             )
@@ -1334,7 +1378,7 @@ class FlextCliCore(FlextCliServiceBase):
         # Set operation context for the current operation
         self._with_operation_context(
             operation_name=(
-                f"{c.CoreServiceDefaults.CLI_COMMAND_PREFIX}{command_name}"
+                f"{c.Cli.CoreServiceDefaults.CLI_COMMAND_PREFIX}{command_name}"
             ),
             user_id=user_id,
             **context_data,
@@ -1343,16 +1387,16 @@ class FlextCliCore(FlextCliServiceBase):
         # Enrich context with additional data
         self._enrich_context(
             command_name=command_name,
-            operation_type=c.CoreServiceDefaults.OPERATION_TYPE_CLI_COMMAND,
+            operation_type=c.Cli.CoreServiceDefaults.OPERATION_TYPE_CLI_COMMAND,
             **context_data,
         )
 
         # Create Pydantic model with type-safe fields
         # Use default value if user_id is None (model requires str, not str | None)
         effective_user_id = (
-            user_id if user_id is not None else c.CliSessionDefaults.DEFAULT_USER_ID
+            user_id if user_id is not None else c.Cli.CliSessionDefaults.DEFAULT_USER_ID
         )
-        result_model = m.CommandExecutionContextResult(
+        result_model = m.Cli.CommandExecutionContextResult(
             command_name=command_name,
             exit_code=0,  # Success
             output="",  # No output for context result
@@ -1376,11 +1420,11 @@ class FlextCliCore(FlextCliServiceBase):
         """
         try:
             return r[t.Json.JsonDict].ok({
-                c.Cli.DictKeys.STATUS: c.ServiceStatus.HEALTHY.value,
-                c.CoreServiceDictKeys.COMMANDS_COUNT: len(
+                c.Cli.DictKeys.STATUS: c.Cli.ServiceStatus.HEALTHY.value,
+                c.Cli.CoreServiceDictKeys.COMMANDS_COUNT: len(
                     self._commands,
                 ),
-                c.CoreServiceDictKeys.SESSION_ACTIVE: self._session_active,
+                c.Cli.CoreServiceDictKeys.SESSION_ACTIVE: self._session_active,
                 c.Cli.DictKeys.TIMESTAMP: u.generate("timestamp"),
             })
         except Exception as e:
@@ -1507,7 +1551,7 @@ class FlextCliCore(FlextCliServiceBase):
             r[list[str]]: List of formatter names
 
         """
-        return r[list[str]].ok(c.OUTPUT_FORMATS_LIST)
+        return r[list[str]].ok(c.Cli.OUTPUT_FORMATS_LIST)
 
     @staticmethod
     def _validate_config_path(config_path: str) -> r[Path]:
@@ -1534,10 +1578,12 @@ class FlextCliCore(FlextCliServiceBase):
         """Load configuration from file."""
         path_result = self._validate_config_path(config_path)
         if path_result.is_failure:
-            return r[t.Json.JsonDict].fail(u.err(path_result, default="Invalid path"))
+            return r[t.Json.JsonDict].fail(
+                u_core.err(path_result, default="Invalid path")
+            )  # type: ignore[arg-type]
 
         try:
-            config_file_result = u.val(path_result, default=Path())
+            config_file_result: Path = u_core.val(path_result, default=Path())  # type: ignore[arg-type]
             # config_file_result is guaranteed to be not None by u.val default
             config_file = config_file_result
             content = config_file.read_text(
@@ -1593,14 +1639,14 @@ class FlextCliCore(FlextCliServiceBase):
             path = Path(config_path)
             path.parent.mkdir(parents=True, exist_ok=True)
             with path.open(
-                c.FileIODefaults.FILE_WRITE_MODE,
+                c.Cli.FileIODefaults.FILE_WRITE_MODE,
                 encoding=c.Utilities.DEFAULT_ENCODING,
             ) as f:
                 json.dump(
                     config_data,
                     f,
-                    indent=c.FileIODefaults.JSON_INDENT,
-                    ensure_ascii=c.FileIODefaults.JSON_ENSURE_ASCII,
+                    indent=c.Cli.FileIODefaults.JSON_INDENT,
+                    ensure_ascii=c.Cli.FileIODefaults.JSON_ENSURE_ASCII,
                 )
             return r[bool].ok(True)
         except Exception as e:
@@ -1687,8 +1733,8 @@ class FlextCliCore(FlextCliServiceBase):
         def decorator(
             func: Callable[P, t.GeneralValueType],
         ) -> Callable[P, t.GeneralValueType]:
-            # Use dict.get() to check cache existence
-            cache_check = self._caches.get(cache_name)
+            # Use mapper().get() to check cache existence
+            cache_check = FlextUtilities.mapper().get(self._caches, cache_name)
             if cache_check is None:
                 if ttl:
                     self._caches[cache_name] = TTLCache(maxsize=128, ttl=ttl)
@@ -1734,8 +1780,8 @@ class FlextCliCore(FlextCliServiceBase):
     def get_cache_stats(self, cache_name: str) -> r[t.Json.JsonDict]:
         """Get statistics for a specific cache."""
         try:
-            # Use dict.get() to check cache existence
-            cache_check = self._caches.get(cache_name)
+            # Use mapper().get() to check cache existence
+            cache_check = FlextUtilities.mapper().get(self._caches, cache_name)
             if cache_check is None:
                 return r[t.Json.JsonDict].fail(
                     f"Cache '{cache_name}' not found",
@@ -1827,7 +1873,7 @@ class FlextCliCore(FlextCliServiceBase):
 
         Returns list of discovered plugin names.
         """
-        entry_points_result = u.process(
+        entry_points_result = u.Cli.process(
             list(dist.entry_points),
             processor=self._load_plugin_entry_point,
             on_error="skip",
@@ -1836,7 +1882,9 @@ class FlextCliCore(FlextCliServiceBase):
             return []
         entry_points_value = entry_points_result.value
         if isinstance(entry_points_value, list):
-            filtered = u.filter(entry_points_value, predicate=lambda x: x is not None)
+            filtered = u.Cli.filter(
+                entry_points_value, predicate=lambda x: x is not None
+            )
             # Type narrowing: filtered contains only non-None values, all should be str
             filtered_list: list[str] = [
                 str(item) for item in filtered if isinstance(item, str)
@@ -1858,7 +1906,7 @@ class FlextCliCore(FlextCliServiceBase):
     def discover_plugins(self) -> r[list[str]]:
         """Discover and register plugins via entry points."""
         try:
-            distributions_result = u.process(
+            distributions_result = u.Cli.process(
                 list(metadata.distributions()),
                 processor=self._process_distribution_entry_points,
                 on_error="skip",
@@ -1905,8 +1953,8 @@ class FlextCliCore(FlextCliServiceBase):
 
             # Use build() DSL: map → ensure dict → transform to JSON
             # Reuse to_json helper from output module
-            mapped_results = u.map(list(results), mapper=FlextCliOutput.to_json)
-            # Type narrowing: u.map returns list, ensure it's list[t.GeneralValueType]
+            mapped_results = u.Cli.map(list(results), mapper=FlextCliOutput.to_json)
+            # Type narrowing: u.Cli.Collection.map returns list, ensure it's list[t.GeneralValueType]
             results_list: list[t.GeneralValueType] = (
                 list(mapped_results) if isinstance(mapped_results, list) else []
             )

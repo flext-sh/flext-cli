@@ -44,7 +44,7 @@ cli = FlextCli()
 # ============================================================================
 
 
-def handle_status_command() -> r[t.Data.CliDataDict]:
+def handle_status_command() -> r[t.Cli.Data.CliDataDict]:
     """Status command in YOUR interactive CLI."""
     status = {
         "status": "running",
@@ -61,12 +61,12 @@ def handle_status_command() -> r[t.Data.CliDataDict]:
         cast("dict[str, t.GeneralValueType]", status),
         to_json=True,
     )
-    typed_status: t.Data.CliDataDict = (
+    typed_status: t.Cli.Data.CliDataDict = (
         transform_result.unwrap()
         if transform_result.is_success
-        else cast("t.Data.CliDataDict", status)
+        else cast("t.Cli.Data.CliDataDict", status)
     )
-    return r[t.Data.CliDataDict].ok(typed_status)
+    return r[t.Cli.Data.CliDataDict].ok(typed_status)
 
 
 def handle_list_command(

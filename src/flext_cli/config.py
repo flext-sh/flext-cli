@@ -19,8 +19,7 @@ from pathlib import Path
 from typing import Annotated, ClassVar, Self
 
 import yaml
-from flext_core import FlextConfig, FlextConstants, FlextContainer, r
-from flext_core.loggings import FlextLogger as l_core
+from flext_core import FlextConfig, FlextContainer, FlextLogger as l_core, r
 from pydantic import (
     Field,
     SecretStr,
@@ -104,7 +103,7 @@ class FlextCliConfig(FlextConfig):
     # Use FlextConfig.resolve_env_file() to ensure all FLEXT configs use same .env
     model_config = SettingsConfigDict(
         env_prefix="FLEXT_CLI_",
-        env_file=".env",
+        env_file=FlextConfig.resolve_env_file(),
         env_file_encoding="utf-8",
         extra="ignore",
         use_enum_values=True,
@@ -123,10 +122,10 @@ class FlextCliConfig(FlextConfig):
         )
     )
 
-    # Python 3.13+ best practice: Use Enum value for default consistency
-    # Pydantic 2 accepts Enum values in Literal-typed fields
+    # Python 3.13+ best practice: Use Literal string for default consistency
+    # Pydantic 2 accepts Literal strings in Literal-typed fields
     output_format: c.Cli.OutputFormatLiteral = Field(
-        default="table",  # Use literal string value for Literal type
+        default="table",  # Use Literal string for Literal type
         description="Default output format for CLI commands",
     )
 
@@ -136,7 +135,7 @@ class FlextCliConfig(FlextConfig):
     )
 
     config_dir: Path = Field(
-        default_factory=lambda: Path.home() / c.FLEXT_DIR_NAME,
+        default_factory=lambda: Path.home() / c.Cli.Paths.FLEXT_DIR_NAME,
         description="Configuration directory path",
     )
 
@@ -157,14 +156,16 @@ class FlextCliConfig(FlextConfig):
     )
 
     token_file: Path = Field(
-        default_factory=lambda: Path.home() / c.FLEXT_DIR_NAME / c.TOKEN_FILE_NAME,
+        default_factory=lambda: Path.home()
+        / c.Cli.Paths.FLEXT_DIR_NAME
+        / c.Cli.Paths.TOKEN_FILE_NAME,
         description="Path to authentication token file",
     )
 
     refresh_token_file: Path = Field(
         default_factory=lambda: Path.home()
-        / c.FLEXT_DIR_NAME
-        / c.REFRESH_TOKEN_FILE_NAME,
+        / c.Cli.Paths.FLEXT_DIR_NAME
+        / c.Cli.Paths.REFRESH_TOKEN_FILE_NAME,
         description="Path to refresh token file",
     )
 
@@ -200,8 +201,8 @@ class FlextCliConfig(FlextConfig):
         default=c.Cli.CliDefaults.DEFAULT_INTERACTIVE,
         description="Enable interactive mode",
     )
-    environment: FlextConstants.Settings.Environment = Field(
-        default=FlextConstants.Settings.Environment.DEVELOPMENT,  # Use enum directly
+    environment: c.Settings.Environment = Field(
+        default=c.Settings.Environment.DEVELOPMENT,
         description="Deployment environment",
     )
 
@@ -244,7 +245,7 @@ class FlextCliConfig(FlextConfig):
     )
 
     cli_log_verbosity: c.Cli.LogVerbosityLiteral = Field(
-        default="detailed",  # Use literal string value for Literal type
+        default="detailed",  # Use Literal string for Literal type
         description="CLI-specific logging verbosity",
     )
 
@@ -329,7 +330,7 @@ class FlextCliConfig(FlextConfig):
         # Use u.parse for type-safe boolean conversion
         if isinstance(v, bool):
             return v
-        parse_result = u.parse(v, bool, default=False, coerce=True)
+        parse_result = u.Cli.parse(v, bool, default=False, coerce=True)
         return parse_result.unwrap() if parse_result.is_success else bool(v)
 
     # Pydantic 2.11 model validator (runs after all field validators)
@@ -365,7 +366,7 @@ class FlextCliConfig(FlextConfig):
         # Functional terminal capability detection
         def detect_interactive_mode() -> r[bool]:
             """Detect if output is interactive (not piped)."""
-            is_interactive = os.isatty(c.ConfigValidation.STDOUT_FD)
+            is_interactive = os.isatty(c.Cli.ConfigValidation.STDOUT_FD)
             return r.ok(is_interactive)
 
         def get_terminal_width() -> r[int]:
@@ -383,7 +384,7 @@ class FlextCliConfig(FlextConfig):
                 return c.Cli.OutputFormats.JSON
 
             # Narrow terminals use plain format
-            if width < c.TERMINAL_WIDTH_NARROW:
+            if width < c.Cli.Terminal.WIDTH_NARROW:
                 return c.Cli.OutputFormats.PLAIN
 
             # Color terminals use table format
@@ -405,12 +406,12 @@ class FlextCliConfig(FlextConfig):
                 lambda capabilities: determine_format(
                     capabilities[0]
                     if len(capabilities)
-                    >= c.ConfigValidation.CAPABILITIES_TUPLE_MIN_LENGTH
+                    >= c.Cli.ConfigValidation.CAPABILITIES_TUPLE_MIN_LENGTH
                     else False,  # is_interactive
                     capabilities[1]
                     if len(capabilities)
-                    >= c.ConfigValidation.CAPABILITIES_TUPLE_MIN_LENGTH
-                    else c.ConfigValidation.DEFAULT_TERMINAL_WIDTH,
+                    >= c.Cli.ConfigValidation.CAPABILITIES_TUPLE_MIN_LENGTH
+                    else c.Cli.ConfigValidation.DEFAULT_TERMINAL_WIDTH,
                     bool(self.auto_color_support),  # has_color
                 ),
             )
@@ -454,11 +455,11 @@ class FlextCliConfig(FlextConfig):
             """Determine verbosity level based on configuration."""
             match (self.verbose, self.quiet):
                 case (True, _):  # Verbose takes precedence
-                    return c.CliGlobalDefaults.DEFAULT_VERBOSITY
+                    return c.Cli.CliGlobalDefaults.DEFAULT_VERBOSITY
                 case (_, True):  # Quiet overrides normal
-                    return c.CliGlobalDefaults.QUIET_VERBOSITY
+                    return c.Cli.CliGlobalDefaults.QUIET_VERBOSITY
                 case _:  # Default case
-                    return c.CliGlobalDefaults.NORMAL_VERBOSITY
+                    return c.Cli.CliGlobalDefaults.NORMAL_VERBOSITY
 
         # Railway pattern: validate and determine verbosity
         def map_to_verbosity(_: tuple[bool, bool]) -> str:
@@ -470,7 +471,7 @@ class FlextCliConfig(FlextConfig):
             # map_to_verbosity returns str
             return result.unwrap()
         # Fast-fail: return normal verbosity on failure
-        return c.CliGlobalDefaults.NORMAL_VERBOSITY
+        return c.Cli.CliGlobalDefaults.NORMAL_VERBOSITY
 
     @computed_field
     def optimal_table_format(self) -> str:
@@ -495,9 +496,9 @@ class FlextCliConfig(FlextConfig):
 
         def select_table_format(width: int) -> str:
             """Select optimal table format based on terminal width."""
-            if width < c.TERMINAL_WIDTH_NARROW:
+            if width < c.Cli.Terminal.WIDTH_NARROW:
                 return c.Cli.TableFormats.SIMPLE
-            if width < c.TERMINAL_WIDTH_MEDIUM:
+            if width < c.Cli.Terminal.WIDTH_MEDIUM:
                 return c.Cli.TableFormats.GITHUB
             return c.Cli.TableFormats.GRID
 
@@ -522,7 +523,7 @@ class FlextCliConfig(FlextConfig):
             r[str]: Validated format or error with details
 
         """
-        return u.CliValidation.v_format(value)
+        return u.Cli.CliValidation.v_format(value)
 
     @classmethod
     def load_from_config_file(cls, config_file: Path) -> r[FlextCliConfig]:
@@ -536,16 +537,16 @@ class FlextCliConfig(FlextConfig):
                 )
 
             # Load based on file extension
-            if config_file.suffix.lower() == c.FileExtensions.JSON:
+            if config_file.suffix.lower() == c.Cli.FileExtensions.JSON:
                 with config_file.open(
                     "r",
-                    encoding=c.Cli.Encoding.UTF8,
+                    encoding=c.Utilities.DEFAULT_ENCODING,
                 ) as f:
                     data = json.load(f)
-            elif config_file.suffix.lower() in c.ConfigValidation.YAML_EXTENSIONS:
+            elif config_file.suffix.lower() in c.Cli.ConfigValidation.YAML_EXTENSIONS:
                 with config_file.open(
                     "r",
-                    encoding=c.Cli.Encoding.UTF8,
+                    encoding=c.Utilities.DEFAULT_ENCODING,
                 ) as f:
                     data = yaml.safe_load(f)
             else:
@@ -587,10 +588,10 @@ class FlextCliConfig(FlextConfig):
             else config_dict_raw
         )
         result_dict: t.Json.JsonDict = {
-            "status": c.ServiceStatus.OPERATIONAL.value,
-            "service": c.CliGlobalDefaults.DEFAULT_SERVICE_NAME,
+            "status": c.Cli.ServiceStatus.OPERATIONAL.value,
+            "service": c.Cli.CliGlobalDefaults.DEFAULT_SERVICE_NAME,
             "timestamp": u.generate("timestamp"),
-            "version": c.CliGlobalDefaults.DEFAULT_VERSION_STRING,
+            "version": c.Cli.CliGlobalDefaults.DEFAULT_VERSION_STRING,
             "config": config_dict,
         }
         return r[t.Json.JsonDict].ok(result_dict)
@@ -642,7 +643,7 @@ class FlextCliConfig(FlextConfig):
                 if k not in computed_fields:
                     setattr(self, k, v)
 
-            _ = u.process(valid_updates, processor=apply_update, on_error="skip")
+            _ = u.Cli.process(valid_updates, processor=apply_update, on_error="skip")
 
             # Re-validate entire model to ensure consistency
             # Exclude computed fields from dump to avoid validation issues
@@ -718,7 +719,7 @@ class FlextCliConfig(FlextConfig):
                         ),
                     )
 
-            u.process(overrides, processor=validate_value, on_error="collect")
+            u.Cli.process(overrides, processor=validate_value, on_error="collect")
 
             if errors:
                 return r[t.Json.JsonDict].fail(
@@ -780,7 +781,7 @@ class FlextCliConfig(FlextConfig):
                 if hasattr(self, k):
                     setattr(self, k, v)
 
-            u.process(config, processor=apply_config, on_error="skip")
+            u.Cli.process(config, processor=apply_config, on_error="skip")
 
             # Validate the updated configuration
             _ = self.model_validate(self.model_dump())

@@ -11,11 +11,11 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 from collections.abc import Mapping
-from typing import override
+from typing import cast, override
 
 from flext_core import (
-    FlextRuntime,
     r,
+    s,
 )
 from pydantic import PrivateAttr
 
@@ -99,7 +99,15 @@ class FlextCliCommands(FlextCliServiceBase):
         **data: t.GeneralValueType,
     ) -> None:
         """Initialize CLI commands manager with Phase 1 context enrichment."""
-        super().__init__(**data)
+        # Convert data for super().__init__()
+        # FlextService.__init__ accepts **data: t.GeneralValueType
+        # Note: mypy has generic type inference issue with FlextService[JsonDict].__init__
+        # but runtime accepts dict[str, GeneralValueType] as **kwargs: GeneralValueType
+        if not isinstance(data, dict):
+            msg = "data must be dict"
+            raise TypeError(msg)
+        # Pass data directly - FlextService base class accepts **kwargs: GeneralValueType
+        s[t.Json.JsonDict].__init__(self, **data)
         # Logger is automatically provided by FlextMixins mixin
         # Use object.__setattr__ for frozen model private attributes
         object.__setattr__(self, "_name", name)
@@ -154,11 +162,15 @@ class FlextCliCommands(FlextCliServiceBase):
             source="flext-cli/src/flext_cli/commands.py",
         )
 
-        result = r[t.Json.JsonDict].ok({
+        # Build result dict with proper types
+        # JsonDict is Mapping[str, GeneralValueType], so we need to cast dict to Mapping
+        result_dict: dict[str, t.GeneralValueType] = {
             c.Cli.CommandsDictKeys.STATUS: c.Cli.ServiceStatus.OPERATIONAL.value,
             c.Cli.CommandsDictKeys.SERVICE: c.Cli.FLEXT_CLI,
             c.Cli.CommandsDictKeys.COMMANDS: list(self._commands.keys()),
-        })
+        }
+        result_mapping: t.Json.JsonDict = cast("t.Json.JsonDict", result_dict)
+        result = r[t.Json.JsonDict].ok(result_mapping)
 
         self.logger.debug(
             "Service execution completed successfully",
@@ -609,12 +621,29 @@ class FlextCliCommands(FlextCliServiceBase):
                     source="flext-cli/src/flext_cli/commands.py",
                 )
                 return r[t.GeneralValueType].fail(
-                    c.CommandsErrorMessages.COMMAND_NOT_FOUND_DETAIL.format(
+                    c.Cli.CommandsErrorMessages.COMMAND_NOT_FOUND_DETAIL.format(
                         command_name=command_name,
                     ),
                 )
 
-            command_info = self._commands[command_name]
+            command_info_raw = self._commands[command_name]
+            # Type narrowing: command_info is GeneralValueType, need to check if dict
+            if not isinstance(command_info_raw, dict):
+                self.logger.error(
+                    "FAILED to execute command - command_info is not a dict",
+                    operation="execute_command",
+                    command_name=command_name,
+                    source="flext-cli/src/flext_cli/commands.py",
+                )
+                return r[t.GeneralValueType].fail(
+                    c.Cli.CommandsErrorMessages.INVALID_COMMAND_STRUCTURE.format(
+                        name=command_name,
+                    ),
+                )
+            # Type narrowing: command_info is dict after isinstance check
+            command_info: dict[str, t.GeneralValueType | p.Cli.CliCommandHandler] = (
+                command_info_raw
+            )
             self.logger.debug(
                 "Retrieved command information",
                 operation="execute_command",
@@ -623,13 +652,9 @@ class FlextCliCommands(FlextCliServiceBase):
                 source="flext-cli/src/flext_cli/commands.py",
             )
 
-            # Type narrowing: command_info is dict, check if it's dict-like and has handler
-            # command_info is dict[str, GeneralValueType | CliCommandHandler]
-            # is_dict_like accepts dict, so we use it directly in the check
-            if not (
-                FlextRuntime.is_dict_like(command_info)
-                and c.Cli.CommandsDictKeys.HANDLER in command_info
-            ):
+            # Validate command structure: must be dict-like with handler
+            is_valid_structure = c.Cli.CommandsDictKeys.HANDLER in command_info
+            if not is_valid_structure:
                 self.logger.error(
                     "FAILED to execute command - invalid command structure",
                     operation="execute_command",
@@ -641,7 +666,7 @@ class FlextCliCommands(FlextCliServiceBase):
                     source="flext-cli/src/flext_cli/commands.py",
                 )
                 return r[t.GeneralValueType].fail(
-                    c.CommandsErrorMessages.INVALID_COMMAND_STRUCTURE.format(
+                    c.Cli.CommandsErrorMessages.INVALID_COMMAND_STRUCTURE.format(
                         command_name=command_name,
                     ),
                 )
@@ -666,7 +691,7 @@ class FlextCliCommands(FlextCliServiceBase):
                     source="flext-cli/src/flext_cli/commands.py",
                 )
                 return r[t.GeneralValueType].fail(
-                    c.CommandsErrorMessages.HANDLER_NOT_CALLABLE.format(
+                    c.Cli.CommandsErrorMessages.HANDLER_NOT_CALLABLE.format(
                         command_name=command_name,
                     ),
                 )
@@ -734,7 +759,7 @@ class FlextCliCommands(FlextCliServiceBase):
             """Copy single command dict."""
             return dict(v)
 
-        process_result = u.process(
+        process_result = u.Cli.process(
             self._commands,
             processor=copy_command,
             on_error="skip",
@@ -824,7 +849,7 @@ class FlextCliCommands(FlextCliServiceBase):
                 source="flext-cli/src/flext_cli/commands.py",  # pragma: no cover
             )  # pragma: no cover
             return r[list[str]].fail(  # pragma: no cover
-                c.CommandsErrorMessages.FAILED_LIST_COMMANDS.format(
+                c.Cli.CommandsErrorMessages.FAILED_LIST_COMMANDS.format(
                     error=e,
                 ),
             )

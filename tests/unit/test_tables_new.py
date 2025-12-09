@@ -33,7 +33,7 @@ from ..conftest import c
 TablesFactory = FlextCliTestHelpers.TablesFactory
 
 # Use TableData from typings - matches src definition
-TableData = flext_cli_t.Tables.TableData
+TableData = flext_cli_t.Cli.Tables.TableData
 
 
 @pytest.fixture
@@ -97,7 +97,7 @@ class TestsCliTables:
                 "simple",
                 [
                     c.TestData.ALICE,
-                    c.Format.NAME_HEADER,
+                    "name",  # Table uses dict keys (lowercase) as headers
                 ],
             ),
             (
@@ -121,7 +121,7 @@ class TestsCliTables:
         assertions: list[str],
     ) -> None:
         """Test basic table creation with various formats."""
-        config = m.TableConfig(table_format=format_name)
+        config = m.Cli.TableConfig(table_format=format_name)
         result = tables.create_table(
             data=cast("TableData", test_data["people_dict"]),
             config=config,
@@ -142,7 +142,7 @@ class TestsCliTables:
         test_data: dict[str, t.GeneralValueType],
     ) -> None:
         """Test table creation with custom headers."""
-        config = m.TableConfig(
+        config = m.Cli.TableConfig(
             headers=c.Table.Data.Headers.CUSTOM,
             table_format="simple",
         )
@@ -160,7 +160,7 @@ class TestsCliTables:
         test_data: dict[str, t.GeneralValueType],
     ) -> None:
         """Test table creation with alignment option."""
-        config = m.TableConfig(
+        config = m.Cli.TableConfig(
             table_format="simple",
             align=c.Config.Alignment.CENTER,
         )
@@ -177,7 +177,7 @@ class TestsCliTables:
         test_data: dict[str, t.GeneralValueType],
     ) -> None:
         """Test table creation with float formatting."""
-        config = m.TableConfig(
+        config = m.Cli.TableConfig(
             table_format="simple",
             floatfmt=c.Config.FloatFormat.TWO_DECIMAL,
         )
@@ -194,7 +194,7 @@ class TestsCliTables:
         test_data: dict[str, t.GeneralValueType],
     ) -> None:
         """Test table creation with show index option."""
-        config = m.TableConfig(
+        config = m.Cli.TableConfig(
             table_format="simple",
             showindex=c.Config.SHOW_INDEX_TRUE,
         )
@@ -211,7 +211,7 @@ class TestsCliTables:
         test_data: dict[str, t.GeneralValueType],
     ) -> None:
         """Test table creation with column alignment."""
-        config = m.TableConfig(
+        config = m.Cli.TableConfig(
             table_format="simple",
             colalign=c.Config.Alignment.LIST,
         )
@@ -247,6 +247,8 @@ class TestsCliTables:
                 result = tables.create_simple_table(data)
             case "grid":
                 result = tables.create_grid_table(data)
+            case "fancy_grid":
+                result = tables.create_table(data, table_format="fancy_grid")
             case "markdown":
                 result = tables.create_markdown_table(data)
             case "html":
@@ -298,7 +300,7 @@ class TestsCliTables:
         test_data: dict[str, t.GeneralValueType],
     ) -> None:
         """Test table creation with single row."""
-        config = m.TableConfig(table_format="simple")
+        config = m.Cli.TableConfig(table_format="simple")
         result = tables.create_table(
             data=cast("TableData", test_data["single_row"]),
             config=config,
@@ -312,7 +314,7 @@ class TestsCliTables:
         test_data: dict[str, t.GeneralValueType],
     ) -> None:
         """Test table creation with None values."""
-        config = m.TableConfig(table_format="simple")
+        config = m.Cli.TableConfig(table_format="simple")
         result = tables.create_table(
             data=cast("TableData", test_data["with_none"]),
             config=config,
@@ -327,7 +329,7 @@ class TestsCliTables:
         test_data: dict[str, t.GeneralValueType],
     ) -> None:
         """Test list of dicts with custom headers."""
-        config = m.TableConfig(
+        config = m.Cli.TableConfig(
             headers=c.Table.Data.Headers.CUSTOM,
             table_format="simple",
         )
@@ -348,7 +350,7 @@ class TestsCliTables:
         test_data: dict[str, t.GeneralValueType],
     ) -> None:
         """Test handling of empty data."""
-        config = m.TableConfig(table_format="simple")
+        config = m.Cli.TableConfig(table_format="simple")
         result = tables.create_table(
             data=cast("TableData", test_data["empty"]),
             config=config,
@@ -362,7 +364,7 @@ class TestsCliTables:
         test_data: dict[str, t.GeneralValueType],
     ) -> None:
         """Test handling of invalid format."""
-        config = m.TableConfig(table_format=c.Format.INVALID)
+        config = m.Cli.TableConfig(table_format=c.Format.INVALID)
         result = tables.create_table(
             data=cast("TableData", test_data["people_dict"]),
             config=config,
@@ -396,7 +398,7 @@ class TestsCliTables:
         assert len(formats) > 0
 
         first_format = formats[0]
-        config = m.TableConfig(table_format=first_format)
+        config = m.Cli.TableConfig(table_format=first_format)
         table_result = tables.create_table(data=data, config=config)
         assert table_result.is_success
 
@@ -410,7 +412,7 @@ class TestsCliTables:
         test_data: dict[str, t.GeneralValueType],
     ) -> None:
         """Test table creation using validation helpers."""
-        config = m.TableConfig(table_format="simple")
+        config = m.Cli.TableConfig(table_format="simple")
         result = tables.create_table(
             data=cast("TableData", test_data["people_dict"]),
             config=config,
@@ -424,7 +426,7 @@ class TestsCliTables:
         test_data: dict[str, t.GeneralValueType],
     ) -> None:
         """Test table error handling with validation helpers."""
-        config = m.TableConfig(table_format="simple")
+        config = m.Cli.TableConfig(table_format="simple")
         result = tables.create_table(
             data=cast("TableData", test_data["empty"]),
             config=config,
@@ -438,7 +440,7 @@ class TestsCliTables:
         test_data: dict[str, t.GeneralValueType],
     ) -> None:
         """Test table format validation."""
-        config = m.TableConfig(table_format=c.Format.GRID)
+        config = m.Cli.TableConfig(table_format=c.Format.GRID)
         result = tables.create_table(
             data=cast("TableData", test_data["people_dict"]),
             config=config,

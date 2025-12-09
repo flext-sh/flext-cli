@@ -42,7 +42,7 @@ cli = FlextCli()
 def login_to_service(username: str, password: str) -> bool:
     """Login and save token in YOUR CLI application."""
     # Your API authentication logic
-    credentials: t.Data.CliDataDict = {
+    credentials: t.Cli.Data.CliDataDict = {
         "username": username,
         "password": password,
     }
@@ -186,7 +186,7 @@ def show_session_info() -> None:
     token_file = Path(cli.config.token_file)
 
     # Gather session data
-    session_data: t.Data.CliDataDict = {
+    session_data: t.Cli.Data.CliDataDict = {
         "User": os.getenv("USER", "unknown"),
         "Token File": str(token_file),
         "Token Length": f"{len(token)} chars",

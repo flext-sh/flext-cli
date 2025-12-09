@@ -75,7 +75,7 @@ class TestsCliModels:
         """
         # Cast to satisfy the generic constraint - runtime behavior is correct
         # The method internally casts to BaseModel anyway, so this is safe
-        converter = m.CliModelConverter
+        converter = m.Cli.CliModelConverter
         # Access the method and call it
         # Method signature accepts type[BaseModel] and returns r[BaseModel]
         method = converter.cli_args_to_model
@@ -110,7 +110,7 @@ class TestsCliModels:
         models_service: m,
     ) -> None:
         """Test execute method of m."""
-        result = models_service.execute()
+        result = m.Cli.execute()
         tm.ok(result)
         assert result.unwrap() == {}
 
@@ -166,7 +166,7 @@ class TestsCliModels:
 
     def test_cli_command_creation(
         self,
-        cli_command_factory: (Callable[..., m.CliCommand]),
+        cli_command_factory: (Callable[..., m.Cli.CliCommand]),
     ) -> None:
         """Test CliCommand model creation with required fields."""
         command = cli_command_factory(
@@ -175,22 +175,22 @@ class TestsCliModels:
         )
         assert command.name == "test_command"
         assert command.command_line == "flext test --verbose"
-        assert command.status == c.CommandStatus.PENDING.value
+        assert command.status == c.Cli.CommandStatus.PENDING.value
 
     def test_cli_command_serialization(
         self,
-        cli_command_factory: Callable[..., m.CliCommand],
+        cli_command_factory: Callable[..., m.Cli.CliCommand],
     ) -> None:
         """Test CliCommand model serialization."""
         command = cli_command_factory(
             name="test_cmd",
             command_line="flext run",
-            status=c.CommandStatus.COMPLETED.value,
+            status=c.Cli.CommandStatus.COMPLETED.value,
         )
         data = command.model_dump()
         assert isinstance(data, dict)
         assert data["name"] == "test_cmd"
-        assert data["status"] == c.CommandStatus.COMPLETED.value
+        assert data["status"] == c.Cli.CommandStatus.COMPLETED.value
 
     # =========================================================================
     # CLISESSION MODEL TESTS
@@ -198,7 +198,7 @@ class TestsCliModels:
 
     def test_cli_session_creation(
         self,
-        cli_session_factory: Callable[..., m.CliSession],
+        cli_session_factory: Callable[..., m.Cli.CliSession],
     ) -> None:
         """Test CliSession model creation."""
         session = cli_session_factory(
@@ -206,11 +206,11 @@ class TestsCliModels:
             user_id="test_user",
         )
         assert session.session_id == "test-session-001"
-        assert session.status == c.SessionStatus.ACTIVE.value
+        assert session.status == c.Cli.SessionStatus.ACTIVE.value
 
     def test_cli_session_serialization(
         self,
-        cli_session_factory: Callable[..., m.CliSession],
+        cli_session_factory: Callable[..., m.Cli.CliSession],
     ) -> None:
         """Test CliSession model serialization."""
         session = cli_session_factory(
@@ -227,7 +227,7 @@ class TestsCliModels:
 
     def test_debug_info_creation(
         self,
-        debug_info_factory: Callable[..., m.DebugInfo],
+        debug_info_factory: Callable[..., m.Cli.DebugInfo],
     ) -> None:
         """Test DebugInfo model creation.
 
@@ -243,7 +243,7 @@ class TestsCliModels:
 
     def test_debug_info_serialization(
         self,
-        debug_info_factory: Callable[..., m.DebugInfo],
+        debug_info_factory: Callable[..., m.Cli.DebugInfo],
     ) -> None:
         """Test DebugInfo model serialization.
 
@@ -264,7 +264,7 @@ class TestsCliModels:
 
     def test_logging_config_creation(
         self,
-        logging_config_factory: Callable[..., m.LoggingConfig],
+        logging_config_factory: Callable[..., m.Cli.LoggingConfig],
     ) -> None:
         """Test LoggingConfig model creation."""
         config = logging_config_factory(
@@ -275,7 +275,7 @@ class TestsCliModels:
 
     def test_logging_config_serialization(
         self,
-        logging_config_factory: Callable[..., m.LoggingConfig],
+        logging_config_factory: Callable[..., m.Cli.LoggingConfig],
     ) -> None:
         """Test LoggingConfig model serialization."""
         config = logging_config_factory(
@@ -307,11 +307,11 @@ class TestsCliModels:
         """Test field serializers exist in models - verify Pydantic v2 serialization."""
         # Verify that models have field_serializer decorators where needed
         # Check CliCommand model has field_serializer for command_line
-        command_model = m.CliCommand
+        command_model = m.Cli.CliCommand
         assert hasattr(command_model, "model_fields")
 
         # Verify session model has field_serializer for commands
-        session_model = m.CliSession
+        session_model = m.Cli.CliSession
         assert hasattr(session_model, "model_fields")
 
     # =========================================================================
@@ -320,7 +320,7 @@ class TestsCliModels:
 
     def test_cli_command_validation(
         self,
-        cli_command_factory: Callable[..., m.CliCommand],
+        cli_command_factory: Callable[..., m.Cli.CliCommand],
     ) -> None:
         """Test CliCommand model validation.
 
@@ -332,12 +332,12 @@ class TestsCliModels:
             command_line="flext test",
         )
         # Validation happens automatically - if we got here, validation passed
-        assert isinstance(command, m.CliCommand)
-        assert command.status == c.CommandStatus.PENDING.value
+        assert isinstance(command, m.Cli.CliCommand)
+        assert command.status == c.Cli.CommandStatus.PENDING.value
 
     def test_cli_command_update_status(
         self,
-        cli_command_factory: Callable[..., m.CliCommand],
+        cli_command_factory: Callable[..., m.Cli.CliCommand],
     ) -> None:
         """Test CliCommand start and complete execution methods."""
         command = cli_command_factory(name="test")
@@ -353,7 +353,7 @@ class TestsCliModels:
 
     def test_cli_command_computed_fields(
         self,
-        cli_command_factory: Callable[..., m.CliCommand],
+        cli_command_factory: Callable[..., m.Cli.CliCommand],
     ) -> None:
         """Test CliCommand computed fields."""
         command = cli_command_factory(command_line="flext test --verbose")
@@ -365,7 +365,7 @@ class TestsCliModels:
 
     def test_debug_info_computed_fields(
         self,
-        debug_info_factory: Callable[..., m.DebugInfo],
+        debug_info_factory: Callable[..., m.Cli.DebugInfo],
     ) -> None:
         """Test DebugInfo computed fields."""
         debug_info = debug_info_factory(
@@ -374,13 +374,13 @@ class TestsCliModels:
         )
         summary = debug_info.debug_summary
         # debug_summary returns CliDebugData Pydantic model (better type safety than dict)
-        assert isinstance(summary, m.CliDebugData)
+        assert isinstance(summary, m.Cli.CliDebugData)
         assert hasattr(summary, "service")
         assert summary.service == "TestService"
 
     def test_cli_session_validation(
         self,
-        cli_session_factory: Callable[..., m.CliSession],
+        cli_session_factory: Callable[..., m.Cli.CliSession],
     ) -> None:
         """Test CliSession validation.
 
@@ -389,14 +389,14 @@ class TestsCliModels:
         """
         session = cli_session_factory(session_id="test-session")
         # Validation happens automatically - if we got here, validation passed
-        assert isinstance(session, m.CliSession)
+        assert isinstance(session, m.Cli.CliSession)
         assert session.session_id == "test-session"
-        assert session.status == c.SessionStatus.ACTIVE.value
+        assert session.status == c.Cli.SessionStatus.ACTIVE.value
 
     def test_cli_session_add_command(
         self,
-        cli_session_factory: Callable[..., m.CliSession],
-        cli_command_factory: Callable[..., m.CliCommand],
+        cli_session_factory: Callable[..., m.Cli.CliSession],
+        cli_command_factory: Callable[..., m.Cli.CliCommand],
     ) -> None:
         """Test CliSession add_command method."""
         session = cli_session_factory(session_id="test-session")
@@ -410,27 +410,27 @@ class TestsCliModels:
 
     def test_cli_session_computed_fields(
         self,
-        cli_session_factory: Callable[..., m.CliSession],
+        cli_session_factory: Callable[..., m.Cli.CliSession],
     ) -> None:
         """Test CliSession computed fields."""
         session = cli_session_factory(session_id="test-session")
         summary = session.session_summary
         # session_summary returns CliSessionData Pydantic model (better type safety than dict)
-        assert isinstance(summary, m.CliSessionData)
+        assert isinstance(summary, m.Cli.CliSessionData)
         assert hasattr(summary, "session_id")
         assert summary.session_id == "test-session"
 
     def test_cli_session_commands_by_status(
         self,
-        cli_session_factory: Callable[..., m.CliSession],
-        cli_command_factory: Callable[..., m.CliCommand],
+        cli_session_factory: Callable[..., m.Cli.CliSession],
+        cli_command_factory: Callable[..., m.Cli.CliCommand],
     ) -> None:
         """Test CliSession commands_by_status computed field."""
         session = cli_session_factory(session_id="test-session")
         command1 = cli_command_factory(name="test1")
         command2 = cli_command_factory(
             name="test2",
-            status=c.CommandStatus.COMPLETED.value,
+            status=c.Cli.CommandStatus.COMPLETED.value,
         )
         # Cast to protocol type for type compatibility
         command1_protocol = cast("p.Cli.Command", command1)
@@ -445,13 +445,13 @@ class TestsCliModels:
         commands_by_status = session.commands_by_status
         assert isinstance(commands_by_status, dict)
         assert (
-            c.CommandStatus.PENDING.value in commands_by_status
-            or c.CommandStatus.COMPLETED.value in commands_by_status
+            c.Cli.CommandStatus.PENDING.value in commands_by_status
+            or c.Cli.CommandStatus.COMPLETED.value in commands_by_status
         )
 
     def test_logging_config_validation(
         self,
-        logging_config_factory: Callable[..., m.LoggingConfig],
+        logging_config_factory: Callable[..., m.Cli.LoggingConfig],
     ) -> None:
         """Test LoggingConfig validation."""
         logging_config = logging_config_factory(log_level="INFO")
@@ -461,14 +461,14 @@ class TestsCliModels:
 
     def test_logging_config_computed_fields(
         self,
-        logging_config_factory: Callable[..., m.LoggingConfig],
+        logging_config_factory: Callable[..., m.Cli.LoggingConfig],
     ) -> None:
         """Test LoggingConfig computed fields."""
         logging_config = logging_config_factory(log_level="DEBUG")
         # Use actual computed field: logging_summary
         summary = logging_config.logging_summary
         # logging_summary returns CliLoggingData Pydantic model (better type safety than dict)
-        assert isinstance(summary, m.CliLoggingData)
+        assert isinstance(summary, m.Cli.CliLoggingData)
         assert hasattr(summary, "level")
 
     # =========================================================================
@@ -477,7 +477,7 @@ class TestsCliModels:
 
     def test_cli_command_edge_cases(
         self,
-        cli_command_factory: Callable[..., m.CliCommand],
+        cli_command_factory: Callable[..., m.Cli.CliCommand],
     ) -> None:
         """Test CliCommand edge cases and execution flow."""
         command = cli_command_factory(name="test")
@@ -504,7 +504,7 @@ class TestsCliModels:
         # Test invalid status - should raise ValidationError
         # Use cast to test invalid status (type checker knows it's invalid, but we test validation)
         with pytest.raises(ValidationError) as exc_info:
-            m.CliSession(
+            m.Cli.CliSession(
                 session_id="test_session",
                 user_id="test_user",
                 status="invalid_status",  # Type narrowing: invalid status for validation test  # Invalid status
@@ -514,13 +514,13 @@ class TestsCliModels:
 
     def test_cli_command_serialization_methods(
         self,
-        cli_command_factory: Callable[..., m.CliCommand],
+        cli_command_factory: Callable[..., m.Cli.CliCommand],
     ) -> None:
         """Test CliCommand serialization methods."""
         command = cli_command_factory(
             name="test",
             command_line="flext test arg1 arg2",
-            status=c.CommandStatus.COMPLETED.value,
+            status=c.Cli.CommandStatus.COMPLETED.value,
             args=["arg1", "arg2"],
             output="test output",
             error_output="test errors",
@@ -533,11 +533,11 @@ class TestsCliModels:
         assert data["name"] == "test"
         assert "command_line" in data
         assert data["args"] == ["arg1", "arg2"]
-        assert data["status"] == c.CommandStatus.COMPLETED.value
+        assert data["status"] == c.Cli.CommandStatus.COMPLETED.value
 
     def test_debug_info_sensitive_data_masking(
         self,
-        debug_info_factory: Callable[..., m.DebugInfo],
+        debug_info_factory: Callable[..., m.Cli.DebugInfo],
     ) -> None:
         """Test DebugInfo sensitive data masking in serialization."""
         debug_info = debug_info_factory(
@@ -555,8 +555,8 @@ class TestsCliModels:
 
     def test_cli_session_commands_serialization(
         self,
-        cli_session_factory: Callable[..., m.CliSession],
-        cli_command_factory: Callable[..., m.CliCommand],
+        cli_session_factory: Callable[..., m.Cli.CliSession],
+        cli_command_factory: Callable[..., m.Cli.CliCommand],
     ) -> None:
         """Test CliSession commands serialization."""
         session = cli_session_factory(session_id="test-session")
@@ -578,7 +578,7 @@ class TestsCliModels:
 
     def test_logging_config_complete_fields(
         self,
-        logging_config_factory: Callable[..., m.LoggingConfig],
+        logging_config_factory: Callable[..., m.Cli.LoggingConfig],
     ) -> None:
         """Test LoggingConfig with all fields."""
         config = logging_config_factory(
@@ -595,12 +595,12 @@ class TestsCliModels:
         # Test logging_summary
         summary = config.logging_summary
         # logging_summary returns CliLoggingData Pydantic model (better type safety than dict)
-        assert isinstance(summary, m.CliLoggingData)
+        assert isinstance(summary, m.Cli.CliLoggingData)
         assert summary.level == "DEBUG"
 
     def test_cli_command_validation_complete(
         self,
-        cli_command_factory: Callable[..., m.CliCommand],
+        cli_command_factory: Callable[..., m.Cli.CliCommand],
     ) -> None:
         """Test CliCommand complete validation."""
         command = cli_command_factory(
@@ -612,12 +612,12 @@ class TestsCliModels:
         # Validation happens automatically via Pydantic 2 field_validator
         # validate_command_consistency is a Pydantic model validator, not directly callable
         # It's automatically invoked during model validation
-        assert isinstance(command, m.CliCommand)
-        assert command.status == c.CommandStatus.PENDING.value
+        assert isinstance(command, m.Cli.CliCommand)
+        assert command.status == c.Cli.CommandStatus.PENDING.value
 
     def test_cli_session_edge_cases_comprehensive(
         self,
-        cli_session_factory: Callable[..., m.CliSession],
+        cli_session_factory: Callable[..., m.Cli.CliSession],
     ) -> None:
         """Test CliSession comprehensive edge cases."""
         # Test with valid session
@@ -665,7 +665,7 @@ class TestsCliModels:
             "id": source_data["user_id"],
             "name": source_data["user_name"],
             "email": source_data["user_email"],
-            "status": c.SessionStatus.ACTIVE.value
+            "status": c.Cli.SessionStatus.ACTIVE.value
             if source_data["user_active"]
             else "inactive",
         }
@@ -673,7 +673,7 @@ class TestsCliModels:
         assert transformed_data["id"] == 123
         assert transformed_data["name"] == "john_doe"
         assert transformed_data["email"] == "john@example.com"
-        assert transformed_data["status"] == c.SessionStatus.ACTIVE.value
+        assert transformed_data["status"] == c.Cli.SessionStatus.ACTIVE.value
 
     def test_merge_data_models(self) -> None:
         """Test data model merging functionality."""
@@ -1286,7 +1286,7 @@ class TestsCliModels:
         # Create a FieldInfo with annotation=None to trigger the exception
         field_info = PydanticFieldInfo(annotation=None, description="Test field")
         # Use explicit class reference to help type checker
-        converter = m.CliModelConverter
+        converter = m.Cli.CliModelConverter
         result = converter.field_to_cli_param("test_field", field_info)
 
         assert result.is_failure
@@ -1321,7 +1321,7 @@ class TestsCliModels:
                 msg = "Validation failed"
                 raise ValueError(msg)
 
-        decorator = m.CliModelDecorators.cli_from_model(FailingModel)
+        decorator = m.Cli.CliModelDecorators.cli_from_model(FailingModel)
 
         @decorator
         def test_function(model: BaseModel) -> r[object]:
@@ -1360,7 +1360,7 @@ class TestsCliModels:
                 msg = "Model 2 validation failed"
                 raise ValueError(msg)
 
-        decorator = m.CliModelDecorators.cli_from_multiple_models(
+        decorator = m.Cli.CliModelDecorators.cli_from_multiple_models(
             FailingModel1,
             FailingModel2,
         )
@@ -1382,7 +1382,7 @@ class TestsCliModels:
 
         # Test with individual types from union - covers lines 358 (float), 360 (bool)
         for test_type in [str, int, float, bool]:
-            result = m.CliModelConverter.pydantic_type_to_python_type(
+            result = m.Cli.CliModelConverter.pydantic_type_to_python_type(
                 test_type,
             )
             assert result == test_type
@@ -1391,7 +1391,7 @@ class TestsCliModels:
         """Test pydantic_type_to_python_type with Optional types - covers lines 312-318."""
         # Test with int | None (Optional[int])
         optional_int = int | None
-        result = m.CliModelConverter.pydantic_type_to_python_type(
+        result = m.Cli.CliModelConverter.pydantic_type_to_python_type(
             optional_int,
         )
         # Should extract int from Optional[int]
@@ -1401,14 +1401,14 @@ class TestsCliModels:
         """Test pydantic_type_to_python_type with List and Dict - covers lines 322, 326."""
         # Test with list type
         list_type = list[str]
-        result = m.CliModelConverter.pydantic_type_to_python_type(
+        result = m.Cli.CliModelConverter.pydantic_type_to_python_type(
             list_type,
         )
         assert result is list
 
         # Test with dict type
         dict_type = dict[str, str]
-        result = m.CliModelConverter.pydantic_type_to_python_type(
+        result = m.Cli.CliModelConverter.pydantic_type_to_python_type(
             dict_type,
         )
         assert result is dict
@@ -1420,7 +1420,7 @@ class TestsCliModels:
         class ComplexType:
             pass
 
-        result = m.CliModelConverter.pydantic_type_to_python_type(
+        result = m.Cli.CliModelConverter.pydantic_type_to_python_type(
             ComplexType,
         )
         # Should default to str for complex types
@@ -1433,7 +1433,7 @@ class TestsCliModels:
         class CustomClass:
             pass
 
-        result = m.CliModelConverter.python_type_to_click_type(CustomClass)
+        result = m.Cli.CliModelConverter.python_type_to_click_type(CustomClass)
 
         # Should default to STRING for unknown types
         assert result == "STRING"
@@ -1443,7 +1443,7 @@ class TestsCliModels:
         # Test with field_info that raises during metadata access
         field_info = PydanticFieldInfo(annotation=str, description="Test field")
         # Use explicit class reference to help type checker
-        converter = m.CliModelConverter
+        converter = m.Cli.CliModelConverter
         result = converter.field_to_cli_param("test_field", field_info)
 
         # Should handle the metadata access error gracefully
@@ -1452,17 +1452,17 @@ class TestsCliModels:
     def test_validate_command_input_edge_cases(self) -> None:
         """Test validate_command_input with edge cases."""
         # Test with None input
-        result = m.CliCommand.validate_command_input(None)
+        result = m.Cli.CliCommand.validate_command_input(None)
         assert result.is_failure
         assert "must be a dictionary" in str(result.error).lower()
 
         # Test with non-dict input
-        result = m.CliCommand.validate_command_input(123)
+        result = m.Cli.CliCommand.validate_command_input(123)
         assert result.is_failure
         assert "must be a dictionary" in str(result.error).lower()
 
         # Test with dict missing command field
-        result = m.CliCommand.validate_command_input({"other": "data"})
+        result = m.Cli.CliCommand.validate_command_input({"other": "data"})
         assert result.is_failure
         assert (
             "field" in str(result.error).lower()
@@ -1473,14 +1473,14 @@ class TestsCliModels:
         """Test CliCommand can be created with various field combinations."""
         # Test with command that has exit_code and pending status
         # (no validator prevents this combination)
-        command = m.CliCommand(
+        command = m.Cli.CliCommand(
             name="test",
             command_line="flext test",
             description="Test",
-            status=c.CommandStatus.PENDING.value,
+            status=c.Cli.CommandStatus.PENDING.value,
             exit_code=0,  # Allowed with pending status (no business rule validation)
         )
-        assert command.status == c.CommandStatus.PENDING.value
+        assert command.status == c.Cli.CommandStatus.PENDING.value
         assert command.exit_code == 0
 
     def test_cli_session_business_rules_edge_cases(self) -> None:
@@ -1492,7 +1492,7 @@ class TestsCliModels:
         # Test with invalid status - should raise ValidationError
         # Use cast to test invalid status (type checker knows it's invalid, but we test validation)
         with pytest.raises(ValidationError) as exc_info:
-            m.CliSession(
+            m.Cli.CliSession(
                 session_id="test",
                 status="invalid_status",  # Type narrowing: invalid status for validation test  # Invalid status value
             )
@@ -1500,9 +1500,9 @@ class TestsCliModels:
 
         # Test with empty user_id - now accepts empty string as default (None removed)
         # Empty string is valid default value, so no ValidationError expected
-        session = m.CliSession(
+        session = m.Cli.CliSession(
             session_id="test2",
-            status=c.SessionStatus.ACTIVE.value,
+            status=c.Cli.SessionStatus.ACTIVE.value,
             user_id="",  # Empty user_id is now valid (default value)
         )
         assert session.user_id == ""  # Empty string is accepted as default
@@ -1510,11 +1510,11 @@ class TestsCliModels:
     def test_cli_command_serialization_edge_cases(self) -> None:
         """Test CliCommand serialization with sensitive data."""
         # Test command line serialization with sensitive patterns
-        command = m.CliCommand(
+        command = m.Cli.CliCommand(
             name="test",
             command_line="flext login --password secret123 --token abcdef",
             description="Test",
-            status=c.CommandStatus.COMPLETED.value,
+            status=c.Cli.CommandStatus.COMPLETED.value,
         )
 
         # Test serialization preserves original command_line
@@ -1526,7 +1526,7 @@ class TestsCliModels:
 
     def test_debug_info_serialization_edge_cases(self) -> None:
         """Test DebugInfo serialization with sensitive data masking."""
-        debug_info = m.DebugInfo(
+        debug_info = m.Cli.DebugInfo(
             service="Test",
             level="info",
             message="Test",
@@ -1535,7 +1535,7 @@ class TestsCliModels:
         )
 
         # Test serialization - should mask sensitive data
-        data = debug_info.model_dump()
+        data = debug_info.dump_masked()
         assert isinstance(data, dict)
 
         # Check that sensitive keys are masked
@@ -1543,25 +1543,33 @@ class TestsCliModels:
         config_info = data.get("config_info", {})
 
         if isinstance(system_info, dict):
-            for key in system_info:
-                if "password" in key.lower():
-                    assert system_info[key] == "***MASKED***"
+            # Check that password key is masked
+            assert "password" in system_info
+            assert system_info["password"] == "***MASKED***"
+            # Check that non-sensitive keys are not masked
+            assert "username" in system_info
+            assert system_info["username"] == "testuser"
 
         if isinstance(config_info, dict):
-            for key in config_info:
-                if "token" in key.lower():
-                    assert config_info[key] == "***MASKED***"
+            # Check that token key is masked
+            assert "token" in config_info
+            assert config_info["token"] == "***MASKED***"
+            # Check that non-sensitive keys are not masked
+            assert "setting" in config_info
+            assert config_info["setting"] == "value"
 
     def test_cli_session_add_command_success(self) -> None:
         """Test CliSession add_command success case."""
-        session = m.CliSession(session_id="test", status=c.SessionStatus.ACTIVE.value)
+        session = m.Cli.CliSession(
+            session_id="test", status=c.Cli.SessionStatus.ACTIVE.value
+        )
 
         # Test successful command addition
-        command = m.CliCommand(
+        command = m.Cli.CliCommand(
             name="test",
             command_line="flext test",
             description="Test",
-            status=c.CommandStatus.PENDING.value,
+            status=c.Cli.CommandStatus.PENDING.value,
         )
 
         # Cast to protocol type for type compatibility
@@ -1576,11 +1584,11 @@ class TestsCliModels:
         """Test model validators with edge cases."""
         # Test CliCommand model validator with inconsistent data
         # This should not raise an error as the current validator doesn't check this case
-        command = m.CliCommand(
+        command = m.Cli.CliCommand(
             name="test",
             command_line="flext test",
             description="Test",
-            status=c.CommandStatus.COMPLETED.value,  # Status completed but no exit_code
+            status=c.Cli.CommandStatus.COMPLETED.value,  # Status completed but no exit_code
             output="some output",  # Output but no exit_code
         )
         assert command is not None
@@ -1588,18 +1596,18 @@ class TestsCliModels:
     def test_computed_field_edge_cases(self) -> None:
         """Test session properties and data accessors."""
         # Test CliSession with None values
-        session = m.CliSession(
+        session = m.Cli.CliSession(
             session_id="test",
-            status=c.SessionStatus.ACTIVE.value,
+            status=c.Cli.SessionStatus.ACTIVE.value,
             start_time=None,  # None start_time
             end_time=None,  # None end_time
         )
 
         # Test properties handle None values gracefully
         summary = session.session_summary
-        assert isinstance(summary, m.CliSessionData)
+        assert isinstance(summary, m.Cli.CliSessionData)
         assert summary.session_id == "test"
-        assert summary.status == c.SessionStatus.ACTIVE.value
+        assert summary.status == c.Cli.SessionStatus.ACTIVE.value
 
         # Test commands_by_status property with empty commands
         commands_by_status = session.commands_by_status
@@ -1608,11 +1616,11 @@ class TestsCliModels:
     def test_field_serializer_edge_cases(self) -> None:
         """Test field serializers with edge cases."""
         # Test command_line with various patterns
-        command = m.CliCommand(
+        command = m.Cli.CliCommand(
             name="test",
             command_line="flext deploy --env prod --secret-key abc123 --password secret --token xyz789",
             description="Test",
-            status=c.CommandStatus.COMPLETED.value,
+            status=c.Cli.CommandStatus.COMPLETED.value,
         )
 
         # Test serialization preserves original command_line
@@ -1628,7 +1636,7 @@ class TestsCliModels:
 
     def test_models_execute_method(self, flext_cli_models: m) -> None:
         """Test execute method of m - covers line 141."""
-        result = flext_cli_models.execute()
+        result = flext_cli_models.Cli.execute()
         assert result.is_success
         assert result.unwrap() == {}
 
@@ -1644,7 +1652,7 @@ class TestsCliModels:
             metadata={},
         )
 
-        result = m.CliModelConverter._validate_field_data(
+        result = m.Cli.CliModelConverter._validate_field_data(
             "test_field",
             cast(
                 "PydanticFieldInfo | str | int | float | bool | datetime | Sequence[t.GeneralValueType] | Mapping[str, t.GeneralValueType] | dict[str, object] | dict[str, type | str | bool | list[object] | dict[str, object]] | None",
@@ -1666,7 +1674,7 @@ class TestsCliModels:
             metadata={},
         )
 
-        result = m.CliModelConverter._validate_field_data(
+        result = m.Cli.CliModelConverter._validate_field_data(
             "test_field",
             cast(
                 "PydanticFieldInfo | str | int | float | bool | datetime | Sequence[t.GeneralValueType] | Mapping[str, t.GeneralValueType] | dict[str, object] | dict[str, type | str | bool | list[object] | dict[str, object]] | None",
@@ -1689,7 +1697,7 @@ class TestsCliModels:
             "metadata": {},
         }
 
-        result = m.CliModelConverter._validate_field_data(
+        result = m.Cli.CliModelConverter._validate_field_data(
             "test_field",
             cast(
                 "PydanticFieldInfo | str | int | float | bool | datetime | Sequence[t.GeneralValueType] | Mapping[str, t.GeneralValueType] | dict[str, object] | dict[str, type | str | bool | list[object] | dict[str, object]] | None",
@@ -1712,7 +1720,7 @@ class TestsCliModels:
             "metadata": {},
         }
 
-        result = m.CliModelConverter._validate_field_data(
+        result = m.Cli.CliModelConverter._validate_field_data(
             "test_field",
             cast(
                 "PydanticFieldInfo | str | int | float | bool | datetime | Sequence[t.GeneralValueType] | Mapping[str, t.GeneralValueType] | dict[str, object] | dict[str, type | str | bool | list[object] | dict[str, object]] | None",
@@ -1735,7 +1743,7 @@ class TestsCliModels:
             "metadata": {},
         }
 
-        result = m.CliModelConverter._validate_field_data(
+        result = m.Cli.CliModelConverter._validate_field_data(
             "test_field",
             cast(
                 "PydanticFieldInfo | str | int | float | bool | datetime | Sequence[t.GeneralValueType] | Mapping[str, t.GeneralValueType] | dict[str, object] | dict[str, type | str | bool | list[object] | dict[str, object]] | None",
@@ -1758,7 +1766,7 @@ class TestsCliModels:
             "metadata": "not_a_dict",  # Should be a dict, not a string
         }
 
-        result = m.CliModelConverter._validate_field_data(
+        result = m.Cli.CliModelConverter._validate_field_data(
             "test_field",
             cast(
                 "PydanticFieldInfo | str | int | float | bool | datetime | Sequence[t.GeneralValueType] | Mapping[str, t.GeneralValueType] | dict[str, object] | dict[str, type | str | bool | list[object] | dict[str, object]] | None",
@@ -1777,7 +1785,7 @@ class TestsCliModels:
             description="Test field",
         )
 
-        result = m.CliModelConverter.field_to_cli_param(
+        result = m.Cli.CliModelConverter.field_to_cli_param(
             "test_field",
             field_info,
         )
@@ -1803,8 +1811,8 @@ class TestsCliModels:
         field_info.annotation = str
 
         # Get types first - use the correct method
-        python_type = m.CliModelConverter.pydantic_type_to_python_type(str)
-        click_type = m.CliModelConverter.python_type_to_click_type(
+        python_type = m.Cli.CliModelConverter.pydantic_type_to_python_type(str)
+        click_type = m.Cli.CliModelConverter.python_type_to_click_type(
             python_type,
         )
         types: dict[str, type | str] = {
@@ -1813,7 +1821,7 @@ class TestsCliModels:
         }
 
         # Access the method to test metadata extraction
-        result = m.CliModelConverter.extract_field_properties(
+        result = m.Cli.CliModelConverter.extract_field_properties(
             "test_field",
             field_info,
             types,
@@ -1836,7 +1844,7 @@ class TestsCliModels:
             return x
 
         validators_raw: list[object] = [validator_func, identity_validator, str]
-        validators = m.CliModelConverter._process_validators(
+        validators = m.Cli.CliModelConverter._process_validators(
             validators_raw,
         )
 
@@ -1859,14 +1867,14 @@ class TestsCliModels:
         model_fields = TestModel.model_fields
         field_info = model_fields["test_field"]
 
-        result = m.CliModelConverter.field_to_cli_param(
+        result = m.Cli.CliModelConverter.field_to_cli_param(
             "test_field",
             field_info,
         )
         assert result.is_success
         param_spec = result.unwrap()
         # Narrow type to CliParameterSpec to access default attribute
-        if isinstance(param_spec, m.CliParameterSpec):
+        if isinstance(param_spec, m.Cli.CliParameterSpec):
             assert param_spec.default == "test_default"
 
     def test_convert_field_to_cli_param_validation_failure_real(self) -> None:
@@ -1886,7 +1894,7 @@ class TestsCliModels:
         # Make _validate_field_data return failure by using invalid data structure
         # Actually, we need to trigger this through the normal flow
         # Let's create a field with invalid metadata structure
-        _ = m.CliModelConverter.field_to_cli_param(
+        _ = m.Cli.CliModelConverter.field_to_cli_param(
             "test_field",
             field_info,
         )
@@ -1906,7 +1914,7 @@ class TestsCliModels:
             "metadata": {},
         }
 
-        validation_result = m.CliModelConverter._validate_field_data(
+        validation_result = m.Cli.CliModelConverter._validate_field_data(
             "test_field",
             invalid_data,  # Type narrowing: GenericFieldsDict is compatible with FieldMetadataDict
         )
@@ -1924,7 +1932,7 @@ class TestsCliModels:
             # Use a field with complex default that may cause issues
             optional_field: str | None = None
 
-        result = m.CliModelConverter.model_to_cli_params(TestModel)
+        result = m.Cli.CliModelConverter.model_to_cli_params(TestModel)
         # Should handle optional fields or fail gracefully
         assert isinstance(result, r)
 
@@ -1937,7 +1945,7 @@ class TestsCliModels:
             age: int
             tags: list[str] = Field(default_factory=list)
 
-        result = m.CliModelConverter.model_to_click_options(TestModel)
+        result = m.Cli.CliModelConverter.model_to_click_options(TestModel)
         # Should handle list fields or fail gracefully
         assert isinstance(result, r)
 
@@ -1972,7 +1980,7 @@ class TestsCliModels:
             name: str
             age: int
 
-        result = m.CliModelConverter.model_to_cli_params(TestModel)
+        result = m.Cli.CliModelConverter.model_to_cli_params(TestModel)
         assert result.is_success
         cli_params = result.unwrap()
         assert isinstance(cli_params, list)
@@ -1992,7 +2000,7 @@ class TestsCliModels:
             name: str
             age: int
 
-        result = m.CliModelConverter.model_to_click_options(TestModel)
+        result = m.Cli.CliModelConverter.model_to_click_options(TestModel)
         assert result.is_success
         click_options = result.unwrap()
         assert isinstance(click_options, list)
@@ -2058,7 +2066,7 @@ class TestsCliModels:
         # Add metadata to field_info
         field_info.metadata = [TestMetadata("custom_key", "custom_value")]
 
-        result = m.CliModelConverter.extract_field_properties(
+        result = m.Cli.CliModelConverter.extract_field_properties(
             "test_field",
             field_info,
             {},
@@ -2085,7 +2093,7 @@ class TestsCliModels:
         ]
 
         for python_type, expected_click in test_cases:
-            result = m.CliModelConverter.python_type_to_click_type(python_type)
+            result = m.Cli.CliModelConverter.python_type_to_click_type(python_type)
             assert result == expected_click
 
     def test_field_to_cli_param_with_complex_field(self) -> None:
@@ -2109,7 +2117,7 @@ class TestsCliModels:
         # Add validators and metadata
         field_info.metadata = [{"validator": validator_func}]
 
-        result = m.CliModelConverter.field_to_cli_param(
+        result = m.Cli.CliModelConverter.field_to_cli_param(
             "complex_field",
             field_info,
         )
@@ -2117,7 +2125,7 @@ class TestsCliModels:
         assert result.is_success
         param_spec = result.unwrap()
         # Narrow type to CliParameterSpec to access field_name and param_type attributes
-        if isinstance(param_spec, m.CliParameterSpec):
+        if isinstance(param_spec, m.Cli.CliParameterSpec):
             assert param_spec.field_name == "complex_field"
             assert param_spec.param_type is str
 
@@ -2128,7 +2136,7 @@ class TestsCliModels:
             name: str
             age: int = 25
 
-        result = m.CliModelConverter.model_to_cli_params(SimpleModel)
+        result = m.Cli.CliModelConverter.model_to_cli_params(SimpleModel)
 
         assert result.is_success
         params = result.unwrap()
@@ -2147,7 +2155,7 @@ class TestsCliModels:
             name: str
             age: int = 25
 
-        result = m.CliModelConverter.model_to_click_options(SimpleModel)
+        result = m.Cli.CliModelConverter.model_to_click_options(SimpleModel)
 
         assert result.is_success
         options = result.unwrap()

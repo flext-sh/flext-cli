@@ -3,12 +3,10 @@
 from __future__ import annotations
 
 from collections.abc import Callable, Mapping, Sequence
-from typing import Protocol, TypeVar
+from typing import ParamSpec, Protocol, TypeVar
 
 from flext_core import FlextTypes, r
 from pydantic import BaseModel
-
-from flext_cli.protocols import p
 
 # ═══════════════════════════════════════════════════════════════════════════
 # TYPEVARS: Only object allowed outside the class
@@ -91,6 +89,9 @@ class FlextCliTypes(FlextTypes):
 
         class Command:
             """Command-related type aliases."""
+
+            # ParamSpec for CLI command signatures
+            P_CliCommand = ParamSpec("P_CliCommand")
 
             # Concrete types instead of TypeVars
             # Use GeneralValueType instead of object for better type safety
@@ -219,12 +220,12 @@ class FlextCliTypes(FlextTypes):
             type CommandContext = FlextTypes.Json.JsonDict
 
         class Display:
-            """Rich display type aliases using Protocols instead of object."""
+            """Rich display type aliases using Protocols.
 
-        # Use p.Cli.Display for proper typing
-        type RichTable = p.Cli.Display.RichTableProtocol
-        type RichTree = p.Cli.Display.RichTreeProtocol
-        type Console = p.Cli.Display.RichConsoleProtocol
+            Protocol-dependent type aliases have been moved to models.py (Tier 1).
+            Use m.Cli.Display.RichTable, m.Cli.Display.RichTree, m.Cli.Display.Console
+            for type annotations referencing protocol types.
+            """
 
         class Callable:
             """Callable type aliases - now properly typed."""
@@ -266,10 +267,11 @@ class FlextCliTypes(FlextTypes):
             type WorkflowProgress = FlextTypes.Json.JsonDict
 
         class Interactive:
-            """Interactive display type aliases using Protocols."""
+            """Interactive display type aliases using Protocols.
 
-            # Progress uses RichProgressProtocol for typing
-            type Progress = p.Cli.Interactive.RichProgressProtocol
+            Protocol-dependent type aliases have been moved to models.py (Tier 1).
+            Use m.Cli.Interactive.Progress for type annotations referencing protocol types.
+            """
 
         class Tables:
             """Table-related type aliases."""
@@ -289,6 +291,7 @@ class FlextCliTypes(FlextTypes):
 # Alias for simplified usage
 t = FlextCliTypes
 
+
 # Namespace composition via class inheritance
 # Cli namespace provides access to nested classes through inheritance
 # Access patterns:
@@ -296,6 +299,7 @@ t = FlextCliTypes
 # - t.Command.* for command types
 # - t.Output.* for output types
 # - t.Core.* for core types (inherited from parent)
+# - t.Data.* for convenience (same as t.Cli.Data.*)
 
 __all__ = [
     "FlextCliCommandT",

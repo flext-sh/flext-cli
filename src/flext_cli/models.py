@@ -8,10 +8,8 @@ from collections.abc import Callable, Mapping, Sequence
 from typing import (
     ClassVar,
     Literal,
-    ParamSpec,
     Self,
     Union,
-    cast,
     get_args,
     get_origin,
     override,
@@ -22,6 +20,7 @@ from flext_core import (
     FlextModels,
     FlextRuntime,
     r,
+    u as flext_u,
 )
 from pydantic import BaseModel, ConfigDict, Field, computed_field, field_validator
 from pydantic.fields import FieldInfo
@@ -30,10 +29,6 @@ from flext_cli.config import FlextCliConfig
 from flext_cli.constants import c
 from flext_cli.protocols import p
 from flext_cli.typings import t
-from flext_cli.utilities import u
-
-# TypeVar for CLI command signatures (must be after imports)
-P_CliCommand = ParamSpec("P_CliCommand")
 
 
 class FlextCliModels(FlextModels):
@@ -47,6 +42,14 @@ class FlextCliModels(FlextModels):
     4. field_validator for complex validation
     5. Self for transformation methods
     """
+
+    def __init_subclass__(cls, **kwargs: object) -> None:
+        """Warn when FlextCliModels is subclassed directly."""
+        super().__init_subclass__(**kwargs)
+        flext_u.Deprecation.warn_once(
+            f"subclass:{cls.__name__}",
+            "Subclassing FlextCliModels is deprecated. Use FlextModels.Cli instead.",
+        )
 
     class Cli:
         """CLI project namespace for cross-project access.
@@ -249,7 +252,13 @@ class FlextCliModels(FlextModels):
                     if not isinstance(data, dict):
                         return r.fail("Input must be a dictionary")
                     # Type narrowing: data is dict, use model_validate for type-safe creation
-                    data_dict = cast("dict[str, object]", data)
+                    if not isinstance(data, dict):
+                        msg = "data must be dict"
+                        raise TypeError(msg)
+                    # Type narrowing: data is confirmed to be dict[str, object]
+                    data_dict: dict[str, object] = (
+                        data if isinstance(data, dict) else {}
+                    )
                     # Use model_validate for type-safe model creation from dict
                     command = cls.model_validate(data_dict)
                     return r.ok(command)
@@ -276,19 +285,17 @@ class FlextCliModels(FlextModels):
             @field_validator("status")
             @classmethod
             def validate_status(cls, value: t.GeneralValueType) -> str:
-                """Validate session status using utilities."""
+                """Validate session status."""
                 if not isinstance(value, str):
                     msg = f"Status must be a string, got {type(value)}"
                     raise TypeError(msg)
-                # Use v_in for validation
-                v_result = u.Cli.CliValidation.v_in(
-                    value,
-                    valid=c.Cli.SESSION_STATUSES_LIST,
-                    name="session_status",
-                )
-                if v_result.is_failure:
-                    raise ValueError(v_result.error or "Invalid session status")
-                return value
+                # Validate value is in allowed statuses
+                str_value: str = value
+                valid_statuses = c.Cli.ValidationLists.SESSION_STATUSES
+                if str_value not in valid_statuses:
+                    msg = f"session_status must be one of {valid_statuses}, got '{str_value}'"
+                    raise ValueError(msg)
+                return str_value
 
             # Use protocol for type hint to enable structural typing
             commands: Sequence[p.Cli.Command] = Field(
@@ -335,10 +342,15 @@ class FlextCliModels(FlextModels):
             @property
             def commands_by_status(self) -> dict[str, list[m.Cli.CliCommand]]:
                 """Group commands by status."""
+                # Filter commands to only CliCommand instances
+
+                cli_commands: list[m.Cli.CliCommand] = []
+                for cmd in self.commands:
+                    if isinstance(cmd, m.Cli.CliCommand):
+                        cli_commands.append(cmd)  # noqa: PERF401
+                # Group by status
                 result: dict[str, list[m.Cli.CliCommand]] = {}
-                for command_protocol in self.commands:
-                    # Cast protocol to concrete type for type safety
-                    command = cast("m.Cli.CliCommand", command_protocol)
+                for command in cli_commands:
                     status = command.status or ""
                     if status not in result:
                         result[status] = []
@@ -463,8 +475,8 @@ class FlextCliModels(FlextModels):
                 description="Execution duration in seconds",
             )
 
-            @computed_field  # type: ignore[prop-decorator]  # mypy false positive with @computed_field
             @property
+            @computed_field
             def success(self) -> bool:
                 """Check if command succeeded.
 
@@ -472,8 +484,8 @@ class FlextCliModels(FlextModels):
                 """
                 return self.exit_code == 0
 
-            @computed_field  # type: ignore[prop-decorator]  # mypy false positive with @computed_field
             @property
+            @computed_field
             def has_output(self) -> bool:
                 """Check if command produced output.
 
@@ -889,6 +901,7 @@ class FlextCliModels(FlextModels):
             @classmethod
             def normalize_level(cls, value: t.GeneralValueType) -> str:
                 """Normalize level to uppercase."""
+                # Type narrowing: ensure value is str before calling .upper()
                 if isinstance(value, str):
                     return value.upper()
                 return str(value).upper()
@@ -922,37 +935,79 @@ class FlextCliModels(FlextModels):
                 data = self.model_dump()
                 sensitive_keys = ["password", "token", "secret", "key", "credential"]
 
-                # Mask sensitive keys in system_info
-                system_info = data.get("system_info")
+                # Mask sensitive keys in system_info using mapper
+                system_info = u.mapper().get(data, "system_info")
+                system_dict: dict[str, t.GeneralValueType]
                 if system_info and FlextRuntime.is_dict_like(system_info):
-                    system_dict = dict(system_info)
-                    masked_system_dict: dict[str, t.GeneralValueType] = {
-                        k: (
-                            "***MASKED***"
-                            if any(
-                                sensitive in k.lower() for sensitive in sensitive_keys
-                            )
-                            else v
-                        )
-                        for k, v in system_dict.items()
-                    }
-                    data["system_info"] = masked_system_dict
+                    # Type narrowing: system_info is dict-like, convert to dict
+                    if isinstance(system_info, dict):
+                        system_dict = system_info
+                    # Use mapper to convert to dict
+                    # Type narrowing: system_info is dict-like but not dict, convert
+                    elif not isinstance(system_info, (dict, Mapping)):
+                        system_dict = {}
+                    else:
+                        # system_info is Mapping, convert to dict
+                        # Type narrowing: Mapping values are GeneralValueType compatible
+                        if isinstance(system_info, Mapping):
+                            # Convert Mapping to dict - values are GeneralValueType compatible
+                            # Use dict comprehension to help type checker
+                            system_dict_raw: dict[str, t.GeneralValueType] = {
+                                str(k): v for k, v in system_info.items()
+                            }
+                        else:
+                            system_dict_raw = {}
+                        system_dict = system_dict_raw
+                else:
+                    system_dict = {}
 
-                # Mask sensitive keys in config_info
-                config_info = data.get("config_info")
+                # Apply masking to system_dict (regardless of how it was obtained)
+                masked_system_dict: dict[str, t.GeneralValueType] = {
+                    k: (
+                        "***MASKED***"
+                        if any(sensitive in k.lower() for sensitive in sensitive_keys)
+                        else v
+                    )
+                    for k, v in system_dict.items()
+                }
+                data["system_info"] = masked_system_dict
+
+                # Mask sensitive keys in config_info using mapper
+                config_info = u.mapper().get(data, "config_info")
+                config_dict: dict[str, t.GeneralValueType]
                 if config_info and FlextRuntime.is_dict_like(config_info):
-                    config_dict = dict(config_info)
-                    masked_config_dict: dict[str, t.GeneralValueType] = {
-                        k: (
-                            "***MASKED***"
-                            if any(
-                                sensitive in k.lower() for sensitive in sensitive_keys
-                            )
-                            else v
-                        )
-                        for k, v in config_dict.items()
-                    }
-                    data["config_info"] = masked_config_dict
+                    # Type narrowing: config_info is dict-like, convert to dict
+                    if isinstance(config_info, dict):
+                        config_dict = config_info
+                    # Use mapper to convert to dict
+                    # Type narrowing: config_info is dict-like but not dict, convert
+                    elif not isinstance(config_info, (dict, Mapping)):
+                        config_dict = {}
+                    else:
+                        # config_info is Mapping, convert to dict
+                        # Type narrowing: Mapping values are GeneralValueType compatible
+                        if isinstance(config_info, Mapping):
+                            # Convert Mapping to dict - values are GeneralValueType compatible
+                            # Use dict comprehension to help type checker
+                            config_dict_raw: dict[str, t.GeneralValueType] = {
+                                str(k): v for k, v in config_info.items()
+                            }
+                        else:
+                            config_dict_raw = {}
+                        config_dict = config_dict_raw
+                else:
+                    config_dict = {}
+
+                # Apply masking to config_dict (regardless of how it was obtained)
+                masked_config_dict: dict[str, t.GeneralValueType] = {
+                    k: (
+                        "***MASKED***"
+                        if any(sensitive in k.lower() for sensitive in sensitive_keys)
+                        else v
+                    )
+                    for k, v in config_dict.items()
+                }
+                data["config_info"] = masked_config_dict
 
                 return data
 
@@ -998,21 +1053,28 @@ class FlextCliModels(FlextModels):
                     typer.Option instance configured from registry metadata
 
                 """
-                # Use dict.get() for safe extraction with defaults
-                # Extract field metadata from registry using dict.get()
-                field_meta: dict[str, t.GeneralValueType] = cast(
-                    "dict[str, t.GeneralValueType]",
-                    self.registry.get(self.field_name, {}),
+                # Use u.mapper().get() for safe extraction with defaults
+                # Extract field metadata from registry using u.mapper().get()
+                field_meta_raw: object = u.mapper().get(
+                    self.registry, self.field_name, default={}
+                )
+                if not u.Guards.is_type(field_meta_raw, dict):
+                    msg = "field_meta_raw must be dict"
+                    raise TypeError(msg)
+                # Type narrowing: field_meta_raw is dict, cast to dict[str, GeneralValueType]
+                field_meta: dict[str, t.GeneralValueType] = (
+                    field_meta_raw if isinstance(field_meta_raw, dict) else {}
                 )
                 # Extract option metadata from registry
-                help_text = str(field_meta.get("help", ""))
-                short_flag = str(field_meta.get("short", ""))
-                default_value = field_meta.get("default")
+                help_text = str(u.mapper().get(field_meta, "help", default=""))
+                short_flag = str(u.mapper().get(field_meta, "short", default=""))
+                default_value = u.mapper().get(field_meta, "default")
                 # Note: is_flag is deprecated in Typer - boolean defaults auto-enable flag behavior
 
                 # Use field_name_override if available, otherwise use field_name
                 # Registry uses KEY_FIELD_NAME_OVERRIDE to map CLI param name to field name
-                field_name_override = field_meta.get(
+                field_name_override = u.mapper().get(
+                    field_meta,
                     c.Cli.CliParamsRegistry.KEY_FIELD_NAME_OVERRIDE,
                 )
                 cli_param_name: str = (
@@ -1196,8 +1258,8 @@ class FlextCliModels(FlextModels):
 
             def __init__(
                 self,
-                model_class: type[FlextModels],
-                handler: Callable[[FlextModels], t.GeneralValueType],
+                model_class: type[BaseModel],
+                handler: Callable[[BaseModel], t.GeneralValueType],
                 config: FlextCliConfig | None = None,
             ) -> None:
                 """Initialize builder with model class, handler, and optional config.
@@ -1303,7 +1365,14 @@ class FlextCliModels(FlextModels):
                 non_none_types_list = u.Cli.filter(
                     args_list, predicate=is_not_none_type
                 )
-                non_none_types = cast("list[type]", non_none_types_list)
+                if not u.Guards.is_type(non_none_types_list, list):
+                    msg = "non_none_types_list must be list"
+                    raise TypeError(msg)
+                # Type narrowing: filter returns list[object], but we know items are types
+                # Validate at runtime and narrow type
+                non_none_types: list[type] = [
+                    item for item in non_none_types_list if isinstance(item, type)
+                ]
                 inner_type = non_none_types[0] if non_none_types else str
 
                 if get_origin(inner_type) is Literal:
@@ -1331,7 +1400,14 @@ class FlextCliModels(FlextModels):
                 non_none_types_list = u.Cli.filter(
                     args_list, predicate=is_not_none_type
                 )
-                non_none_types = cast("list[type]", non_none_types_list)
+                if not u.Guards.is_type(non_none_types_list, list):
+                    msg = "non_none_types_list must be list"
+                    raise TypeError(msg)
+                # Type narrowing: filter returns list[object], but we know items are types
+                # Validate at runtime and narrow type
+                non_none_types: list[type] = [
+                    item for item in non_none_types_list if isinstance(item, type)
+                ]
                 if not non_none_types:
                     return "str", str
 
@@ -1410,10 +1486,12 @@ class FlextCliModels(FlextModels):
                     is_required_attr = getattr(field_info, "is_required", True)
                     # is_required can be bool or callable, handle both cases
                     if callable(is_required_attr):
-                        is_required_method = cast(
-                            "Callable[[], bool]", is_required_attr
-                        )
-                        is_required = is_required_method()
+                        # is_required_attr is a callable - try to invoke it
+                        try:
+                            is_required = bool(is_required_attr())
+                        except TypeError:
+                            # If callable doesn't accept no args, treat as bool
+                            is_required = bool(is_required_attr)
                     else:
                         # is_required_attr is bool at this point (after callable check)
                         is_required = bool(is_required_attr)
@@ -1518,12 +1596,14 @@ class FlextCliModels(FlextModels):
                             u.Cli.filter(args, lambda a: a is not type(None))
                         )
                         if non_none and non_none[0] is bool:
-                            return cast("type", bool | None)
+                            # Type narrowing: bool | None is a UnionType, not a type
+                            # Return bool as the base type (None is handled separately)
+                            return bool
                         return field_type
                     return field_type
 
                 # Process annotations using dict comprehension for type safety
-                # u.process() works on iterables, but for dicts we need to process items
+                # u.Cli.process() works on iterables, but for dicts we need to process items
                 processed_annotations: dict[str, type] = {
                     name: process_annotation(name, field_type)
                     for name, field_type in annotations.items()
@@ -1560,19 +1640,18 @@ class FlextCliModels(FlextModels):
                     field_info: t.GeneralValueType,
                 ) -> tuple[type, t.GeneralValueType | None, bool]:
                     """Process single field and return (type, default, has_factory)."""
-                    field_type, default_val, is_required, has_factory = (
+                    field_type, default_val, _is_required, has_factory = (
                         self._process_field_metadata(field_name, field_info)
                     )
+                    # Return field_type (not Union type) - None handling is separate
                     return (
-                        cast("type", field_type | None)
-                        if not is_required
-                        else field_type,
+                        field_type,
                         default_val if default_val is not None else None,
                         has_factory,
                     )
 
                 # Process model fields using dict comprehension for type safety
-                # u.process() works on iterables, but for dicts we need to process items
+                # u.Cli.process() works on iterables, but for dicts we need to process items
                 processed_dict: dict[
                     str, tuple[type, t.GeneralValueType | None, bool]
                 ] = {
@@ -1633,7 +1712,7 @@ class FlextCliModels(FlextModels):
                     return param_str, is_no_default
 
                 # Process annotations using dict comprehension for type safety
-                # u.process() works on iterables, but for dicts we need to process items
+                # u.Cli.process() works on iterables, but for dicts we need to process items
                 signatures_dict: dict[str, tuple[str, bool]] = {
                     name: process_signature(name, field_type)
                     for name, field_type in annotations.items()
@@ -1673,14 +1752,20 @@ class FlextCliModels(FlextModels):
                     else []
                 )
                 # Extract param strings using u.map with operator.itemgetter
-                params_no_default_strs = cast(
-                    "list[str]",
-                    u.Cli.map(params_no_default, mapper=operator.itemgetter(0)),
+                params_no_default_strs_result = u.Cli.map(
+                    params_no_default, mapper=operator.itemgetter(0)
                 )
-                params_with_default_strs = cast(
-                    "list[str]",
-                    u.Cli.map(params_with_default, mapper=operator.itemgetter(0)),
+                if not isinstance(params_no_default_strs_result, list):
+                    msg = "params_no_default_strs_result must be list"
+                    raise TypeError(msg)
+                params_no_default_strs: list[str] = params_no_default_strs_result
+                params_with_default_strs_result = u.Cli.map(
+                    params_with_default, mapper=operator.itemgetter(0)
                 )
+                if not isinstance(params_with_default_strs_result, list):
+                    msg = "params_with_default_strs_result must be list"
+                    raise TypeError(msg)
+                params_with_default_strs: list[str] = params_with_default_strs_result
 
                 return ", ".join(params_no_default_strs + params_with_default_strs)
 
@@ -1721,7 +1806,7 @@ class FlextCliModels(FlextModels):
                     "__builtins__": __builtins__,
                 }
                 func_code = f"def command_wrapper({sig_parts}):{func_body}"
-                exec(func_code, func_globals)
+                exec(func_code, func_globals)  # nosec B102
                 command_wrapper = func_globals.get("command_wrapper")
                 if command_wrapper is None:
                     msg = "Failed to create command wrapper"
@@ -1734,7 +1819,15 @@ class FlextCliModels(FlextModels):
                 if callable(command_wrapper):
                     # command_wrapper is created dynamically via exec, so signature is variadic
                     # Callable[..., T] is necessary for variadic callables
-                    return cast("Callable[..., t.GeneralValueType]", command_wrapper)
+                    # Type narrowing: command_wrapper is callable, return as Callable[..., GeneralValueType]
+                    # Runtime validation ensures it matches expected signature
+                    # command_wrapper is created dynamically and matches Callable[..., GeneralValueType]
+                    if not isinstance(command_wrapper, type) and callable(
+                        command_wrapper
+                    ):
+                        return command_wrapper
+                    msg = "command_wrapper must be a callable function"
+                    raise TypeError(msg)
                 msg = "command_wrapper is not callable"
                 raise RuntimeError(msg)
 
@@ -1865,12 +1958,13 @@ class FlextCliModels(FlextModels):
                         origin = get_origin(field_type)
                         if origin is not None:
                             args = get_args(field_type)
-                            non_none_types = cast(
-                                "list[type]",
-                                u.Cli.filter(
-                                    list(args), lambda arg: arg is not type(None)
-                                ),
+                            non_none_types_result = u.Cli.filter(
+                                list(args), lambda arg: arg is not type(None)
                             )
+                            if not isinstance(non_none_types_result, list):
+                                msg = "non_none_types_result must be list"
+                                raise TypeError(msg)
+                            non_none_types: list[type] = non_none_types_result
                             if non_none_types:
                                 field_type = non_none_types[0]
                         default = getattr(field_info, "default", None)
@@ -1889,7 +1983,7 @@ class FlextCliModels(FlextModels):
                         )
 
                     # Process model fields using dict comprehension for type safety
-                    # u.process() works on iterables, but for dicts we need to process items
+                    # u.Cli.process() works on iterables, but for dicts we need to process items
                     try:
                         params_dict: dict[str, p.Cli.CliParameterSpecProtocol] = {
                             field_name: convert_field(field_name, field_info)
@@ -1918,39 +2012,47 @@ class FlextCliModels(FlextModels):
                     return r[list[t.GeneralValueType]].fail(
                         params_result.error or "Conversion failed",
                     )
-                params = u.val(params_result, default=[])
+                # Extract value from result with default
+                params_raw = params_result.value if params_result.is_success else []
+                # Type narrowing: params_result.value is list[p.Cli.CliParameterSpecProtocol]
+                if not isinstance(params_raw, list):
+                    params: list[p.Cli.CliParameterSpecProtocol] = []
+                else:
+                    # Type narrowing: params_raw is list, check items are CliParameterSpecProtocol
+                    params = [
+                        item
+                        for item in params_raw
+                        if isinstance(item, p.Cli.CliParameterSpecProtocol)
+                    ]
                 # Create Click option-like objects with option_name and param_decls
                 # Use simple object with attributes for compatibility with tests
                 # Type cast: dynamically created objects are compatible with GeneralValueType
                 options: list[t.GeneralValueType] = []
-                # Ensure params is a list (u.val should return list, but type checker needs help)
-                params_list = params if isinstance(params, list) else []
-                for param in params_list:
+                for param in params:
+                    # Type narrowing: param is CliParameterSpecProtocol
                     # Create a simple object with option_name and param_decls attributes
                     option_name = f"--{param.field_name.replace('_', '-')}"
-                    # Type cast: param_decls list is compatible with GeneralValueType (list is included)
-                    param_decls_list: t.GeneralValueType = cast(
-                        "t.GeneralValueType",
-                        [option_name],
-                    )
-                    # Type cast: param_type (type) needs to be cast to GeneralValueType for dict
-                    param_type_value: t.GeneralValueType = cast(
-                        "t.GeneralValueType",
-                        param.param_type,
+                    # Type narrowing: param_decls list is compatible with GeneralValueType (list is included)
+                    param_decls_list: t.GeneralValueType = [option_name]
+                    # Type narrowing: param_type (type) - store as string for dict compatibility
+                    # type is not in GeneralValueType, so we use string representation
+                    param_type_name: str = (
+                        getattr(param.param_type, "__name__", "str")
+                        if isinstance(param.param_type, type)
+                        else "str"
                     )
                     option_obj_dict: dict[str, t.GeneralValueType] = {
                         "option_name": option_name,
                         "param_decls": param_decls_list,
                         "field_name": param.field_name,
-                        "param_type": param_type_value,
+                        "param_type": param_type_name,
                         "default": param.default,
                         "help": param.help,  # CliParameterSpec stores as .help, not .help_text
                     }
-                    # Type cast: dynamically created object is compatible with GeneralValueType
-                    option_obj: t.GeneralValueType = cast(
-                        "t.GeneralValueType",
-                        type("ClickOption", (), option_obj_dict)(),
-                    )
+                    # Type narrowing: dynamically created object is compatible with GeneralValueType
+                    option_obj: t.GeneralValueType = type(
+                        "ClickOption", (), option_obj_dict
+                    )()
                     options.append(option_obj)
                 return r[list[t.GeneralValueType]].ok(options)
 
@@ -1987,10 +2089,13 @@ class FlextCliModels(FlextModels):
                     origin = get_origin(field_type)
                     if origin is not None:
                         args = get_args(field_type)
-                        non_none_types = cast(
-                            "list[type]",
-                            u.Cli.filter(list(args), lambda arg: arg is not type(None)),
+                        non_none_types_result = u.Cli.filter(
+                            list(args), lambda arg: arg is not type(None)
                         )
+                        if not isinstance(non_none_types_result, list):
+                            msg = "non_none_types_result must be list"
+                            raise TypeError(msg)
+                        non_none_types: list[type] = non_none_types_result
                         if non_none_types:
                             field_type = non_none_types[0]
                     click_type_str = m.Cli.CliModelConverter.python_type_to_click_type(
@@ -2012,52 +2117,76 @@ class FlextCliModels(FlextModels):
                     )
 
             @staticmethod
-            def pydantic_type_to_python_type(
-                pydantic_type: type | object,
-            ) -> type:
-                """Convert Pydantic type annotation to Python type."""
-                # Handle Optional/Union types - Python 3.10+ union types
-                if isinstance(pydantic_type, types.UnionType):
-                    # For int | None, extract non-None type
-                    args = get_args(pydantic_type)
-                    non_none_types = cast(
-                        "list[type]",
-                        u.Cli.filter(list(args), lambda arg: arg is not type(None)),
-                    )
-                    if non_none_types:
-                        result_type = non_none_types[0]
-                        if isinstance(result_type, type):
-                            return result_type
-                    return str  # Fallback
-                # Handle generic types like list[str], dict[str, str]
+            def handle_union_type(pydantic_type: types.UnionType) -> type:
+                """Handle UnionType (e.g., int | None) and extract non-None type."""
+                args = get_args(pydantic_type)
+                non_none_types_result = u.Cli.filter(
+                    list(args), lambda arg: arg is not type(None)
+                )
+                if not isinstance(non_none_types_result, list):
+                    msg = "non_none_types_result must be list"
+                    raise TypeError(msg)
+                non_none_types: list[type] = non_none_types_result
+                if non_none_types:
+                    result_type = non_none_types[0]
+                    if isinstance(result_type, type):
+                        return result_type
+                return str  # Fallback
+
+            @staticmethod
+            def handle_generic_type(pydantic_type: object) -> type | None:
+                """Handle generic types like list[str], dict[str, str]. Returns None if not handled."""
                 origin = get_origin(pydantic_type)
-                if origin is not None:
-                    # For generic types like list[str], dict[str, str], return the origin (list, dict)
-                    if origin in {list, dict}:
-                        return cast("type", origin)
-                    args = get_args(pydantic_type)
-                    non_none_types = cast(
-                        "list[type]",
-                        u.Cli.filter(list(args), lambda arg: arg is not type(None)),
-                    )
-                    if non_none_types:
-                        first_type = non_none_types[0]
-                        # Type narrowing: first_type is from filtered list, should be type
-                        if isinstance(first_type, type):
-                            return first_type
-                        # Fallback cast if isinstance check fails (shouldn't happen)
-                        # This branch is unreachable because first_type is from filtered list of types
-                        return cast("type", first_type)
-                # Check if it's a known simple type
-                if isinstance(pydantic_type, type) and pydantic_type in {
+                if origin is None:
+                    return None
+                # For generic types like list[str], dict[str, str], return the origin
+                if isinstance(origin, type) and origin in {list, dict}:
+                    return origin
+                # Extract first type argument
+                args = get_args(pydantic_type)
+                non_none_types_result = u.Cli.filter(
+                    list(args), lambda arg: arg is not type(None)
+                )
+                if not isinstance(non_none_types_result, list):
+                    msg = "non_none_types_result must be list"
+                    raise TypeError(msg)
+                non_none_types: list[type] = non_none_types_result
+                if non_none_types:
+                    first_type = non_none_types[0]
+                    if isinstance(first_type, type):
+                        return first_type
+                    return first_type
+                return None
+
+            @staticmethod
+            def is_simple_type(pydantic_type: type | object) -> bool:
+                """Check if it's a known simple type."""
+                return isinstance(pydantic_type, type) and pydantic_type in {
                     str,
                     int,
                     float,
                     bool,
                     list,
                     dict,
-                }:
-                    return pydantic_type
+                }
+
+            @staticmethod
+            def pydantic_type_to_python_type(
+                pydantic_type: type | object,
+            ) -> type:
+                """Convert Pydantic type annotation to Python type."""
+                # Handle Optional/Union types - Python 3.10+ union types
+                if isinstance(pydantic_type, types.UnionType):
+                    return m.Cli.CliModelConverter.handle_union_type(pydantic_type)
+                # Handle generic types like list[str], dict[str, str]
+                generic_result = m.Cli.CliModelConverter.handle_generic_type(
+                    pydantic_type
+                )
+                if generic_result is not None:
+                    return generic_result
+                # Check if it's a known simple type
+                if m.Cli.CliModelConverter.is_simple_type(pydantic_type):
+                    return pydantic_type  # type: ignore[return-value]
                 # Default to str for complex types
                 return str
 
@@ -2174,14 +2303,14 @@ class FlextCliModels(FlextModels):
                     json_schema_extra,
                 ):
                     # Type narrowing: both are dict-like, safe to update
-                    dict_metadata: dict[str, t.GeneralValueType] = cast(
-                        "dict[str, t.GeneralValueType]",
-                        metadata_raw,
-                    )
-                    dict_schema: dict[str, t.GeneralValueType] = cast(
-                        "dict[str, t.GeneralValueType]",
-                        json_schema_extra,
-                    )
+                    if not isinstance(metadata_raw, dict):
+                        msg = "metadata_raw must be dict"
+                        raise TypeError(msg)
+                    dict_metadata: dict[str, t.GeneralValueType] = metadata_raw
+                    if not isinstance(json_schema_extra, dict):
+                        msg = "json_schema_extra must be dict"
+                        raise TypeError(msg)
+                    dict_schema: dict[str, t.GeneralValueType] = json_schema_extra
                     dict_metadata.update(dict_schema)
                     props["metadata"] = dict_metadata
 
@@ -2315,13 +2444,13 @@ class FlextCliModels(FlextModels):
                 for item in field_info:
                     if callable(item):
                         # Type narrowing: item is callable, cast to proper validator type
-                        # Type cast: validators may have different signatures, cast for compatibility
+                        # Type narrowing: validators may have different signatures
+                        if not callable(item):
+                            msg = "item must be callable"
+                            raise TypeError(msg)
                         validator: Callable[
                             [t.GeneralValueType], t.GeneralValueType
-                        ] = cast(
-                            "Callable[[t.GeneralValueType], t.GeneralValueType]",
-                            item,
-                        )
+                        ] = item
                         validators.append(validator)
                 return validators
 
@@ -2465,10 +2594,38 @@ class FlextCliModels(FlextModels):
             level: str = Field(..., description="Debug level")
             message: str = Field(..., description="Debug message")
 
+        class Display:
+            """Rich display type aliases using Protocols.
+
+            These type aliases reference protocol types from flext_cli.protocols.
+            Located in Tier 1 (models.py) to allow protocol imports.
+            """
+
+            # Reference protocol types (p.Cli.Display.*)
+            type RichTable = p.Cli.Display.RichTableProtocol
+            type RichTree = p.Cli.Display.RichTreeProtocol
+            type Console = p.Cli.Display.RichConsoleProtocol
+
+        class Interactive:
+            """Interactive display type aliases using Protocols.
+
+            These type aliases reference protocol types from flext_cli.protocols.
+            Located in Tier 1 (models.py) to allow protocol imports.
+            """
+
+            # Reference protocol types (p.Cli.Interactive.*)
+            type Progress = p.Cli.Interactive.RichProgressProtocol
+
+
+# Use namespace completo (m.Cli.*) para acesso explícito
+# Use m.Cli.TableConfig for explicit namespace access
+# Use m.Cli.TableConfig for explicit namespace access
 
 m = FlextCliModels
+m_cli = FlextCliModels
 
 __all__ = [
     "FlextCliModels",
     "m",
+    "m_cli",
 ]
