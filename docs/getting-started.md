@@ -322,16 +322,19 @@ If you're upgrading from v0.9.0, see:
 ## Related Documentation
 
 **Within Project**:
+
 - [API Reference](api-reference.md) - Complete API documentation
 - [Architecture](architecture.md) - Architecture and design patterns
 - [Development Guide](development.md) - Contributing and extending
 - [Migration Guide](refactoring/migration-guide-v0.9-to-v0.10.md) - v0.9.0 to v0.10.0 migration
 
 **Across Projects**:
+
 - [flext-core Foundation](https://github.com/organization/flext/tree/main/flext-core/docs/guides/railway-oriented-programming.md) - Railway-oriented programming patterns
 - [flext-core CLI Patterns](https://github.com/organization/flext/tree/main/flext-core/docs/guides/service-patterns.md) - Service patterns
 
 **External Resources**:
+
 - [PEP 257 - Docstring Conventions](https://peps.python.org/pep-0257/)
 - [Google Python Style Guide](https://google.github.io/styleguide/pyguide.html)
 

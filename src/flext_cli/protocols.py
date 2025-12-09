@@ -12,40 +12,10 @@ from flext_cli.typings import t
 
 
 class FlextCliProtocols(FlextProtocols):
-    """FlextCli protocol definitions extending FlextProtocols.
-
-    Business Rules:
-    ───────────────
-    1. Protocols define structural typing contracts - NO concrete implementations
-    2. Protocols can ONLY import other Protocols (from flext projects)
-    3. Protocols CANNOT import Models, Config, or concrete classes
-    4. Use @runtime_checkable for isinstance() checks at runtime
-    5. Use Self for methods returning the same instance (Python 3.11+)
-    6. Extends FlextProtocols for consistency across flext ecosystem
-    7. Protocols enable dependency inversion - depend on abstractions, not concretions
-
-    Architecture Implications:
-    ───────────────────────────
-    - Protocols enforce interface contracts without coupling to implementations
-    - Structural typing allows multiple implementations of same protocol
-    - Runtime checks via @runtime_checkable enable isinstance() validation
-    - Extension of FlextProtocols ensures ecosystem-wide consistency
-
-    Audit Implications:
-    ───────────────────
-    - Protocol violations detected at runtime via isinstance() checks
-    - Missing protocol methods cause AttributeError at call site
-    - Protocol compliance ensures type safety and interface contracts
-    - Changes to protocols require updates to all implementations
-    - Protocol methods must match signatures exactly (structural typing)
-    """
+    """CLI protocol definitions extending FlextProtocols."""
 
     class Cli:
-        """CLI protocol namespace.
-
-        All CLI-specific protocols are organized within this namespace
-        for proper namespace separation and cross-project access.
-        """
+        """CLI protocol namespace for all CLI-specific protocols."""
 
         # ═══════════════════════════════════════════════════════════════════
         # LAYER 0: Domain Protocols (sem dependências internas)
@@ -106,11 +76,7 @@ class FlextCliProtocols(FlextProtocols):
 
         @runtime_checkable
         class Command(Protocol):
-            """Protocol for CLI commands.
-
-            Complete protocol matching m.CliCommand structure.
-            Used for type hints to enable structural typing and avoid circular imports.
-            """
+            """Protocol for CLI commands."""
 
             @property
             def name(self) -> str:
@@ -226,11 +192,7 @@ class FlextCliProtocols(FlextProtocols):
 
         @runtime_checkable
         class CliSessionProtocol(Protocol):
-            """Protocol for CLI session models.
-
-            Complete protocol matching m.CliSession structure.
-            Used for type hints to enable structural typing and avoid circular imports.
-            """
+            """Protocol for CLI session models."""
 
             @property
             def session_id(self) -> str:
@@ -307,10 +269,7 @@ class FlextCliProtocols(FlextProtocols):
 
         @runtime_checkable
         class SessionData(Protocol):
-            """Protocol for CLI session summary data.
-
-            Complete protocol matching m.CliSessionData structure.
-            """
+            """Protocol for CLI session summary data."""
 
             @property
             def session_id(self) -> str:
@@ -329,10 +288,7 @@ class FlextCliProtocols(FlextProtocols):
 
         @runtime_checkable
         class DebugData(Protocol):
-            """Protocol for CLI debug summary data.
-
-            Complete protocol matching m.CliDebugData structure.
-            """
+            """Protocol for CLI debug summary data."""
 
             @property
             def service(self) -> str:
@@ -457,10 +413,7 @@ class FlextCliProtocols(FlextProtocols):
 
         @runtime_checkable
         class ConfirmConfigProtocol(Protocol):
-            """Protocol for CLI confirmation configuration.
-
-            Complete protocol matching m.Cli.ConfirmConfig structure.
-            """
+            """Protocol for CLI confirmation configuration."""
 
             @property
             def default(self) -> bool:
@@ -489,10 +442,7 @@ class FlextCliProtocols(FlextProtocols):
 
         @runtime_checkable
         class PromptConfigProtocol(Protocol):
-            """Protocol for CLI prompt configuration.
-
-            Complete protocol matching m.Cli.PromptConfig structure.
-            """
+            """Protocol for CLI prompt configuration."""
 
             @property
             def default(self) -> t.GeneralValueType | None:
@@ -541,10 +491,7 @@ class FlextCliProtocols(FlextProtocols):
 
         @runtime_checkable
         class TableConfigProtocol(Protocol):
-            """Protocol for CLI table configuration.
-
-            Complete protocol matching m.Cli.TableConfig structure.
-            """
+            """Protocol for CLI table configuration."""
 
             @property
             def headers(self) -> Sequence[str]:
@@ -558,10 +505,7 @@ class FlextCliProtocols(FlextProtocols):
 
         @runtime_checkable
         class CliParamsConfigProtocol(Protocol):
-            """Protocol for CLI parameters configuration.
-
-            Complete protocol matching m.Cli.CliParamsConfig structure.
-            """
+            """Protocol for CLI parameters configuration."""
 
             @property
             def verbose(self) -> bool | None:
@@ -610,10 +554,7 @@ class FlextCliProtocols(FlextProtocols):
 
         @runtime_checkable
         class SystemInfoProtocol(Protocol):
-            """Protocol for system information models.
-
-            Complete protocol matching m.SystemInfo structure.
-            """
+            """Protocol for system information models."""
 
             @property
             def python_version(self) -> str:
@@ -642,10 +583,7 @@ class FlextCliProtocols(FlextProtocols):
 
         @runtime_checkable
         class EnvironmentInfoProtocol(Protocol):
-            """Protocol for environment information models.
-
-            Complete protocol matching m.EnvironmentInfo structure.
-            """
+            """Protocol for environment information models."""
 
             @property
             def env_vars(self) -> Mapping[str, str]:
@@ -654,10 +592,7 @@ class FlextCliProtocols(FlextProtocols):
 
         @runtime_checkable
         class PathInfoProtocol(Protocol):
-            """Protocol for path information models.
-
-            Complete protocol matching m.PathInfo structure.
-            """
+            """Protocol for path information models."""
 
             @property
             def paths(self) -> Sequence[str]:
@@ -704,83 +639,16 @@ class FlextCliProtocols(FlextProtocols):
 
         @runtime_checkable
         class CliAuthenticator(Protocol):
-            """Protocol for CLI authentication.
-
-            Business Rules:
-            ───────────────
-            1. Authentication MUST return r[str] with token on success
-            2. Authentication MUST return r[str] with error message on failure
-            3. Token validation MUST return r[bool] (True=valid, False=invalid)
-            4. Credentials MUST NOT be logged or stored in plain text
-            5. Tokens MUST be validated before use in subsequent operations
-
-            Architecture Implications:
-            ───────────────────────────
-            - Uses Railway-Oriented Programming (FlextResult) for error handling
-            - Enables multiple authentication backends (LDAP, OAuth, API keys, etc.)
-            - Token-based authentication for stateless CLI operations
-            - Protocol allows swapping implementations without code changes
-
-            Audit Implications:
-            ───────────────────
-            - All authentication attempts MUST be logged (success/failure)
-            - Failed authentication attempts MUST NOT expose user existence
-            - Token validation MUST check expiration and revocation status
-            - Authentication failures MUST return generic error messages
-            - Token storage MUST use secure mechanisms (environment variables, keyring)
-            - Remote authentication MUST use encrypted connections (TLS/SSL)
-            """
+            """Protocol for CLI authentication."""
 
             def authenticate(
                 self, username: str, password: str
             ) -> FlextProtocols.Result[str]:
-                """Authenticate user with username and password.
-
-                Business Rule:
-                ──────────────
-                Validates user credentials and returns authentication token.
-                Returns r[str] with token string on success, error on failure.
-
-                Args:
-                    username: User identifier for authentication
-                    password: User password for authentication
-
-                Returns:
-                    r[str]: Token string on success, error message on failure
-
-                Audit Implications:
-                ───────────────────
-                - Authentication attempts MUST be logged with timestamp and result
-                - Failed attempts MUST NOT reveal whether username exists
-                - Passwords MUST NOT be logged or stored
-                - Rate limiting SHOULD be enforced to prevent brute force attacks
-                - Remote authentication MUST use encrypted channels (TLS/SSL)
-
-                """
+                """Authenticate user with credentials."""
                 ...
 
             def validate_token(self, token: str) -> FlextProtocols.Result[bool]:
-                """Validate authentication token.
-
-                Business Rule:
-                ──────────────
-                Validates token authenticity, expiration, and revocation status.
-                Returns r[bool] with True if valid, False if invalid.
-
-                Args:
-                    token: Authentication token string to validate
-
-                Returns:
-                    r[bool]: True if token is valid, False if invalid
-
-                Audit Implications:
-                ───────────────────
-                - Token validation MUST check expiration time
-                - Token validation MUST check revocation status (if applicable)
-                - Invalid token attempts MUST be logged for security monitoring
-                - Token validation MUST be performed before any privileged operation
-
-                """
+                """Validate authentication token."""
                 ...
 
         @runtime_checkable

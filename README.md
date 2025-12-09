@@ -399,7 +399,6 @@ make check                  # Lint + type-check only
 - **[Architecture](docs/architecture.md)** - Design and structure
 - **[Development](docs/development.md)** - Contributing guidelines
 
-
 ### **Examples**
 
 ```bash

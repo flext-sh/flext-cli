@@ -1,4 +1,5 @@
 # Phase 1 Implementation Guide
+
 ## v0.10.0 Refactoring - Remove Duplication & Dead Code
 
 **Status**: Ready for implementation
@@ -13,6 +14,7 @@
 ## Overview
 
 Phase 1 removes 3 files totaling ~700 lines of unnecessary code:
+
 1. **validator.py** - Empty stub (22 lines)
 2. **auth.py** - Duplicate functionality (300 lines)
 3. **testing.py** - Move to tests/fixtures/ (362 lines)
@@ -91,18 +93,21 @@ rm src/flext_cli/auth.py
 **Remove these 2 lines**:
 
 **Line 170**: Remove entire line
+
 ```python
 from flext_cli.auth import FlextCliAuthService
 ```
 
 **Line 195**: Remove entire line from `__all__` list
+
 ```python
     "FlextCliAuthService",
 ```
 
-### Modified __init__.py Structure
+### Modified **init**.py Structure
 
 **BEFORE** (lines 168-196):
+
 ```python
 # Phase 2: Advanced Features - Production Ready
 # from flext_cli.async_support import FlextCliAsync  # Module not yet implemented
@@ -118,6 +123,7 @@ __all__ = [
 ```
 
 **AFTER** (lines 168-194):
+
 ```python
 # Phase 2: Advanced Features - Production Ready
 # from flext_cli.async_support import FlextCliAsync  # Module not yet implemented
@@ -179,6 +185,7 @@ mv src/flext_cli/testing.py tests/fixtures/testing_utilities.py
 #### 3. Update test imports
 
 **Find all test files with testing imports**:
+
 ```bash
 find tests -name "*.py" -type f -exec grep -l "from flext_cli import.*Test\|from flext_cli.testing" {} \;
 ```
@@ -186,6 +193,7 @@ find tests -name "*.py" -type f -exec grep -l "from flext_cli import.*Test\|from
 **For each test file**, update imports:
 
 **OLD**:
+
 ```python
 from flext_cli import FlextCliTesting, FlextCliTestRunner, FlextCliMockScenarios
 # or
@@ -193,6 +201,7 @@ from flext_cli.testing import FlextCliTesting
 ```
 
 **NEW**:
+
 ```python
 from tests.fixtures.testing_utilities import (
     FlextCliTesting,
@@ -202,6 +211,7 @@ from tests.fixtures.testing_utilities import (
 ```
 
 **Automated sed command** (review before running):
+
 ```bash
 # Update imports in test files
 find tests -name "*.py" -type f -exec sed -i \
@@ -224,11 +234,13 @@ find tests -name "*.py" -type f -exec sed -i \
 #### 4. Edit `src/flext_cli/__init__.py`
 
 **Remove line 188**:
+
 ```python
 from flext_cli.testing import FlextCliMockScenarios, FlextCliTesting, FlextCliTestRunner
 ```
 
 **Remove from `__all__` (lines 208, 214, 215)**:
+
 ```python
     "FlextCliMockScenarios",
     ...
@@ -236,9 +248,10 @@ from flext_cli.testing import FlextCliMockScenarios, FlextCliTesting, FlextCliTe
     "FlextCliTesting",
 ```
 
-### Modified __init__.py After This Step
+### Modified **init**.py After This Step
 
 **BEFORE**:
+
 ```python
 from flext_cli.testing import FlextCliMockScenarios, FlextCliTesting, FlextCliTestRunner
 ...
@@ -253,6 +266,7 @@ __all__ = [
 ```
 
 **AFTER**:
+
 ```python
 # Line removed entirely
 ...
@@ -297,6 +311,7 @@ grep -n "asyncio\|ThreadPoolExecutor\|pluggy\|LRUCache\|TTLCache" src/flext_cli/
 ### Actions Required
 
 **If unused**, remove these imports from `src/flext_cli/core.py`:
+
 - `import asyncio` (if not used)
 - `from concurrent.futures import ThreadPoolExecutor` (if not used)
 - `import pluggy` (if not used)
@@ -325,7 +340,7 @@ After completing all steps, verify:
 - [ ] validator.py deleted
 - [ ] auth.py deleted
 - [ ] testing.py moved to tests/fixtures/testing_utilities.py
-- [ ] __init__.py updated (3 imports removed, 4 exports removed)
+- [ ] **init**.py updated (3 imports removed, 4 exports removed)
 - [ ] Test imports updated to use tests.fixtures
 - [ ] Unused imports removed from core.py
 - [ ] `make validate` passes completely
@@ -351,7 +366,7 @@ python -c "from flext_cli import FlextCli, FlextCliConfig; print('✓ Imports wo
 
 ## Rollback Plan (If Issues Occur)
 
-### If you need to rollback:
+### If you need to rollback
 
 ```bash
 # Restore from git (if committed)
@@ -373,14 +388,17 @@ find tests -name "*.py" -type f -exec sed -i \
 ## Summary
 
 **Files Deleted**: 2
+
 - src/flext_cli/validator.py
 - src/flext_cli/auth.py
 
 **Files Moved**: 1
+
 - src/flext_cli/testing.py → tests/fixtures/testing_utilities.py
 
 **Files Modified**: 1
-- src/flext_cli/__init__.py (removed 3 imports, 4 exports)
+
+- src/flext_cli/**init**.py (removed 3 imports, 4 exports)
 
 **Lines Removed**: ~700 lines of unnecessary code
 

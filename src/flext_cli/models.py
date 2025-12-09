@@ -20,12 +20,10 @@ from flext_core import (
     FlextModels,
     FlextRuntime,
     r,
-    u as flext_u,
 )
 from pydantic import BaseModel, ConfigDict, Field, computed_field, field_validator
 from pydantic.fields import FieldInfo
 
-from flext_cli.config import FlextCliConfig
 from flext_cli.constants import c
 from flext_cli.protocols import p
 from flext_cli.typings import t
@@ -48,10 +46,8 @@ class FlextCliModels(FlextModels):
     def __init_subclass__(cls, **kwargs: object) -> None:
         """Warn when FlextCliModels is subclassed directly."""
         super().__init_subclass__(**kwargs)
-        flext_u.Deprecation.warn_once(
-            f"subclass:{cls.__name__}",
-            "Subclassing FlextCliModels is deprecated. Use FlextModels.Cli instead.",
-        )
+        # NOTE: Deprecation warning removed to comply with architecture rules
+        # (models.py cannot import utilities)
 
     class Cli:
         """CLI project namespace for cross-project access.
@@ -294,8 +290,8 @@ class FlextCliModels(FlextModels):
                     raise ValueError(msg)
                 return str_value
 
-            # Use protocol for type hint to enable structural typing
-            commands: Sequence[p.Cli.Command] = Field(
+            # Use concrete type to avoid protocol typing issues
+            commands: Sequence[m.Cli.CliCommand] = Field(
                 default_factory=list,
                 description="Commands in session",
             )
@@ -944,9 +940,7 @@ class FlextCliModels(FlextModels):
                     elif isinstance(system_info, Mapping):
                         # Type narrowing: system_info is Mapping, convert to dict
                         # Mapping values are GeneralValueType compatible
-                        system_dict = {
-                            str(k): v for k, v in system_info.items()
-                        }
+                        system_dict = {str(k): v for k, v in system_info.items()}
                     else:
                         system_dict = {}
                 else:
@@ -975,9 +969,7 @@ class FlextCliModels(FlextModels):
                     elif isinstance(config_info, Mapping):
                         # Type narrowing: config_info is Mapping, convert to dict
                         # Mapping values are GeneralValueType compatible
-                        config_dict = {
-                            str(k): v for k, v in config_info.items()
-                        }
+                        config_dict = {str(k): v for k, v in config_info.items()}
                     else:
                         config_dict = {}
                 else:
@@ -1242,7 +1234,7 @@ class FlextCliModels(FlextModels):
                 self,
                 model_class: type[BaseModel],
                 handler: Callable[[BaseModel], t.GeneralValueType],
-                config: FlextCliConfig | None = None,
+                config: object | None = None,
             ) -> None:
                 """Initialize builder with model class, handler, and optional config.
 
@@ -1344,7 +1336,9 @@ class FlextCliModels(FlextModels):
                     return arg is not type(None)
 
                 args_list: list[object] = list(args)
-                non_none_types_list = [item for item in args_list if is_not_none_type(item)]
+                non_none_types_list = [
+                    item for item in args_list if is_not_none_type(item)
+                ]
                 if not isinstance(non_none_types_list, list):
                     msg = "non_none_types_list must be list"
                     raise TypeError(msg)
@@ -1377,7 +1371,9 @@ class FlextCliModels(FlextModels):
                     return arg is not type(None)
 
                 args_list: list[object] = list(args)
-                non_none_types_list = [item for item in args_list if is_not_none_type(item)]
+                non_none_types_list = [
+                    item for item in args_list if is_not_none_type(item)
+                ]
                 if not isinstance(non_none_types_list, list):
                     msg = "non_none_types_list must be list"
                     raise TypeError(msg)
@@ -1713,8 +1709,12 @@ class FlextCliModels(FlextModels):
                     return not bool(get_bool_flag(item))
 
                 # models.py cannot use utilities - use list comprehension instead
-                params_no_default_list = [item for item in signatures_values_typed if has_no_default(item)]
-                params_with_default_list = [item for item in signatures_values_typed if has_default(item)]
+                params_no_default_list = [
+                    item for item in signatures_values_typed if has_no_default(item)
+                ]
+                params_with_default_list = [
+                    item for item in signatures_values_typed if has_default(item)
+                ]
                 params_no_default = (
                     list(params_no_default_list)
                     if isinstance(params_no_default_list, list)
@@ -1727,8 +1727,12 @@ class FlextCliModels(FlextModels):
                 )
                 # models.py cannot use utilities - use list comprehension instead
                 # Extract param strings using list comprehension with operator.itemgetter
-                params_no_default_strs = [operator.itemgetter(0)(item) for item in params_no_default]
-                params_with_default_strs = [operator.itemgetter(0)(item) for item in params_with_default]
+                params_no_default_strs = [
+                    operator.itemgetter(0)(item) for item in params_no_default
+                ]
+                params_with_default_strs = [
+                    operator.itemgetter(0)(item) for item in params_with_default
+                ]
 
                 return ", ".join(params_no_default_strs + params_with_default_strs)
 
@@ -1922,7 +1926,9 @@ class FlextCliModels(FlextModels):
                         if origin is not None:
                             args = get_args(field_type)
                             # models.py cannot use utilities - use list comprehension instead
-                            non_none_types_result = [arg for arg in list(args) if arg is not type(None)]
+                            non_none_types_result = [
+                                arg for arg in list(args) if arg is not type(None)
+                            ]
                             non_none_types: list[type] = non_none_types_result
                             if non_none_types:
                                 field_type = non_none_types[0]
@@ -2049,7 +2055,9 @@ class FlextCliModels(FlextModels):
                     if origin is not None:
                         args = get_args(field_type)
                         # models.py cannot use utilities - use list comprehension instead
-                        non_none_types = [arg for arg in list(args) if arg is not type(None)]
+                        non_none_types = [
+                            arg for arg in list(args) if arg is not type(None)
+                        ]
                         if non_none_types:
                             field_type = non_none_types[0]
                     click_type_str = m.Cli.CliModelConverter.python_type_to_click_type(
@@ -2335,7 +2343,7 @@ class FlextCliModels(FlextModels):
                 field_value: object,
             ) -> r[t.GeneralValueType]:
                 """Convert field value to GeneralValueType.
-                
+
                 models.py cannot use utilities - use direct conversion instead.
                 Uses GeneralValueType from lower layer for proper type safety.
                 """
@@ -2577,7 +2585,6 @@ class FlextCliModels(FlextModels):
 
 
 # Use namespace completo (m.Cli.*) para acesso explícito
-# Use m.Cli.TableConfig for explicit namespace access
 # Use m.Cli.TableConfig for explicit namespace access
 
 m = FlextCliModels

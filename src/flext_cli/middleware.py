@@ -69,7 +69,7 @@ class LoggingMiddleware:
         getattr(ctx, "command", "unknown")
         start = time.perf_counter()
         result = next_(ctx)
-        time.perf_counter() - start
+        _elapsed = time.perf_counter() - start
         return result
 
 

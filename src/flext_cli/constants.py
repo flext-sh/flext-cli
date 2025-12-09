@@ -26,7 +26,7 @@ from flext_core import FlextConstants
 
 class FileFormatConfig(TypedDict):
     """File format configuration with type-safe structure.
-    
+
     Uses TypedDict to eliminate isinstance checks by providing proper typing.
     """
 
@@ -116,9 +116,9 @@ class FlextCliConstants(FlextConstants):
             "plain",
         ]
 
-        # Log level literal - reuse from flext-core (no duplication)
-        # PEP 695 type statement works in classes (Python 3.13+)
-        type LogLevelLiteral = FlextConstants.Literals.LogLevelLiteral
+        # Log level literal - reuse from flext-core Settings.LogLevel StrEnum
+        # StrEnum is the single source of truth - no Literal duplication needed
+        type LogLevelLiteral = FlextConstants.Settings.LogLevel
 
         # Command status literal - references CommandStatus StrEnum members
         # Use string literals to avoid forward reference issues
@@ -149,9 +149,9 @@ class FlextCliConstants(FlextConstants):
             "connected",
         ]
 
-        # Environment literal - reuse from flext-core (no duplication)
-        # Use flext-core EnvironmentLiteral directly - includes "testing" (standard value)
-        type EnvironmentLiteral = FlextConstants.Literals.EnvironmentLiteral
+        # Environment literal - reuse from flext-core Settings.Environment StrEnum
+        # StrEnum is the single source of truth - no Literal duplication needed
+        type EnvironmentLiteral = FlextConstants.Settings.Environment
 
         # Log verbosity literal - references LogVerbosity StrEnum members
         # Use string literals to avoid forward reference issues
@@ -253,13 +253,15 @@ class FlextCliConstants(FlextConstants):
             }
 
             # Output format validation set using frozenset for O(1) membership testing
-            OUTPUT_FORMAT_SET: ClassVar[frozenset[str]] = frozenset({
-                "json",
-                "yaml",
-                "csv",
-                "table",
-                "plain",
-            })
+            OUTPUT_FORMAT_SET: ClassVar[frozenset[str]] = frozenset(
+                {
+                    "json",
+                    "yaml",
+                    "csv",
+                    "table",
+                    "plain",
+                }
+            )
 
             # Command status validation mapping
             COMMAND_STATUS_MAP: ClassVar[Mapping[str, str]] = {
@@ -271,13 +273,15 @@ class FlextCliConstants(FlextConstants):
             }
 
             # Command status validation set
-            COMMAND_STATUS_SET: ClassVar[frozenset[str]] = frozenset({
-                "pending",
-                "running",
-                "completed",
-                "failed",
-                "cancelled",
-            })
+            COMMAND_STATUS_SET: ClassVar[frozenset[str]] = frozenset(
+                {
+                    "pending",
+                    "running",
+                    "completed",
+                    "failed",
+                    "cancelled",
+                }
+            )
 
         # =====================================================================
         # STRING ENUMS - Python 3.13+ StrEnum Best Practices
@@ -562,40 +566,40 @@ class FlextCliConstants(FlextConstants):
             # Debug levels - reuse from flext-core (no duplication)
             DEBUG_LEVELS: Final[list[str]] = LOG_LEVELS
 
-            # Critical debug levels - reuse from flext-core
+            # Critical debug levels - reuse from flext-core Settings.LogLevel StrEnum
             CRITICAL_DEBUG_LEVELS: Final[list[str]] = [
-                FlextConstants.Logging.ERROR,
-                FlextConstants.Logging.CRITICAL,
+                FlextConstants.Settings.LogLevel.ERROR,
+                FlextConstants.Settings.LogLevel.CRITICAL,
             ]
 
-            # Critical debug levels set - reuse from flext-core
-            CRITICAL_DEBUG_LEVELS_SET: Final[frozenset[str]] = frozenset({
-                FlextConstants.Logging.ERROR,
-                FlextConstants.Logging.CRITICAL,
-            })
+            # Critical debug levels set - reuse from flext-core Settings.LogLevel StrEnum
+            CRITICAL_DEBUG_LEVELS_SET: Final[frozenset[str]] = frozenset(
+                {
+                    FlextConstants.Settings.LogLevel.ERROR,
+                    FlextConstants.Settings.LogLevel.CRITICAL,
+                }
+            )
 
-            # Service statuses - derived from ServiceStatus StrEnum (lines 322-338)
-            # Values match ServiceStatus enum members for DRY principle
+            # Service statuses - from ServiceStatus StrEnum (sibling class)
             SERVICE_STATUSES: Final[list[str]] = [
-                "operational",  # ServiceStatus.OPERATIONAL
-                "available",  # ServiceStatus.AVAILABLE
-                "degraded",  # ServiceStatus.DEGRADED
-                "error",  # ServiceStatus.ERROR
-                "healthy",  # ServiceStatus.HEALTHY
-                "connected",  # ServiceStatus.CONNECTED
+                "operational",
+                "available",
+                "degraded",
+                "error",
+                "healthy",
+                "connected",
             ]
 
-            # Error codes - derived from ErrorCodes StrEnum (lines 417-438)
-            # Values match ErrorCodes enum members for DRY principle
+            # Error codes - from ErrorCodes StrEnum (sibling class)
             ERROR_CODES: Final[list[str]] = [
-                "CLI_ERROR",  # ErrorCodes.CLI_ERROR
-                "CLI_VALIDATION_ERROR",  # ErrorCodes.CLI_VALIDATION_ERROR
-                "CLI_CONFIGURATION_ERROR",  # ErrorCodes.CLI_CONFIGURATION_ERROR
-                "CLI_CONNECTION_ERROR",  # ErrorCodes.CLI_CONNECTION_ERROR
-                "CLI_AUTHENTICATION_ERROR",  # ErrorCodes.CLI_AUTHENTICATION_ERROR
-                "CLI_COMMAND_ERROR",  # ErrorCodes.COMMAND_ERROR
-                "CLI_TIMEOUT_ERROR",  # ErrorCodes.CLI_TIMEOUT_ERROR
-                "CLI_FORMAT_ERROR",  # ErrorCodes.FORMAT_ERROR
+                "CLI_ERROR",
+                "CLI_VALIDATION_ERROR",
+                "CLI_CONFIGURATION_ERROR",
+                "CLI_CONNECTION_ERROR",
+                "CLI_AUTHENTICATION_ERROR",
+                "CLI_TIMEOUT_ERROR",
+                "CLI_COMMAND_ERROR",
+                "CLI_FORMAT_ERROR",
             ]
 
         # Backward compatibility aliases (deprecated - use ValidationLists.*)
@@ -734,54 +738,10 @@ class FlextCliConstants(FlextConstants):
         ]
 
         # =====================================================================
-        # ADVANCED ENUM VALIDATION - Python 3.13+ discriminated union patterns
+        # ADVANCED ENUM VALIDATION - MOVED TO UTILITIES.PY
         # =====================================================================
-
-        @classmethod
-        def get_enum_values(cls, enum_class: type[StrEnum]) -> Sequence[str]:
-            """Get all values from StrEnum class.
-
-            Returns immutable sequence for safe iteration.
-            Python 3.13+ collections.abc.Sequence pattern.
-            Uses enum.__members__ for compatibility with all type checkers.
-
-            Args:
-                enum_class: StrEnum class to extract values from
-
-            Returns:
-                Immutable sequence of enum string values
-
-            """
-            return tuple(member.value for member in enum_class.__members__.values())
-
-        @classmethod
-        def create_cli_discriminated_union(
-            cls,
-            _discriminator_field: str,
-            *enum_classes: type[StrEnum],
-        ) -> dict[str, type[StrEnum]]:
-            """Create discriminated union mapping for Pydantic models.
-
-            Advanced pattern for discriminated unions with multiple enums.
-            Enables efficient validation with Field(discriminator=discriminator_field).
-            Python 3.13+ discriminated union best practice.
-
-            CLI-specific helper that extends FlextConstants.create_discriminated_union
-            with discriminator field support for Pydantic models.
-
-            Args:
-                discriminator_field: Field name used as discriminator
-                *enum_classes: StrEnum classes to include in union
-
-            Returns:
-                Mapping of discriminator values to enum classes
-
-            """
-            union_map = {}
-            for enum_class in enum_classes:
-                for member in enum_class.__members__.values():
-                    union_map[member.value] = enum_class
-            return union_map
+        # Functions moved to utilities.py to comply with FLEXT architecture rules.
+        # constants.py must contain only constants, no functions or methods.
 
         class TIMEOUTS:
             """Timeout constants."""
@@ -859,9 +819,7 @@ class FlextCliConstants(FlextConstants):
             """
             # Use direct dict access instead of u_core.mapper().get() to avoid utilities in constants.py
             format_config = cls.FILE_FORMATS.get(format_name)
-            return (
-                format_config.get("extensions") if format_config else None
-            )
+            return format_config.get("extensions") if format_config else None
 
         @classmethod
         def get_mime_type(cls, format_name: str) -> str | None:

@@ -537,10 +537,12 @@ class TestsCliConstants:
             refresh_token_file = app_dir / constants.Cli.Paths.REFRESH_TOKEN_FILE_NAME
 
             token_file.write_text(
-                json.dumps({
-                    "access_token": "test_token",
-                    "token_type": "Bearer",
-                })
+                json.dumps(
+                    {
+                        "access_token": "test_token",
+                        "token_type": "Bearer",
+                    }
+                )
             )
             refresh_token_file.write_text(
                 json.dumps({"refresh_token": "test_refresh_token"}),
@@ -632,7 +634,7 @@ class TestsCliConstants:
     def test_get_enum_values(self) -> None:
         """Test get_enum_values extracts values from StrEnum."""
         # Test with CommandStatus enum
-        values = c.Cli.get_enum_values(c.Cli.CommandStatus)
+        values = u.get_enum_values(c.Cli.CommandStatus)
         assert isinstance(values, tuple)
         assert len(values) > 0
         assert all(isinstance(v, str) for v in values)
@@ -640,14 +642,14 @@ class TestsCliConstants:
         assert "running" in values
 
         # Test with OutputFormats enum
-        output_values = c.Cli.get_enum_values(c.Cli.OutputFormats)
+        output_values = u.get_enum_values(c.Cli.OutputFormats)
         assert isinstance(output_values, tuple)
         assert "json" in output_values
         assert "yaml" in output_values
 
     def test_create_cli_discriminated_union(self) -> None:
         """Test create_cli_discriminated_union creates union mapping."""
-        union_map = c.Cli.create_cli_discriminated_union(
+        union_map = u.create_discriminated_union(
             "status",
             c.Cli.CommandStatus,
             c.Cli.SessionStatus,

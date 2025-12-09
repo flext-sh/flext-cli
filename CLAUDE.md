@@ -232,6 +232,12 @@ table = cli.create_table(...)          # Table abstraction
 
 ---
 
+## Automated Fix Scripts
+
+For batch corrections (missing imports, undefined names), use `/tmp/fix_*.sh` scripts with 4 modes: `dry-run`, `backup`, `exec`, `rollback`. **See [../CLAUDE.md](../CLAUDE.md#automated-fix-scripts-batch-corrections)** for template and rules.
+
+---
+
 ## Essential Commands
 
 ```bash

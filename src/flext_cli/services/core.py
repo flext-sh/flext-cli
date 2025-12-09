@@ -663,9 +663,7 @@ class FlextCliCore(FlextCliServiceBase):
             # Business Rule: Frozen model attributes MUST be set using object.__setattr__()
             # Architecture: Pydantic frozen models require object.__setattr__() for attribute mutation
             # Python 3.13: Direct attribute access - unwrap() provides safe access
-            merged_config: dict[str, t.GeneralValueType] = (
-                merge_result.unwrap() or {}
-            )
+            merged_config: dict[str, t.GeneralValueType] = merge_result.unwrap() or {}
             # merged_config is guaranteed to be not None by u.val default
             object.__setattr__(self, "_cli_config", merged_config)
 
@@ -895,7 +893,9 @@ class FlextCliCore(FlextCliServiceBase):
             )
             # Python 3.13: profiles_section_raw is already dict, isinstance check is unnecessary
             profiles_section: dict[str, t.GeneralValueType] = (
-                profiles_section_raw if FlextRuntime.is_dict_like(profiles_section_raw) else {}
+                profiles_section_raw
+                if FlextRuntime.is_dict_like(profiles_section_raw)
+                else {}
             )
             profiles_section[name] = profile_config
             # Update config with modified profiles section
@@ -1411,14 +1411,16 @@ class FlextCliCore(FlextCliServiceBase):
 
         """
         try:
-            return r[t.Json.JsonDict].ok({
-                c.Cli.DictKeys.STATUS: c.Cli.ServiceStatus.HEALTHY.value,
-                c.Cli.CoreServiceDictKeys.COMMANDS_COUNT: len(
-                    self._commands,
-                ),
-                c.Cli.CoreServiceDictKeys.SESSION_ACTIVE: self._session_active,
-                c.Cli.DictKeys.TIMESTAMP: u.generate("timestamp"),
-            })
+            return r[t.Json.JsonDict].ok(
+                {
+                    c.Cli.DictKeys.STATUS: c.Cli.ServiceStatus.HEALTHY.value,
+                    c.Cli.CoreServiceDictKeys.COMMANDS_COUNT: len(
+                        self._commands,
+                    ),
+                    c.Cli.CoreServiceDictKeys.SESSION_ACTIVE: self._session_active,
+                    c.Cli.DictKeys.TIMESTAMP: u.generate("timestamp"),
+                }
+            )
         except Exception as e:
             return r[t.Json.JsonDict].fail(
                 c.Cli.ErrorMessages.CLI_EXECUTION_ERROR.format(error=e),
@@ -1569,9 +1571,7 @@ class FlextCliCore(FlextCliServiceBase):
         path_result = self._validate_config_path(config_path)
         if path_result.is_failure:
             # Python 3.13: Direct attribute access - more elegant and type-safe
-            return r[t.Json.JsonDict].fail(
-                path_result.error or "Invalid path"
-            )
+            return r[t.Json.JsonDict].fail(path_result.error or "Invalid path")
 
         try:
             # Python 3.13: Direct attribute access - unwrap() provides safe access

@@ -9,7 +9,7 @@ from __future__ import annotations
 
 import csv
 import json
-from collections.abc import Callable, Iterable, Sequence
+from collections.abc import Callable, Iterable, Mapping, Sequence
 from datetime import datetime
 from io import StringIO
 from typing import TypeGuard, override
@@ -177,9 +177,7 @@ class FlextCliOutput(FlextCliServiceBase):
         Callable[[t.GeneralValueType | r[t.GeneralValueType], str], None],
     ]:
         """Get result formatters dict with type narrowing."""
-        if not isinstance(self._result_formatters, dict):
-            msg = "_result_formatters must be dict"
-            raise TypeError(msg)
+        # Python 3.13: _result_formatters is already typed as dict, isinstance check is unnecessary
         return self._result_formatters
 
     @override
@@ -191,10 +189,12 @@ class FlextCliOutput(FlextCliServiceBase):
                 (unused, for FlextService compatibility)
 
         """
-        return r[t.Json.JsonDict].ok({
-            c.Cli.DictKeys.STATUS: (c.Cli.ServiceStatus.OPERATIONAL.value),
-            c.Cli.DictKeys.SERVICE: c.Cli.FLEXT_CLI,
-        })
+        return r[t.Json.JsonDict].ok(
+            {
+                c.Cli.DictKeys.STATUS: (c.Cli.ServiceStatus.OPERATIONAL.value),
+                c.Cli.DictKeys.SERVICE: c.Cli.FLEXT_CLI,
+            }
+        )
 
     # ═══════════════════════════════════════════════════════════════════════════
     # STATIC HELPER METHODS - General purpose utilities for output operations
@@ -203,7 +203,7 @@ class FlextCliOutput(FlextCliServiceBase):
     @staticmethod
     def is_json(v: t.GeneralValueType) -> bool:
         """Check if value is JSON-compatible type.
-        
+
         Uses GeneralValueType from lower layer instead of object for better type safety.
         """
         return isinstance(v, (str, int, float, bool, type(None), dict, list))
@@ -256,10 +256,11 @@ class FlextCliOutput(FlextCliServiceBase):
         - Non-dict inputs are handled gracefully without errors
         """
         d_dict = u.Cli.build(d, ops={"ensure": "dict"}, on_error="skip")
+        # Python 3.13: Use isinstance with Mapping for proper type narrowing
         # Business Rule: Dict keys MUST be extracted using list() constructor (Python 3.13+)
         # Architecture: Direct list() conversion is type-safe and efficient
         # Audit Implication: Key extraction is deterministic and safe
-        if isinstance(d_dict, dict):
+        if isinstance(d_dict, Mapping):
             return list(d_dict.keys())
         return []
 
@@ -297,10 +298,13 @@ class FlextCliOutput(FlextCliServiceBase):
             ops={"ensure": "list", "ensure_default": default or []},
             on_error="skip",
         )
-        # Type narrowing: u.build with ensure="list" returns list
-        if isinstance(built_result, list):
-            return built_result
-        return default or []
+        # Python 3.13: Use Sequence check for more flexible list-like types
+        # Type narrowing: u.build with ensure="list" returns list-like
+        return (
+            list(built_result)
+            if isinstance(built_result, Sequence)
+            else (default or [])
+        )
 
     @staticmethod
     def ensure_dict(
@@ -773,7 +777,10 @@ class FlextCliOutput(FlextCliServiceBase):
                     # Type narrowing: result_value from .value is GeneralValueType compatible
                     result_value_general: t.GeneralValueType = (
                         result_value
-                        if isinstance(result_value, (str, int, float, bool, type(None), dict, list, tuple))
+                        if isinstance(
+                            result_value,
+                            (str, int, float, bool, type(None), dict, list, tuple),
+                        )
                         else str(result_value)
                     )
                     if self.is_json(result_value_general):
@@ -1012,7 +1019,7 @@ class FlextCliOutput(FlextCliServiceBase):
         title: str | None = None,
     ) -> r[p.Cli.Display.RichTableProtocol]:
         """Initialize a Rich table with headers.
-        
+
         Uses RichTableProtocol from lower layer instead of object for better type safety.
         """
         table_result = self._get_formatters().create_table(
@@ -1021,14 +1028,18 @@ class FlextCliOutput(FlextCliServiceBase):
             title=title,
         )
         if table_result.is_failure:
-            return r[p.Cli.Display.RichTableProtocol].fail(f"Failed to create Rich table: {table_result.error}")
+            return r[p.Cli.Display.RichTableProtocol].fail(
+                f"Failed to create Rich table: {table_result.error}"
+            )
         # Type narrowing: table_result.value is RichTableProtocol compatible
         # Use type guard to verify it implements the protocol
         table_value = table_result.value
         if self._is_rich_table_protocol(table_value):
             return r[p.Cli.Display.RichTableProtocol].ok(table_value)
         # Fallback: convert to string representation if not RichTableProtocol
-        return r[p.Cli.Display.RichTableProtocol].fail("Table value is not RichTableProtocol compatible")
+        return r[p.Cli.Display.RichTableProtocol].fail(
+            "Table value is not RichTableProtocol compatible"
+        )
 
     def _populate_table_rows(
         self,
@@ -1037,7 +1048,7 @@ class FlextCliOutput(FlextCliServiceBase):
         headers: list[str],
     ) -> r[bool]:
         """Add columns and rows to table.
-        
+
         Uses RichTableProtocol from lower layer instead of object for better type safety.
         """
         # Add columns
@@ -1576,7 +1587,7 @@ class FlextCliOutput(FlextCliServiceBase):
 
     def _coerce_to_list(self, data: t.GeneralValueType) -> list[t.GeneralValueType]:
         """Coerce data to list for CSV processing.
-        
+
         Uses types from lower layer (GeneralValueType) for proper type safety.
         """
         # Direct list return
@@ -1611,7 +1622,9 @@ class FlextCliOutput(FlextCliServiceBase):
                     # Type narrowing: each item from iterable is GeneralValueType compatible
                     item_general: t.GeneralValueType = (
                         item
-                        if isinstance(item, (str, int, float, bool, type(None), dict, list, tuple))
+                        if isinstance(
+                            item, (str, int, float, bool, type(None), dict, list, tuple)
+                        )
                         else str(item)  # Fallback to string for other types
                     )
                     iterable_items.append(item_general)
@@ -1619,10 +1632,12 @@ class FlextCliOutput(FlextCliServiceBase):
             except (TypeError, ValueError):
                 return []
         return []
-    
-    def _convert_iterable_to_list(self, data: Iterable[t.GeneralValueType]) -> list[t.GeneralValueType]:
+
+    def _convert_iterable_to_list(
+        self, data: Iterable[t.GeneralValueType]
+    ) -> list[t.GeneralValueType]:
         """Convert iterable to list with type narrowing.
-        
+
         Helper method to reduce complexity of _coerce_to_list.
         Uses Iterable from lower layer for proper type safety.
         """
@@ -1636,7 +1651,9 @@ class FlextCliOutput(FlextCliServiceBase):
                 # Type narrowing: item from iterable is GeneralValueType compatible
                 item_general: t.GeneralValueType = (
                     item
-                    if isinstance(item, (str, int, float, bool, type(None), dict, list, tuple))
+                    if isinstance(
+                        item, (str, int, float, bool, type(None), dict, list, tuple)
+                    )
                     else str(item)  # Fallback to string for other types
                 )
                 iterable_items.append(item_general)
@@ -1687,7 +1704,9 @@ class FlextCliOutput(FlextCliServiceBase):
         writer.writeheader()
         # Type narrowing: data is dict-like from format_csv check
         # Use GeneralValueType from lower layer instead of object
-        data_dict: dict[str, t.GeneralValueType] = dict(data) if isinstance(data, dict) else {}
+        data_dict: dict[str, t.GeneralValueType] = (
+            dict(data) if isinstance(data, dict) else {}
+        )
         writer.writerow(data_dict)
         return r[str].ok(output_buffer.getvalue())
 
@@ -1696,7 +1715,7 @@ class FlextCliOutput(FlextCliServiceBase):
         row: dict[str, t.GeneralValueType],
     ) -> dict[str, str | int | float | bool]:
         """Process CSV row with None replacement.
-        
+
         Uses GeneralValueType from lower layer instead of object for better type safety.
         """
         processed: dict[str, str | int | float | bool] = {}
@@ -1705,7 +1724,9 @@ class FlextCliOutput(FlextCliServiceBase):
         return processed
 
     @staticmethod
-    def _replace_none_for_csv(_k: str, v: t.GeneralValueType) -> str | int | float | bool:
+    def _replace_none_for_csv(
+        _k: str, v: t.GeneralValueType
+    ) -> str | int | float | bool:
         """Replace None with empty string for CSV."""
         if v is None:
             return ""
@@ -1843,10 +1864,12 @@ class FlextCliOutput(FlextCliServiceBase):
             headers, [c.Cli.TableFormats.KEYS]
         )
         table_headers: list[str] = [str(h) for h in table_headers_raw]
-        return r[tuple[list[dict[str, t.GeneralValueType]], str | list[str]]].ok((
-            table_data,
-            table_headers,
-        ))
+        return r[tuple[list[dict[str, t.GeneralValueType]], str | list[str]]].ok(
+            (
+                table_data,
+                table_headers,
+            )
+        )
 
     @staticmethod
     def _prepare_list_data(
@@ -1879,10 +1902,12 @@ class FlextCliOutput(FlextCliServiceBase):
                     validation_result.error or "Header validation failed",
                 )
 
-        return r[tuple[list[dict[str, t.GeneralValueType]], str | list[str]]].ok((
-            data,
-            table_headers,
-        ))
+        return r[tuple[list[dict[str, t.GeneralValueType]], str | list[str]]].ok(
+            (
+                data,
+                table_headers,
+            )
+        )
 
     def _create_table_string(
         self,

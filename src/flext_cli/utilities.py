@@ -204,11 +204,15 @@ class FlextCliUtilities(u_core):
 
         @overload
         @staticmethod
-        def get[T](data: t.GeneralValueType, key: str, *, default: list[T]) -> list[T]: ...
+        def get[T](
+            data: t.GeneralValueType, key: str, *, default: list[T]
+        ) -> list[T]: ...
 
         @overload
         @staticmethod
-        def get[T](data: t.GeneralValueType, key: str, *, default: T | None = ...) -> T | None: ...
+        def get[T](
+            data: t.GeneralValueType, key: str, *, default: T | None = ...
+        ) -> T | None: ...
 
         @staticmethod
         def get[T](
@@ -411,7 +415,9 @@ class FlextCliUtilities(u_core):
             result = u_core.mapper().build(value, ops=ops, on_error=on_error)
             # Type narrowing: build() returns T | object, but we know T is GeneralValueType
             # Verify result is GeneralValueType compatible
-            if isinstance(result, (str, int, float, bool, type(None), dict, list, tuple)):
+            if isinstance(
+                result, (str, int, float, bool, type(None), dict, list, tuple)
+            ):
                 return result
             # Fallback: convert to string if not GeneralValueType compatible
             return str(result)

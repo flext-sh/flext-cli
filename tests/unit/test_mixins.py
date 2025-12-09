@@ -290,10 +290,12 @@ class TestsCliMixins:
         def success_handler(
             **kwargs: t.JsonValue,
         ) -> r[t.JsonValue]:
-            return r[t.JsonValue].ok({
-                success_result_key: success_result_value,
-                **kwargs,
-            })
+            return r[t.JsonValue].ok(
+                {
+                    success_result_key: success_result_value,
+                    **kwargs,
+                }
+            )
 
         result = FlextCliMixins.CliCommandMixin.execute_with_cli_context(
             operation=operation_name,

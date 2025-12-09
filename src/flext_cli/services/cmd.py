@@ -68,10 +68,12 @@ class FlextCliCmd(FlextCliServiceBase):
 
     def execute(self, **_kwargs: t.Json.JsonDict) -> r[t.Json.JsonDict]:
         """Report operational status required by `FlextService`."""
-        return r[t.Json.JsonDict].ok({
-            c.Cli.DictKeys.STATUS: c.Cli.ServiceStatus.OPERATIONAL.value,
-            c.Cli.DictKeys.SERVICE: c.Cli.CmdDefaults.SERVICE_NAME,
-        })
+        return r[t.Json.JsonDict].ok(
+            {
+                c.Cli.DictKeys.STATUS: c.Cli.ServiceStatus.OPERATIONAL.value,
+                c.Cli.DictKeys.SERVICE: c.Cli.CmdDefaults.SERVICE_NAME,
+            }
+        )
 
     @staticmethod
     def show_config_paths() -> r[list[str]]:
@@ -265,11 +267,13 @@ class FlextCliCmd(FlextCliServiceBase):
                 )
 
             config_data = config_model.model_dump()
-            config_info_str = str({
-                c.Cli.DictKeys.CONFIG_FILE: str(path),
-                c.Cli.DictKeys.CONFIG_DATA: config_data,
-                c.Cli.DictKeys.MESSAGE: c.Cli.ServiceMessages.CONFIG_LOADED_SUCCESSFULLY,
-            })
+            config_info_str = str(
+                {
+                    c.Cli.DictKeys.CONFIG_FILE: str(path),
+                    c.Cli.DictKeys.CONFIG_DATA: config_data,
+                    c.Cli.DictKeys.MESSAGE: c.Cli.ServiceMessages.CONFIG_LOADED_SUCCESSFULLY,
+                }
+            )
 
             self.logger.info(
                 c.Cli.CmdMessages.CONFIG_EDIT_COMPLETED_LOG,

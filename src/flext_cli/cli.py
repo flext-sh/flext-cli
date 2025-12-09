@@ -718,7 +718,8 @@ class FlextCliCli:
         if not isinstance(formats_build, list):
             msg = "formats_build must be list"
             raise TypeError(msg)
-        formats_list: list[str] = formats_build
+        # Convert GeneralValueType to str for datetime formats
+        formats_list: list[str] = [str(fmt) for fmt in formats_build]
         return click.DateTime(formats=formats_list)
 
     @staticmethod
@@ -1430,10 +1431,12 @@ class FlextCliCli:
             failure with error
 
         """
-        return r[t.Json.JsonDict].ok({
-            c.Cli.DictKeys.SERVICE: c.Cli.FLEXT_CLI,
-            c.Cli.DictKeys.STATUS: (c.Cli.ServiceStatus.OPERATIONAL.value),
-        })
+        return r[t.Json.JsonDict].ok(
+            {
+                c.Cli.DictKeys.SERVICE: c.Cli.FLEXT_CLI,
+                c.Cli.DictKeys.STATUS: (c.Cli.ServiceStatus.OPERATIONAL.value),
+            }
+        )
 
 
 __all__ = [

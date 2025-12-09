@@ -394,15 +394,17 @@ class AppConfig:
             return r[dict[str, object]].fail("; ".join(errors))
 
         # Return validated config as dict
-        return r[dict[str, object]].ok({
-            "database_url": self.database_url,
-            "redis_url": self.redis_url,
-            "api_key": "***" if self.api_key else "",
-            "max_workers": self.max_workers,
-            "enable_metrics": self.enable_metrics,
-            "log_level": self.log_level,
-            "temp_dir": str(self.temp_dir),
-        })
+        return r[dict[str, object]].ok(
+            {
+                "database_url": self.database_url,
+                "redis_url": self.redis_url,
+                "api_key": "***" if self.api_key else "",
+                "max_workers": self.max_workers,
+                "enable_metrics": self.enable_metrics,
+                "log_level": self.log_level,
+                "temp_dir": str(self.temp_dir),
+            }
+        )
 
 
 def load_application_config() -> r[dict[str, object]]:

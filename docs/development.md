@@ -290,7 +290,6 @@ def test_context_immutability():
 
 Before implementing new features, review:
 
-
 Key phases:
 
 1. Documentation (complete)

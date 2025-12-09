@@ -790,10 +790,12 @@ class TestsCliModels:
                 field_value = invalid_data[field]
                 # Check if value matches expected type
                 if not isinstance(field_value, expected_type):
-                    type_errors.extend([
-                        f"Field {field} has invalid type: expected {expected_type.__name__}, got {type(field_value).__name__}",
-                        field,
-                    ])
+                    type_errors.extend(
+                        [
+                            f"Field {field} has invalid type: expected {expected_type.__name__}, got {type(field_value).__name__}",
+                            field,
+                        ]
+                    )
 
         # The function returns both error messages and field names
         # So we have 5 fields * 2 (error message + field name) = 10 items
@@ -1234,12 +1236,14 @@ class TestsCliModels:
         assert average_price == 200.0  # (100 + 200 + 300) / 3
 
         # 7. Serialize results
-        results_json: str = json.dumps({
-            "electronics_count": len(electronics),
-            "total_value": total_value,
-            "average_price": average_price,
-            "products": sorted_electronics,
-        })
+        results_json: str = json.dumps(
+            {
+                "electronics_count": len(electronics),
+                "total_value": total_value,
+                "average_price": average_price,
+                "products": sorted_electronics,
+            }
+        )
 
         # 8. Verify complete workflow
         parsed_results: dict[str, int | float | list[dict[str, int | str | bool]]] = (

@@ -242,12 +242,14 @@ class TestsCliCore:
             - Invalid configs: Pydantic 2 may emit serialization warnings
             - ValidationError is expected behavior for invalid input types
             """
-            valid_config = FlextCliConfig.model_validate({
-                "debug": True,
-                "output_format": "json",
-                "cli_timeout": c.Cli.TIMEOUTS.DEFAULT,
-                "max_retries": c.Cli.HTTP.MAX_RETRIES,
-            })
+            valid_config = FlextCliConfig.model_validate(
+                {
+                    "debug": True,
+                    "output_format": "json",
+                    "cli_timeout": c.Cli.TIMEOUTS.DEFAULT,
+                    "max_retries": c.Cli.HTTP.MAX_RETRIES,
+                }
+            )
 
             result = FlextCliCore.validate_configuration(valid_config)
             assert isinstance(result, r)
