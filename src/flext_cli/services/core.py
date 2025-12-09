@@ -25,7 +25,6 @@ from flext_core import (
     FlextRuntime,
     FlextUtilities,
     r,
-    u as u_core,
 )
 
 from flext_cli.base import FlextCliServiceBase
@@ -271,9 +270,8 @@ class FlextCliCore(FlextCliServiceBase):
                 # Business Rule: Dict keys MUST be extracted using list() constructor (Python 3.13+)
                 # Architecture: Direct list() conversion is type-safe and efficient
                 # Audit Implication: Key extraction is deterministic and safe
-                command_data_keys=list(command_data.keys())
-                if isinstance(command_data, dict)
-                else [],
+                # Python 3.13: model_dump() always returns dict, isinstance check is unnecessary
+                command_data_keys=list(command_data.keys()),
                 registry_size=len(self._commands),
                 operation="register_command",
                 source="flext-cli/src/flext_cli/core.py",
@@ -372,9 +370,8 @@ class FlextCliCore(FlextCliServiceBase):
                     # Business Rule: Dict keys MUST be extracted using list() constructor (Python 3.13+)
                     # Architecture: Direct list() conversion is type-safe and efficient
                     # Audit Implication: Key extraction is deterministic and safe
-                    definition_keys=list(command_def.keys())
-                    if isinstance(command_def, dict)
-                    else [],
+                    # Python 3.13: command_def from dict already has .keys(), isinstance check is unnecessary
+                    definition_keys=list(command_def.keys()),
                     source="flext-cli/src/flext_cli/core.py",
                 )
 
@@ -423,9 +420,8 @@ class FlextCliCore(FlextCliServiceBase):
                 processor=lambda _k, item: FlextCliOutput.norm_json(item),
                 on_error="skip",
             )
-            context_list_raw: (
-                list[t.GeneralValueType] | dict[str, t.GeneralValueType]
-            ) = u_core.val(process_result, default=[])  # type: ignore[arg-type]
+            # Python 3.13: Direct attribute access - unwrap() provides safe access
+            context_list_raw = process_result.unwrap() or []
             context_list: list[t.GeneralValueType] = (
                 context_list_raw if isinstance(context_list_raw, list) else []
             )
@@ -464,8 +460,9 @@ class FlextCliCore(FlextCliServiceBase):
         command_result = self.get_command(name)
         if command_result.is_failure:
             self.logger.error("FAILED - command not found", command_name=name)
+            # Python 3.13: Direct attribute access - more elegant and type-safe
             return r[t.Json.JsonDict].fail(
-                u_core.err(command_result, default="Command not found"),  # type: ignore[arg-type]
+                command_result.error or "Command not found",
             )
 
         try:
@@ -624,22 +621,24 @@ class FlextCliCore(FlextCliServiceBase):
 
             existing_config_result = self._validate_existing_config()
             if existing_config_result.is_failure:
+                # Python 3.13: Direct attribute access - more elegant and type-safe
+                error_msg = existing_config_result.error or ""
                 self.logger.warning(
                     "Existing configuration validation failed",
                     operation="update_configuration",
-                    error=u_core.err(existing_config_result, default=""),  # type: ignore[arg-type]
+                    error=error_msg,
                     consequence="Configuration merge will fail",
                     source="flext-cli/src/flext_cli/core.py",
                 )
                 return r[bool].fail(
-                    u_core.err(
-                        existing_config_result, default="Config validation failed"
-                    ),  # type: ignore[arg-type]
+                    existing_config_result.error or "Config validation failed",
                 )
 
-            existing_config_raw: dict[str, t.GeneralValueType] = u_core.val(
-                existing_config_result, default={}
-            )  # type: ignore[arg-type]
+            # Python 3.13: Direct attribute access - unwrap() provides safe access
+            # Convert Mapping to dict for mutability
+            existing_config_raw: dict[str, t.GeneralValueType] = dict(
+                existing_config_result.unwrap() or {}
+            )
             # Convert to mutable dict for merging
             existing_config: dict[str, t.GeneralValueType] = (
                 dict(existing_config_raw)
@@ -656,15 +655,17 @@ class FlextCliCore(FlextCliServiceBase):
                 strategy="deep",  # Deep merge preserves nested structures
             )
             if merge_result.is_failure:
+                # Python 3.13: Direct attribute access - more elegant and type-safe
                 return r[bool].fail(
-                    u_core.err(merge_result, default="Failed to merge config"),  # type: ignore[arg-type]
+                    merge_result.error or "Failed to merge config",
                 )
             # Update internal _cli_config with merged result
             # Business Rule: Frozen model attributes MUST be set using object.__setattr__()
             # Architecture: Pydantic frozen models require object.__setattr__() for attribute mutation
-            merged_config: dict[str, t.GeneralValueType] = u_core.val(
-                merge_result, default={}
-            )  # type: ignore[arg-type]
+            # Python 3.13: Direct attribute access - unwrap() provides safe access
+            merged_config: dict[str, t.GeneralValueType] = (
+                merge_result.unwrap() or {}
+            )
             # merged_config is guaranteed to be not None by u.val default
             object.__setattr__(self, "_cli_config", merged_config)
 
@@ -740,21 +741,20 @@ class FlextCliCore(FlextCliServiceBase):
         if not FlextRuntime.is_dict_like(config):
             return r[bool].fail(c.Cli.ErrorMessages.CONFIG_NOT_DICT)
         # Reuse to_dict_json helper from output module
-        validated_config_input_raw = FlextCliOutput.to_dict_json(config)
-        validated_config_input: t.Json.JsonDict = (
-            validated_config_input_raw
-            if isinstance(validated_config_input_raw, dict)
-            else {}
-        )
+        # Python 3.13: to_dict_json() always returns dict, isinstance check is unnecessary
+        validated_config_input: t.Json.JsonDict = FlextCliOutput.to_dict_json(config)
         config_result = self._validate_config_input(validated_config_input)
         if config_result.is_failure:
+            # Python 3.13: Direct attribute access - more elegant and type-safe
             return r[bool].fail(
-                u_core.err(config_result, default="Configuration validation failed"),  # type: ignore[arg-type]
+                config_result.error or "Configuration validation failed",
             )
 
-        merged_config_val: dict[str, t.GeneralValueType] = u_core.val(
-            config_result, default={}
-        )  # type: ignore[arg-type]
+        # Python 3.13: Direct attribute access - unwrap() provides safe access
+        # Convert Mapping to dict for mutability
+        merged_config_val: dict[str, t.GeneralValueType] = dict(
+            config_result.unwrap() or {}
+        )
         # merged_config_val is guaranteed to be not None by u.val default
         return self._merge_configurations(merged_config_val)
 
@@ -889,19 +889,13 @@ class FlextCliCore(FlextCliServiceBase):
                     profiles_result_raw.error or "Failed to extract profiles"
                 )
             )
-            profiles_section_raw: dict[str, t.GeneralValueType] = u_core.val(
-                profiles_result_typed, default={}
-            )  # type: ignore[arg-type]
-            # Use u.ensure to ensure dict type and convert to mutable
-            profiles_section_raw_typed = (
-                profiles_section_raw
-                if FlextRuntime.is_dict_like(profiles_section_raw)
-                else {}
+            # Python 3.13: Direct attribute access - unwrap() provides safe access
+            profiles_section_raw: dict[str, t.GeneralValueType] = (
+                profiles_result_typed.unwrap() or {}
             )
+            # Python 3.13: profiles_section_raw is already dict, isinstance check is unnecessary
             profiles_section: dict[str, t.GeneralValueType] = (
-                profiles_section_raw_typed
-                if isinstance(profiles_section_raw_typed, dict)
-                else {}
+                profiles_section_raw if FlextRuntime.is_dict_like(profiles_section_raw) else {}
             )
             profiles_section[name] = profile_config
             # Update config with modified profiles section
@@ -1096,11 +1090,8 @@ class FlextCliCore(FlextCliServiceBase):
             # Business Rule: Dict keys MUST be extracted using list() constructor (Python 3.13+)
             # Architecture: Direct list() conversion is type-safe and efficient
             # Audit Implication: Key extraction is deterministic and safe
-            config_keys = (
-                list(self._cli_config.keys())
-                if isinstance(self._cli_config, dict)
-                else []
-            )
+            # Python 3.13: _cli_config is already typed as dict, isinstance check is unnecessary
+            config_keys = list(self._cli_config.keys())
 
             # Convert config_keys to Sequence[str] for FlexibleValue compatibility
             config_keys_list: list[str] = list(config_keys) if config_keys else []
@@ -1270,7 +1261,8 @@ class FlextCliCore(FlextCliServiceBase):
             # Business Rule: Dict keys MUST be extracted using list() constructor (Python 3.13+)
             # Architecture: Direct list() conversion is type-safe and efficient
             # Audit Implication: Key extraction is deterministic and safe
-            kwargs_keys=list(_kwargs.keys()) if isinstance(_kwargs, dict) else [],
+            # Python 3.13: _kwargs from **kwargs is already dict, isinstance check is unnecessary
+            kwargs_keys=list(_kwargs.keys()),
             source="flext-cli/src/flext_cli/core.py",
         )
 
@@ -1473,11 +1465,9 @@ class FlextCliCore(FlextCliServiceBase):
 
         """
         try:
+            # Python 3.13: Mapping has .keys(), isinstance check is unnecessary - just check None
             return r[list[str]].ok(
-                # Business Rule: Dict keys MUST be extracted using list() constructor (Python 3.13+)
-                # Architecture: Direct list() conversion is type-safe and efficient
-                # Audit Implication: Key extraction is deterministic and safe
-                list(data_dict.keys()) if isinstance(data_dict, dict) else [],
+                list(data_dict.keys()) if data_dict is not None else [],
             )
         except Exception as e:
             return r[list[str]].fail(error_message.format(error=e))
@@ -1578,14 +1568,14 @@ class FlextCliCore(FlextCliServiceBase):
         """Load configuration from file."""
         path_result = self._validate_config_path(config_path)
         if path_result.is_failure:
+            # Python 3.13: Direct attribute access - more elegant and type-safe
             return r[t.Json.JsonDict].fail(
-                u_core.err(path_result, default="Invalid path")
-            )  # type: ignore[arg-type]
+                path_result.error or "Invalid path"
+            )
 
         try:
-            config_file_result: Path = u_core.val(path_result, default=Path())  # type: ignore[arg-type]
-            # config_file_result is guaranteed to be not None by u.val default
-            config_file = config_file_result
+            # Python 3.13: Direct attribute access - unwrap() provides safe access
+            config_file: Path = path_result.unwrap() or Path()
             content = config_file.read_text(
                 encoding=c.Utilities.DEFAULT_ENCODING,
             )
@@ -1595,17 +1585,9 @@ class FlextCliCore(FlextCliServiceBase):
                 return r[t.Json.JsonDict].fail(
                     c.Cli.ErrorMessages.CONFIG_NOT_DICT,
                 )
-            # Use build() DSL for JSON conversion
+            # Python 3.13: to_dict_json() always returns dict, cast_if and isinstance are unnecessary
             # Reuse to_dict_json helper from output module
-            json_dict_raw = FlextCliOutput.cast_if(
-                FlextCliOutput.to_dict_json(config_data),
-                dict,
-                config_data,
-            )
-            # Type narrowing: ensure json_dict is dict
-            json_dict: t.Json.JsonDict = (
-                json_dict_raw if isinstance(json_dict_raw, dict) else config_data
-            )
+            json_dict: t.Json.JsonDict = FlextCliOutput.to_dict_json(config_data)
             return r[t.Json.JsonDict].ok(json_dict)
 
         except json.JSONDecodeError as e:

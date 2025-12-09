@@ -19,7 +19,7 @@ import logging
 import shutil
 from collections.abc import Callable, Mapping, Sequence
 from pathlib import Path
-from typing import IO, Annotated, TypeGuard, cast
+from typing import IO, Annotated, TypeGuard
 
 import click
 import typer
@@ -277,9 +277,9 @@ class FlextCliCli:
         }
 
         # Use mapper to filter out None and False values
-        common_params_typed: dict[str, t.GeneralValueType] = {
-            k: cast("t.GeneralValueType", v) for k, v in common_params.items()
-        }
+        # Type narrowing: bool | str | None are compatible with GeneralValueType (ScalarValue)
+        # No cast() needed - values are already compatible with GeneralValueType
+        common_params_typed: dict[str, t.GeneralValueType] = dict(common_params.items())
         active_params: dict[str, t.GeneralValueType] = u.mapper().filter_dict(
             common_params_typed,
             lambda _k, v: v is not None and v is not False,

@@ -9,10 +9,10 @@ from __future__ import annotations
 
 import csv
 import json
-from collections.abc import Callable, Sequence
+from collections.abc import Callable, Iterable, Sequence
 from datetime import datetime
 from io import StringIO
-from typing import TypeGuard, cast, override
+from typing import TypeGuard, override
 
 import yaml
 from flext_core import (
@@ -201,8 +201,11 @@ class FlextCliOutput(FlextCliServiceBase):
     # ═══════════════════════════════════════════════════════════════════════════
 
     @staticmethod
-    def is_json(v: object) -> bool:
-        """Check if value is JSON-compatible type."""
+    def is_json(v: t.GeneralValueType) -> bool:
+        """Check if value is JSON-compatible type.
+        
+        Uses GeneralValueType from lower layer instead of object for better type safety.
+        """
         return isinstance(v, (str, int, float, bool, type(None), dict, list))
 
     @staticmethod
@@ -507,8 +510,12 @@ class FlextCliOutput(FlextCliServiceBase):
                     format_type=format_type,
                 ),
             )
-        # Type narrowing: formatter_raw is callable when not None
-        formatter: Callable[[], r[str]] = cast("Callable[[], r[str]]", formatter_raw)
+        # Type narrowing: formatter_raw is Callable[[], r[str]] when not None
+        # formatters dict values are all Callable[[], r[str]], so get() returns that type
+        # No cast() needed - type narrowing from dict value type
+        if not callable(formatter_raw):
+            return r[str].fail("Formatter is not callable")
+        formatter: Callable[[], r[str]] = formatter_raw
         return formatter()
 
     def _format_table_data(
@@ -638,19 +645,21 @@ class FlextCliOutput(FlextCliServiceBase):
 
             # Register formatter for OperationResult
             def format_operation(result: OperationResult, fmt: str) -> None:
-                if fmt == c.Cli.OutputFormats.TABLE.value:
-                    # Create Rich table from result
-                    console = output._formatters.console
-                    panel = output._formatters.create_panel(
-                        f"[green]Operation completed![/green]\\n"
-                        + f"Status: {result.status}\\n"
-                        + f"Entries: {result.entries_processed}",
-                        title="✅ Operation Result",
-                    )
-                    # Use .value directly instead of deprecated .unwrap()
-                    console.print(panel.value)
-                elif fmt == c.Cli.OutputFormats.JSON.value:
-                    print(result.model_dump_json())
+                # Python 3.13: match/case - more elegant and modern
+                match fmt:
+                    case c.Cli.OutputFormats.TABLE.value:
+                        # Create Rich table from result
+                        console = output._formatters.console
+                        panel = output._formatters.create_panel(
+                            f"[green]Operation completed![/green]\\n"
+                            + f"Status: {result.status}\\n"
+                            + f"Entries: {result.entries_processed}",
+                            title="✅ Operation Result",
+                        )
+                        # Use .value directly instead of deprecated .unwrap()
+                        console.print(panel.value)
+                    case c.Cli.OutputFormats.JSON.value:
+                        print(result.model_dump_json())
 
 
             output.register_result_formatter(OperationResult, format_operation)
@@ -761,7 +770,13 @@ class FlextCliOutput(FlextCliServiceBase):
                     # Use .value directly instead of deprecated .unwrap()
                     # Use build() DSL: value → ensure JSON-compatible → convert to string if needed
                     result_value = result.value
-                    if self.is_json(result_value):
+                    # Type narrowing: result_value from .value is GeneralValueType compatible
+                    result_value_general: t.GeneralValueType = (
+                        result_value
+                        if isinstance(result_value, (str, int, float, bool, type(None), dict, list, tuple))
+                        else str(result_value)
+                    )
+                    if self.is_json(result_value_general):
                         # Type narrowing: result_value is GeneralValueType from .value
                         # Convert to GeneralValueType explicitly for type checker
                         unwrapped_value: t.GeneralValueType = (
@@ -995,28 +1010,40 @@ class FlextCliOutput(FlextCliServiceBase):
         self,
         headers: list[str],
         title: str | None = None,
-    ) -> r[object]:
-        """Initialize a Rich table with headers."""
+    ) -> r[p.Cli.Display.RichTableProtocol]:
+        """Initialize a Rich table with headers.
+        
+        Uses RichTableProtocol from lower layer instead of object for better type safety.
+        """
         table_result = self._get_formatters().create_table(
             data=None,
             headers=headers,
             title=title,
         )
         if table_result.is_failure:
-            return r[object].fail(f"Failed to create Rich table: {table_result.error}")
-        return r[object].ok(table_result.value)
+            return r[p.Cli.Display.RichTableProtocol].fail(f"Failed to create Rich table: {table_result.error}")
+        # Type narrowing: table_result.value is RichTableProtocol compatible
+        # Use type guard to verify it implements the protocol
+        table_value = table_result.value
+        if self._is_rich_table_protocol(table_value):
+            return r[p.Cli.Display.RichTableProtocol].ok(table_value)
+        # Fallback: convert to string representation if not RichTableProtocol
+        return r[p.Cli.Display.RichTableProtocol].fail("Table value is not RichTableProtocol compatible")
 
     def _populate_table_rows(
         self,
-        table: object,
+        table: p.Cli.Display.RichTableProtocol,
         data: list[dict[str, t.GeneralValueType]],
         headers: list[str],
     ) -> r[bool]:
-        """Add columns and rows to table."""
+        """Add columns and rows to table.
+        
+        Uses RichTableProtocol from lower layer instead of object for better type safety.
+        """
         # Add columns
         u.Cli.process(
             headers,
-            processor=lambda h: table.add_column(str(h)),  # type: ignore[attr-defined]
+            processor=lambda h: table.add_column(str(h)),
             on_error="skip",
         )
 
@@ -1029,7 +1056,7 @@ class FlextCliOutput(FlextCliServiceBase):
         if isinstance(rows_list, list):
             for row in rows_list:
                 if isinstance(row, list):
-                    table.add_row(*row)  # type: ignore[attr-defined]
+                    table.add_row(*row)
 
         return r[bool].ok(True)
 
@@ -1548,28 +1575,74 @@ class FlextCliOutput(FlextCliServiceBase):
             return r.fail(error_msg)
 
     def _coerce_to_list(self, data: t.GeneralValueType) -> list[t.GeneralValueType]:
-        """Coerce data to list for CSV processing."""
+        """Coerce data to list for CSV processing.
+        
+        Uses types from lower layer (GeneralValueType) for proper type safety.
+        """
+        # Direct list return
         if isinstance(data, list):
             return data
+        # Sequence types (tuple, Sequence)
         if isinstance(data, (tuple, Sequence)):
             return list(data)
-        if not FlextRuntime.is_list_like(data):
-            return []
-        # Fallback: try to convert to list
-        if isinstance(data, Sequence):
-            return list(data)
-        if isinstance(data, (list, tuple, set)):
-            return list(data)
+        # Dict returns items
         if isinstance(data, dict):
             return list(data.items())
-        if hasattr(data, "__iter__") and not isinstance(
-            data, (str, bytes, int, float, datetime)
-        ):
+        # Non-iterable types return empty list
+        if isinstance(data, (str, bytes, int, float, datetime, type(None))):
+            return []
+        # Check if iterable (has __iter__) but not Sequence
+        if not hasattr(data, "__iter__"):
+            return []
+        # Other iterables - convert with type narrowing
+        # Type narrowing: data is iterable (has __iter__) and not a non-iterable type
+        # Verify it's Sequence or other iterable before converting
+        if isinstance(data, Sequence):
+            return list(data)
+        # For other iterables, use helper method
+        # Type narrowing: data has __iter__ and is not a non-iterable type, so it's Iterable
+        # Use runtime check to verify it's iterable before converting
+        if hasattr(data, "__iter__") and callable(getattr(data, "__iter__", None)):
+            # Runtime check: data is iterable, convert items to list
+            # Use list comprehension with type narrowing for each item
+            iterable_items: list[t.GeneralValueType] = []
             try:
-                return list(data)  # type: ignore[arg-type]
+                for item in data:
+                    # Type narrowing: each item from iterable is GeneralValueType compatible
+                    item_general: t.GeneralValueType = (
+                        item
+                        if isinstance(item, (str, int, float, bool, type(None), dict, list, tuple))
+                        else str(item)  # Fallback to string for other types
+                    )
+                    iterable_items.append(item_general)
+                return iterable_items
             except (TypeError, ValueError):
                 return []
         return []
+    
+    def _convert_iterable_to_list(self, data: Iterable[t.GeneralValueType]) -> list[t.GeneralValueType]:
+        """Convert iterable to list with type narrowing.
+        
+        Helper method to reduce complexity of _coerce_to_list.
+        Uses Iterable from lower layer for proper type safety.
+        """
+        try:
+            if isinstance(data, Sequence):
+                return list(data)
+            # For other iterables, convert using list comprehension
+            # Each item is narrowed to GeneralValueType from lower layer
+            iterable_items: list[t.GeneralValueType] = []
+            for item in data:
+                # Type narrowing: item from iterable is GeneralValueType compatible
+                item_general: t.GeneralValueType = (
+                    item
+                    if isinstance(item, (str, int, float, bool, type(None), dict, list, tuple))
+                    else str(item)  # Fallback to string for other types
+                )
+                iterable_items.append(item_general)
+            return iterable_items
+        except (TypeError, ValueError):
+            return []
 
     def _format_csv_list(self, data: t.GeneralValueType) -> r[str]:
         """Format list of dicts as CSV."""
@@ -1587,7 +1660,8 @@ class FlextCliOutput(FlextCliServiceBase):
             filtered_rows if isinstance(filtered_rows, list) else [],
             [],
         )
-        dict_rows: list[dict[str, object]] = [
+        # Use GeneralValueType from lower layer instead of object
+        dict_rows: list[dict[str, t.GeneralValueType]] = [
             item for item in dict_rows_raw if isinstance(item, dict)
         ]
         csv_rows: list[dict[str, str | int | float | bool]] = []
@@ -1612,23 +1686,26 @@ class FlextCliOutput(FlextCliServiceBase):
         writer = csv.DictWriter(output_buffer, fieldnames=fieldnames)
         writer.writeheader()
         # Type narrowing: data is dict-like from format_csv check
-        # Convert to dict[str, object] for writerow
-        data_dict: dict[str, object] = dict(data) if isinstance(data, dict) else {}
+        # Use GeneralValueType from lower layer instead of object
+        data_dict: dict[str, t.GeneralValueType] = dict(data) if isinstance(data, dict) else {}
         writer.writerow(data_dict)
         return r[str].ok(output_buffer.getvalue())
 
     def _process_csv_row(
         self,
-        row: dict[str, object],
+        row: dict[str, t.GeneralValueType],
     ) -> dict[str, str | int | float | bool]:
-        """Process CSV row with None replacement."""
+        """Process CSV row with None replacement.
+        
+        Uses GeneralValueType from lower layer instead of object for better type safety.
+        """
         processed: dict[str, str | int | float | bool] = {}
         for k, v in row.items():
             processed[k] = self._replace_none_for_csv(k, v)
         return processed
 
     @staticmethod
-    def _replace_none_for_csv(_k: str, v: object) -> str | int | float | bool:
+    def _replace_none_for_csv(_k: str, v: t.GeneralValueType) -> str | int | float | bool:
         """Replace None with empty string for CSV."""
         if v is None:
             return ""

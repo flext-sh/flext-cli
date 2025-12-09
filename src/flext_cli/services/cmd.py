@@ -190,16 +190,9 @@ class FlextCliCmd(FlextCliServiceBase):
                 c.Cli.DictKeys.VALUE: value,
                 c.Cli.DictKeys.TIMESTAMP: u.generate("timestamp"),
             }
-            # Use build() DSL for JSON conversion
+            # Python 3.13: to_dict_json() always returns dict, cast_if and isinstance are unnecessary
             # Reuse to_dict_json helper from output module
-            result_data_raw = FlextCliOutput.cast_if(
-                FlextCliOutput.to_dict_json(raw_data),
-                dict,
-                raw_data,
-            )
-            result_data: t.Json.JsonDict = (
-                result_data_raw if isinstance(result_data_raw, dict) else {}
-            )
+            result_data: t.Json.JsonDict = FlextCliOutput.to_dict_json(raw_data)
             return r[t.Json.JsonDict].ok(result_data)
         except Exception as e:
             return r[t.Json.JsonDict].fail(

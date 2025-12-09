@@ -413,7 +413,7 @@ class TestsCliFormatters:
 
     @pytest.mark.parametrize(
         ("method_name", "method_call"),
-        [],
+        ExceptionHandlerTestCases.get_exception_handler_cases(),
     )
     def test_exception_handlers(
         self,

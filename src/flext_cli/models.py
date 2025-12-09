@@ -30,6 +30,8 @@ from flext_cli.constants import c
 from flext_cli.protocols import p
 from flext_cli.typings import t
 
+# models.py cannot import utilities - use direct dict access and isinstance instead
+
 
 class FlextCliModels(FlextModels):
     """FlextCli models extending FlextModels.
@@ -251,14 +253,9 @@ class FlextCliModels(FlextModels):
                     # Check if dict for model_validate
                     if not isinstance(data, dict):
                         return r.fail("Input must be a dictionary")
-                    # Type narrowing: data is dict, use model_validate for type-safe creation
-                    if not isinstance(data, dict):
-                        msg = "data must be dict"
-                        raise TypeError(msg)
-                    # Type narrowing: data is confirmed to be dict[str, object]
-                    data_dict: dict[str, object] = (
-                        data if isinstance(data, dict) else {}
-                    )
+                    # Type narrowing: data is dict after isinstance check
+                    # Use GeneralValueType from lower layer instead of object
+                    data_dict: dict[str, t.GeneralValueType] = data
                     # Use model_validate for type-safe model creation from dict
                     command = cls.model_validate(data_dict)
                     return r.ok(command)
@@ -935,29 +932,23 @@ class FlextCliModels(FlextModels):
                 data = self.model_dump()
                 sensitive_keys = ["password", "token", "secret", "key", "credential"]
 
-                # Mask sensitive keys in system_info using mapper
-                system_info = u.mapper().get(data, "system_info")
+                # Mask sensitive keys in system_info using direct dict access
+                # models.py cannot use utilities - use direct dict access instead
+                # model_dump() always returns dict, so isinstance check is unnecessary
+                system_info = data.get("system_info")
                 system_dict: dict[str, t.GeneralValueType]
                 if system_info and FlextRuntime.is_dict_like(system_info):
                     # Type narrowing: system_info is dict-like, convert to dict
                     if isinstance(system_info, dict):
                         system_dict = system_info
-                    # Use mapper to convert to dict
-                    # Type narrowing: system_info is dict-like but not dict, convert
-                    elif not isinstance(system_info, (dict, Mapping)):
-                        system_dict = {}
+                    elif isinstance(system_info, Mapping):
+                        # Type narrowing: system_info is Mapping, convert to dict
+                        # Mapping values are GeneralValueType compatible
+                        system_dict = {
+                            str(k): v for k, v in system_info.items()
+                        }
                     else:
-                        # system_info is Mapping, convert to dict
-                        # Type narrowing: Mapping values are GeneralValueType compatible
-                        if isinstance(system_info, Mapping):
-                            # Convert Mapping to dict - values are GeneralValueType compatible
-                            # Use dict comprehension to help type checker
-                            system_dict_raw: dict[str, t.GeneralValueType] = {
-                                str(k): v for k, v in system_info.items()
-                            }
-                        else:
-                            system_dict_raw = {}
-                        system_dict = system_dict_raw
+                        system_dict = {}
                 else:
                     system_dict = {}
 
@@ -972,29 +963,23 @@ class FlextCliModels(FlextModels):
                 }
                 data["system_info"] = masked_system_dict
 
-                # Mask sensitive keys in config_info using mapper
-                config_info = u.mapper().get(data, "config_info")
+                # Mask sensitive keys in config_info using direct dict access
+                # models.py cannot use utilities - use direct dict access instead
+                # model_dump() always returns dict, so isinstance check is unnecessary
+                config_info = data.get("config_info")
                 config_dict: dict[str, t.GeneralValueType]
                 if config_info and FlextRuntime.is_dict_like(config_info):
                     # Type narrowing: config_info is dict-like, convert to dict
                     if isinstance(config_info, dict):
                         config_dict = config_info
-                    # Use mapper to convert to dict
-                    # Type narrowing: config_info is dict-like but not dict, convert
-                    elif not isinstance(config_info, (dict, Mapping)):
-                        config_dict = {}
+                    elif isinstance(config_info, Mapping):
+                        # Type narrowing: config_info is Mapping, convert to dict
+                        # Mapping values are GeneralValueType compatible
+                        config_dict = {
+                            str(k): v for k, v in config_info.items()
+                        }
                     else:
-                        # config_info is Mapping, convert to dict
-                        # Type narrowing: Mapping values are GeneralValueType compatible
-                        if isinstance(config_info, Mapping):
-                            # Convert Mapping to dict - values are GeneralValueType compatible
-                            # Use dict comprehension to help type checker
-                            config_dict_raw: dict[str, t.GeneralValueType] = {
-                                str(k): v for k, v in config_info.items()
-                            }
-                        else:
-                            config_dict_raw = {}
-                        config_dict = config_dict_raw
+                        config_dict = {}
                 else:
                     config_dict = {}
 
@@ -1053,28 +1038,25 @@ class FlextCliModels(FlextModels):
                     typer.Option instance configured from registry metadata
 
                 """
-                # Use u.mapper().get() for safe extraction with defaults
-                # Extract field metadata from registry using u.mapper().get()
-                field_meta_raw: object = u.mapper().get(
-                    self.registry, self.field_name, default={}
-                )
-                if not u.Guards.is_type(field_meta_raw, dict):
+                # models.py cannot use utilities - use direct dict access instead
+                # Extract field metadata from registry using direct dict access
+                registry_dict = self.registry if isinstance(self.registry, dict) else {}
+                field_meta_raw: object = registry_dict.get(self.field_name, {})
+                if not isinstance(field_meta_raw, dict):
                     msg = "field_meta_raw must be dict"
                     raise TypeError(msg)
-                # Type narrowing: field_meta_raw is dict, cast to dict[str, GeneralValueType]
-                field_meta: dict[str, t.GeneralValueType] = (
-                    field_meta_raw if isinstance(field_meta_raw, dict) else {}
-                )
-                # Extract option metadata from registry
-                help_text = str(u.mapper().get(field_meta, "help", default=""))
-                short_flag = str(u.mapper().get(field_meta, "short", default=""))
-                default_value = u.mapper().get(field_meta, "default")
+                # Type narrowing: field_meta_raw is dict after isinstance check
+                # Use GeneralValueType from lower layer instead of object
+                field_meta: dict[str, t.GeneralValueType] = field_meta_raw
+                # Extract option metadata from registry using direct dict access
+                help_text = str(field_meta.get("help", ""))
+                short_flag = str(field_meta.get("short", ""))
+                default_value = field_meta.get("default")
                 # Note: is_flag is deprecated in Typer - boolean defaults auto-enable flag behavior
 
                 # Use field_name_override if available, otherwise use field_name
                 # Registry uses KEY_FIELD_NAME_OVERRIDE to map CLI param name to field name
-                field_name_override = u.mapper().get(
-                    field_meta,
+                field_name_override = field_meta.get(
                     c.Cli.CliParamsRegistry.KEY_FIELD_NAME_OVERRIDE,
                 )
                 cli_param_name: str = (
@@ -1356,16 +1338,14 @@ class FlextCliModels(FlextModels):
             ) -> tuple[str, type]:
                 """Handle Optional[T] pattern (Union with None)."""
 
-                # u.filter for list accepts predicate(item) -> bool
+                # models.py cannot use utilities - use list comprehension instead
                 def is_not_none_type(arg: object) -> bool:
                     """Check if arg is not type(None)."""
                     return arg is not type(None)
 
                 args_list: list[object] = list(args)
-                non_none_types_list = u.Cli.filter(
-                    args_list, predicate=is_not_none_type
-                )
-                if not u.Guards.is_type(non_none_types_list, list):
+                non_none_types_list = [item for item in args_list if is_not_none_type(item)]
+                if not isinstance(non_none_types_list, list):
                     msg = "non_none_types_list must be list"
                     raise TypeError(msg)
                 # Type narrowing: filter returns list[object], but we know items are types
@@ -1391,16 +1371,14 @@ class FlextCliModels(FlextModels):
             ) -> tuple[str, type]:
                 """Handle Union without None."""
 
-                # u.filter for list accepts predicate(item) -> bool
+                # models.py cannot use utilities - use list comprehension instead
                 def is_not_none_type(arg: object) -> bool:
                     """Check if arg is not type(None)."""
                     return arg is not type(None)
 
                 args_list: list[object] = list(args)
-                non_none_types_list = u.Cli.filter(
-                    args_list, predicate=is_not_none_type
-                )
-                if not u.Guards.is_type(non_none_types_list, list):
+                non_none_types_list = [item for item in args_list if is_not_none_type(item)]
+                if not isinstance(non_none_types_list, list):
                     msg = "non_none_types_list must be list"
                     raise TypeError(msg)
                 # Type narrowing: filter returns list[object], but we know items are types
@@ -1497,7 +1475,8 @@ class FlextCliModels(FlextModels):
                         is_required = bool(is_required_attr)
 
                 # Get config default if available
-                if self.config is not None and u.has(self.config, field_name):
+                # models.py cannot use utilities - use hasattr() instead
+                if self.config is not None and hasattr(self.config, field_name):
                     # Use getattr for config access - config is an object, not a Mapping
                     config_value = getattr(self.config, field_name, None)
                     if config_value is not None:
@@ -1539,7 +1518,8 @@ class FlextCliModels(FlextModels):
                 default_val: t.GeneralValueType,
             ) -> tuple[str, t.GeneralValueType]:
                 """Format boolean parameter for Typer flag detection."""
-                if hasattr(inner_type, "__name__") and inner_type.__name__ == "bool":
+                # Python 3.13: Direct type comparison - more elegant
+                if inner_type is bool:
                     return "bool", False if default_val is None else default_val
                 return type_name, default_val
 
@@ -1581,7 +1561,7 @@ class FlextCliModels(FlextModels):
             ) -> dict[str, type]:
                 """Create real type annotations for Typer flag detection."""
 
-                # Use u.process to process annotations
+                # models.py cannot use utilities - use direct iteration instead
                 def process_annotation(_name: str, field_type: type) -> type:
                     origin = get_origin(field_type)
                     is_union = (
@@ -1591,10 +1571,9 @@ class FlextCliModels(FlextModels):
                     )
                     if is_union:
                         args = get_args(field_type)
-                        # Use u.filter for unified filtering - returns list automatically
-                        non_none = list(
-                            u.Cli.filter(args, lambda a: a is not type(None))
-                        )
+                        # models.py cannot use utilities - use list comprehension instead
+                        # models.py cannot use utilities - use list comprehension instead
+                        non_none = [a for a in args if a is not type(None)]
                         if non_none and non_none[0] is bool:
                             # Type narrowing: bool | None is a UnionType, not a type
                             # Return bool as the base type (None is handled separately)
@@ -1603,7 +1582,7 @@ class FlextCliModels(FlextModels):
                     return field_type
 
                 # Process annotations using dict comprehension for type safety
-                # u.Cli.process() works on iterables, but for dicts we need to process items
+                # models.py cannot use utilities - use direct iteration instead
                 processed_annotations: dict[str, type] = {
                     name: process_annotation(name, field_type)
                     for name, field_type in annotations.items()
@@ -1634,7 +1613,7 @@ class FlextCliModels(FlextModels):
 
                 """
 
-                # Use u.process_dict to process all fields
+                # models.py cannot use utilities - use direct iteration instead
                 def process_field(
                     field_name: str,
                     field_info: t.GeneralValueType,
@@ -1651,7 +1630,7 @@ class FlextCliModels(FlextModels):
                     )
 
                 # Process model fields using dict comprehension for type safety
-                # u.Cli.process() works on iterables, but for dicts we need to process items
+                # models.py cannot use utilities - use direct iteration instead
                 processed_dict: dict[
                     str, tuple[type, t.GeneralValueType | None, bool]
                 ] = {
@@ -1693,7 +1672,7 @@ class FlextCliModels(FlextModels):
 
                 """
 
-                # Use u.process_dict to process annotations and build signatures
+                # models.py cannot use utilities - use direct iteration instead
                 def process_signature(name: str, field_type: type) -> tuple[str, bool]:
                     type_name, inner_type = self._get_type_name_for_signature(
                         field_type,
@@ -1712,16 +1691,16 @@ class FlextCliModels(FlextModels):
                     return param_str, is_no_default
 
                 # Process annotations using dict comprehension for type safety
-                # u.Cli.process() works on iterables, but for dicts we need to process items
+                # models.py cannot use utilities - use direct iteration instead
                 signatures_dict: dict[str, tuple[str, bool]] = {
                     name: process_signature(name, field_type)
                     for name, field_type in annotations.items()
                 }
-                # Separate into two lists using u.filter
+                # models.py cannot use utilities - use list comprehension instead
                 # Use operator.itemgetter(1) to get boolean flag, then check truthiness
                 get_bool_flag = operator.itemgetter(1)
                 signatures_values = list(signatures_dict.values())
-                # u.filter for list accepts predicate(item) -> bool
+                # models.py cannot use utilities - use list comprehension instead
                 # Type narrowing: signatures_values is list[tuple[str, bool]]
                 signatures_values_typed: list[tuple[str, bool]] = signatures_values
 
@@ -1733,14 +1712,9 @@ class FlextCliModels(FlextModels):
                     """Check if item has default (is_no_default is False)."""
                     return not bool(get_bool_flag(item))
 
-                params_no_default_list = u.Cli.filter(
-                    signatures_values_typed,
-                    predicate=has_no_default,
-                )
-                params_with_default_list = u.Cli.filter(
-                    signatures_values_typed,
-                    predicate=has_default,
-                )
+                # models.py cannot use utilities - use list comprehension instead
+                params_no_default_list = [item for item in signatures_values_typed if has_no_default(item)]
+                params_with_default_list = [item for item in signatures_values_typed if has_default(item)]
                 params_no_default = (
                     list(params_no_default_list)
                     if isinstance(params_no_default_list, list)
@@ -1751,21 +1725,10 @@ class FlextCliModels(FlextModels):
                     if isinstance(params_with_default_list, list)
                     else []
                 )
-                # Extract param strings using u.map with operator.itemgetter
-                params_no_default_strs_result = u.Cli.map(
-                    params_no_default, mapper=operator.itemgetter(0)
-                )
-                if not isinstance(params_no_default_strs_result, list):
-                    msg = "params_no_default_strs_result must be list"
-                    raise TypeError(msg)
-                params_no_default_strs: list[str] = params_no_default_strs_result
-                params_with_default_strs_result = u.Cli.map(
-                    params_with_default, mapper=operator.itemgetter(0)
-                )
-                if not isinstance(params_with_default_strs_result, list):
-                    msg = "params_with_default_strs_result must be list"
-                    raise TypeError(msg)
-                params_with_default_strs: list[str] = params_with_default_strs_result
+                # models.py cannot use utilities - use list comprehension instead
+                # Extract param strings using list comprehension with operator.itemgetter
+                params_no_default_strs = [operator.itemgetter(0)(item) for item in params_no_default]
+                params_with_default_strs = [operator.itemgetter(0)(item) for item in params_with_default]
 
                 return ", ".join(params_no_default_strs + params_with_default_strs)
 
@@ -1946,7 +1909,7 @@ class FlextCliModels(FlextModels):
                         return r[list[p.Cli.CliParameterSpecProtocol]].fail(
                             f"{class_name} is not a Pydantic model",
                         )
-                    # Use u.process to convert all fields
+                    # models.py cannot use utilities - use direct iteration instead
 
                     def convert_field(
                         field_name: str,
@@ -1958,12 +1921,8 @@ class FlextCliModels(FlextModels):
                         origin = get_origin(field_type)
                         if origin is not None:
                             args = get_args(field_type)
-                            non_none_types_result = u.Cli.filter(
-                                list(args), lambda arg: arg is not type(None)
-                            )
-                            if not isinstance(non_none_types_result, list):
-                                msg = "non_none_types_result must be list"
-                                raise TypeError(msg)
+                            # models.py cannot use utilities - use list comprehension instead
+                            non_none_types_result = [arg for arg in list(args) if arg is not type(None)]
                             non_none_types: list[type] = non_none_types_result
                             if non_none_types:
                                 field_type = non_none_types[0]
@@ -1983,7 +1942,7 @@ class FlextCliModels(FlextModels):
                         )
 
                     # Process model fields using dict comprehension for type safety
-                    # u.Cli.process() works on iterables, but for dicts we need to process items
+                    # models.py cannot use utilities - use direct iteration instead
                     try:
                         params_dict: dict[str, p.Cli.CliParameterSpecProtocol] = {
                             field_name: convert_field(field_name, field_info)
@@ -2089,13 +2048,8 @@ class FlextCliModels(FlextModels):
                     origin = get_origin(field_type)
                     if origin is not None:
                         args = get_args(field_type)
-                        non_none_types_result = u.Cli.filter(
-                            list(args), lambda arg: arg is not type(None)
-                        )
-                        if not isinstance(non_none_types_result, list):
-                            msg = "non_none_types_result must be list"
-                            raise TypeError(msg)
-                        non_none_types: list[type] = non_none_types_result
+                        # models.py cannot use utilities - use list comprehension instead
+                        non_none_types = [arg for arg in list(args) if arg is not type(None)]
                         if non_none_types:
                             field_type = non_none_types[0]
                     click_type_str = m.Cli.CliModelConverter.python_type_to_click_type(
@@ -2120,13 +2074,8 @@ class FlextCliModels(FlextModels):
             def handle_union_type(pydantic_type: types.UnionType) -> type:
                 """Handle UnionType (e.g., int | None) and extract non-None type."""
                 args = get_args(pydantic_type)
-                non_none_types_result = u.Cli.filter(
-                    list(args), lambda arg: arg is not type(None)
-                )
-                if not isinstance(non_none_types_result, list):
-                    msg = "non_none_types_result must be list"
-                    raise TypeError(msg)
-                non_none_types: list[type] = non_none_types_result
+                # models.py cannot use utilities - use list comprehension instead
+                non_none_types = [arg for arg in list(args) if arg is not type(None)]
                 if non_none_types:
                     result_type = non_none_types[0]
                     if isinstance(result_type, type):
@@ -2144,18 +2093,14 @@ class FlextCliModels(FlextModels):
                     return origin
                 # Extract first type argument
                 args = get_args(pydantic_type)
-                non_none_types_result = u.Cli.filter(
-                    list(args), lambda arg: arg is not type(None)
-                )
-                if not isinstance(non_none_types_result, list):
-                    msg = "non_none_types_result must be list"
-                    raise TypeError(msg)
-                non_none_types: list[type] = non_none_types_result
+                # models.py cannot use utilities - use list comprehension instead
+                non_none_types = [arg for arg in list(args) if arg is not type(None)]
                 if non_none_types:
                     first_type = non_none_types[0]
                     if isinstance(first_type, type):
                         return first_type
-                    return first_type
+                    # If not a type, return None (function signature is type | None)
+                    return None
                 return None
 
             @staticmethod
@@ -2185,8 +2130,14 @@ class FlextCliModels(FlextModels):
                 if generic_result is not None:
                     return generic_result
                 # Check if it's a known simple type
+                # Type narrowing: is_simple_type checks isinstance(pydantic_type, type)
+                # So when True, pydantic_type is guaranteed to be type
                 if m.Cli.CliModelConverter.is_simple_type(pydantic_type):
-                    return pydantic_type  # type: ignore[return-value]
+                    # Type narrowing: pydantic_type is type when is_simple_type returns True
+                    if isinstance(pydantic_type, type):
+                        return pydantic_type
+                    # Fallback (should not happen if is_simple_type is correct)
+                    return str
                 # Default to str for complex types
                 return str
 
@@ -2383,8 +2334,16 @@ class FlextCliModels(FlextModels):
             def convert_field_value(
                 field_value: object,
             ) -> r[t.GeneralValueType]:
-                """Convert field value (delegates to utilities)."""
-                return u.Cli.CliValidation.v_conv(field_value)
+                """Convert field value to GeneralValueType.
+                
+                models.py cannot use utilities - use direct conversion instead.
+                Uses GeneralValueType from lower layer for proper type safety.
+                """
+                if field_value is None:
+                    return r[t.GeneralValueType].ok(None)
+                if isinstance(field_value, (str, int, float, bool, dict, list)):
+                    return r[t.GeneralValueType].ok(field_value)
+                return r[t.GeneralValueType].ok(str(field_value))
 
             @staticmethod
             def validate_dict_field_data(

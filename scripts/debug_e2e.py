@@ -103,23 +103,23 @@ class FlextCliDebugE2E:
         self.logger.info("Demonstrating advanced Python 3.13+ typing patterns")
 
         # Using StrEnum from constants for runtime validation
-        output_format = c.OutputFormats.JSON
+        output_format = c.Cli.OutputFormats.JSON
         self.logger.info(f"Selected output format: {output_format.value}")
 
         # Using collections.abc.Mapping for immutable configuration
-        config: t.Data.CliConfigMapping = {
+        config: t.Cli.Data.CliConfigMapping = {
             "output_format": "json",
             "timeout": 30,
             "debug": True,
         }
 
         # Demonstrate discriminated union validation
-        valid_formats = c.get_valid_output_formats()
+        valid_formats = c.Cli.get_valid_output_formats()
         self.logger.info(f"Available formats: {', '.join(valid_formats)}")
 
         # Using advanced type aliases from typings
-        sample_data: t.CliJsonDict = {
-            "status": c.CommandStatus.COMPLETED.value,
+        sample_data: t.Cli.CliJsonDict = {
+            "status": c.Cli.CommandStatus.COMPLETED.value,
             "data": [1, 2, 3],
             "metadata": {"version": "1.0"},
         }

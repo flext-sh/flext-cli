@@ -13,7 +13,7 @@ from __future__ import annotations
 from collections.abc import Iterable, Mapping, Sequence
 from itertools import starmap
 
-from flext_core import FlextRuntime, r, u as u_core
+from flext_core import FlextRuntime, r
 from tabulate import tabulate
 
 from flext_cli.base import FlextCliServiceBase
@@ -166,17 +166,19 @@ class FlextCliTables(FlextCliServiceBase):
             **config_kwargs,
         )
         if config_result.is_failure:
+            # Python 3.13: Direct attribute access - more elegant and type-safe
             return r[str].fail(
-                u_core.err(config_result, default="Invalid table configuration"),  # type: ignore[arg-type]
+                config_result.error or "Invalid table configuration",
             )
-        cfg_result = u_core.val(config_result, default=m.Cli.TableConfig())  # type: ignore[arg-type]
-        cfg = m.Cli.TableConfig() if cfg_result is None else cfg_result
+        # Python 3.13: Direct attribute access - unwrap() provides safe access
+        cfg = config_result.unwrap() or m.Cli.TableConfig()
 
         # Railway pattern: validate → prepare headers → create table
         validation_result = self._validate_table_data(data, cfg.table_format)
         if validation_result.is_failure:
+            # Python 3.13: Direct attribute access - more elegant and type-safe
             return r[str].fail(
-                u_core.err(validation_result, default="Table data validation failed"),  # type: ignore[arg-type]
+                validation_result.error or "Table data validation failed",
                 error_code=validation_result.error_code,
                 error_data=validation_result.error_data,
             )

@@ -19,9 +19,19 @@ from __future__ import annotations
 
 from collections.abc import Mapping, Sequence
 from enum import StrEnum
-from typing import ClassVar, Final, Literal
+from typing import ClassVar, Final, Literal, TypedDict
 
 from flext_core import FlextConstants
+
+
+class FileFormatConfig(TypedDict):
+    """File format configuration with type-safe structure.
+    
+    Uses TypedDict to eliminate isinstance checks by providing proper typing.
+    """
+
+    extensions: tuple[str, ...]
+    mime_type: str
 
 
 class FlextCliConstants(FlextConstants):
@@ -817,9 +827,9 @@ class FlextCliConstants(FlextConstants):
         # =====================================================================
 
         # File formats configuration with advanced typing
-        # Uses nested collections.abc.Mapping for immutable hierarchical data
+        # Uses TypedDict for type-safe structure eliminating isinstance checks
         # Python 3.13+ best practice for complex read-only configurations
-        FILE_FORMATS: Final[Mapping[str, Mapping[str, str | tuple[str, ...]]]] = {
+        FILE_FORMATS: Final[Mapping[str, FileFormatConfig]] = {
             "json": {"extensions": ("json",), "mime_type": "application/json"},
             "yaml": {"extensions": ("yaml", "yml"), "mime_type": "application/x-yaml"},
             "csv": {"extensions": ("csv",), "mime_type": "text/csv"},
@@ -847,11 +857,10 @@ class FlextCliConstants(FlextConstants):
                 Immutable sequence of extensions, or None if format not supported
 
             """
-            format_config = u_core.mapper().get(cls.FILE_FORMATS, format_name)
+            # Use direct dict access instead of u_core.mapper().get() to avoid utilities in constants.py
+            format_config = cls.FILE_FORMATS.get(format_name)
             return (
-                u_core.mapper().get(format_config, "extensions")
-                if format_config
-                else None
+                format_config.get("extensions") if format_config else None
             )
 
         @classmethod
@@ -868,10 +877,11 @@ class FlextCliConstants(FlextConstants):
                 MIME type string, or None if format not supported
 
             """
-            format_config = u_core.mapper().get(cls.FILE_FORMATS, format_name)
+            # Use direct dict access instead of u_core.mapper().get() to avoid utilities in constants.py
+            # TypedDict ensures mime_type is always str, eliminating isinstance check
+            format_config = cls.FILE_FORMATS.get(format_name)
             if format_config:
-                mime_type = u_core.mapper().get(format_config, "mime_type")
-                return mime_type if isinstance(mime_type, str) else None
+                return format_config["mime_type"]
             return None
 
         @classmethod

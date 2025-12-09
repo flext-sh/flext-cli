@@ -168,21 +168,10 @@ class FlextCliUtilities(u_core):
             if not callable(predicate):
                 msg = "predicate must be callable"
                 raise TypeError(msg)
-            # Create wrapper that accepts object and calls predicate with type narrowing
-
-            def predicate_wrapper(item: object) -> bool:
-                # Type narrowing: item is T from items list/tuple
-                if not items:
-                    return False
-                # Runtime check: item must be compatible with items type
-                # Use isinstance check for type narrowing
-                first_item = items[0]
-                if not isinstance(item, type(first_item)):
-                    return False
-                # Type guard confirms item is T - call predicate
-                return predicate(item)
-
-            return u_core.Collection.filter(items, predicate_wrapper)
+            # Use predicate directly - items is list[T] | tuple[T, ...], so items are T
+            # predicate accepts T, so direct call is type-safe
+            # No wrapper needed - use predicate directly with proper type narrowing
+            return u_core.Collection.filter(items, predicate)
 
         @staticmethod
         def process[T, R](
@@ -207,7 +196,7 @@ class FlextCliUtilities(u_core):
         @overload
         @staticmethod
         def get(
-            data: Mapping[str, object] | object,
+            data: Mapping[str, t.GeneralValueType] | t.GeneralValueType,
             key: str,
             *,
             default: str = ...,
@@ -215,15 +204,15 @@ class FlextCliUtilities(u_core):
 
         @overload
         @staticmethod
-        def get[T](data: object, key: str, *, default: list[T]) -> list[T]: ...
+        def get[T](data: t.GeneralValueType, key: str, *, default: list[T]) -> list[T]: ...
 
         @overload
         @staticmethod
-        def get[T](data: object, key: str, *, default: T | None = ...) -> T | None: ...
+        def get[T](data: t.GeneralValueType, key: str, *, default: T | None = ...) -> T | None: ...
 
         @staticmethod
         def get[T](
-            data: Mapping[str, object] | object,
+            data: Mapping[str, t.GeneralValueType] | t.GeneralValueType,
             key: str,
             *,
             default: T | None = None,
@@ -273,21 +262,10 @@ class FlextCliUtilities(u_core):
             if not callable(predicate):
                 msg = "predicate must be callable"
                 raise TypeError(msg)
-            # Create wrapper that accepts object and calls predicate with type narrowing
-
-            def predicate_wrapper(item: object) -> bool:
-                # Type narrowing: item is T from items list/tuple
-                if not items:
-                    return False
-                # Runtime check: item must be compatible with items type
-                # Use isinstance check for type narrowing
-                first_item = items[0]
-                if not isinstance(item, type(first_item)):
-                    return False
-                # Type guard confirms item is T - call predicate
-                return predicate(item)
-
-            return u_core.Collection.find(items, predicate_wrapper)
+            # Use predicate directly - items is list[T] | tuple[T, ...], so items are T
+            # predicate accepts T, so direct call is type-safe
+            # No wrapper needed - use predicate directly with proper type narrowing
+            return u_core.Collection.find(items, predicate)
 
         @staticmethod
         def validate_required_string(
@@ -424,13 +402,19 @@ class FlextCliUtilities(u_core):
             *,
             ops: t.Types.ConfigurationDict | None = None,
             on_error: str = "fail",
-        ) -> object:
+        ) -> t.GeneralValueType:
             """Build value using flext-core Mapper.build.
 
             Wrapper for u_core.mapper().build() to maintain compatibility.
-            Returns T | object as per flext-core signature.
+            Uses GeneralValueType from lower layer instead of object.
             """
-            return u_core.mapper().build(value, ops=ops, on_error=on_error)
+            result = u_core.mapper().build(value, ops=ops, on_error=on_error)
+            # Type narrowing: build() returns T | object, but we know T is GeneralValueType
+            # Verify result is GeneralValueType compatible
+            if isinstance(result, (str, int, float, bool, type(None), dict, list, tuple)):
+                return result
+            # Fallback: convert to string if not GeneralValueType compatible
+            return str(result)
 
         @staticmethod
         def parse[T](
@@ -459,7 +443,8 @@ class FlextCliUtilities(u_core):
                 default_factory=default_factory,
                 field_name=field_name,
             )
-            # Convert RuntimeResult to FlextResult (r[T])
+            # Type narrowing: result is r[T], so result.value is T when success
+            # FlextResult implements p.Result structurally, so use directly
             return (
                 r[T].ok(result.value)
                 if result.is_success

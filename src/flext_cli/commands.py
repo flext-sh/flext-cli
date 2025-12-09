@@ -11,7 +11,7 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 from collections.abc import Mapping
-from typing import cast, override
+from typing import override
 
 from flext_core import (
     r,
@@ -163,13 +163,15 @@ class FlextCliCommands(FlextCliServiceBase):
         )
 
         # Build result dict with proper types
-        # JsonDict is Mapping[str, GeneralValueType], so we need to cast dict to Mapping
+        # JsonDict is Mapping[str, GeneralValueType], dict[str, GeneralValueType] is compatible
+        # No cast() needed - dict is a subclass of Mapping
         result_dict: dict[str, t.GeneralValueType] = {
             c.Cli.CommandsDictKeys.STATUS: c.Cli.ServiceStatus.OPERATIONAL.value,
             c.Cli.CommandsDictKeys.SERVICE: c.Cli.FLEXT_CLI,
             c.Cli.CommandsDictKeys.COMMANDS: list(self._commands.keys()),
         }
-        result_mapping: t.Json.JsonDict = cast("t.Json.JsonDict", result_dict)
+        # Type narrowing: dict[str, GeneralValueType] is compatible with Mapping[str, GeneralValueType]
+        result_mapping: t.Json.JsonDict = result_dict
         result = r[t.Json.JsonDict].ok(result_mapping)
 
         self.logger.debug(

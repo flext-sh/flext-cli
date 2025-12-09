@@ -379,7 +379,7 @@ class TestsCliContext:
     # METADATA OPERATIONS TESTS (Parametrized)
     # =========================================================================
 
-    @pytest.mark.parametrize(("key", "value"), [])
+    @pytest.mark.parametrize(("key", "value"), TestData.get_metadata_cases())
     def test_metadata_operations(self, key: str, value: object) -> None:
         """Test metadata get/set operations."""
         context = FlextCliContext()

@@ -130,18 +130,18 @@ class FlextCliGettingStarted:
         - Advanced Literal unions
         """
         # Using StrEnum from constants for runtime validation
-        output_format = c.OutputFormats.JSON
+        output_format = c.Cli.OutputFormats.JSON
         self.cli.print(f"Selected format: {output_format.value}", style="blue")
 
         # Using collections.abc.Mapping for immutable configuration
 
         # Demonstrate discriminated union validation
-        valid_formats = c.get_valid_output_formats()
+        valid_formats = c.Cli.get_valid_output_formats()
         self.cli.print(f"Available formats: {', '.join(valid_formats)}")
 
         # Using advanced type aliases from typings
         sample_data: t.Cli.CliJsonDict = {
-            "status": c.CommandStatus.COMPLETED.value,
+            "status": c.Cli.CommandStatus.COMPLETED.value,
             "data": [1, 2, 3],
             "metadata": {"version": "1.0"},
         }

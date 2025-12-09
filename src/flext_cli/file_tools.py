@@ -658,8 +658,19 @@ class FlextCliFileTools:
                     return ext_result.value
             return {}
 
+        # Convert FILE_FORMATS to dict[str, GeneralValueType] for type compatibility
+        # FILE_FORMATS is Mapping[str, FileFormatConfig] where FileFormatConfig is TypedDict
+        # TypedDict needs explicit conversion to plain dict for mypy compatibility
+        file_formats_dict: dict[str, t.GeneralValueType] = {}
+        for k, v in c.Cli.FILE_FORMATS.items():
+            # Convert TypedDict to plain dict with GeneralValueType values
+            format_dict: dict[str, t.GeneralValueType] = {
+                "extensions": v["extensions"],
+                "mime_type": v["mime_type"],
+            }
+            file_formats_dict[k] = format_dict
         process_result = u.Cli.process(
-            dict(c.Cli.FILE_FORMATS),
+            file_formats_dict,
             processor=convert_format_value,
             on_error="skip",
         )

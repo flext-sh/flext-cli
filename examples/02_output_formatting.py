@@ -397,7 +397,7 @@ def advanced_output_example() -> None:
     )
 
     # Demonstrate discriminated union validation
-    valid_formats = c.get_valid_output_formats()
+    valid_formats = c.Cli.get_valid_output_formats()
     cli.print(f"Supported formats: {', '.join(valid_formats)}", style="green")
 
     # Create table using advanced types
