@@ -64,6 +64,21 @@ grep -rEn "(from flext_.*\.(services|api) import)" \
 
 ---
 
+## Rule 0 — Cross-Project Alignment
+- This file mirrors the root `../CLAUDE.md` standards. Any rule change must be made in the root first and then propagated to this file and to `flext-core/`, `flext-ldap/`, `flext-ldif/`, and `client-a-oud-mig/` `CLAUDE.md` files.
+- All agents accept cross-project changes and resolve conflicts in the root `CLAUDE.md` before coding.
+
+## Critical Rules — Zero Tolerance
+- ❌ No `TYPE_CHECKING`; fix architecture instead.
+- ❌ No `# type: ignore`; resolve typing issues.
+- ❌ No `cast()`; use Models/Protocols/TypeGuards with correct typing.
+- ❌ No `Any`; use concrete types everywhere (code, docs, comments).
+- ❌ No metaclasses/`__getattr__` delegation or dynamic assignments; full namespaces only.
+- ❌ No functions/logic in `constants.py` (StrEnum/Final/Literal only).
+- ❌ No root aliases or lazy imports/ImportError fallbacks; imports at top.
+- ✅ Architecture layering enforced; lower tiers never import higher tiers.
+- ✅ Testing: real implementations (no mocks/monkeypatch), real fixtures/data, 100% coverage expectation, no functionality loss.
+
 ## Project Overview
 
 **FLEXT-CLI** is the CLI foundation library for the FLEXT ecosystem, providing a unified command-line interface abstraction layer over Click and Rich. It serves 32+ projects with standardized CLI patterns, configuration management, and output formatting.
