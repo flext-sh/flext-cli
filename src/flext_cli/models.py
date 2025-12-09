@@ -337,10 +337,9 @@ class FlextCliModels(FlextModels):
                 """Group commands by status."""
                 # Filter commands to only CliCommand instances
 
-                cli_commands: list[m.Cli.CliCommand] = []
-                for cmd in self.commands:
-                    if isinstance(cmd, m.Cli.CliCommand):
-                        cli_commands.append(cmd)  # noqa: PERF401
+                cli_commands: list[m.Cli.CliCommand] = [
+                    cmd for cmd in self.commands if isinstance(cmd, m.Cli.CliCommand)
+                ]
                 # Group by status
                 result: dict[str, list[m.Cli.CliCommand]] = {}
                 for command in cli_commands:

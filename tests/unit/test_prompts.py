@@ -200,9 +200,9 @@ class TestsCliPrompts:
                     "status": c.Status.WARNING,
                 },
             ]
-            cases.extend(
-                [{"message": "simple", "status": status} for status in c.Status.ALL]
-            )
+            cases.extend([
+                {"message": "simple", "status": status} for status in c.Status.ALL
+            ])
             return cases
 
     # =========================================================================

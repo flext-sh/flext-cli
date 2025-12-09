@@ -189,12 +189,10 @@ class FlextCliOutput(FlextCliServiceBase):
                 (unused, for FlextService compatibility)
 
         """
-        return r[t.Json.JsonDict].ok(
-            {
-                c.Cli.DictKeys.STATUS: (c.Cli.ServiceStatus.OPERATIONAL.value),
-                c.Cli.DictKeys.SERVICE: c.Cli.FLEXT_CLI,
-            }
-        )
+        return r[t.Json.JsonDict].ok({
+            c.Cli.DictKeys.STATUS: (c.Cli.ServiceStatus.OPERATIONAL.value),
+            c.Cli.DictKeys.SERVICE: c.Cli.FLEXT_CLI,
+        })
 
     # ═══════════════════════════════════════════════════════════════════════════
     # STATIC HELPER METHODS - General purpose utilities for output operations
@@ -1864,12 +1862,10 @@ class FlextCliOutput(FlextCliServiceBase):
             headers, [c.Cli.TableFormats.KEYS]
         )
         table_headers: list[str] = [str(h) for h in table_headers_raw]
-        return r[tuple[list[dict[str, t.GeneralValueType]], str | list[str]]].ok(
-            (
-                table_data,
-                table_headers,
-            )
-        )
+        return r[tuple[list[dict[str, t.GeneralValueType]], str | list[str]]].ok((
+            table_data,
+            table_headers,
+        ))
 
     @staticmethod
     def _prepare_list_data(
@@ -1902,12 +1898,10 @@ class FlextCliOutput(FlextCliServiceBase):
                     validation_result.error or "Header validation failed",
                 )
 
-        return r[tuple[list[dict[str, t.GeneralValueType]], str | list[str]]].ok(
-            (
-                data,
-                table_headers,
-            )
-        )
+        return r[tuple[list[dict[str, t.GeneralValueType]], str | list[str]]].ok((
+            data,
+            table_headers,
+        ))
 
     def _create_table_string(
         self,

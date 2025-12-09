@@ -1411,16 +1411,14 @@ class FlextCliCore(FlextCliServiceBase):
 
         """
         try:
-            return r[t.Json.JsonDict].ok(
-                {
-                    c.Cli.DictKeys.STATUS: c.Cli.ServiceStatus.HEALTHY.value,
-                    c.Cli.CoreServiceDictKeys.COMMANDS_COUNT: len(
-                        self._commands,
-                    ),
-                    c.Cli.CoreServiceDictKeys.SESSION_ACTIVE: self._session_active,
-                    c.Cli.DictKeys.TIMESTAMP: u.generate("timestamp"),
-                }
-            )
+            return r[t.Json.JsonDict].ok({
+                c.Cli.DictKeys.STATUS: c.Cli.ServiceStatus.HEALTHY.value,
+                c.Cli.CoreServiceDictKeys.COMMANDS_COUNT: len(
+                    self._commands,
+                ),
+                c.Cli.CoreServiceDictKeys.SESSION_ACTIVE: self._session_active,
+                c.Cli.DictKeys.TIMESTAMP: u.generate("timestamp"),
+            })
         except Exception as e:
             return r[t.Json.JsonDict].fail(
                 c.Cli.ErrorMessages.CLI_EXECUTION_ERROR.format(error=e),

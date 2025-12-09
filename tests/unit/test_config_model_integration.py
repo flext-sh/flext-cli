@@ -361,26 +361,22 @@ class TestsCliConfigModelIntegration:
     def test_field_alias_in_params_model(self) -> None:
         """Test field aliases are properly handled in parameter models."""
         # Should accept alias names
-        params = self.AliasedParams.model_validate(
-            {
-                "input-dir": "/input",
-                "output-dir": "/output",
-                "batch-size": 100,
-            }
-        )
+        params = self.AliasedParams.model_validate({
+            "input-dir": "/input",
+            "output-dir": "/output",
+            "batch-size": 100,
+        })
 
         assert params.input_dir == "/input"
         assert params.output_dir == "/output"
         assert params.batch_size == 100
 
         # Should also accept field names
-        params2 = self.AliasedParams.model_validate(
-            {
-                "input_dir": "/input2",
-                "output_dir": "/output2",
-                "batch_size": 200,
-            }
-        )
+        params2 = self.AliasedParams.model_validate({
+            "input_dir": "/input2",
+            "output_dir": "/output2",
+            "batch_size": 200,
+        })
 
         assert params2.input_dir == "/input2"
         assert params2.output_dir == "/output2"
@@ -400,12 +396,10 @@ class TestsCliConfigModelIntegration:
         assert params.output_dir is None
 
         # But when instantiated from config, should get config values
-        params_from_config = self.AppParams.model_validate(
-            {
-                "input_dir": config.input_dir,
-                "output_dir": config.output_dir,
-            }
-        )
+        params_from_config = self.AppParams.model_validate({
+            "input_dir": config.input_dir,
+            "output_dir": config.output_dir,
+        })
         assert params_from_config.input_dir == "/config/input"
         assert params_from_config.output_dir == "/config/output"
 
@@ -431,11 +425,9 @@ class TestsCliConfigModelIntegration:
 
     def test_params_validation_with_mixed_values(self) -> None:
         """Test parameter validation with mixed None and non-None values."""
-        params_mixed = self.AliasedParams.model_validate(
-            {
-                "input_dir": "/input",
-            }
-        )
+        params_mixed = self.AliasedParams.model_validate({
+            "input_dir": "/input",
+        })
 
         assert params_mixed.input_dir == "/input"
         assert params_mixed.output_dir is None
@@ -483,12 +475,10 @@ class TestsCliConfigModelIntegration:
     def test_params_validation_strict(self) -> None:
         """Test params validation with strict mode."""
         # Should validate with strict=True
-        params = self.StrictParams.model_validate(
-            {
-                "name": "test",
-                "count": 5,
-            }
-        )
+        params = self.StrictParams.model_validate({
+            "name": "test",
+            "count": 5,
+        })
         assert params.name == "test"
         assert params.count == 5
 
@@ -500,12 +490,10 @@ class TestsCliConfigModelIntegration:
 
         # Extra fields should raise error
         with pytest.raises(ValidationError):
-            self.ForbidExtraParams.model_validate(
-                {
-                    "name": "test",
-                    "extra_field": "value",
-                }
-            )
+            self.ForbidExtraParams.model_validate({
+                "name": "test",
+                "extra_field": "value",
+            })
 
     def test_config_value_extraction_int_field(self) -> None:
         """Test extracting integer values from config."""

@@ -537,12 +537,10 @@ class TestsCliConstants:
             refresh_token_file = app_dir / constants.Cli.Paths.REFRESH_TOKEN_FILE_NAME
 
             token_file.write_text(
-                json.dumps(
-                    {
-                        "access_token": "test_token",
-                        "token_type": "Bearer",
-                    }
-                )
+                json.dumps({
+                    "access_token": "test_token",
+                    "token_type": "Bearer",
+                })
             )
             refresh_token_file.write_text(
                 json.dumps({"refresh_token": "test_refresh_token"}),

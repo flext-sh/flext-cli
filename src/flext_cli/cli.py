@@ -1394,7 +1394,7 @@ class FlextCliCli:
             # Runtime validation ensures model is FlextCliModelT, so we can safely call handler
             # After isinstance(model, model_class) check, model is guaranteed to be FlextCliModelT
             # Mypy accepts this without cast, pyright may complain but runtime validation ensures correctness
-            result = handler(model)  # pyright: ignore[reportArgumentType]  # Runtime validation ensures compatibility
+            result = handler(model)
             # Normalize return type: if result is r[GeneralValueType], unwrap it
             if isinstance(result, r):
                 if result.is_success:
@@ -1431,12 +1431,10 @@ class FlextCliCli:
             failure with error
 
         """
-        return r[t.Json.JsonDict].ok(
-            {
-                c.Cli.DictKeys.SERVICE: c.Cli.FLEXT_CLI,
-                c.Cli.DictKeys.STATUS: (c.Cli.ServiceStatus.OPERATIONAL.value),
-            }
-        )
+        return r[t.Json.JsonDict].ok({
+            c.Cli.DictKeys.SERVICE: c.Cli.FLEXT_CLI,
+            c.Cli.DictKeys.STATUS: (c.Cli.ServiceStatus.OPERATIONAL.value),
+        })
 
 
 __all__ = [

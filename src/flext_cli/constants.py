@@ -253,15 +253,13 @@ class FlextCliConstants(FlextConstants):
             }
 
             # Output format validation set using frozenset for O(1) membership testing
-            OUTPUT_FORMAT_SET: ClassVar[frozenset[str]] = frozenset(
-                {
-                    "json",
-                    "yaml",
-                    "csv",
-                    "table",
-                    "plain",
-                }
-            )
+            OUTPUT_FORMAT_SET: ClassVar[frozenset[str]] = frozenset({
+                "json",
+                "yaml",
+                "csv",
+                "table",
+                "plain",
+            })
 
             # Command status validation mapping
             COMMAND_STATUS_MAP: ClassVar[Mapping[str, str]] = {
@@ -273,15 +271,13 @@ class FlextCliConstants(FlextConstants):
             }
 
             # Command status validation set
-            COMMAND_STATUS_SET: ClassVar[frozenset[str]] = frozenset(
-                {
-                    "pending",
-                    "running",
-                    "completed",
-                    "failed",
-                    "cancelled",
-                }
-            )
+            COMMAND_STATUS_SET: ClassVar[frozenset[str]] = frozenset({
+                "pending",
+                "running",
+                "completed",
+                "failed",
+                "cancelled",
+            })
 
         # =====================================================================
         # STRING ENUMS - Python 3.13+ StrEnum Best Practices
@@ -573,12 +569,10 @@ class FlextCliConstants(FlextConstants):
             ]
 
             # Critical debug levels set - reuse from flext-core Settings.LogLevel StrEnum
-            CRITICAL_DEBUG_LEVELS_SET: Final[frozenset[str]] = frozenset(
-                {
-                    FlextConstants.Settings.LogLevel.ERROR,
-                    FlextConstants.Settings.LogLevel.CRITICAL,
-                }
-            )
+            CRITICAL_DEBUG_LEVELS_SET: Final[frozenset[str]] = frozenset({
+                FlextConstants.Settings.LogLevel.ERROR,
+                FlextConstants.Settings.LogLevel.CRITICAL,
+            })
 
             # Service statuses - from ServiceStatus StrEnum (sibling class)
             SERVICE_STATUSES: Final[list[str]] = [

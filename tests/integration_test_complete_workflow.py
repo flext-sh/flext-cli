@@ -486,9 +486,9 @@ class TestCompleteWorkflowIntegration:
 
         # Calculate aggregates
         total_amount = sum(sale.get("amount", 0) for sale in filtered_sales)
-        regions = list(
-            {sale.get("region") for sale in filtered_sales if sale.get("region")}
-        )
+        regions = list({
+            sale.get("region") for sale in filtered_sales if sale.get("region")
+        })
 
         return {
             "config": {
@@ -535,13 +535,11 @@ class TestCompleteWorkflowIntegration:
         )
         if json_result.is_failure:
             return r.fail(f"JSON report failed: {json_result.error}")
-        reports.append(
-            {
-                "format": "json",
-                "file": "sales_report.json",
-                "status": "success",
-            }
-        )
+        reports.append({
+            "format": "json",
+            "file": "sales_report.json",
+            "status": "success",
+        })
 
         # CSV Report - convert dict data to CSV format
         sales_list = cast("list[dict[str, object]]", sales_data)
@@ -565,13 +563,11 @@ class TestCompleteWorkflowIntegration:
             csv_result = r.ok(True)  # No data to write
         if csv_result.is_failure:
             return r.fail(f"CSV report failed: {csv_result.error}")
-        reports.append(
-            {
-                "format": "csv",
-                "file": "sales_report.csv",
-                "status": "success",
-            }
-        )
+        reports.append({
+            "format": "csv",
+            "file": "sales_report.csv",
+            "status": "success",
+        })
 
         # Table Report (ASCII)
         table_result = tables.create_table(
@@ -580,13 +576,11 @@ class TestCompleteWorkflowIntegration:
         if table_result.is_success:
             table_content = table_result.unwrap()
             (report_dir / "sales_report.txt").write_text(table_content)
-            reports.append(
-                {
-                    "format": "table",
-                    "file": "sales_report.txt",
-                    "status": "success",
-                }
-            )
+            reports.append({
+                "format": "table",
+                "file": "sales_report.txt",
+                "status": "success",
+            })
         else:
             return r.fail(f"Table report failed: {table_result.error}")
 
@@ -776,14 +770,12 @@ class TestCompleteWorkflowIntegration:
             else:
                 recovery_info["failed"] += 1
 
-        return r.ok(
-            {
-                **data,
-                "processed_users": processed_users,
-                "processing_recovered": True,
-                "recovery_stats": recovery_info,
-            }
-        )
+        return r.ok({
+            **data,
+            "processed_users": processed_users,
+            "processing_recovered": True,
+            "recovery_stats": recovery_info,
+        })
 
     def _process_single_user(self, user: dict[str, object]) -> dict[str, object]:
         """Process a single user record with validation."""

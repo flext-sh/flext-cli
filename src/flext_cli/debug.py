@@ -117,12 +117,10 @@ class FlextCliDebug(FlextCliServiceBase):
 
     def execute(self, **_kwargs: t.Json.JsonDict) -> r[t.Json.JsonDict]:
         """Execute debug service - required by FlextService."""
-        return r[t.Json.JsonDict].ok(
-            {
-                "status": "operational",
-                "message": c.Cli.ServiceMessages.FLEXT_CLI_DEBUG_OPERATIONAL,
-            }
-        )
+        return r[t.Json.JsonDict].ok({
+            "status": "operational",
+            "message": c.Cli.ServiceMessages.FLEXT_CLI_DEBUG_OPERATIONAL,
+        })
 
     def get_environment_variables(
         self,

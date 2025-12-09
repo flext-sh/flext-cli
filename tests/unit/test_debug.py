@@ -163,13 +163,11 @@ class TestsCliDebug:
         assert isinstance(result, FlextResult)
 
         # Test with special characters in trace args
-        result = debug.execute_trace(
-            [
-                "arg with spaces",
-                "arg-with-dashes",
-                "arg_with_underscores",
-            ]
-        )
+        result = debug.execute_trace([
+            "arg with spaces",
+            "arg-with-dashes",
+            "arg_with_underscores",
+        ])
         assert isinstance(result, FlextResult)
 
     def test_debug_performance(self, debug: FlextCliDebug) -> None:

@@ -384,42 +384,34 @@ class TestsCliModelCommandComprehensive:
     def test_custom_validator_works(self) -> None:
         """Test that custom validators work in CLI context."""
         # Valid host
-        config = self.ValidatedConfig.model_validate(
-            {
-                "host": "example.com",
-                "port": 5432,
-            }
-        )
+        config = self.ValidatedConfig.model_validate({
+            "host": "example.com",
+            "port": 5432,
+        })
         assert config.host == "example.com"
 
         # Invalid host should raise ValidationError
         with pytest.raises(ValidationError):
-            self.ValidatedConfig.model_validate(
-                {
-                    "host": "invalid",
-                    "port": 5432,
-                }
-            )
+            self.ValidatedConfig.model_validate({
+                "host": "invalid",
+                "port": 5432,
+            })
 
     def test_field_constraints_enforced(self) -> None:
         """Test that Field constraints (ge, le) are enforced."""
         # Valid port
-        config = self.ConnectionConfig.model_validate(
-            {
-                "username": "user",
-                "port": 5432,
-            }
-        )
+        config = self.ConnectionConfig.model_validate({
+            "username": "user",
+            "port": 5432,
+        })
         assert config.port == 5432
 
         # Invalid port should raise ValidationError
         with pytest.raises(ValidationError):
-            self.ConnectionConfig.model_validate(
-                {
-                    "username": "user",
-                    "port": 100,  # Below minimum
-                }
-            )
+            self.ConnectionConfig.model_validate({
+                "username": "user",
+                "port": 100,  # Below minimum
+            })
 
     # =========================================================================
     # INTEGRATION TESTS WITH REAL HANDLERS
