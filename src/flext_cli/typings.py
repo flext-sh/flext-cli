@@ -109,7 +109,14 @@ class FlextCliTypes(FlextTypes):
             type Handler[T] = Callable[[FlextTypes.GeneralValueType], r[T]]
             type Processor = Callable[[FlextTypes.GeneralValueType], r[bool]]
             type Collection = Sequence[FlextTypes.GeneralValueType]
-            type BatchProcessor = Callable[[Sequence[FlextTypes.GeneralValueType]], r[int]]
+            type BatchProcessor = Callable[
+                [Sequence[FlextTypes.GeneralValueType]], r[int]
+            ]
+
+            # Command definition types (moved from CliCommand namespace)
+            type CommandDefinition = FlextTypes.Json.JsonDict
+            type CommandResult = FlextTypes.Json.JsonDict
+            type CommandContext = FlextTypes.Json.JsonDict
 
         class CliConfig(FlextTypes.Config):
             """Configuration-related type aliases - extends FlextTypes.Config via inheritance for full hierarchy exposure."""
@@ -131,6 +138,11 @@ class FlextCliTypes(FlextTypes):
 
             # Typed settings
             type SettingsDict = FlextTypes.Json.JsonDict
+
+            # Configuration schema types (moved from Configuration namespace)
+            type CliConfigSchema = FlextTypes.Json.JsonDict
+            type SessionConfiguration = FlextTypes.Json.JsonDict
+            type ProfileConfiguration = FlextTypes.Json.JsonDict
 
         # FlexibleValue type alias - inherits from FlextTypes for compatibility
         # FlexibleValue is a subset of GeneralValueType (scalars, sequences, mappings)
@@ -215,20 +227,6 @@ class FlextCliTypes(FlextTypes):
             # IncEx type alias for Pydantic include/exclude parameters
             # Structurally compatible with Pydantic's internal IncEx type
             type IncEx = set[str] | dict[str, set[str]] | Mapping[str, set[str]] | None
-
-        class Configuration:
-            """Configuration schema type aliases - using FlextTypes.Json.JsonDict."""
-
-            type CliConfigSchema = FlextTypes.Json.JsonDict
-            type SessionConfiguration = FlextTypes.Json.JsonDict
-            type ProfileConfiguration = FlextTypes.Json.JsonDict
-
-        class CliCommand:
-            """Command definition type aliases - using FlextTypes.Json.JsonDict."""
-
-            type CommandDefinition = FlextTypes.Json.JsonDict
-            type CommandResult = FlextTypes.Json.JsonDict
-            type CommandContext = FlextTypes.Json.JsonDict
 
         class Display:
             """Rich display type aliases using Protocols.

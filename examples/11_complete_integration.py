@@ -93,7 +93,7 @@ class DataManagerCLI:
             return r[t.Cli.Data.CliDataDict].fail(error_msg)
 
         # Type narrowing: ensure we return a dict
-        data = read_result.unwrap()
+        data = read_result.value
         if not isinstance(data, dict):
             return r[t.Cli.Data.CliDataDict].fail(
                 "Data is not a dictionary",
@@ -101,7 +101,7 @@ class DataManagerCLI:
         self.cli.output.print_message("✅ Data loaded successfully", style="green")
         # Convert to JsonDict-compatible dict using u
         converted_data: t.Cli.Data.CliDataDict = (
-            u.transform(data, to_json=True).unwrap()
+            u.transform(data, to_json=True).value
             if isinstance(data, dict) and u.transform(data, to_json=True).is_success
             else data
         )
@@ -120,7 +120,7 @@ class DataManagerCLI:
         )
 
         if table_result.is_success:
-            self.cli.print_table(table_result.unwrap())
+            self.cli.print_table(table_result.value)
 
     def add_entry(self) -> r[t.Cli.Data.CliDataDict]:
         """Add new entry with user prompts."""
@@ -133,7 +133,7 @@ class DataManagerCLI:
                 f"Prompt failed: {key_result.error}",
             )
 
-        key = key_result.unwrap()
+        key = key_result.value
 
         # Get value
         value_result = prompts.prompt("Enter value:", default="sample_value")
@@ -142,7 +142,7 @@ class DataManagerCLI:
                 f"Prompt failed: {value_result.error}",
             )
 
-        value = value_result.unwrap()
+        value = value_result.value
 
         entry = {key: value}
         self.cli.output.print_message(
@@ -154,7 +154,7 @@ class DataManagerCLI:
             u.transform(
                 cast("dict[str, t.GeneralValueType]", entry),
                 to_json=True,
-            ).unwrap()
+            ).value
             if u.transform(
                 cast("dict[str, t.GeneralValueType]", entry),
                 to_json=True,
@@ -176,7 +176,7 @@ class DataManagerCLI:
         if load_result.is_success:
             # Load existing data for update operations
             # Convert Mapping to dict for mutability
-            loaded_data = load_result.unwrap()
+            loaded_data = load_result.value
             current_data = dict(loaded_data)
         else:
             self.cli.output.print_message("   Creating new dataset", style="yellow")
@@ -192,7 +192,7 @@ class DataManagerCLI:
         if entry_result.is_failure:
             return r[bool].fail(f"Add entry failed: {entry_result.error}")
 
-        new_entry = entry_result.unwrap()
+        new_entry = entry_result.value
         # Convert Mapping to dict for update
         current_data.update(dict(new_entry))
 
@@ -282,7 +282,7 @@ def main() -> None:
     test_data_raw: dict[str, t.GeneralValueType] = {"id": 1, "name": "test"}
     # Convert to JsonDict-compatible dict using u
     test_data: t.Cli.Data.CliDataDict = (
-        u.transform(test_data_raw, to_json=True).unwrap()
+        u.transform(test_data_raw, to_json=True).value
         if isinstance(test_data_raw, dict)
         and u.transform(test_data_raw, to_json=True).is_success
         else test_data_raw
@@ -290,7 +290,7 @@ def main() -> None:
     pipeline_result = process_with_railway_pattern(test_data)
 
     if pipeline_result.is_success:
-        final_data = pipeline_result.unwrap()
+        final_data = pipeline_result.value
         cli.output.print_message(f"   Result: {final_data}", style="green")
 
     # Example 3: Error handling showcase
@@ -305,7 +305,7 @@ def main() -> None:
     result = safe_operation(10)
     if result.is_success:
         cli.output.print_message(
-            f"   ✅ Operation succeeded: {result.unwrap()}",
+            f"   ✅ Operation succeeded: {result.value}",
             style="green",
         )
 

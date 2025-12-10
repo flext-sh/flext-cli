@@ -441,7 +441,7 @@ class FlextCliTestHelpers(FlextService[dict[str, t.GeneralValueType]]):
                     to_json=True,
                 )
                 converted_data = (
-                    transform_result.unwrap()
+                    transform_result.value
                     if transform_result.is_success
                     else data_converted
                 )
@@ -500,7 +500,7 @@ class FlextCliTestHelpers(FlextService[dict[str, t.GeneralValueType]]):
                 # Use u.transform for JSON conversion
                 transform_result = u.transform(raw_data_converted, to_json=True)
                 data = (
-                    transform_result.unwrap()
+                    transform_result.value
                     if transform_result.is_success
                     else raw_data_converted
                 )
@@ -532,7 +532,7 @@ class FlextCliTestHelpers(FlextService[dict[str, t.GeneralValueType]]):
                 # Use u.transform for JSON conversion
                 transform_result = u.transform(mixed_dict_input, to_json=True)
                 mixed_dict = (
-                    transform_result.unwrap()
+                    transform_result.value
                     if transform_result.is_success
                     else mixed_dict_input
                 )
@@ -605,7 +605,7 @@ class FlextCliTestHelpers(FlextService[dict[str, t.GeneralValueType]]):
                             to_json=True,
                         )
                         config_copy = (
-                            transform_result.unwrap()
+                            transform_result.value
                             if transform_result.is_success
                             else config_copy_converted
                         )
@@ -1059,7 +1059,7 @@ class FlextCliTestHelpers(FlextService[dict[str, t.GeneralValueType]]):
             # Use u.transform for JSON conversion
             transform_result = u.transform(payload_converted, to_json=True)
             payload_data = (
-                transform_result.unwrap()
+                transform_result.value
                 if transform_result.is_success
                 else payload_converted
             )

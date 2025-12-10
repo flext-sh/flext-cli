@@ -129,12 +129,12 @@ class FlextCliFileTools:
         # Try parsing as int first, then float
         int_result = u.Cli.parse(value, int, default=0)
         if int_result.is_success:
-            int_value = int_result.unwrap()
+            int_value = int_result.value
             if isinstance(int_value, int):
                 return int_value
         # Fallback to float
         float_result = u.Cli.parse(value, float, default=0.0)
-        return float_result.unwrap() if float_result.is_success else 0.0
+        return float_result.value if float_result.is_success else 0.0
 
     @staticmethod
     def _detect_format_from_extension(
@@ -173,7 +173,7 @@ class FlextCliFileTools:
                     to_json=True,
                 )
                 unwrapped = (
-                    transform_result.unwrap()
+                    transform_result.value
                     if transform_result.is_success
                     else raw_data
                 )
@@ -202,7 +202,7 @@ class FlextCliFileTools:
                     to_json=True,
                 )
                 unwrapped = (
-                    transform_result.unwrap()
+                    transform_result.value
                     if transform_result.is_success
                     else raw_data
                 )
@@ -695,7 +695,7 @@ class FlextCliFileTools:
                 format_result.error or c.Cli.ErrorMessages.FORMAT_DETECTION_FAILED,
             )
 
-        file_format = format_result.unwrap()
+        file_format = format_result.value
         format_loaders: dict[str, Callable[[], r[t.GeneralValueType]]] = {
             c.Cli.FileSupportedFormats.JSON: lambda: FlextCliFileTools.read_json_file(
                 file_path,
@@ -760,7 +760,7 @@ class FlextCliFileTools:
                 or c.Cli.FileErrorMessages.HASH_CALCULATION_FAILED_NO_ERROR,
             )
 
-        return r[bool].ok(hash_result.unwrap() == expected_hash)
+        return r[bool].ok(hash_result.value == expected_hash)
 
     # ==========================================================================
     # TEMPORARY FILE OPERATIONS

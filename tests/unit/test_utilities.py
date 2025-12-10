@@ -276,7 +276,7 @@ class TestsCliUtilities:
                         "expected_normalized" in test_case.test_data
                         and format_result.is_success
                     ):
-                        actual = format_result.unwrap()
+                        actual = format_result.value
                         expected = test_case.test_data["expected_normalized"]
                         return r[bool].ok(actual == expected)
                         # Type narrowing: r[bool] is compatible with r[bool | str]
@@ -329,7 +329,7 @@ class TestsCliUtilities:
                 test_case.validation_type == ValidationType.OUTPUT_FORMAT
                 and "expected_normalized" in test_case.test_data
             ):
-                assert result.unwrap() is True  # Normalization check passed
+                assert result.value is True  # Normalization check passed
         else:
             # Type narrowing: r[T] is compatible with r[object] for matcher compatibility
             result_obj: r[object] = result
@@ -603,7 +603,7 @@ class TestsCliUtilities:
             else validation_result
         )
         tm.ok(result2)
-        assert result2.unwrap() == FlextCliConstants.Cli.OutputFormats.JSON.value
+        assert result2.value == FlextCliConstants.Cli.OutputFormats.JSON.value
 
         # 3. Validate string not empty
         result3 = u.Cli.CliValidation.v_empty(
@@ -845,7 +845,7 @@ class TestsCliUtilities:
             step_data_converted: dict[str, t.GeneralValueType] = step_data
             transform_result = u.transform(step_data_converted, to_json=True)
             json_step_data = (
-                transform_result.unwrap()
+                transform_result.value
                 if transform_result.is_success
                 else step_data_converted
             )
@@ -1225,7 +1225,7 @@ class TestsCliUtilities:
         if should_succeed:
             tm.ok(result)
             if expected_attrs:
-                model_instance = result.unwrap()
+                model_instance = result.value
                 for attr, expected_value in expected_attrs.items():
                     assert getattr(model_instance, attr) == expected_value
         else:
@@ -1271,7 +1271,7 @@ class TestsCliUtilities:
         if should_succeed:
             tm.ok(result)
             if expected_attrs:
-                model = result.unwrap()
+                model = result.value
                 for attr, expected_value in expected_attrs.items():
                     assert getattr(model, attr) == expected_value
         else:
@@ -1316,7 +1316,7 @@ class TestsCliUtilities:
         if should_succeed:
             tm.ok(result)
             if expected_attrs:
-                updated_instance = result.unwrap()
+                updated_instance = result.value
                 for attr, expected_value in expected_attrs.items():
                     assert getattr(updated_instance, attr) == expected_value
         else:
@@ -1414,7 +1414,7 @@ class TestsCliUtilities:
         if should_succeed:
             tm.ok(result)
             if expected:
-                parsed = result.unwrap()
+                parsed = result.value
                 # Check that expected fields match (parse_kwargs returns all kwargs, not just enum fields)
                 for key, value in expected.items():
                     assert parsed.get(key) == value

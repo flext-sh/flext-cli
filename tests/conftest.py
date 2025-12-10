@@ -346,7 +346,7 @@ def cli_command_factory() -> CliCommandFactory:
         )
         if transform_result.is_success:
             # unwrap() returns GeneralValueType, narrow to dict[str, object]
-            unwrapped = transform_result.unwrap()
+            unwrapped = transform_result.value
             if isinstance(unwrapped, dict):
                 final_data: dict[str, object] = dict(unwrapped.items())
             else:
@@ -402,7 +402,7 @@ def cli_session_factory() -> CliSessionFactory:
             to_json=True,
         )
         if transform_result.is_success:
-            unwrapped = transform_result.unwrap()
+            unwrapped = transform_result.value
             if isinstance(unwrapped, dict):
                 final_data: dict[str, object] = dict(unwrapped.items())
             else:
@@ -461,7 +461,7 @@ def debug_info_factory() -> DebugInfoFactory:
             to_json=True,
         )
         if transform_result.is_success:
-            unwrapped = transform_result.unwrap()
+            unwrapped = transform_result.value
             if isinstance(unwrapped, dict):
                 final_data: dict[str, object] = dict(unwrapped.items())
             else:
@@ -507,7 +507,7 @@ def logging_config_factory() -> LoggingConfigFactory:
             to_json=True,
         )
         if transform_result.is_success:
-            unwrapped = transform_result.unwrap()
+            unwrapped = transform_result.value
             if isinstance(unwrapped, dict):
                 final_data: dict[str, object] = dict(unwrapped.items())
             else:

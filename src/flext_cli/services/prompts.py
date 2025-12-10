@@ -633,7 +633,7 @@ class FlextCliPrompts(FlextCliServiceBase):
             # Use u.transform for JSON conversion
             transform_result = u.transform(stats_model.model_dump(), to_json=True)
             stats_dict = (
-                transform_result.unwrap()
+                transform_result.value
                 if transform_result.is_success
                 else stats_model.model_dump()
             )

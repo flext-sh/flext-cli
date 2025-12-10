@@ -272,7 +272,7 @@ class TestsCli:
         )
         execute_result = api_service.execute()
         tm.ok(execute_result)
-        data = execute_result.unwrap()
+        data = execute_result.value
         assert (
             isinstance(data, dict)
             and data.get("service") == "flext-cli"
@@ -291,7 +291,7 @@ class TestsCli:
                 continue
             result = api_service.output.format_data(data=data, format_type=format_type)
             tm.ok(result)
-            assert isinstance((output := result.unwrap()), str) and validator(
+            assert isinstance((output := result.value), str) and validator(
                 output,
                 data,
             )
@@ -302,7 +302,7 @@ class TestsCli:
             creds_result = config["factory"]()
             if config["expected_success"]:
                 tm.ok(creds_result)
-                creds = creds_result.unwrap()
+                creds = creds_result.value
                 # creds is already Mapping[str, str] from create_credentials
                 assert api_service.authenticate(creds).is_success
             else:
@@ -325,7 +325,7 @@ class TestsCli:
                     read_res = api_service.file_tools.read_text_file(str(file))
                     if exists:
                         tm.ok(read_res)
-                        assert read_res.unwrap() == "test content"
+                        assert read_res.value == "test content"
                     else:
                         assert read_res.is_failure
                 case "write":
@@ -347,7 +347,7 @@ class TestsCli:
         """Execute command execution tests."""
         cmd_result = CommandHelpers.create_command_model()
         tm.ok(cmd_result)
-        cmd = cmd_result.unwrap()
+        cmd = cmd_result.value
         assert (
             cmd.name == "test_command"
             and cmd.status == c.Cli.CommandStatus.PENDING.value
@@ -394,7 +394,7 @@ class TestsCli:
         credentials = {c.Cli.DictKeys.TOKEN: token}
         result = flext_cli_api.authenticate(credentials)
         tm.ok(result)
-        assert result.unwrap() == token
+        assert result.value == token
 
     def test_authenticate_with_token_invalid(self, flext_cli_api: FlextCli) -> None:
         """Test authentication with invalid token."""
@@ -413,7 +413,7 @@ class TestsCli:
         }
         result = flext_cli_api.authenticate(credentials)
         tm.ok(result)
-        assert isinstance(result.unwrap(), str)
+        assert isinstance(result.value, str)
 
     def test_authenticate_with_credentials_missing_fields(
         self,
@@ -441,14 +441,14 @@ class TestsCli:
         """Test credential validation with valid data."""
         result = FlextCli.validate_credentials("testuser", "testpass123")
         tm.ok(result)
-        assert result.unwrap() is True
+        assert result.value is True
 
     def test_validate_credentials_with_valid_data(self) -> None:
         """Test credential validation with valid data."""
         # PasswordAuth accepts any strings including empty ones
         result = FlextCli.validate_credentials("testuser", "testpass123")
         tm.ok(result)
-        assert result.unwrap() is True
+        assert result.value is True
 
     def test_save_auth_token_success(
         self,
@@ -459,7 +459,7 @@ class TestsCli:
         token = "test_token_xyz789"
         result = flext_cli_api.save_auth_token(token)
         tm.ok(result)
-        assert result.unwrap() is True
+        assert result.value is True
 
     def test_save_auth_token_invalid(self, flext_cli_api: FlextCli) -> None:
         """Test saving invalid token."""
@@ -479,7 +479,7 @@ class TestsCli:
         # Get token
         result = flext_cli_api.get_auth_token()
         tm.ok(result)
-        assert result.unwrap() == token
+        assert result.value == token
 
     def test_get_auth_token_not_found(
         self,
@@ -551,7 +551,7 @@ class TestsCli:
         tm.ok(save_result)
         clear_result = flext_cli_api.clear_auth_tokens()
         tm.ok(clear_result)
-        assert clear_result.unwrap() is True
+        assert clear_result.value is True
 
     def test_clear_auth_tokens_when_no_tokens(self, flext_cli_api: FlextCli) -> None:
         """Test clearing tokens when none exist."""
@@ -622,7 +622,7 @@ class TestsCli:
         """Test execute method returns service status."""
         result = flext_cli_api.execute()
         tm.ok(result)
-        data = result.unwrap()
+        data = result.value
         assert c.Cli.DictKeys.STATUS in data
         assert c.Cli.DictKeys.SERVICE in data
         assert "version" in data
@@ -632,7 +632,7 @@ class TestsCli:
         """Test static execute_cli method."""
         result = FlextCli.execute_cli()
         tm.ok(result)
-        assert result.unwrap() is True
+        assert result.value is True
 
     # ========================================================================
     # CONVENIENCE METHODS TESTS - Missing Coverage
@@ -658,7 +658,7 @@ class TestsCli:
             headers=["Name", "Age"],
         )
         tm.ok(result)
-        assert isinstance(result.unwrap(), str)
+        assert isinstance(result.value, str)
 
     def test_create_table_with_list(self, flext_cli_api: FlextCli) -> None:
         """Test create_table with list data."""
@@ -675,7 +675,7 @@ class TestsCli:
             headers=["name", "age"],  # Use lowercase to match dict keys
         )
         tm.ok(result)
-        assert isinstance(result.unwrap(), str)
+        assert isinstance(result.value, str)
 
     def test_create_table_with_none(self, flext_cli_api: FlextCli) -> None:
         """Test create_table with None data."""
@@ -709,7 +709,7 @@ class TestsCli:
         """Test create_tree convenience method."""
         result = flext_cli_api.create_tree("Root")
         tm.ok(result)
-        tree = result.unwrap()
+        tree = result.value
         assert hasattr(tree, "add")
 
     def test_get_auth_token_dict_error(

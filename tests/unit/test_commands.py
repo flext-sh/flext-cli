@@ -112,7 +112,7 @@ class TestsCliCommands:
         )
         assert result.is_success
         # Handler returns "args: {len(args)}" format
-        result_value = str(result.unwrap())
+        result_value = str(result.value)
         assert "args:" in result_value
         assert "2" in result_value  # Two args passed
 
@@ -128,7 +128,7 @@ class TestsCliCommands:
 
         result = commands.execute_command("test_no_args", args=["arg1", "arg2"])
         assert result.is_success
-        assert result.unwrap() == "no_args_result"
+        assert result.value == "no_args_result"
 
     def test_execute_command_with_timeout(self) -> None:
         """Test execute_command with timeout parameter."""
@@ -145,7 +145,7 @@ class TestsCliCommands:
             timeout=10,
         )
         assert result.is_success
-        assert result.unwrap() == "timed_result"
+        assert result.value == "timed_result"
 
     # ========================================================================
     # ERROR HANDLING
@@ -331,7 +331,7 @@ class TestsCliCommands:
 
         result = commands.clear_commands()
         assert result.is_success
-        assert result.unwrap() == 2
+        assert result.value == 2
 
         cmds = commands.get_commands()
         assert len(cmds) == 0
@@ -345,7 +345,7 @@ class TestsCliCommands:
 
         result = commands.list_commands()
         assert result.is_success
-        cmd_list = result.unwrap()
+        cmd_list = result.value
         assert isinstance(cmd_list, list)
         assert len(cmd_list) == 2
         assert "alpha" in cmd_list
@@ -372,7 +372,7 @@ class TestsCliCommands:
             },
         )
         assert result.is_success
-        group = result.unwrap()
+        group = result.value
         assert hasattr(group, "name")
         assert group.name == "test_group"
 
@@ -469,7 +469,7 @@ class TestsCliCommands:
 
         list_result = commands.list_commands()
         if list_result.is_success:
-            assert len(list_result.unwrap()) == 0
+            assert len(list_result.value) == 0
 
     def test_list_commands_success_with_registered(self) -> None:
         """Test list_commands with real registered commands."""
@@ -480,6 +480,6 @@ class TestsCliCommands:
 
         result = commands.list_commands()
         assert result.is_success
-        commands_list = result.unwrap()
+        commands_list = result.value
         assert isinstance(commands_list, list)
         assert len(commands_list) == 2

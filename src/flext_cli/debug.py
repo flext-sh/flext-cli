@@ -91,7 +91,7 @@ class FlextCliDebug(FlextCliServiceBase):
         """Convert r[JsonDict] to t.GeneralValueType."""
         if result.is_success:
             # JsonDict is dict[str, GeneralValueType] - return directly
-            return result.unwrap()
+            return result.value
         # Return error as string
         return result.error or "Unknown error"
 

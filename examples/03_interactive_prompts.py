@@ -51,7 +51,7 @@ def get_user_configuration() -> r[str]:
     name_result = prompts.prompt("Project name:", default="my-project")
 
     if name_result.is_success:
-        project_name = name_result.unwrap()
+        project_name = name_result.value
         cli.print(f"✅ Project: {project_name}", style="green")
         return r[str].ok(project_name)
     cli.print(f"Error: {name_result.error}", style="bold red")
@@ -72,7 +72,7 @@ def authenticate_user() -> bool:
         cli.print(f"Error: {password_result.error}", style="bold red")
         return False
 
-    password = password_result.unwrap()
+    password = password_result.value
 
     # Your validation logic
     if len(password) < 8:
@@ -100,7 +100,7 @@ def delete_database(database_name: str) -> None:
         cli.print(f"Error: {confirm_result.error}", style="bold red")
         return
 
-    if confirm_result.unwrap():
+    if confirm_result.value:
         cli.print(f"🗑️  Deleting {database_name}...", style="yellow")
         # Your deletion logic here
         cli.print("✅ Database deleted", style="green")
@@ -127,13 +127,13 @@ def select_environment() -> r[str]:
         cli.print(f"Error: {choice_result.error}", style="bold red")
         return r[str].fail(choice_result.error or "Failed to select environment")
 
-    selected = choice_result.unwrap()
+    selected = choice_result.value
     cli.print(f"🚀 Deploying to: {selected}", style="green")
 
     # Show warning for production
     if selected == "production":
         confirm = prompts.confirm("⚠️  Deploy to production?", default=False)
-        if confirm.is_success and confirm.unwrap():
+        if confirm.is_success and confirm.value:
             return r[str].ok(selected)
         return r[str].fail("Production deployment cancelled by user")
 
@@ -157,7 +157,7 @@ def database_setup_wizard() -> r[dict[str, str | int | bool | float]]:
         return r[dict[str, str | int | bool | float]].fail(
             host_result.error or "Failed to get host",
         )
-    config["host"] = host_result.unwrap()
+    config["host"] = host_result.value
 
     # Step 2: Port
     port_result = prompts.prompt("Port:", default="5432")
@@ -165,7 +165,7 @@ def database_setup_wizard() -> r[dict[str, str | int | bool | float]]:
         return r[dict[str, str | int | bool | float]].fail(
             port_result.error or "Failed to get port",
         )
-    config["port"] = int(port_result.unwrap())
+    config["port"] = int(port_result.value)
 
     # Step 3: Database name
     db_result = prompts.prompt("Database name:")
@@ -173,7 +173,7 @@ def database_setup_wizard() -> r[dict[str, str | int | bool | float]]:
         return r[dict[str, str | int | bool | float]].fail(
             db_result.error or "Failed to get database name",
         )
-    config["database"] = db_result.unwrap()
+    config["database"] = db_result.value
 
     # Step 4: Password (masked)
     pwd_result = prompts.prompt_password("Database password:")
@@ -181,7 +181,7 @@ def database_setup_wizard() -> r[dict[str, str | int | bool | float]]:
         return r[dict[str, str | int | bool | float]].fail(
             pwd_result.error or "Failed to get password",
         )
-    config["password"] = pwd_result.unwrap()
+    config["password"] = pwd_result.value
 
     # Step 5: Confirm
     cli.print("\n📋 Review configuration:", style="yellow")
@@ -195,7 +195,7 @@ def database_setup_wizard() -> r[dict[str, str | int | bool | float]]:
         to_json=True,
     )
     json_config: t.JsonDict = (
-        transform_result.unwrap()
+        transform_result.value
         if transform_result.is_success
         else cast("t.JsonDict", display_config)
     )
@@ -205,10 +205,10 @@ def database_setup_wizard() -> r[dict[str, str | int | bool | float]]:
         title="Database Configuration",
     )
     if table_result.is_success:
-        cli.print_table(table_result.unwrap())
+        cli.print_table(table_result.value)
 
     confirm = prompts.confirm("Save this configuration?", default=True)
-    if confirm.is_success and confirm.unwrap():
+    if confirm.is_success and confirm.value:
         cli.print("✅ Configuration saved!", style="green")
         return r[dict[str, str | int | bool | float]].ok(config)
 
@@ -238,11 +238,11 @@ def validate_email_input() -> r[str]:
         cli.print(f"❌ Prompt failed: {email_result.error}", style="bold red")
         return r[str].fail(email_result.error or "Prompt failed")
 
-    email = email_result.unwrap()
+    email = email_result.value
     validated = is_valid_email(email)
 
     if validated.is_success:
-        cli.print(f"✅ Valid email: {validated.unwrap()}", style="green")
+        cli.print(f"✅ Valid email: {validated.value}", style="green")
         return validated
     cli.print(f"❌ {validated.error}", style="bold red")
     return validated
@@ -260,7 +260,7 @@ def flext_prompt_with_validation() -> r[int]:
     # Text prompt with default
     name_result = prompts.prompt("Enter your name", default="Anonymous")
     if name_result.is_success:
-        name = name_result.unwrap()
+        name = name_result.value
         cli.print(f"✅ Name: {name}", style="green")
     else:
         cli.print(f"❌ Error: {name_result.error}", style="red")
@@ -273,7 +273,7 @@ def flext_prompt_with_validation() -> r[int]:
         default="dev",
     )
     if env_result.is_success:
-        environment = env_result.unwrap()
+        environment = env_result.value
         cli.print(f"✅ Environment: {environment}", style="green")
     else:
         cli.print(f"❌ Error: {env_result.error}", style="red")
@@ -292,10 +292,10 @@ def flext_prompt_with_validation() -> r[int]:
 
     port_result = prompts.prompt("Enter port number", default="8080")
     if port_result.is_success:
-        port_input = port_result.unwrap()
+        port_input = port_result.value
         validation = validate_port(port_input)
         if validation.is_success:
-            validated_port = validation.unwrap()
+            validated_port = validation.value
             cli.print(f"✅ Port: {validated_port}", style="green")
             return r[int].ok(validated_port)
         cli.print(f"❌ {validation.error}", style="bold red")
@@ -316,7 +316,7 @@ def flext_confirm_prompts() -> bool:
     # Simple confirmation with default=True
     proceed_result = prompts.confirm("Would you like to proceed?", default=True)
 
-    if proceed_result.is_success and proceed_result.unwrap():
+    if proceed_result.is_success and proceed_result.value:
         cli.print("✅ Proceeding with operation", style="green")
     else:
         cli.print("❌ Operation cancelled", style="yellow")
@@ -327,7 +327,7 @@ def flext_confirm_prompts() -> bool:
         default=False,
     )
 
-    if delete_result.is_success and delete_result.unwrap():
+    if delete_result.is_success and delete_result.value:
         cli.print("🗑️  Deleting all data...", style="red")
         return True
     cli.print("✅ Data preserved", style="green")
@@ -369,12 +369,12 @@ def flext_numeric_prompts() -> dict[str, int | float]:
     workers_result = prompts.prompt("Number of worker processes", default="4")
     if workers_result.is_success:
         workers_validation = validate_int(
-            workers_result.unwrap(),
+            workers_result.value,
             min_val=1,
             max_val=32,
         )
         if workers_validation.is_success:
-            workers = workers_validation.unwrap()
+            workers = workers_validation.value
             cli.print(
                 f"✅ Workers: {workers} (type: {type(workers).__name__})",
                 style="green",
@@ -390,9 +390,9 @@ def flext_numeric_prompts() -> dict[str, int | float]:
 
     cpu_result = prompts.prompt("CPU limit (cores)", default="2.5")
     if cpu_result.is_success:
-        cpu_validation = validate_float(cpu_result.unwrap())
+        cpu_validation = validate_float(cpu_result.value)
         if cpu_validation.is_success:
-            cpu_limit = cpu_validation.unwrap()
+            cpu_limit = cpu_validation.value
             cli.print(
                 f"✅ CPU Limit: {cpu_limit} (type: {type(cpu_limit).__name__})",
                 style="green",
@@ -402,12 +402,12 @@ def flext_numeric_prompts() -> dict[str, int | float]:
     percentage_result = prompts.prompt("Enter percentage (0-100)", default="50")
     if percentage_result.is_success:
         pct_validation = validate_int(
-            percentage_result.unwrap(),
+            percentage_result.value,
             min_val=0,
             max_val=100,
         )
         if pct_validation.is_success:
-            percentage = pct_validation.unwrap()
+            percentage = pct_validation.value
             cli.print(f"✅ Percentage: {percentage}%", style="green")
             return {
                 "workers": workers,
@@ -435,7 +435,7 @@ def flext_configuration_wizard() -> r[dict[str, str | int | bool | float]]:
         return r[dict[str, str | int | bool | float]].fail(
             name_result.error or "Failed to get application name",
         )
-    config["app_name"] = name_result.unwrap()
+    config["app_name"] = name_result.value
 
     # Environment with validation
     env_result = prompts.prompt_choice(
@@ -447,7 +447,7 @@ def flext_configuration_wizard() -> r[dict[str, str | int | bool | float]]:
         return r[dict[str, str | int | bool | float]].fail(
             env_result.error or "Failed to select environment",
         )
-    config["environment"] = env_result.unwrap()
+    config["environment"] = env_result.value
 
     # Port (type-safe integer)
     def validate_port(value: str) -> r[int]:
@@ -461,15 +461,15 @@ def flext_configuration_wizard() -> r[dict[str, str | int | bool | float]]:
 
     port_result = prompts.prompt("Port number", default="8080")
     if port_result.is_success:
-        port_validation = validate_port(port_result.unwrap())
+        port_validation = validate_port(port_result.value)
         if port_validation.is_success:
-            config["port"] = port_validation.unwrap()
+            config["port"] = port_validation.value
 
     # CPU limit (type-safe float)
     cpu_result = prompts.prompt("CPU limit (cores)", default="1.0")
     if cpu_result.is_success:
         try:
-            config["cpu_limit"] = float(cpu_result.unwrap())
+            config["cpu_limit"] = float(cpu_result.value)
         except ValueError:
             cli.print("Using default CPU limit: 1.0", style="yellow")
             config["cpu_limit"] = 1.0
@@ -477,11 +477,11 @@ def flext_configuration_wizard() -> r[dict[str, str | int | bool | float]]:
     # Enable features (boolean)
     cache_result = prompts.confirm("Enable caching?", default=True)
     if cache_result.is_success:
-        config["enable_cache"] = cache_result.unwrap()
+        config["enable_cache"] = cache_result.value
 
     auth_result = prompts.confirm("Enable authentication?", default=True)
     if auth_result.is_success:
-        config["enable_auth"] = auth_result.unwrap()
+        config["enable_auth"] = auth_result.value
 
     # Display configuration
     cli.print("\n📋 Configuration Summary:", style="yellow")
@@ -493,7 +493,7 @@ def flext_configuration_wizard() -> r[dict[str, str | int | bool | float]]:
         to_json=True,
     )
     json_config: t.JsonDict = (
-        transform_result.unwrap()
+        transform_result.value
         if transform_result.is_success
         else cast("t.JsonDict", config)
     )
@@ -504,12 +504,12 @@ def flext_configuration_wizard() -> r[dict[str, str | int | bool | float]]:
     )
 
     if table_result.is_success:
-        cli.print_table(table_result.unwrap())
+        cli.print_table(table_result.value)
 
     # Final confirmation
     save_result = prompts.confirm("Save this configuration?", default=True)
 
-    if save_result.is_success and save_result.unwrap():
+    if save_result.is_success and save_result.value:
         cli.print("✅ Configuration saved!", style="bold green")
         return r[dict[str, str | int | bool | float]].ok(config)
 

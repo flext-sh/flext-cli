@@ -59,7 +59,7 @@ class TestsCliDebug:
 
         assert isinstance(result, FlextResult)
         assert result.is_success
-        assert isinstance(result.unwrap(), dict)
+        assert isinstance(result.value, dict)
 
     def test_debug_get_system_paths(self, debug: FlextCliDebug) -> None:
         """Test getting system paths."""
@@ -68,7 +68,7 @@ class TestsCliDebug:
         assert isinstance(result, FlextResult)
         assert result.is_success
         # get_system_paths() returns dict[str, object] with 'paths' key, not list
-        paths_dict = result.unwrap()
+        paths_dict = result.value
         assert isinstance(paths_dict, dict)
         assert "paths" in paths_dict
 
@@ -78,7 +78,7 @@ class TestsCliDebug:
 
         assert isinstance(result, FlextResult)
         assert result.is_success
-        assert isinstance(result.unwrap(), list)
+        assert isinstance(result.value, list)
 
     def test_debug_test_connectivity(self, debug: FlextCliDebug) -> None:
         """Test connectivity testing."""
@@ -86,7 +86,7 @@ class TestsCliDebug:
 
         assert isinstance(result, FlextResult)
         assert result.is_success
-        assert isinstance(result.unwrap(), dict)
+        assert isinstance(result.value, dict)
 
     def test_debug_execute_health_check(self, debug: FlextCliDebug) -> None:
         """Test executing health check."""
@@ -94,7 +94,7 @@ class TestsCliDebug:
 
         assert isinstance(result, FlextResult)
         assert result.is_success
-        assert isinstance(result.unwrap(), dict)
+        assert isinstance(result.value, dict)
 
     def test_debug_execute_trace(self, debug: FlextCliDebug) -> None:
         """Test executing trace."""
@@ -102,7 +102,7 @@ class TestsCliDebug:
 
         assert isinstance(result, FlextResult)
         assert result.is_success
-        assert isinstance(result.unwrap(), dict)
+        assert isinstance(result.value, dict)
 
     def test_debug_get_debug_info(self, debug: FlextCliDebug) -> None:
         """Test getting debug information."""
@@ -110,7 +110,7 @@ class TestsCliDebug:
 
         assert isinstance(result, FlextResult)
         assert result.is_success
-        assert isinstance(result.unwrap(), dict)
+        assert isinstance(result.value, dict)
 
     def test_debug_integration_workflow(self, debug: FlextCliDebug) -> None:
         """Test complete debug workflow."""
@@ -141,7 +141,7 @@ class TestsCliDebug:
         assert result.is_success
 
         # get_system_paths() returns dict[str, object] with 'paths' key, not list
-        paths_dict = result.unwrap()
+        paths_dict = result.value
         assert isinstance(paths_dict, dict)
         assert "paths" in paths_dict
 
@@ -149,7 +149,7 @@ class TestsCliDebug:
         env_result = debug.validate_environment_setup()
         assert env_result.is_success
 
-        env_issues = env_result.unwrap()
+        env_issues = env_result.value
         assert isinstance(env_issues, list)
 
     def test_debug_edge_cases(self, debug: FlextCliDebug) -> None:
@@ -208,7 +208,7 @@ class TestsCliDebug:
 
         assert isinstance(result, FlextResult)
         assert result.is_success
-        info = result.unwrap()
+        info = result.value
         assert isinstance(info, dict)
         # Should contain all subsections
         assert "system" in info or "system_error" in info
@@ -222,7 +222,7 @@ class TestsCliDebug:
 
         assert isinstance(result, FlextResult)
         assert result.is_success
-        info = result.unwrap()
+        info = result.value
         assert isinstance(info, dict)
         # Should contain system information keys
         assert len(info) > 0
@@ -233,7 +233,7 @@ class TestsCliDebug:
 
         assert isinstance(result, FlextResult)
         assert result.is_success
-        env = result.unwrap()
+        env = result.value
         assert isinstance(env, dict)
         # Environment variables should be masked if sensitive
         # Check that if there are any PASSWORD/TOKEN keys, they're masked
@@ -257,7 +257,7 @@ class TestsCliDebug:
         result = debug.get_system_info()
         # Should succeed and return system info
         assert result.is_success
-        info = result.unwrap()
+        info = result.value
         assert isinstance(info, dict)
 
     def test_get_environment_variables_exception(self) -> None:
@@ -269,7 +269,7 @@ class TestsCliDebug:
         result = debug.get_environment_variables()
         # Should succeed and return environment variables
         assert result.is_success
-        env_vars = result.unwrap()
+        env_vars = result.value
         assert isinstance(env_vars, dict)
 
     def test_get_system_paths_exception(self) -> None:
@@ -281,7 +281,7 @@ class TestsCliDebug:
         result = debug.get_system_paths()
         # Should succeed and return system paths
         assert result.is_success
-        paths = result.unwrap()
+        paths = result.value
         assert isinstance(paths, dict)
         assert "paths" in paths
 
@@ -294,7 +294,7 @@ class TestsCliDebug:
         result = debug.validate_environment_setup()
         # Should succeed and return validation results
         assert result.is_success
-        validation = result.unwrap()
+        validation = result.value
         assert isinstance(validation, list)
 
     def test_test_connectivity_exception(self) -> None:
@@ -306,7 +306,7 @@ class TestsCliDebug:
         result = debug.test_connectivity()
         # Should succeed and return connectivity test results
         assert result.is_success
-        connectivity = result.unwrap()
+        connectivity = result.value
         assert isinstance(connectivity, dict)
 
     def test_execute_health_check_exception(self) -> None:
@@ -318,7 +318,7 @@ class TestsCliDebug:
         result = debug.execute_health_check()
         # Should succeed and return health check results
         assert result.is_success
-        health = result.unwrap()
+        health = result.value
         assert isinstance(health, dict)
 
     def test_execute_trace_exception(self) -> None:
@@ -330,7 +330,7 @@ class TestsCliDebug:
         result = debug.execute_trace(["arg1", "arg2"])
         # Should succeed and return trace results
         assert result.is_success
-        trace = result.unwrap()
+        trace = result.value
         assert isinstance(trace, dict)
 
     def test_get_debug_info_exception(self) -> None:
@@ -342,7 +342,7 @@ class TestsCliDebug:
         result = debug.get_debug_info()
         # Should succeed and return debug info
         assert result.is_success
-        info = result.unwrap()
+        info = result.value
         assert isinstance(info, dict)
 
     def test_get_comprehensive_debug_info_exception(self) -> None:
@@ -354,7 +354,7 @@ class TestsCliDebug:
         result = debug.get_comprehensive_debug_info()
         # Should succeed and return comprehensive debug info
         assert result.is_success
-        info = result.unwrap()
+        info = result.value
         assert isinstance(info, dict)
 
     def test_get_system_paths_with_path_info_models(self) -> None:
@@ -366,7 +366,7 @@ class TestsCliDebug:
         result = debug.get_system_paths()
         # Should succeed and return system paths
         assert result.is_success
-        paths_dict = result.unwrap()
+        paths_dict = result.value
         assert isinstance(paths_dict, dict)
         assert "paths" in paths_dict
         # Verify paths is a list
@@ -382,7 +382,7 @@ class TestsCliDebug:
         result = debug.get_comprehensive_debug_info()
         # Should succeed and return comprehensive debug info
         assert result.is_success
-        info = result.unwrap()
+        info = result.value
         assert isinstance(info, dict)
 
     def test_get_comprehensive_debug_info_paths_error(self) -> None:
@@ -394,7 +394,7 @@ class TestsCliDebug:
         result = debug.get_comprehensive_debug_info()
         # Should succeed and return comprehensive debug info
         assert result.is_success
-        info = result.unwrap()
+        info = result.value
         assert isinstance(info, dict)
 
     def test_get_comprehensive_debug_info_outer_exception(self) -> None:
@@ -406,7 +406,7 @@ class TestsCliDebug:
         result = debug.get_comprehensive_debug_info()
         # Should succeed and return comprehensive debug info
         assert result.is_success
-        info = result.unwrap()
+        info = result.value
         assert isinstance(info, dict)
 
     def test_validate_filesystem_permissions_oserror(self) -> None:
@@ -418,7 +418,7 @@ class TestsCliDebug:
         result = debug.validate_environment_setup()
         # Should succeed and return validation results
         assert result.is_success
-        errors = result.unwrap()
+        errors = result.value
         assert isinstance(errors, list)
 
     def test_validate_filesystem_permissions_general_exception(self) -> None:
@@ -430,5 +430,5 @@ class TestsCliDebug:
         result = debug.validate_environment_setup()
         # Should succeed and return validation results
         assert result.is_success
-        errors = result.unwrap()
+        errors = result.value
         assert isinstance(errors, list)

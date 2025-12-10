@@ -59,7 +59,7 @@ class TestsCliContext:
                 env_vars_converted = cast("dict[str, t.GeneralValueType]", env_vars)
                 transform_result = u.transform(env_vars_converted, to_json=True)
                 json_env_vars = (
-                    transform_result.unwrap()
+                    transform_result.value
                     if transform_result.is_success
                     else env_vars_converted
                 )
@@ -201,7 +201,7 @@ class TestsCliContext:
             working_dir=working_dir,
         )
         tm.ok(result)
-        context = result.unwrap()
+        context = result.value
 
         assert isinstance(context, FlextCliContext)
         # Validate context properties
@@ -224,7 +224,7 @@ class TestsCliContext:
 
         assert isinstance(result, r)
         tm.ok(result)
-        assert isinstance(result.unwrap(), dict)
+        assert isinstance(result.value, dict)
 
     # =========================================================================
     # ACTIVATION AND DEACTIVATION TESTS
@@ -287,7 +287,7 @@ class TestsCliContext:
         # Get existing variable
         get_result2 = context.get_environment_variable(var_name)
         tm.ok(get_result2)
-        assert get_result2.unwrap() == var_value
+        assert get_result2.value == var_value
 
     @pytest.mark.parametrize("invalid_input", ["", "   "])
     def test_environment_variable_validation(self, invalid_input: str) -> None:
@@ -399,7 +399,7 @@ class TestsCliContext:
         # Get metadata
         get_result = context.get_metadata(key)
         tm.ok(get_result)
-        assert get_result.unwrap() == value
+        assert get_result.value == value
 
     @pytest.mark.parametrize("invalid_key", ["", "   "])
     def test_metadata_key_validation(self, invalid_key: str) -> None:
@@ -434,7 +434,7 @@ class TestsCliContext:
         result = context.get_context_summary()
         tm.ok(result)
 
-        summary = result.unwrap()
+        summary = result.value
         assert summary["command"] == "test_cmd"
         assert summary["arguments"] == ["arg1", "arg2", "arg3"]
         assert summary["arguments_count"] == len(["arg1", "arg2", "arg3"])
@@ -452,7 +452,7 @@ class TestsCliContext:
         result = context.to_dict()
         tm.ok(result)
 
-        data = result.unwrap()
+        data = result.value
         assert isinstance(data, dict)
         assert data["command"] == "test_cmd"
         assert data["arguments"] == ["arg1"]
@@ -542,7 +542,7 @@ class TestsCliContext:
         context.activate()
 
         # Get summary
-        summary = context.get_context_summary().unwrap()
+        summary = context.get_context_summary().value
         assert summary["command"] == "deploy"
         assert summary["arguments_count"] == 3
         assert summary["is_active"] is True

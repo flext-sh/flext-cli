@@ -265,7 +265,7 @@ class TestsCliPrompts:
         """Test execute method returns success."""
         result = prompts.execute()
         tm.ok(result)
-        assert isinstance(result.unwrap(), dict)
+        assert isinstance(result.value, dict)
 
     # =========================================================================
     # PROMPT_TEXT TESTS (Parametrized)
@@ -317,7 +317,7 @@ class TestsCliPrompts:
             default="text",
         )
         tm.ok(result)
-        assert isinstance(result.unwrap(), str)
+        assert isinstance(result.value, str)
 
     # =========================================================================
     # PROMPT_"confirm"ATION TESTS (Parametrized)
@@ -348,7 +348,7 @@ class TestsCliPrompts:
             default=True,
         )
         tm.ok(result)
-        assert isinstance(result.unwrap(), bool)
+        assert isinstance(result.value, bool)
 
     # =========================================================================
     # PROMPT_CHOICE TESTS (Parametrized)
@@ -399,7 +399,7 @@ class TestsCliPrompts:
             default="simple",
         )
         tm.ok(result)
-        assert result.unwrap() in {"simple", "complex", "advanced"}
+        assert result.value in {"simple", "complex", "advanced"}
 
     def test_prompt_choice_exception_handling(self) -> None:
         """Test prompt_choice exception handler."""
@@ -556,7 +556,7 @@ class TestsCliPrompts:
         """Test create_progress method."""
         result = prompts.create_progress("simple")
         tm.ok(result)
-        assert isinstance(result.unwrap(), str)
+        assert isinstance(result.value, str)
 
     def test_with_progress_small_dataset(self, prompts: FlextCliPrompts) -> None:
         """Test with_progress with small dataset."""
@@ -566,7 +566,7 @@ class TestsCliPrompts:
         )
         result = prompts.with_progress(items, "simple")
         tm.ok(result)
-        assert result.unwrap() == items
+        assert result.value == items
 
     def test_with_progress_large_dataset(self, prompts: FlextCliPrompts) -> None:
         """Test with_progress with large dataset."""
@@ -576,14 +576,14 @@ class TestsCliPrompts:
         )
         result = prompts.with_progress(items, "simple")
         tm.ok(result)
-        assert result.unwrap() == items
+        assert result.value == items
 
     def test_with_progress_empty(self, prompts: FlextCliPrompts) -> None:
         """Test with_progress with empty list."""
         items: list[t.GeneralValueType] = []
         result = prompts.with_progress(items, "simple")
         tm.ok(result)
-        assert result.unwrap() == items
+        assert result.value == items
 
     # =========================================================================
     # HISTORY OPERATIONS TESTS
@@ -636,7 +636,7 @@ class TestsCliPrompts:
         result = prompts.get_prompt_statistics()
         tm.ok(result)
 
-        stats = result.unwrap()
+        stats = result.value
         assert isinstance(stats, dict)
         assert "prompts_executed" in stats
         assert "interactive_mode" in stats
@@ -759,7 +759,7 @@ class TestsCliPrompts:
             validation_pattern=r"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$",
         )
         tm.ok(result)
-        assert result.unwrap() == "test@example.com"
+        assert result.value == "test@example.com"
 
     def test_prompt_text_with_validation_pattern_invalid_default(
         self,
@@ -879,14 +879,14 @@ class TestsCliPrompts:
         quiet_prompts = self.Fixtures.create_quiet_prompts()
         result = quiet_prompts.confirm("Continue?", default=True)
         tm.ok(result)
-        assert result.unwrap() is True
+        assert result.value is True
 
     def test_confirm_non_interactive_mode(self, prompts: FlextCliPrompts) -> None:
         """Test confirm in non-interactive mode."""
         quiet_prompts = self.Fixtures.create_quiet_prompts(interactive_mode=False)
         result = quiet_prompts.confirm("Continue?", default=False)
         tm.ok(result)
-        assert result.unwrap() is False
+        assert result.value is False
 
     # =========================================================================
     # "choice" PROMPT EDGE CASES - Missing Coverage
@@ -924,7 +924,7 @@ class TestsCliPrompts:
         quiet_prompts = self.Fixtures.create_quiet_prompts()
         result = quiet_prompts.prompt_choice("Select:", choices=["a", "b"], default="a")
         tm.ok(result)
-        assert result.unwrap() == "a"
+        assert result.value == "a"
 
     # =========================================================================
     # PASSWORD PROMPT EDGE CASES - Missing Coverage
@@ -975,7 +975,7 @@ class TestsCliPrompts:
         interactive_prompts = self.Fixtures.create_interactive_prompts()
         result = interactive_prompts.prompt_password("Password:", min_length=8)
         tm.ok(result)
-        assert len(result.unwrap()) >= 8
+        assert len(result.value) >= 8
 
     # =========================================================================
     # PROMPT METHOD EDGE CASES - Missing Coverage
@@ -986,14 +986,14 @@ class TestsCliPrompts:
         quiet_prompts = self.Fixtures.create_quiet_prompts()
         result = quiet_prompts.prompt("Enter value:", default="default_value")
         tm.ok(result)
-        assert result.unwrap() == "default_value"
+        assert result.value == "default_value"
 
     def test_prompt_non_interactive_mode(self, prompts: FlextCliPrompts) -> None:
         """Test prompt in non-interactive mode."""
         quiet_prompts = self.Fixtures.create_quiet_prompts(interactive_mode=False)
         result = quiet_prompts.prompt("Enter value:", default="default_value")
         tm.ok(result)
-        assert result.unwrap() == "default_value"
+        assert result.value == "default_value"
 
     def test_prompt_empty_input_uses_default(
         self,
@@ -1005,7 +1005,7 @@ class TestsCliPrompts:
         interactive_prompts = self.Fixtures.create_interactive_prompts()
         result = interactive_prompts.prompt("Enter value:", default="default")
         tm.ok(result)
-        assert result.unwrap() == "default"
+        assert result.value == "default"
 
     def test_prompt_exception_handling(
         self,
@@ -1153,7 +1153,7 @@ class TestsCliPrompts:
         """Test with_progress with empty items list."""
         result = prompts.with_progress([], "Processing")
         tm.ok(result)
-        assert result.unwrap() == []
+        assert result.value == []
 
     # =========================================================================
     # HISTORY AND STATISTICS EDGE CASES - Missing Coverage
@@ -1183,7 +1183,7 @@ class TestsCliPrompts:
         """Test get_prompt_statistics with empty history."""
         result = prompts.get_prompt_statistics()
         tm.ok(result)
-        stats = result.unwrap()
+        stats = result.value
         assert stats["prompts_executed"] == 0
         assert stats["history_size"] == 0
 
@@ -1195,7 +1195,7 @@ class TestsCliPrompts:
 
         result = prompts.get_prompt_statistics()
         tm.ok(result)
-        stats = result.unwrap()
+        stats = result.value
         # Check that statistics are present
         assert "prompts_executed" in stats
         assert "history_size" in stats

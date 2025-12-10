@@ -102,7 +102,7 @@ def display_database_results(records: list[t.Cli.Data.CliDataDict]) -> None:
     )
 
     if table_result.is_success:
-        cli.print_table(table_result.unwrap())
+        cli.print_table(table_result.value)
 
 
 # ============================================================================
@@ -122,7 +122,7 @@ def export_report(
 
     # Return FlextResult to avoid None types (railway pattern)
     if result.is_success:
-        return FlextResult[str].ok(result.unwrap())
+        return FlextResult[str].ok(result.value)
     return FlextResult[str].fail(result.error or "Failed to create table")
 
 
@@ -159,7 +159,7 @@ def display_project_structure(root_path: str | Path) -> None:
     tree_result = cli.create_tree(f"📁 {Path(root_path).name}")
 
     if tree_result.is_success:
-        tree = tree_result.unwrap()
+        tree = tree_result.value
 
         # Add your items to the tree
         # Example: file system, org chart, data hierarchy
@@ -236,7 +236,7 @@ def monitor_live_metrics() -> None:
         table_result = tables.create_table(list(metrics_data), config=config)
 
         if table_result.is_success:
-            cli.print(f"\n{table_result.unwrap()}", style="white")
+            cli.print(f"\n{table_result.value}", style="white")
         else:
             cli.print(f"Failed to create table: {table_result.error}", style="red")
 
@@ -272,7 +272,7 @@ def display_with_panels(data: t.Cli.Data.CliDataDict) -> None:
         # Use FlextCliTables for list[dict] data
         table_result = tables.create_table(list(details_data))
         if table_result.is_success:
-            cli.print(f"\n{table_result.unwrap()}", style="white")
+            cli.print(f"\n{table_result.value}", style="white")
 
     # Section 3: Status message
     cli.print("\n💡 Status:", style="bold yellow")
@@ -307,7 +307,7 @@ def main() -> None:
     cli.print("\n3. ASCII Tables (for logs/reports):", style="bold cyan")
     ascii_result = export_report(sample_data, c.Cli.OutputFormats.TABLE)
     if ascii_result.is_success:
-        pass  # This is plain text - can save to file (ascii_result.unwrap())
+        pass  # This is plain text - can save to file (ascii_result.value)
 
     # Example 4: Progress bars
     cli.print("\n4. Progress Bars (long operations):", style="bold cyan")
@@ -408,7 +408,7 @@ def advanced_output_example() -> None:
     )
 
     if table_result.is_success:
-        cli.print_table(table_result.unwrap())
+        cli.print_table(table_result.value)
 
 
 if __name__ == "__main__":

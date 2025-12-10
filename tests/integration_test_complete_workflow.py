@@ -224,7 +224,7 @@ class TestCompleteWorkflowIntegration:
 
         # Comprehensive assertions
         assert pipeline_result.is_success, f"Pipeline failed: {pipeline_result.error}"
-        final_report = pipeline_result.unwrap()
+        final_report = pipeline_result.value
 
         # Verify report structure
         assert final_report["pipeline_status"] == c.Cli.CommandStatus.COMPLETED.value
@@ -239,7 +239,7 @@ class TestCompleteWorkflowIntegration:
         # Verify processed data
         processed_result = file_tools.read_json_file(str(output_file))
         assert processed_result.is_success
-        processed_data = cast("dict[str, object]", processed_result.unwrap())
+        processed_data = cast("dict[str, object]", processed_result.value)
 
         assert len(cast("list[object]", processed_data["active_users"])) == 2
         assert all(
@@ -455,7 +455,7 @@ class TestCompleteWorkflowIntegration:
         assert report_result.is_success, (
             f"Report generation failed: {report_result.error}"
         )
-        summary = report_result.unwrap()
+        summary = report_result.value
 
         # Verify summary structure
         assert summary["total_reports"] == 3  # JSON, CSV, Table
@@ -574,7 +574,7 @@ class TestCompleteWorkflowIntegration:
             cast("dict[str, t.GeneralValueType]", sales_list),
         )
         if table_result.is_success:
-            table_content = table_result.unwrap()
+            table_content = table_result.value
             (report_dir / "sales_report.txt").write_text(table_content)
             reports.append({
                 "format": "table",
@@ -691,7 +691,7 @@ class TestCompleteWorkflowIntegration:
         assert workflow_result.is_success, (
             f"Workflow with recovery failed: {workflow_result.error}"
         )
-        recovery_report = workflow_result.unwrap()
+        recovery_report = workflow_result.value
 
         # Verify recovery mechanisms worked
         assert recovery_report["data_source"] == "backup"  # Fell back to backup

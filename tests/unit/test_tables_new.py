@@ -84,7 +84,7 @@ class TestsCliTables:
         """Test print_available_formats method."""
         result = tables.print_available_formats()
         assert result.is_success
-        assert result.unwrap() is True
+        assert result.value is True
 
     # ========================================================================
     # BASIC TABLE CREATION
@@ -128,7 +128,7 @@ class TestsCliTables:
         )
 
         assert result.is_success
-        table_str = result.unwrap()
+        table_str = result.value
         for assertion in assertions:
             assert assertion in table_str
 
@@ -152,7 +152,7 @@ class TestsCliTables:
         )
 
         assert result.is_success
-        assert c.TestData.ALICE in result.unwrap()
+        assert c.TestData.ALICE in result.value
 
     def test_create_table_with_alignment(
         self,
@@ -261,7 +261,7 @@ class TestsCliTables:
                 pytest.fail(f"Unknown method: {method_name}")
 
         assert result.is_success
-        table_str = result.unwrap()
+        table_str = result.value
         for content in expected_content:
             assert content in table_str
 
@@ -321,7 +321,7 @@ class TestsCliTables:
         )
 
         assert result.is_success
-        assert c.TestData.ALICE in result.unwrap()
+        assert c.TestData.ALICE in result.value
 
     def test_list_of_dicts_with_custom_headers(
         self,
@@ -448,6 +448,6 @@ class TestsCliTables:
 
         assert result.is_success
         # Validate table result directly - result is successful and contains string
-        table_output = result.unwrap()
+        table_output = result.value
         assert isinstance(table_output, str)
         assert len(table_output) > 0

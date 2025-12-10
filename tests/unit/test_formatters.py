@@ -92,7 +92,7 @@ class TestsCliFormatters:
         formatters = self.Factories.create_formatters()
         result = formatters.execute()
         tm.ok(result)
-        data = result.unwrap()
+        data = result.value
         assert "status" in data
         assert "service" in data
 
@@ -130,7 +130,7 @@ class TestsCliFormatters:
         formatters = self.Factories.create_formatters()
         result = formatters.create_table(data=data, headers=headers, title=title)
         tm.ok(result)
-        table = result.unwrap()
+        table = result.value
         assert isinstance(table, RichTable)
 
     @pytest.mark.parametrize("width", [None, 80, 120])
@@ -139,11 +139,11 @@ class TestsCliFormatters:
         formatters = self.Factories.create_formatters()
         table_result = formatters.create_table(title="Test")
         tm.ok(table_result)
-        table = table_result.unwrap()
+        table = table_result.value
 
         render_result = formatters.render_table_to_string(table, width=width)
         tm.ok(render_result)
-        output = render_result.unwrap()
+        output = render_result.value
         assert isinstance(output, str)
         assert len(output) > 0
 
@@ -152,7 +152,7 @@ class TestsCliFormatters:
         formatters = FlextCliFormatters()
         result = formatters.create_progress()
         tm.ok(result)
-        progress = result.unwrap()
+        progress = result.value
         assert isinstance(progress, Progress)
 
     def test_create_tree(self) -> None:
@@ -160,7 +160,7 @@ class TestsCliFormatters:
         formatters = FlextCliFormatters()
         result = formatters.create_tree("Root")
         tm.ok(result)
-        tree = result.unwrap()
+        tree = result.value
         assert isinstance(tree, RichTree)
 
     def test_create_tree_with_options(self) -> None:
@@ -170,7 +170,7 @@ class TestsCliFormatters:
         # For custom tree styling, access console directly and create Tree
         result = formatters.create_tree("Root Node")
         tm.ok(result)
-        tree = result.unwrap()
+        tree = result.value
         assert isinstance(tree, RichTree)
 
     def test_render_tree_to_string(self) -> None:
@@ -178,11 +178,11 @@ class TestsCliFormatters:
         formatters = FlextCliFormatters()
         tree_result = formatters.create_tree("Root")
         tm.ok(tree_result)
-        tree = tree_result.unwrap()
+        tree = tree_result.value
 
         render_result = formatters.render_tree_to_string(tree)
         tm.ok(render_result)
-        output = render_result.unwrap()
+        output = render_result.value
         assert isinstance(output, str)
         assert len(output) > 0
 
@@ -191,11 +191,11 @@ class TestsCliFormatters:
         formatters = FlextCliFormatters()
         tree_result = formatters.create_tree("Root")
         tm.ok(tree_result)
-        tree = tree_result.unwrap()
+        tree = tree_result.value
 
         render_result = formatters.render_tree_to_string(tree, width=80)
         tm.ok(render_result)
-        output = render_result.unwrap()
+        output = render_result.value
         assert isinstance(output, str)
 
     # =========================================================================
@@ -220,11 +220,11 @@ class TestsCliFormatters:
         tm.ok(table_result)
 
         # Render to string
-        table = table_result.unwrap()
+        table = table_result.value
         render_result = formatters.render_table_to_string(table, width=100)
         tm.ok(render_result)
 
-        output = render_result.unwrap()
+        output = render_result.value
         assert "User Info" in output or len(output) > 0  # Title might be styled
 
     def test_complete_tree_workflow(self) -> None:
@@ -235,7 +235,7 @@ class TestsCliFormatters:
         tree_result = formatters.create_tree("Project")
         tm.ok(tree_result)
 
-        tree = tree_result.unwrap()
+        tree = tree_result.value
         # Add some branches (using Rich directly since we're testing integration)
         tree.add("src/")
         tree.add("tests/")
@@ -244,7 +244,7 @@ class TestsCliFormatters:
         render_result = formatters.render_tree_to_string(tree)
         tm.ok(render_result)
 
-        output = render_result.unwrap()
+        output = render_result.value
         assert "Project" in output
         assert len(output) > 0
 
@@ -267,7 +267,7 @@ class TestsCliFormatters:
         formatters = FlextCliFormatters()
         result = formatters.create_status("Processing...")
         tm.ok(result)
-        status = result.unwrap()
+        status = result.value
         assert status is not None
 
     def test_create_status_with_spinner(self) -> None:
@@ -275,7 +275,7 @@ class TestsCliFormatters:
         formatters = FlextCliFormatters()
         result = formatters.create_status("Loading...", spinner="dots")
         tm.ok(result)
-        status = result.unwrap()
+        status = result.value
         assert status is not None
 
     def test_create_live(self) -> None:
@@ -283,7 +283,7 @@ class TestsCliFormatters:
         formatters = FlextCliFormatters()
         result = formatters.create_live()
         tm.ok(result)
-        live = result.unwrap()
+        live = result.value
         assert live is not None
 
     def test_create_live_with_refresh_rate(self) -> None:
@@ -291,7 +291,7 @@ class TestsCliFormatters:
         formatters = FlextCliFormatters()
         result = formatters.create_live(refresh_per_second=10)
         tm.ok(result)
-        live = result.unwrap()
+        live = result.value
         assert live is not None
 
     def test_create_layout(self) -> None:
@@ -299,7 +299,7 @@ class TestsCliFormatters:
         formatters = FlextCliFormatters()
         result = formatters.create_layout()
         tm.ok(result)
-        layout = result.unwrap()
+        layout = result.value
         assert layout is not None
 
     def test_create_panel(self) -> None:
@@ -307,7 +307,7 @@ class TestsCliFormatters:
         formatters = FlextCliFormatters()
         result = formatters.create_panel("Test content")
         tm.ok(result)
-        panel = result.unwrap()
+        panel = result.value
         assert panel is not None
 
     def test_create_panel_with_title(self) -> None:
@@ -319,7 +319,7 @@ class TestsCliFormatters:
             border_style="green",
         )
         tm.ok(result)
-        panel = result.unwrap()
+        panel = result.value
         assert panel is not None
 
     def test_create_table_dict_without_headers(self) -> None:
@@ -333,7 +333,7 @@ class TestsCliFormatters:
         # No headers - will use else branch at line 131
         result = formatters.create_table(data=data)
         tm.ok(result)
-        table = result.unwrap()
+        table = result.value
         assert isinstance(table, RichTable)
 
     # =========================================================================
@@ -363,7 +363,7 @@ class TestsCliFormatters:
             def call_render_table(fmt: FlextCliFormatters) -> r[object]:
                 table_result: r[object] = cast("r[object]", fmt.create_table())
                 if table_result.is_success:
-                    table = cast("RichTable", table_result.unwrap())
+                    table = cast("RichTable", table_result.value)
                     return cast(
                         "r[object]",
                         fmt.render_table_to_string(table),
@@ -379,7 +379,7 @@ class TestsCliFormatters:
             def call_render_tree(fmt: FlextCliFormatters) -> r[object]:
                 tree_result: r[object] = cast("r[object]", fmt.create_tree("Root"))
                 if tree_result.is_success:
-                    tree = cast("RichTree", tree_result.unwrap())
+                    tree = cast("RichTree", tree_result.value)
                     return cast(
                         "r[object]",
                         fmt.render_tree_to_string(tree),

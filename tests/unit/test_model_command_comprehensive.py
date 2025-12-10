@@ -276,7 +276,7 @@ class TestsCliModelCommandComprehensive:
         )
 
         assert params_result.is_success
-        params = params_result.unwrap()
+        params = params_result.value
 
         # Find environment parameter
         env_param = next((p for p in params if p.name == "environment"), None)
@@ -291,7 +291,7 @@ class TestsCliModelCommandComprehensive:
         )
 
         assert params_result.is_success
-        params = params_result.unwrap()
+        params = params_result.value
 
         # Find log_level parameter
         log_level_param = next((p for p in params if p.name == "log_level"), None)
@@ -310,7 +310,7 @@ class TestsCliModelCommandComprehensive:
         )
 
         assert params_result.is_success
-        params = params_result.unwrap()
+        params = params_result.value
 
         # Find enable_cache parameter
         cache_param = next((p for p in params if p.name == "enable_cache"), None)
@@ -325,7 +325,7 @@ class TestsCliModelCommandComprehensive:
         )
 
         assert params_result.is_success
-        params = params_result.unwrap()
+        params = params_result.value
 
         # Find verbose parameter
         verbose_param = next((p for p in params if p.name == "verbose"), None)
@@ -340,7 +340,7 @@ class TestsCliModelCommandComprehensive:
         )
 
         assert params_result.is_success
-        params = params_result.unwrap()
+        params = params_result.value
 
         # Find force parameter
         force_param = next((p for p in params if p.name == "force"), None)
@@ -359,7 +359,7 @@ class TestsCliModelCommandComprehensive:
         )
 
         assert params_result.is_success
-        params = params_result.unwrap()
+        params = params_result.value
 
         # Find input_dir parameter
         input_param = next((p for p in params if p.name == "input_dir"), None)

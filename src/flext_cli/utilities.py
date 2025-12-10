@@ -2044,7 +2044,7 @@ class FlextCliUtilities(u_core):
                             )
                             t_result = u.transform(dict(v_mapping), to_json=True)
                             if t_result.is_success:
-                                # Use .value directly instead of deprecated .unwrap()
+                                # Use .value directly instead of deprecated .value
                                 # Type narrowing: value is ConfigurationDict (dict[str, GeneralValueType])
                                 # transform returns ConfigurationDict, but FlexibleValue needs Mapping[str, ScalarValue]
                                 # ConfigurationDict is dict[str, GeneralValueType] which includes dict[str, JsonValue]

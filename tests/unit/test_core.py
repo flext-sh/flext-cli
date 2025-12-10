@@ -123,7 +123,7 @@ class TestsCliCore:
             assert result.is_success or result.is_failure
 
             if result.is_success:
-                data = result.unwrap()
+                data = result.value
                 assert isinstance(data, dict)
                 assert "status" in data
                 assert "service" in data
@@ -187,7 +187,7 @@ class TestsCliCore:
             assert isinstance(result, r)
             assert result.is_success
 
-            config_data = result.unwrap()
+            config_data = result.value
             assert isinstance(config_data, dict)
             assert config_data["debug"] is True
             assert config_data["output_format"] == c.Cli.OutputFormats.JSON.value
@@ -308,7 +308,7 @@ class TestsCliCore:
             assert isinstance(result, r)
             assert result.is_success
 
-            loaded_config = result.unwrap()
+            loaded_config = result.value
             assert loaded_config["debug"] is True
             assert loaded_config["output_format"] == "json"
 
@@ -375,7 +375,7 @@ class TestsCliCore:
             # Verify command was registered
             list_result = core_service.list_commands()
             assert list_result.is_success
-            assert "test-cmd" in list_result.unwrap()
+            assert "test-cmd" in list_result.value
 
         def test_register_command_duplicate(
             self,
@@ -400,7 +400,7 @@ class TestsCliCore:
             assert isinstance(result, r)
             assert result.is_success
 
-            commands = result.unwrap()
+            commands = result.value
             assert isinstance(commands, list)
 
         def test_get_command_info(
@@ -417,7 +417,7 @@ class TestsCliCore:
             result = core_service.get_command("test-cmd")
             assert isinstance(result, r)
             if result.is_success:
-                command_def = result.unwrap()
+                command_def = result.value
                 assert isinstance(command_def, dict)
                 assert command_def.get("command_line") == "test-cmd --option value"
 
@@ -528,7 +528,7 @@ class TestsCliCore:
             assert isinstance(result, r)
             assert result.is_success
 
-            plugins = result.unwrap()
+            plugins = result.value
             assert isinstance(plugins, list)
 
         def test_discover_plugins(self, core_service: FlextCliCore) -> None:
@@ -537,7 +537,7 @@ class TestsCliCore:
             assert isinstance(result, r)
             assert result.is_success
 
-            plugins = result.unwrap()
+            plugins = result.value
             assert isinstance(plugins, list)
 
         def test_plugin_registration(self, core_service: FlextCliCore) -> None:
@@ -571,7 +571,7 @@ class TestsCliCore:
             assert isinstance(result, r)
             assert result.is_success
 
-            sessions = result.unwrap()
+            sessions = result.value
             assert isinstance(sessions, list)
 
         def test_get_session_statistics(self, core_service: FlextCliCore) -> None:
@@ -583,7 +583,7 @@ class TestsCliCore:
                 assert isinstance(result, r)
                 assert result.is_success
 
-                stats = result.unwrap()
+                stats = result.value
                 assert isinstance(stats, dict)
             else:
                 # If session start fails, statistics should also fail
@@ -617,12 +617,12 @@ class TestsCliCore:
             # Verify registration
             list_result = core_service.list_commands()
             assert list_result.is_success
-            assert "workflow-test" in list_result.unwrap()
+            assert "workflow-test" in list_result.value
 
             # Get command info
             info_result = core_service.get_command("workflow-test")
             if info_result.is_success:
-                command_def = info_result.unwrap()
+                command_def = info_result.value
                 assert isinstance(command_def, dict)
                 assert command_def.get("command_line") == "workflow-test --flag value"
 
@@ -654,7 +654,7 @@ class TestsCliCore:
             load_result = core_service.load_configuration(str(config_file))
             assert load_result.is_success
 
-            loaded_config = load_result.unwrap()
+            loaded_config = load_result.value
             assert loaded_config == original_config
 
         def test_concurrent_operations_simulation(
@@ -723,7 +723,7 @@ class TestsCliCore:
             # Execute command
             result = core_service.execute_command(sample_command.name)
             assert result.is_success
-            data = result.unwrap()
+            data = result.value
             assert data[c.Cli.DictKeys.COMMAND] == sample_command.name
             assert data[c.Cli.DictKeys.STATUS] is True
 
@@ -747,7 +747,7 @@ class TestsCliCore:
             # sample_command.name is str, no cast needed
             result = core_service.execute_command(sample_command.name, context=context)
             assert result.is_success
-            data = result.unwrap()
+            data = result.value
             assert c.Cli.DictKeys.CONTEXT in data
 
         def test_execute_command_with_timeout(
@@ -763,7 +763,7 @@ class TestsCliCore:
 
             result = core_service.execute_command(sample_command.name, timeout=30.0)
             assert result.is_success
-            data = result.unwrap()
+            data = result.value
             assert data[c.Cli.DictKeys.TIMEOUT] == 30.0
 
         def test_build_context_from_list(self) -> None:
@@ -798,7 +798,7 @@ class TestsCliCore:
             }
             result = core_service._validate_config_input(config)
             assert result.is_success
-            validated = result.unwrap()
+            validated = result.value
             assert validated == config
 
         def test_validate_config_input_with_nested_dict(
@@ -822,7 +822,7 @@ class TestsCliCore:
             TestsCliCore._set_cli_config(core_service, {"debug": True})
             result = core_service._validate_existing_config()
             assert result.is_success
-            assert result.unwrap() == {"debug": True}
+            assert result.value == {"debug": True}
 
         def test_validate_existing_config_without_config(
             self,
@@ -886,7 +886,7 @@ class TestsCliCore:
             TestsCliCore._set_cli_config(core_service, {"debug": True, "timeout": 30})
             result = core_service.get_configuration()
             assert result.is_success
-            config = result.unwrap()
+            config = result.value
             assert config["debug"] is True
             assert config["timeout"] == 30
 
@@ -1039,7 +1039,7 @@ class TestsCliCore:
             stats_result = core_service.get_command_statistics()
             assert isinstance(stats_result, r)
             assert stats_result.is_success
-            stats = stats_result.unwrap()
+            stats = stats_result.value
             assert isinstance(stats, dict)
             assert "total_commands" in stats
             assert stats["total_commands"] == 1
@@ -1061,7 +1061,7 @@ class TestsCliCore:
             stats = core_service.get_session_statistics()
             assert isinstance(stats, r)
             assert stats.is_success
-            data = stats.unwrap()
+            data = stats.value
             assert isinstance(data, dict)
 
     # =========================================================================
@@ -1075,7 +1075,7 @@ class TestsCliCore:
             """Test create_ttl_cache with valid parameters."""
             result = core_service.create_ttl_cache("test_cache", maxsize=64, ttl=60)
             assert result.is_success
-            cache = result.unwrap()
+            cache = result.value
             assert cache.maxsize == 64
             assert cache.ttl == 60
 
@@ -1140,7 +1140,7 @@ class TestsCliCore:
             # Get stats
             stats_result = core_service.get_cache_stats("stats_cache")
             assert stats_result.is_success
-            stats = stats_result.unwrap()
+            stats = stats_result.value
             assert "size" in stats
             assert "maxsize" in stats
             assert "hits" in stats
@@ -1163,7 +1163,7 @@ class TestsCliCore:
             """Test run_in_executor with successful function."""
             result = FlextCliCore.run_in_executor(operator.add, 5, 3)
             assert result.is_success
-            assert result.unwrap() == 8
+            assert result.value == 8
 
         def test_run_in_executor_failure(self) -> None:
             """Test run_in_executor with failing function."""
@@ -1194,7 +1194,7 @@ class TestsCliCore:
 
             result = core_service.execute()
             assert result.is_success
-            data = result.unwrap()
+            data = result.value
             assert data["service_executed"] is True
             assert data["commands_count"] == 1
 
@@ -1230,7 +1230,7 @@ class TestsCliCore:
             )
             assert isinstance(result, r)
             assert result.is_success
-            data = result.unwrap()
+            data = result.value
             assert data["command_name"] == sample_command.name
 
     # =========================================================================
@@ -1356,7 +1356,7 @@ class TestsCliCore:
             data: dict[str, t.GeneralValueType] = {"key1": "value1", "key2": "value2"}
             result = FlextCliCore._get_dict_keys(data, "test error")
             assert result.is_success
-            keys = result.unwrap()
+            keys = result.value
             assert isinstance(keys, list)
             assert "key1" in keys
             assert "key2" in keys
@@ -1365,14 +1365,14 @@ class TestsCliCore:
             """Test _get_dict_keys with empty dict."""
             result = FlextCliCore._get_dict_keys({}, "test error")
             assert result.is_success
-            keys = result.unwrap()
+            keys = result.value
             assert keys == []
 
         def test_get_dict_keys_none(self) -> None:
             """Test _get_dict_keys with None."""
             result = FlextCliCore._get_dict_keys(None, "test error")
             assert result.is_success
-            keys = result.unwrap()
+            keys = result.value
             assert keys == []
 
         def test_validate_config_path_valid(self) -> None:
@@ -1382,7 +1382,7 @@ class TestsCliCore:
 
             result = FlextCliCore._validate_config_path(path_str)
             assert result.is_success
-            assert isinstance(result.unwrap(), Path)
+            assert isinstance(result.value, Path)
 
         def test_validate_config_path_invalid(self) -> None:
             """Test _validate_config_path with invalid path."""
@@ -1393,42 +1393,42 @@ class TestsCliCore:
             """Test get_formatters static method."""
             result = FlextCliCore.get_formatters()
             assert result.is_success
-            formatters = result.unwrap()
+            formatters = result.value
             assert isinstance(formatters, list)
 
         def test_get_handlers(self, core_service: FlextCliCore) -> None:
             """Test get_handlers."""
             result = core_service.get_handlers()
             assert result.is_success
-            handlers = result.unwrap()
+            handlers = result.value
             assert isinstance(handlers, list)
 
         def test_get_plugins(self, core_service: FlextCliCore) -> None:
             """Test get_plugins."""
             result = core_service.get_plugins()
             assert result.is_success
-            plugins = result.unwrap()
+            plugins = result.value
             assert isinstance(plugins, list)
 
         def test_get_sessions(self, core_service: FlextCliCore) -> None:
             """Test get_sessions."""
             result = core_service.get_sessions()
             assert result.is_success
-            sessions = result.unwrap()
+            sessions = result.value
             assert isinstance(sessions, list)
 
         def test_get_commands(self, core_service: FlextCliCore) -> None:
             """Test get_commands."""
             result = core_service.get_commands()
             assert result.is_success
-            commands = result.unwrap()
+            commands = result.value
             assert isinstance(commands, list)
 
         def test_health_check(self, core_service: FlextCliCore) -> None:
             """Test health_check."""
             result = core_service.health_check()
             assert result.is_success
-            health = result.unwrap()
+            health = result.value
             assert isinstance(health, dict)
             assert "status" in health
 

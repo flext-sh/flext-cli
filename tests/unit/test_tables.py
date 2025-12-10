@@ -276,7 +276,7 @@ class TestsCliTables:
                 if not result.is_success:
                     return r.fail("Table creation failed")
 
-                table_str = result.unwrap()
+                table_str = result.value
                 if not u.Guards.is_string_non_empty(table_str):
                     return r.fail("Empty table string")
 
@@ -400,7 +400,7 @@ class TestsCliTables:
 
                 if test_case.expected_result:
                     tm.ok(result)
-                    table_str = result.unwrap()
+                    table_str = result.value
                     if test_case.content_assertions:
                         for assertion in test_case.content_assertions:
                             assert assertion in table_str
@@ -436,7 +436,7 @@ class TestsCliTables:
         # Test get_format_description - success case
         result = tables.get_format_description("grid")
         tm.ok(result)
-        description = result.unwrap()
+        description = result.value
         assert isinstance(description, str)
         assert len(description) > 0
 
@@ -448,7 +448,7 @@ class TestsCliTables:
         # Test print_available_formats
         format_result = tables.print_available_formats()
         assert format_result.is_success
-        assert format_result.unwrap() is True
+        assert format_result.value is True
 
     @pytest.mark.parametrize(
         ("method_name", "format_name", "expected_content"),
@@ -490,7 +490,7 @@ class TestsCliTables:
 
         # Validate result
         tm.ok(result)
-        table_str = result.unwrap()
+        table_str = result.value
 
         # Check expected content
         for content in expected_content:
@@ -519,7 +519,7 @@ class TestsCliTables:
         result = tables.create_table(data=table_data, config=config)
         assert result.is_success
         # single_row contains {"name": "Single"}, so check for "Single"
-        assert "Single" in result.unwrap()
+        assert "Single" in result.value
 
         # Table with None values
         with_none = test_data["with_none"]
@@ -530,7 +530,7 @@ class TestsCliTables:
         )
         result = tables.create_table(data=table_data, config=config)
         tm.ok(result)
-        table_str = result.unwrap()
+        table_str = result.value
         assert "Alice" in table_str
         assert "Bob" in table_str
 
@@ -546,7 +546,7 @@ class TestsCliTables:
         )
         result = tables.create_table(data=table_data, config=config)
         assert result.is_success
-        assert "Alice" in result.unwrap()
+        assert "Alice" in result.value
 
     def test_latex_table_options(
         self,
@@ -564,12 +564,12 @@ class TestsCliTables:
         # Test longtable=True
         result = tables.create_latex_table(data=table_data, longtable=True)
         assert result.is_success
-        assert "Alice" in result.unwrap()
+        assert "Alice" in result.value
 
         # Test longtable=False
         result = tables.create_latex_table(data=table_data, longtable=False)
         assert result.is_success
-        assert "Alice" in result.unwrap()
+        assert "Alice" in result.value
 
         # Test booktabs=True
         result = tables.create_latex_table(
@@ -578,13 +578,13 @@ class TestsCliTables:
             longtable=False,
         )
         assert result.is_success
-        assert "Alice" in result.unwrap()
+        assert "Alice" in result.value
 
     def test_execute_method_flext_service_pattern(self, tables: FlextCliTables) -> None:
         """Test execute method following FlextService pattern."""
         result = tables.execute()
         tm.ok(result)
-        assert result.unwrap() == {}
+        assert result.value == {}
 
     def test_integration_workflow_complete(
         self,
@@ -612,7 +612,7 @@ class TestsCliTables:
         )
         table_result = tables.create_table(data=table_data, config=config)
         assert table_result.is_success
-        assert "Alice" in table_result.unwrap()
+        assert "Alice" in table_result.value
 
         # Step 4: Test multiple formats with same data
         test_formats = ["simple", "grid", "fancy_grid"][:3]  # Test first 3 formats
@@ -620,7 +620,7 @@ class TestsCliTables:
             config = m.Cli.TableConfig(table_format=fmt)
             result = tables.create_table(data=table_data, config=config)
             tm.ok(result), f"Format {fmt} failed"
-            assert "Alice" in result.unwrap()
+            assert "Alice" in result.value
 
     # =========================================================================
     # VALIDATION TESTS WITH FLEXT_TEST HELPERS
@@ -643,7 +643,7 @@ class TestsCliTables:
         # Use flext_tests matchers for validation
         tm.ok(result)
 
-        table_str = result.unwrap()
+        table_str = result.value
         assert "Alice" in table_str
         assert "name" in table_str
 
@@ -693,7 +693,7 @@ class TestsCliTables:
         result = tables.create_table(data=table_data, config=config)
 
         tm.ok(result)
-        table_str = result.unwrap()
+        table_str = result.value
 
         # Custom validation for grid format
         validation_result = TestsCliTables.TableValidators.validate_table_format(

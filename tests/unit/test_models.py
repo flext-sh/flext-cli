@@ -112,7 +112,7 @@ class TestsCliModels:
         """Test execute method of m."""
         result = m.Cli.execute()
         tm.ok(result)
-        assert result.unwrap() == {}
+        assert result.value == {}
 
     # ========================================================================
     # DATA MODEL VALIDATION
@@ -348,7 +348,7 @@ class TestsCliModels:
         # Then complete execution
         complete_result = command.complete_execution(0)
         assert complete_result.is_success
-        completed_command = complete_result.unwrap()
+        completed_command = complete_result.value
         assert completed_command.exit_code == 0
 
     def test_cli_command_computed_fields(
@@ -405,7 +405,7 @@ class TestsCliModels:
         command_protocol = cast("p.Cli.Command", command)
         result = session.add_command(command_protocol)
         assert result.is_success
-        updated_session = result.unwrap()
+        updated_session = result.value
         assert len(updated_session.commands) == 1
 
     def test_cli_session_computed_fields(
@@ -437,10 +437,10 @@ class TestsCliModels:
         command2_protocol = cast("p.Cli.Command", command2)
         result1 = session.add_command(command1_protocol)
         assert result1.is_success
-        session = result1.unwrap()
+        session = result1.value
         result2 = session.add_command(command2_protocol)
         assert result2.is_success
-        session = result2.unwrap()
+        session = result2.value
 
         commands_by_status = session.commands_by_status
         assert isinstance(commands_by_status, dict)
@@ -485,7 +485,7 @@ class TestsCliModels:
         # Test completing updates status
         result = command.complete_execution(0)
         assert result.is_success
-        completed_command = result.unwrap()
+        completed_command = result.value
         assert completed_command.status == "completed"
         assert completed_command.exit_code == 0
 
@@ -1576,7 +1576,7 @@ class TestsCliModels:
         command_protocol = cast("p.Cli.Command", command)
         result = session.add_command(command_protocol)
         assert result.is_success
-        updated_session = result.unwrap()
+        updated_session = result.value
         assert len(updated_session.commands) == 1
         assert updated_session.commands[0] == command
 
@@ -1638,7 +1638,7 @@ class TestsCliModels:
         """Test execute method of m - covers line 141."""
         result = flext_cli_models.Cli.execute()
         assert result.is_success
-        assert result.unwrap() == {}
+        assert result.value == {}
 
     def test_validate_field_data_invalid_python_type(self) -> None:
         """Test _validate_field_data with invalid python_type - covers line 462."""
@@ -1827,7 +1827,7 @@ class TestsCliModels:
             types,
         )
         assert result.is_success
-        metadata = result.unwrap()
+        metadata = result.value
         # Metadata should contain the __dict__ contents if metadata was processed
         assert isinstance(metadata, dict)
 
@@ -1872,7 +1872,7 @@ class TestsCliModels:
             field_info,
         )
         assert result.is_success
-        param_spec = result.unwrap()
+        param_spec = result.value
         # Narrow type to CliParameterSpec to access default attribute
         if isinstance(param_spec, m.Cli.CliParameterSpec):
             assert param_spec.default == "test_default"
@@ -1982,7 +1982,7 @@ class TestsCliModels:
 
         result = m.Cli.CliModelConverter.model_to_cli_params(TestModel)
         assert result.is_success
-        cli_params = result.unwrap()
+        cli_params = result.value
         assert isinstance(cli_params, list)
         assert len(cli_params) == 2  # name and age
         # Verify param names
@@ -2002,7 +2002,7 @@ class TestsCliModels:
 
         result = m.Cli.CliModelConverter.model_to_click_options(TestModel)
         assert result.is_success
-        click_options = result.unwrap()
+        click_options = result.value
         assert isinstance(click_options, list)
         assert len(click_options) == 2  # name and age
         # Verify option names have prefix
@@ -2039,7 +2039,7 @@ class TestsCliModels:
             cast("Mapping[str, t.GeneralValueType]", cli_args),
         )
         assert result.is_success
-        model_instance = result.unwrap()
+        model_instance = result.value
         assert isinstance(model_instance, TestModel)
         assert model_instance.name == "test"
         assert model_instance.age == 25
@@ -2073,7 +2073,7 @@ class TestsCliModels:
         )
 
         assert result.is_success
-        props = result.unwrap()
+        props = result.value
         # Check that metadata was extracted and merged
         assert "metadata" in props
         assert isinstance(props["metadata"], dict)
@@ -2123,7 +2123,7 @@ class TestsCliModels:
         )
 
         assert result.is_success
-        param_spec = result.unwrap()
+        param_spec = result.value
         # Narrow type to CliParameterSpec to access field_name and param_type attributes
         if isinstance(param_spec, m.Cli.CliParameterSpec):
             assert param_spec.field_name == "complex_field"
@@ -2139,7 +2139,7 @@ class TestsCliModels:
         result = m.Cli.CliModelConverter.model_to_cli_params(SimpleModel)
 
         assert result.is_success
-        params = result.unwrap()
+        params = result.value
         assert len(params) == 2  # name and age
         # params is a list of CliParameterSpec
         param_dict = {p.field_name: p for p in params}
@@ -2158,7 +2158,7 @@ class TestsCliModels:
         result = m.Cli.CliModelConverter.model_to_click_options(SimpleModel)
 
         assert result.is_success
-        options = result.unwrap()
+        options = result.value
         assert len(options) == 2  # name and age
         # Options should have the expected Click option structure
         for option in options:

@@ -171,7 +171,7 @@ class FlextCliTables(FlextCliServiceBase):
                 config_result.error or "Invalid table configuration",
             )
         # Python 3.13: Direct attribute access - unwrap() provides safe access
-        cfg = config_result.unwrap() or m.Cli.TableConfig()
+        cfg = config_result.value or m.Cli.TableConfig()
 
         # Railway pattern: validate → prepare headers → create table
         validation_result = self._validate_table_data(data, cfg.table_format)
@@ -191,7 +191,7 @@ class FlextCliTables(FlextCliServiceBase):
                 error_data=headers_result.error_data,
             )
 
-        headers = headers_result.unwrap()
+        headers = headers_result.value
         return self._create_table_string(data, cfg, headers)
 
     @staticmethod

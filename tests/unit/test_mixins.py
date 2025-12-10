@@ -302,7 +302,7 @@ class TestsCliMixins:
         )
 
         tm.ok(result)
-        data = result.unwrap()
+        data = result.value
         assert isinstance(data, dict)
         assert data.get(success_result_key) == success_result_value
         assert data.get(test_param_key) == test_param_value
@@ -351,7 +351,7 @@ class TestsCliMixins:
         )
 
         tm.ok(result)
-        data = result.unwrap()
+        data = result.value
         assert isinstance(data, dict)
         for key, value in extra_params.items():
             assert data.get(key) == value

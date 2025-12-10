@@ -95,7 +95,7 @@ def load_user_preferences(config_dir: Path) -> dict[str, object] | None:
         cli.print(f"⚠️  Could not load: {read_result.error}", style="yellow")
         return None
 
-    preferences = read_result.unwrap()
+    preferences = read_result.value
     if not isinstance(preferences, dict):
         return None
     cli.print(f"✅ Loaded preferences from {config_file.name}", style="green")
@@ -139,7 +139,7 @@ def load_deployment_config(config_file: Path) -> dict[str, object] | None:
         cli.print(f"❌ Config load failed: {read_result.error}", style="bold red")
         return None
 
-    config = read_result.unwrap()
+    config = read_result.value
     if not isinstance(config, dict):
         return None
     cli.print("✅ Loaded deployment config", style="green")
@@ -168,7 +168,7 @@ def export_database_report(
         return False
 
     # Save to file
-    ascii_table = table_result.unwrap()
+    ascii_table = table_result.value
     try:
         output_file.write_text(ascii_table, encoding="utf-8")
         cli.print(f"✅ Report exported to {output_file}", style="green")
@@ -209,7 +209,7 @@ def list_project_files(project_dir: Path) -> None:
         if table_result.is_success:
             cli.print(f"\n📁 Directory: {project_dir.name}", style="bold cyan")
             # tables.create_table returns string, use cli.print
-            cli.print(table_result.unwrap())
+            cli.print(table_result.value)
 
 
 def show_directory_tree(root_path: Path, max_items: int = 15) -> None:
@@ -224,7 +224,7 @@ def show_directory_tree(root_path: Path, max_items: int = 15) -> None:
         cli.print(f"❌ Tree creation failed: {tree_result.error}", style="bold red")
         return
 
-    tree = tree_result.unwrap()
+    tree = tree_result.value
     items = list(root_path.iterdir())[:max_items]
 
     for item in sorted(items):
@@ -252,7 +252,7 @@ def validate_and_import_data(input_file: Path) -> t.Cli.Data.CliDataDict | None:
         cli.print(f"❌ Read failed: {read_result.error}", style="bold red")
         return None
 
-    data = read_result.unwrap()
+    data = read_result.value
 
     # Step 2: Validate structure
     def validate_structure(
@@ -276,7 +276,7 @@ def validate_and_import_data(input_file: Path) -> t.Cli.Data.CliDataDict | None:
     # Use u.transform for JSON conversion
     transform_result = u.transform(data, to_json=True)
     json_data: t.JsonDict = (
-        transform_result.unwrap()
+        transform_result.value
         if transform_result.is_success
         else cast("t.JsonDict", data)
     )
@@ -287,7 +287,7 @@ def validate_and_import_data(input_file: Path) -> t.Cli.Data.CliDataDict | None:
         return None
 
     cli.print("✅ Data validated successfully", style="green")
-    return validated.unwrap()
+    return validated.value
 
 
 # ============================================================================
@@ -321,12 +321,12 @@ def backup_config_files(source_dir: Path, backup_dir: Path) -> list[str]:
         if config_file.suffix == ".json":
             write_result = cli.file_tools.write_json_file(
                 backup_file,
-                read_result.unwrap(),
+                read_result.value,
             )
         else:
             write_result = cli.file_tools.write_yaml_file(
                 backup_file,
-                read_result.unwrap(),
+                read_result.value,
             )
 
         if write_result.is_success:
@@ -382,7 +382,7 @@ def import_from_csv(input_file: Path) -> list[dict[str, str]] | None:
         cli.print(f"❌ CSV import failed: {read_result.error}", style="bold red")
         return None
 
-    rows = read_result.unwrap()
+    rows = read_result.value
     cli.print(f"✅ Imported {len(rows)} rows from CSV", style="green")
 
     # Display sample
@@ -397,7 +397,7 @@ def import_from_csv(input_file: Path) -> list[dict[str, str]] | None:
                 u.map(
                     sample_rows,
                     mapper=lambda row: (
-                        u.transform(row, to_json=True).unwrap()
+                        u.transform(row, to_json=True).value
                         if isinstance(row, dict)
                         and u.transform(row, to_json=True).is_success
                         else row
@@ -429,7 +429,7 @@ def process_binary_file(input_file: Path, output_file: Path) -> bool:
         cli.print(f"❌ Read failed: {read_result.error}", style="bold red")
         return False
 
-    data = read_result.unwrap()
+    data = read_result.value
     cli.print(f"✅ Read {len(data)} bytes", style="green")
 
     # Calculate checksum
@@ -472,7 +472,7 @@ def load_config_auto_detect(config_file: Path) -> dict[str, object] | None:
         )
         return None
 
-    detected_format = format_result.unwrap()
+    detected_format = format_result.value
     cli.print(f"✅ Detected format: {detected_format.upper()}", style="green")
 
     # Load with auto-detection
@@ -482,7 +482,7 @@ def load_config_auto_detect(config_file: Path) -> dict[str, object] | None:
         cli.print(f"❌ Load failed: {load_result.error}", style="bold red")
         return None
 
-    data = load_result.unwrap()
+    data = load_result.value
     cli.print("✅ Config loaded successfully", style="green")
 
     # Display loaded data
@@ -491,7 +491,7 @@ def load_config_auto_detect(config_file: Path) -> dict[str, object] | None:
         if isinstance(data, dict):
             transform_result = u.transform(data, to_json=True)
             display_data: t.Cli.Data.CliDataDict = (
-                transform_result.unwrap()
+                transform_result.value
                 if transform_result.is_success
                 else cast("t.Cli.Data.CliDataDict", data)
             )
@@ -503,7 +503,7 @@ def load_config_auto_detect(config_file: Path) -> dict[str, object] | None:
             title=f"Config from {detected_format.upper()}",
         )
         if table_result.is_success:
-            cli.print_table(table_result.unwrap())
+            cli.print_table(table_result.value)
         # Cast to expected type (runtime type is compatible)
         return cast("dict[str, object] | None", data)
 
@@ -599,7 +599,7 @@ def process_file_pipeline(input_file: Path, output_dir: Path) -> r[dict[str, obj
         if read_result.is_failure:
             result = r[dict[str, object]].fail(f"File read failed: {read_result.error}")
         else:
-            data = read_result.unwrap()
+            data = read_result.value
             cli.print("✅ File read successfully", style="green")
 
             # Step 3: Validate and transform data
@@ -621,7 +621,7 @@ def process_file_pipeline(input_file: Path, output_dir: Path) -> r[dict[str, obj
                             output_result.error or "Unknown error",
                         )
                     else:
-                        results = output_result.unwrap()
+                        results = output_result.value
                         cli.print("✅ Output files generated", style="green")
 
                         # Step 5: Create summary report
@@ -824,7 +824,7 @@ def main() -> None:
     pipeline_result = process_file_pipeline(pipeline_file, temp_dir / "pipeline_output")
 
     if pipeline_result.is_success:
-        summary = pipeline_result.unwrap()
+        summary = pipeline_result.value
         cli.print(f"   📊 Pipeline summary: {summary}", style="cyan")
 
     # Cleanup

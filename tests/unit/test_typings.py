@@ -132,7 +132,7 @@ class TestsCliTypings:
                     return r[bool].fail("Cli namespace is None")
 
                 # Test that Cli namespace has required attributes
-                required_attrs = ["Data", "Auth", "CliCommand"]
+                required_attrs = ["Data", "Auth"]
                 for attr in required_attrs:
                     if not hasattr(cli_namespace, attr):
                         return r[bool].fail(f"Missing Cli attribute: {attr}")

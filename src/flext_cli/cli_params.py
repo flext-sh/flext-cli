@@ -420,7 +420,7 @@ class FlextCliCommonParams:
                     f"invalid output format: {params.output_format}. valid: {valid_str}",
                 )
             # Update config using model_copy to handle Literal type correctly
-            validated_format = validated_result.unwrap()
+            validated_format = validated_result.value
             config = config.model_copy(update={"output_format": validated_format})
 
         return r[FlextCliConfig].ok(config)

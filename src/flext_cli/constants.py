@@ -108,46 +108,24 @@ class FlextCliConstants(FlextConstants):
 
         # Output format literal - references OutputFormats StrEnum members
         # Use string literals to avoid forward reference issues
-        type OutputFormatLiteral = Literal[
-            "json",
-            "yaml",
-            "csv",
-            "table",
-            "plain",
-        ]
-
         # Log level literal - reuse from flext-core Settings.LogLevel StrEnum
         # StrEnum is the single source of truth - no Literal duplication needed
         type LogLevelLiteral = FlextConstants.Settings.LogLevel
 
+        # Output format literal - references OutputFormats StrEnum members (line 272+)
+        # Literal values match OutputFormats StrEnum for DRY (see class OutputFormats)
+        type OutputFormatLiteral = Literal[
+            "json",   # OutputFormats.JSON
+            "yaml",   # OutputFormats.YAML
+            "csv",    # OutputFormats.CSV
+            "table",  # OutputFormats.TABLE
+            "plain",  # OutputFormats.PLAIN
+        ]
+
         # Command status literal - references CommandStatus StrEnum members
         # Use string literals to avoid forward reference issues
-        type CommandStatusLiteral = Literal[
-            "pending",
-            "running",
-            "completed",
-            "failed",
-            "cancelled",
-        ]
-
         # Session status literal - references SessionStatus StrEnum members
         # Use string literals to avoid forward reference issues
-        type SessionStatusLiteral = Literal[
-            "active",
-            "completed",
-            "terminated",
-        ]
-
-        # Service status literal - references ServiceStatus StrEnum members
-        # Use string literals to avoid forward reference issues
-        type ServiceStatusLiteral = Literal[
-            "operational",
-            "available",
-            "degraded",
-            "error",
-            "healthy",
-            "connected",
-        ]
 
         # Environment literal - reuse from flext-core Settings.Environment StrEnum
         # StrEnum is the single source of truth - no Literal duplication needed
@@ -156,20 +134,10 @@ class FlextCliConstants(FlextConstants):
         # Log verbosity literal - references LogVerbosity StrEnum members
         # Use string literals to avoid forward reference issues
         type LogVerbosityLiteral = Literal[
-            "compact",
-            "detailed",
-            "full",
+            "compact",   # LogVerbosity.COMPACT
+            "detailed",  # LogVerbosity.DETAILED
+            "full",      # LogVerbosity.FULL
         ]
-
-        # Entity type literal - references EntityType StrEnum members
-        # Use string literals to avoid forward reference issues
-        type EntityTypeLiteral = Literal[
-            "command",
-            "group",
-        ]
-
-        # Range type literal - numeric range types (no StrEnum - simple string union)
-        type RangeTypeLiteral = Literal["int", "float"]
 
         # Error code literal - references ErrorCodes StrEnum members
         # Use string literals to avoid forward reference issues
@@ -184,28 +152,8 @@ class FlextCliConstants(FlextConstants):
             "FORMAT_ERROR",
         ]
 
-        # HTTP method literal - references FlextWebMethods StrEnum members
-        # Use string literals to avoid forward reference issues
-        type HttpMethodLiteral = Literal[
-            "GET",
-            "POST",
-            "PUT",
-            "DELETE",
-            "PATCH",
-            "HEAD",
-            "OPTIONS",
-        ]
-
         # Message type literal - references MessageTypes StrEnum members
         # Use string literals to avoid forward reference issues
-        type MessageTypeLiteral = Literal[
-            "INFO",
-            "ERROR",
-            "WARNING",
-            "SUCCESS",
-            "DEBUG",
-        ]
-
         # =====================================================================
         # PROJECT IDENTIFICATION
         # =====================================================================
@@ -402,6 +350,9 @@ class FlextCliConstants(FlextConstants):
 
             COMMAND = "command"
             GROUP = "group"
+
+        # EntityType StrEnum → Literal type alias (Python 3.13+ PEP 695)
+        type EntityTypeLiteral = Literal["command", "group"]
 
         # =====================================================================
         # TERMINAL CONFIGURATION

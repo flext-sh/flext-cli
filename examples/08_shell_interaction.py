@@ -62,7 +62,7 @@ def handle_status_command() -> r[t.Cli.Data.CliDataDict]:
         to_json=True,
     )
     typed_status: t.Cli.Data.CliDataDict = (
-        transform_result.unwrap()
+        transform_result.value
         if transform_result.is_success
         else cast("t.Cli.Data.CliDataDict", status)
     )

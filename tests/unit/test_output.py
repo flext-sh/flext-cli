@@ -192,7 +192,7 @@ class TestsCliOutput:
         # Convert to JsonValue-compatible format using u
         transform_result = u.transform(sample_data, to_json=True)
         json_value = (
-            transform_result.unwrap() if transform_result.is_success else sample_data
+            transform_result.value if transform_result.is_success else sample_data
         )
         if format_type == c.Cli.OutputFormats.JSON.value:
             result = output.format_json(json_value)
@@ -247,11 +247,11 @@ class TestsCliOutput:
         """Test formatting data as JSON with validation."""
         transform_result = u.transform(sample_data, to_json=True)
         json_value = (
-            transform_result.unwrap() if transform_result.is_success else sample_data
+            transform_result.value if transform_result.is_success else sample_data
         )
         result = output.format_data(json_value, "json")
         tm.ok(result, is_=str)
-        formatted = result.unwrap()
+        formatted = result.value
         # Verify it's valid JSON
         parsed = json.loads(formatted)
         tm.that(parsed, eq=sample_data)
@@ -264,7 +264,7 @@ class TestsCliOutput:
         """Test formatting data as CSV with validation."""
         transform_result = u.transform(sample_data, to_json=True)
         json_value = (
-            transform_result.unwrap() if transform_result.is_success else sample_data
+            transform_result.value if transform_result.is_success else sample_data
         )
         result = output.format_data(json_value, "csv")
         tm.ok(result, is_=str, contains=",")
@@ -282,7 +282,7 @@ class TestsCliOutput:
         """
         transform_result = u.transform(sample_data, to_json=True)
         json_value = (
-            transform_result.unwrap() if transform_result.is_success else sample_data
+            transform_result.value if transform_result.is_success else sample_data
         )
         result = output.format_data(json_value, "invalid_format")
         # Should fail at validation stage (before _dispatch_formatter)
@@ -302,7 +302,7 @@ class TestsCliOutput:
         # This bypasses validate_output_format to test the defensive code at line 149
         transform_result = u.transform(sample_data, to_json=True)
         json_value = (
-            transform_result.unwrap() if transform_result.is_success else sample_data
+            transform_result.value if transform_result.is_success else sample_data
         )
         result = output._dispatch_formatter(
             "unsupported_format_type",
@@ -366,7 +366,7 @@ class TestsCliOutput:
         result = output.create_progress_bar()
         tm.ok(result)
         # Validate progress bar object is returned
-        progress = result.unwrap()
+        progress = result.value
         assert progress is not None
 
     def test_output_display_text(self, output: FlextCliOutput) -> None:
@@ -374,7 +374,7 @@ class TestsCliOutput:
         result = output.display_text("Test text")
         tm.ok(result)
         # Validate display succeeded
-        assert result.unwrap() is True
+        assert result.value is True
 
     def test_output_format_as_tree(
         self,
@@ -422,11 +422,11 @@ class TestsCliOutput:
         # Step 1: Format data as JSON
         transform_result = u.transform(sample_data, to_json=True)
         json_value = (
-            transform_result.unwrap() if transform_result.is_success else sample_data
+            transform_result.value if transform_result.is_success else sample_data
         )
         format_data_result = output.format_data(json_value, "json")
         tm.ok(format_data_result)
-        json_str = format_data_result.unwrap()
+        json_str = format_data_result.value
         assert isinstance(json_str, str)
         # Validate JSON content can be parsed
         parsed_json = json.loads(json_str)
@@ -435,7 +435,7 @@ class TestsCliOutput:
         # Step 2: Format data as CSV
         csv_result = output.format_data(json_value, "csv")
         tm.ok(csv_result)
-        csv_str = csv_result.unwrap()
+        csv_str = csv_result.value
         assert isinstance(csv_str, str)
         assert len(csv_str) > 0
 
@@ -449,14 +449,14 @@ class TestsCliOutput:
         sample_list: list[dict[str, t.GeneralValueType]] = [typed_sample]
         table_result = output.format_table(sample_list)
         if table_result.is_success:
-            table_str = table_result.unwrap()
+            table_str = table_result.value
             assert isinstance(table_str, str)
             assert len(table_str) > 0
 
         # Step 4: Print messages
         message_result = output.print_message("Test message")
         tm.ok(message_result)
-        assert message_result.unwrap() is True
+        assert message_result.value is True
 
         # Step 5: Access console
         console = output.console
@@ -474,11 +474,11 @@ class TestsCliOutput:
         # Test JSON formatting
         transform_result = u.transform(real_data, to_json=True)
         json_value = (
-            transform_result.unwrap() if transform_result.is_success else real_data
+            transform_result.value if transform_result.is_success else real_data
         )
         json_result = output.format_json(json_value)
         tm.ok(json_result)
-        json_str = json_result.unwrap()
+        json_str = json_result.value
         assert isinstance(json_str, str)
 
         # Verify JSON content
@@ -488,13 +488,13 @@ class TestsCliOutput:
         # Test CSV formatting
         csv_result = output.format_csv(json_value)
         tm.ok(csv_result)
-        csv_str = csv_result.unwrap()
+        csv_str = csv_result.value
         assert isinstance(csv_str, str)
 
         # Test YAML formatting
         yaml_result = output.format_yaml(json_value)
         tm.ok(yaml_result)
-        yaml_str = yaml_result.unwrap()
+        yaml_str = yaml_result.value
         assert isinstance(yaml_str, str)
 
         # Test table formatting
@@ -506,7 +506,7 @@ class TestsCliOutput:
         table_data: dict[str, t.GeneralValueType] = real_data
         table_result = output.format_table(table_data)
         tm.ok(table_result)
-        table_str = table_result.unwrap()
+        table_str = table_result.value
         assert isinstance(table_str, str)
 
     def test_output_edge_cases(self, output: FlextCliOutput) -> None:
@@ -515,7 +515,7 @@ class TestsCliOutput:
         empty_data: dict[str, t.GeneralValueType] = {}
         transform_result = u.transform(empty_data, to_json=True)
         json_empty = (
-            transform_result.unwrap() if transform_result.is_success else empty_data
+            transform_result.value if transform_result.is_success else empty_data
         )
         _ = output.format_data(json_empty, "json")
         # Result may be success or failure depending on empty data handling
@@ -528,7 +528,7 @@ class TestsCliOutput:
         large_data = {"items": list(range(10000))}
         transform_result = u.transform(large_data, to_json=True)
         json_large = (
-            transform_result.unwrap() if transform_result.is_success else large_data
+            transform_result.value if transform_result.is_success else large_data
         )
         _ = output.format_data(json_large, "json")
         # Result may be success or failure depending on size limits
@@ -541,7 +541,7 @@ class TestsCliOutput:
         }
         transform_result = u.transform(special_data, to_json=True)
         json_special = (
-            transform_result.unwrap() if transform_result.is_success else special_data
+            transform_result.value if transform_result.is_success else special_data
         )
         _ = output.format_data(json_special, "json")
         # Result may be success or failure depending on character handling
@@ -552,7 +552,7 @@ class TestsCliOutput:
         large_data = {"items": list(range(1000))}
         transform_result = u.transform(large_data, to_json=True)
         json_large = (
-            transform_result.unwrap() if transform_result.is_success else large_data
+            transform_result.value if transform_result.is_success else large_data
         )
         start_time = time.time()
         for _i in range(100):
@@ -568,7 +568,7 @@ class TestsCliOutput:
         moderate_data = {"items": list(range(1000))}
         transform_result = u.transform(moderate_data, to_json=True)
         json_moderate = (
-            transform_result.unwrap() if transform_result.is_success else moderate_data
+            transform_result.value if transform_result.is_success else moderate_data
         )
         result = output.format_data(json_moderate, "json")
         tm.ok(result)
@@ -587,13 +587,13 @@ class TestsCliOutput:
         # Test table formatting with rich
         transform_result = u.transform(sample_data, to_json=True)
         json_value = (
-            transform_result.unwrap() if transform_result.is_success else sample_data
+            transform_result.value if transform_result.is_success else sample_data
         )
         result = output.format_data(json_value, "table")
         assert isinstance(result, r)
         assert result.is_success
 
-        formatted = result.unwrap()
+        formatted = result.value
         assert isinstance(formatted, str)
 
     def test_output_error_handling(self, output: FlextCliOutput) -> None:
@@ -603,7 +603,7 @@ class TestsCliOutput:
         circular_data: dict[str, t.JsonValue] = {}
         transform_result = u.transform(circular_data, to_json=True)
         json_circular = (
-            transform_result.unwrap() if transform_result.is_success else circular_data
+            transform_result.value if transform_result.is_success else circular_data
         )
         circular_data["self"] = json_circular
 
@@ -666,7 +666,7 @@ class TestsCliOutput:
         # Test with custom format
         transform_result = u.transform(sample_data, to_json=True)
         json_value = (
-            transform_result.unwrap() if transform_result.is_success else sample_data
+            transform_result.value if transform_result.is_success else sample_data
         )
         result = output.format_data(json_value, "custom")
         assert isinstance(result, r)
@@ -695,7 +695,7 @@ class TestsCliOutput:
         )
         assert isinstance(result, r)
         assert result.is_success
-        table = result.unwrap()
+        table = result.value
         assert table is not None
 
     def test_register_result_formatter_success(self, output: FlextCliOutput) -> None:
@@ -1034,7 +1034,7 @@ class TestsCliOutput:
         test_value = 12345
         result = output._convert_result_to_formattable(test_value, "json")
         assert result.is_success
-        assert "12345" in result.unwrap()
+        assert "12345" in result.value
 
     def test_format_dict_object_with_non_json_value(
         self,
@@ -1060,7 +1060,7 @@ class TestsCliOutput:
         )
         assert result.is_success
         # Custom object should be converted to string
-        formatted = result.unwrap()
+        formatted = result.value
         assert "string_value" in formatted or "test" in formatted
 
     def test_create_rich_table_header_not_found(self, output: FlextCliOutput) -> None:
@@ -1139,7 +1139,7 @@ class TestsCliOutput:
         assert isinstance(result, r)
         assert result.is_success
         # Validate display succeeded
-        assert result.unwrap() is True
+        assert result.value is True
 
     def test_display_message_with_title(self, output: FlextCliOutput) -> None:
         """Test display_message with message_type."""
@@ -1147,20 +1147,20 @@ class TestsCliOutput:
         assert isinstance(result, r)
         assert result.is_success
         # Validate display succeeded
-        assert result.unwrap() is True
+        assert result.value is True
 
     def test_display_data_dict(self, output: FlextCliOutput) -> None:
         """Test display_data with dictionary (lines 530-549)."""
         data: t.Types.ConfigurationDict = {"name": "Alice", "age": 30}
         transform_result = u.transform(data, to_json=True)
         json_value: t.GeneralValueType = (
-            transform_result.unwrap() if transform_result.is_success else data
+            transform_result.value if transform_result.is_success else data
         )
         result = output.display_data(json_value, format_type="json")
         assert isinstance(result, r)
         assert result.is_success
         # Validate display succeeded
-        assert result.unwrap() is True
+        assert result.value is True
 
     def test_display_data_list(self, output: FlextCliOutput) -> None:
         """Test display_data with list."""
@@ -1170,7 +1170,7 @@ class TestsCliOutput:
         assert isinstance(result, r)
         assert result.is_success
         # Validate display succeeded
-        assert result.unwrap() is True
+        assert result.value is True
 
     def test_display_data_table_format(self, output: FlextCliOutput) -> None:
         """Test display_data with table format."""
@@ -1201,14 +1201,14 @@ class TestsCliOutput:
                 data.append(typed_d)
         table_result = output.create_rich_table(data=data)
         assert table_result.is_success
-        table = table_result.unwrap()
+        table = table_result.value
 
         # Now convert to string
 
         string_result = output.table_to_string(table)
         assert isinstance(string_result, r)
         assert string_result.is_success
-        table_str = string_result.unwrap()
+        table_str = string_result.value
         assert isinstance(table_str, str)
         assert len(table_str) > 0
 
@@ -1227,7 +1227,7 @@ class TestsCliOutput:
         result = output.create_ascii_table(data=data)
         assert isinstance(result, r)
         assert result.is_success
-        table_str = result.unwrap()
+        table_str = result.value
         assert isinstance(table_str, str)
         assert "Alice" in table_str
 
@@ -1243,7 +1243,7 @@ class TestsCliOutput:
         result = output.create_ascii_table(data=data, table_format="grid")
         assert isinstance(result, r)
         assert result.is_success
-        table_str = result.unwrap()
+        table_str = result.value
         assert isinstance(table_str, str)
         assert len(table_str) > 0
         # Validate table contains data
@@ -1261,12 +1261,12 @@ class TestsCliOutput:
         data: t.Types.ConfigurationDict = {"test": "value"}
         transform_result = u.transform(data, to_json=True)
         json_value: t.GeneralValueType = (
-            transform_result.unwrap() if transform_result.is_success else data
+            transform_result.value if transform_result.is_success else data
         )
         result = output.format_data(json_value, format_type="plain")
         assert isinstance(result, r)
         assert result.is_success
-        plain_str = result.unwrap()
+        plain_str = result.value
         assert isinstance(plain_str, str)
         assert len(plain_str) > 0
         assert "test" in plain_str
@@ -1326,7 +1326,7 @@ class TestsCliOutput:
         data: t.Types.ConfigurationDict = {"key": "value"}
         transform_result = u.transform(data, to_json=True)
         json_value: t.GeneralValueType = (
-            transform_result.unwrap() if transform_result.is_success else data
+            transform_result.value if transform_result.is_success else data
         )
         result = output.display_data(
             json_value,
@@ -1363,7 +1363,7 @@ class TestsCliOutput:
         data: t.Types.ConfigurationDict = {"key": "value"}
         transform_result = u.transform(data, to_json=True)
         json_value: t.GeneralValueType = (
-            transform_result.unwrap() if transform_result.is_success else data
+            transform_result.value if transform_result.is_success else data
         )
         result = output.display_data(json_value, format_type="invalid_format_xyz")
         # Should fail for invalid format
@@ -1379,12 +1379,12 @@ class TestsCliOutput:
         }
         transform_result = u.transform(data, to_json=True)
         json_value: t.GeneralValueType = (
-            transform_result.unwrap() if transform_result.is_success else data
+            transform_result.value if transform_result.is_success else data
         )
         result = output.format_yaml(json_value)
         # Should handle complex nested structures
         assert result.is_success
-        yaml_str = result.unwrap()
+        yaml_str = result.value
         assert isinstance(yaml_str, str)
         assert len(yaml_str) > 0
         # Validate YAML contains expected keys
@@ -1409,7 +1409,7 @@ class TestsCliOutput:
         data: t.GeneralValueType = raw_data
         result = output.format_csv(data)
         assert result.is_success
-        csv_str = result.unwrap()
+        csv_str = result.value
         assert "name" in csv_str
         assert "Alice" in csv_str
 
@@ -1418,11 +1418,11 @@ class TestsCliOutput:
         data: t.Types.ConfigurationDict = {"name": "Alice", "age": 30}
         transform_result = u.transform(data, to_json=True)
         json_value: t.GeneralValueType = (
-            transform_result.unwrap() if transform_result.is_success else data
+            transform_result.value if transform_result.is_success else data
         )
         result = output.format_csv(json_value)
         assert result.is_success
-        csv_str = result.unwrap()
+        csv_str = result.value
         assert "name" in csv_str
         assert "Alice" in csv_str
 
@@ -1432,7 +1432,7 @@ class TestsCliOutput:
         result = output.format_csv(data)
         assert result.is_success
         # Should use JSON as fallback
-        json_str = result.unwrap()
+        json_str = result.value
         assert isinstance(json_str, str)
         assert len(json_str) > 0
         # Validate JSON can be parsed
@@ -1458,7 +1458,7 @@ class TestsCliOutput:
         result = output.format_csv(data)
         # Should handle special characters in CSV
         assert result.is_success
-        csv_str = result.unwrap()
+        csv_str = result.value
         assert isinstance(csv_str, str)
         assert len(csv_str) > 0
         # Validate CSV contains data (may be escaped)
@@ -1496,7 +1496,7 @@ class TestsCliOutput:
         data: dict[str, t.GeneralValueType] = raw_data
         result = output.format_table(data, title="Test Title")
         assert result.is_success
-        table_str = result.unwrap()
+        table_str = result.value
         assert isinstance(table_str, str)
         assert len(table_str) > 0
         # Validate title is in output
@@ -1530,7 +1530,7 @@ class TestsCliOutput:
         # Should either succeed with empty tree or fail gracefully
         assert isinstance(result, r)
         if result.is_success:
-            tree_str = result.unwrap()
+            tree_str = result.value
             assert isinstance(tree_str, str)
 
     def test_console_property_access(self, output: FlextCliOutput) -> None:
@@ -1757,7 +1757,7 @@ class TestsCliOutput:
         # Complex values may cause conversion issues - both success and failure are valid
         assert isinstance(result, r)
         if result.is_success:
-            formatted = result.unwrap()
+            formatted = result.value
             assert isinstance(formatted, str)
             assert len(formatted) > 0
 
@@ -1831,7 +1831,7 @@ class TestsCliOutput:
         # Create a table first
         table_result = output.create_rich_table([{"name": "Alice"}])
         tm.ok(table_result)
-        table = table_result.unwrap()
+        table = table_result.value
 
         # Mock render_table_to_string to raise exception
         string_conversion_error_msg = "String conversion error"
@@ -1964,7 +1964,7 @@ class TestsCliOutput:
             None,
         )
         tm.ok(result)
-        prepared = result.unwrap()
+        prepared = result.value
         assert isinstance(prepared, tuple)
         assert len(prepared) == 2
 
@@ -1974,7 +1974,7 @@ class TestsCliOutput:
         # _prepare_list_data returns FlextResult, not tuple directly
         assert isinstance(result, r)
         if result.is_success:
-            prepared = result.unwrap()
+            prepared = result.value
             assert isinstance(prepared, tuple)
             assert len(prepared) == 2
 
@@ -1994,7 +1994,7 @@ class TestsCliOutput:
         # _prepare_list_data returns FlextResult, not tuple directly
         assert isinstance(result, r)
         if result.is_success:
-            prepared = result.unwrap()
+            prepared = result.value
             assert isinstance(prepared, tuple)
             assert len(prepared) == 2
 
@@ -2031,7 +2031,7 @@ class TestsCliOutput:
         """Test _build_tree with dict data."""
         tree_result = output._formatters.create_tree("Root")
         tm.ok(tree_result)
-        tree = tree_result.unwrap()
+        tree = tree_result.value
         data = {"key": "value"}
         # Tree from Rich conforms to RichTreeProtocol structurally
         # _build_tree accepts RichTreeProtocol, Tree implements it structurally
@@ -2042,7 +2042,7 @@ class TestsCliOutput:
         """Test _build_tree with list data."""
         tree_result = output._formatters.create_tree("Root")
         tm.ok(tree_result)
-        tree = tree_result.unwrap()
+        tree = tree_result.value
         data = [1, 2, 3]
         # Tree from Rich conforms to RichTreeProtocol structurally
         # _build_tree accepts RichTreeProtocol, Tree implements it structurally
@@ -2053,7 +2053,7 @@ class TestsCliOutput:
         """Test _build_tree with primitive value."""
         tree_result = output._formatters.create_tree("Root")
         tm.ok(tree_result)
-        tree = tree_result.unwrap()
+        tree = tree_result.value
         data = "simple string"
         # Tree from Rich conforms to RichTreeProtocol structurally
         # _build_tree accepts RichTreeProtocol, Tree implements it structurally

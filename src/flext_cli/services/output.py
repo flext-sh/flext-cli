@@ -654,7 +654,7 @@ class FlextCliOutput(FlextCliServiceBase):
                             + f"Entries: {result.entries_processed}",
                             title="✅ Operation Result",
                         )
-                        # Use .value directly instead of deprecated .unwrap()
+                        # Use .value directly instead of deprecated .value
                         console.print(panel.value)
                     case c.Cli.OutputFormats.JSON.value:
                         print(result.model_dump_json())
@@ -727,7 +727,7 @@ class FlextCliOutput(FlextCliServiceBase):
                     error_data=formattable_result.error_data,
                 )
 
-            # Use .value directly instead of deprecated .unwrap()
+            # Use .value directly instead of deprecated .value
             formattable = formattable_result.value
             return self._display_formatted_result(formattable)
 
@@ -765,7 +765,7 @@ class FlextCliOutput(FlextCliServiceBase):
             # Type narrowing: formatter accepts GeneralValueType
             elif isinstance(result, r):
                 if result.is_success:
-                    # Use .value directly instead of deprecated .unwrap()
+                    # Use .value directly instead of deprecated .value
                     # Use build() DSL: value → ensure JSON-compatible → convert to string if needed
                     result_value = result.value
                     # Type narrowing: result_value from .value is GeneralValueType compatible
@@ -863,7 +863,7 @@ class FlextCliOutput(FlextCliServiceBase):
             # Extract value from r
             if result.is_failure:
                 return r[str].fail(f"Cannot format failed result: {result.error}")
-            # Use .value directly instead of deprecated .unwrap()
+            # Use .value directly instead of deprecated .value
             # Type narrowing: .value returns GeneralValueType
             # Note: Cannot use isinstance with TypeAliasType (GeneralValueType)
             # result_value is already GeneralValueType from .value
@@ -1243,7 +1243,7 @@ class FlextCliOutput(FlextCliServiceBase):
             # Progress implements RichProgressProtocol structurally
             # Progress (concrete type) implements RichProgressProtocol structurally
             # Type narrowing: progress_value implements RichProgressProtocol structurally
-            # Use .value directly instead of deprecated .unwrap()
+            # Use .value directly instead of deprecated .value
             progress_value = result.value
             # Rich Progress implements RichProgressProtocol structurally at runtime
             # Use type guard to narrow type for mypy
@@ -1464,7 +1464,7 @@ class FlextCliOutput(FlextCliServiceBase):
                 f"Failed to format data: {format_result.error}",
             )
 
-        # Use .value directly instead of deprecated .unwrap()
+        # Use .value directly instead of deprecated .value
         formatted_data = format_result.value
 
         # Display the formatted data
@@ -1760,13 +1760,13 @@ class FlextCliOutput(FlextCliServiceBase):
                 error_data=prepared_result.error_data,
             )
 
-        # Use .value directly instead of deprecated .unwrap()
+        # Use .value directly instead of deprecated .value
         prepared = prepared_result.value
         table_result = self._create_table_string(prepared[0], prepared[1])
         if table_result.is_failure:
             return table_result
 
-        # Use .value directly instead of deprecated .unwrap()
+        # Use .value directly instead of deprecated .value
         table = table_result.value
         return r.ok(self._add_title(table, title))
 
@@ -1967,7 +1967,7 @@ class FlextCliOutput(FlextCliServiceBase):
         if tree_result.is_failure:
             return r[str].fail(f"Failed to create tree: {tree_result.error}")
 
-        # Use .value directly instead of deprecated .unwrap()
+        # Use .value directly instead of deprecated .value
         # create_tree returns r[RichTree], so tree is RichTree (concrete type)
         if not isinstance(tree_result.value, RichTree):
             msg = "tree_result.value must be RichTree instance"

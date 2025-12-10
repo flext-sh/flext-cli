@@ -405,7 +405,7 @@ class TestsCliCommonParams:
             raise ValueError(msg)
 
         tm.ok(result)
-        updated_config = result.unwrap()
+        updated_config = result.value
         assert getattr(updated_config, param.value) == updated_value
 
     @pytest.mark.parametrize(
@@ -432,7 +432,7 @@ class TestsCliCommonParams:
                 log_level=updated_value,
             )
             tm.ok(result)
-            updated_config = result.unwrap()
+            updated_config = result.value
             assert updated_config.cli_log_level.value == updated_value
         elif param == ConfigParam.LOG_FORMAT:
             config = _create_test_config(log_verbosity=initial_value)
@@ -441,7 +441,7 @@ class TestsCliCommonParams:
                 log_format=updated_value,
             )
             tm.ok(result)
-            updated_config = result.unwrap()
+            updated_config = result.value
             assert updated_config.log_verbosity == updated_value
         elif param == ConfigParam.OUTPUT_FORMAT:
             config = _create_test_config(output_format=initial_value)
@@ -450,7 +450,7 @@ class TestsCliCommonParams:
                 output_format=updated_value,
             )
             tm.ok(result)
-            updated_config = result.unwrap()
+            updated_config = result.value
             assert updated_config.output_format == updated_value
 
     def test_apply_to_config_trace_requires_debug(self) -> None:
@@ -474,7 +474,7 @@ class TestsCliCommonParams:
         result = FlextCliCommonParams.apply_to_config(config_with_debug, trace=True)
 
         tm.ok(result)
-        updated_config = result.unwrap()
+        updated_config = result.value
         assert updated_config.trace is True
         assert updated_config.debug is True
 
@@ -491,7 +491,7 @@ class TestsCliCommonParams:
         )
 
         tm.ok(result)
-        updated_config = result.unwrap()
+        updated_config = result.value
         assert updated_config.verbose is True
         assert updated_config.debug is True
         assert updated_config.cli_log_level.value == "DEBUG"
@@ -511,7 +511,7 @@ class TestsCliCommonParams:
         )
 
         tm.ok(result)
-        updated_config = result.unwrap()
+        updated_config = result.value
         assert updated_config.verbose is True
         assert updated_config.debug is False
 
@@ -659,7 +659,7 @@ class TestsCliCommonParams:
             )
 
             if result.is_success:
-                updated_config = result.unwrap()
+                updated_config = result.value
                 typer.echo(f"Config verbose: {updated_config.verbose}")
                 typer.echo(f"Config debug: {updated_config.debug}")
                 typer.echo(
@@ -773,7 +773,7 @@ class TestsCliCommonParams:
             )
 
             tm.ok(result)
-            updated_config = result.unwrap()
+            updated_config = result.value
             assert updated_config.debug is True
             assert updated_config.verbose is True
         finally:
@@ -813,7 +813,7 @@ class TestsCliCommonParams:
                 result = FlextCliCommonParams.apply_to_config(config, log_level="DEBUG")
 
                 tm.ok(result)
-                updated_config = result.unwrap()
+                updated_config = result.value
                 assert updated_config.cli_log_level.value == "DEBUG"
 
             finally:
@@ -846,7 +846,7 @@ class TestsCliCommonParams:
             log_level=FlextConstants.Settings.LogLevel.DEBUG.value,
         )
         tm.ok(result)
-        updated_config = result.unwrap()
+        updated_config = result.value
 
         logger_result = FlextCliCommonParams.configure_logger(updated_config)
         tm.ok(logger_result)
@@ -875,7 +875,7 @@ class TestsCliCommonParams:
 
         result = FlextCliCommonParams.apply_to_config(config, log_level="WARNING")
         tm.ok(result)
-        updated_config = result.unwrap()
+        updated_config = result.value
 
         FlextCliCommonParams.configure_logger(updated_config)
 
@@ -1095,4 +1095,4 @@ class TestsCliCommonParams:
         params = m.Cli.CliParamsConfig(log_level=None)
         result = FlextCliCommonParams._set_log_level(config, params)
         tm.ok(result)
-        assert result.unwrap() == config
+        assert result.value == config

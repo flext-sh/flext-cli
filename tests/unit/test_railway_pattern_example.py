@@ -95,7 +95,7 @@ class TestsCliRailwayPatternExample:
         assert read_result.is_success
 
         # Verify data integrity
-        loaded_data = read_result.unwrap()
+        loaded_data = read_result.value
         assert isinstance(loaded_data, dict)
         for key in verify_keys:
             assert key in loaded_data
@@ -218,8 +218,8 @@ class TestsCliRailwayPatternExample:
 
         # Step 4: Combine and write result
         combined = {
-            "config": config_read.unwrap(),
-            "data": data_read.unwrap(),
+            "config": config_read.value,
+            "data": data_read.value,
         }
         write_result = file_tools.write_json_file(str(output_file), combined)
         assert write_result.is_success
@@ -232,7 +232,7 @@ class TestsCliRailwayPatternExample:
         assert final_result.is_success
 
         # Verify combined data structure
-        final_data = final_result.unwrap()
+        final_data = final_result.value
         assert isinstance(final_data, dict)
         assert "config" in final_data
         assert "data" in final_data

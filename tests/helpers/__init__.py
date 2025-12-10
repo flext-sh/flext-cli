@@ -263,7 +263,7 @@ class FlextCliTestHelpers:
 
             """
             assert result.is_failure, (
-                f"Expected failure but got success: {result.unwrap()}"
+                f"Expected failure but got success: {result.value}"
             )
 
     class VersionTestFactory:

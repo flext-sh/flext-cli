@@ -120,7 +120,7 @@ def display_config_table(
     )
 
     if table_result.is_success:
-        cli.print_table(table_result.unwrap())
+        cli.print_table(table_result.value)
     else:
         cli.print(f"❌ Failed to create table: {table_result.error}", style="red")
 

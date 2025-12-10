@@ -59,7 +59,7 @@ def login_to_service(username: str, password: str) -> bool:
         cli.print(f"❌ Login failed: {auth_result.error}", style="bold red")
         return False
 
-    auth_result.unwrap()
+    auth_result.value
     cli.print("✅ Login successful!", style="green")
     cli.print(f"   Token saved to: {cli.config.token_file}", style="cyan")
     return True
@@ -77,7 +77,7 @@ def get_saved_token() -> str | None:
         cli.print(f"⚠️  Not authenticated: {token_result.error}", style="yellow")
         return None
 
-    return token_result.unwrap()
+    return token_result.value
 
 
 # ============================================================================
@@ -94,7 +94,7 @@ def call_authenticated_api(endpoint: str) -> dict[str, str] | None:
         cli.print("❌ Authentication required. Please login first.", style="bold red")
         return None
 
-    token = token_result.unwrap()
+    token = token_result.value
 
     # Use token in your API calls
     # Example with httpx (already in flext-cli):
@@ -124,7 +124,7 @@ def validate_current_token() -> bool:
         cli.print("⚠️  No token found", style="yellow")
         return False
 
-    token = token_result.unwrap()
+    token = token_result.value
 
     # Your token validation logic
     if len(token) < 20:  # Simple validation
@@ -182,7 +182,7 @@ def show_session_info() -> None:
         cli.print("❌ Not authenticated", style="bold red")
         return
 
-    token = token_result.unwrap()
+    token = token_result.value
     token_file = Path(cli.config.token_file)
 
     # Gather session data
@@ -209,7 +209,7 @@ def show_session_info() -> None:
     )
 
     if table_result.is_success:
-        cli.print_table(table_result.unwrap())
+        cli.print_table(table_result.value)
 
 
 def logout() -> None:

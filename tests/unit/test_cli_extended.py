@@ -176,7 +176,7 @@ class TestsCliCliExtended:
             # Case 1: Success with config
             result = cli.confirm("Continue?", config=config)
             assert result.is_success
-            assert result.unwrap() is True
+            assert result.value is True
             mock_confirm.assert_called_with(
                 text="Continue?",
                 default=True,
@@ -201,7 +201,7 @@ class TestsCliCliExtended:
             mock_prompt.return_value = "user_input"
             result = cli.prompt("Name", default="guest")
             assert result.is_success
-            assert result.unwrap() == "user_input"
+            assert result.value == "user_input"
 
             # Case 2: Abort
             mock_prompt.side_effect = typer.Abort()

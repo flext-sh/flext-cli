@@ -184,7 +184,7 @@ class TestsCliConfigService:
         config = FlextCliConfig()
         result = config.execute_service()
         assert result.is_success
-        assert isinstance(result.unwrap(), dict)
+        assert isinstance(result.value, dict)
 
 
 class TestsCliLoggingConfig:
@@ -253,13 +253,13 @@ class TestsCliConfigFilesOperations:
         """Test JSON loading."""
         result = FlextCliConfig.load_from_config_file(temp_config_json)
         assert result.is_success
-        assert isinstance(result.unwrap(), FlextCliConfig)
+        assert isinstance(result.value, FlextCliConfig)
 
     def test_load_yaml_config(self, temp_config_yaml: Path) -> None:
         """Test YAML loading."""
         result = FlextCliConfig.load_from_config_file(temp_config_yaml)
         assert result.is_success
-        assert isinstance(result.unwrap(), FlextCliConfig)
+        assert isinstance(result.value, FlextCliConfig)
 
     def test_load_nonexistent_file(self, tmp_path: Path) -> None:
         """Test error handling for missing file."""
@@ -539,7 +539,7 @@ class TestsCliConfigEdgeCases:
         result = config.load_config()
         assert result.is_success or result.is_failure
         if result.is_success:
-            assert isinstance(result.unwrap(), dict)
+            assert isinstance(result.value, dict)
 
     def test_save_config(self) -> None:
         """Test save_config method."""

@@ -99,7 +99,7 @@ def load_environment_config() -> dict[str, str | int]:
         to_json=True,
     )
     settings_data = (
-        transform_result.unwrap()
+        transform_result.value
         if transform_result.is_success
         else cast("dict[str, t.GeneralValueType]", settings)
     )
@@ -164,7 +164,7 @@ class MyAppConfig:
 
         if table_result.is_success:
             # cli.create_table returns Rich Table, use print_table
-            cli.print_table(table_result.unwrap())
+            cli.print_table(table_result.value)
 
 
 # ============================================================================
@@ -195,7 +195,7 @@ def show_config_locations() -> dict[str, str]:
         to_json=True,
     )
     locations_data = (
-        transform_result.unwrap()
+        transform_result.value
         if transform_result.is_success
         else cast("dict[str, t.GeneralValueType]", locations)
     )
@@ -206,7 +206,7 @@ def show_config_locations() -> dict[str, str]:
     )
 
     if table_result.is_success:
-        cli.print_table(table_result.unwrap())
+        cli.print_table(table_result.value)
 
     return locations
 
@@ -419,7 +419,7 @@ def load_application_config() -> r[dict[str, object]]:
         return validate_result
     cli.print("✅ Configuration validated", style="green")
 
-    config_data = validate_result.unwrap()
+    config_data = validate_result.value
 
     # Step 3: Apply environment-specific overrides
     overridden_data = apply_environment_overrides(config_data)
@@ -522,7 +522,7 @@ def main() -> None:
     config_result = load_application_config()
 
     if config_result.is_success:
-        final_config = config_result.unwrap()
+        final_config = config_result.value
         # Display final config - convert to CliDataDict
         # Use u.transform for JSON conversion
         transform_result = u.transform(
@@ -530,7 +530,7 @@ def main() -> None:
             to_json=True,
         )
         final_config_data = (
-            transform_result.unwrap()
+            transform_result.value
             if transform_result.is_success
             else cast("dict[str, t.GeneralValueType]", final_config)
         )

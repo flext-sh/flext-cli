@@ -283,7 +283,7 @@ class FlextCliConfig(FlextConfig):
             # Use u.transform for JSON conversion
             transform_result = u.transform(self.model_dump(), to_json=True)
             config_dict = (
-                transform_result.unwrap()
+                transform_result.value
                 if transform_result.is_success
                 else self.model_dump()
             )
@@ -331,7 +331,7 @@ class FlextCliConfig(FlextConfig):
         if isinstance(v, bool):
             return v
         parse_result = u.Cli.parse(v, bool, default=False, coerce=True)
-        return parse_result.unwrap() if parse_result.is_success else bool(v)
+        return parse_result.value if parse_result.is_success else bool(v)
 
     # Pydantic 2.11 model validator (runs after all field validators)
     @model_validator(mode="after")
@@ -418,7 +418,7 @@ class FlextCliConfig(FlextConfig):
         )
         if result.is_success:
             # determine_format returns str
-            return result.unwrap()
+            return result.value
         # Fast-fail: return error format on failure
         return c.Cli.OutputFormats.JSON.value
 
@@ -469,7 +469,7 @@ class FlextCliConfig(FlextConfig):
         result = r.ok((self.verbose, self.quiet)).map(map_to_verbosity)
         if result.is_success:
             # map_to_verbosity returns str
-            return result.unwrap()
+            return result.value
         # Fast-fail: return normal verbosity on failure
         return c.Cli.CliGlobalDefaults.NORMAL_VERBOSITY
 
@@ -506,7 +506,7 @@ class FlextCliConfig(FlextConfig):
         result = get_terminal_width().map(select_table_format)
         if result.is_success:
             # select_table_format returns str
-            return result.unwrap()
+            return result.value
         # Fast-fail: return simple format on failure
         return c.Cli.TableFormats.SIMPLE
 
@@ -583,7 +583,7 @@ class FlextCliConfig(FlextConfig):
         # Use u.transform for JSON conversion
         transform_result = u.transform(config_dict_raw, to_json=True)
         config_dict = (
-            transform_result.unwrap()
+            transform_result.value
             if transform_result.is_success
             else config_dict_raw
         )
@@ -677,7 +677,7 @@ class FlextCliConfig(FlextConfig):
             ...     output_format="json", max_width=120
             ... )
             >>> if result.is_success:
-            ...     config.update_from_cli_args(**result.unwrap())
+            ...     config.update_from_cli_args(**result.value)
 
         """
         try:
@@ -704,7 +704,7 @@ class FlextCliConfig(FlextConfig):
                     if isinstance(v, dict):
                         transform_result = u.transform(v, to_json=True)
                         json_value: t.GeneralValueType = (
-                            transform_result.unwrap()
+                            transform_result.value
                             if transform_result.is_success
                             else v
                         )
@@ -751,7 +751,7 @@ class FlextCliConfig(FlextConfig):
             # Use u.transform for JSON conversion
             transform_result = u.transform(config_dict_raw, to_json=True)
             config_dict = (
-                transform_result.unwrap()
+                transform_result.value
                 if transform_result.is_success
                 else config_dict_raw
             )

@@ -194,7 +194,7 @@ class TestsCliCmd:
         result = cmd.execute()
 
         tm.ok(result)
-        data = result.unwrap()
+        data = result.value
         assert data["status"] == "operational"
         assert data["service"] == "FlextCliCmd"
 
@@ -449,7 +449,7 @@ class TestsCliCmd:
             result = cmd.get_config_value("found_key")
 
             tm.ok(result)
-            data = result.unwrap()
+            data = result.value
             assert data["key"] == "found_key"
             assert data["value"] == "found_value"
             assert "timestamp" in data
@@ -664,7 +664,7 @@ class TestsCliCmd:
 
         assert isinstance(result, r)
         if result.is_success:
-            info = result.unwrap()
+            info = result.value
             assert isinstance(info, dict)
 
     def test_cmd_set_config_value_exception(self) -> None:

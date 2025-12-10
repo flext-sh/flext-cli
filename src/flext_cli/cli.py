@@ -278,7 +278,7 @@ class FlextCliCli:
 
         # Use mapper to filter out None and False values
         # Type narrowing: bool | str | None are compatible with GeneralValueType (ScalarValue)
-        # No cast() needed - values are already compatible with GeneralValueType
+        # No  needed - values are already compatible with GeneralValueType
         common_params_typed: dict[str, t.GeneralValueType] = dict(common_params.items())
         active_params: dict[str, t.GeneralValueType] = u.mapper().filter_dict(
             common_params_typed,
@@ -1178,7 +1178,7 @@ class FlextCliCli:
             >>> cli = FlextCliCli()
             >>> result = cli.create_cli_runner()
             >>> assert result.is_success
-            >>> runner = result.unwrap()
+            >>> runner = result.value
             >>> test_result = runner.invoke(my_cli, ["--help"])
             >>> assert test_result.exit_code == 0
 

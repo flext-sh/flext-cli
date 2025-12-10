@@ -98,7 +98,7 @@ def import_from_csv(input_file: Path) -> list[t.Cli.Data.CliDataDict] | None:
         )
         return []
 
-    rows = read_result.unwrap()
+    rows = read_result.value
     cli.output.print_message(f"✅ Imported {len(rows)} rows from CSV", style="green")
 
     # Display sample rows
@@ -114,7 +114,7 @@ def import_from_csv(input_file: Path) -> list[t.Cli.Data.CliDataDict] | None:
                     u.transform(
                         cast("dict[str, t.GeneralValueType]", row),
                         to_json=True,
-                    ).unwrap()
+                    ).value
                     if isinstance(row, dict)
                     and u.transform(
                         cast("dict[str, t.GeneralValueType]", row),
@@ -144,7 +144,7 @@ def import_from_csv(input_file: Path) -> list[t.Cli.Data.CliDataDict] | None:
                 u.transform(
                     cast("dict[str, t.GeneralValueType]", row),
                     to_json=True,
-                ).unwrap()
+                ).value
                 if isinstance(row, dict)
                 and u.transform(
                     cast("dict[str, t.GeneralValueType]", row),
@@ -179,7 +179,7 @@ def process_binary_file(input_file: Path, output_file: Path) -> None:
         )
         return
 
-    data = read_result.unwrap()
+    data = read_result.value
     cli.output.print_message(f"✅ Read {len(data)} bytes", style="green")
 
     # Calculate checksum
@@ -227,7 +227,7 @@ def load_any_format_file(file_path: Path) -> t.Cli.Data.CliDataDict | None:
         )
         return None
 
-    detected_format = format_result.unwrap()
+    detected_format = format_result.value
     cli.output.print_message(
         f"✅ Detected format: {detected_format.upper()}",
         style="green",
@@ -243,7 +243,7 @@ def load_any_format_file(file_path: Path) -> t.Cli.Data.CliDataDict | None:
         )
         return None
 
-    data = load_result.unwrap()
+    data = load_result.value
     cli.output.print_message("✅ Loaded data successfully", style="green")
 
     # Type narrowing: ensure we have a dict
@@ -264,7 +264,7 @@ def load_any_format_file(file_path: Path) -> t.Cli.Data.CliDataDict | None:
         to_json=True,
     )
     display_data: t.Cli.Data.CliDataDict = (
-        transform_result.unwrap()
+        transform_result.value
         if transform_result.is_success
         else cast("t.Cli.Data.CliDataDict", data)
     )
@@ -275,13 +275,13 @@ def load_any_format_file(file_path: Path) -> t.Cli.Data.CliDataDict | None:
         title=f"Loaded from {detected_format.upper()}",
     )
     if table_result.is_success:
-        cli.print_table(table_result.unwrap())
+        cli.print_table(table_result.value)
 
     # Convert to JsonDict-compatible dict using u
     # Use u.transform for JSON conversion
     transform_result = u.transform(data, to_json=True)
     return (
-        transform_result.unwrap()
+        transform_result.value
         if transform_result.is_success
         else cast("t.Cli.Data.CliDataDict", data)
     )
@@ -377,7 +377,7 @@ def process_text_file(input_file: Path, output_file: Path) -> None:
         )
         return
 
-    content = read_result.unwrap()
+    content = read_result.value
     cli.output.print_message(f"✅ Read {len(content)} characters", style="green")
     cli.output.print_message(f"   Lines: {content.count(chr(10)) + 1}", style="cyan")
     cli.output.print_message(f"   Words: {len(content.split())}", style="cyan")
@@ -480,7 +480,7 @@ def main() -> None:
                 u.transform(
                     cast("dict[str, t.GeneralValueType]", row),
                     to_json=True,
-                ).unwrap()
+                ).value
                 if isinstance(row, dict)
                 and u.transform(
                     cast("dict[str, t.GeneralValueType]", row),

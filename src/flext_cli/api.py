@@ -311,7 +311,7 @@ class FlextCli:
         # Use u.transform for type-safe JSON conversion
         transform_result = u.transform(token_data, to_json=True)
         json_data = (
-            transform_result.unwrap() if transform_result.is_success else token_data
+            transform_result.value if transform_result.is_success else token_data
         )
         write_result = self.file_tools.write_json_file(str(token_path), json_data)
         if write_result.is_failure:
@@ -365,7 +365,7 @@ class FlextCli:
         if result.is_failure:
             return self._handle_token_file_error(str(result.error))
 
-        data = result.unwrap()
+        data = result.value
         if not data or (FlextRuntime.is_dict_like(data) and not data):
             return r[str].fail(c.Cli.ErrorMessages.TOKEN_FILE_EMPTY)
 
@@ -376,7 +376,7 @@ class FlextCli:
             required=True,
         )
         if token_result.is_success:
-            token_value = token_result.unwrap()
+            token_value = token_result.value
             if isinstance(token_value, str) and token_value:
                 return r[str].ok(token_value)
 
@@ -602,7 +602,7 @@ class FlextCli:
             # Use u.transform for JSON conversion
             transform_result = u.transform(data, to_json=True)
             table_data = (
-                transform_result.unwrap() if transform_result.is_success else data
+                transform_result.value if transform_result.is_success else data
             )
         else:
             # Handle all Sequence types - use u.map to convert items
@@ -610,7 +610,7 @@ class FlextCli:
             mapped_result = u.Cli.TypeNormalizer.Collection.map(
                 data_list,
                 mapper=lambda item: (
-                    u.transform({"_": item}, to_json=True).unwrap().get("_", item)
+                    u.transform({"_": item}, to_json=True).value.get("_", item)
                     if isinstance(item, dict)
                     else item
                 ),
@@ -644,7 +644,7 @@ class FlextCli:
         if result.is_success:
             # RichTree (concrete type) implements RichTreeProtocol structurally at runtime
             # Protocol is structural, so tree_value is compatible
-            tree_value = result.unwrap()
+            tree_value = result.value
             if not self._is_rich_tree_protocol(tree_value):
                 msg = "tree_value must implement RichTreeProtocol"
                 raise TypeError(msg)

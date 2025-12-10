@@ -76,7 +76,7 @@ class TestsCliFileTools:
         assert isinstance(result, r)
         assert result.is_success
 
-        content = result.unwrap()
+        content = result.value
         assert isinstance(content, str)
         assert content == "test content"
 
@@ -121,7 +121,7 @@ class TestsCliFileTools:
         assert isinstance(result, r)
         assert result.is_success
 
-        content = result.unwrap()
+        content = result.value
         assert isinstance(content, bytes)
         assert content == binary_content
 
@@ -158,7 +158,7 @@ class TestsCliFileTools:
         assert isinstance(result, r)
         assert result.is_success
 
-        data = result.unwrap()
+        data = result.value
         assert isinstance(data, dict)
         assert data["key"] == "value"
         assert data["number"] == 42
@@ -217,7 +217,7 @@ class TestsCliFileTools:
         assert isinstance(result, r)
         assert result.is_success
 
-        data = result.unwrap()
+        data = result.value
         assert isinstance(data, dict)
         assert data["key"] == "value"
         assert data["number"] == 42
@@ -276,7 +276,7 @@ class TestsCliFileTools:
         assert isinstance(result, r)
         assert result.is_success
 
-        data = result.unwrap()
+        data = result.value
         assert isinstance(data, list)
         assert len(data) == 4  # Header + 3 data rows
         assert data[0] == ["name", "age", "city"]
@@ -325,7 +325,7 @@ class TestsCliFileTools:
         assert isinstance(result, r)
         assert result.is_success
 
-        data = result.unwrap()
+        data = result.value
         assert isinstance(data, list)
         assert len(data) == 2
         # CSV returns all values as strings
@@ -392,13 +392,13 @@ class TestsCliFileTools:
         result = file_tools.file_exists(str(temp_file))
         assert isinstance(result, r)
         assert result.is_success
-        assert result.unwrap() is True
+        assert result.value is True
 
         # Test nonexistent file
         result = file_tools.file_exists("/nonexistent/file.txt")
         assert isinstance(result, r)
         assert result.is_success
-        assert result.unwrap() is False
+        assert result.value is False
 
     def test_file_size_direct(
         self,
@@ -443,7 +443,7 @@ class TestsCliFileTools:
         assert isinstance(result, r)
         assert result.is_success
 
-        files = result.unwrap()
+        files = result.value
         assert isinstance(files, list)
         assert len(files) >= 2  # At least the files we created
 
@@ -513,13 +513,13 @@ class TestsCliFileTools:
         result = file_tools.directory_exists(str(temp_dir))
         assert isinstance(result, r)
         assert result.is_success
-        assert result.unwrap() is True
+        assert result.value is True
 
         # Test nonexistent directory
         result = file_tools.directory_exists("/nonexistent/directory")
         assert isinstance(result, r)
         assert result.is_success
-        assert result.unwrap() is False
+        assert result.value is False
 
     # ========================================================================
     # ARCHIVE OPERATIONS
@@ -603,7 +603,7 @@ class TestsCliFileTools:
         assert isinstance(result, r)
         assert result.is_success
 
-        files = result.unwrap()
+        files = result.value
         assert isinstance(files, list)
         assert len(files) == 2
         assert any("test1.txt" in f for f in files)
@@ -626,7 +626,7 @@ class TestsCliFileTools:
         assert isinstance(result, r)
         assert result.is_success
 
-        files = result.unwrap()
+        files = result.value
         assert isinstance(files, list)
         assert len(files) == 2  # One in root, one in subdir
 
@@ -646,7 +646,7 @@ class TestsCliFileTools:
         assert isinstance(result, r)
         assert result.is_success
 
-        files = result.unwrap()
+        files = result.value
         assert isinstance(files, list)
         assert len(files) == 2  # file1 and file3
 
@@ -665,7 +665,7 @@ class TestsCliFileTools:
         assert isinstance(result, r)
         assert result.is_success
 
-        hash_value = result.unwrap()
+        hash_value = result.value
         assert isinstance(hash_value, str)
         assert len(hash_value) == 64  # SHA256 hash length
 
@@ -678,14 +678,14 @@ class TestsCliFileTools:
         # Calculate hash first
         hash_result = file_tools.calculate_file_hash(str(temp_file), "sha256")
         assert hash_result.is_success
-        expected_hash = hash_result.unwrap()
+        expected_hash = hash_result.value
 
         # Verify hash
         result = file_tools.verify_file_hash(str(temp_file), expected_hash, "sha256")
 
         assert isinstance(result, r)
         assert result.is_success
-        assert result.unwrap() is True
+        assert result.value is True
 
     def test_verify_file_hash_invalid(
         self,
@@ -699,7 +699,7 @@ class TestsCliFileTools:
 
         assert isinstance(result, r)
         assert result.is_success
-        assert result.unwrap() is False
+        assert result.value is False
 
     # ========================================================================
     # FILE PERMISSIONS AND ATTRIBUTES
@@ -740,7 +740,7 @@ class TestsCliFileTools:
         assert isinstance(result, r)
         assert result.is_success
 
-        temp_file_path = result.unwrap()
+        temp_file_path = result.value
         assert isinstance(temp_file_path, str)
 
         # Verify file exists (empty temp file)
@@ -757,7 +757,7 @@ class TestsCliFileTools:
         assert isinstance(result, r)
         assert result.is_success
 
-        temp_dir_path = result.unwrap()
+        temp_dir_path = result.value
         assert isinstance(temp_dir_path, str)
 
         # Verify directory exists
@@ -862,7 +862,7 @@ class TestsCliFileTools:
         # 3. Read JSON file
         read_result = file_tools.read_json_file(str(json_file))
         assert read_result.is_success
-        assert read_result.unwrap() == test_data
+        assert read_result.value == test_data
 
         # 4. Copy file
         copied_file = temp_dir / "copied_data.json"
@@ -877,12 +877,12 @@ class TestsCliFileTools:
         # 6. Calculate hash
         hash_result = file_tools.calculate_file_hash(str(json_file), "sha256")
         assert hash_result.is_success
-        original_hash = hash_result.unwrap()
+        original_hash = hash_result.value
 
         # 7. Verify hash of copied file
         copied_hash_result = file_tools.calculate_file_hash(str(copied_file), "sha256")
         assert copied_hash_result.is_success
-        copied_hash = copied_hash_result.unwrap()
+        copied_hash = copied_hash_result.value
 
         # 8. Hashes should be identical
         assert original_hash == copied_hash
@@ -912,13 +912,13 @@ class TestsCliFileTools:
         """Test file format detection."""
         result = file_tools.detect_file_format(str(temp_json_file))
         assert result.is_success
-        assert result.unwrap() == c.Cli.OutputFormats.JSON.value
+        assert result.value == c.Cli.OutputFormats.JSON.value
 
     def test_get_supported_formats(self, file_tools: FlextCliFileTools) -> None:
         """Test getting supported file formats."""
         result = file_tools.get_supported_formats()
         assert result.is_success
-        formats = result.unwrap()
+        formats = result.value
         assert isinstance(formats, list)
         assert "json" in formats
         assert "yaml" in formats
@@ -934,7 +934,7 @@ class TestsCliFileTools:
             str(temp_json_file),
         )  # Correct method name
         assert result.is_success
-        data = result.unwrap()
+        data = result.value
         assert isinstance(data, dict)
 
     def test_save_file(self, file_tools: FlextCliFileTools, temp_dir: Path) -> None:
@@ -1109,7 +1109,7 @@ class TestsCliFileTools:
         assert isinstance(result, r)
         # Non-existent path should return empty results or failure
         if result.is_success:
-            files = result.unwrap()
+            files = result.value
             assert isinstance(files, list)
             assert len(files) == 0
 
@@ -1126,7 +1126,7 @@ class TestsCliFileTools:
         result = file_tools.find_files_by_content(str(temp_dir), "test")
         assert result.is_success  # Should continue despite read error
         # Should not include the binary file
-        files = result.unwrap()
+        files = result.value
         assert not any("binary.bin" in f for f in files)
 
     def test_format_detector_exception(
@@ -1176,7 +1176,7 @@ class TestsCliFileTools:
         """Test load_file_auto_detect with YAML format (line 190)."""
         result = file_tools.load_file_auto_detect(str(temp_yaml_file))
         assert result.is_success
-        data = result.unwrap()
+        data = result.value
         assert isinstance(data, dict)
 
     def test_file_saver_unsupported_format(
@@ -1331,7 +1331,7 @@ class TestsCliFileTools:
         read_result = file_tools.read_json_file(str(unicode_file))
         assert read_result.is_success
         # Type narrowing: unwrap() returns GeneralValueType, which includes dict[str, object]
-        unwrapped = read_result.unwrap()
+        unwrapped = read_result.value
         if not isinstance(unwrapped, dict):
             msg = "read_data must be dict"
             raise TypeError(msg)
@@ -1375,7 +1375,7 @@ class TestsCliFileTools:
         # Read large data
         read_result = file_tools.read_json_file(str(large_file))
         assert read_result.is_success
-        unwrapped = read_result.unwrap()
+        unwrapped = read_result.value
         if not isinstance(unwrapped, dict):
             msg = "read_data must be dict"
             raise TypeError(msg)
@@ -1434,7 +1434,7 @@ class TestsCliFileTools:
         # Read complex CSV
         read_result = file_tools.read_csv_file_with_headers(str(csv_file))
         assert read_result.is_success
-        read_data = read_result.unwrap()
+        read_data = read_result.value
 
         assert len(read_data) == 2
         assert read_data[0]["name"] == "Alice"
@@ -1487,7 +1487,7 @@ class TestsCliFileTools:
         # Read complex YAML
         read_result = file_tools.read_yaml_file(str(yaml_file))
         assert read_result.is_success
-        unwrapped = read_result.unwrap()
+        unwrapped = read_result.value
         if not isinstance(unwrapped, dict):
             msg = "read_data must be dict"
             raise TypeError(msg)
@@ -1548,7 +1548,7 @@ class TestsCliFileTools:
                         errors.append(f"Thread {thread_id}: Read failed")
                         return
 
-                    unwrapped = read_result.unwrap()
+                    unwrapped = read_result.value
                     if not isinstance(unwrapped, dict):
                         msg = "data must be dict"
                         raise TypeError(msg)
@@ -1601,7 +1601,7 @@ class TestsCliFileTools:
         final_read = file_tools.read_json_file(str(test_file))
         assert final_read.is_success
 
-        unwrapped = final_read.unwrap()
+        unwrapped = final_read.value
         if not isinstance(unwrapped, dict):
             msg = "final_data must be dict"
             raise TypeError(msg)
@@ -1676,7 +1676,7 @@ class TestsCliFileTools:
         # Verify recovery worked
         final_read = file_tools.read_json_file(str(corrupted_file))
         assert final_read.is_success
-        unwrapped = final_read.unwrap()
+        unwrapped = final_read.value
         if not isinstance(unwrapped, dict):
             msg = "final_data must be dict"
             raise TypeError(msg)
@@ -1713,7 +1713,7 @@ class TestsCliFileTools:
             assert file_path.exists()
             read_result = file_tools.read_json_file(str(file_path))
             assert read_result.is_success
-            assert read_result.unwrap() == test_data
+            assert read_result.value == test_data
 
     def test_file_operations_encoding_handling(
         self,
@@ -1742,7 +1742,7 @@ class TestsCliFileTools:
             # Read back
             read_result = file_tools.read_json_file(str(encoded_file))
             assert read_result.is_success
-            unwrapped = read_result.unwrap()
+            unwrapped = read_result.value
             if not isinstance(unwrapped, dict):
                 msg = "read_data must be dict"
                 raise TypeError(msg)
@@ -1794,7 +1794,7 @@ class TestsCliFileTools:
         # Verify final state
         final_read = file_tools.read_json_file(str(target_file))
         assert final_read.is_success
-        unwrapped = final_read.unwrap()
+        unwrapped = final_read.value
         if not isinstance(unwrapped, dict):
             msg = "final_data must be dict"
             raise TypeError(msg)

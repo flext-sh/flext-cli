@@ -177,7 +177,7 @@ class FlextCliMixins(FlextMixins):
 
             # Check if it's a double-wrapped r[r[...]]
             if handler_result.is_success:
-                inner_value = handler_result.unwrap()
+                inner_value = handler_result.value
                 if isinstance(inner_value, FlextResult):
                     # Double-wrapped: unwrap inner FlextResult
                     # Type narrowing: inner_value is r[t.GeneralValueType] after isinstance check

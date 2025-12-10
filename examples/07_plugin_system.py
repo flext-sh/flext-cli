@@ -92,7 +92,7 @@ class ReportGeneratorPlugin:
                 f"Report generation failed: {table_result.error}",
             )
 
-        report = table_result.unwrap()
+        report = table_result.value
         cli.print(f"✅ Generated report ({len(report)} chars)", style="green")
         return r[str].ok(report)
 
@@ -146,7 +146,7 @@ class MyAppPluginManager:
             elif isinstance(result, dict) and all(isinstance(k, str) for k in result):
                 # Type narrowing: dict[str, JsonValue] is JsonValue compatible
                 if u.transform(result, to_json=True).is_success:
-                    transformed = u.transform(result, to_json=True).unwrap()
+                    transformed = u.transform(result, to_json=True).value
                     json_result: t.JsonValue = (
                         transformed
                         if isinstance(
@@ -198,7 +198,7 @@ class MyAppPluginManager:
         )
 
         if table_result.is_success:
-            cli.print_table(table_result.unwrap())
+            cli.print_table(table_result.value)
 
 
 # ============================================================================
@@ -327,7 +327,7 @@ def main() -> None:
     }
     export_result = manager.execute_plugin("data-export", data=test_data, format="json")
     if export_result.is_success:
-        result_value = export_result.unwrap()
+        result_value = export_result.value
         output_preview = str(result_value)[:100] if result_value else ""
         cli.print(f"   Output: {output_preview}...", style="white")
 
@@ -345,7 +345,7 @@ def main() -> None:
     config_plugin = ConfigurablePlugin(config)
     config_result = config_plugin.execute()
     if config_result.is_success:
-        cli.print(f"   Result: {config_result.unwrap()}", style="green")
+        cli.print(f"   Result: {config_result.value}", style="green")
 
     # Example 6: Lifecycle management
     cli.print("\n6. Plugin Lifecycle (init/execute/cleanup):", style="bold cyan")

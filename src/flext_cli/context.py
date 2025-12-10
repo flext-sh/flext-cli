@@ -345,7 +345,7 @@ class FlextCliContext(FlextCliServiceBase):
             },
         )
         if result.is_success:
-            # Use .value directly instead of deprecated .unwrap()
+            # Use .value directly instead of deprecated .value
             return r[str].ok(str(result.value))
         return r[str].fail(result.error or "")
 
@@ -519,7 +519,7 @@ class FlextCliContext(FlextCliServiceBase):
 
         # Use u.transform for JSON conversion
         transform_result = u.transform(result_model.model_dump(), to_json=True)
-        # Use .value directly instead of deprecated .unwrap()
+        # Use .value directly instead of deprecated .value
         result_dict = (
             transform_result.value
             if transform_result.is_success

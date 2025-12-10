@@ -60,7 +60,7 @@ def test_cli_command() -> None:
             style="red",
         )
         return
-    if result.unwrap() != "Hello, World!":
+    if result.value != "Hello, World!":
         cli.output.print_message("   ❌ Unexpected output", style="red")
         return
     cli.output.print_message("   ✅ Success case passed", style="green")
@@ -111,7 +111,7 @@ def test_file_operations() -> None:
         to_json=True,
     )
     config: t.Cli.Data.CliDataDict = (
-        transform_result.unwrap()
+        transform_result.value
         if transform_result.is_success
         else cast("t.Cli.Data.CliDataDict", config_data)
     )
@@ -133,7 +133,7 @@ def test_file_operations() -> None:
     if not (read_result.is_success):
         cli.output.print_message("   ❌ Config read should succeed", style="red")
         return
-    loaded = read_result.unwrap()
+    loaded = read_result.value
     # Type narrowing for dict[str, object] access
     if isinstance(loaded, dict) and loaded.get("test") is not True:
         cli.output.print_message("   ❌ Config value mismatch", style="red")
@@ -159,7 +159,7 @@ def interactive_command() -> r[str]:
     if name_result.is_failure:
         return r[str].fail(f"Prompt failed: {name_result.error}")
 
-    name = name_result.unwrap()
+    name = name_result.value
     return r[str].ok(f"Hello, {name}!")
 
 
@@ -176,7 +176,7 @@ def test_interactive_command() -> None:
             style="red",
         )
         return
-    if "TestUser" not in result.unwrap():
+    if "TestUser" not in result.value:
         cli.output.print_message("   ❌ Should use default value", style="red")
         return
     cli.output.print_message("   ✅ Interactive command test passed", style="green")
@@ -232,7 +232,7 @@ def test_error_scenarios() -> None:
             style="red",
         )
         return
-    if result.unwrap() != 20:
+    if result.value != 20:
         cli.output.print_message("   ❌ Unexpected result", style="red")
         return
     cli.output.print_message("   ✅ Valid value test passed", style="green")
@@ -267,7 +267,7 @@ def full_workflow_command() -> r[t.Cli.Data.CliDataDict]:
         )
 
     # Step 4: Process - type narrowing needed
-    loaded = read_result.unwrap()
+    loaded = read_result.value
     if not isinstance(loaded, dict):
         temp_file.unlink(missing_ok=True)
         return r[t.Cli.Data.CliDataDict].fail(
@@ -285,7 +285,7 @@ def full_workflow_command() -> r[t.Cli.Data.CliDataDict]:
     if isinstance(loaded, dict):
         transform_result = u.transform(loaded, to_json=True)
         typed_data: t.Cli.Data.CliDataDict = (
-            transform_result.unwrap()
+            transform_result.value
             if transform_result.is_success
             else cast("t.Cli.Data.CliDataDict", loaded)
         )
@@ -307,7 +307,7 @@ def test_integration() -> None:
         )
         return
 
-    data = result.unwrap()
+    data = result.value
     if data["status"] != "completed":
         cli.output.print_message("   ❌ Status should be updated", style="red")
         return
@@ -361,7 +361,7 @@ def test_my_command():
     result = my_command(param="test")
 
     assert result.is_success
-    assert result.unwrap() == expected_value
+    assert result.value == expected_value
     """,
         style="cyan",
     )

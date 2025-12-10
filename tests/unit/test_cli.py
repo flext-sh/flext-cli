@@ -50,7 +50,7 @@ class TestsCliCli:
         execute_result = cli_cli.execute()
         tm.ok(execute_result)
 
-        data = execute_result.unwrap()
+        data = execute_result.value
         assert isinstance(data, dict)
         assert data.get("service") == "flext-cli"
         assert data.get("status") == "operational"
@@ -328,7 +328,7 @@ class TestsCliCli:
             cli = FlextCliCli()
             result = cli.create_cli_runner()
             assert result.is_success
-            assert isinstance(result.unwrap(), CliRunner)
+            assert isinstance(result.value, CliRunner)
 
         def test_get_current_context(self) -> None:
             """Test get_current_context."""

@@ -63,7 +63,7 @@ class FlextCliGettingStarted:
         )
 
         if table_result.is_success:
-            self.cli.print_table(table_result.unwrap())
+            self.cli.print_table(table_result.value)
 
     # ============================================================================
     # PATTERN 3: File I/O with error handling
@@ -92,7 +92,7 @@ class FlextCliGettingStarted:
             return None
 
         # Type narrowing: ensure we return a dict
-        data = read_result.unwrap()
+        data = read_result.value
         if isinstance(data, dict):
             return data
         return None
@@ -108,7 +108,7 @@ class FlextCliGettingStarted:
         result = self.cli.file_tools.read_json_file(nonexistent_file)
 
         if result.is_success:
-            result.unwrap()
+            result.value
             # Process your data
             self.cli.print("Data loaded successfully", style="green")
         else:

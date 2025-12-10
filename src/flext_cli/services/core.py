@@ -421,7 +421,7 @@ class FlextCliCore(FlextCliServiceBase):
                 on_error="skip",
             )
             # Python 3.13: Direct attribute access - unwrap() provides safe access
-            context_list_raw = process_result.unwrap() or []
+            context_list_raw = process_result.value or []
             context_list: list[t.GeneralValueType] = (
                 context_list_raw if isinstance(context_list_raw, list) else []
             )
@@ -637,7 +637,7 @@ class FlextCliCore(FlextCliServiceBase):
             # Python 3.13: Direct attribute access - unwrap() provides safe access
             # Convert Mapping to dict for mutability
             existing_config_raw: dict[str, t.GeneralValueType] = dict(
-                existing_config_result.unwrap() or {}
+                existing_config_result.value or {}
             )
             # Convert to mutable dict for merging
             existing_config: dict[str, t.GeneralValueType] = (
@@ -663,7 +663,7 @@ class FlextCliCore(FlextCliServiceBase):
             # Business Rule: Frozen model attributes MUST be set using object.__setattr__()
             # Architecture: Pydantic frozen models require object.__setattr__() for attribute mutation
             # Python 3.13: Direct attribute access - unwrap() provides safe access
-            merged_config: dict[str, t.GeneralValueType] = merge_result.unwrap() or {}
+            merged_config: dict[str, t.GeneralValueType] = merge_result.value or {}
             # merged_config is guaranteed to be not None by u.val default
             object.__setattr__(self, "_cli_config", merged_config)
 
@@ -751,7 +751,7 @@ class FlextCliCore(FlextCliServiceBase):
         # Python 3.13: Direct attribute access - unwrap() provides safe access
         # Convert Mapping to dict for mutability
         merged_config_val: dict[str, t.GeneralValueType] = dict(
-            config_result.unwrap() or {}
+            config_result.value or {}
         )
         # merged_config_val is guaranteed to be not None by u.val default
         return self._merge_configurations(merged_config_val)
@@ -889,7 +889,7 @@ class FlextCliCore(FlextCliServiceBase):
             )
             # Python 3.13: Direct attribute access - unwrap() provides safe access
             profiles_section_raw: dict[str, t.GeneralValueType] = (
-                profiles_result_typed.unwrap() or {}
+                profiles_result_typed.value or {}
             )
             # Python 3.13: profiles_section_raw is already dict, isinstance check is unnecessary
             profiles_section: dict[str, t.GeneralValueType] = (
@@ -1573,7 +1573,7 @@ class FlextCliCore(FlextCliServiceBase):
 
         try:
             # Python 3.13: Direct attribute access - unwrap() provides safe access
-            config_file: Path = path_result.unwrap() or Path()
+            config_file: Path = path_result.value or Path()
             content = config_file.read_text(
                 encoding=c.Utilities.DEFAULT_ENCODING,
             )

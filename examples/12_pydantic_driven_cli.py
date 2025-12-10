@@ -98,7 +98,7 @@ def demonstrate_auto_cli_generation() -> None:
     params_result = m.Cli.CliModelConverter.model_to_cli_params(DeployConfig)
 
     if params_result.is_success:
-        params = params_result.unwrap()
+        params = params_result.value
 
         cli.output.print_message(
             f"✅ Generated {len(params)} CLI parameters from DeployConfig:",
@@ -142,7 +142,7 @@ def execute_deploy_from_cli(cli_args: dict[str, str | int | bool]) -> None:
             to_json=True,
         )
         typed_args: t.Cli.Data.CliDataDict = (
-            transform_result.unwrap()
+            transform_result.value
             if transform_result.is_success
             else cast("t.Cli.Data.CliDataDict", cli_args)
         )
@@ -169,7 +169,7 @@ def execute_deploy_from_cli(cli_args: dict[str, str | int | bool]) -> None:
         )
 
         if table_result.is_success:
-            cli.print_table(table_result.unwrap())
+            cli.print_table(table_result.value)
 
         # Use validated config in your application
         deploy_result = deploy_application(config)
@@ -258,7 +258,7 @@ def demonstrate_nested_models() -> None:
     )
 
     if db_params_result.is_success:
-        db_params = db_params_result.unwrap()
+        db_params = db_params_result.value
 
         cli.output.print_message("Database config parameters:", style="green")
         for param in db_params:
@@ -337,7 +337,7 @@ def create_database_config_from_cli() -> r[AdvancedDatabaseConfig]:
         return pydantic_result
     cli.output.print_message("✅ Pydantic validation passed", style="green")
 
-    config = pydantic_result.unwrap()
+    config = pydantic_result.value
 
     # Step 3: Business logic validation
     final_config = validate_business_rules(config)
@@ -492,7 +492,7 @@ def main() -> None:
             to_json=True,
         )
         typed_invalid_args: t.Cli.Data.CliDataDict = (
-            transform_result.unwrap()
+            transform_result.value
             if transform_result.is_success
             else cast("t.Cli.Data.CliDataDict", invalid_args)
         )
@@ -516,7 +516,7 @@ def main() -> None:
     db_config_result = create_database_config_from_cli()
 
     if db_config_result.is_success:
-        final_config = db_config_result.unwrap()
+        final_config = db_config_result.value
         # Display final validated config
         config_data = final_config.model_dump()
         display_config_table(
