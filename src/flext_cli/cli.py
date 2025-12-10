@@ -39,7 +39,7 @@ from flext_cli.constants import c
 from flext_cli.models import m
 from flext_cli.protocols import p
 from flext_cli.services.output import FlextCliOutput
-from flext_cli.typings import FlextCliModelT, t
+from flext_cli.typings import t
 from flext_cli.utilities import u
 
 
@@ -1253,9 +1253,9 @@ class FlextCliCli:
 
     @staticmethod
     def model_command(
-        model_class: type[FlextCliModelT],
+        model_class: type[BaseModel],
         handler: Callable[
-            [FlextCliModelT],
+            [BaseModel],
             t.GeneralValueType | r[t.GeneralValueType],
         ],
         config: FlextCliConfig | None = None,
@@ -1358,42 +1358,29 @@ class FlextCliCli:
             msg = f"{class_name} must be a Pydantic model (BaseModel or m subclass)"
             raise TypeError(msg)
 
-        # Use cast to satisfy type checker - FlextCliModelT extends BaseModel
         # Handler can return GeneralValueType or r[GeneralValueType]
-        # ModelCommandBuilder accepts BaseModel, so we cast model_class and handler
-        # Type narrowing: model_class is type[BaseModel], handler is callable
+        # Validate model_class is a type and handler is callable
         if not isinstance(model_class, type):
             msg = "model_class must be a type"
             raise TypeError(msg)
         if not callable(handler):
             msg = "handler must be callable"
             raise TypeError(msg)
-        # Type narrowing: handler accepts FlextCliModelT and returns GeneralValueType | r[GeneralValueType]
-        # ModelCommandBuilder expects Callable[[BaseModel], GeneralValueType]
         # Create wrapper that normalizes return type
+        # Handler accepts BaseModel, returns GeneralValueType or r[GeneralValueType]
 
-        def normalized_handler(model: BaseModel) -> t.GeneralValueType:
-            # Type narrowing: model is FlextCliModelT which extends BaseModel
-            # Runtime validation: model_class is type[FlextCliModelT], model is instance of model_class
-            # We validated model_class extends BaseModel above
+        def normalized_handler(model: object) -> t.GeneralValueType:
+            # Type narrowing: validate model is BaseModel instance
             if not isinstance(model, BaseModel):
                 msg = "model must be a BaseModel instance"
                 raise TypeError(msg)
-            # Runtime validation: model is instance of model_class (which is FlextCliModelT)
-            # Type narrowing: since model_class is type[FlextCliModelT] and model is instance of it
-            # model is guaranteed to be FlextCliModelT at runtime
+            # Runtime validation: model must be instance of expected model_class
             if not isinstance(model, model_class):
                 class_name = getattr(model_class, "__name__", "UnknownClass")
                 msg = f"model must be instance of {class_name}"
                 raise TypeError(msg)
-            # Type narrowing: model is instance of model_class (FlextCliModelT)
-            # After isinstance check, mypy should narrow type but doesn't for TypeVars
-            # Handler expects FlextCliModelT, runtime validation ensures compatibility
-            # Runtime isinstance validates model is FlextCliModelT (instance of model_class)
-            # Type checker needs help: model is BaseModel, but handler expects FlextCliModelT
-            # Runtime validation ensures model is FlextCliModelT, so we can safely call handler
-            # After isinstance(model, model_class) check, model is guaranteed to be FlextCliModelT
-            # Mypy accepts this without cast, pyright may complain but runtime validation ensures correctness
+            # Model is now validated to be an instance of model_class
+            # Handler accepts BaseModel, which model satisfies
             result = handler(model)
             # Normalize return type: if result is r[GeneralValueType], unwrap it
             if isinstance(result, r):

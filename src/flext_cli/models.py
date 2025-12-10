@@ -10,6 +10,7 @@ from typing import (
     Literal,
     Self,
     Union,
+    cast,
     get_args,
     get_origin,
     override,
@@ -34,13 +35,15 @@ from flext_cli.typings import t
 class FlextCliModels(FlextModels):
     """FlextCli models extending FlextModels.
 
-    RULES:
-    ───────
-    1. Inherit from FlextModels, NEVER BaseModel directly
-    2. ConfigDict with frozen=True, extra="forbid"
-    3. Use StrEnum from constants, do not create new ones
-    4. field_validator for complex validation
-    5. Self for transformation methods
+    NAMESPACE HIERARCHY PADRAO:
+    ───────────────────────────
+    1. Heranca real de FlextModels, SEM BaseModel direto
+    2. Namespace hierarquico: m.Cli.Entity, m.Cli.Value, etc.
+    3. SEM duplicacao de declaracoes ou aliases de raiz
+    4. ConfigDict frozen=True, extra="forbid"
+    5. StrEnum de constants, nao criar novos
+    6. field_validator para validacao complexa
+    7. Self para metodos de transformacao
     """
 
     def __init_subclass__(cls, **kwargs: object) -> None:
@@ -50,34 +53,34 @@ class FlextCliModels(FlextModels):
         # (models.py cannot import utilities)
 
     class Cli:
-        """CLI project namespace for cross-project access.
+        """CLI project namespace - PADRAO HIERARQUICO.
 
-        This namespace contains all CLI-specific models from flext-cli.
-        Access via: m.Cli.CliCommand, m.Cli.PromptConfig, etc.
+        Este namespace contem todos os modelos CLI especificos do flext-cli.
+        Acesso via: m.Cli.Entity, m.Cli.Value, m.Cli.CliCommand, etc.
+
+        PADRAO: Namespace hierarquico completo, sem duplicacao.
         """
 
+        # Metodo estatico para compatibilidade
         @staticmethod
         def execute() -> r[t.Json.JsonDict]:
             """Execute models operation - returns empty dict for compatibility."""
             return r[t.Json.JsonDict].ok({})
 
-        # Nested classes exposing Entity and Value via inheritance from parent
+        # Classes base com heranca real - PADRAO CORRETO
         class Entity(FlextModels.Entity):
-            """Entity model base extending FlextModels.Entity via inheritance."""
+            """Entity model base - heranca real de FlextModels.Entity."""
 
-        # Entry class for compatibility with flext-ldif and other projects
-        # m.Entry is a class that can be inherited by FlextLdifModels.Entry
-        # flext-cli does NOT depend on flext-ldif - this is a base class for other projects
         class Entry(Entity):
-            """Entry model base extending Entity for compatibility with flext-ldif.
+            """Entry model base - compatibilidade com flext-ldif.
 
-            This class extends Entity and can be inherited by FlextLdifModels.Entry
-            when flext-ldif is used. flext-cli does not depend on flext-ldif.
-            All methods returning self use Self for proper type inference.
+            Esta classe estende Entity e pode ser herdada por FlextLdifModels.Entry
+            quando flext-ldif e usado. flext-cli NAO depende de flext-ldif.
+            Todos os metodos retornando self usam Self para inferencia correta.
             """
 
         class Value(FlextModels.Value):
-            """Value model base extending FlextModels.Value via inheritance."""
+            """Value model base - heranca real de FlextModels.Value."""
 
         class CliCommand(Entity):
             """CLI command model extending Entity via inheritance."""
@@ -1763,7 +1766,7 @@ class FlextCliModels(FlextModels):
                     object.__setattr__(builder_config, fn, v)
         if callable(builder_handler):
             return builder_handler(model_instance)
-        return None
+        raise RuntimeError("builder_handler is not callable")
     """
                 func_globals = {
                     "builder_model_class": self.model_class,
@@ -1788,10 +1791,14 @@ class FlextCliModels(FlextModels):
                     # Type narrowing: command_wrapper is callable, return as Callable[..., GeneralValueType]
                     # Runtime validation ensures it matches expected signature
                     # command_wrapper is created dynamically and matches Callable[..., GeneralValueType]
+                    # Special case: exec-generated function needs cast due to dynamic nature
+
                     if not isinstance(command_wrapper, type) and callable(
                         command_wrapper
                     ):
-                        return command_wrapper
+                        return cast(
+                            "Callable[..., t.GeneralValueType]", command_wrapper
+                        )
                     msg = "command_wrapper must be a callable function"
                     raise TypeError(msg)
                 msg = "command_wrapper is not callable"
@@ -2014,9 +2021,11 @@ class FlextCliModels(FlextModels):
                         "help": param.help,  # CliParameterSpec stores as .help, not .help_text
                     }
                     # Type narrowing: dynamically created object is compatible with GeneralValueType
-                    option_obj: t.GeneralValueType = type(
-                        "ClickOption", (), option_obj_dict
-                    )()
+                    # Cast needed for dynamically created object to be treated as GeneralValueType
+
+                    option_obj: t.GeneralValueType = cast(
+                        "t.GeneralValueType", type("ClickOption", (), option_obj_dict)()
+                    )
                     options.append(option_obj)
                 return r[list[t.GeneralValueType]].ok(options)
 
@@ -2414,9 +2423,12 @@ class FlextCliModels(FlextModels):
                         if not callable(item):
                             msg = "item must be callable"
                             raise TypeError(msg)
+                        # Cast needed for callable type narrowing
                         validator: Callable[
                             [t.GeneralValueType], t.GeneralValueType
-                        ] = item
+                        ] = cast(
+                            "Callable[[t.GeneralValueType], t.GeneralValueType]", item
+                        )
                         validators.append(validator)
                 return validators
 
@@ -2583,8 +2595,13 @@ class FlextCliModels(FlextModels):
             type Progress = p.Cli.Interactive.RichProgressProtocol
 
 
-# Use namespace completo (m.Cli.*) para acesso explícito
-# Use m.Cli.TableConfig for explicit namespace access
+# =========================================================================
+# NAMESPACE HIERARCHY - PADRAO CORRETO PARA FLEXT-CLI
+# =========================================================================
+# Use namespace hierarquico completo: m.Cli.Entity, m.Cli.Value, m.Cli.CliCommand
+# SEM duplicacao de declaracoes ou aliases de raiz
+# SEM quebra de codigo - mantem compatibilidade backward
+# =========================================================================
 
 m = FlextCliModels
 m_cli = FlextCliModels

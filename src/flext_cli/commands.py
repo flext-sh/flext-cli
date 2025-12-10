@@ -11,7 +11,7 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 from collections.abc import Mapping
-from typing import override
+from typing import cast, override
 
 from flext_core import (
     r,
@@ -140,13 +140,8 @@ class FlextCliCommands(FlextCliServiceBase):
             source="flext-cli/src/flext_cli/commands.py",
         )
 
-    def execute(self, **_kwargs: t.Json.JsonDict) -> r[t.Json.JsonDict]:
-        """Execute the main domain service operation - required by FlextService.
-
-        Args:
-            **_kwargs: Additional execution parameters (unused, for FlextService compatibility)
-
-        """
+    def execute(self) -> r[t.Json.JsonDict]:
+        """Execute the main domain service operation - required by FlextService."""
         self.logger.info(
             "Executing CLI commands service",
             operation="execute",
@@ -163,16 +158,16 @@ class FlextCliCommands(FlextCliServiceBase):
         )
 
         # Build result dict with proper types
-        # JsonDict is Mapping[str, GeneralValueType], dict[str, GeneralValueType] is compatible
-        # No cast() needed - dict is a subclass of Mapping
-        result_dict: dict[str, t.GeneralValueType] = {
-            c.Cli.CommandsDictKeys.STATUS: c.Cli.ServiceStatus.OPERATIONAL.value,
-            c.Cli.CommandsDictKeys.SERVICE: c.Cli.FLEXT_CLI,
-            c.Cli.CommandsDictKeys.COMMANDS: list(self._commands.keys()),
-        }
-        # Type narrowing: dict[str, GeneralValueType] is compatible with Mapping[str, GeneralValueType]
-        result_mapping: t.Json.JsonDict = result_dict
-        result = r[t.Json.JsonDict].ok(result_mapping)
+        # Use cast to ensure type compatibility
+        result_dict = cast(
+            "t.Json.JsonDict",
+            {
+                c.Cli.CommandsDictKeys.STATUS: c.Cli.ServiceStatus.OPERATIONAL.value,
+                c.Cli.CommandsDictKeys.SERVICE: c.Cli.FLEXT_CLI,
+                c.Cli.CommandsDictKeys.COMMANDS: list(self._commands.keys()),
+            },
+        )
+        result = r[t.Json.JsonDict].ok(result_dict)
 
         self.logger.debug(
             "Service execution completed successfully",

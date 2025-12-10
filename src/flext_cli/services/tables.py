@@ -10,7 +10,7 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from collections.abc import Iterable, Mapping, Sequence
+from collections.abc import Mapping, Sequence
 from itertools import starmap
 
 from flext_core import FlextRuntime, r
@@ -231,13 +231,13 @@ class FlextCliTables(FlextCliServiceBase):
         # Type narrowing: data is Iterable, convert to list for is_list_like check
         data_as_general: t.GeneralValueType = (
             list(data)
-            if isinstance(data, Iterable) and not isinstance(data, str)
+            if hasattr(data, "__iter__") and not isinstance(data, str)
             else data
         )
         # Convert to list for indexing - TableData is Iterable, need list for [0]
         data_list = (
             list(data)
-            if isinstance(data, Iterable) and not isinstance(data, str)
+            if hasattr(data, "__iter__") and not isinstance(data, str)
             else []
         )
         if (

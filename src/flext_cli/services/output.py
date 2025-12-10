@@ -17,7 +17,6 @@ from typing import TypeGuard, override
 import yaml
 from flext_core import (
     FlextRuntime,
-    FlextUtilities as u_core,
     r,
 )
 from pydantic import BaseModel
@@ -493,7 +492,7 @@ class FlextCliOutput(FlextCliServiceBase):
     ) -> r[str]:
         """Dispatch to appropriate formatter based on format type."""
         # Format dispatcher using dict mapping
-        formatters = {
+        formatters: dict[str, Callable[[], r[str]]] = {
             c.Cli.OutputFormats.JSON.value: lambda: self.format_json(data),
             c.Cli.OutputFormats.YAML.value: lambda: self.format_yaml(data),
             c.Cli.OutputFormats.TABLE.value: lambda: self._format_table_data(
@@ -505,19 +504,16 @@ class FlextCliOutput(FlextCliServiceBase):
             c.Cli.OutputFormats.PLAIN.value: lambda: r[str].ok(str(data)),
         }
 
-        formatter_raw = u_core.mapper().get(formatters, format_type)
-        if formatter_raw is None:
+        formatter = formatters.get(format_type)
+        if formatter is None:
             return r[str].fail(
                 c.Cli.ErrorMessages.UNSUPPORTED_FORMAT_TYPE.format(
                     format_type=format_type,
                 ),
             )
-        # Type narrowing: formatter_raw is Callable[[], r[str]] when not None
-        # formatters dict values are all Callable[[], r[str]], so get() returns that type
-        # No cast() needed - type narrowing from dict value type
-        if not callable(formatter_raw):
-            return r[str].fail("Formatter is not callable")
-        formatter: Callable[[], r[str]] = formatter_raw
+        # Type narrowing: formatter is Callable[[], r[str]] after get() check
+        # formatters dict is typed as dict[str, Callable[[], r[str]]]
+        # so formatter is guaranteed to be the correct type when not None
         return formatter()
 
     def _format_table_data(

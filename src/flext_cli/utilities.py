@@ -1989,7 +1989,7 @@ class FlextCliUtilities(u_core):
                 @staticmethod
                 def _validate_flexible_value(
                     value: t.GeneralValueType,
-                ) -> t.FlexibleValue:
+                ) -> t.GeneralValueType:
                     """Validate and convert GeneralValueType to FlexibleValue.
 
                     FlexibleValue = ScalarValue | Sequence[ScalarValue] | Mapping[str, ScalarValue]
@@ -2004,6 +2004,7 @@ class FlextCliUtilities(u_core):
                             isinstance(item, (str, int, float, bool, type(None)))
                             for item in value
                         ):
+                            # Type narrowing: all items are ScalarValue, so sequence is Sequence[ScalarValue]
                             return value
                         msg = "Sequence values must all be ScalarValue"
                         raise TypeError(msg)
@@ -2038,8 +2039,10 @@ class FlextCliUtilities(u_core):
                             if not isinstance(v, dict):
                                 msg = "v must be dict"
                                 raise TypeError(msg)
-                            v_dict: dict[str, t.GeneralValueType] = v
-                            t_result = u.transform(v_dict, to_json=True)
+                            v_mapping: Mapping[str, t.GeneralValueType] = (
+                                v  # Covariant, ScalarValue ⊆ GeneralValueType
+                            )
+                            t_result = u.transform(dict(v_mapping), to_json=True)
                             if t_result.is_success:
                                 # Use .value directly instead of deprecated .unwrap()
                                 # Type narrowing: value is ConfigurationDict (dict[str, GeneralValueType])

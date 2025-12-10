@@ -27,6 +27,17 @@ FlextCliFormatterT = TypeVar("FlextCliFormatterT")
 # Model TypeVar for CLI commands
 FlextCliModelT = TypeVar("FlextCliModelT", bound=BaseModel)
 
+# Type aliases for better pyrefly compatibility
+FormatableResult = (
+    dict[str, FlextTypes.JsonValue]
+    | list[FlextTypes.JsonValue]
+    | tuple[FlextTypes.JsonValue, ...]
+    | FlextTypes.JsonValue
+    | r[FlextTypes.GeneralValueType]
+)
+
+ResultFormatter = Callable[[FormatableResult, str], None]
+
 
 # ═══════════════════════════════════════════════════════════════════════════
 # SINGLE CLASS WITH NESTED CLASSES
@@ -98,7 +109,7 @@ class FlextCliTypes(FlextTypes):
             type Handler[T] = Callable[[FlextTypes.GeneralValueType], r[T]]
             type Processor = Callable[[FlextTypes.GeneralValueType], r[bool]]
             type Collection = Sequence[FlextTypes.GeneralValueType]
-            type BatchProcessor = Callable[[Collection], r[int]]
+            type BatchProcessor = Callable[[Sequence[FlextTypes.GeneralValueType]], r[int]]
 
         class CliConfig(FlextTypes.Config):
             """Configuration-related type aliases - extends FlextTypes.Config via inheritance for full hierarchy exposure."""
@@ -110,11 +121,11 @@ class FlextCliTypes(FlextTypes):
             ]
 
             # Configuration value types - reuse FlextTypes
-            type ScalarValue = FlextTypes.ScalarValue
-            type ListValue = Sequence[FlextTypes.ScalarValue]
+            type ScalarValue = t.ScalarValue
+            type ListValue = Sequence[t.ScalarValue]
             type DictValue = Mapping[
                 str,
-                FlextTypes.ScalarValue | Sequence[FlextTypes.ScalarValue],
+                t.ScalarValue | Sequence[t.ScalarValue],
             ]
             type ConfigValue = FlextTypes.GeneralValueType
 
@@ -230,18 +241,8 @@ class FlextCliTypes(FlextTypes):
         class Callable:
             """Callable type aliases - now properly typed."""
 
-            # FormatableResult: Types that can be formatted for display
-            # Can be dict, list, tuple, str, int, float, bool, None, or FlextResult
-            type FormatableResult = (
-                dict[str, FlextTypes.JsonValue]
-                | list[FlextTypes.JsonValue]
-                | tuple[FlextTypes.JsonValue, ...]
-                | FlextTypes.JsonValue
-                | r[FlextTypes.GeneralValueType]
-            )
-
-            # ResultFormatter: Function that takes a formattable result and format string
-            type ResultFormatter = Callable[[FormatableResult, str], None]
+            # FormatableResult and ResultFormatter defined at module level for pyrefly compatibility
+            # See module-level definitions above
 
             # HandlerFunction: Generic handler with FlextResult return type
             class HandlerFunction(Protocol):

@@ -660,9 +660,9 @@ class FlextCliProtocols(FlextProtocols):
                 ...
 
         # PEP 695 type aliases - direct type references
-        type CliCommandFunction = CliCommandHandler
+        type CliCommandFunction = FlextCliProtocols.Cli.CliCommandHandler
         # Type for registered commands (decorated functions)
-        type CliRegisteredCommand = Command
+        type CliRegisteredCommand = FlextCliProtocols.Cli.Command
 
         @runtime_checkable
         class ModelCommandHandler(Protocol):
@@ -848,3 +848,6 @@ __all__ = [
     "FlextCliProtocols",
     "p",
 ]
+
+# Short alias for namespace access
+fcli = FlextCliProtocols
